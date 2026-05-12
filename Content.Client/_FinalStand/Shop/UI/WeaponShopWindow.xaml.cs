@@ -100,6 +100,21 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         btn.OnPressed += _ => OnUpgradePressed?.Invoke(def.Id);
         row.AddChild(btn);
 
+        if (def.IsStub)
+        {
+            btn.Disabled = true;
+            btn.ToolTip = "Not yet implemented.";
+            var wipLabel = new Label
+            {
+                Text = "WIP",
+                Modulate = Color.FromHex("#BF616A"),
+                HorizontalExpand = true,
+                HorizontalAlignment = HAlignment.Right,
+            };
+            row.AddChild(wipLabel);
+            return row;
+        }
+
         // Level squares
         var squares = new BoxContainer
         {

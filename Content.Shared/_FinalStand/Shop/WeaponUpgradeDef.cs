@@ -8,6 +8,15 @@ public enum WeaponUpgradeType : byte
     FireRate,
     AngleMax,
     SpawnItem,
+    Accuracy,
+    MagazineSize,
+    ReloadSpeed,
+    Range,
+    FullAuto,
+    CritChance,
+    CritDamage,
+    Pierce,
+    Radius,
 }
 
 [DataDefinition]
@@ -22,4 +31,5 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public float ValuePerLevel = 1.0f;
     [DataField] public EntProtoId? SpawnProtoId;
     [DataField] public int SpawnCountPerLevel = 1;
+    [DataField] public bool IsStub = false;
 }
