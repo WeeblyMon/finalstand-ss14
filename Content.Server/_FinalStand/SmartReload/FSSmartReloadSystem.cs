@@ -213,6 +213,12 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (!TryComp<BallisticAmmoProviderComponent>(gun, out var comp))
             return;
 
+        if (comp.Capacity >= 500)
+        {
+            _popup.PopupEntity("Minigun can only be reloaded from ammo resupply.", gun, user);
+            return;
+        }
+
         if (comp.Count >= comp.Capacity)
         {
             _popup.PopupEntity("Already full.", gun, user);
@@ -255,9 +261,11 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
             return;
 
+        var prevCount = comp.Count;
         _gunSystem.TryBallisticInsert((gun, comp), args.Used.Value, args.User);
 
-        if (comp.Count >= comp.Capacity)
+        // If the insert didn't increase the count, stop chaining to avoid an infinite loop.
+        if (comp.Count == prevCount || comp.Count >= comp.Capacity)
             return;
 
         var next = FindBestAmmo(args.User, comp.Whitelist);
@@ -314,9 +322,11 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
             return;
 
+        var prevEmpty = CountEmptyChambers(comp);
         _gunSystem.TryRevolverInsert((gun, comp), args.Used.Value, args.User);
 
-        if (CountEmptyChambers(comp) == 0)
+        // If the insert didn't fill a chamber, stop chaining.
+        if (CountEmptyChambers(comp) == prevEmpty || CountEmptyChambers(comp) == 0)
             return;
 
         var next = FindBestAmmo(args.User, comp.Whitelist);
@@ -330,7 +340,10 @@ public sealed class FSSmartReloadSystem : EntitySystem
     {
         if (!_slots.TryGetSlot(gun, "gun_cell", out _))
         {
-            _popup.PopupEntity("This weapon self-recharges.", gun, user);
+            var msg = HasComp<BatterySelfRechargerComponent>(gun)
+                ? "This weapon self-recharges."
+                : "Needs cell recharger.";
+            _popup.PopupEntity(msg, gun, user);
             return;
         }
 
@@ -444,6 +457,19 @@ public sealed class FSSmartReloadSystem : EntitySystem
                     {
                         if (IsValidAmmo(innerItem, whitelist))
                             return innerItem;
+
+                        // Third level: rounds inside ammo boxes that are inside a backpack
+                        if (!TryComp<ContainerManagerComponent>(innerItem, out var deepMgr))
+                            continue;
+
+                        foreach (var deep in deepMgr.Containers.Values)
+                        {
+                            foreach (var deepItem in deep.ContainedEntities)
+                            {
+                                if (IsValidAmmo(deepItem, whitelist))
+                                    return deepItem;
+                            }
+                        }
                     }
                 }
             }
@@ -504,7 +530,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
             if (comp.AmmoSlots[i] != null)
                 proto = MetaData(comp.AmmoSlots[i]!.Value).EntityPrototype?.ID;
-            else if (comp.Chambers[i] != null && comp.FillPrototype != null)
+            else if (comp.Chambers[i] == true && comp.FillPrototype != null)
                 proto = comp.FillPrototype;
 
             if (proto != null)
@@ -519,7 +545,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
         var count = 0;
         for (var i = 0; i < comp.Capacity; i++)
         {
-            if (comp.AmmoSlots[i] == null && comp.Chambers[i] == null)
+            // null = truly empty; false = spent case — both can accept a new round
+            if (comp.AmmoSlots[i] == null && comp.Chambers[i] != true)
                 count++;
         }
         return count;
