@@ -219,6 +219,9 @@ binds:
   type: State
   key: E
   mod1: Alt
+- function: ReloadWeapon
+  type: State
+  key: R
 - function: ThrowItemInHand
   type: State
   key: Q
