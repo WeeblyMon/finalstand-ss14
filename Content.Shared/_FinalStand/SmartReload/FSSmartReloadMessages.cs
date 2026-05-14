@@ -17,10 +17,19 @@ public sealed class FSEjectMessage : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
-public sealed partial class FSMagReloadDoAfterEvent : SimpleDoAfterEvent { }
+public sealed partial class FSMagReloadDoAfterEvent : SimpleDoAfterEvent
+{
+    public bool IsChainReload;
+}
 
 [Serializable, NetSerializable]
-public sealed partial class FSShellInsertDoAfterEvent : SimpleDoAfterEvent { }
+public sealed partial class FSShellInsertDoAfterEvent : SimpleDoAfterEvent
+{
+    public bool IsChainReload;
+}
 
 [Serializable, NetSerializable]
-public sealed partial class FSChamberFillDoAfterEvent : SimpleDoAfterEvent { }
+public sealed partial class FSChamberFillDoAfterEvent : SimpleDoAfterEvent
+{
+    public bool IsChainReload;
+}

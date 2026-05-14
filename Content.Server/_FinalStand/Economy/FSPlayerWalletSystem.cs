@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Shared.Console;
 using Robust.Server.Player;
@@ -26,6 +27,20 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeNetworkEvent<WalletRequestEvent>(OnWalletRequested);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
+    }
+
+    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
+    {
+        // Mind entities persist across rounds, so we must manually zero credits.
+        // Perk points are intentionally kept (they persist between rounds).
+        var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
+        while (query.MoveNext(out var mindId, out var wallet))
+        {
+            wallet.Credits = 0;
+            NotifyClient(mindId, wallet);
+        }
+        Log.Debug("[FSWallet] Round restart — cleared credits on all wallets.");
     }
 
     private void LoadPrestige()

@@ -16,3 +16,7 @@ public sealed class FSShopUpgradeMessage(string upgradeId) : BoundUserInterfaceM
 {
     public readonly string UpgradeId = upgradeId;
 }
+
+/// <summary>Client sends this when the held weapon changes while the shop window is open.</summary>
+[Serializable, NetSerializable]
+public sealed class FSShopRefreshMessage : BoundUserInterfaceMessage { }

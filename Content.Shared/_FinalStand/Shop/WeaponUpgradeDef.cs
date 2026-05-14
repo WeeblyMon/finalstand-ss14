@@ -17,6 +17,7 @@ public enum WeaponUpgradeType : byte
     CritDamage,
     Pierce,
     Radius,
+    Akimbo,
 }
 
 [DataDefinition]

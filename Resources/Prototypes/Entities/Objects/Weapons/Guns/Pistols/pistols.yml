@@ -75,6 +75,9 @@
   id: WeaponPistolViper
   description: A common handgun illegally modified by the Syndicate. The Viper sports a selector switch between semi-auto and ‘rock and roll’. The standard sidearm for any soldier who fights under the three serpents. Feeds from .35 pistol magazines.
   components:
+  - type: Tag
+    tags:
+      - AkimboEligible
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
   - type: ItemSlots
@@ -219,8 +222,11 @@
   name: N1984
   parent: [BaseWeaponPistol, BaseSecurityContraband]
   id: WeaponPistolN1984
-  description: An exceptionally powerful ‘hand cannon’ designed as part of Nanotrasen's BFG initiative. Chambered in .45, the lord’s caliber, it is generally considered too unwieldy for standard use but has become something of a status symbol among Nanotrasen officials. Feeds from .45 pistol magazines.
+  description: An exceptionally powerful ‘hand cannon’ designed as part of Nanotrasen’s BFG initiative. Chambered in .45, the lord’s caliber, it is generally considered too unwieldy for standard use but has become something of a status symbol among Nanotrasen officials. Feeds from .45 pistol magazines.
   components:
+  - type: Tag
+    tags:
+      - AkimboEligible
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     layers:

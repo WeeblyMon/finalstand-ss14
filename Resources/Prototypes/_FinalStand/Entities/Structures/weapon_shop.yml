@@ -60,6 +60,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
+    - id: viper-akimbo
+      name: Akimbo
+      description: Dual wield. A second Viper spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
     state: base
@@ -97,6 +104,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
+    - id: mateba-akimbo
+      name: Akimbo
+      description: Dual wield. A second Mateba spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
     state: icon
@@ -134,6 +148,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.5
+    - id: flintlock-akimbo
+      name: Akimbo
+      description: Dual wield. A second Flintlock spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 300
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
     state: base
@@ -171,6 +192,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
+    - id: n1984-akimbo
+      name: Akimbo
+      description: Dual wield. A second N1984 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     state: base

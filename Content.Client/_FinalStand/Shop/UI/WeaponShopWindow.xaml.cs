@@ -54,6 +54,12 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         BalanceLabel.Modulate = canAfford ? Color.LimeGreen : Color.OrangeRed;
     }
 
+    public void UpdateWeaponTitle(string title)
+    {
+        if (title.Length > 0)
+            WeaponNameLabel.Text = Capitalize(title);
+    }
+
     public void RefreshUpgrades(List<WeaponUpgradeDef> defs, Dictionary<string, int> levels, int credits)
     {
         UpgradesContainer.RemoveAllChildren();

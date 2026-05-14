@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
@@ -48,8 +49,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
         SubscribeLocalEvent<RevolverAmmoProviderComponent, FSChamberFillDoAfterEvent>(OnChamberFillComplete);
     }
 
-    // ---- Validation ----
-
     private bool TryGetValidGun(NetEntity netGun, ICommonSession? session,
         out EntityUid gun, out EntityUid user)
     {
@@ -60,9 +59,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
                && HasComp<GunComponent>(gun)
                && _hands.IsHolding(user, gun);
     }
-
-    // ---- Archetype detection ----
-
     private GunArchetype Detect(EntityUid gun)
     {
         if (HasComp<RevolverAmmoProviderComponent>(gun))                                          return GunArchetype.Revolver;
@@ -73,7 +69,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         return GunArchetype.None;
     }
 
-    // ---- TAP R ----
+    // R Tap
 
     private void OnSmartReload(FSSmartReloadMessage msg, EntitySessionEventArgs args)
     {
@@ -100,7 +96,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // ---- HOLD R ----
+    // Hold R to eject (magazine, tube shells, revolver rounds, or battery cell depending on gun type)
 
     private void OnEject(FSEjectMessage msg, EntitySessionEventArgs args)
     {
@@ -131,20 +127,22 @@ public sealed class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // ---- Magazine reload ----
+    // Reload Magazine-fed guns (rifles, SMGs, etc.)
 
-    private void ReloadMagazine(EntityUid gun, EntityUid user)
+    private void ReloadMagazine(EntityUid gun, EntityUid user, bool isChainReload = false)
     {
         var newMag = FindBestMagazine(user, gun);
         if (newMag == null)
         {
-            _popup.PopupEntity("No compatible magazine found.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("No compatible magazine found.", gun, user);
             return;
         }
 
         if (TryComp<BallisticAmmoProviderComponent>(newMag.Value, out var newBal) && newBal.Count == 0)
         {
-            _popup.PopupEntity("All magazines are empty.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("All magazines are empty.", gun, user);
             return;
         }
 
@@ -153,7 +151,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         var delay  = hasMag ? MagEjectTime + MagInsertTime : MagInsertTime;
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
-            new FSMagReloadDoAfterEvent(), eventTarget: gun)
+            new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
         {
             NeedHand           = true,
             BreakOnMove        = true,
@@ -187,6 +185,10 @@ public sealed class FSSmartReloadSystem : EntitySystem
             return;
 
         _slots.TryInsert(gun, SharedGunSystem.MagazineSlot, newMag.Value, args.User);
+
+        // Chain into reloading the paired akimbo gun (one-level only — IsChainReload prevents further chaining).
+        if (!args.IsChainReload)
+            ChainAkimboReload(gun, args.User);
     }
 
     private void TryStoreItemInInventory(EntityUid user, EntityUid item)
@@ -208,43 +210,47 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     // ---- Tube-fed reload ----
 
-    private void ReloadTubeFed(EntityUid gun, EntityUid user)
+    private void ReloadTubeFed(EntityUid gun, EntityUid user, bool isChainReload = false)
     {
         if (!TryComp<BallisticAmmoProviderComponent>(gun, out var comp))
             return;
 
         if (comp.Capacity >= 500)
         {
-            _popup.PopupEntity("Minigun can only be reloaded from ammo resupply.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("Minigun can only be reloaded from ammo resupply.", gun, user);
             return;
         }
 
         if (comp.Count >= comp.Capacity)
         {
-            _popup.PopupEntity("Already full.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("Already full.", gun, user);
             return;
         }
 
         if (HasMixedAmmoBallistic(comp))
         {
-            _popup.PopupEntity("Mixed ammo loaded — reload manually.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("Mixed ammo loaded — reload manually.", gun, user);
             return;
         }
 
         var shell = FindBestAmmo(user, comp.Whitelist);
         if (shell == null)
         {
-            _popup.PopupEntity("No compatible ammo found.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("No compatible ammo found.", gun, user);
             return;
         }
 
-        StartShellInsert(gun, user, shell.Value);
+        StartShellInsert(gun, user, shell.Value, isChainReload);
     }
 
-    private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell)
+    private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell, bool isChainReload = false)
     {
         var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime,
-            new FSShellInsertDoAfterEvent(), eventTarget: gun, used: shell)
+            new FSShellInsertDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: shell)
         {
             NeedHand           = true,
             BreakOnMove        = true,
@@ -261,51 +267,89 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
             return;
 
+        var toInsert = args.Used.Value;
+        if (HasComp<BallisticAmmoProviderComponent>(toInsert))
+        {
+            var spawned = TrySpawnRoundFromBox(toInsert);
+            if (spawned == null)
+                return;
+            toInsert = spawned.Value;
+        }
+
         var prevCount = comp.Count;
-        _gunSystem.TryBallisticInsert((gun, comp), args.Used.Value, args.User);
+        _gunSystem.TryBallisticInsert((gun, comp), toInsert, args.User);
 
-        // If the insert didn't increase the count, stop chaining to avoid an infinite loop.
-        if (comp.Count == prevCount || comp.Count >= comp.Capacity)
+        if (comp.Count == prevCount)
+            return; // insert failed — stop loop
+
+        if (comp.Count >= comp.Capacity)
+        {
+            // Gun is full — chain to akimbo partner if this was not already a chain.
+            if (!args.IsChainReload)
+                ChainAkimboReload(gun, args.User);
             return;
+        }
 
-        var next = FindBestAmmo(args.User, comp.Whitelist);
-        if (next != null)
-            StartShellInsert(gun, args.User, next.Value);
+        // Continue filling — carry the chain flag through the loop so it doesn't re-chain mid-loop.
+        var nextSource = args.Used.Value;
+        if (HasComp<BallisticAmmoProviderComponent>(nextSource)
+            && TryComp<BallisticAmmoProviderComponent>(nextSource, out var boxComp)
+            && boxComp.Count == 0)
+        {
+            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+        }
+        else if (!HasComp<BallisticAmmoProviderComponent>(nextSource))
+        {
+            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+        }
+
+        if (nextSource.IsValid())
+            StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
     }
 
-    // ---- Revolver reload ----
+    // revolver reload
 
-    private void ReloadRevolver(EntityUid gun, EntityUid user)
+    private void ReloadRevolver(EntityUid gun, EntityUid user, bool isChainReload = false)
     {
         if (!TryComp<RevolverAmmoProviderComponent>(gun, out var comp))
             return;
 
-        if (CountEmptyChambers(comp) == 0)
+        var empty = CountEmptyChambers(comp);     // null chambers TryRevolverInsert can fill
+        var spent = CountSpentChambers(comp);     // false chambers (fired cases)
+
+        if (empty == 0 && spent == 0)
         {
-            _popup.PopupEntity("Cylinder is full.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("Cylinder is full.", gun, user);
             return;
         }
 
         if (HasMixedRevolverAmmo(comp))
         {
-            _popup.PopupEntity("Mixed ammo in cylinder — reload manually.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("Mixed ammo in cylinder — reload manually.", gun, user);
             return;
         }
 
-        var round = FindBestAmmo(user, comp.Whitelist);
-        if (round == null)
+        var source = FindBestAmmo(user, comp.Whitelist);
+        if (source == null)
         {
-            _popup.PopupEntity("No compatible ammo found.", gun, user);
+            if (!isChainReload)
+                _popup.PopupEntity("No compatible ammo found.", gun, user);
             return;
         }
 
-        StartChamberFill(gun, user, round.Value);
+        // TryRevolverInsert only accepts null chambers — eject spent cases first.
+        if (empty == 0 && spent > 0)
+            _gunSystem.EmptyRevolver((gun, comp), user);
+
+        StartChamberFill(gun, user, source.Value, isChainReload);
     }
 
-    private void StartChamberFill(EntityUid gun, EntityUid user, EntityUid round)
+    private void StartChamberFill(EntityUid gun, EntityUid user, EntityUid round, bool isChainReload = false)
     {
         var doAfterArgs = new DoAfterArgs(EntityManager, user, ChamberFillTime,
-            new FSChamberFillDoAfterEvent(), eventTarget: gun, used: round)
+            new FSChamberFillDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: round)
         {
             NeedHand           = true,
             BreakOnMove        = true,
@@ -322,16 +366,45 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
             return;
 
-        var prevEmpty = CountEmptyChambers(comp);
-        _gunSystem.TryRevolverInsert((gun, comp), args.Used.Value, args.User);
+        // If source is an ammo box, spawn one round from it to insert.
+        var toInsert = args.Used.Value;
+        if (HasComp<BallisticAmmoProviderComponent>(toInsert))
+        {
+            var spawned = TrySpawnRoundFromBox(toInsert);
+            if (spawned == null)
+                return;
+            toInsert = spawned.Value;
+        }
 
-        // If the insert didn't fill a chamber, stop chaining.
-        if (CountEmptyChambers(comp) == prevEmpty || CountEmptyChambers(comp) == 0)
+        var prevNull = CountNullChambers(comp);
+        _gunSystem.TryRevolverInsert((gun, comp), toInsert, args.User);
+
+        if (CountNullChambers(comp) == prevNull)
+            return; // insert failed — stop loop
+
+        if (CountNullChambers(comp) == 0)
+        {
+            // Cylinder full — chain to akimbo partner if not already a chain.
+            if (!args.IsChainReload)
+                ChainAkimboReload(gun, args.User);
             return;
+        }
 
-        var next = FindBestAmmo(args.User, comp.Whitelist);
-        if (next != null)
-            StartChamberFill(gun, args.User, next.Value);
+        // Keep using same box if it was the source; otherwise search again.
+        var nextSource = args.Used.Value;
+        if (HasComp<BallisticAmmoProviderComponent>(nextSource)
+            && TryComp<BallisticAmmoProviderComponent>(nextSource, out var boxComp)
+            && boxComp.Count == 0)
+        {
+            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+        }
+        else if (!HasComp<BallisticAmmoProviderComponent>(nextSource))
+        {
+            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+        }
+
+        if (nextSource.IsValid())
+            StartChamberFill(gun, args.User, nextSource, args.IsChainReload);
     }
 
     // ---- Battery reload ----
@@ -424,6 +497,10 @@ public sealed class FSSmartReloadSystem : EntitySystem
     {
         if (item == currentMag)
             return;
+        // Skip mags that are currently loaded inside another gun (e.g. akimbo partner's magazine).
+        var parent = Transform(item).ParentUid;
+        if (parent.IsValid() && HasComp<GunComponent>(parent))
+            return;
         if (!TryComp<BallisticAmmoProviderComponent>(item, out var bal))
             return;
         if (_whitelist.IsWhitelistFail(whitelist, item))
@@ -441,12 +518,16 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (!TryComp<ContainerManagerComponent>(user, out var mgr))
             return null;
 
+        EntityUid? fallbackBox = null;
+
         foreach (var container in mgr.Containers.Values)
         {
             foreach (var item in container.ContainedEntities)
             {
                 if (IsValidAmmo(item, whitelist))
                     return item;
+
+                fallbackBox ??= IsCompatibleAmmoBox(item, whitelist) ? item : null;
 
                 if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
                     continue;
@@ -458,7 +539,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
                         if (IsValidAmmo(innerItem, whitelist))
                             return innerItem;
 
-                        // Third level: rounds inside ammo boxes that are inside a backpack
+                        fallbackBox ??= IsCompatibleAmmoBox(innerItem, whitelist) ? innerItem : null;
+
                         if (!TryComp<ContainerManagerComponent>(innerItem, out var deepMgr))
                             continue;
 
@@ -468,11 +550,58 @@ public sealed class FSSmartReloadSystem : EntitySystem
                             {
                                 if (IsValidAmmo(deepItem, whitelist))
                                     return deepItem;
+
+                                fallbackBox ??= IsCompatibleAmmoBox(deepItem, whitelist) ? deepItem : null;
                             }
                         }
                     }
                 }
             }
+        }
+
+        return fallbackBox;
+    }
+
+    private bool IsCompatibleAmmoBox(EntityUid item, EntityWhitelist? gunWhitelist)
+    {
+        if (!TryComp<BallisticAmmoProviderComponent>(item, out var bal))
+            return false;
+        if (bal.Count == 0)
+            return false;
+        if (gunWhitelist?.Tags == null)
+            return false;
+
+        var boxWhitelist = bal.Whitelist;
+        if (boxWhitelist?.Tags == null)
+            return false;
+
+        foreach (var tag in boxWhitelist.Tags)
+        {
+            if (gunWhitelist.Tags.Contains(tag))
+                return true;
+        }
+        return false;
+    }
+
+    private EntityUid? TrySpawnRoundFromBox(EntityUid box)
+    {
+        if (!TryComp<BallisticAmmoProviderComponent>(box, out var bal))
+            return null;
+
+        // Take a physically spawned entity from the box's container.
+        if (_containers.TryGetContainer(box, "ballistic-ammo", out var container)
+            && container.ContainedEntities.Count > 0)
+        {
+            var round = container.ContainedEntities[^1];
+            _containers.Remove(round, container);
+            return round;
+        }
+
+        // Spawn from unspawned count.
+        if (bal.UnspawnedCount > 0 && bal.Proto != null)
+        {
+            _gunSystem.SetBallisticUnspawned((box, bal), bal.UnspawnedCount - 1);
+            return Spawn(bal.Proto.Value, Transform(box).Coordinates);
         }
 
         return null;
@@ -540,15 +669,63 @@ public sealed class FSSmartReloadSystem : EntitySystem
         return protos.Count > 1;
     }
 
-    private static int CountEmptyChambers(RevolverAmmoProviderComponent comp)
+    // Truly empty slots TryRevolverInsert can fill (Chambers == null).
+    private static int CountNullChambers(RevolverAmmoProviderComponent comp)
     {
         var count = 0;
         for (var i = 0; i < comp.Capacity; i++)
         {
-            // null = truly empty; false = spent case — both can accept a new round
-            if (comp.AmmoSlots[i] == null && comp.Chambers[i] != true)
+            if (comp.AmmoSlots[i] == null && comp.Chambers[i] == null)
                 count++;
         }
         return count;
+    }
+
+    // Fired cases (Chambers == false) — need ejecting before a new round can be seated.
+    private static int CountSpentChambers(RevolverAmmoProviderComponent comp)
+    {
+        var count = 0;
+        for (var i = 0; i < comp.Capacity; i++)
+        {
+            if (comp.AmmoSlots[i] == null && comp.Chambers[i] == false)
+                count++;
+        }
+        return count;
+    }
+
+    // All reloadable slots (null + spent) — used to detect a fully loaded cylinder.
+    private static int CountEmptyChambers(RevolverAmmoProviderComponent comp)
+        => CountNullChambers(comp) + CountSpentChambers(comp);
+
+    // ---- Akimbo sequential reload ----
+
+    /// <summary>
+    ///     After <paramref name="gun"/> finishes reloading, start the same reload on its akimbo partner.
+    ///     Uses IsChainReload=true so the partner does not chain back, preventing infinite loops.
+    /// </summary>
+    private void ChainAkimboReload(EntityUid gun, EntityUid user)
+    {
+        if (!TryComp<FSAkimboGunComponent>(gun, out var akimbo)
+            || akimbo.PairedGun == null
+            || !akimbo.PairedGun.Value.IsValid())
+        {
+            return;
+        }
+
+        var paired = akimbo.PairedGun.Value;
+
+        switch (Detect(paired))
+        {
+            case GunArchetype.Magazine:
+                ReloadMagazine(paired, user, isChainReload: true);
+                break;
+            case GunArchetype.TubeFed:
+                ReloadTubeFed(paired, user, isChainReload: true);
+                break;
+            case GunArchetype.Revolver:
+                ReloadRevolver(paired, user, isChainReload: true);
+                break;
+            // Battery and None: no chain (no ammo loop to chain into)
+        }
     }
 }
