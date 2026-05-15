@@ -3,6 +3,7 @@ using Content.Client.Hands.Systems;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Hands.Controls;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
+using Content.Shared._FinalStand.Akimbo;
 using Content.Shared.Hands.Components;
 using Content.Shared.Input;
 using Content.Shared.Inventory.VirtualItem;
@@ -11,6 +12,7 @@ using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Input;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -357,6 +359,9 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
         HandsGui?.Visible = _playerHandsComponent != null;
     }
 
+    private static readonly Color GoldColor   = Color.FromHex("#FFD700");
+    private static readonly Color WhiteColor  = Color.White;
+
     public override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
@@ -364,20 +369,38 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
         if (HandsGui is not { } handsGui)
             return;
 
+        var anyAkimbo = false;
+
         // TODO this should be event based but 2 systems modify the same component differently for some reason
         foreach (var hand in handsGui.HandContainer.GetButtons())
         {
-
             if (!_entities.TryGetComponent(hand.Entity, out UseDelayComponent? useDelay))
             {
                 hand.CooldownDisplay.Visible = false;
-                continue;
             }
-            var delay = _useDelay.GetLastEndingDelay((hand.Entity.Value, useDelay));
+            else
+            {
+                var delay = _useDelay.GetLastEndingDelay((hand.Entity.Value, useDelay));
+                hand.CooldownDisplay.Visible = true;
+                hand.CooldownDisplay.FromTime(delay.StartTime, delay.EndTime);
+            }
 
-            hand.CooldownDisplay.Visible = true;
-            hand.CooldownDisplay.FromTime(delay.StartTime, delay.EndTime);
+            // Golden highlight for akimbo hands.
+            var isAkimbo = hand.Entity != null && _entities.HasComponent<FSAkimboGunComponent>(hand.Entity.Value);
+            if (isAkimbo)
+            {
+                anyAkimbo = true;
+                hand.Highlight = true;
+                hand.HighlightRect.Modulate = GoldColor;
+            }
+            else
+            {
+                // Restore to white so the normal active-hand blue tint applies.
+                hand.HighlightRect.Modulate = WhiteColor;
+            }
         }
+
+        handsGui.AkimboLabel.Visible = anyAkimbo;
     }
 
     private void UpdateHandStatus(HandButton hand, EntityUid? entity, Hand? handData)

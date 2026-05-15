@@ -181,15 +181,16 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         compB.MyHand = compA.PairedHand;
         compB.PairedHand = compA.MyHand;
 
-        // Full-auto alternation can't work via hand-switch — client prediction keeps firing the
-        // original gun entity. Force semi-auto on both so alternation is reliable.
+        // Enable FullAuto on both guns so holding fire works.
+        // Alternation on hold fires whichever gun is the active hand; alternation on individual
+        // clicks works correctly via hand-switch.
         foreach (var g in new[] { gun, newGun })
         {
             if (!TryComp<GunComponent>(g, out var gunComp))
                 continue;
 #pragma warning disable RA0002
-            gunComp.AvailableModes = SelectiveFire.SemiAuto;
-            gunComp.SelectedMode   = SelectiveFire.SemiAuto;
+            gunComp.AvailableModes |= SelectiveFire.FullAuto;
+            gunComp.SelectedMode   = SelectiveFire.FullAuto;
 #pragma warning restore RA0002
             Dirty(g, gunComp);
         }

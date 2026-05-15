@@ -145,17 +145,36 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (isFirstUpgradeEver)
             MarkAsUpgraded(weapon.Value);
 
-        // Mirror the upgrade to the akimbo partner (skip SpawnItem to avoid double-spawning ammo).
+        // Mirror the upgrade to the akimbo partner.
         if (TryComp<FSAkimboGunComponent>(weapon.Value, out var akimbo)
             && akimbo.PairedGun != null
             && akimbo.PairedGun.Value.IsValid())
         {
             var paired = akimbo.PairedGun.Value;
             var pairedState = EnsureComp<FSWeaponUpgradeStateComponent>(paired);
-            pairedState.Levels[def.Id] = newLevel;
-            _upgrades.ApplySingleUpgrade(paired, player, def, newLevel, spawnItems: false);
-            if (isFirstUpgradeEver)
-                MarkAsUpgraded(paired);
+
+            if (def.Type == WeaponUpgradeType.Akimbo)
+            {
+                // Fresh akimbo spawn — the partner is a clean prototype. Re-apply ALL
+                // previously purchased upgrades so it matches the primary gun.
+                foreach (var prevDef in comp.Upgrades)
+                {
+                    if (prevDef.Id == def.Id) continue; // skip Akimbo itself
+                    if (!state.Levels.TryGetValue(prevDef.Id, out var prevLevel) || prevLevel == 0)
+                        continue;
+                    pairedState.Levels[prevDef.Id] = prevLevel;
+                    for (var lvl = 1; lvl <= prevLevel; lvl++)
+                        _upgrades.ApplySingleUpgrade(paired, player, prevDef, lvl, spawnItems: false);
+                }
+            }
+            else
+            {
+                // Normal case: mirror just the current upgrade level delta.
+                pairedState.Levels[def.Id] = newLevel;
+                _upgrades.ApplySingleUpgrade(paired, player, def, newLevel, spawnItems: false);
+            }
+
+            MarkAsUpgraded(paired); // idempotent — guard inside prevents duplicate suffix
         }
 
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
