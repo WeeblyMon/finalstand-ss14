@@ -114,9 +114,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.Phase = WavePhase.Combat;
 
         comp.SpawnerEntities.Clear();
-        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
-        while (sq.MoveNext(out var spawnerUid, out _, out _))
-            comp.SpawnerEntities.Add(spawnerUid);
+        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+        while (sq.MoveNext(out var spawnerUid, out var spawner))
+        {
+            if (comp.WaveNumber >= spawner.FromWave)
+                comp.SpawnerEntities.Add(spawnerUid);
+        }
 
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
