@@ -5,16 +5,20 @@ using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Interaction.Events;
 using Content.Shared.Inventory;
 using Content.Shared.Power.Components;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
+using Content.Shared.Tag;
+using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.SmartReload;
 
@@ -30,6 +34,10 @@ public sealed class FSSmartReloadSystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private readonly ThrowingSystem _throwing = default!;
+    [Dependency] private readonly TagSystem _tags = default!;
+
+    private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
     private static readonly TimeSpan MagEjectTime    = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan MagInsertTime   = TimeSpan.FromSeconds(0.55);
@@ -43,6 +51,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<FSSmartReloadMessage>(OnSmartReload);
         SubscribeNetworkEvent<FSEjectMessage>(OnEject);
+        SubscribeNetworkEvent<FSQuickGrenadeMessage>(OnQuickGrenade);
         SubscribeLocalEvent<MagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<ChamberMagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, FSShellInsertDoAfterEvent>(OnShellInsertComplete);
@@ -164,11 +173,15 @@ public sealed class FSSmartReloadSystem : EntitySystem
         _doAfter.TryStartDoAfter(doAfterArgs);
     }
 
-    private void OnMagReloadComplete(EntityUid gun, MagazineAmmoProviderComponent _comp, FSMagReloadDoAfterEvent args)
-        => DoMagReload(gun, args);
+    private void OnMagReloadComplete(EntityUid gun, MagazineAmmoProviderComponent comp, FSMagReloadDoAfterEvent args)
+    {
+        DoMagReload(gun, args);
+    }
 
-    private void OnMagReloadComplete(EntityUid gun, ChamberMagazineAmmoProviderComponent _comp, FSMagReloadDoAfterEvent args)
-        => DoMagReload(gun, args);
+    private void OnMagReloadComplete(EntityUid gun, ChamberMagazineAmmoProviderComponent comp, FSMagReloadDoAfterEvent args)
+    {
+        DoMagReload(gun, args);
+    }
 
     private void DoMagReload(EntityUid gun, FSMagReloadDoAfterEvent args)
     {
@@ -695,7 +708,78 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     // All reloadable slots (null + spent) — used to detect a fully loaded cylinder.
     private static int CountEmptyChambers(RevolverAmmoProviderComponent comp)
-        => CountNullChambers(comp) + CountSpentChambers(comp);
+    {
+        return CountNullChambers(comp) + CountSpentChambers(comp);
+    }
+
+    // ---- Quick grenade ----
+
+    private void OnQuickGrenade(FSQuickGrenadeMessage msg, EntitySessionEventArgs args)
+    {
+        var user = args.SenderSession.AttachedEntity;
+        if (user == null)
+            return;
+
+        var grenade = FindGrenadeInInventory(user.Value);
+        if (grenade == null)
+        {
+            _popup.PopupEntity("No grenade found.", user.Value, user.Value);
+            return;
+        }
+
+        // Move to active hand if not already held
+        if (!_hands.IsHolding(user.Value, grenade.Value))
+        {
+            if (!_hands.TryPickupAnyHand(user.Value, grenade.Value))
+            {
+                _popup.PopupEntity("No free hand for grenade.", user.Value, user.Value);
+                return;
+            }
+        }
+
+        // Prime the grenade (starts the timer fuse)
+        var useEv = new UseInHandEvent(user.Value);
+        RaiseLocalEvent(grenade.Value, useEv);
+
+        // Throw in the direction the player is facing
+        var dir = _transform.GetWorldRotation(user.Value).ToWorldVec();
+        _throwing.TryThrow(grenade.Value, dir, 10f, user.Value);
+    }
+
+    private EntityUid? FindGrenadeInInventory(EntityUid user)
+    {
+        // Check active hand first
+        var active = _hands.GetActiveItem(user);
+        if (active != null && _tags.HasTag(active.Value, HandGrenadeTag))
+            return active.Value;
+
+        if (!TryComp<ContainerManagerComponent>(user, out var mgr))
+            return null;
+
+        foreach (var container in mgr.Containers.Values)
+        {
+            foreach (var item in container.ContainedEntities)
+            {
+                if (_tags.HasTag(item, HandGrenadeTag))
+                    return item;
+
+                // One level deep (belt, pockets, backpack)
+                if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
+                    continue;
+
+                foreach (var inner in innerMgr.Containers.Values)
+                {
+                    foreach (var innerItem in inner.ContainedEntities)
+                    {
+                        if (_tags.HasTag(innerItem, HandGrenadeTag))
+                            return innerItem;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
 
     // ---- Akimbo sequential reload ----
 

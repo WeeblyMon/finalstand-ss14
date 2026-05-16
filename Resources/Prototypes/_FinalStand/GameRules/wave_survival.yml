@@ -21,17 +21,27 @@
       - FSMobXenoDrone
       - FSMobXeno
       - FSMobXenoRunner
-    # Waves 5-9: heavier xenos + space spiders
+    # Waves 5-9: heavier xenos + basic zombies mixed in
     - fromWave: 5
       toWave: 9
       enemyPool:
       - FSMobXenoDrone
       - FSMobXenoPraetorian
       - FSMobSpiderSpace
-    # Waves 10+: humanoid soldiers + heavy xenos
+      - FSZombieNormal
+      - FSZombieRunner
+    # Waves 10-19: zombies take over, armoured joins
     - fromWave: 10
+      toWave: 19
       enemyPool:
+      - FSZombieNormal
+      - FSZombieRunner
+      - FSZombieArmoured
       - FSMobXenoPraetorian
-      - FSMobSyndicateFootsoldier
+    # Waves 20+: heavy zombie mix
+    - fromWave: 20
+      enemyPool:
+      - FSZombieNormal
+      - FSZombieArmoured
       - FSMobFleshJared
       - FSMobHivebotRanged

@@ -6,3 +6,11 @@
   id: FSPlayer
   friendly:
   - FSPlayer
+
+# FSZombie: wave enemy faction. Hostile to FSPlayer and NanoTrasen.
+# All FSZombie prototypes set NpcFactionMember to this faction.
+- type: npcFaction
+  id: FSZombie
+  hostile:
+  - FSPlayer
+  - NanoTrasen

@@ -17,6 +17,9 @@ public sealed class FSEjectMessage : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
+public sealed class FSQuickGrenadeMessage : EntityEventArgs { }
+
+[Serializable, NetSerializable]
 public sealed partial class FSMagReloadDoAfterEvent : SimpleDoAfterEvent
 {
     public bool IsChainReload;

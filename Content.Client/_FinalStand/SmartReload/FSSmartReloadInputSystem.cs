@@ -26,6 +26,8 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.ReloadWeapon,
                 InputCmdHandler.FromDelegate(OnReloadDown, OnReloadUp))
+            .Bind(ContentKeyFunctions.QuickGrenade,
+                InputCmdHandler.FromDelegate(OnGrenadeDown, null))
             .Register<FSSmartReloadInputSystem>();
     }
 
@@ -50,6 +52,11 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
             return;
 
         RaiseNetworkEvent(new FSEjectMessage { Gun = GetNetEntity(gun.Value) });
+    }
+
+    private void OnGrenadeDown(ICommonSession? session)
+    {
+        RaiseNetworkEvent(new FSQuickGrenadeMessage());
     }
 
     private void OnReloadDown(ICommonSession? session)

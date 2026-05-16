@@ -135,5 +135,6 @@ namespace Content.Shared.Input
         public static readonly BoundKeyFunction MappingOpenContextMenu = "MappingOpenContextMenu";
 
         public static readonly BoundKeyFunction ReloadWeapon = "ReloadWeapon";
+        public static readonly BoundKeyFunction QuickGrenade = "QuickGrenade";
     }
 }
