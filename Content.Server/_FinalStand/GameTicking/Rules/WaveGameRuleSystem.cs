@@ -187,11 +187,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         for (var i = 0; i < toSpawn; i++)
         {
             var spawnerUid = comp.SpawnerEntities[i];
-            if (!TryComp<TransformComponent>(spawnerUid, out var xform))
-                continue;
-
             var proto = RobustRandom.Pick(pool);
-            var enemy = Spawn(proto, xform.Coordinates);
+            var enemy = Spawn(proto, Transform(spawnerUid).Coordinates);
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
             {
