@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.FriendlyFire;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.GameTicking;
@@ -24,6 +25,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
+    [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
 
     public override void Initialize()
     {
@@ -36,6 +38,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
+        _friendlyFire.AssignFactionToAllPlayers();
         StartPrepPhase(uid, comp);
     }
 

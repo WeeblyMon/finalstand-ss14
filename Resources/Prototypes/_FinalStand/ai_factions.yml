@@ -1,0 +1,8 @@
+# FinalStand faction definitions.
+# FSPlayer: assigned at runtime to all spawned players so they cannot damage each other.
+# Friendly to itself only — enemies (Xeno, Zombie, etc.) remain hostile.
+
+- type: npcFaction
+  id: FSPlayer
+  friendly:
+  - FSPlayer
