@@ -34,6 +34,9 @@ public sealed partial class CloningPodComponent : Component
     [DataField]
     public ProtoId<MaterialPrototype> RequiredMaterial = "Biomass";
 
+    [DataField]
+    public float CostMultiplier = 1f;
+
     /// <summary>
     /// The current amount of time it takes to clone a body.
     /// </summary>

@@ -5,7 +5,9 @@ using Content.Shared._FinalStand.Shop;
 using Content.Shared.Examine;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory;
 using Content.Shared.Mind;
+using Content.Shared.Storage.EntitySystems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -19,6 +21,8 @@ public sealed class FSShopWeaponSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
 
@@ -81,15 +85,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         var weapon = Spawn(comp.WeaponProtoId, Transform(player).Coordinates);
-
-        if (!_hands.TryPickupAnyHand(player, weapon))
-        {
-            QueueDel(weapon);
-            _wallet.GiveCredits(mindId, comp.Price); // refund
-            _popup.PopupEntity("No free hand to hold the weapon.", uid, player);
-            return;
-        }
-
+        TryGiveItemToPlayer(player, weapon);
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         // Fresh weapon — send empty levels and updated title.
         var title = ComputeWeaponTitle(player, comp.WeaponProtoId);
@@ -183,6 +179,25 @@ public sealed class FSShopWeaponSystem : EntitySystem
     }
 
     // ---- Helpers ----
+
+    private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
+
+    private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
+    {
+        if (_hands.TryPickupAnyHand(player, item))
+            return;
+
+        foreach (var slot in InventorySlotPriority)
+        {
+            if (_inventory.TryEquip(player, item, slot, silent: true))
+                return;
+        }
+
+        if (_inventory.TryGetSlotEntity(player, "back", out var backpack))
+            _storage.Insert(backpack.Value, item, out _, user: player, playSound: false);
+
+        // falls to floor at player coords if everything fails
+    }
 
     private void MarkAsUpgraded(EntityUid weapon)
     {

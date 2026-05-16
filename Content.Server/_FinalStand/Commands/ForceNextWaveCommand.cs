@@ -16,6 +16,7 @@ public sealed class ForceNextWaveCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        _waveRule.ForceNextWave(shell);
+        int? wave = args.Length > 0 && int.TryParse(args[0], out var n) ? n : null;
+        _waveRule.ForceNextWave(shell, wave);
     }
 }

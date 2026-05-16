@@ -8,8 +8,12 @@ using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
+using System.Linq;
+using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
@@ -26,6 +30,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
+    [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
 
     public override void Initialize()
     {
@@ -124,7 +129,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
-        comp.EnemyTotalThisWave = 5 * comp.WaveNumber;
+        comp.EnemyTotalThisWave = Math.Min(5 * comp.WaveNumber, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
@@ -197,6 +202,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
+            ScaleEnemyHp(enemy, comp.WaveNumber);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Spawned {proto} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}) " +
@@ -286,22 +292,56 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
     }
 
-// forces next wave
-    public void ForceNextWave(IConsoleShell shell)
+    private void ScaleEnemyHp(EntityUid enemy, int wave)
+    {
+        var multiplier = GetHpMultiplier(wave);
+        if (multiplier <= 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
+            return;
+
+        var snapshot = new List<(FixedPoint2 damage, MobState state)>(thresholds.Thresholds.Select(kv => (kv.Key, kv.Value)));
+        foreach (var (damage, state) in snapshot)
+            _mobThresholds.SetMobStateThreshold(enemy, damage * multiplier, state, thresholds);
+    }
+
+    private static float GetHpMultiplier(int wave)
+    {
+        if (wave < 10) return 1f;
+        if (wave < 20) return 2.5f;
+        if (wave < 30) return 5f;
+        return 8f;
+    }
+
+    public void ForceNextWave(IConsoleShell shell, int? targetWave = null)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule))
                 continue;
-            if (comp.Phase != WavePhase.Prep)
-                continue;
 
-            StartCombatPhase(uid, comp);
-            shell.WriteLine($"Wave {comp.WaveNumber} started");
+            if (targetWave.HasValue)
+            {
+                comp.WaveNumber = targetWave.Value;
+                comp.WavesCompleted = targetWave.Value - 1;
+            }
+
+            if (comp.Phase == WavePhase.Combat)
+            {
+                // Kill remaining enemies so wave-complete check passes cleanly.
+                foreach (var enemy in comp.AliveEnemies)
+                    QueueDel(enemy);
+                comp.AliveEnemies.Clear();
+                EndCombatPhase(uid, comp);
+            }
+            else
+            {
+                StartCombatPhase(uid, comp);
+            }
+
+            shell.WriteLine($"Jumped to wave {comp.WaveNumber}.");
             return;
         }
 
-        shell.WriteError("Forcenextwave cannot work because the WaveGameRule is not active");
+        shell.WriteError("WaveGameRule is not active.");
     }
 }
