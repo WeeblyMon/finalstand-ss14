@@ -70,7 +70,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     break;
                 }
 
-                if (comp.EnemiesSpawnedThisWave < comp.EnemyTotalThisWave && now >= comp.NextSpawnTime)
+                if (!comp.SpawnPaused && comp.EnemiesSpawnedThisWave < comp.EnemyTotalThisWave && now >= comp.NextSpawnTime)
                     SpawnNextBatch(uid, comp);
 
                 if (now >= comp.NextHeartbeatTime)
@@ -339,6 +339,24 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
 
             shell.WriteLine($"Jumped to wave {comp.WaveNumber}.");
+            return;
+        }
+
+        shell.WriteError("WaveGameRule is not active.");
+    }
+
+    public void ToggleSpawnPause(IConsoleShell shell)
+    {
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gameRule))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gameRule))
+                continue;
+
+            comp.SpawnPaused = !comp.SpawnPaused;
+            shell.WriteLine(comp.SpawnPaused
+                ? "Wave spawning PAUSED. Existing enemies remain. Use 'pausewavespawns' again to resume."
+                : "Wave spawning RESUMED.");
             return;
         }
 

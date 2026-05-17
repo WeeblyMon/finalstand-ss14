@@ -77,4 +77,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public readonly List<EntityUid> SpawnerEntities = new();
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
+
+    /// <summary>Admin toggle: stops new enemies from spawning without ending the wave.</summary>
+    public bool SpawnPaused = false;
 }
