@@ -1,14 +1,21 @@
 # ── FSZombie types ──────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSZombieNormal
-  parent: MobZombie
+  id: FSZombieBase
+  parent: SimpleSpaceMobBase
+  abstract: true
   suffix: FinalStand
-  name: zombie
   components:
+  - type: InputMover
+  - type: MobMover
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
+    blackboard:
+      NavPry: !type:Bool
+        true
+      NavSmash: !type:Bool
+        true
   - type: NpcFactionMember
     factions:
     - FSZombie
@@ -16,6 +23,47 @@
     pryPowered: true
     force: true
     speedModifier: 8.0
+  - type: MeleeWeapon
+    altDisarm: false
+    angle: 0
+    animation: WeaponArcClaw
+    soundHit:
+      path: /Audio/Weapons/Xeno/alien_claw_flesh3.ogg
+    damage:
+      types:
+        Slash: 10
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: Mobs/Aliens/flesh.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: jared
+  - type: DamageStateVisuals
+    states:
+      Alive:
+        Base: jared
+      Critical:
+        Base: dead
+      Dead:
+        Base: dead
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.25
+        density: 235
+        mask:
+        - MobMask
+        layer:
+        - MobLayer
+
+- type: entity
+  id: FSZombieNormal
+  parent: FSZombieBase
+  suffix: Normal
+  name: zombie
+  components:
   - type: MobThresholds
     thresholds:
       0: Alive

@@ -366,31 +366,35 @@ public abstract partial class SharedGunSystem
         // Normal behaviour for guns.
         if (component.AutoCycle)
         {
-            if (TryTakeChamberEntity(uid, out chamberEnt))
-            {
-                args.Ammo.Add((chamberEnt.Value, EnsureShootable(chamberEnt.Value)));
-            }
-            // No ammo returned.
-            else
-            {
-                return;
-            }
+            // Try to take a round from the chamber. If the chamber is empty (e.g. fresh magazine,
+            // first shot after reload) we pull an extra round from the magazine to fire this shot —
+            // effectively auto-chambering without requiring a manual rack.
+            var chamberWasEmpty = !TryTakeChamberEntity(uid, out chamberEnt);
+            if (!chamberWasEmpty)
+                args.Ammo.Add((chamberEnt!.Value, EnsureShootable(chamberEnt.Value)));
 
             var magEnt = GetMagazineEntity(uid);
 
             // Pass an event to the magazine to get more (to refill chamber or for shooting).
             if (magEnt != null)
             {
-                // We pass in Shots not Shots - 1 as we'll take the last entity and move it into the chamber.
-                var relayedArgs = new TakeAmmoEvent(args.Shots, new List<(EntityUid? Entity, IShootable Shootable)>(), args.Coordinates, args.User);
+                // When the chamber was empty we request one extra round so that one goes to fire
+                // (this shot) and one goes back into the chamber (next shot).
+                var requestShots = chamberWasEmpty ? args.Shots + 1 : args.Shots;
+                var relayedArgs = new TakeAmmoEvent(requestShots, new List<(EntityUid? Entity, IShootable Shootable)>(), args.Coordinates, args.User);
                 RaiseLocalEvent(magEnt.Value, relayedArgs);
 
-                // Put in the nth slot back into the chamber
-                // Rest of the ammo gets shot
                 if (relayedArgs.Ammo.Count > 0)
                 {
+                    // Put the last round back into the chamber for the next shot.
                     var newChamberEnt = relayedArgs.Ammo[^1].Entity;
                     TryInsertChamber(uid, newChamberEnt!.Value);
+                }
+                else if (chamberWasEmpty)
+                {
+                    // No magazine ammo and chamber was empty — truly out of ammo.
+                    Appearance.SetData(uid, AmmoVisuals.MagLoaded, false, appearance);
+                    return;
                 }
 
                 // Anything above the chamber-refill amount gets fired.
@@ -407,6 +411,8 @@ public abstract partial class SharedGunSystem
             }
             else
             {
+                if (chamberWasEmpty)
+                    return; // No mag and no chamber.
                 Appearance.SetData(uid, AmmoVisuals.MagLoaded, false, appearance);
                 return;
             }
