@@ -2,6 +2,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Destructible;
 using Content.Server.Effects;
 using Content.Server.Weapons.Ranged.Systems;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Camera;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -57,6 +58,12 @@ public sealed class ProjectileSystem : SharedProjectileSystem
             damageRequired = FixedPoint2.Max(damageRequired, FixedPoint2.Zero);
         }
         var deleted = Deleted(target);
+
+        // FinalStand: block projectile damage between wave players (friendly fire)
+        if (component.Shooter.HasValue
+            && HasComp<FSFriendlyFireComponent>(component.Shooter.Value)
+            && HasComp<FSFriendlyFireComponent>(target))
+            return;
 
         if (_damageableSystem.TryChangeDamage((target, damageableComponent), ev.Damage, out var damage, component.IgnoreResistances, origin: component.Shooter) && Exists(component.Shooter))
         {

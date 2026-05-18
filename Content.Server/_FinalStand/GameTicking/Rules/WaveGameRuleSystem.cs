@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.FriendlyFire;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.GameTicking;
@@ -7,8 +8,12 @@ using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
+using System.Linq;
+using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
@@ -24,6 +29,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
+    [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
+    [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
 
     public override void Initialize()
     {
@@ -36,6 +43,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
+        _friendlyFire.AssignFactionToAllPlayers();
         StartPrepPhase(uid, comp);
     }
 
@@ -62,7 +70,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     break;
                 }
 
-                if (comp.EnemiesSpawnedThisWave < comp.EnemyTotalThisWave && now >= comp.NextSpawnTime)
+                if (!comp.SpawnPaused && comp.EnemiesSpawnedThisWave < comp.EnemyTotalThisWave && now >= comp.NextSpawnTime)
                     SpawnNextBatch(uid, comp);
 
                 if (now >= comp.NextHeartbeatTime)
@@ -96,6 +104,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s.");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
+        RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
@@ -106,9 +115,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.Phase = WavePhase.Combat;
 
         comp.SpawnerEntities.Clear();
-        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
-        while (sq.MoveNext(out var spawnerUid, out _, out _))
-            comp.SpawnerEntities.Add(spawnerUid);
+        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+        while (sq.MoveNext(out var spawnerUid, out var spawner))
+        {
+            if (comp.WaveNumber >= spawner.FromWave)
+                comp.SpawnerEntities.Add(spawnerUid);
+        }
 
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
@@ -121,7 +133,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
-        comp.EnemyTotalThisWave = 5 * comp.WaveNumber;
+        comp.EnemyTotalThisWave = Math.Min(5 * comp.WaveNumber, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
@@ -132,6 +144,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
+        RaiseNetworkEvent(new FSEnemyCountEvent(0, comp.EnemyTotalThisWave), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
@@ -179,11 +192,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         for (var i = 0; i < toSpawn; i++)
         {
             var spawnerUid = comp.SpawnerEntities[i];
-            if (!TryComp<TransformComponent>(spawnerUid, out var xform))
-                continue;
-
             var proto = RobustRandom.Pick(pool);
-            var enemy = Spawn(proto, xform.Coordinates);
+            var enemy = Spawn(proto, Transform(spawnerUid).Coordinates);
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
             {
@@ -194,6 +204,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
+            ScaleEnemyHp(enemy, comp.WaveNumber);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Spawned {proto} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}) " +
@@ -201,6 +212,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
 
         comp.NextSpawnTime = Timing.CurTime + comp.SpawnInterval;
+        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
 
         // guard for the uh the no-spawner edge case where all enemies were already counted before this batch
         CheckWaveComplete(uid, comp);
@@ -255,6 +267,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Info($"[WaveGameRule] Enemy {ent.Owner} died (origin={args.Origin}). " +
                      $"{comp.AliveEnemies.Count} alive, " +
                      $"{comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave} not yet spawned (wave {comp.WaveNumber}).");
+            RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
             CheckWaveComplete(uid, comp);
             break;
         }
@@ -278,27 +291,80 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (!ruleComp.AliveEnemies.Remove(uid))
                 continue;
 
+            RaiseNetworkEvent(new FSEnemyCountEvent(ruleComp.AliveEnemies.Count, ruleComp.EnemyTotalThisWave), Filter.Broadcast());
             CheckWaveComplete(ruleUid, ruleComp);
             break;
         }
     }
 
-// forces next wave
-    public void ForceNextWave(IConsoleShell shell)
+    private void ScaleEnemyHp(EntityUid enemy, int wave)
+    {
+        var multiplier = GetHpMultiplier(wave);
+        if (multiplier <= 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
+            return;
+
+        var snapshot = new List<(FixedPoint2 damage, MobState state)>(thresholds.Thresholds.Select(kv => (kv.Key, kv.Value)));
+        foreach (var (damage, state) in snapshot)
+            _mobThresholds.SetMobStateThreshold(enemy, damage * multiplier, state, thresholds);
+    }
+
+    private static float GetHpMultiplier(int wave)
+    {
+        if (wave < 10) return 1f;
+        if (wave < 20) return 2.5f;
+        if (wave < 30) return 5f;
+        return 8f;
+    }
+
+    public void ForceNextWave(IConsoleShell shell, int? targetWave = null)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule))
                 continue;
-            if (comp.Phase != WavePhase.Prep)
-                continue;
 
-            StartCombatPhase(uid, comp);
-            shell.WriteLine($"Wave {comp.WaveNumber} started");
+            if (targetWave.HasValue)
+            {
+                comp.WaveNumber = targetWave.Value;
+                comp.WavesCompleted = targetWave.Value - 1;
+            }
+
+            if (comp.Phase == WavePhase.Combat)
+            {
+                // Kill remaining enemies so wave-complete check passes cleanly.
+                foreach (var enemy in comp.AliveEnemies)
+                    QueueDel(enemy);
+                comp.AliveEnemies.Clear();
+                EndCombatPhase(uid, comp);
+            }
+            else
+            {
+                StartCombatPhase(uid, comp);
+            }
+
+            shell.WriteLine($"Jumped to wave {comp.WaveNumber}.");
             return;
         }
 
-        shell.WriteError("Forcenextwave cannot work because the WaveGameRule is not active");
+        shell.WriteError("WaveGameRule is not active.");
+    }
+
+    public void ToggleSpawnPause(IConsoleShell shell)
+    {
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gameRule))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gameRule))
+                continue;
+
+            comp.SpawnPaused = !comp.SpawnPaused;
+            shell.WriteLine(comp.SpawnPaused
+                ? "Wave spawning PAUSED. Existing enemies remain. Use 'pausewavespawns' again to resume."
+                : "Wave spawning RESUMED.");
+            return;
+        }
+
+        shell.WriteError("WaveGameRule is not active.");
     }
 }

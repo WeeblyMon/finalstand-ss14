@@ -58,8 +58,15 @@
       description: Reduces max spread by 0.3° per level for tighter bursts.
       maxLevel: 5
       baseCost: 100
-      type: AngleMax
+      type: Accuracy
       valuePerLevel: 0.3
+    - id: viper-akimbo
+      name: Akimbo
+      description: Dual wield. A second Viper spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
     state: base
@@ -95,9 +102,162 @@
       description: Reduces max spread by 0.3° per level for precise follow-up shots.
       maxLevel: 5
       baseCost: 100
-      type: AngleMax
+      type: Accuracy
       valuePerLevel: 0.3
+    - id: mateba-akimbo
+      name: Akimbo
+      description: Dual wield. A second Mateba spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
     state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopFlintlock
+  parent: FSWeaponShopBase
+  name: Flintlock Pistol
+  description: A pirate's companion. Single-shot .45 magnum. Slow, but hits like a cannonball.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponPistolFlintlock
+    price: 300
+    upgrades:
+    - id: flintlock-hair-trigger
+      name: Hair Trigger
+      description: Lighter action increases fire rate by 0.5/level.
+      maxLevel: 5
+      baseCost: 150
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: flintlock-ball-and-powder
+      name: Ball & Powder
+      description: 2 loose .45 magnum rounds spawned on each purchase per level.
+      maxLevel: 5
+      baseCost: 75
+      type: SpawnItem
+      spawnProtoId: CartridgeMagnum
+      spawnCountPerLevel: 2
+    - id: flintlock-steady-hand
+      name: Steady Hand
+      description: Reduces max spread by 0.5° per level for that one perfect shot.
+      maxLevel: 5
+      baseCost: 100
+      type: Accuracy
+      valuePerLevel: 0.5
+    - id: flintlock-akimbo
+      name: Akimbo
+      description: Dual wield. A second Flintlock spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 300
+      type: Akimbo
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopN1984
+  parent: FSWeaponShopBase
+  name: N1984
+  description: The Lord's caliber in a 9-round package. Semi-auto .45 magnum hand cannon.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponPistolN1984
+    price: 700
+    upgrades:
+    - id: n1984-hair-trigger
+      name: Hair Trigger
+      description: Tuned action increases fire rate by 0.5/level.
+      maxLevel: 5
+      baseCost: 200
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: n1984-extended-mag
+      name: Extended Mag
+      description: Spare .45 magnum magazine spawned on each purchase per level.
+      maxLevel: 5
+      baseCost: 150
+      type: SpawnItem
+      spawnProtoId: MagazineMagnum
+      spawnCountPerLevel: 1
+    - id: n1984-recoil-pad
+      name: Recoil Pad
+      description: Reduces max spread by 0.3° per level to tame the kick.
+      maxLevel: 5
+      baseCost: 100
+      type: Accuracy
+      valuePerLevel: 0.3
+    - id: n1984-akimbo
+      name: Akimbo
+      description: Dual wield. A second N1984 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      maxLevel: 1
+      baseCost: 500
+      type: Akimbo
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopAdvancedLaser
+  parent: FSWeaponShopBase
+  name: Adv. Laser Pistol
+  description: Self-recharging laser pistol. No ammo needed, just point and melt.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponAdvancedLaser
+    price: 800
+    upgrades:
+    - id: advlaser-overcharge-coil
+      name: Overcharge Coil
+      description: Boosts cycling speed, increasing fire rate by 0.5/level.
+      maxLevel: 5
+      baseCost: 200
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: advlaser-focusing-lens
+      name: Focusing Lens
+      description: Narrows beam spread by 0.3° per level for pinpoint accuracy.
+      maxLevel: 5
+      baseCost: 150
+      type: Accuracy
+      valuePerLevel: 0.3
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopEnergyMagnum
+  parent: FSWeaponShopBase
+  name: Energy Magnum
+  description: High-yield energy pistol with a self-recharging cell. Hits as hard as it sounds.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponEnergyMagnum
+    price: 1200
+    upgrades:
+    - id: energymagnum-overcharge-coil
+      name: Overcharge Coil
+      description: Boosts cycling speed, increasing fire rate by 0.5/level.
+      maxLevel: 5
+      baseCost: 250
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: energymagnum-focusing-crystal
+      name: Focusing Crystal
+      description: Refines beam geometry, reducing max spread by 0.3° per level.
+      maxLevel: 5
+      baseCost: 200
+      type: Accuracy
+      valuePerLevel: 0.3
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Battery/energy_magnum.rsi
+    state: base
     scale: 1,1

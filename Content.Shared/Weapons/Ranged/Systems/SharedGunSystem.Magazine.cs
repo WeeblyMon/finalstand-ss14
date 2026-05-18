@@ -72,7 +72,7 @@ public abstract partial class SharedGunSystem
 
     private void MagazineSlotChanged(Entity<MagazineAmmoProviderComponent> ent)
     {
-        UpdateAmmoCount(ent);
+        UpdateAmmoCount(ent, prediction: false);
         if (!TryComp<AppearanceComponent>(ent, out var appearance))
             return;
 

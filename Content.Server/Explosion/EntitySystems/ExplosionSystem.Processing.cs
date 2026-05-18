@@ -453,8 +453,12 @@ public sealed partial class ExplosionSystem
                 if (!_damageableQuery.TryComp(entity, out var damageable))
                     continue;
 
+                // FinalStand: block player-on-player explosion damage (friendly fire)
+                if (cause.HasValue && _actorQuery.HasComp(cause.Value) && _actorQuery.HasComp(entity))
+                    continue;
+
                 // TODO EXPLOSIONS turn explosions into entities, and pass the the entity in as the damage origin.
-                _damageableSystem.TryChangeDamage((entity, damageable), damage, ignoreResistances: true, ignoreGlobalModifiers: true);
+                _damageableSystem.TryChangeDamage((entity, damageable), damage, origin: cause, ignoreResistances: true, ignoreGlobalModifiers: true);
 
                 if (_actorQuery.HasComp(entity))
                 {

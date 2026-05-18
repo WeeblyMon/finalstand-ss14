@@ -12,10 +12,13 @@ public sealed class WaveHudOverlay : Overlay
     [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     private readonly Texture[] _digits;
-    private Font? _font;
+    private Font? _creditFont;
+    private Font? _enemyFont;
 
-    public int CurrentWave = 1;
+    public int CurrentWave    = 1;
     public int CurrentCredits = 0;
+    public int EnemiesAlive   = 0;
+    public int EnemiesTotal   = 0;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -44,9 +47,33 @@ public sealed class WaveHudOverlay : Overlay
             totalWidth += widths[i];
         }
 
-        var x = screenSize.X - margin - totalWidth;
-        var y = screenSize.Y - margin - digitHeight;
+        var digitStartX = screenSize.X - margin - totalWidth;
+        var digitY = screenSize.Y - margin - digitHeight;
 
+        // Enemy counter — small red text centred above the wave digits
+        if (EnemiesTotal > 0)
+        {
+            _enemyFont ??= new VectorFont(
+                _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 16);
+
+            var counterStr  = $"{EnemiesAlive} / {EnemiesTotal}";
+            var counterDims = screen.GetDimensions(_enemyFont, counterStr, 1f);
+            var cx = digitStartX + totalWidth / 2f - counterDims.X / 2f;
+            var cy = digitY - counterDims.Y - 6f;
+            var cPos = new Vector2(cx, cy);
+
+            const float outlineOff = 1f;
+            var black = Color.Black;
+            var red   = new Color(1f, 0.22f, 0.22f);
+            screen.DrawString(_enemyFont, cPos + new Vector2(-outlineOff, -outlineOff), counterStr, black);
+            screen.DrawString(_enemyFont, cPos + new Vector2( outlineOff, -outlineOff), counterStr, black);
+            screen.DrawString(_enemyFont, cPos + new Vector2(-outlineOff,  outlineOff), counterStr, black);
+            screen.DrawString(_enemyFont, cPos + new Vector2( outlineOff,  outlineOff), counterStr, black);
+            screen.DrawString(_enemyFont, cPos, counterStr, red);
+        }
+
+        var x = digitStartX;
+        var y = digitY;
         for (var i = 0; i < waveStr.Length; i++)
         {
             var tex = _digits[waveStr[i] - '0'];
@@ -55,10 +82,10 @@ public sealed class WaveHudOverlay : Overlay
         }
 
         // Credits — bottom-left, text
-        _font ??= new VectorFont(
+        _creditFont ??= new VectorFont(
             _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 28);
 
         var creditsStr = $"${CurrentCredits:N0}";
-        screen.DrawString(_font, new Vector2(margin, screenSize.Y - 220f), creditsStr, Color.Gold);
+        screen.DrawString(_creditFont, new Vector2(margin, screenSize.Y - 220f), creditsStr, Color.Gold);
     }
 }

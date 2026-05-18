@@ -162,6 +162,18 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
         explosive.Exploded = !explosive.Repeatable;
 
+        // Recover actor origin from the explosive entity when the trigger system didn't supply one
+        // (e.g. TriggerOnCollide passes the OtherEntity rather than the shooter, so cause ends up null
+        // or pointing to a wall). This lets BeforeDamageChangedEvent see the real instigator so
+        // the FSFriendlyFireSystem can cancel player-on-player explosion damage.
+        if (user == null || !HasComp<ActorComponent>(user.Value))
+        {
+            if (TryComp<ProjectileComponent>(uid, out var proj) && proj.Shooter is { } shooter)
+                user = shooter;
+            else if (TryComp<ThrownItemComponent>(uid, out var thrown) && thrown.Thrower is { } thrower)
+                user = thrower;
+        }
+
         // Override the explosion intensity if optional arguments were provided.
         if (radius != null)
             totalIntensity ??= RadiusToIntensity((float)radius, explosive.IntensitySlope, explosive.MaxIntensity);
@@ -251,7 +263,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
         var posFound = _transformSystem.TryGetMapOrGridCoordinates(uid, out var gridPos, pos);
 
-        QueueExplosion(mapPos, typeId, totalIntensity, slope, maxTileIntensity, uid, tileBreakScale, maxTileBreak, canCreateVacuum, addLog: false);
+        QueueExplosion(mapPos, typeId, totalIntensity, slope, maxTileIntensity, user, tileBreakScale, maxTileBreak, canCreateVacuum, addLog: false);
 
         if (!addLog)
             return;

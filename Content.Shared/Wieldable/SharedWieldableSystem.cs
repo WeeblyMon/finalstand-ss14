@@ -83,21 +83,14 @@ public abstract class SharedWieldableSystem : EntitySystem
 
     private void OnShootAttempt(EntityUid uid, GunRequiresWieldComponent component, ref ShotAttemptedEvent args)
     {
-        if (TryComp<WieldableComponent>(uid, out var wieldable) &&
-            !wieldable.Wielded)
-        {
-            args.Cancel();
+        if (!TryComp<WieldableComponent>(uid, out var wieldable) || wieldable.Wielded)
+            return;
 
-            var time = _timing.CurTime;
-            if (time > component.LastPopup + component.PopupCooldown &&
-                !HasComp<MeleeWeaponComponent>(uid) &&
-                !HasComp<MeleeRequiresWieldComponent>(uid))
-            {
-                component.LastPopup = time;
-                var message = Loc.GetString("wieldable-component-requires", ("item", uid));
-                _popup.PopupClient(message, args.Used, args.User);
-            }
-        }
+        // Auto-wield on first shot attempt instead of spamming a popup.
+        TryWield(uid, wieldable, args.User);
+
+        if (!wieldable.Wielded)
+            args.Cancel();
     }
 
     private void OnGunUnwielded(EntityUid uid, GunWieldBonusComponent component, ItemUnwieldedEvent args)

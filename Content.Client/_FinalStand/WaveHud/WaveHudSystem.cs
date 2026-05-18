@@ -20,6 +20,7 @@ public sealed class WaveHudSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<WaveCounterUpdateEvent>(OnWaveUpdate);
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
+        SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
 
@@ -71,5 +72,14 @@ public sealed class WaveHudSystem : EntitySystem
     {
         if (EnsureOverlay() is { } overlay)
             overlay.CurrentCredits = ev.Credits;
+    }
+
+    private void OnEnemyCount(FSEnemyCountEvent ev)
+    {
+        if (EnsureOverlay() is { } overlay)
+        {
+            overlay.EnemiesAlive = ev.Alive;
+            overlay.EnemiesTotal = ev.Total;
+        }
     }
 }

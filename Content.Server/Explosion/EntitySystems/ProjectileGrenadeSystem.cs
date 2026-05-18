@@ -1,9 +1,12 @@
 ﻿using Content.Server.Explosion.Components;
 using Content.Server.Weapons.Ranged.Systems;
+using Content.Shared.Projectiles;
+using Content.Shared.Throwing;
 using Content.Shared.Trigger;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Random;
 
 namespace Content.Server.Explosion.EntitySystems;
@@ -49,7 +52,14 @@ public sealed class ProjectileGrenadeSystem : EntitySystem
         if (args.Key != entity.Comp.TriggerKey)
             return;
 
-        FragmentIntoProjectiles(entity.Owner, entity.Comp);
+        // Recover the actor who fired/threw this grenade so pellets inherit the correct origin.
+        EntityUid? shooter = null;
+        if (TryComp<ProjectileComponent>(entity.Owner, out var proj) && proj.Shooter is { } ps)
+            shooter = ps;
+        else if (TryComp<ThrownItemComponent>(entity.Owner, out var thrown) && thrown.Thrower is { } pt)
+            shooter = pt;
+
+        FragmentIntoProjectiles(entity.Owner, entity.Comp, shooter);
         args.Handled = true;
     }
 
@@ -57,7 +67,7 @@ public sealed class ProjectileGrenadeSystem : EntitySystem
     /// Spawns projectiles at the coordinates of the grenade upon triggering
     /// Can customize the angle and velocity the projectiles come out at
     /// </summary>
-    private void FragmentIntoProjectiles(EntityUid uid, ProjectileGrenadeComponent component)
+    private void FragmentIntoProjectiles(EntityUid uid, ProjectileGrenadeComponent component, EntityUid? shooter = null)
     {
         var grenadeCoord = _transformSystem.GetMapCoordinates(uid);
         var shootCount = 0;
@@ -86,7 +96,7 @@ public sealed class ProjectileGrenadeSystem : EntitySystem
             // slightly uneven, doesn't really change much, but it looks better
             var direction = angle.ToVec().Normalized();
             var velocity = _random.NextVector2(component.MinVelocity, component.MaxVelocity);
-            _gun.ShootProjectile(contentUid, direction, velocity, null);
+            _gun.ShootProjectile(contentUid, direction, velocity, null, user: shooter);
         }
     }
 

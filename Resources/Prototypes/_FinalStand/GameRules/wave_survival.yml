@@ -1,5 +1,6 @@
+# ── Xeno faction ─────────────────────────────────────────────────────────────
 - type: entity
-  id: WaveSurvival
+  id: WaveSurvivalXeno
   parent: BaseGameRule
   components:
   - type: WaveGameRule
@@ -14,7 +15,7 @@
     waveEndSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_end.ogg
     enemyConfigs:
-    # Waves 1-4: basic xeno swarm
+    # Waves 1-4: basic swarm — drone + standard + runner
     - fromWave: 1
       toWave: 4
       enemyPool:
@@ -26,12 +27,64 @@
       toWave: 9
       enemyPool:
       - FSMobXenoDrone
+      - FSMobXeno
       - FSMobXenoPraetorian
       - FSMobSpiderSpace
-    # Waves 10+: humanoid soldiers + heavy xenos
+    # Waves 10-19: elite mix — praetorian, spiders, ranged hivebot
     - fromWave: 10
+      toWave: 19
       enemyPool:
       - FSMobXenoPraetorian
-      - FSMobSyndicateFootsoldier
+      - FSMobSpiderSpace
       - FSMobFleshJared
       - FSMobHivebotRanged
+    # Waves 20+: full xeno force
+    - fromWave: 20
+      enemyPool:
+      - FSMobXenoPraetorian
+      - FSMobSpiderSpace
+      - FSMobFleshJared
+      - FSMobHivebotRanged
+      - FSMobXenoRunner
+
+# ── Zombie faction ────────────────────────────────────────────────────────────
+- type: entity
+  id: WaveSurvivalZombie
+  parent: BaseGameRule
+  components:
+  - type: WaveGameRule
+    killReward: 100
+    waveSurvivalBonus: 500
+    bossWavePrestigeReward: 50
+    prepDuration: 15
+    maxCombatDuration: 1800
+    spawnInterval: 2
+    waveStartSound: !type:SoundPathSpecifier
+      path: /Audio/_FinalStand/WaveEvents/wave_start.ogg
+    waveEndSound: !type:SoundPathSpecifier
+      path: /Audio/_FinalStand/WaveEvents/wave_end.ogg
+    enemyConfigs:
+    # Waves 1-4: normal zombies only — slow pressure, learn the map
+    - fromWave: 1
+      toWave: 4
+      enemyPool:
+      - FSZombieNormal
+    # Waves 5-9: runners added — speed threat introduced
+    - fromWave: 5
+      toWave: 9
+      enemyPool:
+      - FSZombieNormal
+      - FSZombieRunner
+    # Waves 10-19: armoured joins — now need to manage tank + speed combo
+    - fromWave: 10
+      toWave: 19
+      enemyPool:
+      - FSZombieNormal
+      - FSZombieRunner
+      - FSZombieArmoured
+    # Waves 20+: full zombie horde
+    - fromWave: 20
+      enemyPool:
+      - FSZombieNormal
+      - FSZombieRunner
+      - FSZombieArmoured

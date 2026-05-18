@@ -7,4 +7,4 @@
   showInVote: false
   supportedMaps: FinalStandMapPool
   rules:
-    - WaveSurvival
+    - WaveSurvivalZombie # TODO: replace with lobby vote result (WaveSurvivalXeno or WaveSurvivalZombie)

@@ -1,4 +1,118 @@
-# Shared prying config for all wave enemies.
+# ── FSZombie types ──────────────────────────────────────────────────────────
+
+- type: entity
+  id: FSZombieBase
+  parent: SimpleSpaceMobBase
+  abstract: true
+  suffix: FinalStand
+  components:
+  - type: InputMover
+  - type: MobMover
+  - type: HTN
+    rootTask:
+      task: FinalStandEnemyCompound
+    blackboard:
+      NavPry: !type:Bool
+        true
+      NavSmash: !type:Bool
+        true
+  - type: NpcFactionMember
+    factions:
+    - FSZombie
+  - type: Prying
+    pryPowered: true
+    force: true
+    speedModifier: 8.0
+  - type: MeleeWeapon
+    altDisarm: false
+    angle: 0
+    animation: WeaponArcClaw
+    soundHit:
+      path: /Audio/Weapons/Xeno/alien_claw_flesh3.ogg
+    damage:
+      types:
+        Slash: 10
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: Mobs/Aliens/flesh.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: jared
+  - type: DamageStateVisuals
+    states:
+      Alive:
+        Base: jared
+      Critical:
+        Base: dead
+      Dead:
+        Base: dead
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.25
+        density: 235
+        mask:
+        - MobMask
+        layer:
+        - MobLayer
+
+- type: entity
+  id: FSZombieNormal
+  parent: FSZombieBase
+  suffix: Normal
+  name: zombie
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      75: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 2.0
+    baseSprintSpeed: 2.5
+  - type: FSEnemyValue
+    killCredits: 100
+
+- type: entity
+  id: FSZombieRunner
+  parent: FSZombieNormal
+  suffix: Runner
+  name: runner zombie
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      40: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 4.5
+    baseSprintSpeed: 5.5
+  - type: FSEnemyValue
+    killCredits: 120
+
+- type: entity
+  id: FSZombieArmoured
+  parent: FSZombieNormal
+  suffix: Armoured
+  name: armoured zombie
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      300: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 1.2
+    baseSprintSpeed: 1.5
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.6
+        Piercing: 0.7
+  - type: FSEnemyValue
+    killCredits: 200
+
+# ── Shared prying config for all wave enemies ────────────────────────────────
 # pryPowered: can open powered airlocks, force: bypass bolted doors,
 # speedModifier: 8.0 = ~0.6s pry so BreakOnMove rarely cancels it.
 - type: entity

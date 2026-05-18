@@ -1,0 +1,6 @@
+- type: entity
+  id: FSCloningPod
+  parent: CloningPod
+  components:
+  - type: CloningPod
+    costMultiplier: 3.0

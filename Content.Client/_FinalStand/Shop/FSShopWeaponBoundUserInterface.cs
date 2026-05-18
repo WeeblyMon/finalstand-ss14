@@ -11,6 +11,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
 
     private Action? _onCreditsChanged;
     private Action? _onUpgradesChanged;
+    private Action? _onRefreshNeeded;
 
     public FSShopWeaponBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
@@ -24,10 +25,12 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window.Populate(Owner, EntMan);
 
         var shopClient = EntMan.System<FSShopClientSystem>();
-        _onCreditsChanged = OnCreditsChanged;
+        _onCreditsChanged  = OnCreditsChanged;
         _onUpgradesChanged = OnUpgradesChanged;
-        shopClient.CreditsChanged += _onCreditsChanged;
+        _onRefreshNeeded   = OnRefreshNeeded;
+        shopClient.CreditsChanged      += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
+        shopClient.RefreshNeeded       += _onRefreshNeeded;
     }
 
     private void OnBuyPressed()
@@ -38,6 +41,11 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private void OnUpgradePressed(string upgradeId)
     {
         SendPredictedMessage(new FSShopUpgradeMessage(upgradeId));
+    }
+
+    private void OnRefreshNeeded()
+    {
+        SendPredictedMessage(new FSShopRefreshMessage());
     }
 
     private void OnCreditsChanged()
@@ -55,6 +63,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         var shopClient = EntMan.System<FSShopClientSystem>();
         _window.RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         _window.UpdateBalance(shopClient.CurrentCredits);
+        _window.UpdateWeaponTitle(shopClient.WeaponTitle);
     }
 
     protected override void Dispose(bool disposing)
@@ -64,8 +73,9 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
 
         var shopClient = EntMan.System<FSShopClientSystem>();
-        if (_onCreditsChanged != null) shopClient.CreditsChanged -= _onCreditsChanged;
+        if (_onCreditsChanged  != null) shopClient.CreditsChanged      -= _onCreditsChanged;
         if (_onUpgradesChanged != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
+        if (_onRefreshNeeded   != null) shopClient.RefreshNeeded       -= _onRefreshNeeded;
 
         if (_window == null)
             return;

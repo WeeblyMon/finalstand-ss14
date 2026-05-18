@@ -6,9 +6,11 @@ namespace Content.Shared._FinalStand.Shop;
 public sealed class UpgradeLevelsUpdatedEvent : EntityEventArgs
 {
     public readonly Dictionary<string, int> Levels;
+    public readonly string WeaponTitle;
 
-    public UpgradeLevelsUpdatedEvent(Dictionary<string, int> levels)
+    public UpgradeLevelsUpdatedEvent(Dictionary<string, int> levels, string weaponTitle = "")
     {
         Levels = levels;
+        WeaponTitle = weaponTitle;
     }
 }

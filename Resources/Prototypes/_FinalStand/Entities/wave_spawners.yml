@@ -10,3 +10,59 @@
     sprite: Markers/cross.rsi
     layers:
     - state: red
+
+- type: entity
+  id: WaveEnemySpawnerNorth
+  name: Wave Enemy Spawner (North)
+  description: North spawn point. Active from wave 1.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 1
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: red
+
+- type: entity
+  id: WaveEnemySpawnerEast
+  name: Wave Enemy Spawner (East)
+  description: East spawn point. Active from wave 1.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 5
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: green
+
+- type: entity
+  id: WaveEnemySpawnerSouth
+  name: Wave Enemy Spawner (South)
+  description: South spawn point. Active from wave 1.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 10
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: blue
+
+- type: entity
+  id: WaveEnemySpawnerWest
+  name: Wave Enemy Spawner (West)
+  description: West spawn point. Active from wave 1.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 15
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: pink
