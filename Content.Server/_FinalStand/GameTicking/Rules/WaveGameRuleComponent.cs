@@ -1,13 +1,8 @@
+using Content.Shared._FinalStand.GameTicking;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
-
-public enum WavePhase : byte
-{
-    Prep,
-    Combat,
-}
 
 [DataDefinition]
 public sealed partial class WaveEnemyConfig
@@ -55,6 +50,9 @@ public sealed partial class WaveGameRuleComponent : Component
 
     [DataField]
     public int BossWavePerkReward = 50;
+
+    [DataField]
+    public string FactionDisplay = "Unknown hostiles detected";
 
     [DataField]
     public SoundSpecifier? WaveStartSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/wave_start.ogg");

@@ -6,6 +6,13 @@
     mode: SnapgridCenter
   components:
   - type: FinalStandCCC
+  - type: ReadyCheck
+  - type: ActivatableUI
+    key: enum.CCCUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.CCCUiKey.Key:
+        type: CCCBoundUserInterface
   - type: Transform
     anchored: true
   - type: Clickable

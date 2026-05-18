@@ -1,0 +1,56 @@
+<DefaultWindow xmlns="https://spacestation14.io"
+               Title="Central Command Console"
+               MinWidth="380" MinHeight="480">
+    <BoxContainer Orientation="Vertical" Margin="10">
+
+        <!-- Wave Intel -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
+            <Label Text="WAVE " />
+            <Label Name="WaveNumberLabel" Modulate="#F4C430" />
+            <Label Text="   " />
+            <Label Name="FactionLabel" Modulate="#FF6666" />
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+            <Label Text="Modifier: " />
+            <Label Name="ModifierLabel" Modulate="#AAAAFF" />
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+            <Label Text="Est. enemies: " />
+            <Label Name="EnemyEstLabel" />
+        </BoxContainer>
+
+        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+        <!-- Phase + Countdown -->
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+            <Label Text="Phase: " />
+            <Label Name="PhaseLabel" />
+            <Label Text="   " />
+            <Label Name="CountdownLabel" Modulate="#AAFFAA" />
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+            <Label Text="Alive: " />
+            <Label Name="AliveLabel" />
+            <Label Text=" / " />
+            <Label Name="TotalLabel" />
+            <Label Text="   Spawners: " />
+            <Label Name="SpawnersLabel" />
+        </BoxContainer>
+
+        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+        <!-- Department Readiness -->
+        <Label Text="Department Status" Margin="0 0 0 4" />
+        <BoxContainer Name="DeptContainer" Orientation="Vertical" Margin="0 0 0 8" />
+
+        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+        <!-- Controls -->
+        <Button Name="StartWaveButton" Text="Start Wave Now" Margin="0 0 0 6" />
+        <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
+            <LineEdit Name="BroadcastInput" HorizontalExpand="True" PlaceHolder="Command broadcast..." />
+            <Button Name="BroadcastButton" Text="Send" SetWidth="60" Margin="4 0 0 0" />
+        </BoxContainer>
+
+    </BoxContainer>
+</DefaultWindow>
