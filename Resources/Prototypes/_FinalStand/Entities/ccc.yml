@@ -7,6 +7,13 @@
   components:
   - type: FinalStandCCC
   - type: ReadyCheck
+  - type: AccessReader
+    access:
+    - [ Captain ]
+  - type: StationMap
+    showLocation: false
+  - type: PowerMonitoringConsole
+  - type: PowerMonitoringCableNetworks
   - type: ActivatableUI
     key: enum.CCCUiKey.Key
   - type: UserInterface

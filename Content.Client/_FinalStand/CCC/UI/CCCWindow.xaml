@@ -1,56 +1,91 @@
-<DefaultWindow xmlns="https://spacestation14.io"
-               Title="Central Command Console"
-               MinWidth="380" MinHeight="480">
-    <BoxContainer Orientation="Vertical" Margin="10">
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:map="clr-namespace:Content.Client.Pinpointer.UI"
+                      xmlns:power="clr-namespace:Content.Client.Power"
+                      Title="Central Command Console"
+                      Resizable="False"
+                      SetSize="1040 750"
+                      MinSize="1040 750">
+    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True">
 
-        <!-- Wave Intel -->
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-            <Label Text="WAVE " />
-            <Label Name="WaveNumberLabel" Modulate="#F4C430" />
-            <Label Text="   " />
-            <Label Name="FactionLabel" Modulate="#FF6666" />
+        <!-- LEFT: fixed-width CCC info panel -->
+        <BoxContainer Orientation="Vertical" Margin="10" SetWidth="340" VerticalExpand="True">
+
+            <!-- Wave Intel -->
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
+                <Label Text="WAVE " Modulate="#7EB8D4" />
+                <Label Name="WaveNumberLabel" Modulate="#F4C430" />
+                <Label Text="   " />
+                <Label Name="FactionLabel" Modulate="#FF6666" />
+            </BoxContainer>
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+                <Label Text="Modifier: " Modulate="#888888" />
+                <Label Name="ModifierLabel" Modulate="#AAAAFF" />
+            </BoxContainer>
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+                <Label Text="Est. enemies: " Modulate="#888888" />
+                <Label Name="EnemyEstLabel" Modulate="#FF8A65" />
+            </BoxContainer>
+
+            <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+            <!-- Phase + Countdown -->
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+                <Label Text="Phase: " Modulate="#888888" />
+                <Label Name="PhaseLabel" />
+                <Label Text="   " />
+                <Label Name="CountdownLabel" StyleClasses="LabelMonospaceText" Modulate="#AAFFAA" />
+            </BoxContainer>
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+                <Label Text="Alive: " Modulate="#888888" />
+                <Label Name="AliveLabel" />
+                <Label Text=" / " Modulate="#555555" />
+                <Label Name="TotalLabel" />
+                <Label Text="   Spawners: " Modulate="#888888" />
+                <Label Name="SpawnersLabel" />
+            </BoxContainer>
+
+            <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+            <!-- Department Readiness -->
+            <Label Text="DEPARTMENT STATUS" StyleClasses="LabelHeading" Modulate="#7EB8D4" Margin="0 0 0 4" />
+            <BoxContainer Name="DeptContainer" Orientation="Vertical" Margin="0 0 0 8" />
+
+            <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+            <!-- Controls -->
+            <Button Name="StartWaveButton" Text="Start Wave Now" StyleClasses="ButtonBig" Margin="0 0 0 6" />
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
+                <LineEdit Name="BroadcastInput" HorizontalExpand="True" PlaceHolder="Command broadcast..." />
+                <Button Name="BroadcastButton" Text="Send" SetWidth="60" Margin="4 0 0 0" />
+            </BoxContainer>
+
         </BoxContainer>
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-            <Label Text="Modifier: " />
-            <Label Name="ModifierLabel" Modulate="#AAAAFF" />
-        </BoxContainer>
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-            <Label Text="Est. enemies: " />
-            <Label Name="EnemyEstLabel" />
-        </BoxContainer>
 
-        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+        <!-- Vertical separator -->
+        <PanelContainer StyleClasses="LowDivider" Margin="0 8" />
 
-        <!-- Phase + Countdown -->
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-            <Label Text="Phase: " />
-            <Label Name="PhaseLabel" />
-            <Label Text="   " />
-            <Label Name="CountdownLabel" Modulate="#AAFFAA" />
-        </BoxContainer>
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-            <Label Text="Alive: " />
-            <Label Name="AliveLabel" />
-            <Label Text=" / " />
-            <Label Name="TotalLabel" />
-            <Label Text="   Spawners: " />
-            <Label Name="SpawnersLabel" />
-        </BoxContainer>
+        <!-- RIGHT: map panel -->
+        <BoxContainer Orientation="Vertical" Margin="8 10 10 10" HorizontalExpand="True" VerticalExpand="True">
 
-        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+            <!-- Toggle buttons — OpenRight/OpenLeft give a connected tab-group appearance -->
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+                <Button Name="MapViewButton" Text="MAP" StyleClasses="OpenRight" HorizontalExpand="True" />
+                <Button Name="PowerViewButton" Text="POWER" StyleClasses="OpenLeft" HorizontalExpand="True" />
+            </BoxContainer>
 
-        <!-- Department Readiness -->
-        <Label Text="Department Status" Margin="0 0 0 4" />
-        <BoxContainer Name="DeptContainer" Orientation="Vertical" Margin="0 0 0 8" />
+            <!-- Station map view (default) -->
+            <!-- TODO(finalstand): 1px #2A2A3A border around map — requires PanelContainer wrapper, skip to avoid restructuring -->
+            <BoxContainer Name="MapPanel" Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True">
+                <map:NavMapControl Name="CccNavMap" />
+            </BoxContainer>
 
-        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+            <!-- Power monitoring view (hidden by default) -->
+            <BoxContainer Name="PowerPanel" Orientation="Vertical" Visible="False" VerticalExpand="True" HorizontalExpand="True">
+                <power:PowerMonitoringConsoleNavMapControl Name="CccPowerMap" />
+            </BoxContainer>
 
-        <!-- Controls -->
-        <Button Name="StartWaveButton" Text="Start Wave Now" Margin="0 0 0 6" />
-        <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-            <LineEdit Name="BroadcastInput" HorizontalExpand="True" PlaceHolder="Command broadcast..." />
-            <Button Name="BroadcastButton" Text="Send" SetWidth="60" Margin="4 0 0 0" />
         </BoxContainer>
 
     </BoxContainer>
-</DefaultWindow>
+</controls:FancyWindow>

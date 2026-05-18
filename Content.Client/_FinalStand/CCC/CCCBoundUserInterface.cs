@@ -18,6 +18,12 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
         _window.OnStartWavePressed += () => SendMessage(new CCCStartWaveMessage());
         _window.OnBroadcastPressed += text => SendMessage(new CCCBroadcastMessage(text));
         _window.OnClose += Close;
+
+        EntityUid? gridUid = null;
+        if (EntMan.TryGetComponent<TransformComponent>(Owner, out var xform))
+            gridUid = xform.GridUid;
+
+        _window.InitMaps(gridUid, Owner);
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
