@@ -104,6 +104,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s.");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
+        RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
@@ -143,6 +144,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
+        RaiseNetworkEvent(new FSEnemyCountEvent(0, comp.EnemyTotalThisWave), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
@@ -210,6 +212,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
 
         comp.NextSpawnTime = Timing.CurTime + comp.SpawnInterval;
+        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
 
         // guard for the uh the no-spawner edge case where all enemies were already counted before this batch
         CheckWaveComplete(uid, comp);
@@ -264,6 +267,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Info($"[WaveGameRule] Enemy {ent.Owner} died (origin={args.Origin}). " +
                      $"{comp.AliveEnemies.Count} alive, " +
                      $"{comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave} not yet spawned (wave {comp.WaveNumber}).");
+            RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
             CheckWaveComplete(uid, comp);
             break;
         }
@@ -287,6 +291,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (!ruleComp.AliveEnemies.Remove(uid))
                 continue;
 
+            RaiseNetworkEvent(new FSEnemyCountEvent(ruleComp.AliveEnemies.Count, ruleComp.EnemyTotalThisWave), Filter.Broadcast());
             CheckWaveComplete(ruleUid, ruleComp);
             break;
         }
