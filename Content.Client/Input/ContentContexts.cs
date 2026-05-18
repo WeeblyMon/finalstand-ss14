@@ -82,6 +82,7 @@ namespace Content.Client.Input
             human.AddFunction(ContentKeyFunctions.OpenBelt);
             human.AddFunction(ContentKeyFunctions.MouseMiddle);
             human.AddFunction(ContentKeyFunctions.ReloadWeapon);
+            human.AddFunction(ContentKeyFunctions.QuickGrenade);
             human.AddFunction(ContentKeyFunctions.RotateObjectClockwise);
             human.AddFunction(ContentKeyFunctions.RotateObjectCounterclockwise);
             human.AddFunction(ContentKeyFunctions.FlipObject);

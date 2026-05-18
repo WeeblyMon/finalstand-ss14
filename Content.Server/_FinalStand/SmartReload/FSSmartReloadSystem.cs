@@ -727,22 +727,19 @@ public sealed class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        // Move to active hand if not already held
-        if (!_hands.IsHolding(user.Value, grenade.Value))
-        {
-            if (!_hands.TryPickupAnyHand(user.Value, grenade.Value))
-            {
-                _popup.PopupEntity("No free hand for grenade.", user.Value, user.Value);
-                return;
-            }
-        }
+        // Yank directly out of whatever container it's in (pocket, bag, belt) — no hand needed.
+        if (_containers.TryGetContainingContainer(grenade.Value, out var container))
+            _containers.Remove(grenade.Value, container, destination: Transform(user.Value).Coordinates);
 
-        // Prime the grenade (starts the timer fuse)
-        var useEv = new UseInHandEvent(user.Value);
-        RaiseLocalEvent(grenade.Value, useEv);
+        // Arm (starts timer fuse on timer grenades; no-op for impact grenades like EMP).
+        RaiseLocalEvent(grenade.Value, new UseInHandEvent(user.Value));
 
-        // Throw in the direction the player is facing
-        var dir = _transform.GetWorldRotation(user.Value).ToWorldVec();
+        // Throw toward cursor. Fall back to facing direction if cursor is on top of player.
+        var playerWorldPos = _transform.GetWorldPosition(user.Value);
+        var dir = msg.CursorWorldPos - playerWorldPos;
+        if (dir.LengthSquared() < 0.01f)
+            dir = _transform.GetWorldRotation(user.Value).ToWorldVec();
+
         _throwing.TryThrow(grenade.Value, dir, 10f, user.Value);
     }
 

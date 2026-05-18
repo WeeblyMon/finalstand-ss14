@@ -90,7 +90,10 @@ namespace Content.Server.GameTicking
         /// </remarks>
         private void LoadMaps()
         {
-            if (_map.MapExists(DefaultMap))
+            // Only reuse an existing DefaultMap if it's still uninitialized (fresh map ready for use).
+            // If DefaultMap was already initialized (e.g. ID recycled after restart pointing at nullspace/lobby),
+            // fall through and load a fresh map for this round.
+            if (_map.MapExists(DefaultMap) && !_map.IsInitialized(DefaultMap))
                 return;
 
             AddGamePresetRules();
@@ -426,7 +429,10 @@ namespace Content.Server.GameTicking
             }
 
             // MapInitialize *before* spawning players, our codebase is too shit to do it afterwards...
-            _map.InitializeMap(DefaultMap);
+            // Guard: if somehow the map is already initialized (e.g. after EXCEPTION_TOLERANCE retry),
+            // skip to avoid "already initialized" crash.
+            if (!_map.IsInitialized(DefaultMap))
+                _map.InitializeMap(DefaultMap);
 
             SpawnPlayers(readyPlayers, readyPlayerProfiles, force);
 

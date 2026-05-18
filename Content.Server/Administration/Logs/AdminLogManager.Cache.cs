@@ -44,7 +44,8 @@ public sealed partial class AdminLogManager
 
         list ??= new List<SharedAdminLog>(LogListInitialSize);
 
-        _roundsLogCache.Add(_currentRoundId, list);
+        // Use indexer instead of Add so a retry (EXCEPTION_TOLERANCE restarts same round ID) doesn't throw.
+        _roundsLogCache[_currentRoundId] = list;
         CacheRoundCount.Set(_roundsLogCache.Count);
     }
 

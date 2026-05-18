@@ -2,6 +2,8 @@ using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Input;
 using Content.Shared.Weapons.Ranged.Components;
+using Robust.Client.Graphics;
+using Robust.Client.Input;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Player;
@@ -13,6 +15,8 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
 {
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly HandsSystem _hands = default!;
+    [Dependency] private readonly IInputManager _inputManager = default!;
+    [Dependency] private readonly IEyeManager _eyeManager = default!;
 
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 
@@ -56,7 +60,9 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
 
     private void OnGrenadeDown(ICommonSession? session)
     {
-        RaiseNetworkEvent(new FSQuickGrenadeMessage());
+        var screenPos = _inputManager.MouseScreenPosition;
+        var mapCoords = _eyeManager.PixelToMap(screenPos);
+        RaiseNetworkEvent(new FSQuickGrenadeMessage { CursorWorldPos = mapCoords.Position });
     }
 
     private void OnReloadDown(ICommonSession? session)

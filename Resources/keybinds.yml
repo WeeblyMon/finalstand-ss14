@@ -243,7 +243,7 @@ binds:
   key: H
 - function: OpenCraftingMenu
   type: State
-  key: G
+  key: N
 - function: OpenGuidebook
   type: State
   key: NumpadNum0
@@ -267,7 +267,7 @@ binds:
   mod1: Shift
 - function: SmartEquipPocket2
   type: State
-  key: G
+  key: N
   mod1: Shift
 - function: SmartEquipSuitStorage
   type: State
