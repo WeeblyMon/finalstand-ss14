@@ -4,8 +4,8 @@ meta:
   engineVersion: 275.2.0
   forkId: ""
   forkVersion: ""
-  time: 05/05/2026 01:24:34
-  entityCount: 2207
+  time: 05/18/2026 09:21:19
+  entityCount: 2206
 maps:
 - 1
 grids:
@@ -770,7 +770,7 @@ entities:
       pos: -16.5,-8.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -2442.681
+      secondsUntilStateChange: -2549.215
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -851,7 +851,7 @@ entities:
       pos: 0.5,-18.5
       parent: 2
     - type: Door
-      secondsUntilStateChange: -5411.978
+      secondsUntilStateChange: -5518.512
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -13183,52 +13183,53 @@ entities:
     - type: Transform
       pos: -6.5,-16.5
       parent: 2
-- proto: WaveEnemySpawner
+- proto: WaveEnemySpawnerEast
   entities:
-  - uid: 104
-    components:
-    - type: Transform
-      pos: -25.5,1.5
-      parent: 2
-  - uid: 2196
-    components:
-    - type: Transform
-      pos: -25.5,0.5
-      parent: 2
-  - uid: 2201
-    components:
-    - type: Transform
-      pos: -25.5,1.5
-      parent: 2
-  - uid: 2202
-    components:
-    - type: Transform
-      pos: 0.5,26.5
-      parent: 2
-  - uid: 2203
-    components:
-    - type: Transform
-      pos: 1.5,26.5
-      parent: 2
   - uid: 2204
     components:
     - type: Transform
-      pos: 26.5,1.5
-      parent: 2
-  - uid: 2205
-    components:
-    - type: Transform
-      pos: 26.5,0.5
+      pos: 29.5,0.5
       parent: 2
   - uid: 2206
     components:
     - type: Transform
-      pos: 0.5,-24.5
+      pos: 29.5,1.5
       parent: 2
-  - uid: 2207
+- proto: WaveEnemySpawnerNorth
+  entities:
+  - uid: 2196
     components:
     - type: Transform
-      pos: 1.5,-24.5
+      pos: 0.5,27.5
+      parent: 2
+  - uid: 2205
+    components:
+    - type: Transform
+      pos: 1.5,27.5
+      parent: 2
+- proto: WaveEnemySpawnerSouth
+  entities:
+  - uid: 2202
+    components:
+    - type: Transform
+      pos: 1.5,-22.5
+      parent: 2
+  - uid: 2203
+    components:
+    - type: Transform
+      pos: 0.5,-22.5
+      parent: 2
+- proto: WaveEnemySpawnerWest
+  entities:
+  - uid: 104
+    components:
+    - type: Transform
+      pos: -28.5,0.5
+      parent: 2
+  - uid: 2201
+    components:
+    - type: Transform
+      pos: -28.5,1.5
       parent: 2
 - proto: WeaponLightMachineGunL6
   entities:
