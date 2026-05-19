@@ -1,39 +1,32 @@
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.WaveHud;
-using Content.Shared.Damage.Systems;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.WaveHud;
 
 /// <summary>
 ///     Sends damage numbers only to the player who dealt the damage (no cross-player visual clutter).
+///     Subscribes to CritLandedEvent (raised by CritSystem) so IsCrit is wired correctly.
 /// </summary>
 public sealed class FSDamageNumberServerSystem : EntitySystem
 {
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WaveSpawnedTagComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<WaveSpawnedTagComponent, CritLandedEvent>(OnCritLanded);
     }
 
-    private void OnDamageChanged(EntityUid uid, WaveSpawnedTagComponent _, ref DamageChangedEvent args)
+    private void OnCritLanded(EntityUid uid, WaveSpawnedTagComponent _, CritLandedEvent args)
     {
-        if (args.DamageDelta == null || !args.DamageIncreased || args.Origin == null)
-            return;
-
-        var amount = args.DamageDelta.GetTotal().Float();
-        if (amount <= 0f)
-            return;
-
-        // Only send to the player who dealt this damage — no cross-player visual clutter.
-        if (!TryComp<ActorComponent>(args.Origin.Value, out var actor))
+        if (!TryComp<ActorComponent>(args.Shooter, out var actor))
             return;
 
         RaiseNetworkEvent(new FSDamageNumberEvent
         {
             Target = GetNetEntity(uid),
-            Amount = amount,
-            IsCrit = false,
+            Amount = args.FinalDamage,
+            IsCrit = args.WasCrit,
         }, actor.PlayerSession);
     }
 }
