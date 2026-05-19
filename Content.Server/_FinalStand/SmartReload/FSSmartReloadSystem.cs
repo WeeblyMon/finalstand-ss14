@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._FinalStand.Perks;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.SmartReload;
@@ -36,6 +37,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly TagSystem _tags = default!;
+    [Dependency] private readonly PerkSystem _perks = default!;
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
@@ -157,7 +159,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         var hasMag = _slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot)
                      && slot!.Item != null;
-        var delay  = hasMag ? MagEjectTime + MagInsertTime : MagInsertTime;
+        var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * _perks.GetReloadMultiplier(user);
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
             new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
@@ -262,7 +264,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell, bool isChainReload = false)
     {
-        var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime,
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime * _perks.GetReloadMultiplier(user),
             new FSShellInsertDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: shell)
         {
             NeedHand           = true,
@@ -361,7 +363,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private void StartChamberFill(EntityUid gun, EntityUid user, EntityUid round, bool isChainReload = false)
     {
-        var doAfterArgs = new DoAfterArgs(EntityManager, user, ChamberFillTime,
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, ChamberFillTime * _perks.GetReloadMultiplier(user),
             new FSChamberFillDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: round)
         {
             NeedHand           = true,

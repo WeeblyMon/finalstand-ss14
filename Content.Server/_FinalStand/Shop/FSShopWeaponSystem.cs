@@ -60,12 +60,18 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out _))
             return;
 
-        var weapon = FindHeldWeapon(player, comp.WeaponProtoId);
+        if (comp.WeaponProtoId == null)
+        {
+            SendWeaponLevels(mindId, new Dictionary<string, int>(), "");
+            return;
+        }
+
+        var weapon = FindHeldWeapon(player, comp.WeaponProtoId.Value);
         var levels = (weapon != null && TryComp<FSWeaponUpgradeStateComponent>(weapon.Value, out var state))
             ? state.Levels
             : new Dictionary<string, int>();
 
-        var title = ComputeWeaponTitle(player, comp.WeaponProtoId);
+        var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
         SendWeaponLevels(mindId, levels, title);
     }
 
@@ -78,17 +84,20 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out _))
             return;
 
+        if (comp.WeaponProtoId == null)
+            return;
+
         if (!_wallet.TryDeductCredits(mindId, comp.Price))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
             return;
         }
 
-        var weapon = Spawn(comp.WeaponProtoId, Transform(player).Coordinates);
+        var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
         TryGiveItemToPlayer(player, weapon);
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         // Fresh weapon — send empty levels and updated title.
-        var title = ComputeWeaponTitle(player, comp.WeaponProtoId);
+        var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
         SendWeaponLevels(mindId, new Dictionary<string, int>(), title);
     }
 
@@ -109,7 +118,10 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (def == null)
             return;
 
-        var weapon = FindHeldWeapon(player, comp.WeaponProtoId);
+        if (comp.WeaponProtoId == null)
+            return;
+
+        var weapon = FindHeldWeapon(player, comp.WeaponProtoId.Value);
         if (weapon == null)
         {
             _popup.PopupEntity("Hold the weapon to upgrade it.", uid, player);
@@ -174,7 +186,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
-        var title = ComputeWeaponTitle(player, comp.WeaponProtoId);
+        var title = comp.WeaponProtoId != null ? ComputeWeaponTitle(player, comp.WeaponProtoId.Value) : "";
         SendWeaponLevels(mindId, state.Levels, title);
     }
 

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -28,6 +29,8 @@ public sealed class FSShopClientSystem : EntitySystem
     public event Action? UpgradeLevelsChanged;
     /// <summary>Raised when the local player's active held item changes — open shop BUI should send a refresh.</summary>
     public event Action? RefreshNeeded;
+    /// <summary>Raised when the local player's perk state changes — open shop BUI should refresh perk rows.</summary>
+    public event Action? PerkStateChanged;
 
     private readonly Dictionary<EntityUid, bool> _lastAffordability = [];
     private EntityUid? _lastActiveItem;
@@ -37,6 +40,8 @@ public sealed class FSShopClientSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<UpgradeLevelsUpdatedEvent>(OnUpgradesUpdated);
+        SubscribeNetworkEvent<PerkAddedEvent>(OnPerkAdded);
+        SubscribeNetworkEvent<PerkRemovedAllEvent>(OnPerkRemovedAll);
         _client.PlayerJoinedServer += OnJoined;
         _client.PlayerLeaveServer += OnLeft;
     }
@@ -91,6 +96,23 @@ public sealed class FSShopClientSystem : EntitySystem
         UpgradeLevels = ev.Levels;
         WeaponTitle = ev.WeaponTitle;
         UpgradeLevelsChanged?.Invoke();
+    }
+
+    private void OnPerkAdded(PerkAddedEvent ev)
+    {
+        // Only fire for the local player so other players' purchases don't trigger a refresh
+        var localEntity = _player.LocalSession?.AttachedEntity;
+        if (localEntity == null)
+            return;
+        PerkStateChanged?.Invoke();
+    }
+
+    private void OnPerkRemovedAll(PerkRemovedAllEvent ev)
+    {
+        var localEntity = _player.LocalSession?.AttachedEntity;
+        if (localEntity == null)
+            return;
+        PerkStateChanged?.Invoke();
     }
 
     private void OnJoined(object? _, PlayerEventArgs __)

@@ -12,6 +12,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private Action? _onCreditsChanged;
     private Action? _onUpgradesChanged;
     private Action? _onRefreshNeeded;
+    private Action? _onPerkStateChanged;
 
     public FSShopWeaponBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
@@ -21,6 +22,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window = this.CreateWindowCenteredLeft<WeaponShopWindow>();
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnUpgradePressed += OnUpgradePressed;
+        _window.OnBuyPerkPressed += OnBuyPerkPressed;
         _window.OnClose += Close;
         _window.Populate(Owner, EntMan);
 
@@ -28,9 +30,11 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _onCreditsChanged  = OnCreditsChanged;
         _onUpgradesChanged = OnUpgradesChanged;
         _onRefreshNeeded   = OnRefreshNeeded;
-        shopClient.CreditsChanged      += _onCreditsChanged;
+        _onPerkStateChanged = OnPerkStateChanged;
+        shopClient.CreditsChanged       += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
-        shopClient.RefreshNeeded       += _onRefreshNeeded;
+        shopClient.RefreshNeeded        += _onRefreshNeeded;
+        shopClient.PerkStateChanged     += _onPerkStateChanged;
     }
 
     private void OnBuyPressed()
@@ -41,6 +45,11 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private void OnUpgradePressed(string upgradeId)
     {
         SendPredictedMessage(new FSShopUpgradeMessage(upgradeId));
+    }
+
+    private void OnBuyPerkPressed(string perkProtoId)
+    {
+        SendPredictedMessage(new FSShopBuyPerkMessage(perkProtoId));
     }
 
     private void OnRefreshNeeded()
@@ -54,6 +63,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
         _window.UpdateBalance(shopClient.CurrentCredits);
+        // Also refresh perk affordability when credits change
+        _window.RefreshPerks(Owner, EntMan, shopClient.CurrentCredits);
     }
 
     private void OnUpgradesChanged()
@@ -66,6 +77,14 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);
     }
 
+    private void OnPerkStateChanged()
+    {
+        if (_window == null)
+            return;
+        var shopClient = EntMan.System<FSShopClientSystem>();
+        _window.RefreshPerks(Owner, EntMan, shopClient.CurrentCredits);
+    }
+
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -73,15 +92,17 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
 
         var shopClient = EntMan.System<FSShopClientSystem>();
-        if (_onCreditsChanged  != null) shopClient.CreditsChanged      -= _onCreditsChanged;
-        if (_onUpgradesChanged != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
-        if (_onRefreshNeeded   != null) shopClient.RefreshNeeded       -= _onRefreshNeeded;
+        if (_onCreditsChanged   != null) shopClient.CreditsChanged       -= _onCreditsChanged;
+        if (_onUpgradesChanged  != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
+        if (_onRefreshNeeded    != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
+        if (_onPerkStateChanged != null) shopClient.PerkStateChanged     -= _onPerkStateChanged;
 
         if (_window == null)
             return;
-        _window.OnBuyPressed -= OnBuyPressed;
+        _window.OnBuyPressed     -= OnBuyPressed;
         _window.OnUpgradePressed -= OnUpgradePressed;
-        _window.OnClose -= Close;
+        _window.OnBuyPerkPressed -= OnBuyPerkPressed;
+        _window.OnClose          -= Close;
         _window.Dispose();
     }
 }

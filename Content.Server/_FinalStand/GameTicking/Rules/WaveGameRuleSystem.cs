@@ -6,6 +6,8 @@ using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
 using System.Linq;
@@ -38,6 +40,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
         // guard against admin-deleting mobs without triggering MobStateChangedEvent
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
+        SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
@@ -108,6 +111,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
+        RaiseLocalEvent(new WavePrepStartedEvent());
     }
 
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
@@ -148,6 +152,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
+        RaiseLocalEvent(new WaveCombatStartedEvent());
     }
 
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
@@ -314,6 +319,52 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave < 20) return 2.5f;
         if (wave < 30) return 5f;
         return 8f;
+    }
+
+    private void OnWaveStartRequest(WaveStartRequestEvent ev)
+    {
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gameRule))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gameRule))
+                continue;
+            if (comp.Phase != WavePhase.Prep)
+                continue;
+            StartCombatPhase(uid, comp);
+            return;
+        }
+    }
+
+    public record struct CCCStateData(
+        int WaveNumber,
+        WavePhase Phase,
+        float SecondsLeft,
+        int AliveEnemies,
+        int TotalEnemies,
+        int SpawnerCount,
+        bool IsBossWave,
+        string FactionDisplay);
+
+    public bool TryGetActiveState(out CCCStateData data)
+    {
+        data = default;
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gameRule))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gameRule))
+                continue;
+            data = new CCCStateData(
+                comp.WaveNumber,
+                comp.Phase,
+                Math.Max(0f, (float)(comp.PhaseEndTime - Timing.CurTime).TotalSeconds),
+                comp.AliveEnemies.Count,
+                comp.EnemyTotalThisWave,
+                comp.SpawnerEntities.Count,
+                IsBossWave(comp.WaveNumber),
+                comp.FactionDisplay);
+            return true;
+        }
+        return false;
     }
 
     public void ForceNextWave(IConsoleShell shell, int? targetWave = null)
