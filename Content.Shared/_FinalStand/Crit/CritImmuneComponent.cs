@@ -1,8 +1,8 @@
 namespace Content.Shared._FinalStand.Crit;
 
-/// <summary>Marker component — entities with this cannot be critted.</summary>
+/// entities with this component cannot be critted
 [RegisterComponent]
 public sealed partial class CritImmuneComponent : Component
 {
-    // TODO(finalstand): attach to Wraith prototype when Wraith is implemented.
+    // TODO(finalstand): attach to Wraith when implemented
 }
