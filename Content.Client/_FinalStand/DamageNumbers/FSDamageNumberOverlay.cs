@@ -12,7 +12,6 @@ public sealed class FSDamageNumberOverlay : Overlay
     [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     private Font? _fontNormal;
-    private Font? _fontCrit;
 
     public readonly List<DamageNumber> Numbers = new();
 
@@ -41,10 +40,6 @@ public sealed class FSDamageNumberOverlay : Overlay
             _resourceCache.GetResource<FontResource>(
                 new ResPath("/Fonts/AnimeAce/animeace2_reg.ttf")), 11);
 
-        _fontCrit ??= new VectorFont(
-            _resourceCache.GetResource<FontResource>(
-                new ResPath("/Fonts/AnimeAce/animeace2_bld.ttf")), 14);
-
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
 
@@ -64,7 +59,7 @@ public sealed class FSDamageNumberOverlay : Overlay
                 : 1f - (num.Age - fadeStart) / (Lifetime - fadeStart);
             alpha = Math.Clamp(alpha, 0f, 1f);
 
-            var font = num.IsCrit ? _fontCrit : _fontNormal;
+            var font = _fontNormal;
             var fg      = (num.IsCrit ? CritFg      : NormalFg).WithAlpha(alpha);
             var outline = (num.IsCrit ? CritOutline : NormalOutline).WithAlpha(alpha * 0.9f);
 
