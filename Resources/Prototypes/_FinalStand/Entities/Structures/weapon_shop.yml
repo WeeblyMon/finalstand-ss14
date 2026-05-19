@@ -104,6 +104,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
+    - id: mateba-dead-eye
+      name: Dead Eye
+      description: Increases critical hit chance by 5% per level. Crits deal 2× damage.
+      maxLevel: 5
+      baseCost: 300
+      type: CritChance
+      valuePerLevel: 0.05
     - id: mateba-akimbo
       name: Akimbo
       description: Dual wield. A second Mateba spawns in your off-hand. Fire alternates between both. Accuracy suffers.

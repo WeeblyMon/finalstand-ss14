@@ -90,10 +90,11 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         if (!entMan.TryGetComponent<FSShopPerksComponent>(shopEntity, out var perksComp)
             || perksComp.Perks.Count == 0)
         {
-            var placeholder = new Label { Text = "No perks available.", Modulate = Color.FromHex("#8FA1B3") };
-            PerksContainer.AddChild(placeholder);
+            PerksSection.Visible = false;
             return;
         }
+
+        PerksSection.Visible = true;
 
         // Read the local player's active perks from the networked PerkComponent
         var localPlayer = IoCManager.Resolve<Robust.Client.Player.IPlayerManager>().LocalSession?.AttachedEntity;
