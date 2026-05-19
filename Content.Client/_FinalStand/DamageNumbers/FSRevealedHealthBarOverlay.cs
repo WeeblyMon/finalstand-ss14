@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.UserInterface.Systems;
+using Content.Shared._FinalStand.Armor;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
@@ -13,10 +14,6 @@ using static Robust.Shared.Maths.Color;
 
 namespace Content.Client._FinalStand.DamageNumbers;
 
-/// <summary>
-///     HP bars rendered only for enemies that have taken at least one hit this wave.
-///     Populated by <see cref="FSDamageNumberSystem"/> when damage number events arrive.
-/// </summary>
 public sealed class FSRevealedHealthBarOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -30,8 +27,9 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    /// <summary>Entities whose HP bars should be visible. Populated by FSDamageNumberSystem.</summary>
     public readonly HashSet<EntityUid> RevealedEntities = new();
+
+    private static readonly Color ArmorFg = new(0.2f, 0.55f, 1f, 1f);
 
     public FSRevealedHealthBarOverlay(IEntityManager entManager)
     {
@@ -102,6 +100,24 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             var darken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter,
                                   new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
             handle.DrawRect(darken, Black.WithAlpha(128));
+
+            if (_entManager.TryGetComponent(uid, out FSArmorComponent? armor) && armor.NetworkedMaxArmor > 0f)
+            {
+                var armorRatio = Math.Clamp(armor.NetworkedCurrentArmor / armor.NetworkedMaxArmor, 0f, 1f);
+                var armorFill  = (endX - startX) * armorRatio + startX;
+
+                var armorBg = new Box2(new Vector2(startX,    -3f) / EyeManager.PixelsPerMeter,
+                                       new Vector2(endX,       0f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(armorBg, Black.WithAlpha(192));
+
+                var armorBar = new Box2(new Vector2(startX,    -3f) / EyeManager.PixelsPerMeter,
+                                        new Vector2(armorFill,  0f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(armorBar, ArmorFg);
+
+                var armorDarken = new Box2(new Vector2(startX,    -1f) / EyeManager.PixelsPerMeter,
+                                           new Vector2(armorFill,  0f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(armorDarken, Black.WithAlpha(128));
+            }
         }
 
         handle.SetTransform(Matrix3x2.Identity);

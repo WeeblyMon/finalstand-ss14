@@ -6,6 +6,7 @@ using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
@@ -210,6 +211,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
+            RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Spawned {proto} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}) " +

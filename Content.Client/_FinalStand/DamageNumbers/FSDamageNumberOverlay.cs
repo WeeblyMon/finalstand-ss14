@@ -20,11 +20,13 @@ public sealed class FSDamageNumberOverlay : Overlay
     internal const float Lifetime = 1.6f;
     private const float RiseSpeed = 1.1f;   // world units per second
 
-    // Normal hits: white + black outline; crit hits: red + deep-red outline
-    private static readonly Color NormalFg      = new(1f, 1f,    1f,    1f);
-    private static readonly Color NormalOutline  = new(0f, 0f,    0f,    0.9f);
-    private static readonly Color CritFg         = new(1f, 0.15f, 0.15f, 1f);
-    private static readonly Color CritOutline    = new(0.4f, 0f,  0f,    0.9f);
+    // Normal hits: white + black outline; crit hits: red + deep-red outline; armor: grey + dark outline
+    private static readonly Color NormalFg      = new(1f,    1f,    1f,    1f);
+    private static readonly Color NormalOutline  = new(0f,    0f,    0f,    0.9f);
+    private static readonly Color CritFg         = new(1f,    0.15f, 0.15f, 1f);
+    private static readonly Color CritOutline    = new(0.4f,  0f,    0f,    0.9f);
+    private static readonly Color ArmorFg        = new(0.65f, 0.65f, 0.65f, 1f);
+    private static readonly Color ArmorOutline   = new(0.15f, 0.15f, 0.15f, 0.9f);
 
     public FSDamageNumberOverlay()
     {
@@ -48,26 +50,37 @@ public sealed class FSDamageNumberOverlay : Overlay
             if (num.MapId != args.MapId)
                 continue;
 
-            // Rise upward in world space (+ Y = up, flipped to – screen Y by the matrix)
             var worldPos = num.OriginWorldPos + new Vector2(0f, num.Age * RiseSpeed);
             var screenPos = Vector2.Transform(worldPos, matrix);
 
-            // Fade starts at 50 % of lifetime
             var fadeStart = Lifetime * 0.5f;
             var alpha = num.Age < fadeStart
                 ? 1f
                 : 1f - (num.Age - fadeStart) / (Lifetime - fadeStart);
             alpha = Math.Clamp(alpha, 0f, 1f);
 
-            var font = _fontNormal;
-            var fg      = (num.IsCrit ? CritFg      : NormalFg).WithAlpha(alpha);
-            var outline = (num.IsCrit ? CritOutline : NormalOutline).WithAlpha(alpha * 0.9f);
+            Color fg, outline;
+            if (num.IsArmor)
+            {
+                fg      = ArmorFg.WithAlpha(alpha);
+                outline = ArmorOutline.WithAlpha(alpha * 0.9f);
+            }
+            else if (num.IsCrit)
+            {
+                fg      = CritFg.WithAlpha(alpha);
+                outline = CritOutline.WithAlpha(alpha * 0.9f);
+            }
+            else
+            {
+                fg      = NormalFg.WithAlpha(alpha);
+                outline = NormalOutline.WithAlpha(alpha * 0.9f);
+            }
 
+            var font = _fontNormal;
             var text = ((int)MathF.Round(num.Amount)).ToString();
             var dims = handle.GetDimensions(font, text, 1f);
             var origin = screenPos - dims / 2f;
 
-            // 4-direction outline at 1.5 px
             const float o = 1.5f;
             handle.DrawString(font, origin + new Vector2(-o, -o), text, 1f, outline);
             handle.DrawString(font, origin + new Vector2( o, -o), text, 1f, outline);
@@ -83,6 +96,7 @@ public sealed class FSDamageNumberOverlay : Overlay
         public MapId MapId;
         public float Amount;
         public bool IsCrit;
+        public bool IsArmor;
         public float Age;
     }
 }
