@@ -1,9 +1,11 @@
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.Armor;
@@ -11,7 +13,11 @@ namespace Content.Server._FinalStand.Armor;
 public sealed class FSArmorSystem : EntitySystem
 {
     [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
+
+    // Set in ProjectileHitEvent, consumed in DamageModifyEvent same frame. Cleared each Update.
+    private readonly Dictionary<EntityUid, FinalStandDamageFlags> _pendingFlags = [];
 
     public override void Initialize()
     {
@@ -20,6 +26,8 @@ public sealed class FSArmorSystem : EntitySystem
         SubscribeLocalEvent<FSArmorComponent, DamageModifyEvent>(OnDamageModify);
         SubscribeLocalEvent<FSArmorComponent, ArmorDepletedEvent>(OnArmorDepleted);
         SubscribeLocalEvent<FSArmorComponent, FSEnemyHpScaledEvent>(OnHpScaled);
+
+        SubscribeLocalEvent<FSProjectileFlagsComponent, ProjectileHitEvent>(OnFlaggedProjectileHit);
     }
 
     public override void Update(float frameTime)
@@ -37,6 +45,16 @@ public sealed class FSArmorSystem : EntitySystem
             if (MathF.Abs(armor.CurrentArmor - armor.NetworkedCurrentArmor) > 0.5f)
                 SyncNetworkedFields(uid, armor);
         }
+
+        _pendingFlags.Clear();
+    }
+
+    private void OnFlaggedProjectileHit(EntityUid uid, FSProjectileFlagsComponent comp, ref ProjectileHitEvent args)
+    {
+        if (comp.Flags == FinalStandDamageFlags.None)
+            return;
+        _pendingFlags.TryGetValue(args.Target, out var existing);
+        _pendingFlags[args.Target] = existing | comp.Flags;
     }
 
     private void OnStartup(EntityUid uid, FSArmorComponent armor, ComponentStartup _)
@@ -60,7 +78,12 @@ public sealed class FSArmorSystem : EntitySystem
         if (incoming <= 0f)
             return;
 
-        // TODO(finalstand): hook AP/Shred flags here from pistol upgrades ticket
+        _pendingFlags.TryGetValue(uid, out var flags);
+
+        // AP rounds: bypass armor entirely.
+        if (flags.HasFlag(FinalStandDamageFlags.ArmorPenetrating))
+            return;
+
         float absorbed;
         if (armor.CurrentArmor >= incoming)
         {
@@ -76,12 +99,18 @@ public sealed class FSArmorSystem : EntitySystem
             RaiseLocalEvent(uid, new ArmorDepletedEvent());
         }
 
+        // Armor shred: drain extra armor on top of normal absorption.
+        if (flags.HasFlag(FinalStandDamageFlags.ArmorShred))
+            armor.CurrentArmor = MathF.Max(0f, armor.CurrentArmor - absorbed * 0.5f);
+
         RaiseLocalEvent(uid, new FSArmorAbsorbedEvent { Shooter = args.Origin, Absorbed = absorbed });
         SyncNetworkedFields(uid, armor);
     }
 
     private void OnArmorDepleted(EntityUid uid, FSArmorComponent armor, ArmorDepletedEvent _)
     {
+        if (_mobState.IsDead(uid))
+            return;
         _audio.PlayPvs(armor.ArmorBreakSound, uid);
         // TODO(finalstand): add armor break particle when art assets available
     }
