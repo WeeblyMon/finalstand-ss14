@@ -6,11 +6,11 @@ namespace Content.Shared._FinalStand.Economy;
 public sealed class WalletUpdatedEvent : EntityEventArgs
 {
     public readonly int Credits;
-    public readonly int PerkPoints;
+    public readonly int AugmentPoints;
 
-    public WalletUpdatedEvent(int credits, int perkPoints)
+    public WalletUpdatedEvent(int credits, int augmentPoints)
     {
         Credits = credits;
-        PerkPoints = perkPoints;
+        AugmentPoints = augmentPoints;
     }
 }

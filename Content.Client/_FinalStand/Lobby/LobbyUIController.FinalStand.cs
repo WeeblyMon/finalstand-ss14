@@ -5,7 +5,7 @@ namespace Content.Client.Lobby;
 
 public sealed partial class LobbyUIController
 {
-    private int _fsPerkPoints;
+    private int _fsAugmentPoints;
 
     private void InitializeFinalStandWallet()
     {
@@ -14,12 +14,12 @@ public sealed partial class LobbyUIController
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)
     {
-        _fsPerkPoints = ev.PerkPoints;
-        UpdateFSPerkPoints();
+        _fsAugmentPoints = ev.AugmentPoints;
+        UpdateFSAugmentPoints();
     }
 
-    private void UpdateFSPerkPoints()
+    private void UpdateFSAugmentPoints()
     {
-        PreviewPanel?.SetPerkPointsText(_fsPerkPoints);
+        PreviewPanel?.SetAugmentPointsText(_fsAugmentPoints);
     }
 }

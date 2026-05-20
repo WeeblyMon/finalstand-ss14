@@ -164,8 +164,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         _wallet.DistributeCredits(comp.WaveSurvivalBonus);
         if (IsBossWave(comp.WaveNumber))
         {
-            Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} is a BOSS WAVE — distributing {comp.BossWavePerkReward} perk points");
-            _wallet.DistributePerkPoints(comp.BossWavePerkReward);
+            Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} is a BOSS WAVE — distributing {comp.BossWavePerkReward} augment points");
+            _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
         }
         comp.WavesCompleted++;
         comp.WaveNumber++;
