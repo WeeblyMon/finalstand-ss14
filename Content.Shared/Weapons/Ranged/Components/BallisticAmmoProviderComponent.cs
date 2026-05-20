@@ -19,7 +19,7 @@ public sealed partial class BallisticAmmoProviderComponent : Component
     [ViewVariables(VVAccess.ReadWrite), DataField]
     public EntProtoId? Proto;
 
-    [ViewVariables(VVAccess.ReadWrite), DataField]
+    [ViewVariables(VVAccess.ReadWrite), DataField, AutoNetworkedField]
     public int Capacity = 30;
 
     public int Count => UnspawnedCount + Container.ContainedEntities.Count;
