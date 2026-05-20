@@ -1,36 +1,44 @@
+using Content.Server._FinalStand.Upgrades;
+using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
-using Content.Shared.Weapons.Ranged.Systems;
-using Robust.Shared.Random;
+using Content.Shared.Weapons.Ranged.Events;
 
 namespace Content.Server._FinalStand.Shop;
 
 public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GunShotEvent>(OnGunShot);
+        // AmmoShotEvent gives spawned projectile entities; GunShotEvent.Ammo has cartridges without ProjectileComponent.
+        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, AmmoShotEvent>(OnAmmoShot);
     }
 
-    private void OnGunShot(EntityUid uid, FSWeaponUpgradeStateComponent comp, ref GunShotEvent args)
+    private void OnAmmoShot(EntityUid uid, FSWeaponUpgradeStateComponent comp, AmmoShotEvent args)
     {
-        foreach (var (ammoUid, _) in args.Ammo)
+        foreach (var projUid in args.FiredProjectiles)
         {
-            if (ammoUid == null)
-                continue;
-
-            if (!TryComp<ProjectileComponent>(ammoUid.Value, out var proj))
+            if (!TryComp<ProjectileComponent>(projUid, out var proj))
                 continue;
 
             if (comp.PierceThreshold > FixedPoint2.Zero)
-                proj.PenetrationThreshold += comp.PierceThreshold;
+            {
+                // SS14's built-in pierce requires overkill; ours resets ProjectileSpent per-hit.
+                proj.DeleteOnCollide = false;
+                var pierceComp = EnsureComp<FSPierceComponent>(projUid);
+                pierceComp.RemainingPierces = (int)Math.Round(comp.PierceThreshold.Float());
+            }
 
-            if (comp.CritChance > 0f && _random.NextFloat() < comp.CritChance)
-                proj.Damage *= comp.CritDamageMultiplier;
+            if (comp.APRoundsEnabled || comp.ArmorShredEnabled)
+            {
+                var flags = FinalStandDamageFlags.None;
+                if (comp.APRoundsEnabled)  flags |= FinalStandDamageFlags.ArmorPenetrating;
+                if (comp.ArmorShredEnabled) flags |= FinalStandDamageFlags.ArmorShred;
+                EnsureComp<FSProjectileFlagsComponent>(projUid).Flags = flags;
+            }
         }
     }
 }

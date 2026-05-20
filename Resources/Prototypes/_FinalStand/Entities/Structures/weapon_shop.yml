@@ -37,6 +37,8 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolViper
     price: 1000
+    starterAmmoProtoId: MagazinePistolHighCapacity
+    starterAmmoCount: 2
     upgrades:
     - id: viper-hair-trigger
       name: Hair Trigger
@@ -67,6 +69,21 @@
       baseCost: 500
       type: Akimbo
       valuePerLevel: 1
+    - id: viper-hollow-point
+      name: Hollow Point
+      description: Bullets slow hit enemies by 30% for 2 seconds. Hitting again resets the timer.
+      maxLevel: 1
+      baseCost: 350
+      type: Slowing
+      valuePerLevel: 1
+    - id: viper-recoil-comp
+      name: Recoil Compensator
+      description: Dynamic recoil reduction. (Coming soon.)
+      maxLevel: 1
+      baseCost: 200
+      type: Recoil
+      valuePerLevel: 1
+      isStub: true
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
     state: base
@@ -79,8 +96,10 @@
   description: Nanotrasen Death Squad revolver. High fire rate, .45 magnum.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponRevolverMateba
+    weaponProtoId: FSWeaponMateba
     price: 500
+    starterAmmoProtoId: MagazineBoxMagnum
+    starterAmmoCount: 1
     upgrades:
     - id: mateba-hair-trigger
       name: Hair Trigger
@@ -89,14 +108,14 @@
       baseCost: 200
       type: FireRate
       valuePerLevel: 0.5
-    - id: mateba-moonclip
-      name: Moon Clip
-      description: 6 loose .45 Magnum rounds spawned on each purchase per level.
+    - id: mateba-ammo-box
+      name: Ammo Box
+      description: A .45 magnum ammo box (12 rounds) spawned on each purchase per level.
       maxLevel: 5
       baseCost: 100
       type: SpawnItem
-      spawnProtoId: CartridgeMagnum
-      spawnCountPerLevel: 6
+      spawnProtoId: MagazineBoxMagnum
+      spawnCountPerLevel: 1
     - id: mateba-steady-aim
       name: Steady Aim
       description: Reduces max spread by 0.3° per level for precise follow-up shots.
@@ -118,6 +137,14 @@
       baseCost: 500
       type: Akimbo
       valuePerLevel: 1
+    - id: mateba-critical-mass
+      name: Critical Mass
+      description: Crits hit harder. Each level adds +0.25× crit damage multiplier.
+      maxLevel: 5
+      baseCost: 300
+      type: CritDamage
+      # TODO(finalstand): tune crit multiplier per level
+      valuePerLevel: 0.25
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
     state: icon
@@ -132,22 +159,24 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolFlintlock
     price: 300
+    starterAmmoProtoId: MagazineBoxMagnum
+    starterAmmoCount: 1
     upgrades:
-    - id: flintlock-hair-trigger
-      name: Hair Trigger
-      description: Lighter action increases fire rate by 0.5/level.
+    - id: flintlock-extra-load
+      name: Extra Load
+      description: Expands the barrel capacity by 1 round per level. Up to 6 shots before reloading.
       maxLevel: 5
       baseCost: 150
-      type: FireRate
-      valuePerLevel: 0.5
+      type: MagazineSize
+      valuePerLevel: 1
     - id: flintlock-ball-and-powder
       name: Ball & Powder
-      description: 2 loose .45 magnum rounds spawned on each purchase per level.
+      description: Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
       maxLevel: 5
       baseCost: 75
       type: SpawnItem
-      spawnProtoId: CartridgeMagnum
-      spawnCountPerLevel: 2
+      spawnProtoId: MagazineBoxMagnum
+      spawnCountPerLevel: 1
     - id: flintlock-steady-hand
       name: Steady Hand
       description: Reduces max spread by 0.5° per level for that one perfect shot.
@@ -162,6 +191,20 @@
       baseCost: 300
       type: Akimbo
       valuePerLevel: 1
+    - id: flintlock-explosive-shot
+      name: Explosive Shot
+      description: Bullets detonate on impact. AoE damage scales with gun damage × level.
+      maxLevel: 3
+      baseCost: 400
+      type: ExplosiveShot
+      valuePerLevel: 1
+    - id: flintlock-payday
+      name: Payday
+      description: +50 bonus credits per kill with this gun per level.
+      maxLevel: 4
+      baseCost: 250
+      type: MoneyGainBonus
+      valuePerLevel: 50
   - type: Sprite
     sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
     state: base
@@ -176,6 +219,8 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolN1984
     price: 700
+    starterAmmoProtoId: MagazineMagnum
+    starterAmmoCount: 2
     upgrades:
     - id: n1984-hair-trigger
       name: Hair Trigger
@@ -206,6 +251,28 @@
       baseCost: 500
       type: Akimbo
       valuePerLevel: 1
+    - id: n1984-ap-rounds
+      name: AP Rounds
+      description: Armor-piercing ammunition. Bullets bypass enemy armor entirely.
+      maxLevel: 1
+      baseCost: 600
+      type: APRounds
+      valuePerLevel: 1
+    - id: n1984-long-barrel
+      name: Long Barrel
+      description: Increases projectile speed and effective range per level.
+      maxLevel: 3
+      baseCost: 200
+      type: Range
+      # TODO(finalstand): tune range increase per level
+      valuePerLevel: 10
+    - id: n1984-penetrator
+      name: Penetrator
+      description: Bullets pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      maxLevel: 4
+      baseCost: 350
+      type: Pierce
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     state: base
@@ -235,6 +302,27 @@
       baseCost: 150
       type: Accuracy
       valuePerLevel: 0.3
+    - id: advlaser-rapid-charge
+      name: Rapid Charge
+      description: Self-recharge rate ×2 per level (×8 at max).
+      maxLevel: 3
+      baseCost: 300
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: advlaser-ignite
+      name: Incendiary Beam
+      description: Shots ignite targets on hit.
+      maxLevel: 1
+      baseCost: 400
+      type: SetOnFire
+      valuePerLevel: 1
+    - id: advlaser-chain-beam
+      name: Chain Beam
+      description: On hit, damage chains to 1 nearby enemy per level (3 tile range, no falloff, no cascade).
+      maxLevel: 3
+      baseCost: 450
+      type: BeamChaining
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
     state: base
@@ -264,6 +352,27 @@
       baseCost: 200
       type: Accuracy
       valuePerLevel: 0.3
+    - id: energymagnum-rapid-charge
+      name: Rapid Charge
+      description: Self-recharge rate ×2 per level (×8 at max).
+      maxLevel: 3
+      baseCost: 350
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: energymagnum-stopping-power
+      name: Stopping Power
+      description: Level 1 staggers. Level 2+ applies increasing physics knockback away from the shooter.
+      maxLevel: 3
+      baseCost: 300
+      type: Knockback
+      valuePerLevel: 1
+    - id: energymagnum-penetrator
+      name: Penetrator
+      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      maxLevel: 4
+      baseCost: 350
+      type: Pierce
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_magnum.rsi
     state: base

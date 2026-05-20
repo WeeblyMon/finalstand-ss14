@@ -13,4 +13,10 @@ public sealed partial class FSShopWeaponComponent : Component
 
     [DataField]
     public List<WeaponUpgradeDef> Upgrades = [];
+
+    [DataField]
+    public EntProtoId? StarterAmmoProtoId;
+
+    [DataField]
+    public int StarterAmmoCount = 1;
 }

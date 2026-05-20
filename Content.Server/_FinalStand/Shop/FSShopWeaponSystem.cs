@@ -95,6 +95,17 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
         TryGiveItemToPlayer(player, weapon);
+
+        if (comp.StarterAmmoProtoId != null)
+        {
+            var coords = Transform(player).Coordinates.Offset(new System.Numerics.Vector2(0.5f, 0.5f));
+            for (var i = 0; i < comp.StarterAmmoCount; i++)
+            {
+                var ammo = Spawn(comp.StarterAmmoProtoId.Value, coords);
+                TryGiveItemToPlayer(player, ammo);
+            }
+        }
+
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         // Fresh weapon — send empty levels and updated title.
         var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);

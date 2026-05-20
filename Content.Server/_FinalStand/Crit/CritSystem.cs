@@ -2,6 +2,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Projectiles;
 using Robust.Shared.Random;
@@ -55,20 +56,26 @@ public sealed class CritSystem : EntitySystem
     {
         if (comp.Shooter == null || comp.Weapon == null)
             return;
-        if (!TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier))
-            return;
 
-        args.Damage = args.Damage * multiplier;
+        if (TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier))
+        {
+            args.Damage *= multiplier;
+            _pendingCrits.Add((comp.Shooter.Value, args.Target));
+            RaiseLocalEvent(args.Target, new CritLandedEvent
+            {
+                Target = args.Target,
+                Shooter = comp.Shooter.Value,
+                FinalDamage = args.Damage.GetTotal().Float(),
+                WasCrit = true,
+            });
+        }
 
-        // Raise immediately before TryChangeDamage so the red number is guaranteed to fire.
-        // _pendingCrits is used in OnDamageChanged to suppress the duplicate non-crit event.
-        _pendingCrits.Add((comp.Shooter.Value, args.Target));
-        RaiseLocalEvent(args.Target, new CritLandedEvent
+        RaiseLocalEvent(new FSProjectileHitEffectEvent
         {
             Target = args.Target,
-            Shooter = comp.Shooter.Value,
-            FinalDamage = args.Damage.GetTotal().Float(),
-            WasCrit = true,
+            Weapon = comp.Weapon,
+            Shooter = comp.Shooter,
+            Damage = args.Damage,
         });
     }
 
@@ -80,7 +87,6 @@ public sealed class CritSystem : EntitySystem
         if (amount <= 0f)
             return;
 
-        // Crit was already raised in OnProjectileHit — just clean up and skip.
         if (_pendingCrits.Remove((args.Origin.Value, uid)))
             return;
 

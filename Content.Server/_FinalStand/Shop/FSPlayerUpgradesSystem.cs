@@ -1,8 +1,11 @@
+using System.Numerics;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Power.Components;
+using Content.Shared.Power.EntitySystems;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -16,6 +19,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly SharedBatterySystem _battery = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
 
@@ -70,7 +74,8 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.SpawnItem:
                 if (spawnItems && def.SpawnProtoId.HasValue)
                 {
-                    var coords = Transform(weapon).Coordinates;
+                    // Offset from player so items don't spawn inside their collider.
+                    var coords = Transform(player).Coordinates.Offset(new Vector2(0.5f, 0.5f));
                     for (var i = 0; i < def.SpawnCountPerLevel; i++)
                         Spawn(def.SpawnProtoId.Value, coords);
                 }
@@ -85,6 +90,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + extra, bal.Capacity);
 #pragma warning restore RA0002
                     Dirty(weapon, bal);
+                    _gun.RefreshModifiers(weapon);
                 }
                 else if (TryComp<BatteryAmmoProviderComponent>(weapon, out var bat))
                 {
@@ -141,6 +147,75 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.Akimbo:
                 if (newLevel == 1)
                     TryApplyAkimbo(weapon, player);
+                break;
+
+            case WeaponUpgradeType.ExplosiveShot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExplosiveShotLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.MoneyGainBonus:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MoneyGainBonusPerKill += (int)def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Slowing:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SlowingEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.BeamChaining:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.BeamChainTargets = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Knockback:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.KnockbackLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.SelfChargeSpeed:
+                if (TryComp<BatterySelfRechargerComponent>(weapon, out var selfCharge))
+                {
+                    selfCharge.AutoRechargeRate *= (float)def.ValuePerLevel;
+                    Dirty(weapon, selfCharge);
+                    _battery.RefreshChargeRate((weapon, null));
+                }
+                break;
+
+            case WeaponUpgradeType.SetOnFire:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SetOnFireEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.APRounds:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.APRoundsEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.ArmorShred:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ArmorShredEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Recoil:
+                // TODO(finalstand): implement when DynamicAimingCursor ticket is complete
                 break;
 
             case WeaponUpgradeType.ReloadSpeed:

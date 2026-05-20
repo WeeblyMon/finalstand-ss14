@@ -18,6 +18,16 @@ public enum WeaponUpgradeType : byte
     Pierce,
     Radius,
     Akimbo,
+    ExplosiveShot,
+    MoneyGainBonus,
+    Slowing,
+    BeamChaining,
+    Knockback,
+    SelfChargeSpeed,
+    SetOnFire,
+    APRounds,
+    ArmorShred,
+    Recoil,
 }
 
 [DataDefinition]
