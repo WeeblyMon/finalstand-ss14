@@ -24,6 +24,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
     public int ActiveSpawnerCount;
     public Dictionary<string, ReadyStatus> DepartmentStatus;
     public int ReadyCount;
+    public List<string> NextWaveEnemyTypes;
 
     public CCCBoundUserInterfaceState(
         int waveNumber,
@@ -36,7 +37,8 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         int aliveEnemyCount,
         int activeSpawnerCount,
         Dictionary<string, ReadyStatus> departmentStatus,
-        int readyCount)
+        int readyCount,
+        List<string> nextWaveEnemyTypes)
     {
         WaveNumber = waveNumber;
         EstimatedEnemyCount = estimatedEnemyCount;
@@ -49,6 +51,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         ActiveSpawnerCount = activeSpawnerCount;
         DepartmentStatus = departmentStatus;
         ReadyCount = readyCount;
+        NextWaveEnemyTypes = nextWaveEnemyTypes;
     }
 }
 

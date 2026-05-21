@@ -345,7 +345,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         int TotalEnemies,
         int SpawnerCount,
         bool IsBossWave,
-        string FactionDisplay);
+        string FactionDisplay,
+        List<string> NextWaveEnemyTypes);
 
     public bool TryGetActiveState(out CCCStateData data)
     {
@@ -355,6 +356,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule))
                 continue;
+            var pool = GetDirectorPool(comp);
             data = new CCCStateData(
                 comp.WaveNumber,
                 comp.Phase,
@@ -363,7 +365,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 comp.EnemyTotalThisWave,
                 comp.SpawnerEntities.Count,
                 IsBossWave(comp.WaveNumber),
-                comp.FactionDisplay);
+                comp.FactionDisplay,
+                pool.Select(p => p.Id).Distinct().ToList());
             return true;
         }
         return false;
