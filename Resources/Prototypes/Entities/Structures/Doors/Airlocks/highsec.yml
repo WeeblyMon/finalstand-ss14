@@ -113,15 +113,14 @@
         type: WiresBoundUserInterface
   - type: Airtight
   - type: Occluder
-  - type: Damageable
-    damageModifierSet: StrongMetallic
+  - type: Damageable # FINALSTAND: removed StrongMetallic so zombies deal full damage
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 1500
+        damage: 75 # FINALSTAND: 5% of original 1500
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]
