@@ -24,7 +24,7 @@ public sealed partial class FSShopWeaponComponent : Component
     public string Category = "";
 
     // 0–100 designer-set values for the shop UI stat bars.
-    [DataField] public byte StatDamage   = 50;
+    [DataField] public byte StatDamage = 50;
     [DataField] public byte StatFireRate = 50;
     [DataField] public byte StatAccuracy = 50;
     [DataField] public byte StatCapacity = 50;

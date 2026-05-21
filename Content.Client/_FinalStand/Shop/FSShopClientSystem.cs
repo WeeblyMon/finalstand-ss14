@@ -22,6 +22,9 @@ public sealed class FSShopClientSystem : EntitySystem
 
     private static readonly ProtoId<ShaderPrototype> ShaderAffordable = "FSShopGlowAffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderUnaffordable = "FSShopGlowUnaffordable";
+    private static readonly ProtoId<ShaderPrototype> ShaderOwned = "FSShopGlowOwned";
+
+    private enum ShopGlowState { Unaffordable, Affordable, Owned }
 
     public int CurrentCredits { get; private set; }
     public Dictionary<string, int> UpgradeLevels { get; private set; } = [];
@@ -32,7 +35,7 @@ public sealed class FSShopClientSystem : EntitySystem
     public event Action? RefreshNeeded;
     public event Action? PerkStateChanged;
 
-    private readonly Dictionary<EntityUid, bool> _lastAffordability = [];
+    private readonly Dictionary<EntityUid, ShopGlowState> _lastGlowState = [];
 
     public override void Initialize()
     {
@@ -59,46 +62,58 @@ public sealed class FSShopClientSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
+        var player = _player.LocalSession?.AttachedEntity;
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
-            var canAfford = CurrentCredits >= shop.Price;
-            if (_lastAffordability.TryGetValue(uid, out var last) && last == canAfford)
+            ShopGlowState state;
+            if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
+                state = ShopGlowState.Owned;
+            else if (CurrentCredits >= shop.Price)
+                state = ShopGlowState.Affordable;
+            else
+                state = ShopGlowState.Unaffordable;
+
+            if (_lastGlowState.TryGetValue(uid, out var last) && last == state)
                 continue;
 
-            _lastAffordability[uid] = canAfford;
-            ApplyOutline(sprite, canAfford);
+            _lastGlowState[uid] = state;
+            ApplyOutline(sprite, state);
         }
     }
 
     private void OnHandSelected(HandSelectedEvent ev)
     {
         if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
         RefreshNeeded?.Invoke();
     }
 
     private void OnHandDeselected(HandDeselectedEvent ev)
     {
         if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
         RefreshNeeded?.Invoke();
     }
 
     private void OnDidEquipHand(DidEquipHandEvent ev)
     {
         if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
         RefreshNeeded?.Invoke();
     }
 
     private void OnDidUnequipHand(DidUnequipHandEvent ev)
     {
         if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
         RefreshNeeded?.Invoke();
     }
 
     private void OnWalletUpdate(WalletUpdatedEvent ev)
     {
         CurrentCredits = ev.Credits;
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
 
@@ -131,7 +146,7 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
 
@@ -157,9 +172,26 @@ public sealed class FSShopClientSystem : EntitySystem
         return held.Value;
     }
 
-    private void ApplyOutline(SpriteComponent sprite, bool canAfford)
+    private bool PlayerHasWeapon(EntityUid player, EntProtoId? protoId)
     {
-        var protoId = canAfford ? ShaderAffordable : ShaderUnaffordable;
+        if (protoId == null) return false;
+        var targetId = protoId.Value.Id;
+        foreach (var held in _hands.EnumerateHeld(player))
+        {
+            if (MetaData(held).EntityPrototype?.ID == targetId)
+                return true;
+        }
+        return false;
+    }
+
+    private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
+    {
+        var protoId = state switch
+        {
+            ShopGlowState.Owned => ShaderOwned,
+            ShopGlowState.Affordable => ShaderAffordable,
+            _ => ShaderUnaffordable,
+        };
         sprite.PostShader = _prototypeManager.Index(protoId).InstanceUnique();
     }
 
@@ -170,6 +202,6 @@ public sealed class FSShopClientSystem : EntitySystem
         {
             sprite.PostShader = null;
         }
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
     }
 }
