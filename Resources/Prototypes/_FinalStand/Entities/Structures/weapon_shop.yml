@@ -39,6 +39,11 @@
     price: 1000
     starterAmmoProtoId: MagazinePistolHighCapacity
     starterAmmoCount: 2
+    category: 9mm Semi/Full-Auto Pistol
+    statDamage: 35
+    statFireRate: 80
+    statAccuracy: 55
+    statCapacity: 75
     upgrades:
     - id: viper-hair-trigger
       name: Hair Trigger
@@ -100,6 +105,11 @@
     price: 500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
+    category: .45 Magnum Revolver
+    statDamage: 70
+    statFireRate: 55
+    statAccuracy: 75
+    statCapacity: 25
     upgrades:
     - id: mateba-hair-trigger
       name: Hair Trigger
@@ -161,6 +171,11 @@
     price: 300
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
+    category: .45 Single-Shot Pistol
+    statDamage: 90
+    statFireRate: 10
+    statAccuracy: 80
+    statCapacity: 15
     upgrades:
     - id: flintlock-extra-load
       name: Extra Load
@@ -221,6 +236,11 @@
     price: 700
     starterAmmoProtoId: MagazineMagnum
     starterAmmoCount: 2
+    category: .45 Magnum Hand Cannon
+    statDamage: 75
+    statFireRate: 45
+    statAccuracy: 60
+    statCapacity: 45
     upgrades:
     - id: n1984-hair-trigger
       name: Hair Trigger
@@ -287,6 +307,11 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponAdvancedLaser
     price: 800
+    category: Self-Recharging Energy Pistol
+    statDamage: 45
+    statFireRate: 65
+    statAccuracy: 75
+    statCapacity: 100
     upgrades:
     - id: advlaser-overcharge-coil
       name: Overcharge Coil
@@ -337,6 +362,11 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponEnergyMagnum
     price: 1200
+    category: High-Yield Energy Pistol
+    statDamage: 85
+    statFireRate: 35
+    statAccuracy: 65
+    statCapacity: 100
     upgrades:
     - id: energymagnum-overcharge-coil
       name: Overcharge Coil
