@@ -1,5 +1,7 @@
 using System.IO;
+using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Leveling;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Microsoft.Data.Sqlite;
@@ -16,9 +18,18 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IResourceManager _res = default!;
+    [Dependency] private readonly FSLevelingSystem _levelingSystem = default!;
 
     private SqliteConnection? _db;
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
+
+    private record struct FullRecord(
+        int AugmentPoints,
+        int Level,
+        int Experience,
+        int PrestigeLevel,
+        int BuffStoppingPower,
+        int BuffBulletStorm);
 
     public override void Initialize()
     {
@@ -53,8 +64,8 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         _db.Open();
 
-        using var cmd = _db.CreateCommand();
-        cmd.CommandText = """
+        using var createCmd = _db.CreateCommand();
+        createCmd.CommandText = """
             CREATE TABLE IF NOT EXISTS prestige (
                 user_id        TEXT PRIMARY KEY,
                 username       TEXT NOT NULL DEFAULT '',
@@ -63,8 +74,58 @@ public sealed class FSPlayerWalletSystem : EntitySystem
                 experience     INTEGER NOT NULL DEFAULT 0
             )
             """;
-        cmd.ExecuteNonQuery();
+        createCmd.ExecuteNonQuery();
+
+        // sqlite has no IF NOT EXISTS for ALTER TABLE, so we catch duplicate column errors
+        string[] newColumns =
+        [
+            "ALTER TABLE prestige ADD COLUMN prestige_level      INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_iron_hide      INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_scavenger      INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_fast_learner   INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_sprinter       INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_marksman       INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_survivor       INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_stopping_power  INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN buff_bullet_storm    INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE prestige ADD COLUMN augment_levels_json  TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE prestige ADD COLUMN augment_slots_json   TEXT NOT NULL DEFAULT ''",
+            "ALTER TABLE prestige ADD COLUMN augment_loadouts_json TEXT NOT NULL DEFAULT ''",
+        ];
+        foreach (var ddl in newColumns)
+        {
+            try
+            {
+                using var alter = _db.CreateCommand();
+                alter.CommandText = ddl;
+                alter.ExecuteNonQuery();
+            }
+            catch (SqliteException e) when (e.Message.Contains("duplicate column")) { }
+        }
+
         Log.Debug("[FSWallet] Prestige database opened.");
+    }
+
+    private FullRecord DbGetFullRecord(Guid userId)
+    {
+        using var cmd = _db!.CreateCommand();
+        cmd.CommandText = """
+            SELECT augment_points, level, experience, prestige_level,
+                   buff_stopping_power, buff_bullet_storm
+            FROM prestige WHERE user_id = $id
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read())
+            return new FullRecord(0, 1, 0, 0, 0, 0);
+
+        return new FullRecord(
+            reader.GetInt32(0),
+            Math.Max(1, reader.GetInt32(1)),
+            reader.GetInt32(2),
+            reader.GetInt32(3),
+            reader.GetInt32(4),
+            reader.GetInt32(5));
     }
 
     private int DbGetAugmentPoints(Guid userId)
@@ -92,9 +153,39 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         cmd.ExecuteNonQuery();
     }
 
+    private void DbUpsertFull(Guid userId, string username,
+        int augmentPoints, int level, int experience, int prestigeLevel,
+        int stoppingPower = 0, int bulletStorm = 0)
+    {
+        using var cmd = _db!.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO prestige (
+                user_id, username, augment_points,
+                level, experience, prestige_level,
+                buff_stopping_power, buff_bullet_storm)
+            VALUES ($id, $name, $ap, $lvl, $xp, $prestige, $stoppingpower, $bulletstorm)
+            ON CONFLICT(user_id) DO UPDATE SET
+                username            = excluded.username,
+                augment_points      = excluded.augment_points,
+                level               = excluded.level,
+                experience          = excluded.experience,
+                prestige_level      = excluded.prestige_level,
+                buff_stopping_power = excluded.buff_stopping_power,
+                buff_bullet_storm   = excluded.buff_bullet_storm
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$name", username);
+        cmd.Parameters.AddWithValue("$ap", augmentPoints);
+        cmd.Parameters.AddWithValue("$lvl", level);
+        cmd.Parameters.AddWithValue("$xp", experience);
+        cmd.Parameters.AddWithValue("$prestige", prestigeLevel);
+        cmd.Parameters.AddWithValue("$stoppingpower", stoppingPower);
+        cmd.Parameters.AddWithValue("$bulletstorm", bulletStorm);
+        cmd.ExecuteNonQuery();
+    }
+
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
-        // Mind entities persist across rounds — zero credits but keep augment points.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
@@ -113,10 +204,27 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         _cachedUsernames[mind.UserId.Value] = session.Name;
 
+        var row = DbGetFullRecord(mind.UserId.Value.UserId);
+
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-        wallet.AugmentPoints = DbGetAugmentPoints(mind.UserId.Value.UserId);
+        wallet.AugmentPoints = row.AugmentPoints;
         NotifyClient(mindId, wallet);
-        Log.Debug($"[FSWallet] Attached {mind.UserId} ({session.Name}) — credits={wallet.Credits} augment={wallet.AugmentPoints}");
+
+        var lvlComp = EnsureComp<FSPlayerLevelComponent>(mindId);
+        lvlComp.Level = row.Level;
+        lvlComp.Experience = row.Experience;
+        lvlComp.XpToNextLevel = FSLevelingSystem.XpToNextLevel(row.Level);
+        lvlComp.PrestigeLevel = row.PrestigeLevel;
+
+        var buffComp = EnsureComp<FSPrestigeBuffsComponent>(mindId);
+        buffComp.StoppingPower = row.BuffStoppingPower;
+        buffComp.BulletStorm   = row.BuffBulletStorm;
+
+        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
+
+        _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
+
+        Log.Debug($"[FSWallet] Attached {mind.UserId} ({session.Name}) — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -127,12 +235,20 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var username = ResolveUsername(mind.UserId.Value);
 
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out _, out var wallet, out var m))
+        while (query.MoveNext(out var mindId, out var wallet, out var m))
         {
-            if (m.UserId != mind.UserId)
-                continue;
-            DbUpsert(mind.UserId.Value.UserId, username, wallet.AugmentPoints);
-            Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.AugmentPoints}");
+            if (m.UserId != mind.UserId) continue;
+
+            TryComp<FSPlayerLevelComponent>(mindId, out var lvl);
+            TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+
+            DbUpsertFull(
+                mind.UserId.Value.UserId, username,
+                wallet.AugmentPoints,
+                lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
+                buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
+
+            Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.AugmentPoints} lvl={lvl?.Level}");
             break;
         }
     }
@@ -175,6 +291,44 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         Log.Info($"[FSWallet] DistributeAugmentPoints +{amount} → {count} player(s)");
     }
 
+    public void AddAugmentPoints(EntityUid mindId, int amount)
+    {
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        wallet.AugmentPoints += amount;
+        NotifyClient(mindId, wallet);
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
+        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.AugmentPoints);
+    }
+
+    public bool TryDeductAugmentPoints(EntityUid mindId, int cost)
+    {
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.AugmentPoints < cost)
+            return false;
+        wallet.AugmentPoints -= cost;
+        NotifyClient(mindId, wallet);
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return true;
+        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.AugmentPoints);
+        return true;
+    }
+
+    public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
+    {
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) return;
+
+        TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+        DbUpsertFull(
+            mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
+            wallet.AugmentPoints, level, experience, prestigeLevel,
+            buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
+    }
+
+    public void SavePrestigeBuffs(EntityUid mindId, FSPrestigeBuffsComponent buffs)
+    {
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl)) return;
+        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+    }
+
     public void GiveCredits(EntityUid mindId, int amount)
     {
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
@@ -196,13 +350,79 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     {
         var count = 0;
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out _, out var wallet, out var mind))
+        while (query.MoveNext(out var mindId, out var wallet, out var mind))
         {
             if (mind.UserId == null) continue;
-            DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.AugmentPoints);
+            TryComp<FSPlayerLevelComponent>(mindId, out var lvl);
+            TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+            DbUpsertFull(
+                mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
+                wallet.AugmentPoints,
+                lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
+                buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
             count++;
         }
-        Log.Info($"[FSWallet] SaveAll flushed augment points for {count} player(s)");
+        Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
+    }
+
+    public int GetStoredAugmentPoints(Guid userId) => DbGetAugmentPoints(userId);
+
+    public void GiveAugmentPoints(ICommonSession session, int amount)
+    {
+        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
+        while (query.MoveNext(out var mindId, out var wallet, out var mind))
+        {
+            if (mind.UserId != session.UserId) continue;
+            wallet.AugmentPoints = Math.Max(0, wallet.AugmentPoints + amount);
+            NotifyClient(mindId, wallet);
+            DbUpsert(session.UserId.UserId, session.Name, wallet.AugmentPoints);
+            return;
+        }
+
+        var current = DbGetAugmentPoints(session.UserId.UserId);
+        DbUpsert(session.UserId.UserId, session.Name, Math.Max(0, current + amount));
+    }
+
+    public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadAugmentData(Guid userId)
+    {
+        using var cmd = _db!.CreateCommand();
+        cmd.CommandText = """
+            SELECT augment_levels_json, augment_slots_json, augment_loadouts_json
+            FROM prestige WHERE user_id = $id
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read())
+            return ("", "", "");
+        return (
+            reader.IsDBNull(0) ? "" : reader.GetString(0),
+            reader.IsDBNull(1) ? "" : reader.GetString(1),
+            reader.IsDBNull(2) ? "" : reader.GetString(2));
+    }
+
+    public void SaveAugmentData(EntityUid mindId, string levelsJson, string slotsJson, string loadoutsJson)
+    {
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
+        var userGuid = mind.UserId.Value.UserId;
+        DbSaveAugmentJson(userGuid, levelsJson, slotsJson, loadoutsJson);
+    }
+
+    private void DbSaveAugmentJson(Guid userGuid, string levelsJson, string slotsJson, string loadoutsJson)
+    {
+        using var cmd = _db!.CreateCommand();
+        cmd.CommandText = """
+            INSERT INTO prestige (user_id, username, augment_levels_json, augment_slots_json, augment_loadouts_json)
+            VALUES ($id, '', $levels, $slots, $loadouts)
+            ON CONFLICT(user_id) DO UPDATE SET
+                augment_levels_json   = excluded.augment_levels_json,
+                augment_slots_json    = excluded.augment_slots_json,
+                augment_loadouts_json = excluded.augment_loadouts_json
+            """;
+        cmd.Parameters.AddWithValue("$id", userGuid.ToString());
+        cmd.Parameters.AddWithValue("$levels", levelsJson);
+        cmd.Parameters.AddWithValue("$slots", slotsJson);
+        cmd.Parameters.AddWithValue("$loadouts", loadoutsJson);
+        cmd.ExecuteNonQuery();
     }
 
     public void DumpWallets(IConsoleShell shell)
