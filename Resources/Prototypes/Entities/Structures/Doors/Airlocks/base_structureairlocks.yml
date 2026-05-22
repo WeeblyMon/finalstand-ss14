@@ -151,7 +151,7 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 25 # FINALSTAND: 5% of original 500
+        damage: 100 # FINALSTAND: Nerf from original 500
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]
