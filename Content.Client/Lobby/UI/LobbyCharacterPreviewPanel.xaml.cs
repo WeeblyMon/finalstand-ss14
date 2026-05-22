@@ -35,4 +35,12 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
     {
         PerkPointsLabel.Text = $"Augment Points: {augmentPoints:N0}";
     }
+
+    // FINALSTAND: leveling display
+    public Button AugmentShopButtonControl => AugmentShopButton;
+    public Button PrestigeButtonControl => PrestigeButton;
+
+    public void SetLevelText(string text) => LevelLabel.Text = text;
+    public void SetXpText(string text) => XpLabel.Text = text;
+    public void SetPrestigeButtonVisible(bool visible) => PrestigeButton.Visible = visible;
 }
