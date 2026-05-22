@@ -1,0 +1,114 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      Title="Augment Shop"
+                      Resizable="False"
+                      SetSize="860 640"
+                      MinSize="860 640">
+    <TabContainer Name="ShopTabs" VerticalExpand="True">
+
+        <!-- ═══════════════════ TAB 0: AUGMENTS ═══════════════════ -->
+        <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True" Margin="8">
+
+            <!-- LEFT: Info + Slots + Loadouts -->
+            <ScrollContainer SetWidth="270" VerticalExpand="True" HScrollEnabled="False">
+            <BoxContainer Orientation="Vertical" SetWidth="260" Margin="10 0 0 0">
+
+                <!-- Selected augment icon -->
+                <TextureRect Name="SelectedAugmentIcon"
+                             SetWidth="64" SetHeight="64"
+                             Stretch="KeepAspectCentered"
+                             Margin="0 0 0 6" />
+
+                <!-- Name + Level + Category -->
+                <Label Name="SelectedNameLabel" Text="—" StyleClasses="LabelHeading" Margin="0 0 0 2" />
+                <Label Name="SelectedLevelLabel" Text="Level 0 / 4" Modulate="#777777" Margin="0 0 0 2" />
+                <Label Name="SelectedCategoryLabel" Text="" Margin="0 0 0 4" />
+
+                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
+
+                <!-- Active slots -->
+                <Label Text="ACTIVE SLOTS" Modulate="#AAAAAA" Margin="0 0 0 4" />
+                <BoxContainer Name="SlotsRow" Orientation="Horizontal" Margin="0 0 0 6" />
+
+                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
+
+                <!-- Description + effects -->
+                <RichTextLabel Name="SelectedDescLabel" HorizontalExpand="True" Margin="0 0 0 4" />
+                <Label Name="SelectedEffectLabel" Text="" Modulate="#88FF88" Margin="0 0 0 2" />
+                <Label Name="SelectedNextEffectLabel" Text="" Modulate="#AAAAFF" Margin="0 0 0 8" />
+
+                <!-- AP display (above buttons) -->
+                <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
+                    <Label Text="Points: " Modulate="#FFD700" />
+                    <Label Name="ApLabel" Text="0" Modulate="#FFD700" />
+                </BoxContainer>
+                <Label Name="SelectedCostLabel" Text="" Modulate="#FFD700" Margin="0 0 0 6" />
+
+                <!-- Action buttons -->
+                <Button Name="UpgradeButton" Text="Unlock / Upgrade" Disabled="True" Margin="0 0 0 3" />
+                <Button Name="EquipButton" Text="Equip to First Open Slot" Disabled="True" Margin="0 0 0 3" />
+                <Button Name="UnequipButton" Text="Unequip from Slot" Disabled="True" Margin="0 0 0 6" />
+
+                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
+
+                <!-- Loadouts -->
+                <Label Text="LOADOUTS" Modulate="#AAAAAA" Margin="0 0 0 4" />
+                <BoxContainer Orientation="Horizontal" Margin="0 0 0 3">
+                    <Button Name="SaveLoadout0" Text="Save 1" HorizontalExpand="True" Margin="0 0 2 0" />
+                    <Button Name="LoadLoadout0" Text="Load 1" HorizontalExpand="True" />
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal" Margin="0 0 0 3">
+                    <Button Name="SaveLoadout1" Text="Save 2" HorizontalExpand="True" Margin="0 0 2 0" />
+                    <Button Name="LoadLoadout1" Text="Load 2" HorizontalExpand="True" />
+                </BoxContainer>
+                <BoxContainer Orientation="Horizontal">
+                    <Button Name="SaveLoadout2" Text="Save 3" HorizontalExpand="True" Margin="0 0 2 0" />
+                    <Button Name="LoadLoadout2" Text="Load 3" HorizontalExpand="True" />
+                </BoxContainer>
+
+            </BoxContainer>
+            </ScrollContainer>
+
+            <!-- Vertical separator -->
+            <PanelContainer StyleClasses="LowDivider" Margin="4 0" />
+
+            <!-- RIGHT: Filter + Search + Icon grid -->
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
+
+                <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+                    <Button Name="FilterAll"    Text="All"     HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
+                    <Button Name="FilterRed"    Text="Offense" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
+                    <Button Name="FilterBlue"   Text="Defense" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
+                    <Button Name="FilterGreen"  Text="Utility" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
+                    <Button Name="FilterYellow" Text="Economy" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
+                    <Button Name="FilterPurple" Text="Hybrid"  HorizontalExpand="True" ToggleMode="True" />
+                </BoxContainer>
+
+                <LineEdit Name="SearchBar" PlaceHolder="Search augments..." Margin="0 0 0 6" />
+
+                <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
+                    <BoxContainer Name="AugmentGrid" Orientation="Vertical" HorizontalExpand="True" />
+                </ScrollContainer>
+
+            </BoxContainer>
+
+        </BoxContainer>
+
+        <!-- ═══════════════════ TAB 1: PRESTIGE ═══════════════════ -->
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="16">
+
+            <Label Name="PrestigeLevelLabel" Text="Prestige 0 — Level 1" StyleClasses="LabelHeading" Margin="0 0 0 8" />
+            <Label Name="PrestigeXpBonusLabel" Text="Current XP Bonus: +0%" Margin="0 0 0 4" />
+            <Label Name="PrestigeRequirementLabel" Text="Reach Level 50 to Prestige" Modulate="#777777" Margin="0 0 0 16" />
+            <Button Name="PrestigeButton" Text="✦  PRESTIGE  ✦" Disabled="True" SetHeight="40" Margin="0 0 0 20" />
+
+            <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 10" />
+
+            <Label Text="PRESTIGE HISTORY" Modulate="#AAAAAA" Margin="0 0 0 6" />
+            <!-- // TODO(finalstand): populate prestige history -->
+            <Label Name="PrestigeHistoryLabel" Text="No prestiges yet." Modulate="#555555" />
+
+        </BoxContainer>
+
+    </TabContainer>
+</controls:FancyWindow>
