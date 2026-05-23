@@ -25,17 +25,17 @@ public sealed class StartFinalStandCommand : LocalizedEntityCommands
             return;
         }
 
-        if (!_mapManager.CheckMapExists("FinalStandMap"))
+        if (!_mapManager.CheckMapExists("FinalStandMap1"))
         {
-            shell.WriteError("FinalStandMap not found. Is the prototype loaded?");
+            shell.WriteError("FinalStandMap1 not found. Is the prototype loaded?");
             return;
         }
 
         _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
-        _cfg.SetCVar(CCVars.GameMap, "FinalStandMap");
+        _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
         _ticker.SetGamePreset(preset, true);
         _ticker.RestartRound();
 
-        shell.WriteLine("Final Stand round starting on FinalStandMap.");
+        shell.WriteLine("Final Stand round starting on FinalStandMap1.");
     }
 }
