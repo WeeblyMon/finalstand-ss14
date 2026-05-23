@@ -1,5 +1,6 @@
 using Content.Client._FinalStand.Augments.UI;
 using Content.Shared._FinalStand.Augments;
+using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 
 namespace Content.Client._FinalStand.Augments;
@@ -16,6 +17,7 @@ public sealed class FSAugmentShopSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
         SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnLevelingUpdated);
+        SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdated);
     }
 
     public void OpenWindow()
@@ -54,6 +56,14 @@ public sealed class FSAugmentShopSystem : EntitySystem
         _cachedPrestige = ev.PrestigeLevel;
         if (_window is { Disposed: false, IsOpen: true })
             _window.UpdateLeveling(ev.Level, ev.PrestigeLevel);
+    }
+
+    private void OnWalletUpdated(WalletUpdatedEvent ev)
+    {
+        if (_cachedState == null) return;
+        _cachedState.AugmentPoints = ev.AugmentPoints;
+        if (_window is { Disposed: false, IsOpen: true })
+            _window.UpdateState(_cachedState);
     }
 
     public override void Shutdown()

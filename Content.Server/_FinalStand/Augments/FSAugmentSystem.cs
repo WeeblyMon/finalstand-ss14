@@ -90,17 +90,45 @@ public sealed class FSAugmentSystem : EntitySystem
 
     private void OnBuyAugment(FSBuyAugmentMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug)) return;
-        if (!FSAugmentDef.All.ContainsKey(msg.AugmentId)) return;
+        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment: TryGetMind failed for {args.SenderSession.Name}");
+            return;
+        }
+        if (!FSAugmentDef.All.ContainsKey(msg.AugmentId))
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment: unknown augment id '{msg.AugmentId}'");
+            return;
+        }
+
+        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug))
+        {
+            if (mind?.UserId == null)
+            {
+                Log.Debug($"[FSAugment] OnBuyAugment: no UserId on mind {mindId}");
+                return;
+            }
+            var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
+            aug = EnsureComp<FSAugmentLevelsComponent>(mindId);
+            DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
+        }
 
         var currentLevel = aug.GetLevel(msg.AugmentId);
-        if (currentLevel >= FSAugmentDef.MaxLevel) return;
+        if (currentLevel >= FSAugmentDef.MaxLevel)
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment: '{msg.AugmentId}' already max level ({currentLevel})");
+            return;
+        }
 
         var cost = FSAugmentDef.CostForUpgrade(currentLevel);
-        if (!_wallet.TryDeductAugmentPoints(mindId, cost)) return;
+        if (!_wallet.TryDeductAugmentPoints(mindId, cost))
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment: TryDeductAugmentPoints failed — mind={mindId} cost={cost}");
+            return;
+        }
 
         aug.Levels[msg.AugmentId] = currentLevel + 1;
+        Log.Debug($"[FSAugment] OnBuyAugment: SUCCESS — '{msg.AugmentId}' → Lv{currentLevel + 1} for {args.SenderSession.Name}");
         SaveToDb(mindId, aug);
         SendStateToClient(mindId, aug);
     }
