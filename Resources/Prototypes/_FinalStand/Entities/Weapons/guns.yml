@@ -50,3 +50,35 @@
       path: /Audio/Weapons/Guns/MagOut/revolver_magout.ogg
   - type: StaticPrice
     price: 500
+
+# SMG overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+
+- type: entity
+  id: FSWeaponAtreides
+  parent: WeaponSubMachineGunAtreides
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - Sidearm
+    - AkimboEligible
+
+- type: entity
+  id: FSWeaponWt550
+  parent: WeaponSubMachineGunWt550
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - Sidearm
+    - AkimboEligible
+
+- type: entity
+  id: FSWeaponC20r
+  parent: WeaponSubMachineGunC20r
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - Sidearm
+    - AkimboEligible

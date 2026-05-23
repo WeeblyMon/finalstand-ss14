@@ -1,9 +1,11 @@
 using System.Numerics;
+using Content.Server._FinalStand.Leveling;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Tag;
@@ -20,6 +22,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedBatterySystem _battery = default!;
+    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
 
@@ -219,6 +222,47 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
 
             case WeaponUpgradeType.ReloadSpeed:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                // Each level reduces reload time by ValuePerLevel (0.1 = 10%), clamped to 10% minimum.
+                state.ReloadSpeedMultiplier = MathF.Max(0.1f, 1.0f - newLevel * def.ValuePerLevel);
+                break;
+            }
+
+            case WeaponUpgradeType.LifeSteal:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.LifeStealPercent = newLevel * def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.StaminaSteal:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.StaminaStealLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.AttackSpeed:
+                if (TryComp<GunComponent>(weapon, out var burstGun))
+                {
+#pragma warning disable RA0002
+                    burstGun.BurstFireRate += def.ValuePerLevel;
+#pragma warning restore RA0002
+                    Dirty(weapon, burstGun);
+                }
+                break;
+
+            case WeaponUpgradeType.MovementSpeed:
+            {
+                // Player-level buff — skip when mirroring to the akimbo partner to avoid double-applying.
+                if (!spawnItems) break;
+                var bonus = EnsureComp<FSSpeedBonusComponent>(player);
+                bonus.SpeedMultiplier += def.ValuePerLevel;
+                _movement.RefreshMovementSpeedModifiers(player);
+                break;
+            }
+
             case WeaponUpgradeType.Radius:
                 break;
         }
