@@ -3,6 +3,7 @@ using Content.Server.NPC.Components;
 using Content.Server.NPC.Pathfinding;
 using Content.Shared.Climbing;
 using Content.Shared.CombatMode;
+using Content.Shared.Damage.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.Doors.Components;
 using Content.Shared.NPC;
@@ -166,20 +167,38 @@ public sealed partial class NPCSteeringSystem
                 {
                     _combat.SetInCombatMode(uid, true, combatMode);
                     var destructibleQuery = GetEntityQuery<DestructibleComponent>();
-
-                    // TODO: This is a hack around grilles and windows.
-                    _random.Shuffle(obstacleEnts);
+                    var damageableQuery = GetEntityQuery<DamageableComponent>();
+                    var doorSmashQuery = GetEntityQuery<DoorComponent>();
                     var attackResult = false;
 
+                    // Prioritize doors (airlocks) — attack the first damageable door found.
+                    EntityUid? target = null;
                     foreach (var ent in obstacleEnts)
                     {
-                        // TODO: Validate we can damage it
-                        if (destructibleQuery.HasComponent(ent))
+                        if (doorSmashQuery.HasComponent(ent) && damageableQuery.HasComponent(ent))
                         {
-                            attackResult = _melee.AttemptLightAttack(uid, uid, meleeWeapon, ent);
+                            target = ent;
                             break;
                         }
                     }
+
+                    // Fall back to destructible entities (walls, grilles) only if no door present.
+                    if (target == null)
+                    {
+                        // TODO: This is a hack around grilles and windows.
+                        _random.Shuffle(obstacleEnts);
+                        foreach (var ent in obstacleEnts)
+                        {
+                            if (destructibleQuery.HasComponent(ent))
+                            {
+                                target = ent;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (target != null)
+                        attackResult = _melee.AttemptLightAttack(uid, uid, meleeWeapon, target.Value);
 
                     _combat.SetInCombatMode(uid, false, combatMode);
 

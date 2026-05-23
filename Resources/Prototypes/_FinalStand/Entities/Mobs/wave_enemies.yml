@@ -13,16 +13,12 @@
       task: FinalStandEnemyCompound
     blackboard:
       NavPry: !type:Bool
-        true
+        false
       NavSmash: !type:Bool
         true
   - type: NpcFactionMember
     factions:
     - FSZombie
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
   - type: MeleeWeapon
     altDisarm: false
     angle: 0
@@ -57,6 +53,7 @@
         - MobMask
         layer:
         - MobLayer
+  - type: MovementIgnoreGravity
   - type: WaveSpawnedTag
 
 - type: entity
