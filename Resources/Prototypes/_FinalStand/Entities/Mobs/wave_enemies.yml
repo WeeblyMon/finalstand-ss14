@@ -54,6 +54,10 @@
         layer:
         - MobLayer
   - type: MovementIgnoreGravity
+  - type: Stamina
+    baseCritThreshold: 100
+    stunTime: 0.3
+    decay: 45
   - type: WaveSpawnedTag
 
 - type: entity

@@ -12,6 +12,7 @@ using Content.Shared.Power.Components;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Tag;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
@@ -159,7 +160,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         var hasMag = _slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot)
                      && slot!.Item != null;
-        var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * _perks.GetReloadMultiplier(user);
+        var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * GetReloadMultiplier(user, gun);
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
             new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
@@ -264,7 +265,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell, bool isChainReload = false)
     {
-        var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime * _perks.GetReloadMultiplier(user),
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime * GetReloadMultiplier(user, gun),
             new FSShellInsertDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: shell)
         {
             NeedHand           = true,
@@ -363,7 +364,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private void StartChamberFill(EntityUid gun, EntityUid user, EntityUid round, bool isChainReload = false)
     {
-        var doAfterArgs = new DoAfterArgs(EntityManager, user, ChamberFillTime * _perks.GetReloadMultiplier(user),
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, ChamberFillTime * GetReloadMultiplier(user, gun),
             new FSChamberFillDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: round)
         {
             NeedHand           = true,
@@ -778,6 +779,16 @@ public sealed class FSSmartReloadSystem : EntitySystem
         }
 
         return null;
+    }
+
+    // ---- Reload speed ----
+
+    private float GetReloadMultiplier(EntityUid user, EntityUid gun)
+    {
+        var mult = _perks.GetReloadMultiplier(user);
+        if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
+            mult *= state.ReloadSpeedMultiplier;
+        return mult;
     }
 
     // ---- Akimbo sequential reload ----
