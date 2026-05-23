@@ -6,11 +6,6 @@ using Robust.Shared.Random;
 
 namespace Content.Client._FinalStand.DamageNumbers;
 
-/// <summary>
-///     Receives <see cref="FSDamageNumberEvent"/> from the server and:
-///     (1) adds floating Borderlands-style combat numbers via <see cref="FSDamageNumberOverlay"/>;
-///     (2) reveals the entity's HP bar in <see cref="FSRevealedHealthBarOverlay"/> on first hit.
-/// </summary>
 public sealed class FSDamageNumberSystem : EntitySystem
 {
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
@@ -34,6 +29,7 @@ public sealed class FSDamageNumberSystem : EntitySystem
         _overlayManager.AddOverlay(_hpBarOverlay);
 
         SubscribeNetworkEvent<FSDamageNumberEvent>(OnDamageNumber);
+        SubscribeNetworkEvent<FSArmorDamageNumberEvent>(OnArmorDamageNumber);
     }
 
     public override void Shutdown()
@@ -59,11 +55,7 @@ public sealed class FSDamageNumberSystem : EntitySystem
                 numbers[i] = n;
         }
 
-        // Prune dead/deleted entities from HP bar revealed set
-        if (_hpBarOverlay != null)
-        {
-            _hpBarOverlay.RevealedEntities.RemoveWhere(uid => !Exists(uid));
-        }
+        _hpBarOverlay?.RevealedEntities.RemoveWhere(uid => !Exists(uid));
     }
 
     private void OnDamageNumber(FSDamageNumberEvent ev)
@@ -75,11 +67,9 @@ public sealed class FSDamageNumberSystem : EntitySystem
         var worldPos = _transform.GetWorldPosition(xform);
         var mapId    = xform.MapID;
 
-        // ── Floating number ──────────────────────────────────────────────────
         if (_numberOverlay != null)
         {
-            // Random spread so simultaneous hits don't overlap perfectly
-            var spread = (_random.NextFloat() - 0.5f) * 0.5f;
+            var spread     = (_random.NextFloat() - 0.5f) * 0.5f;
             var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
 
             if (_numberOverlay.Numbers.Count >= MaxNumbers)
@@ -91,11 +81,42 @@ public sealed class FSDamageNumberSystem : EntitySystem
                 MapId   = mapId,
                 Amount  = ev.Amount,
                 IsCrit  = ev.IsCrit,
+                IsArmor = false,
                 Age     = 0f,
             });
         }
 
-        // ── HP bar reveal ────────────────────────────────────────────────────
+        _hpBarOverlay?.RevealedEntities.Add(target);
+    }
+
+    private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev)
+    {
+        var target = GetEntity(ev.Target);
+        if (!TryComp<TransformComponent>(target, out var xform))
+            return;
+
+        var worldPos = _transform.GetWorldPosition(xform);
+        var mapId    = xform.MapID;
+
+        if (_numberOverlay != null)
+        {
+            var spread = (_random.NextFloat() - 0.5f) * 0.5f - 0.2f;
+            var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
+
+            if (_numberOverlay.Numbers.Count >= MaxNumbers)
+                _numberOverlay.Numbers.RemoveAt(0);
+
+            _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
+            {
+                OriginWorldPos = worldPos + new Vector2(spread, vertOffset),
+                MapId   = mapId,
+                Amount  = ev.Amount,
+                IsCrit  = false,
+                IsArmor = true,
+                Age     = 0f,
+            });
+        }
+
         _hpBarOverlay?.RevealedEntities.Add(target);
     }
 }

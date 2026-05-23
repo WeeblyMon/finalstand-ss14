@@ -6,6 +6,7 @@ using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
@@ -163,8 +164,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         _wallet.DistributeCredits(comp.WaveSurvivalBonus);
         if (IsBossWave(comp.WaveNumber))
         {
-            Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} is a BOSS WAVE — distributing {comp.BossWavePerkReward} perk points");
-            _wallet.DistributePerkPoints(comp.BossWavePerkReward);
+            Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} is a BOSS WAVE — distributing {comp.BossWavePerkReward} augment points");
+            _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
         }
         comp.WavesCompleted++;
         comp.WaveNumber++;
@@ -210,6 +211,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
+            RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Spawned {proto} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}) " +
@@ -343,7 +345,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         int TotalEnemies,
         int SpawnerCount,
         bool IsBossWave,
-        string FactionDisplay);
+        string FactionDisplay,
+        List<string> NextWaveEnemyTypes);
 
     public bool TryGetActiveState(out CCCStateData data)
     {
@@ -353,6 +356,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule))
                 continue;
+            var pool = GetDirectorPool(comp);
             data = new CCCStateData(
                 comp.WaveNumber,
                 comp.Phase,
@@ -361,7 +365,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 comp.EnemyTotalThisWave,
                 comp.SpawnerEntities.Count,
                 IsBossWave(comp.WaveNumber),
-                comp.FactionDisplay);
+                comp.FactionDisplay,
+                pool.Select(p => p.Id).Distinct().ToList());
             return true;
         }
         return false;

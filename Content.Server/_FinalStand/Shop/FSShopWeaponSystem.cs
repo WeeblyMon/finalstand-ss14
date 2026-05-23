@@ -95,6 +95,17 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
         TryGiveItemToPlayer(player, weapon);
+
+        if (comp.StarterAmmoProtoId != null)
+        {
+            var coords = Transform(player).Coordinates.Offset(new System.Numerics.Vector2(0.5f, 0.5f));
+            for (var i = 0; i < comp.StarterAmmoCount; i++)
+            {
+                var ammo = Spawn(comp.StarterAmmoProtoId.Value, coords);
+                TryStashItemOnPlayer(player, ammo);
+            }
+        }
+
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         // Fresh weapon — send empty levels and updated title.
         var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
@@ -199,6 +210,12 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (_hands.TryPickupAnyHand(player, item))
             return;
 
+        TryStashItemOnPlayer(player, item);
+    }
+
+    // Ammo/magazines should never go to hands — keep them in inventory so hands stay free for weapons.
+    private void TryStashItemOnPlayer(EntityUid player, EntityUid item)
+    {
         foreach (var slot in InventorySlotPriority)
         {
             if (_inventory.TryEquip(player, item, slot, silent: true))

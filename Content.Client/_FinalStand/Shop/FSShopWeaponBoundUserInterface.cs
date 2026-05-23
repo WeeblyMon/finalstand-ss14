@@ -75,6 +75,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window.RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         _window.UpdateBalance(shopClient.CurrentCredits);
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);
+        _window.RefreshStatBars(comp, shopClient.GetActiveGun(), EntMan);
     }
 
     private void OnPerkStateChanged()

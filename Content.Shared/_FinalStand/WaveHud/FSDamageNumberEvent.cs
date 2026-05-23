@@ -9,3 +9,10 @@ public sealed class FSDamageNumberEvent : EntityEventArgs
     public float Amount;
     public bool IsCrit;
 }
+
+[Serializable, NetSerializable]
+public sealed class FSArmorDamageNumberEvent : EntityEventArgs
+{
+    public NetEntity Target;
+    public float Amount;
+}

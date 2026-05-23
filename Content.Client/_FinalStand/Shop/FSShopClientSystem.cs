@@ -1,8 +1,10 @@
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -20,6 +22,9 @@ public sealed class FSShopClientSystem : EntitySystem
 
     private static readonly ProtoId<ShaderPrototype> ShaderAffordable = "FSShopGlowAffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderUnaffordable = "FSShopGlowUnaffordable";
+    private static readonly ProtoId<ShaderPrototype> ShaderOwned = "FSShopGlowOwned";
+
+    private enum ShopGlowState { Unaffordable, Affordable, Owned }
 
     public int CurrentCredits { get; private set; }
     public Dictionary<string, int> UpgradeLevels { get; private set; } = [];
@@ -27,13 +32,10 @@ public sealed class FSShopClientSystem : EntitySystem
 
     public event Action? CreditsChanged;
     public event Action? UpgradeLevelsChanged;
-    /// <summary>Raised when the local player's active held item changes — open shop BUI should send a refresh.</summary>
     public event Action? RefreshNeeded;
-    /// <summary>Raised when the local player's perk state changes — open shop BUI should refresh perk rows.</summary>
     public event Action? PerkStateChanged;
 
-    private readonly Dictionary<EntityUid, bool> _lastAffordability = [];
-    private EntityUid? _lastActiveItem;
+    private readonly Dictionary<EntityUid, ShopGlowState> _lastGlowState = [];
 
     public override void Initialize()
     {
@@ -42,6 +44,10 @@ public sealed class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<UpgradeLevelsUpdatedEvent>(OnUpgradesUpdated);
         SubscribeNetworkEvent<PerkAddedEvent>(OnPerkAdded);
         SubscribeNetworkEvent<PerkRemovedAllEvent>(OnPerkRemovedAll);
+        SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
+        SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
+        SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);
+        SubscribeLocalEvent<DidUnequipHandEvent>(OnDidUnequipHand);
         _client.PlayerJoinedServer += OnJoined;
         _client.PlayerLeaveServer += OnLeft;
     }
@@ -56,38 +62,58 @@ public sealed class FSShopClientSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
+        var player = _player.LocalSession?.AttachedEntity;
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
-            var canAfford = CurrentCredits >= shop.Price;
-            if (_lastAffordability.TryGetValue(uid, out var last) && last == canAfford)
+            ShopGlowState state;
+            if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
+                state = ShopGlowState.Owned;
+            else if (CurrentCredits >= shop.Price)
+                state = ShopGlowState.Affordable;
+            else
+                state = ShopGlowState.Unaffordable;
+
+            if (_lastGlowState.TryGetValue(uid, out var last) && last == state)
                 continue;
 
-            _lastAffordability[uid] = canAfford;
-            ApplyOutline(sprite, canAfford);
+            _lastGlowState[uid] = state;
+            ApplyOutline(sprite, state);
         }
+    }
 
-        // Detect active hand item changes to trigger a shop-level refresh.
-        var localEntity = _player.LocalSession?.AttachedEntity;
-        EntityUid? currentItem = null;
-        if (localEntity != null
-            && TryComp<HandsComponent>(localEntity.Value, out var hands)
-            && hands.ActiveHandId != null)
-        {
-            _hands.TryGetHeldItem((localEntity.Value, hands), hands.ActiveHandId, out currentItem);
-        }
+    private void OnHandSelected(HandSelectedEvent ev)
+    {
+        if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
+        RefreshNeeded?.Invoke();
+    }
 
-        if (currentItem != _lastActiveItem)
-        {
-            _lastActiveItem = currentItem;
-            RefreshNeeded?.Invoke();
-        }
+    private void OnHandDeselected(HandDeselectedEvent ev)
+    {
+        if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
+        RefreshNeeded?.Invoke();
+    }
+
+    private void OnDidEquipHand(DidEquipHandEvent ev)
+    {
+        if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
+        RefreshNeeded?.Invoke();
+    }
+
+    private void OnDidUnequipHand(DidUnequipHandEvent ev)
+    {
+        if (_player.LocalSession?.AttachedEntity != ev.User) return;
+        _lastGlowState.Clear();
+        RefreshNeeded?.Invoke();
     }
 
     private void OnWalletUpdate(WalletUpdatedEvent ev)
     {
         CurrentCredits = ev.Credits;
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
 
@@ -120,8 +146,7 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
-        _lastActiveItem = null;
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
 
@@ -130,14 +155,43 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
-        _lastActiveItem = null;
         ClearAllShaders();
         CreditsChanged?.Invoke();
     }
 
-    private void ApplyOutline(SpriteComponent sprite, bool canAfford)
+    public EntityUid? GetActiveGun()
     {
-        var protoId = canAfford ? ShaderAffordable : ShaderUnaffordable;
+        var player = _player.LocalSession?.AttachedEntity;
+        if (player == null || !TryComp<HandsComponent>(player.Value, out var hands))
+            return null;
+        if (hands.ActiveHandId == null)
+            return null;
+        _hands.TryGetHeldItem((player.Value, hands), hands.ActiveHandId, out var held);
+        if (held == null || !HasComp<GunComponent>(held.Value))
+            return null;
+        return held.Value;
+    }
+
+    private bool PlayerHasWeapon(EntityUid player, EntProtoId? protoId)
+    {
+        if (protoId == null) return false;
+        var targetId = protoId.Value.Id;
+        foreach (var held in _hands.EnumerateHeld(player))
+        {
+            if (MetaData(held).EntityPrototype?.ID == targetId)
+                return true;
+        }
+        return false;
+    }
+
+    private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
+    {
+        var protoId = state switch
+        {
+            ShopGlowState.Owned => ShaderOwned,
+            ShopGlowState.Affordable => ShaderAffordable,
+            _ => ShaderUnaffordable,
+        };
         sprite.PostShader = _prototypeManager.Index(protoId).InstanceUnique();
     }
 
@@ -148,6 +202,6 @@ public sealed class FSShopClientSystem : EntitySystem
         {
             sprite.PostShader = null;
         }
-        _lastAffordability.Clear();
+        _lastGlowState.Clear();
     }
 }

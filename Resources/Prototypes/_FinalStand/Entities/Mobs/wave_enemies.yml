@@ -13,16 +13,12 @@
       task: FinalStandEnemyCompound
     blackboard:
       NavPry: !type:Bool
-        true
+        false
       NavSmash: !type:Bool
         true
   - type: NpcFactionMember
     factions:
     - FSZombie
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
   - type: MeleeWeapon
     altDisarm: false
     angle: 0
@@ -57,6 +53,8 @@
         - MobMask
         layer:
         - MobLayer
+  - type: MovementIgnoreGravity
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSZombieNormal
@@ -111,6 +109,67 @@
         Piercing: 0.7
   - type: FSEnemyValue
     killCredits: 200
+  - type: FSArmor
+    maxHPRatio: 0.5
+    regenRate: 10
+
+# TODO(finalstand): add ArmorComponent when FSZombieDestroyer is implemented
+# maxHPRatio: 0.7, regenRate: 10 (tankier by design — targets infrastructure)
+- type: entity
+  id: FSZombieDestroyer
+  parent: FSZombieBase
+  suffix: Destroyer
+  name: destroyer zombie
+  abstract: true
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      500: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 1.0
+    baseSprintSpeed: 1.3
+  - type: FSEnemyValue
+    killCredits: 350
+
+# TODO(finalstand): add ArmorComponent when FSZombieBerserker is implemented
+# maxHPRatio: 0.2, regenRate: 10 (light armor — enrage mechanic is the real threat)
+# NOTE: Berserker enrages at 50% HP regardless of armor state.
+- type: entity
+  id: FSZombieBerserker
+  parent: FSZombieBase
+  suffix: Berserker
+  name: berserker zombie
+  abstract: true
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      200: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 2.5
+    baseSprintSpeed: 3.5
+  - type: FSEnemyValue
+    killCredits: 300
+
+# TODO(finalstand): add ArmorComponent when FSZombieGiant is implemented
+# maxHPRatio: 0.4, regenRate: 10 (heavy but not as armored as Destroyer)
+- type: entity
+  id: FSZombieGiant
+  parent: FSZombieBase
+  suffix: Giant
+  name: giant zombie
+  abstract: true
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      1500: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 0.8
+    baseSprintSpeed: 1.0
+  - type: FSEnemyValue
+    killCredits: 1000
 
 # ── Shared prying config for all wave enemies ────────────────────────────────
 # pryPowered: can open powered airlocks, force: bypass bolted doors,

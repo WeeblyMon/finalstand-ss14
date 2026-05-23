@@ -86,7 +86,8 @@ public sealed class CCCInteractionSystem : EntitySystem
             aliveEnemyCount: wave.AliveEnemies,
             activeSpawnerCount: wave.SpawnerCount,
             departmentStatus: statuses,
-            readyCount: _readyCheck.ReadyCount());
+            readyCount: _readyCheck.ReadyCount(),
+            nextWaveEnemyTypes: wave.NextWaveEnemyTypes);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

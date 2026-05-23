@@ -1,0 +1,52 @@
+# FinalStand-specific gun overrides.
+# FSWeaponMateba: replaces RevolverAmmoProvider with BallisticAmmoProvider so players
+# can reload by dragging MagazineBoxMagnum onto the gun instead of one cartridge at a time.
+
+- type: entity
+  id: FSWeaponMateba
+  parent: BaseItem
+  name: Mateba
+  description: A modern revolver used by Nanotrasen's elite Death Squad. Its unique trigger action enables a high fire rate with minimal muzzle flip. Loads 6 rounds of .45 magnum.
+  components:
+  - type: Tag
+    tags:
+      - Sidearm
+      - AkimboEligible
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
+    state: icon
+  - type: Item
+    size: Small
+    shape:
+    - 0,0,1,0
+    - 0,1,0,1
+    storedOffset: 0,-3
+  - type: Clothing
+    sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
+    - Belt
+  - type: AmmoCounter
+  - type: Gun
+    selectedMode: SemiAuto
+    fireRate: 3
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/mateba.ogg
+  - type: ContainerContainer
+    containers:
+      ballistic-ammo: !type:Container
+  - type: BallisticAmmoProvider
+    whitelist:
+      tags:
+        - CartridgeMagnum
+    capacity: 6
+    proto: CartridgeMagnum
+    soundInsert:
+      path: /Audio/Weapons/Guns/MagIn/revolver_magin.ogg
+    soundEject:
+      path: /Audio/Weapons/Guns/MagOut/revolver_magout.ogg
+  - type: StaticPrice
+    price: 500

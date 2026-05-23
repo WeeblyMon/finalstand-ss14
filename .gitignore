@@ -3,6 +3,7 @@
 
 # FinalStand — local only
 Docs/
+Tests/
 *.lscache
 
 ## Ignore Visual Studio temporary files, build results, and

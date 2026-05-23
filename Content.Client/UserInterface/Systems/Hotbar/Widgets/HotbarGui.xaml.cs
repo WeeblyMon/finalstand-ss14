@@ -17,6 +17,7 @@ public sealed partial class HotbarGui : UIWidget
 
         hotbarController.Setup(HandContainer);
         LayoutContainer.SetGrowVertical(this, LayoutContainer.GrowDirection.Begin);
+
     }
 
     public void UpdatePanelEntityLeft(EntityUid? entity, Hand? hand)

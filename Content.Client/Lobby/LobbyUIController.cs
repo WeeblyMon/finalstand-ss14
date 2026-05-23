@@ -123,7 +123,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
     private void PreferencesDataLoaded()
     {
         PreviewPanel?.SetLoaded(true);
-        UpdateFSPerkPoints();
+        UpdateFSAugmentPoints();
 
         if (_stateManager.CurrentState is not LobbyState)
             return;
@@ -135,7 +135,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
     {
         PreviewPanel?.SetLoaded(_preferencesManager.ServerDataLoaded);
         ReloadCharacterSetup();
-        UpdateFSPerkPoints();
+        UpdateFSAugmentPoints();
     }
 
     public void OnStateExited(LobbyState state)
