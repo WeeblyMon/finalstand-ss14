@@ -102,7 +102,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             for (var i = 0; i < comp.StarterAmmoCount; i++)
             {
                 var ammo = Spawn(comp.StarterAmmoProtoId.Value, coords);
-                TryGiveItemToPlayer(player, ammo);
+                TryStashItemOnPlayer(player, ammo);
             }
         }
 
@@ -210,6 +210,12 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (_hands.TryPickupAnyHand(player, item))
             return;
 
+        TryStashItemOnPlayer(player, item);
+    }
+
+    // Ammo/magazines should never go to hands — keep them in inventory so hands stay free for weapons.
+    private void TryStashItemOnPlayer(EntityUid player, EntityUid item)
+    {
         foreach (var slot in InventorySlotPriority)
         {
             if (_inventory.TryEquip(player, item, slot, silent: true))

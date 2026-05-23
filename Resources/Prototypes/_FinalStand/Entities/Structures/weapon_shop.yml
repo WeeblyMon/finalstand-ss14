@@ -21,6 +21,8 @@
         - ItemMask
         layer:
         - WallLayer
+  - type: Sprite
+    drawdepth: SmallObjects
   - type: ActivatableUI
     key: enum.FSShopWeaponUiKey.Key
   - type: UserInterface
