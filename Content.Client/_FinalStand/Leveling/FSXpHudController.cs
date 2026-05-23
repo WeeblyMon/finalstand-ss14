@@ -1,9 +1,10 @@
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
+using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
-using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 
@@ -11,6 +12,8 @@ namespace Content.Client._FinalStand.Leveling;
 
 public sealed class FSXpHudController : UIController
 {
+    [Dependency] private readonly IResourceCache _cache = default!;
+
     private FSLevelingUpdatedEvent? _cached;
 
     // Controls — non-null only while the game screen is loaded.
@@ -47,7 +50,7 @@ public sealed class FSXpHudController : UIController
         var barContainer = new LayoutContainer
         {
             HorizontalExpand = true,
-            SetHeight = 18,
+            SetHeight = 9,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
 
@@ -68,6 +71,7 @@ public sealed class FSXpHudController : UIController
             Align = Label.AlignMode.Center,
             Modulate = Color.FromHex("#FFFFFF"),
             MouseFilter = Control.MouseFilterMode.Ignore,
+            FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 7),
         };
 
         LayoutContainer.SetAnchorPreset(_bar, LayoutContainer.LayoutPreset.Wide);

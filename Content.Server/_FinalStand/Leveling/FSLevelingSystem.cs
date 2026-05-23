@@ -50,6 +50,8 @@ public sealed class FSLevelingSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
 
+        Log.Debug($"[FSLevel] Enemy {uid} died. Origin={args.Origin}, HasOrigin={args.Origin.HasValue}");
+
         // wave 0 when no active rule → 1× multiplier
         _waveRule.TryGetActiveState(out var wave);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
@@ -59,6 +61,8 @@ public sealed class FSLevelingSystem : EntitySystem
 
         if (args.Origin.HasValue && args.Origin.Value.IsValid())
             GiveExperience(args.Origin.Value, killXp, "kill");
+        else
+            Log.Debug($"[FSLevel] No valid origin — kill XP skipped for enemy {uid}");
 
         var totalTracked = tracker.DamageByPlayer.Values.Sum();
         if (totalTracked > 0f)
@@ -150,14 +154,22 @@ public sealed class FSLevelingSystem : EntitySystem
         EntityUid mindId;
         if (resolveBody)
         {
-            if (!_mind.TryGetMind(playerEntity, out mindId, out _)) return;
+            if (!_mind.TryGetMind(playerEntity, out mindId, out _))
+            {
+                Log.Debug($"[FSLevel] GiveExperience: TryGetMind failed for entity {playerEntity} (source={source})");
+                return;
+            }
         }
         else
         {
             mindId = playerEntity;
         }
 
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl)) return;
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+        {
+            Log.Debug($"[FSLevel] GiveExperience: FSPlayerLevelComponent missing on mind {mindId} (source={source})");
+            return;
+        }
 
         var amount = (int)(rawAmount * lvl.XpMultiplier);
         lvl.Experience += amount;
