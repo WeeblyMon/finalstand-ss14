@@ -28,6 +28,10 @@ public enum WeaponUpgradeType : byte
     APRounds,
     ArmorShred,
     Recoil,
+    StaminaSteal,
+    LifeSteal,
+    MovementSpeed,
+    AttackSpeed,
 }
 
 [DataDefinition]

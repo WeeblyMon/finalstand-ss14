@@ -450,6 +450,9 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.ArmorShred => "Armor Shred",
         WeaponUpgradeType.SpawnItem => "Additional Ammo",
         WeaponUpgradeType.Recoil => "Recoil",
+        WeaponUpgradeType.LifeSteal => "Life Steal",
+        WeaponUpgradeType.StaminaSteal => "Stamina Steal",
+        WeaponUpgradeType.MovementSpeed => "Move Speed",
         _ => "",
     };
 
