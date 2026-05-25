@@ -1,6 +1,5 @@
 using Content.Server._FinalStand.Augments;
 using Content.Shared._FinalStand.Upgrades.Effects;
-using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
@@ -11,7 +10,6 @@ namespace Content.Server._FinalStand.Leveling;
 
 public sealed class FSAugmentBuffSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly TagSystem _tags = default!;
 
@@ -34,8 +32,7 @@ public sealed class FSAugmentBuffSystem : EntitySystem
         var level = augs.GetSlottedLevel("StoppingPower");
         if (level <= 0) return;
 
-        var bonus = ev.Damage * (level * 0.04f);
-        _damageable.TryChangeDamage(ev.Target, bonus, ignoreResistances: false, origin: ev.Shooter);
+        ev.AdditionalMultiplier *= 1f + level * 0.04f;
     }
 
     private void OnBulletStorm(EntityUid uid, GunComponent gunComp, ref GunRefreshModifiersEvent args)

@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Perks;
@@ -12,6 +13,7 @@ namespace Content.Server._FinalStand.Crit;
 public sealed class CritSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly FSZombieRetaliationSystem _retaliation = default!;
 
     // shooter+target pairs from a crit roll this tick, consumed in OnDamageChanged
     private readonly HashSet<(EntityUid, EntityUid)> _pendingCrits = [];
@@ -70,17 +72,24 @@ public sealed class CritSystem : EntitySystem
             });
         }
 
-        RaiseLocalEvent(new FSProjectileHitEffectEvent
+        var hitEffect = new FSProjectileHitEffectEvent
         {
             Target = args.Target,
             Weapon = comp.Weapon,
             Shooter = comp.Shooter,
             Damage = args.Damage,
-        });
+        };
+        RaiseLocalEvent(hitEffect);
+        if (hitEffect.AdditionalMultiplier != 1f)
+            args.Damage *= hitEffect.AdditionalMultiplier;
     }
 
     private void OnDamageChanged(EntityUid uid, WaveSpawnedTagComponent _, ref DamageChangedEvent args)
     {
+        // Retaliation: fire before crit checks so any damaging hit triggers it.
+        if (args.DamageIncreased && args.Origin != null)
+            _retaliation.TryRetaliate(uid, args.Origin.Value);
+
         if (args.DamageDelta == null || !args.DamageIncreased || args.Origin == null)
             return;
         var amount = args.DamageDelta.GetTotal().Float();
