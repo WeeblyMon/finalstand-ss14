@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Augments;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
@@ -21,6 +22,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WaveCounterUpdateEvent>(OnWaveUpdate);
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
+        SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
 
@@ -81,5 +83,12 @@ public sealed class WaveHudSystem : EntitySystem
             overlay.EnemiesAlive = ev.Alive;
             overlay.EnemiesTotal = ev.Total;
         }
+    }
+
+    private void OnAugmentsState(FSAugmentsStateEvent ev)
+    {
+        if (EnsureOverlay() is not { } overlay) return;
+        overlay.ActiveSlots   = ev.Slots;
+        overlay.AugmentLevels = ev.Levels;
     }
 }
