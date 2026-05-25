@@ -30,18 +30,11 @@
         Slash: 10
   - type: Sprite
     drawdepth: Mobs
-    sprite: Mobs/Aliens/flesh.rsi
+    sprite: _FinalStand/Mobs/Zombies/zombie.rsi
     layers:
     - map: ["enum.DamageStateVisualLayers.Base"]
-      state: jared
-  - type: DamageStateVisuals
-    states:
-      Alive:
-        Base: jared
-      Critical:
-        Base: dead
-      Dead:
-        Base: dead
+      state: base
+  - type: FSZombieVisuals
   - type: Fixtures
     fixtures:
       fix1:
@@ -82,6 +75,8 @@
   suffix: Runner
   name: runner zombie
   components:
+  - type: Sprite
+    color: "#dde8ff"
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -98,6 +93,8 @@
   suffix: Armoured
   name: armoured zombie
   components:
+  - type: Sprite
+    color: "#c8c8c8"
   - type: MobThresholds
     thresholds:
       0: Alive
