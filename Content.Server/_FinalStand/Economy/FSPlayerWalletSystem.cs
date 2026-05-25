@@ -407,6 +407,9 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         DbSaveAugmentJson(userGuid, levelsJson, slotsJson, loadoutsJson);
     }
 
+    public void SaveAugmentDataByUser(Guid userId, string levelsJson, string slotsJson, string loadoutsJson)
+        => DbSaveAugmentJson(userId, levelsJson, slotsJson, loadoutsJson);
+
     private void DbSaveAugmentJson(Guid userGuid, string levelsJson, string slotsJson, string loadoutsJson)
     {
         using var cmd = _db!.CreateCommand();

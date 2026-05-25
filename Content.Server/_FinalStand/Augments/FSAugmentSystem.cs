@@ -90,17 +90,25 @@ public sealed class FSAugmentSystem : EntitySystem
 
     private void OnBuyAugment(FSBuyAugmentMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
-        {
-            Log.Debug($"[FSAugment] OnBuyAugment: TryGetMind failed for {args.SenderSession.Name}");
-            return;
-        }
         if (!FSAugmentDef.All.ContainsKey(msg.AugmentId))
         {
             Log.Debug($"[FSAugment] OnBuyAugment: unknown augment id '{msg.AugmentId}'");
             return;
         }
 
+        if (_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
+        {
+            OnBuyAugmentInRound(msg, args.SenderSession, mindId, mind);
+        }
+        else
+        {
+            OnBuyAugmentLobby(msg, args.SenderSession);
+        }
+    }
+
+    private void OnBuyAugmentInRound(FSBuyAugmentMessage msg, ICommonSession session,
+        EntityUid mindId, MindComponent? mind)
+    {
         if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug))
         {
             if (mind?.UserId == null)
@@ -128,65 +136,146 @@ public sealed class FSAugmentSystem : EntitySystem
         }
 
         aug.Levels[msg.AugmentId] = currentLevel + 1;
-        Log.Debug($"[FSAugment] OnBuyAugment: SUCCESS — '{msg.AugmentId}' → Lv{currentLevel + 1} for {args.SenderSession.Name}");
+        Log.Debug($"[FSAugment] OnBuyAugment: SUCCESS — '{msg.AugmentId}' → Lv{currentLevel + 1} for {session.Name}");
         SaveToDb(mindId, aug);
         SendStateToClient(mindId, aug);
+    }
+
+    private void OnBuyAugmentLobby(FSBuyAugmentMessage msg, ICommonSession session)
+    {
+        var userId = session.UserId.UserId;
+        var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(userId);
+        var aug = new FSAugmentLevelsComponent();
+        DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
+
+        var currentLevel = aug.GetLevel(msg.AugmentId);
+        if (currentLevel >= FSAugmentDef.MaxLevel)
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment (lobby): '{msg.AugmentId}' already max level");
+            return;
+        }
+
+        var cost = FSAugmentDef.CostForUpgrade(currentLevel);
+        var currentAp = _wallet.GetStoredAugmentPoints(userId);
+        if (currentAp < cost)
+        {
+            Log.Debug($"[FSAugment] OnBuyAugment (lobby): insufficient AP — have {currentAp}, need {cost}");
+            return;
+        }
+
+        aug.Levels[msg.AugmentId] = currentLevel + 1;
+        var newAp = currentAp - cost;
+
+        _wallet.GiveAugmentPoints(session, -cost);
+        _wallet.SaveAugmentDataByUser(userId,
+            JsonSerializer.Serialize(aug.Levels),
+            JsonSerializer.Serialize(aug.Slots),
+            JsonSerializer.Serialize(aug.Loadouts));
+
+        Log.Debug($"[FSAugment] OnBuyAugment (lobby): SUCCESS — '{msg.AugmentId}' → Lv{currentLevel + 1} for {session.Name}");
+
+        if (!_playerManager.TryGetSessionById(session.UserId, out var pSession))
+            return;
+
+        RaiseNetworkEvent(new WalletUpdatedEvent(0, newAp), Filter.SinglePlayer(pSession));
+        RaiseNetworkEvent(new FSAugmentsStateEvent
+        {
+            AugmentPoints = newAp,
+            Levels = new Dictionary<string, int>(aug.Levels),
+            Slots = (string[])aug.Slots.Clone(),
+            Loadouts = aug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
+        }, Filter.SinglePlayer(pSession));
     }
 
     private void OnEquipAugment(FSEquipAugmentMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug)) return;
         if (!FSAugmentDef.All.ContainsKey(msg.AugmentId)) return;
-        if (aug.GetLevel(msg.AugmentId) <= 0) return;
         if (msg.SlotIndex < 0 || msg.SlotIndex >= FSAugmentDef.SlotCount) return;
-        if (!string.IsNullOrEmpty(aug.Slots[msg.SlotIndex])) return;
-        if (aug.Slots.Contains(msg.AugmentId)) return;
 
-        aug.Slots[msg.SlotIndex] = msg.AugmentId;
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
+        DispatchAugMutation(args.SenderSession, aug =>
+        {
+            if (aug.GetLevel(msg.AugmentId) <= 0) return false;
+            if (!string.IsNullOrEmpty(aug.Slots[msg.SlotIndex])) return false;
+            if (aug.Slots.Contains(msg.AugmentId)) return false;
+            aug.Slots[msg.SlotIndex] = msg.AugmentId;
+            return true;
+        });
     }
 
     private void OnUnequipAugment(FSUnequipAugmentMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug)) return;
         if (msg.SlotIndex < 0 || msg.SlotIndex >= FSAugmentDef.SlotCount) return;
 
-        aug.Slots[msg.SlotIndex] = string.Empty;
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
+        DispatchAugMutation(args.SenderSession, aug =>
+        {
+            aug.Slots[msg.SlotIndex] = string.Empty;
+            return true;
+        });
     }
 
     private void OnSaveLoadout(FSSaveLoadoutMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug)) return;
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
-        Array.Copy(aug.Slots, aug.Loadouts[msg.LoadoutIndex], FSAugmentDef.SlotCount);
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
+        DispatchAugMutation(args.SenderSession, aug =>
+        {
+            Array.Copy(aug.Slots, aug.Loadouts[msg.LoadoutIndex], FSAugmentDef.SlotCount);
+            return true;
+        });
     }
 
     private void OnLoadLoadout(FSLoadLoadoutMessage msg, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var aug)) return;
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
-        var src = aug.Loadouts[msg.LoadoutIndex];
-        for (var i = 0; i < FSAugmentDef.SlotCount; i++)
+        DispatchAugMutation(args.SenderSession, aug =>
         {
-            var id = src[i];
-            aug.Slots[i] = !string.IsNullOrEmpty(id) && aug.GetLevel(id) > 0
-                ? id
-                : string.Empty;
+            var src = aug.Loadouts[msg.LoadoutIndex];
+            for (var i = 0; i < FSAugmentDef.SlotCount; i++)
+            {
+                var id = src[i];
+                aug.Slots[i] = !string.IsNullOrEmpty(id) && aug.GetLevel(id) > 0 ? id : string.Empty;
+            }
+            return true;
+        });
+    }
+
+    // Runs a mutation on a player's FSAugmentLevelsComponent, saving and notifying on success.
+    // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
+    private void DispatchAugMutation(ICommonSession session, Func<FSAugmentLevelsComponent, bool> mutate)
+    {
+        if (_mind.TryGetMind(session, out var mindId, out _) &&
+            TryComp<FSAugmentLevelsComponent>(mindId, out var aug))
+        {
+            if (!mutate(aug)) return;
+            SaveToDb(mindId, aug);
+            SendStateToClient(mindId, aug);
+            return;
         }
 
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
+        // Lobby path: no mind — operate on DB directly
+        var userId = session.UserId.UserId;
+        var (lj, sj, oj) = _wallet.LoadAugmentData(userId);
+        var lobbyAug = new FSAugmentLevelsComponent();
+        DeserializeInto(lobbyAug, lj, sj, oj);
+
+        if (!mutate(lobbyAug)) return;
+
+        _wallet.SaveAugmentDataByUser(userId,
+            JsonSerializer.Serialize(lobbyAug.Levels),
+            JsonSerializer.Serialize(lobbyAug.Slots),
+            JsonSerializer.Serialize(lobbyAug.Loadouts));
+
+        if (!_playerManager.TryGetSessionById(session.UserId, out var pSession)) return;
+
+        var ap = _wallet.GetStoredAugmentPoints(userId);
+        RaiseNetworkEvent(new FSAugmentsStateEvent
+        {
+            AugmentPoints = ap,
+            Levels = new Dictionary<string, int>(lobbyAug.Levels),
+            Slots = (string[])lobbyAug.Slots.Clone(),
+            Loadouts = lobbyAug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
+        }, Filter.SinglePlayer(pSession));
     }
 
     private void SaveToDb(EntityUid mindId, FSAugmentLevelsComponent aug)
