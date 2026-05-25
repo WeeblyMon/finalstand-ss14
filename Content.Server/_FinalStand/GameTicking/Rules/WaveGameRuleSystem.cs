@@ -11,6 +11,7 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Prying.Components;
 using System.Linq;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
@@ -203,10 +204,17 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
             {
-                htn.Blackboard.SetValue("VisionRadius", 1000f);
-                htn.Blackboard.SetValue("AggroVisionRadius", 1000f);
+                // FINALSTAND issue-2: 1000f gave zombies map-wide omniscient aggro through walls.
+                // Now that NearbyHostilesQuery applies an LOS check, a larger radius is fine —
+                // walls filter naturally so zombies see down open corridors but not into rooms.
+                htn.Blackboard.SetValue("VisionRadius", 15f);
+                htn.Blackboard.SetValue("AggroVisionRadius", 15f);
                 htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
-                htn.Blackboard.SetValue(NPCBlackboard.NavPry, true);
+                // FINALSTAND issue-1: NavPry: true on mobs with no PryingComponent caused the steering
+                // system's Prying branch to intercept every door, TryPry to fail silently with a null
+                // DoAfter, and the Smashing branch to never run. Only enable prying for mobs that can
+                // actually pry.
+                htn.Blackboard.SetValue(NPCBlackboard.NavPry, HasComp<PryingComponent>(enemy));
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
