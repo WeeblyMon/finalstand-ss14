@@ -166,7 +166,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
             new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
         {
             NeedHand           = true,
-            BreakOnMove        = true,
+            BreakOnMove        = false,
             BreakOnDamage      = true,
             BreakOnHandChange  = true,
             BlockDuplicate     = true,
@@ -269,7 +269,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
             new FSShellInsertDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: shell)
         {
             NeedHand           = true,
-            BreakOnMove        = true,
+            BreakOnMove        = false,
             BreakOnDamage      = true,
             BlockDuplicate     = true,
             DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
@@ -368,7 +368,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
             new FSChamberFillDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: round)
         {
             NeedHand           = true,
-            BreakOnMove        = true,
+            BreakOnMove        = false,
             BreakOnDamage      = true,
             BlockDuplicate     = true,
             DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
