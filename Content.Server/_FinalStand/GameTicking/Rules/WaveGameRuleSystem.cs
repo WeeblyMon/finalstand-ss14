@@ -21,6 +21,8 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -35,6 +37,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
     [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
 
     public override void Initialize()
     {
@@ -253,6 +256,17 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
             return;
+
+        // Clear all collision so corpses don't eat bullets (MobLayer includes BulletImpassable).
+        // Safe because FS zombies have MovementIgnoreGravity — floor collision is not needed.
+        if (TryComp<FixturesComponent>(ent.Owner, out var fixtures))
+        {
+            foreach (var (key, fixture) in fixtures.Fixtures)
+            {
+                _physics.SetCollisionLayer(ent.Owner, key, fixture, 0, fixtures);
+                _physics.SetCollisionMask(ent.Owner, key, fixture, 0, fixtures);
+            }
+        }
 
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
