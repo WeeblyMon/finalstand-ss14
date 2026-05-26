@@ -46,6 +46,11 @@
         - MobMask
         layer:
         - MobLayer
+  - type: Bloodstream
+    bloodReferenceSolution:
+      reagents:
+      - ReagentId: Blood
+        Quantity: 20
   - type: MovementIgnoreGravity
   - type: Stamina
     baseCritThreshold: 100
