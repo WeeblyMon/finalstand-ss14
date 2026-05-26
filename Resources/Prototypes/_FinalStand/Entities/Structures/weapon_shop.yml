@@ -523,7 +523,7 @@
       valuePerLevel: 0.05
     - id: wt550-fleet-foot
       name: Fleet Foot
-      description: Holding the WT550 increases your movement speed per level.
+      description: Permanently increases your movement speed. Each level adds 5%.
       maxLevel: 3
       baseCost: 300
       type: MovementSpeed
@@ -557,13 +557,6 @@
       baseCost: 350
       type: Pierce
       valuePerLevel: 1
-    - id: drozd-ap-rounds
-      name: AP Rounds
-      description: Armor-piercing ammunition. Bullets bypass enemy armor entirely.
-      maxLevel: 1
-      baseCost: 600
-      type: APRounds
-      valuePerLevel: 1
     - id: drozd-hair-trigger
       name: Hair Trigger
       description: Faster cycling increases fire rate by 0.3/level.
@@ -587,11 +580,11 @@
       valuePerLevel: 0.05
     - id: drozd-shredder
       name: Shredder
-      description: Each hit stacks armor shred on the target. Each level increases the shred applied per bullet.
+      description: Each bullet drains bonus armor proportional to damage absorbed. Each level increases drain (20% per level, up to 100% extra at max).
       maxLevel: 5
       baseCost: 300
       type: ArmorShred
-      valuePerLevel: 0.1
+      valuePerLevel: 0.2
   - type: Sprite
     sprite: Objects/Weapons/Guns/SMGs/drozd.rsi
     state: base

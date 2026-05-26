@@ -213,7 +213,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.ArmorShred:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
-                state.ArmorShredEnabled = true;
+                state.ArmorShredMagnitude += def.ValuePerLevel;
                 break;
             }
 

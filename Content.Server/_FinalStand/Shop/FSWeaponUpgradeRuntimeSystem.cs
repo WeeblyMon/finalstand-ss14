@@ -32,12 +32,14 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
                 pierceComp.RemainingPierces = (int)Math.Round(comp.PierceThreshold.Float());
             }
 
-            if (comp.APRoundsEnabled || comp.ArmorShredEnabled)
+            if (comp.APRoundsEnabled || comp.ArmorShredMagnitude > 0f)
             {
                 var flags = FinalStandDamageFlags.None;
-                if (comp.APRoundsEnabled)  flags |= FinalStandDamageFlags.ArmorPenetrating;
-                if (comp.ArmorShredEnabled) flags |= FinalStandDamageFlags.ArmorShred;
-                EnsureComp<FSProjectileFlagsComponent>(projUid).Flags = flags;
+                if (comp.APRoundsEnabled)           flags |= FinalStandDamageFlags.ArmorPenetrating;
+                if (comp.ArmorShredMagnitude > 0f)  flags |= FinalStandDamageFlags.ArmorShred;
+                var flagsComp = EnsureComp<FSProjectileFlagsComponent>(projUid);
+                flagsComp.Flags = flags;
+                flagsComp.ArmorShredMagnitude = comp.ArmorShredMagnitude;
             }
         }
     }

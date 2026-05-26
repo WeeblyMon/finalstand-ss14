@@ -148,6 +148,29 @@ public sealed class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        // Akimbo pre-flight: confirm a free hand exists before charging credits.
+        // TryApplyAkimbo spawns a second gun and picks it up, which fails silently if hands are full.
+        if (def.Type == WeaponUpgradeType.Akimbo)
+        {
+            var hasFreeHand = false;
+            if (TryComp<HandsComponent>(player, out var playerHands))
+            {
+                foreach (var handName in playerHands.SortedHands)
+                {
+                    if (!_hands.TryGetHeldItem((player, playerHands), handName, out _))
+                    {
+                        hasFreeHand = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasFreeHand)
+            {
+                _popup.PopupEntity("No free hand for akimbo.", uid, player);
+                return;
+            }
+        }
+
         var cost = def.BaseCost * (currentLevel + 1);
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
