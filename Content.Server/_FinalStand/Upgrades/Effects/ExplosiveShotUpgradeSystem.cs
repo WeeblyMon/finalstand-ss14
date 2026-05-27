@@ -15,6 +15,7 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly ExplosionSystem _explosion = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
@@ -62,6 +63,8 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
             .Where(e => e.Owner != primaryTarget && !_mobState.IsDead(e.Owner)))
         {
             _damageable.TryChangeDamage(splashTarget.Owner, splashDamage, ignoreResistances: false, origin: shooter);
+            if (state.KnockbackLevel > 0 && shooter != null)
+                _knockback.ApplyKnockback(splashTarget.Owner, shooter.Value, state.KnockbackLevel);
         }
     }
 }

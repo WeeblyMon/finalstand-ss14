@@ -13,7 +13,7 @@ public sealed class KnockbackUpgradeSystem : EntitySystem
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
-    private static readonly float[] VelocityByLevel = [5f, 9f, 14f];
+    private static readonly float[] VelocityByLevel = [5.5f, 9.9f, 15.4f];
     private static readonly TimeSpan[] DurationByLevel =
     [
         TimeSpan.FromSeconds(0.15),
@@ -50,33 +50,37 @@ public sealed class KnockbackUpgradeSystem : EntitySystem
         if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.KnockbackLevel <= 0)
             return;
 
-        var level = Math.Clamp(state.KnockbackLevel, 1, VelocityByLevel.Length) - 1;
-        var speed    = VelocityByLevel[level];
-        var duration = DurationByLevel[level];
+        ApplyKnockback(ev.Target, ev.Shooter.Value, state.KnockbackLevel);
+    }
 
-        var shooterPos = _transform.GetWorldPosition(ev.Shooter.Value);
-        var targetPos  = _transform.GetWorldPosition(ev.Target);
-        var dir = targetPos - shooterPos;
+    public void ApplyKnockback(EntityUid target, EntityUid origin, int level)
+    {
+        var idx = Math.Clamp(level, 1, VelocityByLevel.Length) - 1;
+        var speed    = VelocityByLevel[idx];
+        var duration = DurationByLevel[idx];
+
+        var originPos = _transform.GetWorldPosition(origin);
+        var targetPos = _transform.GetWorldPosition(target);
+        var dir = targetPos - originPos;
         if (dir == Vector2.Zero)
             return;
 
         var velocity = Vector2.Normalize(dir) * speed;
 
-        // Already knocked back: redirect only, don't extend the timer (rapid-fire would freeze permanently).
-        if (HasComp<FSKnockedBackComponent>(ev.Target))
+        // Already knocked back: redirect only, don't extend the timer.
+        if (HasComp<FSKnockedBackComponent>(target))
         {
-            _physics.SetLinearVelocity(ev.Target, velocity);
+            _physics.SetLinearVelocity(target, velocity);
             return;
         }
 
-        // Remove InputMoverComponent so the NPC mover can't override velocity. Restored in Update().
-        var hadMover = HasComp<InputMoverComponent>(ev.Target);
+        var hadMover = HasComp<InputMoverComponent>(target);
         if (hadMover)
-            RemComp<InputMoverComponent>(ev.Target);
+            RemComp<InputMoverComponent>(target);
 
-        _physics.SetLinearVelocity(ev.Target, velocity);
+        _physics.SetLinearVelocity(target, velocity);
 
-        var comp = EnsureComp<FSKnockedBackComponent>(ev.Target);
+        var comp = EnsureComp<FSKnockedBackComponent>(target);
         comp.EndTime = _timing.CurTime + duration;
         comp.InputMoverRemoved = hadMover;
     }

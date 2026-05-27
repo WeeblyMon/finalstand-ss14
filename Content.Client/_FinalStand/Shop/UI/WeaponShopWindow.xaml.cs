@@ -453,6 +453,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.LifeSteal => "Life Steal",
         WeaponUpgradeType.StaminaSteal => "Stamina Steal",
         WeaponUpgradeType.MovementSpeed => "Move Speed",
+        WeaponUpgradeType.AttackSpeed => "Attack Speed",
+        WeaponUpgradeType.Damage => "Damage",
+        WeaponUpgradeType.PelletCount => "Pellets",
+        WeaponUpgradeType.Scrapshot => "Scrapshot",
+        WeaponUpgradeType.Bleed => "Bleed",
+        WeaponUpgradeType.SlamFire => "Slam Fire",
+        WeaponUpgradeType.FlechetteRounds => "Flechette",
+        WeaponUpgradeType.SplinterImpact => "Splinter",
+        WeaponUpgradeType.OverchargeShot => "Overcharge",
         _ => "",
     };
 
