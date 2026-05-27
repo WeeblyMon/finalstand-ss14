@@ -56,6 +56,10 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunA);
                 }
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                }
                 break;
 
             case WeaponUpgradeType.Accuracy:
@@ -71,6 +75,10 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     gunAcc.AngleIncreaseModified = gunAcc.AngleIncrease;
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
+                }
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
                 }
                 break;
 
@@ -265,6 +273,79 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
             case WeaponUpgradeType.Radius:
                 break;
+
+            case WeaponUpgradeType.PelletCount:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExtraPellets += (int)def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Scrapshot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ScrapshotEnabled = true;
+                state.ExtraPellets += 3;
+                if (TryComp<GunComponent>(weapon, out var gunSc))
+                {
+#pragma warning disable RA0002
+                    gunSc.MaxAngle = Angle.FromDegrees(gunSc.MaxAngle.Degrees + 15.0);
+                    gunSc.MaxAngleModified = gunSc.MaxAngle;
+#pragma warning restore RA0002
+                    Dirty(weapon, gunSc);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.Bleed:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.BleedLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.SlamFire:
+            {
+                if (TryComp<GunComponent>(weapon, out var gunSlam))
+                {
+#pragma warning disable RA0002
+                    gunSlam.AvailableModes |= SelectiveFire.FullAuto;
+                    gunSlam.SelectedMode = SelectiveFire.FullAuto;
+                    gunSlam.FireRate *= 1.4f;
+                    gunSlam.FireRateModified = gunSlam.FireRate;
+#pragma warning restore RA0002
+                    Dirty(weapon, gunSlam);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.FlechetteRounds:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FlechetteEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.SplinterImpact:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SplinterImpactEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.OverchargeShot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.OverchargeShotEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Damage:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.DamageMultiplier += def.ValuePerLevel;
+                break;
+            }
         }
     }
 

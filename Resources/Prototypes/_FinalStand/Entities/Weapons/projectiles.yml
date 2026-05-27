@@ -1,0 +1,23 @@
+- type: entity
+  id: FSOverchargeBolt
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    color: "#AA00FF"
+    scale: 3, 3
+    layers:
+    - state: heavylaser
+      shader: unshaded
+
+- type: entity
+  id: FSOverchargeShard
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    color: "#CC44FF"
+    scale: 1.5, 1.5
+    layers:
+    - state: heavylaser
+      shader: unshaded

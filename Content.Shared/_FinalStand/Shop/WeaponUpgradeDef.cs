@@ -32,6 +32,14 @@ public enum WeaponUpgradeType : byte
     LifeSteal,
     MovementSpeed,
     AttackSpeed,
+    PelletCount,
+    Scrapshot,
+    Bleed,
+    SlamFire,
+    FlechetteRounds,
+    SplinterImpact,
+    OverchargeShot,
+    Damage,
 }
 
 [DataDefinition]

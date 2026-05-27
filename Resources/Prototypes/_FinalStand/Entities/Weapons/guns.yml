@@ -82,3 +82,25 @@
     tags:
     - Sidearm
     - AkimboEligible
+
+# Shotgun overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+
+- type: entity
+  id: FSWeaponShotgunBulldog
+  parent: WeaponShotgunBulldog
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - AkimboEligible
+
+# E-shottie override — upstream has no self-recharge; needed for the Rapid Charge upgrade to work.
+
+- type: entity
+  id: FSWeaponEnergyShotgun
+  parent: WeaponEnergyShotgun
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 25
+    autoRechargePauseTime: 3
