@@ -81,7 +81,7 @@
   name: runner zombie
   components:
   - type: Sprite
-    color: "#dde8ff"
+    color: "#5599ff"
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -99,7 +99,7 @@
   name: armoured zombie
   components:
   - type: Sprite
-    color: "#c8c8c8"
+    color: "#aaaaaa"
   - type: MobThresholds
     thresholds:
       0: Alive
