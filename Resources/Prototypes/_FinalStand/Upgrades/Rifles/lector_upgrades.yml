@@ -1,0 +1,67 @@
+# ── Lector Shop ──────────────────────────────────────────────────────────────
+# The Punisher. Every shot is heavy and impactful. Rewards sustained fire on single targets.
+# TODO(finalstand): add Lector burst fire upgrade when designed
+
+- type: entity
+  id: FSWeaponShopLecter
+  parent: FSWeaponShopBase
+  name: Lecter
+  description: Gas-operated full-auto combat rifle. High stopping power per shot, rewarding accuracy. Uses .20 rifle magazines.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponRifleLecter
+    price: 900
+    starterAmmoProtoId: MagazineRifle
+    starterAmmoCount: 2
+    category: .20 Full-Auto Rifle
+    statDamage: 85
+    statFireRate: 55
+    statAccuracy: 65
+    statCapacity: 60
+    upgrades:
+    - id: lecter-damage
+      name: Heavy Rounds
+      description: Higher-grain ammunition increases damage dealt by 15% per level.
+      maxLevel: 5
+      baseCost: 200
+      type: Damage
+      valuePerLevel: 0.15
+    - id: lecter-recoil
+      name: Reduced Recoil
+      description: Muzzle compensator tightens spread by 0.5° per level. More rounds on target.
+      maxLevel: 3
+      baseCost: 150
+      type: Accuracy
+      valuePerLevel: 0.5
+    - id: lecter-ap
+      name: AP Rounds
+      description: Armor-piercing ammunition. Rounds bypass enemy armor entirely.
+      maxLevel: 1
+      baseCost: 500
+      type: APRounds
+      valuePerLevel: 1
+    - id: lecter-reload
+      name: Speed Loader
+      description: Faster magazine change per level.
+      maxLevel: 5
+      baseCost: 100
+      type: ReloadSpeed
+      valuePerLevel: 0.1
+    - id: lecter-overkill
+      name: Overkill
+      description: Excess damage on a killing shot transfers to the nearest enemy. Higher levels increase transfer range.
+      maxLevel: 3
+      baseCost: 350
+      type: Overkill
+      valuePerLevel: 1
+    - id: lecter-execution
+      name: Execution
+      description: Deals 5× damage against targets below 25% HP. Finish them.
+      maxLevel: 1
+      baseCost: 600
+      type: Execution
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Rifles/lecter.rsi
+    state: base
+    scale: 1,1

@@ -21,3 +21,15 @@
     layers:
     - state: heavylaser
       shader: unshaded
+
+- type: entity
+  id: FSPrismaticBeam
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    color: "#00DDFF"
+    scale: 1.2, 1.2
+    layers:
+    - state: heavylaser
+      shader: unshaded

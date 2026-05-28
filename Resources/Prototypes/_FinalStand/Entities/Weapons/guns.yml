@@ -104,3 +104,33 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 25
     autoRechargePauseTime: 3
+
+# Laser Carbine override — adds self-recharge and spread for upgrade interactions.
+
+- type: entity
+  id: FSWeaponLaserCarbine
+  parent: WeaponLaserCarbine
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 50
+    autoRechargePauseTime: 1.5
+  - type: Gun
+    minAngle: 0
+    maxAngle: 8
+    angleIncrease: 1.5
+
+# Pulse Rifle override — adds self-recharge and spread for upgrade interactions.
+
+- type: entity
+  id: FSWeaponPulseRifle
+  parent: WeaponPulseRifle
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 200
+    autoRechargePauseTime: 2
+  - type: Gun
+    minAngle: 0
+    maxAngle: 12
+    angleIncrease: 2

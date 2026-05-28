@@ -1,0 +1,57 @@
+# ── Pulse Rifle Shop ─────────────────────────────────────────────────────────
+# The Crowd Clearer. Everything hits multiple enemies. Sustained fire overwhelms groups.
+
+- type: entity
+  id: FSWeaponShopPulseRifle
+  parent: FSWeaponShopBase
+  name: Pulse Rifle
+  description: Full-auto energy rifle with enormous battery capacity. Built for clearing dense crowds. No ammo required.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponPulseRifle
+    price: 1200
+    category: Self-Recharging Full-Auto Pulse Rifle
+    statDamage: 75
+    statFireRate: 35
+    statAccuracy: 55
+    statCapacity: 100
+    upgrades:
+    - id: pulse-damage
+      name: Overloaded Cell
+      description: Higher energy output increases damage dealt by 15% per level.
+      maxLevel: 5
+      baseCost: 200
+      type: Damage
+      valuePerLevel: 0.15
+    - id: pulse-fire-rate
+      name: Rapid Pulse
+      description: Tuned cycling increases fire rate by 0.3/level.
+      maxLevel: 3
+      baseCost: 200
+      type: FireRate
+      valuePerLevel: 0.3
+    - id: pulse-accuracy
+      name: Focusing Array
+      description: Tightens beam spread by 2.5° per level.
+      maxLevel: 3
+      baseCost: 150
+      type: Accuracy
+      valuePerLevel: 2.5
+    - id: pulse-charge-speed
+      name: Capacitor Boost
+      description: Self-recharge rate ×2 per level (×8 at max).
+      maxLevel: 3
+      baseCost: 250
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: pulse-cascade
+      name: Pulse Cascade
+      description: Kills trigger 3 explosions at the kill site dealing 50% of the killing shot's damage. Can chain.
+      maxLevel: 1
+      baseCost: 600
+      type: PulseCascade
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Battery/pulse_rifle.rsi
+    state: base
+    scale: 1,1
