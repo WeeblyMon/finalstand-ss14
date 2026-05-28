@@ -59,6 +59,15 @@ public sealed partial class AugmentShopWindow : FancyWindow
         AugmentCategory.Yellow, AugmentCategory.Purple,
     ];
 
+    private static readonly Dictionary<AugmentCategory, string> CatFolder = new()
+    {
+        [AugmentCategory.Red]    = "Reds",
+        [AugmentCategory.Blue]   = "Blues",
+        [AugmentCategory.Green]  = "Greens",
+        [AugmentCategory.Yellow] = "Yellows",
+        [AugmentCategory.Purple] = "Purples",
+    };
+
     private const int GridColumns = 7;
     private const int CellSize    = 64;
 
@@ -74,11 +83,9 @@ public sealed partial class AugmentShopWindow : FancyWindow
         RobustXamlLoader.Load(this);
         _res = IoCManager.Resolve<IResourceCache>();
 
-        // Tab titles
         ShopTabs.SetTabTitle(0, "Augments");
         ShopTabs.SetTabTitle(1, "Prestige");
 
-        // Category filter buttons
         FilterAll.OnPressed    += _ => SetFilter(null);
         FilterRed.OnPressed    += _ => SetFilter(AugmentCategory.Red);
         FilterBlue.OnPressed   += _ => SetFilter(AugmentCategory.Blue);
@@ -163,13 +170,15 @@ public sealed partial class AugmentShopWindow : FancyWindow
 
     private Texture? GetAugmentIcon(string augmentId, int level)
     {
-        var name = augmentId.ToLowerInvariant();
+        if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
+            return null;
 
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{name}level{level}.png", out var tex))
+        var folder = CatFolder[def.Category];
+        var name   = augmentId.ToLowerInvariant();
+
+        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level{level}.png", out var tex))
             return tex;
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{name}level0.png", out tex))
-            return tex;
-        if (TryLoadTexture("/Textures/_FinalStand/Interface/Augments/stoppingpowerlevel0.png", out tex))
+        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level0.png", out tex))
             return tex;
 
         Logger.Warning($"[AugmentShop] No icon found for augment '{augmentId}' level {level}.");
@@ -230,7 +239,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
 
             var layers = new LayoutContainer { HorizontalExpand = true, VerticalExpand = true };
 
-            // Layer 0: background
             var bgPanel = new PanelContainer
             {
                 PanelOverride = new StyleBoxFlat
@@ -241,7 +249,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
             LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
             layers.AddChild(bgPanel);
 
-            // Layer 1: icon fills the full slot
             if (!isEmpty)
             {
                 var icon = GetSlotIcon(slotId!);
@@ -257,7 +264,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
                 }
             }
 
-            // Layer 2: border drawn on top of the icon
             var borderPanel = new PanelContainer
             {
                 PanelOverride = new StyleBoxFlat
@@ -371,7 +377,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
         var isSelected = _selectedId == def.Id;
         var isMax      = level == FSAugmentDef.MaxLevel;
 
-        // Background opacity by level
         var bgAlpha = level switch
         {
             0 => 0f,
@@ -381,7 +386,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
             _ => 1.0f,
         };
 
-        // Border brightness by level
         var borderAlpha = level switch
         {
             0 => 0f,
@@ -400,20 +404,16 @@ public sealed partial class AugmentShopWindow : FancyWindow
             StyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.Transparent },
         };
 
-        // Layer stack: bg → icon → border → badge.
-        // Border is a sibling of the icon (not its parent) so the icon fills the full cell.
         var layers = new LayoutContainer
         {
             HorizontalExpand = true,
             VerticalExpand   = true,
         };
 
-        // Layer 0: category background tint
         var bgPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(bgPanel);
 
-        // Layer 1: icon (fills the full cell, behind the border)
         var icon = GetAugmentIcon(def.Id, level);
         if (icon != null)
         {
@@ -440,7 +440,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
             layers.AddChild(q);
         }
 
-        // Layer 2: border overlay drawn on top of the icon
         var borderPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(borderPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(borderPanel);
@@ -465,7 +464,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
         }
         ApplyBg(false);
 
-        // Layer 3: MAX badge on top
         if (isMax)
         {
             var badge = new Label

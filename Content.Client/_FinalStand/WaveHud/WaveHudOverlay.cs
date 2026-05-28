@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._FinalStand.Augments;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
@@ -22,7 +23,6 @@ public sealed class WaveHudOverlay : Overlay
     public string[] ActiveSlots  = Array.Empty<string>();
     public Dictionary<string, int> AugmentLevels = new();
 
-    // Cache keyed by "AugmentId_level" to avoid reloading on each frame.
     private readonly Dictionary<string, Texture?> _iconCache = new();
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
@@ -44,7 +44,6 @@ public sealed class WaveHudOverlay : Overlay
         var screen     = args.ScreenHandle;
         var screenSize = _clyde.ScreenSize;
 
-        // Wave counter widths
         var waveStr    = CurrentWave.ToString();
         var widths     = new float[waveStr.Length];
         var totalWidth = 0f;
@@ -59,7 +58,6 @@ public sealed class WaveHudOverlay : Overlay
         var digitY      = screenSize.Y - margin - digitHeight;
         var colCenterX  = digitStartX + totalWidth / 2f;
 
-        // Enemy counter metrics (computed once; used for both stacking and drawing)
         _enemyFont ??= new VectorFont(
             _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 16);
 
@@ -69,12 +67,10 @@ public sealed class WaveHudOverlay : Overlay
             ? screen.GetDimensions(_enemyFont, counterStr, 1f)
             : Vector2.Zero;
 
-        // Stack upward from wave digits: enemy counter → augment icons
         var enemyRowTop   = digitY - stackGap - counterDims.Y;
         var iconRowBottom  = showEnemies ? enemyRowTop - stackGap : digitY - stackGap;
         var iconRowTop     = iconRowBottom - iconSize;
 
-        // Active augment slot icons
         var slots = ActiveSlots;
         if (slots.Length > 0)
         {
@@ -97,7 +93,6 @@ public sealed class WaveHudOverlay : Overlay
             }
         }
 
-        // Enemy counter
         if (showEnemies)
         {
             var cx   = colCenterX - counterDims.X / 2f;
@@ -113,7 +108,6 @@ public sealed class WaveHudOverlay : Overlay
             screen.DrawString(_enemyFont, cPos, counterStr, red);
         }
 
-        // Wave digit textures
         var x = digitStartX;
         var y = digitY;
         for (var i = 0; i < waveStr.Length; i++)
@@ -123,7 +117,6 @@ public sealed class WaveHudOverlay : Overlay
             x += widths[i];
         }
 
-        // Credits — bottom-left
         _creditFont ??= new VectorFont(
             _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 28);
 
@@ -139,17 +132,32 @@ public sealed class WaveHudOverlay : Overlay
         if (_iconCache.TryGetValue(key, out var cached))
             return cached;
 
-        var name = augmentId.ToLowerInvariant();
+        var folder = GetIconFolder(augmentId);
+        var name   = augmentId.ToLowerInvariant();
         Texture? tex = null;
 
         if (_resourceCache.TryGetResource<TextureResource>(
-                new ResPath($"/Textures/_FinalStand/Interface/Augments/{name}level{level}.png"), out var res))
+                new ResPath($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level{level}.png"), out var res))
             tex = res!.Texture;
         else if (_resourceCache.TryGetResource<TextureResource>(
-                new ResPath($"/Textures/_FinalStand/Interface/Augments/{name}level0.png"), out res))
+                new ResPath($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level0.png"), out res))
             tex = res!.Texture;
 
         _iconCache[key] = tex;
         return tex;
+    }
+
+    private static string GetIconFolder(string augmentId)
+    {
+        if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
+            return "Reds";
+        return def.Category switch
+        {
+            AugmentCategory.Blue   => "Blues",
+            AugmentCategory.Green  => "Greens",
+            AugmentCategory.Yellow => "Yellows",
+            AugmentCategory.Purple => "Purples",
+            _                      => "Reds",
+        };
     }
 }
