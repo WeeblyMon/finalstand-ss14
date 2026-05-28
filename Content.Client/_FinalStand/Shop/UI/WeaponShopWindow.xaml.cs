@@ -462,6 +462,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.FlechetteRounds => "Flechette",
         WeaponUpgradeType.SplinterImpact => "Splinter",
         WeaponUpgradeType.OverchargeShot => "Overcharge",
+        WeaponUpgradeType.Overkill => "Overkill",
+        WeaponUpgradeType.Execution => "Execution",
+        WeaponUpgradeType.WarTorn => "Battle Trance",
+        WeaponUpgradeType.Suppression => "Suppress",
+        WeaponUpgradeType.Resonance => "Resonance",
+        WeaponUpgradeType.Prismatic => "Prismatic",
+        WeaponUpgradeType.MagEfficiency => "Mag Eff.",
+        WeaponUpgradeType.PulseCascade => "Cascade",
+        WeaponUpgradeType.Aftershock => "Aftershock",
         _ => "",
     };
 
