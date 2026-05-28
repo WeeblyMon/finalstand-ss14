@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
@@ -26,11 +27,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
 
-    /// <summary>
-    ///     Applies one level's delta of <paramref name="def"/> to <paramref name="weapon"/>.
-    ///     Call once per upgrade purchase. For SpawnItem, set <paramref name="spawnItems"/> false
-    ///     when mirroring to the akimbo partner to avoid double-spawning ammo.
-    /// </summary>
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
         switch (def.Type)
@@ -85,7 +81,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.SpawnItem:
                 if (spawnItems && def.SpawnProtoId.HasValue)
                 {
-                    // Offset from player so items don't spawn inside their collider.
                     var coords = Transform(player).Coordinates.Offset(new Vector2(0.5f, 0.5f));
                     for (var i = 0; i < def.SpawnCountPerLevel; i++)
                         Spawn(def.SpawnProtoId.Value, coords);
@@ -226,13 +221,11 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             }
 
             case WeaponUpgradeType.Recoil:
-                // TODO(finalstand): implement when DynamicAimingCursor ticket is complete
                 break;
 
             case WeaponUpgradeType.ReloadSpeed:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
-                // Each level reduces reload time by ValuePerLevel (0.1 = 10%), clamped to 10% minimum.
                 state.ReloadSpeedMultiplier = MathF.Max(0.1f, 1.0f - newLevel * def.ValuePerLevel);
                 break;
             }
@@ -263,7 +256,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
             case WeaponUpgradeType.MovementSpeed:
             {
-                // Player-level buff — skip when mirroring to the akimbo partner to avoid double-applying.
                 if (!spawnItems) break;
                 var bonus = EnsureComp<FSSpeedBonusComponent>(player);
                 bonus.SpeedMultiplier += def.ValuePerLevel;
@@ -346,6 +338,73 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 state.DamageMultiplier += def.ValuePerLevel;
                 break;
             }
+
+            case WeaponUpgradeType.Overkill:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.OverkillLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Execution:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExecutionEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.WarTorn:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.WarTornEnabled = true;
+                var wt = EnsureComp<FSWarTornComponent>(weapon);
+                wt.BonusPerStack = newLevel * 0.02f;
+                wt.MaxStacks = newLevel switch { 1 => 15, 2 => 30, _ => 50 };
+                break;
+            }
+
+            case WeaponUpgradeType.Suppression:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SuppressionLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Resonance:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ResonanceEnabled = true;
+                EnsureComp<FSResonanceComponent>(weapon);
+                break;
+            }
+
+            case WeaponUpgradeType.Prismatic:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.PrismaticLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.MagEfficiency:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MagEfficiencyLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.PulseCascade:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.PulseCascadeEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Aftershock:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.AftershockEnabled = true;
+                break;
+            }
         }
     }
 
@@ -362,7 +421,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
         var newGun = Spawn(proto.ID, Transform(player).Coordinates);
 
-        // Link pair BEFORE pickup so the Akimbo guard blocks recursion on the second gun.
         var compA = EnsureComp<FSAkimboGunComponent>(gun);
         var compB = EnsureComp<FSAkimboGunComponent>(newGun);
         compA.PairedGun = newGun;
@@ -381,9 +439,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         compB.MyHand = compA.PairedHand;
         compB.PairedHand = compA.MyHand;
 
-        // Enable FullAuto on both guns so holding fire works.
-        // Alternation on hold fires whichever gun is the active hand; alternation on individual
-        // clicks works correctly via hand-switch.
         foreach (var g in new[] { gun, newGun })
         {
             if (!TryComp<GunComponent>(g, out var gunComp))

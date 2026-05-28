@@ -14,11 +14,11 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
     [Dependency] private readonly OverchargeShotUpgradeSystem _overcharge = default!;
     [Dependency] private readonly PelletCountUpgradeSystem _pelletCount = default!;
     [Dependency] private readonly FlechetteRoundsUpgradeSystem _flechette = default!;
+    [Dependency] private readonly MagEfficiencyUpgradeSystem _magEfficiency = default!;
 
     public override void Initialize()
     {
         base.Initialize();
-        // AmmoShotEvent has spawned projectile entities; GunShotEvent.Ammo only has cartridges.
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, AmmoShotEvent>(OnAmmoShot);
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GunGetAmmoSpreadEvent>(OnGetAmmoSpread);
     }
@@ -32,7 +32,6 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
 
             if (comp.PierceThreshold > FixedPoint2.Zero)
             {
-                // SS14's built-in pierce requires overkill; ours resets ProjectileSpent per-hit.
                 proj.DeleteOnCollide = false;
                 var pierceComp = EnsureComp<FSPierceComponent>(projUid);
                 pierceComp.RemainingPierces = (int)Math.Round(comp.PierceThreshold.Float());
@@ -48,7 +47,6 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
                 flagsComp.ArmorShredMagnitude = comp.ArmorShredMagnitude;
             }
 
-            // flechette pierce added per-pellet here; extra pellets spawned in FlechetteRoundsUpgradeSystem
             if (comp.FlechetteEnabled)
             {
                 proj.DeleteOnCollide = false;
@@ -60,7 +58,6 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
                 proj.Damage = proj.Damage * FixedPoint2.New(comp.DamageMultiplier);
         }
 
-        // Overcharge replaces the entire pellet set — skip extra-pellet systems if it fired.
         var overchargeFired = _overcharge.HandleAmmoShot(uid, comp, args);
 
         if (!overchargeFired)
@@ -68,6 +65,8 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
             _pelletCount.HandleAmmoShot(uid, comp, args);
             _flechette.HandleAmmoShot(uid, comp, args);
         }
+
+        _magEfficiency.HandleAmmoShot(uid, comp, args);
     }
 
     private void OnGetAmmoSpread(EntityUid uid, FSWeaponUpgradeStateComponent comp, ref GunGetAmmoSpreadEvent args)

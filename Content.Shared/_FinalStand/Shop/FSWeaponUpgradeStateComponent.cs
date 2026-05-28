@@ -29,6 +29,15 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool FlechetteEnabled = false;
     [DataField] public bool SplinterImpactEnabled = false;
     [DataField] public bool OverchargeShotEnabled = false;
-    // modified via GunGetAmmoSpreadEvent; controls fan spread between pellets, not per-pellet jitter
     [DataField] public float PelletSpreadMultiplier = 1.0f;
+
+    [DataField] public int OverkillLevel = 0;
+    [DataField] public bool ExecutionEnabled = false;
+    [DataField] public bool WarTornEnabled = false;
+    [DataField] public int SuppressionLevel = 0;
+    [DataField] public bool ResonanceEnabled = false;
+    [DataField] public int PrismaticLevel = 0;
+    [DataField] public int MagEfficiencyLevel = 0;
+    [DataField] public bool PulseCascadeEnabled = false;
+    [DataField] public bool AftershockEnabled = false;
 }

@@ -40,6 +40,15 @@ public enum WeaponUpgradeType : byte
     SplinterImpact,
     OverchargeShot,
     Damage,
+    Overkill,
+    Execution,
+    WarTorn,
+    Suppression,
+    Resonance,
+    Prismatic,
+    MagEfficiency,
+    PulseCascade,
+    Aftershock,
 }
 
 [DataDefinition]
