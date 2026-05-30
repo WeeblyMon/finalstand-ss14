@@ -8,7 +8,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponShotgunBlunderbuss
-    price: 400
+    price: 8000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1
     category: .50 Single-Shot Shotgun
@@ -21,42 +21,42 @@
       name: Powder Charge
       description: Heavier load increases damage dealt by 15% per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 1200
       type: Damage
       valuePerLevel: 0.15
     - id: blunderbuss-reload-speed
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 1200
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: blunderbuss-extra-pellets
       name: Spread Shot
       description: Adds 2 extra pellets per shot per level. More shot, more gore.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 1050
       type: PelletCount
       valuePerLevel: 2
     - id: blunderbuss-stopping-power
       name: Stopping Power
       description: Blasts knock enemies back. Level 1 staggers; higher levels add increasing knockback.
       maxLevel: 3
-      baseCost: 250
+      baseCost: 1050
       type: Knockback
       valuePerLevel: 1
     - id: blunderbuss-scrapshot
       name: Scrapshot
       description: Load the barrel with scrap metal. Massively widens the spread and adds 3 extra pellets for brutal room-clearing.
       maxLevel: 1
-      baseCost: 400
+      baseCost: 1200
       type: Scrapshot
       valuePerLevel: 1
     - id: blunderbuss-dragonbreath
       name: Dragon's Breath
       description: Incendiary shells. Hits ignite targets on fire.
       maxLevel: 1
-      baseCost: 350
+      baseCost: 1200
       type: SetOnFire
       valuePerLevel: 1
   - type: Sprite
@@ -72,7 +72,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponShotgunKammerer
-    price: 600
+    price: 13000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1
     category: .50 Pump-Action Shotgun
@@ -85,42 +85,42 @@
       name: Powder Charge
       description: Heavier load increases damage dealt by 15% per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 1950
       type: Damage
       valuePerLevel: 0.15
     - id: kammerer-reload-speed
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 1950
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: kammerer-tight-choke
       name: Tight Choke
       description: Narrows the choke by 1° per level. Tighter pattern at range.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 1750
       type: AngleMax
       valuePerLevel: 1.0
     - id: kammerer-slamfire
       name: Slam Fire
       description: Rapid-cycling modification. Empties the tube fast, but devastates anything in the way.
       maxLevel: 1
-      baseCost: 400
+      baseCost: 1950
       type: SlamFire
       valuePerLevel: 1
     - id: kammerer-ap-slugs
       name: AP Slugs
       description: Armor-piercing ammunition. Slugs bypass enemy armor entirely.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 1950
       type: APRounds
       valuePerLevel: 1
     - id: kammerer-bleed
       name: Serrated Shot
       description: Pellets cause bleeding on hit. Higher levels bleed harder.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 1750
       type: Bleed
       valuePerLevel: 1
   - type: Sprite
@@ -136,7 +136,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponShotgunBulldog
-    price: 1000
+    price: 35000
     starterAmmoProtoId: MagazineShotgun
     starterAmmoCount: 2
     category: .50 Full-Auto Shotgun
@@ -149,42 +149,42 @@
       name: Hair Trigger
       description: Tuned action increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 5250
       type: FireRate
       valuePerLevel: 0.5
     - id: bulldog-drum-capacity
       name: High-Cap Drum
       description: Adds 6 shells to drum magazine capacity per level.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 4650
       type: MagazineSize
       valuePerLevel: 6
     - id: bulldog-recoil-comp
       name: Recoil Compensator
       description: Reduces max spread by 0.5° per level for tighter full-auto bursts.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 4650
       type: AngleMax
       valuePerLevel: 0.5
     - id: bulldog-flechette
       name: Flechette Rounds
       description: Load flechettes. Each pellet pierces one extra target; pellet count doubles.
       maxLevel: 1
-      baseCost: 400
+      baseCost: 5250
       type: FlechetteRounds
       valuePerLevel: 1
     - id: bulldog-incendiary
       name: Incendiary Shells
       description: Pellets ignite targets on hit.
       maxLevel: 1
-      baseCost: 350
+      baseCost: 5250
       type: SetOnFire
       valuePerLevel: 1
     - id: bulldog-akimbo
       name: Akimbo
       description: Dual wield. A second Bulldog spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 800
+      baseCost: 5250
       type: Akimbo
       valuePerLevel: 1
   - type: Sprite
@@ -200,7 +200,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponShotgunDoubleBarreled
-    price: 500
+    price: 25000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1
     category: .50 Double-Barrel Shotgun
@@ -213,35 +213,35 @@
       name: Powder Charge
       description: Heavier load increases damage dealt by 15% per level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 3750
       type: Damage
       valuePerLevel: 0.15
     - id: doublebar-reload-speed
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 3750
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: doublebar-explosive-slugs
       name: Explosive Slugs
       description: Shells detonate on impact. AoE damage scales with gun damage × level.
       maxLevel: 3
-      baseCost: 400
+      baseCost: 3350
       type: ExplosiveShot
       valuePerLevel: 1
     - id: doublebar-knockback
       name: Massive Knockback
       description: Each barrel blast sends enemies flying. Level 1 staggers; Level 2 launches.
       maxLevel: 2
-      baseCost: 300
+      baseCost: 3150
       type: Knockback
       valuePerLevel: 1
     - id: doublebar-splinter
       name: Splinter Impact
       description: On hit, pellet fragments burst backward in a cone through the target for 40% bonus damage.
       maxLevel: 1
-      baseCost: 450
+      baseCost: 3750
       type: SplinterImpact
       valuePerLevel: 1
   - type: Sprite
@@ -257,7 +257,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponShotgunHushpup
-    price: 700
+    price: 18000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1
     category: .50 Suppressed Shotgun
@@ -270,42 +270,42 @@
       name: Tight Pattern
       description: Adjusts the suppressor geometry, tightening spread by 0.5° per level.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 2400
       type: Accuracy
       valuePerLevel: 0.5
     - id: hushpup-extra-pellets
       name: Frag Load
       description: Adds 1 extra pellet per shot per level. More coverage, more damage.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 2400
       type: PelletCount
       valuePerLevel: 1
     - id: hushpup-slowing
       name: Slowing Shells
       description: Hits slow enemies by 30% for 2 seconds. Perfect for a clean getaway.
       maxLevel: 1
-      baseCost: 350
+      baseCost: 2700
       type: Slowing
       valuePerLevel: 1
     - id: hushpup-reload-speed
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 2700
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: hushpup-damage
       name: Powder Charge
       description: Heavier load increases damage dealt by 10% per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 2700
       type: Damage
       valuePerLevel: 0.1
     - id: hushpup-fire-rate
       name: Hair Trigger
       description: Faster cycling increases fire rate by 0.5/level.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 2400
       type: FireRate
       valuePerLevel: 0.5
   - type: Sprite
@@ -321,7 +321,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponEnergyShotgun
-    price: 1100
+    price: 50000
     category: Self-Recharging Energy Shotgun
     statDamage: 65
     statFireRate: 30
@@ -332,49 +332,49 @@
       name: Wide Beam
       description: Adds 1 extra plasma bolt per shot per level. More coverage per trigger pull.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 6650
       type: PelletCount
       valuePerLevel: 1
     - id: eshottie-tight-choke
       name: Focusing Lens
       description: Narrows beam spread by 1° per level for tighter plasma bursts.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 6650
       type: AngleMax
       valuePerLevel: 1.0
     - id: eshottie-incendiary
       name: Incendiary Beam
       description: Plasma bolts ignite targets on hit.
       maxLevel: 1
-      baseCost: 350
+      baseCost: 7500
       type: SetOnFire
       valuePerLevel: 1
     - id: eshottie-extended-cell
       name: Extended Cell
       description: Reduces energy cost per shot, squeezing more shots per charge. Max level yields ~13 shots before reload.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 6650
       type: MagazineSize
       valuePerLevel: 15.0
     - id: eshottie-damage
       name: High-Energy Cell
       description: Increases bolt damage by 10% per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 7500
       type: Damage
       valuePerLevel: 0.1
     - id: eshottie-rapid-charge
       name: Rapid Charge
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 6650
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: eshottie-overcharge
       name: Overcharge Shot
       description: Every 3rd shot fires a single massive plasma bolt instead of the normal spread. On impact, the bolt bursts into a forward cone of shards.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 7500
       type: OverchargeShot
       valuePerLevel: 1
   - type: Sprite

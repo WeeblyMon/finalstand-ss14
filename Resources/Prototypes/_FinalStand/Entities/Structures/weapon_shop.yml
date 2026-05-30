@@ -38,7 +38,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolViper
-    price: 1000
+    price: 3000
     starterAmmoProtoId: MagazinePistolHighCapacity
     starterAmmoCount: 2
     category: 9mm Semi/Full-Auto Pistol
@@ -51,14 +51,14 @@
       name: Hair Trigger
       description: Lighter pull increases fire rate by 1.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 450
       type: FireRate
       valuePerLevel: 1.5
     - id: viper-extended-mag
       name: Extended Mag
       description: Spare high-cap magazine spawned on each purchase.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 450
       type: SpawnItem
       spawnProtoId: MagazinePistolHighCapacity
       spawnCountPerLevel: 1
@@ -66,28 +66,28 @@
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level for tighter bursts.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 450
       type: Accuracy
       valuePerLevel: 0.3
     - id: viper-akimbo
       name: Akimbo
       description: Dual wield. A second Viper spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 450
       type: Akimbo
       valuePerLevel: 1
     - id: viper-hollow-point
       name: Hollow Point
       description: Bullets slow hit enemies by 30% for 2 seconds. Hitting again resets the timer.
       maxLevel: 1
-      baseCost: 350
+      baseCost: 450
       type: Slowing
       valuePerLevel: 1
     - id: viper-recoil-comp
       name: Recoil Compensator
       description: Dynamic recoil reduction. (Coming soon.)
       maxLevel: 1
-      baseCost: 200
+      baseCost: 450
       type: Recoil
       valuePerLevel: 1
       isStub: true
@@ -104,7 +104,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponMateba
-    price: 500
+    price: 1500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
     category: .45 Magnum Revolver
@@ -117,14 +117,14 @@
       name: Hair Trigger
       description: Tuned action increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 225
       type: FireRate
       valuePerLevel: 0.5
     - id: mateba-ammo-box
       name: Ammo Box
       description: A .45 magnum ammo box (12 rounds) spawned on each purchase per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 225
       type: SpawnItem
       spawnProtoId: MagazineBoxMagnum
       spawnCountPerLevel: 1
@@ -132,28 +132,28 @@
       name: Steady Aim
       description: Reduces max spread by 0.3° per level for precise follow-up shots.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 225
       type: Accuracy
       valuePerLevel: 0.3
     - id: mateba-dead-eye
       name: Dead Eye
       description: Increases critical hit chance by 5% per level. Crits deal 2× damage.
       maxLevel: 5
-      baseCost: 300
+      baseCost: 225
       type: CritChance
       valuePerLevel: 0.05
     - id: mateba-akimbo
       name: Akimbo
       description: Dual wield. A second Mateba spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 225
       type: Akimbo
       valuePerLevel: 1
     - id: mateba-critical-mass
       name: Critical Mass
       description: Crits hit harder. Each level adds +0.25× crit damage multiplier.
       maxLevel: 5
-      baseCost: 300
+      baseCost: 225
       type: CritDamage
       # TODO(finalstand): tune crit multiplier per level
       valuePerLevel: 0.25
@@ -170,7 +170,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolFlintlock
-    price: 300
+    price: 500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
     category: .45 Single-Shot Pistol
@@ -183,7 +183,7 @@
       name: Extra Load
       description: Expands the barrel capacity by 1 round per level. Up to 6 shots before reloading.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 75
       type: MagazineSize
       valuePerLevel: 1
     - id: flintlock-ball-and-powder
@@ -198,28 +198,28 @@
       name: Steady Hand
       description: Reduces max spread by 0.5° per level for that one perfect shot.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 75
       type: Accuracy
       valuePerLevel: 0.5
     - id: flintlock-akimbo
       name: Akimbo
       description: Dual wield. A second Flintlock spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 300
+      baseCost: 75
       type: Akimbo
       valuePerLevel: 1
     - id: flintlock-explosive-shot
       name: Explosive Shot
       description: Bullets detonate on impact. AoE damage scales with gun damage × level.
       maxLevel: 3
-      baseCost: 400
+      baseCost: 75
       type: ExplosiveShot
       valuePerLevel: 1
     - id: flintlock-payday
       name: Payday
       description: +50 bonus credits per kill with this gun per level.
       maxLevel: 4
-      baseCost: 250
+      baseCost: 75
       type: MoneyGainBonus
       valuePerLevel: 50
   - type: Sprite
@@ -235,7 +235,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolN1984
-    price: 700
+    price: 9000
     starterAmmoProtoId: MagazineMagnum
     starterAmmoCount: 2
     category: .45 Magnum Hand Cannon
@@ -248,14 +248,14 @@
       name: Hair Trigger
       description: Tuned action increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
     - id: n1984-extended-mag
       name: Extended Mag
       description: Spare .45 magnum magazine spawned on each purchase per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 1350
       type: SpawnItem
       spawnProtoId: MagazineMagnum
       spawnCountPerLevel: 1
@@ -263,28 +263,28 @@
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level to tame the kick.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 1350
       type: Accuracy
       valuePerLevel: 0.3
     - id: n1984-akimbo
       name: Akimbo
       description: Dual wield. A second N1984 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 1350
       type: Akimbo
       valuePerLevel: 1
     - id: n1984-ap-rounds
       name: AP Rounds
       description: Armor-piercing ammunition. Bullets bypass enemy armor entirely.
       maxLevel: 1
-      baseCost: 600
+      baseCost: 1350
       type: APRounds
       valuePerLevel: 1
     - id: n1984-long-barrel
       name: Long Barrel
       description: Increases projectile speed and effective range per level.
       maxLevel: 3
-      baseCost: 200
+      baseCost: 1200
       type: Range
       # TODO(finalstand): tune range increase per level
       valuePerLevel: 10
@@ -292,7 +292,7 @@
       name: Penetrator
       description: Bullets pierce through enemies. Each level adds another target pierced (max 4 bonus).
       maxLevel: 4
-      baseCost: 350
+      baseCost: 1350
       type: Pierce
       valuePerLevel: 1
   - type: Sprite
@@ -308,7 +308,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponAdvancedLaser
-    price: 800
+    price: 18000
     category: Self-Recharging Energy Pistol
     statDamage: 45
     statFireRate: 65
@@ -319,35 +319,35 @@
       name: Overcharge Coil
       description: Boosts cycling speed, increasing fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 2700
       type: FireRate
       valuePerLevel: 0.5
     - id: advlaser-focusing-lens
       name: Focusing Lens
       description: Narrows beam spread by 0.3° per level for pinpoint accuracy.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 2700
       type: Accuracy
       valuePerLevel: 0.3
     - id: advlaser-rapid-charge
       name: Rapid Charge
       description: Self-recharge rate ×2 per level (×8 at max).
       maxLevel: 3
-      baseCost: 300
+      baseCost: 2400
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: advlaser-ignite
       name: Incendiary Beam
       description: Shots ignite targets on hit.
       maxLevel: 1
-      baseCost: 400
+      baseCost: 2700
       type: SetOnFire
       valuePerLevel: 1
     - id: advlaser-chain-beam
       name: Chain Beam
       description: On hit, damage chains to 1 nearby enemy per level (3 tile range, no falloff, no cascade).
       maxLevel: 3
-      baseCost: 450
+      baseCost: 2400
       type: BeamChaining
       valuePerLevel: 1
   - type: Sprite
@@ -363,7 +363,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponEnergyMagnum
-    price: 1200
+    price: 30000
     category: High-Yield Energy Pistol
     statDamage: 85
     statFireRate: 35
@@ -374,35 +374,35 @@
       name: Overcharge Coil
       description: Boosts cycling speed, increasing fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 250
+      baseCost: 4500
       type: FireRate
       valuePerLevel: 0.5
     - id: energymagnum-focusing-crystal
       name: Focusing Crystal
       description: Refines beam geometry, reducing max spread by 0.3° per level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 4500
       type: Accuracy
       valuePerLevel: 0.3
     - id: energymagnum-rapid-charge
       name: Rapid Charge
       description: Self-recharge rate ×2 per level (×8 at max).
       maxLevel: 3
-      baseCost: 350
+      baseCost: 4000
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: energymagnum-stopping-power
       name: Stopping Power
       description: Level 1 staggers. Level 2+ applies increasing physics knockback away from the shooter.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 4000
       type: Knockback
       valuePerLevel: 1
     - id: energymagnum-penetrator
       name: Penetrator
       description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
       maxLevel: 4
-      baseCost: 350
+      baseCost: 4500
       type: Pierce
       valuePerLevel: 1
   - type: Sprite
@@ -420,7 +420,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponAtreides
-    price: 600
+    price: 5000
     starterAmmoProtoId: MagazinePistolSubMachineGun
     starterAmmoCount: 2
     category: .35 Auto SMG
@@ -433,42 +433,42 @@
       name: Akimbo
       description: Dual wield. A second Atreides spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 750
       type: Akimbo
       valuePerLevel: 1
     - id: atreides-hair-trigger
       name: Hair Trigger
       description: Lighter pull increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 750
       type: FireRate
       valuePerLevel: 0.5
     - id: atreides-recoil-pad
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level for tighter bursts.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 750
       type: Accuracy
       valuePerLevel: 0.3
     - id: atreides-extended-mag
       name: Extended Mag
       description: Adds 5 rounds to magazine capacity per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 750
       type: MagazineSize
       valuePerLevel: 5
     - id: atreides-speed-loader
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 750
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: atreides-stamina-steal
       name: Stamina Steal
       description: Hits drain stamina from the target, slowing and staggering them. Stacks per level.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 650
       type: StaminaSteal
       valuePerLevel: 1
   - type: Sprite
@@ -484,7 +484,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponWt550
-    price: 800
+    price: 9000
     starterAmmoProtoId: MagazinePistolSubMachineGunTopMounted
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
@@ -497,35 +497,35 @@
       name: Akimbo
       description: Dual wield. A second WT550 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 600
+      baseCost: 1350
       type: Akimbo
       valuePerLevel: 1
     - id: wt550-hair-trigger
       name: Hair Trigger
       description: Faster cycling increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
     - id: wt550-speed-loader
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 1350
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: wt550-dead-eye
       name: Dead Eye
       description: Increases critical hit chance by 5% per level.
       maxLevel: 5
-      baseCost: 250
+      baseCost: 1350
       type: CritChance
       valuePerLevel: 0.05
     - id: wt550-fleet-foot
       name: Fleet Foot
       description: Permanently increases your movement speed. Each level adds 5%.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 1200
       type: MovementSpeed
       valuePerLevel: 0.05
   - type: Sprite
@@ -541,7 +541,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponSubMachineGunDrozd
-    price: 900
+    price: 14000
     starterAmmoProtoId: MagazinePistolSubMachineGun
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
@@ -554,35 +554,35 @@
       name: Penetrator
       description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
       maxLevel: 4
-      baseCost: 350
+      baseCost: 2100
       type: Pierce
       valuePerLevel: 1
     - id: drozd-hair-trigger
       name: Hair Trigger
       description: Faster cycling increases fire rate by 0.3/level.
       maxLevel: 5
-      baseCost: 200
+      baseCost: 2100
       type: FireRate
       valuePerLevel: 0.3
     - id: drozd-speed-loader
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 2100
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: drozd-dead-eye
       name: Dead Eye
       description: Increases critical hit chance by 5% per level.
       maxLevel: 5
-      baseCost: 250
+      baseCost: 2100
       type: CritChance
       valuePerLevel: 0.05
     - id: drozd-shredder
       name: Shredder
       description: Each bullet drains bonus armor proportional to damage absorbed. Each level increases drain (20% per level, up to 100% extra at max).
       maxLevel: 5
-      baseCost: 300
+      baseCost: 2100
       type: ArmorShred
       valuePerLevel: 0.2
   - type: Sprite
@@ -598,7 +598,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponC20r
-    price: 700
+    price: 20000
     starterAmmoProtoId: MagazinePistolSubMachineGun
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
@@ -611,42 +611,42 @@
       name: Life Steal
       description: Bullets heal you for a percentage of damage dealt. Each level increases the steal amount.
       maxLevel: 4
-      baseCost: 400
+      baseCost: 3000
       type: LifeSteal
       valuePerLevel: 0.05
     - id: c20r-akimbo
       name: Akimbo
       description: Dual wield. A second C-20r spawns in your off-hand. Fire alternates between both. Accuracy suffers.
       maxLevel: 1
-      baseCost: 500
+      baseCost: 3000
       type: Akimbo
       valuePerLevel: 1
     - id: c20r-hair-trigger
       name: Hair Trigger
       description: Lighter pull increases fire rate by 0.5/level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 3000
       type: FireRate
       valuePerLevel: 0.5
     - id: c20r-recoil-pad
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level for tighter bursts.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 3000
       type: Accuracy
       valuePerLevel: 0.3
     - id: c20r-extended-mag
       name: Extended Mag
       description: Adds 5 rounds to magazine capacity per level.
       maxLevel: 5
-      baseCost: 150
+      baseCost: 3000
       type: MagazineSize
       valuePerLevel: 5
     - id: c20r-speed-loader
       name: Speed Loader
       description: Faster reload per level.
       maxLevel: 5
-      baseCost: 100
+      baseCost: 3000
       type: ReloadSpeed
       valuePerLevel: 0.1
   - type: Sprite

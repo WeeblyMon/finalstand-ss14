@@ -9,7 +9,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponLaserCarbine
-    price: 950
+    price: 45000
     category: Self-Recharging Semi-Auto Laser
     statDamage: 50
     statFireRate: 40
@@ -20,35 +20,35 @@
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
       maxLevel: 3
-      baseCost: 250
+      baseCost: 6000
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: lcarbine-accuracy
       name: Focusing Lens
       description: Precision optics tighten spread by 2.5° per level.
       maxLevel: 3
-      baseCost: 150
+      baseCost: 6000
       type: Accuracy
       valuePerLevel: 2.5
     - id: lcarbine-chain
       name: Chain Targets
       description: Beam arcs to 1 additional enemy per level on hit.
       maxLevel: 3
-      baseCost: 300
+      baseCost: 6000
       type: BeamChaining
       valuePerLevel: 1
     - id: lcarbine-prismatic
       name: Prismatic
       description: 25%/50%/75% chance per hit to split into 3 beams that seek nearby enemies for 40% damage. Beams do not chain.
       maxLevel: 3
-      baseCost: 350
+      baseCost: 6000
       type: Prismatic
       valuePerLevel: 1
     - id: lcarbine-mag-efficiency
       name: Mag Efficiency
       description: 10%/20%/30% chance per shot to not consume energy. Effectively extends battery life.
       maxLevel: 3
-      baseCost: 250
+      baseCost: 6000
       type: MagEfficiency
       valuePerLevel: 1
   - type: Sprite
