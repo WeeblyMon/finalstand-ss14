@@ -87,8 +87,8 @@
       0: Alive
       40: Dead
   - type: MovementSpeedModifier
-    baseWalkSpeed: 4.5
-    baseSprintSpeed: 5.5
+    baseWalkSpeed: 3.6
+    baseSprintSpeed: 4.4
   - type: FSEnemyValue
     killCredits: 120
 
@@ -158,24 +158,49 @@
   - type: FSEnemyValue
     killCredits: 300
 
-# TODO(finalstand): add ArmorComponent when FSZombieGiant is implemented
-# maxHPRatio: 0.4, regenRate: 10 (heavy but not as armored as Destroyer)
 - type: entity
   id: FSZombieGiant
   parent: FSZombieBase
   suffix: Giant
   name: giant zombie
-  abstract: true
+  # HP scaling: ScaleEnemyHp is called explicitly in WaveGameRuleSystem.StartCombatPhase
+  # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
+  # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
   components:
   - type: MobThresholds
     thresholds:
       0: Alive
-      1500: Dead
+      800: Dead
   - type: MovementSpeedModifier
-    baseWalkSpeed: 0.8
-    baseSprintSpeed: 1.0
+    baseWalkSpeed: 2.0
+    baseSprintSpeed: 2.5
   - type: FSEnemyValue
     killCredits: 1000
+  - type: FSArmor
+    maxHPRatio: 0.4
+    regenRate: 10
+  # Sprite: 1.5x scale on base layer — placeholder using normal zombie sprite.
+  # TODO(finalstand): replace with final Giant sprite when art is ready.
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+      scale: 1.5, 1.5
+  # Hitbox scaled to 1.5x normal zombie radius (0.25 * 1.5 = 0.375).
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.375
+        density: 235
+        mask:
+        - MobMask
+        layer:
+        - MobLayer
+  - type: FSGiantStomp
 
 # ── Shared prying config for all wave enemies ────────────────────────────────
 # pryPowered: can open powered airlocks, force: bypass bolted doors,
