@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "FinalStand",
+    "size": {
+        "x": 192,
+        "y": 192
+    },
+    "states": [
+        {
+            "name": "base"
+        }
+    ]
+}

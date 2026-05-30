@@ -44,3 +44,6 @@ public sealed class FSLoadLoadoutMessage : EntityEventArgs
 {
     public int LoadoutIndex;
 }
+
+[Serializable, NetSerializable]
+public sealed class FSOpenAugmentShopEvent : EntityEventArgs { }

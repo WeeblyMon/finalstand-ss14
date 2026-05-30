@@ -1,0 +1,30 @@
+- type: entity
+  id: FSAugmentShop
+  name: Augment Machine
+  description: Upgrade your combat capabilities with cybernetic augmentations.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.2,-0.2,0.2,0.2"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Machines/arcade.rsi
+    state: icon
+    scale: 1,1
+  - type: FSAugmentShop
