@@ -11,6 +11,8 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Movement.Components;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Prying.Components;
 using System.Linq;
 using Content.Shared.FixedPoint;
@@ -37,6 +39,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
     [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
 
     public override void Initialize()
@@ -142,6 +145,31 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
+        comp.GiantEntity = EntityUid.Invalid;
+        comp.GiantApAwarded = false;
+        if (IsBossWave(comp.WaveNumber) && comp.SpawnerEntities.Count > 0 && comp.BossPool.Count > 0)
+        {
+            var spawnerUid = comp.SpawnerEntities[0];
+            var bossProto = RobustRandom.Pick(comp.BossPool);
+            var giant = Spawn(bossProto, Transform(spawnerUid).Coordinates);
+            EnsureComp<WaveSpawnedTagComponent>(giant);
+            if (TryComp<HTNComponent>(giant, out var htn))
+            {
+                htn.Blackboard.SetValue("VisionRadius", 15f);
+                htn.Blackboard.SetValue("AggroVisionRadius", 15f);
+                htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
+                htn.Blackboard.SetValue(NPCBlackboard.NavPry, HasComp<PryingComponent>(giant));
+                if (comp.CCCEntity.IsValid())
+                    htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
+            }
+            ScaleEnemyHp(giant, comp.WaveNumber);
+            ScaleEnemySpeed(giant, comp.WaveNumber);
+            RaiseLocalEvent(giant, new FSEnemyHpScaledEvent()); // FINALSTAND: armor recalculates after HP scale
+            comp.AliveEnemies.Add(giant);
+            comp.GiantEntity = giant;
+            Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
+        }
+
         comp.EnemyTotalThisWave = Math.Min(5 * comp.WaveNumber, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
@@ -165,21 +193,39 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
         var ended = new WaveEndedEvent(comp.WaveNumber);
         RaiseLocalEvent(ref ended);
-        _wallet.DistributeCredits(comp.WaveSurvivalBonus);
-        if (IsBossWave(comp.WaveNumber))
+        _wallet.DistributeCredits(GetWaveSurvivalBonus(comp.WaveNumber));
+        if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
-            Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} is a BOSS WAVE — distributing {comp.BossWavePerkReward} augment points");
+            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss fallback — Giant never died, distributing {comp.BossWavePerkReward} AP.");
             _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
         }
+        comp.GiantEntity = EntityUid.Invalid;
+        comp.GiantApAwarded = false;
         comp.WavesCompleted++;
         comp.WaveNumber++;
         StartPrepPhase(uid, comp);
     }
 
-    private static bool IsBossWave(int wave)
+    private static bool IsBossWave(int wave) => wave % 5 == 0;
+
+    // TODO(finalstand): tune reward scaling tiers
+    private static float GetWaveKillMultiplier(int wave)
     {
-        if (wave <= 20) return wave % 10 == 0;
-        return (wave - 20) % 5 == 0;
+        if (wave <= 5) return 1.00f;
+        if (wave <= 10) return 1.50f;
+        if (wave <= 15) return 2.00f;
+        if (wave <= 20) return 2.75f;
+        return 3.50f;
+    }
+
+    // TODO(finalstand): tune reward scaling tiers
+    private static int GetWaveSurvivalBonus(int wave)
+    {
+        if (wave <= 5) return 500;
+        if (wave <= 10) return 750;
+        if (wave <= 15) return 1000;
+        if (wave <= 20) return 1500;
+        return 2000;
     }
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
@@ -222,6 +268,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
+            ScaleEnemySpeed(enemy, comp.WaveNumber);
             RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -278,12 +325,18 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             comp.TotalEnemiesKilled++;
 
-            var killCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
+            if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
+            {
+                comp.GiantApAwarded = true;
+                Log.Info($"[WaveGameRule] Giant {ent.Owner} died — distributing {comp.BossWavePerkReward} augment points.");
+                _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
+            }
+
+            var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
                 ? enemyVal.KillCredits
                 : comp.KillReward;
+            var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber));
 
-            // Award credits to the last-hit player only.
-            // If no player origin (environmental kill), no award — avoids free money from fall deaths.
             if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
             {
                 _wallet.GiveCredits(mindId, killCredits);
@@ -345,6 +398,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return 8f;
     }
 
+    private void ScaleEnemySpeed(EntityUid enemy, int wave)
+    {
+        if (wave <= 1) return;
+        if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
+            return;
+        var multiplier = 1f + (wave - 1) * 0.01f;
+        _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
+    }
+
     private void OnWaveStartRequest(WaveStartRequestEvent ev)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
@@ -379,6 +441,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (!GameTicker.IsGameRuleActive(uid, gameRule))
                 continue;
             var pool = GetDirectorPool(comp);
+            var types = pool.Select(p => p.Id).Distinct().ToList();
+            if (IsBossWave(comp.WaveNumber))
+                types.InsertRange(0, comp.BossPool.Select(p => p.Id).Distinct());
             data = new CCCStateData(
                 comp.WaveNumber,
                 comp.Phase,
@@ -388,7 +453,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 comp.SpawnerEntities.Count,
                 IsBossWave(comp.WaveNumber),
                 comp.FactionDisplay,
-                pool.Select(p => p.Id).Distinct().ToList());
+                types);
             return true;
         }
         return false;

@@ -57,6 +57,8 @@
     killReward: 100
     waveSurvivalBonus: 500
     bossWavePrestigeReward: 50
+    bossPool:
+    - FSZombieGiant
     prepDuration: 300
     maxCombatDuration: 1800
     spawnInterval: 2

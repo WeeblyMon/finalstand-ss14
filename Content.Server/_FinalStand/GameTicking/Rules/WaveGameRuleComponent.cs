@@ -52,6 +52,9 @@ public sealed partial class WaveGameRuleComponent : Component
     public int BossWavePerkReward = 50;
 
     [DataField]
+    public List<EntProtoId> BossPool = new() { "FSZombieGiant" };
+
+    [DataField]
     public string FactionDisplay = "Unknown hostiles detected";
 
     [DataField]
@@ -76,6 +79,8 @@ public sealed partial class WaveGameRuleComponent : Component
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
 
-    /// <summary>Admin toggle: stops new enemies from spawning without ending the wave.</summary>
     public bool SpawnPaused = false;
+
+    public EntityUid GiantEntity = EntityUid.Invalid;
+    public bool GiantApAwarded = false;
 }
