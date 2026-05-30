@@ -1,5 +1,9 @@
 using Content.Client._FinalStand.CCC.UI;
 using Content.Shared._FinalStand.CCC;
+using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared.Mind;
+using Content.Shared.Roles.Jobs;
+using Robust.Client.Player;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._FinalStand.CCC;
@@ -29,7 +33,17 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         if (state is not CCCBoundUserInterfaceState cccState) return;
-        _window?.UpdateState(cccState);
+        _window?.UpdateState(cccState, IsLocalPlayerCaptain());
+    }
+
+    private bool IsLocalPlayerCaptain()
+    {
+        var player = IoCManager.Resolve<IPlayerManager>().LocalSession;
+        if (player?.AttachedEntity is not { } mob) return false;
+        var mind = EntMan.System<SharedMindSystem>();
+        var jobs = EntMan.System<SharedJobSystem>();
+        if (!mind.TryGetMind(mob, out var mindId, out _)) return false;
+        return jobs.MindTryGetJob(mindId, out var job) && ReadyCheckDepts.IsCaptain(job.ID);
     }
 
     protected override void Dispose(bool disposing)

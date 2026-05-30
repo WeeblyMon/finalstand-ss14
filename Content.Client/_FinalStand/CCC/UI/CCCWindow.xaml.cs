@@ -67,7 +67,7 @@ public sealed partial class CCCWindow : FancyWindow
             CccPowerMap.ForceNavMapUpdate();
     }
 
-    public void UpdateState(CCCBoundUserInterfaceState state)
+    public void UpdateState(CCCBoundUserInterfaceState state, bool isCaptain)
     {
         WaveNumberLabel.Text = state.WaveNumber.ToString();
         FactionLabel.Text = state.FactionDisplay;
@@ -87,7 +87,14 @@ public sealed partial class CCCWindow : FancyWindow
         TotalLabel.Text = state.EstimatedEnemyCount.ToString();
         SpawnersLabel.Text = state.ActiveSpawnerCount.ToString();
 
-        StartWaveButton.Disabled = state.CurrentPhase != WavePhase.Prep;
+        var notPrep    = state.CurrentPhase != WavePhase.Prep;
+        var notReady   = state.ReadyCount < 1;
+        var notCaptain = !isCaptain;
+        StartWaveButton.Disabled = notPrep || notReady || notCaptain;
+        StartWaveButton.ToolTip =
+            (!notPrep && notReady)              ? "Awaiting department readiness" :
+            (!notPrep && !notReady && notCaptain) ? "Only the Captain can start the wave" :
+            null;
 
         RebuildDeptGrid(state.DepartmentStatus);
         RebuildZombieIcons(state.NextWaveEnemyTypes);

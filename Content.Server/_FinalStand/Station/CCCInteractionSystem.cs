@@ -4,6 +4,8 @@ using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared.Mind;
+using Content.Shared.Roles.Jobs;
 using Robust.Server.GameObjects;
 
 namespace Content.Server._FinalStand.Station;
@@ -14,6 +16,8 @@ public sealed class CCCInteractionSystem : EntitySystem
     [Dependency] private readonly ReadyCheckSystem _readyCheck = default!;
     [Dependency] private readonly UserInterfaceSystem _ui = default!;
     [Dependency] private readonly IChatManager _chatManager = default!;
+    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly SharedJobSystem _jobs = default!;
 
     private float _stateTimer;
 
@@ -53,7 +57,17 @@ public sealed class CCCInteractionSystem : EntitySystem
     private void OnStartWave(EntityUid uid, FinalStandCCCComponent comp, CCCStartWaveMessage args)
     {
         if (_readyCheck.IsCombatPhase()) return;
+        if (_readyCheck.ReadyCount() < 1) return;
+        var jobId = GetJobId(args.Actor);
+        if (jobId == null || !ReadyCheckDepts.IsCaptain(jobId)) return;
         RaiseLocalEvent(new WaveStartRequestEvent());
+    }
+
+    private string? GetJobId(EntityUid player)
+    {
+        if (!_mind.TryGetMind(player, out var mindId, out _))
+            return null;
+        return _jobs.MindTryGetJob(mindId, out var job) ? job.ID : null;
     }
 
     private void OnBroadcast(EntityUid uid, FinalStandCCCComponent comp, CCCBroadcastMessage args)
