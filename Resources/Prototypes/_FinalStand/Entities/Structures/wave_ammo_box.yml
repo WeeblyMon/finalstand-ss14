@@ -6,6 +6,7 @@
     mode: SnapgridCenter
   components:
   - type: WaveAmmoBox
+  - type: WaveAmmoBoxTag
   - type: Transform
     anchored: true
   - type: Clickable
@@ -20,9 +21,9 @@
           bounds: "-0.4,-0.4,0.4,0.4"
         density: 190
         mask:
-        - MobMask
+        - TableMask
         layer:
-        - MobLayer
+        - TableLayer
   - type: Sprite
     sprite: _FinalStand/Objects/wave_ammo_box.rsi
     state: base-big
