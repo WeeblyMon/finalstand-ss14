@@ -120,8 +120,10 @@ public sealed class WaveHudOverlay : Overlay
         _creditFont ??= new VectorFont(
             _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 28);
 
-        screen.DrawString(_creditFont, new Vector2(margin, screenSize.Y - 220f),
-            $"${CurrentCredits:N0}", Color.Gold);
+        var creditStr  = $"${CurrentCredits:N0}";
+        var creditDims = screen.GetDimensions(_creditFont, creditStr, 1f);
+        var creditPos  = new Vector2(screenSize.X - margin - creditDims.X, iconRowTop - stackGap - creditDims.Y);
+        screen.DrawString(_creditFont, creditPos, creditStr, Color.Gold);
     }
 
     private Texture? GetCachedIcon(string augmentId)

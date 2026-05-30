@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared.GameTicking;
+using Content.Server.GameTicking;
 using Content.Shared.Mind;
 using Microsoft.Data.Sqlite;
 using Robust.Shared.Console;
@@ -39,6 +40,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeNetworkEvent<WalletRequestEvent>(OnWalletRequested);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     public override void Shutdown()
@@ -189,7 +191,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
-            wallet.Credits = 0;
+            wallet.Credits = 500;
             NotifyClient(mindId, wallet);
         }
         Log.Debug("[FSWallet] Round restart — cleared credits on all wallets.");
@@ -208,6 +210,8 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.AugmentPoints = row.AugmentPoints;
+        if (wallet.Credits == 0)
+            wallet.Credits = 500;
         NotifyClient(mindId, wallet);
 
         var lvlComp = EnsureComp<FSPlayerLevelComponent>(mindId);
@@ -225,6 +229,17 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
         Log.Debug($"[FSWallet] Attached {mind.UserId} ({session.Name}) — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            return;
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        if (wallet.Credits == 0)
+            wallet.Credits = 500;
+        NotifyClient(mindId, wallet);
+        Log.Debug($"[FSWallet] SpawnComplete for {ev.Mob} — credits={wallet.Credits}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
