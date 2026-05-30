@@ -1,6 +1,7 @@
 using Content.Client._FinalStand.Shop.UI;
 using Content.Shared._FinalStand.Shop;
 using Robust.Client.UserInterface;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Shop;
 
@@ -13,6 +14,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private Action? _onUpgradesChanged;
     private Action? _onRefreshNeeded;
     private Action? _onPerkStateChanged;
+    private Action? _onSellCompleted;
+    private Action<string>? _onSellFailed;
 
     public FSShopWeaponBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
@@ -23,6 +26,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnUpgradePressed += OnUpgradePressed;
         _window.OnBuyPerkPressed += OnBuyPerkPressed;
+        _window.OnSellConfirmed += OnSellConfirmed;
         _window.OnClose += Close;
         _window.Populate(Owner, EntMan);
 
@@ -31,10 +35,16 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _onUpgradesChanged = OnUpgradesChanged;
         _onRefreshNeeded   = OnRefreshNeeded;
         _onPerkStateChanged = OnPerkStateChanged;
+        _onSellCompleted = OnSellCompleted;
+        _onSellFailed = OnSellFailed;
         shopClient.CreditsChanged       += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
         shopClient.RefreshNeeded        += _onRefreshNeeded;
         shopClient.PerkStateChanged     += _onPerkStateChanged;
+        shopClient.SellCompleted        += _onSellCompleted;
+        shopClient.SellFailed           += _onSellFailed;
+
+        UpdateSellButtonState();
     }
 
     private void OnBuyPressed()
@@ -52,9 +62,49 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         SendPredictedMessage(new FSShopBuyPerkMessage(perkProtoId));
     }
 
+    private void OnSellConfirmed()
+    {
+        SendPredictedMessage(new FSShopSellMessage());
+    }
+
+    private void OnSellCompleted()
+    {
+        _window?.ResetConfirmation();
+        UpdateSellButtonState();
+    }
+
+    private void OnSellFailed(string _)
+    {
+        _window?.ResetConfirmation();
+    }
+
+    private void UpdateSellButtonState()
+    {
+        if (_window == null || !EntMan.TryGetComponent<FSShopWeaponComponent>(Owner, out var comp))
+            return;
+        var shopClient = EntMan.System<FSShopClientSystem>();
+        var refund = ComputeEstimatedRefund(comp, shopClient.UpgradeLevels);
+        var hasWeapon = shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), comp.WeaponProtoId);
+        _window.UpdateSellButton(refund, hasWeapon);
+    }
+
+    private static int ComputeEstimatedRefund(FSShopWeaponComponent comp, Dictionary<string, int> levels)
+    {
+        var estimatedSpent = 0;
+        foreach (var def in comp.Upgrades)
+        {
+            var level = levels.GetValueOrDefault(def.Id, 0);
+            estimatedSpent += def.BaseCost * level * (level + 1) / 2;
+        }
+        var raw = comp.Price * 0.40 + estimatedSpent * 0.40;
+        return Math.Max(0, (int)Math.Round(raw / 50.0) * 50);
+    }
+
     private void OnRefreshNeeded()
     {
         SendPredictedMessage(new FSShopRefreshMessage());
+        _window?.ResetConfirmation();
+        UpdateSellButtonState();
     }
 
     private void OnCreditsChanged()
@@ -63,8 +113,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
         _window.UpdateBalance(shopClient.CurrentCredits);
-        // Also refresh perk affordability when credits change
         _window.RefreshPerks(Owner, EntMan, shopClient.CurrentCredits);
+        UpdateSellButtonState();
     }
 
     private void OnUpgradesChanged()
@@ -76,6 +126,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window.UpdateBalance(shopClient.CurrentCredits);
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);
         _window.RefreshStatBars(comp, shopClient.GetActiveGun(), EntMan);
+        _window.ResetConfirmation();
+        UpdateSellButtonState();
     }
 
     private void OnPerkStateChanged()
@@ -97,12 +149,15 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         if (_onUpgradesChanged  != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
         if (_onRefreshNeeded    != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
         if (_onPerkStateChanged != null) shopClient.PerkStateChanged     -= _onPerkStateChanged;
+        if (_onSellCompleted    != null) shopClient.SellCompleted        -= _onSellCompleted;
+        if (_onSellFailed       != null) shopClient.SellFailed           -= _onSellFailed;
 
         if (_window == null)
             return;
         _window.OnBuyPressed     -= OnBuyPressed;
         _window.OnUpgradePressed -= OnUpgradePressed;
         _window.OnBuyPerkPressed -= OnBuyPerkPressed;
+        _window.OnSellConfirmed  -= OnSellConfirmed;
         _window.OnClose          -= Close;
         _window.Dispose();
     }

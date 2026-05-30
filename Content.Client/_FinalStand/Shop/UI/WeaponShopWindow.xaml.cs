@@ -21,9 +21,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     public event Action? OnBuyPressed;
     public event Action<string>? OnUpgradePressed;
     public event Action<string>? OnBuyPerkPressed;
+    public event Action? OnSellConfirmed;
 
     private int _price;
     private float _flashBuyRemaining;
+
+    private bool _inConfirmState;
+    private float _confirmTimer;
+    private int _sellRefund;
+    private const float ConfirmTimeout = 4f;
 
     public WeaponShopWindow()
     {
@@ -45,17 +51,76 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             _flashBuyRemaining = 0.3f;
             OnBuyPressed?.Invoke();
         };
+
+        SellButton.OnPressed += _ =>
+        {
+            if (_inConfirmState)
+            {
+                OnSellConfirmed?.Invoke();
+                ExitConfirmState();
+            }
+            else
+            {
+                EnterConfirmState();
+            }
+        };
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
-        if (_flashBuyRemaining <= 0f)
-            return;
-        _flashBuyRemaining = Math.Max(0f, _flashBuyRemaining - args.DeltaSeconds);
-        var t = _flashBuyRemaining / 0.3f;
-        var v = 0.55f + 0.45f * (1f - t);
-        BuyButton.Modulate = new Color(v, 1f, v);
+
+        if (_flashBuyRemaining > 0f)
+        {
+            _flashBuyRemaining = Math.Max(0f, _flashBuyRemaining - args.DeltaSeconds);
+            var t = _flashBuyRemaining / 0.3f;
+            var v = 0.55f + 0.45f * (1f - t);
+            BuyButton.Modulate = new Color(v, 1f, v);
+        }
+
+        if (_confirmTimer > 0f)
+        {
+            _confirmTimer -= args.DeltaSeconds;
+            if (_confirmTimer <= 0f)
+                ExitConfirmState();
+        }
+    }
+
+    public void UpdateSellButton(int refund, bool hasWeapon)
+    {
+        _sellRefund = refund;
+        SellButton.Disabled = !hasWeapon;
+        if (!_inConfirmState)
+        {
+            SellButton.Text = $"Sell  ${refund:N0}";
+            SellButton.Modulate = Color.White;
+        }
+    }
+
+    public void ResetConfirmation()
+    {
+        if (_inConfirmState)
+            ExitConfirmState();
+    }
+
+    private void EnterConfirmState()
+    {
+        _inConfirmState = true;
+        _confirmTimer = ConfirmTimeout;
+        SellButton.Text = "Confirm?";
+        SellButton.Modulate = Color.FromHex("#BF616A");
+        SellConfirmLabel.Text = "This cannot be undone.";
+        SellConfirmLabel.Visible = true;
+        SellConfirmLabel.Modulate = Color.FromHex("#EBCB8B");
+    }
+
+    private void ExitConfirmState()
+    {
+        _inConfirmState = false;
+        _confirmTimer = 0f;
+        SellConfirmLabel.Visible = false;
+        SellButton.Text = $"Sell  ${_sellRefund:N0}";
+        SellButton.Modulate = Color.White;
     }
 
     public void Populate(EntityUid shopEntity, IEntityManager entMan)

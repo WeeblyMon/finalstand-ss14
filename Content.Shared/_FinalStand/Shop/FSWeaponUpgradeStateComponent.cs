@@ -40,4 +40,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int MagEfficiencyLevel = 0;
     [DataField] public bool PulseCascadeEnabled = false;
     [DataField] public bool AftershockEnabled = false;
+
+    // TODO(finalstand): audit existing purchased weapons for TotalSpent backfill if needed
+    [DataField] public int TotalSpent = 0;
 }
