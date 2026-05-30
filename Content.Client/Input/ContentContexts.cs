@@ -93,6 +93,8 @@ namespace Content.Client.Input
             human.AddFunction(ContentKeyFunctions.Arcade1);
             human.AddFunction(ContentKeyFunctions.Arcade2);
             human.AddFunction(ContentKeyFunctions.Arcade3);
+            // FINALSTAND: sprint key — registered so input context passes the event through to FSSprintServerSystem.
+            human.AddFunction(ContentKeyFunctions.FSSprint);
 
             // actions should be common (for ghosts, mobs, etc)
             common.AddFunction(ContentKeyFunctions.OpenActionsMenu);

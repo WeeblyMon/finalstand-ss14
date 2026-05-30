@@ -41,7 +41,9 @@ binds:
 - function: MoveDown
   type: State
   key: S
-- function: Walk
+# FINALSTAND: Walk binding removed — Shift is used for sprint in Final Stand.
+# TODO(finalstand): verify walk removal doesn't break other gamemodes
+- function: FSSprint
   type: State
   key: Shift
 # Shuttle

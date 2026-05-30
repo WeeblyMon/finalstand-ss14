@@ -136,5 +136,8 @@ namespace Content.Shared.Input
 
         public static readonly BoundKeyFunction ReloadWeapon = "ReloadWeapon";
         public static readonly BoundKeyFunction QuickGrenade = "QuickGrenade";
+
+        // FINALSTAND: sprint, overrides vanilla walk-toggle for FS players
+        public static readonly BoundKeyFunction FSSprint = "FSSprint";
     }
 }

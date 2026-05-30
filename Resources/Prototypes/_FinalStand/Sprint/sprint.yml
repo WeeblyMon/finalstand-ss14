@@ -1,0 +1,62 @@
+# Final Stand sprint dust VFX entity prototypes.
+# Ported from Goob-Station Resources/Prototypes/_Goobstation/Sprinting/sprinting.yml
+# Sprite paths remapped from _Goobstation/ → _FinalStand/.
+
+- type: entity
+  id: SprintAnimation
+  categories: [ HideSpawnMenu ]
+  name: Dust cloud
+  description: Whoa, watch out!
+  components:
+  - type: Sprite
+    drawdepth: WallMountedItems
+    sprite: _FinalStand/Effects/sprinting.rsi
+    layers:
+    - state: sprint_cloud
+  - type: TimedDespawn
+    lifetime: 0.48
+  - type: Tag
+    tags:
+    - HideContextMenu
+  - type: AnimationPlayer
+
+- type: entity
+  id: SmallSprintAnimation
+  name: Small dust cloud
+  description: Whoa, watch out!
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: WallMountedItems
+    sprite: _FinalStand/Effects/sprinting.rsi
+    layers:
+    - state: sprint_cloud_small
+  - type: TimedDespawn
+    lifetime: 0.34
+  - type: Tag
+    tags:
+    - HideContextMenu
+  - type: AnimationPlayer
+
+- type: entity
+  id: TinySprintAnimation
+  name: Tiny dust cloud
+  description: Whoa, watch out!
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: WallMountedItems
+    sprite: _FinalStand/Effects/sprinting.rsi
+    layers:
+    - state: sprint_cloud_tiny
+  - type: TimedDespawn
+    lifetime: 0.25
+  - type: Tag
+    tags:
+    - HideContextMenu
+  - type: AnimationPlayer
+
+# Note: FSSprintComponent is added to MobHuman directly in
+# Resources/Prototypes/Body/Species/human.yml (with # FINALSTAND: marker)
+# because SS14's prototype loader does not support additive component merging
+# via duplicate entity IDs in separate YAML files.
