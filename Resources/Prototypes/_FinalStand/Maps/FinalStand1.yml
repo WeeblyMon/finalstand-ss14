@@ -11,26 +11,34 @@
         mapNameTemplate: "Final Stand"
       - type: StationJobs
         availableJobs:
-          Captain: [ -1, -1 ]
-          HeadOfPersonnel: [ -1, -1 ]
-          HeadOfSecurity: [ -1, -1 ]
-          SecurityOfficer: [ -1, -1 ]
-          Detective: [ -1, -1 ]
-          ChiefEngineer: [ -1, -1 ]
-          StationEngineer: [ -1, -1 ]
-          AtmosphericTechnician: [ -1, -1 ]
-          ChiefMedicalOfficer: [ -1, -1 ]
-          MedicalDoctor: [ -1, -1 ]
-          Paramedic: [ -1, -1 ]
-          Chemist: [ -1, -1 ]
-          ResearchDirector: [ -1, -1 ]
-          Scientist: [ -1, -1 ]
-          ResearchAssistant: [ -1, -1 ]
-          Quartermaster: [ -1, -1 ]
-          CargoTechnician: [ -1, -1 ]
-          SalvageSpecialist: [ -1, -1 ]
-          Bartender: [ -1, -1 ]
-          Chef: [ -1, -1 ]
-          Botanist: [ -1, -1 ]
-          Janitor: [ -1, -1 ]
-          Passenger: [ -1, -1 ]
+          # command (2)
+          Captain:           [ 1,  1 ]
+          HeadOfPersonnel:   [ 1,  1 ]
+          # security (21)
+          HeadOfSecurity:    [ 1,  1 ]
+          SecurityOfficer:   [ 20, 20 ]
+          Detective:         [ 0,  0 ]
+          # engineering (7)
+          ChiefEngineer:         [ 1, 1 ]
+          StationEngineer:       [ 4, 4 ]
+          AtmosphericTechnician: [ 2, 2 ]
+          # medical (7)
+          ChiefMedicalOfficer: [ 1, 1 ]
+          MedicalDoctor:       [ 3, 3 ]
+          Paramedic:           [ 2, 2 ]
+          Chemist:             [ 1, 1 ]
+          # science (5)
+          ResearchDirector:  [ 1, 1 ]
+          Scientist:         [ 3, 3 ]
+          ResearchAssistant: [ 1, 1 ]
+          # cargo (4)
+          Quartermaster:      [ 1, 1 ]
+          CargoTechnician:    [ 2, 2 ]
+          SalvageSpecialist:  [ 1, 1 ]
+          # service (4)
+          Bartender: [ 1, 1 ]
+          Chef:      [ 1, 1 ]
+          Botanist:  [ 1, 1 ]
+          Janitor:   [ 1, 1 ]
+          # disabled
+          Passenger: [ 0, 0 ]
