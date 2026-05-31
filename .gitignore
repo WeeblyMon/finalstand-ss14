@@ -279,6 +279,10 @@ __pycache__/
 # Release package files go here:
 release/
 
+# Server data
+*.db
+bin/Content.Server/data/
+
 # Apple please go.
 .DS_Store
 # KDE, come in.
