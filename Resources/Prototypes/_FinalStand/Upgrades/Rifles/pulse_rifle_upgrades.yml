@@ -20,35 +20,35 @@
       name: Overloaded Cell
       description: Higher energy output increases damage dealt by 15% per level.
       maxLevel: 5
-      baseCost: 9750
+      baseCost: 16250
       type: Damage
       valuePerLevel: 0.15
     - id: pulse-fire-rate
       name: Rapid Pulse
       description: Tuned cycling increases fire rate by 0.3/level.
       maxLevel: 3
-      baseCost: 8650
+      baseCost: 16250
       type: FireRate
       valuePerLevel: 0.3
     - id: pulse-accuracy
       name: Focusing Array
       description: Tightens beam spread by 2.5° per level.
       maxLevel: 3
-      baseCost: 8650
+      baseCost: 16250
       type: Accuracy
       valuePerLevel: 2.5
     - id: pulse-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max).
       maxLevel: 3
-      baseCost: 8650
+      baseCost: 16250
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: pulse-cascade
       name: Pulse Cascade
       description: Kills trigger 3 explosions at the kill site dealing 50% of the killing shot's damage. Can chain.
       maxLevel: 1
-      baseCost: 9750
+      baseCost: 16250
       type: PulseCascade
       valuePerLevel: 1
   - type: Sprite

@@ -11,19 +11,6 @@
     anchored: true
   - type: Clickable
   - type: InteractionOutline
-  - type: Physics
-    bodyType: Static
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeAabb
-          bounds: "-0.4,-0.4,0.4,0.4"
-        density: 190
-        mask:
-        - TableMask
-        layer:
-        - TableLayer
   - type: Sprite
     sprite: _FinalStand/Objects/wave_ammo_box.rsi
     state: base-big

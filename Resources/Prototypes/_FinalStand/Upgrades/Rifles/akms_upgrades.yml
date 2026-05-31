@@ -22,42 +22,42 @@
       name: Heavier Load
       description: Higher-grain ammunition increases damage dealt by 15% per level.
       maxLevel: 5
-      baseCost: 4500
+      baseCost: 7500
       type: Damage
       valuePerLevel: 0.15
     - id: akms-fire-rate
       name: Hair Trigger
       description: Lightened trigger group increases fire rate by 0.5/level.
       maxLevel: 3
-      baseCost: 4000
+      baseCost: 7500
       type: FireRate
       valuePerLevel: 0.5
     - id: akms-recoil
       name: Reduced Recoil
       description: Muzzle brake tightens spread by 0.5° per level.
       maxLevel: 3
-      baseCost: 4000
+      baseCost: 7500
       type: Accuracy
       valuePerLevel: 0.5
     - id: akms-incendiary
       name: Incendiary Rounds
       description: Bullets ignite targets on hit.
       maxLevel: 1
-      baseCost: 4500
+      baseCost: 7500
       type: SetOnFire
       valuePerLevel: 1
     - id: akms-battle-trance
       name: Battle Trance
       description: Each kill increases damage by 2%/4%/6% per stack, up to 15/30/50 stacks. Resets between waves.
       maxLevel: 3
-      baseCost: 4000
+      baseCost: 7500
       type: WarTorn
       valuePerLevel: 1
     - id: akms-suppression
       name: Suppression
       description: Every hit slows the target briefly. Level 2 increases slow magnitude. Does not affect bosses.
       maxLevel: 2
-      baseCost: 3750
+      baseCost: 7500
       type: Suppression
       valuePerLevel: 1
   - type: Sprite
