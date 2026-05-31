@@ -61,9 +61,9 @@ public sealed class FSDamageNumberSystem : EntitySystem
     private void OnDamageNumber(FSDamageNumberEvent ev)
     {
         var target = GetEntity(ev.Target);
-        if (!TryComp<TransformComponent>(target, out var xform))
+        if (!Exists(target))
             return;
-
+        var xform = Transform(target);
         var worldPos = _transform.GetWorldPosition(xform);
         var mapId    = xform.MapID;
 
@@ -92,9 +92,9 @@ public sealed class FSDamageNumberSystem : EntitySystem
     private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev)
     {
         var target = GetEntity(ev.Target);
-        if (!TryComp<TransformComponent>(target, out var xform))
+        if (!Exists(target))
             return;
-
+        var xform = Transform(target);
         var worldPos = _transform.GetWorldPosition(xform);
         var mapId    = xform.MapID;
 
