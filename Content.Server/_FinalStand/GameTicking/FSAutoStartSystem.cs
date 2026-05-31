@@ -20,23 +20,26 @@ public sealed class FSAutoStartSystem : EntitySystem
 
     private void OnRunLevelChanged(GameRunLevelChangedEvent ev)
     {
+        Log.Debug($"[FSAutoStart] RunLevel changed: {ev.Old} → {ev.New}");
+
         if (ev.New != GameRunLevel.PreRoundLobby)
             return;
 
         if (!_ticker.TryFindGamePreset("finalstand", out var preset))
         {
-            Logger.ErrorS("finalstand.autostart", "FinalStand preset not found — auto-start skipped.");
+            Log.Error("[FSAutoStart] FinalStand preset not found — auto-start skipped.");
             return;
         }
 
         if (!_mapManager.CheckMapExists("FinalStandMap1"))
         {
-            Logger.ErrorS("finalstand.autostart", "FinalStandMap1 map not found — auto-start skipped.");
+            Log.Error("[FSAutoStart] FinalStandMap1 map not found — auto-start skipped.");
             return;
         }
 
         _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
         _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
         _ticker.SetGamePreset(preset);
+        Log.Info("[FSAutoStart] FinalStand preset and map applied. Waiting for startround.");
     }
 }

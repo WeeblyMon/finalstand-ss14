@@ -33,7 +33,7 @@ public sealed class StartFinalStandCommand : LocalizedEntityCommands
 
         _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
         _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
-        _ticker.SetGamePreset(preset, true);
+        _ticker.SetGamePreset(preset, false);
         _ticker.RestartRound();
 
         shell.WriteLine("Final Stand round starting on FinalStandMap1.");
