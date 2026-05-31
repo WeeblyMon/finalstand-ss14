@@ -87,11 +87,12 @@ public sealed class FSSprintHudSystem : EntitySystem
         if (_staminaLabel == null)
         {
             _font ??= new VectorFont(
-                _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 24);
+                _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSansSymbols2-Regular.ttf")), 16);
 
             _staminaLabel = new Label
             {
                 HorizontalAlignment = Control.HAlignment.Right,
+                Margin = new Thickness(0, 2, 0, 0),
                 FontOverride = _font,
             };
             ui.FSStatusContainer.AddChild(_staminaLabel);

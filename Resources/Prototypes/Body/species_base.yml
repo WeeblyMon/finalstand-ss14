@@ -169,6 +169,8 @@
   id: BaseSpeciesMobOrganic
   save: false
   components:
+  # FINALSTAND: all organic species get sprint
+  - type: FSSprint
   - type: Hunger
   - type: Thirst
   - type: Barotrauma

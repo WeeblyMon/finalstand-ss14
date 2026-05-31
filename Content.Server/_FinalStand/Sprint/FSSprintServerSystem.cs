@@ -1,5 +1,7 @@
 using System.Numerics;
 using Content.Server.Damage.Systems;
+using Content.Shared.Alert;
+using Content.Shared.GameTicking;
 using Content.Shared._FinalStand.Sprint;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Damage.Components;
@@ -17,6 +19,7 @@ public sealed class FSSprintServerSystem : EntitySystem
     [Dependency] private readonly StaminaSystem _stamina = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly AlertsSystem _alerts = default!;
 
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
 
@@ -32,6 +35,25 @@ public sealed class FSSprintServerSystem : EntitySystem
         SubscribeLocalEvent<FSSprintComponent, KnockedDownEvent>(OnKnockedDown);
         SubscribeLocalEvent<FSSprintComponent, StunnedEvent>(OnStunned);
         SubscribeLocalEvent<FSSprintComponent, BuckledEvent>(OnBuckled);
+
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (HasComp<FSSprintComponent>(ev.Mob))
+        {
+            Log.Debug($"[FSSprint] Player {ev.Player?.Name} spawned as {ToPrettyString(ev.Mob)} — FSSprintComponent present.");
+        }
+        else
+        {
+            Log.Warning($"[FSSprint] Player {ev.Player?.Name} spawned as {ToPrettyString(ev.Mob)} WITHOUT FSSprintComponent — adding now.");
+            EnsureComp<FSSprintComponent>(ev.Mob);
+        }
+
+        // Clear the vanilla stamina alert — FS sprint players use the custom HUD overlay instead.
+        if (TryComp<StaminaComponent>(ev.Mob, out var stamina))
+            _alerts.ClearAlert(ev.Mob, stamina.StaminaAlert);
     }
 
     private void OnRefreshSpeed(EntityUid uid, FSSprintComponent comp, RefreshMovementSpeedModifiersEvent args)
