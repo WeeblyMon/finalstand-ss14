@@ -185,7 +185,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        var cost = def.BaseCost * (currentLevel + 1);
+        var cost = GetUpgradeLevelCost(def, currentLevel + 1);
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
@@ -223,7 +223,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
                     for (var lvl = 1; lvl <= prevLevel; lvl++)
                     {
                         _upgrades.ApplySingleUpgrade(paired, player, prevDef, lvl, spawnItems: false);
-                        partnerSpent += prevDef.BaseCost * lvl;
+                        partnerSpent += GetUpgradeLevelCost(prevDef, lvl);
                     }
                 }
                 pairedState.TotalSpent = partnerSpent;
@@ -494,6 +494,16 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         return null;
+    }
+
+    private static readonly float[] LevelCostMults = [1.0f, 1.5f, 2.5f, 4.0f, 6.0f];
+
+    private static int GetUpgradeLevelCost(WeaponUpgradeDef def, int level)
+    {
+        var mult = level > 0 && level <= LevelCostMults.Length
+            ? LevelCostMults[level - 1]
+            : (float)level;
+        return (int)MathF.Round(def.BaseCost * mult);
     }
 
     private void SendWeaponLevels(EntityUid mindId, Dictionary<string, int> levels, string title = "")
