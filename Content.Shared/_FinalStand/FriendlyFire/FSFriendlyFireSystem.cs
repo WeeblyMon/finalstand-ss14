@@ -1,8 +1,10 @@
 using System.Linq;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Interaction.Events;
+using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
+using Robust.Shared.Physics.Events;
 
 namespace Content.Shared._FinalStand.FriendlyFire;
 
@@ -22,8 +24,14 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
         // Block ALL damage where origin is a wave player (melee fallback, ranged, explosions, etc.)
         SubscribeLocalEvent<FSFriendlyFireComponent, BeforeDamageChangedEvent>(OnBeforeDamage);
 
+        // Block player-origin damage to immune structures (doors, CCC, etc.)
+        SubscribeLocalEvent<FSPlayerDamageImmuneComponent, BeforeDamageChangedEvent>(OnBeforeStructureDamage);
+
         // Block targeted light attacks and per-target checks inside heavy attacks
         SubscribeLocalEvent<FSFriendlyFireComponent, AttackAttemptEvent>(OnAttackAttempt);
+
+        // Allow projectiles from wave players to pass through other wave players
+        SubscribeLocalEvent<FSFriendlyFireComponent, PreventCollideEvent>(OnPlayerPreventCollide);
 
         // Block wide melee swings where every target in the arc is a wave player
         SubscribeLocalEvent<MeleeWeaponComponent, MeleeHitEvent>(OnMeleeHit);
@@ -33,6 +41,22 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
     private void OnBeforeDamage(EntityUid uid, FSFriendlyFireComponent _, ref BeforeDamageChangedEvent args)
     {
         if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value))
+            args.Cancelled = true;
+    }
+
+    // uid = structure (has FSPlayerDamageImmuneComponent). Cancel all damage from wave players.
+    private void OnBeforeStructureDamage(EntityUid uid, FSPlayerDamageImmuneComponent _, ref BeforeDamageChangedEvent args)
+    {
+        if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value))
+            args.Cancelled = true;
+    }
+
+    // uid = player (has FSFriendlyFireComponent). Let projectiles fired by other wave players pass through.
+    private void OnPlayerPreventCollide(EntityUid uid, FSFriendlyFireComponent _, ref PreventCollideEvent args)
+    {
+        if (!TryComp<ProjectileComponent>(args.OtherEntity, out var proj)) return;
+        if (proj.Shooter == null) return;
+        if (HasComp<FSFriendlyFireComponent>(proj.Shooter.Value))
             args.Cancelled = true;
     }
 

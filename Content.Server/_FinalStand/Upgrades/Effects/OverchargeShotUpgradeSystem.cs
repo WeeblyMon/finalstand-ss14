@@ -126,8 +126,7 @@ public sealed class OverchargeShotUpgradeSystem : EntitySystem
             if (TryComp<ProjectileComponent>(shard, out var shardProj))
                 shardProj.Damage = shardDamage;
 
-            // Shards do not hit the original shooter.
-            _gun.ShootProjectile(shard, dir, Vector2.Zero, comp.Weapon ?? uid, null, ShardSpeed);
+            _gun.ShootProjectile(shard, dir, Vector2.Zero, comp.Weapon ?? uid, comp.Shooter, ShardSpeed);
         }
     }
 }

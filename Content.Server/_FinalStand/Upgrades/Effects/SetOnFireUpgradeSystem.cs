@@ -1,4 +1,5 @@
 using Content.Server.Atmos.EntitySystems;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Atmos.Components;
@@ -20,6 +21,8 @@ public sealed class SetOnFireUpgradeSystem : EntitySystem
         if (ev.Weapon == null)
             return;
         if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.SetOnFireEnabled)
+            return;
+        if (HasComp<FSFriendlyFireComponent>(ev.Target))
             return;
         if (!TryComp<FlammableComponent>(ev.Target, out var flammable))
             return;
