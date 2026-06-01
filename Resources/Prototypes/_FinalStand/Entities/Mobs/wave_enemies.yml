@@ -72,7 +72,7 @@
     baseWalkSpeed: 2.0
     baseSprintSpeed: 2.5
   - type: FSEnemyValue
-    killCredits: 900
+    killCredits: 300
 
 - type: entity
   id: FSZombieRunner
