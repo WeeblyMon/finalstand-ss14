@@ -316,6 +316,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
                 }
             }
 
+            CleanupAmmoForWeapon(player, comp);
             _wallet.GiveCredits(mindId, totalRefund);
 
             _lastSellTime[userId] = now;
@@ -494,6 +495,62 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         return null;
+    }
+
+    private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp)
+    {
+        var ammoProtos = new HashSet<string>();
+        if (shopComp.StarterAmmoProtoId != null)
+            ammoProtos.Add((string)shopComp.StarterAmmoProtoId.Value);
+        foreach (var upgrade in shopComp.Upgrades)
+        {
+            if (upgrade.Type == WeaponUpgradeType.SpawnItem && upgrade.SpawnProtoId != null)
+                ammoProtos.Add((string)upgrade.SpawnProtoId.Value);
+        }
+        if (ammoProtos.Count == 0)
+            return;
+
+        var toDelete = new List<EntityUid>();
+
+        if (TryComp<HandsComponent>(player, out var hands))
+        {
+            foreach (var handName in hands.SortedHands)
+            {
+                if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
+                    continue;
+                if (ammoProtos.Contains(MetaData(held.Value).EntityPrototype?.ID ?? ""))
+                    toDelete.Add(held.Value);
+            }
+        }
+
+        foreach (var slot in new[] { "belt", "suitstorage", "pocket1", "pocket2" })
+        {
+            if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
+                continue;
+            if (ammoProtos.Contains(MetaData(slotEnt.Value).EntityPrototype?.ID ?? ""))
+                toDelete.Add(slotEnt.Value);
+        }
+
+        if (_inventory.TryGetSlotEntity(player, "back", out var backpack) && backpack != null)
+        {
+            if (TryComp<ContainerManagerComponent>(backpack.Value, out var cm))
+            {
+                foreach (var container in cm.Containers.Values)
+                {
+                    foreach (var item in container.ContainedEntities)
+                    {
+                        if (ammoProtos.Contains(MetaData(item).EntityPrototype?.ID ?? ""))
+                            toDelete.Add(item);
+                    }
+                }
+            }
+        }
+
+        foreach (var item in toDelete)
+        {
+            if (Exists(item))
+                QueueDel(item);
+        }
     }
 
     private static readonly float[] LevelCostMults = [1.0f, 1.5f, 2.5f, 4.0f, 6.0f];

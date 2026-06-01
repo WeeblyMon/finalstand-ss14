@@ -83,4 +83,12 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public EntityUid GiantEntity = EntityUid.Invalid;
     public bool GiantApAwarded = false;
+
+    public int AccumulatedSurvivalBonus = 0;
+}
+
+[RegisterComponent]
+public sealed partial class FSEnemyDamageTrackingComponent : Component
+{
+    public readonly HashSet<EntityUid> AttackerMinds = new();
 }

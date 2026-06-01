@@ -1,5 +1,8 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Economy;
+using Content.Shared.Damage.Systems;
+using Content.Shared.GameTicking;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.GameTicking;
@@ -46,9 +49,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
-        // guard against admin-deleting mobs without triggering MobStateChangedEvent
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
         SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
+        SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
@@ -153,6 +157,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var bossProto = RobustRandom.Pick(comp.BossPool);
             var giant = Spawn(bossProto, Transform(spawnerUid).Coordinates);
             EnsureComp<WaveSpawnedTagComponent>(giant);
+            EnsureComp<FSEnemyDamageTrackingComponent>(giant);
             if (TryComp<HTNComponent>(giant, out var htn))
             {
                 htn.Blackboard.SetValue("VisionRadius", 15f);
@@ -193,7 +198,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
         var ended = new WaveEndedEvent(comp.WaveNumber);
         RaiseLocalEvent(ref ended);
-        _wallet.DistributeCredits(GetWaveSurvivalBonus(comp.WaveNumber));
+        var waveBonus = GetCompletionBonus(comp.WaveNumber) + GetSurvivalBonus(comp.WaveNumber);
+        _wallet.DistributeCredits(waveBonus);
+        comp.AccumulatedSurvivalBonus += waveBonus;
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
             Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss fallback — Giant never died, distributing {comp.BossWavePerkReward} AP.");
@@ -218,15 +225,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return 3.50f;
     }
 
-    // TODO(finalstand): tune reward scaling tiers
-    private static int GetWaveSurvivalBonus(int wave)
-    {
-        if (wave <= 5) return 500;
-        if (wave <= 10) return 750;
-        if (wave <= 15) return 1000;
-        if (wave <= 20) return 1500;
-        return 2000;
-    }
+    private static int GetCompletionBonus(int wave) => 100 + 100 * wave;
+
+    private static int GetSurvivalBonus(int wave) => 450 + 50 * wave;
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
     {
@@ -251,6 +252,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var proto = RobustRandom.Pick(pool);
             var enemy = Spawn(proto, Transform(spawnerUid).Coordinates);
             EnsureComp<WaveSpawnedTagComponent>(enemy);
+            EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
             {
                 // FINALSTAND issue-2: 1000f gave zombies map-wide omniscient aggro through walls.
@@ -337,13 +339,25 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 : comp.KillReward;
             var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber));
 
+            EntityUid? killerMind = null;
             if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
             {
+                killerMind = mindId;
                 _wallet.GiveCredits(mindId, killCredits);
 
                 // TODO(finalstand): update department ID to "TAC" once Security role is renamed
                 if (IsTacRole(mindId))
                     _wallet.GiveCredits(mindId, comp.TacKillBonus);
+            }
+
+            if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
+            {
+                var assistCredits = killCredits / 2;
+                foreach (var assistMind in tracking.AttackerMinds)
+                {
+                    if (killerMind.HasValue && assistMind == killerMind.Value) continue;
+                    _wallet.GiveCredits(assistMind, assistCredits);
+                }
             }
 
             Log.Info($"[WaveGameRule] Enemy {ent.Owner} died (origin={args.Origin}). " +
@@ -491,6 +505,28 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
 
         shell.WriteError("WaveGameRule is not active.");
+    }
+
+    private void OnEnemyBeforeDamage(EntityUid uid, FSEnemyDamageTrackingComponent comp, ref BeforeDamageChangedEvent args)
+    {
+        if (args.Cancelled || args.Origin == null) return;
+        if (_mind.TryGetMind(args.Origin.Value, out var mindId, out _))
+            comp.AttackerMinds.Add(mindId);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gameRule))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gameRule)) continue;
+            if (comp.AccumulatedSurvivalBonus <= 0) break;
+            if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) break;
+            if (wallet.Credits > 500) break;
+            _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+            break;
+        }
     }
 
     public void ToggleSpawnPause(IConsoleShell shell)

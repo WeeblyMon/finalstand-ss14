@@ -72,7 +72,7 @@
     baseWalkSpeed: 2.0
     baseSprintSpeed: 2.5
   - type: FSEnemyValue
-    killCredits: 100
+    killCredits: 900
 
 - type: entity
   id: FSZombieRunner
@@ -90,7 +90,7 @@
     baseWalkSpeed: 3.6
     baseSprintSpeed: 4.4
   - type: FSEnemyValue
-    killCredits: 120
+    killCredits: 360
 
 - type: entity
   id: FSZombieArmoured
@@ -114,7 +114,7 @@
         Slash: 0.6
         Piercing: 0.7
   - type: FSEnemyValue
-    killCredits: 200
+    killCredits: 600
   - type: FSArmor
     maxHPRatio: 0.5
     regenRate: 10
@@ -136,7 +136,7 @@
     baseWalkSpeed: 1.0
     baseSprintSpeed: 1.3
   - type: FSEnemyValue
-    killCredits: 350
+    killCredits: 1050
 
 # TODO(finalstand): add ArmorComponent when FSZombieBerserker is implemented
 # maxHPRatio: 0.2, regenRate: 10 (light armor — enrage mechanic is the real threat)
@@ -156,7 +156,7 @@
     baseWalkSpeed: 2.5
     baseSprintSpeed: 3.5
   - type: FSEnemyValue
-    killCredits: 300
+    killCredits: 900
 
 - type: entity
   id: FSZombieGiant
@@ -175,7 +175,7 @@
     baseWalkSpeed: 2.0
     baseSprintSpeed: 2.5
   - type: FSEnemyValue
-    killCredits: 1000
+    killCredits: 3000
   - type: FSArmor
     maxHPRatio: 0.4
     regenRate: 10
