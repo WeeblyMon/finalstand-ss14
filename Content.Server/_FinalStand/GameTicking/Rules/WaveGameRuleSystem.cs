@@ -170,7 +170,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
 
-        comp.EnemyTotalThisWave = Math.Min(5 * comp.WaveNumber, comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
@@ -393,9 +393,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static float GetHpMultiplier(int wave)
     {
         if (wave < 10) return 1f;
-        if (wave < 20) return 2.5f;
-        if (wave < 30) return 5f;
-        return 8f;
+        if (wave < 20) return 1.75f;
+        if (wave < 30) return 3f;
+        return 4.5f;
     }
 
     private void ScaleEnemySpeed(EntityUid enemy, int wave)
@@ -403,7 +403,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        var multiplier = 1f + (wave - 1) * 0.01f;
+        var multiplier = 1f + (wave - 1) * 0.005f;
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 

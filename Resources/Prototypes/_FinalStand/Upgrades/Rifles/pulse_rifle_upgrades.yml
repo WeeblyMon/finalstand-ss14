@@ -13,7 +13,7 @@
     category: Self-Recharging Full-Auto Pulse Rifle
     statDamage: 75
     statFireRate: 35
-    statAccuracy: 55
+    statAccuracy: 100
     statCapacity: 100
     upgrades:
     - id: pulse-damage
@@ -30,13 +30,13 @@
       baseCost: 9750
       type: FireRate
       valuePerLevel: 0.3
-    - id: pulse-accuracy
-      name: Focusing Array
-      description: Tightens beam spread by 2.5° per level.
-      maxLevel: 3
+    - id: pulse-fullAuto
+      name: Full Auto
+      description: Unlocks full-auto fire mode.
+      maxLevel: 1
       baseCost: 9750
-      type: Accuracy
-      valuePerLevel: 2.5
+      type: FullAuto
+      valuePerLevel: 1
     - id: pulse-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max).

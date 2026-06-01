@@ -4,6 +4,7 @@
   parent: BaseGameRule
   components:
   - type: WaveGameRule
+    maxEnemyCap: 400
     killReward: 100
     waveSurvivalBonus: 500
     bossWavePrestigeReward: 50
@@ -54,6 +55,7 @@
   parent: BaseGameRule
   components:
   - type: WaveGameRule
+    maxEnemyCap: 400
     killReward: 100
     waveSurvivalBonus: 500
     bossWavePrestigeReward: 50

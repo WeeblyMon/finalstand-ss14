@@ -62,8 +62,8 @@ public sealed class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#FFD700") };
-        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#1A1A00") };
+        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#23707e") };
+        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#212226") };
 
         _label = new Label
         {

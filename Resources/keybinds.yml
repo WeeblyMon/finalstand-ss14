@@ -273,8 +273,7 @@ binds:
   mod1: Shift
 - function: SmartEquipSuitStorage
   type: State
-  key: H
-  mod1: Shift
+  key: F
 - function: OpenBackpack
   type: State
   key: V

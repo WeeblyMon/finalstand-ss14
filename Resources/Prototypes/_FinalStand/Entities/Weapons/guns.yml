@@ -120,7 +120,7 @@
     maxAngle: 8
     angleIncrease: 1.5
 
-# Pulse Rifle override — adds self-recharge and spread for upgrade interactions.
+# Pulse Rifle override — perfectly accurate, semi-auto by default; FullAuto upgrade unlocks full auto.
 
 - type: entity
   id: FSWeaponPulseRifle
@@ -132,5 +132,8 @@
     autoRechargePauseTime: 2
   - type: Gun
     minAngle: 0
-    maxAngle: 12
-    angleIncrease: 2
+    maxAngle: 0
+    angleIncrease: 0
+  - type: BatteryAmmoProvider
+    proto: FSPulse
+    fireCost: 100

@@ -5,7 +5,7 @@
   minPlayers: 0
   stations:
     FinalStand:
-      stationProto: StandardNanotrasenStation
+      stationProto: FinalStandStation
       components:
       - type: StationNameSetup
         mapNameTemplate: "Final Stand"

@@ -163,59 +163,51 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopFlintlock
+  id: FSWeaponShopMk58
   parent: FSWeaponShopBase
-  name: Flintlock Pistol
-  description: A pirate's companion. Single-shot .45 magnum. Slow, but hits like a cannonball.
+  name: MK 58
+  description: A reliable .35 semi-auto service pistol. Easy to use, easy to upgrade.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponPistolFlintlock
+    weaponProtoId: WeaponPistolMk58
     price: 500
-    starterAmmoProtoId: MagazineBoxMagnum
-    starterAmmoCount: 1
-    category: .45 Single-Shot Pistol
-    statDamage: 90
-    statFireRate: 10
-    statAccuracy: 80
-    statCapacity: 15
+    starterAmmoProtoId: MagazinePistol
+    starterAmmoCount: 2
+    category: .35 Semi-Auto Pistol
+    statDamage: 40
+    statFireRate: 45
+    statAccuracy: 65
+    statCapacity: 50
     upgrades:
-    - id: flintlock-extra-load
-      name: Extra Load
-      description: Expands the barrel capacity by 1 round per level. Up to 6 shots before reloading.
+    - id: mk58-hair-trigger
+      name: Hair Trigger
+      description: Lighter pull increases fire rate by 0.5/level.
+      maxLevel: 5
+      baseCost: 100
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: mk58-extended-mag
+      name: Extended Mag
+      description: Adds 3 rounds to magazine capacity per level.
       maxLevel: 5
       baseCost: 100
       type: MagazineSize
-      valuePerLevel: 1
-    - id: flintlock-ball-and-powder
-      name: Ball & Powder
-      description: Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
-      maxLevel: 5
-      baseCost: 100
-      type: SpawnItem
-      spawnProtoId: MagazineBoxMagnum
-      spawnCountPerLevel: 1
-    - id: flintlock-steady-hand
-      name: Steady Hand
-      description: Reduces max spread by 0.5° per level for that one perfect shot.
+      valuePerLevel: 3
+    - id: mk58-steady-aim
+      name: Steady Aim
+      description: Reduces max spread by 0.3° per level for precise follow-up shots.
       maxLevel: 5
       baseCost: 100
       type: Accuracy
-      valuePerLevel: 0.5
-    - id: flintlock-akimbo
-      name: Akimbo
-      description: Dual wield. A second Flintlock spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+      valuePerLevel: 0.3
+    - id: mk58-full-auto
+      name: Full Auto
+      description: Unlocks full-auto fire mode.
       maxLevel: 1
       baseCost: 400
-      type: Akimbo
+      type: FullAuto
       valuePerLevel: 1
-    - id: flintlock-explosive-shot
-      name: Explosive Shot
-      description: Bullets detonate on impact. AoE damage scales with gun damage × level.
-      maxLevel: 3
-      baseCost: 150
-      type: ExplosiveShot
-      valuePerLevel: 1
-    - id: flintlock-payday
+    - id: mk58-payday
       name: Payday
       description: +50 bonus credits per kill with this gun per level.
       maxLevel: 4
@@ -223,7 +215,7 @@
       type: MoneyGainBonus
       valuePerLevel: 50
   - type: Sprite
-    sprite: Objects/Weapons/Guns/Snipers/flintlock.rsi
+    sprite: Objects/Weapons/Guns/Pistols/mk58.rsi
     state: base
     scale: 1,1
 

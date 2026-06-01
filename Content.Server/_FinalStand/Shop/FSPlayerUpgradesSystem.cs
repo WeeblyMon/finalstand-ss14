@@ -1,4 +1,3 @@
-using System.Numerics;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
@@ -6,9 +5,11 @@ using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -24,8 +25,11 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedBatterySystem _battery = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly SharedStorageSystem _storage = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
+    private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
@@ -81,9 +85,12 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.SpawnItem:
                 if (spawnItems && def.SpawnProtoId.HasValue)
                 {
-                    var coords = Transform(player).Coordinates.Offset(new Vector2(0.5f, 0.5f));
+                    var coords = Transform(player).Coordinates;
                     for (var i = 0; i < def.SpawnCountPerLevel; i++)
-                        Spawn(def.SpawnProtoId.Value, coords);
+                    {
+                        var item = Spawn(def.SpawnProtoId.Value, coords);
+                        TryStashOnPlayer(player, item);
+                    }
                 }
                 break;
 
@@ -460,5 +467,16 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     private string? FindHandContaining(EntityUid player, EntityUid item)
     {
         return _hands.IsHolding(player, item, out var handName) ? handName : null;
+    }
+
+    private void TryStashOnPlayer(EntityUid player, EntityUid item)
+    {
+        foreach (var slot in InventorySlotPriority)
+        {
+            if (_inventory.TryEquip(player, item, slot, silent: true))
+                return;
+        }
+        if (_inventory.TryGetSlotEntity(player, "back", out var backpack))
+            _storage.Insert(backpack.Value, item, out _, user: player, playSound: false);
     }
 }
