@@ -66,6 +66,14 @@ public sealed class ReadyCheckPDASystem : EntitySystem
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
         TryInstallCartridge(ev.Mob, ev.JobId);
+
+        // Late-join fix: if in prep phase, send WavePhaseChangedEvent so the "Ready Up"
+        // overlay appears immediately. ev.JobId can be null for late-joiners so fall back
+        // to GetJobId, mirroring TryInstallCartridge's own null handling.
+        var jobId = ev.JobId ?? GetJobId(ev.Mob);
+        if (jobId == null || !ReadyCheckDepts.IsCommandJob(jobId)) return;
+        if (_readyCheck.IsCombatPhase()) return;
+        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
     }
 
     private void TryInstallCartridge(EntityUid player, string? jobId = null)

@@ -1,9 +1,5 @@
 using Content.Client._FinalStand.CCC.UI;
 using Content.Shared._FinalStand.CCC;
-using Content.Shared._FinalStand.ReadyCheck;
-using Content.Shared.Mind;
-using Content.Shared.Roles.Jobs;
-using Robust.Client.Player;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._FinalStand.CCC;
@@ -12,6 +8,8 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
     private CCCWindow? _window;
+
+    private bool _canStartWave;
 
     public CCCBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
@@ -28,28 +26,28 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
             gridUid = xform.GridUid;
 
         _window.InitMaps(gridUid, Owner);
+
+        var cap = EntMan.System<CCCCapabilityClientSystem>();
+        _canStartWave = cap.CanStartWave;
+        cap.CanStartWaveChanged += OnCapabilityChanged;
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         if (state is not CCCBoundUserInterfaceState cccState) return;
-        _window?.UpdateState(cccState, IsLocalPlayerCaptain());
+        _window?.UpdateState(cccState, _canStartWave);
     }
 
-    private bool IsLocalPlayerCaptain()
+    private void OnCapabilityChanged(bool canStart)
     {
-        var player = IoCManager.Resolve<IPlayerManager>().LocalSession;
-        if (player?.AttachedEntity is not { } mob) return false;
-        var mind = EntMan.System<SharedMindSystem>();
-        var jobs = EntMan.System<SharedJobSystem>();
-        if (!mind.TryGetMind(mob, out var mindId, out _)) return false;
-        return jobs.MindTryGetJob(mindId, out var job) && ReadyCheckDepts.IsCaptain(job.ID);
+        _canStartWave = canStart;
     }
 
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
         if (!disposing) return;
+        EntMan.System<CCCCapabilityClientSystem>().CanStartWaveChanged -= OnCapabilityChanged;
         _window?.Dispose();
     }
 }

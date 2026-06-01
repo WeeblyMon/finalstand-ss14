@@ -58,6 +58,15 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
 [Serializable, NetSerializable]
 public sealed class CCCStartWaveMessage : BoundUserInterfaceMessage { }
 
+// Sent server→client to tell the opening player whether they can start the wave.
+// Avoids unreliable client-side mind/job lookups (JobComponent is server-only).
+[Serializable, NetSerializable]
+public sealed class CCCCanStartWaveEvent : EntityEventArgs
+{
+    public readonly bool CanStartWave;
+    public CCCCanStartWaveEvent(bool canStartWave) => CanStartWave = canStartWave;
+}
+
 [Serializable, NetSerializable]
 public sealed class CCCBroadcastMessage : BoundUserInterfaceMessage
 {
