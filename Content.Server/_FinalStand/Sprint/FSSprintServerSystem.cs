@@ -111,7 +111,10 @@ public sealed class FSSprintServerSystem : EntitySystem
 
             if (sprint.IsSprinting)
             {
-                _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false);
+                // Only drain stamina if actually moving; sprinting in place costs nothing.
+                var moving = TryComp<PhysicsComponent>(uid, out var phys) && phys.LinearVelocity.LengthSquared() > 0.01f;
+                if (moving)
+                    _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false);
 
                 if (stamina.StaminaDamage >= stamina.CritThreshold)
                 {
@@ -124,11 +127,18 @@ public sealed class FSSprintServerSystem : EntitySystem
                 }
                 else
                 {
-                    sprint.DustAccumulator += frameTime;
-                    if (sprint.DustAccumulator >= DustInterval)
+                    if (moving)
+                    {
+                        sprint.DustAccumulator += frameTime;
+                        if (sprint.DustAccumulator >= DustInterval)
+                        {
+                            sprint.DustAccumulator = 0f;
+                            SpawnDust(uid);
+                        }
+                    }
+                    else
                     {
                         sprint.DustAccumulator = 0f;
-                        SpawnDust(uid);
                     }
                 }
             }
