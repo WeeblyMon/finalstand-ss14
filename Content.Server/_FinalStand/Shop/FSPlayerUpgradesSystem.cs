@@ -74,6 +74,8 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
+                // Re-run the modifier event so akimbo spread penalty stacks on top of the new base values.
+                _gun.RefreshModifiers(weapon);
                 {
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                     state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);

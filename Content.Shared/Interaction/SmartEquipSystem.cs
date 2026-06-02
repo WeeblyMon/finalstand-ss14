@@ -8,6 +8,7 @@ using Content.Shared.Popups;
 using Content.Shared.Stacks;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
+using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Input.Binding;
@@ -182,7 +183,9 @@ public sealed class SmartEquipSystem : EntitySystem
         }
 
         // case 3 (itemslot item):
-        if (TryComp<ItemSlotsComponent>(slotItem, out var slots))
+        // Skip guns — they have ItemSlotsComponent for magazines, but pressing F should retrieve
+        // the gun itself (case 4), not eject its magazine.
+        if (TryComp<ItemSlotsComponent>(slotItem, out var slots) && !HasComp<GunComponent>(slotItem))
         {
             if (handItem == null)
             {
@@ -227,7 +230,10 @@ public sealed class SmartEquipSystem : EntitySystem
         }
 
         // case 4 (just an item):
-        if (handItem != null)
+        // FinalStand: if the stored item is a gun, drop whatever's in hand so F always retrieves it immediately.
+        if (handItem != null && HasComp<GunComponent>(slotItem))
+            _hands.TryDrop((uid, hands), hands.ActiveHandId!);
+        else if (handItem != null)
             return;
 
         if (!_inventory.CanUnequip(uid, equipmentSlot, out var inventoryReason))

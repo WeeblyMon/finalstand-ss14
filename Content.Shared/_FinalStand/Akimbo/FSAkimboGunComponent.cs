@@ -10,20 +10,7 @@ namespace Content.Shared._FinalStand.Akimbo;
 public sealed partial class FSAkimboGunComponent : Component
 {
     /// <summary>
-    /// Extra spread added to min/max angle while in akimbo mode.
-    /// </summary>
-    [DataField]
-    public float SpreadPenalty = 10f;
-
-    /// <summary>
-    /// Perpendicular offset in tiles applied to the second projectile's origin,
-    /// simulating a second muzzle position.
-    /// </summary>
-    [DataField]
-    public float MuzzleOffset = 0.3f;
-
-    /// <summary>
-    /// Guards against recursive GunShotEvent handling when we call Shoot() for the second projectile.
+    /// Guards against recursive TakeAmmoEvent handling when we call RaiseLocalEvent for the second round.
     /// Not networked — runtime state only.
     /// </summary>
     public bool FiringSecondShot;
