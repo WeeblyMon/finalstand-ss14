@@ -46,6 +46,12 @@
                 <Label Name="SpawnersLabel" />
             </BoxContainer>
 
+            <!-- CCC Health -->
+            <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
+                <Label Text="CCC: " Modulate="#888888" />
+                <Label Name="CCCHealthLabel" Modulate="#AAFFAA" />
+            </BoxContainer>
+
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
             <!-- Department Readiness -->

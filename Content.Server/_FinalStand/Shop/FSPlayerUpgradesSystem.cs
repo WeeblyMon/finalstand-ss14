@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
 using Content.Shared.Inventory;
 using Content.Shared.Movement.Systems;
@@ -12,6 +13,7 @@ using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Shop;
@@ -25,9 +27,16 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
     private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntInsertedIntoContainerMessage>(OnMagInsertedToGun);
+    }
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
@@ -111,6 +120,14 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     bat.FireCost = Math.Max(1f, bat.FireCost - def.ValuePerLevel);
 #pragma warning restore RA0002
                     Dirty(weapon, bat);
+                }
+                else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
+                {
+                    // Detachable-magazine gun — store the bonus and apply it to the current mag.
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.MagazineSizeBonus += (int)def.ValuePerLevel;
+                    ApplyMagSizeBonusToCurrentMag(weapon, (int)def.ValuePerLevel);
+                    _gun.RefreshModifiers(weapon);
                 }
                 break;
 
@@ -447,5 +464,31 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         }
         if (_inventory.TryGetSlotEntity(player, "back", out var backpack))
             _storage.Insert(backpack.Value, item, out _, user: player, playSound: false);
+    }
+
+    private void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
+    {
+        if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot))
+            return;
+        var mag = slot.Item;
+        if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))
+            return;
+#pragma warning disable RA0002
+        bal.Capacity += bonus;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + bonus, bal.Capacity);
+#pragma warning restore RA0002
+        Dirty(mag.Value, bal);
+    }
+
+    private void OnMagInsertedToGun(EntityUid gun, FSWeaponUpgradeStateComponent state,
+        EntInsertedIntoContainerMessage args)
+    {
+        if (state.MagazineSizeBonus <= 0) return;
+        if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal)) return;
+#pragma warning disable RA0002
+        bal.Capacity += state.MagazineSizeBonus;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + state.MagazineSizeBonus, bal.Capacity);
+#pragma warning restore RA0002
+        Dirty(args.Entity, bal);
     }
 }

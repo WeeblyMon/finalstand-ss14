@@ -40999,6 +40999,7 @@ entities:
     - type: Transform
       pos: -11.5,16.5
       parent: 1
+      anchored: true
     - type: FuelGenerator
       on: true
     - type: SolutionContainerManager
@@ -41013,6 +41014,7 @@ entities:
     - type: Transform
       pos: -9.5,17.5
       parent: 1
+      anchored: true
     - type: FuelGenerator
       on: true
     - type: SolutionContainerManager
@@ -41029,6 +41031,7 @@ entities:
     - type: Transform
       pos: -11.5,17.5
       parent: 1
+      anchored: true
     - type: FuelGenerator
       on: true
     - type: MaterialStorage

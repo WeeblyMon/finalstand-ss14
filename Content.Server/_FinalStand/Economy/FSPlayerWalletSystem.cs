@@ -328,7 +328,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
     {
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+        {
+            Log.Warning($"[FSWallet] SaveLeveling: null UserId for mind {mindId} — save skipped (lv{level} xp{experience})");
+            return;
+        }
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) return;
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);

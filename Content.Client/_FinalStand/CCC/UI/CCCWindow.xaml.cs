@@ -87,6 +87,10 @@ public sealed partial class CCCWindow : FancyWindow
         TotalLabel.Text = state.EstimatedEnemyCount.ToString();
         SpawnersLabel.Text = state.ActiveSpawnerCount.ToString();
 
+        var cccHp = Math.Max(0, state.CCCMaxHealth - state.CCCCurrentDamage);
+        var cccPct = state.CCCMaxHealth > 0 ? (int)(100f * cccHp / state.CCCMaxHealth) : 0;
+        CCCHealthLabel.Text = $"{cccHp} / {state.CCCMaxHealth} ({cccPct}%)";
+
         var notPrep    = state.CurrentPhase != WavePhase.Prep;
         var notReady   = state.ReadyCount < 1;
         var notCaptain = !isCaptain;

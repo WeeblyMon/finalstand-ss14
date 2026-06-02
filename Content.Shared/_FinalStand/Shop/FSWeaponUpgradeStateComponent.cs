@@ -41,6 +41,10 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool PulseCascadeEnabled = false;
     [DataField] public bool AftershockEnabled = false;
 
+    // Accumulated magazine size bonus for ChamberMagazineAmmoProvider guns (e.g. MK58).
+    // Re-applied each time a new magazine is inserted.
+    [DataField] public int MagazineSizeBonus = 0;
+
     // TODO(finalstand): audit existing purchased weapons for TotalSpent backfill if needed
     [DataField] public int TotalSpent = 0;
 }

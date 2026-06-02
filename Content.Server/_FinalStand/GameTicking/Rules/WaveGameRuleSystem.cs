@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Cleanup;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Economy;
@@ -38,6 +39,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 {
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private readonly FSCorpseCleanupSystem _corpseCleaner = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
@@ -193,11 +195,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseLocalEvent(new WaveCombatStartedEvent());
     }
 
-    private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
+    private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
-        var ended = new WaveEndedEvent(comp.WaveNumber);
-        RaiseLocalEvent(ref ended);
+        if (!isForced)
+        {
+            var ended = new WaveEndedEvent(comp.WaveNumber);
+            RaiseLocalEvent(ref ended);
+        }
         var waveBonus = GetCompletionBonus(comp.WaveNumber) + GetSurvivalBonus(comp.WaveNumber);
         _wallet.DistributeCredits(waveBonus);
         comp.AccumulatedSurvivalBonus += waveBonus;
@@ -305,6 +310,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
             return;
+
+        _corpseCleaner.TrackZombieDeath(ent.Owner);
 
         // Clear all collision so corpses don't eat bullets (MobLayer includes BulletImpassable).
         // Safe because FS zombies have MovementIgnoreGravity — floor collision is not needed.
@@ -493,7 +500,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 foreach (var enemy in comp.AliveEnemies)
                     QueueDel(enemy);
                 comp.AliveEnemies.Clear();
-                EndCombatPhase(uid, comp);
+                comp.GiantApAwarded = true; // suppress boss-wave AP fallback on forced skip
+                EndCombatPhase(uid, comp, isForced: true);
             }
             else
             {

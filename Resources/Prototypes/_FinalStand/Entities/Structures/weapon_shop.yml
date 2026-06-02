@@ -56,12 +56,11 @@
       valuePerLevel: 1.5
     - id: viper-extended-mag
       name: Extended Mag
-      description: Spare high-cap magazine spawned on each purchase.
+      description: Adds 5 rounds to magazine capacity per level.
       maxLevel: 5
       baseCost: 450
-      type: SpawnItem
-      spawnProtoId: MagazinePistolHighCapacity
-      spawnCountPerLevel: 1
+      type: MagazineSize
+      valuePerLevel: 5
     - id: viper-recoil-pad
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level for tighter bursts.
@@ -245,12 +244,11 @@
       valuePerLevel: 0.5
     - id: n1984-extended-mag
       name: Extended Mag
-      description: Spare .45 magnum magazine spawned on each purchase per level.
+      description: Adds 2 rounds to magazine capacity per level.
       maxLevel: 5
       baseCost: 1350
-      type: SpawnItem
-      spawnProtoId: MagazineMagnum
-      spawnCountPerLevel: 1
+      type: MagazineSize
+      valuePerLevel: 2
     - id: n1984-recoil-pad
       name: Recoil Pad
       description: Reduces max spread by 0.3° per level to tame the kick.

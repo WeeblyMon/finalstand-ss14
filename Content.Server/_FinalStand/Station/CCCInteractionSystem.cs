@@ -123,7 +123,7 @@ public sealed class CCCInteractionSystem : EntitySystem
             return;
 
         var cccDmg = TryComp<DamageableComponent>(cccUid, out var dmgComp)
-            ? (int) _damageable.GetTotalDamage((cccUid, dmgComp)).Float()
+            ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
             : 0;
 
         var statuses = _readyCheck.GetStatuses();
