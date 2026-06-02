@@ -59,7 +59,7 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 500
+        damage: 2000 # FINALSTAND: 4x vanilla 500 — TODO(finalstand): tune CCC health during playtests
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]

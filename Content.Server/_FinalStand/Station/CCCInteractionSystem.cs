@@ -5,6 +5,8 @@ using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
 using Robust.Server.GameObjects;
@@ -20,6 +22,7 @@ public sealed class CCCInteractionSystem : EntitySystem
     [Dependency] private readonly IChatManager _chatManager = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
+    [Dependency] private readonly DamageableSystem _damageable = default!;
 
     private float _stateTimer;
     private readonly HashSet<EntityUid> _openActors = new();
@@ -119,6 +122,10 @@ public sealed class CCCInteractionSystem : EntitySystem
         if (!_waveRule.TryGetActiveState(out var wave))
             return;
 
+        var cccDmg = TryComp<DamageableComponent>(cccUid, out var dmgComp)
+            ? (int) _damageable.GetTotalDamage((cccUid, dmgComp)).Float()
+            : 0;
+
         var statuses = _readyCheck.GetStatuses();
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
@@ -132,7 +139,9 @@ public sealed class CCCInteractionSystem : EntitySystem
             activeSpawnerCount: wave.SpawnerCount,
             departmentStatus: statuses,
             readyCount: _readyCheck.ReadyCount(),
-            nextWaveEnemyTypes: wave.NextWaveEnemyTypes);
+            nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
+            cccCurrentDamage: cccDmg,
+            cccMaxHealth: 2000);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

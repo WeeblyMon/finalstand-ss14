@@ -35,10 +35,10 @@
       - Biological
     damage:
       types:
-        Heat: -5
-        Cold: -5
-        Shock: -5
-        Caustic: -1.5
+        Heat: -10 # KS14: was -5
+        Cold: -10 # KS14: was -5
+        Shock: -10 # KS14: was -5
+        Caustic: -4 # KS14: was -1.5
     healingBeginSound:
       path: "/Audio/Items/Medical/ointment_begin.ogg"
       params:
@@ -131,9 +131,9 @@
       - Biological
     damage:
       types:
-        Blunt: -5
-        Piercing: -5
-        Slash: -5
+        Blunt: -10 # KS14: was -5
+        Piercing: -10 # KS14: was -5
+        Slash: -10 # KS14: was -5
     healingBeginSound:
       path: "/Audio/Items/Medical/brutepack_begin.ogg"
       params:
@@ -179,9 +179,9 @@
       - Biological
     damage:
       types:
-        Blunt: -10
-        Piercing: -10
-        Slash: -10
+        Blunt: -15 # KS14: was -10
+        Piercing: -15 # KS14: was -10
+        Slash: -15 # KS14: was -10
     bloodlossModifier: -10 # a suture should stop ongoing bleeding
     healingBeginSound:
       path: "/Audio/Items/Medical/brutepack_begin.ogg"
@@ -312,7 +312,8 @@
     damage:
       types:
         Slash: -5
-        Piercing: -10
+        Piercing: -13 # KS14: was -10
+        Blunt: -3 # KS14: added
     bloodlossModifier: -10
     healingBeginSound:
       path: "/Audio/Items/Medical/brutepack_begin.ogg"

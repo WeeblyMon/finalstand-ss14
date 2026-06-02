@@ -25250,6 +25250,13 @@ entities:
     - type: Transform
       pos: 16.5,10.5
       parent: 1
+- proto: FSPerkShop
+  entities:
+  - uid: 9438
+    components:
+    - type: Transform
+      pos: 16.5,11.5
+      parent: 1
 - proto: FSWeaponShopAdvancedLaser
   entities:
   - uid: 9391
@@ -40992,11 +40999,29 @@ entities:
     - type: Transform
       pos: -11.5,16.5
       parent: 1
+    - type: FuelGenerator
+      on: true
+    - type: SolutionContainerManager
+      solutions:
+        tank:
+          maxVol: 60
+          reagents:
+          - ReagentId: WeldingFuel
+            Quantity: 60
   - uid: 2352
     components:
     - type: Transform
       pos: -9.5,17.5
       parent: 1
+    - type: FuelGenerator
+      on: true
+    - type: SolutionContainerManager
+      solutions:
+        tank:
+          maxVol: 60
+          reagents:
+          - ReagentId: WeldingFuel
+            Quantity: 60
 - proto: PortableGeneratorPacman
   entities:
   - uid: 281
@@ -41004,6 +41029,11 @@ entities:
     - type: Transform
       pos: -11.5,17.5
       parent: 1
+    - type: FuelGenerator
+      on: true
+    - type: MaterialStorage
+      storage:
+        Plasma: 3000
 - proto: PortableScrubber
   entities:
   - uid: 275
