@@ -67,6 +67,10 @@ public sealed class CCCCanStartWaveEvent : EntityEventArgs
     public CCCCanStartWaveEvent(bool canStartWave) => CanStartWave = canStartWave;
 }
 
+// Broadcast server→all-clients when the CCC takes damage. Client-side 3s timeout controls hide.
+[Serializable, NetSerializable]
+public sealed class CCCUnderAttackEvent : EntityEventArgs { }
+
 [Serializable, NetSerializable]
 public sealed class CCCBroadcastMessage : BoundUserInterfaceMessage
 {

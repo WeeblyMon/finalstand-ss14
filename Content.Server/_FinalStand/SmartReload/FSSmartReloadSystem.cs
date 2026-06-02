@@ -1,7 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.Perks;
 using Content.Server.Popups;
-using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
@@ -202,9 +201,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         _slots.TryInsert(gun, SharedGunSystem.MagazineSlot, newMag.Value, args.User);
 
-        // Chain into reloading the paired akimbo gun (one-level only — IsChainReload prevents further chaining).
-        if (!args.IsChainReload)
-            ChainAkimboReload(gun, args.User);
     }
 
     private void TryStoreItemInInventory(EntityUid user, EntityUid item)
@@ -300,9 +296,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         if (comp.Count >= comp.Capacity)
         {
-            // Gun is full — chain to akimbo partner if this was not already a chain.
-            if (!args.IsChainReload)
-                ChainAkimboReload(gun, args.User);
             return;
         }
 
@@ -400,9 +393,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         if (CountNullChambers(comp) == 0)
         {
-            // Cylinder full — chain to akimbo partner if not already a chain.
-            if (!args.IsChainReload)
-                ChainAkimboReload(gun, args.User);
             return;
         }
 
@@ -793,33 +783,4 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     // ---- Akimbo sequential reload ----
 
-    /// <summary>
-    ///     After <paramref name="gun"/> finishes reloading, start the same reload on its akimbo partner.
-    ///     Uses IsChainReload=true so the partner does not chain back, preventing infinite loops.
-    /// </summary>
-    private void ChainAkimboReload(EntityUid gun, EntityUid user)
-    {
-        if (!TryComp<FSAkimboGunComponent>(gun, out var akimbo)
-            || akimbo.PairedGun == null
-            || !akimbo.PairedGun.Value.IsValid())
-        {
-            return;
-        }
-
-        var paired = akimbo.PairedGun.Value;
-
-        switch (Detect(paired))
-        {
-            case GunArchetype.Magazine:
-                ReloadMagazine(paired, user, isChainReload: true);
-                break;
-            case GunArchetype.TubeFed:
-                ReloadTubeFed(paired, user, isChainReload: true);
-                break;
-            case GunArchetype.Revolver:
-                ReloadRevolver(paired, user, isChainReload: true);
-                break;
-            // Battery and None: no chain (no ammo loop to chain into)
-        }
-    }
 }

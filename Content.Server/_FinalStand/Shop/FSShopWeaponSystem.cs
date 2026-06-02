@@ -1,7 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server.Popups;
-using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Examine;
 using Content.Shared.Hands.Components;
@@ -201,44 +200,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (isFirstUpgradeEver)
             MarkAsUpgraded(weapon.Value);
 
-        // Mirror the upgrade to the akimbo partner.
-        if (TryComp<FSAkimboGunComponent>(weapon.Value, out var akimbo)
-            && akimbo.PairedGun != null
-            && akimbo.PairedGun.Value.IsValid())
-        {
-            var paired = akimbo.PairedGun.Value;
-            var pairedState = EnsureComp<FSWeaponUpgradeStateComponent>(paired);
-
-            if (def.Type == WeaponUpgradeType.Akimbo)
-            {
-                // Fresh akimbo spawn — re-apply all previously purchased upgrades to partner
-                // and set partner TotalSpent to match the mirrored upgrade costs.
-                var partnerSpent = 0;
-                foreach (var prevDef in comp.Upgrades)
-                {
-                    if (prevDef.Id == def.Id) continue; // skip Akimbo itself
-                    if (!state.Levels.TryGetValue(prevDef.Id, out var prevLevel) || prevLevel == 0)
-                        continue;
-                    pairedState.Levels[prevDef.Id] = prevLevel;
-                    for (var lvl = 1; lvl <= prevLevel; lvl++)
-                    {
-                        _upgrades.ApplySingleUpgrade(paired, player, prevDef, lvl, spawnItems: false);
-                        partnerSpent += GetUpgradeLevelCost(prevDef, lvl);
-                    }
-                }
-                pairedState.TotalSpent = partnerSpent;
-            }
-            else
-            {
-                // Normal case: mirror just this upgrade level delta.
-                pairedState.Levels[def.Id] = newLevel;
-                pairedState.TotalSpent += cost;  // FINALSTAND: mirror spend to partner
-                _upgrades.ApplySingleUpgrade(paired, player, def, newLevel, spawnItems: false);
-            }
-
-            MarkAsUpgraded(paired);
-        }
-
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
         var title = comp.WeaponProtoId != null ? ComputeWeaponTitle(player, comp.WeaponProtoId.Value) : "";
         SendWeaponLevels(mindId, state.Levels, title);
@@ -279,19 +240,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (_recentSells.ContainsKey(weapon))
             return;
 
-        EntityUid? partner = null;
-        if (TryComp<FSAkimboGunComponent>(weapon, out var akimboComp)
-            && akimboComp.PairedGun.HasValue
-            && akimboComp.PairedGun.Value.IsValid()
-            && Exists(akimboComp.PairedGun.Value))
-        {
-            partner = akimboComp.PairedGun.Value;
-        }
-
-        var primarySpent  = TryComp<FSWeaponUpgradeStateComponent>(weapon, out var ws) ? ws.TotalSpent : 0;
-        var partnerSpent  = partner.HasValue
-            && TryComp<FSWeaponUpgradeStateComponent>(partner.Value, out var ps) ? ps.TotalSpent : 0;
-        var combinedSpent = primarySpent + partnerSpent;
+        var combinedSpent = TryComp<FSWeaponUpgradeStateComponent>(weapon, out var ws) ? ws.TotalSpent : 0;
 
         var baseRefund    = (int)(comp.Price * 0.40f);
         var upgradeRefund = (int)(combinedSpent * 0.40f);
@@ -302,27 +251,11 @@ public sealed class FSShopWeaponSystem : EntitySystem
         try
         {
             QueueDel(weapon);
-
-            if (partner.HasValue)
-            {
-                try
-                {
-                    if (Exists(partner.Value))
-                        QueueDel(partner.Value);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"[FSSell] Akimbo partner deletion failed for {partner.Value}, player {player}: {ex}");
-                }
-            }
-
             CleanupAmmoForWeapon(player, comp);
             _wallet.GiveCredits(mindId, totalRefund);
 
             _lastSellTime[userId] = now;
             _recentSells[weapon] = now;
-            if (partner.HasValue)
-                _recentSells[partner.Value] = now;
         }
         catch (Exception ex)
         {

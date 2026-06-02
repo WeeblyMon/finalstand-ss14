@@ -4,7 +4,6 @@ using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.FixedPoint;
-using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
@@ -20,7 +19,6 @@ namespace Content.Server._FinalStand.Shop;
 public sealed class FSPlayerUpgradesSystem : EntitySystem
 {
     [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedBatterySystem _battery = default!;
@@ -422,51 +420,20 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         if (HasComp<FSAkimboGunComponent>(gun))
             return;
 
-        var proto = MetaData(gun).EntityPrototype;
-        if (proto == null)
-            return;
+        EnsureComp<FSAkimboGunComponent>(gun);
 
-        var newGun = Spawn(proto.ID, Transform(player).Coordinates);
-
-        var compA = EnsureComp<FSAkimboGunComponent>(gun);
-        var compB = EnsureComp<FSAkimboGunComponent>(newGun);
-        compA.PairedGun = newGun;
-        compB.PairedGun = gun;
-
-        if (!_hands.TryPickupAnyHand(player, newGun))
+        if (TryComp<GunComponent>(gun, out var gunComp))
         {
-            QueueDel(newGun);
-            RemComp<FSAkimboGunComponent>(gun);
-            _popup.PopupEntity("No free hand for akimbo.", gun, player);
-            return;
-        }
-
-        compA.MyHand = FindHandContaining(player, gun);
-        compA.PairedHand = FindHandContaining(player, newGun);
-        compB.MyHand = compA.PairedHand;
-        compB.PairedHand = compA.MyHand;
-
-        foreach (var g in new[] { gun, newGun })
-        {
-            if (!TryComp<GunComponent>(g, out var gunComp))
-                continue;
 #pragma warning disable RA0002
             gunComp.AvailableModes |= SelectiveFire.FullAuto;
-            gunComp.SelectedMode   = SelectiveFire.FullAuto;
+            gunComp.SelectedMode = SelectiveFire.FullAuto;
 #pragma warning restore RA0002
-            Dirty(g, gunComp);
+            Dirty(gun, gunComp);
         }
 
         RemComp<GunRequiresWieldComponent>(gun);
-        RemComp<GunRequiresWieldComponent>(newGun);
-
         _gun.RefreshModifiers(gun);
-        _gun.RefreshModifiers(newGun);
-    }
-
-    private string? FindHandContaining(EntityUid player, EntityUid item)
-    {
-        return _hands.IsHolding(player, item, out var handName) ? handName : null;
+        _popup.PopupEntity("Akimbo activated!", gun, player);
     }
 
     private void TryStashOnPlayer(EntityUid player, EntityUid item)
