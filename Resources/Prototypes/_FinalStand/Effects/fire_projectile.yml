@@ -12,6 +12,7 @@
     - state: fire
       shader: unshaded
   - type: Projectile
+    deleteOnCollide: false
     damage:
       types:
         Heat: 1

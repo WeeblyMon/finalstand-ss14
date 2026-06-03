@@ -8,7 +8,7 @@ namespace Content.Shared._FinalStand.Mobs;
 public sealed partial class FSFlamethrowerComponent : Component
 {
     [DataField] public float FlameRange = 5f;
-    [DataField] public float ConeDegrees = 45f;
+    [DataField] public float ConeDegrees = 40f;
     [DataField] public float AttackDuration = 3f;
     [DataField] public float AttackCooldown = 4f;
     [DataField] public float ParticleSpawnRate = 0.08f;

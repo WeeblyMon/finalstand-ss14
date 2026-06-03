@@ -9,7 +9,6 @@ using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
-using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
@@ -25,19 +24,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedProjectileSystem _projectiles = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<FSFireProjectileComponent, PreventCollideEvent>(OnFirePreventCollide);
-    }
-
-    private void OnFirePreventCollide(EntityUid uid, FSFireProjectileComponent comp, ref PreventCollideEvent args)
-    {
-        // Fire projectiles don't collide with other zombies
-        if (HasComp<WaveSpawnedTagComponent>(args.OtherEntity))
-            args.Cancelled = true;
-    }
 
     public override void Update(float frameTime)
     {
