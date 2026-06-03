@@ -23,4 +23,11 @@ public sealed partial class FSZombieVisualsComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public bool AltPicked = false;
+
+    /// <summary>
+    /// When true, only uses "base" (alive) and "dead" (dead) sprite states.
+    /// Use for RSIs that don't have the full base2-base5 damage stage set.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public bool SimpleSpriteMode = false;
 }

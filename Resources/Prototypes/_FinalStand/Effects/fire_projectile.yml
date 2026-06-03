@@ -1,0 +1,19 @@
+- type: entity
+  id: FSFireProjectile
+  parent: BaseBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSFireProjectile
+  - type: Sprite
+    noRot: false
+    drawdepth: Effects
+    sprite: _FinalStand/Effects/Flamethrower/fire.rsi
+    layers:
+    - state: fire
+      shader: unshaded
+  - type: Projectile
+    damage:
+      types:
+        Heat: 1
+  - type: TimedDespawn
+    lifetime: 0.6

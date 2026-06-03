@@ -12,6 +12,7 @@ using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
@@ -254,7 +255,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         for (var i = 0; i < toSpawn; i++)
         {
             var spawnerUid = comp.SpawnerEntities[i];
-            var proto = RobustRandom.Pick(pool);
+            var proto = SelectEnemyProto(comp, pool);
             var enemy = Spawn(proto, Transform(spawnerUid).Coordinates);
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
@@ -273,6 +274,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 htn.Blackboard.SetValue(NPCBlackboard.NavPry, HasComp<PryingComponent>(enemy));
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
+
+                // FINALSTAND: Bloater has higher aggro radius to prioritise player hunting over CCC beeline
+                if (TryComp<FSBoomOnDeathComponent>(enemy, out var boom))
+                {
+                    htn.Blackboard.SetValue("AggroVisionRadius", boom.AggroVisionRadius);
+                    htn.Blackboard.SetValue("VisionRadius", boom.AggroVisionRadius);
+                }
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
             ScaleEnemySpeed(enemy, comp.WaveNumber);
@@ -288,6 +296,23 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         // guard for the uh the no-spawner edge case where all enemies were already counted before this batch
         CheckWaveComplete(uid, comp);
+    }
+
+    // FINALSTAND: weighted spawn selection layered on top of the pool — Bloater/Flamethrower added mid-game
+    private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, List<EntProtoId> pool)
+    {
+        // TODO(finalstand): tune spawn weight percentages
+        if (comp.WaveNumber >= 9)
+        {
+            var roll = RobustRandom.NextFloat();
+            if (roll < 0.125f) return new EntProtoId("FSZombieBloater");
+            if (roll < 0.25f)  return new EntProtoId("FSZombieFlamethrower");
+        }
+        else if (comp.WaveNumber >= 7)
+        {
+            if (RobustRandom.NextFloat() < 0.25f) return new EntProtoId("FSZombieBloater");
+        }
+        return RobustRandom.Pick(pool);
     }
 
     private static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)

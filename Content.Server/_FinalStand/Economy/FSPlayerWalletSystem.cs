@@ -46,6 +46,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     public override void Shutdown()
     {
         base.Shutdown();
+        SaveAll(); // flush all player data before the DB connection closes
         _db?.Dispose();
         _db = null;
     }
@@ -188,25 +189,42 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
+        SaveAll(); // persist before entities are torn down
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
             wallet.Credits = 500;
             NotifyClient(mindId, wallet);
         }
-        Log.Debug("[FSWallet] Round restart — cleared credits on all wallets.");
+        Log.Debug("[FSWallet] Round restart — saved all players, cleared credits.");
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind) || mind.UserId == null)
-            return;
-        if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session))
+        // MindContainerComponent.HasMind is not yet set when this event fires (it's set AFTER
+        // SetAttachedEntity in MindSystem.TransferTo), so TryGetMind(ev.Entity) always fails.
+        // Use ev.Player to look up the mind via UserMinds (populated before TransferTo runs).
+        if (!_mind.TryGetMind(ev.Player, out var mindId, out var mind) || mind.UserId == null)
             return;
 
-        _cachedUsernames[mind.UserId.Value] = session.Name;
+        _cachedUsernames[mind.UserId.Value] = ev.Player.Name;
 
-        var row = DbGetFullRecord(mind.UserId.Value.UserId);
+        // Re-send UI state on ghost-return or reconnect. Full init happens in OnPlayerSpawnComplete.
+        if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+            _levelingSystem.SendLevelingUpdate(mindId, lvl);
+        if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            NotifyClient(mindId, wallet);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        // TryGetMind(ev.Mob) works here because TransferTo has fully completed (HasMind = true).
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            return;
+
+        _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
+
+        var row = DbGetFullRecord(ev.Player.UserId.UserId);
 
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.AugmentPoints = row.AugmentPoints;
@@ -219,27 +237,15 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         lvlComp.Experience = row.Experience;
         lvlComp.XpToNextLevel = FSLevelingSystem.XpToNextLevel(row.Level);
         lvlComp.PrestigeLevel = row.PrestigeLevel;
+        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
 
         var buffComp = EnsureComp<FSPrestigeBuffsComponent>(mindId);
         buffComp.StoppingPower = row.BuffStoppingPower;
         buffComp.BulletStorm   = row.BuffBulletStorm;
 
-        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
-
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
-        Log.Debug($"[FSWallet] Attached {mind.UserId} ({session.Name}) — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
-    }
-
-    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
-    {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
-            return;
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-        if (wallet.Credits == 0)
-            wallet.Credits = 500;
-        NotifyClient(mindId, wallet);
-        Log.Debug($"[FSWallet] SpawnComplete for {ev.Mob} — credits={wallet.Credits}");
+        Log.Info($"[FSWallet] SpawnComplete {ev.Player.Name} — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)

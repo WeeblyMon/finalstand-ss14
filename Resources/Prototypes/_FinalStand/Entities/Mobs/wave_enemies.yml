@@ -81,7 +81,13 @@
   name: runner zombie
   components:
   - type: Sprite
-    color: "#5599ff"
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/runner.rsi/sprinter_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -99,7 +105,13 @@
   name: armoured zombie
   components:
   - type: Sprite
-    color: "#aaaaaa"
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/armoured.rsi/armored_zombie_1.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
   - type: MobThresholds
     thresholds:
       0: Alive

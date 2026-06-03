@@ -1,4 +1,5 @@
 using Content.Client.DamageState;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -16,6 +17,7 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
         SubscribeLocalEvent<FSZombieVisualsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<FSZombieVisualsComponent, AfterAutoHandleStateEvent>(OnStateHandled);
         SubscribeLocalEvent<FSZombieVisualsComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSFlamethrowerComponent, AfterAutoHandleStateEvent>(OnFlamethrowerStateHandled);
     }
 
     private void OnStartup(EntityUid uid, FSZombieVisualsComponent comp, ComponentStartup args)
@@ -27,6 +29,12 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
     private void OnMobStateChanged(EntityUid uid, FSZombieVisualsComponent comp, MobStateChangedEvent args)
         => UpdateSprite(uid, comp);
 
+    private void OnFlamethrowerStateHandled(EntityUid uid, FSFlamethrowerComponent _, AfterAutoHandleStateEvent args)
+    {
+        if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
+            UpdateSprite(uid, visuals);
+    }
+
     private void UpdateSprite(EntityUid uid, FSZombieVisualsComponent comp)
     {
         if (!TryComp<SpriteComponent>(uid, out var sprite))
@@ -37,7 +45,16 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
 
         string state;
 
-        if (isDead)
+        if (comp.SimpleSpriteMode)
+        {
+            if (isDead)
+                state = "dead";
+            else if (TryComp<FSFlamethrowerComponent>(uid, out var ft) && ft.IsFiring)
+                state = "base_lowered";
+            else
+                state = "base";
+        }
+        else if (isDead)
         {
             state = comp.DeathAlt switch
             {

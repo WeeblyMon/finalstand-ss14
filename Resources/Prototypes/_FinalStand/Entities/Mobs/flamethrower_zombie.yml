@@ -1,0 +1,26 @@
+# FINALSTAND: Flamethrower zombie — stops moving and sprays a fire cone when players are in range.
+# Spawns wave 9+, weighted at ~12.5% of wave composition via weighted selection.
+- type: entity
+  id: FSZombieFlamethrower
+  parent: FSZombieNormal
+  suffix: Flamethrower
+  name: flamethrower zombie
+  components:
+  - type: FSFlamethrower
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      190: Dead   # midpoint between FSZombieNormal (75) and FSZombieArmoured (300)
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 2.3    # FSZombieNormal (2.0) + 15%
+    baseSprintSpeed: 2.9   # FSZombieNormal (2.5) + 15%
+  - type: FSEnemyValue
+    killCredits: 450
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/Flamethrower/flamethrower_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true

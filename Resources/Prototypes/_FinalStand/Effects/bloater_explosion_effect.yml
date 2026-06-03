@@ -1,0 +1,13 @@
+# FINALSTAND: Darkened cleanade-foam explosion visual for the Bloater death detonation.
+# Uses foam.rsi centre tile recoloured to a bile-green, no SmokeComponent so it does not spread.
+- type: entity
+  id: FSBloaterExplosionEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    sprite: Effects/foam.rsi
+    state: foam
+    color: "#1a3d1acc"   # dark bile-green, semi-transparent
+  - type: TimedDespawn
+    lifetime: 0.6

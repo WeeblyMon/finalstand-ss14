@@ -23,8 +23,10 @@ public sealed partial class CCCWindow : FancyWindow
         ["FSZombieBerserker"] = "/Textures/_FinalStand/Mobs/ZombieIcons/berserker.png",
         ["FSZombieDestroyer"] = "/Textures/_FinalStand/Mobs/ZombieIcons/destroyer.png",
         ["FSZombieGiant"]    = "/Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png",
-        ["FSZombieRunner"]   = "/Textures/_FinalStand/Mobs/ZombieIcons/runner.png",
-        // TODO(finalstand): verify zombie type to icon mapping for boomer/flamethrower/tesla/wraith when prototypes are added
+        ["FSZombieRunner"]       = "/Textures/_FinalStand/Mobs/ZombieIcons/runner.png",
+        ["FSZombieBloater"]      = "/Textures/_FinalStand/Mobs/ZombieIcons/boomer.png",
+        ["FSZombieFlamethrower"] = "/Textures/_FinalStand/Mobs/ZombieIcons/flamethrowerzombie.png",
+        // TODO(finalstand): add tesla/wraith icons when those prototypes are added
     };
 
     // Prototype ID → human-readable tooltip name
@@ -35,7 +37,9 @@ public sealed partial class CCCWindow : FancyWindow
         ["FSZombieDestroyer"] = "Destroyer",
         ["FSZombieGiant"]    = "Giant Zombie",
         ["FSZombieNormal"]   = "Zombie",
-        ["FSZombieRunner"]   = "Runner",
+        ["FSZombieRunner"]       = "Runner",
+        ["FSZombieBloater"]      = "Bloater",
+        ["FSZombieFlamethrower"] = "Flamethrower",
     };
 
     public CCCWindow()
