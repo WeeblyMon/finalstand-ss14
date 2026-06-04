@@ -561,13 +561,13 @@
       baseCost: 2100
       type: ReloadSpeed
       valuePerLevel: 0.1
-    - id: drozd-dead-eye
-      name: Dead Eye
-      description: Increases critical hit chance by 5% per level.
+    - id: drozd-recoil-pad
+      name: Recoil Pad
+      description: Reduces max spread by 0.3° per level for tighter bursts.
       maxLevel: 5
       baseCost: 2100
-      type: CritChance
-      valuePerLevel: 0.05
+      type: Accuracy
+      valuePerLevel: 1.5
     - id: drozd-shredder
       name: Shredder
       description: Each bullet drains bonus armor proportional to damage absorbed. Each level increases drain (20% per level, up to 100% extra at max).

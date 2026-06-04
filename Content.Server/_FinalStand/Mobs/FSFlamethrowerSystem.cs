@@ -1,10 +1,10 @@
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Station;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Movement.Components;
 using Content.Shared.Projectiles;
-using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
@@ -67,10 +67,22 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             }
         }
 
-        if (nearestPlayer == null)
-            return;
+        // Fallback to CCC when no player in range
+        var firingTarget = nearestPlayer;
+        if (firingTarget == null)
+        {
+            var cccSet = new HashSet<Entity<FinalStandCCCComponent>>();
+            _lookup.GetEntitiesInRange<FinalStandCCCComponent>(epicenter, comp.FlameRange, cccSet);
+            foreach (var (cccUid, _) in cccSet)
+            {
+                firingTarget = cccUid;
+                break;
+            }
+            if (firingTarget == null)
+                return;
+        }
 
-        var dir = _transform.GetWorldPosition(nearestPlayer.Value) - worldPos;
+        var dir = _transform.GetWorldPosition(firingTarget.Value) - worldPos;
         if (dir != Vector2.Zero)
         {
             comp.FiringDirection = Vector2.Normalize(dir);
@@ -90,10 +102,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             Dirty(uid, mover);
         }
 
-        comp.FireSoundEntity = _audio.PlayPvs(
-            comp.FireLoopSound,
-            uid,
-            AudioParams.Default.WithLoop(true))?.Entity;
+        comp.FireSoundEntity = _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
     }
 
     private void UpdateFiring(EntityUid uid, FSFlamethrowerComponent comp, float frameTime)

@@ -39,6 +39,7 @@ public sealed class FSAutoStartSystem : EntitySystem
 
         _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
         _cfg.SetCVar(CCVars.GameMap, "FinalStandMap1");
+        _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // FINALSTAND: arrivals shuttle not used, players spawn via cryo
         _ticker.SetGamePreset(preset);
         Log.Info("[FSAutoStart] FinalStand preset and map applied. Waiting for startround.");
     }
