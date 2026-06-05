@@ -18,7 +18,6 @@ using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
-using Content.Shared.Prying.Components;
 using System.Linq;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
@@ -170,7 +169,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 htn.Blackboard.SetValue("VisionRadius", 15f);
                 htn.Blackboard.SetValue("AggroVisionRadius", 15f);
                 htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
-                htn.Blackboard.SetValue(NPCBlackboard.NavPry, HasComp<PryingComponent>(giant));
+                htn.Blackboard.SetValue(NPCBlackboard.NavPry, false);
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
             }
@@ -280,11 +279,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 htn.Blackboard.SetValue("VisionRadius", 15f);
                 htn.Blackboard.SetValue("AggroVisionRadius", 15f);
                 htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
-                // FINALSTAND issue-1: NavPry: true on mobs with no PryingComponent caused the steering
-                // system's Prying branch to intercept every door, TryPry to fail silently with a null
-                // DoAfter, and the Smashing branch to never run. Only enable prying for mobs that can
-                // actually pry.
-                htn.Blackboard.SetValue(NPCBlackboard.NavPry, HasComp<PryingComponent>(enemy));
+                htn.Blackboard.SetValue(NPCBlackboard.NavPry, false);
                 if (comp.CCCEntity.IsValid())
                     htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
 

@@ -56,6 +56,9 @@
       reagents:
       - ReagentId: Blood
         Quantity: 20
+  - type: Tag
+    tags:
+    - StunImmune
   - type: MovementIgnoreGravity
   - type: Stamina
     baseCritThreshold: 100

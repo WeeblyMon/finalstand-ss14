@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.CCC;
+using Content.Shared._FinalStand.WaveHud;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
@@ -25,6 +26,13 @@ public sealed class CCCUnderAttackClientSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<CCCUnderAttackEvent>(OnUnderAttack);
+        SubscribeNetworkEvent<WaveCounterUpdateEvent>(_ => StopAlarm());
+    }
+
+    public override void Shutdown()
+    {
+        StopAlarm();
+        base.Shutdown();
     }
 
     private void OnUnderAttack(CCCUnderAttackEvent ev)
@@ -40,6 +48,20 @@ public sealed class CCCUnderAttackClientSystem : EntitySystem
         IsActive = true;
     }
 
+    private void StopAlarm()
+    {
+        if (!IsActive) return;
+
+        IsActive = false;
+        _attackTimer = 0f;
+
+        if (_warningStream.HasValue)
+        {
+            _audio.Stop(_warningStream.Value);
+            _warningStream = null;
+        }
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -50,14 +72,7 @@ public sealed class CCCUnderAttackClientSystem : EntitySystem
 
         if (_attackTimer > 0f) return;
 
-        IsActive = false;
-        _attackTimer = 0f;
-
-        if (_warningStream.HasValue)
-        {
-            _audio.Stop(_warningStream.Value);
-            _warningStream = null;
-        }
+        StopAlarm();
     }
 
     public string GetMarkup()
