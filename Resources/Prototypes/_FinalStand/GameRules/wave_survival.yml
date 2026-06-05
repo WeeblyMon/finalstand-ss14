@@ -10,7 +10,6 @@
     bossWavePrestigeReward: 50
     prepDuration: 300
     maxCombatDuration: 1800
-    spawnInterval: 2
     factionDisplay: "Xenomorphs detected"
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg
@@ -63,7 +62,6 @@
     - FSZombieGiant
     prepDuration: 300
     maxCombatDuration: 1800
-    spawnInterval: 2
     factionDisplay: "Undead detected"
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg

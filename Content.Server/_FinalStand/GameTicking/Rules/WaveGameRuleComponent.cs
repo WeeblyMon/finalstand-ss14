@@ -28,7 +28,13 @@ public sealed partial class WaveGameRuleComponent : Component
     public TimeSpan MaxCombatDuration = TimeSpan.FromSeconds(1800);
 
     [DataField]
-    public TimeSpan SpawnInterval = TimeSpan.FromSeconds(2);
+    public float MinSpawnInterval = 0.2f;
+
+    [DataField]
+    public float MaxSpawnInterval = 0.5f;
+
+    [DataField]
+    public int SpawnBatchSize = 2;
 
     [DataField]
     public List<WaveEnemyConfig> EnemyConfigs = new()

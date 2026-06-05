@@ -26,7 +26,20 @@
       sprite: Structures/Storage/Crates/labels.rsi
       map: ["enum.PaperLabelVisuals.Layer"]
   - type: InteractionOutline
-  # FINALSTAND: no Physics/Fixtures — crates are walkthrough so zombies don't get stuck on them
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.29"
+        density: 50
+        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
+        mask:
+        - CrateMask
+        layer:
+        - MachineLayer
   - type: EntityStorage
   - type: PlaceableSurface
     isPlaceable: false # defaults to closed.

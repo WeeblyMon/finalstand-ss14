@@ -182,7 +182,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
 
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber, comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
@@ -254,13 +254,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         var pool = GetDirectorPool(comp);
         var remaining = comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave;
-        var toSpawn = Math.Min(remaining, comp.SpawnerEntities.Count);
+        var toSpawn = Math.Min(remaining, comp.SpawnerEntities.Count * comp.SpawnBatchSize);
 
         for (var i = 0; i < toSpawn; i++)
         {
-            var spawnerUid = comp.SpawnerEntities[i];
+            var spawnerUid = comp.SpawnerEntities[i % comp.SpawnerEntities.Count];
+
+            var coords = Transform(spawnerUid).Coordinates;
+            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawnerComp) && spawnerComp.SpawnRadius > 0f)
+            {
+                var angle = RobustRandom.NextFloat() * MathF.Tau;
+                var radius = MathF.Sqrt(RobustRandom.NextFloat()) * spawnerComp.SpawnRadius;
+                coords = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
+            }
+
             var proto = SelectEnemyProto(comp, pool);
-            var enemy = Spawn(proto, Transform(spawnerUid).Coordinates);
+            var enemy = Spawn(proto, coords);
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
@@ -295,7 +304,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                      $"at spawner {spawnerUid}.");
         }
 
-        comp.NextSpawnTime = Timing.CurTime + comp.SpawnInterval;
+        var intervalSec = comp.MinSpawnInterval + RobustRandom.NextFloat() * (comp.MaxSpawnInterval - comp.MinSpawnInterval);
+        comp.NextSpawnTime = Timing.CurTime + TimeSpan.FromSeconds(intervalSec);
         RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
 
         // guard for the uh the no-spawner edge case where all enemies were already counted before this batch
@@ -443,9 +453,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static float GetHpMultiplier(int wave)
     {
         if (wave < 10) return 1f;
-        if (wave < 20) return 1.75f;
-        if (wave < 30) return 3f;
-        return 4.5f;
+        if (wave < 20) return 2.5f;
+        if (wave < 30) return 5f;
+        return 8f;
     }
 
     private void ScaleEnemySpeed(EntityUid enemy, int wave)
@@ -453,7 +463,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        var multiplier = 1f + (wave - 1) * 0.005f;
+        var multiplier = 1f + (wave - 1) * 0.012f;
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 

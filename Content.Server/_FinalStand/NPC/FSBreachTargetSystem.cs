@@ -17,7 +17,6 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Systems;
-using Content.Shared.Doors;
 using Content.Shared.Doors.Components;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.Map;
@@ -46,8 +45,6 @@ public sealed class FSBreachTargetSystem : EntitySystem
     private float _accumulator;
     private float _baseZombieDamage = 10f;
 
-    private readonly Dictionary<EntityUid, float> _pendingPathClears = new();
-
     private static readonly TimeSpan SelectionWindow = TimeSpan.FromSeconds(15);
     private const int BlacklistThreshold = 3;
 
@@ -56,8 +53,6 @@ public sealed class FSBreachTargetSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentStartup>(OnWaveEnemyStartup);
         SubscribeLocalEvent<GameRuleEndedEvent>(OnWaveRuleEnded);
-        SubscribeLocalEvent<DoorComponent, DoorStateChangedEvent>(OnDoorOpened);
-
         if (_prototype.TryIndex<EntityPrototype>("FSZombieNormal", out var proto)
             && proto.Components.TryGetValue(Factory.GetComponentName<MeleeWeaponComponent>(), out var entry)
             && entry.Component is MeleeWeaponComponent melee)
@@ -103,7 +98,6 @@ public sealed class FSBreachTargetSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        ProcessPendingPathClears(frameTime);
         _accumulator += frameTime;
         if (_accumulator < TickInterval) return;
         _accumulator -= TickInterval;
@@ -252,7 +246,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
         bb.SetValue(FSAIBlackboardKeys.BreachCooldown, 1.5f);
     }
 
-    private const float ProgressSampleInterval = 0.3f;
+    private const float ProgressSampleInterval = 0.6f;
     private const float MinClearProgress = 0.4f;
 
     private void CheckPathProgress(EntityUid uid, HTNComponent htn, NPCBlackboard bb, float dt)
@@ -262,6 +256,17 @@ public sealed class FSBreachTargetSystem : EntitySystem
         if (bb.ContainsKey(FSAIBlackboardKeys.BreachCooldown)) return;
         if (bb.TryGetValue<EntityUid>("Target", out var target, EntityManager)
             && Exists(target) && !_mobState.IsDead(target)) return;
+        // Velocity gate: if the zombie is physically moving it is not stuck — don't evaluate breach.
+        // Position sampling alone can fire on baseline-reset artifacts even while the zombie is
+        // navigating normally. Checking physics velocity is the ground truth.
+        if (TryComp<PhysicsComponent>(uid, out var physComp)
+            && physComp.LinearVelocity.LengthSquared() > 0.25f) // > ~0.5 tiles/s
+        {
+            bb.SetValue(FSAIBlackboardKeys.LastPathProgress, _transform.GetWorldPosition(uid));
+            bb.SetValue(FSAIBlackboardKeys.PathProgressTimer, 0f);
+            return;
+        }
+
         var hasActivePath = TryComp<NPCSteeringComponent>(uid, out var steerCheck) && steerCheck.CurrentPath.Count > 0;
         if (!hasActivePath)
         {
@@ -559,7 +564,9 @@ public sealed class FSBreachTargetSystem : EntitySystem
         {
             if (count >= 3) break;
             var mapPos = _transform.ToMapCoordinates(poly.Coordinates);
-            if ((structurePos - mapPos.Position).Length() <= 1f)
+            // 0.6f threshold: adjacent tiles are 1.0f apart, so only entities ON the waypoint
+            // tile (path routing through them) qualify. Entities next to an open waypoint don't.
+            if ((structurePos - mapPos.Position).Length() <= 0.6f)
                 return 1.0f;
             count++;
         }
@@ -574,49 +581,5 @@ public sealed class FSBreachTargetSystem : EntitySystem
         return _baseZombieDamage;
     }
 
-
-    private void OnDoorOpened(EntityUid uid, DoorComponent _, DoorStateChangedEvent args)
-    {
-        if (args.State != DoorState.Open) return;
-        var xform = Transform(uid);
-        var epicenter = new MapCoordinates(_transform.GetWorldPosition(uid), xform.MapID);
-        var nearby = new HashSet<Entity<NPCSteeringComponent>>();
-        _lookup.GetEntitiesInRange<NPCSteeringComponent>(epicenter, 8f, nearby);
-        float stagger = 0f;
-        foreach (var (npc, _) in nearby)
-        {
-            if (!HasComp<WaveSpawnedTagComponent>(npc)) continue;
-            _pendingPathClears[npc] = stagger;
-            stagger += 0.05f;
-        }
-    }
-
-    private void ProcessPendingPathClears(float frameTime)
-    {
-        if (_pendingPathClears.Count == 0) return;
-        List<EntityUid>? toRemove = null;
-        var keys = new List<EntityUid>(_pendingPathClears.Keys);
-        foreach (var uid in keys)
-        {
-            var delay = _pendingPathClears[uid];
-            if (!Exists(uid))
-            {
-                (toRemove ??= new List<EntityUid>()).Add(uid);
-                continue;
-            }
-            var newDelay = delay - frameTime;
-            if (newDelay > 0f)
-            {
-                _pendingPathClears[uid] = newDelay;
-                continue;
-            }
-            (toRemove ??= new List<EntityUid>()).Add(uid);
-            if (TryComp<NPCSteeringComponent>(uid, out var steer))
-                steer.CurrentPath.Clear();
-        }
-        if (toRemove == null) return;
-        foreach (var uid in toRemove)
-            _pendingPathClears.Remove(uid);
-    }
 
 }
