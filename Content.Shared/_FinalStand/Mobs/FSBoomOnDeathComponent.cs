@@ -13,13 +13,10 @@ public sealed partial class FSBoomOnDeathComponent : Component
     [DataField] public float SlowAmount = 0.25f;      // 75% speed reduction
     [DataField] public int FlashCount = 2;
     [DataField] public float FlashInterval = 0.3f;
-    [DataField] public float AggroVisionRadius = 25f; // TODO(finalstand): tune bloater aggro radius
-    /// <summary>Distance at which an alive bloater begins its flash+explode countdown.</summary>
+    [DataField] public float AggroVisionRadius = 20f;
     [DataField] public float ProximityRange = 3f;
     [DataField] public SoundSpecifier ExplosionSound =
         new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Bloater/bloater_explode.ogg");
-
-    // Runtime state — not serialized
     public bool PendingExplosion = false;
     public float ExplosionTimer = 0f;
     public bool Exploded = false;

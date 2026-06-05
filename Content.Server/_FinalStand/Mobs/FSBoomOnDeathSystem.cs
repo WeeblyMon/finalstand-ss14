@@ -6,6 +6,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
+using Content.Shared.Ghost;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Systems;
@@ -41,8 +42,6 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
                 comp.ExplosionTimer -= frameTime;
                 if (comp.ExplosionTimer > 0f)
                     continue;
-
-                // Timer expired — suicide explosion
                 comp.Exploded = true;
                 comp.PendingExplosion = false;
                 if (TryComp<FSBloaterFlashingComponent>(uid, out _))
@@ -79,8 +78,9 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
             {
                 if (HasComp<WaveSpawnedTagComponent>(playerUid))
                     continue;
+                if (HasComp<GhostComponent>(playerUid))
+                    continue;
 
-                // Player close enough — start flash + countdown
                 EnsureComp<FSBloaterFlashingComponent>(uid);
                 comp.PendingExplosion = true;
                 comp.ExplosionTimer = comp.FlashCount * comp.FlashInterval * 2f;
@@ -93,7 +93,6 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
     {
         var coords = Transform(uid).Coordinates;
 
-        // Fill the blast radius with one VFX entity per tile, grid-aligned
         var r = (int)comp.ExplosionRadius;
         for (var x = -r; x <= r; x++)
         for (var y = -r; y <= r; y++)
@@ -119,6 +118,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
         {
             if (targetUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
+            if (HasComp<GhostComponent>(targetUid)) continue;
             _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
         }
 
@@ -131,6 +131,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
         {
             if (targetUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
+            if (HasComp<GhostComponent>(targetUid)) continue;
 
             var slow = EnsureComp<FSSlowedComponent>(targetUid);
             slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.SlowDuration);

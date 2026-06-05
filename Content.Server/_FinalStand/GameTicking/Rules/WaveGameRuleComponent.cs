@@ -79,6 +79,9 @@ public sealed partial class WaveGameRuleComponent : Component
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
 
+    [DataField]
+    public float BaseZombieMeleeDamage = 10f;
+
     public bool SpawnPaused = false;
 
     public EntityUid GiantEntity = EntityUid.Invalid;

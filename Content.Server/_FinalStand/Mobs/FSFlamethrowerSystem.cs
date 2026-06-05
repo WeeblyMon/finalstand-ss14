@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared.Ghost;
 using Content.Shared.Movement.Components;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
@@ -59,6 +60,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         foreach (var (targetUid, _) in candidates)
         {
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
+            if (HasComp<GhostComponent>(targetUid)) continue;
             var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
             if (dist < nearestDist)
             {
@@ -86,7 +88,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         if (dir != Vector2.Zero)
         {
             comp.FiringDirection = Vector2.Normalize(dir);
-            // Subtract π/2 to convert standard-math (East=0) to SS14 (South=0) convention
             _transform.SetLocalRotation(uid, new Angle(dir) - MathF.PI / 2f);
         }
 
@@ -95,7 +96,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         comp.ParticleAccumulator = 0f;
         Dirty(uid, comp);
 
-        // FINALSTAND: pause NPC movement while firing; restored in StopFiring
         if (TryComp<InputMoverComponent>(uid, out var mover))
         {
             mover.CanMove = false;
@@ -131,8 +131,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             var spread = _random.NextFloat(-halfConeDeg, halfConeDeg);
             var shotAngle = facingAngle + Angle.FromDegrees(spread);
             var shotDir = shotAngle.ToVec();
-
-            // Spawn slightly in front of the zombie so it doesn't self-collide
             var spawnCoords = coords.Offset(shotDir * 0.6f);
             var projectile = Spawn("FSFireProjectile", spawnCoords);
 
@@ -153,8 +151,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
 
         _audio.Stop(comp.FireSoundEntity);
         comp.FireSoundEntity = null;
-
-        // FINALSTAND: resume NPC movement after firing ends
         if (TryComp<InputMoverComponent>(uid, out var mover))
         {
             mover.CanMove = true;

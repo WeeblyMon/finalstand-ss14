@@ -26,18 +26,7 @@
       sprite: Structures/Storage/Crates/labels.rsi
       map: ["enum.PaperLabelVisuals.Layer"]
   - type: InteractionOutline
-  - type: Physics
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeAabb
-          bounds: "-0.4,-0.4,0.4,0.29"
-        density: 50
-        mask:
-        - CrateMask #this is so they can go under plastic flaps
-        layer:
-        - MachineLayer
+  # FINALSTAND: no Physics/Fixtures — crates are walkthrough so zombies don't get stuck on them
   - type: EntityStorage
   - type: PlaceableSurface
     isPlaceable: false # defaults to closed.
@@ -108,7 +97,7 @@
       offset: "-0.5,0"
       map: ["enum.PaperLabelVisuals.Layer"]
   - type: Damageable
-    damageModifierSet: StructuralMetallic
+    damageModifierSet: ~ # FINALSTAND: removed StructuralMetallic so zombies can damage secure crates
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible

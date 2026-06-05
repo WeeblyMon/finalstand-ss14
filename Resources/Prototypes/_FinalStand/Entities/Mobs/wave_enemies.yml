@@ -11,11 +11,16 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
+    # FINALSTAND: 1s minimum replan interval — balances fast door/obstacle recovery
+    # against stop-start twitching. Original 3s caused multi-second stalls at open airlocks.
+    planCooldown: 1.0
     blackboard:
       NavPry: !type:Bool
         false
       NavSmash: !type:Bool
         true
+      NavInteract: !type:Bool
+        false
   - type: NpcFactionMember
     factions:
     - FSZombie
@@ -214,9 +219,11 @@
         - MobLayer
   - type: FSGiantStomp
 
-# ── Shared prying config for all wave enemies ────────────────────────────────
-# pryPowered: can open powered airlocks, force: bypass bolted doors,
-# speedModifier: 8.0 = ~0.6s pry so BreakOnMove rarely cancels it.
+# ── Non-zombie wave enemies ──────────────────────────────────────────────────
+# NavPry: false — do not pry airlocks (would let them open locked doors).
+# NavSmash: true — pathfinder routes through walls; FSBreachTargetSystem handles smash targeting.
+# No Prying component — these mobs smash obstacles, they do not pry.
+
 - type: entity
   id: FSMobXeno
   parent: MobXeno
@@ -225,10 +232,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
   - type: Fixtures
     fixtures:
       fix1:
@@ -249,10 +260,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobXenoDrone
@@ -262,10 +277,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobXenoPraetorian
@@ -275,10 +294,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobSpiderSpace
@@ -288,10 +311,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobFleshJared
@@ -301,10 +328,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobHivebotRanged
@@ -314,10 +345,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobSyndicateFootsoldier
@@ -327,7 +362,11 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
