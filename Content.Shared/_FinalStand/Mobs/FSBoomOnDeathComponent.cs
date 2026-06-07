@@ -6,8 +6,8 @@ namespace Content.Shared._FinalStand.Mobs;
 public sealed partial class FSBoomOnDeathComponent : Component
 {
     [DataField] public float ExplosionRadius = 3f;
-    [DataField] public float ExplosionDamage = 40f;
-    [DataField] public float ToxinDamage = 30f;
+    [DataField] public float ExplosionDamage = 52f;
+    [DataField] public float ToxinDamage = 39f;
     [DataField] public float SlowRadius = 3f;
     [DataField] public float SlowDuration = 10f;
     [DataField] public float SlowAmount = 0.25f;      // 75% speed reduction

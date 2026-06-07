@@ -21,7 +21,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
     public WavePhase CurrentPhase;
     public float SecondsToPhaseEnd;
     public int AliveEnemyCount;
-    public int ActiveSpawnerCount;
+    public string ActiveSpawnerDirections;
     public Dictionary<string, ReadyStatus> DepartmentStatus;
     public int ReadyCount;
     public List<string> NextWaveEnemyTypes;
@@ -37,7 +37,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         WavePhase currentPhase,
         float secondsToPhaseEnd,
         int aliveEnemyCount,
-        int activeSpawnerCount,
+        string activeSpawnerDirections,
         Dictionary<string, ReadyStatus> departmentStatus,
         int readyCount,
         List<string> nextWaveEnemyTypes,
@@ -52,7 +52,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         CurrentPhase = currentPhase;
         SecondsToPhaseEnd = secondsToPhaseEnd;
         AliveEnemyCount = aliveEnemyCount;
-        ActiveSpawnerCount = activeSpawnerCount;
+        ActiveSpawnerDirections = activeSpawnerDirections;
         DepartmentStatus = departmentStatus;
         ReadyCount = readyCount;
         NextWaveEnemyTypes = nextWaveEnemyTypes;

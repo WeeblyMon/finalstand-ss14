@@ -5,6 +5,20 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 [DataDefinition]
+public sealed partial class SpecialEnemyConfig
+{
+    [DataField]
+    public EntProtoId EnemyId = "FSZombieBloater";
+
+    [DataField]
+    public int FromWave = 7;
+
+    // Sequential independent roll: each special checked in list order; first hit wins.
+    [DataField]
+    public float SpawnChance = 0.25f;
+}
+
+[DataDefinition]
 public sealed partial class WaveEnemyConfig
 {
     [DataField]
@@ -59,6 +73,9 @@ public sealed partial class WaveGameRuleComponent : Component
 
     [DataField]
     public List<EntProtoId> BossPool = new() { "FSZombieGiant" };
+
+    [DataField]
+    public List<SpecialEnemyConfig> SpecialEnemyPool = new();
 
     [DataField]
     public string FactionDisplay = "Unknown hostiles detected";

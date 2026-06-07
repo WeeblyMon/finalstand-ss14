@@ -45,6 +45,8 @@ public sealed class FSBreachTargetSystem : EntitySystem
     private float _accumulator;
     private float _baseZombieDamage = 10f;
 
+    private static readonly EntProtoId ZombieNormalProto = "FSZombieNormal";
+
     private static readonly TimeSpan SelectionWindow = TimeSpan.FromSeconds(15);
     private const int BlacklistThreshold = 3;
 
@@ -53,7 +55,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentStartup>(OnWaveEnemyStartup);
         SubscribeLocalEvent<GameRuleEndedEvent>(OnWaveRuleEnded);
-        if (_prototype.TryIndex<EntityPrototype>("FSZombieNormal", out var proto)
+        if (_prototype.TryIndex<EntityPrototype>(ZombieNormalProto, out var proto)
             && proto.Components.TryGetValue(Factory.GetComponentName<MeleeWeaponComponent>(), out var entry)
             && entry.Component is MeleeWeaponComponent melee)
         {

@@ -136,7 +136,7 @@ public sealed class CCCInteractionSystem : EntitySystem
             currentPhase: wave.Phase,
             secondsToPhaseEnd: wave.SecondsLeft,
             aliveEnemyCount: wave.AliveEnemies,
-            activeSpawnerCount: wave.SpawnerCount,
+            activeSpawnerDirections: wave.SpawnerDirections,
             departmentStatus: statuses,
             readyCount: _readyCheck.ReadyCount(),
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,

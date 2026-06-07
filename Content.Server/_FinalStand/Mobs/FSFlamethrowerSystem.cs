@@ -4,6 +4,8 @@ using Content.Server._FinalStand.Station;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Ghost;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
@@ -26,6 +28,21 @@ public sealed class FSFlamethrowerSystem : EntitySystem
     [Dependency] private readonly SharedProjectileSystem _projectiles = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSFlamethrowerComponent, ComponentShutdown>(OnShutdown);
+    }
+
+    private void OnShutdown(EntityUid uid, FSFlamethrowerComponent comp, ComponentShutdown args)
+    {
+        if (comp.FireSoundEntity.HasValue)
+        {
+            _audio.Stop(comp.FireSoundEntity.Value);
+            comp.FireSoundEntity = null;
+        }
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -42,6 +59,9 @@ public sealed class FSFlamethrowerSystem : EntitySystem
 
     private void UpdateIdle(EntityUid uid, FSFlamethrowerComponent comp, float frameTime)
     {
+        if (TryComp<MobStateComponent>(uid, out var mobState) && mobState.CurrentState != MobState.Alive)
+            return;
+
         if (comp.CooldownAccumulator > 0f)
         {
             comp.CooldownAccumulator -= frameTime;
@@ -94,6 +114,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         comp.IsFiring = true;
         comp.FireAccumulator = 0f;
         comp.ParticleAccumulator = 0f;
+        comp.FireSoundEntity = _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
         Dirty(uid, comp);
 
         if (TryComp<InputMoverComponent>(uid, out var mover))
@@ -101,12 +122,16 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             mover.CanMove = false;
             Dirty(uid, mover);
         }
-
-        comp.FireSoundEntity = _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
     }
 
     private void UpdateFiring(EntityUid uid, FSFlamethrowerComponent comp, float frameTime)
     {
+        if (TryComp<MobStateComponent>(uid, out var mobState) && mobState.CurrentState != MobState.Alive)
+        {
+            StopFiring(uid, comp);
+            return;
+        }
+
         comp.FireAccumulator += frameTime;
 
         comp.ParticleAccumulator += frameTime;

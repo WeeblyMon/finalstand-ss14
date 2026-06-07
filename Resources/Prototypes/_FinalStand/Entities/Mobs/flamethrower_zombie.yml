@@ -6,6 +6,8 @@
   suffix: Flamethrower
   name: flamethrower zombie
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/flamethrowerzombie.png
   - type: FSFlamethrower
   - type: MobThresholds
     thresholds:

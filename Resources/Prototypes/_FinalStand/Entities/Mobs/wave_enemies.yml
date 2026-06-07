@@ -65,6 +65,8 @@
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  - type: Flammable
+    fireSpread: false
 
 - type: entity
   id: FSZombieNormal
@@ -88,6 +90,8 @@
   suffix: Runner
   name: runner zombie
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/runner.png
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/runner.rsi/sprinter_zombie.rsi
@@ -112,6 +116,8 @@
   suffix: Armoured
   name: armoured zombie
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/armoured.rsi/armored_zombie_1.rsi
@@ -187,6 +193,8 @@
   # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
   # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
   - type: MobThresholds
     thresholds:
       0: Alive

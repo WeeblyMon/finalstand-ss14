@@ -1,7 +1,7 @@
 - type: gameMap
   id: FinalStandMap1
   mapName: Final Stand 1
-  mapPath: /Maps/FinalStand1.yml
+  mapPath: /Maps/fsstation.yml
   minPlayers: 0
   stations:
     FinalStand:

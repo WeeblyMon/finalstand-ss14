@@ -12,9 +12,12 @@
     - state: fire
       shader: unshaded
   - type: Projectile
-    deleteOnCollide: false
-    damage:
-      types:
-        Heat: 1
+    deleteOnCollide: true
+    ignoreResistances: true
+    soundHit: ~
+    impactEffect: ~
+    damage: {}
+  - type: FlyBySound
+    prob: 0
   - type: TimedDespawn
     lifetime: 0.6

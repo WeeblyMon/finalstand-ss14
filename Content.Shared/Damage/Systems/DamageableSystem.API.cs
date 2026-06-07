@@ -132,8 +132,11 @@ public sealed partial class DamageableSystem
         // Apply resistances
         if (!ignoreResistances)
         {
+            // FINALSTAND: guard against YAML ~-as-string bug — the Robust serializer can
+            // parse `damageModifierSet: ~` as ProtoId("~") instead of null.
             if (
                 ent.Comp.DamageModifierSetId != null &&
+                ent.Comp.DamageModifierSetId.Value.Id != "~" &&
                 _prototypeManager.Resolve(ent.Comp.DamageModifierSetId, out var modifierSet)
             )
                 damage = DamageSpecifier.ApplyModifierSet(damage, modifierSet);

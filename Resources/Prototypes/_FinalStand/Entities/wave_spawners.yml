@@ -14,11 +14,12 @@
 - type: entity
   id: WaveEnemySpawnerNorth
   name: Wave Enemy Spawner (North)
-  description: North spawn point. Active from wave 1.
+  description: North spawn point. Unlocks wave 1.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 1
+    directionLabel: N
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -28,11 +29,12 @@
 - type: entity
   id: WaveEnemySpawnerEast
   name: Wave Enemy Spawner (East)
-  description: East spawn point. Active from wave 1.
+  description: East spawn point. Unlocks wave 4.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
-    fromWave: 5
+    fromWave: 4
+    directionLabel: E
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -42,11 +44,12 @@
 - type: entity
   id: WaveEnemySpawnerSouth
   name: Wave Enemy Spawner (South)
-  description: South spawn point. Active from wave 1.
+  description: South spawn point. Unlocks wave 7.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
-    fromWave: 10
+    fromWave: 7
+    directionLabel: S
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -56,11 +59,12 @@
 - type: entity
   id: WaveEnemySpawnerWest
   name: Wave Enemy Spawner (West)
-  description: West spawn point. Active from wave 1.
+  description: West spawn point. Unlocks wave 10.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
-    fromWave: 15
+    fromWave: 10
+    directionLabel: W
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi

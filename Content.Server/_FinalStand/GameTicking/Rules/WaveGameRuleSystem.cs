@@ -123,7 +123,31 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         comp.Phase = WavePhase.Prep;
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
-        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s.");
+
+        // Pre-select spawners for the upcoming wave so the CCC UI can show them during prep.
+        comp.SpawnerEntities.Clear();
+        var unlocked = new List<EntityUid>();
+        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+        while (sq.MoveNext(out var spawnerUid, out var spawner))
+        {
+            if (comp.WaveNumber >= spawner.FromWave)
+                unlocked.Add(spawnerUid);
+        }
+        if (unlocked.Count == 0)
+        {
+            Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
+        }
+        else
+        {
+            if (unlocked.Count > 1)
+                RobustRandom.Shuffle(unlocked);
+            var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
+            for (var i = 0; i < activeCount; i++)
+                comp.SpawnerEntities.Add(unlocked[i]);
+        }
+
+        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
+                 $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
@@ -136,16 +160,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         comp.Phase = WavePhase.Combat;
 
-        comp.SpawnerEntities.Clear();
-        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
-        while (sq.MoveNext(out var spawnerUid, out var spawner))
-        {
-            if (comp.WaveNumber >= spawner.FromWave)
-                comp.SpawnerEntities.Add(spawnerUid);
-        }
-
+        // Spawners were pre-selected in StartPrepPhase; re-select only if somehow empty.
         if (comp.SpawnerEntities.Count == 0)
-            Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
+        {
+            var unlocked = new List<EntityUid>();
+            var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+            while (sq.MoveNext(out var spawnerUid, out var spawner))
+            {
+                if (comp.WaveNumber >= spawner.FromWave)
+                    unlocked.Add(spawnerUid);
+            }
+            if (unlocked.Count > 1)
+                RobustRandom.Shuffle(unlocked);
+            var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
+            for (var i = 0; i < activeCount; i++)
+                comp.SpawnerEntities.Add(unlocked[i]);
+        }
 
         comp.CCCEntity = EntityUid.Invalid;
         var cq = EntityQueryEnumerator<FinalStandCCCComponent>();
@@ -307,19 +337,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         CheckWaveComplete(uid, comp);
     }
 
-    // FINALSTAND: weighted spawn selection layered on top of the pool — Bloater/Flamethrower added mid-game
     private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, List<EntProtoId> pool)
     {
-        // TODO(finalstand): tune spawn weight percentages
-        if (comp.WaveNumber >= 9)
+        foreach (var special in comp.SpecialEnemyPool)
         {
-            var roll = RobustRandom.NextFloat();
-            if (roll < 0.125f) return new EntProtoId("FSZombieBloater");
-            if (roll < 0.25f)  return new EntProtoId("FSZombieFlamethrower");
-        }
-        else if (comp.WaveNumber >= 7)
-        {
-            if (RobustRandom.NextFloat() < 0.25f) return new EntProtoId("FSZombieBloater");
+            if (comp.WaveNumber >= special.FromWave && RobustRandom.NextFloat() < special.SpawnChance)
+                return special.EnemyId;
         }
         return RobustRandom.Pick(pool);
     }
@@ -482,7 +505,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         float SecondsLeft,
         int AliveEnemies,
         int TotalEnemies,
-        int SpawnerCount,
+        string SpawnerDirections,
         bool IsBossWave,
         string FactionDisplay,
         List<string> NextWaveEnemyTypes);
@@ -499,13 +522,24 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var types = pool.Select(p => p.Id).Distinct().ToList();
             if (IsBossWave(comp.WaveNumber))
                 types.InsertRange(0, comp.BossPool.Select(p => p.Id).Distinct());
+            foreach (var special in comp.SpecialEnemyPool)
+            {
+                if (comp.WaveNumber >= special.FromWave)
+                    types.Add(special.EnemyId.Id);
+            }
+            var directions = comp.SpawnerEntities.Count == 0
+                ? "none"
+                : string.Join("/", comp.SpawnerEntities
+                    .Select(s => TryComp<WaveEnemySpawnerComponent>(s, out var sc) ? sc.DirectionLabel : "?")
+                    .Where(d => d.Length > 0)
+                    .Order());
             data = new CCCStateData(
                 comp.WaveNumber,
                 comp.Phase,
                 Math.Max(0f, (float)(comp.PhaseEndTime - Timing.CurTime).TotalSeconds),
                 comp.AliveEnemies.Count,
                 comp.EnemyTotalThisWave,
-                comp.SpawnerEntities.Count,
+                directions,
                 IsBossWave(comp.WaveNumber),
                 comp.FactionDisplay,
                 types);

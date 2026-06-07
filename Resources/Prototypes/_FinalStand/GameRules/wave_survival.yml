@@ -60,6 +60,13 @@
     bossWavePrestigeReward: 50
     bossPool:
     - FSZombieGiant
+    specialEnemyPool:
+    - enemyId: FSZombieBloater
+      fromWave: 7
+      spawnChance: 0.25
+    - enemyId: FSZombieFlamethrower
+      fromWave: 9
+      spawnChance: 0.25
     prepDuration: 300
     maxCombatDuration: 1800
     factionDisplay: "Undead detected"

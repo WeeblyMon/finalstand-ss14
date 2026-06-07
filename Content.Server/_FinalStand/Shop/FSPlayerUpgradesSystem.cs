@@ -477,6 +477,8 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         bal.Capacity += bonus;
         bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + bonus, bal.Capacity);
 #pragma warning restore RA0002
+        var upgraded = EnsureComp<FSMagUpgradedComponent>(mag.Value);
+        upgraded.AppliedBonus += bonus;
         Dirty(mag.Value, bal);
     }
 
@@ -485,10 +487,16 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     {
         if (state.MagazineSizeBonus <= 0) return;
         if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal)) return;
+
+        var upgraded = EnsureComp<FSMagUpgradedComponent>(args.Entity);
+        var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
+        if (diff <= 0) return;
+
 #pragma warning disable RA0002
-        bal.Capacity += state.MagazineSizeBonus;
-        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + state.MagazineSizeBonus, bal.Capacity);
+        bal.Capacity += diff;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
 #pragma warning restore RA0002
+        upgraded.AppliedBonus = state.MagazineSizeBonus;
         Dirty(args.Entity, bal);
     }
 }

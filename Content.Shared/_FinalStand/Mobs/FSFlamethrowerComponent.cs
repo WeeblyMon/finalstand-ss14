@@ -8,14 +8,17 @@ namespace Content.Shared._FinalStand.Mobs;
 public sealed partial class FSFlamethrowerComponent : Component
 {
     [DataField] public float FlameRange = 5f;
-    [DataField] public float ConeDegrees = 30f;
+    [DataField] public float ConeDegrees = 20f;
     [DataField] public float AttackDuration = 3f;
     [DataField] public float AttackCooldown = 4f;
     [DataField] public float ParticleSpawnRate = 0.08f;
-    [DataField] public int ParticlesPerBurst = 3;
+    [DataField] public int ParticlesPerBurst = 2;
     [DataField] public float FireProjectileSpeed = 10f;
     [DataField] public SoundSpecifier FireLoopSound =
-        new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Flamethrower/fire_loop.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Flamethrower/fire_loop.ogg")
+        {
+            Params = AudioParams.Default.WithMaxDistance(8f).WithRolloffFactor(2f),
+        };
 
     // Runtime state
     [AutoNetworkedField]
