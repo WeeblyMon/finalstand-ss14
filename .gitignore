@@ -321,3 +321,6 @@ Resources/MapImages
 
 # Claude Code
 .claude/
+
+# Packaged builds
+*.7z

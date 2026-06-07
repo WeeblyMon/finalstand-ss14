@@ -49,6 +49,7 @@ public enum WeaponUpgradeType : byte
     MagEfficiency,
     PulseCascade,
     Aftershock,
+    SpeedLoader,
 }
 
 [DataDefinition]

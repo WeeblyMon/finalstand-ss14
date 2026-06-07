@@ -119,14 +119,13 @@
       baseCost: 250
       type: FireRate
       valuePerLevel: 0.5
-    - id: mateba-ammo-box
-      name: Ammo Box
-      description: A .45 magnum ammo box (12 rounds) spawned on each purchase per level.
+    - id: mateba-damage
+      name: Hollow Point
+      description: Enhanced rounds increase damage by 15% per level.
       maxLevel: 5
       baseCost: 250
-      type: SpawnItem
-      spawnProtoId: MagazineBoxMagnum
-      spawnCountPerLevel: 1
+      type: Damage
+      valuePerLevel: 0.15
     - id: mateba-steady-aim
       name: Steady Aim
       description: Reduces max spread by 0.3° per level for precise follow-up shots.
@@ -141,12 +140,12 @@
       baseCost: 250
       type: CritChance
       valuePerLevel: 0.05
-    - id: mateba-akimbo
-      name: Akimbo
-      description: Dual wield. A second Mateba spawns in your off-hand. Fire alternates between both. Accuracy suffers.
+    - id: mateba-speed-loader
+      name: Speed Loader
+      description: Reload all 6 rounds in one smooth motion instead of one at a time.
       maxLevel: 1
-      baseCost: 1200
-      type: Akimbo
+      baseCost: 600
+      type: SpeedLoader
       valuePerLevel: 1
     - id: mateba-critical-mass
       name: Critical Mass

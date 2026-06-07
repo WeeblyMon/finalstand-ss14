@@ -38,8 +38,11 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
     }
 
     // uid = victim (has FSFriendlyFireComponent). Cancel if origin is also a wave player.
+    // Negative-total damage is healing (brutepack, etc.) — always allow through.
     private void OnBeforeDamage(EntityUid uid, FSFriendlyFireComponent _, ref BeforeDamageChangedEvent args)
     {
+        if (args.Damage.GetTotal() < 0)
+            return;
         if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value))
             args.Cancelled = true;
     }

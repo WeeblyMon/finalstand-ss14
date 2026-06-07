@@ -158,6 +158,28 @@
   - type: Stack
     stackType: Brutepack
     count: 1
+  - type: Healing
+    damageContainers:
+      - Biological
+    damage:
+      types:
+        Blunt: -10
+        Piercing: -10
+        Slash: -10
+    healingBeginSound:
+      path: "/Audio/Items/Medical/brutepack_begin.ogg"
+      params:
+        volume: 1.0
+        variation: 0.125
+    healingEndSound:
+      path: "/Audio/Items/Medical/brutepack_end.ogg"
+      params:
+        volume: 1.0
+        variation: 0.125
+
+
+
+
 
 - type: entity
   name: medicated suture

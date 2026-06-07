@@ -179,6 +179,13 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     TryApplyAkimbo(weapon, player);
                 break;
 
+            case WeaponUpgradeType.SpeedLoader:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SpeedLoaderEnabled = true;
+                break;
+            }
+
             case WeaponUpgradeType.ExplosiveShot:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);

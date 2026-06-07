@@ -20,6 +20,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool APRoundsEnabled = false;
     [DataField] public float ArmorShredMagnitude = 0f;
     [DataField] public float ReloadSpeedMultiplier = 1.0f;
+    [DataField] public bool SpeedLoaderEnabled = false;
     [DataField] public float LifeStealPercent = 0f;
     [DataField] public int StaminaStealLevel = 0;
     [DataField] public float DamageMultiplier = 1.0f;

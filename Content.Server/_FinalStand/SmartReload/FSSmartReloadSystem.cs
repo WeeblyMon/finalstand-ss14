@@ -15,6 +15,7 @@ using Content.Shared._FinalStand.Shop;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
@@ -41,6 +42,14 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
+    // Tracks active shell-insert do-afters per gun (for cleanup bookkeeping).
+    private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
+
+    // Guns that fired a shot while a shell-insert chain was running.
+    // The chain aborts at the next OnShellInsertComplete rather than via Cancel()
+    // (Cancel leaves a stale BlockDuplicate entry that breaks subsequent R presses).
+    private readonly HashSet<EntityUid> _reloadAborted = new();
+
     private static readonly TimeSpan MagEjectTime    = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan MagInsertTime   = TimeSpan.FromSeconds(0.55);
     private static readonly TimeSpan ShellInsertTime = TimeSpan.FromSeconds(0.55);
@@ -57,6 +66,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
         SubscribeLocalEvent<MagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<ChamberMagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, FSShellInsertDoAfterEvent>(OnShellInsertComplete);
+        SubscribeLocalEvent<BallisticAmmoProviderComponent, AmmoShotEvent>(OnBallisticGunFired);
+        SubscribeLocalEvent<BallisticAmmoProviderComponent, ComponentRemove>(OnBallisticRemoved);
         SubscribeLocalEvent<RevolverAmmoProviderComponent, FSChamberFillDoAfterEvent>(OnChamberFillComplete);
     }
 
@@ -256,28 +267,58 @@ public sealed class FSSmartReloadSystem : EntitySystem
             return;
         }
 
+        if (_activeShellInserts.ContainsKey(gun))
+            return;
+
+        _reloadAborted.Remove(gun);
         StartShellInsert(gun, user, shell.Value, isChainReload);
     }
 
     private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell, bool isChainReload = false)
     {
-        var doAfterArgs = new DoAfterArgs(EntityManager, user, ShellInsertTime * GetReloadMultiplier(user, gun),
+        var insertTime = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upg) && upg.SpeedLoaderEnabled
+            ? TimeSpan.FromSeconds(0.05)
+            : ShellInsertTime * GetReloadMultiplier(user, gun);
+
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, insertTime,
             new FSShellInsertDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun, used: shell)
         {
-            NeedHand           = true,
-            BreakOnMove        = false,
-            BreakOnDamage      = true,
-            BlockDuplicate     = true,
-            DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
+            NeedHand      = true,
+            BreakOnMove   = false,
+            BreakOnDamage = true,
         };
 
-        _doAfter.TryStartDoAfter(doAfterArgs);
+        if (_doAfter.TryStartDoAfter(doAfterArgs, out var id))
+            _activeShellInserts[gun] = id.Value;
+        else
+            _activeShellInserts.Remove(gun);
+    }
+
+    private void OnBallisticGunFired(EntityUid gun, BallisticAmmoProviderComponent _, AmmoShotEvent args)
+    {
+        if (_activeShellInserts.ContainsKey(gun))
+            _reloadAborted.Add(gun);
+    }
+
+    private void OnBallisticRemoved(EntityUid gun, BallisticAmmoProviderComponent _, ComponentRemove args)
+    {
+        _activeShellInserts.Remove(gun);
+        _reloadAborted.Remove(gun);
     }
 
     private void OnShellInsertComplete(EntityUid gun, BallisticAmmoProviderComponent comp, FSShellInsertDoAfterEvent args)
     {
         if (args.Cancelled || args.Used == null || !args.User.IsValid())
+        {
+            _activeShellInserts.Remove(gun);
             return;
+        }
+
+        if (_reloadAborted.Remove(gun))
+        {
+            _activeShellInserts.Remove(gun);
+            return;
+        }
 
         var toInsert = args.Used.Value;
         if (HasComp<BallisticAmmoProviderComponent>(toInsert))
@@ -292,14 +333,18 @@ public sealed class FSSmartReloadSystem : EntitySystem
         _gunSystem.TryBallisticInsert((gun, comp), toInsert, args.User);
 
         if (comp.Count == prevCount)
-            return; // insert failed — stop loop
+        {
+            _activeShellInserts.Remove(gun);
+            return; // insert failed — stop chain
+        }
 
         if (comp.Count >= comp.Capacity)
         {
+            _activeShellInserts.Remove(gun);
             return;
         }
 
-        // Continue filling — carry the chain flag through the loop so it doesn't re-chain mid-loop.
+        // Continue filling — carry the chain flag through the loop so it doesn't re-chain mid-reload.
         var nextSource = args.Used.Value;
         if (HasComp<BallisticAmmoProviderComponent>(nextSource)
             && TryComp<BallisticAmmoProviderComponent>(nextSource, out var boxComp)
@@ -314,6 +359,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         if (nextSource.IsValid())
             StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
+        else
+            _activeShellInserts.Remove(gun);
     }
 
     // revolver reload
@@ -615,7 +662,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private bool IsValidAmmo(EntityUid item, EntityWhitelist? whitelist)
     {
-        return HasComp<CartridgeAmmoComponent>(item)
+        return TryComp<CartridgeAmmoComponent>(item, out var cartridge)
+               && !cartridge.Spent
                && !_whitelist.IsWhitelistFail(whitelist, item);
     }
 
