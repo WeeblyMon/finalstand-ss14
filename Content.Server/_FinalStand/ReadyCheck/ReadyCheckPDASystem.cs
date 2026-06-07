@@ -1,5 +1,6 @@
 using Content.Server.CartridgeLoader;
 using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
@@ -26,21 +27,53 @@ public sealed class ReadyCheckPDASystem : EntitySystem
         SubscribeLocalEvent<ReadyCheckCartridgeComponent, CartridgeMessageEvent>(OnUiMessage);
         SubscribeLocalEvent<ReadyCheckUpdatedEvent>(OnReadyCheckUpdated);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnWavePrepStarted);
+        SubscribeLocalEvent<WaveCombatStartedEvent>(OnWaveCombatStarted);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
     }
 
     private void OnWavePrepStarted(WavePrepStartedEvent ev)
     {
+        var commandFilter = Filter.Empty();
         foreach (var session in _playerManager.Sessions)
         {
-            if (session.AttachedEntity is { } player)
-                TryInstallCartridge(player, GetJobId(player));
+            if (session.AttachedEntity is not { } player)
+                continue;
+            TryInstallCartridge(player, GetJobId(player));
+            if (GetJobId(player) is { } jobId && ReadyCheckDepts.IsCommandJob(jobId))
+                commandFilter.AddPlayer(session);
         }
+        RaiseNetworkEvent(new WavePhaseChangedEvent(true), commandFilter);
+    }
+
+    private void OnWaveCombatStarted(WaveCombatStartedEvent ev)
+    {
+        RaiseNetworkEvent(new WavePhaseChangedEvent(false), CommandFilter());
+    }
+
+    private Filter CommandFilter()
+    {
+        var filter = Filter.Empty();
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity is { } player
+                && GetJobId(player) is { } jobId
+                && ReadyCheckDepts.IsCommandJob(jobId))
+                filter.AddPlayer(session);
+        }
+        return filter;
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
         TryInstallCartridge(ev.Mob, ev.JobId);
+
+        // Late-join fix: if in prep phase, send WavePhaseChangedEvent so the "Ready Up"
+        // overlay appears immediately. ev.JobId can be null for late-joiners so fall back
+        // to GetJobId, mirroring TryInstallCartridge's own null handling.
+        var jobId = ev.JobId ?? GetJobId(ev.Mob);
+        if (jobId == null || !ReadyCheckDepts.IsCommandJob(jobId)) return;
+        if (_readyCheck.IsCombatPhase()) return;
+        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
     }
 
     private void TryInstallCartridge(EntityUid player, string? jobId = null)

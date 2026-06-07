@@ -22,6 +22,7 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WaveAmmoBoxComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<WaveAmmoBoxComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<WaveAmmoBoxComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<WaveAmmoBoxComponent, WaveAmmoBoxRefillDoAfterEvent>(OnRefillDoAfter);
         SubscribeLocalEvent<WaveAmmoBoxComponent, PowerChangedEvent>(OnPowerChanged);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
@@ -37,6 +38,14 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
         var query = EntityQueryEnumerator<WaveAmmoBoxComponent>();
         while (query.MoveNext(out _, out var comp))
             comp.UsedBy.Clear();
+    }
+
+    private void OnActivate(EntityUid uid, WaveAmmoBoxComponent comp, ActivateInWorldEvent args)
+    {
+        if (args.Handled)
+            return;
+        TryStartRefill(uid, comp, args.User);
+        args.Handled = true;
     }
 
     private void OnInteractHand(EntityUid uid, WaveAmmoBoxComponent comp, InteractHandEvent args)

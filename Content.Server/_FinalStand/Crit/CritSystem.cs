@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Perks;
@@ -6,14 +7,16 @@ using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Projectiles;
 using Robust.Shared.Random;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Crit;
 
 public sealed class CritSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
-
-    // shooter+target pairs from a crit roll this tick, consumed in OnDamageChanged
+    [Dependency] private readonly FSZombieRetaliationSystem _retaliation = default!;
+    [Dependency] private readonly FSBreachTargetSystem _breachTarget = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
     private readonly HashSet<(EntityUid, EntityUid)> _pendingCrits = [];
 
     public override void Initialize()
@@ -22,14 +25,11 @@ public sealed class CritSystem : EntitySystem
         SubscribeLocalEvent<ProjectileComponent, ProjectileHitEvent>(OnProjectileHit);
         SubscribeLocalEvent<WaveSpawnedTagComponent, DamageChangedEvent>(OnDamageChanged);
     }
-
-    // formula: 1 - ((1 - A) * (1 - B) * ...), capped at 1
     public float CalculateCritChance(EntityUid shooter, EntityUid gun)
     {
         var weaponCrit = TryComp<CritComponent>(gun, out var critComp) ? critComp.BaseCritChance : 0f;
         var upgradeCrit = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState) ? upgradeState.CritChance : 0f;
         var perkCrit = TryComp<PerkComponent>(shooter, out var perks) ? perks.PerkCritChanceContribution : 0f;
-        // TODO(finalstand): add gear crit chance when gear system exists
         return MathF.Min(1f - (1f - weaponCrit) * (1f - upgradeCrit) * (1f - perkCrit), 1f);
     }
 
@@ -37,7 +37,6 @@ public sealed class CritSystem : EntitySystem
     {
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState))
             return upgradeState.CritDamageMultiplier;
-        // TODO(finalstand): add multiplier contributions from perks/gear here
         return TryComp<CritComponent>(gun, out var critComp) ? critComp.CritMultiplier : 1.5f;
     }
 
@@ -70,17 +69,26 @@ public sealed class CritSystem : EntitySystem
             });
         }
 
-        RaiseLocalEvent(new FSProjectileHitEffectEvent
+        var hitEffect = new FSProjectileHitEffectEvent
         {
             Target = args.Target,
             Weapon = comp.Weapon,
             Shooter = comp.Shooter,
             Damage = args.Damage,
-        });
+        };
+        RaiseLocalEvent(hitEffect);
+        if (hitEffect.AdditionalMultiplier != 1f)
+            args.Damage *= hitEffect.AdditionalMultiplier;
     }
 
     private void OnDamageChanged(EntityUid uid, WaveSpawnedTagComponent _, ref DamageChangedEvent args)
     {
+        if (args.DamageIncreased && args.Origin != null)
+        {
+            _retaliation.TryRetaliate(uid, args.Origin.Value);
+            _breachTarget.TryUpdateRetaliationState(uid, args.Origin.Value, _timing.CurTime);
+        }
+
         if (args.DamageDelta == null || !args.DamageIncreased || args.Origin == null)
             return;
         var amount = args.DamageDelta.GetTotal().Float();

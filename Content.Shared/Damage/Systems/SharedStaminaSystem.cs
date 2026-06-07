@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._FinalStand.Sprint;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Alert;
 using Content.Shared.CCVar;
@@ -238,6 +239,10 @@ public abstract partial class SharedStaminaSystem : EntitySystem
     private void SetStaminaAlert(EntityUid uid, StaminaComponent? component = null)
     {
         if (!Resolve(uid, ref component, false) || component.Deleted)
+            return;
+
+        // FINALSTAND: FS sprint players use their own HUD overlay — skip vanilla alert.
+        if (HasComp<FSSprintComponent>(uid))
             return;
 
         var severity = ContentHelpers.RoundToLevels(MathF.Max(0f, component.CritThreshold - component.StaminaDamage), component.CritThreshold, 7);

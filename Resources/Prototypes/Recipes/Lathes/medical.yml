@@ -51,7 +51,7 @@
 
 - type: latheRecipe
   id: Brutepack
-  result: Brutepack1
+  result: Brutepack
   completetime: 1
   materials:
     Steel: 25

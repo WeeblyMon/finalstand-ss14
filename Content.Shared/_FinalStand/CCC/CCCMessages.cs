@@ -21,10 +21,12 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
     public WavePhase CurrentPhase;
     public float SecondsToPhaseEnd;
     public int AliveEnemyCount;
-    public int ActiveSpawnerCount;
+    public string ActiveSpawnerDirections;
     public Dictionary<string, ReadyStatus> DepartmentStatus;
     public int ReadyCount;
     public List<string> NextWaveEnemyTypes;
+    public int CCCCurrentDamage;
+    public int CCCMaxHealth;
 
     public CCCBoundUserInterfaceState(
         int waveNumber,
@@ -35,10 +37,12 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         WavePhase currentPhase,
         float secondsToPhaseEnd,
         int aliveEnemyCount,
-        int activeSpawnerCount,
+        string activeSpawnerDirections,
         Dictionary<string, ReadyStatus> departmentStatus,
         int readyCount,
-        List<string> nextWaveEnemyTypes)
+        List<string> nextWaveEnemyTypes,
+        int cccCurrentDamage = 0,
+        int cccMaxHealth = 2000)
     {
         WaveNumber = waveNumber;
         EstimatedEnemyCount = estimatedEnemyCount;
@@ -48,15 +52,30 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         CurrentPhase = currentPhase;
         SecondsToPhaseEnd = secondsToPhaseEnd;
         AliveEnemyCount = aliveEnemyCount;
-        ActiveSpawnerCount = activeSpawnerCount;
+        ActiveSpawnerDirections = activeSpawnerDirections;
         DepartmentStatus = departmentStatus;
         ReadyCount = readyCount;
         NextWaveEnemyTypes = nextWaveEnemyTypes;
+        CCCCurrentDamage = cccCurrentDamage;
+        CCCMaxHealth = cccMaxHealth;
     }
 }
 
 [Serializable, NetSerializable]
 public sealed class CCCStartWaveMessage : BoundUserInterfaceMessage { }
+
+// Sent server→client to tell the opening player whether they can start the wave.
+// Avoids unreliable client-side mind/job lookups (JobComponent is server-only).
+[Serializable, NetSerializable]
+public sealed class CCCCanStartWaveEvent : EntityEventArgs
+{
+    public readonly bool CanStartWave;
+    public CCCCanStartWaveEvent(bool canStartWave) => CanStartWave = canStartWave;
+}
+
+// Broadcast server→all-clients when the CCC takes damage. Client-side 3s timeout controls hide.
+[Serializable, NetSerializable]
+public sealed class CCCUnderAttackEvent : EntityEventArgs { }
 
 [Serializable, NetSerializable]
 public sealed class CCCBroadcastMessage : BoundUserInterfaceMessage

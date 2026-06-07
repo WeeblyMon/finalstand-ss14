@@ -18,6 +18,7 @@ public sealed class FSAugmentShopSystem : EntitySystem
         SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
         SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnLevelingUpdated);
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdated);
+        SubscribeNetworkEvent<FSOpenAugmentShopEvent>(_ => OpenWindow());
     }
 
     public void OpenWindow()

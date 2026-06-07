@@ -521,20 +521,6 @@
   id: WallPlastitanium
   name: plastitanium wall
   suffix: ""
-  components:
-    - type: Destructible
-      thresholds:
-        - trigger:
-            !type:DamageTrigger
-            damage: 1000
-          behaviors:
-            - !type:SpawnEntitiesBehavior
-              spawn:
-                Girder:
-                  min: 1
-                  max: 1
-            - !type:DoActsBehavior
-              acts: [ "Destruction" ]
 
 - type: entity
   parent: WallDiagonalBase
@@ -569,22 +555,6 @@
   - type: Icon
     sprite: Structures/Walls/plastitanium_diagonal.rsi
     state: state0
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 1000
-      behaviors:
-        - !type:SpawnEntitiesBehavior
-          spawn:
-            Girder:
-              min: 1
-              max: 1
-        - !type:DoActsBehavior
-          acts: [ "Destruction" ]
-        - !type:PlaySoundBehavior
-          sound:
-            collection: MetalSlam
 
 - type: entity
   parent: BaseWall
@@ -599,10 +569,11 @@
   - type: Construction
     graph: Girder
     node: reinforcedWall
-  - type: Damageable
-    damageModifierSet: StructuralMetallicStrong
+  - type: Damageable # FINALSTAND: removed StructuralMetallicStrong so zombies can damage reinforced walls
+    damageModifierSet: ~
   - type: Injurable
     damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
   - type: Destructible
     thresholds:
     - trigger:
@@ -1000,6 +971,8 @@
     cost: 6
     delay: 8
     fx: EffectRCDDeconstruct8
+  - type: Damageable # FINALSTAND: overrides StructuralMetallic inherited from BaseWall so zombies can damage solid walls
+    damageModifierSet: ~
   - type: Destructible
     thresholds:
     - trigger:

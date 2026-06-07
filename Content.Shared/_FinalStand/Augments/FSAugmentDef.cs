@@ -13,7 +13,6 @@ public sealed class FSAugmentDef
 
     public string[] LevelEffects { get; }
 
-    // todo: replace with rsi sprite paths when augment icons exist
     public string? IconRsi   { get; init; }
     public string? IconState { get; init; }
 
@@ -54,42 +53,26 @@ public sealed class FSAugmentDef
                 AugmentCategory.Red,
                 ["+8% Fire Rate", "+16% Fire Rate", "+24% Fire Rate", "+32% Fire Rate"]),
 
-            // todo: ironhide — mob threshold increase
-            new("IronHide", "Iron Hide",
-                "Permanently increase your maximum health.",
+            new("Juggernaught", "Juggernaught",
+                "Take less damage from zombies.",
                 AugmentCategory.Blue,
-                ["+5 Max Health", "+10 Max Health", "+15 Max Health", "+20 Max Health"]),
+                ["+15% Resistance", "+30% Resistance", "+45% Resistance", "+60% Resistance"]),
 
-            // todo: quickrecover — regen rate modifier
-            new("QuickRecover", "Quick Recover",
-                "Increase passive health regeneration rate.",
-                AugmentCategory.Blue,
-                ["+25% Regen Rate", "+50% Regen Rate", "+75% Regen Rate", "+100% Regen Rate"]),
-
-            // todo: sprinter — movement speed modifier
-            new("Sprinter", "Sprinter",
-                "Move faster on the battlefield.",
+            new("Lightweight", "Lightweight",
+                "Increases your movement speed.",
                 AugmentCategory.Green,
-                ["+5% Move Speed", "+10% Move Speed", "+15% Move Speed", "+20% Move Speed"]),
+                ["+3% Speed", "+6% Speed", "+9% Speed", "+12% Speed"]),
 
-            // todo: scavenger — starting credits bonus
-            new("Scavenger", "Scavenger",
-                "Start each round with bonus credits.",
-                AugmentCategory.Green,
-                ["+$50 Starting Credits", "+$100 Starting Credits",
-                 "+$150 Starting Credits", "+$200 Starting Credits"]),
-
-            // todo: profiteer — kill credit bonus
             new("Profiteer", "Profiteer",
-                "Earn more credits for killing enemies.",
+                "Increases the amount of money you earn.",
                 AugmentCategory.Yellow,
-                ["+5% Kill Credits", "+10% Kill Credits", "+15% Kill Credits", "+20% Kill Credits"]),
+                ["+7% Money", "+14% Money", "+21% Money", "+28% Money"]),
 
-            // todo: fastlearner — xp multiplier
-            new("FastLearner", "Fast Learner",
-                "Gain experience faster from all sources.",
+            new("SwordAndShield", "Sword and Shield",
+                "Increases your melee damage and resistance.",
                 AugmentCategory.Purple,
-                ["+10% XP Gain", "+20% XP Gain", "+30% XP Gain", "+40% XP Gain"]),
+                ["+5% Damage / +12% Resistance", "+10% Damage / +24% Resistance",
+                 "+15% Damage / +36% Resistance", "+20% Damage / +48% Resistance"]),
         ];
 
         All = list.ToDictionary(a => a.Id);

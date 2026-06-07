@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared.GameTicking;
+using Content.Server.GameTicking;
 using Content.Shared.Mind;
 using Microsoft.Data.Sqlite;
 using Robust.Shared.Console;
@@ -39,11 +40,13 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeNetworkEvent<WalletRequestEvent>(OnWalletRequested);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
+        SaveAll(); // flush all player data before the DB connection closes
         _db?.Dispose();
         _db = null;
     }
@@ -186,28 +189,47 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
+        SaveAll(); // persist before entities are torn down
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
-            wallet.Credits = 0;
+            wallet.Credits = 500;
             NotifyClient(mindId, wallet);
         }
-        Log.Debug("[FSWallet] Round restart — cleared credits on all wallets.");
+        Log.Debug("[FSWallet] Round restart — saved all players, cleared credits.");
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind) || mind.UserId == null)
-            return;
-        if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session))
+        // MindContainerComponent.HasMind is not yet set when this event fires (it's set AFTER
+        // SetAttachedEntity in MindSystem.TransferTo), so TryGetMind(ev.Entity) always fails.
+        // Use ev.Player to look up the mind via UserMinds (populated before TransferTo runs).
+        if (!_mind.TryGetMind(ev.Player, out var mindId, out var mind) || mind.UserId == null)
             return;
 
-        _cachedUsernames[mind.UserId.Value] = session.Name;
+        _cachedUsernames[mind.UserId.Value] = ev.Player.Name;
 
-        var row = DbGetFullRecord(mind.UserId.Value.UserId);
+        // Re-send UI state on ghost-return or reconnect. Full init happens in OnPlayerSpawnComplete.
+        if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+            _levelingSystem.SendLevelingUpdate(mindId, lvl);
+        if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            NotifyClient(mindId, wallet);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        // TryGetMind(ev.Mob) works here because TransferTo has fully completed (HasMind = true).
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            return;
+
+        _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
+
+        var row = DbGetFullRecord(ev.Player.UserId.UserId);
 
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.AugmentPoints = row.AugmentPoints;
+        if (wallet.Credits == 0)
+            wallet.Credits = 500;
         NotifyClient(mindId, wallet);
 
         var lvlComp = EnsureComp<FSPlayerLevelComponent>(mindId);
@@ -215,16 +237,15 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         lvlComp.Experience = row.Experience;
         lvlComp.XpToNextLevel = FSLevelingSystem.XpToNextLevel(row.Level);
         lvlComp.PrestigeLevel = row.PrestigeLevel;
+        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
 
         var buffComp = EnsureComp<FSPrestigeBuffsComponent>(mindId);
         buffComp.StoppingPower = row.BuffStoppingPower;
         buffComp.BulletStorm   = row.BuffBulletStorm;
 
-        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
-
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
-        Log.Debug($"[FSWallet] Attached {mind.UserId} ({session.Name}) — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
+        Log.Info($"[FSWallet] SpawnComplete {ev.Player.Name} — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -313,7 +334,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
     {
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+        {
+            Log.Warning($"[FSWallet] SaveLeveling: null UserId for mind {mindId} — save skipped (lv{level} xp{experience})");
+            return;
+        }
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) return;
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
@@ -406,6 +431,9 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var userGuid = mind.UserId.Value.UserId;
         DbSaveAugmentJson(userGuid, levelsJson, slotsJson, loadoutsJson);
     }
+
+    public void SaveAugmentDataByUser(Guid userId, string levelsJson, string slotsJson, string loadoutsJson)
+        => DbSaveAugmentJson(userId, levelsJson, slotsJson, loadoutsJson);
 
     private void DbSaveAugmentJson(Guid userGuid, string levelsJson, string slotsJson, string loadoutsJson)
     {

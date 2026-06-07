@@ -6,4 +6,5 @@ namespace Content.Shared._FinalStand.Upgrades.Effects;
 public sealed partial class FSProjectileFlagsComponent : Component
 {
     [DataField] public FinalStandDamageFlags Flags;
+    [DataField] public float ArmorShredMagnitude = 0f;
 }

@@ -125,15 +125,15 @@
   - type: EntityTableContainerFill
     containers:
       storagebase: !type:AllSelector
-        children:
-        - id: Bloodpack
-          amount: 2
+        children: # KS14: improved paramedic belt
+        - id: Brutepack
+        - id: Ointment
         - id: Gauze
-        # Reagents focused on emergency response rather than outright healing
-        - id: ChemistryBottleInaprovaline
-          amount: 2
-        - id: ChemistryBottleHaloperidol
-        - id: ChemistryBottleEthylredoxrazine
+        - id: Bloodpack
+        - id: ChemistryBottleBicaridine
+        - id: ChemistryBottleDylovene
+        - id: ChemistryBottleDexalin
+        - id: ChemistryBottleEpinephrine
         - id: ChemistryBottleIpecac
         - id: ChemistryBottleCharcoal
 

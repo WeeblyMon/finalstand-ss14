@@ -46,26 +46,116 @@
               proto: FinalStandOrderedTargets
               key: Target
 
+# Explicitly moves toward and attacks the FSLastAttacker regardless of leash or LOS.
+# Fires when FSRetaliationTimer > 0 (set by CritSystem when the zombie is shot).
+- type: htnCompound
+  id: FinalStandPlayerRetaliationCompound
+  branches:
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSLastAttacker
+      tasks:
+        - !type:HTNPrimitiveTask
+          operator: !type:FSSetRetaliationTargetOperator
+        - !type:HTNPrimitiveTask
+          operator: !type:MoveToOperator
+            shutdownState: TaskFinished
+            pathfindInPlanning: false
+            removeKeyOnFinish: false
+            targetKey: TargetCoordinates
+            pathfindKey: TargetPathfind
+            rangeKey: MeleeRange
+        - !type:HTNPrimitiveTask
+          operator: !type:JukeOperator
+            jukeType: Away
+        - !type:HTNPrimitiveTask
+          operator: !type:MeleeOperator
+            targetKey: Target
+          preconditions:
+            - !type:KeyExistsPrecondition
+              key: Target
+            - !type:TargetInRangePrecondition
+              targetKey: Target
+              rangeKey: MeleeRange
+
+# Attacks a specific structure entity stored in FSBreachTarget.
+# Target is set by FSBreachTargetSystem when the zombie is stuck approaching the CCC.
+- type: htnCompound
+  id: FinalStandBreachModeCompound
+  branches:
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSBreachTarget
+      tasks:
+        - !type:HTNPrimitiveTask
+          operator: !type:FSSetBreachTargetOperator
+        - !type:HTNPrimitiveTask
+          operator: !type:MoveToOperator
+            shutdownState: TaskFinished
+            pathfindInPlanning: false
+            removeKeyOnFinish: false
+            targetKey: TargetCoordinates
+            pathfindKey: TargetPathfind
+            rangeKey: MeleeRange
+        - !type:HTNPrimitiveTask
+          operator: !type:JukeOperator
+            jukeType: Away
+        - !type:HTNPrimitiveTask
+          operator: !type:MeleeOperator
+            targetKey: Target
+          preconditions:
+            - !type:KeyExistsPrecondition
+              key: Target
+            - !type:TargetInRangePrecondition
+              targetKey: Target
+              rangeKey: MeleeRange
+
 # HTN compound for all Final Stand wave enemies.
-# state priority: ranged combat → melee combat → beeline to CCC → idle.
-# melee-only enemies skip the ranged branches naturally.
+# Branch priority order (Phase 2):
+#   1. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
+#   2. RangedCombat / InnateRangedCombat — for ranged-capable enemies (hivebot, etc.)
+#   3. MeleeCombat (PlayerHunt) — scan for nearby hostiles and engage
+#   4. BreachMode — attack a structure blocking the path to CCC
+#   5. CCCBeeline — path directly to the objective
+#   6. Idle
 - type: htnCompound
   id: FinalStandEnemyCompound
   branches:
+    # Priority 1 — PlayerRetaliation
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSLastAttacker
+        - !type:KeyFloatGreaterPrecondition
+          key: FSRetaliationTimer
+          value: 0.0
+      tasks:
+        - !type:HTNCompoundTask
+          task: FinalStandPlayerRetaliationCompound
+    # Priority 2 — Ranged combat (hivebot, syndicates, etc.)
     - tasks:
         - !type:HTNCompoundTask
           task: RangedCombatCompound
     - tasks:
         - !type:HTNCompoundTask
           task: InnateRangedCombatCompound
+    # Priority 3 — PlayerHunt (melee scan for nearby hostiles)
     - tasks:
         - !type:HTNCompoundTask
           task: MeleeCombatCompound
+    # Priority 4 — BreachMode (attack specific structural target)
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSBreachTarget
+      tasks:
+        - !type:HTNCompoundTask
+          task: FinalStandBreachModeCompound
+    # Priority 5 — CCCBeeline (path to objective)
     - tasks:
         - !type:HTNPrimitiveTask
           operator: !type:SetCCCTargetOperator
         - !type:HTNCompoundTask
           task: FinalStandCCCBeeline
+    # Priority 6 — Idle fallback
     - tasks:
         - !type:HTNCompoundTask
           task: IdleCompound

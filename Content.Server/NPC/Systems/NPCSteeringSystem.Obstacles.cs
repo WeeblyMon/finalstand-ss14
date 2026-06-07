@@ -163,54 +163,55 @@ public sealed partial class NPCSteeringSystem
             // Try smashing obstacles.
             else if ((component.Flags & PathFlags.Smashing) != 0x0)
             {
-                if (_melee.TryGetWeapon(uid, out _, out var meleeWeapon) && meleeWeapon.NextAttack <= _timing.CurTime && TryComp<CombatModeComponent>(uid, out var combatMode))
-                {
-                    _combat.SetInCombatMode(uid, true, combatMode);
-                    var destructibleQuery = GetEntityQuery<DestructibleComponent>();
-                    var damageableQuery = GetEntityQuery<DamageableComponent>();
-                    var doorSmashQuery = GetEntityQuery<DoorComponent>();
-                    var attackResult = false;
+                if (!_melee.TryGetWeapon(uid, out _, out var meleeWeapon) || !TryComp<CombatModeComponent>(uid, out var combatMode))
+                    return SteeringObstacleStatus.Failed;
 
-                    // Prioritize doors (airlocks) — attack the first damageable door found.
-                    EntityUid? target = null;
+                // Attack on cooldown — keep waiting at the obstacle.
+                if (meleeWeapon.NextAttack > _timing.CurTime)
+                    return SteeringObstacleStatus.Continuing;
+
+                var destructibleQuery = GetEntityQuery<DestructibleComponent>();
+                var damageableQuery = GetEntityQuery<DamageableComponent>();
+                var doorSmashQuery = GetEntityQuery<DoorComponent>();
+
+                // Prioritize doors (airlocks) — attack the first damageable door found.
+                EntityUid? target = null;
+                foreach (var ent in obstacleEnts)
+                {
+                    if (doorSmashQuery.HasComponent(ent) && damageableQuery.HasComponent(ent))
+                    {
+                        target = ent;
+                        break;
+                    }
+                }
+
+                // Fall back to destructible entities (walls, grilles) only if no door present.
+                if (target == null)
+                {
+                    // TODO: This is a hack around grilles and windows.
+                    _random.Shuffle(obstacleEnts);
                     foreach (var ent in obstacleEnts)
                     {
-                        if (doorSmashQuery.HasComponent(ent) && damageableQuery.HasComponent(ent))
+                        if (destructibleQuery.HasComponent(ent))
                         {
                             target = ent;
                             break;
                         }
                     }
-
-                    // Fall back to destructible entities (walls, grilles) only if no door present.
-                    if (target == null)
-                    {
-                        // TODO: This is a hack around grilles and windows.
-                        _random.Shuffle(obstacleEnts);
-                        foreach (var ent in obstacleEnts)
-                        {
-                            if (destructibleQuery.HasComponent(ent))
-                            {
-                                target = ent;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (target != null)
-                        attackResult = _melee.AttemptLightAttack(uid, uid, meleeWeapon, target.Value);
-
-                    _combat.SetInCombatMode(uid, false, combatMode);
-
-                    // Blocked or the likes?
-                    if (!attackResult)
-                        return SteeringObstacleStatus.Failed;
-
-                    if (obstacleEnts.Count == 0)
-                        return SteeringObstacleStatus.Completed;
-
-                    return SteeringObstacleStatus.Continuing;
                 }
+
+                // Nothing smashable in this poly — give up and repath.
+                if (target == null)
+                    return SteeringObstacleStatus.Failed;
+
+                _combat.SetInCombatMode(uid, true, combatMode);
+                _melee.AttemptLightAttack(uid, uid, meleeWeapon, target.Value);
+                _combat.SetInCombatMode(uid, false, combatMode);
+
+                if (obstacleEnts.Count == 0)
+                    return SteeringObstacleStatus.Completed;
+
+                return SteeringObstacleStatus.Continuing;
             }
 
             return SteeringObstacleStatus.Failed;

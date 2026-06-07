@@ -4,12 +4,12 @@
   parent: BaseGameRule
   components:
   - type: WaveGameRule
-    killReward: 100
+    maxEnemyCap: 400
+    killReward: 300
     waveSurvivalBonus: 500
     bossWavePrestigeReward: 50
     prepDuration: 300
     maxCombatDuration: 1800
-    spawnInterval: 2
     factionDisplay: "Xenomorphs detected"
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg
@@ -54,12 +54,21 @@
   parent: BaseGameRule
   components:
   - type: WaveGameRule
-    killReward: 100
+    maxEnemyCap: 400
+    killReward: 300
     waveSurvivalBonus: 500
     bossWavePrestigeReward: 50
+    bossPool:
+    - FSZombieGiant
+    specialEnemyPool:
+    - enemyId: FSZombieBloater
+      fromWave: 7
+      spawnChance: 0.25
+    - enemyId: FSZombieFlamethrower
+      fromWave: 9
+      spawnChance: 0.05
     prepDuration: 300
     maxCombatDuration: 1800
-    spawnInterval: 2
     factionDisplay: "Undead detected"
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg

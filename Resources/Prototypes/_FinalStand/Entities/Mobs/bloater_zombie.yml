@@ -1,0 +1,25 @@
+# FINALSTAND: Bloater — exploding zombie that prioritises players and detonates on death.
+# Spawns wave 7+, weighted at ~25% of wave composition via FSFlamethrowerSystem weighted selection.
+- type: entity
+  id: FSZombieBloater
+  parent: FSZombieNormal
+  suffix: Bloater
+  name: bloater
+  components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
+  - type: FSBoomOnDeath
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      50: Dead   # 65% of FSZombieNormal HP (75)
+  - type: FSEnemyValue
+    killCredits: 350
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/Bloater/fat_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true

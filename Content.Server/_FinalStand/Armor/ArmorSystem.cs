@@ -18,6 +18,7 @@ public sealed class FSArmorSystem : EntitySystem
 
     // Set in ProjectileHitEvent, consumed in DamageModifyEvent same frame. Cleared each Update.
     private readonly Dictionary<EntityUid, FinalStandDamageFlags> _pendingFlags = [];
+    private readonly Dictionary<EntityUid, float> _pendingShredMagnitude = [];
 
     public override void Initialize()
     {
@@ -47,6 +48,7 @@ public sealed class FSArmorSystem : EntitySystem
         }
 
         _pendingFlags.Clear();
+        _pendingShredMagnitude.Clear();
     }
 
     private void OnFlaggedProjectileHit(EntityUid uid, FSProjectileFlagsComponent comp, ref ProjectileHitEvent args)
@@ -55,6 +57,8 @@ public sealed class FSArmorSystem : EntitySystem
             return;
         _pendingFlags.TryGetValue(args.Target, out var existing);
         _pendingFlags[args.Target] = existing | comp.Flags;
+        if (comp.ArmorShredMagnitude > 0f)
+            _pendingShredMagnitude[args.Target] = comp.ArmorShredMagnitude;
     }
 
     private void OnStartup(EntityUid uid, FSArmorComponent armor, ComponentStartup _)
@@ -99,9 +103,10 @@ public sealed class FSArmorSystem : EntitySystem
             RaiseLocalEvent(uid, new ArmorDepletedEvent());
         }
 
-        // Armor shred: drain extra armor on top of normal absorption.
-        if (flags.HasFlag(FinalStandDamageFlags.ArmorShred))
-            armor.CurrentArmor = MathF.Max(0f, armor.CurrentArmor - absorbed * 0.5f);
+        // Armor shred: drain extra armor proportional to the shooter's upgrade level (0.1–0.5 per hit).
+        if (flags.HasFlag(FinalStandDamageFlags.ArmorShred)
+            && _pendingShredMagnitude.TryGetValue(uid, out var shredMag))
+            armor.CurrentArmor = MathF.Max(0f, armor.CurrentArmor - absorbed * shredMag);
 
         RaiseLocalEvent(uid, new FSArmorAbsorbedEvent { Shooter = args.Origin, Absorbed = absorbed });
         SyncNetworkedFields(uid, armor);

@@ -82,3 +82,58 @@
     tags:
     - Sidearm
     - AkimboEligible
+
+# Shotgun overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+
+- type: entity
+  id: FSWeaponShotgunBulldog
+  parent: WeaponShotgunBulldog
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - AkimboEligible
+
+# E-shottie override — upstream has no self-recharge; needed for the Rapid Charge upgrade to work.
+
+- type: entity
+  id: FSWeaponEnergyShotgun
+  parent: WeaponEnergyShotgun
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 25
+    autoRechargePauseTime: 3
+
+# Laser Carbine override — adds self-recharge and spread for upgrade interactions.
+
+- type: entity
+  id: FSWeaponLaserCarbine
+  parent: WeaponLaserCarbine
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 50
+    autoRechargePauseTime: 1.5
+  - type: Gun
+    minAngle: 0
+    maxAngle: 8
+    angleIncrease: 1.5
+
+# Pulse Rifle override — perfectly accurate, semi-auto by default; FullAuto upgrade unlocks full auto.
+
+- type: entity
+  id: FSWeaponPulseRifle
+  parent: WeaponPulseRifle
+  suffix: FinalStand
+  components:
+  - type: BatterySelfRecharger
+    autoRechargeRate: 200
+    autoRechargePauseTime: 2
+  - type: Gun
+    minAngle: 0
+    maxAngle: 0
+    angleIncrease: 0
+  - type: BatteryAmmoProvider
+    proto: FSPulse
+    fireCost: 100

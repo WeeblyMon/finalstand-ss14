@@ -70,8 +70,9 @@ public abstract partial class SharedPuddleSystem
             // Despawn if we're done
             if (puddleSolution.Volume == FixedPoint2.Zero)
             {
-                // Spawn a *sparkle*
-                if (_net.IsServer) // TODO: Change this once we have entity spawn prediction V2
+                // Spawn a *sparkle* — FINALSTAND: skip for blood-only puddles (zombie corpse cleanup has no VFX)
+                var isBloodOnly = evaporationSpeeds.Count == 1 && evaporationSpeeds.ContainsKey("Blood");
+                if (_net.IsServer && !isBloodOnly) // TODO: Change this once we have entity spawn prediction V2
                     SpawnAttachedTo(evaporation.EvaporationEffect, Transform(uid).Coordinates);
                 PredictedQueueDel(uid);
             }

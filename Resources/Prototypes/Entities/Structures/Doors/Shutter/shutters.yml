@@ -82,6 +82,7 @@
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]
+  - type: FSPlayerDamageImmune
   - type: DoorSignalControl
   - type: DeviceNetwork
     deviceNetId: Wireless

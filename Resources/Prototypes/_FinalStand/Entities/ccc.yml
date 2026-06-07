@@ -6,6 +6,10 @@
     mode: SnapgridCenter
   components:
   - type: FinalStandCCC
+  - type: FinalStandCCCTag
+  - type: FSPlayerDamageImmune
+  - type: FSBreachCostOverride
+    cost: 999  # FINALSTAND: exclude CCC from breach target selection. MobState filter already handles this but belt-and-suspenders.
   - type: ReadyCheck
   - type: AccessReader
     access:
@@ -24,11 +28,25 @@
     anchored: true
   - type: Clickable
   - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-1.0,-1.0,1.0,1.0"
+        density: 100
+        mask:
+        - LargeMobMask
+        layer:
+        - WallLayer
   - type: Sprite
     drawdepth: Mobs
-    sprite: Structures/Machines/computers.rsi
+    sprite: _FinalStand/Structures/ccc.rsi
     layers:
-    - state: comm
+    - state: base
+      scale: 0.5, 0.5
   - type: MobState
     allowedStates:
     - Alive
@@ -43,7 +61,7 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 500
+        damage: 2000 # FINALSTAND: 4x vanilla 500 — TODO(finalstand): tune CCC health during playtests
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]

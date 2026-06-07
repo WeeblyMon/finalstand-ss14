@@ -1,6 +1,5 @@
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
-using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 
@@ -28,8 +27,9 @@ public sealed class LifeStealUpgradeSystem : EntitySystem
             return;
 
         var healAmount = totalDamage * state.LifeStealPercent;
-        var heal = new DamageSpecifier();
-        heal.DamageDict["Brute"] = FixedPoint2.New(-healAmount);
-        _damageable.TryChangeDamage(ev.Shooter.Value, heal, ignoreResistances: true);
+        // HealEvenly distributes healing across all damage types the player actually has.
+        // DamageDict["Brute"] does not work at runtime — "Brute" is a group name and is only
+        // expanded during YAML deserialization, not by TryChangeDamage.
+        _damageable.HealEvenly(ev.Shooter.Value, FixedPoint2.New(-healAmount));
     }
 }

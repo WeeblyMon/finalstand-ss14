@@ -1,16 +1,19 @@
-using System.Numerics;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
-using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Shop;
@@ -18,19 +21,23 @@ namespace Content.Server._FinalStand.Shop;
 public sealed class FSPlayerUpgradesSystem : EntitySystem
 {
     [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedBatterySystem _battery = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
+    private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
 
-    /// <summary>
-    ///     Applies one level's delta of <paramref name="def"/> to <paramref name="weapon"/>.
-    ///     Call once per upgrade purchase. For SpawnItem, set <paramref name="spawnItems"/> false
-    ///     when mirroring to the akimbo partner to avoid double-spawning ammo.
-    /// </summary>
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntInsertedIntoContainerMessage>(OnMagInsertedToGun);
+    }
+
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
         switch (def.Type)
@@ -56,6 +63,10 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunA);
                 }
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                }
                 break;
 
             case WeaponUpgradeType.Accuracy:
@@ -72,15 +83,23 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
+                // Re-run the modifier event so akimbo spread penalty stacks on top of the new base values.
+                _gun.RefreshModifiers(weapon);
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                }
                 break;
 
             case WeaponUpgradeType.SpawnItem:
                 if (spawnItems && def.SpawnProtoId.HasValue)
                 {
-                    // Offset from player so items don't spawn inside their collider.
-                    var coords = Transform(player).Coordinates.Offset(new Vector2(0.5f, 0.5f));
+                    var coords = Transform(player).Coordinates;
                     for (var i = 0; i < def.SpawnCountPerLevel; i++)
-                        Spawn(def.SpawnProtoId.Value, coords);
+                    {
+                        var item = Spawn(def.SpawnProtoId.Value, coords);
+                        TryStashOnPlayer(player, item);
+                    }
                 }
                 break;
 
@@ -101,6 +120,14 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     bat.FireCost = Math.Max(1f, bat.FireCost - def.ValuePerLevel);
 #pragma warning restore RA0002
                     Dirty(weapon, bat);
+                }
+                else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
+                {
+                    // Detachable-magazine gun — store the bonus and apply it to the current mag.
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.MagazineSizeBonus += (int)def.ValuePerLevel;
+                    ApplyMagSizeBonusToCurrentMag(weapon, (int)def.ValuePerLevel);
+                    _gun.RefreshModifiers(weapon);
                 }
                 break;
 
@@ -151,6 +178,13 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 if (newLevel == 1)
                     TryApplyAkimbo(weapon, player);
                 break;
+
+            case WeaponUpgradeType.SpeedLoader:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SpeedLoaderEnabled = true;
+                break;
+            }
 
             case WeaponUpgradeType.ExplosiveShot:
             {
@@ -213,18 +247,16 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.ArmorShred:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
-                state.ArmorShredEnabled = true;
+                state.ArmorShredMagnitude += def.ValuePerLevel;
                 break;
             }
 
             case WeaponUpgradeType.Recoil:
-                // TODO(finalstand): implement when DynamicAimingCursor ticket is complete
                 break;
 
             case WeaponUpgradeType.ReloadSpeed:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
-                // Each level reduces reload time by ValuePerLevel (0.1 = 10%), clamped to 10% minimum.
                 state.ReloadSpeedMultiplier = MathF.Max(0.1f, 1.0f - newLevel * def.ValuePerLevel);
                 break;
             }
@@ -255,7 +287,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
             case WeaponUpgradeType.MovementSpeed:
             {
-                // Player-level buff — skip when mirroring to the akimbo partner to avoid double-applying.
                 if (!spawnItems) break;
                 var bonus = EnsureComp<FSSpeedBonusComponent>(player);
                 bonus.SpeedMultiplier += def.ValuePerLevel;
@@ -265,6 +296,146 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 
             case WeaponUpgradeType.Radius:
                 break;
+
+            case WeaponUpgradeType.PelletCount:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExtraPellets += (int)def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Scrapshot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ScrapshotEnabled = true;
+                state.ExtraPellets += 3;
+                if (TryComp<GunComponent>(weapon, out var gunSc))
+                {
+#pragma warning disable RA0002
+                    gunSc.MaxAngle = Angle.FromDegrees(gunSc.MaxAngle.Degrees + 15.0);
+                    gunSc.MaxAngleModified = gunSc.MaxAngle;
+#pragma warning restore RA0002
+                    Dirty(weapon, gunSc);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.Bleed:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.BleedLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.SlamFire:
+            {
+                if (TryComp<GunComponent>(weapon, out var gunSlam))
+                {
+#pragma warning disable RA0002
+                    gunSlam.AvailableModes |= SelectiveFire.FullAuto;
+                    gunSlam.SelectedMode = SelectiveFire.FullAuto;
+                    gunSlam.FireRate *= 1.4f;
+                    gunSlam.FireRateModified = gunSlam.FireRate;
+#pragma warning restore RA0002
+                    Dirty(weapon, gunSlam);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.FlechetteRounds:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FlechetteEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.SplinterImpact:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SplinterImpactEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.OverchargeShot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.OverchargeShotEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Damage:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.DamageMultiplier += def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Overkill:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.OverkillLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Execution:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExecutionEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.WarTorn:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.WarTornEnabled = true;
+                var wt = EnsureComp<FSWarTornComponent>(weapon);
+                wt.BonusPerStack = newLevel * 0.02f;
+                wt.MaxStacks = newLevel switch { 1 => 15, 2 => 30, _ => 50 };
+                break;
+            }
+
+            case WeaponUpgradeType.Suppression:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.SuppressionLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Resonance:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ResonanceEnabled = true;
+                EnsureComp<FSResonanceComponent>(weapon);
+                break;
+            }
+
+            case WeaponUpgradeType.Prismatic:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.PrismaticLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.MagEfficiency:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MagEfficiencyLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.PulseCascade:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.PulseCascadeEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Aftershock:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.AftershockEnabled = true;
+                break;
+            }
         }
     }
 
@@ -275,54 +446,64 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         if (HasComp<FSAkimboGunComponent>(gun))
             return;
 
-        var proto = MetaData(gun).EntityPrototype;
-        if (proto == null)
-            return;
+        EnsureComp<FSAkimboGunComponent>(gun);
 
-        var newGun = Spawn(proto.ID, Transform(player).Coordinates);
-
-        // Link pair BEFORE pickup so the Akimbo guard blocks recursion on the second gun.
-        var compA = EnsureComp<FSAkimboGunComponent>(gun);
-        var compB = EnsureComp<FSAkimboGunComponent>(newGun);
-        compA.PairedGun = newGun;
-        compB.PairedGun = gun;
-
-        if (!_hands.TryPickupAnyHand(player, newGun))
+        if (TryComp<GunComponent>(gun, out var gunComp))
         {
-            QueueDel(newGun);
-            RemComp<FSAkimboGunComponent>(gun);
-            _popup.PopupEntity("No free hand for akimbo.", gun, player);
-            return;
-        }
-
-        compA.MyHand = FindHandContaining(player, gun);
-        compA.PairedHand = FindHandContaining(player, newGun);
-        compB.MyHand = compA.PairedHand;
-        compB.PairedHand = compA.MyHand;
-
-        // Enable FullAuto on both guns so holding fire works.
-        // Alternation on hold fires whichever gun is the active hand; alternation on individual
-        // clicks works correctly via hand-switch.
-        foreach (var g in new[] { gun, newGun })
-        {
-            if (!TryComp<GunComponent>(g, out var gunComp))
-                continue;
 #pragma warning disable RA0002
             gunComp.AvailableModes |= SelectiveFire.FullAuto;
-            gunComp.SelectedMode   = SelectiveFire.FullAuto;
+            gunComp.SelectedMode = SelectiveFire.FullAuto;
 #pragma warning restore RA0002
-            Dirty(g, gunComp);
+            Dirty(gun, gunComp);
         }
 
         RemComp<GunRequiresWieldComponent>(gun);
-        RemComp<GunRequiresWieldComponent>(newGun);
-
         _gun.RefreshModifiers(gun);
-        _gun.RefreshModifiers(newGun);
+        _popup.PopupEntity("Akimbo activated!", gun, player);
     }
 
-    private string? FindHandContaining(EntityUid player, EntityUid item)
+    private void TryStashOnPlayer(EntityUid player, EntityUid item)
     {
-        return _hands.IsHolding(player, item, out var handName) ? handName : null;
+        foreach (var slot in InventorySlotPriority)
+        {
+            if (_inventory.TryEquip(player, item, slot, silent: true))
+                return;
+        }
+        if (_inventory.TryGetSlotEntity(player, "back", out var backpack))
+            _storage.Insert(backpack.Value, item, out _, user: player, playSound: false);
+    }
+
+    private void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
+    {
+        if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot))
+            return;
+        var mag = slot.Item;
+        if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))
+            return;
+#pragma warning disable RA0002
+        bal.Capacity += bonus;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + bonus, bal.Capacity);
+#pragma warning restore RA0002
+        var upgraded = EnsureComp<FSMagUpgradedComponent>(mag.Value);
+        upgraded.AppliedBonus += bonus;
+        Dirty(mag.Value, bal);
+    }
+
+    private void OnMagInsertedToGun(EntityUid gun, FSWeaponUpgradeStateComponent state,
+        EntInsertedIntoContainerMessage args)
+    {
+        if (state.MagazineSizeBonus <= 0) return;
+        if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal)) return;
+
+        var upgraded = EnsureComp<FSMagUpgradedComponent>(args.Entity);
+        var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
+        if (diff <= 0) return;
+
+#pragma warning disable RA0002
+        bal.Capacity += diff;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
+#pragma warning restore RA0002
+        upgraded.AppliedBonus = state.MagazineSizeBonus;
+        Dirty(args.Entity, bal);
     }
 }

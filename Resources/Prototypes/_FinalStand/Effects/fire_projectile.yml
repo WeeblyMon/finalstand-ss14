@@ -1,0 +1,23 @@
+- type: entity
+  id: FSFireProjectile
+  parent: BaseBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSFireProjectile
+  - type: Sprite
+    noRot: false
+    drawdepth: Effects
+    sprite: _FinalStand/Effects/Flamethrower/fire.rsi
+    layers:
+    - state: fire
+      shader: unshaded
+  - type: Projectile
+    deleteOnCollide: true
+    ignoreResistances: true
+    soundHit: ~
+    impactEffect: ~
+    damage: {}
+  - type: FlyBySound
+    prob: 0
+  - type: TimedDespawn
+    lifetime: 0.6

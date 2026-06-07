@@ -213,8 +213,10 @@ public sealed partial class NPCSteeringSystem
                 // Breaking behaviours and the likes.
                 lock (_obstacles)
                 {
-                    // We're still coming to a stop so wait for the do_after.
-                    if (body.LinearVelocity.LengthSquared() > 0.01f)
+                    // FINALSTAND: smash-only mobs don't start a DoAfter so they don't need to stop first
+                    var smashOnly = (steering.Flags & PathFlags.Smashing) != 0x0
+                                    && (steering.Flags & PathFlags.Prying) == 0x0;
+                    if (!smashOnly && body.LinearVelocity.LengthSquared() > 0.01f)
                     {
                         return true;
                     }

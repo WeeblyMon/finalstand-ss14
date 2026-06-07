@@ -54,7 +54,7 @@
     placeCentered: true
     isPlaceable: false
   - type: Damageable
-    damageModifierSet: StructuralMetallic
+    damageModifierSet: ~ # FINALSTAND: removed StructuralMetallic so zombies can damage closets
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible

@@ -1,0 +1,48 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-4.0",
+    "copyright": "by kyres1 (Github)",
+    "size": {
+        "x": 32,
+        "y": 32
+    },
+    "states": [
+        {
+            "name": "base",
+            "directions": 4
+        },
+		{
+            "name": "base2",
+            "directions": 4
+        },
+		{
+            "name": "base3",
+            "directions": 4
+        },
+		{
+            "name": "base4",
+            "directions": 4
+        },
+		{
+            "name": "base5",
+            "directions": 4
+        },
+		{
+            "name": "base5-alt1",
+            "directions": 4
+        },
+		{
+            "name": "base5-alt2",
+            "directions": 4
+        },
+        {
+            "name": "base5-dead"
+        },
+        {
+            "name": "base5-alt1-dead"
+        },
+        {
+            "name": "base5-alt2-dead"
+        }
+    ]
+}

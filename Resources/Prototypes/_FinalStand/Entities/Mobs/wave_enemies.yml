@@ -11,11 +11,16 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
+    # FINALSTAND: 1s minimum replan interval — balances fast door/obstacle recovery
+    # against stop-start twitching. Original 3s caused multi-second stalls at open airlocks.
+    planCooldown: 1.0
     blackboard:
       NavPry: !type:Bool
         false
       NavSmash: !type:Bool
         true
+      NavInteract: !type:Bool
+        false
   - type: NpcFactionMember
     factions:
     - FSZombie
@@ -30,18 +35,11 @@
         Slash: 10
   - type: Sprite
     drawdepth: Mobs
-    sprite: Mobs/Aliens/flesh.rsi
+    sprite: _FinalStand/Mobs/Zombies/zombie.rsi
     layers:
     - map: ["enum.DamageStateVisualLayers.Base"]
-      state: jared
-  - type: DamageStateVisuals
-    states:
-      Alive:
-        Base: jared
-      Critical:
-        Base: dead
-      Dead:
-        Base: dead
+      state: base
+  - type: FSZombieVisuals
   - type: Fixtures
     fixtures:
       fix1:
@@ -53,12 +51,22 @@
         - MobMask
         layer:
         - MobLayer
+  - type: Bloodstream
+    bloodReferenceSolution:
+      reagents:
+      - ReagentId: Blood
+        Quantity: 20
+  - type: Tag
+    tags:
+    - StunImmune
   - type: MovementIgnoreGravity
   - type: Stamina
     baseCritThreshold: 100
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  - type: Flammable
+    fireSpread: false
 
 - type: entity
   id: FSZombieNormal
@@ -74,7 +82,7 @@
     baseWalkSpeed: 2.0
     baseSprintSpeed: 2.5
   - type: FSEnemyValue
-    killCredits: 100
+    killCredits: 300
 
 - type: entity
   id: FSZombieRunner
@@ -82,15 +90,25 @@
   suffix: Runner
   name: runner zombie
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/runner.png
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/runner.rsi/sprinter_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
   - type: MobThresholds
     thresholds:
       0: Alive
       40: Dead
   - type: MovementSpeedModifier
-    baseWalkSpeed: 4.5
-    baseSprintSpeed: 5.5
+    baseWalkSpeed: 3.6
+    baseSprintSpeed: 4.4
   - type: FSEnemyValue
-    killCredits: 120
+    killCredits: 360
 
 - type: entity
   id: FSZombieArmoured
@@ -98,6 +116,16 @@
   suffix: Armoured
   name: armoured zombie
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/armoured.rsi/armored_zombie_1.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -112,7 +140,7 @@
         Slash: 0.6
         Piercing: 0.7
   - type: FSEnemyValue
-    killCredits: 200
+    killCredits: 600
   - type: FSArmor
     maxHPRatio: 0.5
     regenRate: 10
@@ -134,7 +162,7 @@
     baseWalkSpeed: 1.0
     baseSprintSpeed: 1.3
   - type: FSEnemyValue
-    killCredits: 350
+    killCredits: 1050
 
 # TODO(finalstand): add ArmorComponent when FSZombieBerserker is implemented
 # maxHPRatio: 0.2, regenRate: 10 (light armor — enrage mechanic is the real threat)
@@ -154,30 +182,59 @@
     baseWalkSpeed: 2.5
     baseSprintSpeed: 3.5
   - type: FSEnemyValue
-    killCredits: 300
+    killCredits: 900
 
-# TODO(finalstand): add ArmorComponent when FSZombieGiant is implemented
-# maxHPRatio: 0.4, regenRate: 10 (heavy but not as armored as Destroyer)
 - type: entity
   id: FSZombieGiant
   parent: FSZombieBase
   suffix: Giant
   name: giant zombie
-  abstract: true
+  # HP scaling: ScaleEnemyHp is called explicitly in WaveGameRuleSystem.StartCombatPhase
+  # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
+  # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
   components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
   - type: MobThresholds
     thresholds:
       0: Alive
-      1500: Dead
+      800: Dead
   - type: MovementSpeedModifier
-    baseWalkSpeed: 0.8
-    baseSprintSpeed: 1.0
+    baseWalkSpeed: 2.0
+    baseSprintSpeed: 2.5
   - type: FSEnemyValue
-    killCredits: 1000
+    killCredits: 3000
+  - type: FSArmor
+    maxHPRatio: 0.4
+    regenRate: 10
+  # Sprite: 1.5x scale on base layer — placeholder using normal zombie sprite.
+  # TODO(finalstand): replace with final Giant sprite when art is ready.
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+      scale: 1.5, 1.5
+  # Hitbox scaled to 1.5x normal zombie radius (0.25 * 1.5 = 0.375).
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.375
+        density: 235
+        mask:
+        - MobMask
+        layer:
+        - MobLayer
+  - type: FSGiantStomp
 
-# ── Shared prying config for all wave enemies ────────────────────────────────
-# pryPowered: can open powered airlocks, force: bypass bolted doors,
-# speedModifier: 8.0 = ~0.6s pry so BreakOnMove rarely cancels it.
+# ── Non-zombie wave enemies ──────────────────────────────────────────────────
+# NavPry: false — do not pry airlocks (would let them open locked doors).
+# NavSmash: true — pathfinder routes through walls; FSBreachTargetSystem handles smash targeting.
+# No Prying component — these mobs smash obstacles, they do not pry.
+
 - type: entity
   id: FSMobXeno
   parent: MobXeno
@@ -186,10 +243,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
   - type: Fixtures
     fixtures:
       fix1:
@@ -210,10 +271,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobXenoDrone
@@ -223,10 +288,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobXenoPraetorian
@@ -236,10 +305,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobSpiderSpace
@@ -249,10 +322,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobFleshJared
@@ -262,10 +339,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobHivebotRanged
@@ -275,10 +356,14 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag
 
 - type: entity
   id: FSMobSyndicateFootsoldier
@@ -288,7 +373,11 @@
   - type: HTN
     rootTask:
       task: FinalStandEnemyCompound
-  - type: Prying
-    pryPowered: true
-    force: true
-    speedModifier: 8.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        true
+      NavInteract: !type:Bool
+        false
+  - type: WaveSpawnedTag

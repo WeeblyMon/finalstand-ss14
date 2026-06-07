@@ -495,7 +495,12 @@ public sealed class NPCUtilitySystem : EntitySystem
             {
                 foreach (var ent in _npcFaction.GetNearbyHostiles(owner, vision))
                 {
-                    entities.Add(ent);
+                    // FINALSTAND: Require line-of-sight so hostiles behind walls and in side
+                    // rooms are never added to the candidate list. Without this, raw-radius
+                    // detection caused zombies to aggro players through closed doors and
+                    // permanently abandon CCC pathing.
+                    if (_examine.InRangeUnOccluded(owner, ent, vision + 0.5f, null))
+                        entities.Add(ent);
                 }
                 break;
             }

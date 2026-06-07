@@ -4,11 +4,13 @@ using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Shop;
@@ -19,6 +21,7 @@ public sealed class FSShopClientSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private readonly InventorySystem _inventory = default!;
 
     private static readonly ProtoId<ShaderPrototype> ShaderAffordable = "FSShopGlowAffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderUnaffordable = "FSShopGlowUnaffordable";
@@ -34,6 +37,8 @@ public sealed class FSShopClientSystem : EntitySystem
     public event Action? UpgradeLevelsChanged;
     public event Action? RefreshNeeded;
     public event Action? PerkStateChanged;
+    public event Action? SellCompleted;
+    public event Action<string>? SellFailed;
 
     private readonly Dictionary<EntityUid, ShopGlowState> _lastGlowState = [];
 
@@ -44,6 +49,8 @@ public sealed class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<UpgradeLevelsUpdatedEvent>(OnUpgradesUpdated);
         SubscribeNetworkEvent<PerkAddedEvent>(OnPerkAdded);
         SubscribeNetworkEvent<PerkRemovedAllEvent>(OnPerkRemovedAll);
+        SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
+        SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
         SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);
@@ -170,6 +177,48 @@ public sealed class FSShopClientSystem : EntitySystem
         if (held == null || !HasComp<GunComponent>(held.Value))
             return null;
         return held.Value;
+    }
+
+    private void OnSellCompleted(FSShopSellCompletedEvent _) => SellCompleted?.Invoke();
+
+    private void OnSellFailed(FSShopSellFailedEvent ev) => SellFailed?.Invoke(ev.Reason);
+
+    public EntityUid? GetLocalPlayer() => _player.LocalSession?.AttachedEntity;
+
+    private static readonly string[] InventorySlots = ["belt", "suitstorage", "pocket1", "pocket2"];
+
+    public bool PlayerHasWeaponInInventory(EntityUid? player, EntProtoId? protoId)
+    {
+        if (player == null || protoId == null) return false;
+        var targetId = protoId.Value.Id;
+
+        foreach (var held in _hands.EnumerateHeld(player.Value))
+        {
+            if (MetaData(held).EntityPrototype?.ID == targetId)
+                return true;
+        }
+
+        foreach (var slot in InventorySlots)
+        {
+            if (_inventory.TryGetSlotEntity(player.Value, slot, out var item) && item != null
+                && MetaData(item.Value).EntityPrototype?.ID == targetId)
+                return true;
+        }
+
+        if (_inventory.TryGetSlotEntity(player.Value, "back", out var back) && back != null
+            && TryComp<ContainerManagerComponent>(back.Value, out var mgr))
+        {
+            foreach (var container in mgr.Containers.Values)
+            {
+                foreach (var entity in container.ContainedEntities)
+                {
+                    if (MetaData(entity).EntityPrototype?.ID == targetId)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private bool PlayerHasWeapon(EntityUid player, EntProtoId? protoId)

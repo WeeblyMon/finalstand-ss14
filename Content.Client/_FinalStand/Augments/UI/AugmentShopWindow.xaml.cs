@@ -59,6 +59,15 @@ public sealed partial class AugmentShopWindow : FancyWindow
         AugmentCategory.Yellow, AugmentCategory.Purple,
     ];
 
+    private static readonly Dictionary<AugmentCategory, string> CatFolder = new()
+    {
+        [AugmentCategory.Red]    = "Reds",
+        [AugmentCategory.Blue]   = "Blues",
+        [AugmentCategory.Green]  = "Greens",
+        [AugmentCategory.Yellow] = "Yellows",
+        [AugmentCategory.Purple] = "Purples",
+    };
+
     private const int GridColumns = 7;
     private const int CellSize    = 64;
 
@@ -74,11 +83,9 @@ public sealed partial class AugmentShopWindow : FancyWindow
         RobustXamlLoader.Load(this);
         _res = IoCManager.Resolve<IResourceCache>();
 
-        // Tab titles
         ShopTabs.SetTabTitle(0, "Augments");
         ShopTabs.SetTabTitle(1, "Prestige");
 
-        // Category filter buttons
         FilterAll.OnPressed    += _ => SetFilter(null);
         FilterRed.OnPressed    += _ => SetFilter(AugmentCategory.Red);
         FilterBlue.OnPressed   += _ => SetFilter(AugmentCategory.Blue);
@@ -163,13 +170,15 @@ public sealed partial class AugmentShopWindow : FancyWindow
 
     private Texture? GetAugmentIcon(string augmentId, int level)
     {
-        var name = augmentId.ToLowerInvariant();
+        if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
+            return null;
 
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{name}level{level}.png", out var tex))
+        var folder = CatFolder[def.Category];
+        var name   = augmentId.ToLowerInvariant();
+
+        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level{level}.png", out var tex))
             return tex;
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{name}level0.png", out tex))
-            return tex;
-        if (TryLoadTexture("/Textures/_FinalStand/Interface/Augments/stoppingpowerlevel0.png", out tex))
+        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level0.png", out tex))
             return tex;
 
         Logger.Warning($"[AugmentShop] No icon found for augment '{augmentId}' level {level}.");
@@ -228,14 +237,17 @@ public sealed partial class AugmentShopWindow : FancyWindow
                 StyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.Transparent },
             };
 
-            var border = new PanelContainer { HorizontalExpand = true, VerticalExpand = true };
-            var borderStyle = new StyleBoxFlat
+            var layers = new LayoutContainer { HorizontalExpand = true, VerticalExpand = true };
+
+            var bgPanel = new PanelContainer
             {
-                BackgroundColor = isEmpty ? Color.Transparent : Color.FromHex("#1A1A1A"),
-                BorderColor     = borderColor,
-                BorderThickness = new Thickness(isSelected ? 2 : 1),
+                PanelOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = isEmpty ? Color.Transparent : Color.FromHex("#1A1A1A"),
+                },
             };
-            border.PanelOverride = borderStyle;
+            LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
+            layers.AddChild(bgPanel);
 
             if (!isEmpty)
             {
@@ -245,16 +257,26 @@ public sealed partial class AugmentShopWindow : FancyWindow
                     var tex = new TextureRect
                     {
                         Texture = icon,
-                        Stretch = TextureRect.StretchMode.KeepAspectCentered,
-                        HorizontalExpand = true,
-                        VerticalExpand   = true,
-                        Margin           = new Thickness(3),
+                        Stretch = TextureRect.StretchMode.Scale,
                     };
-                    border.AddChild(tex);
+                    LayoutContainer.SetAnchorPreset(tex, LayoutContainer.LayoutPreset.Wide);
+                    layers.AddChild(tex);
                 }
             }
 
-            btn.AddChild(border);
+            var borderPanel = new PanelContainer
+            {
+                PanelOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = Color.Transparent,
+                    BorderColor = borderColor,
+                    BorderThickness = new Thickness(isSelected ? 2 : 1),
+                },
+            };
+            LayoutContainer.SetAnchorPreset(borderPanel, LayoutContainer.LayoutPreset.Wide);
+            layers.AddChild(borderPanel);
+
+            btn.AddChild(layers);
 
             btn.OnPressed += _ =>
             {
@@ -355,7 +377,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
         var isSelected = _selectedId == def.Id;
         var isMax      = level == FSAugmentDef.MaxLevel;
 
-        // Background opacity by level
         var bgAlpha = level switch
         {
             0 => 0f,
@@ -365,7 +386,6 @@ public sealed partial class AugmentShopWindow : FancyWindow
             _ => 1.0f,
         };
 
-        // Border brightness by level
         var borderAlpha = level switch
         {
             0 => 0f,
@@ -384,37 +404,15 @@ public sealed partial class AugmentShopWindow : FancyWindow
             StyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.Transparent },
         };
 
-        // paneloverride is swapped on hover — hence the separate cellBg
-        var cellBg = new PanelContainer
+        var layers = new LayoutContainer
         {
             HorizontalExpand = true,
             VerticalExpand   = true,
         };
 
-        void ApplyBg(bool hovering)
-        {
-            var currentBg = level > 0 ? bg.WithAlpha(bgAlpha + (hovering ? 0.15f : 0f)) : Color.Transparent;
-            var style = new StyleBoxFlat { BackgroundColor = currentBg };
-            if (isSelected)
-            {
-                style.BorderColor     = Color.White;
-                style.BorderThickness = new Thickness(2);
-            }
-            else if (level > 0)
-            {
-                style.BorderColor     = accent.WithAlpha(borderAlpha);
-                style.BorderThickness = new Thickness(1);
-            }
-            cellBg.PanelOverride = style;
-        }
-        ApplyBg(false);
-
-        var layout = new LayoutContainer
-        {
-            MinSize          = new Vector2(CellSize, CellSize),
-            HorizontalExpand = true,
-            VerticalExpand   = true,
-        };
+        var bgPanel = new PanelContainer();
+        LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
+        layers.AddChild(bgPanel);
 
         var icon = GetAugmentIcon(def.Id, level);
         if (icon != null)
@@ -422,43 +420,65 @@ public sealed partial class AugmentShopWindow : FancyWindow
             var tex = new TextureRect
             {
                 Texture = icon,
-                Stretch = TextureRect.StretchMode.KeepCentered,
-                Margin  = new Thickness(4),
+                Stretch = TextureRect.StretchMode.Scale,
             };
             LayoutContainer.SetAnchorPreset(tex, LayoutContainer.LayoutPreset.Wide);
-            layout.AddChild(tex);
+            layers.AddChild(tex);
         }
         else
         {
             var q = new Label
             {
-                Text                 = "?",
-                Modulate             = accent,
-                HorizontalAlignment  = HAlignment.Center,
-                VerticalAlignment    = VAlignment.Center,
-                HorizontalExpand     = true,
-                VerticalExpand       = true,
+                Text = "?",
+                Modulate = accent,
+                HorizontalAlignment = HAlignment.Center,
+                VerticalAlignment = VAlignment.Center,
+                HorizontalExpand = true,
+                VerticalExpand = true,
             };
             LayoutContainer.SetAnchorPreset(q, LayoutContainer.LayoutPreset.Wide);
-            layout.AddChild(q);
+            layers.AddChild(q);
         }
+
+        var borderPanel = new PanelContainer();
+        LayoutContainer.SetAnchorPreset(borderPanel, LayoutContainer.LayoutPreset.Wide);
+        layers.AddChild(borderPanel);
+
+        void ApplyBg(bool hovering)
+        {
+            var currentBg = level > 0 ? bg.WithAlpha(bgAlpha + (hovering ? 0.15f : 0f)) : Color.Transparent;
+            bgPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = currentBg };
+
+            var border = new StyleBoxFlat { BackgroundColor = Color.Transparent };
+            if (isSelected)
+            {
+                border.BorderColor = Color.White;
+                border.BorderThickness = new Thickness(2);
+            }
+            else if (level > 0)
+            {
+                border.BorderColor = accent.WithAlpha(borderAlpha);
+                border.BorderThickness = new Thickness(1);
+            }
+            borderPanel.PanelOverride = border;
+        }
+        ApplyBg(false);
 
         if (isMax)
         {
             var badge = new Label
             {
-                Text     = "MAX",
+                Text = "MAX",
                 Modulate = Color.FromHex("#FFD700"),
-                Margin   = new Thickness(0, 0, 2, 1),
+                Margin = new Thickness(0, 0, 2, 1),
             };
             LayoutContainer.SetAnchorPreset(badge, LayoutContainer.LayoutPreset.BottomRight);
             LayoutContainer.SetGrowHorizontal(badge, LayoutContainer.GrowDirection.Begin);
             LayoutContainer.SetGrowVertical(badge, LayoutContainer.GrowDirection.Begin);
-            layout.AddChild(badge);
+            layers.AddChild(badge);
         }
 
-        cellBg.AddChild(layout);
-        outer.AddChild(cellBg);
+        outer.AddChild(layers);
 
         outer.OnMouseEntered += _ => ApplyBg(true);
         outer.OnMouseExited  += _ => ApplyBg(false);

@@ -1,4 +1,6 @@
 using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Sprint;
+using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -59,6 +61,7 @@ public sealed class PerkSystem : EntitySystem
         Dirty(player, comp);
 
         RevertDoubleTap();
+        RemoveStaminUpPool(player);
         _movement.RefreshMovementSpeedModifiers(player);
 
         if (_playerManager.TryGetSessionByEntity(player, out var session))
@@ -81,12 +84,47 @@ public sealed class PerkSystem : EntitySystem
         {
             case PerkType.StaminUp:
                 _movement.RefreshMovementSpeedModifiers(player);
+                ApplyStaminUpPool(player);
                 break;
 
             case PerkType.DoubleTap:
                 ApplyDoubleTap(player);
                 break;
         }
+    }
+
+    private void ApplyStaminUpPool(EntityUid player)
+    {
+        if (!TryComp<StaminaComponent>(player, out var stamina))
+            return;
+
+        var sprint = EnsureComp<FSSprintComponent>(player);
+
+        if (sprint.StaminaBonusFromPerk > 0f)
+            return;
+
+        var bonus = stamina.BaseCritThreshold * 0.25f;
+        sprint.StaminaBonusFromPerk = bonus;
+        stamina.CritThreshold = stamina.BaseCritThreshold + bonus;
+        Dirty(player, stamina);
+        Dirty(player, sprint);
+    }
+
+    private void RemoveStaminUpPool(EntityUid player)
+    {
+        if (!TryComp<FSSprintComponent>(player, out var sprint) || sprint.StaminaBonusFromPerk <= 0f)
+            return;
+        if (!TryComp<StaminaComponent>(player, out var stamina))
+            return;
+
+        sprint.StaminaBonusFromPerk = 0f;
+        stamina.CritThreshold = stamina.BaseCritThreshold;
+        // Clamp current damage so we don't overshoot the new threshold.
+        if (stamina.StaminaDamage > stamina.CritThreshold)
+            stamina.StaminaDamage = stamina.CritThreshold;
+
+        Dirty(player, stamina);
+        Dirty(player, sprint);
     }
 
     private void ApplyDoubleTap(EntityUid player)

@@ -390,6 +390,7 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.4,0.4,0.29"
         density: 135
+        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask #this is so they can go under plastic flaps
         layer:
@@ -458,6 +459,7 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.2,0.4,0.29"
         density: 80
+        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - TabletopMachineMask
         layer:
@@ -498,6 +500,7 @@
           !type:PhysShapeAabb
           bounds: "-0.3,-0.4,0.3,0.19"
         density: 50
+        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask #this is so they can go under plastic flaps
         layer:

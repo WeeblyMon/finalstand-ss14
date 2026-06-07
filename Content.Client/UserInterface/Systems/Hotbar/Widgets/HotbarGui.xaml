@@ -35,9 +35,14 @@
                           Margin="10">
             </BoxContainer>
         </BoxContainer>
+        <RichTextLabel Name="CCCUnderAttackLabel"
+                       Access="Public"
+                       HorizontalAlignment="Center"
+                       Visible="False"/>
         <BoxContainer Orientation="Horizontal" Name="Hotbar" HorizontalAlignment="Center">
             <inventory:ItemSlotButtonContainer
                 Name="SecondHotbar"
+                Access="Public"
                 SlotGroup="SecondHotbar"
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Right"

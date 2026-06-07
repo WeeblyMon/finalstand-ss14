@@ -1,0 +1,12 @@
+# FINALSTAND: Short-lived fire particle spawned by FSFlamethrowerSystem in a cone.
+# Each particle gets a random velocity applied at spawn time.
+- type: entity
+  id: FSFlameParticle
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    sprite: _FinalStand/Effects/Flamethrower/fire.rsi
+    state: fire
+  - type: TimedDespawn
+    lifetime: 0.25

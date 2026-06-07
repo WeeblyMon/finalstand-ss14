@@ -9,6 +9,8 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
     [ViewVariables]
     private CCCWindow? _window;
 
+    private bool _canStartWave;
+
     public CCCBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
     protected override void Open()
@@ -24,18 +26,28 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
             gridUid = xform.GridUid;
 
         _window.InitMaps(gridUid, Owner);
+
+        var cap = EntMan.System<CCCCapabilityClientSystem>();
+        _canStartWave = cap.CanStartWave;
+        cap.CanStartWaveChanged += OnCapabilityChanged;
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         if (state is not CCCBoundUserInterfaceState cccState) return;
-        _window?.UpdateState(cccState);
+        _window?.UpdateState(cccState, _canStartWave);
+    }
+
+    private void OnCapabilityChanged(bool canStart)
+    {
+        _canStartWave = canStart;
     }
 
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
         if (!disposing) return;
+        EntMan.System<CCCCapabilityClientSystem>().CanStartWaveChanged -= OnCapabilityChanged;
         _window?.Dispose();
     }
 }

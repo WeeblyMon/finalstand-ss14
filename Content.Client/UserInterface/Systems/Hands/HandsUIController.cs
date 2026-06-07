@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.CCC;
 using Content.Client.Gameplay;
 using Content.Client.Hands.Systems;
 using Content.Client.UserInterface.Controls;
@@ -26,6 +27,7 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
 
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
     [UISystemDependency] private readonly UseDelaySystem _useDelay = default!;
+    [UISystemDependency] private readonly CCCUnderAttackClientSystem _cccAttack = default!;
 
     private HandsComponent? _playerHandsComponent;
     private HandButton? _activeHand;
@@ -401,6 +403,17 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
         }
 
         handsGui.AkimboLabel.Visible = anyAkimbo;
+
+        // CCC Under Attack indicator
+        if (_cccAttack.IsActive)
+        {
+            handsGui.CCCUnderAttackLabel.Visible = true;
+            handsGui.CCCUnderAttackLabel.Text = _cccAttack.GetMarkup();
+        }
+        else
+        {
+            handsGui.CCCUnderAttackLabel.Visible = false;
+        }
     }
 
     private void UpdateHandStatus(HandButton hand, EntityUid? entity, Hand? handData)

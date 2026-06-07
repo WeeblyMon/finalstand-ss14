@@ -5,6 +5,20 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 [DataDefinition]
+public sealed partial class SpecialEnemyConfig
+{
+    [DataField]
+    public EntProtoId EnemyId = "FSZombieBloater";
+
+    [DataField]
+    public int FromWave = 7;
+
+    // Sequential independent roll: each special checked in list order; first hit wins.
+    [DataField]
+    public float SpawnChance = 0.25f;
+}
+
+[DataDefinition]
 public sealed partial class WaveEnemyConfig
 {
     [DataField]
@@ -28,7 +42,13 @@ public sealed partial class WaveGameRuleComponent : Component
     public TimeSpan MaxCombatDuration = TimeSpan.FromSeconds(1800);
 
     [DataField]
-    public TimeSpan SpawnInterval = TimeSpan.FromSeconds(2);
+    public float MinSpawnInterval = 0.2f;
+
+    [DataField]
+    public float MaxSpawnInterval = 0.5f;
+
+    [DataField]
+    public int SpawnBatchSize = 2;
 
     [DataField]
     public List<WaveEnemyConfig> EnemyConfigs = new()
@@ -50,6 +70,12 @@ public sealed partial class WaveGameRuleComponent : Component
 
     [DataField]
     public int BossWavePerkReward = 50;
+
+    [DataField]
+    public List<EntProtoId> BossPool = new() { "FSZombieGiant" };
+
+    [DataField]
+    public List<SpecialEnemyConfig> SpecialEnemyPool = new();
 
     [DataField]
     public string FactionDisplay = "Unknown hostiles detected";
@@ -76,6 +102,19 @@ public sealed partial class WaveGameRuleComponent : Component
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
 
-    /// <summary>Admin toggle: stops new enemies from spawning without ending the wave.</summary>
+    [DataField]
+    public float BaseZombieMeleeDamage = 10f;
+
     public bool SpawnPaused = false;
+
+    public EntityUid GiantEntity = EntityUid.Invalid;
+    public bool GiantApAwarded = false;
+
+    public int AccumulatedSurvivalBonus = 0;
+}
+
+[RegisterComponent]
+public sealed partial class FSEnemyDamageTrackingComponent : Component
+{
+    public readonly HashSet<EntityUid> AttackerMinds = new();
 }

@@ -143,6 +143,7 @@
   - type: Damageable # FINALSTAND: removed StrongMetallic so zombies deal full damage
   - type: Injurable
     damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
   - type: RCDDeconstructable
     cost: 6
     delay: 8

@@ -62,6 +62,8 @@
                 </PanelContainer>
 
                 <Button Name="BuyButton" />
+                <Label Name="SellConfirmLabel" Visible="False" Margin="0 4 0 0" HorizontalAlignment="Center" />
+                <Button Name="SellButton" Margin="0 4 0 0" />
 
             </BoxContainer>
 

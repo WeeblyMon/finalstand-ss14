@@ -50,7 +50,7 @@ public sealed class FSXpHudController : UIController
         var barContainer = new LayoutContainer
         {
             HorizontalExpand = true,
-            SetHeight = 9,
+            SetHeight = 18,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
 
@@ -62,8 +62,8 @@ public sealed class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#FFD700") };
-        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#1A1A00") };
+        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#23707e") };
+        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#212226") };
 
         _label = new Label
         {
@@ -71,11 +71,12 @@ public sealed class FSXpHudController : UIController
             Align = Label.AlignMode.Center,
             Modulate = Color.FromHex("#FFFFFF"),
             MouseFilter = Control.MouseFilterMode.Ignore,
-            FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 7),
+            FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 12),
         };
 
         LayoutContainer.SetAnchorPreset(_bar, LayoutContainer.LayoutPreset.Wide);
         LayoutContainer.SetAnchorPreset(_label, LayoutContainer.LayoutPreset.Wide);
+        LayoutContainer.SetMarginTop(_label, -8);
 
         barContainer.AddChild(_bar);
         barContainer.AddChild(_label);

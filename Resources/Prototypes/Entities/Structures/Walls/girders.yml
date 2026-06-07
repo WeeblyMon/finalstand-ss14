@@ -27,8 +27,8 @@
   - type: Sprite
     sprite: Structures/Walls/solid.rsi
     state: wall_girder
-  - type: Damageable
-    damageModifierSet: StructuralMetallic
+  - type: Damageable # FINALSTAND: removed StructuralMetallic so zombies can damage girders
+    damageModifierSet: ~
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
