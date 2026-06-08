@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Content.Shared\Content.Shared.csproj" />
+    <ProjectReference Include="..\Content.Goobstation.Maths\Content.Goobstation.Maths.csproj" />
+    <ProjectReference Include="..\Content.Goobstation.Common\Content.Goobstation.Common.csproj" />
   </ItemGroup>
   <Import Project="..\RobustToolbox\MSBuild\Robust.Properties.targets" />
   <Import Project="..\RobustToolbox\MSBuild\XamlIL.targets" />
