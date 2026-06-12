@@ -184,7 +184,7 @@ namespace Content.Server.GameTicking
             }
 
             string speciesId;
-            if (_randomizeCharacters)
+            if (_randomizeCharacters && !lateJoin)
             {
                 var weightId = _cfg.GetCVar(CCVars.ICRandomSpeciesWeights);
 
