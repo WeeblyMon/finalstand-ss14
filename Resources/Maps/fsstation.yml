@@ -53150,7 +53150,6 @@ entities:
       parent: 1
     - type: Blocking
       blockingToggleActionEntity: 1213
-      user: invalid
     - type: ActionsContainer
     - type: ContainerContainer
       containers:
@@ -53195,7 +53194,6 @@ entities:
       parent: 1
     - type: Blocking
       blockingToggleActionEntity: 1209
-      user: invalid
     - type: ActionsContainer
     - type: ContainerContainer
       containers:
