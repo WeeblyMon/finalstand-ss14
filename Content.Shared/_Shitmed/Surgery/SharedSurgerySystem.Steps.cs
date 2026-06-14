@@ -312,7 +312,7 @@ public abstract partial class SharedSurgerySystem
         if (targetPart != default)
         {
             // We reward players for properly affixing the parts by healing a little bit of damage, and enabling the part temporarily.
-            _wounds.TryHealWoundsOnWoundable(targetPart.Id, 12f, out _, damageGroup: _prototypes.Index<DamageGroupPrototype>("Brute"));
+            _wounds.TryHealWoundsOnWoundable(targetPart.Id, 12f, out _, damageGroup: _prototypes.Index(new ProtoId<DamageGroupPrototype>("Brute")));
             RemComp<BodyPartReattachedComponent>(targetPart.Id);
         }
     }
@@ -344,7 +344,7 @@ public abstract partial class SharedSurgerySystem
         if (!_body.TryGetParentBodyPart(args.Part, out var parentPart, out _))
             return;
 
-        _wounds.AmputateWoundableSafely(parentPart.Value, args.Part, amputateChildrenSafely: true);
+        _wounds.AmputateWoundableSafely(parentPart!.Value, args.Part, amputateChildrenSafely: true);
         _hands.TryPickupAnyHand(args.User, args.Part);
     }
 
@@ -492,7 +492,8 @@ public abstract partial class SharedSurgerySystem
             return;
 
         markingList ??= new List<Marking>();
-        if (markingList.Any(marking => marking.MarkingId.Contains(ent.Comp.MatchString)))
+        // FIX: Add '.Id' after 'MarkingId' to convert it to a string before calling Contains
+        if (markingList.Any(marking => marking.MarkingId.Id.Contains(ent.Comp.MatchString)))
             return;
 
         EnsureComp<BodyPartAppearanceComponent>(args.Part);
@@ -516,7 +517,7 @@ public abstract partial class SharedSurgerySystem
 
         if (!TryComp(args.Body, out HumanoidAppearanceComponent? bodyAppearance)
             || !bodyAppearance.MarkingSet.Markings.TryGetValue(markingCategory, out var markingList)
-            || !markingList.Any(marking => marking.MarkingId.Contains(ent.Comp.MatchString)))
+            || !markingList.Any(marking => ((string)marking.MarkingId).Contains(ent.Comp.MatchString)))
             args.Cancelled = true;
     }
 
@@ -703,7 +704,7 @@ public abstract partial class SharedSurgerySystem
             surgeryTargetComponent.SepsisImmune)
             return;
 
-        var sepsis = new DamageSpecifier(_prototypes.Index<DamageTypePrototype>("Poison"), 5);
+        var sepsis = new DamageSpecifier(_prototypes.Index(new ProtoId<DamageTypePrototype>("Poison")), 5);
         var ev = new SurgeryStepDamageEvent(args.User, args.Body, args.Part, args.Surgery, sepsis, 0.5f);
         RaiseLocalEvent(args.Body, ref ev);
     }
@@ -881,9 +882,6 @@ public abstract partial class SharedSurgerySystem
         var toolUsed = data?.Used ?? false; // if no tool is being used you can't consume it
         var ev = new SurgeryDoAfterEvent(surgeryId, stepId, toolUsed);
         var duration = GetSurgeryDuration(step, user, body, speed);
-
-        if (TryComp(user, out SurgerySpeedModifierComponent? surgerySpeedMod))
-            duration = duration / surgerySpeedMod.SpeedModifier;
 
         var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(duration), ev, body, part)
         {

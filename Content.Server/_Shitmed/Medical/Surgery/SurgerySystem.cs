@@ -17,7 +17,10 @@ using Content.Shared.Body.Part;
 using Content.Server.Popups;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.Damage.Systems;
+using Content.Shared.Popups;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._Shitmed.Damage;
 using Content.Shared._Shitmed.Medical.Surgery;
@@ -53,6 +56,8 @@ public sealed class SurgerySystem : SharedSurgerySystem
         // You might be wondering "why aren't we using StepEvent for these two?" reason being that StepEvent fires off regardless of success on the previous functions
         // so this would heal entities even if you had a used or incorrect organ.
         SubscribeLocalEvent<SurgeryDamageChangeEffectComponent, SurgeryStepDamageChangeEvent>(OnSurgeryDamageChange);
+        SubscribeLocalEvent<SurgerySpecialDamageChangeEffectComponent, SurgeryStepDamageChangeEvent>(OnSurgerySpecialDamageChange);
+        SubscribeLocalEvent<SurgeryDamageUserComponent, SurgeryStepEvent>(OnSurgeryDamageUser);
         SubscribeLocalEvent<SurgeryStepEmoteEffectComponent, SurgeryStepEvent>(OnStepScreamComplete);
         SubscribeLocalEvent<SurgeryStepSpawnEffectComponent, SurgeryStepEvent>(OnStepSpawnComplete);
     }
@@ -109,7 +114,6 @@ public sealed class SurgerySystem : SharedSurgerySystem
             damage,
             true,
             origin: user,
-            partMultiplier: partMultiplier,
             targetPart: affectAll ? TargetBodyPart.All : _body.GetTargetBodyPart(partComp));
     }
 
@@ -124,6 +128,29 @@ public sealed class SurgerySystem : SharedSurgerySystem
 
         SetDamage(args.Body, damageChange, 0.5f, args.User, args.Part, ent.Comp.AffectAll);
     }
+    private void OnSurgerySpecialDamageChange(Entity<SurgerySpecialDamageChangeEffectComponent> ent, ref SurgeryStepDamageChangeEvent args)
+    {
+        if (!TryComp<DamageableComponent>(args.Body, out var damageable))
+            return;
+
+        if (!damageable.Damage.DamageDict.TryGetValue(ent.Comp.DamageType, out var current) || current <= 0)
+            return;
+
+        var heal = new DamageSpecifier();
+        heal.DamageDict[ent.Comp.DamageType] = -current;
+        _damageable.TryChangeDamage(args.Body, heal, true, origin: args.User);
+    }
+
+    private void OnSurgeryDamageUser(Entity<SurgeryDamageUserComponent> ent, ref SurgeryStepEvent args)
+    {
+        _damageable.TryChangeDamage(args.User, ent.Comp.Damage);
+        if (ent.Comp.Popup is { } popup)
+        {
+            var msg = Loc.GetString(popup, ("target", args.Body), ("part", args.Part));
+            _popup.PopupEntity(msg, args.Body, args.User, PopupType.SmallCaution);
+        }
+    }
+
     private void OnStepScreamComplete(Entity<SurgeryStepEmoteEffectComponent> ent, ref SurgeryStepEvent args)
     {
         if (Status.HasEffectComp<ForcedSleepingStatusEffectComponent>(args.Body))
