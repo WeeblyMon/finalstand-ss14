@@ -23,11 +23,20 @@ public sealed class MoneyGainBonusUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.MoneyGainBonusPerKill <= 0)
+        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state))
             return;
 
-        var bonus = EnsureComp<FSPendingKillBonusComponent>(ev.Target);
-        bonus.MoneyBonus = state.MoneyGainBonusPerKill;
+        if (state.MoneyGainBonusPerKill > 0)
+        {
+            var bonus = EnsureComp<FSPendingKillBonusComponent>(ev.Target);
+            bonus.MoneyBonus = state.MoneyGainBonusPerKill;
+        }
+
+        if (state.MoneyPerHitBonus > 0 && ev.Shooter != null
+            && _mind.TryGetMind(ev.Shooter.Value, out var mindId, out _))
+        {
+            _wallet.GiveCredits(mindId, state.MoneyPerHitBonus);
+        }
     }
 
     private void OnEnemyDied(EntityUid uid, FSPendingKillBonusComponent bonus, ref MobStateChangedEvent args)

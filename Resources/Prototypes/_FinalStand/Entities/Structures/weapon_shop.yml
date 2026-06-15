@@ -38,7 +38,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolViper
-    price: 3000
+    price: 500
     starterAmmoProtoId: MagazinePistolHighCapacity
     starterAmmoCount: 2
     category: 9mm Semi/Full-Auto Pistol
@@ -103,7 +103,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponMateba
-    price: 1500
+    price: 500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
     category: .45 Magnum Revolver
@@ -186,11 +186,11 @@
       valuePerLevel: 0.5
     - id: mk58-extended-mag
       name: Extended Mag
-      description: Adds 3 rounds to magazine capacity per level.
+      description: Adds 1 round to magazine capacity per level.
       maxLevel: 5
       baseCost: 100
       type: MagazineSize
-      valuePerLevel: 3
+      valuePerLevel: 1
     - id: mk58-steady-aim
       name: Steady Aim
       description: Reduces max spread by 0.3° per level for precise follow-up shots.
@@ -198,13 +198,13 @@
       baseCost: 100
       type: Accuracy
       valuePerLevel: 0.3
-    - id: mk58-full-auto
-      name: Full Auto
-      description: Unlocks full-auto fire mode.
-      maxLevel: 1
-      baseCost: 400
-      type: FullAuto
-      valuePerLevel: 1
+    - id: mk58-cash-flow
+      name: Cash Flow
+      description: "Each bullet that connects pays you back. Earn +10 credits per zombie hit per level. Max 3 levels: 10/20/30 per hit."
+      maxLevel: 3
+      baseCost: 150
+      type: MoneyPerHit
+      valuePerLevel: 10
     - id: mk58-payday
       name: Payday
       description: +50 bonus credits per kill with this gun per level.
@@ -231,7 +231,7 @@
     category: .45 Magnum Hand Cannon
     statDamage: 75
     statFireRate: 45
-    statAccuracy: 60
+    statAccuracy: 78
     statCapacity: 45
     upgrades:
     - id: n1984-hair-trigger
@@ -250,11 +250,11 @@
       valuePerLevel: 2
     - id: n1984-recoil-pad
       name: Recoil Pad
-      description: Reduces max spread by 0.3° per level to tame the kick.
+      description: "Heavy barrel weight and grip rework. Cuts spread by 2.8° per level. Fully laser-accurate at max level."
       maxLevel: 5
       baseCost: 1350
       type: Accuracy
-      valuePerLevel: 0.3
+      valuePerLevel: 14
     - id: n1984-akimbo
       name: Akimbo
       description: Dual wield. A second N1984 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
@@ -375,11 +375,11 @@
       valuePerLevel: 0.3
     - id: energymagnum-rapid-charge
       name: Rapid Charge
-      description: Self-recharge rate ×2 per level (×8 at max).
+      description: Self-recharge rate ×1.26 per level. Reaches ×2 base rate at max level.
       maxLevel: 3
       baseCost: 4500
       type: SelfChargeSpeed
-      valuePerLevel: 2.0
+      valuePerLevel: 1.26
     - id: energymagnum-stopping-power
       name: Stopping Power
       description: Level 1 staggers. Level 2+ applies increasing physics knockback away from the shooter.

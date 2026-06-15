@@ -20,6 +20,7 @@ public enum WeaponUpgradeType : byte
     Akimbo,
     ExplosiveShot,
     MoneyGainBonus,
+    MoneyPerHit,
     Slowing,
     BeamChaining,
     Knockback,

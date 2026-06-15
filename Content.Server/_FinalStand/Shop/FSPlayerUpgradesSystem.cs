@@ -201,6 +201,13 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
+            case WeaponUpgradeType.MoneyPerHit:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MoneyPerHitBonus += (int)def.ValuePerLevel;
+                break;
+            }
+
             case WeaponUpgradeType.Slowing:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);

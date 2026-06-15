@@ -40,17 +40,11 @@
   - MagazineBoxPistol
   - MagazineBoxRifle
   - MagazineLightRifle
-  - MagazineLightRifleEmpty
   - MagazinePistol
-  - MagazinePistolEmpty
   - MagazinePistolSubMachineGun
-  - MagazinePistolSubMachineGunEmpty
   - MagazinePistolSubMachineGunTopMounted
-  - MagazinePistolSubMachineGunTopMountedEmpty
   - MagazineRifle
-  - MagazineRifleEmpty
   - SpeedLoaderMagnum
-  - SpeedLoaderMagnumEmpty
 
 - type: latheRecipePack
   id: SecurityWeaponsStatic
