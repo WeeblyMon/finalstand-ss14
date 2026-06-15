@@ -15,7 +15,7 @@ namespace Content.Shared._Monolith.Kitchen;
 
 // ── Recipe prototype ──────────────────────────────────────────────────────────
 
-[Prototype("medicalAssemblerRecipe")]
+[Prototype]
 public sealed partial class MedicalAssemblerRecipePrototype : IPrototype
 {
     [ViewVariables]

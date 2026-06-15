@@ -1,6 +1,7 @@
 using Content.Shared.FixedPoint;
 using Content.Shared.Database;
 using Content.Shared.EntityConditions;
+using Robust.Shared.Analyzers;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.EntityEffects;
@@ -8,6 +9,7 @@ namespace Content.Shared.EntityEffects;
 /// <summary>
 /// Base args for the old Effect() API used by _Shitmed effects.
 /// </summary>
+[Virtual]
 public class EntityEffectBaseArgs
 {
     public readonly EntityUid TargetEntity;
