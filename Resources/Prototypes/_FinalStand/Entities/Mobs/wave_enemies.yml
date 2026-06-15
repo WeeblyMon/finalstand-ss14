@@ -6,6 +6,8 @@
   abstract: true
   suffix: FinalStand
   components:
+  - type: Body
+    prototype: null  # Override BaseMobAnimal's Animal body — LegsAnimal would call MovementBodyPart and reset all zombie speeds to 2.5/4.5 defaults
   - type: InputMover
   - type: MobMover
   - type: HTN

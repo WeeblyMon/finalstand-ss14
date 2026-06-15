@@ -30,6 +30,7 @@ public sealed class FSDamageNumberSystem : EntitySystem
 
         SubscribeNetworkEvent<FSDamageNumberEvent>(OnDamageNumber);
         SubscribeNetworkEvent<FSArmorDamageNumberEvent>(OnArmorDamageNumber);
+        SubscribeNetworkEvent<FSLevelUpNumberEvent>(OnLevelUpNumber);
     }
 
     public override void Shutdown()
@@ -49,7 +50,8 @@ public sealed class FSDamageNumberSystem : EntitySystem
         {
             var n = numbers[i];
             n.Age += frameTime;
-            if (n.Age >= FSDamageNumberOverlay.Lifetime)
+            var lifetime = n.Lifetime > 0f ? n.Lifetime : FSDamageNumberOverlay.Lifetime;
+            if (n.Age >= lifetime)
                 numbers.RemoveAt(i);
             else
                 numbers[i] = n;
@@ -118,5 +120,31 @@ public sealed class FSDamageNumberSystem : EntitySystem
         }
 
         _hpBarOverlay?.RevealedEntities.Add(target);
+    }
+
+    private void OnLevelUpNumber(FSLevelUpNumberEvent ev)
+    {
+        var target = GetEntity(ev.Target);
+        if (!Exists(target) || _numberOverlay == null)
+            return;
+
+        var xform = Transform(target);
+        var worldPos = _transform.GetWorldPosition(xform);
+
+        if (_numberOverlay.Numbers.Count >= MaxNumbers)
+            _numberOverlay.Numbers.RemoveAt(0);
+
+        _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
+        {
+            OriginWorldPos = worldPos + new Vector2(0f, 0.6f),
+            MapId          = xform.MapID,
+            Amount         = 0f,
+            IsCrit         = false,
+            IsArmor        = false,
+            IsLevelUp      = true,
+            LevelUpAp      = ev.ApGained,
+            Age            = 0f,
+            Lifetime       = 2.0f,
+        });
     }
 }

@@ -60,6 +60,12 @@ public sealed partial class WaveGameRuleComponent : Component
     public int MaxEnemyCap = 100;
 
     [DataField]
+    public int PlayerEnemyBonus = 6;
+
+    [DataField]
+    public int PlayerBonusFromWave = 10;
+
+    [DataField]
     public int KillReward = 100;
 
     [DataField]

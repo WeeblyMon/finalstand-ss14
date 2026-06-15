@@ -5,6 +5,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -183,13 +184,16 @@ public sealed class FSLevelingSystem : EntitySystem
         };
 
         var startLevel = lvl.Level;
+        var totalAp = 0;
 
         while (lvl.Experience >= lvl.XpToNextLevel)
         {
             lvl.Experience -= lvl.XpToNextLevel;
             lvl.Level++;
             lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
-            _wallet.AddAugmentPoints(mindId, lvl.Level % 5 == 0 ? 5 : 1);
+            var ap = lvl.Level % 5 == 0 ? 5 : 1;
+            _wallet.AddAugmentPoints(mindId, ap);
+            totalAp += ap;
             RaiseLocalEvent(mindId, new FSLevelUpEvent
             {
                 MindId = mindId,
@@ -199,13 +203,13 @@ public sealed class FSLevelingSystem : EntitySystem
         }
 
         if (lvl.Level > startLevel)
-            AnnounceLevelUp(mindId, lvl, lvl.Level - startLevel);
+            AnnounceLevelUp(mindId, lvl, lvl.Level - startLevel, totalAp);
 
         SendLevelingUpdate(mindId, lvl);
         _wallet.SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
     }
 
-    private void AnnounceLevelUp(EntityUid mindId, FSPlayerLevelComponent lvl, int levelsGained)
+    private void AnnounceLevelUp(EntityUid mindId, FSPlayerLevelComponent lvl, int levelsGained, int totalAp)
     {
         var name = TryComp<MindComponent>(mindId, out var mind)
             ? mind.CharacterName ?? "Unknown"
@@ -215,6 +219,14 @@ public sealed class FSLevelingSystem : EntitySystem
         _chatManager.DispatchServerAnnouncement(
             $"{name} reached Level {lvl.Level}{prestigeText}!{suffix}",
             Color.FromHex("#FFD700"));
+
+        if (mind?.CurrentEntity == null) return;
+        if (!TryComp<ActorComponent>(mind.CurrentEntity.Value, out var actor)) return;
+        RaiseNetworkEvent(new FSLevelUpNumberEvent
+        {
+            Target   = GetNetEntity(mind.CurrentEntity.Value),
+            ApGained = totalAp,
+        }, actor.PlayerSession);
     }
 
     public void SendLevelingUpdate(EntityUid mindId, FSPlayerLevelComponent lvl)

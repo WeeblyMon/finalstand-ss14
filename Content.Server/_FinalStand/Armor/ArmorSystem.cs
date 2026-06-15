@@ -40,6 +40,12 @@ public sealed class FSArmorSystem : EntitySystem
             if (armor.CurrentArmor >= armor.MaxArmor)
                 continue;
 
+            if (armor.RegenDelayAccumulator > 0f)
+            {
+                armor.RegenDelayAccumulator -= frameTime;
+                continue;
+            }
+
             armor.CurrentArmor = MathF.Min(armor.CurrentArmor + armor.RegenRate * frameTime, armor.MaxArmor);
 
             // threshold to avoid flooding the network
@@ -99,6 +105,7 @@ public sealed class FSArmorSystem : EntitySystem
         {
             absorbed = armor.CurrentArmor;
             armor.CurrentArmor = 0f;
+            armor.RegenDelayAccumulator = armor.RegenDelay;
             args.Damage = args.Damage * ((incoming - absorbed) / incoming);
             RaiseLocalEvent(uid, new ArmorDepletedEvent());
         }

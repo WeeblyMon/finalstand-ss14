@@ -35,7 +35,7 @@ public sealed class FSFireProjectileSystem : EntitySystem
             {
                 if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
                 if (!comp.AlreadyIgnited.Add(targetUid)) continue;
-                flammable.FireStacks += 0.3f;
+                flammable.FireStacks += 0.1f;
                 _flammable.Ignite(targetUid, uid, flammable);
             }
         }
