@@ -101,7 +101,14 @@ public sealed partial class DungeonSystem : SharedDungeonSystem
         // Force all templates to be setup.
         foreach (var room in _prototype.EnumeratePrototypes<DungeonRoomPrototype>())
         {
-            GetOrCreateTemplate(room);
+            try
+            {
+                GetOrCreateTemplate(room);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[DungeonSystem] Skipping dungeon template {room.ID} ({room.AtlasPath}): {e.Message}");
+            }
         }
     }
 
