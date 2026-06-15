@@ -25,3 +25,5 @@ medical-assembler-recipe-antipoisonmedipen = Anti-Poison Medipen
 medical-assembler-recipe-rad-auto-injector = Radiation Auto-Injector
 medical-assembler-recipe-punct-auto-injector = Puncture Auto-Injector
 medical-assembler-recipe-tourniquet = Tourniquet (×2)
+medical-assembler-recipe-lacerinol-auto-injector = Lacerinol Auto-Injector
+medical-assembler-recipe-bruizine-auto-injector = Bruizine Auto-Injector

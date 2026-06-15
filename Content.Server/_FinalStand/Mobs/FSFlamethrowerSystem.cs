@@ -7,7 +7,6 @@ using Content.Shared.Ghost;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
-using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
@@ -25,7 +24,6 @@ public sealed class FSFlamethrowerSystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedProjectileSystem _projectiles = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     public override void Initialize()
@@ -156,15 +154,12 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             var spread = _random.NextFloat(-halfConeDeg, halfConeDeg);
             var shotAngle = facingAngle + Angle.FromDegrees(spread);
             var shotDir = shotAngle.ToVec();
-            var spawnCoords = coords.Offset(shotDir * 0.6f);
+            var spawnCoords = coords.Offset(shotDir * 0.3f);
             var projectile = Spawn("FSFireProjectile", spawnCoords);
 
             var body = EnsureComp<PhysicsComponent>(projectile);
             _physics.SetBodyStatus(projectile, body, BodyStatus.InAir);
             _physics.SetLinearVelocity(projectile, shotDir * comp.FireProjectileSpeed, body: body);
-
-            if (TryComp<ProjectileComponent>(projectile, out var projComp))
-                _projectiles.SetShooter(projectile, projComp, uid);
         }
     }
 

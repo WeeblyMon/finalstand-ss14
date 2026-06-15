@@ -1,52 +1,43 @@
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Atmos.EntitySystems;
-using Content.Server.Projectiles;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Atmos.Components;
-using Content.Shared.Damage.Systems;
-using Content.Shared.Projectiles;
-using Robust.Shared.Physics.Events;
+using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Mobs;
 
 public sealed class FSFireProjectileSystem : EntitySystem
 {
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly FlammableSystem _flammable = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
+
+    private const float HitRadius = 0.5f;
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSFireProjectileComponent, PreventCollideEvent>(OnPreventCollide);
-        SubscribeLocalEvent<FSFireProjectileComponent, StartCollideEvent>(OnCollide, after: [typeof(ProjectileSystem)]);
-        SubscribeLocalEvent<WaveSpawnedTagComponent, BeforeDamageChangedEvent>(OnWaveEntityBeforeDamage);
     }
 
-    private void OnPreventCollide(EntityUid uid, FSFireProjectileComponent comp, ref PreventCollideEvent args)
+    public override void Update(float frameTime)
     {
-        if (HasComp<WaveSpawnedTagComponent>(args.OtherEntity))
-            args.Cancelled = true;
-    }
+        base.Update(frameTime);
 
-    private void OnWaveEntityBeforeDamage(EntityUid uid, WaveSpawnedTagComponent comp, ref BeforeDamageChangedEvent args)
-    {
-        if (args.Origin != null && HasComp<FSFireProjectileComponent>(args.Origin.Value))
-            args.Cancelled = true;
-    }
-
-    private void OnCollide(EntityUid uid, FSFireProjectileComponent comp, ref StartCollideEvent args)
-    {
-        if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture)
-            return;
-        if (!args.OtherFixture.Hard)
-            return;
-
-        var target = args.OtherEntity;
-
-        if (!HasComp<WaveSpawnedTagComponent>(target) &&
-            TryComp<FlammableComponent>(target, out var flammable))
+        var query = EntityQueryEnumerator<FSFireProjectileComponent>();
+        while (query.MoveNext(out var uid, out var comp))
         {
-            flammable.FireStacks += 0.3f;
-            _flammable.Ignite(target, uid, flammable);
+            var xform = Transform(uid);
+            var worldPos = _transform.GetWorldPosition(uid);
+            var candidates = new HashSet<Entity<FlammableComponent>>();
+            _lookup.GetEntitiesInRange<FlammableComponent>(new MapCoordinates(worldPos, xform.MapID), HitRadius, candidates);
+
+            foreach (var (targetUid, flammable) in candidates)
+            {
+                if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
+                if (!comp.AlreadyIgnited.Add(targetUid)) continue;
+                flammable.FireStacks += 0.3f;
+                _flammable.Ignite(targetUid, uid, flammable);
+            }
         }
     }
 }

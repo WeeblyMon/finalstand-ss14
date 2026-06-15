@@ -18,7 +18,9 @@
   time: 5
   reagents:
     Dermaline: 10
-    Leporazine: 5
+    Leporazine: 10
+  solids:
+    BlankMediPen: 1
 
 - type: medicalAssemblerRecipe
   id: MedAssemblerAirlossAutoInjector
@@ -42,10 +44,12 @@
   id: MedAssemblerAntiPoisonMedipen
   name: medical-assembler-recipe-antipoisonmedipen
   result: AntiPoisonMedipen
-  time: 6
+  time: 5
   reagents:
-    Dylovene: 10
-    Charcoal: 5
+    Ultravasculine: 10
+    Epinephrine: 5
+  solids:
+    BlankMediPen: 1
 
 - type: medicalAssemblerRecipe
   id: MedAssemblerRadAutoInjector
@@ -73,3 +77,25 @@
   time: 4
   reagents:
     TranexamicAcid: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerLacerinolAutoInjector
+  name: medical-assembler-recipe-lacerinol-auto-injector
+  result: LacerinolAutoInjector
+  time: 5
+  reagents:
+    Lacerinol: 10
+    TranexamicAcid: 5
+  solids:
+    BlankMediPen: 1
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerBruizineAutoInjector
+  name: medical-assembler-recipe-bruizine-auto-injector
+  result: BruizineAutoInjector
+  time: 5
+  reagents:
+    Bruizine: 10
+    TranexamicAcid: 5
+  solids:
+    BlankMediPen: 1

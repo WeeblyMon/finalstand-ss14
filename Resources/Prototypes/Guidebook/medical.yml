@@ -7,6 +7,12 @@
   - Chemist
   - Cloning
   - Cryogenics
+  - MedicalAssembler
+
+- type: guideEntry
+  id: MedicalAssembler
+  name: guide-entry-medicalassembler
+  text: "/ServerInfo/Guidebook/Medical/MedicalAssembler.xml"
 
 - type: guideEntry
   id: MedicalDoctor
