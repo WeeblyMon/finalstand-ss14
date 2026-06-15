@@ -53,8 +53,12 @@ public sealed class CritSystem : EntitySystem
 
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
+        Log.Warning($"[CritSystem] OnProjectileHit: shooter={comp.Shooter} weapon={comp.Weapon} target={args.Target}");
         if (comp.Shooter == null || comp.Weapon == null)
+        {
+            Log.Warning($"[CritSystem] OnProjectileHit: early return — shooter null={comp.Shooter == null} weapon null={comp.Weapon == null}");
             return;
+        }
 
         if (TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier))
         {

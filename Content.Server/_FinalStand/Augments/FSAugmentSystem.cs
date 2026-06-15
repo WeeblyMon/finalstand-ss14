@@ -35,12 +35,21 @@ public sealed class FSAugmentSystem : EntitySystem
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind) || mind.UserId == null)
+        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind))
+        {
+            Log.Debug($"[FSAugment] OnPlayerAttached: TryGetMind failed for entity={ev.Entity} — skipping ECS component setup");
             return;
+        }
+        if (mind.UserId == null)
+        {
+            Log.Debug($"[FSAugment] OnPlayerAttached: mind={mindId} has no UserId — skipping");
+            return;
+        }
 
         var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
         var aug = EnsureComp<FSAugmentLevelsComponent>(mindId);
         DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
+        Log.Debug($"[FSAugment] OnPlayerAttached: added FSAugmentLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
         SendStateToClient(mindId, aug, mind.UserId.Value.UserId);
     }
@@ -65,11 +74,14 @@ public sealed class FSAugmentSystem : EntitySystem
             return;
         _stateRequestCooldown[args.SenderSession] = now;
 
-        if (_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? _) &&
-            TryComp<FSAugmentLevelsComponent>(mindId, out var aug))
+        if (_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? mind))
         {
-            SendStateToClient(mindId, aug);
-            return;
+            var aug = EnsureAugComponent(mindId, mind);
+            if (aug != null)
+            {
+                SendStateToClient(mindId, aug);
+                return;
+            }
         }
 
         // lobby: no mind yet — load from db and send so the shop window populates
@@ -244,16 +256,18 @@ public sealed class FSAugmentSystem : EntitySystem
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
     private void DispatchAugMutation(ICommonSession session, Func<FSAugmentLevelsComponent, bool> mutate)
     {
-        if (_mind.TryGetMind(session, out var mindId, out _) &&
-            TryComp<FSAugmentLevelsComponent>(mindId, out var aug))
+        if (_mind.TryGetMind(session, out var mindId, out var mind))
         {
+            // In-round path: operate on the ECS component, creating it lazily if OnPlayerAttached missed it.
+            var aug = EnsureAugComponent(mindId, mind);
+            if (aug == null) return;
             if (!mutate(aug)) return;
             SaveToDb(mindId, aug);
             SendStateToClient(mindId, aug);
             return;
         }
 
-        // Lobby path: no mind — operate on DB directly
+        // Lobby path: no mind yet — operate on DB directly
         var userId = session.UserId.UserId;
         var (lj, sj, oj) = _wallet.LoadAugmentData(userId);
         var lobbyAug = new FSAugmentLevelsComponent();
@@ -276,6 +290,23 @@ public sealed class FSAugmentSystem : EntitySystem
             Slots = (string[])lobbyAug.Slots.Clone(),
             Loadouts = lobbyAug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
         }, Filter.SinglePlayer(pSession));
+    }
+
+    // Returns the existing FSAugmentLevelsComponent on mindId, or creates one from DB if missing.
+    // Returns null if the mind has no UserId (can't load data).
+    private FSAugmentLevelsComponent? EnsureAugComponent(EntityUid mindId, MindComponent? mind)
+    {
+        if (TryComp<FSAugmentLevelsComponent>(mindId, out var existing))
+            return existing;
+
+        if (mind?.UserId == null)
+            return null;
+
+        var (lj, sj, oj) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
+        var aug = EnsureComp<FSAugmentLevelsComponent>(mindId);
+        DeserializeInto(aug, lj, sj, oj);
+        Log.Debug($"[FSAugment] EnsureAugComponent: lazily created FSAugmentLevelsComponent on mind={mindId}");
+        return aug;
     }
 
     private void SaveToDb(EntityUid mindId, FSAugmentLevelsComponent aug)

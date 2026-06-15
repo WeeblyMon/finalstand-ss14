@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.Augments;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Graphics;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
@@ -22,6 +23,11 @@ public sealed class WaveHudOverlay : Overlay
     public int EnemiesTotal   = 0;
     public string[] ActiveSlots  = Array.Empty<string>();
     public Dictionary<string, int> AugmentLevels = new();
+
+    private static readonly TextureLoadParameters LinearParams = new()
+    {
+        SampleParameters = new TextureSampleParameters { Filter = true },
+    };
 
     private readonly Dictionary<string, Texture?> _iconCache = new();
 
@@ -128,38 +134,26 @@ public sealed class WaveHudOverlay : Overlay
 
     private Texture? GetCachedIcon(string augmentId)
     {
-        AugmentLevels.TryGetValue(augmentId, out var level);
-        var key = $"{augmentId}_{level}";
-
-        if (_iconCache.TryGetValue(key, out var cached))
+        if (_iconCache.TryGetValue(augmentId, out var cached))
             return cached;
 
-        var folder = GetIconFolder(augmentId);
-        var name   = augmentId.ToLowerInvariant();
-        Texture? tex = null;
-
-        if (_resourceCache.TryGetResource<TextureResource>(
-                new ResPath($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level{level}.png"), out var res))
-            tex = res!.Texture;
-        else if (_resourceCache.TryGetResource<TextureResource>(
-                new ResPath($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level0.png"), out res))
-            tex = res!.Texture;
-
-        _iconCache[key] = tex;
-        return tex;
-    }
-
-    private static string GetIconFolder(string augmentId)
-    {
         if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
-            return "Reds";
-        return def.Category switch
         {
-            AugmentCategory.Blue   => "Blues",
-            AugmentCategory.Green  => "Greens",
-            AugmentCategory.Yellow => "Yellows",
-            AugmentCategory.Purple => "Purples",
-            _                      => "Reds",
-        };
+            _iconCache[augmentId] = null;
+            return null;
+        }
+
+        var file = def.IconFile ?? def.Id.ToLowerInvariant();
+        var path = $"/Textures/_FinalStand/Interface/Augments/Icons/{file}.png";
+
+        Texture? tex = null;
+        if (_resourceCache.TryContentFileRead(path, out var stream))
+        {
+            using (stream)
+                tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
+        }
+
+        _iconCache[augmentId] = tex;
+        return tex;
     }
 }

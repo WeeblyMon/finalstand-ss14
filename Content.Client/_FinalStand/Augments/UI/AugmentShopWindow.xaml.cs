@@ -8,6 +8,7 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
+using Robust.Shared.Graphics;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Augments.UI;
@@ -25,6 +26,13 @@ public sealed partial class AugmentShopWindow : FancyWindow
     private int _prestigeLevel;
 
     private readonly IResourceCache _res;
+    private readonly IClyde _clyde;
+
+    private static readonly TextureLoadParameters LinearParams = new()
+    {
+        SampleParameters = new TextureSampleParameters { Filter = true },
+    };
+    private readonly Dictionary<string, OwnedTexture> _iconCache = new();
 
     private static readonly Dictionary<AugmentCategory, Color> CatBg = new()
     {
@@ -59,13 +67,14 @@ public sealed partial class AugmentShopWindow : FancyWindow
         AugmentCategory.Yellow, AugmentCategory.Purple,
     ];
 
-    private static readonly Dictionary<AugmentCategory, string> CatFolder = new()
+    // Level BG colours: index 0 = locked (transparent), 1–4 = progressively more saturated
+    private static readonly Dictionary<AugmentCategory, Color[]> LevelBg = new()
     {
-        [AugmentCategory.Red]    = "Reds",
-        [AugmentCategory.Blue]   = "Blues",
-        [AugmentCategory.Green]  = "Greens",
-        [AugmentCategory.Yellow] = "Yellows",
-        [AugmentCategory.Purple] = "Purples",
+        [AugmentCategory.Red]    = [Color.Transparent, Color.FromHex("#590000"), Color.FromHex("#8F0303"), Color.FromHex("#A50101"), Color.FromHex("#C40000")],
+        [AugmentCategory.Blue]   = [Color.Transparent, Color.FromHex("#000159"), Color.FromHex("#030A8F"), Color.FromHex("#0212BD"), Color.FromHex("#0426E1")],
+        [AugmentCategory.Green]  = [Color.Transparent, Color.FromHex("#005903"), Color.FromHex("#038F07"), Color.FromHex("#01A501"), Color.FromHex("#00C414")],
+        [AugmentCategory.Yellow] = [Color.Transparent, Color.FromHex("#575900"), Color.FromHex("#878F03"), Color.FromHex("#96A501"), Color.FromHex("#D7D303")],
+        [AugmentCategory.Purple] = [Color.Transparent, Color.FromHex("#330052"), Color.FromHex("#58028C"), Color.FromHex("#7302B8"), Color.FromHex("#9D02FC")],
     };
 
     private const int GridColumns = 7;
@@ -81,7 +90,13 @@ public sealed partial class AugmentShopWindow : FancyWindow
     public AugmentShopWindow()
     {
         RobustXamlLoader.Load(this);
-        _res = IoCManager.Resolve<IResourceCache>();
+        _res   = IoCManager.Resolve<IResourceCache>();
+        _clyde = IoCManager.Resolve<IClyde>();
+
+        // Anchor all three layers in the selected-icon stack to fill the LayoutContainer
+        LayoutContainer.SetAnchorPreset(SelectedIconCatBg,   LayoutContainer.LayoutPreset.Wide);
+        LayoutContainer.SetAnchorPreset(SelectedIconLevelBg, LayoutContainer.LayoutPreset.Wide);
+        LayoutContainer.SetAnchorPreset(SelectedAugmentIcon, LayoutContainer.LayoutPreset.Wide);
 
         ShopTabs.SetTabTitle(0, "Augments");
         ShopTabs.SetTabTitle(1, "Prestige");
@@ -168,50 +183,47 @@ public sealed partial class AugmentShopWindow : FancyWindow
         RebuildGrid();
     }
 
-    private Texture? GetAugmentIcon(string augmentId, int level)
+    private Texture? GetAugmentIcon(string augmentId)
     {
         if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
             return null;
 
-        var folder = CatFolder[def.Category];
-        var name   = augmentId.ToLowerInvariant();
+        var file = def.IconFile ?? def.Id.ToLowerInvariant();
+        var path = $"/Textures/_FinalStand/Interface/Augments/Icons/{file}.png";
 
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level{level}.png", out var tex))
-            return tex;
-        if (TryLoadTexture($"/Textures/_FinalStand/Interface/Augments/{folder}/{name}level0.png", out tex))
-            return tex;
+        if (_iconCache.TryGetValue(path, out var cached))
+            return cached;
 
-        Logger.Warning($"[AugmentShop] No icon found for augment '{augmentId}' level {level}.");
-        return null;
-    }
-
-    private bool TryLoadTexture(string path, out Texture? texture)
-    {
-        if (_res.TryGetResource<TextureResource>(new ResPath(path), out var res))
+        if (_res.TryContentFileRead(path, out var stream))
         {
-            texture = res!.Texture;
-            return true;
+            using (stream)
+            {
+                var tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
+                _iconCache[path] = tex;
+                return tex;
+            }
         }
-        texture = null;
-        return false;
+
+        Logger.Warning($"[AugmentShop] No icon found for augment '{augmentId}' (looked for {file}.png).");
+        return null;
     }
 
     private Texture? GetSlotIcon(string augmentId)
     {
         if (string.IsNullOrEmpty(augmentId)) return null;
-        var level = _state?.Levels.TryGetValue(augmentId, out var l) == true ? l : 0;
-        return GetAugmentIcon(augmentId, level);
+        return GetAugmentIcon(augmentId);
     }
 
     private void RebuildSlots()
     {
         SlotsRow.RemoveAllChildren();
-        if (_state == null) return;
+        var state = _state;
+        if (state == null) return;
 
         for (var i = 0; i < FSAugmentDef.SlotCount; i++)
         {
             var idx      = i;
-            var slotId   = _state.Slots[i];
+            var slotId   = state.Slots[i];
             var isEmpty  = string.IsNullOrEmpty(slotId);
             var isSelected = _selectedSlot == idx;
 
@@ -239,16 +251,24 @@ public sealed partial class AugmentShopWindow : FancyWindow
 
             var layers = new LayoutContainer { HorizontalExpand = true, VerticalExpand = true };
 
-            var bgPanel = new PanelContainer
-            {
-                PanelOverride = new StyleBoxFlat
-                {
-                    BackgroundColor = isEmpty ? Color.Transparent : Color.FromHex("#1A1A1A"),
-                },
-            };
-            LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
-            layers.AddChild(bgPanel);
+            // Layer 1: category bg
+            var slotCatPanel = new PanelContainer();
+            if (!isEmpty && FSAugmentDef.All.TryGetValue(slotId!, out var slotCatDef))
+                slotCatPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = CatBg[slotCatDef.Category] };
+            LayoutContainer.SetAnchorPreset(slotCatPanel, LayoutContainer.LayoutPreset.Wide);
+            layers.AddChild(slotCatPanel);
 
+            // Layer 2: level bg
+            var slotLevelPanel = new PanelContainer();
+            if (!isEmpty && FSAugmentDef.All.TryGetValue(slotId!, out var slotLvlDef))
+            {
+                var slotLevel = state.Levels.TryGetValue(slotId!, out var sl) ? sl : 0;
+                slotLevelPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = LevelBg[slotLvlDef.Category][slotLevel] };
+            }
+            LayoutContainer.SetAnchorPreset(slotLevelPanel, LayoutContainer.LayoutPreset.Wide);
+            layers.AddChild(slotLevelPanel);
+
+            // Layer 3: icon texture
             if (!isEmpty)
             {
                 var icon = GetSlotIcon(slotId!);
@@ -373,27 +393,8 @@ public sealed partial class AugmentShopWindow : FancyWindow
     private Control BuildCell(FSAugmentDef def, int level)
     {
         var accent     = CatAccent[def.Category];
-        var bg         = CatBg[def.Category];
         var isSelected = _selectedId == def.Id;
         var isMax      = level == FSAugmentDef.MaxLevel;
-
-        var bgAlpha = level switch
-        {
-            0 => 0f,
-            1 => 0.4f,
-            2 => 0.6f,
-            3 => 0.8f,
-            _ => 1.0f,
-        };
-
-        var borderAlpha = level switch
-        {
-            0 => 0f,
-            1 => 0.5f,
-            2 => 0.65f,
-            3 => 0.82f,
-            _ => 1.0f,
-        };
 
         var outer = new ContainerButton
         {
@@ -410,11 +411,18 @@ public sealed partial class AugmentShopWindow : FancyWindow
             VerticalExpand   = true,
         };
 
-        var bgPanel = new PanelContainer();
-        LayoutContainer.SetAnchorPreset(bgPanel, LayoutContainer.LayoutPreset.Wide);
-        layers.AddChild(bgPanel);
+        // Layer 1: dark category background (always shown)
+        var catPanel = new PanelContainer();
+        LayoutContainer.SetAnchorPreset(catPanel, LayoutContainer.LayoutPreset.Wide);
+        layers.AddChild(catPanel);
 
-        var icon = GetAugmentIcon(def.Id, level);
+        // Layer 2: level saturation colour (transparent when locked)
+        var levelPanel = new PanelContainer();
+        LayoutContainer.SetAnchorPreset(levelPanel, LayoutContainer.LayoutPreset.Wide);
+        layers.AddChild(levelPanel);
+
+        // Layer 3: icon texture
+        var icon = GetAugmentIcon(def.Id);
         if (icon != null)
         {
             var tex = new TextureRect
@@ -440,24 +448,26 @@ public sealed partial class AugmentShopWindow : FancyWindow
             layers.AddChild(q);
         }
 
+        // Layer 4: border overlay
         var borderPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(borderPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(borderPanel);
 
         void ApplyBg(bool hovering)
         {
-            var currentBg = level > 0 ? bg.WithAlpha(bgAlpha + (hovering ? 0.15f : 0f)) : Color.Transparent;
-            bgPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = currentBg };
+            var catColor = hovering ? CatBg[def.Category].WithAlpha(0.85f) : CatBg[def.Category];
+            catPanel.PanelOverride   = new StyleBoxFlat { BackgroundColor = catColor };
+            levelPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = LevelBg[def.Category][level] };
 
             var border = new StyleBoxFlat { BackgroundColor = Color.Transparent };
             if (isSelected)
             {
-                border.BorderColor = Color.White;
+                border.BorderColor     = Color.White;
                 border.BorderThickness = new Thickness(2);
             }
             else if (level > 0)
             {
-                border.BorderColor = accent.WithAlpha(borderAlpha);
+                border.BorderColor     = accent;
                 border.BorderThickness = new Thickness(1);
             }
             borderPanel.PanelOverride = border;
@@ -500,6 +510,8 @@ public sealed partial class AugmentShopWindow : FancyWindow
         if (_selectedId == null || !FSAugmentDef.All.TryGetValue(_selectedId, out var def))
         {
             SelectedAugmentIcon.Texture    = null;
+            SelectedIconCatBg.PanelOverride   = null;
+            SelectedIconLevelBg.PanelOverride = null;
             SelectedNameLabel.Text         = "—";
             SelectedLevelLabel.Text        = "";
             SelectedCategoryLabel.Text     = "";
@@ -517,8 +529,10 @@ public sealed partial class AugmentShopWindow : FancyWindow
         var level      = _state?.Levels.TryGetValue(def.Id, out var lvl) == true ? lvl : 0;
         var accent     = CatAccent[def.Category];
 
-        SelectedAugmentIcon.Texture = GetAugmentIcon(def.Id, level);
+        SelectedAugmentIcon.Texture = GetAugmentIcon(def.Id);
         SelectedAugmentIcon.Stretch = TextureRect.StretchMode.KeepAspectCentered;
+        SelectedIconCatBg.PanelOverride   = new StyleBoxFlat { BackgroundColor = CatBg[def.Category] };
+        SelectedIconLevelBg.PanelOverride = new StyleBoxFlat { BackgroundColor = LevelBg[def.Category][level] };
 
         SelectedNameLabel.Text         = def.Name;
         SelectedLevelLabel.Text        = $"Level {level} / {FSAugmentDef.MaxLevel}";
@@ -637,5 +651,14 @@ public sealed partial class AugmentShopWindow : FancyWindow
         vbox.AddChild(btnRow);
         dialog.AddChild(vbox);
         dialog.OpenCentered();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (!disposing) return;
+        foreach (var tex in _iconCache.Values)
+            tex.Dispose();
+        _iconCache.Clear();
     }
 }

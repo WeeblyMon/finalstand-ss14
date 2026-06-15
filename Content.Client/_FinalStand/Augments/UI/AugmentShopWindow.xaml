@@ -13,11 +13,12 @@
             <ScrollContainer SetWidth="270" VerticalExpand="True" HScrollEnabled="False">
             <BoxContainer Orientation="Vertical" SetWidth="260" Margin="10 0 0 0">
 
-                <!-- Selected augment icon -->
-                <TextureRect Name="SelectedAugmentIcon"
-                             SetWidth="64" SetHeight="64"
-                             Stretch="KeepAspectCentered"
-                             Margin="0 0 0 6" />
+                <!-- Selected augment icon (cat bg → level bg → icon); anchors set in constructor -->
+                <LayoutContainer Name="SelectedIconContainer" SetWidth="64" SetHeight="64" Margin="0 0 0 6">
+                    <PanelContainer Name="SelectedIconCatBg" />
+                    <PanelContainer Name="SelectedIconLevelBg" />
+                    <TextureRect Name="SelectedAugmentIcon" Stretch="KeepAspectCentered" />
+                </LayoutContainer>
 
                 <!-- Name + Level + Category -->
                 <Label Name="SelectedNameLabel" Text="—" StyleClasses="LabelHeading" Margin="0 0 0 2" />
