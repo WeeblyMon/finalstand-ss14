@@ -207,6 +207,9 @@ namespace Content.Shared.FixedPoint
         public static explicit operator double(FixedPoint2 n) => n.Double();
         public static explicit operator int(FixedPoint2 n) => n.Int();
 
+        public static implicit operator FixedPoint2(Content.Goobstation.Maths.FixedPoint.FixedPoint2 other)
+            => FromCents(other.Value);
+
         public static FixedPoint2 Min(params FixedPoint2[] fixedPoints)
         {
             return fixedPoints.Min();

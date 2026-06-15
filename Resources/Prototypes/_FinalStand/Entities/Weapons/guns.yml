@@ -134,6 +134,9 @@
     minAngle: 0
     maxAngle: 0
     angleIncrease: 0
+  - type: GunWieldBonus
+    minAngle: 0
+    maxAngle: 0
   - type: BatteryAmmoProvider
     proto: FSPulse
     fireCost: 100

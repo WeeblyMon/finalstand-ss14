@@ -71,6 +71,14 @@ public sealed class BlindableSystem : EntitySystem
         Dirty(blindable);
     }
 
+    public void SetEyeDamage(Entity<BlindableComponent?> blindable, int amount)
+    {
+        if (!Resolve(blindable, ref blindable.Comp, false))
+            return;
+
+        AdjustEyeDamage(blindable, amount - blindable.Comp.EyeDamage);
+    }
+
     public void AdjustEyeDamage(Entity<BlindableComponent?> blindable, int amount)
     {
         if (!Resolve(blindable, ref blindable.Comp, false) || amount == 0)

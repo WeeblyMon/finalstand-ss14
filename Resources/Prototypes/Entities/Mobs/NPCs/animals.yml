@@ -2938,6 +2938,8 @@
   name: corgi
   description: Finally, a space corgi!
   components:
+  - type: EntityTableContainerFill # override: corgis have no body_organs container
+    containers: {}
   - type: Sprite
     drawdepth: Mobs
     sprite: Mobs/Pets/corgi.rsi

@@ -4,6 +4,9 @@
   components:
   - type: Sprite
     layers:
+    # Groin (Shitmed - must be first, rendered under everything)
+    - map: [ "enum.HumanoidVisualLayers.Groin" ]
+
     # Torso
     - map: [ "enum.HumanoidVisualLayers.Chest" ]
 
@@ -87,3 +90,10 @@
         type: HumanoidMarkingModifierBoundUserInterface
       enum.StrippingUiKey.Key:
         type: StrippableBoundUserInterface
+
+# Goob: base for species character preview dummies (kobold, monkey, scurret, etc.)
+- type: entity
+  id: BaseSpeciesDummy
+  parent: BaseSpeciesAppearance
+  abstract: true
+  save: false

@@ -20,13 +20,15 @@ public sealed class FSDamageNumberOverlay : Overlay
     internal const float Lifetime = 1.6f;
     private const float RiseSpeed = 1.1f;   // world units per second
 
-    // Normal hits: white + black outline; crit hits: red + deep-red outline; armor: grey + dark outline
-    private static readonly Color NormalFg      = new(1f,    1f,    1f,    1f);
-    private static readonly Color NormalOutline  = new(0f,    0f,    0f,    0.9f);
-    private static readonly Color CritFg         = new(1f,    0.15f, 0.15f, 1f);
-    private static readonly Color CritOutline    = new(0.4f,  0f,    0f,    0.9f);
-    private static readonly Color ArmorFg        = new(0.65f, 0.65f, 0.65f, 1f);
-    private static readonly Color ArmorOutline   = new(0.15f, 0.15f, 0.15f, 0.9f);
+    // Normal hits: white + black outline; crit hits: red + deep-red outline; armor: grey + dark outline; level up: gold
+    private static readonly Color NormalFg       = new(1f,    1f,    1f,    1f);
+    private static readonly Color NormalOutline   = new(0f,    0f,    0f,    0.9f);
+    private static readonly Color CritFg          = new(1f,    0.15f, 0.15f, 1f);
+    private static readonly Color CritOutline     = new(0.4f,  0f,    0f,    0.9f);
+    private static readonly Color ArmorFg         = new(0.65f, 0.65f, 0.65f, 1f);
+    private static readonly Color ArmorOutline    = new(0.15f, 0.15f, 0.15f, 0.9f);
+    private static readonly Color LevelUpFg       = new(1f,    0.84f, 0f,    1f);
+    private static readonly Color LevelUpOutline  = new(0.45f, 0.28f, 0f,    0.9f);
 
     public FSDamageNumberOverlay()
     {
@@ -53,14 +55,20 @@ public sealed class FSDamageNumberOverlay : Overlay
             var worldPos = num.OriginWorldPos + new Vector2(0f, num.Age * RiseSpeed);
             var screenPos = Vector2.Transform(worldPos, matrix);
 
-            var fadeStart = Lifetime * 0.5f;
+            var lifetime = num.Lifetime > 0f ? num.Lifetime : Lifetime;
+            var fadeStart = lifetime * 0.5f;
             var alpha = num.Age < fadeStart
                 ? 1f
-                : 1f - (num.Age - fadeStart) / (Lifetime - fadeStart);
+                : 1f - (num.Age - fadeStart) / (lifetime - fadeStart);
             alpha = Math.Clamp(alpha, 0f, 1f);
 
             Color fg, outline;
-            if (num.IsArmor)
+            if (num.IsLevelUp)
+            {
+                fg      = LevelUpFg.WithAlpha(alpha);
+                outline = LevelUpOutline.WithAlpha(alpha * 0.9f);
+            }
+            else if (num.IsArmor)
             {
                 fg      = ArmorFg.WithAlpha(alpha);
                 outline = ArmorOutline.WithAlpha(alpha * 0.9f);
@@ -77,7 +85,9 @@ public sealed class FSDamageNumberOverlay : Overlay
             }
 
             var font = _fontNormal;
-            var text = ((int)MathF.Round(num.Amount)).ToString();
+            var text = num.IsLevelUp
+                ? $"LEVEL UP +{num.LevelUpAp}AP"
+                : ((int)MathF.Round(num.Amount)).ToString();
             var dims = handle.GetDimensions(font, text, 1f);
             var origin = screenPos - dims / 2f;
 
@@ -97,6 +107,9 @@ public sealed class FSDamageNumberOverlay : Overlay
         public float Amount;
         public bool IsCrit;
         public bool IsArmor;
+        public bool IsLevelUp;
+        public int LevelUpAp;
         public float Age;
+        public float Lifetime;
     }
 }

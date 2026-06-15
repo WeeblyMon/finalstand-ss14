@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Server.Administration.Logs;
+using Content.Server.Body.Systems;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Construction;
 using Content.Server.Destructible.Thresholds;
@@ -30,6 +31,7 @@ namespace Content.Server.Destructible
     public sealed partial class DestructibleSystem : SharedDestructibleSystem
     {
         [Dependency] public readonly IRobustRandom Random = default!;
+        [Dependency] public readonly BodySystem BodySystem = default!;
         public new IEntityManager EntityManager => base.EntityManager;
 
         [Dependency] public readonly AtmosphereSystem AtmosphereSystem = default!;

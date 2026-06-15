@@ -1,0 +1,14 @@
+﻿{
+    "version":  1,
+    "license":  "AGPL-3.0-or-later",
+    "copyright":  "Placeholder stub — felinid_tails RSI from Nyanotrasen not available",
+    "size":  {
+                 "y":  32,
+                 "x":  32
+             },
+    "states":  [
+                   {
+                       "name":  "basic_tail_tip"
+                   }
+               ]
+}

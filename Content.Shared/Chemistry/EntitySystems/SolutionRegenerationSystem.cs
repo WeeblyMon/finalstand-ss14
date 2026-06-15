@@ -38,7 +38,6 @@ public sealed class SolutionRegenerationSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        // TODO: SolutionRegenerationComponent on Solution Entities!
         var query = EntityQueryEnumerator<SolutionRegenerationComponent, SolutionManagerComponent>();
         while (query.MoveNext(out var uid, out var regen, out var manager))
         {
@@ -65,6 +64,29 @@ public sealed class SolutionRegenerationSystem : EntitySystem
                 : regen.Generated.Clone().SplitSolution(amount);
 
             _solutionContainer.TryAddSolution(regen.SolutionRef.Value, generated);
+        }
+
+        // Handle entities that ARE solution entities (have SolutionComponent directly, e.g. WelderExperimental)
+        var directQuery = EntityQueryEnumerator<SolutionRegenerationComponent, SolutionComponent>();
+        while (directQuery.MoveNext(out var uid, out var regen, out var solutionComp))
+        {
+            if (solutionComp.Id != regen.SolutionName || HasComp<SolutionManagerComponent>(uid))
+                continue;
+            if (_timing.CurTime < regen.NextRegenTime)
+                continue;
+
+            regen.NextRegenTime += regen.Duration;
+            Dirty(uid, regen);
+
+            var amount = FixedPoint2.Min(solutionComp.Solution.AvailableVolume, regen.Generated.Volume);
+            if (amount <= FixedPoint2.Zero)
+                continue;
+
+            var generated = amount == regen.Generated.Volume
+                ? regen.Generated
+                : regen.Generated.Clone().SplitSolution(amount);
+
+            _solutionContainer.TryAddSolution((uid, solutionComp), generated);
         }
     }
 }

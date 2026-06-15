@@ -1,0 +1,105 @@
+# SPDX-FileCopyrightText: 2025 Goob-Station contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Shitmed Change: reorganized to use composition
+# Base animal body parts used by _Shitmed animal prototypes (goliath, dragon, etc.)
+
+- type: entity
+  abstract: true
+  parent: BasePart
+  id: PartAnimalBase
+  components:
+  - type: Sprite
+    sprite: Mobs/Species/Reptilian/parts.rsi
+  - type: Icon
+    sprite: Mobs/Species/Reptilian/parts.rsi
+  - type: StaticPrice
+    price: 50
+
+- type: entity
+  parent: PartAnimalBase
+  id: HandsAnimal
+  name: animal hands
+  components:
+  - type: Sprite
+    layers:
+    - state: l_hand
+    - state: r_hand
+  - type: Icon
+    state: l_hand
+  - type: BodyPart
+    partType: Hand
+    slotId: hands
+
+- type: entity
+  parent: PartAnimalBase
+  id: LegsAnimal
+  name: animal legs
+  components:
+  - type: Sprite
+    layers:
+    - state: l_leg
+    - state: r_leg
+  - type: Icon
+    state: l_leg
+  - type: BodyPart
+    partType: Leg
+    slotId: legs
+  - type: MovementBodyPart
+
+- type: entity
+  parent: PartAnimalBase
+  id: FeetAnimal
+  name: animal feet
+  components:
+  - type: Sprite
+    layers:
+    - state: r_foot
+    - state: l_foot
+  - type: Icon
+    state: l_foot
+  - type: BodyPart
+    partType: Foot
+    slotId: feet
+
+- type: entity
+  parent: [ PartAnimalBase, BaseChest ]
+  id: ChestAnimal
+  name: animal chest
+  components:
+  - type: Sprite
+    layers:
+    - state: chest_m
+  - type: BodyPart
+    children:
+      groin:
+        id: groin
+        type: Groin
+  - type: Extractable
+    juiceSolution:
+      reagents:
+      - ReagentId: Fat
+        Quantity: 10
+      - ReagentId: Blood
+        Quantity: 20
+
+- type: entity
+  parent: [ PartAnimalBase, BaseGroin ]
+  id: GroinAnimal
+  name: animal groin
+  components:
+  - type: Sprite
+    layers:
+    - state: groin_m
+  - type: BodyPart
+    children:
+      legs:
+        id: legs
+        type: Leg
+  - type: Extractable
+    juiceSolution:
+      reagents:
+      - ReagentId: Fat
+        Quantity: 10
+      - ReagentId: Blood
+        Quantity: 20

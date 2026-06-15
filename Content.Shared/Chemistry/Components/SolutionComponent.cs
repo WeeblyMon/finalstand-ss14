@@ -35,9 +35,11 @@ public sealed partial class SolutionComponent : Component
 
 /// <remarks>
 /// We manually network the component state as it raises one less event and therefore is better performance wise.
+/// Id is included so dynamically-created solutions (e.g. "bloodstream") are keyed correctly in SolutionManagerComponent.Solutions on clients.
 /// </remarks>
 [Serializable, NetSerializable]
-public sealed class SolutionComponentState(Solution solution) : ComponentState
+public sealed class SolutionComponentState(string id, Solution solution) : ComponentState
 {
+    public string Id = id;
     public Solution Solution = solution;
 }

@@ -1,0 +1,88 @@
+# Auto-injectors craftable at the Medical Assembler.
+
+# Blank medipen shell — solid ingredient consumed by assembler recipes.
+# No solution container; the assembler synthesizes the final reagents into the output pen.
+- type: entity
+  parent: BaseItem
+  id: BlankMediPen
+  name: empty medipen
+  description: An empty medipen with endless potential.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Medical/medipen.rsi
+    state: medipen
+  - type: Item
+    sprite: Objects/Specific/Medical/medipen.rsi
+    size: Tiny
+  - type: StaticPrice
+    price: 5
+
+- type: entity
+  parent: ChemicalMedipen
+  id: LacerinolAutoInjector
+  name: lacerinol auto-injector
+  description: A single-dose, non-refillable medipen containing lacerinol and tranexamic acid, used to quickly treat slash wounds and lacerations.
+  components:
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: base-needle-inhand-left
+      - state: base-colorA-inhand-left
+        color: "#7a1a1a"
+      - state: base-colorB-inhand-left
+      right:
+      - state: base-needle-inhand-right
+      - state: base-colorA-inhand-right
+        color: "#7a1a1a"
+      - state: base-colorB-inhand-right
+  - type: Sprite
+    sprite: Objects/Specific/Medical/medipen.rsi
+    layers:
+    - state: pyrapen
+      map: ["enum.SolutionContainerLayers.Fill"]
+  - type: SolutionContainerVisuals
+    maxFillLevels: 1
+    changeColor: false
+    emptySpriteName: pyrapen_empty
+  - type: Solution
+    solution:
+      reagents:
+      - ReagentId: Lacerinol
+        Quantity: 10
+      - ReagentId: TranexamicAcid
+        Quantity: 5
+
+- type: entity
+  parent: ChemicalMedipen
+  id: BruizineAutoInjector
+  name: bruizine auto-injector
+  description: A single-dose, non-refillable medipen containing bruizine and tranexamic acid, used to quickly treat blunt trauma and bruising.
+  components:
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: base-needle-inhand-left
+      - state: base-colorA-inhand-left
+        color: "#3a3a8a"
+      - state: base-colorB-inhand-left
+      right:
+      - state: base-needle-inhand-right
+      - state: base-colorA-inhand-right
+        color: "#3a3a8a"
+      - state: base-colorB-inhand-right
+  - type: Sprite
+    sprite: Objects/Specific/Medical/medipen.rsi
+    layers:
+    - state: morphen
+      map: ["enum.SolutionContainerLayers.Fill"]
+  - type: SolutionContainerVisuals
+    maxFillLevels: 1
+    changeColor: false
+    emptySpriteName: morphen_empty
+  - type: Solution
+    solution:
+      reagents:
+      - ReagentId: Bruizine
+        Quantity: 10
+      - ReagentId: TranexamicAcid
+        Quantity: 5

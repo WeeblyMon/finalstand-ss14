@@ -13,8 +13,7 @@ public sealed class FSAugmentDef
 
     public string[] LevelEffects { get; }
 
-    public string? IconRsi   { get; init; }
-    public string? IconState { get; init; }
+    public string? IconFile { get; init; }  // filename without extension; defaults to Id.ToLowerInvariant()
 
     public const int MaxLevel = 4;
     public const int SlotCount = 6;

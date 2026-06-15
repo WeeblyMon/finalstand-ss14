@@ -68,6 +68,45 @@ public sealed partial class MetabolizerComponent : Component
         ["Metabolites"] = new()
         {
             SolutionName = BloodstreamComponent.DefaultMetabolitesSolutionName
+        },
+        // Legacy group names — map old-style reagent metabolisms (Medicine, Poison, etc.)
+        // to the appropriate solution so old YAML reagents still work without re-keying.
+        ["Gas"] = new()
+        {
+            SolutionName = "Lung",
+            SolutionOnBody = false,
+            TransferSolutionName = BloodstreamComponent.DefaultBloodSolutionName,
+            MetabolizeAll = true
+        },
+        ["Medicine"] = new()
+        {
+            SolutionName = BloodstreamComponent.DefaultBloodSolutionName,
+            TransferSolutionName = BloodstreamComponent.DefaultMetabolitesSolutionName,
+        },
+        ["Poison"] = new()
+        {
+            SolutionName = BloodstreamComponent.DefaultBloodSolutionName,
+            TransferSolutionName = BloodstreamComponent.DefaultMetabolitesSolutionName,
+        },
+        ["Narcotic"] = new()
+        {
+            SolutionName = BloodstreamComponent.DefaultBloodSolutionName,
+            TransferSolutionName = BloodstreamComponent.DefaultMetabolitesSolutionName,
+        },
+        ["Food"] = new()
+        {
+            SolutionName = "stomach",
+            SolutionOnBody = false,
+        },
+        ["Drink"] = new()
+        {
+            SolutionName = "stomach",
+            SolutionOnBody = false,
+        },
+        ["Alcohol"] = new()
+        {
+            SolutionName = BloodstreamComponent.DefaultBloodSolutionName,
+            TransferSolutionName = BloodstreamComponent.DefaultMetabolitesSolutionName,
         }
     };
 

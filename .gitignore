@@ -324,3 +324,9 @@ Resources/MapImages
 
 # Packaged builds
 *.7z
+
+# Dev server/client output logs
+server_*.txt
+client_*.txt
+ss14_*.txt
+build_warnings.txt

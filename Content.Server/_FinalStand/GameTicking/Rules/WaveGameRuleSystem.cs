@@ -29,6 +29,7 @@ using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
+using Robust.Server.Player;
 using Robust.Shared.Player;
 using Content.Shared.Tag;
 using Robust.Shared.Prototypes;
@@ -38,6 +39,7 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 
 public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComponent>
 {
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly FSCorpseCleanupSystem _corpseCleaner = default!;
@@ -75,6 +77,24 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         switch (comp.Phase)
         {
             case WavePhase.Prep:
+                // If no spawners were found at prep start (e.g. map not yet loaded), keep retrying.
+                if (comp.SpawnerEntities.Count == 0)
+                {
+                    var unlocked = new List<EntityUid>();
+                    var sq2 = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+                    while (sq2.MoveNext(out var spawnerUid2, out var spawner2))
+                    {
+                        if (comp.WaveNumber >= spawner2.FromWave)
+                            unlocked.Add(spawnerUid2);
+                    }
+                    if (unlocked.Count > 0)
+                    {
+                        if (unlocked.Count > 1) RobustRandom.Shuffle(unlocked);
+                        var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
+                        for (var i = 0; i < activeCount; i++)
+                            comp.SpawnerEntities.Add(unlocked[i]);
+                    }
+                }
                 if (now >= comp.PhaseEndTime)
                 {
                     Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");
@@ -211,7 +231,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
 
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4, comp.MaxEnemyCap);
+        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
+            ? _playerManager.Sessions.Count() * comp.PlayerEnemyBonus
+            : 0;
+        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;

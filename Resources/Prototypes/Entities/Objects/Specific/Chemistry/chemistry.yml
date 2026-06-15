@@ -619,7 +619,7 @@
   name: pill canister
   id: PillCanister
   parent: BaseStorageItem
-  description: Holds up to 10 pills.
+  description: Holds up to 15 pills. # Goob: was 10
   components:
   - type: Item
     size: Tiny
@@ -632,7 +632,7 @@
       - PillCanister
   - type: Storage
     grid:
-    - 0,0,4,1
+    - 0,0,4,2 # Goob: was 0,0,4,1 (10 slots); expanded to 5x3=15 for Goob fill counts
     quickInsert: true
     areaInsert: true
     areaInsertRadius: 1

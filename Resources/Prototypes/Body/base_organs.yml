@@ -30,8 +30,6 @@
   components:
   - type: Organ
     category: Torso
-  - type: Sprite
-    state: torso
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.Chest
     data:
@@ -55,8 +53,6 @@
   components:
   - type: Organ
     category: Head
-  - type: Sprite
-    state: head
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.Head
     data:
@@ -82,8 +78,6 @@
   components:
   - type: Organ
     category: ArmLeft
-  - type: Sprite
-    state: l_arm
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.LArm
     data:
@@ -101,8 +95,6 @@
   components:
   - type: Organ
     category: ArmRight
-  - type: Sprite
-    state: r_arm
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.RArm
     data:
@@ -124,8 +116,6 @@
     handID: left
     data:
       location: Left
-  - type: Sprite
-    state: l_hand
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.LHand
     data:
@@ -147,8 +137,6 @@
     handID: right
     data:
       location: Right
-  - type: Sprite
-    state: r_hand
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.RHand
     data:
@@ -166,8 +154,6 @@
   components:
   - type: Organ
     category: LegLeft
-  - type: Sprite
-    state: l_leg
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.LLeg
     data:
@@ -185,8 +171,6 @@
   components:
   - type: Organ
     category: LegRight
-  - type: Sprite
-    state: r_leg
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.RLeg
     data:
@@ -204,8 +188,6 @@
   components:
   - type: Organ
     category: FootLeft
-  - type: Sprite
-    state: l_foot
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.LFoot
     data:
@@ -223,8 +205,6 @@
   components:
   - type: Organ
     category: FootRight
-  - type: Sprite
-    state: r_foot
   - type: VisualOrgan
     layer: enum.HumanoidVisualLayers.RFoot
     data:

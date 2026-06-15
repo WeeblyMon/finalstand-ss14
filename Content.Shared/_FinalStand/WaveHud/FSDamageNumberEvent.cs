@@ -16,3 +16,10 @@ public sealed class FSArmorDamageNumberEvent : EntityEventArgs
     public NetEntity Target;
     public float Amount;
 }
+
+[Serializable, NetSerializable]
+public sealed class FSLevelUpNumberEvent : EntityEventArgs
+{
+    public NetEntity Target;
+    public int ApGained;
+}

@@ -17,6 +17,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Doors;
 using Content.Shared.Doors.Components;
 using Content.Shared.Weapons.Melee;
 using Robust.Shared.Map;
@@ -50,11 +51,18 @@ public sealed class FSBreachTargetSystem : EntitySystem
     private static readonly TimeSpan SelectionWindow = TimeSpan.FromSeconds(15);
     private const int BlacklistThreshold = 3;
 
+    // Radius around an opening door in which we force nearby zombies to repath. The cached A*
+    // path was built when the door was closed, so it likely detours through an adjacent door —
+    // forcing a replan picks up the now-open route. L4D2-style "navmesh dirty" event.
+    private const float DoorOpenReplanRadius = 6f;
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentStartup>(OnWaveEnemyStartup);
         SubscribeLocalEvent<GameRuleEndedEvent>(OnWaveRuleEnded);
+        SubscribeLocalEvent<DoorComponent, DoorStateChangedEvent>(OnDoorStateChanged);
+        SubscribeLocalEvent<DoorComponent, ComponentShutdown>(OnDoorShutdown);
         if (_prototype.TryIndex<EntityPrototype>(ZombieNormalProto, out var proto)
             && proto.Components.TryGetValue(Factory.GetComponentName<MeleeWeaponComponent>(), out var entry)
             && entry.Component is MeleeWeaponComponent melee)
@@ -80,6 +88,49 @@ public sealed class FSBreachTargetSystem : EntitySystem
         {
             state.SelectionHistory.Clear();
             state.Blacklist.Clear();
+        }
+    }
+
+    // When a door opens or is destroyed, nearby zombies have cached paths that route around it
+    // through whatever adjacent obstacle A* picked instead. Forcing a replan rebuilds the path
+    // through the newly-cleared tile so rear zombies don't commit to smashing an adjacent door.
+    private void OnDoorStateChanged(EntityUid doorUid, DoorComponent door, ref DoorStateChangedEvent args)
+    {
+        if (args.State != DoorState.Open)
+            return;
+        ForceNearbyReplan(doorUid);
+    }
+
+    // Covers the smash case: when front zombies melee a door to death, the entity is deleted
+    // (no Open state transition fires). ComponentShutdown catches the deletion so rear zombies
+    // still replan through the now-clear tile.
+    private void OnDoorShutdown(EntityUid doorUid, DoorComponent door, ComponentShutdown args)
+    {
+        ForceNearbyReplan(doorUid);
+    }
+
+    private void ForceNearbyReplan(EntityUid doorUid)
+    {
+        var xform = Transform(doorUid);
+        if (xform.MapID == MapId.Nullspace)
+            return;
+
+        var epicenter = new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID);
+        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(epicenter, DoorOpenReplanRadius, nearby);
+
+        foreach (var (npcUid, _) in nearby)
+        {
+            // Drop any in-flight breach lock — the route ahead may have opened up.
+            if (TryComp<HTNComponent>(npcUid, out var htn))
+            {
+                if (htn.Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget))
+                    ClearBreachTarget(htn.Blackboard);
+                _htn.Replan(htn);
+            }
+            // Clear cached path so the next steering tick requests a fresh one through the cleared tile.
+            if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
+                steering.CurrentPath.Clear();
         }
     }
 
@@ -250,6 +301,63 @@ public sealed class FSBreachTargetSystem : EntitySystem
 
     private const float ProgressSampleInterval = 0.6f;
     private const float MinClearProgress = 0.4f;
+    private const float MazeCheckInterval = 2.0f;
+    // Path waypoints / direct-tile distance. A straight corridor ≈ 1.0; a zig-zag railing
+    // maze of 3 railings produces ~2.0–2.2. 1.8 catches that while leaving normal L-turns
+    // (~1.3–1.5) unaffected. The scoring step (MazeMinScore) is the real filter for walls.
+    private const float MazePathRatio = 1.8f;
+    // Don't trigger on trivially short paths (noise / turn-rounding).
+    private const int MazeMinPathCount = 5;
+    // Minimum score in maze mode. With shortcut geometry: railing (cost≈1-10) scores ≥0.07;
+    // regular wall (cost≈50) scores 0.014. Threshold of 0.015 lets railings through and
+    // keeps structures needing 47+ zombie hits out. Intentionally NOT failCount-adaptive —
+    // maze mode must never escalate to targeting proper walls.
+    private const float MazeMinScore = 0.015f;
+    // Shorter attack lock for maze breaches — releases quickly if the front of the horde
+    // clears the route (e.g. opens an airlock) before the zombie finishes its breach.
+    private const float MazeAttackLockTime = 5f;
+
+    // Compare nav-path length against direct distance to target.
+    // If the ratio exceeds MazePathRatio, check whether it's cheaper to breach
+    // nearby structures than to follow the maze. The score formula handles the
+    // rest: cheap barriers (railings) score high; expensive ones (walls) fall below
+    // minScore and are ignored, so zombies correctly run wall mazes but smash railing ones.
+    private void CheckMazeBreach(EntityUid uid, EntityUid target, HTNComponent htn, NPCBlackboard bb, float dt)
+    {
+        if (!TryComp<NPCSteeringComponent>(uid, out var steering) || steering.CurrentPath.Count < MazeMinPathCount)
+            return;
+
+        var zombiePos = _transform.GetWorldPosition(uid);
+        var targetPos = _transform.GetWorldPosition(target);
+        var directDist = Vector2.Distance(zombiePos, targetPos);
+
+        // Avoid divide-by-zero / false positives when already adjacent.
+        if (directDist < 2f)
+            return;
+
+        if (steering.CurrentPath.Count < directDist * MazePathRatio)
+            return;
+
+        // Don't trigger when near an airlock — the HTN pry/smash task handles doors,
+        // and the path-ratio spikes temporarily as the horde queues at the airlock.
+        // Using 2.5f (wider than stuck detection's 1.5f) to also catch zombies a step
+        // behind the group that are still "in the airlock zone." Timer is not advanced
+        // while suppressed, so evaluation starts fresh once the zombie moves clear.
+        var mapId = Transform(uid).MapID;
+        var zombieEpicenter = new MapCoordinates(zombiePos, mapId);
+        var nearDoors = new HashSet<Entity<DoorComponent>>();
+        _lookup.GetEntitiesInRange<DoorComponent>(zombieEpicenter, 2.5f, nearDoors);
+        if (nearDoors.Count > 0)
+            return;
+
+        var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, timer);
+        if (timer < MazeCheckInterval)
+            return;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, 0f);
+
+        EvaluateBreachTarget(uid, htn, bb, zombiePos, mapId, mazeTargetPos: targetPos);
+    }
 
     private void CheckPathProgress(EntityUid uid, HTNComponent htn, NPCBlackboard bb, float dt)
     {
@@ -257,7 +365,15 @@ public sealed class FSBreachTargetSystem : EntitySystem
         if (bb.ContainsKey(FSAIBlackboardKeys.AttackLockTimer)) return;
         if (bb.ContainsKey(FSAIBlackboardKeys.BreachCooldown)) return;
         if (bb.TryGetValue<EntityUid>("Target", out var target, EntityManager)
-            && Exists(target) && !_mobState.IsDead(target)) return;
+            && Exists(target) && !_mobState.IsDead(target))
+        {
+            // Anti-maze: compare path length to direct distance. If the route is
+            // 2.5× longer than the straight line, evaluate nearby structures —
+            // cheap ones (railings) will be targeted; expensive ones (walls) score
+            // too low and are skipped, so zombies still run wall mazes naturally.
+            CheckMazeBreach(uid, target, htn, bb, dt);
+            return;
+        }
         // Velocity gate: if the zombie is physically moving it is not stuck — don't evaluate breach.
         // Position sampling alone can fire on baseline-reset artifacts even while the zombie is
         // navigating normally. Checking physics velocity is the ground truth.
@@ -324,27 +440,40 @@ public sealed class FSBreachTargetSystem : EntitySystem
     }
 
     private void EvaluateBreachTarget(EntityUid zombie, HTNComponent htn, NPCBlackboard bb,
-        Vector2 zombieWorldPos, MapId mapId)
+        Vector2 zombieWorldPos, MapId mapId, Vector2? mazeTargetPos = null)
     {
         var baseDamage = GetBaseZombieDamage();
         var epicenter = new MapCoordinates(zombieWorldPos, mapId);
         var curTime = _timing.CurTime;
+        var isMazeMode = mazeTargetPos.HasValue;
 
         TryComp<FSBreachStateComponent>(zombie, out var state);
         if (state != null)
             PruneExpiredBlacklist(state, curTime);
 
-        var (best, score) = BestInRange(epicenter, 4f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime);
+        var (best, score) = BestInRange(epicenter, 4f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime, mazeTargetPos);
 
         if (best == EntityUid.Invalid)
-            (best, score) = BestInRange(epicenter, 6f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime);
+            (best, score) = BestInRange(epicenter, 6f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime, mazeTargetPos);
 
-        var failCount = bb.TryGetValue<int>(FSAIBlackboardKeys.BreachEvalFailCount, out var fc, EntityManager) ? fc : 0;
-        var minScore = failCount >= 5 ? 0.005f : 0.01f;
+        // Maze mode uses a fixed threshold — never relax it to avoid targeting real walls.
+        // Stuck mode uses the adaptive failCount threshold to break stall loops.
+        float minScore;
+        int failCount = 0;
+        if (isMazeMode)
+        {
+            minScore = MazeMinScore;
+        }
+        else
+        {
+            failCount = bb.TryGetValue<int>(FSAIBlackboardKeys.BreachEvalFailCount, out var fc, EntityManager) ? fc : 0;
+            minScore = failCount >= 5 ? 0.005f : 0.01f;
+        }
 
         if (best == EntityUid.Invalid || score < minScore)
         {
-            bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, failCount + 1);
+            if (!isMazeMode)
+                bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, failCount + 1);
             return;
         }
         if (state != null)
@@ -352,44 +481,64 @@ public sealed class FSBreachTargetSystem : EntitySystem
             RecordSelection(state, best, curTime);
             if (state.Blacklist.ContainsKey(best))
             {
-                bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, failCount + 1);
+                if (!isMazeMode)
+                    bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, failCount + 1);
                 return;
             }
         }
 
-        bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, 0);
+        if (!isMazeMode)
+            bb.SetValue(FSAIBlackboardKeys.BreachEvalFailCount, 0);
         bb.SetValue(FSAIBlackboardKeys.BreachTarget, best);
-        bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, 15f);
+        bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, isMazeMode ? MazeAttackLockTime : 15f);
         bb.SetValue(FSAIBlackboardKeys.CachedBreachScore, score);
         _htn.Replan(htn);
     }
 
     private (EntityUid Candidate, float Score) BestInRange(MapCoordinates epicenter, float radius,
         EntityUid zombie, float baseDamage, Vector2 zombieWorldPos, MapId mapId,
-        FSBreachStateComponent? state, TimeSpan curTime)
+        FSBreachStateComponent? state, TimeSpan curTime, Vector2? mazeTargetPos = null)
     {
         var destructibles = new HashSet<Entity<DestructibleComponent>>();
         _lookup.GetEntitiesInRange<DestructibleComponent>(epicenter, radius, destructibles);
+
         var travelDir = Vector2.Zero;
         var hasTravelDir = false;
-        if (TryComp<NPCSteeringComponent>(zombie, out var steeringComp) &&
-            steeringComp.CurrentPath.TryPeek(out var nextPoly))
+
+        if (mazeTargetPos.HasValue)
         {
-            var waypointPos = _transform.ToMapCoordinates(nextPoly.Coordinates).Position;
-            var toWaypoint = waypointPos - zombieWorldPos;
-            if (toWaypoint.LengthSquared() > 0.01f)
+            // Maze mode: filter candidates toward the actual target, not the nav waypoint.
+            // Nav waypoint direction is the maze route direction — using it would filter out
+            // shortcut structures that happen to be perpendicular to the current corridor.
+            var toTarget = mazeTargetPos.Value - zombieWorldPos;
+            if (toTarget.LengthSquared() > 0.01f)
             {
-                travelDir = Vector2.Normalize(toWaypoint);
+                travelDir = Vector2.Normalize(toTarget);
                 hasTravelDir = true;
             }
         }
-        if (!hasTravelDir)
+        else
         {
-            var facing = _transform.GetWorldRotation(zombie).ToVec();
-            if (facing.LengthSquared() > 0.01f)
+            // Stuck mode: filter toward next nav waypoint (original behaviour).
+            if (TryComp<NPCSteeringComponent>(zombie, out var steeringComp) &&
+                steeringComp.CurrentPath.TryPeek(out var nextPoly))
             {
-                travelDir = facing;
-                hasTravelDir = true;
+                var waypointPos = _transform.ToMapCoordinates(nextPoly.Coordinates).Position;
+                var toWaypoint = waypointPos - zombieWorldPos;
+                if (toWaypoint.LengthSquared() > 0.01f)
+                {
+                    travelDir = Vector2.Normalize(toWaypoint);
+                    hasTravelDir = true;
+                }
+            }
+            if (!hasTravelDir)
+            {
+                var facing = _transform.GetWorldRotation(zombie).ToVec();
+                if (facing.LengthSquared() > 0.01f)
+                {
+                    travelDir = facing;
+                    hasTravelDir = true;
+                }
             }
         }
 
@@ -414,7 +563,9 @@ public sealed class FSBreachTargetSystem : EntitySystem
                     continue;
             }
 
-            var score = ScoreCandidate(candidate, zombie, baseDamage, zombieWorldPos, mapId);
+            var score = mazeTargetPos.HasValue
+                ? ScoreCandidateMaze(candidate, baseDamage, zombieWorldPos, mazeTargetPos.Value)
+                : ScoreCandidate(candidate, zombie, baseDamage, zombieWorldPos, mapId);
             if (score > bestScore)
             {
                 bestScore = score;
@@ -490,6 +641,11 @@ public sealed class FSBreachTargetSystem : EntitySystem
 
     private bool IsBlockingMovement(EntityUid entity)
     {
+        // Unanchored entities (glass shards, ammo casings, dropped items) have Hard = true
+        // by default in Robust Toolbox but sit on SlipLayer/ItemLayer — mobs walk right
+        // through them. Only anchored/static structures are real barriers.
+        if (!Transform(entity).Anchored)
+            return false;
         if (!TryComp<PhysicsComponent>(entity, out var physics))
             return false;
         if (!physics.CanCollide)
@@ -511,6 +667,40 @@ public sealed class FSBreachTargetSystem : EntitySystem
         var navValue = GetNavValue(structure, zombie, zombieWorldPos, mapId);
         var cost = GetBreachCost(structure, baseDamage);
         return (weakness * 0.3f + navValue * 0.7f) / cost;
+    }
+
+    // Maze scoring: replaces GetNavValue with shortcut geometry.
+    // A structure's "shortcut value" is how well it sits on the direct zombie→target line.
+    // Structures directly in the way score 1.0; 4+ tiles off the line score 0.2 (still non-zero
+    // so even off-axis barriers are considered if they're cheap enough).
+    private float ScoreCandidateMaze(EntityUid structure, float baseDamage,
+        Vector2 zombiePos, Vector2 targetPos)
+    {
+        var weakness = GetWeakness(structure);
+        var shortcut = GetShortcutValue(structure, zombiePos, targetPos);
+        var cost = GetBreachCost(structure, baseDamage);
+        return (weakness * 0.3f + shortcut * 0.7f) / cost;
+    }
+
+    // Projects the structure's position onto the direct zombie→target line and measures
+    // lateral deviation. Returns 0 for structures behind the zombie (dot ≤ 0).
+    private float GetShortcutValue(EntityUid structure, Vector2 zombiePos, Vector2 targetPos)
+    {
+        var structPos = _transform.GetWorldPosition(structure);
+        var toTarget = targetPos - zombiePos;
+        var targetDist = toTarget.Length();
+        if (targetDist < 0.01f)
+            return 0.2f;
+        var targetDir = toTarget / targetDist;
+        var toStruct = structPos - zombiePos;
+        // Structures behind the zombie are never a shortcut.
+        if (Vector2.Dot(toStruct, targetDir) <= 0f)
+            return 0f;
+        // Lateral distance from the direct zombie→target line (cross product magnitude).
+        var lateral = MathF.Abs(toStruct.X * targetDir.Y - toStruct.Y * targetDir.X);
+        // Full score (1.0) on the line; decays linearly to 0.2 at 4 tiles off the line.
+        var t = MathF.Max(0f, 1f - lateral / 4f);
+        return 0.2f + 0.8f * t;
     }
 
     private float GetBreachCost(EntityUid structure, float baseDamage)

@@ -1,0 +1,18 @@
+# Final Stand: biofabricator recipe packs.
+# Goob's BiofabPartsStatic references Synth* rehydratable cube recipes which are
+# part of a separate Goob content system not ported here. We replace it with a
+# pack referencing the cybernetic organs that ARE ported.
+- type: latheRecipePack
+  id: BiofabPartsStatic
+  recipes:
+  - BasicCyberneticHeart
+  - UpgradedCyberneticHeart
+  - BasicCyberneticLiver
+  - BasicCyberneticLungs
+  - UpgradedCyberneticLungs
+  - MedicalCyberneticEyes
+
+# Empty pack; the emag-only synthetic limb recipes are not ported.
+- type: latheRecipePack
+  id: BiofabPartsEmagStatic
+  recipes: []

@@ -59,12 +59,12 @@ public sealed class DamageOverlayUiController : UIController
         UpdateOverlays(args.Target, args.Component);
     }
 
-    private void OnThresholdCheck(ref MobThresholdChecked args)
+    private void OnThresholdCheck(MobThresholdChecked args)
     {
-
-        if (args.Target != _playerManager.LocalEntity)
+        var target = EntityManager.GetEntity(args.Uid);
+        if (target != _playerManager.LocalEntity || !EntityManager.TryGetComponent<MobStateComponent>(target, out var mobState))
             return;
-        UpdateOverlays(args.Target, args.MobState, args.Damageable, args.Threshold);
+        UpdateOverlays(target, mobState);
     }
 
     private void ClearOverlay()

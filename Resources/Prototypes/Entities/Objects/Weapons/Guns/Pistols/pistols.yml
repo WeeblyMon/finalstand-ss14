@@ -237,9 +237,9 @@
   - type: Clothing
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
   - type: Gun
-    minAngle: 1
-    maxAngle: 20
-    angleIncrease: 8
+    minAngle: 0.7
+    maxAngle: 14
+    angleIncrease: 5.6
     angleDecay: 9
     fireRate: 4
     availableModes:

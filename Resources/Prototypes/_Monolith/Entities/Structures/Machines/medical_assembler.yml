@@ -1,0 +1,86 @@
+# Medical Assembler — ported from Monolith-Station under _Monolith namespace.
+# Sprite: medical_assembler.rsi ported from Monolith-Station/_NF (CC-BY-SA-3.0).
+
+- type: entity
+  id: MedicalAssembler
+  parent: BaseMachinePowered
+  name: medical assembler
+  description: A certified 99.99% nano-sterile automated medical fabrication unit. Insert reagent containers and ingredients, then press Assemble.
+  components:
+  - type: MedicalAssembler
+    capacity: 5
+    startSound:
+      path: /Audio/Machines/microwave_start_beep.ogg
+    doneSound:
+      path: /Audio/Machines/microwave_done_beep.ogg
+    clickSound:
+      path: /Audio/Machines/machine_switch.ogg
+  - type: ContainerContainer
+    containers:
+      medical_assembler_container: !type:Container {}
+  - type: ApcPowerReceiver
+    powerLoad: 600
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.PowerDeviceVisuals.VisualState:
+        base:
+          Idle: { state: mediwave-base }
+          Assembling: { state: mediwave-base }
+          Broken: { state: mediwave-base }
+        unlit:
+          Idle: { state: mediwave-off-unlit, visible: true }
+          Assembling: { state: mediwave-on-unlit, visible: true }
+          Broken: { state: mediwave-off-unlit, visible: true }
+      enum.PowerDeviceVisuals.Powered:
+        unlit:
+          True: { visible: true }
+          False: { visible: false }
+  - type: Sprite
+    sprite: _Monolith/Structures/Machines/medical_assembler.rsi
+    snapCardinals: true
+    layers:
+    - state: icon
+    - state: mediwave-base
+      map: ["base"]
+    - state: mediwave-off-unlit
+      map: ["unlit"]
+      shader: unshaded
+  - type: ActivatableUI
+    key: enum.MedicalAssemblerUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.MedicalAssemblerUiKey.Key:
+        type: MedicalAssemblerBoundUserInterface
+  - type: Physics
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.3,-0.16,0.3,0.16"
+        density: 190
+        mask:
+        - TabletopMachineMask
+        layer:
+        - TabletopMachineLayer
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:ChangeConstructionNodeBehavior
+        node: machineFrame
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+  - type: StaticPrice
+    price: 800
+  - type: WarpPoint
+    follow: false
+  - type: GuideHelp
+    guides:
+    - MedicalAssembler

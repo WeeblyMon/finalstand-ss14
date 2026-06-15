@@ -1,0 +1,61 @@
+<Document>
+# Medical Assembler
+
+The [color=#5b97bc]Medical Assembler[/color] synthesizes auto-injectors and other medical consumables from raw reagents. Insert beakers or syringes containing the required reagents, then press [bold]ASSEMBLE[/bold].
+
+<Box>
+  <GuideEntityEmbed Entity="MedicalAssembler"/>
+</Box>
+
+## How to Use
+
+Most recipes require an [color=#a4885c]empty medipen[/color] — the blank shell the assembler fills during synthesis.
+<Box>
+  <GuideEntityEmbed Entity="BlankMediPen" Caption="empty medipen"/>
+</Box>
+
+- Fill a beaker or syringe with the required reagents at the [color=#5b97bc]Chemistry Dispenser[/color].
+- Place an [color=#a4885c]empty medipen[/color] into the assembler along with the reagent containers.
+- Insert the filled container(s) into the Medical Assembler.
+- Press [bold]ASSEMBLE[/bold]. The machine will consume the reagents and eject the finished product.
+- Use [bold]EJECT ALL[/bold] to retrieve unused containers.
+
+## Recipes
+
+### Burn Auto-Injector
+Treats burn damage.
+<Box>
+  <GuideEntityEmbed Entity="BurnAutoInjector"/>
+</Box>
+- [color=cyan]Dermaline[/color] — 10u
+- [color=cyan]Leporazine[/color] — 10u
+- [color=#a4885c]Empty Medipen[/color] — ×1
+
+### Lacerinol Auto-Injector
+Treats slash wounds and lacerations.
+<Box>
+  <GuideEntityEmbed Entity="LacerinolAutoInjector"/>
+</Box>
+- [color=cyan]Lacerinol[/color] — 10u
+- [color=cyan]Tranexamic Acid[/color] — 5u
+- [color=#a4885c]Empty Medipen[/color] — ×1
+
+### Bruizine Auto-Injector
+Treats blunt trauma and bruising.
+<Box>
+  <GuideEntityEmbed Entity="BruizineAutoInjector"/>
+</Box>
+- [color=cyan]Bruizine[/color] — 10u
+- [color=cyan]Tranexamic Acid[/color] — 5u
+- [color=#a4885c]Empty Medipen[/color] — ×1
+
+### Poison Auto-Injector
+Treats toxin poisoning.
+<Box>
+  <GuideEntityEmbed Entity="AntiPoisonMedipen"/>
+</Box>
+- [color=cyan]Ultravasculine[/color] — 10u
+- [color=cyan]Epinephrine[/color] — 5u
+- [color=#a4885c]Empty Medipen[/color] — ×1
+
+</Document>

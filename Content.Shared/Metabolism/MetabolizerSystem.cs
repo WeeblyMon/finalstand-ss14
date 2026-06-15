@@ -2,10 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Events;
 using Content.Shared.Body;
+using Content.Shared.Body.Organ;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared._Shitmed.EntityConditions;
 using Content.Shared.EntityConditions;
 using Content.Shared.EntityConditions.Conditions;
 using Content.Shared.EntityConditions.Conditions.Body;
@@ -208,7 +210,7 @@ public sealed class MetabolizerSystem : EntitySystem
                     continue;
 
                 // See if conditions apply
-                if (effect.Conditions != null && !CanMetabolizeEffect(actualEntity, ent, solutionEntity.Value, effect.Conditions))
+                if (effect.Conditions != null && !CanMetabolizeEffect(actualEntity, ent, solutionEntity.Value, effect.Conditions, quantity))
                     continue;
 
                 ApplyEffect(effect);
@@ -277,7 +279,7 @@ public sealed class MetabolizerSystem : EntitySystem
     /// <param name="solution">The solution we are metabolizing from</param>
     /// <param name="conditions">The conditions that need to be met to metabolize</param>
     /// <returns>True if we can metabolize! False if we cannot!</returns>
-    public bool CanMetabolizeEffect(EntityUid body, EntityUid organ, Entity<SolutionComponent> solution, EntityCondition[] conditions)
+    public bool CanMetabolizeEffect(EntityUid body, EntityUid organ, Entity<SolutionComponent> solution, EntityCondition[] conditions, FixedPoint2 currentQuantity = default)
     {
         foreach (var condition in conditions)
         {
@@ -293,6 +295,24 @@ public sealed class MetabolizerSystem : EntitySystem
                     if (_entityConditions.TryCondition(solution, condition))
                         continue;
                     break;
+                // Goob: checks the quantity of the currently-metabolizing reagent (not a named reagent).
+                case ReagentThreshold threshold:
+                {
+                    var qty = currentQuantity.Float();
+                    var passes = qty >= threshold.Min && qty <= threshold.Max;
+                    if (threshold.Inverted ? !passes : passes)
+                        continue;
+                    break;
+                }
+                // Goob: same semantics as ReagentThreshold but used for unique-stack checks.
+                case UniqueBloodstreamChemThreshold ubct:
+                {
+                    var qty = currentQuantity.Float();
+                    var passes = qty >= ubct.Min && qty <= ubct.Max;
+                    if (ubct.Inverted ? !passes : passes)
+                        continue;
+                    break;
+                }
                 default:
                     if (_entityConditions.TryCondition(body, condition))
                         continue;

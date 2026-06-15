@@ -33,6 +33,8 @@ namespace Content.Shared.Humanoid
         StencilMask,
         Ensnare,
         Fire,
+        Groin, // Shitmed
+        Wings, // Shitmed
 
     }
 }

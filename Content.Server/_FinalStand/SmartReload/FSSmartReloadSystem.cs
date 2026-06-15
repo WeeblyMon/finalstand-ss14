@@ -259,7 +259,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        var shell = FindBestAmmo(user, comp.Whitelist);
+        var shell = FindBestAmmo(user, comp.Whitelist, gun);
         if (shell == null)
         {
             if (!isChainReload)
@@ -350,11 +350,11 @@ public sealed class FSSmartReloadSystem : EntitySystem
             && TryComp<BallisticAmmoProviderComponent>(nextSource, out var boxComp)
             && boxComp.Count == 0)
         {
-            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+            nextSource = FindBestAmmo(args.User, comp.Whitelist, gun) ?? EntityUid.Invalid;
         }
         else if (!HasComp<BallisticAmmoProviderComponent>(nextSource))
         {
-            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+            nextSource = FindBestAmmo(args.User, comp.Whitelist, gun) ?? EntityUid.Invalid;
         }
 
         if (nextSource.IsValid())
@@ -387,7 +387,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        var source = FindBestAmmo(user, comp.Whitelist);
+        var source = FindBestAmmo(user, comp.Whitelist, gun);
         if (source == null)
         {
             if (!isChainReload)
@@ -449,11 +449,11 @@ public sealed class FSSmartReloadSystem : EntitySystem
             && TryComp<BallisticAmmoProviderComponent>(nextSource, out var boxComp)
             && boxComp.Count == 0)
         {
-            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+            nextSource = FindBestAmmo(args.User, comp.Whitelist, gun) ?? EntityUid.Invalid;
         }
         else if (!HasComp<BallisticAmmoProviderComponent>(nextSource))
         {
-            nextSource = FindBestAmmo(args.User, comp.Whitelist) ?? EntityUid.Invalid;
+            nextSource = FindBestAmmo(args.User, comp.Whitelist, gun) ?? EntityUid.Invalid;
         }
 
         if (nextSource.IsValid())
@@ -566,7 +566,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    private EntityUid? FindBestAmmo(EntityUid user, EntityWhitelist? whitelist)
+    // skipInside: don't search inside this entity's containers (prevents finding rounds already loaded in the gun).
+    private EntityUid? FindBestAmmo(EntityUid user, EntityWhitelist? whitelist, EntityUid skipInside = default)
     {
         if (!TryComp<ContainerManagerComponent>(user, out var mgr))
             return null;
@@ -582,7 +583,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
                 fallbackBox ??= IsCompatibleAmmoBox(item, whitelist) ? item : null;
 
-                if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
+                // Don't look inside the gun being reloaded — its rounds are already loaded.
+                if (item == skipInside || !TryComp<ContainerManagerComponent>(item, out var innerMgr))
                     continue;
 
                 foreach (var inner in innerMgr.Containers.Values)
@@ -594,7 +596,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
                         fallbackBox ??= IsCompatibleAmmoBox(innerItem, whitelist) ? innerItem : null;
 
-                        if (!TryComp<ContainerManagerComponent>(innerItem, out var deepMgr))
+                        if (innerItem == skipInside || !TryComp<ContainerManagerComponent>(innerItem, out var deepMgr))
                             continue;
 
                         foreach (var deep in deepMgr.Containers.Values)

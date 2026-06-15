@@ -19,17 +19,23 @@ public sealed class LungTest : GameTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
+- type: body
+  id: LungTestBody
+  name: lung test
+  root: chest
+  slots:
+    chest:
+      part: ChestHuman
+      organs:
+        lungs: OrganHumanLungs
+
 - type: entity
   name: HumanLungDummy
   id: HumanLungDummy
   components:
   - type: SolutionContainerManager
   - type: Body
-  - type: EntityTableContainerFill
-    containers:
-      body_organs: !type:AllSelector
-        children:
-        - id: OrganHumanLungs
+    prototype: LungTestBody
   - type: MobState
     allowedStates:
       - Alive

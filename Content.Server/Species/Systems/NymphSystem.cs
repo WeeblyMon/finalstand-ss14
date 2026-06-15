@@ -1,6 +1,7 @@
 using Content.Server.Mind;
 using Content.Server.Zombies;
 using Content.Shared.Body;
+using Content.Shared.Body.Events;
 using Content.Shared.Species.Components;
 using Content.Shared.Zombies;
 using Robust.Shared.Prototypes;

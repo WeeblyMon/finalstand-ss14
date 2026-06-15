@@ -506,6 +506,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.Akimbo => "Dual Wield",
         WeaponUpgradeType.ExplosiveShot => "Explosive",
         WeaponUpgradeType.MoneyGainBonus => "Money",
+        WeaponUpgradeType.MoneyPerHit => "$/Hit",
         WeaponUpgradeType.Slowing => "Slow",
         WeaponUpgradeType.BeamChaining => "Chain",
         WeaponUpgradeType.Knockback => "Knockback",

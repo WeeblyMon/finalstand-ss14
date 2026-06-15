@@ -11,17 +11,23 @@ public sealed class GibletTest : GameTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
+- type: body
+  id: GibbingBodyProto
+  name: gibbing
+  root: chest
+  slots:
+    chest:
+      part: ChestHuman
+      organs:
+        giblet1: Giblet
+        giblet2: Giblet
+        giblet3: Giblet
+
 - type: entity
   id: GibbingBody
   components:
   - type: Body
-  - type: EntityTableContainerFill
-    containers:
-      body_organs: !type:AllSelector
-        children:
-        - id: Giblet
-        - id: Giblet
-        - id: Giblet
+    prototype: GibbingBodyProto
 
 - type: entity
   id: Giblet

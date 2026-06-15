@@ -36,6 +36,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntInsertedIntoContainerMessage>(OnMagInsertedToGun);
+        SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntRemovedFromContainerMessage>(OnMagRemovedFromGun);
     }
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
@@ -197,6 +198,13 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                 state.MoneyGainBonusPerKill += (int)def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.MoneyPerHit:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MoneyPerHitBonus += (int)def.ValuePerLevel;
                 break;
             }
 
@@ -504,6 +512,22 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
 #pragma warning restore RA0002
         upgraded.AppliedBonus = state.MagazineSizeBonus;
+        Dirty(args.Entity, bal);
+    }
+
+    private void OnMagRemovedFromGun(EntityUid gun, FSWeaponUpgradeStateComponent state,
+        EntRemovedFromContainerMessage args)
+    {
+        if (!TryComp<FSMagUpgradedComponent>(args.Entity, out var upgraded) || upgraded.AppliedBonus <= 0)
+            return;
+        if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal))
+            return;
+
+#pragma warning disable RA0002
+        bal.Capacity -= upgraded.AppliedBonus;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount, bal.Capacity);
+#pragma warning restore RA0002
+        upgraded.AppliedBonus = 0;
         Dirty(args.Entity, bal);
     }
 }

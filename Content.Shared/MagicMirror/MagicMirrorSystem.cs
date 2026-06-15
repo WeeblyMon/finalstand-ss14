@@ -23,7 +23,6 @@ public sealed class MagicMirrorSystem : EntitySystem
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
 
     private static readonly ProtoId<TagPrototype> HidesHairTag = "HidesHair";
 
@@ -128,7 +127,7 @@ public sealed class MagicMirrorSystem : EntitySystem
             }
         }
 
-        _visualBody.ApplyMarkings(args.Target.Value, args.Markings);
+        // TODO: Restore marking application via SharedHumanoidAppearanceSystem after visual body system port
     }
 
     private void OnUiClosed(Entity<MagicMirrorComponent> ent, ref BoundUIClosedEvent args)
@@ -142,7 +141,7 @@ public sealed class MagicMirrorSystem : EntitySystem
         if (!args.CanReach || args.Target == null)
             return;
 
-        if (!HasComp<VisualBodyComponent>(args.Target.Value))
+        if (!HasComp<HumanoidProfileComponent>(args.Target.Value))
             return;
 
         UpdateInterface(mirror, args.Target.Value);
@@ -169,7 +168,7 @@ public sealed class MagicMirrorSystem : EntitySystem
     {
         var user = component.Target ?? args.User;
 
-        if (!HasComp<VisualBodyComponent>(user))
+        if (!HasComp<HumanoidProfileComponent>(user))
             args.Cancel();
     }
 
@@ -180,36 +179,12 @@ public sealed class MagicMirrorSystem : EntitySystem
 
     private void UpdateInterface(Entity<MagicMirrorComponent> ent, EntityUid target)
     {
-        if (!_visualBody.TryGatherMarkingsData(target, ent.Comp.Layers, out var profiles, out var markings, out var applied))
-            return;
-
         ent.Comp.Target = target;
 
-        foreach (var profile in profiles)
-        {
-            if (!ent.Comp.Organs.Contains(profile.Key))
-                profiles.Remove(profile.Key);
-        }
+        var applied = new Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>>();
 
-        foreach (var marking in markings)
-        {
-            if (!ent.Comp.Organs.Contains(marking.Key))
-            {
-                profiles.Remove(marking.Key);
-                continue;
-            }
-
-            marking.Value.Layers.IntersectWith(ent.Comp.Layers);
-        }
-
-        foreach (var appliedPair in applied)
-        {
-            if (!ent.Comp.Organs.Contains(appliedPair.Key))
-                applied.Remove(appliedPair.Key);
-        }
-
-        // TODO: Component states
-        var state = new MagicMirrorUiState(profiles, markings, applied);
+        // TODO: Populate markings data from SharedHumanoidAppearanceSystem after visual body port
+        var state = new MagicMirrorUiState(applied);
         _userInterface.SetUiState(ent.Owner, MagicMirrorUiKey.Key, state);
 
         Dirty(ent);
@@ -266,20 +241,18 @@ public sealed class MagicMirrorSelectMessage : BoundUserInterfaceMessage
 [Serializable, NetSerializable]
 public sealed class MagicMirrorUiState : BoundUserInterfaceState
 {
-    public MagicMirrorUiState(Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> profiles,
-        Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> markings,
-        Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> applied)
+    public MagicMirrorUiState(Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> applied)
     {
-        OrganProfileData = profiles;
-        OrganMarkingData = markings;
         AppliedMarkings = applied;
     }
 
     public NetEntity Target;
 
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> OrganProfileData;
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> OrganMarkingData;
     public Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> AppliedMarkings;
+
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> OrganMarkingData = new();
+
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> OrganProfileData = new();
 }
 
 [Serializable, NetSerializable]

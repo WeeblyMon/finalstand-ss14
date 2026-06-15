@@ -24,6 +24,7 @@ using Content.Shared.Administration.Systems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
+using Content.Shared.Body.Organ;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Clumsy;
 using Content.Shared.Cluwne;
@@ -133,7 +134,7 @@ public sealed partial class AdminVerbSystem
                         4, 1, 2, args.Target, maxTileBreak: 0), // it gibs, damage doesn't need to be high.
                     CancellationToken.None);
 
-                _gibbing.Gib(args.Target);
+                _bodySystem.GibBody(args.Target);
             },
             Impact = LogImpact.Extreme,
             Message = string.Join(": ", explodeName, Loc.GetString("admin-smite-explode-description")) // we do this so the description tells admins the Text to run it via console.
@@ -322,7 +323,7 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     _vomitSystem.Vomit(args.Target, -1000, -1000); // You feel hollow!
-                    _bodySystem.TryGetOrgansWithComponent<TransformComponent>((args.Target, body), out var organs);
+                    _bodySystem.TryGetOrgansWithComponent<TransformComponent>(args.Target, out var organs, body);
                     var baseXform = Transform(args.Target);
                     foreach (var organ in organs)
                     {
@@ -352,7 +353,7 @@ public sealed partial class AdminVerbSystem
                 {
                     var baseXform = Transform(args.Target);
                     var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
-                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>((args.Target, body), out var organs);
+                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>(args.Target, out var organs, body);
                     foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
                     {
                         _transformSystem.AttachToGridOrMap(organ);
@@ -377,7 +378,7 @@ public sealed partial class AdminVerbSystem
                 {
                     var baseXform = Transform(args.Target);
                     var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
-                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>((args.Target, body), out var organs);
+                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>(args.Target, out var organs, body);
                     foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
                     {
                         _transformSystem.AttachToGridOrMap(organ);
@@ -401,7 +402,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "stomach"),
                 Act = () =>
                 {
-                    _bodySystem.TryGetOrgansWithComponent<StomachComponent>((args.Target, body), out var organs);
+                    _bodySystem.TryGetOrgansWithComponent<StomachComponent>(args.Target, out var organs, body);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);
@@ -423,7 +424,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "lung-r"),
                 Act = () =>
                 {
-                    _bodySystem.TryGetOrgansWithComponent<LungComponent>((args.Target, body), out var organs);
+                    _bodySystem.TryGetOrgansWithComponent<LungComponent>(args.Target, out var organs, body);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);

@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
@@ -23,6 +24,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
         SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
+        SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
 
@@ -40,6 +42,12 @@ public sealed class WaveHudSystem : EntitySystem
     private void OnPlayerJoinedServer(object? sender, PlayerEventArgs _)
     {
         RaiseNetworkEvent(new WalletRequestEvent());
+        RaiseNetworkEvent(new FSAugmentStateRequestMessage());
+    }
+
+    private void OnLocalPlayerAttached(LocalPlayerAttachedEvent _)
+    {
+        RaiseNetworkEvent(new FSAugmentStateRequestMessage());
     }
 
     private WaveHudOverlay? EnsureOverlay()

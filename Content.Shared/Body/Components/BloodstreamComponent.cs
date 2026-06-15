@@ -154,6 +154,12 @@ public sealed partial class BloodstreamComponent : Component
     public Solution BloodReferenceSolution = new([new("Blood", 600)]);
 
     /// <summary>
+    ///     Goobstation: Max volume of internal blood storage and starting level of blood.
+    /// </summary>
+    [DataField]
+    public FixedPoint2 BloodMaxVolume = FixedPoint2.New(300);
+
+    /// <summary>
     /// Caches the blood data of an entity.
     /// This is modified by DNA on init so it's not savable.
     /// </summary>

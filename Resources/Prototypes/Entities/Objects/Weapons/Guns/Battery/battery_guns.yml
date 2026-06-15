@@ -927,7 +927,11 @@
       pacifismAllowedMode: true
   - type: BatterySelfRecharger
     autoRechargeRate: 48
-    autoRechargePauseTime: 10
+    autoRechargePauseTime: 0
+  - type: FSWeaponRechargeAudio
+    emptyPenaltyDuration: 6
+    rechargeStartSound:
+      path: /Audio/Weapons/Guns/Gunshots/charge.ogg
 
 - type: entity
   name: temperature gun

@@ -16,6 +16,37 @@
   id: Metabolites
   name: metabolism-stage-metabolites
 
+# Legacy group names kept for backward compatibility with old-style reagent YAML
+# (medicine.yml, food.yml, etc. still use these as metabolism keys)
+
+- type: metabolismStage
+  id: Gas
+  name: metabolism-stage-gas
+
+- type: metabolismStage
+  id: Medicine
+  name: metabolism-stage-medicine
+
+- type: metabolismStage
+  id: Poison
+  name: metabolism-stage-poison
+
+- type: metabolismStage
+  id: Narcotic
+  name: metabolism-stage-narcotic
+
+- type: metabolismStage
+  id: Food
+  name: metabolism-stage-food
+
+- type: metabolismStage
+  id: Drink
+  name: metabolism-stage-drink
+
+- type: metabolismStage
+  id: Alcohol
+  name: metabolism-stage-alcohol
+
 # Dummy for the guide
 
 - type: metabolismStage

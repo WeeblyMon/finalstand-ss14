@@ -51,7 +51,7 @@ public abstract partial class SharedSolutionContainerSystem
 
         if (container.Comp.Solutions == null)
         {
-            RemCompDeferred<SolutionManagerComponent>(container);
+            RemCompDeferred<SolutionContainerManagerComponent>(container);
             return;
         }
 
@@ -62,7 +62,7 @@ public abstract partial class SharedSolutionContainerSystem
             // Solution already exists so we ignore it.
             if (EnsureSolution(container.Owner, name, out var solutionEnt))
             {
-                // Only a warning so tests don't fail. If you're using this to find maps/prototypes which need porting, change this to Log.Error so tests fail.
+                // Only a warning so tests don't find maps/prototypes which need porting, change this to Log.Error so tests fail.
                 Log.Warning($"Attempted to port a solution id: {name} " +
                             $"from a {nameof(SolutionContainerManagerComponent)} on {ToPrettyString(container)}, {MetaData(container).EntityPrototype}, " +
                             $"but the entity already had a solution with that id.");
@@ -72,8 +72,8 @@ public abstract partial class SharedSolutionContainerSystem
             solutionEnt.Comp.Solution = solution;
         }
 
-        // Clear its data
+        // Clear its data and remove the now-redundant obsolete component.
         container.Comp.Solutions = null;
-        RemCompDeferred<SolutionManagerComponent>(container);
+        RemCompDeferred<SolutionContainerManagerComponent>(container);
     }
 }

@@ -1,3 +1,12 @@
+# SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2024 Cojoke <83733158+Cojoke-dot@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2024 Tayrtahn <tayrtahn@gmail.com>
+# SPDX-FileCopyrightText: 2024 Trevor Day <tday93@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2024 metalgearsloth <comedian_vs_clown@hotmail.com>
+# SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 - type: entity
   id: BaseTabletopChemicalMachine
   parent: [ BaseMachinePowered, SmallConstructibleMachine ]
@@ -54,7 +63,6 @@
     - Electrolysis
   - type: Sprite
     sprite: Structures/Machines/Medical/electrolysis.rsi
-    noRot: true
     offset: "0.0,0.4"
     layers:
     - state: base
@@ -76,13 +84,7 @@
           False: { visible: False }
   - type: Machine
     board: ElectrolysisUnitMachineCircuitboard
-  - type: ApcPowerReceiver
-    powerLoad: 0
-  - type: PowerState
-    idlePowerDraw: 0
-    workingPowerDraw: 1000 # for a lab-grade machine
 
-# TODO centrifuge should spill the vial if the lid is off
 - type: entity
   id: MachineCentrifuge
   parent: BaseTabletopChemicalMachine
@@ -100,7 +102,6 @@
     - Centrifuge
   - type: Sprite
     sprite: Structures/Machines/Medical/centrifuge.rsi
-    noRot: true
     offset: "0.0,0.4"
     layers:
     - state: base
@@ -129,8 +130,3 @@
             - CentrifugeCompatible
   - type: Machine
     board: CentrifugeMachineCircuitboard
-  - type: ApcPowerReceiver
-    powerLoad: 0
-  - type: PowerState
-    idlePowerDraw: 0
-    workingPowerDraw: 500

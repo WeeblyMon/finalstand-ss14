@@ -29,4 +29,9 @@ Right now, medbay is divided into two different sets of care:
     <GuideEntityEmbed Entity="PillCanister"/>
     <GuideEntityEmbed Entity="ChemMaster"/>
   </Box>
+## Medical Assembler
+  <Box>
+    <GuideEntityEmbed Entity="MedicalAssembler"/>
+  </Box>
+  [textlink="Click here to see Medical Assembler recipes." link="MedicalAssembler"]
 </Document>

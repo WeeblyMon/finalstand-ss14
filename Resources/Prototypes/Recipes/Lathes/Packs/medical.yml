@@ -26,6 +26,7 @@
   - Jug
   - ChemistryEmptyBottle01
   - ClothingEyesGlassesChemical
+  - BlankMediPen
 
 - type: latheRecipePack
   id: SurgeryStatic
@@ -48,7 +49,7 @@
   - WhiteCane
   - OffsetCane
   - OffsetCaneWood
-  - JetInjector
+  # - JetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: latheRecipePack
   id: RollerBedsStatic
@@ -98,9 +99,9 @@
   - SyringeCryostasis
   - BluespaceBeaker
   - SyringeBluespace
-  - LauncherSyringe
-  - MiniSyringe
-  - AdvancedJetInjector
+  # - LauncherSyringe  # Goob: disabled (syringe launcher not ported)
+  # - MiniSyringe      # Goob: disabled (syringe launcher not ported)
+  # - AdvancedJetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: latheRecipePack
   id: MedicalBoards
