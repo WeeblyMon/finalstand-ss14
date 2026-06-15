@@ -3,10 +3,11 @@ using System.Text.Json.Serialization;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
+using JetBrains.Annotations;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Utility;
 using Robust.Shared.Serialization;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Generic;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Dictionary;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Damage
 {
@@ -20,11 +21,30 @@ namespace Content.Shared.Damage
     [DataDefinition, Serializable, NetSerializable]
     public sealed partial class DamageSpecifier : IEquatable<DamageSpecifier>, IRobustCloneable<DamageSpecifier>
     {
+        // Private backing fields for YAML deserialization — DamageDict is the combined result.
+        [JsonPropertyName("types")]
+        [DataField("types", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageTypePrototype>))]
+        [UsedImplicitly]
+        private Dictionary<string, FixedPoint2>? _damageTypeDictionary;
+
+        [JsonPropertyName("groups")]
+        [DataField("groups", customTypeSerializer: typeof(PrototypeIdDictionarySerializer<FixedPoint2, DamageGroupPrototype>))]
+        [UsedImplicitly]
+        private Dictionary<string, FixedPoint2>? _damageGroupDictionary;
+
         /// <summary>
         ///     Main DamageSpecifier dictionary. Most DamageSpecifier functions exist to somehow modifying this.
+        ///     Populated from both <c>types:</c> and <c>groups:</c> YAML keys; groups are expanded into their constituent types.
         /// </summary>
-        [DataField("types")]
-        public Dictionary<ProtoId<DamageTypePrototype>, FixedPoint2> DamageDict { get; set; } = new();
+        [JsonIgnore]
+        [IncludeDataField(customTypeSerializer: typeof(DamageSpecifierDictionarySerializer), readOnly: true)]
+        public Dictionary<string, FixedPoint2> DamageDict { get; set; } = new();
+
+        /// <summary>
+        ///     Goobstation: Wound severity multipliers per damage type, used by the wound system.
+        /// </summary>
+        [DataField]
+        public Dictionary<string, FixedPoint2> WoundSeverityMultipliers { get; set; } = new();
 
         /// <summary>
         ///     Returns a sum of the damage values.

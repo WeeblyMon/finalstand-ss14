@@ -1,0 +1,214 @@
+# SPDX-FileCopyrightText: 2026 FinalStand Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- type: entity
+  id: OrganMothVisualHead
+  parent: OrganBaseHead
+  name: head
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: head_m
+    sexStateOverrides:
+      Male: head_m
+      Female: head_f
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Head
+      - Hair
+      - FacialHair
+      - Snout
+      - SnoutCover
+      - HeadSide
+      - HeadTop
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualChest
+  parent: OrganBaseTorso
+  name: chest
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: chest_m
+    sexStateOverrides:
+      Male: chest_m
+      Female: chest_f
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Chest
+      - Tail
+      - Overlay
+      - TailOverlay
+      - UndergarmentTop
+      - UndergarmentBottom
+      - Special
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualGroin
+  parent: OrganBase
+  name: groin
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Organ
+  - type: VisualOrgan
+    layer: enum.HumanoidVisualLayers.Groin
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: groin_m
+    sexStateOverrides:
+      Male: groin_m
+      Female: groin_f
+
+- type: entity
+  id: OrganMothVisualLArm
+  parent: OrganBaseArmLeft
+  name: left arm
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: l_arm
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LArm
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualRArm
+  parent: OrganBaseArmRight
+  name: right arm
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: r_arm
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RArm
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualLHand
+  parent: OrganBaseHandLeft
+  name: left hand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: l_hand
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LHand
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualRHand
+  parent: OrganBaseHandRight
+  name: right hand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: r_hand
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RHand
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualLLeg
+  parent: OrganBaseLegLeft
+  name: left leg
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: l_leg
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LLeg
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualRLeg
+  parent: OrganBaseLegRight
+  name: right leg
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: r_leg
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RLeg
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualLFoot
+  parent: OrganBaseFootLeft
+  name: left foot
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: l_foot
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LFoot
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualRFoot
+  parent: OrganBaseFootRight
+  name: right foot
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: r_foot
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RFoot
+      group: Moth
+
+- type: entity
+  id: OrganMothVisualEyes
+  parent: OrganBase
+  name: eyes
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Organ
+  - type: VisualOrgan
+    layer: enum.HumanoidVisualLayers.Eyes
+    data:
+      sprite: Mobs/Species/Moth/parts.rsi
+      state: eyes
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Eyes
+      group: Moth

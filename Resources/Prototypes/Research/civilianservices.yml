@@ -134,7 +134,7 @@
   cost: 5000
   recipeUnlocks:
   - BorgModuleAdvancedTopical
-  - AdvancedJetInjector
+  # - AdvancedJetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: technology
   id: AdvancedCleaning
@@ -235,15 +235,9 @@
   - BluespaceBeaker
   - SyringeBluespace
 
-- type: technology
-  id: LauncherSyringe
-  name: research-technology-launcher-syringe
-  icon:
-    sprite: Objects/Weapons/Guns/Cannons/syringe_gun.rsi
-    state: syringe_gun
-  discipline: CivilianServices
-  tier: 3
-  cost: 15000
-  recipeUnlocks:
-  - LauncherSyringe
-  - MiniSyringe
+# Goob: LauncherSyringe technology disabled (syringe launcher not ported)
+# - type: technology
+#   id: LauncherSyringe
+#   recipeUnlocks:
+#   - LauncherSyringe
+#   - MiniSyringe

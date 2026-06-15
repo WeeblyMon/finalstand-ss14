@@ -14,7 +14,10 @@ using Content.Shared.Body.Part;
 using Content.Shared.Body.Organ;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
+using Content.Shared.Damage.Systems;
+using Content.Shared.Emp;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._Shitmed.Cybernetics;
@@ -22,12 +25,14 @@ namespace Content.Server._Shitmed.Cybernetics;
 internal sealed class CyberneticsSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
+
+    private static readonly ProtoId<DamageTypePrototype> ShockDamageType = "Shock";
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<CyberneticsComponent, EmpPulseEvent>(OnEmpPulse);
-        SubscribeLocalEvent<CyberneticsComponent, EmpDisabledRemoved>(OnEmpDisabledRemoved);
+        SubscribeLocalEvent<CyberneticsComponent, EmpDisabledRemovedEvent>(OnEmpDisabledRemovedEvent);
     }
     private void OnEmpPulse(Entity<CyberneticsComponent> cyberEnt, ref EmpPulseEvent ev)
     {
@@ -50,16 +55,16 @@ internal sealed class CyberneticsSystem : EntitySystem
                 if (TryComp(cyberEnt, out DamageableComponent? damageable)
                     && part.Body is not null)
                 {
-                    var shock = new DamageSpecifier(_prototypes.Index<DamageTypePrototype>("Shock"), 30);
+                    var shock = new DamageSpecifier(_prototypes.Index(ShockDamageType), 30);
                     var targetPart = _body.GetTargetBodyPart(part);
-                    _damageable.TryChangeDamage(part.Body.Value, shock, ignoreResistances: true, targetPart: targetPart, damageable: damageable);
+                    _damageable.TryChangeDamage(part.Body.Value, shock, ignoreResistances: true, targetPart: targetPart);
                     Dirty(cyberEnt, damageable);
                 }
             }
         }
     }
 
-    private void OnEmpDisabledRemoved(Entity<CyberneticsComponent> cyberEnt, ref EmpDisabledRemoved ev)
+    private void OnEmpDisabledRemovedEvent(Entity<CyberneticsComponent> cyberEnt, ref EmpDisabledRemovedEvent ev)
     {
         if (cyberEnt.Comp.Disabled)
         {

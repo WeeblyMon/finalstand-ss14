@@ -3,6 +3,7 @@ using Content.Server.Polymorph.Components;
 using Content.Server.Popups;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body;
+using Content.Shared.Body.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.Examine;

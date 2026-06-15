@@ -11,7 +11,11 @@ using Content.Server.GameTicking.Rules.Components;
 using Content.Shared.Database;
 using Content.Shared.Mind;
 using Robust.Shared.Player;
+
 namespace Content.Server._Shitmed.Objectives.Systems;
+
+[ByRefEvent]
+public readonly record struct ObjectiveAddedEvent(EntityUid Objective);
 
 public sealed class ForceHereticObjectiveSystem : EntitySystem
 {
@@ -33,11 +37,7 @@ public sealed class ForceHereticObjectiveSystem : EntitySystem
 
         if (HasComp<ForceHereticObjectiveComponent>(args.Objective))
         {
-            _antag.ForceMakeAntag<HereticRuleComponent>(actor.PlayerSession, "Heretic");
-
-            _adminLogManager.Add(LogType.Mind,
-                LogImpact.Medium,
-                $"{ToPrettyString(uid)} has been given heretic status by an antag objective.");
+            // HereticRuleComponent not ported to Final Stand — Heretic antag not available
         }
     }
 }

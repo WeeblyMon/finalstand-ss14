@@ -1,4 +1,8 @@
 using System.Linq;
+using Content.Shared.Body.Components;
+using Content.Shared.Body.Events;
+using Content.Shared.Body.Organ;
+using Content.Shared.Body.Systems;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid;
 using Robust.Shared.Containers;
@@ -15,6 +19,7 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly MarkingManager _marking = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
 
     public override void Initialize()
     {
@@ -25,8 +30,40 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
         SubscribeLocalEvent<VisualOrganComponent, BodyRelayedEvent<ApplyOrganProfileDataEvent>>(OnVisualOrganApplyProfile);
         SubscribeLocalEvent<VisualOrganMarkingsComponent, BodyRelayedEvent<ApplyOrganMarkingsEvent>>(OnMarkingsOrganApplyMarkings);
 
+        // Relay visual events from the body entity down to all contained visual organs.
+        SubscribeLocalEvent<VisualBodyComponent, ApplyOrganProfileDataEvent>(OnBodyRelayProfile);
+        SubscribeLocalEvent<VisualBodyComponent, ApplyOrganMarkingsEvent>(OnBodyRelayMarkings);
+
         InitializeModifiers();
         InitializeInitial();
+    }
+
+    private void OnBodyRelayProfile(Entity<VisualBodyComponent> body, ref ApplyOrganProfileDataEvent args)
+    {
+        if (!TryComp<BodyComponent>(body.Owner, out var bodyComp))
+            return;
+        var bodyEntity = new Entity<BodyComponent>(body.Owner, bodyComp);
+        foreach (var (organUid, _) in _bodySystem.GetBodyOrgans(body.Owner, bodyComp))
+        {
+            if (!HasComp<VisualOrganComponent>(organUid))
+                continue;
+            var relayed = new BodyRelayedEvent<ApplyOrganProfileDataEvent>(bodyEntity, args);
+            RaiseLocalEvent(organUid, ref relayed);
+        }
+    }
+
+    private void OnBodyRelayMarkings(Entity<VisualBodyComponent> body, ref ApplyOrganMarkingsEvent args)
+    {
+        if (!TryComp<BodyComponent>(body.Owner, out var bodyComp))
+            return;
+        var bodyEntity = new Entity<BodyComponent>(body.Owner, bodyComp);
+        foreach (var (organUid, _) in _bodySystem.GetBodyOrgans(body.Owner, bodyComp))
+        {
+            if (!HasComp<VisualOrganMarkingsComponent>(organUid))
+                continue;
+            var relayed = new BodyRelayedEvent<ApplyOrganMarkingsEvent>(bodyEntity, args);
+            RaiseLocalEvent(organUid, ref relayed);
+        }
     }
 
     private List<Marking> ResolveMarkings(List<Marking> markings, Color? skinColor, Color? eyeColor, Dictionary<Enum, MarkingsAppearance> appearances)
@@ -111,12 +148,7 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
 
     private void OnVisualOrganApplyProfile(Entity<VisualOrganComponent> ent, ref BodyRelayedEvent<ApplyOrganProfileDataEvent> args)
     {
-        if (Comp<OrganComponent>(ent).Category is not { } category)
-            return;
-
         var relevantData = args.Args.Base;
-        if (args.Args.Profiles?.TryGetValue(category, out var profile) == true)
-            relevantData = profile;
 
         if (relevantData is not { } data)
             return;
@@ -137,39 +169,7 @@ public abstract partial class SharedVisualBodySystem : EntitySystem
 
     private void OnMarkingsOrganApplyMarkings(Entity<VisualOrganMarkingsComponent> ent, ref BodyRelayedEvent<ApplyOrganMarkingsEvent> args)
     {
-        if (Comp<OrganComponent>(ent).Category is not { } category)
-            return;
-
-        if (!args.Args.Markings.TryGetValue(category, out var markingSet))
-            return;
-
-        var groupProto = _prototype.Index(ent.Comp.MarkingData.Group);
-        var organMarkings = ent.Comp.Markings.ShallowClone();
-
-        foreach (var layer in ent.Comp.MarkingData.Layers)
-        {
-            if (!markingSet.TryGetValue(layer, out var markings))
-                continue;
-
-            var okSet = new List<Marking>();
-
-            foreach (var marking in markings)
-            {
-                if (!_marking.TryGetMarking(marking, out _))
-                    continue;
-
-                okSet.Add(marking);
-            }
-
-            organMarkings[layer] = okSet;
-        }
-
-        var profile = Comp<VisualOrganComponent>(ent).Profile;
-        var resolved = organMarkings.ToDictionary(
-            kvp => kvp.Key,
-            kvp => ResolveMarkings(kvp.Value, profile.SkinColor, profile.EyeColor, groupProto.Appearances));
-
-        SetOrganMarkings(ent, resolved);
+        // Organ category concept removed; markings handled via body part appearance system
     }
 }
 

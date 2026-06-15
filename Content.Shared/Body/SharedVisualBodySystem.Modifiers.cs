@@ -1,13 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Content.Shared.Administration.Managers;
 using Content.Shared.Administration;
+using Content.Shared.Body.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
 using Content.Shared.Verbs;
 using JetBrains.Annotations;
-using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -56,16 +55,7 @@ public abstract partial class SharedVisualBodySystem
     [PublicAPI]
     public void CopyAppearanceFrom(Entity<BodyComponent?> source, Entity<BodyComponent?> target)
     {
-        if (!Resolve(source, ref source.Comp) || !Resolve(target, ref target.Comp))
-            return;
-
-        var sourceOrgans = _container.EnsureContainer<Container>(source, BodyComponent.ContainerID);
-
-        foreach (var sourceOrgan in sourceOrgans.ContainedEntities)
-        {
-            var evt = new OrganCopyAppearanceEvent(sourceOrgan);
-            RaiseLocalEvent(target, ref evt);
-        }
+        // Organ container structure changed in body system port; appearance copy handled by body part system
     }
 
     /// <summary>
@@ -82,48 +72,19 @@ public abstract partial class SharedVisualBodySystem
         [NotNullWhen(true)] out Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData>? markings,
         [NotNullWhen(true)] out Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>>? applied)
     {
-        if (!Resolve(ent, ref ent.Comp, logMissing: false))
-        {
-            profiles = null;
-            markings = null;
-            applied = null;
-            return false;
-        }
-
-        profiles = new();
-        markings = new();
-        applied = new();
-
-        var organContainer = _container.EnsureContainer<Container>(ent, BodyComponent.ContainerID);
-
-        foreach (var organ in organContainer.ContainedEntities)
-        {
-            if (!TryComp<OrganComponent>(organ, out var organComp) || organComp.Category is not { } category)
-                continue;
-
-            if (TryComp<VisualOrganComponent>(organ, out var visualOrgan))
-            {
-                profiles.TryAdd(category, visualOrgan.Profile);
-            }
-
-            if (TryComp<VisualOrganMarkingsComponent>(organ, out var visualOrganMarkings))
-            {
-                markings.TryAdd(category, visualOrganMarkings.MarkingData);
-                if (filter is not null)
-                    applied.TryAdd(category, visualOrganMarkings.Markings.Where(kvp => filter.Contains(kvp.Key)).ToDictionary());
-                else
-                    applied.TryAdd(category, visualOrganMarkings.Markings);
-            }
-        }
-
-        return true;
+        // Organ category concept removed in body system port; data gathering not supported
+        profiles = null;
+        markings = null;
+        applied = null;
+        return false;
     }
 
     private void OnModifiersOpened(Entity<VisualBodyComponent> ent, ref BoundUIOpenedEvent args)
     {
-        TryGatherMarkingsData(ent.AsNullable(), null, out var profiles, out var markings, out var applied);
+        if (!TryGatherMarkingsData(ent.AsNullable(), null, out _, out _, out var applied))
+            return;
 
-        _userInterface.SetUiState(ent.Owner, HumanoidMarkingModifierKey.Key, new HumanoidMarkingModifierState(applied!, markings!, profiles!));
+        _userInterface.SetUiState(ent.Owner, HumanoidMarkingModifierKey.Key, new HumanoidMarkingModifierState(applied!));
     }
 
     private void OnSetModifiers(Entity<VisualBodyComponent> ent, ref HumanoidMarkingModifierMarkingSetMessage args)

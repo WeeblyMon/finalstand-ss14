@@ -25,11 +25,11 @@ using Robust.Shared.Utility;
 
 using Content.Goobstation.Common.Examine; // Goobstation Change
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.Examine;
 using Content.Goobstation.Maths.FixedPoint;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Verbs;
-using Robust.Shared.Utility;
 using Content.Shared.HealthExaminable;
 using Robust.Shared.Prototypes;
 
@@ -82,7 +82,7 @@ public sealed class PartStatusSystem : EntitySystem
             !_bodySystem.TryGetRootPart(entity, out var rootPart))
             return;
 
-        var partStatusSet = CollectPartStatuses(rootPart.Value);
+        var partStatusSet = CollectPartStatuses(rootPart!.Value);
         var text = GetExamineText(entity, entity, partStatusSet);
 
         _chat.ChatMessageToOne(
@@ -127,7 +127,7 @@ public sealed class PartStatusSystem : EntitySystem
         if (!_bodySystem.TryGetRootPart(uid, out var rootPart))
             return new FormattedMessage();
 
-        var partStatusSet = CollectPartStatuses(rootPart.Value);
+        var partStatusSet = CollectPartStatuses(rootPart!.Value);
         var text = GetExamineText(uid, examiner, partStatusSet, false);
         // Anything else want to add on to this?
         RaiseLocalEvent(uid, new HealthBeingExaminedEvent(text), true);

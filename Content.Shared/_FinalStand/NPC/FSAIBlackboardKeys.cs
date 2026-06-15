@@ -35,4 +35,7 @@ public static class FSAIBlackboardKeys
     // Cooldown after a breach target is cleared — blocks stall detection from immediately
     // re-targeting adjacent entities (plants, lights) while zombie replans and moves away.
     public static readonly string BreachCooldown = "FSBreachCooldown";
+
+    // Rate-limit timer for the long-path (maze) breach check (float, seconds).
+    public static readonly string MazeCheckTimer = "FSMazeCheckTimer";
 }

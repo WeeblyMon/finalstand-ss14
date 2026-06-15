@@ -75,6 +75,24 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         switch (comp.Phase)
         {
             case WavePhase.Prep:
+                // If no spawners were found at prep start (e.g. map not yet loaded), keep retrying.
+                if (comp.SpawnerEntities.Count == 0)
+                {
+                    var unlocked = new List<EntityUid>();
+                    var sq2 = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+                    while (sq2.MoveNext(out var spawnerUid2, out var spawner2))
+                    {
+                        if (comp.WaveNumber >= spawner2.FromWave)
+                            unlocked.Add(spawnerUid2);
+                    }
+                    if (unlocked.Count > 0)
+                    {
+                        if (unlocked.Count > 1) RobustRandom.Shuffle(unlocked);
+                        var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
+                        for (var i = 0; i < activeCount; i++)
+                            comp.SpawnerEntities.Add(unlocked[i]);
+                    }
+                }
                 if (now >= comp.PhaseEndTime)
                 {
                     Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");

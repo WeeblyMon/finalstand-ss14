@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Utility;
+using Content.Server.Body.Systems;
 using Content.Shared.Body;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;

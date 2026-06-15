@@ -83,7 +83,9 @@ public sealed partial class BodyPartEffectSystem : EntitySystem
                 continue;
 
             var newComp = (Component) _serManager.CreateCopy(comp.Component, notNullableOverride: true);
+#pragma warning disable RA0045
             EntityManager.AddComponent(body, newComp, true);
+#pragma warning restore RA0045
 
             effectComp.Active[key] = comp;
         }

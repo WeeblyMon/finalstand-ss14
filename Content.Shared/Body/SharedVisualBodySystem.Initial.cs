@@ -6,7 +6,7 @@ public abstract partial class SharedVisualBodySystem
 {
     private void InitializeInitial()
     {
-        SubscribeLocalEvent<VisualBodyComponent, MapInitEvent>(OnVisualMapInit, after: [typeof(InitialBodySystem)]);
+        SubscribeLocalEvent<VisualBodyComponent, MapInitEvent>(OnVisualMapInit);
     }
 
     private void OnVisualMapInit(Entity<VisualBodyComponent> ent, ref MapInitEvent args)

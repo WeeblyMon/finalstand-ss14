@@ -1,3 +1,4 @@
+using Content.Shared.FixedPoint;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Damage.Prototypes
@@ -28,5 +29,11 @@ namespace Content.Shared.Damage.Prototypes
         /// </summary>
         [DataField("armorFlatPrice")]
         public double ArmorPriceFlat { get; set; }
+
+        /// <summary>
+        ///     Goobstation: Multiplier applied to wound healing for this damage type.
+        /// </summary>
+        [DataField, ViewVariables(VVAccess.ReadOnly)]
+        public FixedPoint2 WoundHealingMultiplier { get; set; } = 1;
     }
 }

@@ -1,0 +1,5 @@
+- type: soundCollection
+  id: OrganInteraction
+  files:
+  - /Audio/_Shitmed/Medical/Surgery/organ1.ogg
+  - /Audio/_Shitmed/Medical/Surgery/organ2.ogg

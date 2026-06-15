@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Armok <155400926+ARMOKS@users.noreply.github.com>
+﻿// SPDX-FileCopyrightText: 2025 Armok <155400926+ARMOKS@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 August Eymann <august.eymann@gmail.com>
 // SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 Ilya246 <57039557+Ilya246@users.noreply.github.com>
@@ -8,7 +8,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Body;
 using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
@@ -17,6 +17,8 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
@@ -130,7 +132,7 @@ public sealed partial class WoundSystem : EntitySystem
                 continue;
 
             body.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
-            foreach (var woundable in GetAllWoundableChildren(rootPart.Value))
+            foreach (var woundable in GetAllWoundableChildren(rootPart!.Value))
                 if (woundable.Comp.CanHealDamage || woundable.Comp.CanHealBleeds)
                     _woundJobQueue.EnqueueJob(new WoundJob(this, woundable, ent, WoundJobTime));
         }
@@ -395,12 +397,14 @@ public sealed partial class WoundSystem : EntitySystem
                         bodySeverity += GetWoundableIntegrityDamage(woundable, woundable);
                     }
                 }
-
-                var ev1 = new WoundableIntegrityChangedOnBodyEvent(
-                    (uid, component),
-                    bodySeverity - (component.WoundableIntegrity - state.WoundableIntegrity),
-                    bodySeverity);
-                RaiseLocalEvent(bodyPart.Body.Value, ref ev1);
+                if (bodyPart.Body.HasValue)
+                {
+                    var ev1 = new WoundableIntegrityChangedOnBodyEvent(
+                        (uid, component),
+                        bodySeverity - (component.WoundableIntegrity.Value - state.WoundableIntegrity),
+                        bodySeverity);
+                    RaiseLocalEvent(bodyPart.Body.Value, ref ev1);
+                }
             }
         }
 

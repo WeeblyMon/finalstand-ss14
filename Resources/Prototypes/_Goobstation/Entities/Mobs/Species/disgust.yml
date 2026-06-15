@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2025 Goob-Station contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Goob: BaseMobSpecies is an alias for our BaseSpeciesMobOrganic.
+# BaseMobDisgust is stubbed without DisgustComponent which is not ported.
+
+- type: entity
+  abstract: true
+  id: BaseMobSpecies
+  parent: BaseSpeciesMobOrganic
+
+- type: entity
+  abstract: true
+  id: BaseMobDisgust

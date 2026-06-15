@@ -71,10 +71,10 @@ public sealed partial class ZombieComponent : Component
     public string ZombieRoleId = "Zombie";
 
     [DataField]
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> BeforeZombifiedProfiles;
+    public Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> BeforeZombifiedMarkings;
 
     [DataField]
-    public Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> BeforeZombifiedMarkings;
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> BeforeZombifiedProfiles = new();
 
     [DataField("emoteId")]
     public ProtoId<EmoteSoundsPrototype>? EmoteSoundsId = "Zombie";

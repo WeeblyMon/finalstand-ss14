@@ -223,7 +223,7 @@ namespace Content.Shared.Atmos
         /// <summary>
         ///     Total number of gases. Increase this if you want to add more!
         /// </summary>
-        public const int TotalNumberOfGases = 9;
+        public const int TotalNumberOfGases = 13; // Goob: added BZ (9), Healium (10), Nitrium (11), Pluoxium (12)
 
         /// <summary>
         ///     This is the actual length of the gases arrays in mixtures.
@@ -387,6 +387,10 @@ namespace Content.Shared.Atmos
         WaterVapor = 5,
         Ammonia = 6,
         NitrousOxide = 7,
-        Frezon = 8
+        Frezon = 8,
+        BZ = 9,        // Assmos - /tg/ gases
+        Healium = 10,  // Assmos - /tg/ gases
+        Nitrium = 11,  // Assmos - /tg/ gases
+        Pluoxium = 12, // Assmos - /tg/ gases
     }
 }

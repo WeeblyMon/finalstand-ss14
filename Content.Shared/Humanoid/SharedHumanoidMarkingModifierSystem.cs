@@ -27,17 +27,15 @@ public sealed class HumanoidMarkingModifierMarkingSetMessage : BoundUserInterfac
 public sealed class HumanoidMarkingModifierState : BoundUserInterfaceState
 {
     public HumanoidMarkingModifierState(
-        Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> markings,
-        Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> organData,
-        Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> organProfileData
+        Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> markings
     )
     {
         Markings = markings;
-        OrganData = organData;
-        OrganProfileData = organProfileData;
     }
 
     public Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>> Markings { get; }
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> OrganData { get; }
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> OrganProfileData { get; }
+
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> OrganData { get; set; } = new();
+
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> OrganProfileData { get; set; } = new();
 }

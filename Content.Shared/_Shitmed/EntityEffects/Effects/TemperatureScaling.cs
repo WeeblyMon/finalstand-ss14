@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+﻿// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 Aidenkrz <aiden@djkraz.com>
 // SPDX-FileCopyrightText: 2025 Solstice <solsticeofthewinter@gmail.com>
 //
@@ -6,7 +6,7 @@
 
 using Robust.Shared.Serialization;
 using Robust.Shared.GameObjects;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 
 namespace Content.Shared._Shitmed.EntityEffects.Effects;
 
@@ -17,7 +17,7 @@ namespace Content.Shared._Shitmed.EntityEffects.Effects;
 /// <param name="Scale">The scale to use for the efficiency.</param>
 /// </summary>
 [DataRecord, Serializable]
-public record struct TemperatureScaling(FixedPoint2 Min, FixedPoint2 Max, FixedPoint2 Scale)
+public partial record struct TemperatureScaling(FixedPoint2 Min, FixedPoint2 Max, FixedPoint2 Scale)
 {
 
     public static implicit operator (FixedPoint2, FixedPoint2, FixedPoint2)(TemperatureScaling p) => (p.Min, p.Max, p.Scale);

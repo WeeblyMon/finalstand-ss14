@@ -27,17 +27,7 @@
         Quantity: 3
       - ReagentId: Blood
         Quantity: 10
-  # Goob edit start
-  - type: Food
-  - type: BadFood
-  - type: SolutionContainerManager
-    solutions:
-      food:
-        maxVol: 15
-        reagents:
-        - ReagentId: UncookedAnimalProteins
-          Quantity: 15
-  # Goob edit end
+  # Goob edit: Food/BadFood removed - FoodComponent not in vanilla SS14
 
 # organic torsos have higher health
 # this doesn't affect gibbing bodies as there is code to prevent torso gibbing while part of a body

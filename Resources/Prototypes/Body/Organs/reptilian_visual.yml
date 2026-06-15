@@ -1,0 +1,211 @@
+# SPDX-FileCopyrightText: 2026 FinalStand Contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+- type: entity
+  id: OrganReptilianVisualHead
+  parent: OrganBaseHead
+  name: head
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: head_m
+    sexStateOverrides:
+      Male: head_m
+      Female: head_f
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Head
+      - Hair
+      - FacialHair
+      - Snout
+      - SnoutCover
+      - HeadSide
+      - HeadTop
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualChest
+  parent: OrganBaseTorso
+  name: chest
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: torso_m
+    sexStateOverrides:
+      Male: torso_m
+      Female: torso_f
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Chest
+      - Tail
+      - Overlay
+      - TailOverlay
+      - UndergarmentTop
+      - UndergarmentBottom
+      - Special
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualGroin
+  parent: OrganBase
+  name: groin
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Organ
+  - type: VisualOrgan
+    layer: enum.HumanoidVisualLayers.Groin
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: groin_m
+
+- type: entity
+  id: OrganReptilianVisualLArm
+  parent: OrganBaseArmLeft
+  name: left arm
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: l_arm
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LArm
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualRArm
+  parent: OrganBaseArmRight
+  name: right arm
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: r_arm
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RArm
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualLHand
+  parent: OrganBaseHandLeft
+  name: left hand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: l_hand
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LHand
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualRHand
+  parent: OrganBaseHandRight
+  name: right hand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: r_hand
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RHand
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualLLeg
+  parent: OrganBaseLegLeft
+  name: left leg
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: l_leg
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LLeg
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualRLeg
+  parent: OrganBaseLegRight
+  name: right leg
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: r_leg
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RLeg
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualLFoot
+  parent: OrganBaseFootLeft
+  name: left foot
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: l_foot
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - LFoot
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualRFoot
+  parent: OrganBaseFootRight
+  name: right foot
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VisualOrgan
+    data:
+      sprite: Mobs/Species/Reptilian/parts.rsi
+      state: r_foot
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - RFoot
+      group: Reptilian
+
+- type: entity
+  id: OrganReptilianVisualEyes
+  parent: OrganBase
+  name: eyes
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Organ
+  - type: VisualOrgan
+    layer: enum.HumanoidVisualLayers.Eyes
+    data:
+      sprite: Mobs/Customization/eyes.rsi
+      state: eyes
+  - type: VisualOrganMarkings
+    markingData:
+      layers:
+      - Eyes
+      group: Reptilian

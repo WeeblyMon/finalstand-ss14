@@ -34,6 +34,8 @@
           Quantity: 35
         - ReagentId: TranexamicAcid
           Quantity: 5
+  - type: Injector
+    solutionName: pen
   - type: Hypospray
     solutionName: pen
     transferAmount: 40

@@ -1,3 +1,4 @@
+using Content.Shared.FixedPoint;
 using Content.Shared.Database;
 using Content.Shared.EntityConditions;
 using Robust.Shared.Prototypes;
@@ -5,12 +6,52 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared.EntityEffects;
 
 /// <summary>
+/// Base args for the old Effect() API used by _Shitmed effects.
+/// </summary>
+public class EntityEffectBaseArgs
+{
+    public readonly EntityUid TargetEntity;
+    public readonly IEntityManager EntityManager;
+    public readonly EntityUid? User;
+
+    public EntityEffectBaseArgs(EntityUid targetEntity, IEntityManager entityManager, EntityUid? user = null)
+    {
+        TargetEntity = targetEntity;
+        EntityManager = entityManager;
+        User = user;
+    }
+}
+
+/// <summary>
+/// Reagent-specific args for the old Effect() API.
+/// </summary>
+public sealed class EntityEffectReagentArgs : EntityEffectBaseArgs
+{
+    public readonly FixedPoint2 Quantity;
+    public readonly float Scale;
+
+    public EntityEffectReagentArgs(EntityUid targetEntity, IEntityManager entityManager, EntityUid? user, FixedPoint2 quantity, float scale)
+        : base(targetEntity, entityManager, user)
+    {
+        Quantity = quantity;
+        Scale = scale;
+    }
+}
+
+/// <summary>
 /// A basic instantaneous effect which can be applied to an entity via events.
 /// </summary>
 [ImplicitDataDefinitionForInheritors]
 public abstract partial class EntityEffect
 {
-    public abstract void RaiseEvent(EntityUid target, IEntityEffectRaiser raiser, float scale, EntityUid? user);
+    // New event-based API (used by non-_Shitmed effects via EntityEffectBase<T>)
+    public virtual void RaiseEvent(EntityUid target, IEntityEffectRaiser raiser, float scale, EntityUid? user)
+    {
+        Effect(new EntityEffectBaseArgs(target, IoCManager.Resolve<IEntityManager>(), user));
+    }
+
+    // Old args-based API used by _Shitmed effects
+    public virtual void Effect(EntityEffectBaseArgs args) { }
 
     [DataField]
     public EntityCondition[]? Conditions;
@@ -35,6 +76,8 @@ public abstract partial class EntityEffect
     public float Probability = 1.0f;
 
     public virtual string? EntityEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys) => null;
+
+    protected virtual string? ReagentEffectGuidebookText(IPrototypeManager prototype, IEntitySystemManager entSys) => null;
 
     /// <summary>
     /// If this effect is logged, how important is the log?

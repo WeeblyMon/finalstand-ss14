@@ -5,8 +5,8 @@
 // SPDX-FileCopyrightText: 2025 deltanedas <@deltanedas:kde.org>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
-
 using Content.Shared._EinsteinEngines.Silicon.Components;
+using Content.Shared.Hands.Components;
 using Content.Shared._Shitmed.Autodoc.Components;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Steps;
@@ -17,7 +17,6 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Database;
 using Content.Shared.DeviceLinking.Events;
-using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Labels.EntitySystems;
 using Content.Shared.Mobs.Systems;
@@ -189,7 +188,7 @@ public abstract class SharedAutodocSystem : EntitySystem
             return;
 
         // wake the patient when program completes or errors out
-        if (GetPatient((ent.Owner, comp)) is {} patient)
+        if (GetPatient((ent.Owner, comp)) is { } patient)
             WakePatient(patient);
     }
 
@@ -250,7 +249,7 @@ public abstract class SharedAutodocSystem : EntitySystem
 
     public EntityUid GetHeldOrThrow(Entity<AutodocComponent, HandsComponent> ent)
     {
-        if (_hands.GetHeldItem((ent.Owner, ent.Comp2), ent.Comp1.ItemSlot) is not {} item)
+        if (_hands.GetHeldItem((ent.Owner, ent.Comp2), ent.Comp1.ItemSlot) is not { } item)
             throw new AutodocError("item-unavailable");
 
         return item;
@@ -285,7 +284,7 @@ public abstract class SharedAutodocSystem : EntitySystem
 
     public EntityUid GetPatientOrThrow(Entity<AutodocComponent> ent)
     {
-        if (GetPatient(ent) is not {} patient)
+        if (GetPatient(ent) is not { } patient)
             throw new AutodocError("missing-patient");
 
         return patient;
@@ -310,14 +309,14 @@ public abstract class SharedAutodocSystem : EntitySystem
         if (ent.Comp.RequireSleeping && IsAwake(patient))
             throw new AutodocError("patient-unsedated");
 
-        if (_surgery.GetSingleton(surgery) is not {} singleton)
+        if (_surgery.GetSingleton(surgery) is not { } singleton)
             throw new AutodocError("reality-breaking");
 
-        if (_surgery.GetNextStep(patient, part, singleton, ent) is not {} pair)
+        if (_surgery.GetNextStep(patient, part, singleton, ent) is not { } pair)
             return false;
 
         var nextSurgery = pair.Item1;
-        if (MetaData(nextSurgery).EntityPrototype?.ID is not {} surgeryId) // should never happen
+        if (MetaData(nextSurgery).EntityPrototype?.ID is not { } surgeryId) // should never happen
             throw new AutodocError("reality-breaking");
 
         var index = pair.Item2;
@@ -330,8 +329,24 @@ public abstract class SharedAutodocSystem : EntitySystem
             if (error != StepInvalidReason.MissingTool && error != StepInvalidReason.ToolInvalid)
                 throw new AutodocError($"step-invalid-{error}");
 
-            var hands = Comp<HandsComponent>(ent);
-            _hands.SwapHands((ent.Owner, hands));
+            // Safely fetch the hands component from the autodoc entity using TryComp
+
+            if (TryComp<HandsComponent>(ent, out var hands) && hands.ActiveHandId != null)
+            {
+                // hands.Hands.Keys gives us the collection of valid string hand IDs (e.g. "left", "right")
+                foreach (var handId in hands.Hands.Keys)
+                {
+                    // If it's the hand we are currently holding the tool in, skip it
+                    if (handId == hands.ActiveHandId)
+                        continue;
+
+                    // Use the proper system method provided in your SharedHandsSystem file:
+                    // SetActiveHand(Entity<HandsComponent?> ent, string? handId)
+                    _hands.SetActiveHand((ent, hands), handId);
+                    break;
+                }
+            }
+
             if (!_surgery.TryDoSurgeryStep(patient, part, ent, surgeryId, nextStep, out error))
                 throw new AutodocError($"step-invalid-{error}"); // no trying again just fail
         }
@@ -456,7 +471,7 @@ public abstract class SharedAutodocSystem : EntitySystem
     public bool StartProgram(Entity<AutodocComponent> ent, int index, EntityUid user)
     {
         // no error since UI checks this too
-        if (IsActive(ent) || index >= ent.Comp.Programs.Count || GetPatient(ent) is not {} patient)
+        if (IsActive(ent) || index >= ent.Comp.Programs.Count || GetPatient(ent) is not { } patient)
             return false;
 
         var active = EnsureComp<ActiveAutodocComponent>(ent);
@@ -481,7 +496,7 @@ public abstract class SharedAutodocSystem : EntitySystem
         {
             // stay on this AutodocSurgeryStep until every step of the surgery (and its dependencies) is complete
             // if this was the last step, StartSurgery will fail and the next autodoc step will run
-            if (ent.Comp2.CurrentSurgery is {} args)
+            if (ent.Comp2.CurrentSurgery is { } args)
             {
                 var (body, part, surgery) = args;
                 if (StartSurgeryOrThrow((ent.Owner, ent.Comp1), body, part, surgery))

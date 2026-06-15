@@ -1,12 +1,15 @@
 using System.Linq;
 using Content.Client.DisplacementMap;
 using Content.Shared.Body;
+using Content.Shared.Body.Events;
+using Content.Shared.Body.Organ;
 using Content.Shared.CCVar;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
+using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -19,10 +22,19 @@ public sealed class VisualBodySystem : SharedVisualBodySystem
     [Dependency] private readonly DisplacementMapSystem _displacement = default!;
     [Dependency] private readonly MarkingManager _marking = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
 
     public override void Initialize()
     {
         base.Initialize();
+
+        // For server-spawned entities arriving via PVS:
+        // - OnVisualBodyStartup handles organs that arrive in the same PVS batch as the body.
+        // - OnVisualOrganStartup / OnMarkingsOrganStartup handle organs that arrive in a later batch;
+        //   by ComponentStartup time all states on the organ entity are applied (including OrganComponent.Body).
+        SubscribeLocalEvent<VisualBodyComponent, ComponentStartup>(OnVisualBodyStartup);
+        SubscribeLocalEvent<VisualOrganComponent, ComponentStartup>(OnVisualOrganStartup);
+        SubscribeLocalEvent<VisualOrganMarkingsComponent, ComponentStartup>(OnMarkingsOrganStartup);
 
         SubscribeLocalEvent<VisualOrganComponent, OrganGotInsertedEvent>(OnOrganGotInserted);
         SubscribeLocalEvent<VisualOrganComponent, OrganGotRemovedEvent>(OnOrganGotRemoved);
@@ -36,6 +48,38 @@ public sealed class VisualBodySystem : SharedVisualBodySystem
 
         Subs.CVar(_cfg, CCVars.AccessibilityClientCensorNudity, OnCensorshipChanged, true);
         Subs.CVar(_cfg, CCVars.AccessibilityServerCensorNudity, OnCensorshipChanged, true);
+    }
+
+    private void OnVisualBodyStartup(Entity<VisualBodyComponent> body, ref ComponentStartup args)
+    {
+        foreach (var container in _container.GetAllContainers(body))
+        {
+            foreach (var organUid in container.ContainedEntities)
+            {
+                if (TryComp<VisualOrganComponent>(organUid, out var organ))
+                    ApplyVisual((organUid, organ), body.Owner);
+                if (TryComp<VisualOrganMarkingsComponent>(organUid, out var markings))
+                    ApplyMarkings((organUid, markings), body.Owner);
+            }
+        }
+    }
+
+    private void OnVisualOrganStartup(Entity<VisualOrganComponent> ent, ref ComponentStartup args)
+    {
+        if (!TryComp<OrganComponent>(ent, out var organComp) || organComp.Body is not { } body)
+            return;
+        if (!HasComp<VisualBodyComponent>(body))
+            return;
+        ApplyVisual(ent, body);
+    }
+
+    private void OnMarkingsOrganStartup(Entity<VisualOrganMarkingsComponent> ent, ref ComponentStartup args)
+    {
+        if (!TryComp<OrganComponent>(ent, out var organComp) || organComp.Body is not { } body)
+            return;
+        if (!HasComp<VisualBodyComponent>(body))
+            return;
+        ApplyMarkings(ent, body);
     }
 
     private void OnCensorshipChanged(bool value)

@@ -1,11 +1,11 @@
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Wounds;
@@ -116,7 +116,7 @@ public record struct WoundHealAttemptEvent(Entity<WoundableComponent> Woundable,
 public record struct WoundHealAttemptOnWoundableEvent(Entity<WoundComponent> Wound, bool Cancelled = false);
 
 [Serializable, DataRecord]
-public record struct WoundableSeverityMultiplier(FixedPoint2 Change, string Identifier = "Unspecified");
+public partial record struct WoundableSeverityMultiplier(FixedPoint2 Change, string Identifier = "Unspecified");
 
 [Serializable, DataRecord]
-public record struct WoundableHealingMultiplier(FixedPoint2 Change, string Identifier = "Unspecified");
+public partial record struct WoundableHealingMultiplier(FixedPoint2 Change, string Identifier = "Unspecified");

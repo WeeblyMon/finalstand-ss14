@@ -216,7 +216,7 @@ public abstract class SharedItemSwitchSystem : EntitySystem
                 if (!_storage.Insert(container.Owner, uid, out _, null, storage, false))
                     _hands.PickupOrDrop(user, uid, animate: false);
             }
-            else if (HasComp<InventoryComponent>(container.Owner) && _item.GetSizePrototype(item.Size) > _item.GetSizePrototype(InventorySystem.PocketableItemSize))
+            else if (HasComp<InventoryComponent>(container.Owner) && _item.GetSizePrototype(item.Size) > _item.GetSizePrototype(new Robust.Shared.Prototypes.ProtoId<Content.Shared.Item.ItemSizePrototype>("Small"))) // or "Pocket", look at your local ItemSizePrototypes.yaml to match your pocket capacity size
             {
                 var enumerator = _inventory.GetSlotEnumerator(container.Owner, SlotFlags.POCKET);
                 while (enumerator.NextItem(out var slotItem))

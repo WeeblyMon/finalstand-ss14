@@ -26,11 +26,12 @@ public sealed partial class MagicMirrorComponent : Component
     [DataField, AutoNetworkedField]
     public EntityUid? Target;
 
-    [DataField(required: true)]
-    public HashSet<ProtoId<OrganCategoryPrototype>> Organs;
+    // Made optional (were required) to support Goob entities that predate these fields.
+    [DataField]
+    public HashSet<ProtoId<OrganCategoryPrototype>> Organs = new();
 
-    [DataField(required: true)]
-    public HashSet<HumanoidVisualLayers> Layers;
+    [DataField]
+    public HashSet<HumanoidVisualLayers> Layers = new();
 
     /// <summary>
     /// Do after time to modify an entity's markings

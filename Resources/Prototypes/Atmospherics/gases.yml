@@ -117,3 +117,45 @@
   color: '#3a758c'
   reagent: Frezon
   pricePerMole: 1
+
+# Goob-Station additional gases (IDs 9-12 — must follow Frezon in this exact order)
+- type: gas
+  id: BZ
+  name: gas-bz
+  abbreviation: gas-bz-abbreviation
+  molarHeatCapacity: 20
+  heatCapacityRatio: 1.4
+  molarMass: 44
+  color: '#660099'
+  pricePerMole: 2
+
+- type: gas
+  id: Healium
+  name: gas-healium
+  abbreviation: gas-healium-abbreviation
+  molarHeatCapacity: 200
+  heatCapacityRatio: 1.4
+  molarMass: 4
+  color: '#4CAF50'
+  pricePerMole: 5
+
+- type: gas
+  id: Nitrium
+  name: gas-nitrium
+  abbreviation: gas-nitrium-abbreviation
+  molarHeatCapacity: 10
+  heatCapacityRatio: 1.3
+  molarMass: 30
+  color: '#FF6600'
+  pricePerMole: 3
+
+- type: gas
+  id: Pluoxium
+  name: gas-pluoxium
+  abbreviation: gas-pluoxium-abbreviation
+  molarHeatCapacity: 20
+  heatCapacityRatio: 1.4
+  molarMass: 32
+  color: '#00CCFF'
+  pricePerMole: 1
+  isOxidizer: true

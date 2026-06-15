@@ -106,11 +106,12 @@
 
 using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
-using Content.Server.PowerCell;
-using Content.Server.Temperature.Components;
+using Content.Shared.PowerCell;
+using Content.Shared.Temperature.Components;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
@@ -136,12 +137,11 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Targeting;
-using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using System.Linq;
 using Content.Shared.Mobs.Systems; // Goobstation
 
@@ -173,7 +173,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         // Shitmed Change Start
         Subs.BuiEvents<HealthAnalyzerComponent>(HealthAnalyzerUiKey.Key, subs =>
         {
-            subs.Event<HealthAnalyzerPartMessage>(OnHealthAnalyzerPartSelected);
+            subs.Event<HealthAnalyzerPartSelectedMessage>(OnHealthAnalyzerPartSelected);
             subs.Event<HealthAnalyzerModeSelectedMessage>(OnHealthAnalyzerModeSelected);
         });
         // Shitmed Change End
@@ -229,7 +229,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     /// </summary>
     private void OnAfterInteract(Entity<HealthAnalyzerComponent> uid, ref AfterInteractEvent args)
     {
-        if (args.Target == null || !args.CanReach || !HasComp<MobStateComponent>(args.Target) || !_cell.HasDrawCharge(uid, user: args.User))
+        if (args.Target == null || !args.CanReach || !HasComp<MobStateComponent>(args.Target) || !_cell.HasDrawCharge(uid.Owner, user: args.User))
             return;
 
         _audio.PlayPvs(uid.Comp.ScanningBeginSound, uid);
@@ -249,7 +249,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
 
     private void OnDoAfter(Entity<HealthAnalyzerComponent> uid, ref HealthAnalyzerDoAfterEvent args)
     {
-        if (args.Handled || args.Cancelled || args.Target == null || !_cell.HasDrawCharge(uid, user: args.User))
+        if (args.Handled || args.Cancelled || args.Target == null || !_cell.HasDrawCharge(uid.Owner, user: args.User))
             return;
 
         if (!uid.Comp.Silent)
@@ -333,7 +333,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     /// </summary>
     /// <param name="healthAnalyzer">The health analyzer that's receiving the updates</param>
     /// <param name="args">The message containing the selected part</param>
-    private void OnHealthAnalyzerPartSelected(Entity<HealthAnalyzerComponent> healthAnalyzer, ref HealthAnalyzerPartMessage args)
+    private void OnHealthAnalyzerPartSelected(Entity<HealthAnalyzerComponent> healthAnalyzer, ref HealthAnalyzerPartSelectedMessage args)
     {
         if (!TryGetEntity(args.Owner, out var owner))
             return;
@@ -389,9 +389,22 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         if (TryComp<BloodstreamComponent>(target, out var bloodstream) &&
             _solutionContainerSystem.ResolveSolution(target, bloodstream.BloodSolutionName,
                 ref bloodstream.BloodSolution, out var bloodSolution))
-            bloodAmount = bloodSolution.FillFraction;
+        {
+            // FINALSTAND: BloodstreamComponent allocates 2× the reference volume as MaxVolume
+            // (default MaxVolumeModifier = 2f, [Access]-gated so we can't read it here). The
+            // raw FillFraction therefore reads ~50% on a healthy patient. Multiply by 2 to
+            // express "% of reference (intended) volume" so a healthy patient reads ~100%.
+            // If a mob ever sets MaxVolumeModifier other than 2, this becomes approximate.
+            bloodAmount = Math.Min(1f, bloodSolution.FillFraction * 2f);
+        }
 
-        var bodyStatus = _woundSystem.GetDamageableStatesOnBody(target);
+        // FINALSTAND: GetDamageableStatesOnBody computes severity from each body part's
+        // DamageableComponent.TotalDamage, which only accumulates if damage was applied
+        // directly to that body part. Our minimal damage routing (BodyDamageRouterSystem)
+        // creates wounds via TryInduceWound on body parts without touching their
+        // DamageableComponent, so DamageableStates always returns Healthy. Use the wound
+        // severity field directly — it IS updated by the wound system chain.
+        var bodyStatus = _woundSystem.GetWoundableStatesOnBody(target);
         Dictionary<TargetBodyPart, bool> bleeding; // Goobstation - removed unnecessary allocation
 
         // Goobstation start
@@ -453,6 +466,14 @@ public sealed class HealthAnalyzerSystem : EntitySystem
                 ));
                 break;
         }
+
+        // Also send the vanilla HealthAnalyzerScannedUserMessage so the client-side
+        // HealthAnalyzerBoundUserInterface (which only handles the vanilla message) can
+        // display basic scan data (damage totals, temperature, blood level) while a
+        // full Goob client UI is not yet ported.
+        var vanillaState = GetHealthAnalyzerUiState(scanMode ? target : null);
+        vanillaState.ScanMode = scanMode;
+        _uiSystem.ServerSendUiMessage(healthAnalyzer, HealthAnalyzerUiKey.Key, new HealthAnalyzerScannedUserMessage(vanillaState));
     }
 
     private void FetchBodyData(EntityUid target,
@@ -472,8 +493,25 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         {
             traumas.Add(GetNetEntity(woundable), FetchTraumaData(woundable, component));
             pain.Add(GetNetEntity(woundable), FetchPainData(woundable, component));
-            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), component.Bleeds > 0);
+            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), IsWoundableBleeding(woundable));
         }
+    }
+
+    /// <summary>
+    /// FINALSTAND: WoundableComponent.Bleeds is read but never written to by either
+    /// the Goob source or our port — checking it always returns 0, so per-part
+    /// bleeding never appears in the analyzer. Aggregate by walking each wound on
+    /// the body part and checking BleedInflicterComponent.IsBleeding, which IS
+    /// updated by SharedBloodstreamSystem when wounds open.
+    /// </summary>
+    private bool IsWoundableBleeding(EntityUid woundable)
+    {
+        foreach (var wound in _woundSystem.GetWoundableWounds(woundable))
+        {
+            if (TryComp<BleedInflicterComponent>(wound, out var bleeds) && bleeds.IsBleeding)
+                return true;
+        }
+        return false;
     }
 
     private Dictionary<TargetBodyPart, bool> FetchBleedData(BodyComponent body)
@@ -483,8 +521,8 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         if (body.RootContainer.ContainedEntity is not { } rootPart)
             return bleeding;
 
-        foreach (var (woundable, component) in _woundSystem.GetAllWoundableChildren(rootPart))
-            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), component.Bleeds > 0);
+        foreach (var (woundable, _) in _woundSystem.GetAllWoundableChildren(rootPart))
+            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), IsWoundableBleeding(woundable));
 
         return bleeding;
     }
@@ -546,11 +584,56 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         return organs;
     }
 
-    private Dictionary<NetEntity, Solution> FetchChemicalData(EntityUid target)
+    /// <summary>
+    /// Builds a <see cref="HealthAnalyzerUiState"/> for the given patient. Used by the cryo pod UI.
+    /// </summary>
+    public HealthAnalyzerUiState GetHealthAnalyzerUiState(EntityUid? patient)
     {
-        var solutionsList = new Dictionary<NetEntity, Solution>();
+        if (patient is not { } target)
+            return new HealthAnalyzerUiState();
 
-        if (!TryComp(target, out SolutionContainerManagerComponent? container) || container.Containers.Count == 0)
+        var bodyTemperature = float.NaN;
+        if (TryComp<TemperatureComponent>(target, out var temp))
+            bodyTemperature = temp.CurrentTemperature;
+
+        var bloodAmount = float.NaN;
+        if (TryComp<BloodstreamComponent>(target, out var bloodstream) &&
+            _solutionContainerSystem.ResolveSolution(target, bloodstream.BloodSolutionName,
+                ref bloodstream.BloodSolution, out var bloodSolution))
+        {
+            // FINALSTAND: see comment in UpdateScannedUser — display % of reference volume.
+            bloodAmount = Math.Min(1f, bloodSolution.FillFraction * 2f);
+        }
+
+        var bleeding = false;
+        if (TryComp<BodyComponent>(target, out var body))
+        {
+            if (body.RootContainer.ContainedEntity is { } rootPart)
+            {
+                foreach (var (woundableUid, _) in _woundSystem.GetAllWoundableChildren(rootPart))
+                {
+                    if (IsWoundableBleeding(woundableUid))
+                    {
+                        bleeding = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        var unrevivable = TryComp<UnrevivableComponent>(target, out var unrevivableComp) && unrevivableComp.Analyzable;
+
+        return new HealthAnalyzerUiState(GetNetEntity(target), bodyTemperature, bloodAmount, null, bleeding, unrevivable);
+    }
+
+    // FINALSTAND: keyed by solution name string (e.g. "bloodstream", "stomach")
+    // not NetEntity, because SolutionComponent.Id isn't networked to the client —
+    // every solution would otherwise resolve as the default name "solution".
+    private Dictionary<string, Solution> FetchChemicalData(EntityUid target)
+    {
+        var solutionsList = new Dictionary<string, Solution>();
+
+        if (!TryComp(target, out SolutionManagerComponent? container))
             return solutionsList;
 
         foreach (var (name, solution) in _solutionContainerSystem.EnumerateSolutions((target, container)))
@@ -558,22 +641,24 @@ public sealed class HealthAnalyzerSystem : EntitySystem
             if (name is null
                 || name == BloodstreamComponent.DefaultBloodTemporarySolutionName
                 || name == "print" // I hate this so fucking much.
-                || !TryGetNetEntity(solution, out var netSolution))
+                || solutionsList.ContainsKey(name))
                 continue;
 
-            solutionsList.Add(netSolution.Value, solution.Comp.Solution);
+            solutionsList.Add(name, solution.Comp.Solution);
         }
 
         if (TryComp<BodyComponent>(target, out var body)
             && _bodySystem.TryGetBodyOrganEntityComps<StomachComponent>((target, body), out var stomachs))
         {
+            var stomachIndex = 0;
             foreach (var stomach in stomachs)
             {
-                if (stomach.Comp1.Solution is null
-                    || !TryGetNetEntity(stomach.Comp1.Solution, out var netSolution))
+                if (stomach.Comp1.Solution is null)
                     continue;
 
-                solutionsList.Add(netSolution.Value, stomach.Comp1.Solution.Value.Comp.Solution); // This is horrible.
+                // Multiple stomachs (e.g. ruminant) get suffixed names so the dict keys stay unique.
+                var key = stomachs.Count > 1 ? $"stomach{++stomachIndex}" : "stomach";
+                solutionsList.TryAdd(key, stomach.Comp1.Solution.Value.Comp.Solution);
             }
         }
 

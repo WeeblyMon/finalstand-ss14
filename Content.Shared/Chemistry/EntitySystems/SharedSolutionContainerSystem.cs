@@ -106,7 +106,7 @@ public abstract partial class SharedSolutionContainerSystem : EntitySystem
 
     private void OnSolutionGetState(Entity<SolutionComponent> ent, ref ComponentGetState args)
     {
-        args.State = new SolutionComponentState(ent.Comp.Solution);
+        args.State = new SolutionComponentState(ent.Comp.Id, ent.Comp.Solution);
     }
 
     private void OnSolutionHandleState(Entity<SolutionComponent> ent, ref ComponentHandleState args)
@@ -114,6 +114,7 @@ public abstract partial class SharedSolutionContainerSystem : EntitySystem
         if (args.Current is not SolutionComponentState cast)
             return;
 
+        ent.Comp.Id = cast.Id;
         ent.Comp.Solution = cast.Solution.Clone();
 
         // Always raise the event on the client so that we can update UIs accordingly.

@@ -56,7 +56,7 @@
         Quantity: 3.67
 
 - type: entity
-  id: Blunt
+  id: BluntCigar # FINALSTAND: renamed from `Blunt` so it doesn't collide with the _Shitmed `Blunt` wound entity prototype (same rename Goob applied upstream).
   parent: BaseCigar
   name: blunt
   description: A roll of dried plant matter wrapped in a dried tobacco leaf.
@@ -88,7 +88,7 @@
 
 - type: entity
   id: BluntRainbow
-  parent: Blunt
+  parent: BluntCigar # FINALSTAND: see comment on BluntCigar above.
   name: blunt
   suffix: Rainbow
   description: A roll of dried plant matter wrapped in a dried tobacco leaf. Seems to be colorful inside.

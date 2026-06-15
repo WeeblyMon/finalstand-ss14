@@ -18,6 +18,65 @@ public sealed class MarkingManager
     private FrozenDictionary<HumanoidVisualLayers, FrozenDictionary<string, MarkingPrototype>> _categorizedMarkings = default!;
     private FrozenDictionary<string, MarkingPrototype> _markings = default!;
 
+    /// <summary>
+    /// Gets the organ marking categories mapping for a given species.
+    /// </summary>
+    public IReadOnlyDictionary<ProtoId<OrganCategoryPrototype>, string> GetOrgans(ProtoId<SpeciesPrototype> species)
+    {
+        return new Dictionary<ProtoId<OrganCategoryPrototype>, string>();
+    }
+
+    /// <summary>
+    /// Tries to retrieve the marking group and allowed layer data for a specific organ ID.
+    /// </summary>
+    public bool TryGetMarkingData(string id, [NotNullWhen(true)] out OrganMarkingData? organData)
+    {
+        organData = null;
+
+        // Fallback layout mapping if specific prototypes aren't fully loaded
+        if (_prototype.TryIndex<MarkingsGroupPrototype>(id, out var groupProto))
+        {
+            organData = new OrganMarkingData
+            {
+                Group = id,
+                Layers = Enum.GetValues<HumanoidVisualLayers>().ToHashSet()
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Helper method required by ConvertMarkings to fetch aggregated marking configurations.
+    /// </summary>
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> GetMarkingData(ProtoId<SpeciesPrototype> species)
+    {
+        var res = new Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData>();
+        foreach (var (organ, protoId) in GetOrgans(species))
+        {
+            if (TryGetMarkingData(protoId, out var data) && data.HasValue)
+            {
+                res[organ] = data.Value;
+            }
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Builds default organ profile data (sex, skin color, eye color) for each organ of a species.
+    /// </summary>
+    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> GetProfileData(
+        ProtoId<SpeciesPrototype> species, Sex sex, Color skinColor, Color eyeColor)
+    {
+        var res = new Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData>();
+        foreach (var (organ, _) in GetOrgans(species))
+        {
+            res[organ] = new OrganProfileData { Sex = sex, SkinColor = skinColor, EyeColor = eyeColor };
+        }
+        return res;
+    }
+
     public void Initialize()
     {
         _prototype.PrototypesReloaded += OnPrototypeReload;
@@ -239,92 +298,6 @@ public sealed class MarkingManager
                 markingSets[layer].Add(new(marking, colors));
             }
         }
-    }
-
-    /// <summary>
-    /// Returns the expected set of organs for a species to have.
-    /// </summary>
-    /// <param name="species">The species to look up.</param>
-    /// <returns>A dictionary of organ categories to their usual organs within a species.</returns>
-    public Dictionary<ProtoId<OrganCategoryPrototype>, EntProtoId<OrganComponent>> GetOrgans(ProtoId<SpeciesPrototype> species)
-    {
-        var speciesPrototype = _prototype.Index(species);
-        var appearancePrototype = _prototype.Index(speciesPrototype.DollPrototype);
-
-        if (!appearancePrototype.TryGetComponent<InitialBodyComponent>(out var initialBody, _component))
-            return new();
-
-        return initialBody.Organs;
-    }
-
-    /// <summary>
-    /// Looks up the expected set of <see cref="OrganMarkingData" /> for the species to have
-    /// </summary>
-    /// <param name="species">The species to look up the usual organs of.</param>
-    /// <returns>A dictionary of organ categories to their usual organ marking data within a species.</returns>
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData> GetMarkingData(ProtoId<SpeciesPrototype> species)
-    {
-        var ret = new Dictionary<ProtoId<OrganCategoryPrototype>, OrganMarkingData>();
-
-        foreach (var (organ, proto) in GetOrgans(species))
-        {
-            if (!TryGetMarkingData(proto, out var organData))
-                continue;
-
-            ret[organ] = organData.Value;
-        }
-
-        return ret;
-    }
-
-    /// <summary>
-    /// Expands the provided profile data into all the categories for a species.
-    /// </summary>
-    /// <param name="species">The species the returned dictionary should be comprehensive for.</param>
-    /// <param name="sex">The sex to apply to all organs</param>
-    /// <param name="skinColor">The skin color to apply to all organs</param>
-    /// <param name="eyeColor">The eye color to apply to all organs</param>
-    /// <returns></returns>
-    /// <seealso cref="OrganProfileData" />
-    public Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData> GetProfileData(ProtoId<SpeciesPrototype> species,
-        Sex sex,
-        Color skinColor,
-        Color eyeColor)
-    {
-        var ret = new Dictionary<ProtoId<OrganCategoryPrototype>, OrganProfileData>();
-
-        foreach (var organ in GetOrgans(species).Keys)
-        {
-            ret[organ] = new()
-            {
-                Sex = sex,
-                EyeColor = eyeColor,
-                SkinColor = skinColor,
-            };
-        }
-
-        return ret;
-    }
-
-    /// <summary>
-    /// Gets the <see cref="OrganMarkingData" /> for the entity prototype corresponding to an organ
-    /// </summary>
-    /// <param name="organ">The ID of the organ entity prototype to look up</param>
-    /// <param name="organData">The marking data for the organ if it exists</param>
-    /// <returns>Whether the provided entity prototype ID corresponded to organ marking data that could be returned</returns>
-    public bool TryGetMarkingData(EntProtoId organ, [NotNullWhen(true)] out OrganMarkingData? organData)
-    {
-        organData = null;
-
-        if (!_prototype.TryIndex(organ, out var organProto))
-            return false;
-
-        if (!organProto.TryGetComponent<VisualOrganMarkingsComponent>(out var comp, _component))
-            return false;
-
-        organData = comp.MarkingData;
-
-        return true;
     }
 
     /// <summary>

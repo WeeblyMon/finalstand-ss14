@@ -1,19 +1,70 @@
-{
-  "version": 1,
-  "size": {
-    "x": 32,
-    "y": 32
-  },
-  "license": "CC-BY-SA-3.0",
-  "copyright": "Drawn by Ubaser, modified by Bhijn and Myr",
-  "states": [
-    {
-      "name": "kobold",
-      "directions": 4
-    },
-    {
-      "name": "outline",
-      "directions": 4
-    }
-  ]
+﻿{
+    "version":  1,
+    "size":  {
+                 "x":  32,
+                 "y":  32
+             },
+    "license":  "CC-BY-SA-3.0",
+    "copyright":  "Drawn by Ubaser, modified by Bhijn and Myr",
+    "states":  [
+                   {
+                       "name":  "kobold",
+                       "directions":  4
+                   },
+                   {
+                       "name":  "outline",
+                       "directions":  4
+                   },
+                   {
+                       "name":  "chest_m"
+                   },
+                   {
+                       "name":  "groin_m"
+                   },
+                   {
+                       "name":  "head_m"
+                   },
+                   {
+                       "name":  "l_arm"
+                   },
+                   {
+                       "name":  "r_arm"
+                   },
+                   {
+                       "name":  "l_hand"
+                   },
+                   {
+                       "name":  "r_hand"
+                   },
+                   {
+                       "name":  "l_leg"
+                   },
+                   {
+                       "name":  "r_leg"
+                   },
+                   {
+                       "name":  "l_foot"
+                   },
+                   {
+                       "name":  "r_foot"
+                   },
+                   {
+                       "name":  "horns_short"
+                   },
+                   {
+                       "name":  "head_f"
+                   },
+                   {
+                       "name":  "chest_f"
+                   },
+                   {
+                       "name":  "groin_f"
+                   },
+                   {
+                       "name":  "tail"
+                   },
+                   {
+                       "name":  "eyes"
+                   }
+               ]
 }

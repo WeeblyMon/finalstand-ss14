@@ -172,7 +172,7 @@ public sealed class StatValuesCommand : IConsoleCommand
         return state;
     }
 
-    private static readonly ProtoId<DamageTypePrototype> StructuralDamageType = "Structural";
+    private const string StructuralDamageType = "Structural";
 
     private StatValuesEuiMessage GetMelee()
     {

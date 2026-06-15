@@ -23,4 +23,14 @@ public sealed partial class SharpComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public float ButcherDelayModifier = 1.0f;
+
+    // Shitmed Change - tracks whether ghetto surgery added these components
+    [ViewVariables]
+    public bool HadSurgeryTool;
+
+    [ViewVariables]
+    public bool HadScalpel;
+
+    [ViewVariables]
+    public bool HadBoneSaw;
 }

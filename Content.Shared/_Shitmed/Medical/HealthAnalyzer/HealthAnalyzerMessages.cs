@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 //
@@ -8,7 +8,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared.Body.Part;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 using Content.Shared.Chemistry.Components;
 namespace Content.Shared._Shitmed.Medical.HealthAnalyzer;
@@ -99,10 +99,14 @@ public sealed class HealthAnalyzerOrgansMessage : HealthAnalyzerBaseMessage
 }
 
 // Chemicals Mode message
+// FINALSTAND: keyed by solution name string (not NetEntity). Goob's source
+// relied on Solution.Name (a custom field they added) for the header; we use
+// SolutionComponent.Id, but that field isn't networked so the client always
+// reads "solution". Server passes the name directly in the dict key instead.
 [Serializable, NetSerializable]
 public sealed class HealthAnalyzerChemicalsMessage : HealthAnalyzerBaseMessage
 {
-    public readonly Dictionary<NetEntity, Solution> Solutions;
+    public readonly Dictionary<string, Solution> Solutions;
 
     public HealthAnalyzerChemicalsMessage(
         NetEntity? targetEntity,
@@ -112,7 +116,7 @@ public sealed class HealthAnalyzerChemicalsMessage : HealthAnalyzerBaseMessage
         Dictionary<TargetBodyPart, bool> bleeding,
         FixedPoint2 vitalDamage, // Goobstation
         Dictionary<TargetBodyPart, WoundableSeverity>? body,
-        Dictionary<NetEntity, Solution> solutions)
+        Dictionary<string, Solution> solutions)
         : base(targetEntity, temperature, bloodLevel, scanMode, HealthAnalyzerMode.Chemicals, body, bleeding, vitalDamage) // Goobstation
     {
         Solutions = solutions;

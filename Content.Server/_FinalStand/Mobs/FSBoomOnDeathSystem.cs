@@ -119,6 +119,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
             if (targetUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
+            if (!HasComp<MobStateComponent>(targetUid)) continue; // skip structures, walls, machines
             _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
         }
 
@@ -132,6 +133,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
             if (targetUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
+            if (!HasComp<MobStateComponent>(targetUid)) continue;
 
             var slow = EnsureComp<FSSlowedComponent>(targetUid);
             slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.SlowDuration);

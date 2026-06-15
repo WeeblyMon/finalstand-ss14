@@ -1,4 +1,4 @@
-﻿using Content.Goobstation.Maths.FixedPoint;
+﻿using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Consciousness;
@@ -32,7 +32,7 @@ public sealed class ConsciousnessComponentState : ComponentState
 public record struct ConsciousnessUpdatedEvent(bool IsConscious);
 
 [Serializable, DataRecord]
-public record struct ConsciousnessModifier(FixedPoint2 Change, TimeSpan? Time, ConsciousnessModType Type = ConsciousnessModType.Generic);
+public partial record struct ConsciousnessModifier(FixedPoint2 Change, TimeSpan? Time, ConsciousnessModType Type = ConsciousnessModType.Generic);
 
 [Serializable, DataRecord]
-public record struct ConsciousnessMultiplier(FixedPoint2 Change, TimeSpan? Time, ConsciousnessModType Type = ConsciousnessModType.Generic);
+public partial record struct ConsciousnessMultiplier(FixedPoint2 Change, TimeSpan? Time, ConsciousnessModType Type = ConsciousnessModType.Generic);

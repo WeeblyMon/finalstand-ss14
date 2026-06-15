@@ -202,7 +202,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (args.ToolUsed)
         {
             if (_stackQuery.TryComp(tool, out var stack))
-                _stack.Use(tool, 1, stack);
+                _stack.ReduceCount((tool, stack), 1);
             else
                 PredictedQueueDel(tool);
         }
@@ -404,15 +404,28 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             args.Cancelled = true;
     }
 
-    private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent, ref SurgeryValidEvent args)
+private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        var markingCategory = MarkingCategoriesConversion.FromHumanoidVisualLayers(ent.Comp.MarkingCategory);
+        if (!TryComp<HumanoidAppearanceComponent>(args.Body, out var appearance))
+            return;
 
-        var hasMarking = TryComp(args.Body, out HumanoidAppearanceComponent? bodyAppearance)
-            && bodyAppearance.MarkingSet.Markings.TryGetValue(markingCategory, out var markingList)
-            && markingList.Any(marking => marking.MarkingId.Contains(ent.Comp.MatchString));
+        var found = false;
 
-        if ((!ent.Comp.Inverse && hasMarking) || (ent.Comp.Inverse && !hasMarking))
+        foreach (var markingList in appearance.MarkingSet.Markings.Values)
+        {
+            foreach (var marking in markingList)
+            {
+                if (((string)marking.MarkingId).Contains(ent.Comp.MatchString, StringComparison.OrdinalIgnoreCase))
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) break;
+        }
+
+        if (ent.Comp.Inverse ? found : !found)
             args.Cancelled = true;
     }
 

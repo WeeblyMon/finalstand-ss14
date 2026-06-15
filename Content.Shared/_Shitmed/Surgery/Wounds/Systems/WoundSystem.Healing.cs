@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 // SPDX-FileCopyrightText: 2025 RichardBlonski <48651647+RichardBlonski@users.noreply.github.com>
@@ -12,7 +12,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 using Content.Shared.Body.Part;
@@ -82,7 +82,7 @@ public partial class WoundSystem
         return true;
     }
 
-    /// <summary>
+/// <summary>
     /// Heals bleeding wounds on a body entity, starting with the most severely bleeding woundable
     /// and cascading any leftover healing to the next most severe bleeding woundable.
     /// </summary>
@@ -127,7 +127,7 @@ public partial class WoundSystem
             .Select(x => x.Woundable)
             .ToList();
 
-        float remainingHealAmount = healAmount * sortedWoundables.Count();
+        float remainingHealAmount = healAmount * sortedWoundables.Count;
         bool anyHealed = false;
 
         // Apply healing to each woundable in order
@@ -136,13 +136,12 @@ public partial class WoundSystem
             if (remainingHealAmount <= 0)
                 break;
 
-            FixedPoint2 modifiedBleed;
-            bool didHeal = TryHealBleedingWounds(woundable, -remainingHealAmount, out modifiedBleed);
-            if (didHeal)
+            // FIX: We pass -remainingHealAmount (float) and get out modifiedBleed (FixedPoint2)
+            if (TryHealBleedingWounds(woundable, -remainingHealAmount, out var modifiedBleed))
             {
                 anyHealed = true;
-                healed += -modifiedBleed - remainingHealAmount;
-                remainingHealAmount -= (float) modifiedBleed; // Goobstation fix
+                healed += modifiedBleed; // Accumulate the actual FixedPoint2 amount healed
+                remainingHealAmount -= modifiedBleed.Float(); // Reduce remaining float heal capacity
 
                 if (remainingHealAmount <= 0)
                     break;
@@ -444,7 +443,7 @@ public partial class WoundSystem
         if (!_body.TryGetRootPart(target, out var body))
             return false;
 
-        wounds = GetAllWounds(body.Value.Owner).ToList();
+        wounds = GetAllWounds(body!.Value.Owner).ToList();
 
         return wounds.Any();
     }

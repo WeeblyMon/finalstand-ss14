@@ -97,14 +97,19 @@ public abstract partial class SharedHandsSystem : EntitySystem
         if (!_actionBlocker.CanInteract(session.AttachedEntity.Value, null))
             return;
 
-        if (component.ActiveHandId == null || component.Hands.Count < 2)
+        SwapHands((session.AttachedEntity.Value, component), reverse);
+    }
+
+    public void SwapHands(Entity<HandsComponent> ent, bool reverse = false)
+    {
+        if (ent.Comp.ActiveHandId == null || ent.Comp.Hands.Count < 2)
             return;
 
-        var currentIndex = component.SortedHands.IndexOf(component.ActiveHandId);
-        var newActiveIndex = (currentIndex + (reverse ? -1 : 1) + component.Hands.Count) % component.Hands.Count;
-        var nextHand = component.SortedHands[newActiveIndex];
+        var currentIndex = ent.Comp.SortedHands.IndexOf(ent.Comp.ActiveHandId);
+        var newActiveIndex = (currentIndex + (reverse ? -1 : 1) + ent.Comp.Hands.Count) % ent.Comp.Hands.Count;
+        var nextHand = ent.Comp.SortedHands[newActiveIndex];
 
-        TrySetActiveHand((session.AttachedEntity.Value, component), nextHand);
+        TrySetActiveHand((ent, ent), nextHand);
     }
 
     private bool DropPressed(ICommonSession? session, EntityCoordinates coords, EntityUid netEntity)

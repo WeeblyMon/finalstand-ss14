@@ -52,18 +52,8 @@
           32:
             sprite: Mobs/Species/Human/displacement.rsi
             state: jumpsuit-female
-  - type: InitialBody
-    organs:
-      Torso: OrganSkeletonPersonTorso
-      Head: OrganSkeletonPersonHead
-      ArmLeft: OrganSkeletonPersonArmLeft
-      ArmRight: OrganSkeletonPersonArmRight
-      HandRight: OrganSkeletonPersonHandRight
-      HandLeft: OrganSkeletonPersonHandLeft
-      LegLeft: OrganSkeletonPersonLegLeft
-      LegRight: OrganSkeletonPersonLegRight
-      FootLeft: OrganSkeletonPersonFootLeft
-      FootRight: OrganSkeletonPersonFootRight
+  - type: Body
+    prototype: Skeleton
   - type: HumanoidProfile
     species: Skeleton
 
@@ -184,62 +174,3 @@
     interactSuccessSound: /Audio/Effects/thudswoosh.ogg
     messagePerceivedByOthers: hugging-success-generic-others
 
-- type: entity
-  parent: OrganBase
-  id: OrganSkeletonPerson
-  abstract: true
-  suffix: SkeletonPerson
-
-- type: entity
-  parent: OrganSkeletonPerson
-  id: OrganSkeletonPersonExternal
-  abstract: true
-  components:
-  - type: Sprite
-    sprite: Mobs/Species/Skeleton/parts.rsi
-  - type: VisualOrgan
-    data:
-      sprite: Mobs/Species/Skeleton/parts.rsi
-  - type: VisualOrganMarkings
-    markingData:
-      group: Skeleton
-
-- type: entity
-  parent: [ OrganBaseTorsoSexed, OrganBaseTorso, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonTorso
-
-- type: entity
-  parent: [ OrganBaseHead, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonHead
-
-- type: entity
-  parent: [ OrganBaseArmLeft, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonArmLeft
-
-- type: entity
-  parent: [ OrganBaseArmRight, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonArmRight
-
-- type: entity
-  parent: [ OrganBaseHandLeft, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonHandLeft
-
-- type: entity
-  parent: [ OrganBaseHandRight, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonHandRight
-
-- type: entity
-  parent: [ OrganBaseLegLeft, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonLegLeft
-
-- type: entity
-  parent: [ OrganBaseLegRight, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonLegRight
-
-- type: entity
-  parent: [ OrganBaseFootLeft, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonFootLeft
-
-- type: entity
-  parent: [ OrganBaseFootRight, OrganSkeletonPersonExternal ]
-  id: OrganSkeletonPersonFootRight

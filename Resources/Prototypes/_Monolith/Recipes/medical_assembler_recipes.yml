@@ -1,0 +1,75 @@
+# Medical Assembler recipes.
+# Ingredients are consumed as reagents from drainable containers placed inside the machine.
+# Put syringes, beakers, or other containers holding the required reagents into the assembler.
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerBruteAutoInjector
+  name: medical-assembler-recipe-brute-auto-injector
+  result: BruteAutoInjector
+  time: 5
+  reagents:
+    Bicaridine: 10
+    TranexamicAcid: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerBurnAutoInjector
+  name: medical-assembler-recipe-burn-auto-injector
+  result: BurnAutoInjector
+  time: 5
+  reagents:
+    Dermaline: 10
+    Leporazine: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerAirlossAutoInjector
+  name: medical-assembler-recipe-airloss-auto-injector
+  result: AirlossAutoInjector
+  time: 5
+  reagents:
+    Saline: 10
+    DexalinPlus: 10
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerEmergencyMedipen
+  name: medical-assembler-recipe-emergency-medipen
+  result: EmergencyMedipen
+  time: 8
+  reagents:
+    Epinephrine: 10
+    TranexamicAcid: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerAntiPoisonMedipen
+  name: medical-assembler-recipe-antipoisonmedipen
+  result: AntiPoisonMedipen
+  time: 6
+  reagents:
+    Dylovene: 10
+    Charcoal: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerRadAutoInjector
+  name: medical-assembler-recipe-rad-auto-injector
+  result: RadAutoInjector
+  time: 6
+  reagents:
+    Arithrazine: 10
+    Hyronalin: 5
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerPunctAutoInjector
+  name: medical-assembler-recipe-punct-auto-injector
+  result: PunctAutoInjector
+  time: 5
+  reagents:
+    Bicaridine: 5
+    TranexamicAcid: 10
+
+- type: medicalAssemblerRecipe
+  id: MedAssemblerTourniquet
+  name: medical-assembler-recipe-tourniquet
+  result: Tourniquet
+  resultCount: 2
+  time: 4
+  reagents:
+    TranexamicAcid: 5

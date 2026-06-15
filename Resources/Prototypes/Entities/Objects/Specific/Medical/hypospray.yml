@@ -3,6 +3,10 @@
   parent: [SolutionHypospraySmall, BaseItem]
   id: BaseHypospray
   components:
+  - type: Hypospray
+    solutionName: hypospray
+    transferAmount: 5
+    onlyAffectsMobs: true
   - type: Injector
     solutionName: hypospray
     ignoreClosed: false

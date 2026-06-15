@@ -16,32 +16,7 @@ public sealed class HealthExaminableSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-
-        SubscribeLocalEvent<HealthExaminableComponent, GetVerbsEvent<ExamineVerb>>(OnGetExamineVerbs);
-    }
-
-    private void OnGetExamineVerbs(EntityUid uid, HealthExaminableComponent component, GetVerbsEvent<ExamineVerb> args)
-    {
-        if (!TryComp<DamageableComponent>(uid, out var damage))
-            return;
-
-        var detailsRange = _examineSystem.IsInDetailsRange(args.User, uid);
-
-        var verb = new ExamineVerb()
-        {
-            Act = () =>
-            {
-                var markup = CreateMarkup(uid, component, damage);
-                _examineSystem.SendExamineTooltip(args.User, uid, markup, false, false);
-            },
-            Text = Loc.GetString("health-examinable-verb-text"),
-            Category = VerbCategory.Examine,
-            Disabled = !detailsRange,
-            Message = detailsRange ? null : Loc.GetString("health-examinable-verb-disabled"),
-            Icon = new SpriteSpecifier.Texture(new ("/Textures/Interface/VerbIcons/rejuvenate.svg.192dpi.png"))
-        };
-
-        args.Verbs.Add(verb);
+        // Subscription moved to PartStatusSystem (Content.Server/_Shitmed) which extends this with body part info.
     }
 
     public FormattedMessage CreateMarkup(EntityUid uid, HealthExaminableComponent component, DamageableComponent damage)

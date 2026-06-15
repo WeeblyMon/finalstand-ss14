@@ -58,7 +58,7 @@ public sealed partial class IngestionSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     // Body Component Dependencies
-    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly ReactiveSystem _reaction = default!;
     [Dependency] private readonly StomachSystem _stomach = default!;
 

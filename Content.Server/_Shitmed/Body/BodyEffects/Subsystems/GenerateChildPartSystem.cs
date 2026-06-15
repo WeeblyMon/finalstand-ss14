@@ -61,9 +61,9 @@ public sealed class GenerateChildPartSystem : EntitySystem
         if (!TryComp(childPart, out BodyPartComponent? childPartComp))
             return;
 
-        var slotName = _bodySystem.GetSlotFromBodyPart(childPartComp);
+        var slotName = childPartComp.SlotId;
         _bodySystem.TryCreatePartSlot(uid, slotName, childPartComp.PartType, childPartComp.Symmetry, out var _);
-        _bodySystem.AttachPart(uid, slotName, childPart, partComp, childPartComp);
+        _bodySystem.AttachPart(uid, slotName, childPart, null, childPartComp);
         component.ChildPart = childPart;
         component.Active = true;
         Dirty(childPart, childPartComp);

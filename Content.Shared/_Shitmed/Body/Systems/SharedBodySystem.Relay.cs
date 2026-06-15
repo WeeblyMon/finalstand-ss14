@@ -16,6 +16,7 @@ using Content.Shared._Shitmed.DoAfter;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Weapons.Melee.Events;
 using Content.Shared.Body.Components;
+using Content.Shared.Body.Events;
 using Content.Shared.Body.Part;
 namespace Content.Shared.Body.Systems;
 
@@ -103,6 +104,18 @@ public partial class SharedBodySystem
                 RaiseLocalEvent(bone, ev);
 
         args = ev.Args;
+    }
+
+    /// <summary>
+    /// Old-style relay: broadcasts the event as BodyRelayedEvent&lt;T&gt; to all organs in the body.
+    /// Used by RespiratorSystem and other vanilla callers that don't implement IBodyPartRelayEvent.
+    /// </summary>
+    public void RelayOrganEvent<T>(Entity<BodyComponent> body, ref T args)
+    {
+        var relayed = new BodyRelayedEvent<T>(body, args);
+        foreach (var organ in GetBodyOrgans(body.Owner, body.Comp))
+            RaiseLocalEvent(organ.Id, ref relayed);
+        args = relayed.Args;
     }
 
     public void RelayEvent<T>(Entity<BodyPartComponent> bodyPart, T args) where T : IBoneRelayEvent

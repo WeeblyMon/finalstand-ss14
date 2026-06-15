@@ -127,6 +127,7 @@
   - type: Metabolizer
     maxPoisonsProcessable: 2
     metabolizerTypes: [ Cybernetic ]
+    stages: [ Medicine, Poison, Narcotic, Bloodstream ]
     groups:
     - id: Medicine
       rateModifier: 0.7
@@ -164,6 +165,7 @@
   - type: Metabolizer
     maxPoisonsProcessable: 2
     metabolizerTypes: [ Cybernetic ]
+    stages: [ Medicine, Poison, Narcotic, Bloodstream ]
     groups:
     - id: Medicine
       rateModifier: 0.4
@@ -197,6 +199,7 @@
   - type: Metabolizer
     maxPoisonsProcessable: 1
     metabolizerTypes: [ Cybernetic ]
+    stages: [ Alcohol, Metabolites ]
     groups:
     - id: Alcohol
       rateModifier: 0.1
@@ -234,6 +237,7 @@
     solutionOnBody: false
     solution: "Lung"
     metabolizerTypes: [ Cybernetic ]
+    stages: [ Respiration ]
     groups:
     - id: Gas
       rateModifier: 100.0

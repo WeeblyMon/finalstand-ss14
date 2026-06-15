@@ -16,7 +16,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
 using Robust.Shared.Random;
@@ -151,7 +151,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
     #region Layer Management
     private void RemoveWoundableLayers(Entity<SpriteComponent?> ent, WoundableVisualsComponent visuals)
     {
-        if (visuals.DamageOverlayGroups == null || !Resolve(ent,ref ent.Comp))
+        if (visuals.DamageOverlayGroups == null || !Resolve(ent, ref ent.Comp, logMissing: false))
             return;
 
         foreach (var (group, _) in visuals.DamageOverlayGroups)
@@ -178,7 +178,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         string mapKey,
         string? color = null)
     {
-        if (!Resolve(ent, ref ent.Comp) ||_sprite.LayerMapTryGet(ent, mapKey, out _, false)) // prevent dupes
+        if (!Resolve(ent, ref ent.Comp, logMissing: false) || _sprite.LayerMapTryGet(ent, mapKey, out _, false)) // prevent dupes
             return;
 
         var newLayer = _sprite.AddLayer(ent,
@@ -239,7 +239,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         var partKey = GetLimbBleedingKey(bodyPart);
         var layerKey = BuildLayerKey(partKey, BleedingSuffix);
         var hasWounds = TryGetWoundData(woundable.Owner, out var wounds);
-        var hasParentWounds = TryGetWoundData(parentUid.Value, out var parentWounds);
+        var hasParentWounds = TryGetWoundData(parentUid!.Value, out var parentWounds);
 
         if (!hasWounds && !hasParentWounds)
         {

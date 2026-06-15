@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2025 Goob-Station contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Stub reagents referenced by Goob chemistry that are not yet fully ported.
+# These exist solely to satisfy ProtoId validation — they have no metabolism effects.
+
+- type: reagent
+  id: Aluite
+  name: reagent-name-aluite
+  desc: reagent-desc-aluite
+  flavor: bitter
+  color: '#CCCCCC'
+  physicalDesc: reagent-physical-desc-solution
+
+- type: reagent
+  id: Sarin
+  name: reagent-name-sarin
+  desc: reagent-desc-sarin
+  flavor: bitter
+  color: '#99FF99'
+  physicalDesc: reagent-physical-desc-solution
+  worksOnTheDead: true

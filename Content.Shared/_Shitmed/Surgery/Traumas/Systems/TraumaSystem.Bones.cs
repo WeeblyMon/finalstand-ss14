@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 //
@@ -11,7 +11,7 @@ using Content.Shared._Shitmed.Weapons.Melee.Events;
 using Content.Shared._Shitmed.Weapons.Ranged.Events;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Components;
 using Content.Shared.Popups;
 using Content.Shared.Standing;

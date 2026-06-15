@@ -54,8 +54,10 @@
         showEnts: False
         occludes: True
         ents: []
+  # FINALSTAND: Goob's 10000W default trips breakers on any station APC. Bring
+  # in line with other heavy machines (cloning pod 1500W, cryo pod 800W).
   - type: ApcPowerReceiver
-    powerLoad: 10000
+    powerLoad: 1500
   - type: AutomationSlots
     slots:
     - !type:AutomatedStorage

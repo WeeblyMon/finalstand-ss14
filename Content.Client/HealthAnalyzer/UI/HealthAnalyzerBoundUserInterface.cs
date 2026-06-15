@@ -1,4 +1,5 @@
-﻿using Content.Shared.MedicalScanner;
+using Content.Shared._Shitmed.Targeting;
+using Content.Shared._Shitmed.Medical.HealthAnalyzer;
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 
@@ -19,7 +20,8 @@ namespace Content.Client.HealthAnalyzer.UI
             base.Open();
 
             _window = this.CreateWindow<HealthAnalyzerWindow>();
-
+            _window.OnBodyPartSelected += SendBodyPartMessage;
+            _window.OnModeChanged += SendModeMessage;
             _window.Title = EntMan.GetComponent<MetaDataComponent>(Owner).EntityName;
         }
 
@@ -28,10 +30,36 @@ namespace Content.Client.HealthAnalyzer.UI
             if (_window == null)
                 return;
 
-            if (message is not HealthAnalyzerScannedUserMessage cast)
+            switch (message)
+            {
+                case HealthAnalyzerBodyMessage bodyMessage:
+                    _window.Populate(bodyMessage);
+                    break;
+                case HealthAnalyzerOrgansMessage organsMessage:
+                    _window.Populate(organsMessage);
+                    break;
+                case HealthAnalyzerChemicalsMessage chemicalsMessage:
+                    _window.Populate(chemicalsMessage);
+                    break;
+            }
+        }
+
+        private void SendBodyPartMessage(TargetBodyPart? part, EntityUid target) =>
+            SendMessage(new HealthAnalyzerPartSelectedMessage(EntMan.GetNetEntity(target), part));
+
+        private void SendModeMessage(HealthAnalyzerMode mode, EntityUid target) =>
+            SendMessage(new HealthAnalyzerModeSelectedMessage(EntMan.GetNetEntity(target), mode));
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (!disposing)
                 return;
 
-            _window.Populate(cast);
+            if (_window != null)
+                _window.OnBodyPartSelected -= SendBodyPartMessage;
+
+            _window?.Dispose();
         }
     }
 }

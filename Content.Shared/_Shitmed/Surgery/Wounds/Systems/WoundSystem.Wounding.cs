@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 Ilya246 <57039557+Ilya246@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 Ilya246 <ilyukarno@gmail.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
@@ -21,8 +21,10 @@ using Content.Shared._Shitmed.Targeting.Events;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
-using Content.Goobstation.Maths.FixedPoint;
+using Content.Shared.Damage.Systems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Gibbing.Events;
 using Content.Shared.Humanoid;
 using Content.Shared.Inventory;
@@ -233,6 +235,7 @@ public sealed partial class WoundSystem
         if (TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(component.HoldingWoundable)
             // || !TryComp<TraumaInflicterComponent>(uid, out var traumaInflicter) // Goob edit
+
             || !TryComp<WoundableComponent>(component.HoldingWoundable, out var woundable)
             || woundable.WoundableSeverity != WoundableSeverity.Mangled
             || !TryComp<BodyPartComponent>(component.HoldingWoundable, out var bodyPart))
@@ -306,7 +309,7 @@ public sealed partial class WoundSystem
         if (component.WoundableIntegrity > 50)
             return;
 
-        args.Multiplier *= (float) (component.WoundableIntegrity / component.IntegrityCap);
+        args.Multiplier *= (float)(component.WoundableIntegrity / component.IntegrityCap);
     }
 
     private void OnAttemptHandsMelee(EntityUid uid, WoundableComponent component, ref AttemptHandsMeleeEvent args)
@@ -389,8 +392,8 @@ public sealed partial class WoundSystem
             severity,
             out woundInduced,
             (from @group in _prototype.EnumeratePrototypes<DamageGroupPrototype>()
-                where @group.DamageTypes.Contains(woundId)
-                select @group).FirstOrDefault()
+             where @group.DamageTypes.Contains(woundId)
+             select @group).FirstOrDefault()
                 ?.ID,
             woundable);
         return wound;
@@ -581,7 +584,7 @@ public sealed partial class WoundSystem
             ? old + ApplySeverityModifiers(wound.HoldingWoundable, severity)
             : old + severity;
 
-        var upperLimit = wound.WoundSeverityPoint + woundable.WoundableIntegrity;
+        var upperLimit = wound.WoundSeverityPoint + woundable.WoundableIntegrity.Value;
         wound.WoundSeverityPoint = FixedPoint2.Clamp(rawValue, 0, upperLimit);
         Dirty(uid, wound);
         if (wound.WoundSeverityPoint != old || rawValue > wound.WoundSeverityPoint)
@@ -637,7 +640,7 @@ public sealed partial class WoundSystem
             return severity;
 
         var toMultiply =
-            component.SeverityMultipliers.Sum(multiplier => (float) multiplier.Value.Change) / component.SeverityMultipliers.Count;
+            component.SeverityMultipliers.Sum(multiplier => (float)multiplier.Value.Change) / component.SeverityMultipliers.Count;
         return severity * toMultiply;
     }
 
@@ -915,7 +918,7 @@ public sealed partial class WoundSystem
             && !ampEv.Cancelled) // goob edit
             _damageable.TryChangeDamage(bodyPart.Body.Value,
                 woundableComp.DamageOnAmputate,
-                targetPart: _body.GetTargetBodyPart(rootPart));
+                targetPart: _body.GetTargetBodyPart(rootPart!.Value));
 
         AmputateWoundableSafely(parentWoundableEntity, woundableEntity);
 
@@ -1205,7 +1208,7 @@ public sealed partial class WoundSystem
         }
     }
 
-    protected void InternalAddWoundableToParent(
+    private void InternalAddWoundableToParent(
         EntityUid parentEntity,
         EntityUid childEntity,
         WoundableComponent parentWoundable,
@@ -1240,7 +1243,7 @@ public sealed partial class WoundSystem
         Dirty(childEntity, childWoundable);
     }
 
-    protected void InternalRemoveWoundableFromParent(
+    private void InternalRemoveWoundableFromParent(
         EntityUid parentEntity,
         EntityUid childEntity,
         WoundableComponent parentWoundable,
@@ -1381,7 +1384,7 @@ public sealed partial class WoundSystem
 
     private bool TryFumble(string message, SoundPathSpecifier sound, EntityUid body, float odds)
     {
-        var rand = new System.Random((int) _timing.CurTick.Value);
+        var rand = new System.Random((int)_timing.CurTick.Value);
         if (rand.NextFloat() < odds)
         {
             _popup.PopupClient(Loc.GetString(message), body, PopupType.Medium);
@@ -1663,7 +1666,7 @@ public sealed partial class WoundSystem
     /// <typeparam name="T">the type of the component we want to find</typeparam>
     /// <returns>Enumerable to the found children</returns>
     public IEnumerable<Entity<WoundableComponent, T>> GetAllWoundableChildrenWithComp<T>(EntityUid targetEntity,
-        WoundableComponent? targetWoundable = null) where T: Component, new()
+        WoundableComponent? targetWoundable = null) where T : Component, new()
     {
         if (!Resolve(targetEntity, ref targetWoundable, false))
             yield break;
@@ -1801,12 +1804,12 @@ public sealed partial class WoundSystem
             return GetWoundableWounds(targetEntity, targetWoundable)
                 .Where(wound => _prototype.Index(wound.Comp.DamageGroup)?.ID == damageGroup || damageGroup == null)
                 .Where(wound => CanHealWound(wound, wound.Comp, ignoreBlockers))
-                .Aggregate(FixedPoint2.Zero, (current, wound) => current + wound.Comp.WoundIntegrityDamage);
+                .Aggregate(FixedPoint2.Zero, (current, wound) => current + (FixedPoint2) wound.Comp.WoundIntegrityDamage);
         }
 
         return GetWoundableWounds(targetEntity, targetWoundable)
             .Where(wound => _prototype.Index(wound.Comp.DamageGroup)?.ID == damageGroup || damageGroup == null)
-            .Aggregate(FixedPoint2.Zero, (current, wound) => current + wound.Comp.WoundIntegrityDamage);
+            .Aggregate(FixedPoint2.Zero, (current, wound) => current + (FixedPoint2) wound.Comp.WoundIntegrityDamage);
     }
 
     #endregion

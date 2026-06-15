@@ -4,12 +4,41 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System.Numerics;
 using Content.Shared._Shitmed.StatusEffects;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Random;
 
 namespace Content.Server._Shitmed.StatusEffects;
 
-// FINALSTAND: Goob's ScramEffectSystem depends on Content.Goobstation.Shared.Teleportation
-// which is not ported. The dubious scramble organ is not used in Final Stand, so this is a no-op stub.
+/// <summary>
+/// Randomly teleports the entity to a location within <see cref="ScrambleRange"/> tiles
+/// when <see cref="ScrambleLocationEffectComponent"/> is first added (e.g. from a dubious organ).
+/// Replaces the upstream implementation which required Content.Goobstation.Shared.Teleportation.
+/// </summary>
 public sealed class ScrambleLocationEffectSystem : EntitySystem
 {
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private readonly SharedTransformSystem _xform = default!;
+
+    private const float ScrambleRange = 8f;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<ScrambleLocationEffectComponent, ComponentInit>(OnInit);
+    }
+
+    private void OnInit(EntityUid uid, ScrambleLocationEffectComponent comp, ComponentInit args)
+    {
+        var xform = Transform(uid);
+        var worldPos = _xform.GetWorldPosition(xform);
+
+        var angle = _random.NextFloat() * MathF.PI * 2f;
+        var dist = _random.NextFloat() * ScrambleRange;
+        var offset = new Vector2(MathF.Cos(angle) * dist, MathF.Sin(angle) * dist);
+
+        _xform.SetWorldPosition(uid, worldPos + offset);
+    }
 }
