@@ -23,6 +23,13 @@ public sealed class MarkingManager
     /// </summary>
     public IReadOnlyDictionary<ProtoId<OrganCategoryPrototype>, string> GetOrgans(ProtoId<SpeciesPrototype> species)
     {
+        var groupId = species.Id;
+        if (_prototype.TryIndex<SpeciesPrototype>(species, out var speciesProto) && speciesProto.MarkingGroup is { } explicitGroup)
+            groupId = explicitGroup.Id;
+
+        if (_prototype.TryIndex<MarkingsGroupPrototype>(groupId, out _))
+            return new Dictionary<ProtoId<OrganCategoryPrototype>, string> { ["Head"] = groupId };
+
         return new Dictionary<ProtoId<OrganCategoryPrototype>, string>();
     }
 

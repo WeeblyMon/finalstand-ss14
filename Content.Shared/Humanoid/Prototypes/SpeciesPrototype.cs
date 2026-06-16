@@ -82,6 +82,13 @@ public sealed partial class SpeciesPrototype : IPrototype
     public List<Sex> Sexes { get; private set; } = new() { Sex.Male, Sex.Female };
 
     /// <summary>
+    ///     The markings group prototype ID used for this species in character creation.
+    ///     Defaults to the species ID if not specified.
+    /// </summary>
+    [DataField]
+    public ProtoId<MarkingsGroupPrototype>? MarkingGroup { get; private set; }
+
+    /// <summary>
     ///     Characters younger than this are too young to be hired by Nanotrasen.
     /// </summary>
     [DataField]
