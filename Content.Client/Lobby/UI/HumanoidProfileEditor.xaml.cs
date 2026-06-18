@@ -75,7 +75,7 @@ namespace Content.Client.Lobby.UI
 
         private ISawmill _sawmill;
 
-        private MarkingsViewModel _markingsModel = new();
+        // Goob port: MarkingsViewModel removed. Lobby marking UI needs rewiring against Goob's MarkingPicker.
 
         public HumanoidProfileEditor(
             IClientPreferencesManager preferencesManager,
@@ -106,7 +106,7 @@ namespace Content.Client.Lobby.UI
             _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
             _allowFlavorText = _cfgManager.GetCVar(CCVars.FlavorText);
 
-            Markings.SetModel(_markingsModel);
+            // Goob port: Markings.SetModel removed (Goob's MarkingPicker has a different API)
 
             ImportButton.OnPressed += args =>
             {
@@ -239,7 +239,7 @@ namespace Content.Client.Lobby.UI
                     return;
                 Profile = Profile.WithCharacterAppearance(
                     Profile.Appearance.WithEyeColor(newColor));
-                _markingsModel.SetOrganEyeColor(Profile.Appearance.EyeColor);
+                // Goob port: SetOrganEyeColor removed
                 ReloadProfilePreview();
             };
 
@@ -281,8 +281,7 @@ namespace Content.Client.Lobby.UI
 
             TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-markings-tab"));
 
-            _markingsModel.MarkingsChanged += (_, _) => OnMarkingChange();
-            _markingsModel.MarkingsReset += OnMarkingChange;
+            // Goob port: marking change events need rewiring against Goob's MarkingPicker
 
             #endregion Markings
 

@@ -295,9 +295,7 @@ namespace Content.Server.Zombies
             if (!Resolve(source, ref zombiecomp))
                 return false;
 
-            _visualBody.ApplyProfiles(target, zombiecomp.BeforeZombifiedProfiles);
-            _visualBody.ApplyMarkings(target, zombiecomp.BeforeZombifiedMarkings);
-
+            // Goob port: organ-keyed restore removed; UnZombify is a no-op for visuals.
             _bloodstream.ChangeBloodReagents(target, zombiecomp.BeforeZombifiedBloodReagents);
 
             return true;
