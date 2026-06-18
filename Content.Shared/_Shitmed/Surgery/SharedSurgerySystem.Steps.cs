@@ -492,8 +492,7 @@ public abstract partial class SharedSurgerySystem
             return;
 
         markingList ??= new List<Marking>();
-        // FIX: Add '.Id' after 'MarkingId' to convert it to a string before calling Contains
-        if (markingList.Any(marking => marking.MarkingId.Id.Contains(ent.Comp.MatchString)))
+        if (markingList.Any(marking => marking.MarkingId.Contains(ent.Comp.MatchString)))
             return;
 
         EnsureComp<BodyPartAppearanceComponent>(args.Part);

@@ -1,12 +1,20 @@
-﻿using Content.Server.Actions;
-using Content.Shared.Body;
-using Content.Shared.Cloning.Events;
+// SPDX-FileCopyrightText: 2024 ArchPigeon <bookmaster3@gmail.com>
+// SPDX-FileCopyrightText: 2024 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+// SPDX-FileCopyrightText: 2024 Krunklehorn <42424291+Krunklehorn@users.noreply.github.com>
+// SPDX-FileCopyrightText: 2024 Morb <14136326+Morb0@users.noreply.github.com>
+// SPDX-FileCopyrightText: 2024 metalgearsloth <comedian_vs_clown@hotmail.com>
+// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+//
+// SPDX-License-Identifier: MIT
+
+using Content.Server.Actions;
+using Content.Server.Humanoid;
+using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Mobs;
 using Content.Shared.Toggleable;
 using Content.Shared.Wagging;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Utility;
 
 namespace Content.Server.Wagging;
 
@@ -16,7 +24,7 @@ namespace Content.Server.Wagging;
 public sealed class WaggingSystem : EntitySystem
 {
     [Dependency] private readonly ActionsSystem _actions = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
+    [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearance = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
 
     public override void Initialize()
@@ -27,108 +35,77 @@ public sealed class WaggingSystem : EntitySystem
         SubscribeLocalEvent<WaggingComponent, ComponentShutdown>(OnWaggingShutdown);
         SubscribeLocalEvent<WaggingComponent, ToggleActionEvent>(OnWaggingToggle);
         SubscribeLocalEvent<WaggingComponent, MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<WaggingComponent, CloningEvent>(OnCloning);
     }
 
-    private void OnCloning(Entity<WaggingComponent> ent, ref CloningEvent args)
+    private void OnWaggingMapInit(EntityUid uid, WaggingComponent component, MapInitEvent args)
     {
-        if (!args.Settings.EventComponents.Contains(Factory.GetRegistration(ent.Comp.GetType()).Name))
-            return;
-
-        // Make sure to set the datafields before adding the component so that the correct action gets spawned on map init.
-        var cloneComp = Factory.GetComponent<WaggingComponent>();
-        cloneComp.Action = ent.Comp.Action;
-        cloneComp.Layer = ent.Comp.Layer;
-        cloneComp.Organ = ent.Comp.Organ;
-        cloneComp.Suffix = ent.Comp.Suffix;
-        AddComp(args.CloneUid, cloneComp, true);
+        _actions.AddAction(uid, ref component.ActionEntity, component.Action, uid);
     }
 
-    private void OnWaggingMapInit(Entity<WaggingComponent> ent, ref MapInitEvent args)
+    private void OnWaggingShutdown(EntityUid uid, WaggingComponent component, ComponentShutdown args)
     {
-        _actions.AddAction(ent, ref ent.Comp.ActionEntity, ent.Comp.Action, ent);
+        _actions.RemoveAction(uid, component.ActionEntity);
     }
 
-    private void OnWaggingShutdown(Entity<WaggingComponent> ent, ref ComponentShutdown args)
-    {
-        _actions.RemoveAction(ent.Owner, ent.Comp.ActionEntity);
-    }
-
-    private void OnWaggingToggle(Entity<WaggingComponent> ent, ref ToggleActionEvent args)
+    private void OnWaggingToggle(EntityUid uid, WaggingComponent component, ref ToggleActionEvent args)
     {
         if (args.Handled)
             return;
 
-        TryToggleWagging(ent.AsNullable());
+        TryToggleWagging(uid, wagging: component);
     }
 
-    private void OnMobStateChanged(Entity<WaggingComponent> ent, ref MobStateChangedEvent args)
+    private void OnMobStateChanged(EntityUid uid, WaggingComponent component, MobStateChangedEvent args)
     {
-        if (ent.Comp.Wagging)
-            TryToggleWagging(ent.AsNullable());
+        if (component.Wagging)
+            TryToggleWagging(uid, wagging: component);
     }
 
-    private bool TryToggleWagging(Entity<WaggingComponent?> ent)
+    public bool TryToggleWagging(EntityUid uid, WaggingComponent? wagging = null, HumanoidAppearanceComponent? humanoid = null)
     {
-        if (!Resolve(ent, ref ent.Comp))
+        if (!Resolve(uid, ref wagging, ref humanoid))
             return false;
 
-        if (!_visualBody.TryGatherMarkingsData(ent.Owner,
-                [ent.Comp.Layer],
-                out _,
-                out _,
-                out var applied))
+        if (!humanoid.MarkingSet.Markings.TryGetValue(MarkingCategories.Tail, out var markings))
+            return false;
+
+        if (markings.Count == 0)
+            return false;
+
+        wagging.Wagging = !wagging.Wagging;
+
+        for (var idx = 0; idx < markings.Count; idx++) // Animate all possible tails
         {
-            return false;
-        }
+            var currentMarkingId = markings[idx].MarkingId;
+            string newMarkingId;
 
-        if (!applied.TryGetValue(ent.Comp.Organ, out var markingsSet))
-            return false;
-
-        ent.Comp.Wagging = !ent.Comp.Wagging;
-
-        markingsSet = markingsSet.ShallowClone();
-        foreach (var (layers, markings) in markingsSet)
-        {
-            markingsSet[layers] = markingsSet[layers].ShallowClone();
-            var layerMarkings = markingsSet[layers];
-
-            for (int i = 0; i < layerMarkings.Count; i++)
+            if (wagging.Wagging)
             {
-                var currentMarkingId = layerMarkings[i].MarkingId;
-                string newMarkingId;
-
-                if (ent.Comp.Wagging)
+                newMarkingId = $"{currentMarkingId}{wagging.Suffix}";
+            }
+            else
+            {
+                if (currentMarkingId.EndsWith(wagging.Suffix))
                 {
-                    newMarkingId = $"{currentMarkingId}{ent.Comp.Suffix}";
+                    newMarkingId = currentMarkingId[..^wagging.Suffix.Length];
                 }
                 else
                 {
-                    if (currentMarkingId.Id.EndsWith(ent.Comp.Suffix))
-                    {
-                        newMarkingId = currentMarkingId.Id[..^ent.Comp.Suffix.Length];
-                    }
-                    else
-                    {
-                        newMarkingId = currentMarkingId;
-                        Log.Warning($"Unable to revert wagging for {currentMarkingId}");
-                    }
+                    newMarkingId = currentMarkingId;
+                    Log.Warning($"Unable to revert wagging for {currentMarkingId}");
                 }
-
-                if (!_prototype.HasIndex<MarkingPrototype>(newMarkingId))
-                {
-                    Log.Warning($"{ToPrettyString(ent):ent} tried toggling wagging but {newMarkingId} marking doesn't exist");
-                    continue;
-                }
-
-                layerMarkings[i] = new Marking(newMarkingId, layerMarkings[i].MarkingColors);
             }
+
+            if (!_prototype.HasIndex<MarkingPrototype>(newMarkingId))
+            {
+                Log.Warning($"{ToPrettyString(uid)} tried toggling wagging but {newMarkingId} marking doesn't exist");
+                continue;
+            }
+
+            _humanoidAppearance.SetMarkingId(uid, MarkingCategories.Tail, idx, newMarkingId,
+                humanoid: humanoid);
         }
 
-        _visualBody.ApplyMarkings(ent, new()
-        {
-            [ent.Comp.Organ] = markingsSet
-        });
         return true;
     }
 }

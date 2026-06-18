@@ -211,7 +211,7 @@ public sealed class IdentitySystem : EntitySystem
     {
         var age = 18;
         var gender = Gender.Epicene;
-        var species = HumanoidCharacterProfile.DefaultSpecies;
+        var species = SharedHumanoidAppearanceSystem.DefaultSpecies;
 
         // Always use their actual age and gender, since that can't really be changed by an ID.
         if (Resolve(target, ref target.Comp2, false))

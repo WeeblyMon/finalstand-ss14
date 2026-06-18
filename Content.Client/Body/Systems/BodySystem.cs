@@ -9,7 +9,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Body.Systems;
-using Content.Shared.Body;
 using Content.Shared.Body.Part;
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Humanoid;
@@ -22,31 +21,55 @@ namespace Content.Client.Body.Systems;
 public sealed class BodySystem : SharedBodySystem
 {
     [Dependency] private readonly MarkingManager _markingManager = default!;
+    [Dependency] private readonly SpriteSystem _spriteSystem = default!;
 
     public override void Initialize()
     {
         base.Initialize();
-        // Body parts have enableOverrideDir: North on their sprite, so they are visible
-        // as a phantom when ContainerOccluded is false. The container system sets this flag
-        // in UpdateEntityRecursively, but there is a race condition: the root body part's
-        // parent is set (from transform state) before the container state arrives, so
-        // UpdateEntityRecursively finds no container and leaves ContainerOccluded = false.
-        //
-        // Fix: subscribe to AfterAutoHandleStateEvent on BodyPartComponent. The networked
-        // Body field is set at the same time as container state (same server tick), so
-        // Body.HasValue is a reliable proxy for "this part is inside a body and should be
-        // occluded." This fires after each state application and corrects the flag directly.
+
         SubscribeLocalEvent<BodyPartComponent, AfterAutoHandleStateEvent>(OnBodyPartStateApplied);
+        SubscribeLocalEvent<BodyPartComponent, ComponentStartup>(OnBodyPartStartup);
+    }
+
+    private void OnBodyPartStartup(EntityUid uid, BodyPartComponent comp, ref ComponentStartup args)
+    {
+        TryHideAttachedPart(uid, comp);
     }
 
     private void OnBodyPartStateApplied(EntityUid uid, BodyPartComponent comp, ref AfterAutoHandleStateEvent args)
     {
+        TryHideAttachedPart(uid, comp);
+    }
+
+    private void TryHideAttachedPart(EntityUid uid, BodyPartComponent comp)
+    {
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
-        // Hide when attached to a body; show when detached (on ground, surgery table, etc.).
-        // The container system will also set ContainerOccluded = true in FrameUpdate when
-        // the part is in a non-ShowContents container, so these two agree in steady state.
-        sprite.ContainerOccluded = comp.Body.HasValue;
+
+        var shouldHide = comp.Body.HasValue;
+        _spriteSystem.SetVisible((uid, sprite), !shouldHide);
+        _spriteSystem.SetContainerOccluded((uid, sprite), shouldHide);
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        var query = EntityQueryEnumerator<BodyPartComponent, SpriteComponent>();
+        while (query.MoveNext(out var uid, out var bodyPart, out var sprite))
+        {
+            var shouldHide = bodyPart.Body.HasValue;
+            if (shouldHide && sprite.Visible)
+            {
+                _spriteSystem.SetVisible((uid, sprite), false);
+                _spriteSystem.SetContainerOccluded((uid, sprite), true);
+            }
+            else if (!shouldHide && !sprite.Visible)
+            {
+                _spriteSystem.SetVisible((uid, sprite), true);
+                _spriteSystem.SetContainerOccluded((uid, sprite), false);
+            }
+        }
     }
 
     private void ApplyMarkingToPart(MarkingPrototype markingPrototype,
