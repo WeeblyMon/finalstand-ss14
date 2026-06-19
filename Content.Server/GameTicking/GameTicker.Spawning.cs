@@ -201,7 +201,7 @@ namespace Content.Server.GameTicking
                     }
 
                     speciesId = roundStart.Count == 0
-                        ? HumanoidCharacterProfile.DefaultSpecies
+                        ? SharedHumanoidAppearanceSystem.DefaultSpecies
                         : _robustRandom.Pick(roundStart);
                 }
                 else

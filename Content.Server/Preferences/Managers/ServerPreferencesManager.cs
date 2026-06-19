@@ -111,7 +111,7 @@ namespace Content.Server.Preferences.Managers
 
             var species = profile.Species;
             if (!_prototypeManager.HasIndex<SpeciesPrototype>(species))
-                species = HumanoidCharacterProfile.DefaultSpecies;
+                species = SharedHumanoidAppearanceSystem.DefaultSpecies;
 
             if (profile.OrganMarkings?.RootElement is { } element)
             {

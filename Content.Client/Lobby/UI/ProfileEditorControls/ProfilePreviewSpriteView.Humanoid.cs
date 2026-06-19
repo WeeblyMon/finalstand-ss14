@@ -56,7 +56,7 @@ public sealed partial class ProfilePreviewSpriteView
         }
         else
         {
-            PreviewDummy = EntMan.SpawnEntity(_prototypeManager.Index(HumanoidCharacterProfile.DefaultSpecies).DollPrototype, MapCoordinates.Nullspace);
+            PreviewDummy = EntMan.SpawnEntity(_prototypeManager.Index(SharedHumanoidAppearanceSystem.DefaultSpecies).DollPrototype, MapCoordinates.Nullspace);
         }
 
         if (humanoid != null && jobClothes)

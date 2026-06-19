@@ -172,7 +172,7 @@ public sealed partial class HumanoidProfileEditor
         {
             if (!speciesIds.Contains(Profile.Species))
             {
-                SetSpecies(HumanoidCharacterProfile.DefaultSpecies);
+                SetSpecies(SharedHumanoidAppearanceSystem.DefaultSpecies);
             }
         }
     }
@@ -239,7 +239,7 @@ public sealed partial class HumanoidProfileEditor
         // I.e., do what jobs/antags do.
 
         var guidebookController = UserInterfaceManager.GetUIController<GuidebookUIController>();
-        var species = Profile?.Species ?? HumanoidCharacterProfile.DefaultSpecies;
+        var species = Profile?.Species ?? SharedHumanoidAppearanceSystem.DefaultSpecies;
         var page = DefaultSpeciesGuidebook;
         if (_prototypeManager.HasIndex<GuideEntryPrototype>(species))
             page = new ProtoId<GuideEntryPrototype>(species.Id); // Gross. See above todo comment.
