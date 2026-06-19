@@ -1,7 +1,9 @@
 using Content.Client.Guidebook;
+using Content.Client.Humanoid;
 using Content.Client.Lobby.UI;
 using Content.Client.Players.PlayTimeTracking;
 using Content.Shared.CCVar;
+using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Preferences;
@@ -315,5 +317,21 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         }
 
         return (_characterSetup, _profileEditor);
+    }
+
+    public EntityUid LoadProfileEntity(HumanoidCharacterProfile? humanoid, JobPrototype? job, bool jobClothes)
+    {
+        EntProtoId dummyProto;
+        if (humanoid != null && _prototypeManager.HasIndex<SpeciesPrototype>(humanoid.Species))
+            dummyProto = _prototypeManager.Index<SpeciesPrototype>(humanoid.Species).DollPrototype;
+        else
+            dummyProto = _prototypeManager.Index<SpeciesPrototype>(SharedHumanoidAppearanceSystem.DefaultSpecies).DollPrototype;
+
+        var dummyEnt = EntityManager.SpawnEntity(dummyProto, Robust.Shared.Map.MapCoordinates.Nullspace);
+
+        if (humanoid != null)
+            EntityManager.System<HumanoidAppearanceSystem>().LoadProfile(dummyEnt, humanoid);
+
+        return dummyEnt;
     }
 }

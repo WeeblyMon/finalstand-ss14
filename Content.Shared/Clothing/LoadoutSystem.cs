@@ -38,6 +38,14 @@ public sealed class LoadoutSystem : EntitySystem
         return "Job" + loadout;
     }
 
+    public static string GetAntagPrototype(string? loadout)
+    {
+        if (string.IsNullOrEmpty(loadout))
+            return string.Empty;
+
+        return "Antag" + loadout;
+    }
+
     public EntProtoId? GetFirstOrNull(LoadoutPrototype loadout)
     {
         EntProtoId? proto = null;
