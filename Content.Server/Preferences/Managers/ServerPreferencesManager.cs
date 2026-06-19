@@ -106,41 +106,20 @@ namespace Content.Server.Preferences.Managers
                 gender = genderVal;
 
 
-            var markings =
-                new Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>>();
-
             var species = profile.Species;
             if (!_prototypeManager.HasIndex<SpeciesPrototype>(species))
                 species = SharedHumanoidAppearanceSystem.DefaultSpecies;
 
-            if (profile.OrganMarkings?.RootElement is { } element)
+            var markingsRaw = profile.Markings?.Deserialize<List<string>>();
+            List<Marking> markings = new();
+            if (markingsRaw != null)
             {
-                var data = element.ToDataNode();
-                markings = _serialization
-                    .Read<Dictionary<ProtoId<OrganCategoryPrototype>, Dictionary<HumanoidVisualLayers, List<Marking>>>>(
-                        data,
-                        notNullableOverride: true);
-            }
-            else if (profile.Markings is { } profileMarkings && TryDeserialize<List<string>>(profileMarkings) is { } markingsRaw)
-            {
-                List<Marking> markingsList = new();
-
                 foreach (var marking in markingsRaw)
                 {
                     var parsed = Marking.ParseFromDbString(marking);
-
                     if (parsed is null) continue;
-
-                    markingsList.Add(parsed.Value);
+                    markings.Add(parsed);
                 }
-
-                if (Marking.ParseFromDbString($"{profile.HairName}@{profile.HairColor}") is { } facialMarking)
-                    markingsList.Add(facialMarking);
-
-                if (Marking.ParseFromDbString($"{profile.HairName}@{profile.HairColor}") is { } hairMarking)
-                    markingsList.Add(hairMarking);
-
-                markings = _marking.ConvertMarkings(markingsList, species);
             }
 
             var loadouts = new Dictionary<string, RoleLoadout>();
@@ -171,11 +150,17 @@ namespace Content.Server.Preferences.Managers
                 profile.CharacterName,
                 profile.FlavorText,
                 species,
+                1.0f,
+                1.0f,
                 profile.Age,
                 sex,
                 gender,
                 new HumanoidCharacterAppearance
                 (
+                    profile.HairName,
+                    Color.FromHex(profile.HairColor),
+                    profile.FacialHairName,
+                    Color.FromHex(profile.FacialHairColor),
                     Color.FromHex(profile.EyeColor),
                     Color.FromHex(profile.SkinColor),
                     markings
@@ -490,7 +475,7 @@ namespace Content.Server.Preferences.Managers
 
             return new PlayerPreferences(prefs.Characters.Select(p =>
             {
-                return new KeyValuePair<int, HumanoidCharacterProfile>(p.Key, p.Value.Validated(session, collection));
+                return new KeyValuePair<int, HumanoidCharacterProfile>(p.Key, (HumanoidCharacterProfile) p.Value.Validated(session, collection));
             }), prefs.SelectedCharacterIndex, prefs.AdminOOCColor, prefs.ConstructionFavorites);
         }
 

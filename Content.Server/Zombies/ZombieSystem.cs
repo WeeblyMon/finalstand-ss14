@@ -296,7 +296,8 @@ namespace Content.Server.Zombies
                 return false;
 
             // Goob port: organ-keyed restore removed; UnZombify is a no-op for visuals.
-            _bloodstream.ChangeBloodReagents(target, zombiecomp.BeforeZombifiedBloodReagents);
+            if (!string.IsNullOrEmpty(zombiecomp.BeforeZombifiedBloodReagent))
+                _bloodstream.ChangeBloodReagent(target, zombiecomp.BeforeZombifiedBloodReagent);
 
             return true;
         }

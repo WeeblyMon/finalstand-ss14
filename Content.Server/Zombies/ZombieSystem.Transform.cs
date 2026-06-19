@@ -191,8 +191,7 @@ public sealed partial class ZombieSystem
             _autoEmote.AddEmote(target, "ZombieGroan");
         }
 
-        if (TryComp<BloodstreamComponent>(target, out var stream) && stream.BloodReferenceSolution is { } reagents)
-            zombiecomp.BeforeZombifiedBloodReagents = reagents.Clone();
+        // Goob port: BloodReagent is a single prototype id, not a full solution; pre-zombify capture removed.
 
         // Goob port: organ-keyed marking/profile gather+apply removed.
         // FSZombies handle visuals separately; vanilla zombies just get skin/eye recolor.
@@ -227,7 +226,7 @@ public sealed partial class ZombieSystem
         //NOTE: they are supposed to bleed, just not take damage
         _bloodstream.SetBloodLossThreshold(target, 0f);
         //Give them zombie blood
-        _bloodstream.ChangeBloodReagents(target, zombiecomp.NewBloodReagents);
+        _bloodstream.ChangeBloodReagent(target, zombiecomp.NewBloodReagent);
 
         //This is specifically here to combat insuls, because frying zombies on grilles is funny as shit.
         _inventory.TryUnequip(target, "gloves", true, true);
