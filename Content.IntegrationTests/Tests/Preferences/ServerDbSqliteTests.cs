@@ -3,7 +3,6 @@ using System.Threading;
 using Content.IntegrationTests.Fixtures;
 using Content.Server.Database;
 using Content.Server.Preferences.Managers;
-using Content.Shared.Body;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Humanoid.Prototypes;
@@ -49,9 +48,13 @@ namespace Content.IntegrationTests.Tests.Preferences
                 Species = "Human",
                 Age = 21,
                 Appearance = new(
+                    HairStyles.DefaultHairStyle,
                     Color.Azure,
+                    HairStyles.DefaultFacialHairStyle,
                     Color.Beige,
-                    new ())
+                    Color.Black,
+                    Color.White,
+                    new())
             };
         }
 
@@ -84,18 +87,12 @@ namespace Content.IntegrationTests.Tests.Preferences
             var username = new NetUserId(new Guid("640bd619-fc8d-4fe2-bf3c-4a5fb17d6ddd"));
 
             var profile = CharlieCharlieson();
-            profile.Appearance.Markings["Head"] = new Dictionary<HumanoidVisualLayers, List<Marking>>
-            {
-                [HumanoidVisualLayers.Hair] = [],
-                [HumanoidVisualLayers.FacialHair] = [],
-            };
-            profile.Appearance.Markings["OrganFake"] = new Dictionary<HumanoidVisualLayers, List<Marking>>();
+            profile.Appearance.Markings.Add(new Marking("InvalidMarkingDoesNotExistXYZ", 1));
 
             await pair.Server.WaitAssertion(() =>
             {
                 var updated = HumanoidCharacterAppearance.EnsureValid(profile.Appearance, profile.Species, profile.Sex);
-                Assert.That(updated.Markings["Head"], Is.Empty);
-                Assert.That(updated.Markings.ContainsKey("OrganFake"), Is.False);
+                Assert.That(updated.Markings, Has.None.Matches<Marking>(m => m.MarkingId == "InvalidMarkingDoesNotExistXYZ"));
                 profile.Appearance = updated;
             });
 
@@ -192,7 +189,7 @@ namespace Content.IntegrationTests.Tests.Preferences
 
                 Assert.That(converted.Characters, Has.Count.EqualTo(1));
                 Assert.That(converted.Characters[0].Species, Is.Not.EqualTo(InvalidSpecies));
-                Assert.That(converted.Characters[0].Species, Is.EqualTo(HumanoidCharacterProfile.DefaultSpecies));
+                Assert.That(converted.Characters[0].Species, Is.EqualTo(SharedHumanoidAppearanceSystem.DefaultSpecies));
             });
         }
     }
