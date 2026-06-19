@@ -78,7 +78,6 @@
   save: false
   components:
   - type: Body
-  - type: VisualBody
   - type: Hands
   - type: ComplexInteraction
   - type: ContainerContainer
