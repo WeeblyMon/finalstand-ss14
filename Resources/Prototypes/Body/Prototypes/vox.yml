@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 deltanedas <39013340+deltanedas@users.noreply.github.com>
@@ -20,8 +20,6 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        visualHead: OrganVoxVisualHead
-        visualEyes: OrganVoxVisualEyes
     chest:
       part: ChestVox
       connections:
@@ -32,7 +30,6 @@
       organs:
         heart: OrganVoxHeart
         lungs: OrganVoxLungs
-        visualChest: OrganVoxVisualChest
     groin:
       part: GroinVox
       connections:
@@ -42,44 +39,27 @@
         stomach: OrganVoxStomach
         liver: OrganHumanLiver
         kidneys: OrganHumanKidneys
-        visualGroin: OrganVoxVisualGroin
     right arm:
       part: RightArmVox
       connections:
       - right hand
-      organs:
-        visualRArm: OrganVoxVisualRArm
     left arm:
       part: LeftArmVox
       connections:
       - left hand
-      organs:
-        visualLArm: OrganVoxVisualLArm
     right hand:
       part: RightHandVox
-      organs:
-        visualRHand: OrganVoxVisualRHand
     left hand:
       part: LeftHandVox
-      organs:
-        visualLHand: OrganVoxVisualLHand
     right leg:
       part: RightLegVox
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganVoxVisualRLeg
     left leg:
       part: LeftLegVox
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganVoxVisualLLeg
     right foot:
       part: RightFootVox
-      organs:
-        visualRFoot: OrganVoxVisualRFoot
     left foot:
       part: LeftFootVox
-      organs:
-        visualLFoot: OrganVoxVisualLFoot

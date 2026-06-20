@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 Flareguy <78941145+Flareguy@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
@@ -21,8 +21,6 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        visualHead: OrganGingerbreadVisualHead
-        visualEyes: OrganGingerbreadVisualEyes
     chest:
       part: ChestGingerbread
       connections:
@@ -33,7 +31,6 @@
       organs:
         heart: OrganHumanHeart
         lungs: OrganHumanLungs
-        visualChest: OrganGingerbreadVisualChest
     groin:
       part: GroinGingerbread
       connections:
@@ -43,44 +40,27 @@
         stomach: OrganHumanStomach
         liver: OrganHumanLiver
         kidneys: OrganHumanKidneys
-        visualGroin: OrganGingerbreadVisualGroin
     right arm:
       part: RightArmGingerbread
       connections:
       - right hand
-      organs:
-        visualRArm: OrganGingerbreadVisualRArm
     left arm:
       part: LeftArmGingerbread
       connections:
       - left hand
-      organs:
-        visualLArm: OrganGingerbreadVisualLArm
     right hand:
       part: RightHandGingerbread
-      organs:
-        visualRHand: OrganGingerbreadVisualRHand
     left hand:
       part: LeftHandGingerbread
-      organs:
-        visualLHand: OrganGingerbreadVisualLHand
     right leg:
       part: RightLegGingerbread
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganGingerbreadVisualRLeg
     left leg:
       part: LeftLegGingerbread
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganGingerbreadVisualLLeg
     right foot:
       part: RightFootGingerbread
-      organs:
-        visualRFoot: OrganGingerbreadVisualRFoot
     left foot:
       part: LeftFootGingerbread
-      organs:
-        visualLFoot: OrganGingerbreadVisualLFoot

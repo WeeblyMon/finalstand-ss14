@@ -49,7 +49,7 @@ public sealed partial class CloningSystem : SharedCloningSystem
         if (!_prototype.Resolve(settingsId, out var settings))
             return false; // invalid settings
 
-        if (!TryComp<HumanoidProfileComponent>(original, out var humanoid))
+        if (!TryComp<HumanoidAppearanceComponent>(original, out var humanoid))
             return false; // whatever body was to be cloned, was not a humanoid
 
         if (!_prototype.Resolve(humanoid.Species, out var speciesPrototype))

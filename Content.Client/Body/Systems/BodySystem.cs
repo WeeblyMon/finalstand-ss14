@@ -9,68 +9,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Body.Systems;
-using Content.Shared.Body.Part;
+// Shitmed Change Start
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Robust.Client.GameObjects;
 using Robust.Shared.Utility;
+// Shitmed Change End
 
 namespace Content.Client.Body.Systems;
 
 public sealed class BodySystem : SharedBodySystem
 {
+    // Shitmed Change Start
     [Dependency] private readonly MarkingManager _markingManager = default!;
-    [Dependency] private readonly SpriteSystem _spriteSystem = default!;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<BodyPartComponent, AfterAutoHandleStateEvent>(OnBodyPartStateApplied);
-        SubscribeLocalEvent<BodyPartComponent, ComponentStartup>(OnBodyPartStartup);
-    }
-
-    private void OnBodyPartStartup(EntityUid uid, BodyPartComponent comp, ref ComponentStartup args)
-    {
-        TryHideAttachedPart(uid, comp);
-    }
-
-    private void OnBodyPartStateApplied(EntityUid uid, BodyPartComponent comp, ref AfterAutoHandleStateEvent args)
-    {
-        TryHideAttachedPart(uid, comp);
-    }
-
-    private void TryHideAttachedPart(EntityUid uid, BodyPartComponent comp)
-    {
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
-            return;
-
-        var shouldHide = comp.Body.HasValue;
-        _spriteSystem.SetVisible((uid, sprite), !shouldHide);
-        _spriteSystem.SetContainerOccluded((uid, sprite), shouldHide);
-    }
-
-    public override void FrameUpdate(float frameTime)
-    {
-        base.FrameUpdate(frameTime);
-
-        var query = EntityQueryEnumerator<BodyPartComponent, SpriteComponent>();
-        while (query.MoveNext(out var uid, out var bodyPart, out var sprite))
-        {
-            var shouldHide = bodyPart.Body.HasValue;
-            if (shouldHide && sprite.Visible)
-            {
-                _spriteSystem.SetVisible((uid, sprite), false);
-                _spriteSystem.SetContainerOccluded((uid, sprite), true);
-            }
-            else if (!shouldHide && !sprite.Visible)
-            {
-                _spriteSystem.SetVisible((uid, sprite), true);
-                _spriteSystem.SetContainerOccluded((uid, sprite), false);
-            }
-        }
-    }
 
     private void ApplyMarkingToPart(MarkingPrototype markingPrototype,
         IReadOnlyList<Color>? colors,
@@ -98,6 +50,8 @@ public sealed class BodySystem : SharedBodySystem
             if (!visible)
                 continue;
 
+            // Okay so if the marking prototype is modified but we load old marking data this may no longer be valid
+            // and we need to check the index is correct. So if that happens just default to white?
             if (colors != null && j < colors.Count)
                 sprite.LayerSetColor(layerId, colors[j]);
             else
@@ -119,7 +73,13 @@ public sealed class BodySystem : SharedBodySystem
                 if (!_markingManager.TryGetMarking(marking, out var markingPrototype))
                     continue;
 
-                ApplyMarkingToPart(markingPrototype, marking.MarkingColors, visible: true, sprite);
+                ApplyMarkingToPart(markingPrototype, marking.MarkingColors, marking.Visible, sprite);
             }
     }
+
+    protected override void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidAppearanceComponent bodyAppearance)
+    {
+        return;
+    }
+    // Shitmed Change End
 }

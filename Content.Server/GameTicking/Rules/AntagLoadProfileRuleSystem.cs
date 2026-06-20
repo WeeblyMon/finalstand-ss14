@@ -12,7 +12,6 @@ namespace Content.Server.GameTicking.Rules;
 
 public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfileRuleComponent>
 {
-    [Dependency] private readonly HumanoidProfileSystem _humanoidProfile = default!;
     [Dependency] private readonly IServerPreferencesManager _prefs = default!;
     [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
 
@@ -48,7 +47,6 @@ public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfile
         if (profile?.WithSpecies(species.ID) is { } humanoidProfile)
         {
             _humanoid.LoadProfile(args.Entity.Value, humanoidProfile);
-            _humanoidProfile.ApplyProfileTo(args.Entity.Value, humanoidProfile);
         }
     }
 }

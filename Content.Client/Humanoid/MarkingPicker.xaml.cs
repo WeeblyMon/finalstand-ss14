@@ -231,7 +231,7 @@ public sealed partial class MarkingPicker : Control
         var sortedMarkings = GetMarkings(_selectedMarkingCategory).Values.Where(m =>
             m.ID.ToLower().Contains(filter.ToLower()) ||
             GetMarkingName(m).ToLower().Contains(filter.ToLower())
-        ).OrderBy(p => Loc.GetString(GetMarkingName(p)));
+        ).OrderBy(GetMarkingName); // FS: GetMarkingName already returns a Loc-resolved string; outer Loc.GetString spammed "Unknown messageId" warnings.
 
         foreach (var marking in sortedMarkings)
         {
@@ -364,6 +364,7 @@ public sealed partial class MarkingPicker : Control
         _currentMarkings.EnsureSpecies(species, null, _markingManager);
         _currentMarkings.EnsureSexes(_currentSex, _markingManager);
 
+        SetupCategoryButtons(); // FS: rebuild dropdown when species changes — without this it sticks on whatever categories were valid for the previous species.
         Populate(CMarkingSearch.Text);
         PopulateUsed();
     }

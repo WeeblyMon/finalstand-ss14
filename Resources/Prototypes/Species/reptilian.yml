@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 Flipp Syder <76629141+vulppine@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 Flipp Syder <76629141+vulppine@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Adrian16199 <144424013+Adrian16199@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Ubaser <134914314+UbaserB@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 coolsurf6 <coolsurf24@yahoo.com.au>
@@ -28,7 +28,7 @@
   sprites: MobReptilianSprites
   defaultSkinTone: "#34a223"
   markingLimits: MobReptilianMarkingLimits
-  dollPrototype: AppearanceReptilian
+  dollPrototype: MobReptilianDummy
   skinColoration: Hues
   maleFirstNames: NamesReptilianMale
   femaleFirstNames: NamesReptilianFemale
@@ -52,10 +52,10 @@
     RArm: MobReptilianRArm
     LHand: MobReptilianLHand
     RHand: MobReptilianRHand
-    LLeg: MobReptilianLLegDigi # WWDP-Edit
-    RLeg: MobReptilianRLegDigi # WWDP-Edit
-    LFoot: MobReptilianLFootDigi # WWDP-Edit
-    RFoot: MobReptilianRFootDigi # WWDP-Edit
+    LLeg: MobReptilianLLeg # FS: reverted WWDP digi-leg refs — Digi prototypes live in Goob _White/ which we don't have
+    RLeg: MobReptilianRLeg
+    LFoot: MobReptilianLFoot
+    RFoot: MobReptilianRFoot
 
 - type: markingPoints
   id: MobReptilianMarkingLimits

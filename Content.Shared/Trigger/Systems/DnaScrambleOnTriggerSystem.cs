@@ -13,7 +13,7 @@ namespace Content.Shared.Trigger.Systems;
 public sealed class DnaScrambleOnTriggerSystem : XOnTriggerSystem<DnaScrambleOnTriggerComponent>
 {
     [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly HumanoidProfileSystem _humanoidProfile = default!;
+    [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly IdentitySystem _identity = default!;
     [Dependency] private readonly SharedForensicsSystem _forensics = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
@@ -21,7 +21,7 @@ public sealed class DnaScrambleOnTriggerSystem : XOnTriggerSystem<DnaScrambleOnT
 
     protected override void OnTrigger(Entity<DnaScrambleOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {
-        if (!TryComp<HumanoidProfileComponent>(target, out var humanoid))
+        if (!TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
             return;
 
         args.Handled = true;
@@ -32,7 +32,7 @@ public sealed class DnaScrambleOnTriggerSystem : XOnTriggerSystem<DnaScrambleOnT
             return;
 
         var newProfile = HumanoidCharacterProfile.RandomWithSpecies(humanoid.Species);
-        _humanoidProfile.ApplyProfileTo(target, newProfile);
+        _humanoid.LoadProfile(target, newProfile);
         _metaData.SetEntityName(target, newProfile.Name, raiseEvents: false); // raising events would update ID card, station record, etc.
 
         // If the entity has the respective components, then scramble the dna and fingerprint strings.

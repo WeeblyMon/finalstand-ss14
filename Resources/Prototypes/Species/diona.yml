@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Morb <14136326+Morb0@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2023 Morb <14136326+Morb0@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Adrian16199 <144424013+Adrian16199@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Skubman <ba.fallaria@gmail.com>
@@ -25,7 +25,7 @@
   sprites: MobDionaSprites
   defaultSkinTone: "#cdb369"
   markingLimits: MobDionaMarkingLimits
-  dollPrototype: AppearanceDiona
+  dollPrototype: MobDionaDummy
   skinColoration: Hues
   maleFirstNames: NamesDionaFirst
   femaleFirstNames: NamesDionaFirst

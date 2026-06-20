@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Aidenkrz <aiden@djkraz.com>
@@ -23,8 +23,6 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        visualHead: OrganVulpkaninVisualHead
-        visualEyes: OrganVulpkaninVisualEyes
     chest:
       part: ChestVulpkanin
       connections: # Goobstation - fix some species having their hands the wrong way around
@@ -35,7 +33,6 @@
       organs:
         heart: OrganAnimalHeart
         lungs: OrganHumanLungs
-        visualChest: OrganVulpkaninVisualChest
     groin:
       part: GroinVulpkanin
       connections:
@@ -49,39 +46,23 @@
       part: RightArmVulpkanin
       connections:
       - right hand
-      organs:
-        visualRArm: OrganVulpkaninVisualRArm
     left arm:
       part: LeftArmVulpkanin
       connections:
       - left hand
-      organs:
-        visualLArm: OrganVulpkaninVisualLArm
     right hand:
       part: RightHandVulpkanin
-      organs:
-        visualRHand: OrganVulpkaninVisualRHand
     left hand:
       part: LeftHandVulpkanin
-      organs:
-        visualLHand: OrganVulpkaninVisualLHand
     right leg:
       part: RightLegVulpkanin
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganVulpkaninVisualRLeg
     left leg:
       part: LeftLegVulpkanin
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganVulpkaninVisualLLeg
     right foot:
       part: RightFootVulpkanin
-      organs:
-        visualRFoot: OrganVulpkaninVisualRFoot
     left foot:
       part: LeftFootVulpkanin
-      organs:
-        visualLFoot: OrganVulpkaninVisualLFoot

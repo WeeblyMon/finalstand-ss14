@@ -1,4 +1,4 @@
-- type: species
+﻿- type: species
   id: Vulpkanin
   name: species-name-vulpkanin
   roundStart: true
@@ -6,7 +6,7 @@
   sprites: MobVulpkaninSprites
   markingLimits: MobVulpkaninMarkingLimits
   defaultSkinTone: "#5a3f2d"
-  dollPrototype: AppearanceVulpkanin
+  dollPrototype: MobVulpkaninDummy
   skinColoration: Hues
   maleFirstNames: names_vulpkanin_male
   femaleFirstNames: names_vulpkanin_female
@@ -59,37 +59,37 @@
     HeadTop:
       points: 1
       required: true
-      default: [ VulpEar ]
+      defaultMarkings: [ VulpEar ] # FS: was `default:` (wrong field name, silently ignored — no ears applied)
     Snout:
       points: 1
       required: true
-      default: [ VulpSnout ]
+      defaultMarkings: [ VulpSnout ]
     Tail:
       points: 1
       required: true
-      default: [ VulpTailVulp ]
-    LArm:
+      defaultMarkings: [ VulpTailVulp ]
+    LeftArm:
       points: 2
       required: false
-    RArm:
+    RightArm:
       points: 2
       required: false
-    LHand:
+    LeftHand:
       points: 2
       required: false
-    RHand:
+    RightHand:
       points: 2
       required: false
-    LLeg:
+    LeftLeg:
       points: 2
       required: false
-    RLeg:
+    RightLeg:
       points: 2
       required: false
-    LFoot:
+    LeftFoot:
       points: 2
       required: false
-    RFoot:
+    RightFoot:
       points: 2
       required: false
     Underwear:
@@ -105,6 +105,20 @@
     sprite: Mobs/Species/Vulpkanin/parts.rsi
     state: head
 
+# FS: sex-morph variants required by HumanoidVisualLayersExtension.GetSexMorph (Head/Chest/Groin).
+# Vulpkanin only has one sprite per part, so Male/Female both alias the base.
+- type: humanoidBaseSprite
+  id: MobVulpkaninHeadMale
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: head
+
+- type: humanoidBaseSprite
+  id: MobVulpkaninHeadFemale
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: head
+
 - type: humanoidBaseSprite
   id: MobVulpkaninChest
   baseSprite:
@@ -112,7 +126,31 @@
     state: torso_m
 
 - type: humanoidBaseSprite
+  id: MobVulpkaninChestMale
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: torso_m
+
+- type: humanoidBaseSprite
+  id: MobVulpkaninChestFemale
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: torso_m
+
+- type: humanoidBaseSprite
   id: MobVulpkaninGroin
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: torso_m
+
+- type: humanoidBaseSprite
+  id: MobVulpkaninGroinMale
+  baseSprite:
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: torso_m
+
+- type: humanoidBaseSprite
+  id: MobVulpkaninGroinFemale
   baseSprite:
     sprite: Mobs/Species/Vulpkanin/parts.rsi
     state: torso_m

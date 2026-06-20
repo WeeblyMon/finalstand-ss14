@@ -1,8 +1,9 @@
-# Generic Markings
+﻿# Generic Markings
 - type: marking
   id: GauzeLefteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Human, Arachnid]
+  markingCategory: Face
+  speciesRestriction: [Dwarf, Human, Arachnid]
   coloring:
     default:
       type:
@@ -15,7 +16,8 @@
 - type: marking
   id: GauzeLefteyePad
   bodyPart: Eyes
-  groupWhitelist: [Human, Reptilian, Arachnid, Vulpkanin]
+  markingCategory: Face
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Vulpkanin]
   coloring:
     default:
       type:
@@ -28,7 +30,8 @@
 - type: marking
   id: GauzeRighteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Human, Arachnid]
+  markingCategory: Face
+  speciesRestriction: [Dwarf, Human, Arachnid]
   coloring:
     default:
       type:
@@ -41,7 +44,8 @@
 - type: marking
   id: GauzeRighteyePad
   bodyPart: Eyes
-  groupWhitelist: [Human, Reptilian, Arachnid, Vulpkanin]
+  markingCategory: Face
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Vulpkanin]
   coloring:
     default:
       type:
@@ -54,7 +58,8 @@
 - type: marking
   id: GauzeBlindfold
   bodyPart: Eyes
-  groupWhitelist: [Human, Arachnid]
+  markingCategory: Face
+  speciesRestriction: [Dwarf, Human, Arachnid]
   coloring:
     default:
       type:
@@ -67,7 +72,8 @@
 - type: marking
   id: GauzeShoulder
   bodyPart: Chest
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: Chest
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -80,7 +86,8 @@
 - type: marking
   id: GauzeStomach
   bodyPart: Chest
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: Chest
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -93,7 +100,8 @@
 - type: marking
   id: GauzeUpperArmRight
   bodyPart: RArm
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: RightArm
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -106,7 +114,8 @@
 - type: marking
   id: GauzeLowerArmRight
   bodyPart: RHand
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: RightHand
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -119,7 +128,8 @@
 - type: marking
   id: GauzeLeftArm
   bodyPart: LArm
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: LeftArm
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -132,7 +142,8 @@
 - type: marking
   id: GauzeLowerLegLeft
   bodyPart: LFoot
-  groupWhitelist: [Human, Arachnid]
+  markingCategory: LeftFoot
+  speciesRestriction: [Dwarf, Human, Arachnid]
   coloring:
     default:
       type:
@@ -145,7 +156,8 @@
 - type: marking
   id: GauzeUpperLegLeft
   bodyPart: LLeg
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: LeftLeg
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -158,7 +170,8 @@
 - type: marking
   id: GauzeUpperLegRight
   bodyPart: RLeg
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: RightLeg
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -171,7 +184,8 @@
 - type: marking
   id: GauzeLowerLegRight
   bodyPart: RFoot
-  groupWhitelist: [Human, Arachnid]
+  markingCategory: RightFoot
+  speciesRestriction: [Dwarf, Human, Arachnid]
   coloring:
     default:
       type:
@@ -184,7 +198,8 @@
 - type: marking
   id: GauzeBoxerWrapRight
   bodyPart: RHand
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: RightHand
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -197,7 +212,8 @@
 - type: marking
   id: GauzeBoxerWrapLeft
   bodyPart: LHand
-  groupWhitelist: [Human, Reptilian, Arachnid]
+  markingCategory: LeftHand
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid]
   coloring:
     default:
       type:
@@ -210,7 +226,8 @@
 - type: marking
   id: GauzeHead
   bodyPart: Head
-  groupWhitelist: [Human, Reptilian, Arachnid, Moth]
+  markingCategory: Head
+  speciesRestriction: [Dwarf, Human, Reptilian, Arachnid, Moth]
   coloring:
     default:
       type:
@@ -224,7 +241,8 @@
 - type: marking
   id: GauzeLizardLefteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Reptilian]
+  markingCategory: Face
+  speciesRestriction: [Reptilian]
   coloring:
     default:
       type:
@@ -237,7 +255,8 @@
 - type: marking
   id: GauzeLizardRighteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Reptilian]
+  markingCategory: Face
+  speciesRestriction: [Reptilian]
   coloring:
     default:
       type:
@@ -250,7 +269,8 @@
 - type: marking
   id: GauzeLizardFootRight
   bodyPart: RFoot
-  groupWhitelist: [Reptilian]
+  markingCategory: RightFoot
+  speciesRestriction: [Reptilian]
   coloring:
     default:
       type:
@@ -263,7 +283,8 @@
 - type: marking
   id: GauzeLizardFootLeft
   bodyPart: LFoot
-  groupWhitelist: [Reptilian]
+  markingCategory: LeftFoot
+  speciesRestriction: [Reptilian]
   coloring:
     default:
       type:
@@ -276,7 +297,8 @@
 - type: marking
   id: GauzeLizardBlindfold
   bodyPart: Eyes
-  groupWhitelist: [Reptilian]
+  markingCategory: Face
+  speciesRestriction: [Reptilian]
   coloring:
     default:
       type:
@@ -290,7 +312,8 @@
 - type: marking
   id: GauzeMothBlindfold
   bodyPart: Eyes
-  groupWhitelist: [Moth]
+  markingCategory: Face
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -303,7 +326,8 @@
 - type: marking
   id: GauzeMothShoulder
   bodyPart: Chest
-  groupWhitelist: [Moth]
+  markingCategory: Chest
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -316,7 +340,8 @@
 - type: marking
   id: GauzeMothStomach
   bodyPart: Chest
-  groupWhitelist: [Moth]
+  markingCategory: Chest
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -329,7 +354,8 @@
 - type: marking
   id: GauzeMothLeftEyePatch
   bodyPart: Eyes
-  groupWhitelist: [Moth]
+  markingCategory: Face
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -342,7 +368,8 @@
 - type: marking
   id: GauzeMothLeftEyePad
   bodyPart: Eyes
-  groupWhitelist: [Moth]
+  markingCategory: Face
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -355,7 +382,8 @@
 - type: marking
   id: GauzeMothRightEyePatch
   bodyPart: Eyes
-  groupWhitelist: [Moth]
+  markingCategory: Face
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -368,7 +396,8 @@
 - type: marking
   id: GauzeMothRightEyePad
   bodyPart: Eyes
-  groupWhitelist: [Moth]
+  markingCategory: Face
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -381,7 +410,8 @@
 - type: marking
   id: GauzeMothUpperArmRight
   bodyPart: RArm
-  groupWhitelist: [Moth]
+  markingCategory: RightArm
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -394,7 +424,8 @@
 - type: marking
   id: GauzeMothUpperArmLeft
   bodyPart: LArm
-  groupWhitelist: [Moth]
+  markingCategory: LeftArm
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -407,7 +438,8 @@
 - type: marking
   id: GauzeMothUpperLegRight
   bodyPart: RLeg
-  groupWhitelist: [Moth]
+  markingCategory: RightLeg
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -420,7 +452,8 @@
 - type: marking
   id: GauzeMothUpperLegLeft
   bodyPart: LLeg
-  groupWhitelist: [Moth]
+  markingCategory: LeftLeg
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -433,7 +466,8 @@
 - type: marking
   id: GauzeMothLowerLegRight
   bodyPart: RFoot
-  groupWhitelist: [Moth]
+  markingCategory: RightFoot
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -446,7 +480,8 @@
 - type: marking
   id: GauzeMothLowerLegLeft
   bodyPart: LFoot
-  groupWhitelist: [Moth]
+  markingCategory: LeftFoot
+  speciesRestriction: [Moth]
   coloring:
     default:
       type:
@@ -460,7 +495,8 @@
 - type: marking
   id: GauzeVulpStomach
   bodyPart: Chest
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Chest
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -473,7 +509,8 @@
 - type: marking
   id: GauzeVulpBlindfold
   bodyPart: Eyes
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Face
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -486,7 +523,8 @@
 - type: marking
   id: GauzeVulpBoxerwrapLeft
   bodyPart: LHand
-  groupWhitelist: [Vulpkanin]
+  markingCategory: LeftHand
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -499,7 +537,8 @@
 - type: marking
   id: GauzeVulpBoxerwrapRight
   bodyPart: RHand
-  groupWhitelist: [Vulpkanin]
+  markingCategory: RightHand
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -512,7 +551,8 @@
 - type: marking
   id: GauzeVulpHead
   bodyPart: Head
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Head
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -525,7 +565,8 @@
 - type: marking
   id: GauzeVulpLeftArm
   bodyPart: LArm
-  groupWhitelist: [Vulpkanin]
+  markingCategory: LeftArm
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -538,7 +579,8 @@
 - type: marking
   id: GauzeVulpLefteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Face
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -551,7 +593,8 @@
 - type: marking
   id: GauzeVulpLowerArmRight
   bodyPart: RHand
-  groupWhitelist: [Vulpkanin]
+  markingCategory: RightHand
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -564,7 +607,8 @@
 - type: marking
   id: GauzeVulpLowerLegLeft
   bodyPart: LFoot
-  groupWhitelist: [Vulpkanin]
+  markingCategory: LeftFoot
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -577,7 +621,8 @@
 - type: marking
   id: GauzeVulpLowerLegRight
   bodyPart: RFoot
-  groupWhitelist: [Vulpkanin]
+  markingCategory: RightFoot
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -590,7 +635,8 @@
 - type: marking
   id: GauzeVulpRighteyePatch
   bodyPart: Eyes
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Face
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -603,7 +649,8 @@
 - type: marking
   id: GauzeVulpShoulder
   bodyPart: Chest
-  groupWhitelist: [Vulpkanin]
+  markingCategory: Chest
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -616,7 +663,8 @@
 - type: marking
   id: GauzeVulpUpperLegLeft
   bodyPart: LLeg
-  groupWhitelist: [Vulpkanin]
+  markingCategory: LeftLeg
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:
@@ -629,7 +677,8 @@
 - type: marking
   id: GauzeVulpUpperLegRight
   bodyPart: RLeg
-  groupWhitelist: [Vulpkanin]
+  markingCategory: RightLeg
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
       type:

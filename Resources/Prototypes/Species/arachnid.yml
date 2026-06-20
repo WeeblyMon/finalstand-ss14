@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Nairod <110078045+Nairodian@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2023 Nairod <110078045+Nairodian@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2023 PixelTK <85175107+PixelTheKermit@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Adrian16199 <144424013+Adrian16199@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 Skubman <ba.fallaria@gmail.com>
@@ -23,7 +23,7 @@
   sprites: MobArachnidSprites
   defaultSkinTone: "#385878"
   markingLimits: MobArachnidMarkingLimits
-  dollPrototype: AppearanceArachnid
+  dollPrototype: MobArachnidDummy
   skinColoration: Hues
   maleFirstNames: NamesArachnidFirst
   femaleFirstNames: NamesArachnidFirst
