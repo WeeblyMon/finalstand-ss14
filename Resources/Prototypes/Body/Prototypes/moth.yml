@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 LankLTE <135308300+LankLTE@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
@@ -22,14 +22,11 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        visualHead: OrganMothVisualHead
-        visualEyes: OrganMothVisualEyes
     chest:
       part: ChestMoth
       organs:
         heart: OrganAnimalHeart
         lungs: OrganHumanLungs
-        visualChest: OrganMothVisualChest
       connections:
       - right arm
       - left arm
@@ -44,44 +41,27 @@
         stomach: OrganMothStomach
         liver: OrganAnimalLiver
         kidneys: OrganHumanKidneys
-        visualGroin: OrganMothVisualGroin
     right arm:
       part: RightArmMoth
       connections:
       - right hand
-      organs:
-        visualRArm: OrganMothVisualRArm
     left arm:
       part: LeftArmMoth
       connections:
       - left hand
-      organs:
-        visualLArm: OrganMothVisualLArm
     right hand:
       part: RightHandMoth
-      organs:
-        visualRHand: OrganMothVisualRHand
     left hand:
       part: LeftHandMoth
-      organs:
-        visualLHand: OrganMothVisualLHand
     right leg:
       part: RightLegMoth
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganMothVisualRLeg
     left leg:
       part: LeftLegMoth
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganMothVisualLLeg
     right foot:
       part: RightFootMoth
-      organs:
-        visualRFoot: OrganMothVisualRFoot
     left foot:
       part: LeftFootMoth
-      organs:
-        visualLFoot: OrganMothVisualLFoot

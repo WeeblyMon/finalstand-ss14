@@ -40,9 +40,7 @@ public sealed class ZombieSystem : SharedZombieSystem
 
     private void OnStartup(EntityUid uid, ZombieComponent component, ComponentStartup args)
     {
-        if (HasComp<VisualBodyComponent>(uid))
-            return;
-
+        // Goob port: VisualBody dropped; recolor sprite layers directly.
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
 

@@ -12,9 +12,8 @@ namespace Content.Server.GameTicking.Rules;
 
 public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfileRuleComponent>
 {
-    [Dependency] private readonly HumanoidProfileSystem _humanoidProfile = default!;
     [Dependency] private readonly IServerPreferencesManager _prefs = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
+    [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
 
     public override void Initialize()
     {
@@ -35,7 +34,7 @@ public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfile
 
         if (profile?.Species is not { } speciesId || !Proto.Resolve(speciesId, out var species))
         {
-            species = Proto.Index(HumanoidCharacterProfile.DefaultSpecies);
+            species = Proto.Index(SharedHumanoidAppearanceSystem.DefaultSpecies);
         }
 
         if (ent.Comp.SpeciesOverride != null
@@ -47,8 +46,7 @@ public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfile
         args.Entity = Spawn(species.Prototype, args.Coords);
         if (profile?.WithSpecies(species.ID) is { } humanoidProfile)
         {
-            _visualBody.ApplyProfileTo(args.Entity.Value, humanoidProfile);
-            _humanoidProfile.ApplyProfileTo(args.Entity.Value, humanoidProfile);
+            _humanoid.LoadProfile(args.Entity.Value, humanoidProfile);
         }
     }
 }

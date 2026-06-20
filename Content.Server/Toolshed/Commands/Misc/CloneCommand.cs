@@ -12,19 +12,19 @@ namespace Content.Server.Cloning.Commands;
 [ToolshedCommand, AdminCommand(AdminFlags.Fun)]
 public sealed class CloneCommand : ToolshedCommand
 {
-    private SharedVisualBodySystem? _visualBody;
+    private HumanoidAppearanceSystem? _humanoid;
     private CloningSystem? _cloning;
     private MetaDataSystem? _metadata;
 
     [CommandImplementation("humanoidappearance")]
     public IEnumerable<EntityUid> HumanoidAppearance([PipedArgument] IEnumerable<EntityUid> targets, EntityUid source, bool rename)
     {
-        _visualBody ??= GetSys<SharedVisualBodySystem>();
+        _humanoid ??= GetSys<HumanoidAppearanceSystem>();
         _metadata ??= GetSys<MetaDataSystem>();
 
         foreach (var ent in targets)
         {
-            _visualBody.CopyAppearanceFrom(source, ent);
+            _humanoid.CloneAppearance(source, ent);
 
             if (rename)
                 _metadata.SetEntityName(ent, MetaData(source).EntityName, raiseEvents: true);

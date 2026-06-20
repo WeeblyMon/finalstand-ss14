@@ -200,7 +200,7 @@ public sealed class ChangelingDevourSystem : EntitySystem
         if (changeling.Owner == victim)
             return false; // Can't devour yourself.
 
-        if (!HasComp<HumanoidProfileComponent>(victim))
+        if (!HasComp<HumanoidAppearanceComponent>(victim))
         {
             if (showPopup)
                 _popupSystem.PopupClient(Loc.GetString("changeling-devour-attempt-failed-cannot-devour"), changeling.Owner, changeling.Owner, PopupType.Medium);

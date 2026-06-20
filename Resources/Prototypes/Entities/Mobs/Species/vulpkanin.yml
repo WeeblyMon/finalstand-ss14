@@ -1,0 +1,37 @@
+- type: entity
+  parent: BaseMobSpeciesOrganic
+  id: BaseMobVulpkanin
+  name: Vulpkanin
+  abstract: true
+  components:
+  - type: Hunger
+  - type: Thirst
+  - type: Icon
+    sprite: Mobs/Species/Vulpkanin/parts.rsi
+    state: full
+  - type: Butcherable
+    butcheringType: Spike
+    spawned:
+    - id: FoodMeatHuman
+      amount: 5
+  - type: LanguageKnowledge
+    speaks:
+    - TauCetiBasic
+    - SolCommon
+    understands:
+    - TauCetiBasic
+    - SolCommon
+  - type: HumanoidAppearance
+    species: Vulpkanin
+    hideLayersOnEquip:
+    - Hair
+    - Snout
+  - type: Inventory
+
+- type: entity
+  parent: BaseSpeciesDummy
+  id: MobVulpkaninDummy
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HumanoidAppearance
+    species: Vulpkanin

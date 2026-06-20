@@ -188,23 +188,9 @@ public sealed partial class BodyPartComponent : Component, ISurgeryToolComponent
         }
     }
 
-    public HumanoidVisualLayers? ToHumanoidLayers()
-    {
-        return (PartType, Symmetry) switch
-        {
-            (BodyPartType.Head, _) => HumanoidVisualLayers.Head,
-            (BodyPartType.Chest, _) => HumanoidVisualLayers.Chest,
-            (BodyPartType.Arm, BodyPartSymmetry.Left) => HumanoidVisualLayers.LArm,
-            (BodyPartType.Arm, BodyPartSymmetry.Right) => HumanoidVisualLayers.RArm,
-            (BodyPartType.Hand, BodyPartSymmetry.Left) => HumanoidVisualLayers.LHand,
-            (BodyPartType.Hand, BodyPartSymmetry.Right) => HumanoidVisualLayers.RHand,
-            (BodyPartType.Leg, BodyPartSymmetry.Left) => HumanoidVisualLayers.LLeg,
-            (BodyPartType.Leg, BodyPartSymmetry.Right) => HumanoidVisualLayers.RLeg,
-            (BodyPartType.Foot, BodyPartSymmetry.Left) => HumanoidVisualLayers.LFoot,
-            (BodyPartType.Foot, BodyPartSymmetry.Right) => HumanoidVisualLayers.RFoot,
-            _ => null,
-        };
-    }
+    // FS removed: instance ToHumanoidLayers() shadowed the extension in HumanoidVisualLayersExtension
+    // and returned null for Tail/Groin → those body parts never got their markings/sprites applied
+    // (PartAppearance pipeline short-circuits on null relevantLayer). Use the extension instead.
 }
 
 /// <summary>

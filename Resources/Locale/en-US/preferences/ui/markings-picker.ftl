@@ -1,67 +1,51 @@
-markings-search = Search
--markings-selection = { $selectable ->
-    [0] You have no markings remaining.
-    [one] You can select one more marking.
-   *[other] You can select { $selectable } more markings.
-}
-markings-limits = { $required ->
-    [true] { $count ->
-        [-1] Select at least one marking.
-        [0] You cannot select any markings, but somehow, you have to? This is a bug.
-        [one] Select one marking.
-       *[other] Select at least one marking and up to {$count} markings. { -markings-selection(selectable: $selectable) }
-    }
-   *[false] { $count ->
-        [-1] Select any number of markings.
-        [0] You cannot select any markings.
-        [one] Select up to one marking.
-       *[other] Select up to {$count} markings. { -markings-selection(selectable: $selectable) }
-    }
-}
-markings-reorder = Reorder markings
+# SPDX-FileCopyrightText: 2022 Flipp Syder <76629141+vulppine@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2022 metalgearsloth <31366439+metalgearsloth@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2023 DEATHB4DEFEAT <77995199+DEATHB4DEFEAT@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2024 Aidenkrz <aiden@djkraz.com>
+# SPDX-FileCopyrightText: 2024 Rouge2t7 <81053047+Sarahon@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2024 to4no_fix <156101927+chavonadelal@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2025 Aiden <aiden@djkraz.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
-humanoid-marking-modifier-respect-limits = Respect limits
-humanoid-marking-modifier-respect-group-sex = Respect group & sex restrictions
-humanoid-marking-modifier-base-layers = Base layers
-humanoid-marking-modifier-enable = Enable
-humanoid-marking-modifier-prototype-id = Prototype id:
+markings-used = Used Markings
+markings-unused = Unused Markings
+markings-add = Add Marking
+markings-remove = Remove Marking
+markings-rank-up = Up
+markings-rank-down = Down
+markings-search = Search
+marking-points-remaining = Markings left: {$points}
+marking-used = {$marking-name}
+marking-used-forced = {$marking-name} (Forced)
+marking-slot-add = Add
+marking-slot-remove = Remove
+marking-slot = Slot {$number}
 
 # Categories
 
-markings-organ-Torso = Torso
-markings-organ-Head = Head
-markings-organ-ArmLeft = Left Arm
-markings-organ-ArmRight = Right Arm
-markings-organ-HandRight = Right Hand
-markings-organ-HandLeft = Left Hand
-markings-organ-LegLeft = Left Leg
-markings-organ-LegRight = Right Leg
-markings-organ-FootLeft = Left Foot
-markings-organ-FootRight = Right Foot
-markings-organ-Eyes = Eyes
-
-markings-layer-Special = Special
-markings-layer-Tail = Tail
-markings-layer-Tail-Moth = Wings
-markings-layer-Hair = Hair
-markings-layer-FacialHair = Facial Hair
-markings-layer-UndergarmentTop = Undershirt
-markings-layer-UndergarmentBottom = Underpants
-markings-layer-Chest = Chest
-markings-layer-Head = Head
-markings-layer-Snout = Snout
-markings-layer-SnoutCover = Snout (Cover)
-markings-layer-HeadSide = Head (Side)
-markings-layer-HeadTop = Head (Top)
-markings-layer-Eyes = Eyes
-markings-layer-RArm = Right Arm
-markings-layer-LArm = Left Arm
-markings-layer-RHand = Right Hand
-markings-layer-LHand = Left Hand
-markings-layer-RLeg = Right Leg
-markings-layer-LLeg = Left Leg
-markings-layer-RFoot = Right Foot
-markings-layer-LFoot = Left Foot
-markings-layer-Overlay = Overlay
-markings-layer-TailOverlay = Overlay
-
+markings-category-Special = Special
+markings-category-Hair = Hair
+markings-category-FacialHair = Facial Hair
+markings-category-Head = Head
+markings-category-HeadTop = Head (Top)
+markings-category-HeadSide = Head (Side)
+markings-category-Snout = Snout
+markings-category-Chest = Chest
+markings-category-Tail = Tail
+markings-category-Overlay = Overlay
+markings-category-Face = Face
+markings-category-RightArm = Right Arm
+markings-category-RightHand = Right Hand
+markings-category-LeftArm = Left Arm
+markings-category-LeftHand = Left Hand
+markings-category-Groin = Groin
+markings-category-RightLeg = Right Leg
+markings-category-RightFoot = Right Foot
+markings-category-LeftLeg = Left Leg
+markings-category-LeftFoot = Left Foot
+markings-category-Undershirt = Undershirt
+markings-category-Underwear = Underwear
+markings-category-Arms = Arms
+markings-category-Legs = Legs

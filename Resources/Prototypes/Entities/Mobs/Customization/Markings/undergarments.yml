@@ -1,13 +1,13 @@
-# These options are kept very sparse to not put emphasis on nudity, and to provide a base for players to feel comfortable with.
+﻿# These options are kept very sparse to not put emphasis on nudity, and to provide a base for players to feel comfortable with.
 # It's unlikely more will be added to upstream for cosmetic reasons. 
 
 - type: marking
   id: UndergarmentBottomBoxers
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Slime]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -15,11 +15,11 @@
 
 - type: marking
   id: UndergarmentBottomBriefs
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Slime]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -27,11 +27,11 @@
 
 - type: marking
   id: UndergarmentBottomSatin
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Slime]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -39,11 +39,11 @@
 
 - type: marking
   id: UndergarmentTopBra
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Reptilian, Slime]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, Reptilian, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -51,11 +51,11 @@
 
 - type: marking
   id: UndergarmentTopSportsbra
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Reptilian, Slime]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, Reptilian, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -63,11 +63,11 @@
 
 - type: marking
   id: UndergarmentTopBinder
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Reptilian, Slime]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, Reptilian, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -75,11 +75,11 @@
 
 - type: marking
   id: UndergarmentTopTanktop
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Arachnid, Diona, Human, Moth, Reptilian, Slime]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Arachnid, Diona, Dwarf, Human, Moth, Reptilian, SlimePerson]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -87,11 +87,11 @@
 
 - type: marking
   id: UndergarmentBottomBoxersVox # Voxers.
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vox]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -99,11 +99,11 @@
 
 - type: marking
   id: UndergarmentBottomBriefsVox
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vox]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -111,11 +111,11 @@
 
 - type: marking
   id: UndergarmentBottomSatinVox
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vox]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -123,11 +123,11 @@
 
 - type: marking
   id: UndergarmentTopBraVox
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vox]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -135,11 +135,11 @@
 
 - type: marking
   id: UndergarmentTopSportsbraVox
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vox]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -147,11 +147,11 @@
 
 - type: marking
   id: UndergarmentTopBinderVox
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vox]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -159,11 +159,11 @@
 
 - type: marking
   id: UndergarmentTopTanktopVox
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vox]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vox]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -171,11 +171,11 @@
 
 - type: marking
   id: UndergarmentBottomBoxersReptilian
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Reptilian]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Reptilian]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -183,11 +183,11 @@
 
 - type: marking
   id: UndergarmentBottomBriefsReptilian
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Reptilian]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Reptilian]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -195,11 +195,11 @@
 
 - type: marking
   id: UndergarmentBottomSatinReptilian
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Reptilian]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Reptilian]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -207,11 +207,11 @@
 
 - type: marking
   id: UndergarmentBottomBoxersVulpkanin
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -219,11 +219,11 @@
 
 - type: marking
   id: UndergarmentBottomBriefsVulpkanin
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -231,11 +231,11 @@
 
 - type: marking
   id: UndergarmentBottomSatinVulpkanin
-  bodyPart: UndergarmentBottom
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Underwear
+  markingCategory: Underwear
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -243,11 +243,11 @@
 
 - type: marking
   id: UndergarmentTopBraVulpkanin
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -255,11 +255,11 @@
 
 - type: marking
   id: UndergarmentTopSportsbraVulpkanin
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -267,11 +267,11 @@
 
 - type: marking
   id: UndergarmentTopBinderVulpkanin
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi
@@ -279,11 +279,11 @@
 
 - type: marking
   id: UndergarmentTopTanktopVulpkanin
-  bodyPart: UndergarmentTop
-  groupWhitelist: [Vulpkanin]
+  bodyPart: Undershirt
+  markingCategory: Undershirt
+  speciesRestriction: [Vulpkanin]
   coloring:
     default:
-      type: null
       fallbackColor: '#FFFFFF'
   sprites:
   - sprite: Mobs/Customization/undergarments.rsi

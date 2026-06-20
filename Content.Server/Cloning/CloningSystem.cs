@@ -35,7 +35,7 @@ public sealed partial class CloningSystem : SharedCloningSystem
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly SharedSubdermalImplantSystem _subdermalImplant = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
+    [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly NameModifierSystem _nameMod = default!;
     [Dependency] private readonly IdentitySystem _identity = default!;
 
@@ -49,7 +49,7 @@ public sealed partial class CloningSystem : SharedCloningSystem
         if (!_prototype.Resolve(settingsId, out var settings))
             return false; // invalid settings
 
-        if (!TryComp<HumanoidProfileComponent>(original, out var humanoid))
+        if (!TryComp<HumanoidAppearanceComponent>(original, out var humanoid))
             return false; // whatever body was to be cloned, was not a humanoid
 
         if (!_prototype.Resolve(humanoid.Species, out var speciesPrototype))
@@ -64,7 +64,7 @@ public sealed partial class CloningSystem : SharedCloningSystem
         }
 
         clone = coords == null ? Spawn(speciesPrototype.Prototype) : Spawn(speciesPrototype.Prototype, coords.Value);
-        _visualBody.CopyAppearanceFrom(original, clone.Value);
+        _humanoid.CloneAppearance(original, clone.Value);
 
         CloneComponents(original, clone.Value, settings);
 

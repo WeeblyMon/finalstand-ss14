@@ -64,7 +64,7 @@ public sealed partial class ZombieSystem
     [Dependency] private readonly NpcFactionSystem _faction = default!;
     [Dependency] private readonly GhostSystem _ghost = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
+    [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly IdentitySystem _identity = default!;
     [Dependency] private readonly ServerInventorySystem _inventory = default!;
     [Dependency] private readonly MindSystem _mind = default!;
@@ -191,48 +191,19 @@ public sealed partial class ZombieSystem
             _autoEmote.AddEmote(target, "ZombieGroan");
         }
 
-        if (TryComp<BloodstreamComponent>(target, out var stream) && stream.BloodReferenceSolution is { } reagents)
-            zombiecomp.BeforeZombifiedBloodReagents = reagents.Clone();
+        // Goob port: BloodReagent is a single prototype id, not a full solution; pre-zombify capture removed.
 
-        if (_visualBody.TryGatherMarkingsData(target, null, out var profiles, out _, out var markings))
+        // Goob port: organ-keyed marking/profile gather+apply removed.
+        // FSZombies handle visuals separately; vanilla zombies just get skin/eye recolor.
+        if (TryComp<HumanoidAppearanceComponent>(target, out var huAppear))
         {
-            // TODO: My kingdom for ZombieSystem just using cloning system
-            zombiecomp.BeforeZombifiedProfiles = profiles;
-            zombiecomp.BeforeZombifiedMarkings = markings.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.ToDictionary(
-                    it => it.Key,
-                    it => it.Value.ShallowClone()));
-
-            var zombifiedProfiles = profiles.ToDictionary(pair => pair.Key,
-                pair => pair.Value with { EyeColor = zombiecomp.EyeColor, SkinColor = zombiecomp.SkinColor });
-            _visualBody.ApplyProfiles(target, zombifiedProfiles);
-
-            var newMarkings = markings.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.ToDictionary(
-                    it => it.Key,
-                    it => it.Value.ShallowClone()));
-
-            foreach (var markingSet in newMarkings.Values)
-            {
-                foreach (var (layer, layerMarkings) in markingSet)
-                {
-                    if (!AdditionalZombieLayers.Contains(layer))
-                        continue;
-
-                    for (var i = 0; i < layerMarkings.Count; i++)
-                    {
-                        layerMarkings[i] = layerMarkings[i].WithColor(zombiecomp.SkinColor);
-                    }
-                }
-            }
-
-            _visualBody.ApplyMarkings(target, newMarkings);
+            _humanoid.SetSkinColor(target, zombiecomp.SkinColor, verify: false, humanoid: huAppear);
+            huAppear.EyeColor = zombiecomp.EyeColor;
+            Dirty(target, huAppear);
         }
 
         //We have specific stuff for humanoid zombies because they matter more
-        if (HasComp<HumanoidProfileComponent>(target))
+        if (HasComp<HumanoidAppearanceComponent>(target))
         {
             //This is done here because non-humanoids shouldn't get baller damage
             melee.Damage = zombiecomp.DamageOnBite;
@@ -255,7 +226,7 @@ public sealed partial class ZombieSystem
         //NOTE: they are supposed to bleed, just not take damage
         _bloodstream.SetBloodLossThreshold(target, 0f);
         //Give them zombie blood
-        _bloodstream.ChangeBloodReagents(target, zombiecomp.NewBloodReagents);
+        _bloodstream.ChangeBloodReagent(target, zombiecomp.NewBloodReagent);
 
         //This is specifically here to combat insuls, because frying zombies on grilles is funny as shit.
         _inventory.TryUnequip(target, "gloves", true, true);

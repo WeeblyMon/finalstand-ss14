@@ -9,45 +9,20 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared.Body.Systems;
-using Content.Shared.Body;
-using Content.Shared.Body.Part;
+// Shitmed Change Start
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Robust.Client.GameObjects;
 using Robust.Shared.Utility;
+// Shitmed Change End
 
 namespace Content.Client.Body.Systems;
 
 public sealed class BodySystem : SharedBodySystem
 {
+    // Shitmed Change Start
     [Dependency] private readonly MarkingManager _markingManager = default!;
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        // Body parts have enableOverrideDir: North on their sprite, so they are visible
-        // as a phantom when ContainerOccluded is false. The container system sets this flag
-        // in UpdateEntityRecursively, but there is a race condition: the root body part's
-        // parent is set (from transform state) before the container state arrives, so
-        // UpdateEntityRecursively finds no container and leaves ContainerOccluded = false.
-        //
-        // Fix: subscribe to AfterAutoHandleStateEvent on BodyPartComponent. The networked
-        // Body field is set at the same time as container state (same server tick), so
-        // Body.HasValue is a reliable proxy for "this part is inside a body and should be
-        // occluded." This fires after each state application and corrects the flag directly.
-        SubscribeLocalEvent<BodyPartComponent, AfterAutoHandleStateEvent>(OnBodyPartStateApplied);
-    }
-
-    private void OnBodyPartStateApplied(EntityUid uid, BodyPartComponent comp, ref AfterAutoHandleStateEvent args)
-    {
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
-            return;
-        // Hide when attached to a body; show when detached (on ground, surgery table, etc.).
-        // The container system will also set ContainerOccluded = true in FrameUpdate when
-        // the part is in a non-ShowContents container, so these two agree in steady state.
-        sprite.ContainerOccluded = comp.Body.HasValue;
-    }
 
     private void ApplyMarkingToPart(MarkingPrototype markingPrototype,
         IReadOnlyList<Color>? colors,
@@ -75,6 +50,8 @@ public sealed class BodySystem : SharedBodySystem
             if (!visible)
                 continue;
 
+            // Okay so if the marking prototype is modified but we load old marking data this may no longer be valid
+            // and we need to check the index is correct. So if that happens just default to white?
             if (colors != null && j < colors.Count)
                 sprite.LayerSetColor(layerId, colors[j]);
             else
@@ -96,7 +73,13 @@ public sealed class BodySystem : SharedBodySystem
                 if (!_markingManager.TryGetMarking(marking, out var markingPrototype))
                     continue;
 
-                ApplyMarkingToPart(markingPrototype, marking.MarkingColors, visible: true, sprite);
+                ApplyMarkingToPart(markingPrototype, marking.MarkingColors, marking.Visible, sprite);
             }
     }
+
+    protected override void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidAppearanceComponent bodyAppearance)
+    {
+        return;
+    }
+    // Shitmed Change End
 }

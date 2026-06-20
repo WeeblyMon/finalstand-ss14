@@ -23,7 +23,7 @@ namespace Content.Server._Shitmed.StatusEffects;
 public sealed class ScrambleDnaEffectSystem : EntitySystem
 {
 
-    [Dependency] private readonly HumanoidProfileSystem _humanoidProfile = default!;
+    [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
@@ -38,11 +38,11 @@ public sealed class ScrambleDnaEffectSystem : EntitySystem
 
     public void Scramble(EntityUid uid)
     {
-        if (!TryComp<HumanoidProfileComponent>(uid, out var humanoid))
+        if (!TryComp<HumanoidAppearanceComponent>(uid, out var humanoid))
             return;
 
         var newProfile = HumanoidCharacterProfile.RandomWithSpecies(humanoid.Species);
-        _humanoidProfile.ApplyProfileTo(uid, newProfile);
+        _humanoid.LoadProfile(uid, newProfile);
         _metaData.SetEntityName(uid, newProfile.Name);
 
         if (!TryComp<DnaComponent>(uid, out var dna))

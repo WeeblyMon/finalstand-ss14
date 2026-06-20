@@ -1,8 +1,9 @@
-# Tail Markings
+﻿# Tail Markings
 - type: marking
   id: VulpTailFennec
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: fennec
@@ -12,7 +13,8 @@
 - type: marking
   id: VulpTailFluffy
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: fluffy
@@ -22,7 +24,8 @@
 - type: marking
   id: VulpTailHusky
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: husky
@@ -34,7 +37,8 @@
 - type: marking
   id: VulpTailLong
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: long
@@ -44,7 +48,8 @@
 - type: marking
   id: VulpTailVulp
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: vulp
@@ -54,7 +59,8 @@
 - type: marking
   id: VulpTailVulpFade
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
     - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
       state: vulp
@@ -64,7 +70,8 @@
 - type: marking
   id: VulpTailCoyote
   bodyPart: Tail
-  groupWhitelist: [ Vulpkanin ]
+  markingCategory: Tail
+  speciesRestriction: [ Vulpkanin ]
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: coyote
@@ -73,7 +80,8 @@
 - type: marking
   id: VulpTailFennecAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: fennec-wagging
@@ -83,7 +91,8 @@
 - type: marking
   id: VulpTailFluffyAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: fluffy-wagging
@@ -93,7 +102,8 @@
 - type: marking
   id: VulpTailHuskyAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: husky-wagging
@@ -105,7 +115,8 @@
 - type: marking
   id: VulpTailLongAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: long-wagging
@@ -115,7 +126,8 @@
 - type: marking
   id: VulpTailVulpAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: vulp-wagging
@@ -125,7 +137,8 @@
 - type: marking
   id: VulpTailVulpFadeAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: vulp-wagging
@@ -135,7 +148,8 @@
 - type: marking
   id: VulpTailCoyoteAnimated
   bodyPart: Tail
-  groupWhitelist: []
+  markingCategory: Tail
+  speciesRestriction: []
   sprites:
   - sprite: Mobs/Customization/Vulpkanin/tail_markings.rsi
     state: coyote-wagging

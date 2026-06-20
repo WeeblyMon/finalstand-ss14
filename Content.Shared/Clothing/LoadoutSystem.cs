@@ -38,6 +38,14 @@ public sealed class LoadoutSystem : EntitySystem
         return "Job" + loadout;
     }
 
+    public static string GetAntagPrototype(string? loadout)
+    {
+        if (string.IsNullOrEmpty(loadout))
+            return string.Empty;
+
+        return "Antag" + loadout;
+    }
+
     public EntProtoId? GetFirstOrNull(LoadoutPrototype loadout)
     {
         EntProtoId? proto = null;
@@ -175,8 +183,8 @@ public sealed class LoadoutSystem : EntitySystem
 
     public HumanoidCharacterProfile GetProfile(EntityUid? uid)
     {
-        return TryComp<HumanoidProfileComponent>(uid, out var profile)
-            ? HumanoidCharacterProfile.DefaultWithSpecies(profile.Species, profile.Sex)
+        return TryComp<HumanoidAppearanceComponent>(uid, out var profile)
+            ? HumanoidCharacterProfile.DefaultWithSpecies(profile.Species)
             : HumanoidCharacterProfile.Random();
     }
 }

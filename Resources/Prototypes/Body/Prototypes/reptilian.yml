@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 deltanedas <39013340+deltanedas@users.noreply.github.com>
@@ -20,14 +20,11 @@
       organs:
         brain: OrganHumanBrain
         eyes: OrganHumanEyes
-        visualHead: OrganReptilianVisualHead
-        visualEyes: OrganReptilianVisualEyes
     chest:
       part: ChestReptilian
       organs:
         heart: OrganAnimalHeart
         lungs: OrganHumanLungs
-        visualChest: OrganReptilianVisualChest
       connections:
       - right arm
       - left arm
@@ -42,44 +39,27 @@
         stomach: OrganReptilianStomach
         liver: OrganAnimalLiver
         kidneys: OrganHumanKidneys
-        visualGroin: OrganReptilianVisualGroin
     right arm:
       part: RightArmReptilian
       connections:
       - right hand
-      organs:
-        visualRArm: OrganReptilianVisualRArm
     left arm:
       part: LeftArmReptilian
       connections:
       - left hand
-      organs:
-        visualLArm: OrganReptilianVisualLArm
     right hand:
       part: RightHandReptilian
-      organs:
-        visualRHand: OrganReptilianVisualRHand
     left hand:
       part: LeftHandReptilian
-      organs:
-        visualLHand: OrganReptilianVisualLHand
     right leg:
       part: RightLegReptilian
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganReptilianVisualRLeg
     left leg:
       part: LeftLegReptilian
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganReptilianVisualLLeg
     right foot:
       part: RightFootReptilian
-      organs:
-        visualRFoot: OrganReptilianVisualRFoot
     left foot:
       part: LeftFootReptilian
-      organs:
-        visualLFoot: OrganReptilianVisualLFoot

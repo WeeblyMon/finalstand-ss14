@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
+﻿# SPDX-FileCopyrightText: 2022 DrSmugleaf <DrSmugleaf@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2022 Jezithyr <Jezithyr@gmail.com>
 # SPDX-FileCopyrightText: 2023 Nemanja <98561806+EmoGarbage404@users.noreply.github.com>
 # SPDX-FileCopyrightText: 2024 CatMagic <135462166+CatMagic1@users.noreply.github.com>
@@ -19,8 +19,6 @@
       part: HeadSkeleton
       connections:
       - chest
-      organs:
-        visualHead: OrganSkeletonVisualHead
     chest:
       part: ChestSkeleton
       connections:
@@ -28,52 +26,32 @@
       - left arm
       - head # Shitmed
       - groin # Shitmed
-      organs:
-        visualChest: OrganSkeletonVisualChest
     groin:
       part: GroinSkeleton
       connections:
       - right leg
       - left leg
-      organs:
-        visualGroin: OrganSkeletonVisualGroin
     right arm:
       part: RightArmSkeleton
       connections:
       - right hand
-      organs:
-        visualRArm: OrganSkeletonVisualRArm
     left arm:
       part: LeftArmSkeleton
       connections:
       - left hand
-      organs:
-        visualLArm: OrganSkeletonVisualLArm
     right hand:
       part: RightHandSkeleton
-      organs:
-        visualRHand: OrganSkeletonVisualRHand
     left hand:
       part: LeftHandSkeleton
-      organs:
-        visualLHand: OrganSkeletonVisualLHand
     right leg:
       part: RightLegSkeleton
       connections:
       - right foot
-      organs:
-        visualRLeg: OrganSkeletonVisualRLeg
     left leg:
       part: LeftLegSkeleton
       connections:
       - left foot
-      organs:
-        visualLLeg: OrganSkeletonVisualLLeg
     right foot:
       part: RightFootSkeleton
-      organs:
-        visualRFoot: OrganSkeletonVisualRFoot
     left foot:
       part: LeftFootSkeleton
-      organs:
-        visualLFoot: OrganSkeletonVisualLFoot

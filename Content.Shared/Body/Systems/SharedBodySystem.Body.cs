@@ -231,7 +231,7 @@ public partial class SharedBodySystem
         }
     }
 
-    private void SetupOrgans(Entity<BodyPartComponent> ent, Dictionary<string, EntProtoId> organs)
+    private void SetupOrgans(Entity<BodyPartComponent> ent, Dictionary<string, string> organs)
     {
         foreach (var (organSlotId, organProto) in organs)
         {

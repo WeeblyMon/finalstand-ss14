@@ -104,12 +104,6 @@ public sealed partial class OrganComponent : Component, ISurgeryToolComponent //
     [DataField]
     public string SlotId = string.Empty;
 
-    /// <summary>
-    ///     The category this organ belongs to, used by admin smites and similar systems.
-    /// </summary>
-    [DataField, AutoNetworkedField]
-    public ProtoId<OrganCategoryPrototype>? Category;
-
     [DataField]
     public string ToolName { get; set; } = "An organ";
 

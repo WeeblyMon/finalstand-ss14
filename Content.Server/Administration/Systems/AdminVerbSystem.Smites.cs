@@ -352,12 +352,7 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     var baseXform = Transform(args.Target);
-                    var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
-                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>(args.Target, out var organs, body);
-                    foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
-                    {
-                        _transformSystem.AttachToGridOrMap(organ);
-                    }
+                    // Goob port: OrganCategoryPrototype removed; hand-organ filter no longer available.
                     _popupSystem.PopupEntity(Loc.GetString("admin-smite-remove-hands-self"), args.Target,
                         args.Target, PopupType.LargeCaution);
                     _popupSystem.PopupCoordinates(Loc.GetString("admin-smite-remove-hands-other", ("name", args.Target)), baseXform.Coordinates,
@@ -377,13 +372,7 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     var baseXform = Transform(args.Target);
-                    var parts = new HashSet<ProtoId<OrganCategoryPrototype>>() { "HandRight", "HandLeft" };
-                    _bodySystem.TryGetOrgansWithComponent<OrganComponent>(args.Target, out var organs, body);
-                    foreach (var organ in organs.Where(it => it.Comp.Category is { } category && parts.Contains(category)))
-                    {
-                        _transformSystem.AttachToGridOrMap(organ);
-                        break;
-                    }
+                    // Goob port: OrganCategoryPrototype removed; hand-organ filter no longer available.
                     _popupSystem.PopupEntity(Loc.GetString("admin-smite-remove-hands-self"), args.Target,
                         args.Target, PopupType.LargeCaution);
                     _popupSystem.PopupCoordinates(Loc.GetString("admin-smite-remove-hands-other", ("name", args.Target)), baseXform.Coordinates,

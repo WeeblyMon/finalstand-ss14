@@ -41,7 +41,7 @@ public sealed partial class PolymorphSystem : EntitySystem
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;
     [Dependency] private readonly TransformSystem _transform = default!;
-    [Dependency] private readonly SharedVisualBodySystem _visualBody = default!;
+    [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly SharedMindSystem _mindSystem = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
 
@@ -263,7 +263,7 @@ public sealed partial class PolymorphSystem : EntitySystem
 
         if (configuration.TransferHumanoidAppearance)
         {
-            _visualBody.CopyAppearanceFrom(uid, child);
+            _humanoid.CloneAppearance(uid, child);
         }
 
         if (_mindSystem.TryGetMind(uid, out var mindId, out var mind))
