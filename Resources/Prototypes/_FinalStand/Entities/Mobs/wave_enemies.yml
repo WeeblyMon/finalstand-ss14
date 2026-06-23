@@ -213,15 +213,23 @@
   - type: FSArmor
     maxHPRatio: 0.4
     regenRate: 10
-  # Sprite: 1.5x scale on base layer — placeholder using normal zombie sprite.
-  # TODO(finalstand): replace with final Giant sprite when art is ready.
   - type: Sprite
     drawdepth: Mobs
-    sprite: _FinalStand/Mobs/Zombies/zombie.rsi
+    sprite: _FinalStand/Mobs/Zombies/tank.rsi
     layers:
-    - map: ["enum.DamageStateVisualLayers.Base"]
-      state: base
-      scale: 1.5, 1.5
+    - map: ["giantzombie_torso"]
+      state: torso
+    - map: ["giantzombie_head"]
+      state: head
+    - map: ["giantzombie_left_arm"]
+      state: left_arm
+    - map: ["giantzombie_right_arm"]
+      state: right_arm
+    - map: ["giantzombie_left_leg"]
+      state: left_leg
+    - map: ["giantzombie_right_leg"]
+      state: right_leg
+  - type: FSGiantZombieVisuals
   # Hitbox scaled to 1.5x normal zombie radius (0.25 * 1.5 = 0.375).
   - type: Fixtures
     fixtures:
@@ -235,6 +243,62 @@
         layer:
         - MobLayer
   - type: FSGiantStomp
+
+# ── Giant zombie debris — spawned on floor when parts are blown off ──────────
+
+- type: entity
+  id: FSGiantZombieGibBase
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.15
+        mask: []
+        layer: []
+  - type: TimedDespawn
+    lifetime: 8.0
+
+- type: entity
+  id: FSGiantZombieArmFloor
+  parent: FSGiantZombieGibBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Mobs/Zombies/tank_bodyparts.rsi
+    state: arm_removed
+
+- type: entity
+  id: FSGiantZombieHeadFloor
+  parent: FSGiantZombieGibBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Mobs/Zombies/tank_bodyparts.rsi
+    state: head_removed
+
+- type: entity
+  id: FSGiantZombieLegFloor
+  parent: FSGiantZombieGibBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Mobs/Zombies/tank_bodyparts.rsi
+    state: leg_removed
+
+- type: entity
+  id: FSGiantZombieTorsoFloor
+  parent: FSGiantZombieGibBase
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Mobs/Zombies/tank_bodyparts.rsi
+    state: torso_removed
 
 # ── Non-zombie wave enemies ──────────────────────────────────────────────────
 # NavPry: false — do not pry airlocks (would let them open locked doors).

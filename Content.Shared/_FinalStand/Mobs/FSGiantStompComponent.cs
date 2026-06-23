@@ -12,7 +12,7 @@ public sealed partial class FSGiantStompComponent : Component
     [DataField] public float StompKnockbackMagnitude = 12f;
 
     [DataField]
-    public SoundSpecifier? StompSound = new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Giant/stomp.ogg");
+    public SoundSpecifier? StompSound = new SoundPathSpecifier("/Audio/Effects/Footsteps/largethud.ogg");
 
     public float StompAccumulator = 0f;
 }

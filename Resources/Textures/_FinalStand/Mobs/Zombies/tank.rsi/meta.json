@@ -1,0 +1,39 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-4.0",
+    "copyright": "by kyres1 (Github)",
+    "size": {
+        "x": 64,
+        "y": 64
+    },
+    "states": [
+        {
+            "name": "torso",
+            "directions": 4
+        },
+		{
+            "name": "head",
+            "directions": 4
+        },
+		{
+            "name": "left_arm",
+            "directions": 4
+        },
+		{
+            "name": "right_arm",
+            "directions": 4
+        },
+		{
+            "name": "left_leg",
+            "directions": 4
+        },
+		{
+            "name": "right_leg",
+            "directions": 4
+        },
+		{
+            "name": "base",
+            "directions": 4
+        }
+    ]
+}

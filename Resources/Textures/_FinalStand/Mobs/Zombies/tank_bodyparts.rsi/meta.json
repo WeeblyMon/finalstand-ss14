@@ -1,0 +1,27 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-4.0",
+    "copyright": "by kyres1 (Github)",
+    "size": {
+        "x": 32,
+        "y": 32
+    },
+    "states": [
+        {
+            "name": "arm_removed",
+            "directions": 1
+        },
+		{
+            "name": "head_removed",
+            "directions": 1
+        },
+		{
+            "name": "leg_removed",
+            "directions": 1
+        },
+		{
+            "name": "torso_removed",
+            "directions": 1
+        }
+    ]
+}
