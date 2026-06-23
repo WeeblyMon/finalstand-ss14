@@ -87,6 +87,15 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
+                if (TryComp<GunWieldBonusComponent>(weapon, out var wieldBonus))
+                {
+                    var d = def.ValuePerLevel;
+#pragma warning disable RA0002
+                    wieldBonus.MinAngle = Angle.FromDegrees(wieldBonus.MinAngle.Degrees - d);
+                    wieldBonus.MaxAngle = Angle.FromDegrees(wieldBonus.MaxAngle.Degrees - d);
+#pragma warning restore RA0002
+                    Dirty(weapon, wieldBonus);
+                }
                 _gun.RefreshModifiers(weapon);
                 {
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);

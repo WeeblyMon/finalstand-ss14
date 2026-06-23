@@ -162,7 +162,7 @@ namespace Content.Client.Stylesheets
         public const string ButtonOpenBoth = "OpenBoth";
         public const string ButtonSquare = "OpenBoth";
         public const string ButtonCaution = "negative";
-        public const string StyleClassLabelHeading = "LabelHeading";
+        public new const string StyleClassLabelHeading = "LabelHeading";
         public const string StyleClassLabelSubText = "LabelSubText";
         public const string StyleClassRedTopButton = "negative";
         public const string ClassHighDivider = "HighDivider";

@@ -124,9 +124,12 @@
     autoRechargeRate: 50
     autoRechargePauseTime: 1.5
   - type: Gun
-    minAngle: 0
-    maxAngle: 8
+    minAngle: 21
+    maxAngle: 32
     angleIncrease: 1.5
+  - type: GunWieldBonus
+    minAngle: -21
+    maxAngle: -24
 
 # Pulse Rifle override — perfectly accurate, semi-auto by default; FullAuto upgrade unlocks full auto.
 
