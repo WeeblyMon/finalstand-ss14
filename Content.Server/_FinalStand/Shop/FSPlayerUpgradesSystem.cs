@@ -5,6 +5,8 @@ using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
@@ -28,6 +30,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
+    [Dependency] private readonly SharedHandsSystem _hands = default!;
 
     private static readonly ProtoId<TagPrototype> AkimboTag = "AkimboEligible";
     private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
@@ -84,7 +87,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
-                // Re-run the modifier event so akimbo spread penalty stacks on top of the new base values.
                 _gun.RefreshModifiers(weapon);
                 {
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
@@ -124,7 +126,6 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 }
                 else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
                 {
-                    // Detachable-magazine gun — store the bonus and apply it to the current mag.
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                     state.MagazineSizeBonus += (int)def.ValuePerLevel;
                     ApplyMagSizeBonusToCurrentMag(weapon, (int)def.ValuePerLevel);
@@ -291,14 +292,28 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, burstGun);
                 }
+                else
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.AttackSpeedMultiplier += def.ValuePerLevel;
+                }
                 break;
 
             case WeaponUpgradeType.MovementSpeed:
             {
                 if (!spawnItems) break;
-                var bonus = EnsureComp<FSSpeedBonusComponent>(player);
-                bonus.SpeedMultiplier += def.ValuePerLevel;
-                _movement.RefreshMovementSpeedModifiers(player);
+                if (!HasComp<GunComponent>(weapon))
+                {
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.HeldSpeedBonusPercent += def.ValuePerLevel;
+                    _movement.RefreshMovementSpeedModifiers(player);
+                }
+                else
+                {
+                    var bonus = EnsureComp<FSSpeedBonusComponent>(player);
+                    bonus.SpeedMultiplier += def.ValuePerLevel;
+                    _movement.RefreshMovementSpeedModifiers(player);
+                }
                 break;
             }
 
@@ -444,7 +459,189 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 state.AftershockEnabled = true;
                 break;
             }
+
+            case WeaponUpgradeType.ConcussionClub:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ConcussionClubStunMs += (int)(def.ValuePerLevel * 1000f);
+                break;
+            }
+
+            case WeaponUpgradeType.CritVsStunned:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.CritVsStunned = true;
+                break;
+            }
+
+            case WeaponUpgradeType.StunOnHit:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.StunOnHitMs += (int)(def.ValuePerLevel * 1000f);
+                break;
+            }
+
+            case WeaponUpgradeType.FlintlockCritSynergy:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FlintlockCritDurationSec += (int)def.ValuePerLevel;
+                if (spawnItems && def.SpawnProtoId.HasValue)
+                {
+                    var coords = Transform(player).Coordinates;
+                    for (var i = 0; i < def.SpawnCountPerLevel; i++)
+                    {
+                        var item = Spawn(def.SpawnProtoId.Value, coords);
+                        TryStashOnPlayer(player, item);
+                    }
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.CritVsBurning:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.CritVsBurning = true;
+                break;
+            }
+
+            case WeaponUpgradeType.FireResist:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FireDamageResist = MathF.Min(1f, state.FireDamageResist + def.ValuePerLevel);
+                break;
+            }
+
+            case WeaponUpgradeType.WhileBurningBuff:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.WhileBurningBuff = true;
+                break;
+            }
+
+            case WeaponUpgradeType.FuelEfficiency:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FuelEfficiencyReduction += def.ValuePerLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.FuelCapacity:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.FuelCapacityMultiplier += def.ValuePerLevel;
+                if (TryComp<Content.Shared._FinalStand.Chainsaw.FSChainsawFuelComponent>(weapon, out var fuel))
+                {
+                    fuel.MaxFuelMultiplier = state.FuelCapacityMultiplier;
+                    fuel.CurrentFuel = MathF.Min(fuel.CurrentFuel + fuel.BaseMaxFuel * def.ValuePerLevel,
+                                                  fuel.BaseMaxFuel * fuel.MaxFuelMultiplier);
+                    Dirty(weapon, fuel);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.WielderResistance:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.WielderResistance = MathF.Min(0.95f, state.WielderResistance + def.ValuePerLevel);
+                break;
+            }
+
+            case WeaponUpgradeType.DualWieldEnergySword:
+            {
+                var oldState = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                if (oldState.DualWieldEnergySwordApplied)
+                    break;
+                oldState.DualWieldEnergySwordApplied = true;
+                TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
+                break;
+            }
         }
+    }
+
+    private void TryTransformToDualWieldEnergySword(EntityUid oldSword, EntityUid player,
+        FSWeaponUpgradeStateComponent oldState, float attackSpeedBonus)
+    {
+        var coords = Transform(player).Coordinates;
+        var newSword = Spawn("EnergySwordDouble", coords);
+
+        var newState = EnsureComp<FSWeaponUpgradeStateComponent>(newSword);
+        CopyUpgradeState(oldState, newState);
+        newState.AttackSpeedMultiplier = oldState.AttackSpeedMultiplier + attackSpeedBonus;
+        newState.DualWieldEnergySwordApplied = true;
+
+        // only delete old sword if we can safely drop it — avoids silently losing upgrade state
+        var safeToDelete = true;
+        var wasInHand = false;
+        if (TryComp<HandsComponent>(player, out var hands)
+            && _hands.IsHolding((player, hands), oldSword, out _))
+        {
+            wasInHand = true;
+            safeToDelete = _hands.TryDrop((player, hands), oldSword);
+            if (!safeToDelete)
+                Log.Warning($"DualWieldEnergySword: TryDrop failed for {ToPrettyString(oldSword)} on {ToPrettyString(player)} — keeping old sword to avoid losing upgrade state.");
+        }
+
+        if (safeToDelete)
+            QueueDel(oldSword);
+
+        if (wasInHand && hands != null && _hands.TryPickup(player, newSword, handsComp: hands))
+            return;
+
+        TryStashOnPlayer(player, newSword);
+    }
+
+    // single source of truth for transform upgrades — add new DataFields here to avoid silent state loss
+    private static void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
+    {
+        to.CritChance = from.CritChance;
+        to.CritDamageMultiplier = from.CritDamageMultiplier;
+        to.PierceThreshold = from.PierceThreshold;
+        to.Levels = new Dictionary<string, int>(from.Levels);
+        to.ExplosiveShotLevel = from.ExplosiveShotLevel;
+        to.MoneyGainBonusPerKill = from.MoneyGainBonusPerKill;
+        to.MoneyPerHitBonus = from.MoneyPerHitBonus;
+        to.SlowingEnabled = from.SlowingEnabled;
+        to.BeamChainTargets = from.BeamChainTargets;
+        to.KnockbackLevel = from.KnockbackLevel;
+        to.SetOnFireEnabled = from.SetOnFireEnabled;
+        to.APRoundsEnabled = from.APRoundsEnabled;
+        to.ArmorShredMagnitude = from.ArmorShredMagnitude;
+        to.ReloadSpeedMultiplier = from.ReloadSpeedMultiplier;
+        to.SpeedLoaderEnabled = from.SpeedLoaderEnabled;
+        to.LifeStealPercent = from.LifeStealPercent;
+        to.StaminaStealLevel = from.StaminaStealLevel;
+        to.DamageMultiplier = from.DamageMultiplier;
+        to.ExtraPellets = from.ExtraPellets;
+        to.ScrapshotEnabled = from.ScrapshotEnabled;
+        to.BleedLevel = from.BleedLevel;
+        to.FlechetteEnabled = from.FlechetteEnabled;
+        to.SplinterImpactEnabled = from.SplinterImpactEnabled;
+        to.OverchargeShotEnabled = from.OverchargeShotEnabled;
+        to.PelletSpreadMultiplier = from.PelletSpreadMultiplier;
+        to.OverkillLevel = from.OverkillLevel;
+        to.ExecutionEnabled = from.ExecutionEnabled;
+        to.WarTornEnabled = from.WarTornEnabled;
+        to.SuppressionLevel = from.SuppressionLevel;
+        to.ResonanceEnabled = from.ResonanceEnabled;
+        to.PrismaticLevel = from.PrismaticLevel;
+        to.MagEfficiencyLevel = from.MagEfficiencyLevel;
+        to.PulseCascadeEnabled = from.PulseCascadeEnabled;
+        to.AftershockEnabled = from.AftershockEnabled;
+        to.MagazineSizeBonus = from.MagazineSizeBonus;
+        to.AttackSpeedMultiplier = from.AttackSpeedMultiplier;
+        to.ConcussionClubStunMs = from.ConcussionClubStunMs;
+        to.CritVsStunned = from.CritVsStunned;
+        to.StunOnHitMs = from.StunOnHitMs;
+        to.FlintlockCritDurationSec = from.FlintlockCritDurationSec;
+        to.CritVsBurning = from.CritVsBurning;
+        to.FireDamageResist = from.FireDamageResist;
+        to.WhileBurningBuff = from.WhileBurningBuff;
+        to.FuelEfficiencyReduction = from.FuelEfficiencyReduction;
+        to.FuelCapacityMultiplier = from.FuelCapacityMultiplier;
+        to.WielderResistance = from.WielderResistance;
+        to.DualWieldEnergySwordApplied = from.DualWieldEnergySwordApplied;
+        to.HeldSpeedBonusPercent = from.HeldSpeedBonusPercent;
+        to.TotalSpent = from.TotalSpent;
     }
 
     public void TryApplyAkimbo(EntityUid gun, EntityUid player)

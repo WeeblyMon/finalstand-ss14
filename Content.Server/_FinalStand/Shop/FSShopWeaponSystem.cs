@@ -30,7 +30,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
-    // TODO(finalstand): tune sell cooldown duration
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
 
@@ -77,11 +76,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        var weapon = FindHeldWeapon(player, comp.WeaponProtoId.Value);
-        var levels = (weapon != null && TryComp<FSWeaponUpgradeStateComponent>(weapon.Value, out var state))
-            ? state.Levels
-            : new Dictionary<string, int>();
-
+        var levels = CollectShopLevels(player, comp);
         var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
         SendWeaponLevels(mindId, levels, title);
     }
@@ -106,7 +101,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
 
-        // Mark as FS shop weapon immediately so it is sellable even before any upgrade.
         EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
         TryGiveItemToPlayer(player, weapon);
@@ -146,10 +140,23 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (comp.WeaponProtoId == null)
             return;
 
-        var weapon = FindHeldWeapon(player, comp.WeaponProtoId.Value);
+        EntProtoId targetProto;
+        List<EntProtoId>? aliases;
+        if (def.TargetWeaponProtoId != null)
+        {
+            targetProto = def.TargetWeaponProtoId.Value;
+            aliases = null;
+        }
+        else
+        {
+            targetProto = comp.WeaponProtoId.Value;
+            aliases = comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null;
+        }
+
+        var weapon = FindHeldWeapon(player, targetProto, aliases);
         if (weapon == null)
         {
-            _popup.PopupEntity("Hold the weapon to upgrade it.", uid, player);
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-hold-target", ("proto", targetProto.Id)), uid, player);
             return;
         }
 
@@ -162,7 +169,21 @@ public sealed class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        // Akimbo pre-flight: confirm a free hand exists before charging credits.
+        if (def.RequiresUpgrade != null)
+        {
+            var shopWeapon = FindHeldWeapon(player, comp.WeaponProtoId.Value,
+                comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null);
+            var shopState = shopWeapon != null
+                ? CompOrNull<FSWeaponUpgradeStateComponent>(shopWeapon.Value)
+                : null;
+            if (shopState == null
+                || shopState.Levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
+            {
+                _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
+                return;
+            }
+        }
+
         if (def.Type == WeaponUpgradeType.Akimbo)
         {
             var hasFreeHand = false;
@@ -179,7 +200,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             }
             if (!hasFreeHand)
             {
-                _popup.PopupEntity("No free hand for akimbo.", uid, player);
+                _popup.PopupEntity(Loc.GetString("shop-upgrade-no-free-hand"), uid, player);
                 return;
             }
         }
@@ -194,7 +215,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         var newLevel = currentLevel + 1;
         var isFirstUpgradeEver = state.Levels.Count == 0;
         state.Levels[def.Id] = newLevel;
-        state.TotalSpent += cost;  // FINALSTAND: track cumulative spend for sell refund
+        state.TotalSpent += cost;
         _upgrades.ApplySingleUpgrade(weapon.Value, player, def, newLevel);
 
         if (isFirstUpgradeEver)
@@ -202,7 +223,33 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
         var title = comp.WeaponProtoId != null ? ComputeWeaponTitle(player, comp.WeaponProtoId.Value) : "";
-        SendWeaponLevels(mindId, state.Levels, title);
+        SendWeaponLevels(mindId, CollectShopLevels(player, comp), title);
+    }
+
+    private Dictionary<string, int> CollectShopLevels(EntityUid player, FSShopWeaponComponent comp)
+    {
+        var merged = new Dictionary<string, int>();
+        if (comp.WeaponProtoId == null)
+            return merged;
+
+        var protos = new HashSet<EntProtoId> { comp.WeaponProtoId.Value };
+        foreach (var alias in comp.WeaponProtoIdAliases)
+            protos.Add(alias);
+        foreach (var up in comp.Upgrades)
+        {
+            if (up.TargetWeaponProtoId is { } t)
+                protos.Add(t);
+        }
+
+        foreach (var proto in protos)
+        {
+            var weapon = FindHeldWeapon(player, proto);
+            if (weapon == null || !TryComp<FSWeaponUpgradeStateComponent>(weapon.Value, out var st))
+                continue;
+            foreach (var (k, v) in st.Levels)
+                merged[k] = v;
+        }
+        return merged;
     }
 
     private void OnSellMessage(EntityUid shopUid, FSShopWeaponComponent comp, FSShopSellMessage args)
@@ -247,7 +294,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
         var totalRefund   = baseRefund + upgradeRefund;
         totalRefund = (int)(Math.Round(totalRefund / 50.0) * 50);
         totalRefund = Math.Max(0, totalRefund);
-        // TODO(finalstand): verify money system handles adding positive refund to a 0-credit player
         try
         {
             QueueDel(weapon);
@@ -318,7 +364,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
                 results.Add(slotEnt.Value);
         }
 
-        // TODO(finalstand): decide whether nested container search (bag-in-bag) is needed
         if (_inventory.TryGetSlotEntity(player, "back", out var backpack) && backpack != null)
         {
             if (TryComp<ContainerManagerComponent>(backpack.Value, out var cm))
@@ -337,8 +382,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         return results;
     }
-
-    // ---- Helpers ----
 
     private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
 
@@ -415,6 +458,9 @@ public sealed class FSShopWeaponSystem : EntitySystem
         s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 
     private EntityUid? FindHeldWeapon(EntityUid player, EntProtoId protoId)
+        => FindHeldWeapon(player, protoId, null);
+
+    private EntityUid? FindHeldWeapon(EntityUid player, EntProtoId protoId, List<EntProtoId>? aliases)
     {
         if (!TryComp<HandsComponent>(player, out var hands))
             return null;
@@ -423,8 +469,19 @@ public sealed class FSShopWeaponSystem : EntitySystem
         {
             if (!_hands.TryGetHeldItem((player, hands), handName, out var held))
                 continue;
-            if (MetaData(held.Value).EntityPrototype?.ID == (string) protoId)
+            var heldProto = MetaData(held.Value).EntityPrototype?.ID;
+            if (heldProto == null)
+                continue;
+            if (heldProto == (string) protoId)
                 return held;
+            if (aliases != null)
+            {
+                foreach (var alias in aliases)
+                {
+                    if (heldProto == (string) alias)
+                        return held;
+                }
+            }
         }
 
         return null;

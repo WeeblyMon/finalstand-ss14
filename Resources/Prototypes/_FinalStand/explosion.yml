@@ -1,4 +1,18 @@
 - type: explosion
+  id: FSExplosiveShotExplosion
+  damagePerIntensity:
+    types:
+      Blunt: 0
+  tileBreakChance: [0, 0, 0]
+  tileBreakIntensity: [0, 0, 0]
+  tileBreakRerollReduction: 0
+  lightColor: "#FF8800"
+  fireColor: "#FF4400"
+  texturePath: /Textures/Effects/fire_greyscale.rsi
+  fireStates: 3
+  temperature: 0
+
+- type: explosion
   id: FSGiantStompExplosion
   damagePerIntensity:
     types:
@@ -16,8 +30,7 @@
   id: FSPulseCascadeExplosion
   damagePerIntensity:
     types:
-      Blunt: 2
-      Piercing: 2
+      Blunt: 0
   tileBreakChance: [0, 0, 0]
   tileBreakIntensity: [0, 0, 0]
   tileBreakRerollReduction: 20

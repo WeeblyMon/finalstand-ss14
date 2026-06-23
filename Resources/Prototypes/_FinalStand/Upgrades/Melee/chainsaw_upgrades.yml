@@ -1,0 +1,73 @@
+# ── Chainsaw Shop ────────────────────────────────────────────────────────────
+# Top-tier melee. Fuel upgrades track state but are inert until the Chainsaw entity gains a fuel component.
+
+- type: entity
+  id: FSWeaponShopChainsaw
+  parent: FSWeaponShopBase
+  name: Chainsaw
+  description: A very large chainsaw. Requires fuel and a steady hand.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: Chainsaw
+    price: 15000
+    category: Melee Power
+    statDamage: 70
+    statFireRate: 70
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: chainsaw-overclock
+      name: Overclock
+      description: Higher RPM increases attack speed by 25% per level.
+      maxLevel: 2
+      baseCost: 17000
+      type: AttackSpeed
+      valuePerLevel: 0.25
+    - id: chainsaw-lucky-chains
+      name: Lucky Chains
+      description: +5% critical hit chance.
+      maxLevel: 1
+      baseCost: 11000
+      type: CritChance
+      valuePerLevel: 0.05
+    - id: chainsaw-steel-chains
+      name: Steel Chains
+      description: Hardened links add +150% damage per level.
+      maxLevel: 4
+      baseCost: 12500
+      type: Damage
+      valuePerLevel: 1.5
+    - id: chainsaw-hungry-chains
+      name: Hungry Chains
+      description: Saw drinks back +0.5 lifesteal per hit.
+      maxLevel: 1
+      baseCost: 22000
+      type: LifeSteal
+      valuePerLevel: 0.5
+    # NOTE: Fuel upgrades track state but the Chainsaw entity in this fork has no fuel mechanic yet —
+    # ChainsawFuelUpgradeSystem reads these but is currently inert until a fuel component is added to Chainsaw.
+    - id: chainsaw-fuel-efficiency
+      name: Fuel Efficiency
+      description: Reduces fuel taken per swing by 0.25 per level.
+      maxLevel: 2
+      baseCost: 9000
+      type: FuelEfficiency
+      valuePerLevel: 0.25
+    - id: chainsaw-fuel-capacity
+      name: Fuel Capacity
+      description: Tank holds +25% more fuel per level.
+      maxLevel: 2
+      baseCost: 17000
+      type: FuelCapacity
+      valuePerLevel: 0.25
+    - id: chainsaw-protective-saw
+      name: Protective Saw
+      description: While wielded, take 20% less damage.
+      maxLevel: 1
+      baseCost: 22000
+      type: WielderResistance
+      valuePerLevel: 0.2
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/chainsaw.rsi
+    state: icon
+    scale: 1,1

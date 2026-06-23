@@ -9,6 +9,9 @@ public sealed partial class FSShopWeaponComponent : Component
     public EntProtoId? WeaponProtoId;
 
     [DataField]
+    public List<EntProtoId> WeaponProtoIdAliases = [];
+
+    [DataField]
     public int Price = 500;
 
     [DataField]
@@ -23,7 +26,6 @@ public sealed partial class FSShopWeaponComponent : Component
     [DataField]
     public string Category = "";
 
-    // 0–100 designer-set values for the shop UI stat bars.
     [DataField] public byte StatDamage = 50;
     [DataField] public byte StatFireRate = 50;
     [DataField] public byte StatAccuracy = 50;

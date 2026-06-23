@@ -209,7 +209,6 @@
       attackRate: 10
       damage:
         types:
-          Structural: 150
           Slash: 20 #Horror
           Blunt: 20
           Heat: 20

@@ -20,9 +20,9 @@
     attackRate: 4
     damage:
       types:
-        Slash: 2
-        Blunt: 2
-        Structural: 4
+        Slash: 4
+        Blunt: 4
+
     soundHit:
       path: /Audio/Weapons/chainsaw.ogg
       params:
@@ -31,7 +31,7 @@
     damage:
       types:
         Slash: 4
-        Structural: 4
+
   - type: Item
     size: Large
     shape:
@@ -40,3 +40,9 @@
   - type: DisarmMalus
   - type: UseDelay
     delay: 1
+  # FS: chainsaw fuel mechanic — drives the Fuel Efficiency / Fuel Capacity upgrades.
+  # Refill by clicking the chainsaw with a welding tool that has WeldingFuel.
+  - type: FSChainsawFuel
+    currentFuel: 50
+    baseMaxFuel: 50
+    baseFuelPerSwing: 1.0

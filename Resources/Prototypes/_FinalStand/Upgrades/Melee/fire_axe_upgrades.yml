@@ -1,0 +1,50 @@
+# ── Fire Axe Shop ────────────────────────────────────────────────────────────
+# Heavy chopper. Big damage + fire synergies (Axtinguish / Fireman / Fire Man).
+
+- type: entity
+  id: FSWeaponShopFireAxe
+  parent: FSWeaponShopBase
+  name: Fire Axe
+  description: Truly, the weapon of a madman. Fight fire with steel.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FireAxe
+    price: 7000
+    category: Melee Heavy
+    statDamage: 55
+    statFireRate: 30
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: fireaxe-sharpened
+      name: Sharpened Blade
+      description: Hones the edge for +270% damage per level.
+      maxLevel: 2
+      baseCost: 10500
+      type: Damage
+      valuePerLevel: 2.7
+    - id: fireaxe-axtinguish
+      name: Axtinguish
+      description: Critical hits against enemies on fire.
+      maxLevel: 1
+      baseCost: 10000
+      type: CritVsBurning
+      valuePerLevel: 1
+    - id: fireaxe-fireman
+      name: Fireman
+      description: Total immunity to fire damage. Flames pass right through you.
+      maxLevel: 1
+      baseCost: 8000
+      type: FireResist
+      valuePerLevel: 1.0
+    - id: fireaxe-fire-man
+      name: Fire Man
+      description: While on fire, deal increased damage and heal.
+      maxLevel: 1
+      baseCost: 10000
+      type: WhileBurningBuff
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/fireaxe.rsi
+    state: icon
+    scale: 1,1

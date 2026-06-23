@@ -59,6 +59,10 @@
       - ReagentId: Blood
         Quantity: 20
   - type: Tag
+    # FS: StunImmune blocks ALL vanilla stun sources (batons, flashes, slipping, etc.) so players
+    # can't trivialise waves by farming free stuns from station gear. FS shop upgrades (Concussion,
+    # Heavy Concussion, etc.) bypass this via FSStunOverrideSystem which strips + restores the tag
+    # for the duration of the stun call.
     tags:
     - StunImmune
   - type: MovementIgnoreGravity

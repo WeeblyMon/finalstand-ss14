@@ -1,4 +1,12 @@
 # FinalStand-specific gun overrides.
+
+- type: entity
+  parent: CartridgeMagnum
+  id: FSCartridgeFlintlock
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletFlintlock
 # FSWeaponMateba: replaces RevolverAmmoProvider with BallisticAmmoProvider so players
 # can reload by dragging MagazineBoxMagnum onto the gun instead of one cartridge at a time.
 

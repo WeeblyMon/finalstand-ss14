@@ -1,0 +1,50 @@
+# ── Baseball Bat Shop ────────────────────────────────────────────────────────
+# Crowd-control bruiser. Stun-on-attack via the concussion line.
+
+- type: entity
+  id: FSWeaponShopBaseballBat
+  parent: FSWeaponShopBase
+  name: Baseball Bat
+  description: A robust wooden bat. Tunes enemies into pulp with the right upgrades.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: BaseBallBat
+    price: 1500
+    category: Melee Blunt
+    statDamage: 30
+    statFireRate: 40
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: bat-heavy-club
+      name: Heavy Club
+      description: Reinforced barrel adds +115 damage per level.
+      maxLevel: 2
+      baseCost: 2500
+      type: Damage
+      valuePerLevel: 1.15
+    - id: bat-lucille
+      name: Lucille
+      description: Enemies hit bleed, slowing them and dealing damage over time. +150 bleed per level.
+      maxLevel: 3
+      baseCost: 1000
+      type: Bleed
+      valuePerLevel: 1.5
+    - id: bat-concussion
+      name: Concussion
+      description: All attacks stun enemies briefly. +2s stun.
+      maxLevel: 1
+      baseCost: 16000
+      type: StunOnHit
+      valuePerLevel: 2
+    - id: bat-heavy-concussion
+      name: Heavy Concussion
+      description: Critical hits against stunned enemies.
+      maxLevel: 1
+      baseCost: 8000
+      type: CritVsStunned
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/baseball_bat.rsi
+    state: icon
+    scale: 1,1

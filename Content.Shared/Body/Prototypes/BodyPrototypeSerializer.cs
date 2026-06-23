@@ -186,6 +186,9 @@ public sealed class BodyPrototypeSerializer : ITypeReader<BodyPrototype, Mapping
             slots.Add(slotId, slot);
         }
 
+        // RA0039 doesn't apply inside ITypeReader deserialization paths; Goob ships this without the pragma
+#pragma warning disable RA0039
         return new BodyPrototype(id, name, root, slots);
+#pragma warning restore RA0039
     }
 }

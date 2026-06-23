@@ -51,26 +51,20 @@ public sealed class CritSystem : EntitySystem
         return true;
     }
 
+    public void MarkPendingCrit(EntityUid shooter, EntityUid target)
+    {
+        _pendingCrits.Add((shooter, target));
+    }
+
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
-        Log.Warning($"[CritSystem] OnProjectileHit: shooter={comp.Shooter} weapon={comp.Weapon} target={args.Target}");
         if (comp.Shooter == null || comp.Weapon == null)
-        {
-            Log.Warning($"[CritSystem] OnProjectileHit: early return — shooter null={comp.Shooter == null} weapon null={comp.Weapon == null}");
             return;
-        }
 
         if (TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier))
         {
             args.Damage *= multiplier;
             _pendingCrits.Add((comp.Shooter.Value, args.Target));
-            RaiseLocalEvent(args.Target, new CritLandedEvent
-            {
-                Target = args.Target,
-                Shooter = comp.Shooter.Value,
-                FinalDamage = args.Damage.GetTotal().Float(),
-                WasCrit = true,
-            });
         }
 
         var hitEffect = new FSProjectileHitEffectEvent
@@ -99,15 +93,13 @@ public sealed class CritSystem : EntitySystem
         if (amount <= 0f)
             return;
 
-        if (_pendingCrits.Remove((args.Origin.Value, uid)))
-            return;
-
+        var wasCrit = _pendingCrits.Remove((args.Origin.Value, uid));
         RaiseLocalEvent(uid, new CritLandedEvent
         {
             Target = uid,
             Shooter = args.Origin.Value,
             FinalDamage = amount,
-            WasCrit = false,
+            WasCrit = wasCrit,
         });
     }
 }

@@ -1,0 +1,116 @@
+# ── Cutlass Shop ─────────────────────────────────────────────────────────────
+# Pirate sabre. Slash-and-stamina playstyle, plus flintlock crit synergy via Pirate.
+
+- type: entity
+  id: FSWeaponShopCutlass
+  parent: FSWeaponShopBase
+  name: Cutlass
+  description: A wickedly curved blade. Pairs well with flintlocks and a sense of dread.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: Cutlass
+    price: 4000
+    category: Melee Sword
+    statDamage: 40
+    statFireRate: 55
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: cutlass-quick-slash
+      name: Quick Slash
+      description: Lighter blade increases attack speed by 20%.
+      maxLevel: 1
+      baseCost: 6000
+      type: AttackSpeed
+      valuePerLevel: 0.2
+    - id: cutlass-sharpened
+      name: Sharpened Blade
+      description: Hones the edge for +145% damage per level.
+      maxLevel: 3
+      baseCost: 4750
+      type: Damage
+      valuePerLevel: 1.45
+    - id: cutlass-plunder
+      name: Plunder
+      description: "Pirate's tax: +25% money on each kill."
+      maxLevel: 1
+      baseCost: 5000
+      type: MoneyGainBonus
+      valuePerLevel: 0.25
+    - id: cutlass-hyper-saber
+      name: Hyper Saber
+      description: Drains +10 stamina per hit.
+      maxLevel: 1
+      baseCost: 5000
+      type: StaminaSteal
+      valuePerLevel: 10
+    - id: cutlass-pirate
+      name: Pirate
+      description: Crits with all flintlocks after a Cutlass kill (and vice versa). Spawns a flintlock. 5s crit window.
+      maxLevel: 1
+      baseCost: 6500
+      type: FlintlockCritSynergy
+      valuePerLevel: 5
+      spawnProtoId: WeaponPistolFlintlock
+      spawnCountPerLevel: 1
+    # ── Flintlock upgrades (hidden until Pirate is bought; applied to the held Flintlock) ─────
+    # Recovered from the removed FSWeaponShopFlintlock (commit 34e27bcbd9).
+    - id: flintlock-extra-load
+      name: Extra Load
+      description: Expands the Flintlock's barrel capacity by 1 round per level. Up to 6 shots before reloading.
+      maxLevel: 5
+      baseCost: 100
+      type: MagazineSize
+      valuePerLevel: 1
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+    - id: flintlock-ball-and-powder
+      name: Ball & Powder
+      description: Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
+      maxLevel: 5
+      baseCost: 100
+      type: SpawnItem
+      spawnProtoId: MagazineBoxMagnum
+      spawnCountPerLevel: 1
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+    - id: flintlock-steady-hand
+      name: Steady Hand
+      description: Reduces the Flintlock's max spread by 0.5° per level for that one perfect shot.
+      maxLevel: 5
+      baseCost: 100
+      type: Accuracy
+      valuePerLevel: 0.5
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+    - id: flintlock-heavier-load
+      name: Heavier Load
+      description: Higher-grain ball ammunition increases Flintlock damage by 25% per level.
+      maxLevel: 3
+      baseCost: 250
+      type: Damage
+      valuePerLevel: 0.25
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+    - id: flintlock-explosive-shot
+      name: Explosive Shot
+      description: Flintlock bullets detonate on impact. AoE damage scales with gun damage × level.
+      maxLevel: 3
+      baseCost: 150
+      type: ExplosiveShot
+      valuePerLevel: 1
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+    - id: flintlock-payday
+      name: Payday (Flintlock)
+      description: +50 bonus credits per kill with the Flintlock per level.
+      maxLevel: 4
+      baseCost: 100
+      type: MoneyGainBonus
+      valuePerLevel: 50
+      requiresUpgrade: cutlass-pirate
+      targetWeaponProtoId: WeaponPistolFlintlock
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/cutlass.rsi
+    state: icon
+    scale: 1,1

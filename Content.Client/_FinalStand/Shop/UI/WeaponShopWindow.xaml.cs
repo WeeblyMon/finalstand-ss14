@@ -36,7 +36,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
 
-        // Tone down the upgrade list scrollbar: narrower and more translucent.
         foreach (var child in UpgradesScroll.Children)
         {
             if (child is ScrollBar bar)
@@ -180,6 +179,10 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
         foreach (var def in defs)
         {
+                if (def.RequiresUpgrade != null
+                && levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
+                continue;
+
             var level = levels.GetValueOrDefault(def.Id, 0);
             UpgradesContainer.AddChild(BuildUpgradeRow(def, level, credits));
         }
@@ -189,6 +192,9 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         foreach (var d in defs)
         {
             if (d.IsStub) continue;
+            if (d.RequiresUpgrade != null
+                && levels.GetValueOrDefault(d.RequiresUpgrade, 0) <= 0)
+                continue;
             totalPurchased += levels.GetValueOrDefault(d.Id, 0);
             totalMax += d.MaxLevel;
         }
@@ -222,8 +228,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         }
     }
 
-    // ── Stat bars ─────────────────────────────────────────────────────────────
-
     private void BuildStatBars(FSShopWeaponComponent shopComp, EntityUid? gun, IEntityManager entMan)
     {
         StatBarsContainer.RemoveAllChildren();
@@ -236,36 +240,29 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             entMan.TryGetComponent(gun.Value, out critComp);
         }
 
-        // Damage — no damage upgrades; static designer value.
         StatBarsContainer.AddChild(BuildStatBar("Damage",
             shopComp.StatDamage / 100f,
             $"{shopComp.StatDamage}"));
 
-        // Fire Rate — live from GunComponent.
         var fireRate = gunComp?.FireRateModified ?? 2f;
         var secPerShot = fireRate > 0f ? 1f / fireRate : 0f;
         StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
             Math.Min(1f, fireRate / 10f),
             $"{secPerShot:F1}s"));
 
-        // Accuracy — lower angle → higher bar fill.
         var angleDeg = gunComp != null ? (float)gunComp.MaxAngleModified.Degrees : 15f;
         StatBarsContainer.AddChild(BuildStatBar("Accuracy",
             Math.Max(0f, 1f - angleDeg / 30f),
             $"{angleDeg:F1}°"));
 
-        // Capacity — check each ammo provider type.
         var (capFill, capText) = GetCapacityDisplay(shopComp, gun, entMan);
         StatBarsContainer.AddChild(BuildStatBar("Capacity", capFill, capText));
 
-        // Crit Chance — live from CritComponent.
         var critChance = critComp?.BaseCritChance ?? 0f;
         StatBarsContainer.AddChild(BuildStatBar("Crit Chance",
             Math.Min(1f, critChance),
             $"{critChance * 100f:F1}%"));
 
-        // Crit Damage — live from CritComponent.
-        // TODO(finalstand): tune crit damage bar max (currently 3.0x = 100%)
         var critMult = critComp?.CritMultiplier ?? 1f;
         StatBarsContainer.AddChild(BuildStatBar("Crit Damage",
             Math.Min(1f, (critMult - 1f) / 2f),
@@ -286,7 +283,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out _))
                 return (1f, "∞");
         }
-        // Magazine guns: approximate from StatCapacity (capacity doesn't change via upgrades here).
         var approx = (int)(shopComp.StatCapacity * 0.2f);
         return (Math.Min(1f, approx / 30f), $"{approx}");
     }
@@ -353,8 +349,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         _ => Color.FromHex("#88C0D0"),
     };
 
-    // ── Upgrade rows ──────────────────────────────────────────────────────────
-
     private BoxContainer BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits)
     {
         var row = new BoxContainer
@@ -373,9 +367,11 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var btn = new Button
         {
             Text = def.Name,
-            MinWidth = 130,
+            MinWidth = 150,
+            MaxWidth = 180,
+            ClipText = true,
             Disabled = atMax || !canAffordNext,
-            ToolTip = def.Description,
+            ToolTip = string.IsNullOrEmpty(def.Description) ? def.Name : def.Description,
         };
         btn.OnPressed += _ => OnUpgradePressed?.Invoke(def.Id);
         row.AddChild(btn);
@@ -488,8 +484,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         return row;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private static string UpgradeTypeToStatLabel(WeaponUpgradeType type) => type switch
     {
         WeaponUpgradeType.FireRate => "Fire Rate",
@@ -537,6 +531,18 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.MagEfficiency => "Mag Eff.",
         WeaponUpgradeType.PulseCascade => "Cascade",
         WeaponUpgradeType.Aftershock => "Aftershock",
+        WeaponUpgradeType.SpeedLoader => "Speed Loader",
+        WeaponUpgradeType.ConcussionClub => "Stun (Heavy)",
+        WeaponUpgradeType.CritVsStunned => "Stun Crit",
+        WeaponUpgradeType.StunOnHit => "Stun",
+        WeaponUpgradeType.FlintlockCritSynergy => "Pirate Crit",
+        WeaponUpgradeType.CritVsBurning => "Fire Crit",
+        WeaponUpgradeType.FireResist => "Fire Resist",
+        WeaponUpgradeType.WhileBurningBuff => "Pyromaniac",
+        WeaponUpgradeType.FuelEfficiency => "Fuel Eff.",
+        WeaponUpgradeType.FuelCapacity => "Fuel Cap.",
+        WeaponUpgradeType.WielderResistance => "Resist",
+        WeaponUpgradeType.DualWieldEnergySword => "Dual Wield",
         _ => "",
     };
 

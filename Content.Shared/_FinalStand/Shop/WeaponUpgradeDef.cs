@@ -51,6 +51,18 @@ public enum WeaponUpgradeType : byte
     PulseCascade,
     Aftershock,
     SpeedLoader,
+
+    ConcussionClub,
+    CritVsStunned,
+    StunOnHit,
+    FlintlockCritSynergy,
+    CritVsBurning,
+    FireResist,
+    WhileBurningBuff,
+    FuelEfficiency,
+    FuelCapacity,
+    WielderResistance,
+    DualWieldEnergySword,
 }
 
 [DataDefinition]
@@ -66,4 +78,8 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public EntProtoId? SpawnProtoId;
     [DataField] public int SpawnCountPerLevel = 1;
     [DataField] public bool IsStub = false;
+
+    [DataField] public string? RequiresUpgrade;
+
+    [DataField] public EntProtoId? TargetWeaponProtoId;
 }

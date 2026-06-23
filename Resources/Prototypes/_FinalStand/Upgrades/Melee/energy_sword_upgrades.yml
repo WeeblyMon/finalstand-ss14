@@ -1,0 +1,81 @@
+# ── Energy Sword Shop ────────────────────────────────────────────────────────
+# Endgame melee. Plasma blade. Dual-wield upgrade swaps the held EnergySword for an EnergySwordDouble in place,
+# copying the upgrade state across (handled in FSPlayerUpgradesSystem.DualWieldEnergySword case).
+
+- type: entity
+  id: FSWeaponShopEnergySword
+  parent: FSWeaponShopBase
+  name: Energy Sword
+  description: A concentrated-plasma blade. Carves through unarmored targets like butter.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: EnergySword
+    # FS: after the Dual Wield upgrade the player's EnergySword is replaced with an
+    # EnergySwordDouble — accept it as an alias so the shop can keep upgrading the
+    # post-transform weapon (the state already lives on the new entity).
+    weaponProtoIdAliases:
+    - EnergySwordDouble
+    price: 25000
+    category: Melee Energy
+    statDamage: 85
+    statFireRate: 70
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: esword-quick-slash
+      name: Quick Slash
+      description: +20% attack speed per level.
+      maxLevel: 2
+      baseCost: 6000
+      type: AttackSpeed
+      valuePerLevel: 0.2
+    - id: esword-enhanced
+      name: Enhanced Blades
+      description: "Plasma intensity scaling: +25% damage per level."
+      maxLevel: 4
+      baseCost: 15000
+      type: Damage
+      valuePerLevel: 0.25
+    - id: esword-energy-overflow
+      name: Energy Overflow Mobility
+      description: "Excess plasma channeled to legs: +10% movement speed per level."
+      maxLevel: 2
+      baseCost: 8000
+      type: MovementSpeed
+      valuePerLevel: 0.1
+    - id: esword-hyper-staminasteal
+      name: Hyper Sword Staminasteal
+      description: Drains +10 stamina per hit.
+      maxLevel: 1
+      baseCost: 12000
+      type: StaminaSteal
+      valuePerLevel: 10
+    - id: esword-firebrand
+      name: Firebrand
+      description: Ignites enemies on hit. +30 fire stacks per level.
+      maxLevel: 3
+      baseCost: 10000
+      type: SetOnFire
+      valuePerLevel: 30
+    - id: esword-molecular-rupture
+      name: Molecular Rupture
+      description: Blade phases through armor entirely.
+      maxLevel: 1
+      baseCost: 12000
+      type: Pierce
+      valuePerLevel: 1
+    - id: esword-dual-wield
+      name: Dual Wield
+      description: Upgrades to dual energy swords. +50% attack speed.
+      maxLevel: 1
+      baseCost: 30000
+      type: DualWieldEnergySword
+      valuePerLevel: 0.5
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/e_sword.rsi
+    # FS: show the activated blade in the shop preview (handle + glowing blade unshaded).
+    layers:
+    - state: e_sword
+    - state: e_sword_blade
+      shader: unshaded
+    scale: 1,1

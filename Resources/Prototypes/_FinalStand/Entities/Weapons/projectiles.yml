@@ -44,6 +44,16 @@
       state: impact_blue
 
 - type: entity
+  id: FSBulletFlintlock
+  parent: BulletMagnum
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 70
+
+- type: entity
   id: FSPrismaticBeam
   parent: BulletLaser
   categories: [ HideSpawnMenu ]

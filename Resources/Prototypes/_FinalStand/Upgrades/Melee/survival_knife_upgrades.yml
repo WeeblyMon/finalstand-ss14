@@ -1,0 +1,50 @@
+# ── Survival Knife Shop ──────────────────────────────────────────────────────
+# The starter melee. Free. Designed for early-wave economy.
+
+- type: entity
+  id: FSWeaponShopSurvivalKnife
+  parent: FSWeaponShopBase
+  name: Survival Knife
+  description: A basic carp-killer. Free to take and cheap to improve.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: SurvivalKnife
+    price: 0
+    category: Melee Knife
+    statDamage: 15
+    statFireRate: 60
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: knife-quick-slash
+      name: Quick Slash
+      description: Lighter grip increases attack speed by 33%.
+      maxLevel: 1
+      baseCost: 2000
+      type: AttackSpeed
+      valuePerLevel: 0.33
+    - id: knife-sharpened
+      name: Sharpened Blade
+      description: Hones the edge for +50% damage per level (up to x2 total).
+      maxLevel: 2
+      baseCost: 3000
+      type: Damage
+      valuePerLevel: 0.5
+    - id: knife-golden
+      name: Golden Blade
+      description: Gilded blade pays out +25% money on each kill.
+      maxLevel: 1
+      baseCost: 500
+      type: MoneyGainBonus
+      valuePerLevel: 0.25
+    - id: knife-bloodthirster
+      name: Blood Thirster
+      description: Drains +10 blood from the target on every hit.
+      maxLevel: 2
+      baseCost: 3000
+      type: LifeSteal
+      valuePerLevel: 10
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/survival_knife.rsi
+    state: icon
+    scale: 1,1

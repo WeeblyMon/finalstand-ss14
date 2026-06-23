@@ -43,10 +43,22 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool PulseCascadeEnabled = false;
     [DataField] public bool AftershockEnabled = false;
 
-    // Accumulated magazine size bonus for ChamberMagazineAmmoProvider guns (e.g. MK58).
-    // Re-applied each time a new magazine is inserted.
     [DataField] public int MagazineSizeBonus = 0;
 
-    // TODO(finalstand): audit existing purchased weapons for TotalSpent backfill if needed
+    [DataField] public float AttackSpeedMultiplier = 1f;
+    [DataField] public int ConcussionClubStunMs = 0;
+    [DataField] public bool CritVsStunned = false;
+    [DataField] public int StunOnHitMs = 0;
+    [DataField] public int FlintlockCritDurationSec = 0;
+    [DataField] public bool CritVsBurning = false;
+    [DataField] public float FireDamageResist = 0f;
+    [DataField] public bool WhileBurningBuff = false;
+    [DataField] public float FuelEfficiencyReduction = 0f;
+    [DataField] public float FuelCapacityMultiplier = 1f;
+    [DataField] public float WielderResistance = 0f;
+    // one-shot flag: EnergySword transform only runs once per entity
+    [DataField] public bool DualWieldEnergySwordApplied = false;
+    [DataField] public float HeldSpeedBonusPercent = 0f;
+
     [DataField] public int TotalSpent = 0;
 }

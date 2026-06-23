@@ -33,6 +33,8 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
             return;
         if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.ExplosiveShotLevel <= 0)
             return;
+        if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
+            return;
 
         var splashDamage = ev.Damage * state.ExplosiveShotLevel;
 
@@ -40,10 +42,9 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
         var mapId = Transform(ev.Target).MapID;
         var epicenter = new MapCoordinates(targetPos, mapId);
 
-        // Visual-only puff — tileBreakScale 0 prevents tile damage, low intensity avoids mob damage.
         _explosion.QueueExplosion(
             epicenter,
-            ExplosionSystem.DefaultExplosionPrototypeId,
+            "FSExplosiveShotExplosion",
             totalIntensity: 2f,
             slope: 5f,
             maxTileIntensity: 1f,
