@@ -230,11 +230,22 @@ public sealed class SmartEquipSystem : EntitySystem
         }
 
         // case 4 (just an item):
-        // FinalStand: if the stored item is a gun, drop whatever's in hand so F always retrieves it immediately.
-        if (handItem != null && HasComp<GunComponent>(slotItem))
-            _hands.TryDrop((uid, hands), hands.ActiveHandId!);
-        else if (handItem != null)
+        if (handItem != null)
+        {
+            // Swap: hand item → suit storage, suit storage item → hand (no floor drop).
+            if (!_inventory.CanEquip(uid, handItem.Value, equipmentSlot, out var equipReason))
+            {
+                _popup.PopupClient(Loc.GetString(equipReason), uid, uid);
+                return;
+            }
+            if (!_inventory.CanUnequip(uid, equipmentSlot, out _))
+                return;
+
+            _inventory.TryUnequip(uid, equipmentSlot, inventory: inventory, predicted: true);
+            _inventory.TryEquip(uid, handItem.Value, equipmentSlot, predicted: true);
+            _hands.TryPickup(uid, slotItem, handsComp: hands);
             return;
+        }
 
         if (!_inventory.CanUnequip(uid, equipmentSlot, out var inventoryReason))
         {
