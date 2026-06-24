@@ -11,6 +11,7 @@ using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Station;
 
@@ -23,9 +24,14 @@ public sealed class CCCInteractionSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+
+    private const int BroadcastMaxLength = 500;
+    private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);
 
     private float _stateTimer;
     private readonly HashSet<EntityUid> _openActors = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _lastBroadcastTime = new();
 
     public override void Initialize()
     {
@@ -84,7 +90,7 @@ public sealed class CCCInteractionSystem : EntitySystem
         }
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
+    private void OnPrepStarted(WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
     private void OnCombatStarted(WaveCombatStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
     private void OnReadyCheckUpdated(ReadyCheckUpdatedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
 
@@ -107,7 +113,17 @@ public sealed class CCCInteractionSystem : EntitySystem
     private void OnBroadcast(EntityUid uid, FinalStandCCCComponent comp, CCCBroadcastMessage args)
     {
         if (string.IsNullOrWhiteSpace(args.Text)) return;
-        _chatManager.DispatchServerAnnouncement($"[COMMAND] {args.Text}", Color.FromHex("#66CCFF"));
+
+        var jobId = GetJobId(args.Actor);
+        if (jobId == null || !ReadyCheckDepts.IsCommandJob(jobId)) return;
+
+        var now = _timing.CurTime;
+        if (_lastBroadcastTime.TryGetValue(args.Actor, out var last) && now - last < BroadcastCooldown)
+            return;
+        _lastBroadcastTime[args.Actor] = now;
+
+        var text = args.Text.Length > BroadcastMaxLength ? args.Text[..BroadcastMaxLength] : args.Text;
+        _chatManager.DispatchServerAnnouncement($"[COMMAND] {text}", Color.FromHex("#66CCFF"));
     }
 
     private void PushCCCState()

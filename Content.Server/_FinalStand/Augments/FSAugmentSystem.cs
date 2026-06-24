@@ -337,9 +337,17 @@ public sealed class FSAugmentSystem : EntitySystem
         }, Filter.SinglePlayer(session));
     }
 
+    private const int MaxJsonBytes = 65_536; // 64 KB — any legitimate augment payload is <1 KB
+
     private void DeserializeInto(FSAugmentLevelsComponent aug,
         string levelsJson, string slotsJson, string loadoutsJson)
     {
+        if (levelsJson.Length > MaxJsonBytes || slotsJson.Length > MaxJsonBytes || loadoutsJson.Length > MaxJsonBytes)
+        {
+            Log.Error($"[FSAugment] Oversized JSON in augment data (levels={levelsJson.Length} slots={slotsJson.Length} loadouts={loadoutsJson.Length}) — discarding all.");
+            return;
+        }
+
         if (!string.IsNullOrEmpty(levelsJson))
         {
             try
