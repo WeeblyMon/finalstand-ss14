@@ -44,6 +44,16 @@
       state: impact_blue
 
 - type: entity
+  id: FSPelletShotgunSplinter
+  parent: BaseBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 10
+
+- type: entity
   id: FSBulletFlintlock
   parent: BulletMagnum
   categories: [ HideSpawnMenu ]
