@@ -205,6 +205,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
+        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
+            ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
+            : 0;
+        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
+        comp.EnemiesSpawnedThisWave = 0;
+        comp.AliveEnemies.Clear();
+
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
         if (IsBossWave(comp.WaveNumber) && comp.SpawnerEntities.Count > 0 && comp.BossPool.Count > 0)
@@ -228,15 +235,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             RaiseLocalEvent(giant, new FSEnemyHpScaledEvent()); // FINALSTAND: armor recalculates after HP scale
             comp.AliveEnemies.Add(giant);
             comp.GiantEntity = giant;
+            comp.EnemyTotalThisWave++;
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
-
-        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
-            ? _playerManager.Sessions.Count() * comp.PlayerEnemyBonus
-            : 0;
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
-        comp.EnemiesSpawnedThisWave = 0;
-        comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
         comp.NextSpawnTime = Timing.CurTime;
 
