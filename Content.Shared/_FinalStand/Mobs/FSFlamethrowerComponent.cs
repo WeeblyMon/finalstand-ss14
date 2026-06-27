@@ -17,7 +17,7 @@ public sealed partial class FSFlamethrowerComponent : Component
     [DataField] public SoundSpecifier FireLoopSound =
         new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Flamethrower/fire_loop.ogg")
         {
-            Params = AudioParams.Default.WithMaxDistance(5f).WithRolloffFactor(2f),
+            Params = AudioParams.Default.WithLoop(true).WithMaxDistance(11f).WithRolloffFactor(0.5f),
         };
 
     // Runtime state
