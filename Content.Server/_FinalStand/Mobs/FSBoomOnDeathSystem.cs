@@ -92,21 +92,22 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
     private void Explode(EntityUid uid, FSBoomOnDeathComponent comp)
     {
         var coords = Transform(uid).Coordinates;
-
-        var r = (int)comp.ExplosionRadius;
-        for (var x = -r; x <= r; x++)
-        for (var y = -r; y <= r; y++)
-        {
-            if (x * x + y * y > comp.ExplosionRadius * comp.ExplosionRadius)
-                continue;
-            Spawn("FSBloaterExplosionEffect", coords.Offset(new Vector2(x, y)));
-        }
-
-        _audio.PlayPvs(comp.ExplosionSound, uid);
-
         var worldPos = _transform.GetWorldPosition(uid);
         var mapId = Transform(uid).MapID;
         var epicenter = new MapCoordinates(worldPos, mapId);
+
+        var r = (int)comp.ExplosionRadius;
+        for (var x = -r; x <= r; x++)
+        {
+            for (var y = -r; y <= r; y++)
+            {
+                if (x * x + y * y > comp.ExplosionRadius * comp.ExplosionRadius)
+                    continue;
+                Spawn("FSBloaterExplosionEffect", coords.Offset(new Vector2(x, y)));
+            }
+        }
+
+        _audio.PlayPvs(comp.ExplosionSound, coords, comp.ExplosionSound.Params);
 
         var blastDamage = new DamageSpecifier();
         blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
