@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._FinalStand.NPC;
 using Content.Server.Examine;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Pathfinding;
@@ -644,6 +645,90 @@ public sealed partial class NPCSteeringSystem
             {
                 var dot = Vector2.Dot(norm, Directions[i]);
                 danger[i] = MathF.Max(dot * weight, danger[i]);
+            }
+        }
+
+        _entSetPool.Return(ents);
+    }
+
+    #endregion
+
+    #region Wave Zombie RVO
+
+    private void WaveZombieRVO(
+        EntityUid uid,
+        Angle offsetRot,
+        Vector2 worldPos,
+        Span<float> danger)
+    {
+        if (!_waveTagQuery.HasComponent(uid))
+            return;
+        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover))
+            return;
+
+        var myDir = myMover.CurTickSprintMovement;
+        if (myDir == Vector2.Zero)
+            return; // stationary — nothing to avoid
+
+        const float TimeHorizon     = 2.0f;
+        const float DetectionRadius = 3.0f;
+        const float MaxWeight       = 0.55f;
+        const float CombinedRadius  = 0.4f;
+        const float AssumedSpeed    = 3.5f; // tiles/s — close enough for direction math
+
+        var myVel = myDir * AssumedSpeed;
+        var ents  = _entSetPool.Get();
+        _lookup.GetEntitiesInRange(uid, DetectionRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+
+        foreach (var ent in ents)
+        {
+            if (!_waveTagQuery.HasComponent(ent))
+                continue;
+            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover))
+                continue;
+
+            var toOther = _transform.GetWorldPosition(_xformQuery.GetComponent(ent)) - worldPos;
+            var dist = toOther.Length();
+            if (dist < 0.01f || dist > DetectionRadius)
+                continue;
+
+            var toOtherDir   = toOther / dist;
+            var peerVel      = peerMover.CurTickSprintMovement * AssumedSpeed;
+            var closingSpeed = Vector2.Dot(myVel - peerVel, toOtherDir);
+
+            if (closingSpeed <= 0f)
+            {
+                // Peer is ahead and same direction — conga line case RVO can't handle.
+                // Add forward danger so the centroid steers laterally around the blocker.
+                var isAhead = Vector2.Dot(myDir, toOtherDir) > 0.7f;
+                var peerDir = peerMover.CurTickSprintMovement;
+                var sameDir = peerDir != Vector2.Zero && Vector2.Dot(myDir, peerDir.Normalized()) > 0.5f;
+                if (isAhead && sameDir && dist < 1.5f)
+                {
+                    const float BlockWeight = 0.4f;
+                    var dangerDir2 = offsetRot.RotateVec(toOtherDir);
+                    for (var i = 0; i < InterestDirections; i++)
+                    {
+                        var dot = Vector2.Dot(dangerDir2.Normalized(), Directions[i]);
+                        if (dot > 0f)
+                            danger[i] = MathF.Max(danger[i], dot * BlockWeight);
+                    }
+                }
+                continue;
+            }
+
+            var ttc = (dist - CombinedRadius) / closingSpeed;
+            if (ttc <= 0f || ttc > TimeHorizon)
+                continue;
+
+            var weight    = (1f - ttc / TimeHorizon) * MaxWeight;
+            var dangerDir = offsetRot.RotateVec(toOtherDir);
+
+            for (var i = 0; i < InterestDirections; i++)
+            {
+                var dot = Vector2.Dot(dangerDir.Normalized(), Directions[i]);
+                if (dot > 0f)
+                    danger[i] = MathF.Max(danger[i], dot * weight);
             }
         }
 

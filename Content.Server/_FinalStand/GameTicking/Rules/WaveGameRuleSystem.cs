@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Cleanup;
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Economy;
@@ -322,6 +323,16 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             var proto = SelectEnemyProto(comp, pool);
             var enemy = Spawn(proto, coords);
+            var affinity = EnsureComp<FSFrontAffinityComponent>(enemy);
+            affinity.SpawnerUid = spawnerUid;
+            affinity.FrontId = spawnerComp?.DirectionLabel.ToUpperInvariant() switch
+            {
+                "N" => HordeFront.North,
+                "E" => HordeFront.East,
+                "S" => HordeFront.South,
+                "W" => HordeFront.West,
+                _   => HordeFront.Unknown,
+            };
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))

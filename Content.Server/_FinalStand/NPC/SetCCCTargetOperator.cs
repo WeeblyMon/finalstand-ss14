@@ -4,14 +4,16 @@ using System.Threading.Tasks;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.HTN.PrimitiveTasks;
+using Content.Shared._FinalStand.NPC;
 using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.NPC;
 
-// code to make enemies beeline to ccc, attempt to ignore distance and los checks
 public sealed partial class SetCCCTargetOperator : HTNOperator
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
+
+    private const float ApproachRadius = 1.0f;
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(
         NPCBlackboard blackboard, CancellationToken cancelToken)
@@ -20,10 +22,13 @@ public sealed partial class SetCCCTargetOperator : HTNOperator
             || !_entManager.EntityExists(target))
             return (false, null);
 
+        var angle = blackboard.TryGetValue<float>(FSAIBlackboardKeys.ApproachAngle, out var a, _entManager) ? a : 0f;
+        var offset = new Vector2(MathF.Cos(angle) * ApproachRadius, MathF.Sin(angle) * ApproachRadius);
+
         return (true, new Dictionary<string, object>
         {
             { "Target", target },
-            { "TargetCoordinates", new EntityCoordinates(target, Vector2.Zero) },
+            { "TargetCoordinates", new EntityCoordinates(target, offset) },
         });
     }
 }
