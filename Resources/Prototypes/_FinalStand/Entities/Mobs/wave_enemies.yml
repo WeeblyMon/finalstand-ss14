@@ -135,7 +135,7 @@
   - type: MobThresholds
     thresholds:
       0: Alive
-      300: Dead
+      150: Dead
   - type: MovementSpeedModifier
     baseWalkSpeed: 1.2
     baseSprintSpeed: 1.5
@@ -148,7 +148,7 @@
   - type: FSEnemyValue
     killCredits: 600
   - type: FSArmor
-    maxHPRatio: 0.5
+    maxHPRatio: 1.0
     regenRate: 10
 
 # TODO(finalstand): add ArmorComponent when FSZombieDestroyer is implemented
