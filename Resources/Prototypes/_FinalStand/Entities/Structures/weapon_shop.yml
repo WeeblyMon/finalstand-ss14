@@ -541,8 +541,8 @@
     upgrades:
     - id: drozd-penetrator
       name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
-      maxLevel: 4
+      description: Shots pierce through enemies. Each level adds another target pierced (max 2 bonus).
+      maxLevel: 2
       baseCost: 2100
       type: Pierce
       valuePerLevel: 1
