@@ -19,9 +19,8 @@
     attackRate: 0.75
     damage:
       types:
-        # axes are kinda like sharp hammers, you know?
-        Blunt: 5
-        Slash: 10
+        Blunt: 25
+        Slash: 50
     soundHit:
       collection: MetalThud
   - type: Wieldable
