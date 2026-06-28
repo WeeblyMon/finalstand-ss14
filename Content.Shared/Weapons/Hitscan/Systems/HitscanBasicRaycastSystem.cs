@@ -1,4 +1,6 @@
 using System.Numerics;
+using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Upgrades;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Database;
@@ -23,29 +25,51 @@ public sealed class HitscanBasicRaycastSystem : EntitySystem
 
     [Dependency] private readonly EntityQuery<HitscanBasicVisualsComponent> _visualsQuery = default!;
 
+    private EntityQuery<FSFriendlyFireComponent> _ffQuery;
+    private EntityQuery<FSHitscanPierceSkipComponent> _skipQuery;
+
     public override void Initialize()
     {
         base.Initialize();
+        _ffQuery = GetEntityQuery<FSFriendlyFireComponent>();
+        _skipQuery = GetEntityQuery<FSHitscanPierceSkipComponent>();
 
         SubscribeLocalEvent<HitscanBasicRaycastComponent, HitscanTraceEvent>(OnHitscanFired);
     }
 
     private void OnHitscanFired(Entity<HitscanBasicRaycastComponent> ent, ref HitscanTraceEvent args)
     {
+        var preTrace = new HitscanPreTraceEvent
+        {
+            FromCoordinates = args.FromCoordinates,
+            ShotDirection = args.ShotDirection,
+            Gun = args.Gun,
+            Shooter = args.Shooter,
+            Target = args.Target,
+        };
+        RaiseLocalEvent(ent, ref preTrace);
+
         var shooter = args.Shooter ?? args.Gun;
         var mapCords = _transform.ToMapCoordinates(args.FromCoordinates);
         var ray = new CollisionRay(mapCords.Position, args.ShotDirection, (int) ent.Comp.CollisionMask);
         var rayCastResults = _physics.IntersectRay(mapCords.MapId, ray, ent.Comp.MaxDistance, shooter, false);
 
         var target = args.Target;
+        var isFriendlyShooter = args.Shooter != null && _ffQuery.HasComponent(args.Shooter.Value);
+        _skipQuery.TryGetComponent(ent, out var skipComp);
+
         // If you are in a container, use the raycast result
         // Otherwise:
         //  1.) Hit the first entity that you targeted.
         //  2.) Hit the first entity that doesn't require you to aim at it specifically to be hit.
+        //  3.) Skip friendly players (pass-through with no collision/VFX).
+        //  4.) Skip entities marked for pierce pre-pass by FSHitscanPierceFriendlySystem.
         var result = _container.IsEntityOrParentInContainer(shooter)
             ? rayCastResults.FirstOrNull()
-            : rayCastResults.FirstOrNull(hit => hit.HitEntity == target
-                                                || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true);
+            : rayCastResults.FirstOrNull(hit =>
+                (hit.HitEntity == target || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true)
+                && !(isFriendlyShooter && _ffQuery.HasComponent(hit.HitEntity))
+                && !(skipComp != null && skipComp.Targets.Contains(hit.HitEntity)));
 
         var distanceTried = result?.Distance ?? ent.Comp.MaxDistance;
 

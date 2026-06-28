@@ -1,10 +1,13 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Ghost;
+using Content.Shared.Interaction;
 using Content.Shared.NPC.Systems;
+using Content.Shared.Temperature;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.FriendlyFire;
@@ -20,6 +23,18 @@ public sealed class FSFriendlyFireSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<ActorComponent, ComponentStartup>(OnActorStartup);
+        SubscribeLocalEvent<FSFriendlyFireComponent, InteractUsingEvent>(OnInteractUsingFriendlyFire,
+            before: new[] { typeof(FlammableSystem) });
+    }
+
+    private void OnInteractUsingFriendlyFire(EntityUid uid, FSFriendlyFireComponent _, InteractUsingEvent args)
+    {
+        if (args.Handled) return;
+        if (!HasComp<FSFriendlyFireComponent>(args.User)) return;
+        var isHot = new IsHotEvent();
+        RaiseLocalEvent(args.Used, isHot);
+        if (!isHot.IsHot) return;
+        args.Handled = true;
     }
 
     public void AssignFactionToAllPlayers()

@@ -5,6 +5,20 @@ using Robust.Shared.Map;
 namespace Content.Shared.Weapons.Hitscan.Events;
 
 /// <summary>
+/// Raised on the hitscan entity at the very start of HitscanBasicRaycastSystem processing, before any raycast filtering.
+/// Pre-pass systems (e.g. pierce) should subscribe here instead of HitscanTraceEvent to avoid duplicate subscriptions.
+/// </summary>
+[ByRefEvent]
+public record struct HitscanPreTraceEvent
+{
+    public EntityCoordinates FromCoordinates;
+    public Vector2 ShotDirection;
+    public EntityUid Gun;
+    public EntityUid? Shooter;
+    public EntityUid? Target;
+}
+
+/// <summary>
 /// Raised on the hitscan entity when "fired". This could be from reflections or from the gun. This is the catalyst that
 /// other systems will listen for to actually shoot the gun.
 /// </summary>

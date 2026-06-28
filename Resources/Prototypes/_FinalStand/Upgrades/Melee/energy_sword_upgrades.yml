@@ -52,7 +52,7 @@
       valuePerLevel: 10
     - id: esword-firebrand
       name: Firebrand
-      description: Ignites enemies on hit. +30 fire stacks per level.
+      description: Applies additional fire stacks on hit. +30 per level.
       maxLevel: 3
       baseCost: 10000
       type: SetOnFire
