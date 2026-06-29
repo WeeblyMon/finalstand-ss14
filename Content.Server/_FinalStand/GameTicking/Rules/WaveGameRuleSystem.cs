@@ -425,7 +425,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
                 ? enemyVal.KillCredits
                 : comp.KillReward;
-            var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber));
+            var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f);
 
             EntityUid? killerMind = null;
             if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
@@ -440,7 +440,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
             {
-                var assistCredits = killCredits / 2;
+                var assistCredits = (int)(killCredits * 2f / 3f);
                 foreach (var assistMind in tracking.AttackerMinds)
                 {
                     if (killerMind.HasValue && assistMind == killerMind.Value) continue;
@@ -588,11 +588,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             if (comp.Phase == WavePhase.Combat)
             {
-                // Kill remaining enemies so wave-complete check passes cleanly.
                 foreach (var enemy in comp.AliveEnemies)
                     QueueDel(enemy);
                 comp.AliveEnemies.Clear();
-                comp.GiantApAwarded = true; // suppress boss-wave AP fallback on forced skip
+                comp.GiantApAwarded = true;
                 EndCombatPhase(uid, comp, isForced: true);
             }
             else
