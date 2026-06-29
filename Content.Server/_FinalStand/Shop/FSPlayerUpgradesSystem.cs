@@ -131,6 +131,8 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning disable RA0002
                     bat.FireCost = Math.Max(1f, bat.FireCost - def.ValuePerLevel);
 #pragma warning restore RA0002
+                    var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                    state.BatteryFireCostReduction += def.ValuePerLevel;
                     Dirty(weapon, bat);
                 }
                 else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
