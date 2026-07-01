@@ -1,7 +1,6 @@
 using Content.Server._FinalStand.Cleanup;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
-using Content.Shared._FinalStand.Economy;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Server._FinalStand.Spawners;
@@ -620,10 +619,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule)) continue;
-            if (comp.AccumulatedSurvivalBonus <= 0) break;
-            if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) break;
-            if (wallet.Credits > 500) break;
-            _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+
+            var wavesMissed = comp.WaveNumber - 1;
+            if (wavesMissed > 0)
+                _wallet.GiveCredits(mindId, 1000 * wavesMissed);
+
+            if (comp.AccumulatedSurvivalBonus > 0)
+                _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+
             break;
         }
     }
