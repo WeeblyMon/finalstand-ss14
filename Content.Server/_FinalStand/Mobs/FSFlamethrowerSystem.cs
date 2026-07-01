@@ -112,7 +112,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         comp.IsFiring = true;
         comp.FireAccumulator = 0f;
         comp.ParticleAccumulator = 0f;
-        comp.FireSoundEntity = _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
+        comp.FireSoundEntity ??= _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
         Dirty(uid, comp);
 
         if (TryComp<InputMoverComponent>(uid, out var mover))

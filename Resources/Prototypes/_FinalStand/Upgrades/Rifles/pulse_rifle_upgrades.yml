@@ -51,6 +51,13 @@
       baseCost: 17050
       type: PulseCascade
       valuePerLevel: 1
+    - id: pulse-penetrator
+      name: Penetrator
+      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      maxLevel: 4
+      baseCost: 9750
+      type: Pierce
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/pulse_rifle.rsi
     state: base

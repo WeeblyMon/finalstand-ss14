@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Shop;
 using Content.Shared.Access.Systems;
 using Content.Shared.Database;
 using Content.Shared.Examine;
@@ -30,12 +31,9 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     {
         if (ent.Comp.FireModes.Count < 2)
             return;
-
         var fireMode = GetMode(ent.Comp);
-
         if (!_prototypeManager.TryIndex<EntityPrototype>(fireMode.Prototype, out var proto))
             return;
-
         args.PushMarkup(Loc.GetString("gun-set-fire-mode-examine", ("mode", proto.Name)));
     }
 
@@ -48,13 +46,10 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     {
         if (!args.CanAccess || !args.CanInteract || !args.CanComplexInteract)
             return;
-
         if (component.FireModes.Count < 2)
             return;
-
         if (!_accessReaderSystem.IsAllowed(args.User, uid))
             return;
-
         for (var i = 0; i < component.FireModes.Count; i++)
         {
             var fireMode = component.FireModes[i];
@@ -83,7 +78,6 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     {
         if (args.Handled)
             return;
-
         args.Handled = true;
         TryCycleFireMode(ent, args.User);
     }
@@ -92,7 +86,6 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     {
         if (ent.Comp.FireModes.Count < 2)
             return;
-
         var index = (ent.Comp.CurrentFireMode + 1) % ent.Comp.FireModes.Count;
         TrySetFireMode(ent, index, user);
     }
@@ -101,12 +94,9 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
     {
         if (index < 0 || index >= ent.Comp.FireModes.Count)
             return false;
-
         if (user != null && !_accessReaderSystem.IsAllowed(user.Value, ent))
             return false;
-
         SetFireMode(ent, index, user);
-
         return true;
     }
 
@@ -129,6 +119,11 @@ public sealed class BatteryWeaponFireModesSystem : EntitySystem
         {
             batteryAmmoProviderComponent.Prototype = fireMode.Prototype;
             batteryAmmoProviderComponent.FireCost = fireMode.FireCost;
+            if (TryComp<FSWeaponUpgradeStateComponent>(ent, out var fsState) && fsState.BatteryFireCostReduction > 0f)
+            {
+                var floor = fireMode.FireCost * 0.4f;
+                batteryAmmoProviderComponent.FireCost = Math.Max(floor, fireMode.FireCost - fsState.BatteryFireCostReduction);
+            }
 
             Dirty(ent, batteryAmmoProviderComponent);
 

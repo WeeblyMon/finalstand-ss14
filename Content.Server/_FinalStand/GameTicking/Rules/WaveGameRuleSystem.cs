@@ -206,6 +206,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
+        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
+            ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
+            : 0;
+        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
+        comp.EnemiesSpawnedThisWave = 0;
+        comp.AliveEnemies.Clear();
+
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
         if (IsBossWave(comp.WaveNumber) && comp.SpawnerEntities.Count > 0 && comp.BossPool.Count > 0)
@@ -229,15 +236,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             RaiseLocalEvent(giant, new FSEnemyHpScaledEvent()); // FINALSTAND: armor recalculates after HP scale
             comp.AliveEnemies.Add(giant);
             comp.GiantEntity = giant;
+            comp.EnemyTotalThisWave++;
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
-
-        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
-            ? _playerManager.Sessions.Count() * comp.PlayerEnemyBonus
-            : 0;
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
-        comp.EnemiesSpawnedThisWave = 0;
-        comp.AliveEnemies.Clear();
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
         comp.NextSpawnTime = Timing.CurTime;
 
@@ -435,7 +436,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
                 ? enemyVal.KillCredits
                 : comp.KillReward;
-            var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber));
+            var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f);
 
             EntityUid? killerMind = null;
             if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
@@ -450,7 +451,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
             {
-                var assistCredits = killCredits / 2;
+                var assistCredits = (int)(killCredits * 2f / 3f);
                 foreach (var assistMind in tracking.AttackerMinds)
                 {
                     if (killerMind.HasValue && assistMind == killerMind.Value) continue;
@@ -598,11 +599,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             if (comp.Phase == WavePhase.Combat)
             {
-                // Kill remaining enemies so wave-complete check passes cleanly.
                 foreach (var enemy in comp.AliveEnemies)
                     QueueDel(enemy);
                 comp.AliveEnemies.Clear();
-                comp.GiantApAwarded = true; // suppress boss-wave AP fallback on forced skip
+                comp.GiantApAwarded = true;
                 EndCombatPhase(uid, comp, isForced: true);
             }
             else

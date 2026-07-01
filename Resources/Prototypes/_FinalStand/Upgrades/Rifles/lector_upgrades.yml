@@ -22,7 +22,7 @@
     - id: lecter-damage
       name: Heavy Rounds
       description: Higher-grain ammunition increases damage dealt by 15% per level.
-      maxLevel: 5
+      maxLevel: 7
       baseCost: 3000
       type: Damage
       valuePerLevel: 0.15
@@ -60,6 +60,13 @@
       maxLevel: 1
       baseCost: 5250
       type: Execution
+      valuePerLevel: 1
+    - id: lecter-penetrator
+      name: Penetrator
+      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      maxLevel: 4
+      baseCost: 5250
+      type: Pierce
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Rifles/lecter.rsi

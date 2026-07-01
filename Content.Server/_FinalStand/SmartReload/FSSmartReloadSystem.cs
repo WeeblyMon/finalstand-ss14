@@ -177,7 +177,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         {
             NeedHand           = true,
             BreakOnMove        = false,
-            BreakOnDamage      = true,
+            BreakOnDamage      = false,
             BreakOnHandChange  = true,
             BlockDuplicate     = true,
             DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
@@ -285,7 +285,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         {
             NeedHand      = true,
             BreakOnMove   = false,
-            BreakOnDamage = true,
+            BreakOnDamage = false,
         };
 
         if (_doAfter.TryStartDoAfter(doAfterArgs, out var id))
@@ -409,7 +409,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         {
             NeedHand           = true,
             BreakOnMove        = false,
-            BreakOnDamage      = true,
+            BreakOnDamage      = false,
             BlockDuplicate     = true,
             DuplicateCondition = DuplicateConditions.SameEvent | DuplicateConditions.SameTarget,
         };
@@ -830,7 +830,4 @@ public sealed class FSSmartReloadSystem : EntitySystem
             mult *= state.ReloadSpeedMultiplier;
         return mult;
     }
-
-    // ---- Akimbo sequential reload ----
-
 }

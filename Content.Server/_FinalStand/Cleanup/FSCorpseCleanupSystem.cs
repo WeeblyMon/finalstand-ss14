@@ -50,8 +50,11 @@ public sealed class FSCorpseCleanupSystem : EntitySystem
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(Transform(corpse).Coordinates, 1.5f, nearby);
         foreach (var ent in nearby)
         {
-            if (ent.Owner != corpse)
-                QueueDel(ent.Owner);
+            if (ent.Owner == corpse)
+                continue;
+            if (TryComp<MobStateComponent>(ent.Owner, out var ms) && ms.CurrentState != MobState.Dead)
+                continue;
+            QueueDel(ent.Owner);
         }
     }
 }

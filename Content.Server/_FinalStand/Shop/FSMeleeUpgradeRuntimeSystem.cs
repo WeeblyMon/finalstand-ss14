@@ -5,6 +5,7 @@ using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Damage.Systems;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Atmos.Components;
@@ -35,6 +36,8 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
     [Dependency] private readonly FSStunOverrideSystem _fsStun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
 
+    private EntityQuery<FSFriendlyFireComponent> _ffQuery;
+
     private const float StaminaDrainPerLevel = 15f;
     private const float StaminaRestorePerLevel = 10f;
     private const float SetOnFireStacksPerHit = 3f;
@@ -45,6 +48,7 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        _ffQuery = GetEntityQuery<FSFriendlyFireComponent>();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, MeleeHitEvent>(OnMeleeHit);
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
@@ -101,7 +105,7 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 _crit.MarkPendingCrit(user, target);
             }
 
-            if (state.SetOnFireEnabled && TryComp<FlammableComponent>(target, out var igniteFlammable))
+            if (state.SetOnFireEnabled && !_ffQuery.HasComponent(target) && TryComp<FlammableComponent>(target, out var igniteFlammable))
             {
                 igniteFlammable.FireStacks += SetOnFireStacksPerHit;
                 _flammable.Ignite(target, user, igniteFlammable, ignitionSourceUser: user);

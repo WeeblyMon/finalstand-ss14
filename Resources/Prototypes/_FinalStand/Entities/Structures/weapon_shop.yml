@@ -200,11 +200,11 @@
       valuePerLevel: 0.3
     - id: mk58-cash-flow
       name: Cash Flow
-      description: "Each bullet that connects pays you back. Earn +10 credits per zombie hit per level. Max 3 levels: 10/20/30 per hit."
+      description: "Boosts your per-hit earnings. All weapons already earn 10 credits per hit — this adds +2 per level. Max 3 levels: 12/14/16 per hit."
       maxLevel: 3
       baseCost: 150
       type: MoneyPerHit
-      valuePerLevel: 10
+      valuePerLevel: 2
     - id: mk58-payday
       name: Payday
       description: +50 bonus credits per kill with this gun per level.
@@ -541,8 +541,8 @@
     upgrades:
     - id: drozd-penetrator
       name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
-      maxLevel: 4
+      description: Shots pierce through enemies. Each level adds another target pierced (max 2 bonus).
+      maxLevel: 2
       baseCost: 2100
       type: Pierce
       valuePerLevel: 1
