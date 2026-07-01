@@ -16,4 +16,5 @@ public static class FSAIBlackboardKeys
     public static readonly string MazeCheckTimer     = "FSMazeCheckTimer";
     public static readonly string SpawnGrace         = "FSSpawnGrace";
     public static readonly string ApproachAngle      = "FSApproachAngle";
+    public static readonly string PhysicsStuckTimer  = "FSPhysicsStuckTimer";
 }

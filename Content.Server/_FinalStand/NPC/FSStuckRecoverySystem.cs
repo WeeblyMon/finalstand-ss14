@@ -1,4 +1,7 @@
 // Teleports genuinely stuck wave zombies to an adjacent tile.
+// Also fast-paths zombies whose pathfinder gave up (SteeringStatus.NoPath) via a flow-field
+// reachability check — stranded zombies get relocated to a reachable spawner instead of
+// standing idle at their unreachable spawn tile until the 20s position-based check fires.
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
@@ -9,6 +12,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
@@ -16,13 +20,15 @@ namespace Content.Server._FinalStand.NPC;
 public sealed class FSStuckRecoverySystem : EntitySystem
 {
     [Dependency] private readonly HordeBrainSystem _hordeBrain = default!;
+    [Dependency] private readonly HordeFlowFieldSystem _flow = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
 
-    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount);
+    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince);
     private readonly Dictionary<EntityUid, StuckState> _state = new();
 
     private bool _enabled;
@@ -31,6 +37,7 @@ public sealed class FSStuckRecoverySystem : EntitySystem
     private const float StuckSeconds = 20f;
     private const float NudgeCooldown = 8f;
     private const float PurgeInterval = 30f;
+    private const float NoPathGraceSeconds = 5f;
     private float _purgeTimer;
 
     public override void Initialize()
@@ -70,8 +77,32 @@ public sealed class FSStuckRecoverySystem : EntitySystem
 
             if (!_state.TryGetValue(uid, out var s))
             {
-                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0);
+                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0, TimeSpan.Zero);
                 continue;
+            }
+
+            // Fast path: pathfinder gave up. If they've been NoPath for a few seconds AND
+            // the flow field says their tile is unreachable, relocate to a reachable spawner
+            // (or delete if none exists).
+            if (TryComp<NPCSteeringComponent>(uid, out var steering)
+                && steering.Status == SteeringStatus.NoPath)
+            {
+                if (s.NoPathSince == TimeSpan.Zero)
+                {
+                    _state[uid] = s = s with { NoPathSince = curTime };
+                }
+                else if ((curTime - s.NoPathSince).TotalSeconds >= NoPathGraceSeconds
+                         && _flow.HasField
+                         && !IsFlowReachable(xform))
+                {
+                    TryRelocateStranded(uid, xform);
+                    _state[uid] = s with { NoPathSince = TimeSpan.Zero, LastPos = _transform.GetWorldPosition(xform), LastMoveTime = curTime };
+                    continue;
+                }
+            }
+            else if (s.NoPathSince != TimeSpan.Zero)
+            {
+                _state[uid] = s = s with { NoPathSince = TimeSpan.Zero };
             }
 
             if ((worldPos - s.LastPos).LengthSquared() >= StuckDistance * StuckDistance)
@@ -86,6 +117,50 @@ public sealed class FSStuckRecoverySystem : EntitySystem
             TryRecover(uid, xform, ref s, curTime);
             _state[uid] = s;
         }
+    }
+
+    private bool IsFlowReachable(TransformComponent xform)
+    {
+        if (xform.GridUid is not { } gridUid) return false;
+        var localPos = xform.LocalPosition;
+        var tile = new Vector2i((int)MathF.Floor(localPos.X), (int)MathF.Floor(localPos.Y));
+        return _flow.IsReachable(gridUid, tile);
+    }
+
+    private void TryRelocateStranded(EntityUid uid, TransformComponent xform)
+    {
+        // Collect wave spawners whose tile is reachable per the flow field.
+        var candidates = new List<EntityCoordinates>();
+        var spawnerQuery = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
+        while (spawnerQuery.MoveNext(out _, out _, out var spXform))
+        {
+            if (spXform.GridUid is not { } spGrid) continue;
+            var sp = spXform.LocalPosition;
+            var spTile = new Vector2i((int)MathF.Floor(sp.X), (int)MathF.Floor(sp.Y));
+            if (_flow.IsReachable(spGrid, spTile))
+                candidates.Add(spXform.Coordinates);
+        }
+
+        if (candidates.Count == 0)
+        {
+            Log.Info($"[FSStuckRecovery] Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
+            QueueDel(uid);
+            return;
+        }
+
+        var target = _random.Pick(candidates);
+        _transform.SetCoordinates(uid, target);
+
+        if (TryComp<NPCSteeringComponent>(uid, out var steering))
+        {
+            steering.Status = SteeringStatus.Moving;
+            steering.CurrentPath.Clear();
+            steering.FailedPathCount = 0;
+            steering.PathfindToken?.Cancel();
+            steering.PathfindToken = null;
+        }
+
+        Log.Info($"[FSStuckRecovery] Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
     }
 
     private void TryRecover(EntityUid uid, TransformComponent xform, ref StuckState s, TimeSpan curTime)

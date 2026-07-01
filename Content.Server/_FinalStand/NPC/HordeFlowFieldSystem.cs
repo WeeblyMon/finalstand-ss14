@@ -1,4 +1,6 @@
-// Flow-field builder (disabled); GetFlowDirection API stub retained for future use.
+// Multi-source Dijkstra flow field from CCC seeds. Provides IsReachable(tile) queries
+// so consumers (e.g. FSStuckRecoverySystem) can detect zombies stranded on tiles with
+// no route to any CCC. Rebuild is amortised: dirty-flag based, capped by RebuildInterval.
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Server._FinalStand.Station;
@@ -21,12 +23,14 @@ public sealed class HordeFlowFieldSystem : EntitySystem
     [Dependency] private readonly IConfigurationManager _cfg = default!;
 
     private readonly Dictionary<(EntityUid, Vector2i), Vector2> _flowDir = new();
+    private readonly HashSet<(EntityUid, Vector2i)> _reachable = new();
     private readonly HashSet<EntityUid> _entBuffer = new();
 
     private float _rebuildTimer;
     private bool _enabled;
+    private bool _dirty = true;
 
-    private const float RebuildInterval = 2f;
+    private const float RebuildInterval = 5f;
     private const int MaxTilesPerGrid = 5000;
 
     public override void Initialize()
@@ -35,11 +39,23 @@ public sealed class HordeFlowFieldSystem : EntitySystem
         UpdatesAfter.Add(typeof(HordeBrainSystem));
         UpdatesBefore.Add(typeof(NPCSteeringSystem));
         Subs.CVar(_cfg, CCVars.HordeBrainEnabled, v => _enabled = v, true);
+        // Door-state-change dirty ticks are triggered externally (FSBreachTargetSystem
+        // owns the DoorStateChangedEvent subscription and calls MarkDirty here) so we
+        // don't fight the event bus over duplicate subscriptions.
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        if (!_enabled) return;
+
+        _rebuildTimer += frameTime;
+        if (_rebuildTimer < RebuildInterval) return;
+        _rebuildTimer = 0f;
+
+        if (!_dirty) return;
+        _dirty = false;
+        Rebuild();
     }
 
     public Vector2 GetFlowDirection(EntityUid gridUid, Vector2i tile)
@@ -48,9 +64,17 @@ public sealed class HordeFlowFieldSystem : EntitySystem
         return dir;
     }
 
+    public bool IsReachable(EntityUid gridUid, Vector2i tile) => _reachable.Contains((gridUid, tile));
+
+    /// <summary>Force a rebuild on the next tick (e.g. wall destroyed, tile changed).</summary>
+    public void MarkDirty() => _dirty = true;
+
+    public bool HasField => _reachable.Count > 0;
+
     private void Rebuild()
     {
         _flowDir.Clear();
+        _reachable.Clear();
 
         var seedsByGrid = new Dictionary<EntityUid, List<Vector2i>>();
         var cccQuery = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
@@ -123,6 +147,8 @@ public sealed class HordeFlowFieldSystem : EntitySystem
 
         foreach (var (tile, _) in cost)
         {
+            _reachable.Add((gridUid, tile));
+
             var bestDir = Vector2.Zero;
             var bestCost = float.MaxValue;
 

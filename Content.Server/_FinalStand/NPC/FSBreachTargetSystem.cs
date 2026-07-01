@@ -48,6 +48,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _speedMod = default!;
+    [Dependency] private readonly HordeFlowFieldSystem _flow = default!;
 
     private const float SpeedJitterMin = 0.85f;
     private const float SpeedJitterMax = 1.15f;
@@ -117,6 +118,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
 
     private void OnDoorStateChanged(EntityUid doorUid, DoorComponent door, ref DoorStateChangedEvent args)
     {
+        _flow.MarkDirty();
         if (args.State != DoorState.Open)
             return;
         ForceNearbyReplan(doorUid);
@@ -124,6 +126,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
 
     private void OnDoorShutdown(EntityUid doorUid, DoorComponent door, ComponentShutdown args)
     {
+        _flow.MarkDirty();
         ForceNearbyReplan(doorUid);
     }
 
@@ -326,6 +329,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
     private const int MazeMinPathCount = 5;
     private const float MazeMinScore = 0.015f;
     private const float MazeAttackLockTime = 5f;
+    private const float PhysicsStuckThreshold = 4f;
 
     private void CheckMazeBreach(EntityUid uid, EntityUid target, HTNComponent htn, NPCBlackboard bb, float dt)
     {
@@ -381,12 +385,36 @@ public sealed class FSBreachTargetSystem : EntitySystem
             && physComp.LinearVelocity.LengthSquared() > 0.25f;
         var hasIntendedMovement = TryComp<InputMoverComponent>(uid, out var mover)
             && mover.CurTickSprintMovement != Vector2.Zero;
-        if (hasVelocity || hasIntendedMovement)
+        if (hasVelocity)
         {
             bb.SetValue(FSAIBlackboardKeys.LastPathProgress, _transform.GetWorldPosition(uid));
             bb.SetValue(FSAIBlackboardKeys.PathProgressTimer, 0f);
+            bb.Remove<float>(FSAIBlackboardKeys.PhysicsStuckTimer);
             return;
         }
+
+        // Zombie wants to move but has no velocity — may be physically stuck against an obstacle.
+        // Use a separate timer so brief crowd jostling doesn't trigger breach evaluation.
+        if (hasIntendedMovement)
+        {
+            var stuckTimer = bb.TryGetValue<float>(FSAIBlackboardKeys.PhysicsStuckTimer, out var st, EntityManager) ? st + dt : dt;
+            if (stuckTimer < PhysicsStuckThreshold)
+            {
+                bb.SetValue(FSAIBlackboardKeys.PhysicsStuckTimer, stuckTimer);
+                return;
+            }
+            // Stuck for long enough — clear timer and fall through to breach evaluation
+            bb.Remove<float>(FSAIBlackboardKeys.PhysicsStuckTimer);
+            var stuckPos = _transform.GetWorldPosition(uid);
+            var stuckMapId = Transform(uid).MapID;
+            var stuckEpicenter = new MapCoordinates(stuckPos, stuckMapId);
+            var stuckDoors = new HashSet<Entity<DoorComponent>>();
+            _lookup.GetEntitiesInRange<DoorComponent>(stuckEpicenter, 1.5f, stuckDoors);
+            if (stuckDoors.Count == 0)
+                EvaluateBreachTarget(uid, htn, bb, stuckPos, stuckMapId);
+            return;
+        }
+        bb.Remove<float>(FSAIBlackboardKeys.PhysicsStuckTimer);
 
         var hasActivePath = TryComp<NPCSteeringComponent>(uid, out var steerCheck) && steerCheck.CurrentPath.Count > 0;
         if (!hasActivePath)

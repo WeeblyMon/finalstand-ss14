@@ -452,6 +452,30 @@ public sealed partial class PathfindingSystem
                     tileEntities.Add(ent);
                 }
 
+                // Pre-scan for Climbable entities in this tile. Partial-tile Climbable entities
+                // (railings, low counters) only occupy part of the tile's AABB, so subtile points
+                // in the gap between two inward-facing railings get no collision data and appear
+                // freely passable. We propagate collision layer/mask and HP cost to ALL subtile
+                // points so the pathfinder correctly prices (or blocks) the whole tile.
+                var tileClimbLayer = 0x0;
+                var tileClimbMask = 0x0;
+                var tileClimbDamage = 0f;
+                foreach (var ent in tileEntities)
+                {
+                    if (!_climbableQuery.HasComponent(ent)) continue;
+                    if (_fixturesQuery.TryGetComponent(ent, out var cFix))
+                    {
+                        foreach (var fixture in cFix.Fixtures.Values)
+                        {
+                            if (!fixture.Hard) continue;
+                            tileClimbLayer |= fixture.CollisionLayer;
+                            tileClimbMask |= fixture.CollisionMask;
+                        }
+                    }
+                    if (_destructibleQuery.TryGetComponent(ent, out var cDes))
+                        tileClimbDamage += _destructible.DestroyedAt(ent, cDes).Float();
+                }
+
                 for (var subX = 0; subX < SubStep; subX++)
                 {
                     for (var subY = 0; subY < SubStep; subY++)
@@ -459,11 +483,12 @@ public sealed partial class PathfindingSystem
                         var xOffset = x * SubStep + subX;
                         var yOffset = y * SubStep + subY;
 
-                        // Subtile
+                        // Subtile — seed collision data from tile-wide Climbable pre-scan so that
+                        // gap points (not inside any fixture AABB) are priced consistently.
                         var localPos = new Vector2(StepOffset + gridOrigin.X + x + (float) subX / SubStep, StepOffset + gridOrigin.Y + y + (float) subY / SubStep);
-                        var collisionMask = 0x0;
-                        var collisionLayer = 0x0;
-                        var damage = 0f;
+                        var collisionMask = tileClimbMask;
+                        var collisionLayer = tileClimbLayer;
+                        var damage = tileClimbDamage;
 
                         foreach (var ent in tileEntities)
                         {
@@ -528,7 +553,8 @@ public sealed partial class PathfindingSystem
                                 flags |= PathfindingBreadcrumbFlag.Climb;
                             }
 
-                            if (_destructibleQuery.TryGetComponent(ent, out var damageable))
+                            if (!_climbableQuery.HasComponent(ent) &&
+                                _destructibleQuery.TryGetComponent(ent, out var damageable))
                             {
                                 damage += _destructible.DestroyedAt(ent, damageable).Float();
                             }
