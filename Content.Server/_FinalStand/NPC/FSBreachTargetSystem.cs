@@ -91,7 +91,6 @@ public sealed class FSBreachTargetSystem : EntitySystem
         if (TryComp<HTNComponent>(uid, out var htn))
         {
             htn.Blackboard.SetValue(FSAIBlackboardKeys.SpawnGrace, SpawnGraceDuration);
-            htn.Blackboard.SetValue(FSAIBlackboardKeys.ApproachAngle, _random.NextFloat(0f, MathF.Tau));
         }
 
         if (TryComp<MovementSpeedModifierComponent>(uid, out var speedComp))
@@ -151,19 +150,6 @@ public sealed class FSBreachTargetSystem : EntitySystem
             if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
                 steering.CurrentPath.Clear();
         }
-    }
-
-
-    public void TryUpdateRetaliationState(EntityUid uid, EntityUid attacker, TimeSpan curTime)
-    {
-        if (!HasComp<MobStateComponent>(attacker)) return;
-        if (!Exists(attacker) || _mobState.IsDead(attacker)) return;
-        if (HasComp<WaveSpawnedTagComponent>(attacker)) return;
-        if (!TryComp<HTNComponent>(uid, out var htn)) return;
-
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.RetaliationTimer, 2f);
-        htn.Blackboard.SetValue("FSAggroGraceUntil", curTime + TimeSpan.FromSeconds(2));
     }
 
 

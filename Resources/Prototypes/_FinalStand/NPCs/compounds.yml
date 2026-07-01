@@ -111,7 +111,7 @@
             proto: NearbyMeleeTargets
         - !type:HTNPrimitiveTask
           operator: !type:MoveToOperator
-            shutdownState: PlanFinished
+            shutdownState: TaskFinished
             pathfindInPlanning: false
             removeKeyOnFinish: false
             targetKey: TargetCoordinates

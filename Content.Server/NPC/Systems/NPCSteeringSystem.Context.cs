@@ -653,9 +653,12 @@ public sealed partial class NPCSteeringSystem
 
     #endregion
 
-    #region Wave Zombie RVO
+    #region Wave Zombie Peer Yield
 
-    private void WaveZombieRVO(
+    // Asymmetric peer avoidance. Only the rear-UID zombie yields; the leader continues straight.
+    // Kills the mirror-jink oscillation the old symmetric WaveZombieRVO caused. Lateral bias
+    // via UID parity keeps each zombie committed to a consistent pass side across frames.
+    private void WaveZombiePeerYield(
         EntityUid uid,
         Angle offsetRot,
         Vector2 worldPos,
@@ -668,67 +671,61 @@ public sealed partial class NPCSteeringSystem
 
         var myDir = myMover.CurTickSprintMovement;
         if (myDir == Vector2.Zero)
-            return; // stationary — nothing to avoid
+            return;
 
-        const float TimeHorizon     = 2.0f;
-        const float DetectionRadius = 3.0f;
-        const float MaxWeight       = 0.55f;
-        const float CombinedRadius  = 0.4f;
-        const float AssumedSpeed    = 3.5f; // tiles/s — close enough for direction math
+        const float DetectionRadius = 2.0f;
+        const float YieldWeight     = 0.45f;
+        const float LateralWeight   = 0.35f;
 
-        var myVel = myDir * AssumedSpeed;
-        var ents  = _entSetPool.Get();
+        var myDirNorm = myDir.Normalized();
+        var preferLeft = ((int)uid & 1) == 0;
+
+        var ents = _entSetPool.Get();
         _lookup.GetEntitiesInRange(uid, DetectionRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
 
         foreach (var ent in ents)
         {
-            if (!_waveTagQuery.HasComponent(ent))
-                continue;
-            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover))
-                continue;
+            if (ent == uid) continue;
+            if (!_waveTagQuery.HasComponent(ent)) continue;
+            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
 
-            var toOther = _transform.GetWorldPosition(_xformQuery.GetComponent(ent)) - worldPos;
-            var dist = toOther.Length();
-            if (dist < 0.01f || dist > DetectionRadius)
-                continue;
+            var peerPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
+            var toPeer  = peerPos - worldPos;
+            var dist    = toPeer.Length();
+            if (dist < 0.01f || dist > DetectionRadius) continue;
 
-            var toOtherDir   = toOther / dist;
-            var peerVel      = peerMover.CurTickSprintMovement * AssumedSpeed;
-            var closingSpeed = Vector2.Dot(myVel - peerVel, toOtherDir);
+            var toPeerDir = toPeer / dist;
+            if (Vector2.Dot(myDirNorm, toPeerDir) <= 0.6f)
+                continue; // peer not in front
 
-            if (closingSpeed <= 0f)
-            {
-                // Peer is ahead and same direction — conga line case RVO can't handle.
-                // Add forward danger so the centroid steers laterally around the blocker.
-                var isAhead = Vector2.Dot(myDir, toOtherDir) > 0.7f;
-                var peerDir = peerMover.CurTickSprintMovement;
-                var sameDir = peerDir != Vector2.Zero && Vector2.Dot(myDir, peerDir.Normalized()) > 0.5f;
-                if (isAhead && sameDir && dist < 1.5f)
-                {
-                    const float BlockWeight = 0.4f;
-                    var dangerDir2 = offsetRot.RotateVec(toOtherDir);
-                    for (var i = 0; i < InterestDirections; i++)
-                    {
-                        var dot = Vector2.Dot(dangerDir2.Normalized(), Directions[i]);
-                        if (dot > 0f)
-                            danger[i] = MathF.Max(danger[i], dot * BlockWeight);
-                    }
-                }
-                continue;
-            }
+            var peerDir = peerMover.CurTickSprintMovement;
+            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.5f)
+                continue; // peer not going the same way
 
-            var ttc = (dist - CombinedRadius) / closingSpeed;
-            if (ttc <= 0f || ttc > TimeHorizon)
+            // Deterministic tiebreaker: only the higher-UID zombie yields. Prevents both peers
+            // jinking simultaneously (mirror-jink → position swap → oscillation).
+            if ((int)ent >= (int)uid)
                 continue;
 
-            var weight    = (1f - ttc / TimeHorizon) * MaxWeight;
-            var dangerDir = offsetRot.RotateVec(toOtherDir);
-
+            var forwardDangerDir = offsetRot.RotateVec(toPeerDir);
             for (var i = 0; i < InterestDirections; i++)
             {
-                var dot = Vector2.Dot(dangerDir.Normalized(), Directions[i]);
+                var dot = Vector2.Dot(forwardDangerDir.Normalized(), Directions[i]);
                 if (dot > 0f)
-                    danger[i] = MathF.Max(danger[i], dot * weight);
+                    danger[i] = MathF.Max(danger[i], dot * YieldWeight);
+            }
+
+            // Lateral push, biased to a stable side per zombie (UID parity). Peers with the same
+            // bias jink the same way relative to each other; opposing biases swap around cleanly.
+            var lateralWorld = preferLeft
+                ? new Vector2(-toPeerDir.Y, toPeerDir.X)
+                : new Vector2(toPeerDir.Y, -toPeerDir.X);
+            var lateralLocal = offsetRot.RotateVec(-lateralWorld);
+            for (var i = 0; i < InterestDirections; i++)
+            {
+                var dot = Vector2.Dot(lateralLocal.Normalized(), Directions[i]);
+                if (dot > 0f)
+                    danger[i] = MathF.Max(danger[i], dot * LateralWeight);
             }
         }
 

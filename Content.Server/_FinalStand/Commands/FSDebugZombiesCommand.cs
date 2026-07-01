@@ -3,6 +3,7 @@ using System.Text;
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Administration;
+using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.NPC;
@@ -32,7 +33,7 @@ public sealed class FSDebugZombiesCommand : LocalizedEntityCommands
         var stationaryCount = 0;
 
         sb.AppendLine($"[FSDebug] Flow field: HasField={_flow.HasField}");
-        sb.AppendLine("uid | proto | tile | speed | status | reachable | target | htn-target | breach");
+        sb.AppendLine("uid | proto | tile | speed | status | reachable | ccc | plan | tgt | breach");
 
         var query = _ent.EntityQueryEnumerator<WaveSpawnedTagComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
@@ -60,10 +61,16 @@ public sealed class FSDebugZombiesCommand : LocalizedEntityCommands
                 targetCoords = steering.Coordinates.ToString();
             }
 
+            var ccc = "-";
+            var planTask = "-";
             var htnTarget = "-";
             var breach = "-";
             if (_ent.TryGetComponent<HTNComponent>(uid, out var htn))
             {
+                if (htn.Blackboard.TryGetValue<EntityUid>(NPCBlackboard.CurrentOrderedTarget, out var c, _ent))
+                    ccc = _ent.EntityExists(c) ? "set" : "stale";
+                if (htn.Plan?.CurrentTask.Operator is { } curOp)
+                    planTask = curOp.GetType().Name;
                 if (htn.Blackboard.TryGetValue<EntityUid>("Target", out var t, _ent) && _ent.EntityExists(t))
                     htnTarget = _ent.ToPrettyString(t).ToString();
                 if (htn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var b, _ent) && _ent.EntityExists(b))
@@ -71,7 +78,7 @@ public sealed class FSDebugZombiesCommand : LocalizedEntityCommands
             }
 
             var proto = _ent.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID ?? "?";
-            sb.AppendLine($"{uid} | {proto} | {tile} | {speed:F2} | {status} | {reachable} | {targetCoords} | {htnTarget} | {breach}");
+            sb.AppendLine($"{uid} | {proto} | {tile} | {speed:F2} | {status} | {reachable} | {ccc} | {planTask} | {htnTarget} | {breach}");
         }
 
         sb.AppendLine($"--- Total: {count}, NoPath: {noPathCount}, Unreachable(flow): {unreachableCount}, Stationary(speed<0.1): {stationaryCount}");

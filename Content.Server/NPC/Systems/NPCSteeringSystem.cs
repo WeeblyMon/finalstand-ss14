@@ -386,7 +386,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         DebugTools.Assert(!float.IsNaN(danger[0]));
 
         Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
-        WaveZombieRVO(uid, offsetRot, worldPos, danger);
+        WaveZombiePeerYield(uid, offsetRot, worldPos, danger);
 
         // Blend last and current tick
         Blend(steering, frameTime, interest, danger);
