@@ -72,7 +72,7 @@
     decay: 45
   - type: WaveSpawnedTag
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 150
+    maxMoneyPerPlayer: 450
   - type: Climbing
   - type: Flammable
     fireSpread: false
@@ -151,7 +151,7 @@
   - type: FSEnemyValue
     killCredits: 300
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 250
+    maxMoneyPerPlayer: 750
   - type: FSArmor
     maxHPRatio: 1.0
     regenRate: 10
@@ -175,7 +175,7 @@
   - type: FSEnemyValue
     killCredits: 525
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 500
+    maxMoneyPerPlayer: 1500
 
 # TODO(finalstand): add ArmorComponent when FSZombieBerserker is implemented
 # maxHPRatio: 0.2, regenRate: 10 (light armor — enrage mechanic is the real threat)
@@ -197,7 +197,7 @@
   - type: FSEnemyValue
     killCredits: 450
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 500
+    maxMoneyPerPlayer: 1500
 
 - type: entity
   id: FSZombieGiant
@@ -220,7 +220,7 @@
   - type: FSEnemyValue
     killCredits: 1500
   - type: FSMoneyOnHitCap
-    maxMoneyPerPlayer: 500
+    maxMoneyPerPlayer: 1500
   - type: FSArmor
     maxHPRatio: 0.4
     regenRate: 10

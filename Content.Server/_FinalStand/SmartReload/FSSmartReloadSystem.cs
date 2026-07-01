@@ -830,7 +830,4 @@ public sealed class FSSmartReloadSystem : EntitySystem
             mult *= state.ReloadSpeedMultiplier;
         return mult;
     }
-
-    // ---- Akimbo sequential reload ----
-
 }

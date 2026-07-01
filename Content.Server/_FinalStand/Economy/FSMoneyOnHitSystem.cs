@@ -16,7 +16,7 @@ public sealed class FSMoneyOnHitSystem : EntitySystem
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
 
-    private const int BaseMoneyPerHit = 10;
+    private const int BaseMoneyPerHit = 30;
     public override void Initialize()
     {
         base.Initialize();
