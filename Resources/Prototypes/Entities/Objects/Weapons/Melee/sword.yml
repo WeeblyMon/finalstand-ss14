@@ -43,6 +43,11 @@
       sprite: Objects/Weapons/Melee/cutlass.rsi
     shape:
     - 0,0,0,2
+  - type: Clothing
+    sprite: Objects/Weapons/Melee/cutlass.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
   - type: DisarmMalus
 
 - type: entity

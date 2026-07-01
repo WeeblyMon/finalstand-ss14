@@ -170,6 +170,11 @@
     storedSprite:
       state: storage
       sprite: Objects/Weapons/Melee/survival_knife.rsi
+  - type: Clothing
+    sprite: Objects/Weapons/Melee/survival_knife.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
 
 - type: entity
   name: kukri knife

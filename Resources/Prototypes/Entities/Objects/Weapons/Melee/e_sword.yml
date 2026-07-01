@@ -89,6 +89,11 @@
       map: [ "blade" ]
   - type: Item
     sprite: Objects/Weapons/Melee/e_sword-inhands.rsi
+  - type: Clothing
+    sprite: Objects/Weapons/Melee/e_sword.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
   - type: StaticPrice
     price: 2500
 
