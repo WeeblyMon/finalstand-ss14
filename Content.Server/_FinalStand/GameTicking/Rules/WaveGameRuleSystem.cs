@@ -207,7 +207,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
             : 0;
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.3f), comp.MaxEnemyCap);
+        // Single-corridor waves past wave 5 double the count — one lane is too easy to hold otherwise.
+        if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
+            comp.EnemyTotalThisWave = Math.Min(comp.EnemyTotalThisWave * 2, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
 
@@ -494,9 +497,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static float GetHpMultiplier(int wave)
     {
         if (wave < 10) return 1f;
-        if (wave < 20) return 2.5f;
-        if (wave < 30) return 5f;
-        return 8f;
+        if (wave < 20) return 2.2f;
+        if (wave < 30) return 4.2f;
+        return 6.6f;
     }
 
     private void ScaleEnemySpeed(EntityUid enemy, int wave)
@@ -504,7 +507,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        var multiplier = 1f + (wave - 1) * 0.012f;
+        var multiplier = 1f + (wave - 1) * 0.0096f;
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 
