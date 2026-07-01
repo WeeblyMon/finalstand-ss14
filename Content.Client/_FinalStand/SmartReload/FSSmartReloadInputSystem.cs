@@ -1,9 +1,11 @@
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Input;
+using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
+using Robust.Client.Player;
 using Robust.Shared.Input;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Player;
@@ -17,6 +19,7 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
     [Dependency] private readonly HandsSystem _hands = default!;
     [Dependency] private readonly IInputManager _inputManager = default!;
     [Dependency] private readonly IEyeManager _eyeManager = default!;
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
 
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 
@@ -51,11 +54,10 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
 
         _ejected = true;
 
-        var gun = _hands.GetActiveHandEntity();
-        if (gun == null || !HasComp<GunComponent>(gun.Value))
+        if (ResolveActiveGun() is not { } gun)
             return;
 
-        RaiseNetworkEvent(new FSEjectMessage { Gun = GetNetEntity(gun.Value) });
+        RaiseNetworkEvent(new FSEjectMessage { Gun = GetNetEntity(gun) });
     }
 
     private void OnGrenadeDown(ICommonSession? session)
@@ -79,10 +81,39 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
         if (_ejected)
             return;
 
-        var gun = _hands.GetActiveHandEntity();
-        if (gun == null || !HasComp<GunComponent>(gun.Value))
+        if (ResolveActiveGun() is not { } gun)
             return;
 
-        RaiseNetworkEvent(new FSSmartReloadMessage { Gun = GetNetEntity(gun.Value) });
+        RaiseNetworkEvent(new FSSmartReloadMessage { Gun = GetNetEntity(gun) });
+    }
+
+    // Returns the gun the player intends to reload/eject from the active hand.
+    // Unwraps akimbo virtual-item mirrors to the real gun (must still be held) so
+    // reload works from either hand.
+    private EntityUid? ResolveActiveGun()
+    {
+        var active = _hands.GetActiveHandEntity();
+        if (active == null)
+            return null;
+
+        if (HasComp<GunComponent>(active.Value))
+            return active.Value;
+
+        if (_playerManager.LocalSession?.AttachedEntity is not { } user)
+            return null;
+
+        if (!TryComp<VirtualItemComponent>(active.Value, out var virt))
+            return null;
+
+        if (!HasComp<GunComponent>(virt.BlockingEntity))
+            return null;
+
+        foreach (var held in _hands.EnumerateHeld(user))
+        {
+            if (held == virt.BlockingEntity)
+                return virt.BlockingEntity;
+        }
+
+        return null;
     }
 }
