@@ -24,7 +24,7 @@
         - WallLayer
   - type: Sprite
     drawdepth: SmallObjects
-    sprite: Structures/Machines/arcade.rsi
+    sprite: _FinalStand/Structures/augment_shop.rsi
     state: icon
     scale: 1,1
   - type: FSAugmentShop
