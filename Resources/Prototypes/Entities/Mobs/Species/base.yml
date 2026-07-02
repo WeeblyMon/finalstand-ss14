@@ -483,6 +483,7 @@
   - type: Consciousness
     cap: 190
     threshold: 95
+  - type: JobStatus
 
 - type: entity
   save: false
