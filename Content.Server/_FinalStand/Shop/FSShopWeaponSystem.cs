@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Examine;
 using Content.Shared.Hands.Components;
@@ -92,6 +93,14 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         if (comp.WeaponProtoId == null)
             return;
+
+        // Grenade packs are one per type — block duplicate purchases before charging.
+        var existing = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value);
+        if (existing.Any(HasComp<FSGrenadePackComponent>))
+        {
+            _popup.PopupEntity(Loc.GetString("shop-grenade-already-owned"), uid, player);
+            return;
+        }
 
         if (!_wallet.TryDeductCredits(mindId, comp.Price))
         {
@@ -387,6 +396,13 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
     private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
+        // Grenade packs are pocket items — they must stay in inventory, never in hand.
+        if (HasComp<FSGrenadePackComponent>(item))
+        {
+            TryStashItemOnPlayer(player, item);
+            return;
+        }
+
         if (_hands.TryPickupAnyHand(player, item))
             return;
 
@@ -462,24 +478,44 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
     private EntityUid? FindHeldWeapon(EntityUid player, EntProtoId protoId, List<EntProtoId>? aliases)
     {
-        if (!TryComp<HandsComponent>(player, out var hands))
-            return null;
-
-        foreach (var handName in hands.SortedHands)
+        if (TryComp<HandsComponent>(player, out var hands))
         {
-            if (!_hands.TryGetHeldItem((player, hands), handName, out var held))
+            foreach (var handName in hands.SortedHands)
+            {
+                if (!_hands.TryGetHeldItem((player, hands), handName, out var held))
+                    continue;
+                var heldProto = MetaData(held.Value).EntityPrototype?.ID;
+                if (heldProto == null)
+                    continue;
+                if (heldProto == (string) protoId)
+                    return held;
+                if (aliases != null)
+                {
+                    foreach (var alias in aliases)
+                    {
+                        if (heldProto == (string) alias)
+                            return held;
+                    }
+                }
+            }
+        }
+
+        // Also check pocket/belt/suit-storage slots for non-handheld items (e.g. grenade packs).
+        foreach (var slot in InventorySlotPriority)
+        {
+            if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
-            var heldProto = MetaData(held.Value).EntityPrototype?.ID;
-            if (heldProto == null)
+            var slotProto = MetaData(slotEnt.Value).EntityPrototype?.ID;
+            if (slotProto == null)
                 continue;
-            if (heldProto == (string) protoId)
-                return held;
+            if (slotProto == (string) protoId)
+                return slotEnt;
             if (aliases != null)
             {
                 foreach (var alias in aliases)
                 {
-                    if (heldProto == (string) alias)
-                        return held;
+                    if (slotProto == (string) alias)
+                        return slotEnt;
                 }
             }
         }

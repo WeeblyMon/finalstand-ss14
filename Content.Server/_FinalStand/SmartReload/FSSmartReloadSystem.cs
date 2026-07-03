@@ -1,6 +1,11 @@
 using System.Linq;
+using Content.Server._FinalStand.Grenades;
 using Content.Server._FinalStand.Perks;
+using Content.Server.Explosion.EntitySystems;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.Grenades;
+using Content.Shared.Explosion.Components;
+using Content.Shared.Trigger.Components.Triggers;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
@@ -39,6 +44,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly TagSystem _tags = default!;
     [Dependency] private readonly PerkSystem _perks = default!;
+    [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
@@ -763,27 +769,122 @@ public sealed class FSSmartReloadSystem : EntitySystem
         if (user == null)
             return;
 
-        var grenade = FindGrenadeInInventory(user.Value);
-        if (grenade == null)
+        // Prefer grenade pack system if the player has bought any type.
+        if (TryComp<FSActiveGrenadeComponent>(user.Value, out var active))
+        {
+            var pack = FindGrenadePack(user.Value, active.ActiveType);
+            if (pack != null)
+            {
+                if (!TryComp<FSGrenadePackComponent>(pack.Value, out var packComp) || packComp.Stock <= 0)
+                {
+                    _popup.PopupEntity(Loc.GetString("grenade-pack-empty", ("type", active.ActiveType.ToString())), user.Value, user.Value);
+                    return;
+                }
+
+                packComp.Stock--;
+                Dirty(pack.Value, packComp);
+                _grenadeSelect.SyncPackCounter(pack.Value, packComp);
+
+                var coords = Transform(user.Value).Coordinates;
+                var protoToSpawn = packComp.IsCluster ? (EntProtoId)"FSGrenadeFragCluster" : packComp.GrenadeProtoId;
+                var grenade = Spawn(protoToSpawn, coords);
+
+                // Transfer pack-level upgrade data to the spawned grenade.
+                if (TryComp<FSFireZoneOnTriggerComponent>(grenade, out var fireZone))
+                {
+                    fireZone.BurnDuration = packComp.BurnDuration;
+                    fireZone.EffectRadius = packComp.EffectRadius;
+                    fireZone.DamageMultiplier = 1f + packComp.BlastBonus;
+                }
+                if (TryComp<FSStunInRadiusOnTriggerComponent>(grenade, out var stun))
+                {
+                    stun.StunDuration = TimeSpan.FromSeconds(packComp.StunDuration);
+                    stun.Radius += packComp.EffectRadius;
+                }
+                if (TryComp<FSBaitOnTriggerComponent>(grenade, out var bait))
+                    bait.BaitDuration = packComp.BaitDuration;
+                if (TryComp<ExplosiveComponent>(grenade, out var expComp) && packComp.BlastBonus > 0f)
+                {
+#pragma warning disable RA0002
+                    expComp.TotalIntensity *= 1f + packComp.BlastBonus;
+#pragma warning restore RA0002
+                }
+
+                if (packComp.ImpactFuse)
+                {
+                    var land = EnsureComp<TriggerOnLandComponent>(grenade);
+                    land.KeyOut = "timer";
+                    var collide = EnsureComp<TriggerOnCollideComponent>(grenade);
+                    collide.FixtureID = "fix1";
+                    collide.KeyOut = "timer";
+                    ThrowGrenade(grenade, user.Value, msg.CursorWorldPos, arm: false);
+                }
+                else
+                {
+                    ThrowGrenade(grenade, user.Value, msg.CursorWorldPos);
+                }
+                return;
+            }
+        }
+
+        // Fallback: look for a physical grenade with the HandGrenade tag.
+        var fallback = FindGrenadeInInventory(user.Value);
+        if (fallback == null)
         {
             _popup.PopupEntity("No grenade found.", user.Value, user.Value);
             return;
         }
 
         // Yank directly out of whatever container it's in (pocket, bag, belt) — no hand needed.
-        if (_containers.TryGetContainingContainer(grenade.Value, out var container))
-            _containers.Remove(grenade.Value, container, destination: Transform(user.Value).Coordinates);
+        if (_containers.TryGetContainingContainer(fallback.Value, out var container))
+            _containers.Remove(fallback.Value, container, destination: Transform(user.Value).Coordinates);
 
-        // Arm (starts timer fuse on timer grenades; no-op for impact grenades like EMP).
-        RaiseLocalEvent(grenade.Value, new UseInHandEvent(user.Value));
+        ThrowGrenade(fallback.Value, user.Value, msg.CursorWorldPos);
+    }
+
+    private void ThrowGrenade(EntityUid grenade, EntityUid user, System.Numerics.Vector2 cursorWorldPos, bool arm = true)
+    {
+        // Persist thrower so chain-reaction explosions keep the correct owner for friendly-fire attribution.
+        EnsureComp<FSGrenadeOwnerComponent>(grenade).Thrower = user;
+
+        if (arm)
+            RaiseLocalEvent(grenade, new UseInHandEvent(user));
 
         // Throw toward cursor. Fall back to facing direction if cursor is on top of player.
-        var playerWorldPos = _transform.GetWorldPosition(user.Value);
-        var dir = msg.CursorWorldPos - playerWorldPos;
+        var playerWorldPos = _transform.GetWorldPosition(user);
+        var dir = cursorWorldPos - playerWorldPos;
         if (dir.LengthSquared() < 0.01f)
-            dir = _transform.GetWorldRotation(user.Value).ToWorldVec();
+            dir = _transform.GetWorldRotation(user).ToWorldVec();
 
-        _throwing.TryThrow(grenade.Value, dir, 10f, user.Value);
+        _throwing.TryThrow(grenade, dir, 10f, user);
+    }
+
+    private EntityUid? FindGrenadePack(EntityUid user, GrenadeType type)
+    {
+        if (!TryComp<ContainerManagerComponent>(user, out var mgr))
+            return null;
+
+        foreach (var cont in mgr.Containers.Values)
+        {
+            foreach (var item in cont.ContainedEntities)
+            {
+                if (TryComp<FSGrenadePackComponent>(item, out var pack) && pack.PackType == type)
+                    return item;
+
+                if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
+                    continue;
+                foreach (var inner in innerMgr.Containers.Values)
+                {
+                    foreach (var innerItem in inner.ContainedEntities)
+                    {
+                        if (TryComp<FSGrenadePackComponent>(innerItem, out var innerPack) && innerPack.PackType == type)
+                            return innerItem;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private EntityUid? FindGrenadeInInventory(EntityUid user)

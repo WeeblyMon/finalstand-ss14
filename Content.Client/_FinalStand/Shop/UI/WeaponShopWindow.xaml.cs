@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Crit;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
@@ -28,6 +29,8 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     public event Action? OnSellConfirmed;
 
     private int _price;
+    private EntProtoId? _weaponProtoId;
+    private bool _isGrenadePackShop;
     private float _flashBuyRemaining;
 
     private bool _inConfirmState;
@@ -132,6 +135,10 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             return;
 
         _price = comp.Price;
+        _weaponProtoId = comp.WeaponProtoId;
+        _isGrenadePackShop = _weaponProtoId is { } pid
+            && _proto.TryIndex<EntityPrototype>(pid, out var wEntProto)
+            && wEntProto.TryGetComponent<FSGrenadePackComponent>(out _, _entityManager.ComponentFactory);
 
         var meta = entMan.GetComponent<MetaDataComponent>(shopEntity);
         Title = "Weapon Shop";
@@ -155,8 +162,23 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     {
         BalanceLabel.Text = $"${credits:N0}";
         var canAfford = credits >= _price;
-        BuyButton.Disabled = !canAfford;
         BalanceLabel.Modulate = canAfford ? Color.LimeGreen : Color.OrangeRed;
+
+        if (_isGrenadePackShop)
+        {
+            var shopClient = _entityManager.System<FSShopClientSystem>();
+            if (shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), _weaponProtoId))
+            {
+                BuyButton.Disabled = true;
+                BuyButton.Text = "OWNED";
+                BuyButton.Modulate = new Color(0.5f, 0.5f, 0.5f);
+                return;
+            }
+            BuyButton.Text = $"Buy  ${_price:N0}";
+            BuyButton.Modulate = Color.White;
+        }
+
+        BuyButton.Disabled = !canAfford;
     }
 
     public void UpdateWeaponTitle(string title)

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._FinalStand.Grenades;
 using Content.Server.Administration.Logs;
 using Content.Server.Atmos.Components;
 using Content.Server.Atmos.EntitySystems;
@@ -172,6 +173,8 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
                 user = shooter;
             else if (TryComp<ThrownItemComponent>(uid, out var thrown) && thrown.Thrower is { } thrower)
                 user = thrower;
+            else if (TryComp<FSGrenadeOwnerComponent>(uid, out var owner) && owner.Thrower.IsValid())
+                user = owner.Thrower;
         }
 
         // Override the explosion intensity if optional arguments were provided.

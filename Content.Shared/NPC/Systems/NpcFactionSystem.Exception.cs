@@ -129,4 +129,18 @@ public sealed partial class NpcFactionSystem
             AggroEntity(ent, uid);
         }
     }
+
+    /// <summary>
+    /// Removes an entity from the ignore list, allowing it to be targeted again.
+    /// </summary>
+    public void DeIgnoreEntity(Entity<FactionExceptionComponent?> ent, EntityUid target)
+    {
+        if (!Resolve(ent, ref ent.Comp, false))
+            return;
+
+        if (!ent.Comp.Ignored.Remove(target) || !_trackerQuery.TryComp(target, out var tracker))
+            return;
+
+        tracker.Entities.Remove(ent);
+    }
 }

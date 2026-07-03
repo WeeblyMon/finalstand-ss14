@@ -1,0 +1,229 @@
+# ─── Grenade Shop Structures ───────────────────────────────────────────────────
+
+- type: entity
+  id: FSGrenadeShopFrag
+  parent: FSWeaponShopBase
+  name: Frag Grenade Shop
+  description: High-explosive fragmentation grenades. Shreds zombie clusters.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSGrenadePackFrag
+    price: 5000
+    category: Grenades
+    statDamage: 70
+    statFireRate: 30
+    statAccuracy: 60
+    statCapacity: 30
+    upgrades:
+    - id: frag-blast-bonus
+      name: Overcharge
+      description: +25% explosion intensity per level.
+      maxLevel: 3
+      baseCost: 5000
+      type: GrenadeBlastBonus
+      valuePerLevel: 0.25
+    - id: frag-extra-charges
+      name: Extra Charges
+      description: +2 max grenades per level.
+      maxLevel: 2
+      baseCost: 2500
+      type: GrenadeCapacity
+      valuePerLevel: 2
+    - id: frag-faster-regen
+      name: Faster Regen
+      description: Refill +2 extra grenades each prep phase per level.
+      maxLevel: 2
+      baseCost: 3000
+      type: GrenadeRegen
+      valuePerLevel: 2
+    - id: frag-impact-fuse
+      name: Impact Fuse
+      description: Grenade detonates on contact instead of waiting for the timer.
+      maxLevel: 1
+      baseCost: 2500
+      type: GrenadeImpactFuse
+      valuePerLevel: 1
+    - id: frag-cluster
+      name: Cluster Grenade
+      description: Detonates into 3 sub-munitions. Costs 1 max capacity slot.
+      maxLevel: 1
+      baseCost: 20000
+      type: GrenadeCluster
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSGrenadeShopIncendiary
+  parent: FSWeaponShopBase
+  name: Incendiary Grenade Shop
+  description: Incendiary grenades that create persistent fire zones.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSGrenadePackIncendiary
+    price: 6000
+    category: Grenades
+    statDamage: 60
+    statFireRate: 20
+    statAccuracy: 50
+    statCapacity: 30
+    upgrades:
+    - id: incendiary-blast-bonus
+      name: Inferno
+      description: +25% fire damage (ignite rate) per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: GrenadeBlastBonus
+      valuePerLevel: 0.25
+    - id: incendiary-burn-duration
+      name: Prolonged Burn
+      description: Fire zone lasts +5 seconds per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: GrenadeBurnDuration
+      valuePerLevel: 5
+    - id: incendiary-extra-charges
+      name: Extra Charges
+      description: +2 max grenades per level.
+      maxLevel: 2
+      baseCost: 2500
+      type: GrenadeCapacity
+      valuePerLevel: 2
+    - id: incendiary-faster-regen
+      name: Faster Regen
+      description: Refill +2 extra grenades each prep phase per level.
+      maxLevel: 2
+      baseCost: 3000
+      type: GrenadeRegen
+      valuePerLevel: 2
+    - id: incendiary-effect-radius
+      name: Wide Burn
+      description: Fire zone radius +1 tile.
+      maxLevel: 1
+      baseCost: 3000
+      type: GrenadeEffectRadius
+      valuePerLevel: 1.0
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
+    state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSGrenadeShopFlash
+  parent: FSWeaponShopBase
+  name: Flash Grenade Shop
+  description: Flash grenades that stun zombies in a wide radius.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSGrenadePackFlash
+    price: 6500
+    category: Grenades
+    statDamage: 0
+    statFireRate: 30
+    statAccuracy: 80
+    statCapacity: 20
+    upgrades:
+    - id: flash-stun-duration
+      name: Prolonged Stun
+      description: Stun duration +1 second per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: GrenadeStunDuration
+      valuePerLevel: 1
+    - id: flash-extra-charges
+      name: Extra Charges
+      description: +2 max grenades per level.
+      maxLevel: 2
+      baseCost: 2500
+      type: GrenadeCapacity
+      valuePerLevel: 2
+    - id: flash-faster-regen
+      name: Faster Regen
+      description: Refill +2 extra grenades each prep phase per level.
+      maxLevel: 2
+      baseCost: 3000
+      type: GrenadeRegen
+      valuePerLevel: 2
+    - id: flash-effect-radius
+      name: Wide Flash
+      description: Stun radius +1 tile.
+      maxLevel: 1
+      baseCost: 3000
+      type: GrenadeEffectRadius
+      valuePerLevel: 1.0
+    - id: flash-impact-fuse
+      name: Impact Fuse
+      description: Grenade detonates on contact instead of waiting for the timer.
+      maxLevel: 1
+      baseCost: 2500
+      type: GrenadeImpactFuse
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
+    state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSGrenadeShopPipe
+  parent: FSWeaponShopBase
+  name: Pipe Bomb Shop
+  description: Pipe bombs that create a bait decoy and small explosion to attract zombies.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSGrenadePackPipe
+    price: 10000
+    category: Grenades
+    statDamage: 40
+    statFireRate: 10
+    statAccuracy: 50
+    statCapacity: 20
+    upgrades:
+    - id: pipe-blast-bonus
+      name: High Yield
+      description: +25% explosion intensity per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: GrenadeBlastBonus
+      valuePerLevel: 0.25
+    - id: pipe-bait-duration
+      name: Persistent Bait
+      description: Bait decoy lasts +2 seconds longer per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: GrenadeBaitDuration
+      valuePerLevel: 2
+    - id: pipe-extra-charges
+      name: Extra Charges
+      description: +1 max grenade per level.
+      maxLevel: 2
+      baseCost: 3000
+      type: GrenadeCapacity
+      valuePerLevel: 1
+    - id: pipe-faster-regen
+      name: Faster Regen
+      description: Refill +1 extra grenade each prep phase per level.
+      maxLevel: 2
+      baseCost: 3500
+      type: GrenadeRegen
+      valuePerLevel: 1
+    - id: pipe-effect-radius
+      name: Wide Blast
+      description: Explosion radius +1 tile and bait detection range +1 tile.
+      maxLevel: 1
+      baseCost: 5000
+      type: GrenadeEffectRadius
+      valuePerLevel: 1.0
+    - id: pipe-singularity
+      name: Singularity
+      description: Creates a miniature singularity at the detonation point.
+      maxLevel: 1
+      baseCost: 20000
+      type: Radius
+      valuePerLevel: 0
+      isStub: true
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
+    state: icon
+    scale: 1,1

@@ -63,6 +63,16 @@ public enum WeaponUpgradeType : byte
     FuelCapacity,
     WielderResistance,
     DualWieldEnergySword,
+
+    GrenadeCapacity,
+    GrenadeRegen,
+    GrenadeBurnDuration,
+    GrenadeStunDuration,
+    GrenadeBaitDuration,
+    GrenadeImpactFuse,
+    GrenadeEffectRadius,
+    GrenadeBlastBonus,
+    GrenadeCluster,
 }
 
 [DataDefinition]
