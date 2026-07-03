@@ -1284,6 +1284,9 @@
   id: ShellShotgun # Ammo: AmmoProviderShotgunShell, ClothingBeltBandolier, BaseMagazineShotgun, BaseWeaponShotgun, WeaponFlareGunSecurity
 
 - type: Tag
+  id: ShellDoubleBarrelFS # FS-only ammo for FSWeaponDoubleBarrel; no structural damage
+
+- type: Tag
   id: ShellShotgunLight # Shotgun shells that are compatible with the flare gun. Subset of ShellShotgun.
 
 - type: Tag

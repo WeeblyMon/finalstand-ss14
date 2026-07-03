@@ -199,9 +199,9 @@
   description: Two barrels of pure regret. High burst damage — make both shots count. Uses .50 shotgun shells.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponShotgunDoubleBarreled
+    weaponProtoId: FSWeaponDoubleBarrel
     price: 25000
-    starterAmmoProtoId: BoxLethalshot
+    starterAmmoProtoId: FSBoxDoubleBarrel
     starterAmmoCount: 1
     category: .50 Double-Barrel Shotgun
     statDamage: 90
