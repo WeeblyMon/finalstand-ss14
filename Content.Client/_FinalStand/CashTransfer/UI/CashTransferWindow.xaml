@@ -1,0 +1,22 @@
+<DefaultWindow
+    xmlns="https://spacestation14.io"
+    Title="Transfer Money"
+    MinWidth="260"
+    MinHeight="155"
+    Resizable="False">
+
+    <BoxContainer Orientation="Vertical" Margin="10">
+
+        <Label Name="ToLabel" Margin="0 0 0 2" />
+        <Label Name="BalanceLabel" Modulate="#8FA1B3" Margin="0 0 0 10" />
+
+        <LineEdit Name="AmountInput" PlaceHolder="Enter amount..." />
+
+        <BoxContainer Orientation="Horizontal" Margin="0 10 0 0">
+            <Button Name="CancelButton" Text="Cancel" HorizontalExpand="True" Margin="0 0 4 0" />
+            <Button Name="ConfirmButton" Text="Confirm" HorizontalExpand="True" />
+        </BoxContainer>
+
+    </BoxContainer>
+
+</DefaultWindow>
