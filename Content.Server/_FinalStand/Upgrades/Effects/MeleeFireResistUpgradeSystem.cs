@@ -1,10 +1,15 @@
+using Content.Server.Body.Components;
+using Content.Server.Temperature.Systems;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Temperature;
+using Content.Shared.Temperature.Components;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
@@ -14,6 +19,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
 {
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly TemperatureSystem _temperature = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
@@ -25,6 +31,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<HandsComponent, DamageModifyEvent>(OnWielderDamageModify);
+        SubscribeLocalEvent<HandsComponent, ModifyChangedTemperatureEvent>(OnWielderTemperatureModify);
     }
 
     public override void Update(float frameTime)
@@ -34,14 +41,55 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
             return;
         _nextTick = _timing.CurTime + TickInterval;
 
-        var query = EntityQueryEnumerator<HandsComponent, FlammableComponent>();
-        while (query.MoveNext(out var uid, out var hands, out var flammable))
+        var burnQuery = EntityQueryEnumerator<HandsComponent, FlammableComponent>();
+        while (burnQuery.MoveNext(out var uid, out var hands, out var flammable))
         {
             if (!flammable.OnFire)
                 continue;
 
             if (TryGetHeldWielderBuff(uid, hands, out _))
                 _damageable.HealEvenly(uid, FixedPoint2.New(-BurningBuffHealPerSecond));
+        }
+
+        // Actively clamp body temperature for fire-immune players — catches any path that
+        // bypasses ModifyChangedTemperatureEvent (e.g. ignoreHeatResistance: true callers).
+        var tempQuery = EntityQueryEnumerator<HandsComponent, TemperatureComponent>();
+        while (tempQuery.MoveNext(out var tUid, out var tHands, out var temp))
+        {
+            var fireImmune = false;
+            foreach (var held in _hands.EnumerateHeld((tUid, tHands)))
+            {
+                if (TryComp<FSWeaponUpgradeStateComponent>(held, out var state) && state.FireDamageResist >= 1f)
+                {
+                    fireImmune = true;
+                    break;
+                }
+            }
+
+            if (!fireImmune)
+                continue;
+
+            var normalTemp = TryComp<ThermalRegulatorComponent>(tUid, out var regulator)
+                ? regulator.NormalBodyTemperature
+                : Atmospherics.T20C;
+
+            if (temp.CurrentTemperature > normalTemp)
+                _temperature.ForceChangeTemperature(tUid, normalTemp, temp);
+        }
+    }
+
+    private void OnWielderTemperatureModify(EntityUid uid, HandsComponent hands, ModifyChangedTemperatureEvent args)
+    {
+        if (args.TemperatureDelta <= 0f)
+            return;
+
+        foreach (var held in _hands.EnumerateHeld((uid, hands)))
+        {
+            if (TryComp<FSWeaponUpgradeStateComponent>(held, out var state) && state.FireDamageResist >= 1f)
+            {
+                args.TemperatureDelta = 0f;
+                return;
+            }
         }
     }
 
