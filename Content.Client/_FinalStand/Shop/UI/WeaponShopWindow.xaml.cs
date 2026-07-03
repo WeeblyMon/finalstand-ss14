@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Projectiles;
+using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -152,7 +153,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         BuyButton.Text = $"Buy  ${_price:N0}";
 
         var shopClient = _entityManager.System<FSShopClientSystem>();
-        BuildStatBars(comp, shopClient.GetActiveGun(), entMan);
+        BuildStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), entMan);
         RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         RefreshPerks(shopEntity, entMan, shopClient.CurrentCredits);
         UpdateBalance(shopClient.CurrentCredits);
@@ -259,13 +260,11 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         StatBarsContainer.RemoveAllChildren();
 
         CritComponent? critComp = null;
-        FSWeaponUpgradeStateComponent? upgradeState = null;
         GunComponent? gunComp = null;
         MeleeWeaponComponent? meleeComp = null;
         if (weapon.HasValue)
         {
             entMan.TryGetComponent(weapon.Value, out critComp);
-            entMan.TryGetComponent(weapon.Value, out upgradeState);
             entMan.TryGetComponent(weapon.Value, out gunComp);
             entMan.TryGetComponent(weapon.Value, out meleeComp);
         }
@@ -282,29 +281,75 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             weaponProto.TryGetComponent<CritComponent>(out critProto, entMan.ComponentFactory);
         }
 
-        var isRanged = gunComp != null || gunProto != null;
-        if (isRanged)
-            BuildRangedStats(shopComp, weapon, weaponProto, gunComp, gunProto, upgradeState, entMan);
-        else if (meleeComp != null || meleeProto != null)
-            BuildMeleeStats(meleeComp, meleeProto, upgradeState);
+        FSGrenadePackComponent? grenadeComp = null;
+        FSGrenadePackComponent? grenadeProto = null;
+        if (weapon.HasValue)
+            entMan.TryGetComponent(weapon.Value, out grenadeComp);
+        weaponProto?.TryGetComponent(out grenadeProto, entMan.ComponentFactory);
 
-        AppendCritStats(critComp, critProto, upgradeState);
+        // Compute upgrade effects client-side from synced UpgradeLevels.
+        // FSWeaponUpgradeStateComponent is not networked so the client can't read it directly.
+        var levels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
+        var damageMultiplier = 1.0f;
+        var extraPellets = 0;
+        var critChanceBonus = 0f;
+        var critDamageMult = critComp?.CritMultiplier ?? critProto?.CritMultiplier ?? 1f;
+        var attackSpeedMult = 1f;
+
+        foreach (var def in shopComp.Upgrades)
+        {
+            var level = levels.GetValueOrDefault(def.Id, 0);
+            if (level <= 0) continue;
+            switch (def.Type)
+            {
+                case WeaponUpgradeType.Damage:
+                    damageMultiplier += level * def.ValuePerLevel;
+                    break;
+                case WeaponUpgradeType.PelletCount:
+                    extraPellets += level * (int)def.ValuePerLevel;
+                    break;
+                case WeaponUpgradeType.Scrapshot:
+                    extraPellets += 3;
+                    break;
+                case WeaponUpgradeType.CritChance:
+                    critChanceBonus = Math.Min(1f, critChanceBonus + level * def.ValuePerLevel);
+                    break;
+                case WeaponUpgradeType.CritDamage:
+                    critDamageMult += level * def.ValuePerLevel;
+                    break;
+                case WeaponUpgradeType.AttackSpeed:
+                    attackSpeedMult += level * def.ValuePerLevel;
+                    break;
+            }
+        }
+
+        var isRanged = gunComp != null || gunProto != null;
+        var isGrenade = grenadeComp != null || grenadeProto != null;
+
+        if (isRanged)
+            BuildRangedStats(shopComp, weapon, weaponProto, gunComp, gunProto, damageMultiplier, extraPellets, entMan);
+        else if (isGrenade)
+            BuildGrenadeStats(grenadeComp, grenadeProto);
+        else if (meleeComp != null || meleeProto != null)
+            BuildMeleeStats(meleeComp, meleeProto, damageMultiplier, attackSpeedMult);
+
+        AppendCritStats(critComp, critProto, critChanceBonus, critDamageMult);
     }
 
     private void BuildRangedStats(FSShopWeaponComponent shopComp, EntityUid? weapon,
         EntityPrototype? weaponProto, GunComponent? gunComp, GunComponent? gunProto,
-        FSWeaponUpgradeStateComponent? upgradeState, IEntityManager entMan)
+        float damageMultiplier, int extraPellets, IEntityManager entMan)
     {
-        var (damagePerShot, pellets) = ComputeDamage(shopComp, weapon, weaponProto, upgradeState, entMan);
+        var (damagePerShot, pellets) = ComputeDamage(shopComp, weapon, weaponProto, damageMultiplier, extraPellets, entMan);
         var damageText = pellets > 1 ? $"{damagePerShot:0.#}×{pellets}" : $"{damagePerShot:0.#}";
         var damageFill = Math.Min(1f, damagePerShot * pellets / 100f);
         StatBarsContainer.AddChild(BuildStatBar("Damage", damageFill, damageText));
 
         var fireRate = gunComp?.FireRateModified ?? gunProto?.FireRate ?? 2f;
-        var secPerShot = fireRate > 0f ? 1f / fireRate : 0f;
+        var rpm = (int)Math.Round(fireRate * 60f);
         StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
             Math.Min(1f, fireRate / 10f),
-            $"{secPerShot:F1}s"));
+            $"{rpm} RPM"));
 
         var angleDeg = gunComp != null
             ? (float)gunComp.MaxAngleModified.Degrees
@@ -320,18 +365,16 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     }
 
     private void BuildMeleeStats(MeleeWeaponComponent? meleeComp, MeleeWeaponComponent? meleeProto,
-        FSWeaponUpgradeStateComponent? upgradeState)
+        float damageMultiplier, float attackSpeedMult)
     {
         var baseDamage = (float)(meleeComp?.Damage ?? meleeProto?.Damage)!.GetTotal();
-        if (upgradeState != null && upgradeState.DamageMultiplier > 1f)
-            baseDamage *= upgradeState.DamageMultiplier;
+        baseDamage *= damageMultiplier;
         StatBarsContainer.AddChild(BuildStatBar("Damage",
             Math.Min(1f, baseDamage / 50f),
             $"{baseDamage:0.#}"));
 
         var attackRate = meleeComp?.AttackRate ?? meleeProto?.AttackRate ?? 1f;
-        if (upgradeState != null && upgradeState.AttackSpeedMultiplier > 1f)
-            attackRate *= upgradeState.AttackSpeedMultiplier;
+        attackRate *= attackSpeedMult;
         var secPerSwing = attackRate > 0f ? 1f / attackRate : 0f;
         StatBarsContainer.AddChild(BuildStatBar("Attack Rate",
             Math.Min(1f, attackRate / 4f),
@@ -343,26 +386,53 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             $"{range:F1}"));
     }
 
-    private void AppendCritStats(CritComponent? critComp, CritComponent? critProto,
-        FSWeaponUpgradeStateComponent? upgradeState)
+    private void BuildGrenadeStats(FSGrenadePackComponent? live, FSGrenadePackComponent? proto)
     {
-        var critChance = (critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f)
-                         + (upgradeState?.CritChance ?? 0f);
+        var maxStock = live?.MaxStock ?? proto?.MaxStock ?? 3;
+        var regenPerWave = live?.RegenPerWave ?? proto?.RegenPerWave ?? 1;
+        var blastBonus = live?.BlastBonus ?? proto?.BlastBonus ?? 0f;
+        var burnDuration = live?.BurnDuration ?? proto?.BurnDuration ?? 5f;
+        var stunDuration = live?.StunDuration ?? proto?.StunDuration ?? 3f;
+        var packType = live?.PackType ?? proto?.PackType ?? GrenadeType.Frag;
+
+        StatBarsContainer.AddChild(BuildStatBar("Capacity",
+            Math.Min(1f, maxStock / 8f), $"{maxStock}"));
+        StatBarsContainer.AddChild(BuildStatBar("Regen",
+            Math.Min(1f, regenPerWave / 5f), $"{regenPerWave}/wave"));
+
+        switch (packType)
+        {
+            case GrenadeType.Flash:
+                StatBarsContainer.AddChild(BuildStatBar("Stun",
+                    Math.Min(1f, stunDuration / 7f), $"{stunDuration:F0}s"));
+                break;
+            case GrenadeType.Incendiary:
+                StatBarsContainer.AddChild(BuildStatBar("Burn",
+                    Math.Min(1f, burnDuration / 15f), $"{burnDuration:F0}s"));
+                break;
+            default:
+                StatBarsContainer.AddChild(BuildStatBar("Blast",
+                    Math.Min(1f, (1f + blastBonus) / 2f), $"×{1f + blastBonus:F2}"));
+                break;
+        }
+    }
+
+    private void AppendCritStats(CritComponent? critComp, CritComponent? critProto,
+        float critChanceBonus, float critDamageMult)
+    {
+        var baseCritChance = critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f;
+        var critChance = Math.Min(1f, baseCritChance + critChanceBonus);
         StatBarsContainer.AddChild(BuildStatBar("Crit Chance",
-            Math.Min(1f, critChance),
+            critChance,
             $"{critChance * 100f:F1}%"));
 
-        var critMult = upgradeState?.CritDamageMultiplier
-                       ?? critComp?.CritMultiplier
-                       ?? critProto?.CritMultiplier
-                       ?? 1f;
         StatBarsContainer.AddChild(BuildStatBar("Crit Damage",
-            Math.Min(1f, (critMult - 1f) / 2f),
-            $"{critMult:F1}x"));
+            Math.Min(1f, (critDamageMult - 1f) / 2f),
+            $"{critDamageMult:F1}x"));
     }
 
     private (float damage, int pellets) ComputeDamage(FSShopWeaponComponent shopComp, EntityUid? gun,
-        EntityPrototype? weaponProto, FSWeaponUpgradeStateComponent? upgradeState, IEntityManager entMan)
+        EntityPrototype? weaponProto, float damageMultiplier, int extraPellets, IEntityManager entMan)
     {
         var damage = 0f;
         var pellets = 1;
@@ -371,15 +441,14 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         {
             if (projProto.TryGetComponent<ProjectileComponent>(out var proj, entMan.ComponentFactory))
                 damage = (float)proj.Damage.GetTotal();
+            else if (projProto.TryGetComponent<HitscanBasicDamageComponent>(out var hitscan, entMan.ComponentFactory))
+                damage = (float)hitscan.Damage.GetTotal();
             if (projProto.TryGetComponent<ProjectileSpreadComponent>(out var spread, entMan.ComponentFactory))
                 pellets = spread.Count;
         }
 
-        if (upgradeState != null)
-        {
-            damage *= upgradeState.DamageMultiplier;
-            pellets += upgradeState.ExtraPellets;
-        }
+        damage *= damageMultiplier;
+        pellets += extraPellets;
 
         return (damage, pellets);
     }
@@ -490,7 +559,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         row.AddChild(new Label
         {
             Text = label,
-            SetWidth = 100,
+            SetWidth = 82,
             Modulate = Color.FromHex("#8FA1B3"),
         });
 
@@ -523,7 +592,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         row.AddChild(new Label
         {
             Text = numericText,
-            SetWidth = 42,
+            SetWidth = 72,
             Margin = new Thickness(7, 0, 0, 0),
             HorizontalAlignment = HAlignment.Right,
             Modulate = Color.FromHex("#8FA1B3"),
