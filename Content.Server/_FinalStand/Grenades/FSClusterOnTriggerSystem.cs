@@ -19,9 +19,15 @@ public sealed class FSClusterOnTriggerSystem : XOnTriggerSystem<FSClusterOnTrigg
         var count = ent.Comp.Count;
         var segmentAngle = 360f / count;
 
+        TryComp<FSGrenadeOwnerComponent>(ent.Owner, out var ownerComp);
+
         for (var i = 0; i < count; i++)
         {
             var sub = Spawn(ent.Comp.SubGrenadeProtoId, coords);
+
+            if (ownerComp != null && ownerComp.Thrower.IsValid())
+                EnsureComp<FSGrenadeOwnerComponent>(sub).Thrower = ownerComp.Thrower;
+
             _trigger.ActivateTimerTrigger(sub);
             var degrees = segmentAngle * i + _random.NextFloat(0f, segmentAngle * 0.4f);
             var dir = Angle.FromDegrees(degrees).ToVec() * ent.Comp.Distance;

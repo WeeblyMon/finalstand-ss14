@@ -1,0 +1,35 @@
+# FINALSTAND: Tesla zombie — stops moving and fires a chaining shock beam when players are in range.
+# Spawns wave 11+, weighted at ~12.5% of wave composition via weighted selection.
+- type: entity
+  id: FSZombieTesla
+  parent: FSZombieNormal
+  suffix: Tesla
+  name: tesla zombie
+  components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/teslazombie.png
+  - type: FSTeslaZombie
+  - type: Insulated
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      175: Dead   # slightly lower than flamethrower (190) — ranged chain attack is the threat
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 2.2    # FSZombieNormal (2.0) + 10%
+    baseSprintSpeed: 2.7   # FSZombieNormal (2.5) + 8%
+  - type: FSEnemyValue
+    killCredits: 500
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/Tesla/tesla_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
+  - type: PointLight
+    enabled: false
+    color: "#4488FF"
+    radius: 2.5
+    energy: 3.0
+    softness: 1.0

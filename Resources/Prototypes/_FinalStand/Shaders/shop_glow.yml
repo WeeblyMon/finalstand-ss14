@@ -21,3 +21,11 @@
   params:
     glow_color: "#4090FFD9"
     glow_intensity: 1.5
+
+- type: shader
+  id: FSTeslaGlow
+  kind: source
+  path: "/Textures/Shaders/shop_glow.swsl"
+  params:
+    glow_color: "#4488FFD9"
+    glow_intensity: 2.0

@@ -67,6 +67,9 @@
     - enemyId: FSZombieFlamethrower
       fromWave: 9
       spawnChance: 0.05
+    - enemyId: FSZombieTesla
+      fromWave: 11
+      spawnChance: 0.05
     - enemyId: FSZombieArmoured
       fromWave: 10
       spawnChance: 0.05

@@ -4,12 +4,17 @@ using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Visuals;
 
 public sealed class FSZombieVisualizerSystem : EntitySystem
 {
     [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+
+    private const string TeslaGlowShader = "FSTeslaGlow";
 
     public override void Initialize()
     {
@@ -18,6 +23,7 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
         SubscribeLocalEvent<FSZombieVisualsComponent, AfterAutoHandleStateEvent>(OnStateHandled);
         SubscribeLocalEvent<FSZombieVisualsComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSFlamethrowerComponent, AfterAutoHandleStateEvent>(OnFlamethrowerStateHandled);
+        SubscribeLocalEvent<FSTeslaZombieComponent, AfterAutoHandleStateEvent>(OnTeslaStateHandled);
     }
 
     private void OnStartup(EntityUid uid, FSZombieVisualsComponent comp, ComponentStartup args)
@@ -33,6 +39,19 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
     {
         if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
             UpdateSprite(uid, visuals);
+    }
+
+    private void OnTeslaStateHandled(EntityUid uid, FSTeslaZombieComponent comp, AfterAutoHandleStateEvent args)
+    {
+        if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
+            UpdateSprite(uid, visuals);
+
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+
+        sprite.PostShader = comp.IsFiring
+            ? _protoManager.Index<ShaderPrototype>(TeslaGlowShader).InstanceUnique()
+            : null;
     }
 
     private void UpdateSprite(EntityUid uid, FSZombieVisualsComponent comp)

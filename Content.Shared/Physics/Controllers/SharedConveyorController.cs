@@ -33,6 +33,7 @@ public abstract class SharedConveyorController : VirtualController
 
     [Dependency] private readonly EntityQuery<ConveyorComponent> _conveyorQuery = default!;
     [Dependency] private readonly EntityQuery<ConveyedComponent> _conveyedQuery = default!;
+    [Dependency] private readonly EntityQuery<ConveyorImmuneComponent> _conveyorImmuneQuery = default!;
     [Dependency] protected readonly EntityQuery<PhysicsComponent> PhysicsQuery = default!;
     [Dependency] protected readonly EntityQuery<TransformComponent> XformQuery = default!;
 
@@ -97,7 +98,8 @@ public abstract class SharedConveyorController : VirtualController
         {
             var other = contact.OtherEnt(conveyorUid);
 
-            if (contact.OtherFixture(conveyorUid).Item2.Hard && contact.OtherBody(conveyorUid).BodyType != BodyType.Static)
+            if (contact.OtherFixture(conveyorUid).Item2.Hard && contact.OtherBody(conveyorUid).BodyType != BodyType.Static
+                && !_conveyorImmuneQuery.HasComp(other))
             {
                 EnsureComp<ConveyedComponent>(other);
             }
@@ -114,6 +116,9 @@ public abstract class SharedConveyorController : VirtualController
         var otherUid = args.OtherEntity;
 
         if (!args.OtherFixture.Hard || args.OtherBody.BodyType == BodyType.Static)
+            return;
+
+        if (_conveyorImmuneQuery.HasComp(otherUid))
             return;
 
         EnsureComp<ConveyedComponent>(otherUid);
