@@ -559,7 +559,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         row.AddChild(new Label
         {
             Text = label,
-            SetWidth = 82,
+            SetWidth = 98,
             Modulate = Color.FromHex("#8FA1B3"),
         });
 
