@@ -362,27 +362,6 @@
 
 - type: entity
   parent: [ClothingOuterBaseLarge, AllowSuitStorageClothing, BaseSecurityContraband]
-  id: ClothingOuterArmorcombatmaid
-  name: Armored Combat Maidsuit
-  description: Rip and tear until it is done.
-  - type: Sprite
-    sprite: Clothing/Uniforms/Jumpskirt/tacticalmaid.rsi
-  - type: Clothing
-    sprite: Clothing/Uniforms/Jumpskirt/tacticalmaid.rsi
-  - type: Armor
-    modifiers:
-      coefficients:
-        Blunt: 0.4
-        Slash: 0.4
-        Piercing: 0.7
-        Heat: 0.9
-        Caustic: 0.9
-  - type: ExplosionResistance
-    damageCoefficient: 0.9
-  - type: GroupExamine
-
-- type: entity
-  parent: [ClothingOuterBaseLarge, AllowSuitStorageClothing, BaseSecurityContraband]
   id: ClothingOuterArmorminimaid
   name: Armored Maid Dress with a mini skirt
   description: Rip and tear until it is done.

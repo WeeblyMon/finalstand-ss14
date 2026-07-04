@@ -959,6 +959,31 @@
         Radiation: 0.80
         Caustic: 0.95
 
+- type: entity
+  parent: [ BaseCentcommContraband, ClothingHeadHardsuitBase ]
+  id: ClothingHeadHelmetHardsuitDeathmaidsuit
+  name: Syndicate Armored Maid Headband
+  description: For the top of the line Syndicate warriors
+  components:
+  - type: BreathMask
+  - type: Sprite
+    sprite: Clothing/Head/Hats/tacticalmaidheadband.rsi
+  - type: Clothing
+    sprite: Clothing/Head/Hats/tacticalmaidheadband.rsi
+  - type: PressureProtection
+    highPressureMultiplier: 0.08
+    lowPressureMultiplier: 1000
+  - type: FireProtection
+    reduction: 0.2
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.80
+        Slash: 0.80
+        Piercing: 0.80
+        Heat: 0.80
+        Radiation: 0.80
+        Caustic: 0.95
 #MISC. HARDSUITS
 #Clown Hardsuit
 - type: entity
