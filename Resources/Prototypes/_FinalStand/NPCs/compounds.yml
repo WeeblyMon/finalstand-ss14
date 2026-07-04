@@ -110,6 +110,35 @@
               targetKey: Target
               rangeKey: MeleeRange
 
+# Moves directly to the FSBaitTarget decoy and attacks it.
+# Runs at priority 2, overriding normal player hunt while the bait is active.
+- type: htnCompound
+  id: FinalStandBaitBeeline
+  branches:
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSBaitTarget
+      tasks:
+        - !type:HTNPrimitiveTask
+          operator: !type:FSSetBaitTargetOperator
+        - !type:HTNPrimitiveTask
+          operator: !type:MoveToOperator
+            shutdownState: TaskFinished
+            pathfindInPlanning: false
+            removeKeyOnFinish: false
+            targetKey: TargetCoordinates
+            pathfindKey: TargetPathfind
+            rangeKey: MeleeRange
+        - !type:HTNPrimitiveTask
+          operator: !type:MeleeOperator
+            targetKey: Target
+          preconditions:
+            - !type:KeyExistsPrecondition
+              key: Target
+            - !type:TargetInRangePrecondition
+              targetKey: Target
+              rangeKey: MeleeRange
+
 # HTN compound for all Final Stand wave enemies.
 # Branch priority order (Phase 2):
 #   1. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
@@ -131,31 +160,38 @@
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandPlayerRetaliationCompound
-    # Priority 2 — Ranged combat (hivebot, syndicates, etc.)
+    # Priority 2 — BaitDistraction (pipe bomb decoy)
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSBaitTarget
+      tasks:
+        - !type:HTNCompoundTask
+          task: FinalStandBaitBeeline
+    # Priority 3 — Ranged combat (hivebot, syndicates, etc.)
     - tasks:
         - !type:HTNCompoundTask
           task: RangedCombatCompound
     - tasks:
         - !type:HTNCompoundTask
           task: InnateRangedCombatCompound
-    # Priority 3 — PlayerHunt (melee scan for nearby hostiles)
+    # Priority 4 — PlayerHunt (melee scan for nearby hostiles)
     - tasks:
         - !type:HTNCompoundTask
           task: MeleeCombatCompound
-    # Priority 4 — BreachMode (attack specific structural target)
+    # Priority 5 — BreachMode (attack specific structural target)
     - preconditions:
         - !type:KeyExistsPrecondition
           key: FSBreachTarget
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandBreachModeCompound
-    # Priority 5 — CCCBeeline (path to objective)
+    # Priority 6 — CCCBeeline (path to objective)
     - tasks:
         - !type:HTNPrimitiveTask
           operator: !type:SetCCCTargetOperator
         - !type:HTNCompoundTask
           task: FinalStandCCCBeeline
-    # Priority 6 — Idle fallback
+    # Priority 7 — Idle fallback
     - tasks:
         - !type:HTNCompoundTask
           task: IdleCompound

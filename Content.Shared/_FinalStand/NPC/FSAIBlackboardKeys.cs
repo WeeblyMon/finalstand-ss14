@@ -5,6 +5,9 @@ public static class FSAIBlackboardKeys
     // EntityUid of the current breach target structure
     public static readonly string BreachTarget = "FSBreachTarget";
 
+    // EntityUid of an active bait decoy that should distract this zombie
+    public static readonly string BaitTarget = "FSBaitTarget";
+
     // Countdown timer for soft attack lock (float, seconds remaining)
     public static readonly string AttackLockTimer = "FSAttackLockTimer";
 

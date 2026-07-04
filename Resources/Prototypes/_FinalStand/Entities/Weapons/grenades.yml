@@ -275,11 +275,7 @@
         enum.ConstructionVisuals.Layer:
           Primed: { state: primed }
           Unprimed: { state: icon }
-  - type: FSBaitOnTrigger
-    keysIn:
-    - timer
-    baitProtoId: FSBaitDecoy
-    baitDuration: 8
+  - type: FSBaitDecoy
   - type: Explosive
     explosionType: FSGrenadeExplosion
     maxIntensity: 4
@@ -402,6 +398,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSBaitDecoy
+  - type: FSPlayerDamageImmune
   - type: NpcFactionMember
     factions:
     - FSPlayer
