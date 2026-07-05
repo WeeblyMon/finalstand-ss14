@@ -62,7 +62,7 @@ public sealed class FSWaveEnrageSystem : EntitySystem
         }
     }
 
-    private void OnWaveEnded(WaveEndedEvent args)
+    private void OnWaveEnded(ref WaveEndedEvent args)
     {
         _applied.Clear();
         RestoreSpeeds();
