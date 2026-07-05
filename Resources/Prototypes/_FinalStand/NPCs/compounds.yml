@@ -133,13 +133,12 @@
               key: Target
 
 # HTN compound for all Final Stand wave enemies.
-# Branch priority order (Phase 2):
+# Branch priority order:
 #   1. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
-#   2. RangedCombat / InnateRangedCombat — for ranged-capable enemies (hivebot, etc.)
-#   3. MeleeCombat (PlayerHunt) — scan for nearby hostiles and engage
-#   4. BreachMode — attack a structure blocking the path to CCC
-#   5. CCCBeeline — path directly to the objective
-#   6. Idle
+#   2. MeleeCombat (PlayerHunt) — scan for nearby hostiles and engage
+#   3. BreachMode — attack a structure blocking the path to CCC
+#   4. CCCBeeline — path directly to the objective (skipped if no CCC ordered target)
+#   5. Idle
 - type: htnCompound
   id: FinalStandEnemyCompound
   branches:
@@ -153,31 +152,27 @@
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandPlayerRetaliationCompound
-    # Priority 2 — Ranged combat (hivebot, syndicates, etc.)
-    - tasks:
-        - !type:HTNCompoundTask
-          task: RangedCombatCompound
-    - tasks:
-        - !type:HTNCompoundTask
-          task: InnateRangedCombatCompound
-    # Priority 3 — PlayerHunt (melee scan for nearby hostiles)
+    # Priority 2 — PlayerHunt (melee scan for nearby hostiles)
     - tasks:
         - !type:HTNCompoundTask
           task: FSMeleeCombatCompound
-    # Priority 4 — BreachMode (attack specific structural target)
+    # Priority 3 — BreachMode (attack specific structural target)
     - preconditions:
         - !type:KeyExistsPrecondition
           key: FSBreachTarget
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandBreachModeCompound
-    # Priority 5 — CCCBeeline (path to objective)
-    - tasks:
+    # Priority 4 — CCCBeeline (path to objective)
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: CurrentOrderedTarget
+      tasks:
         - !type:HTNPrimitiveTask
           operator: !type:SetCCCTargetOperator
         - !type:HTNCompoundTask
           task: FinalStandCCCBeeline
-    # Priority 6 — Idle fallback
+    # Priority 5 — Idle fallback
     - tasks:
         - !type:HTNCompoundTask
           task: IdleCompound

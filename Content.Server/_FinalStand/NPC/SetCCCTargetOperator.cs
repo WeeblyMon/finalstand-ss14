@@ -11,18 +11,12 @@ namespace Content.Server._FinalStand.NPC;
 public sealed partial class SetCCCTargetOperator : HTNOperator
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private readonly FSSlotRingSystem _slotRing = default!;
 
-    // Must be strictly less than MeleeRange (default 1.0). MoveToOperator lies during planning
-    // by writing OwnerCoordinates=TargetCoordinates as an effect; the follow-up MeleeOperator's
-    // TargetInRangePrecondition then checks distance from that spoofed position to the target
-    // entity using strict `<`. Any offset magnitude ≥ 1.0 (including 1.0 ± FP error) fails the
-    // check and drops the whole CCCBeeline branch into IdleCompound.
+    // Slot ring radii (1.0–1.9f) exceed MeleeRange, so we project the angular direction onto a
+    // safe radius. The slot ring allocates unique angular directions per zombie; this radius
+    // ensures MoveToOperator's planning phase passes MeleeOperator's strict-less-than check.
     private const float ApproachRadius = 0.9f;
-
-    // 2π * (1 - 1/φ) — golden-ratio conjugate stride. Consecutive UIDs land on quasi-uniformly
-    // distributed angles around the ring, so a wave of zombies fans out around CCC instead of
-    // stacking on one tile. Deterministic (no blackboard state), survives HTN replans.
-    private const float GoldenAngle = 2.399963f;
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(
         NPCBlackboard blackboard, CancellationToken cancelToken)
@@ -32,8 +26,10 @@ public sealed partial class SetCCCTargetOperator : HTNOperator
             return (false, null);
 
         var self = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
-        var angle = (int)self * GoldenAngle % MathF.Tau;
-        var offset = new Vector2(MathF.Cos(angle) * ApproachRadius, MathF.Sin(angle) * ApproachRadius);
+        var slotDir = _slotRing.GetOrAssignSlot(self, target);
+        var offset = slotDir.LengthSquared() > 0f
+            ? slotDir.Normalized() * ApproachRadius
+            : new Vector2(ApproachRadius, 0f);
 
         return (true, new Dictionary<string, object>
         {

@@ -324,16 +324,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
             var proto = SelectEnemyProto(comp, pool);
             var enemy = Spawn(proto, coords);
-            var affinity = EnsureComp<FSFrontAffinityComponent>(enemy);
-            affinity.SpawnerUid = spawnerUid;
-            affinity.FrontId = spawnerComp?.DirectionLabel.ToUpperInvariant() switch
-            {
-                "N" => HordeFront.North,
-                "E" => HordeFront.East,
-                "S" => HordeFront.South,
-                "W" => HordeFront.West,
-                _   => HordeFront.Unknown,
-            };
             EnsureComp<WaveSpawnedTagComponent>(enemy);
             EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
             if (TryComp<HTNComponent>(enemy, out var htn))
