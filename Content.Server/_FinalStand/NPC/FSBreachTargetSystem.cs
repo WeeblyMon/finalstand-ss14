@@ -121,6 +121,21 @@ public sealed class FSBreachTargetSystem : EntitySystem
         if (args.State != DoorState.Open)
             return;
         ForceNearbyReplan(doorUid);
+        ForceBreachModeReplan();
+    }
+
+    // When any door opens, zombies targeting a different obstacle may now have a clear path.
+    // Replan all breach-mode zombies so they re-evaluate rather than keep attacking a dead end.
+    private void ForceBreachModeReplan()
+    {
+        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out _, out _, out var htn))
+        {
+            if (!htn.Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget))
+                continue;
+            ClearBreachTarget(htn.Blackboard);
+            _htn.Replan(htn);
+        }
     }
 
     private void OnDoorShutdown(EntityUid doorUid, DoorComponent door, ComponentShutdown args)
