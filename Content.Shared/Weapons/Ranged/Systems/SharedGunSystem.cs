@@ -11,6 +11,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Examine;
 using Content.Shared.Hands;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Tag;
@@ -197,17 +198,35 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gun = default;
 
-        if (_hands.GetActiveItem(entity) is { } held &&
-            TryComp(held, out GunComponent? gunComp))
+        if (_hands.GetActiveItem(entity) is { } held)
         {
-            gun = (held, gunComp);
-            return true;
+            if (TryComp(held, out GunComponent? gunComp))
+            {
+                gun = (held, gunComp);
+                return true;
+            }
+
+            // FS: unwrap virtual items (e.g. Akimbo mirror) so firing works from either hand.
+            // Mirrors the safety guard in SharedVirtualItemSystem.OnGetUsedEntity — only unwrap
+            // when the real gun is also held by the same user.
+            if (TryComp<VirtualItemComponent>(held, out var virtualItem)
+                && TryComp(virtualItem.BlockingEntity, out GunComponent? realGun))
+            {
+                foreach (var otherHeld in _hands.EnumerateHeld(entity))
+                {
+                    if (otherHeld == virtualItem.BlockingEntity)
+                    {
+                        gun = (virtualItem.BlockingEntity, realGun);
+                        return true;
+                    }
+                }
+            }
         }
 
         // Last resort is check if the entity itself is a gun.
-        if (TryComp(entity, out gunComp))
+        if (TryComp(entity, out GunComponent? entGun))
         {
-            gun = (entity, gunComp);
+            gun = (entity, entGun);
             return true;
         }
 

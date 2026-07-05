@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "copyright": "Tesla lightning hit effect",
+  "size": {
+    "x": 64,
+    "y": 64
+  },
+  "states": [
+    {
+      "name": "lightning",
+      "delays": [[0.1, 0.1, 0.1, 0.1]]
+    }
+  ]
+}

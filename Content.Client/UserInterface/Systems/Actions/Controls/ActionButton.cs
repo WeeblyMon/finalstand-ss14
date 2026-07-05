@@ -3,6 +3,7 @@ using Content.Client.Actions;
 using Content.Client.Actions.UI;
 using Content.Client.Cooldown;
 using Content.Client.Stylesheets;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared.Actions.Components;
 using Content.Shared.Charges.Systems;
 using Content.Shared.Examine;
@@ -51,6 +52,7 @@ public sealed class ActionButton : Control, IEntityControl
     private readonly TextureRect _bigActionIcon;
     private readonly TextureRect _smallActionIcon;
     public readonly Label Label;
+    private readonly Label _chargesLabel;
     public readonly CooldownGraphic Cooldown;
     private readonly SpriteView _smallItemSpriteView;
     private readonly SpriteView _bigItemSpriteView;
@@ -106,6 +108,14 @@ public sealed class ActionButton : Control, IEntityControl
             VerticalAlignment = VAlignment.Top,
             Margin = new Thickness(5, 0, 0, 0)
         };
+        _chargesLabel = new Label
+        {
+            Name = "ChargesLabel",
+            HorizontalAlignment = HAlignment.Right,
+            VerticalAlignment = VAlignment.Bottom,
+            Margin = new Thickness(0, 0, 2, 2),
+            Visible = false,
+        };
         _bigItemSpriteView = new SpriteView
         {
             Name = "Big Sprite",
@@ -153,6 +163,7 @@ public sealed class ActionButton : Control, IEntityControl
         AddChild(Label);
         AddChild(Cooldown);
         AddChild(paddingBoxItemIcon);
+        AddChild(_chargesLabel);
 
         Button.Modulate = new Color(255, 255, 255, 150);
 
@@ -358,13 +369,37 @@ public sealed class ActionButton : Control, IEntityControl
 
         Cooldown.Visible = Action?.Comp.Cooldown != null;
         if (Action?.Comp is not {} action)
+        {
+            _chargesLabel.Visible = false;
             return;
+        }
 
         if (action.Cooldown is {} cooldown)
             Cooldown.FromTime(cooldown.Start, cooldown.End);
 
         if (_toggled != action.Toggled)
             _toggled = action.Toggled;
+
+        // Stock counter badge for grenade packs
+        if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
+        {
+            _chargesLabel.Text = counter.Current.ToString();
+            _chargesLabel.Visible = true;
+            _chargesLabel.FontColorOverride = counter.Current == 0 ? Color.Gray : Color.White;
+            _bigActionIcon.Modulate = counter.Current == 0
+                ? new Color(0.4f, 0.4f, 0.4f, 1f)
+                : action.IconColor;
+        }
+        else
+        {
+            _chargesLabel.Visible = false;
+            _bigActionIcon.Modulate = action.IconColor;
+        }
+
+        // Refresh highlight every frame for grenade selector buttons so switching
+        // active type is reflected immediately without needing a hover event.
+        if (_entities.HasComponent<FSGrenadeSelectActionComponent>(Action!.Value.Owner))
+            DrawModeChanged();
     }
 
     protected override void MouseEntered()
@@ -402,6 +437,21 @@ public sealed class ActionButton : Control, IEntityControl
     {
         _controller ??= UserInterfaceManager.GetUIController<ActionUIController>();
         HighlightRect.Visible = _beingHovered && (Action != null || _controller.IsDragging);
+
+        // Green border for the currently active grenade type (client-side, no toggle race condition)
+        if (Action is { } grenadeAction
+            && _entities.TryGetComponent(grenadeAction.Owner, out FSGrenadeSelectActionComponent? selectComp)
+            && _player.LocalEntity is { } localPlayer
+            && _entities.TryGetComponent(localPlayer, out FSActiveGrenadeComponent? activeGrenade)
+            && activeGrenade.ActiveType == selectComp.GrenadeType)
+        {
+            HighlightRect.Visible = true;
+            HighlightRect.Modulate = new Color(0f, 0.85f, 0.2f, 0.85f);
+        }
+        else
+        {
+            HighlightRect.Modulate = Color.White;
+        }
 
         // always show the normal empty button style if no action in this slot
         if (Action?.Comp is not {} action)

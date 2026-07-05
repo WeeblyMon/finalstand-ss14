@@ -1,5 +1,49 @@
 # FinalStand-specific gun overrides.
 
+# ── Double Barrel (no-structural ammo chain) ──────────────────────────────────
+- type: entity
+  parent: BaseShellShotgun
+  id: FSShellDoubleBarrel
+  name: shell (.50 pellet)
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - ShellShotgun
+    - ShellDoubleBarrelFS
+  - type: CartridgeAmmo
+    proto: FSPelletDoubleBarrelSpread
+
+- type: entity
+  parent: AmmoProviderShotgunShell
+  id: FSBoxDoubleBarrel
+  name: ammunition box (.50 pellet)
+  description: A cardboard box of .50 shotgun shells loaded for the double barrel.
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellDoubleBarrel
+    whitelist:
+      tags:
+      - ShellDoubleBarrelFS
+  - type: Sprite
+    layers:
+    - state: base
+      map: ["enum.GunVisualLayers.Base"]
+    - state: mag-1
+      map: ["enum.GunVisualLayers.Mag"]
+    - state: lethal
+
+- type: entity
+  parent: WeaponShotgunDoubleBarreled
+  id: FSWeaponDoubleBarrel
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellDoubleBarrel
+    whitelist:
+      tags:
+      - ShellDoubleBarrelFS
+
 - type: entity
   parent: CartridgeMagnum
   id: FSCartridgeFlintlock

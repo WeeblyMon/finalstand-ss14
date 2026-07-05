@@ -8,7 +8,6 @@ namespace Content.Client.Access.Systems;
 
 public sealed class JobStatusSystem : SharedJobStatusSystem
 {
-    [Dependency] private readonly ShowJobIconsSystem _showJobIcons = default!;
     [Dependency] private readonly ShowCrewIconsSystem _showCrewIcons = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
 
@@ -22,10 +21,9 @@ public sealed class JobStatusSystem : SharedJobStatusSystem
         SubscribeLocalEvent<JobStatusComponent, GetStatusIconsEvent>(OnGetStatusIconsEvent);
     }
 
-    // show the status icons if the player has the correponding HUDs
     private void OnGetStatusIconsEvent(Entity<JobStatusComponent> ent, ref GetStatusIconsEvent ev)
     {
-        if (_showJobIcons.IsActive && ent.Comp.JobStatusIcon != null)
+        if (ent.Comp.JobStatusIcon != null)
             ev.StatusIcons.Add(_prototype.Index(ent.Comp.JobStatusIcon));
 
         if (_showCrewIcons.IsActive)

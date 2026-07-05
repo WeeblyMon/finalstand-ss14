@@ -63,9 +63,15 @@
     specialEnemyPool:
     - enemyId: FSZombieBloater
       fromWave: 7
-      spawnChance: 0.25
+      spawnChance: 0.05
     - enemyId: FSZombieFlamethrower
       fromWave: 9
+      spawnChance: 0.05
+    - enemyId: FSZombieTesla
+      fromWave: 11
+      spawnChance: 0.05
+    - enemyId: FSZombieArmoured
+      fromWave: 10
       spawnChance: 0.05
     prepDuration: 300
     maxCombatDuration: 1800
@@ -86,16 +92,14 @@
       enemyPool:
       - FSZombieNormal
       - FSZombieRunner
-    # Waves 10-19: armoured joins — now need to manage tank + speed combo
+    # Waves 10-19: armoured joins as rare special — speed + occasional tank
     - fromWave: 10
       toWave: 19
       enemyPool:
       - FSZombieNormal
       - FSZombieRunner
-      - FSZombieArmoured
     # Waves 20+: full zombie horde
     - fromWave: 20
       enemyPool:
       - FSZombieNormal
       - FSZombieRunner
-      - FSZombieArmoured

@@ -141,6 +141,7 @@ ui-options-function-move-up = Move Up
 ui-options-function-move-left = Move Left
 ui-options-function-move-down = Move Down
 ui-options-function-move-right = Move Right
+ui-options-function-fs-sprint = Sprint
 ui-options-function-walk = Walk
 ui-options-function-toggle-knockdown = Toggle Crawling
 

@@ -23,7 +23,7 @@
         mask:
         - None
         layer:
-        - TabletopMachineLayer
+        - None
   - type: CameraActiveOnCollide
     requiresPower: false # TODO: Change this when AI can no longer see via unpowered cameras
   - type: PointLight

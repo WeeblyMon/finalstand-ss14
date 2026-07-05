@@ -37,6 +37,11 @@
     shape:
     - 0,0,2,2
     sprite: Objects/Weapons/Melee/chainsaw.rsi
+  - type: Clothing
+    sprite: Objects/Weapons/Melee/chainsaw.rsi
+    quickEquip: false
+    slots:
+    - suitStorage
   - type: DisarmMalus
   - type: UseDelay
     delay: 1

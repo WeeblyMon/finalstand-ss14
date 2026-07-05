@@ -1,0 +1,433 @@
+# ─── Selection action entities ────────────────────────────────────────────────
+
+- type: entity
+  parent: BaseAction
+  id: FSActionSelectFrag
+  name: Select Frag Grenade
+  description: Switch quick-throw to frag grenades.
+  components:
+  - type: Action
+    icon:
+      sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:FSSelectFragGrenadeEvent {}
+  - type: FSGrenadeSelectAction
+    grenadeType: Frag
+
+- type: entity
+  parent: BaseAction
+  id: FSActionSelectIncendiary
+  name: Select Incendiary Grenade
+  description: Switch quick-throw to incendiary grenades.
+  components:
+  - type: Action
+    icon:
+      sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:FSSelectIncendiaryGrenadeEvent {}
+  - type: FSGrenadeSelectAction
+    grenadeType: Incendiary
+
+- type: entity
+  parent: BaseAction
+  id: FSActionSelectFlash
+  name: Select Flash Grenade
+  description: Switch quick-throw to flash grenades.
+  components:
+  - type: Action
+    icon:
+      sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:FSSelectFlashGrenadeEvent {}
+  - type: FSGrenadeSelectAction
+    grenadeType: Flash
+
+- type: entity
+  parent: BaseAction
+  id: FSActionSelectPipe
+  name: Select Pipe Bomb
+  description: Switch quick-throw to pipe bombs (zombie bait).
+  components:
+  - type: Action
+    icon:
+      sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:FSSelectPipeGrenadeEvent {}
+  - type: FSGrenadeSelectAction
+    grenadeType: Pipe
+
+# ─── Grenade pack items (sit in player's pockets) ─────────────────────────────
+
+- type: entity
+  id: FSGrenadePackBase
+  abstract: true
+  components:
+  - type: Item
+    size: Small
+  - type: Sprite
+    drawdepth: SmallObjects
+  - type: Clothing
+    quickEquip: false
+    slots:
+    - pocket
+
+- type: entity
+  parent: FSGrenadePackBase
+  id: FSGrenadePackFrag
+  name: Frag Grenade Pack
+  description: A pack of fragmentation grenades. Refills each prep phase.
+  components:
+  - type: FSGrenadePack
+    packType: Frag
+    stock: 2
+    maxStock: 2
+    regenPerWave: 2
+    grenadeProtoId: FSGrenadeFrag
+    selectActionProtoId: FSActionSelectFrag
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    state: icon
+
+- type: entity
+  parent: FSGrenadePackBase
+  id: FSGrenadePackIncendiary
+  name: Incendiary Grenade Pack
+  description: A pack of incendiary grenades. Creates persistent fire zones.
+  components:
+  - type: FSGrenadePack
+    packType: Incendiary
+    stock: 2
+    maxStock: 2
+    regenPerWave: 2
+    burnDuration: 10
+    grenadeProtoId: FSGrenadeIncendiary
+    selectActionProtoId: FSActionSelectIncendiary
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
+    state: icon
+
+- type: entity
+  parent: FSGrenadePackBase
+  id: FSGrenadePackFlash
+  name: Flash Grenade Pack
+  description: A pack of flash grenades. Stuns zombies in a wide radius.
+  components:
+  - type: FSGrenadePack
+    packType: Flash
+    stock: 2
+    maxStock: 2
+    regenPerWave: 2
+    grenadeProtoId: FSGrenadeFlash
+    selectActionProtoId: FSActionSelectFlash
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
+    state: icon
+
+- type: entity
+  parent: FSGrenadePackBase
+  id: FSGrenadePackPipe
+  name: Pipe Bomb Pack
+  description: A pack of pipe bombs. Draws zombie attention when detonated.
+  components:
+  - type: FSGrenadePack
+    packType: Pipe
+    stock: 1
+    maxStock: 2
+    regenPerWave: 1
+    grenadeProtoId: FSGrenadePipe
+    selectActionProtoId: FSActionSelectPipe
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
+    state: icon
+
+# ─── Throwable grenade entities ────────────────────────────────────────────────
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeFrag
+  name: frag grenade
+  description: A fragmentation grenade with a short fuse.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.ConstructionVisuals.Layer:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: ExplodeOnTrigger
+    keysIn:
+    - timer
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 10
+    intensitySlope: 3
+    totalIntensity: 150
+    canCreateVacuum: false
+  - type: TimerTrigger
+    delay: 3
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeIncendiary
+  name: incendiary grenade
+  description: Creates a sustained fire zone on detonation.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.ConstructionVisuals.Layer:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: FSFireZoneOnTrigger
+    keysIn:
+    - timer
+    fireZoneProtoId: FSFireZoneEffect
+    burnDuration: 5
+  - type: EmitSoundOnTrigger
+    keysIn:
+    - timer
+    sound:
+      path: "/Audio/Effects/explosion_small1.ogg"
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: TimerTrigger
+    delay: 3
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeFlash
+  name: flash grenade
+  description: Stuns all zombies in a wide radius. Does not affect players.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.ConstructionVisuals.Layer:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: FSStunInRadiusOnTrigger
+    keysIn:
+    - timer
+    radius: 5
+    stunDuration: 3
+  - type: EmitSoundOnTrigger
+    keysIn:
+    - timer
+    sound:
+      path: "/Audio/Effects/flash_bang.ogg"
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: SpawnOnTrigger
+    keysIn:
+    - timer
+    proto: GrenadeFlashEffect
+  - type: TimerTrigger
+    delay: 3
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadePipe
+  name: pipe bomb
+  description: Detonates to create a decoy that attracts zombie attention.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.ConstructionVisuals.Layer:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: FSBaitDecoy
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 4
+    intensitySlope: 2
+    totalIntensity: 30
+    canCreateVacuum: false
+  - type: ExplodeOnTrigger
+    keysIn:
+    - timer
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: TimerTrigger
+    delay: 3
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+# ─── Cluster frag grenade (spawns 3 sub-munitions on detonation) ───────────────
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeFragCluster
+  name: cluster frag grenade
+  description: Detonates into three sub-munitions that scatter and explode.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.ConstructionVisuals.Layer:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: FSClusterOnTrigger
+    keysIn:
+    - timer
+    subGrenadeProtoId: FSGrenadeFragSub
+    count: 3
+    distance: 3.0
+    velocity: 7.0
+  - type: EmitSoundOnTrigger
+    keysIn:
+    - timer
+    sound:
+      path: "/Audio/Machines/door_lock_off.ogg"
+    positional: true
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: TimerTrigger
+    delay: 3
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeFragSub
+  name: frag sub-munition
+  description: A small shaped charge that detonates shortly after landing.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: ExplodeOnTrigger
+    keysIn:
+    - timer
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 8
+    intensitySlope: 3
+    totalIntensity: 60
+    canCreateVacuum: false
+  - type: TimerTrigger
+    delay: 1.5
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+# ─── Fire zone effect entity ────────────────────────────────────────────────────
+
+- type: entity
+  id: FSFireZoneEffect
+  name: fire zone
+  description: Burning fire!
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSFireZone
+    radius: 2.0
+    igniteStacksPerSecond: 5
+  - type: Sprite
+    drawdepth: Effects
+    sprite: Effects/explosion.rsi
+    layers:
+    - state: explosionfast
+      shader: unshaded
+      color: "#FF6600"
+  - type: PointLight
+    enabled: true
+    radius: 5
+    energy: 3
+    color: "#FF4400"
+  - type: TimedDespawn
+    lifetime: 5
+
+# ─── Bait decoy entity ──────────────────────────────────────────────────────────
+
+- type: entity
+  id: FSBaitDecoy
+  name: bait signal
+  description: An electronic decoy that mimics a living target.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSBaitDecoy
+  - type: FSPlayerDamageImmune
+  - type: NpcFactionMember
+    factions:
+    - FSPlayer
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Objects/Devices/station_beacon.rsi
+    state: icon
+  - type: MobState
+  - type: MobThresholds
+    thresholds:
+      30: Dead
+  - type: Damageable
+    damageModifierSet: Inorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 30
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: TimedDespawn
+    lifetime: 8
+  - type: Physics
+    bodyType: Static
+  - type: PointLight
+    enabled: true
+    radius: 2
+    energy: 1
+    color: "#00FFAA"

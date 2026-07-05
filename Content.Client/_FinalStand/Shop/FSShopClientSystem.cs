@@ -179,6 +179,42 @@ public sealed class FSShopClientSystem : EntitySystem
         return held.Value;
     }
 
+    // Finds the owned instance of the weapon/grenade-pack matching protoId across hands and inventory.
+    public EntityUid? FindOwnedWeapon(EntProtoId? protoId)
+    {
+        var player = _player.LocalSession?.AttachedEntity;
+        if (player == null || protoId == null) return null;
+        var targetId = protoId.Value.Id;
+
+        foreach (var held in _hands.EnumerateHeld(player.Value))
+        {
+            if (MetaData(held).EntityPrototype?.ID == targetId)
+                return held;
+        }
+
+        foreach (var slot in InventorySlots)
+        {
+            if (_inventory.TryGetSlotEntity(player.Value, slot, out var item) && item != null
+                && MetaData(item.Value).EntityPrototype?.ID == targetId)
+                return item.Value;
+        }
+
+        if (_inventory.TryGetSlotEntity(player.Value, "back", out var back) && back != null
+            && TryComp<ContainerManagerComponent>(back.Value, out var mgr))
+        {
+            foreach (var container in mgr.Containers.Values)
+            {
+                foreach (var entity in container.ContainedEntities)
+                {
+                    if (MetaData(entity).EntityPrototype?.ID == targetId)
+                        return entity;
+                }
+            }
+        }
+
+        return null;
+    }
+
     private void OnSellCompleted(FSShopSellCompletedEvent _) => SellCompleted?.Invoke();
 
     private void OnSellFailed(FSShopSellFailedEvent ev) => SellFailed?.Invoke(ev.Reason);

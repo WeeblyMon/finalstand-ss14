@@ -962,8 +962,6 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
 
 - type: entity
   parent: VendingMachine
@@ -1730,8 +1728,6 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
 
 - type: entity
   parent: VendingMachine
@@ -2054,8 +2050,6 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
 
 - type: entity
   parent: VendingMachine
@@ -2082,8 +2076,6 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
 
 - type: entity
   parent: VendingMachine
@@ -2307,5 +2299,3 @@
       shader: unshaded
     - texture: Structures/Machines/VendingMachines/maintenance_panel.png
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]

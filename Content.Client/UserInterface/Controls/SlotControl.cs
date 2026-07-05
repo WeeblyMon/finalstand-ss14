@@ -1,11 +1,14 @@
 using System.Numerics;
 using Content.Client.Cooldown;
 using Content.Client.UserInterface.Systems.Inventory.Controls;
+using Content.Shared._FinalStand.Grenades;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Input;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Controls
 {
@@ -22,6 +25,9 @@ namespace Content.Client.UserInterface.Controls
 
         private SpriteView SpriteView { get; }
         private EntityPrototypeView ProtoView { get; }
+
+        private readonly Label _chargesLabel;
+        private IEntityManager? _entMan;
 
         public EntityUid? Entity => SpriteView.Entity;
 
@@ -202,6 +208,32 @@ namespace Content.Client.UserInterface.Controls
 
             HighlightTexturePath = "slot_highlight";
             BlockedTexturePath = "blocked";
+
+            AddChild(_chargesLabel = new Label
+            {
+                Name = "ChargesLabel",
+                HorizontalAlignment = HAlignment.Right,
+                VerticalAlignment = VAlignment.Bottom,
+                Margin = new Thickness(0, 0, 2, 2),
+                Visible = false,
+            });
+        }
+
+        protected override void FrameUpdate(FrameEventArgs args)
+        {
+            base.FrameUpdate(args);
+
+            _entMan ??= IoCManager.Resolve<IEntityManager>();
+            if (Entity is { } ent && _entMan.TryGetComponent<FSGrenadePackComponent>(ent, out var pack))
+            {
+                _chargesLabel.Text = pack.Stock.ToString();
+                _chargesLabel.Visible = true;
+                _chargesLabel.FontColorOverride = pack.Stock == 0 ? Color.Gray : Color.White;
+            }
+            else
+            {
+                _chargesLabel.Visible = false;
+            }
         }
 
         public void ClearHover()

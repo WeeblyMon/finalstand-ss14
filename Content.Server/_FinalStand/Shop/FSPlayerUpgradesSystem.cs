@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Grenades;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
@@ -25,6 +26,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private readonly TagSystem _tags = default!;
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
     [Dependency] private readonly SharedBatterySystem _battery = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
@@ -564,6 +566,102 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     break;
                 oldState.DualWieldEnergySwordApplied = true;
                 TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeCapacity:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.MaxStock += (int) def.ValuePerLevel;
+                    pack.Stock = Math.Min(pack.Stock + (int) def.ValuePerLevel, pack.MaxStock);
+                    Dirty(weapon, pack);
+                    _grenadeSelect.SyncPackCounter(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeRegen:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.RegenPerWave += (int) def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeBurnDuration:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.BurnDuration += def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeStunDuration:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.StunDuration += def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeBaitDuration:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.BaitDuration += def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeImpactFuse:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.ImpactFuse = true;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeEffectRadius:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.EffectRadius += def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeBlastBonus:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))
+                {
+                    pack.BlastBonus += def.ValuePerLevel;
+                    Dirty(weapon, pack);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.GrenadeCluster:
+            {
+                if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack) && !pack.IsCluster)
+                {
+                    pack.IsCluster = true;
+                    // Cluster grenade costs one capacity slot.
+                    pack.MaxStock = Math.Max(1, pack.MaxStock - 1);
+                    pack.Stock = Math.Min(pack.Stock, pack.MaxStock);
+                    Dirty(weapon, pack);
+                    _grenadeSelect.SyncPackCounter(weapon, pack);
+                }
                 break;
             }
         }

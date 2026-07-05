@@ -1,0 +1,13 @@
+# Ephemeral session entity spawned at the sender's feet when the transfer verb fires.
+# Deleted automatically when the UI closes or the transfer completes.
+
+- type: entity
+  id: FSCashTransferSession
+  categories: [HideSpawnMenu]
+  components:
+  - type: FSCashTransfer
+  - type: IgnoreUIRange
+  - type: UserInterface
+    interfaces:
+      enum.FSCashTransferUiKey.Key:
+        type: FSCashTransferBoundUserInterface

@@ -3,7 +3,6 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
-using Robust.Client.ResourceManagement;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
@@ -12,7 +11,6 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed class WaveHudSystem : EntitySystem
 {
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
     [Dependency] private readonly IBaseClient _client = default!;
 
     private WaveHudOverlay? _overlay;
@@ -24,6 +22,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
         SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
+        SubscribeNetworkEvent<FSPrepTimerUpdateEvent>(OnPrepTimer);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -54,22 +53,9 @@ public sealed class WaveHudSystem : EntitySystem
     {
         if (_overlay != null)
             return _overlay;
-        try
-        {
-            var textures = new Texture[10];
-            for (var i = 0; i < 10; i++)
-                textures[i] = _resourceCache
-                    .GetResource<TextureResource>(new ResPath($"/Textures/_FinalStand/WaveCounter/{i}.png"))
-                    .Texture;
-            _overlay = new WaveHudOverlay(textures);
-            _overlayManager.AddOverlay(_overlay);
-            return _overlay;
-        }
-        catch (Exception e)
-        {
-            Log.Error($"[WaveHud] Failed to load digit textures: {e.Message}");
-            return null;
-        }
+        _overlay = new WaveHudOverlay();
+        _overlayManager.AddOverlay(_overlay);
+        return _overlay;
     }
 
     private void OnWaveUpdate(WaveCounterUpdateEvent ev)
@@ -98,5 +84,12 @@ public sealed class WaveHudSystem : EntitySystem
         if (EnsureOverlay() is not { } overlay) return;
         overlay.ActiveSlots   = ev.Slots;
         overlay.AugmentLevels = ev.Levels;
+    }
+
+    private void OnPrepTimer(FSPrepTimerUpdateEvent ev)
+    {
+        if (EnsureOverlay() is not { } overlay) return;
+        overlay.IsPrepPhase = ev.IsPrepPhase;
+        overlay.PrepSecondsRemaining = ev.SecondsRemaining;
     }
 }

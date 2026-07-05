@@ -2,7 +2,6 @@ using Content.Server._FinalStand.Cleanup;
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
-using Content.Shared._FinalStand.Economy;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Server._FinalStand.Spawners;
@@ -100,6 +99,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 {
                     Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");
                     StartCombatPhase(uid, comp);
+                    break;
+                }
+                if (now >= comp.NextTimerBroadcastTime)
+                {
+                    var secs = Math.Max(0f, (float)(comp.PhaseEndTime - now).TotalSeconds);
+                    RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), Filter.Broadcast());
+                    comp.NextTimerBroadcastTime = now + TimeSpan.FromSeconds(1);
                 }
                 break;
 
@@ -171,6 +177,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
+        comp.NextTimerBroadcastTime = Timing.CurTime;
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
@@ -209,7 +217,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
             : 0;
-        comp.EnemyTotalThisWave = Math.Min(4 * comp.WaveNumber + 4 + playerBonus, comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.3f), comp.MaxEnemyCap);
+        // Single-corridor waves past wave 5 double the count — one lane is too easy to hold otherwise.
+        if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
+            comp.EnemyTotalThisWave = Math.Min(comp.EnemyTotalThisWave * 2, comp.MaxEnemyCap);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
 
@@ -248,6 +259,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, comp.EnemyTotalThisWave), Filter.Broadcast());
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
@@ -496,9 +508,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static float GetHpMultiplier(int wave)
     {
         if (wave < 10) return 1f;
-        if (wave < 20) return 2.5f;
-        if (wave < 30) return 5f;
-        return 8f;
+        if (wave < 20) return 2.2f;
+        if (wave < 30) return 4.2f;
+        return 6.6f;
     }
 
     private void ScaleEnemySpeed(EntityUid enemy, int wave)
@@ -506,7 +518,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        var multiplier = 1f + (wave - 1) * 0.012f;
+        var multiplier = 1f + (wave - 1) * 0.0096f;
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 
@@ -621,10 +633,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule)) continue;
-            if (comp.AccumulatedSurvivalBonus <= 0) break;
-            if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet)) break;
-            if (wallet.Credits > 500) break;
-            _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+
+            var wavesMissed = comp.WaveNumber - 1;
+            if (wavesMissed > 0)
+                _wallet.GiveCredits(mindId, 1000 * wavesMissed);
+
+            if (comp.AccumulatedSurvivalBonus > 0)
+                _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+
             break;
         }
     }
