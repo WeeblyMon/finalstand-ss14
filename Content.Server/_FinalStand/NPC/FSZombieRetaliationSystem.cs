@@ -1,3 +1,4 @@
+// Retaliates against off-screen attackers; alerts nearby allies with attenuated duration.
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.NPC;
@@ -7,15 +8,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-/// <summary>
-/// Makes wave enemies retaliate against attackers that are outside their LOS.
-/// The LOS check in NPCUtilitySystem correctly prevents vision-based detection through walls,
-/// but that same check also blocks retaliation from off-screen shooters. When a wave enemy
-/// takes damage we seed the FS retaliation blackboard keys so the HTN's Priority 1
-/// FinalStandPlayerRetaliationCompound branch fires on the next replan.
-/// Pack alert: the directly-hit zombie's cluster also gets alerted, with duration
-/// attenuated by distance so only nearby zombies join the pursuit.
-/// </summary>
 public sealed class FSZombieRetaliationSystem : EntitySystem
 {
     [Dependency] private readonly HTNSystem _htn = default!;
@@ -29,21 +21,14 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
     private const float AlertDuration = 1.5f;
     private const float AlertCooldown = 0.5f;
 
-    // CritSystem owns WaveSpawnedTagComponent+DamageChangedEvent (one subscriber per pair
-    // limit). It calls TryRetaliate directly after processing each damage event.
     public void TryRetaliate(EntityUid uid, EntityUid attacker)
     {
-        // Skip non-mob sources (fire tiles, acid pools, etc. have no MobStateComponent).
         if (!HasComp<MobStateComponent>(attacker))
             return;
-
         if (!Exists(attacker) || _mobState.IsDead(attacker))
             return;
-
-        // Don't retaliate against other wave enemies (zombie splash, xeno chain, etc.).
         if (HasComp<WaveSpawnedTagComponent>(attacker))
             return;
-
         if (!TryComp<HTNComponent>(uid, out var htn))
             return;
 
@@ -67,12 +52,10 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
 
             var bb = peerHtn.Blackboard;
 
-            // Don't override an active pursuit.
             if (bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var existing, EntityManager)
                 && Exists(existing) && !_mobState.IsDead(existing))
                 continue;
 
-            // Rate-limit: a burst of shots shouldn't trigger a replan storm.
             if (bb.TryGetValue<TimeSpan>("FSPackAlertCooldown", out var cooldownEnd, EntityManager)
                 && _timing.CurTime < cooldownEnd)
                 continue;

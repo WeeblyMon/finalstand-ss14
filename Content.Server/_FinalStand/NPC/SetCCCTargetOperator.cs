@@ -13,9 +13,7 @@ public sealed partial class SetCCCTargetOperator : HTNOperator
     [Dependency] private readonly IEntityManager _entManager = default!;
     [Dependency] private readonly FSSlotRingSystem _slotRing = default!;
 
-    // Slot ring radii (1.0–1.9f) exceed MeleeRange, so we project the angular direction onto a
-    // safe radius. The slot ring allocates unique angular directions per zombie; this radius
-    // ensures MoveToOperator's planning phase passes MeleeOperator's strict-less-than check.
+    // Must be < MeleeRange (1.0f) so the planning-phase TargetInRangePrecondition passes.
     private const float ApproachRadius = 0.9f;
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(
