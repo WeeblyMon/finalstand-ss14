@@ -11,10 +11,17 @@ namespace Content.Server._FinalStand.NPC;
 public sealed partial class SetCCCTargetOperator : HTNOperator
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
-    [Dependency] private readonly FSSlotRingSystem _slotRing = default!;
+
+    private FSSlotRingSystem _slotRing = default!;
 
     // Must be < MeleeRange (1.0f) so the planning-phase TargetInRangePrecondition passes.
     private const float ApproachRadius = 0.9f;
+
+    public override void Initialize(IEntitySystemManager sysManager)
+    {
+        base.Initialize(sysManager);
+        _slotRing = sysManager.GetEntitySystem<FSSlotRingSystem>();
+    }
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(
         NPCBlackboard blackboard, CancellationToken cancelToken)
