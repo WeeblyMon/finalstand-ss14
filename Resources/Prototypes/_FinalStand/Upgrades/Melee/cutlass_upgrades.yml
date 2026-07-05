@@ -8,7 +8,7 @@
   description: A wickedly curved blade. Pairs well with flintlocks and a sense of dread.
   components:
   - type: FSShopWeapon
-    weaponProtoId: Cutlass
+    weaponProtoId: FSWeaponCutlass
     price: 4000
     category: Melee Sword
     statDamage: 40

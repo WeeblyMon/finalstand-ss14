@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Power.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Melee;
@@ -518,8 +519,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
                 return (Math.Min(1f, bal.Capacity / 30f), $"{bal.Capacity}");
             if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var rev))
                 return (Math.Min(1f, rev.Capacity / 30f), $"{rev.Capacity}");
-            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out _))
+            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out var battAmmo))
+            {
+                if (entMan.TryGetComponent<BatteryComponent>(gun.Value, out var bat) && battAmmo.FireCost > 0f)
+                {
+                    var shots = (int)(bat.MaxCharge / battAmmo.FireCost);
+                    return (Math.Min(1f, shots / 8f), $"{shots}");
+                }
                 return (1f, "∞");
+            }
             if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
                 && magSlot.Item.HasValue
                 && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
@@ -532,8 +540,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
                 return (Math.Min(1f, ballProto.Capacity / 30f), $"{ballProto.Capacity}");
             if (weaponProto.TryGetComponent<RevolverAmmoProviderComponent>(out var revProto, entMan.ComponentFactory))
                 return (Math.Min(1f, revProto.Capacity / 30f), $"{revProto.Capacity}");
-            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out _, entMan.ComponentFactory))
+            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out var battProto, entMan.ComponentFactory))
+            {
+                if (weaponProto.TryGetComponent<BatteryComponent>(out var batProto, entMan.ComponentFactory) && battProto.FireCost > 0f)
+                {
+                    var shots = (int)(batProto.MaxCharge / battProto.FireCost);
+                    return (Math.Min(1f, shots / 8f), $"{shots}");
+                }
                 return (1f, "∞");
+            }
         }
 
         if (shopComp.StarterAmmoProtoId is { } starterId

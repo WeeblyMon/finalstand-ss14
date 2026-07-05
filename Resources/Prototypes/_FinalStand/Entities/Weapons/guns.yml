@@ -103,7 +103,51 @@
   - type: StaticPrice
     price: 500
 
-# SMG overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+# ── FS SMG ammo ───────────────────────────────────────────────────────────────
+- type: entity
+  parent: CartridgePistol
+  id: FSCartridgePistolSMG
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletPistolSMG
+
+- type: entity
+  parent: MagazinePistolSubMachineGun
+  id: FSMagazinePistolSMG
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSCartridgePistolSMG
+    whitelist:
+      tags:
+      - CartridgePistol
+    capacity: 30
+
+- type: entity
+  parent: MagazinePistolSubMachineGunTopMounted
+  id: FSMagazinePistolSMGTopMounted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSCartridgePistolSMG
+    whitelist:
+      tags:
+      - CartridgePistol
+    capacity: 30
+
+# ── Hushpup ammo ──────────────────────────────────────────────────────────────
+- type: entity
+  parent: ShellShotgun
+  id: FSShellShotgunHushpup
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSPelletShotgunHushpupSpread
+
+# SMG overrides — adds AkimboEligible tag and buffed FS ammo.
 
 - type: entity
   id: FSWeaponAtreides
@@ -114,6 +158,24 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
 - type: entity
   id: FSWeaponWt550
@@ -124,6 +186,24 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMGTopMounted
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGunTopMounted
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
 - type: entity
   id: FSWeaponC20r
@@ -134,6 +214,52 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
+
+- type: entity
+  id: FSWeaponDrozd
+  parent: WeaponSubMachineGunDrozd
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - Sidearm
+    - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
 # Shotgun overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
 
@@ -146,7 +272,18 @@
     tags:
     - AkimboEligible
 
+# Hushpup override — uses FS pellets for +40% base damage.
+- type: entity
+  id: FSWeaponShotgunHushpup
+  parent: WeaponShotgunHushpup
+  suffix: FinalStand
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunHushpup
+    capacity: 4
+
 # E-shottie override — upstream has no self-recharge; needed for the Rapid Charge upgrade to work.
+# Also uses FS laser projectiles for +50% base damage.
 
 - type: entity
   id: FSWeaponEnergyShotgun
@@ -156,6 +293,16 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 25
     autoRechargePauseTime: 3
+  - type: BatteryAmmoProvider
+    proto: FSBulletLaserShotgunSpread
+    fireCost: 80
+  - type: BatteryWeaponFireModes
+    fireModes:
+    - proto: FSBulletLaserShotgunSpread
+      fireCost: 80
+    - proto: BulletDisablerSmgSpread
+      fireCost: 48
+      pacifismAllowedMode: true
 
 # Laser Carbine override — adds self-recharge and spread for upgrade interactions.
 
@@ -195,3 +342,40 @@
   - type: BatteryAmmoProvider
     proto: FSPulse
     fireCost: 100
+
+# Cutlass override — doubled base damage (16 → 32 Slash).
+- type: entity
+  id: FSWeaponCutlass
+  parent: Cutlass
+  suffix: FinalStand
+  components:
+  - type: MeleeWeapon
+    damage:
+      types:
+        Slash: 32
+    soundHit:
+      path: /Audio/Weapons/bladeslice.ogg
+
+# Chainsaw override — doubled base damage (4/4 → 8/8 Slash/Blunt, wield bonus 4 → 8 Slash).
+- type: entity
+  id: FSWeaponChainsaw
+  parent: Chainsaw
+  suffix: FinalStand
+  components:
+  - type: MeleeWeapon
+    autoAttack: true
+    angle: 0
+    wideAnimationRotation: -135
+    attackRate: 4
+    damage:
+      types:
+        Slash: 8
+        Blunt: 8
+    soundHit:
+      path: /Audio/Weapons/chainsaw.ogg
+      params:
+        volume: -3
+  - type: IncreaseDamageOnWield
+    damage:
+      types:
+        Slash: 8

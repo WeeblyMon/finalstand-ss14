@@ -1,8 +1,9 @@
 using Content.Shared.FixedPoint;
+using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Shop;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSWeaponUpgradeStateComponent : Component
 {
     [DataField] public float CritChance = 0f;
@@ -34,7 +35,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float PelletSpreadMultiplier = 1.0f;
 
     [DataField] public int OverkillLevel = 0;
-    [DataField] public bool ExecutionEnabled = false;
+    [DataField, AutoNetworkedField] public bool ExecutionEnabled = false;
     [DataField] public bool WarTornEnabled = false;
     [DataField] public int SuppressionLevel = 0;
     [DataField] public bool ResonanceEnabled = false;

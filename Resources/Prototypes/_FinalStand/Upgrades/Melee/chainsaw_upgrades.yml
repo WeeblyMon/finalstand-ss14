@@ -8,7 +8,7 @@
   description: A very large chainsaw. Requires fuel and a steady hand.
   components:
   - type: FSShopWeapon
-    weaponProtoId: Chainsaw
+    weaponProtoId: FSWeaponChainsaw
     price: 15000
     category: Melee Power
     statDamage: 70

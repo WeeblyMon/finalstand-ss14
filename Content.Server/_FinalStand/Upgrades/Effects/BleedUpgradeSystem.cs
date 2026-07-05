@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
+using Robust.Shared.Containers;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
@@ -13,6 +14,9 @@ public sealed class BleedUpgradeSystem : EntitySystem
 {
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
+
+    private const string TourniquetContainerId = "Tourniquet";
 
     private static readonly TimeSpan BleedDuration = TimeSpan.FromSeconds(3);
     private const float BleedScalePerLevel = 0.2f;
@@ -40,6 +44,9 @@ public sealed class BleedUpgradeSystem : EntitySystem
             if (now < bleed.NextTickAt)
                 continue;
             bleed.NextTickAt = now + TimeSpan.FromSeconds(0.5);
+
+            if (_container.TryGetContainer(uid, TourniquetContainerId, out var tqSlot) && tqSlot.ContainedEntities.Count > 0)
+                continue;
 
             var dmg = new DamageSpecifier();
             dmg.DamageDict["Slash"] = FixedPoint2.New(bleed.DamagePerSecond * 0.5f);

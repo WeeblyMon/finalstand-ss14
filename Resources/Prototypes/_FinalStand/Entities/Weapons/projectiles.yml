@@ -94,3 +94,56 @@
     layers:
     - state: heavylaser
       shader: unshaded
+
+# ── SMG bullet (+40% vs BulletPistol 16 → 22) ──���─────────────────────────────
+- type: entity
+  id: FSBulletPistolSMG
+  parent: BulletPistol
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 22
+
+# ── Hushpup pellets (+40% vs PelletShotgun 10 → 14) ──────────────────────────
+- type: entity
+  id: FSPelletShotgunHushpup
+  parent: PelletShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 14
+
+- type: entity
+  id: FSPelletShotgunHushpupSpread
+  parent: FSPelletShotgunHushpup
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSPelletShotgunHushpup
+    count: 6
+    spread: 15
+
+# ── Energy shotgun laser (+50% vs BulletLaser Heat 13 → 20) ──────────────────
+- type: entity
+  id: FSBulletLaserShotgun
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Heat: 20
+
+- type: entity
+  id: FSBulletLaserShotgunSpread
+  parent: FSBulletLaserShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSBulletLaserShotgun
+    count: 4
+    spread: 10

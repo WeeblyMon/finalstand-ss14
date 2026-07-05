@@ -256,7 +256,7 @@
   description: Suppressed and surgical. Silent entries, wide patterns, zero witnesses. Uses .50 shotgun shells.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponShotgunHushpup
+    weaponProtoId: FSWeaponShotgunHushpup
     price: 18000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1

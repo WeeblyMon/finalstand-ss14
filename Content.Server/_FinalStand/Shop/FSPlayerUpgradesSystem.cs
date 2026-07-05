@@ -417,6 +417,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                 state.ExecutionEnabled = true;
+                Dirty(weapon, state);
                 break;
             }
 

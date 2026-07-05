@@ -60,6 +60,13 @@
       baseCost: 7900
       type: Suppression
       valuePerLevel: 1
+    - id: akms-pierce
+      name: Steel Tip
+      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      maxLevel: 4
+      baseCost: 6000
+      type: Pierce
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Rifles/ak.rsi
     state: base
