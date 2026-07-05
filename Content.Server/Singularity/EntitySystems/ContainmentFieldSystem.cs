@@ -33,7 +33,8 @@ public sealed class ContainmentFieldSystem : EntitySystem
             QueueDel(otherBody);
         }
 
-        if (TryComp<PhysicsComponent>(otherBody, out var physics) && physics.Mass <= component.MaxMass && physics.Hard)
+        if (!HasComp<ContainmentFieldImmuneComponent>(otherBody)
+            && TryComp<PhysicsComponent>(otherBody, out var physics) && physics.Mass <= component.MaxMass && physics.Hard)
         {
             var fieldDir = _transformSystem.GetWorldPosition(uid);
             var playerDir = _transformSystem.GetWorldPosition(otherBody);

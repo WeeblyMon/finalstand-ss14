@@ -71,6 +71,8 @@
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  - type: ConveyorImmune
+  - type: ContainmentFieldImmune
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 450
   - type: Climbing

@@ -655,77 +655,105 @@ public sealed partial class NPCSteeringSystem
 
     #region Wave Zombie Peer Yield
 
-    // Asymmetric peer avoidance. Only the rear-UID zombie yields; the leader continues straight.
-    // Kills the mirror-jink oscillation the old symmetric WaveZombieRVO caused. Lateral bias
-    // via UID parity keeps each zombie committed to a consistent pass side across frames.
+    // Three-case peer avoidance for wave zombies:
+    //   Case 1 — near-peer separation (symmetric): any peer within 1.2 tiles is pushed away,
+    //            strongest at zero distance. Prevents physical overlap / smooshing.
+    //   Case 2 — forward yield (asymmetric): peer in front + same direction. Only the higher-UID
+    //            (trailing) zombie slows and steps aside. Prevents mirror-jink oscillation.
+    //   Case 3 — lateral spread (symmetric): peer beside + same direction. Both push away from
+    //            each other so they spread across corridor width without oscillating.
     private void WaveZombiePeerYield(
         EntityUid uid,
         Angle offsetRot,
         Vector2 worldPos,
         Span<float> danger)
     {
-        if (!_waveTagQuery.HasComponent(uid))
-            return;
-        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover))
-            return;
-
+        if (!_waveTagQuery.HasComponent(uid)) return;
+        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover)) return;
         var myDir = myMover.CurTickSprintMovement;
-        if (myDir == Vector2.Zero)
-            return;
+        if (myDir == Vector2.Zero) return;
 
-        const float DetectionRadius = 2.0f;
-        const float YieldWeight     = 0.45f;
-        const float LateralWeight   = 0.35f;
+        const float SeparationRadius    = 1.2f;
+        const float PeerYieldRadius     = 2.0f;
+        const float SeparationWeight    = 0.6f;
+        const float ForwardYieldWeight  = 0.45f;
+        const float LateralYieldWeight  = 0.35f;
+        const float LateralSpreadWeight = 0.45f;
 
-        var myDirNorm = myDir.Normalized();
+        var myDirNorm  = myDir.Normalized();
         var preferLeft = ((int)uid & 1) == 0;
 
         var ents = _entSetPool.Get();
-        _lookup.GetEntitiesInRange(uid, DetectionRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+        _lookup.GetEntitiesInRange(uid, PeerYieldRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
 
         foreach (var ent in ents)
         {
-            if (ent == uid) continue;
-            if (!_waveTagQuery.HasComponent(ent)) continue;
-            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
+            if (ent == uid || !_waveTagQuery.HasComponent(ent)) continue;
 
-            var peerPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
-            var toPeer  = peerPos - worldPos;
-            var dist    = toPeer.Length();
-            if (dist < 0.01f || dist > DetectionRadius) continue;
-
+            var peerPos   = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
+            var toPeer    = peerPos - worldPos;
+            var dist      = toPeer.Length();
+            if (dist < 0.01f || dist > PeerYieldRadius) continue;
             var toPeerDir = toPeer / dist;
-            if (Vector2.Dot(myDirNorm, toPeerDir) <= 0.6f)
-                continue; // peer not in front
 
-            var peerDir = peerMover.CurTickSprintMovement;
-            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.5f)
-                continue; // peer not going the same way
-
-            // Deterministic tiebreaker: only the higher-UID zombie yields. Prevents both peers
-            // jinking simultaneously (mirror-jink → position swap → oscillation).
-            if ((int)ent >= (int)uid)
-                continue;
-
-            var forwardDangerDir = offsetRot.RotateVec(toPeerDir);
-            for (var i = 0; i < InterestDirections; i++)
+            // Case 1: near-peer separation — symmetric, fires for any peer within SeparationRadius.
+            // Weight is highest at contact (dist=0) and falls to zero at SeparationRadius.
+            if (dist < SeparationRadius)
             {
-                var dot = Vector2.Dot(forwardDangerDir.Normalized(), Directions[i]);
-                if (dot > 0f)
-                    danger[i] = MathF.Max(danger[i], dot * YieldWeight);
+                var sepWeight   = SeparationWeight * (1f - dist / SeparationRadius);
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * sepWeight);
+                }
             }
 
-            // Lateral push, biased to a stable side per zombie (UID parity). Peers with the same
-            // bias jink the same way relative to each other; opposing biases swap around cleanly.
-            var lateralWorld = preferLeft
-                ? new Vector2(-toPeerDir.Y, toPeerDir.X)
-                : new Vector2(toPeerDir.Y, -toPeerDir.X);
-            var lateralLocal = offsetRot.RotateVec(-lateralWorld);
-            for (var i = 0; i < InterestDirections; i++)
+            // Cases 2+3 only apply to peers heading the same general direction.
+            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
+            var peerDir = peerMover.CurTickSprintMovement;
+            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f) continue;
+
+            var forwardDot = Vector2.Dot(myDirNorm, toPeerDir);
+
+            if (forwardDot > 0.4f)
             {
-                var dot = Vector2.Dot(lateralLocal.Normalized(), Directions[i]);
-                if (dot > 0f)
-                    danger[i] = MathF.Max(danger[i], dot * LateralWeight);
+                // Case 2: peer is in front and moving the same way. Only the higher-UID zombie
+                // yields so only one side brakes — prevents the mirror-jink swap loop.
+                if ((int)ent >= (int)uid) continue;
+
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * ForwardYieldWeight);
+                }
+
+                // Lateral component: bias to a stable side so the zombie commits to one pass lane.
+                var lateralWorld = preferLeft
+                    ? new Vector2(-toPeerDir.Y,  toPeerDir.X)
+                    : new Vector2( toPeerDir.Y, -toPeerDir.X);
+                var lateralLocal = offsetRot.RotateVec(-lateralWorld);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(lateralLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * LateralYieldWeight);
+                }
+            }
+            else
+            {
+                // Case 3: peer is beside us (forwardDot ≤ 0.4), same direction. Symmetric push
+                // away from each other — both diverge outward so they spread across the corridor.
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * LateralSpreadWeight);
+                }
             }
         }
 
