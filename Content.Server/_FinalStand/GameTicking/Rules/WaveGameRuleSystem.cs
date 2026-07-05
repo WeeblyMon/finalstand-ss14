@@ -98,6 +98,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 {
                     Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");
                     StartCombatPhase(uid, comp);
+                    break;
+                }
+                if (now >= comp.NextTimerBroadcastTime)
+                {
+                    var secs = Math.Max(0f, (float)(comp.PhaseEndTime - now).TotalSeconds);
+                    RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), Filter.Broadcast());
+                    comp.NextTimerBroadcastTime = now + TimeSpan.FromSeconds(1);
                 }
                 break;
 
@@ -169,6 +176,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
+        comp.NextTimerBroadcastTime = Timing.CurTime;
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
@@ -249,6 +258,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, comp.EnemyTotalThisWave), Filter.Broadcast());
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
         Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);

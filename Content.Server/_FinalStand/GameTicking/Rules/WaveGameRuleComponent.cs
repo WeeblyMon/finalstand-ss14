@@ -107,6 +107,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public readonly List<EntityUid> SpawnerEntities = new();
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
+    public TimeSpan NextTimerBroadcastTime = TimeSpan.Zero;
 
     [DataField]
     public float BaseZombieMeleeDamage = 10f;
