@@ -147,3 +147,26 @@
     proto: FSBulletLaserShotgun
     count: 4
     spread: 10
+
+# Rifle bullet overrides — +40% base damage
+- type: entity
+  parent: BulletRifle
+  id: FSBulletRifle
+  categories: [ HideSpawnMenu ]
+  name: bullet (.20 rifle)
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 24
+
+- type: entity
+  parent: BulletLightRifle
+  id: FSBulletLightRifle
+  categories: [ HideSpawnMenu ]
+  name: bullet (.30 rifle)
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 27

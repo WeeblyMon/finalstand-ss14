@@ -8,9 +8,9 @@
   description: Battered but reliable combat rifle. Earns its keep through sustained aggression. Uses .30 rifle magazines.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponRifleAk
+    weaponProtoId: FSWeaponRifleAk
     price: 30000
-    starterAmmoProtoId: MagazineLightRifle
+    starterAmmoProtoId: FSMagazineLightRifle
     starterAmmoCount: 2
     category: .30 Full-Auto Rifle
     statDamage: 65

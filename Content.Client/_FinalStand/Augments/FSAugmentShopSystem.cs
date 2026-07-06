@@ -67,6 +67,12 @@ public sealed class FSAugmentShopSystem : EntitySystem
             _window.UpdateState(_cachedState);
     }
 
+    public int GetSlottedAugmentLevel(string id)
+    {
+        if (_cachedState == null) return 0;
+        return _cachedState.Slots.Contains(id) && _cachedState.Levels.TryGetValue(id, out var lvl) ? lvl : 0;
+    }
+
     public override void Shutdown()
     {
         base.Shutdown();
