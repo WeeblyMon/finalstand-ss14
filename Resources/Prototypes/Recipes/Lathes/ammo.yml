@@ -305,6 +305,13 @@
 
 - type: latheRecipe
   parent: BaseAmmoRecipe
+  id: MagazineMagnum
+  result: MagazineMagnum
+  materials:
+    Steel: 210
+
+- type: latheRecipe
+  parent: BaseAmmoRecipe
   id: SpeedLoaderMagnumIncendiary
   result: SpeedLoaderMagnumIncendiary
   materials:
