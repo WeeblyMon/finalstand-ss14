@@ -103,6 +103,41 @@
   - type: StaticPrice
     price: 500
 
+# WeaponLauncherHydraFS: replaces RevolverAmmoProvider with BallisticAmmoProvider
+# so the SmartReload system can tube-feed grenades one at a time (same fix as FSWeaponMateba).
+- type: entity
+  id: WeaponLauncherHydraFS
+  parent: [ BaseWeaponLauncher, BaseMajorContraband ]
+  name: hydra
+  description: PLOOP... FSSSSSS...
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    layers:
+    - state: icon
+      map: [ "enum.GunVisualLayers.Base" ]
+  - type: Clothing
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    slots:
+    - Back
+    - suitStorage
+  - type: Item
+    size: Huge
+  - type: AmmoCounter
+  - type: GunRequiresWield
+  - type: ContainerContainer
+    containers:
+      ballistic-ammo: !type:Container
+  - type: BallisticAmmoProvider
+    whitelist:
+      tags:
+      - Grenade
+    capacity: 6
+    soundInsert:
+      path: /Audio/Weapons/Guns/MagIn/sfrifle_magin.ogg
+    soundEject:
+      path: /Audio/Weapons/Guns/MagOut/sfrifle_magout.ogg
+
 # ── FS SMG ammo ───────────────────────────────────────────────────────────────
 - type: entity
   parent: CartridgePistol

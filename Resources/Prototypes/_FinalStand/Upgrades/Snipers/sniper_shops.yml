@@ -8,7 +8,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperMosin
-    price: 35000
+    price: 70000
     starterAmmoProtoId: MagazineBoxLightRifle
     starterAmmoCount: 1
     category: .30 Bolt-Action Sniper
@@ -79,7 +79,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponRifleEstoc
-    price: 45000
+    price: 90000
     starterAmmoProtoId: MagazineRifle
     starterAmmoCount: 2
     category: .20 Burst-Fire DMR
@@ -151,7 +151,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperHristov
-    price: 60000
+    price: 120000
     starterAmmoProtoId: MagazineBoxAntiMateriel
     starterAmmoCount: 1
     category: .60 Anti-Materiel Sniper

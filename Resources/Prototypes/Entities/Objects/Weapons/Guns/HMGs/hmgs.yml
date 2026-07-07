@@ -40,6 +40,10 @@
     sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
   - type: Gun
     fireRate: 15
+    minAngle: 10
+    maxAngle: 25
+    angleIncrease: 3
+    angleDecay: 8
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/minigun.ogg
   - type: BallisticAmmoProvider
