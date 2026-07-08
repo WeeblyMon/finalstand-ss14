@@ -7,9 +7,9 @@
   description: A pirate's room-clearer. Single-shot, but devastating at close range. Uses .50 shotgun shells.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponShotgunBlunderbuss
+    weaponProtoId: FSWeaponShotgunBlunderbuss
     price: 8000
-    starterAmmoProtoId: BoxLethalshot
+    starterAmmoProtoId: FSBoxShotgunStandard
     starterAmmoCount: 1
     category: .50 Single-Shot Shotgun
     statDamage: 80
@@ -71,9 +71,9 @@
   description: An old pump-action workhorse. Reliable, punishing, and loves armor shredding upgrades. Uses .50 shotgun shells.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponShotgunKammerer
+    weaponProtoId: FSWeaponShotgunKammerer
     price: 13000
-    starterAmmoProtoId: BoxLethalshot
+    starterAmmoProtoId: FSBoxShotgunStandard
     starterAmmoCount: 1
     category: .50 Pump-Action Shotgun
     statDamage: 70
@@ -137,7 +137,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponShotgunBulldog
     price: 35000
-    starterAmmoProtoId: MagazineShotgun
+    starterAmmoProtoId: FSMagazineShotgun
     starterAmmoCount: 2
     category: .50 Full-Auto Shotgun
     statDamage: 60
@@ -256,7 +256,7 @@
   description: Suppressed and surgical. Silent entries, wide patterns, zero witnesses. Uses .50 shotgun shells.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponShotgunHushpup
+    weaponProtoId: FSWeaponShotgunHushpup
     price: 18000
     starterAmmoProtoId: BoxLethalshot
     starterAmmoCount: 1

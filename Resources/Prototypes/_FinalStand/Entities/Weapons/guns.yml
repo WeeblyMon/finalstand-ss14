@@ -103,7 +103,129 @@
   - type: StaticPrice
     price: 500
 
-# SMG overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+# WeaponLauncherHydraFS: replaces RevolverAmmoProvider with BallisticAmmoProvider
+# so the SmartReload system can tube-feed grenades one at a time (same fix as FSWeaponMateba).
+- type: entity
+  id: WeaponLauncherHydraFS
+  parent: [ BaseWeaponLauncher, BaseMajorContraband ]
+  name: hydra
+  description: PLOOP... FSSSSSS...
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    layers:
+    - state: icon
+      map: [ "enum.GunVisualLayers.Base" ]
+  - type: Clothing
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    slots:
+    - Back
+    - suitStorage
+  - type: Item
+    size: Huge
+  - type: AmmoCounter
+  - type: GunRequiresWield
+  - type: ContainerContainer
+    containers:
+      ballistic-ammo: !type:Container
+  - type: BallisticAmmoProvider
+    whitelist:
+      tags:
+      - Grenade
+    capacity: 6
+    soundInsert:
+      path: /Audio/Weapons/Guns/MagIn/sfrifle_magin.ogg
+    soundEject:
+      path: /Audio/Weapons/Guns/MagOut/sfrifle_magout.ogg
+
+# ── FS SMG ammo ───────────────────────────────────────────────────────────────
+- type: entity
+  parent: CartridgePistol
+  id: FSCartridgePistolSMG
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletPistolSMG
+
+- type: entity
+  parent: MagazinePistolSubMachineGun
+  id: FSMagazinePistolSMG
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSCartridgePistolSMG
+    whitelist:
+      tags:
+      - CartridgePistol
+    capacity: 30
+
+- type: entity
+  parent: MagazinePistolSubMachineGunTopMounted
+  id: FSMagazinePistolSMGTopMounted
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSCartridgePistolSMG
+    whitelist:
+      tags:
+      - CartridgePistol
+    capacity: 30
+
+# ── Standard shotgun ammo chain (Blunderbuss / Kammerer / Bulldog) ────────────
+- type: entity
+  parent: ShellShotgun
+  id: FSShellShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSPelletShotgunStandardSpread
+
+- type: entity
+  parent: BoxLethalshot
+  id: FSBoxShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
+- type: entity
+  parent: MagazineShotgun
+  id: FSMagazineShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
+# ── Blunderbuss / Kammerer overrides — use FS standard shells ─────────────────
+- type: entity
+  parent: WeaponShotgunBlunderbuss
+  id: FSWeaponShotgunBlunderbuss
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+    capacity: 1
+
+- type: entity
+  parent: WeaponShotgunKammerer
+  id: FSWeaponShotgunKammerer
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
+# ── Hushpup ammo ──────────────────────────────────────────────────────────────
+- type: entity
+  parent: ShellShotgun
+  id: FSShellShotgunHushpup
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSPelletShotgunHushpupSpread
+
+# SMG overrides — adds AkimboEligible tag and buffed FS ammo.
 
 - type: entity
   id: FSWeaponAtreides
@@ -114,6 +236,24 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
 - type: entity
   id: FSWeaponWt550
@@ -124,6 +264,24 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMGTopMounted
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGunTopMounted
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
 - type: entity
   id: FSWeaponC20r
@@ -134,8 +292,54 @@
     tags:
     - Sidearm
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
 
-# Shotgun overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+- type: entity
+  id: FSWeaponDrozd
+  parent: WeaponSubMachineGunDrozd
+  suffix: FinalStand
+  components:
+  - type: Tag
+    tags:
+    - Sidearm
+    - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazinePistolSMG
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazinePistolSubMachineGun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgePistol
+
+# Shotgun overrides — adds AkimboEligible tag and FS magazine for doubled base damage.
 
 - type: entity
   id: FSWeaponShotgunBulldog
@@ -145,8 +349,31 @@
   - type: Tag
     tags:
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazineShotgun
+        priority: 2
+        whitelist:
+          tags:
+          - MagazineShotgun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+
+# Hushpup override — uses FS pellets for +40% base damage.
+- type: entity
+  id: FSWeaponShotgunHushpup
+  parent: WeaponShotgunHushpup
+  suffix: FinalStand
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunHushpup
+    capacity: 4
 
 # E-shottie override — upstream has no self-recharge; needed for the Rapid Charge upgrade to work.
+# Also uses FS laser projectiles for +50% base damage.
 
 - type: entity
   id: FSWeaponEnergyShotgun
@@ -156,6 +383,16 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 25
     autoRechargePauseTime: 3
+  - type: BatteryAmmoProvider
+    proto: FSBulletLaserShotgunSpread
+    fireCost: 80
+  - type: BatteryWeaponFireModes
+    fireModes:
+    - proto: FSBulletLaserShotgunSpread
+      fireCost: 80
+    - proto: BulletDisablerSmgSpread
+      fireCost: 48
+      pacifismAllowedMode: true
 
 # Laser Carbine override — adds self-recharge and spread for upgrade interactions.
 
@@ -195,3 +432,135 @@
   - type: BatteryAmmoProvider
     proto: FSPulse
     fireCost: 100
+
+# .20 rifle ammo chain — +40% damage (17 → 24 Piercing)
+- type: entity
+  id: FSCartridgeRifle
+  parent: CartridgeRifle
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletRifle
+
+- type: entity
+  id: FSMagazineRifle
+  parent: MagazineRifle
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeRifle
+    capacity: 25
+
+# .30 rifle ammo chain — +40% damage (19 → 27 Piercing)
+- type: entity
+  id: FSCartridgeLightRifle
+  parent: CartridgeLightRifle
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletLightRifle
+
+- type: entity
+  id: FSMagazineLightRifle
+  parent: MagazineLightRifle
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeLightRifle
+    capacity: 30
+
+# Lecter override — uses FS .20 rifle magazine
+- type: entity
+  id: FSWeaponRifleLecter
+  parent: WeaponRifleLecter
+  suffix: FinalStand
+  components:
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazineRifle
+        insertSound: /Audio/Weapons/Guns/MagIn/ltrifle_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/ltrifle_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazineRifle
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgeRifle
+
+# AK override — uses FS .30 rifle magazine
+- type: entity
+  id: FSWeaponRifleAk
+  parent: WeaponRifleAk
+  suffix: FinalStand
+  components:
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazineLightRifle
+        insertSound: /Audio/Weapons/Guns/MagIn/ltrifle_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/ltrifle_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+            - MagazineLightRifle
+        whitelistFailPopup: gun-magazine-whitelist-fail
+      gun_chamber:
+        name: Chamber
+        priority: 1
+        whitelist:
+          tags:
+            - CartridgeLightRifle
+
+# L6 SAW override — fixes reversed wield accuracy bonus.
+- type: entity
+  id: FSWeaponLightMachineGunL6
+  parent: WeaponLightMachineGunL6
+  suffix: FinalStand
+  components:
+  - type: Gun
+    minAngle: 24
+    maxAngle: 45
+  - type: GunWieldBonus
+    minAngle: -20
+    maxAngle: -25
+
+# Cutlass override — doubled base damage (16 → 32 Slash).
+- type: entity
+  id: FSWeaponCutlass
+  parent: Cutlass
+  suffix: FinalStand
+  components:
+  - type: MeleeWeapon
+    damage:
+      types:
+        Slash: 32
+    soundHit:
+      path: /Audio/Weapons/bladeslice.ogg
+
+# Chainsaw override — doubled base damage (4/4 → 8/8 Slash/Blunt, wield bonus 4 → 8 Slash).
+- type: entity
+  id: FSWeaponChainsaw
+  parent: Chainsaw
+  suffix: FinalStand
+  components:
+  - type: MeleeWeapon
+    autoAttack: true
+    angle: 0
+    wideAnimationRotation: -135
+    attackRate: 4
+    damage:
+      types:
+        Slash: 8
+        Blunt: 8
+    soundHit:
+      path: /Audio/Weapons/chainsaw.ogg
+      params:
+        volume: -3
+  - type: IncreaseDamageOnWield
+    damage:
+      types:
+        Slash: 8

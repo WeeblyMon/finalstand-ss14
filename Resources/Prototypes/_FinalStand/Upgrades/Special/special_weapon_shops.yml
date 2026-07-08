@@ -1,0 +1,379 @@
+# ── Special Weapon Shops ──────────────────────────────────────────────────────
+# Top-tier end-game weapons. Significantly more expensive than snipers.
+
+- type: entity
+  id: FSWeaponShopL6Saw
+  parent: FSWeaponShopBase
+  name: L6 SAW
+  description: Waffle Corp's answer to every problem. 300 rounds of suppressive .30 fire. It doesn't stop.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponLightMachineGunL6
+    price: 140000
+    starterAmmoProtoId: MagazineLightRifleBox
+    starterAmmoCount: 2
+    category: .30 Light Machine Gun
+    statDamage: 60
+    statFireRate: 75
+    statAccuracy: 45
+    statCapacity: 90
+    upgrades:
+    - id: l6-akimbo
+      name: Akimbo
+      description: Dual-wield two L6 SAWs simultaneously.
+      maxLevel: 1
+      baseCost: 25000
+      type: Akimbo
+      valuePerLevel: 1
+    - id: l6-fire-rate
+      name: Shredder
+      description: Optimized cycling increases fire rate by 1.5/level.
+      maxLevel: 3
+      baseCost: 10000
+      type: FireRate
+      valuePerLevel: 1.5
+    - id: l6-accuracy
+      name: Bipod
+      description: Folding bipod tightens spread by 12° per level.
+      maxLevel: 3
+      baseCost: 9000
+      type: Accuracy
+      valuePerLevel: 12.0
+    - id: l6-mag-size
+      name: Extended Belt
+      description: Larger ammo drum adds 50 rounds per level.
+      maxLevel: 3
+      baseCost: 10000
+      type: MagazineSize
+      valuePerLevel: 50
+    - id: l6-reload-speed
+      name: Speed Belt
+      description: Quick-release mechanism reduces reload time by 20% per level.
+      maxLevel: 3
+      baseCost: 9000
+      type: ReloadSpeed
+      valuePerLevel: 0.2
+    - id: l6-overclocked
+      name: Overclocked
+      description: Holding fire continuously spools the barrel faster, ramping fire rate and damage over time.
+      maxLevel: 3
+      baseCost: 18000
+      type: FireRate
+      valuePerLevel: 1
+      isStub: true
+    - id: l6-damage
+      name: Heavy Slug
+      description: Dense subsonic rounds increase damage by 20% per level.
+      maxLevel: 4
+      baseCost: 11000
+      type: Damage
+      valuePerLevel: 0.2
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/LMGs/l6.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopHydra
+  parent: FSWeaponShopBase
+  name: Hydra
+  description: Six-chamber rotary grenade launcher. Load it, spin it, pray. Uses standard grenades.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponLauncherHydraFS
+    price: 160000
+    starterAmmoProtoId: GrenadeFrag
+    starterAmmoCount: 6
+    category: Rotary Grenade Launcher
+    statDamage: 85
+    statFireRate: 30
+    statAccuracy: 60
+    statCapacity: 40
+    upgrades:
+    - id: hydra-fire-rate
+      name: Rapid Cycling
+      description: Faster drum rotation increases fire rate by 0.5/level.
+      maxLevel: 3
+      baseCost: 10000
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: hydra-mag-size
+      name: Extended Drum
+      description: Expanded drum adds 2 grenade chambers per level.
+      maxLevel: 3
+      baseCost: 10000
+      type: MagazineSize
+      valuePerLevel: 2
+      isStub: true
+    - id: hydra-reload-speed
+      name: Rapid Reload
+      description: Streamlined loading cuts reload time by 20% per level.
+      maxLevel: 3
+      baseCost: 9000
+      type: ReloadSpeed
+      valuePerLevel: 0.2
+    - id: hydra-ricochet
+      name: Ricochet Grenades
+      description: Grenades bounce several times before detonating, covering more area.
+      maxLevel: 1
+      baseCost: 20000
+      type: MagazineSize
+      valuePerLevel: 0
+      isStub: true
+    - id: hydra-barrage
+      name: Barrage Mode
+      description: Sustained fire gradually increases fire rate and explosive output.
+      maxLevel: 3
+      baseCost: 18000
+      type: FireRate
+      valuePerLevel: 0.5
+      isStub: true
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopRpg
+  parent: FSWeaponShopBase
+  name: RPG-7
+  description: Ancient. Loud. Devastating. One rocket, one problem solved. Uses rocket cartridges.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponLauncherRocket
+    price: 150000
+    starterAmmoProtoId: CartridgeRocket
+    starterAmmoCount: 3
+    category: Single-Shot Rocket Launcher
+    statDamage: 95
+    statFireRate: 10
+    statAccuracy: 70
+    statCapacity: 10
+    upgrades:
+    - id: rpg-reload-speed
+      name: Quick Load
+      description: Practiced technique reduces reload time by 25% per level.
+      maxLevel: 3
+      baseCost: 9000
+      type: ReloadSpeed
+      valuePerLevel: 0.25
+    - id: rpg-blast-radius
+      name: Blast Radius
+      description: Larger warhead increases explosion radius by 2m per level.
+      maxLevel: 3
+      baseCost: 12000
+      type: Radius
+      valuePerLevel: 2
+      isStub: true
+    - id: rpg-armor-break
+      name: Armor Break
+      description: Explosive force shreds armor on hit, reducing target's protection per level.
+      maxLevel: 2
+      baseCost: 14000
+      type: ArmorShred
+      valuePerLevel: 1
+    - id: rpg-velocity
+      name: Rocket Velocity
+      description: Higher-thrust propellant increases rocket travel speed significantly.
+      maxLevel: 3
+      baseCost: 11000
+      type: Range
+      valuePerLevel: 10
+      isStub: true
+    - id: rpg-shaped-charge
+      name: Shaped Charge
+      description: Direct hits massively increase damage against elites and bosses.
+      maxLevel: 1
+      baseCost: 22000
+      type: Damage
+      valuePerLevel: 0.5
+      isStub: true
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopTeslaGun
+  parent: FSWeaponShopBase
+  name: Tesla Gun
+  description: The power of the primordial element of lightning in your hands. Self-recharging energy weapon.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponTeslaGun
+    price: 175000
+    category: Self-Recharging Tesla Cannon
+    statDamage: 70
+    statFireRate: 25
+    statAccuracy: 80
+    statCapacity: 60
+    upgrades:
+    - id: tesla-charge-speed
+      name: Capacitor Boost
+      description: Upgraded capacitors double recharge rate per level.
+      maxLevel: 3
+      baseCost: 12000
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: tesla-energy-capacity
+      name: Energy Cell Upgrade
+      description: Expanded power cell allows more shots before recharge.
+      maxLevel: 3
+      baseCost: 12000
+      type: MagazineSize
+      valuePerLevel: 1
+      isStub: true
+    - id: tesla-pull-strength
+      name: Graviton Core
+      description: Stronger vacuum effect drags targets in faster and farther.
+      maxLevel: 3
+      baseCost: 14000
+      type: Knockback
+      valuePerLevel: 1
+      isStub: true
+    - id: tesla-arc-range
+      name: Extended Arc
+      description: Modified field emitter extends the range lightning chains from the orb.
+      maxLevel: 3
+      baseCost: 13000
+      type: BeamChaining
+      valuePerLevel: 1
+      isStub: true
+    - id: tesla-magnetic-split
+      name: Magnetic Split
+      description: The Tesla ball splits into 2-3 smaller orbs mid-flight, each with reduced pull but increased chain arcs.
+      maxLevel: 1
+      baseCost: 25000
+      type: BeamChaining
+      valuePerLevel: 2
+      isStub: true
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Battery/tesla_gun.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopXrayCannon
+  parent: FSWeaponShopBase
+  name: X-Ray Cannon
+  description: Experimental energy weapon that punches through solid matter. Self-recharging. No ammo required.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponXrayCannon
+    price: 175000
+    category: Self-Recharging X-Ray Cannon
+    statDamage: 75
+    statFireRate: 30
+    statAccuracy: 90
+    statCapacity: 80
+    upgrades:
+    - id: xray-self-charge
+      name: Resonant Cell
+      description: Tuned resonator doubles self-recharge rate per level.
+      maxLevel: 3
+      baseCost: 11000
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: xray-accuracy
+      name: Collimator
+      description: Precision collimator tightens the beam by 10° per level.
+      maxLevel: 3
+      baseCost: 10000
+      type: Accuracy
+      valuePerLevel: 10.0
+    - id: xray-fire-rate
+      name: Pulse Accelerator
+      description: Faster charge cycling increases fire rate by 0.5/level.
+      maxLevel: 3
+      baseCost: 11000
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: xray-damage
+      name: Overloaded Emitter
+      description: Higher energy output increases damage by 20% per level.
+      maxLevel: 4
+      baseCost: 12000
+      type: Damage
+      valuePerLevel: 0.2
+    - id: xray-pierce
+      name: Deep Penetration
+      description: Beam punches through additional targets per level.
+      maxLevel: 3
+      baseCost: 13000
+      type: Pierce
+      valuePerLevel: 1
+    - id: xray-dot
+      name: Radiation Coating
+      description: Targets struck are irradiated, taking damage over time after impact.
+      maxLevel: 3
+      baseCost: 16000
+      type: Damage
+      valuePerLevel: 0.1
+      isStub: true
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Battery/xray.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopMinigun
+  parent: FSWeaponShopBase
+  name: Minigun
+  description: Vzzzzzt! Rahrahrahrah! Vrrrrr! 1000 rounds of .10 rifle. Nothing survives the spin-up.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponMinigun
+    price: 200000
+    category: .10 Rotary Heavy Machine Gun
+    statDamage: 55
+    statFireRate: 90
+    statAccuracy: 30
+    statCapacity: 95
+    upgrades:
+    - id: minigun-fire-rate
+      name: Overclocked Barrel
+      description: Tuned rotation motor increases fire rate by 1.5/level.
+      maxLevel: 10
+      baseCost: 10000
+      type: FireRate
+      valuePerLevel: 1.5
+    - id: minigun-knockback
+      name: Knockback Rage
+      description: Increased round velocity adds 10% knockback per level.
+      maxLevel: 3
+      baseCost: 11000
+      type: Knockback
+      valuePerLevel: 1
+    - id: minigun-iron-beast
+      name: Iron Beast
+      description: Gain 20% damage resistance while firing when below 50% health.
+      maxLevel: 1
+      baseCost: 22000
+      type: Damage
+      valuePerLevel: 0.2
+      isStub: true
+    - id: minigun-damage
+      name: Depleted Core
+      description: Heavier core ammunition increases damage by 20% per level.
+      maxLevel: 5
+      baseCost: 12000
+      type: Damage
+      valuePerLevel: 0.2
+    - id: minigun-accuracy
+      name: Gyro Stabilizer
+      description: Active gyroscopic compensation tightens spread by 7° per level.
+      maxLevel: 3
+      baseCost: 10000
+      type: Accuracy
+      valuePerLevel: 7.0
+    - id: minigun-ammo-drum
+      name: Extended Drum
+      description: Larger rotating drum adds 250 rounds per level.
+      maxLevel: 4
+      baseCost: 12000
+      type: MagazineSize
+      valuePerLevel: 250
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
+    state: icon
+    scale: 1,1

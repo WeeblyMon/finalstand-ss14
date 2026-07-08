@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Server._FinalStand.Augments;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
@@ -25,13 +24,12 @@ public sealed class FSAugmentBuffSystem : EntitySystem
 
     private void OnStoppingPower(FSProjectileHitEffectEvent ev)
     {
-        if (ev.Shooter == null) { Log.Warning("[AugBuff] SP: Shooter null"); return; }
+        if (ev.Shooter == null) return;
         if (ev.Weapon.HasValue && _tags.HasTag(ev.Weapon.Value, LauncherTag)) return;
-        if (!_mind.TryGetMind(ev.Shooter.Value, out var mindId, out _)) { Log.Warning($"[AugBuff] SP: TryGetMind failed for shooter={ev.Shooter.Value}"); return; }
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) { Log.Warning($"[AugBuff] SP: no FSAugmentLevelsComponent on mind={mindId}"); return; }
+        if (!_mind.TryGetMind(ev.Shooter.Value, out var mindId, out _)) return;
+        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
 
         var level = augs.GetSlottedLevel("StoppingPower");
-        Log.Warning($"[AugBuff] SP: level={level} slots=[{string.Join(",", augs.Slots)}] levels=[{string.Join(",", augs.Levels.Select(kv => $"{kv.Key}:{kv.Value}"))}]");
         if (level <= 0) return;
 
         ev.AdditionalMultiplier *= 1f + level * 0.04f;

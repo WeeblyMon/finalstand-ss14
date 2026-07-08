@@ -410,7 +410,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponAtreides
     price: 5000
-    starterAmmoProtoId: MagazinePistolSubMachineGun
+    starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
     category: .35 Auto SMG
     statDamage: 35
@@ -474,7 +474,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponWt550
     price: 9000
-    starterAmmoProtoId: MagazinePistolSubMachineGunTopMounted
+    starterAmmoProtoId: FSMagazinePistolSMGTopMounted
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
     statDamage: 45
@@ -529,9 +529,9 @@
   description: A heavy burst SMG built for punching through armor. Slow between bursts, devastating during them.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponSubMachineGunDrozd
+    weaponProtoId: FSWeaponDrozd
     price: 14000
-    starterAmmoProtoId: MagazinePistolSubMachineGun
+    starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
     statDamage: 55
@@ -588,7 +588,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponC20r
     price: 20000
-    starterAmmoProtoId: MagazinePistolSubMachineGun
+    starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
     statDamage: 40

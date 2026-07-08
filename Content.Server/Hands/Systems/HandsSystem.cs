@@ -57,7 +57,8 @@ namespace Content.Server.Hands.Systems
 
             SubscribeLocalEvent<HandsComponent, BeforeExplodeEvent>(OnExploded);
 
-            SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
+            // FS: players keep held items on knockdown/stun/crit
+            // SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
 
             // FS: body-part events must wire HandsComponent or players spawn with no usable hands
             SubscribeLocalEvent<HandsComponent, BodyPartAddedEvent>(HandleBodyPartAdded);

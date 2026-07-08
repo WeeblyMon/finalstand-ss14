@@ -43,7 +43,7 @@
       maxLevel: 2
       baseCost: 3000
       type: LifeSteal
-      valuePerLevel: 10
+      valuePerLevel: 5
   - type: Sprite
     sprite: Objects/Weapons/Melee/survival_knife.rsi
     state: icon

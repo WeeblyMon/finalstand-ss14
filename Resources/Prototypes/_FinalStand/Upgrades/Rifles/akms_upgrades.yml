@@ -8,9 +8,9 @@
   description: Battered but reliable combat rifle. Earns its keep through sustained aggression. Uses .30 rifle magazines.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponRifleAk
+    weaponProtoId: FSWeaponRifleAk
     price: 30000
-    starterAmmoProtoId: MagazineLightRifle
+    starterAmmoProtoId: FSMagazineLightRifle
     starterAmmoCount: 2
     category: .30 Full-Auto Rifle
     statDamage: 65
@@ -59,6 +59,13 @@
       maxLevel: 2
       baseCost: 7900
       type: Suppression
+      valuePerLevel: 1
+    - id: akms-pierce
+      name: Steel Tip
+      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      maxLevel: 4
+      baseCost: 6000
+      type: Pierce
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Rifles/ak.rsi

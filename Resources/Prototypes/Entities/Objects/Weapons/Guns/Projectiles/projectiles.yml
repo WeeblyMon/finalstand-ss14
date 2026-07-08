@@ -821,7 +821,7 @@
     maxIntensity: 40
     intensitySlope: 6
     totalIntensity: 200
-    maxTileBreak: 1
+    maxTileBreak: 0
   - type: PointLight
     radius: 3.5
     color: orange
@@ -920,6 +920,7 @@
     intensitySlope: 1
     maxIntensity: 5
     canCreateVacuum: false
+    maxTileBreak: 0
   - type: ContainerContainer
     containers:
       cluster-payload: !type:Container

@@ -1,0 +1,201 @@
+# ── Sniper Shops ──────────────────────────────────────────────────────────────
+
+- type: entity
+  id: FSWeaponShopMosin
+  parent: FSWeaponShopBase
+  name: Kardashev-Mosin
+  description: A legendary bolt-action relic. Hits hard and hits true. Uses .30 light rifle rounds.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponSniperMosin
+    price: 30000
+    starterAmmoProtoId: MagazineBoxLightRifle
+    starterAmmoCount: 1
+    category: .30 Bolt-Action Sniper
+    statDamage: 80
+    statFireRate: 20
+    statAccuracy: 85
+    statCapacity: 35
+    upgrades:
+    - id: mosin-full-auto
+      name: Custom Receiver
+      description: Fully automatic conversion. Increases attack speed significantly.
+      maxLevel: 1
+      baseCost: 8000
+      type: FullAuto
+      valuePerLevel: 1
+    - id: mosin-lucky-shot
+      name: Lucky Shot
+      description: Adds a 10% critical hit chance per level.
+      maxLevel: 5
+      baseCost: 4000
+      type: CritChance
+      valuePerLevel: 0.1
+    - id: mosin-damage
+      name: Heavy Grain
+      description: Higher-grain ammunition increases damage by 50% per level.
+      maxLevel: 3
+      baseCost: 5500
+      type: Damage
+      valuePerLevel: 0.5
+    - id: mosin-skull-breaker
+      name: Skull Breaker
+      description: Critical hits deal 50% additional damage per level.
+      maxLevel: 2
+      baseCost: 6000
+      type: CritDamage
+      valuePerLevel: 0.5
+    - id: mosin-extended-mag
+      name: Extended Magazine
+      description: Extended internal magazine adds 5 rounds per level.
+      maxLevel: 2
+      baseCost: 4500
+      type: MagazineSize
+      valuePerLevel: 5
+    - id: mosin-fast-hands
+      name: Fast Hands
+      description: Decreases reload time by 25% per level.
+      maxLevel: 2
+      baseCost: 4500
+      type: ReloadSpeed
+      valuePerLevel: 0.25
+    - id: mosin-pierce
+      name: Piercing Rounds
+      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      maxLevel: 3
+      baseCost: 6000
+      type: Pierce
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Snipers/bolt_gun_wood.rsi
+    state: base
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopEstoc
+  parent: FSWeaponShopBase
+  name: Estoc DMR
+  description: Precision burst-fire DMR. Three rounds, one target, zero survivors. Uses .20 rifle magazines.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponRifleEstoc
+    price: 70000
+    starterAmmoProtoId: MagazineRifle
+    starterAmmoCount: 2
+    category: .20 Burst-Fire DMR
+    statDamage: 75
+    statFireRate: 50
+    statAccuracy: 80
+    statCapacity: 65
+    upgrades:
+    - id: estoc-full-auto
+      name: Custom Receiver
+      description: Fully automatic conversion. Removes burst mode.
+      maxLevel: 1
+      baseCost: 9000
+      type: FullAuto
+      valuePerLevel: 1
+    - id: estoc-damage
+      name: Match Grade Ammo
+      description: Precision-loaded ammunition increases damage by 35% per level.
+      maxLevel: 4
+      baseCost: 5500
+      type: Damage
+      valuePerLevel: 0.35
+    - id: estoc-extended-mag
+      name: Extended Magazine
+      description: Extended magazine adds 10 rounds per level.
+      maxLevel: 2
+      baseCost: 5500
+      type: MagazineSize
+      valuePerLevel: 10
+    - id: estoc-hv-rounds
+      name: HV Rounds
+      description: High-velocity ammunition increases projectile speed by 50% per level.
+      maxLevel: 2
+      baseCost: 6500
+      type: Range
+      valuePerLevel: 10
+    - id: estoc-fast-hands
+      name: Fast Hands
+      description: Decreases reload time by 10% per level.
+      maxLevel: 3
+      baseCost: 5000
+      type: ReloadSpeed
+      valuePerLevel: 0.1
+    - id: estoc-lucky-shot
+      name: Lucky Shot
+      description: Adds a 5% critical hit chance per level.
+      maxLevel: 5
+      baseCost: 4500
+      type: CritChance
+      valuePerLevel: 0.05
+    - id: estoc-pierce
+      name: Piercing Rounds
+      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      maxLevel: 2
+      baseCost: 7000
+      type: Pierce
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Rifles/estoc.rsi
+    state: base
+    rotation: 45
+    scale: 1,1
+
+- type: entity
+  id: FSWeaponShopHristov
+  parent: FSWeaponShopBase
+  name: Hristov
+  description: Anti-materiel precision rifle. Makes anything regret existing. Uses .60 anti-materiel rounds.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponSniperHristov
+    price: 90000
+    starterAmmoProtoId: MagazineBoxAntiMateriel
+    starterAmmoCount: 1
+    category: .60 Anti-Materiel Sniper
+    statDamage: 95
+    statFireRate: 10
+    statAccuracy: 90
+    statCapacity: 20
+    upgrades:
+    - id: hristov-damage
+      name: AP Rounds
+      description: Armor-piercing ammunition increases damage by 190% per level.
+      maxLevel: 5
+      baseCost: 15000
+      type: Damage
+      valuePerLevel: 1.9
+    - id: hristov-skull-breaker
+      name: Skull Breaker
+      description: Critical hits deal 100% bonus damage.
+      maxLevel: 1
+      baseCost: 12000
+      type: CritDamage
+      valuePerLevel: 1.0
+    - id: hristov-fully-loaded
+      name: Fully Loaded
+      description: Extended internal magazine adds 1 round per level.
+      maxLevel: 3
+      baseCost: 8000
+      type: MagazineSize
+      valuePerLevel: 1
+    - id: hristov-pierce
+      name: Piercing Rounds
+      description: Your shots pierce through enemies. Each level adds one additional target.
+      maxLevel: 5
+      baseCost: 10000
+      type: Pierce
+      valuePerLevel: 1
+    - id: hristov-hv-rounds
+      name: HV Rounds
+      description: High-velocity casings increase projectile speed by 100% per level.
+      maxLevel: 2
+      baseCost: 8000
+      type: Range
+      valuePerLevel: 20
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Snipers/heavy_sniper.rsi
+    state: base
+    scale: 1,1

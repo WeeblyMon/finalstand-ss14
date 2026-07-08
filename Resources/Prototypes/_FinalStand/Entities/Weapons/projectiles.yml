@@ -48,20 +48,43 @@
   parent: BaseBullet
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
         Piercing: 10
+
+# ── Standard shotgun pellets (+100% vs PelletShotgun 10 → 20) ────────────────
+- type: entity
+  id: FSPelletShotgunStandard
+  parent: PelletShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 20
+
+- type: entity
+  id: FSPelletShotgunStandardSpread
+  parent: FSPelletShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSPelletShotgunStandard
+    count: 6
+    spread: 15
 
 - type: entity
   id: FSPelletDoubleBarrel
   parent: BaseBullet
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
-        Piercing: 10
+        Piercing: 20
 
 - type: entity
   id: FSPelletDoubleBarrelSpread
@@ -94,3 +117,79 @@
     layers:
     - state: heavylaser
       shader: unshaded
+
+# ── SMG bullet (+40% vs BulletPistol 16 → 22) ──���─────────────────────────────
+- type: entity
+  id: FSBulletPistolSMG
+  parent: BulletPistol
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 22
+
+# ── Hushpup pellets (+100% vs PelletShotgun 10 → 20, suppressed so lower than std) ──
+- type: entity
+  id: FSPelletShotgunHushpup
+  parent: PelletShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 28
+
+- type: entity
+  id: FSPelletShotgunHushpupSpread
+  parent: FSPelletShotgunHushpup
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSPelletShotgunHushpup
+    count: 6
+    spread: 15
+
+# ── Energy shotgun laser (+100% vs BulletLaser Heat 13 → 40) ─────────────────
+- type: entity
+  id: FSBulletLaserShotgun
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Heat: 40
+
+- type: entity
+  id: FSBulletLaserShotgunSpread
+  parent: FSBulletLaserShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSBulletLaserShotgun
+    count: 4
+    spread: 10
+
+# Rifle bullet overrides — +40% base damage
+- type: entity
+  parent: BulletRifle
+  id: FSBulletRifle
+  categories: [ HideSpawnMenu ]
+  name: bullet (.20 rifle)
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 24
+
+- type: entity
+  parent: BulletLightRifle
+  id: FSBulletLightRifle
+  categories: [ HideSpawnMenu ]
+  name: bullet (.30 rifle)
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 27

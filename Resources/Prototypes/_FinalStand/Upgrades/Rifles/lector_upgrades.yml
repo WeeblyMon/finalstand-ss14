@@ -9,9 +9,9 @@
   description: Gas-operated full-auto combat rifle. High stopping power per shot, rewarding accuracy. Uses .20 rifle magazines.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponRifleLecter
+    weaponProtoId: FSWeaponRifleLecter
     price: 20000
-    starterAmmoProtoId: MagazineRifle
+    starterAmmoProtoId: FSMagazineRifle
     starterAmmoCount: 2
     category: .20 Full-Auto Rifle
     statDamage: 85

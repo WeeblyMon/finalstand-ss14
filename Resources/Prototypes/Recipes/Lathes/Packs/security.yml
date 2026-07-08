@@ -40,10 +40,13 @@
   - MagazineBoxPistol
   - MagazineBoxRifle
   - MagazineLightRifle
+  - MagazineLightRifleBox
   - MagazinePistol
   - MagazinePistolSubMachineGun
   - MagazinePistolSubMachineGunTopMounted
+  - MagazineMagnum
   - MagazineRifle
+  - MagazineShotgun
   - SpeedLoaderMagnum
 
 - type: latheRecipePack
