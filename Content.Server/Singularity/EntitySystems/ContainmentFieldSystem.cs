@@ -20,6 +20,7 @@ public sealed class ContainmentFieldSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<ContainmentFieldComponent, StartCollideEvent>(HandleFieldCollide);
+        SubscribeLocalEvent<ContainmentFieldComponent, PreventCollideEvent>(OnFieldPreventCollide);
         SubscribeLocalEvent<ContainmentFieldComponent, EventHorizonAttemptConsumeEntityEvent>(HandleEventHorizon);
     }
 
@@ -41,6 +42,12 @@ public sealed class ContainmentFieldSystem : EntitySystem
 
             _throwing.TryThrow(otherBody, playerDir-fieldDir, baseThrowSpeed: component.ThrowForce);
         }
+    }
+
+    private void OnFieldPreventCollide(EntityUid uid, ContainmentFieldComponent comp, ref PreventCollideEvent args)
+    {
+        if (HasComp<ContainmentFieldImmuneComponent>(args.OtherEntity))
+            args.Cancelled = true;
     }
 
     private void HandleEventHorizon(EntityUid uid, ContainmentFieldComponent component, ref EventHorizonAttemptConsumeEntityEvent args)

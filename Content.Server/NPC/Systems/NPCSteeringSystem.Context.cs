@@ -760,6 +760,48 @@ public sealed partial class NPCSteeringSystem
         _entSetPool.Return(ents);
     }
 
+    // Prevents wave zombies from walking inside non-zombie entities (players, CCC).
+    // Adds danger toward any nearby non-wave physics body within 0.85 tiles so zombies
+    // settle just outside contact distance rather than overlapping their targets.
+    private void WaveZombieTargetSeparation(
+        EntityUid uid,
+        Angle offsetRot,
+        Vector2 worldPos,
+        Span<float> danger)
+    {
+        if (!_waveTagQuery.HasComponent(uid)) return;
+
+        // Radius starts at melee range so separation kicks in before contact.
+        // Weight > 1.0 so danger exceeds seek-interest at close range (final dir = interest - danger).
+        const float SeparationRadius = 1.0f;
+        const float SeparationWeight = 2.5f;
+
+        var ents = _entSetPool.Get();
+        _lookup.GetEntitiesInRange(uid, SeparationRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+
+        foreach (var ent in ents)
+        {
+            if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
+            if (!_physicsQuery.HasComponent(ent)) continue;
+
+            var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
+            var toEnt = entPos - worldPos;
+            var dist = toEnt.Length();
+            if (dist < 0.01f || dist > SeparationRadius) continue;
+
+            var weight = SeparationWeight * (1f - dist / SeparationRadius);
+            var towardLocal = offsetRot.RotateVec(toEnt / dist);
+            for (var i = 0; i < InterestDirections; i++)
+            {
+                var dot = Vector2.Dot(towardLocal, Directions[i]);
+                if (dot > 0f)
+                    danger[i] = MathF.Max(danger[i], dot * weight);
+            }
+        }
+
+        _entSetPool.Return(ents);
+    }
+
     #endregion
 
     // TODO: Alignment

@@ -518,7 +518,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        var multiplier = 1f + (wave - 1) * 0.0096f;
+        const float MaxSpeedMultiplier = 2.0f;
+        var multiplier = Math.Min(1f + (wave - 1) * 0.0096f, MaxSpeedMultiplier);
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 

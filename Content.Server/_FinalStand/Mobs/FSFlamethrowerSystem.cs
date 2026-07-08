@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared.Examine;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -20,6 +21,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed class FSFlamethrowerSystem : EntitySystem
 {
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly HTNSystem _htn = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -79,6 +81,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         {
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
+            if (!_examine.InRangeUnOccluded(uid, targetUid, comp.FlameRange, null)) continue;
             var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
             if (dist < nearestDist)
             {

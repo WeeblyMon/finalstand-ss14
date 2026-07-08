@@ -110,6 +110,8 @@
           operator: !type:UtilityOperator
             proto: NearbyMeleeTargets
         - !type:HTNPrimitiveTask
+          operator: !type:FSSetMeleeApproachOperator
+        - !type:HTNPrimitiveTask
           operator: !type:MoveToOperator
             shutdownState: TaskFinished
             pathfindInPlanning: false

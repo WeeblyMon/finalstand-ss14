@@ -387,6 +387,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
         WaveZombiePeerYield(uid, offsetRot, worldPos, danger);
+        WaveZombieTargetSeparation(uid, offsetRot, worldPos, danger);
 
         // Blend last and current tick
         Blend(steering, frameTime, interest, danger);

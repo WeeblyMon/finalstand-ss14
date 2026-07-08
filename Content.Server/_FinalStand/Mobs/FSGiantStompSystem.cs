@@ -47,12 +47,12 @@ public sealed class FSGiantStompSystem : EntitySystem
             if (comp.StompAccumulator < comp.StompCooldown)
                 continue;
 
-            TryPerformStomp(uid, comp);
-            comp.StompAccumulator = 0f;
+            if (TryPerformStomp(uid, comp))
+                comp.StompAccumulator = 0f;
         }
     }
 
-    private void TryPerformStomp(EntityUid uid, FSGiantStompComponent comp)
+    private bool TryPerformStomp(EntityUid uid, FSGiantStompComponent comp)
     {
         var giantPos = _transform.GetWorldPosition(uid);
         var mapId = Transform(uid).MapID;
@@ -68,7 +68,7 @@ public sealed class FSGiantStompSystem : EntitySystem
         }
 
         if (validTargets.Count == 0)
-            return;
+            return false;
 
         // TODO(finalstand): tune stomp damage — 3x FSZombieNormal melee (Slash: 10) = Blunt: 30
         var stompDamage = new DamageSpecifier();
@@ -118,6 +118,8 @@ public sealed class FSGiantStompSystem : EntitySystem
 
         if (comp.StompSound != null)
             _audio.PlayPvs(comp.StompSound, uid);
+
+        return true;
     }
 
     private void OnGiantDied(EntityUid uid, FSGiantStompComponent comp, MobStateChangedEvent args)
