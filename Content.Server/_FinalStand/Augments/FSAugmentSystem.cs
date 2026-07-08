@@ -4,6 +4,7 @@ using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Augments;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared.Mind;
+using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -16,6 +17,7 @@ public sealed class FSAugmentSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -264,6 +266,8 @@ public sealed class FSAugmentSystem : EntitySystem
             if (!mutate(aug)) return;
             SaveToDb(mindId, aug);
             SendStateToClient(mindId, aug);
+            if (mind?.CurrentEntity is { } playerEntity)
+                _movement.RefreshMovementSpeedModifiers(playerEntity);
             return;
         }
 

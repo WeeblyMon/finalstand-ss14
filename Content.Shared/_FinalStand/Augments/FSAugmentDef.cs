@@ -68,7 +68,7 @@ public sealed class FSAugmentDef
                 ["+7% Money", "+14% Money", "+21% Money", "+28% Money"]),
 
             new("SwordAndShield", "Sword and Shield",
-                "Increases your melee damage and resistance.",
+                "Increases your melee damage and damage resistance while wielding a melee weapon.",
                 AugmentCategory.Purple,
                 ["+5% Damage / +12% Resistance", "+10% Damage / +24% Resistance",
                  "+15% Damage / +36% Resistance", "+20% Damage / +48% Resistance"]),

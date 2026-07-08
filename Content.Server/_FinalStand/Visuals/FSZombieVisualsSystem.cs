@@ -1,6 +1,10 @@
+using Content.Server._FinalStand.Augments;
+using Content.Server._FinalStand.Economy;
+using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.Random;
@@ -11,6 +15,11 @@ public sealed class FSZombieVisualsSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+
+    private const int ProfiteerKillBase = 200;
+    private const float ProfiteerFraction = 0.07f;
 
     public override void Initialize()
     {
@@ -62,7 +71,14 @@ public sealed class FSZombieVisualsSystem : EntitySystem
 
     private void OnMobStateChanged(EntityUid uid, FSZombieVisualsComponent comp, MobStateChangedEvent args)
     {
-        // Force client to re-evaluate so the correct dead sprite shows.
         Dirty(uid, comp);
+
+        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
+        if (args.Origin == null) return;
+        if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
+        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
+        var level = augs.GetSlottedLevel("Profiteer");
+        if (level <= 0) return;
+        _wallet.GiveCredits(mindId, (int)(ProfiteerKillBase * level * ProfiteerFraction));
     }
 }
