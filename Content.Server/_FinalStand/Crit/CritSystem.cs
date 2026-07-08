@@ -15,7 +15,6 @@ public sealed class CritSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly FSZombieRetaliationSystem _retaliation = default!;
-    [Dependency] private readonly FSBreachTargetSystem _breachTarget = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     private readonly HashSet<(EntityUid, EntityUid)> _pendingCrits = [];
 
@@ -84,7 +83,6 @@ public sealed class CritSystem : EntitySystem
         if (args.DamageIncreased && args.Origin != null)
         {
             _retaliation.TryRetaliate(uid, args.Origin.Value);
-            _breachTarget.TryUpdateRetaliationState(uid, args.Origin.Value, _timing.CurTime);
         }
 
         if (args.DamageDelta == null || !args.DamageIncreased || args.Origin == null)

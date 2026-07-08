@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._FinalStand.NPC;
 using Content.Server.Examine;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Pathfinding;
@@ -644,6 +645,157 @@ public sealed partial class NPCSteeringSystem
             {
                 var dot = Vector2.Dot(norm, Directions[i]);
                 danger[i] = MathF.Max(dot * weight, danger[i]);
+            }
+        }
+
+        _entSetPool.Return(ents);
+    }
+
+    #endregion
+
+    #region Wave Zombie Peer Yield
+
+    // Three-case peer avoidance for wave zombies:
+    //   Case 1 — near-peer separation (symmetric): any peer within 1.2 tiles is pushed away,
+    //            strongest at zero distance. Prevents physical overlap / smooshing.
+    //   Case 2 — forward yield (asymmetric): peer in front + same direction. Only the higher-UID
+    //            (trailing) zombie slows and steps aside. Prevents mirror-jink oscillation.
+    //   Case 3 — lateral spread (symmetric): peer beside + same direction. Both push away from
+    //            each other so they spread across corridor width without oscillating.
+    private void WaveZombiePeerYield(
+        EntityUid uid,
+        Angle offsetRot,
+        Vector2 worldPos,
+        Span<float> danger)
+    {
+        if (!_waveTagQuery.HasComponent(uid)) return;
+        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover)) return;
+        var myDir = myMover.CurTickSprintMovement;
+        if (myDir == Vector2.Zero) return;
+
+        const float SeparationRadius    = 1.2f;
+        const float PeerYieldRadius     = 2.0f;
+        const float SeparationWeight    = 0.6f;
+        const float ForwardYieldWeight  = 0.45f;
+        const float LateralYieldWeight  = 0.35f;
+        const float LateralSpreadWeight = 0.45f;
+
+        var myDirNorm  = myDir.Normalized();
+        var preferLeft = ((int)uid & 1) == 0;
+
+        var ents = _entSetPool.Get();
+        _lookup.GetEntitiesInRange(uid, PeerYieldRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+
+        foreach (var ent in ents)
+        {
+            if (ent == uid || !_waveTagQuery.HasComponent(ent)) continue;
+
+            var peerPos   = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
+            var toPeer    = peerPos - worldPos;
+            var dist      = toPeer.Length();
+            if (dist < 0.01f || dist > PeerYieldRadius) continue;
+            var toPeerDir = toPeer / dist;
+
+            // Case 1: near-peer separation — symmetric, fires for any peer within SeparationRadius.
+            // Weight is highest at contact (dist=0) and falls to zero at SeparationRadius.
+            if (dist < SeparationRadius)
+            {
+                var sepWeight   = SeparationWeight * (1f - dist / SeparationRadius);
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * sepWeight);
+                }
+            }
+
+            // Cases 2+3 only apply to peers heading the same general direction.
+            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
+            var peerDir = peerMover.CurTickSprintMovement;
+            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f) continue;
+
+            var forwardDot = Vector2.Dot(myDirNorm, toPeerDir);
+
+            if (forwardDot > 0.4f)
+            {
+                // Case 2: peer is in front and moving the same way. Only the higher-UID zombie
+                // yields so only one side brakes — prevents the mirror-jink swap loop.
+                if ((int)ent >= (int)uid) continue;
+
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * ForwardYieldWeight);
+                }
+
+                // Lateral component: bias to a stable side so the zombie commits to one pass lane.
+                var lateralWorld = preferLeft
+                    ? new Vector2(-toPeerDir.Y,  toPeerDir.X)
+                    : new Vector2( toPeerDir.Y, -toPeerDir.X);
+                var lateralLocal = offsetRot.RotateVec(-lateralWorld);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(lateralLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * LateralYieldWeight);
+                }
+            }
+            else
+            {
+                // Case 3: peer is beside us (forwardDot ≤ 0.4), same direction. Symmetric push
+                // away from each other — both diverge outward so they spread across the corridor.
+                var towardLocal = offsetRot.RotateVec(toPeerDir);
+                for (var i = 0; i < InterestDirections; i++)
+                {
+                    var dot = Vector2.Dot(towardLocal, Directions[i]);
+                    if (dot > 0f)
+                        danger[i] = MathF.Max(danger[i], dot * LateralSpreadWeight);
+                }
+            }
+        }
+
+        _entSetPool.Return(ents);
+    }
+
+    // Prevents wave zombies from walking inside non-zombie entities (players, CCC).
+    // Adds danger toward any nearby non-wave physics body within 0.85 tiles so zombies
+    // settle just outside contact distance rather than overlapping their targets.
+    private void WaveZombieTargetSeparation(
+        EntityUid uid,
+        Angle offsetRot,
+        Vector2 worldPos,
+        Span<float> danger)
+    {
+        if (!_waveTagQuery.HasComponent(uid)) return;
+
+        // Radius starts at melee range so separation kicks in before contact.
+        // Weight > 1.0 so danger exceeds seek-interest at close range (final dir = interest - danger).
+        const float SeparationRadius = 1.0f;
+        const float SeparationWeight = 2.5f;
+
+        var ents = _entSetPool.Get();
+        _lookup.GetEntitiesInRange(uid, SeparationRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
+
+        foreach (var ent in ents)
+        {
+            if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
+            if (!_physicsQuery.HasComponent(ent)) continue;
+
+            var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
+            var toEnt = entPos - worldPos;
+            var dist = toEnt.Length();
+            if (dist < 0.01f || dist > SeparationRadius) continue;
+
+            var weight = SeparationWeight * (1f - dist / SeparationRadius);
+            var towardLocal = offsetRot.RotateVec(toEnt / dist);
+            for (var i = 0; i < InterestDirections; i++)
+            {
+                var dot = Vector2.Dot(towardLocal, Directions[i]);
+                if (dot > 0f)
+                    danger[i] = MathF.Max(danger[i], dot * weight);
             }
         }
 

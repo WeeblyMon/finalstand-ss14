@@ -19,7 +19,8 @@
           !type:PhysShapeCircle
           radius: 0.1
         density: 5
-        mask: []
+        mask:
+        - Impassable
         layer: []
   - type: TileFrictionModifier
     modifier: 0

@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using Content.Server._FinalStand.Spawners;
 using Content.Server.Administration.Managers;
 using Content.Server.DoAfter;
 using Content.Server.NPC.Components;
@@ -73,6 +74,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
     private EntityQuery<NpcFactionMemberComponent> _factionQuery;
     private EntityQuery<PhysicsComponent> _physicsQuery;
     private EntityQuery<TransformComponent> _xformQuery;
+    private EntityQuery<InputMoverComponent> _inputMoverQuery;
 
     private ObjectPool<HashSet<EntityUid>> _entSetPool =
         new DefaultObjectPool<HashSet<EntityUid>>(new SetPolicy<EntityUid>());
@@ -104,6 +106,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         _factionQuery = GetEntityQuery<NpcFactionMemberComponent>();
         _physicsQuery = GetEntityQuery<PhysicsComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
+        _waveTagQuery = GetEntityQuery<WaveSpawnedTagComponent>();
+        _inputMoverQuery = GetEntityQuery<InputMoverComponent>();
 
         for (var i = 0; i < InterestDirections; i++)
         {
@@ -382,30 +386,44 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         DebugTools.Assert(!float.IsNaN(danger[0]));
 
         Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
+        WaveZombiePeerYield(uid, offsetRot, worldPos, danger);
+        WaveZombieTargetSeparation(uid, offsetRot, worldPos, danger);
 
         // Blend last and current tick
         Blend(steering, frameTime, interest, danger);
 
         // Remove the danger map from the interest map.
-        var desiredDirection = -1;
-        var desiredValue = 0f;
+        Vector2 resultDirection;
 
-        for (var i = 0; i < InterestDirections; i++)
+        if (_waveTagQuery.HasComponent(uid))
         {
-            var adjustedValue = Math.Clamp(steering.Interest[i] - steering.Danger[i], 0f, 1f);
-
-            if (adjustedValue > desiredValue)
+            var cx = 0f;
+            var cy = 0f;
+            for (var i = 0; i < InterestDirections; i++)
             {
-                desiredDirection = i;
-                desiredValue = adjustedValue;
+                var v = Math.Clamp(steering.Interest[i] - steering.Danger[i], 0f, 1f);
+                cx += Directions[i].X * v;
+                cy += Directions[i].Y * v;
             }
+            var centroid = new Vector2(cx, cy);
+            resultDirection = centroid.LengthSquared() > 0.001f ? centroid.Normalized() : Vector2.Zero;
         }
-
-        var resultDirection = Vector2.Zero;
-
-        if (desiredDirection != -1)
+        else
         {
-            resultDirection = new Angle(desiredDirection * InterestRadians).ToVec();
+            var desiredDirection = -1;
+            var desiredValue = 0f;
+            for (var i = 0; i < InterestDirections; i++)
+            {
+                var adjustedValue = Math.Clamp(steering.Interest[i] - steering.Danger[i], 0f, 1f);
+                if (adjustedValue > desiredValue)
+                {
+                    desiredDirection = i;
+                    desiredValue = adjustedValue;
+                }
+            }
+            resultDirection = desiredDirection != -1
+                ? new Angle(desiredDirection * InterestRadians).ToVec()
+                : Vector2.Zero;
         }
 
         steering.LastSteerDirection = resultDirection;

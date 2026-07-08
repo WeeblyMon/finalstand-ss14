@@ -6,6 +6,7 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Examine;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -21,6 +22,7 @@ public sealed class FSTeslaZombieSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly HTNSystem _htn = default!;
     [Dependency] private readonly PointLightSystem _pointLight = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -83,6 +85,7 @@ public sealed class FSTeslaZombieSystem : EntitySystem
         {
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
+            if (!_examine.InRangeUnOccluded(uid, targetUid, comp.DetectionRange, null)) continue;
             var dist = Vector2.Distance(myPos.Position, _transform.GetMapCoordinates(targetUid).Position);
             if (dist < nearestDist)
             {
@@ -159,6 +162,9 @@ public sealed class FSTeslaZombieSystem : EntitySystem
             Vector2.Distance(myMapPos.Position, primaryMapPos.Position) > comp.DetectionRange)
             return;
 
+        if (!_examine.InRangeUnOccluded(uid, primaryTarget.Value, comp.DetectionRange, null))
+            return;
+
         var primaryDmg = new DamageSpecifier();
         primaryDmg.DamageDict["Shock"] = comp.PrimaryDamageShock;
         _damageable.TryChangeDamage(primaryTarget.Value, primaryDmg, ignoreResistances: false, origin: uid);
@@ -180,6 +186,7 @@ public sealed class FSTeslaZombieSystem : EntitySystem
             var chainMapPos = _transform.GetMapCoordinates(chainUid);
             if (chainMapPos.MapId != primaryMapPos.MapId) continue;
             if (Vector2.Distance(chainMapPos.Position, primaryMapPos.Position) > comp.ChainRange) continue;
+            if (!_examine.InRangeUnOccluded(primaryTarget.Value, chainUid, comp.ChainRange, null)) continue;
 
             _damageable.TryChangeDamage(chainUid, chainDmg, ignoreResistances: false, origin: uid);
             DrawTeslaBeam(primaryTarget.Value, chainUid);

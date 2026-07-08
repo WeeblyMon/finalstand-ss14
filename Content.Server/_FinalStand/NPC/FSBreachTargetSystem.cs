@@ -564,7 +564,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
             }
 
             var score = mazeTargetPos.HasValue
-                ? ScoreCandidateMaze(candidate, baseDamage, zombieWorldPos, mazeTargetPos.Value)
+                ? ScoreCandidateMaze(candidate, zombie, baseDamage, zombieWorldPos, mazeTargetPos.Value)
                 : ScoreCandidate(candidate, zombie, baseDamage, zombieWorldPos, mapId);
             if (score > bestScore)
             {
@@ -666,20 +666,37 @@ public sealed class FSBreachTargetSystem : EntitySystem
         var weakness = GetWeakness(structure);
         var navValue = GetNavValue(structure, zombie, zombieWorldPos, mapId);
         var cost = GetBreachCost(structure, baseDamage);
-        return (weakness * 0.3f + navValue * 0.7f) / cost;
+        var baseScore = (weakness * 0.3f + navValue * 0.7f) / cost;
+        var attackers = CountZombiesAttackingTarget(structure, zombie);
+        return baseScore * (1f + MathF.Min(attackers, 5) * 0.2f);
     }
 
     // Maze scoring: replaces GetNavValue with shortcut geometry.
     // A structure's "shortcut value" is how well it sits on the direct zombie→target line.
     // Structures directly in the way score 1.0; 4+ tiles off the line score 0.2 (still non-zero
     // so even off-axis barriers are considered if they're cheap enough).
-    private float ScoreCandidateMaze(EntityUid structure, float baseDamage,
+    private float ScoreCandidateMaze(EntityUid structure, EntityUid zombie, float baseDamage,
         Vector2 zombiePos, Vector2 targetPos)
     {
         var weakness = GetWeakness(structure);
         var shortcut = GetShortcutValue(structure, zombiePos, targetPos);
         var cost = GetBreachCost(structure, baseDamage);
-        return (weakness * 0.3f + shortcut * 0.7f) / cost;
+        var baseScore = (weakness * 0.3f + shortcut * 0.7f) / cost;
+        var attackers = CountZombiesAttackingTarget(structure, zombie);
+        return baseScore * (1f + MathF.Min(attackers, 5) * 0.2f);
+    }
+
+    private int CountZombiesAttackingTarget(EntityUid target, EntityUid exclude)
+    {
+        var count = 0;
+        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out var uid, out _, out var htn))
+        {
+            if (uid == exclude) continue;
+            if (htn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var bt, EntityManager) && bt == target)
+                count++;
+        }
+        return count;
     }
 
     // Projects the structure's position onto the direct zombie→target line and measures

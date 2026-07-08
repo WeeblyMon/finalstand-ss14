@@ -29,9 +29,6 @@
             pathfindKey: TargetPathfind
             rangeKey: MeleeRange
         - !type:HTNPrimitiveTask
-          operator: !type:JukeOperator
-            jukeType: Away
-        - !type:HTNPrimitiveTask
           operator: !type:MeleeOperator
             targetKey: Target
           preconditions:
@@ -66,9 +63,6 @@
             pathfindKey: TargetPathfind
             rangeKey: MeleeRange
         - !type:HTNPrimitiveTask
-          operator: !type:JukeOperator
-            jukeType: Away
-        - !type:HTNPrimitiveTask
           operator: !type:MeleeOperator
             targetKey: Target
           preconditions:
@@ -98,9 +92,6 @@
             pathfindKey: TargetPathfind
             rangeKey: MeleeRange
         - !type:HTNPrimitiveTask
-          operator: !type:JukeOperator
-            jukeType: Away
-        - !type:HTNPrimitiveTask
           operator: !type:MeleeOperator
             targetKey: Target
           preconditions:
@@ -110,8 +101,40 @@
               targetKey: Target
               rangeKey: MeleeRange
 
+# Melee combat for FS wave enemies — identical to MeleeCombatCompound but without JukeOperator.
+- type: htnCompound
+  id: FSMeleeCombatCompound
+  branches:
+    - tasks:
+        - !type:HTNPrimitiveTask
+          operator: !type:UtilityOperator
+            proto: NearbyMeleeTargets
+        - !type:HTNPrimitiveTask
+          operator: !type:FSSetMeleeApproachOperator
+        - !type:HTNPrimitiveTask
+          operator: !type:MoveToOperator
+            shutdownState: TaskFinished
+            pathfindInPlanning: false
+            removeKeyOnFinish: false
+            targetKey: TargetCoordinates
+            pathfindKey: TargetPathfind
+            rangeKey: MeleeRange
+        - !type:HTNPrimitiveTask
+          operator: !type:MeleeOperator
+            targetKey: Target
+          preconditions:
+            - !type:KeyExistsPrecondition
+              key: Target
+            - !type:TargetInRangePrecondition
+              targetKey: Target
+              rangeKey: MeleeRange
+          services:
+            - !type:UtilityService
+              id: MeleeService
+              proto: NearbyMeleeTargets
+              key: Target
+
 # Moves directly to the FSBaitTarget decoy and attacks it.
-# Runs at priority 2, overriding normal player hunt while the bait is active.
 - type: htnCompound
   id: FinalStandBaitBeeline
   branches:
@@ -140,12 +163,12 @@
               rangeKey: MeleeRange
 
 # HTN compound for all Final Stand wave enemies.
-# Branch priority order (Phase 2):
+# Branch priority order:
 #   1. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
-#   2. RangedCombat / InnateRangedCombat — for ranged-capable enemies (hivebot, etc.)
+#   2. BaitDistraction — pipe bomb decoy active
 #   3. MeleeCombat (PlayerHunt) — scan for nearby hostiles and engage
 #   4. BreachMode — attack a structure blocking the path to CCC
-#   5. CCCBeeline — path directly to the objective
+#   5. CCCBeeline — path directly to the objective (skipped if no CCC ordered target)
 #   6. Idle
 - type: htnCompound
   id: FinalStandEnemyCompound
@@ -167,31 +190,27 @@
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandBaitBeeline
-    # Priority 3 — Ranged combat (hivebot, syndicates, etc.)
+    # Priority 3 — PlayerHunt (melee scan for nearby hostiles)
     - tasks:
         - !type:HTNCompoundTask
-          task: RangedCombatCompound
-    - tasks:
-        - !type:HTNCompoundTask
-          task: InnateRangedCombatCompound
-    # Priority 4 — PlayerHunt (melee scan for nearby hostiles)
-    - tasks:
-        - !type:HTNCompoundTask
-          task: MeleeCombatCompound
-    # Priority 5 — BreachMode (attack specific structural target)
+          task: FSMeleeCombatCompound
+    # Priority 4 — BreachMode (attack specific structural target)
     - preconditions:
         - !type:KeyExistsPrecondition
           key: FSBreachTarget
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandBreachModeCompound
-    # Priority 6 — CCCBeeline (path to objective)
-    - tasks:
+    # Priority 5 — CCCBeeline (path to objective)
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: CurrentOrderedTarget
+      tasks:
         - !type:HTNPrimitiveTask
           operator: !type:SetCCCTargetOperator
         - !type:HTNCompoundTask
           task: FinalStandCCCBeeline
-    # Priority 7 — Idle fallback
+    # Priority 6 — Idle fallback
     - tasks:
         - !type:HTNCompoundTask
           task: IdleCompound
