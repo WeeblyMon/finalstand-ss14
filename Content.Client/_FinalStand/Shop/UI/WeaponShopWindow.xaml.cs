@@ -1,4 +1,5 @@
 using Content.Client._FinalStand.Augments;
+using Content.Client._FinalStand.Stylesheets;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Perks;
@@ -41,11 +42,48 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     private float _confirmTimer;
     private int _sellRefund;
     private const float ConfirmTimeout = 4f;
+    private const int BarSegments = 12;
+
+    // ── hover-preview ──────────────────────────────────────────────────────────
+
+    private sealed class StatBarRefs
+    {
+        public required PanelContainer[] Segments;
+        public required Label ValueLabel;
+        public float BaseFill;
+        public string BaseText = "";
+        public Color? BaseColor;
+    }
+
+    private readonly Dictionary<string, StatBarRefs> _statBarRefs = new();
+
+    private struct RangedStatCache
+    {
+        public float BaseDmgPerShot;
+        public int   BasePellets;
+        public int   ExtraPellets;
+        public float DamageMultiplier;
+        public float AugDmgMult;
+        public float UnboostedFireRate; // baseFireRate + frBonus (pre-BulletStorm)
+        public float BulletStormMult;
+        public float AngleDeg;
+        public int   Capacity;          // -1 = battery / infinite
+        public float BaseCritChance;
+        public float CritChanceBonus;
+        public float CritDamageMult;
+        public bool  Valid;
+        public bool  IsRanged;
+    }
+
+    private RangedStatCache _rangedCache;
+
+    // ── end hover-preview ──────────────────────────────────────────────────────
 
     public WeaponShopWindow()
     {
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
+        Stylesheet = new FSShopStylesheet(IoCManager.Resolve<IUserInterfaceManager>()).Stylesheet;
 
         foreach (var child in UpgradesScroll.Children)
         {
@@ -144,14 +182,12 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             && _proto.TryIndex<EntityPrototype>(pid, out var wEntProto)
             && wEntProto.TryGetComponent<FSGrenadePackComponent>(out _, _entityManager.ComponentFactory);
 
-        var meta = entMan.GetComponent<MetaDataComponent>(shopEntity);
         Title = "Weapon Shop";
-
-        WeaponNameLabel.Text = Capitalize(meta.EntityName);
+        WeaponNameLabel.Text = Capitalize(entMan.GetComponent<MetaDataComponent>(shopEntity).EntityName);
         WeaponNameLabel.Modulate = Color.FromHex("#F4C430");
         CategoryLabel.Text = comp.Category;
         CategoryLabel.Modulate = Color.FromHex("#8FA1B3");
-        DescLabel.SetMessage(meta.EntityDescription);
+        DescLabel.SetMessage(entMan.GetComponent<MetaDataComponent>(shopEntity).EntityDescription);
 
         BuyButton.Text = $"Buy  ${_price:N0}";
 
@@ -165,8 +201,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     public void UpdateBalance(int credits)
     {
         BalanceLabel.Text = $"${credits:N0}";
-        var canAfford = credits >= _price;
-        BalanceLabel.Modulate = canAfford ? Color.LimeGreen : Color.OrangeRed;
+        BalanceLabel.Modulate = credits >= _price ? Color.LimeGreen : Color.OrangeRed;
 
         if (_isGrenadePackShop)
         {
@@ -182,7 +217,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             BuyButton.Modulate = Color.White;
         }
 
-        BuyButton.Disabled = !canAfford;
+        BuyButton.Disabled = credits < _price;
     }
 
     public void UpdateWeaponTitle(string title)
@@ -209,7 +244,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
         foreach (var def in defs)
         {
-                if (def.RequiresUpgrade != null
+            if (def.RequiresUpgrade != null
                 && levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
                 continue;
 
@@ -222,9 +257,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         foreach (var d in defs)
         {
             if (d.IsStub) continue;
-            if (d.RequiresUpgrade != null
-                && levels.GetValueOrDefault(d.RequiresUpgrade, 0) <= 0)
-                continue;
+            if (d.RequiresUpgrade != null && levels.GetValueOrDefault(d.RequiresUpgrade, 0) <= 0) continue;
             totalPurchased += levels.GetValueOrDefault(d.Id, 0);
             totalMax += d.MaxLevel;
         }
@@ -258,9 +291,13 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         }
     }
 
+    // ── stat bar construction ──────────────────────────────────────────────────
+
     private void BuildStatBars(FSShopWeaponComponent shopComp, EntityUid? weapon, IEntityManager entMan)
     {
         StatBarsContainer.RemoveAllChildren();
+        _statBarRefs.Clear();
+        _rangedCache = default;
 
         CritComponent? critComp = null;
         GunComponent? gunComp = null;
@@ -290,8 +327,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             entMan.TryGetComponent(weapon.Value, out grenadeComp);
         weaponProto?.TryGetComponent(out grenadeProto, entMan.ComponentFactory);
 
-        // Compute upgrade effects client-side from synced UpgradeLevels.
-        // FSWeaponUpgradeStateComponent is not networked so the client can't read it directly.
         var levels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
         var damageMultiplier = 1.0f;
         var extraPellets = 0;
@@ -326,6 +361,12 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             }
         }
 
+        // Cache crit values; always valid once BuildStatBars runs.
+        _rangedCache.BaseCritChance = critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f;
+        _rangedCache.CritChanceBonus = critChanceBonus;
+        _rangedCache.CritDamageMult = critDamageMult;
+        _rangedCache.Valid = true;
+
         var isRanged = gunComp != null || gunProto != null;
         var isGrenade = grenadeComp != null || grenadeProto != null;
 
@@ -346,17 +387,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var (damagePerShot, baseDmgPerShot, pellets) = ComputeDamage(shopComp, weapon, weaponProto, damageMultiplier, extraPellets, entMan);
         var basePellets = pellets - extraPellets;
 
-        var augSystem = _entityManager.System<FSAugmentShopSystem>();
+        var augSystem  = _entityManager.System<FSAugmentShopSystem>();
         var shopLevels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
 
         var spLevel = augSystem.GetSlottedAugmentLevel("StoppingPower");
         var bsLevel = augSystem.GetSlottedAugmentLevel("BulletStorm");
         var augDmgMult = 1f + spLevel * 0.04f;
 
-        // Prototype base fire rate — must be known before the loop for BulletStorm RPM math.
         var baseFireRate = gunProto?.FireRate ?? gunComp?.FireRate ?? 2f;
 
-        // Single pass over upgrades to collect contributions for each stat bar.
         var dmgLines = new List<string>();
         var frParts  = new List<string>();
         var accParts = new List<string>();
@@ -388,8 +427,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
                 case WeaponUpgradeType.FireRate:
                 {
                     frBonus += level * def.ValuePerLevel;
-                    var addedRpm = (int)Math.Round(level * def.ValuePerLevel * 60f);
-                    frParts.Add($"{tag}  + {addedRpm} RPM");
+                    frParts.Add($"{tag}  + {(int)Math.Round(level * def.ValuePerLevel * 60f)} RPM");
                     break;
                 }
                 case WeaponUpgradeType.SlamFire:
@@ -399,14 +437,12 @@ public sealed partial class WeaponShopWindow : DefaultWindow
                 case WeaponUpgradeType.AngleMax:
                 case WeaponUpgradeType.Accuracy:
                 {
-                    var reduction = level * def.ValuePerLevel;
-                    accParts.Add($"{tag}  - {reduction:0.#}°");
+                    accParts.Add($"{tag}  - {level * def.ValuePerLevel:0.#}°");
                     break;
                 }
                 case WeaponUpgradeType.MagazineSize:
                 {
-                    var added = (int)Math.Round(level * def.ValuePerLevel);
-                    capParts.Add($"{tag}  + {added}");
+                    capParts.Add($"{tag}  + {(int)Math.Round(level * def.ValuePerLevel)}");
                     break;
                 }
             }
@@ -427,10 +463,9 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
         // ── Damage ──
         var finalPerShot = damagePerShot * augDmgMult;
-        var finalTotal = finalPerShot * pellets;
-        var totalDmgBonus = finalTotal - baseDmgPerShot * basePellets;
-        if (totalDmgBonus > 0.01f)
-            dmgLines.Add($"= {totalDmgBonus:0.#}");
+        var finalTotal   = finalPerShot * pellets;
+        if (finalTotal - baseDmgPerShot * basePellets > 0.01f)
+            dmgLines.Add($"= {finalTotal - baseDmgPerShot * basePellets:0.#}");
 
         var damageText = pellets > 1 ? $"{finalPerShot:0.#}×{pellets}" : $"{finalPerShot:0.#}";
         StatBarsContainer.AddChild(BuildStatBar("Damage",
@@ -439,10 +474,10 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             dmgLines.Count > 0 ? string.Join("\n", dmgLines) : null));
 
         // ── Fire Rate ──
-        var fireRate = (baseFireRate + frBonus) * (1f + bsLevel * 0.08f);
+        var bulletStormMult = 1f + bsLevel * 0.08f;
+        var fireRate = (baseFireRate + frBonus) * bulletStormMult;
         var rpm = (int)Math.Round(fireRate * 60f);
-        if (frParts.Count > 0)
-            frParts.Add($"= {rpm} RPM");
+        if (frParts.Count > 0) frParts.Add($"= {rpm} RPM");
         StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
             Math.Min(1f, fireRate / 10f), $"{rpm} RPM",
             frParts.Count > 0 ? Color.FromHex("#A3BE8C") : null,
@@ -451,21 +486,31 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         // ── Accuracy ──
         var angleDeg = gunComp != null
             ? (float)gunComp.MaxAngleModified.Degrees
-            : gunProto != null
-                ? (float)gunProto.MaxAngle.Degrees
-                : 15f;
-        if (accParts.Count > 0)
-            accParts.Add($"= {angleDeg:F1}°");
+            : gunProto != null ? (float)gunProto.MaxAngle.Degrees : 15f;
+        if (accParts.Count > 0) accParts.Add($"= {angleDeg:F1}°");
         StatBarsContainer.AddChild(BuildStatBar("Accuracy",
             Math.Max(0f, 1f - angleDeg / 30f), $"{angleDeg:F1}°",
             accParts.Count > 0 ? Color.FromHex("#A3BE8C") : null,
             accParts.Count > 0 ? string.Join("\n", accParts) : null));
 
         // ── Capacity ──
-        var (capFill, capText) = GetCapacityDisplay(shopComp, weapon, weaponProto, entMan);
+        var (capFill, capText, capRaw) = GetCapacityDisplay(shopComp, weapon, weaponProto, entMan);
+        if (capParts.Count > 0) capParts.Add($"= {capText}");
         StatBarsContainer.AddChild(BuildStatBar("Capacity", capFill, capText,
             capParts.Count > 0 ? Color.FromHex("#A3BE8C") : null,
             capParts.Count > 0 ? string.Join("\n", capParts) : null));
+
+        // Cache everything for hover preview.
+        _rangedCache.BaseDmgPerShot    = baseDmgPerShot;
+        _rangedCache.BasePellets       = basePellets;
+        _rangedCache.ExtraPellets      = extraPellets;
+        _rangedCache.DamageMultiplier  = damageMultiplier;
+        _rangedCache.AugDmgMult        = augDmgMult;
+        _rangedCache.UnboostedFireRate = baseFireRate + frBonus;
+        _rangedCache.BulletStormMult   = bulletStormMult;
+        _rangedCache.AngleDeg          = angleDeg;
+        _rangedCache.Capacity          = capRaw;
+        _rangedCache.IsRanged          = true;
     }
 
     private void BuildMeleeStats(MeleeWeaponComponent? meleeComp, MeleeWeaponComponent? meleeProto,
@@ -473,50 +518,38 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     {
         var baseDamage = (float)(meleeComp?.Damage ?? meleeProto?.Damage)!.GetTotal();
         baseDamage *= damageMultiplier;
-        StatBarsContainer.AddChild(BuildStatBar("Damage",
-            Math.Min(1f, baseDamage / 50f),
-            $"{baseDamage:0.#}"));
+        StatBarsContainer.AddChild(BuildStatBar("Damage", Math.Min(1f, baseDamage / 50f), $"{baseDamage:0.#}"));
 
-        var attackRate = meleeComp?.AttackRate ?? meleeProto?.AttackRate ?? 1f;
-        attackRate *= attackSpeedMult;
+        var attackRate = (meleeComp?.AttackRate ?? meleeProto?.AttackRate ?? 1f) * attackSpeedMult;
         var secPerSwing = attackRate > 0f ? 1f / attackRate : 0f;
-        StatBarsContainer.AddChild(BuildStatBar("Attack Rate",
-            Math.Min(1f, attackRate / 4f),
-            $"{secPerSwing:F1}s"));
+        StatBarsContainer.AddChild(BuildStatBar("Attack Rate", Math.Min(1f, attackRate / 4f), $"{secPerSwing:F1}s"));
 
         var range = meleeComp?.Range ?? meleeProto?.Range ?? 1.5f;
-        StatBarsContainer.AddChild(BuildStatBar("Range",
-            Math.Min(1f, range / 3f),
-            $"{range:F1}"));
+        StatBarsContainer.AddChild(BuildStatBar("Range", Math.Min(1f, range / 3f), $"{range:F1}"));
     }
 
     private void BuildGrenadeStats(FSGrenadePackComponent? live, FSGrenadePackComponent? proto)
     {
-        var maxStock = live?.MaxStock ?? proto?.MaxStock ?? 3;
+        var maxStock    = live?.MaxStock     ?? proto?.MaxStock     ?? 3;
         var regenPerWave = live?.RegenPerWave ?? proto?.RegenPerWave ?? 1;
-        var blastBonus = live?.BlastBonus ?? proto?.BlastBonus ?? 0f;
+        var blastBonus   = live?.BlastBonus   ?? proto?.BlastBonus   ?? 0f;
         var burnDuration = live?.BurnDuration ?? proto?.BurnDuration ?? 5f;
         var stunDuration = live?.StunDuration ?? proto?.StunDuration ?? 3f;
-        var packType = live?.PackType ?? proto?.PackType ?? GrenadeType.Frag;
+        var packType     = live?.PackType     ?? proto?.PackType     ?? GrenadeType.Frag;
 
-        StatBarsContainer.AddChild(BuildStatBar("Capacity",
-            Math.Min(1f, maxStock / 8f), $"{maxStock}"));
-        StatBarsContainer.AddChild(BuildStatBar("Regen",
-            Math.Min(1f, regenPerWave / 5f), $"{regenPerWave}/wave"));
+        StatBarsContainer.AddChild(BuildStatBar("Capacity", Math.Min(1f, maxStock / 8f), $"{maxStock}"));
+        StatBarsContainer.AddChild(BuildStatBar("Regen", Math.Min(1f, regenPerWave / 5f), $"{regenPerWave}/wave"));
 
         switch (packType)
         {
             case GrenadeType.Flash:
-                StatBarsContainer.AddChild(BuildStatBar("Stun",
-                    Math.Min(1f, stunDuration / 7f), $"{stunDuration:F0}s"));
+                StatBarsContainer.AddChild(BuildStatBar("Stun", Math.Min(1f, stunDuration / 7f), $"{stunDuration:F0}s"));
                 break;
             case GrenadeType.Incendiary:
-                StatBarsContainer.AddChild(BuildStatBar("Burn",
-                    Math.Min(1f, burnDuration / 15f), $"{burnDuration:F0}s"));
+                StatBarsContainer.AddChild(BuildStatBar("Burn", Math.Min(1f, burnDuration / 15f), $"{burnDuration:F0}s"));
                 break;
             default:
-                StatBarsContainer.AddChild(BuildStatBar("Blast",
-                    Math.Min(1f, (1f + blastBonus) / 2f), $"×{1f + blastBonus:F2}"));
+                StatBarsContainer.AddChild(BuildStatBar("Blast", Math.Min(1f, (1f + blastBonus) / 2f), $"×{1f + blastBonus:F2}"));
                 break;
         }
     }
@@ -525,148 +558,112 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         float critChanceBonus, float critDamageMult)
     {
         var baseCritChance = critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f;
-        var critChance = Math.Min(1f, baseCritChance + critChanceBonus);
-        StatBarsContainer.AddChild(BuildStatBar("Crit Chance",
-            critChance,
-            $"{critChance * 100f:F1}%"));
-
-        StatBarsContainer.AddChild(BuildStatBar("Crit Damage",
-            Math.Min(1f, (critDamageMult - 1f) / 2f),
-            $"{critDamageMult:F1}x"));
+        var critChance     = Math.Min(1f, baseCritChance + critChanceBonus);
+        StatBarsContainer.AddChild(BuildStatBar("Crit %", critChance, $"{critChance * 100f:F1}%"));
+        StatBarsContainer.AddChild(BuildStatBar("Crit DMG",
+            Math.Min(1f, (critDamageMult - 1f) / 2f), $"{critDamageMult:F1}x"));
     }
 
-    private (float damage, float baseDamage, int pellets) ComputeDamage(FSShopWeaponComponent shopComp, EntityUid? gun,
-        EntityPrototype? weaponProto, float damageMultiplier, int extraPellets, IEntityManager entMan)
+    // ── hover preview ──────────────────────────────────────────────────────────
+
+    private void SetHoveredUpgrade(WeaponUpgradeDef def)
     {
-        var damage = 0f;
-        var pellets = 1;
+        // Restore all bars to base.
+        foreach (var refs in _statBarRefs.Values)
+            ApplyStatBar(refs, refs.BaseFill, refs.BaseText, refs.BaseColor, false);
 
-        if (TryResolveProjectileProto(shopComp, gun, weaponProto, entMan, out var projProto))
+        if (!_rangedCache.Valid) return;
+
+        var shopLevels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
+        var currentLevel = shopLevels.GetValueOrDefault(def.Id, 0);
+        if (currentLevel >= def.MaxLevel) return;
+
+        switch (def.Type)
         {
-            if (projProto.TryGetComponent<ProjectileComponent>(out var proj, entMan.ComponentFactory))
-                damage = (float)proj.Damage.GetTotal();
-            else if (projProto.TryGetComponent<HitscanBasicDamageComponent>(out var hitscan, entMan.ComponentFactory))
-                damage = (float)hitscan.Damage.GetTotal();
-            if (projProto.TryGetComponent<ProjectileSpreadComponent>(out var spread, entMan.ComponentFactory))
-                pellets = spread.Count;
-        }
-
-        var baseDamage = damage;
-        damage *= damageMultiplier;
-        pellets += extraPellets;
-
-        return (damage, baseDamage, pellets);
-    }
-
-    // Walk the ammo chain to find the projectile prototype for damage/pellet sampling.
-    // Order: live gun's ammo provider → weapon prototype's ammo provider → starter ammo.
-    // Cartridges are followed to their fired projectile.
-    private bool TryResolveProjectileProto(FSShopWeaponComponent shopComp, EntityUid? gun,
-        EntityPrototype? weaponProto, IEntityManager entMan, out EntityPrototype projProto)
-    {
-        projProto = default!;
-        EntProtoId? ammoProto = null;
-
-        if (gun.HasValue)
-        {
-            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out var battery))
-                ammoProto = battery.Prototype;
-            else if (entMan.TryGetComponent<BallisticAmmoProviderComponent>(gun.Value, out var ballistic))
-                ammoProto = ballistic.Proto;
-            else if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var revolver))
-                ammoProto = revolver.FillPrototype;
-            else if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
-                     && magSlot.Item.HasValue
-                     && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
+            case WeaponUpgradeType.Damage when _rangedCache.IsRanged:
             {
-                ammoProto = magBal.Proto;
+                var newMult  = _rangedCache.DamageMultiplier + def.ValuePerLevel;
+                var newDmg   = _rangedCache.BaseDmgPerShot * newMult * _rangedCache.AugDmgMult;
+                var pellets  = _rangedCache.BasePellets + _rangedCache.ExtraPellets;
+                var newFill  = Math.Min(1f, newDmg * pellets / 100f);
+                var text     = pellets > 1 ? $"↑ {newDmg:0.#}×{pellets}" : $"↑ {newDmg:0.#}";
+                if (_statBarRefs.TryGetValue("Damage", out var refs))
+                    ApplyStatBar(refs, newFill, text, Color.FromHex("#A3BE8C"), true);
+                break;
+            }
+            case WeaponUpgradeType.FireRate when _rangedCache.IsRanged:
+            {
+                var newFR   = (_rangedCache.UnboostedFireRate + def.ValuePerLevel) * _rangedCache.BulletStormMult;
+                var newRpm  = (int)Math.Round(newFR * 60f);
+                var newFill = Math.Min(1f, newFR / 10f);
+                if (_statBarRefs.TryGetValue("Fire Rate", out var refs))
+                    ApplyStatBar(refs, newFill, $"↑ {newRpm} RPM", Color.FromHex("#A3BE8C"), true);
+                break;
+            }
+            case WeaponUpgradeType.Accuracy when _rangedCache.IsRanged:
+            case WeaponUpgradeType.AngleMax  when _rangedCache.IsRanged:
+            {
+                var newAngle = Math.Max(0f, _rangedCache.AngleDeg - def.ValuePerLevel);
+                var newFill  = Math.Max(0f, 1f - newAngle / 30f);
+                if (_statBarRefs.TryGetValue("Accuracy", out var refs))
+                    ApplyStatBar(refs, newFill, $"↑ {newAngle:F1}°", Color.FromHex("#A3BE8C"), true);
+                break;
+            }
+            case WeaponUpgradeType.MagazineSize when _rangedCache.IsRanged && _rangedCache.Capacity >= 0:
+            {
+                var newCap  = _rangedCache.Capacity + (int)Math.Round(def.ValuePerLevel);
+                var newFill = Math.Min(1f, newCap / 30f);
+                if (_statBarRefs.TryGetValue("Capacity", out var refs))
+                    ApplyStatBar(refs, newFill, $"↑ {newCap}", Color.FromHex("#A3BE8C"), true);
+                break;
+            }
+            case WeaponUpgradeType.CritChance:
+            {
+                var newChance = Math.Min(1f,
+                    _rangedCache.BaseCritChance + _rangedCache.CritChanceBonus + def.ValuePerLevel);
+                if (_statBarRefs.TryGetValue("Crit %", out var refs))
+                    ApplyStatBar(refs, newChance, $"↑ {newChance * 100f:F1}%", Color.FromHex("#A3BE8C"), true);
+                break;
+            }
+            case WeaponUpgradeType.CritDamage:
+            {
+                var newMult = _rangedCache.CritDamageMult + def.ValuePerLevel;
+                var newFill = Math.Min(1f, (newMult - 1f) / 2f);
+                if (_statBarRefs.TryGetValue("Crit DMG", out var refs))
+                    ApplyStatBar(refs, newFill, $"↑ {newMult:F1}x", Color.FromHex("#A3BE8C"), true);
+                break;
             }
         }
-
-        if (ammoProto == null && weaponProto != null)
-        {
-            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out var batteryProto, entMan.ComponentFactory))
-                ammoProto = batteryProto.Prototype;
-            else if (weaponProto.TryGetComponent<BallisticAmmoProviderComponent>(out var ballProto, entMan.ComponentFactory))
-                ammoProto = ballProto.Proto;
-            else if (weaponProto.TryGetComponent<RevolverAmmoProviderComponent>(out var revProto, entMan.ComponentFactory))
-                ammoProto = revProto.FillPrototype;
-        }
-
-        if (ammoProto == null && shopComp.StarterAmmoProtoId is { } starterId
-            && _proto.TryIndex<EntityPrototype>(starterId, out var starterProto)
-            && starterProto.TryGetComponent<BallisticAmmoProviderComponent>(out var starterBal, entMan.ComponentFactory))
-        {
-            ammoProto = starterBal.Proto;
-        }
-
-        if (ammoProto == null || !_proto.TryIndex<EntityPrototype>(ammoProto, out var ammoEntProto))
-            return false;
-
-        if (ammoEntProto.TryGetComponent<CartridgeAmmoComponent>(out var cartridge, entMan.ComponentFactory)
-            && _proto.TryIndex<EntityPrototype>(cartridge.Prototype, out var bulletProto))
-        {
-            projProto = bulletProto;
-            return true;
-        }
-
-        projProto = ammoEntProto;
-        return true;
     }
 
-    private (float fill, string text) GetCapacityDisplay(FSShopWeaponComponent shopComp, EntityUid? gun,
-        EntityPrototype? weaponProto, IEntityManager entMan)
+    private void ClearPreview()
     {
-        if (gun.HasValue)
-        {
-            if (entMan.TryGetComponent<BallisticAmmoProviderComponent>(gun.Value, out var bal))
-                return (Math.Min(1f, bal.Capacity / 30f), $"{bal.Capacity}");
-            if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var rev))
-                return (Math.Min(1f, rev.Capacity / 30f), $"{rev.Capacity}");
-            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out var battAmmo))
-            {
-                if (entMan.TryGetComponent<BatteryComponent>(gun.Value, out var bat) && battAmmo.FireCost > 0f)
-                {
-                    var shots = (int)(bat.MaxCharge / battAmmo.FireCost);
-                    return (Math.Min(1f, shots / 8f), $"{shots}");
-                }
-                return (1f, "∞");
-            }
-            if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
-                && magSlot.Item.HasValue
-                && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
-                return (Math.Min(1f, magBal.Capacity / 30f), $"{magBal.Capacity}");
-        }
-
-        if (weaponProto != null)
-        {
-            if (weaponProto.TryGetComponent<BallisticAmmoProviderComponent>(out var ballProto, entMan.ComponentFactory))
-                return (Math.Min(1f, ballProto.Capacity / 30f), $"{ballProto.Capacity}");
-            if (weaponProto.TryGetComponent<RevolverAmmoProviderComponent>(out var revProto, entMan.ComponentFactory))
-                return (Math.Min(1f, revProto.Capacity / 30f), $"{revProto.Capacity}");
-            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out var battProto, entMan.ComponentFactory))
-            {
-                if (weaponProto.TryGetComponent<BatteryComponent>(out var batProto, entMan.ComponentFactory) && battProto.FireCost > 0f)
-                {
-                    var shots = (int)(batProto.MaxCharge / battProto.FireCost);
-                    return (Math.Min(1f, shots / 8f), $"{shots}");
-                }
-                return (1f, "∞");
-            }
-        }
-
-        if (shopComp.StarterAmmoProtoId is { } starterId
-            && _proto.TryIndex<EntityPrototype>(starterId, out var starterProto)
-            && starterProto.TryGetComponent<BallisticAmmoProviderComponent>(out var starterBal, entMan.ComponentFactory))
-        {
-            return (Math.Min(1f, starterBal.Capacity / 30f), $"{starterBal.Capacity}");
-        }
-
-        var approx = (int)(shopComp.StatCapacity * 0.2f);
-        return (Math.Min(1f, approx / 30f), $"{approx}");
+        foreach (var refs in _statBarRefs.Values)
+            ApplyStatBar(refs, refs.BaseFill, refs.BaseText, refs.BaseColor, false);
     }
 
-    private static BoxContainer BuildStatBar(string label, float fill, string numericText,
+    private static void ApplyStatBar(StatBarRefs refs, float fill, string text, Color? valueColor, bool boosted)
+    {
+        var clamped = Math.Max(0f, Math.Min(1f, fill));
+        var filled  = (int)Math.Round(clamped * BarSegments);
+        var barColor = boosted ? Color.FromHex("#A3BE8C") : StatBarColor((int)(clamped * 100f));
+
+        for (var i = 0; i < refs.Segments.Length; i++)
+        {
+            refs.Segments[i].PanelOverride = new StyleBoxFlat
+            {
+                BackgroundColor = i < filled ? barColor : Color.FromHex("#2E3440"),
+            };
+        }
+
+        refs.ValueLabel.Text = text;
+        refs.ValueLabel.Modulate = valueColor ?? Color.FromHex("#8FA1B3");
+    }
+
+    // ── bar construction ───────────────────────────────────────────────────────
+
+    // Non-static: stores segment/label refs into _statBarRefs for hover preview.
+    private BoxContainer BuildStatBar(string label, float fill, string numericText,
         Color? valueColor = null, string? valueTooltip = null)
     {
         var row = new BoxContainer
@@ -683,9 +680,9 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             Modulate = Color.FromHex("#8FA1B3"),
         });
 
-        const int segments = 10;
-        var filled = (int)Math.Round(fill * segments);
-        var barColor = StatBarColor((int)(fill * 100f));
+        var clamped = Math.Max(0f, Math.Min(1f, fill));
+        var filled  = (int)Math.Round(clamped * BarSegments);
+        var barColor = StatBarColor((int)(clamped * 100f));
 
         var segBox = new BoxContainer
         {
@@ -693,18 +690,21 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             HorizontalExpand = true,
             VerticalAlignment = VAlignment.Center,
         };
-        for (var i = 0; i < segments; i++)
+
+        var segments = new PanelContainer[BarSegments];
+        for (var i = 0; i < BarSegments; i++)
         {
             var seg = new PanelContainer
             {
                 HorizontalExpand = true,
-                SetHeight = 8,
+                SetHeight = 10,
                 Margin = new Thickness(i == 0 ? 0 : 1, 0, 0, 0),
             };
             seg.PanelOverride = new StyleBoxFlat
             {
                 BackgroundColor = i < filled ? barColor : Color.FromHex("#2E3440"),
             };
+            segments[i] = seg;
             segBox.AddChild(seg);
         }
         row.AddChild(segBox);
@@ -722,95 +722,208 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             valueLabel.ToolTip = valueTooltip;
         row.AddChild(valueLabel);
 
+        _statBarRefs[label] = new StatBarRefs
+        {
+            Segments  = segments,
+            ValueLabel = valueLabel,
+            BaseFill  = fill,
+            BaseText  = numericText,
+            BaseColor = valueColor,
+        };
+
         return row;
     }
 
-    private static Color StatBarColor(int value) => value switch
-    {
-        <= 25 => Color.FromHex("#BF616A"),
-        <= 50 => Color.FromHex("#EBCB8B"),
-        <= 75 => Color.FromHex("#A3BE8C"),
-        _ => Color.FromHex("#88C0D0"),
-    };
+    // ── upgrade rows ───────────────────────────────────────────────────────────
 
-    private BoxContainer BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits)
+    private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits)
     {
-        var row = new BoxContainer
+        var atMax     = currentLevel >= def.MaxLevel;
+        var nextCost  = def.BaseCost * (currentLevel + 1);
+        var canAfford = !def.IsStub && !atMax && credits >= nextCost;
+        var hasAny    = currentLevel > 0;
+
+        // Card colors by state
+        Color bgColor, borderColor;
+        if (def.IsStub || (!canAfford && !atMax))
+        {
+            bgColor = Color.FromHex("#0F0F13"); borderColor = Color.FromHex("#1C1C26");
+        }
+        else if (atMax)
+        {
+            bgColor = Color.FromHex("#0C1A0C"); borderColor = Color.FromHex("#2A5C2A");
+        }
+        else if (hasAny)
+        {
+            bgColor = Color.FromHex("#0C1422"); borderColor = Color.FromHex("#1E3A70");
+        }
+        else
+        {
+            bgColor = Color.FromHex("#131620"); borderColor = Color.FromHex("#2A3248");
+        }
+
+        // Card visual wrapper
+        var card = new PanelContainer { Margin = new Thickness(0, 2, 0, 2) };
+        card.PanelOverride = MakeCardStyle(bgColor, borderColor);
+        // Card-level hover covers category label, pips, price label (Ignore areas)
+        card.MouseFilter = MouseFilterMode.Pass;
+
+        // Inner horizontal layout
+        var inner = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(0, 4, 0, 4),
+            Margin = new Thickness(6, 4, 6, 4),
+            VerticalAlignment = VAlignment.Center,
         };
 
-        var atMax = currentLevel >= def.MaxLevel;
-        var nextCost = def.BaseCost * (currentLevel + 1);
-        var canAffordNext = atMax || credits >= nextCost;
-
-        if (!atMax && !canAffordNext)
-            row.Modulate = new Color(1f, 1f, 1f, 0.5f);
-
+        // Purchase button — natural sizing capped at 185px; left-aligned ClipText from stylesheet
         var btn = new Button
         {
             Text = def.Name,
-            MinWidth = 150,
-            MaxWidth = 180,
+            MinWidth = 140,
+            MaxWidth = 185,
             ClipText = true,
-            Disabled = atMax || !canAffordNext,
+            Disabled = def.IsStub || atMax || !canAfford,
             ToolTip = string.IsNullOrEmpty(def.Description) ? def.Name : def.Description,
         };
         btn.OnPressed += _ => OnUpgradePressed?.Invoke(def.Id);
-        row.AddChild(btn);
+        inner.AddChild(btn);
 
         if (def.IsStub)
         {
             btn.Disabled = true;
             btn.ToolTip = "Not yet implemented.";
-            row.AddChild(new Label
+            inner.AddChild(new Label
             {
                 Text = "WIP",
                 Modulate = Color.FromHex("#BF616A"),
                 HorizontalExpand = true,
                 HorizontalAlignment = HAlignment.Right,
             });
-            return row;
+            card.AddChild(inner);
+            card.Modulate = new Color(1f, 1f, 1f, 0.45f);
+            return card;
         }
 
-        var pips = new BoxContainer
+        // Hover wiring — button area (btn.OnMouseEntered) + card area (card.OnMouseEntered)
+        // cover the whole row regardless of which element is the deepest mouse focus.
+        // Both events can fire in the same frame when cursor moves between elements;
+        // the UI renders once after both, so there is no visible flicker.
+        if (!atMax)
         {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(6, 0, 6, 0),
-        };
-        for (var i = 0; i < def.MaxLevel; i++)
+            btn.OnMouseEntered  += _ => SetHoveredUpgrade(def);
+            btn.OnMouseExited   += _ => ClearPreview();
+            card.OnMouseEntered += _ => SetHoveredUpgrade(def);
+            card.OnMouseExited  += _ => ClearPreview();
+        }
+
+        // Category label — takes remaining space between button and right section
+        var catText = UpgradeTypeToStatLabel(def.Type);
+        if (!string.IsNullOrEmpty(catText))
         {
-            pips.AddChild(new Label
+            var catLabel = new Label
             {
-                Text = "■",
-                Modulate = i < currentLevel ? Color.FromHex("#A3BE8C") : Color.FromHex("#434C5E"),
-            });
+                Text = catText,
+                Modulate = Color.FromHex("#8FA1B3"),
+                HorizontalExpand = true,
+                HorizontalAlignment = HAlignment.Left,
+                Margin = new Thickness(4, 0, 0, 0),
+                MouseFilter = MouseFilterMode.Pass,
+            };
+            if (!atMax)
+            {
+                catLabel.OnMouseEntered += _ => SetHoveredUpgrade(def);
+                catLabel.OnMouseExited  += _ => ClearPreview();
+            }
+            inner.AddChild(catLabel);
         }
-        row.AddChild(pips);
-
-        row.AddChild(new Label
+        else
         {
-            Text = UpgradeTypeToStatLabel(def.Type),
-            Modulate = Color.FromHex("#8FA1B3"),
-            HorizontalExpand = true,
-            HorizontalAlignment = HAlignment.Left,
-        });
+            inner.AddChild(new Control { HorizontalExpand = true });
+        }
 
-        row.AddChild(new Label
+        // Level display — pips for low MaxLevel, compact text for high
+        if (def.MaxLevel <= 5)
+        {
+            var pips = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                Margin = new Thickness(4, 0, 4, 0),
+                VerticalAlignment = VAlignment.Center,
+            };
+            for (var i = 0; i < def.MaxLevel; i++)
+            {
+                var pip = new Label
+                {
+                    Text = "■",
+                    Modulate = i < currentLevel
+                        ? (atMax ? Color.FromHex("#A3BE8C") : Color.FromHex("#5E81F4"))
+                        : Color.FromHex("#2A3040"),
+                    MouseFilter = MouseFilterMode.Pass,
+                };
+                if (!atMax)
+                {
+                    pip.OnMouseEntered += _ => SetHoveredUpgrade(def);
+                    pip.OnMouseExited  += _ => ClearPreview();
+                }
+                pips.AddChild(pip);
+            }
+            inner.AddChild(pips);
+        }
+        else
+        {
+            var levelColor = atMax ? Color.FromHex("#A3BE8C")
+                : currentLevel > 0 ? Color.FromHex("#5E81F4")
+                : Color.FromHex("#555E7A");
+            var levelText = new Label
+            {
+                Text = $"{currentLevel}/{def.MaxLevel}",
+                Modulate = levelColor,
+                MinWidth = 40,
+                HorizontalAlignment = HAlignment.Center,
+                Margin = new Thickness(4, 0, 4, 0),
+                MouseFilter = MouseFilterMode.Pass,
+            };
+            if (!atMax)
+            {
+                levelText.OnMouseEntered += _ => SetHoveredUpgrade(def);
+                levelText.OnMouseExited  += _ => ClearPreview();
+            }
+            inner.AddChild(levelText);
+        }
+
+        var priceLabel = new Label
         {
             Text = atMax ? "MAX" : $"${nextCost:N0}",
             Modulate = atMax
                 ? Color.FromHex("#FFD700")
-                : canAffordNext
-                    ? Color.FromHex("#A3BE8C")
-                    : Color.FromHex("#BF616A"),
+                : canAfford ? Color.FromHex("#A3BE8C") : Color.FromHex("#BF616A"),
+            MinWidth = 72,
             HorizontalAlignment = HAlignment.Right,
-            Margin = new Thickness(0, 0, 7, 0),
-        });
+            Margin = new Thickness(0, 0, 4, 0),
+            MouseFilter = MouseFilterMode.Pass,
+        };
+        if (!atMax)
+        {
+            priceLabel.OnMouseEntered += _ => SetHoveredUpgrade(def);
+            priceLabel.OnMouseExited  += _ => ClearPreview();
+        }
+        inner.AddChild(priceLabel);
 
-        return row;
+        card.AddChild(inner);
+
+        if (!canAfford && !atMax)
+            card.Modulate = new Color(1f, 1f, 1f, 0.5f);
+
+        return card;
     }
+
+    private static StyleBoxFlat MakeCardStyle(Color bg, Color border) => new()
+    {
+        BackgroundColor = bg,
+        BorderColor = border,
+        BorderThickness = new Thickness(1),
+    };
 
     private BoxContainer BuildPerkRow(PerkPrototype perkDef, List<PerkType> activePerks, int credits)
     {
@@ -847,12 +960,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             return row;
         }
 
-        var statusLabel = new Label
-        {
-            HorizontalExpand = true,
-            HorizontalAlignment = HAlignment.Right,
-        };
-
+        var statusLabel = new Label { HorizontalExpand = true, HorizontalAlignment = HAlignment.Right };
         if (isActive)
         {
             statusLabel.Text = "ACTIVE";
@@ -863,76 +971,202 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             statusLabel.Text = $"${perkDef.Cost:N0}";
             statusLabel.Modulate = canAfford ? Color.FromHex("#EBCB8B") : Color.FromHex("#BF616A");
         }
-
         row.AddChild(statusLabel);
         return row;
     }
 
+    // ── helpers ────────────────────────────────────────────────────────────────
+
+    private (float damage, float baseDamage, int pellets) ComputeDamage(FSShopWeaponComponent shopComp, EntityUid? gun,
+        EntityPrototype? weaponProto, float damageMultiplier, int extraPellets, IEntityManager entMan)
+    {
+        var damage  = 0f;
+        var pellets = 1;
+
+        if (TryResolveProjectileProto(shopComp, gun, weaponProto, entMan, out var projProto))
+        {
+            if (projProto.TryGetComponent<ProjectileComponent>(out var proj, entMan.ComponentFactory))
+                damage = (float)proj.Damage.GetTotal();
+            else if (projProto.TryGetComponent<HitscanBasicDamageComponent>(out var hitscan, entMan.ComponentFactory))
+                damage = (float)hitscan.Damage.GetTotal();
+            if (projProto.TryGetComponent<ProjectileSpreadComponent>(out var spread, entMan.ComponentFactory))
+                pellets = spread.Count;
+        }
+
+        var baseDamage = damage;
+        damage *= damageMultiplier;
+        pellets += extraPellets;
+        return (damage, baseDamage, pellets);
+    }
+
+    private bool TryResolveProjectileProto(FSShopWeaponComponent shopComp, EntityUid? gun,
+        EntityPrototype? weaponProto, IEntityManager entMan, out EntityPrototype projProto)
+    {
+        projProto = default!;
+        EntProtoId? ammoProto = null;
+
+        if (gun.HasValue)
+        {
+            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out var battery))
+                ammoProto = battery.Prototype;
+            else if (entMan.TryGetComponent<BallisticAmmoProviderComponent>(gun.Value, out var ballistic))
+                ammoProto = ballistic.Proto;
+            else if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var revolver))
+                ammoProto = revolver.FillPrototype;
+            else if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+                     && magSlot.Item.HasValue
+                     && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
+                ammoProto = magBal.Proto;
+        }
+
+        if (ammoProto == null && weaponProto != null)
+        {
+            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out var batteryProto, entMan.ComponentFactory))
+                ammoProto = batteryProto.Prototype;
+            else if (weaponProto.TryGetComponent<BallisticAmmoProviderComponent>(out var ballProto, entMan.ComponentFactory))
+                ammoProto = ballProto.Proto;
+            else if (weaponProto.TryGetComponent<RevolverAmmoProviderComponent>(out var revProto, entMan.ComponentFactory))
+                ammoProto = revProto.FillPrototype;
+        }
+
+        if (ammoProto == null && shopComp.StarterAmmoProtoId is { } starterId
+            && _proto.TryIndex<EntityPrototype>(starterId, out var starterProto)
+            && starterProto.TryGetComponent<BallisticAmmoProviderComponent>(out var starterBal, entMan.ComponentFactory))
+            ammoProto = starterBal.Proto;
+
+        if (ammoProto == null || !_proto.TryIndex<EntityPrototype>(ammoProto, out var ammoEntProto))
+            return false;
+
+        if (ammoEntProto.TryGetComponent<CartridgeAmmoComponent>(out var cartridge, entMan.ComponentFactory)
+            && _proto.TryIndex<EntityPrototype>(cartridge.Prototype, out var bulletProto))
+        {
+            projProto = bulletProto;
+            return true;
+        }
+
+        projProto = ammoEntProto;
+        return true;
+    }
+
+    private (float fill, string text, int raw) GetCapacityDisplay(FSShopWeaponComponent shopComp,
+        EntityUid? gun, EntityPrototype? weaponProto, IEntityManager entMan)
+    {
+        if (gun.HasValue)
+        {
+            if (entMan.TryGetComponent<BallisticAmmoProviderComponent>(gun.Value, out var bal))
+                return (Math.Min(1f, bal.Capacity / 30f), $"{bal.Capacity}", bal.Capacity);
+            if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var rev))
+                return (Math.Min(1f, rev.Capacity / 30f), $"{rev.Capacity}", rev.Capacity);
+            if (entMan.TryGetComponent<BatteryAmmoProviderComponent>(gun.Value, out var battAmmo))
+            {
+                if (entMan.TryGetComponent<BatteryComponent>(gun.Value, out var bat) && battAmmo.FireCost > 0f)
+                {
+                    var shots = (int)(bat.MaxCharge / battAmmo.FireCost);
+                    return (Math.Min(1f, shots / 8f), $"{shots}", shots);
+                }
+                return (1f, "∞", -1);
+            }
+            if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+                && magSlot.Item.HasValue
+                && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
+                return (Math.Min(1f, magBal.Capacity / 30f), $"{magBal.Capacity}", magBal.Capacity);
+        }
+
+        if (weaponProto != null)
+        {
+            if (weaponProto.TryGetComponent<BallisticAmmoProviderComponent>(out var ballProto, entMan.ComponentFactory))
+                return (Math.Min(1f, ballProto.Capacity / 30f), $"{ballProto.Capacity}", ballProto.Capacity);
+            if (weaponProto.TryGetComponent<RevolverAmmoProviderComponent>(out var revProto, entMan.ComponentFactory))
+                return (Math.Min(1f, revProto.Capacity / 30f), $"{revProto.Capacity}", revProto.Capacity);
+            if (weaponProto.TryGetComponent<BatteryAmmoProviderComponent>(out var battProto, entMan.ComponentFactory))
+            {
+                if (weaponProto.TryGetComponent<BatteryComponent>(out var batProto, entMan.ComponentFactory) && battProto.FireCost > 0f)
+                {
+                    var shots = (int)(batProto.MaxCharge / battProto.FireCost);
+                    return (Math.Min(1f, shots / 8f), $"{shots}", shots);
+                }
+                return (1f, "∞", -1);
+            }
+        }
+
+        if (shopComp.StarterAmmoProtoId is { } starterId
+            && _proto.TryIndex<EntityPrototype>(starterId, out var starterProto)
+            && starterProto.TryGetComponent<BallisticAmmoProviderComponent>(out var starterBal, entMan.ComponentFactory))
+            return (Math.Min(1f, starterBal.Capacity / 30f), $"{starterBal.Capacity}", starterBal.Capacity);
+
+        var approx = (int)(shopComp.StatCapacity * 0.2f);
+        return (Math.Min(1f, approx / 30f), $"{approx}", approx);
+    }
+
+    private static Color StatBarColor(int value) => value switch
+    {
+        < 33 => Color.FromHex("#BF616A"),
+        < 66 => Color.FromHex("#EBCB8B"),
+        _    => Color.FromHex("#A3BE8C"),
+    };
+
     private static string UpgradeTypeToStatLabel(WeaponUpgradeType type) => type switch
     {
-        WeaponUpgradeType.FireRate => "Fire Rate",
-        WeaponUpgradeType.Accuracy => "Accuracy",
-        WeaponUpgradeType.AngleMax => "Spread",
-        WeaponUpgradeType.MagazineSize => "Mag Size",
-        WeaponUpgradeType.ReloadSpeed => "Reload Speed",
-        WeaponUpgradeType.Range => "Range",
-        WeaponUpgradeType.FullAuto => "Auto",
-        WeaponUpgradeType.CritChance => "Crit %",
-        WeaponUpgradeType.CritDamage => "Crit DMG",
-        WeaponUpgradeType.Pierce => "Pierce",
-        WeaponUpgradeType.Radius => "Radius",
-        WeaponUpgradeType.Akimbo => "Dual Wield",
-        WeaponUpgradeType.ExplosiveShot => "Explosive",
-        WeaponUpgradeType.MoneyGainBonus => "Money",
-        WeaponUpgradeType.MoneyPerHit => "$/Hit",
-        WeaponUpgradeType.Slowing => "Slow",
-        WeaponUpgradeType.BeamChaining => "Chain",
-        WeaponUpgradeType.Knockback => "Knockback",
-        WeaponUpgradeType.SelfChargeSpeed => "Charge Speed",
-        WeaponUpgradeType.SetOnFire => "Ignite",
-        WeaponUpgradeType.APRounds => "AP",
-        WeaponUpgradeType.ArmorShred => "Armor Shred",
-        WeaponUpgradeType.SpawnItem => "Additional Ammo",
-        WeaponUpgradeType.Recoil => "Recoil",
-        WeaponUpgradeType.LifeSteal => "Life Steal",
-        WeaponUpgradeType.StaminaSteal => "Stamina Steal",
-        WeaponUpgradeType.MovementSpeed => "Move Speed",
-        WeaponUpgradeType.AttackSpeed => "Attack Speed",
-        WeaponUpgradeType.Damage => "Damage",
-        WeaponUpgradeType.PelletCount => "Pellets",
-        WeaponUpgradeType.Scrapshot => "Scrapshot",
-        WeaponUpgradeType.Bleed => "Bleed",
-        WeaponUpgradeType.SlamFire => "Slam Fire",
-        WeaponUpgradeType.FlechetteRounds => "Flechette",
-        WeaponUpgradeType.SplinterImpact => "Splinter",
-        WeaponUpgradeType.OverchargeShot => "Overcharge",
-        WeaponUpgradeType.Overkill => "Overkill",
-        WeaponUpgradeType.Execution => "Execution",
-        WeaponUpgradeType.WarTorn => "Battle Trance",
-        WeaponUpgradeType.Suppression => "Suppress",
-        WeaponUpgradeType.Resonance => "Resonance",
-        WeaponUpgradeType.Prismatic => "Prismatic",
-        WeaponUpgradeType.MagEfficiency => "Mag Eff.",
-        WeaponUpgradeType.PulseCascade => "Cascade",
-        WeaponUpgradeType.Aftershock => "Aftershock",
-        WeaponUpgradeType.SpeedLoader => "Speed Loader",
-        WeaponUpgradeType.ConcussionClub => "Stun (Heavy)",
-        WeaponUpgradeType.CritVsStunned => "Stun Crit",
-        WeaponUpgradeType.StunOnHit => "Stun",
+        WeaponUpgradeType.FireRate           => "Fire Rate",
+        WeaponUpgradeType.Accuracy           => "Accuracy",
+        WeaponUpgradeType.AngleMax           => "Spread",
+        WeaponUpgradeType.MagazineSize       => "Mag Size",
+        WeaponUpgradeType.ReloadSpeed        => "Reload Speed",
+        WeaponUpgradeType.Range              => "Range",
+        WeaponUpgradeType.FullAuto           => "Auto",
+        WeaponUpgradeType.CritChance         => "Crit %",
+        WeaponUpgradeType.CritDamage         => "Crit DMG",
+        WeaponUpgradeType.Pierce             => "Pierce",
+        WeaponUpgradeType.Radius             => "Radius",
+        WeaponUpgradeType.Akimbo             => "Dual Wield",
+        WeaponUpgradeType.ExplosiveShot      => "Explosive",
+        WeaponUpgradeType.MoneyGainBonus     => "Money",
+        WeaponUpgradeType.MoneyPerHit        => "$/Hit",
+        WeaponUpgradeType.Slowing            => "Slow",
+        WeaponUpgradeType.BeamChaining       => "Chain",
+        WeaponUpgradeType.Knockback          => "Knockback",
+        WeaponUpgradeType.SelfChargeSpeed    => "Charge Speed",
+        WeaponUpgradeType.SetOnFire          => "Ignite",
+        WeaponUpgradeType.APRounds           => "AP",
+        WeaponUpgradeType.ArmorShred         => "Armor Shred",
+        WeaponUpgradeType.SpawnItem          => "Additional Ammo",
+        WeaponUpgradeType.Recoil             => "Recoil",
+        WeaponUpgradeType.LifeSteal          => "Life Steal",
+        WeaponUpgradeType.StaminaSteal       => "Stamina Steal",
+        WeaponUpgradeType.MovementSpeed      => "Move Speed",
+        WeaponUpgradeType.AttackSpeed        => "Attack Speed",
+        WeaponUpgradeType.Damage             => "Damage",
+        WeaponUpgradeType.PelletCount        => "Pellets",
+        WeaponUpgradeType.Scrapshot          => "Scrapshot",
+        WeaponUpgradeType.Bleed              => "Bleed",
+        WeaponUpgradeType.SlamFire           => "Slam Fire",
+        WeaponUpgradeType.FlechetteRounds    => "Flechette",
+        WeaponUpgradeType.SplinterImpact     => "Splinter",
+        WeaponUpgradeType.OverchargeShot     => "Overcharge",
+        WeaponUpgradeType.Overkill           => "Overkill",
+        WeaponUpgradeType.Execution          => "Execution",
+        WeaponUpgradeType.WarTorn            => "Battle Trance",
+        WeaponUpgradeType.Suppression        => "Suppress",
+        WeaponUpgradeType.Resonance          => "Resonance",
+        WeaponUpgradeType.Prismatic          => "Prismatic",
+        WeaponUpgradeType.MagEfficiency      => "Mag Eff.",
+        WeaponUpgradeType.PulseCascade       => "Cascade",
+        WeaponUpgradeType.Aftershock         => "Aftershock",
+        WeaponUpgradeType.SpeedLoader        => "Speed Loader",
+        WeaponUpgradeType.ConcussionClub     => "Stun (Heavy)",
+        WeaponUpgradeType.CritVsStunned      => "Stun Crit",
+        WeaponUpgradeType.StunOnHit          => "Stun",
         WeaponUpgradeType.FlintlockCritSynergy => "Pirate Crit",
-        WeaponUpgradeType.CritVsBurning => "Fire Crit",
-        WeaponUpgradeType.FireResist => "Fire Resist",
-        WeaponUpgradeType.WhileBurningBuff => "Pyromaniac",
-        WeaponUpgradeType.FuelEfficiency => "Fuel Eff.",
-        WeaponUpgradeType.FuelCapacity => "Fuel Cap.",
-        WeaponUpgradeType.WielderResistance => "Resist",
+        WeaponUpgradeType.CritVsBurning      => "Fire Crit",
+        WeaponUpgradeType.FireResist         => "Fire Resist",
+        WeaponUpgradeType.WhileBurningBuff   => "Pyromaniac",
+        WeaponUpgradeType.FuelEfficiency     => "Fuel Eff.",
+        WeaponUpgradeType.FuelCapacity       => "Fuel Cap.",
+        WeaponUpgradeType.WielderResistance  => "Resist",
         WeaponUpgradeType.DualWieldEnergySword => "Dual Wield",
-        _ => "",
+        _                                    => "",
     };
 
     private static string Capitalize(string text)
-    {
-        if (text.Length == 0) return text;
-        return text.Substring(0, 1).ToUpper() + text.Substring(1);
-    }
+        => text.Length == 0 ? text : text.Substring(0, 1).ToUpper() + text.Substring(1);
 }

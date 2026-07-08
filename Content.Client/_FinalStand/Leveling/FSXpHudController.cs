@@ -1,10 +1,13 @@
+using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 
@@ -13,6 +16,7 @@ namespace Content.Client._FinalStand.Leveling;
 public sealed class FSXpHudController : UIController
 {
     [Dependency] private readonly IResourceCache _cache = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
 
     private FSLevelingUpdatedEvent? _cached;
 
@@ -84,10 +88,31 @@ public sealed class FSXpHudController : UIController
         _root.AddChild(spacerTop);
         _root.AddChild(barContainer);
 
-        screen.AddChild(_root);
+        // In separated HUD mode, anchor to the viewport container so the bar
+        // doesn't extend into the chat panel on the right.
+        var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
+                          && st == ScreenType.Separated;
+        var target = isSeparated ? (FindViewportContainer(screen) ?? (Control) screen) : screen;
+        target.AddChild(_root);
 
         if (_cached != null)
             Apply(_cached);
+    }
+
+    private static Control? FindViewportContainer(Control screen)
+    {
+        foreach (var child in screen.Children)
+        {
+            if (child is SplitContainer split)
+            {
+                foreach (var sc in split.Children)
+                {
+                    if (sc.Name == "ViewportContainer")
+                        return sc;
+                }
+            }
+        }
+        return null;
     }
 
     private void OnScreenUnload()

@@ -1,6 +1,6 @@
 <DefaultWindow
     xmlns="https://spacestation14.io"
-    MinWidth="720" MinHeight="420">
+    MinWidth="820" MinHeight="460">
 
     <BoxContainer Orientation="Vertical" Margin="10">
 
@@ -22,7 +22,7 @@
         <BoxContainer Orientation="Horizontal" VerticalExpand="True">
 
             <!-- LEFT: description + upgrades + perks -->
-            <BoxContainer Orientation="Vertical" SetWidth="390" Margin="0 0 12 0">
+            <BoxContainer Orientation="Vertical" SetWidth="450" Margin="0 0 12 0">
 
                 <!-- Description wraps naturally to column width -->
                 <RichTextLabel Name="DescLabel" HorizontalExpand="True" Margin="0 0 0 10" />

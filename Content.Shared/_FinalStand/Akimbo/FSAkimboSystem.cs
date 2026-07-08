@@ -1,5 +1,6 @@
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Weapons.Ranged;
@@ -10,6 +11,7 @@ namespace Content.Shared._FinalStand.Akimbo;
 public sealed class FSAkimboSystem : EntitySystem
 {
     [Dependency] private readonly SharedVirtualItemSystem _virtualItems = default!;
+    [Dependency] private readonly SharedHandsSystem _hands = default!;
 
     private static readonly Angle SpreadMinPenalty = Angle.FromDegrees(8);
     private static readonly Angle SpreadMaxPenalty = Angle.FromDegrees(12);
@@ -48,12 +50,13 @@ public sealed class FSAkimboSystem : EntitySystem
             _virtualItems.DeleteInHandsMatching(holder, uid);
     }
 
-    // If the mirror is destroyed while the real gun is still held (e.g. player pressed Q on the mirror hand),
-    // re-spawn it so the akimbo pair stays visible.
+    // If the mirror is destroyed while the real gun is still held (player pressed Q on the mirror hand),
+    // drop the real gun so both hands clear cleanly. Re-spawning would make the mirror undismissable.
     private void OnMirrorDeleted(EntityUid uid, FSAkimboGunComponent comp, VirtualItemDeletedEvent args)
     {
-        if (TryGetHolder(uid, out var holder))
-            _virtualItems.TrySpawnVirtualItemInHand(uid, holder);
+        if (!TryGetHolder(uid, out var holder))
+            return;
+        _hands.TryDrop(holder, uid);
     }
 
     private bool TryGetHolder(EntityUid uid, out EntityUid holder)

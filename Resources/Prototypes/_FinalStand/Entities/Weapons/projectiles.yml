@@ -48,20 +48,43 @@
   parent: BaseBullet
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
         Piercing: 10
+
+# ── Standard shotgun pellets (+100% vs PelletShotgun 10 → 20) ────────────────
+- type: entity
+  id: FSPelletShotgunStandard
+  parent: PelletShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 20
+
+- type: entity
+  id: FSPelletShotgunStandardSpread
+  parent: FSPelletShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSPelletShotgunStandard
+    count: 6
+    spread: 15
 
 - type: entity
   id: FSPelletDoubleBarrel
   parent: BaseBullet
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
-        Piercing: 10
+        Piercing: 20
 
 - type: entity
   id: FSPelletDoubleBarrelSpread
@@ -106,7 +129,7 @@
       types:
         Piercing: 22
 
-# ── Hushpup pellets (+40% vs PelletShotgun 10 → 14) ──────────────────────────
+# ── Hushpup pellets (+100% vs PelletShotgun 10 → 20, suppressed so lower than std) ──
 - type: entity
   id: FSPelletShotgunHushpup
   parent: PelletShotgun
@@ -115,7 +138,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 14
+        Piercing: 28
 
 - type: entity
   id: FSPelletShotgunHushpupSpread
@@ -127,7 +150,7 @@
     count: 6
     spread: 15
 
-# ── Energy shotgun laser (+50% vs BulletLaser Heat 13 → 20) ──────────────────
+# ── Energy shotgun laser (+100% vs BulletLaser Heat 13 → 40) ─────────────────
 - type: entity
   id: FSBulletLaserShotgun
   parent: BulletLaser
@@ -136,7 +159,7 @@
   - type: Projectile
     damage:
       types:
-        Heat: 20
+        Heat: 40
 
 - type: entity
   id: FSBulletLaserShotgunSpread

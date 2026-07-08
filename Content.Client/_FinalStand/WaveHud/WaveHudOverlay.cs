@@ -1,8 +1,13 @@
 using System.Numerics;
+using Content.Client.UserInterface.Screens;
 using Content.Shared._FinalStand.Augments;
+using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.ResourceManagement;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
 using Robust.Shared.Utility;
@@ -14,6 +19,8 @@ public sealed class WaveHudOverlay : Overlay
     [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
     [Dependency] private readonly IInputManager _input = default!;
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
 
     private Font? _labelFont;
     private Font? _valueFont;
@@ -119,7 +126,10 @@ public sealed class WaveHudOverlay : Overlay
         if (EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
-        var panelX = screenSize.X - margin - panelW;
+        var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
+                          && st == ScreenType.Separated;
+        var rightEdge = isSeparated ? GetViewportPixelWidth() : screenSize.X;
+        var panelX = rightEdge - margin - panelW;
         float y = screenSize.Y - margin - totalH;
 
         float DrawRow(Texture? icon, string label, string value, Color valueColor)
@@ -216,6 +226,26 @@ public sealed class WaveHudOverlay : Overlay
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), effectText, muted);
             break;
         }
+    }
+
+    private float GetViewportPixelWidth()
+    {
+        var screen = _uiManager.ActiveScreen;
+        if (screen != null)
+        {
+            foreach (var child in screen.Children)
+            {
+                if (child is SplitContainer split)
+                {
+                    foreach (var sc in split.Children)
+                    {
+                        if (sc.Name == "ViewportContainer")
+                            return sc.PixelSize.X;
+                    }
+                }
+            }
+        }
+        return _clyde.ScreenSize.X - 300f;
     }
 
     private Texture? GetAugmentIcon(string augmentId)

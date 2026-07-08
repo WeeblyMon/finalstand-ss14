@@ -8,7 +8,7 @@
   description: Waffle Corp's answer to every problem. 300 rounds of suppressive .30 fire. It doesn't stop.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponLightMachineGunL6
+    weaponProtoId: FSWeaponLightMachineGunL6
     price: 140000
     starterAmmoProtoId: MagazineLightRifleBox
     starterAmmoCount: 2
@@ -61,6 +61,13 @@
       type: FireRate
       valuePerLevel: 1
       isStub: true
+    - id: l6-damage
+      name: Heavy Slug
+      description: Dense subsonic rounds increase damage by 20% per level.
+      maxLevel: 4
+      baseCost: 11000
+      type: Damage
+      valuePerLevel: 0.2
   - type: Sprite
     sprite: Objects/Weapons/Guns/LMGs/l6.rsi
     state: base
@@ -359,6 +366,13 @@
       baseCost: 10000
       type: Accuracy
       valuePerLevel: 7.0
+    - id: minigun-ammo-drum
+      name: Extended Drum
+      description: Larger rotating drum adds 250 rounds per level.
+      maxLevel: 4
+      baseCost: 12000
+      type: MagazineSize
+      valuePerLevel: 250
   - type: Sprite
     sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
     state: icon

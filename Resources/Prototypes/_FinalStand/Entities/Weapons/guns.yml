@@ -173,6 +173,49 @@
       - CartridgePistol
     capacity: 30
 
+# ── Standard shotgun ammo chain (Blunderbuss / Kammerer / Bulldog) ────────────
+- type: entity
+  parent: ShellShotgun
+  id: FSShellShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSPelletShotgunStandardSpread
+
+- type: entity
+  parent: BoxLethalshot
+  id: FSBoxShotgunStandard
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
+- type: entity
+  parent: MagazineShotgun
+  id: FSMagazineShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
+# ── Blunderbuss / Kammerer overrides — use FS standard shells ─────────────────
+- type: entity
+  parent: WeaponShotgunBlunderbuss
+  id: FSWeaponShotgunBlunderbuss
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+    capacity: 1
+
+- type: entity
+  parent: WeaponShotgunKammerer
+  id: FSWeaponShotgunKammerer
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSShellShotgunStandard
+
 # ── Hushpup ammo ──────────────────────────────────────────────────────────────
 - type: entity
   parent: ShellShotgun
@@ -296,7 +339,7 @@
           tags:
             - CartridgePistol
 
-# Shotgun overrides — adds AkimboEligible tag for shops that offer the Akimbo upgrade.
+# Shotgun overrides — adds AkimboEligible tag and FS magazine for doubled base damage.
 
 - type: entity
   id: FSWeaponShotgunBulldog
@@ -306,6 +349,18 @@
   - type: Tag
     tags:
     - AkimboEligible
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        startingItem: FSMagazineShotgun
+        priority: 2
+        whitelist:
+          tags:
+          - MagazineShotgun
+        whitelistFailPopup: gun-magazine-whitelist-fail
+        insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
 
 # Hushpup override — uses FS pellets for +40% base damage.
 - type: entity
@@ -459,6 +514,19 @@
         whitelist:
           tags:
             - CartridgeLightRifle
+
+# L6 SAW override — fixes reversed wield accuracy bonus.
+- type: entity
+  id: FSWeaponLightMachineGunL6
+  parent: WeaponLightMachineGunL6
+  suffix: FinalStand
+  components:
+  - type: Gun
+    minAngle: 24
+    maxAngle: 45
+  - type: GunWieldBonus
+    minAngle: -20
+    maxAngle: -25
 
 # Cutlass override — doubled base damage (16 → 32 Slash).
 - type: entity
