@@ -1,4 +1,6 @@
 using System.IO;
+using System.Text.Json;
+using Content.Server._FinalStand.Augments;
 using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
@@ -29,8 +31,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         int Level,
         int Experience,
         int PrestigeLevel,
-        int BuffStoppingPower,
-        int BuffBulletStorm);
+        string PrestigeBuffsJson);
 
     public override void Initialize()
     {
@@ -46,7 +47,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     public override void Shutdown()
     {
         base.Shutdown();
-        SaveAll(); // flush all player data before the DB connection closes
+        SaveAll();
         _db?.Dispose();
         _db = null;
     }
@@ -74,61 +75,174 @@ public sealed class FSPlayerWalletSystem : EntitySystem
                 username       TEXT NOT NULL DEFAULT '',
                 augment_points INTEGER NOT NULL DEFAULT 0,
                 level          INTEGER NOT NULL DEFAULT 1,
-                experience     INTEGER NOT NULL DEFAULT 0
+                experience     INTEGER NOT NULL DEFAULT 0,
+                prestige_level INTEGER NOT NULL DEFAULT 0,
+                augment_data   TEXT NOT NULL DEFAULT '{}',
+                prestige_buffs TEXT NOT NULL DEFAULT '{}'
             )
             """;
         createCmd.ExecuteNonQuery();
 
-        // sqlite has no IF NOT EXISTS for ALTER TABLE, so we catch duplicate column errors
-        string[] newColumns =
-        [
-            "ALTER TABLE prestige ADD COLUMN prestige_level      INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_iron_hide      INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_scavenger      INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_fast_learner   INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_sprinter       INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_marksman       INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_survivor       INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_stopping_power  INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN buff_bullet_storm    INTEGER NOT NULL DEFAULT 0",
-            "ALTER TABLE prestige ADD COLUMN augment_levels_json  TEXT NOT NULL DEFAULT ''",
-            "ALTER TABLE prestige ADD COLUMN augment_slots_json   TEXT NOT NULL DEFAULT ''",
-            "ALTER TABLE prestige ADD COLUMN augment_loadouts_json TEXT NOT NULL DEFAULT ''",
-        ];
-        foreach (var ddl in newColumns)
-        {
-            try
-            {
-                using var alter = _db.CreateCommand();
-                alter.CommandText = ddl;
-                alter.ExecuteNonQuery();
-            }
-            catch (SqliteException e) when (e.Message.Contains("duplicate column")) { }
-        }
+        TryMigrateOldSchema();
 
         Log.Debug("[FSWallet] Prestige database opened.");
+    }
+
+    private void TryMigrateOldSchema()
+    {
+        // Detect old schema by looking for the buff_iron_hide column
+        var isOld = false;
+        using (var pragma = _db!.CreateCommand())
+        {
+            pragma.CommandText = "PRAGMA table_info(prestige)";
+            using var r = pragma.ExecuteReader();
+            while (r.Read())
+            {
+                if (r.GetString(1) == "buff_iron_hide")
+                {
+                    isOld = true;
+                    break;
+                }
+            }
+        }
+        if (!isOld) return;
+
+        Log.Info("[FSWallet] Old schema detected — migrating to new schema...");
+
+        // Read all old rows in C# so we can handle null/invalid JSON safely
+        var rows = new List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,
+            string LevelsJson, string SlotsJson, string LoadoutsJson, int StoppingPower, int BulletStorm)>();
+
+        using (var sel = _db!.CreateCommand())
+        {
+            sel.CommandText = """
+                SELECT user_id, username, augment_points, level, experience, prestige_level,
+                       augment_levels_json, augment_slots_json, augment_loadouts_json,
+                       buff_stopping_power, buff_bullet_storm
+                FROM prestige
+                """;
+            using var r = sel.ExecuteReader();
+            while (r.Read())
+            {
+                rows.Add((
+                    r.GetString(0),
+                    r.IsDBNull(1) ? "" : r.GetString(1),
+                    r.IsDBNull(2) ? 0  : r.GetInt32(2),
+                    r.IsDBNull(3) ? 1  : Math.Max(1, r.GetInt32(3)),
+                    r.IsDBNull(4) ? 0  : r.GetInt32(4),
+                    r.IsDBNull(5) ? 0  : r.GetInt32(5),
+                    r.IsDBNull(6) ? "" : r.GetString(6),
+                    r.IsDBNull(7) ? "" : r.GetString(7),
+                    r.IsDBNull(8) ? "" : r.GetString(8),
+                    r.IsDBNull(9) ? 0  : r.GetInt32(9),
+                    r.IsDBNull(10)? 0  : r.GetInt32(10)));
+            }
+        }
+
+        using (var createNew = _db!.CreateCommand())
+        {
+            createNew.CommandText = """
+                CREATE TABLE prestige_new (
+                    user_id        TEXT PRIMARY KEY,
+                    username       TEXT NOT NULL DEFAULT '',
+                    augment_points INTEGER NOT NULL DEFAULT 0,
+                    level          INTEGER NOT NULL DEFAULT 1,
+                    experience     INTEGER NOT NULL DEFAULT 0,
+                    prestige_level INTEGER NOT NULL DEFAULT 0,
+                    augment_data   TEXT NOT NULL DEFAULT '{}',
+                    prestige_buffs TEXT NOT NULL DEFAULT '{}'
+                )
+                """;
+            createNew.ExecuteNonQuery();
+        }
+
+        using (var tx = _db!.BeginTransaction())
+        {
+            foreach (var row in rows)
+            {
+                var augData = BuildAugmentDataJson(row.LevelsJson, row.SlotsJson, row.LoadoutsJson);
+
+                var buffDict = new Dictionary<string, int>();
+                if (row.StoppingPower > 0) buffDict["StoppingPower"] = row.StoppingPower;
+                if (row.BulletStorm   > 0) buffDict["BulletStorm"]   = row.BulletStorm;
+                var buffJson = JsonSerializer.Serialize(buffDict);
+
+                using var ins = _db!.CreateCommand();
+                ins.Transaction = tx;
+                ins.CommandText = """
+                    INSERT INTO prestige_new (user_id, username, augment_points, level, experience,
+                                             prestige_level, augment_data, prestige_buffs)
+                    VALUES ($id, $name, $ap, $lvl, $xp, $prestige, $data, $buffs)
+                    """;
+                ins.Parameters.AddWithValue("$id",      row.UserId);
+                ins.Parameters.AddWithValue("$name",    row.Username);
+                ins.Parameters.AddWithValue("$ap",      row.Ap);
+                ins.Parameters.AddWithValue("$lvl",     row.Level);
+                ins.Parameters.AddWithValue("$xp",      row.Xp);
+                ins.Parameters.AddWithValue("$prestige",row.Prestige);
+                ins.Parameters.AddWithValue("$data",    augData);
+                ins.Parameters.AddWithValue("$buffs",   buffJson);
+                ins.ExecuteNonQuery();
+            }
+            tx.Commit();
+        }
+
+        using (var drop = _db!.CreateCommand())
+        {
+            drop.CommandText = "DROP TABLE prestige";
+            drop.ExecuteNonQuery();
+        }
+        using (var rename = _db!.CreateCommand())
+        {
+            rename.CommandText = "ALTER TABLE prestige_new RENAME TO prestige";
+            rename.ExecuteNonQuery();
+        }
+
+        Log.Info($"[FSWallet] Migration complete — {rows.Count} row(s) moved to new schema.");
+    }
+
+    private static string BuildAugmentDataJson(string levelsJson, string slotsJson, string loadoutsJson)
+    {
+        var levels   = SafeParseJson(levelsJson,   "{}");
+        var slots    = SafeParseJson(slotsJson,    "[]");
+        var loadouts = SafeParseJson(loadoutsJson, "[]");
+        return $"{{\"levels\":{levels},\"slots\":{slots},\"loadouts\":{loadouts}}}";
+    }
+
+    private static string SafeParseJson(string json, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return fallback;
+        try { JsonDocument.Parse(json); return json; }
+        catch { return fallback; }
+    }
+
+    private static string SerializePrestigeBuffs(FSPrestigeBuffsComponent? buffs)
+    {
+        if (buffs == null) return "{}";
+        var dict = new Dictionary<string, int>();
+        if (buffs.StoppingPower > 0) dict["StoppingPower"] = buffs.StoppingPower;
+        if (buffs.BulletStorm   > 0) dict["BulletStorm"]   = buffs.BulletStorm;
+        return JsonSerializer.Serialize(dict);
     }
 
     private FullRecord DbGetFullRecord(Guid userId)
     {
         using var cmd = _db!.CreateCommand();
         cmd.CommandText = """
-            SELECT augment_points, level, experience, prestige_level,
-                   buff_stopping_power, buff_bullet_storm
+            SELECT augment_points, level, experience, prestige_level, prestige_buffs
             FROM prestige WHERE user_id = $id
             """;
         cmd.Parameters.AddWithValue("$id", userId.ToString());
         using var reader = cmd.ExecuteReader();
         if (!reader.Read())
-            return new FullRecord(0, 1, 0, 0, 0, 0);
+            return new FullRecord(0, 1, 0, 0, "{}");
 
         return new FullRecord(
             reader.GetInt32(0),
             Math.Max(1, reader.GetInt32(1)),
             reader.GetInt32(2),
             reader.GetInt32(3),
-            reader.GetInt32(4),
-            reader.GetInt32(5));
+            reader.IsDBNull(4) ? "{}" : reader.GetString(4));
     }
 
     private int DbGetAugmentPoints(Guid userId)
@@ -150,46 +264,43 @@ public sealed class FSPlayerWalletSystem : EntitySystem
                 username       = excluded.username,
                 augment_points = excluded.augment_points
             """;
-        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$id",   userId.ToString());
         cmd.Parameters.AddWithValue("$name", username);
-        cmd.Parameters.AddWithValue("$ap", augmentPoints);
+        cmd.Parameters.AddWithValue("$ap",   augmentPoints);
         cmd.ExecuteNonQuery();
     }
 
     private void DbUpsertFull(Guid userId, string username,
         int augmentPoints, int level, int experience, int prestigeLevel,
-        int stoppingPower = 0, int bulletStorm = 0)
+        string prestigeBuffsJson = "{}")
     {
         using var cmd = _db!.CreateCommand();
         cmd.CommandText = """
             INSERT INTO prestige (
                 user_id, username, augment_points,
-                level, experience, prestige_level,
-                buff_stopping_power, buff_bullet_storm)
-            VALUES ($id, $name, $ap, $lvl, $xp, $prestige, $stoppingpower, $bulletstorm)
+                level, experience, prestige_level, prestige_buffs)
+            VALUES ($id, $name, $ap, $lvl, $xp, $prestige, $buffs)
             ON CONFLICT(user_id) DO UPDATE SET
-                username            = excluded.username,
-                augment_points      = excluded.augment_points,
-                level               = excluded.level,
-                experience          = excluded.experience,
-                prestige_level      = excluded.prestige_level,
-                buff_stopping_power = excluded.buff_stopping_power,
-                buff_bullet_storm   = excluded.buff_bullet_storm
+                username       = excluded.username,
+                augment_points = excluded.augment_points,
+                level          = excluded.level,
+                experience     = excluded.experience,
+                prestige_level = excluded.prestige_level,
+                prestige_buffs = excluded.prestige_buffs
             """;
-        cmd.Parameters.AddWithValue("$id", userId.ToString());
-        cmd.Parameters.AddWithValue("$name", username);
-        cmd.Parameters.AddWithValue("$ap", augmentPoints);
-        cmd.Parameters.AddWithValue("$lvl", level);
-        cmd.Parameters.AddWithValue("$xp", experience);
-        cmd.Parameters.AddWithValue("$prestige", prestigeLevel);
-        cmd.Parameters.AddWithValue("$stoppingpower", stoppingPower);
-        cmd.Parameters.AddWithValue("$bulletstorm", bulletStorm);
+        cmd.Parameters.AddWithValue("$id",      userId.ToString());
+        cmd.Parameters.AddWithValue("$name",    username);
+        cmd.Parameters.AddWithValue("$ap",      augmentPoints);
+        cmd.Parameters.AddWithValue("$lvl",     level);
+        cmd.Parameters.AddWithValue("$xp",      experience);
+        cmd.Parameters.AddWithValue("$prestige",prestigeLevel);
+        cmd.Parameters.AddWithValue("$buffs",   prestigeBuffsJson);
         cmd.ExecuteNonQuery();
     }
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
-        SaveAll(); // persist before entities are torn down
+        SaveAll();
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
@@ -201,15 +312,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
-        // MindContainerComponent.HasMind is not yet set when this event fires (it's set AFTER
-        // SetAttachedEntity in MindSystem.TransferTo), so TryGetMind(ev.Entity) always fails.
-        // Use ev.Player to look up the mind via UserMinds (populated before TransferTo runs).
         if (!_mind.TryGetMind(ev.Player, out var mindId, out var mind) || mind.UserId == null)
             return;
 
         _cachedUsernames[mind.UserId.Value] = ev.Player.Name;
 
-        // Re-send UI state on ghost-return or reconnect. Full init happens in OnPlayerSpawnComplete.
         if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             _levelingSystem.SendLevelingUpdate(mindId, lvl);
         if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
@@ -218,7 +325,6 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        // TryGetMind(ev.Mob) works here because TransferTo has fully completed (HasMind = true).
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
             return;
 
@@ -233,15 +339,26 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         NotifyClient(mindId, wallet);
 
         var lvlComp = EnsureComp<FSPlayerLevelComponent>(mindId);
-        lvlComp.Level = row.Level;
-        lvlComp.Experience = row.Experience;
-        lvlComp.XpToNextLevel = FSLevelingSystem.XpToNextLevel(row.Level);
-        lvlComp.PrestigeLevel = row.PrestigeLevel;
-        lvlComp.XpMultiplier = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
+        lvlComp.Level          = row.Level;
+        lvlComp.Experience     = row.Experience;
+        lvlComp.XpToNextLevel  = FSLevelingSystem.XpToNextLevel(row.Level);
+        lvlComp.PrestigeLevel  = row.PrestigeLevel;
+        lvlComp.XpMultiplier   = FSLevelingSystem.ComputeXpMultiplier(lvlComp.PrestigeLevel);
 
         var buffComp = EnsureComp<FSPrestigeBuffsComponent>(mindId);
-        buffComp.StoppingPower = row.BuffStoppingPower;
-        buffComp.BulletStorm   = row.BuffBulletStorm;
+        if (!string.IsNullOrEmpty(row.PrestigeBuffsJson) && row.PrestigeBuffsJson != "{}")
+        {
+            try
+            {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, int>>(row.PrestigeBuffsJson);
+                if (dict != null)
+                {
+                    buffComp.StoppingPower = dict.GetValueOrDefault("StoppingPower");
+                    buffComp.BulletStorm   = dict.GetValueOrDefault("BulletStorm");
+                }
+            }
+            catch { }
+        }
 
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
@@ -267,7 +384,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
                 mind.UserId.Value.UserId, username,
                 wallet.AugmentPoints,
                 lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
-                buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
+                SerializePrestigeBuffs(buffs));
 
             Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.AugmentPoints} lvl={lvl?.Level}");
             break;
@@ -345,7 +462,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         DbUpsertFull(
             mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
             wallet.AugmentPoints, level, experience, prestigeLevel,
-            buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
+            SerializePrestigeBuffs(buffs));
     }
 
     public void SavePrestigeBuffs(EntityUid mindId, FSPrestigeBuffsComponent buffs)
@@ -384,7 +501,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
                 mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
                 wallet.AugmentPoints,
                 lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
-                buffs?.StoppingPower ?? 0, buffs?.BulletStorm ?? 0);
+                SerializePrestigeBuffs(buffs));
             count++;
         }
         Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
@@ -411,25 +528,35 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadAugmentData(Guid userId)
     {
         using var cmd = _db!.CreateCommand();
-        cmd.CommandText = """
-            SELECT augment_levels_json, augment_slots_json, augment_loadouts_json
-            FROM prestige WHERE user_id = $id
-            """;
+        cmd.CommandText = "SELECT augment_data FROM prestige WHERE user_id = $id";
         cmd.Parameters.AddWithValue("$id", userId.ToString());
         using var reader = cmd.ExecuteReader();
-        if (!reader.Read())
+        if (!reader.Read() || reader.IsDBNull(0))
             return ("", "", "");
-        return (
-            reader.IsDBNull(0) ? "" : reader.GetString(0),
-            reader.IsDBNull(1) ? "" : reader.GetString(1),
-            reader.IsDBNull(2) ? "" : reader.GetString(2));
+
+        var json = reader.GetString(0);
+        if (string.IsNullOrWhiteSpace(json) || json == "{}")
+            return ("", "", "");
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var levels   = root.TryGetProperty("levels",   out var lp) ? lp.GetRawText() : "";
+            var slots    = root.TryGetProperty("slots",    out var sp) ? sp.GetRawText() : "";
+            var loadouts = root.TryGetProperty("loadouts", out var lo) ? lo.GetRawText() : "";
+            return (levels, slots, loadouts);
+        }
+        catch
+        {
+            return ("", "", "");
+        }
     }
 
     public void SaveAugmentData(EntityUid mindId, string levelsJson, string slotsJson, string loadoutsJson)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
-        var userGuid = mind.UserId.Value.UserId;
-        DbSaveAugmentJson(userGuid, levelsJson, slotsJson, loadoutsJson);
+        DbSaveAugmentJson(mind.UserId.Value.UserId, levelsJson, slotsJson, loadoutsJson);
     }
 
     public void SaveAugmentDataByUser(Guid userId, string levelsJson, string slotsJson, string loadoutsJson)
@@ -437,20 +564,49 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void DbSaveAugmentJson(Guid userGuid, string levelsJson, string slotsJson, string loadoutsJson)
     {
+        var mergedJson = BuildAugmentDataJson(levelsJson, slotsJson, loadoutsJson);
+
         using var cmd = _db!.CreateCommand();
         cmd.CommandText = """
-            INSERT INTO prestige (user_id, username, augment_levels_json, augment_slots_json, augment_loadouts_json)
-            VALUES ($id, '', $levels, $slots, $loadouts)
+            INSERT INTO prestige (user_id, augment_data)
+            VALUES ($id, $data)
             ON CONFLICT(user_id) DO UPDATE SET
-                augment_levels_json   = excluded.augment_levels_json,
-                augment_slots_json    = excluded.augment_slots_json,
-                augment_loadouts_json = excluded.augment_loadouts_json
+                augment_data = excluded.augment_data
             """;
-        cmd.Parameters.AddWithValue("$id", userGuid.ToString());
-        cmd.Parameters.AddWithValue("$levels", levelsJson);
-        cmd.Parameters.AddWithValue("$slots", slotsJson);
-        cmd.Parameters.AddWithValue("$loadouts", loadoutsJson);
+        cmd.Parameters.AddWithValue("$id",   userGuid.ToString());
+        cmd.Parameters.AddWithValue("$data", mergedJson);
         cmd.ExecuteNonQuery();
+    }
+
+    public int WipeAllPrestige()
+    {
+        using var cmd = _db!.CreateCommand();
+        cmd.CommandText = "DELETE FROM prestige";
+        var deleted = cmd.ExecuteNonQuery();
+
+        var query = EntityQueryEnumerator<FSPlayerWalletComponent, FSPlayerLevelComponent, MindComponent>();
+        while (query.MoveNext(out var mindId, out var wallet, out var lvl, out _))
+        {
+            wallet.AugmentPoints = 0;
+            wallet.Credits = 500;
+            lvl.Level         = 1;
+            lvl.Experience    = 0;
+            lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(1);
+            lvl.PrestigeLevel = 0;
+            lvl.XpMultiplier  = FSLevelingSystem.ComputeXpMultiplier(0);
+            NotifyClient(mindId, wallet);
+            _levelingSystem.SendLevelingUpdate(mindId, lvl);
+            if (TryComp<FSAugmentLevelsComponent>(mindId, out var augs))
+            {
+                augs.Levels.Clear();
+                Array.Fill(augs.Slots, string.Empty);
+                foreach (var loadout in augs.Loadouts)
+                    Array.Fill(loadout, string.Empty);
+            }
+        }
+
+        Log.Warning($"[FSWallet] WipeAllPrestige — deleted {deleted} row(s) and reset all connected players.");
+        return deleted;
     }
 
     public void DumpWallets(IConsoleShell shell)

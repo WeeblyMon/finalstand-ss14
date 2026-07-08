@@ -279,8 +279,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.AccumulatedSurvivalBonus += waveBonus;
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
-            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss fallback — Giant never died, distributing {comp.BossWavePerkReward} AP.");
-            _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
+            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss fallback — Giant never died.");
         }
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
@@ -431,8 +430,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
             {
                 comp.GiantApAwarded = true;
-                Log.Info($"[WaveGameRule] Giant {ent.Owner} died — distributing {comp.BossWavePerkReward} augment points.");
-                _wallet.DistributeAugmentPoints(comp.BossWavePerkReward);
+                Log.Info($"[WaveGameRule] Giant {ent.Owner} died.");
             }
 
             var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)

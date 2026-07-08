@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Explosion.EntitySystems;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Camera;
@@ -19,10 +20,10 @@ public sealed class FSGiantStompSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly ExplosionSystem _explosion = default!;
+    [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedCameraRecoilSystem _recoil = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
     private const string StompExplosionProto = "FSGiantStompExplosion";
@@ -77,13 +78,7 @@ public sealed class FSGiantStompSystem : EntitySystem
         foreach (var targetUid in validTargets)
         {
             _damageable.TryChangeDamage(targetUid, stompDamage, ignoreResistances: false, origin: uid);
-
-            var targetPos = _transform.GetWorldPosition(targetUid);
-            var dir = targetPos - giantPos;
-            if (dir == Vector2.Zero)
-                dir = new Vector2(1f, 0f);
-
-            _physics.SetLinearVelocity(targetUid, Vector2.Normalize(dir) * comp.StompKnockbackMagnitude);
+            _knockback.ApplyKnockback(targetUid, uid, 3);
         }
 
         var shakeSet = new HashSet<Entity<ActorComponent>>();
@@ -107,9 +102,9 @@ public sealed class FSGiantStompSystem : EntitySystem
         _explosion.QueueExplosion(
             epicenter,
             StompExplosionProto,
-            totalIntensity: 4f,
-            slope: 6f,
-            maxTileIntensity: 1f,
+            totalIntensity: 60f,
+            slope: 2f,
+            maxTileIntensity: 4f,
             cause: uid,
             tileBreakScale: 0f,
             maxTileBreak: 0,
