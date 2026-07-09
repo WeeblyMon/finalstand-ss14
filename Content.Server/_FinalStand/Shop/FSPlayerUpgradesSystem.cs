@@ -163,6 +163,11 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
 #pragma warning disable RA0002
                     gunF.AvailableModes |= SelectiveFire.FullAuto;
                     gunF.SelectedMode = SelectiveFire.FullAuto;
+                    if (def.ValuePerLevel > 1f)
+                    {
+                        gunF.FireRate *= def.ValuePerLevel;
+                        gunF.FireRateModified = gunF.FireRate;
+                    }
 #pragma warning restore RA0002
                     Dirty(weapon, gunF);
                 }

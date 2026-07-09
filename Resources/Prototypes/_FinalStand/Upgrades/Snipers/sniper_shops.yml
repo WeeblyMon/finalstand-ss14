@@ -19,11 +19,11 @@
     upgrades:
     - id: mosin-full-auto
       name: Custom Receiver
-      description: Fully automatic conversion. Increases attack speed significantly.
+      description: Fully automatic conversion. Enables full-auto and doubles fire rate.
       maxLevel: 1
       baseCost: 8000
       type: FullAuto
-      valuePerLevel: 1
+      valuePerLevel: 2
     - id: mosin-lucky-shot
       name: Lucky Shot
       description: Adds a 10% critical hit chance per level.
