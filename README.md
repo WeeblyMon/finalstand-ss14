@@ -1,5 +1,5 @@
 <div class="header" align="center">
-<img alt="Space Station 14" width="880" height="300" src="https://raw.githubusercontent.com/space-wizards/asset-dump/de329a7898bb716b9d5ba9a0cd07f38e61f1ed05/github-logo.svg">
+<img alt="Final Stand" width="880" height="300" src="https://raw.githubusercontent.com/WeeblyMon/finalstand-ss14/master/Resources/Textures/Logo/logo.svg">
 </div>
 
 Final Stand × SS14 is a wave-based co-op survival fork of Space Station 14. Players staff a circular Nanotrasen orbital extraction station and defend it against escalating waves of hostile entities — xenos, flesh, blobs, and worse — across six interdependent departments.
