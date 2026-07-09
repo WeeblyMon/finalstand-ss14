@@ -6,6 +6,8 @@ using Content.Server.NPC.Components;
 using Content.Server.NPC.Pathfinding;
 using Content.Shared.Climbing;
 using Content.Shared.Interaction;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.NPC;
 using Content.Shared.Physics;
@@ -783,6 +785,7 @@ public sealed partial class NPCSteeringSystem
         {
             if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
             if (!_physicsQuery.HasComponent(ent)) continue;
+            if (TryComp<MobStateComponent>(ent, out var ms) && ms.CurrentState == MobState.Dead) continue;
 
             var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
             var toEnt = entPos - worldPos;
