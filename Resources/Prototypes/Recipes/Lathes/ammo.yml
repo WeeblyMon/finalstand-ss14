@@ -207,6 +207,13 @@
 
 - type: latheRecipe
   parent: BaseAmmoRecipe
+  id: MagazinePistolHighCapacity
+  result: MagazinePistolHighCapacity
+  materials:
+    Steel: 180
+
+- type: latheRecipe
+  parent: BaseAmmoRecipe
   id: MagazinePistolUranium
   result: MagazinePistolUranium
   materials:

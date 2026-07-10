@@ -26,3 +26,9 @@
       state: base
   - type: FSZombieVisuals
     simpleSpriteMode: true
+  - type: PointLight
+    enabled: false
+    color: "#FF5500"
+    radius: 2.5
+    energy: 3.0
+    softness: 1.0

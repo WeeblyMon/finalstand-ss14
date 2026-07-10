@@ -71,6 +71,7 @@
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  - type: FSWaveDamageScale
   - type: ConveyorImmune
   - type: ContainmentFieldImmune
   - type: FSMoneyOnHitCap
@@ -157,6 +158,13 @@
   - type: FSArmor
     maxHPRatio: 1.0
     regenRate: 10
+  - type: FSArmouredDeflect
+  - type: PointLight
+    enabled: false
+    color: "#AAAAAA"
+    radius: 2.0
+    energy: 3.0
+    softness: 1.0
 
 # TODO(finalstand): add ArmorComponent when FSZombieDestroyer is implemented
 # maxHPRatio: 0.7, regenRate: 10 (tankier by design — targets infrastructure)

@@ -21,6 +21,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly FSDamageVulnerabilitySystem _vulnerability = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -122,6 +123,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
             if (HasComp<GhostComponent>(targetUid)) continue;
             if (!HasComp<MobStateComponent>(targetUid)) continue; // skip structures, walls, machines
             _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
+            _vulnerability.Apply(targetUid, duration: 5f);
         }
 
         if (comp.SlowRadius <= 0f)

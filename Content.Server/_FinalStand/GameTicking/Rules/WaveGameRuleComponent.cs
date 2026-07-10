@@ -57,10 +57,10 @@ public sealed partial class WaveGameRuleComponent : Component
     };
 
     [DataField]
-    public int MaxEnemyCap = 100;
+    public int MaxEnemyCap = 130;
 
     [DataField]
-    public int PlayerEnemyBonus = 6;
+    public int PlayerEnemyBonus = 9;
 
     [DataField]
     public int PlayerBonusFromWave = 10;

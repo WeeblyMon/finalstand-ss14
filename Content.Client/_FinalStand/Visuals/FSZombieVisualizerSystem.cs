@@ -14,7 +14,9 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly IPrototypeManager _protoManager = default!;
 
-    private const string TeslaGlowShader = "FSTeslaGlow";
+    private const string TeslaGlowShader   = "FSTeslaGlow";
+    private const string FlamerGlowShader  = "FSFlamerGlow";
+    private const string ArmourGlowShader  = "FSArmourGlow";
 
     public override void Initialize()
     {
@@ -24,6 +26,7 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
         SubscribeLocalEvent<FSZombieVisualsComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSFlamethrowerComponent, AfterAutoHandleStateEvent>(OnFlamethrowerStateHandled);
         SubscribeLocalEvent<FSTeslaZombieComponent, AfterAutoHandleStateEvent>(OnTeslaStateHandled);
+        SubscribeLocalEvent<FSArmouredDeflectComponent, AfterAutoHandleStateEvent>(OnArmouredDeflectStateHandled);
     }
 
     private void OnStartup(EntityUid uid, FSZombieVisualsComponent comp, ComponentStartup args)
@@ -35,10 +38,27 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
     private void OnMobStateChanged(EntityUid uid, FSZombieVisualsComponent comp, MobStateChangedEvent args)
         => UpdateSprite(uid, comp);
 
-    private void OnFlamethrowerStateHandled(EntityUid uid, FSFlamethrowerComponent _, AfterAutoHandleStateEvent args)
+    private void OnFlamethrowerStateHandled(EntityUid uid, FSFlamethrowerComponent comp, AfterAutoHandleStateEvent args)
     {
         if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
             UpdateSprite(uid, visuals);
+
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+
+        sprite.PostShader = (comp.IsWindingUp || comp.IsFiring)
+            ? _protoManager.Index<ShaderPrototype>(FlamerGlowShader).InstanceUnique()
+            : null;
+    }
+
+    private void OnArmouredDeflectStateHandled(EntityUid uid, FSArmouredDeflectComponent comp, AfterAutoHandleStateEvent args)
+    {
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+
+        sprite.PostShader = comp.IsGlowing
+            ? _protoManager.Index<ShaderPrototype>(ArmourGlowShader).InstanceUnique()
+            : null;
     }
 
     private void OnTeslaStateHandled(EntityUid uid, FSTeslaZombieComponent comp, AfterAutoHandleStateEvent args)

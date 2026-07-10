@@ -35,10 +35,12 @@
   recipes:
   - BoxLethalshot
   - BoxShotgunSlug
+  - MagazineBoxAntiMateriel
   - MagazineBoxLightRifle
   - MagazineBoxMagnum
   - MagazineBoxPistol
   - MagazineBoxRifle
+  - MagazinePistolHighCapacity
   - MagazineLightRifle
   - MagazineLightRifleBox
   - MagazinePistol

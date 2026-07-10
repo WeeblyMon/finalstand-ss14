@@ -34,6 +34,8 @@ public sealed partial class LatheMenu : FancyWindow
 
     public List<ProtoId<LatheRecipePrototype>> Recipes = new();
 
+    public HashSet<ProtoId<LatheRecipePrototype>> HighlightedRecipes = new();
+
     public List<ProtoId<LatheCategoryPrototype>>? Categories;
 
     public ProtoId<LatheCategoryPrototype>? CurrentCategory;
@@ -141,6 +143,8 @@ public sealed partial class LatheMenu : FancyWindow
             var canProduce = _lathe.CanProduce(Entity, prototype, quantity, component: lathe);
             var tooltipFunction = () => GenerateTooltipText(prototype);
 
+            var highlighted = HighlightedRecipes.Contains(prototype.ID);
+
             if (idx >= oldChildCount)
             {
                 var control = new RecipeControl(_lathe, prototype, tooltipFunction, canProduce, GetRecipeDisplayControl(prototype));
@@ -150,6 +154,7 @@ public sealed partial class LatheMenu : FancyWindow
                         amount = 1;
                     RecipeQueueAction?.Invoke(s, amount);
                 };
+                control.SetHighlighted(highlighted);
                 RecipeList.AddChild(control);
             }
             else
@@ -166,6 +171,7 @@ public sealed partial class LatheMenu : FancyWindow
                 child.SetTooltipSupplier(tooltipFunction);
                 child.SetCanProduce(canProduce);
                 child.SetDisplayControl(GetRecipeDisplayControl(prototype));
+                child.SetHighlighted(highlighted);
             }
             idx++;
         }

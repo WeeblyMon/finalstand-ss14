@@ -8,6 +8,7 @@ using Content.Shared.Ghost;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Components;
+using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
@@ -24,6 +25,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
     [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly HTNSystem _htn = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly PointLightSystem _pointLight = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
@@ -36,11 +38,13 @@ public sealed class FSFlamethrowerSystem : EntitySystem
 
     private void OnShutdown(EntityUid uid, FSFlamethrowerComponent comp, ComponentShutdown args)
     {
+        comp.IsWindingUp = false;
         if (comp.FireSoundEntity.HasValue)
         {
             _audio.Stop(comp.FireSoundEntity.Value);
             comp.FireSoundEntity = null;
         }
+        _pointLight.SetEnabled(uid, false);
     }
 
     public override void Update(float frameTime)
@@ -52,6 +56,8 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         {
             if (comp.IsFiring)
                 UpdateFiring(uid, comp, frameTime);
+            else if (comp.IsWindingUp)
+                UpdateWindup(uid, comp, frameTime);
             else
                 UpdateIdle(uid, comp, frameTime);
         }
@@ -112,15 +118,45 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             _transform.SetLocalRotation(uid, new Angle(dir) - MathF.PI / 2f);
         }
 
+        comp.IsWindingUp = true;
+        comp.WindupAccumulator = 0f;
+        _pointLight.SetEnabled(uid, true);
+
+        if (TryComp<InputMoverComponent>(uid, out var mover))
+        {
+            mover.CanMove = false;
+            Dirty(uid, mover);
+        }
+    }
+
+    private void UpdateWindup(EntityUid uid, FSFlamethrowerComponent comp, float frameTime)
+    {
+        if (TryComp<MobStateComponent>(uid, out var mobState) && mobState.CurrentState != MobState.Alive)
+        {
+            AbortWindup(uid, comp);
+            return;
+        }
+
+        comp.WindupAccumulator += frameTime;
+        if (comp.WindupAccumulator < comp.WindupDuration)
+            return;
+
+        comp.IsWindingUp = false;
         comp.IsFiring = true;
         comp.FireAccumulator = 0f;
         comp.ParticleAccumulator = 0f;
         comp.FireSoundEntity ??= _audio.PlayPvs(comp.FireLoopSound, uid)?.Entity;
         Dirty(uid, comp);
+    }
 
+    private void AbortWindup(EntityUid uid, FSFlamethrowerComponent comp)
+    {
+        comp.IsWindingUp = false;
+        comp.WindupAccumulator = 0f;
+        _pointLight.SetEnabled(uid, false);
         if (TryComp<InputMoverComponent>(uid, out var mover))
         {
-            mover.CanMove = false;
+            mover.CanMove = true;
             Dirty(uid, mover);
         }
     }
@@ -170,6 +206,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
     {
         comp.IsFiring = false;
         comp.CooldownAccumulator = comp.AttackCooldown;
+        _pointLight.SetEnabled(uid, false);
         Dirty(uid, comp);
 
         _audio.Stop(comp.FireSoundEntity);

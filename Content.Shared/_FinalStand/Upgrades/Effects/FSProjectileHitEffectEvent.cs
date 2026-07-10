@@ -10,6 +10,7 @@ public sealed class FSProjectileHitEffectEvent : EntityEventArgs
     public EntityUid Target;
     public EntityUid? Weapon;
     public EntityUid? Shooter;
+    public EntityUid? ProjectileUid;
     public DamageSpecifier Damage = new();
     public float AdditionalMultiplier = 1f;
 }

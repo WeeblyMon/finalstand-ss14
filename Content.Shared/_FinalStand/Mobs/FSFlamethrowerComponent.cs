@@ -14,6 +14,7 @@ public sealed partial class FSFlamethrowerComponent : Component
     [DataField] public float ParticleSpawnRate = 0.08f;
     [DataField] public int ParticlesPerBurst = 2;
     [DataField] public float FireProjectileSpeed = 10f;
+    [DataField] public float WindupDuration = 0.6f;
     [DataField] public SoundSpecifier FireLoopSound =
         new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Flamethrower/fire_loop.ogg")
         {
@@ -21,8 +22,9 @@ public sealed partial class FSFlamethrowerComponent : Component
         };
 
     // Runtime state
-    [AutoNetworkedField]
-    public bool IsFiring = false;
+    [AutoNetworkedField] public bool IsFiring = false;
+    [AutoNetworkedField] public bool IsWindingUp = false;
+    public float WindupAccumulator = 0f;
     public Vector2 FiringDirection = Vector2.UnitX;
     public float FireAccumulator = 0f;
     public float CooldownAccumulator = 0f;

@@ -217,7 +217,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
             : 0;
-        comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.3f), comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
         // Single-corridor waves past wave 5 double the count — one lane is too easy to hold otherwise.
         if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
             comp.EnemyTotalThisWave = Math.Min(comp.EnemyTotalThisWave * 2, comp.MaxEnemyCap);
@@ -244,6 +244,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
             ScaleEnemyHp(giant, comp.WaveNumber);
             ScaleEnemySpeed(giant, comp.WaveNumber);
+            ScaleEnemyDamage(giant, comp.WaveNumber, _playerManager.Sessions.Length);
+            ScaleEnemyFireRate(giant, comp.WaveNumber);
             RaiseLocalEvent(giant, new FSEnemyHpScaledEvent()); // FINALSTAND: armor recalculates after HP scale
             comp.AliveEnemies.Add(giant);
             comp.GiantEntity = giant;
@@ -358,6 +360,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
             ScaleEnemySpeed(enemy, comp.WaveNumber);
+            ScaleEnemyDamage(enemy, comp.WaveNumber, _playerManager.Sessions.Length);
+            ScaleEnemyFireRate(enemy, comp.WaveNumber);
             RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -519,6 +523,42 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         const float MaxSpeedMultiplier = 2.0f;
         var multiplier = Math.Min(1f + (wave - 1) * 0.0096f, MaxSpeedMultiplier);
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
+    }
+
+    private void ScaleEnemyDamage(EntityUid enemy, int wave, int playerCount)
+    {
+        var multiplier = MathF.Min(1f + wave * (0.03f + (playerCount - 1) * 0.006f), 3.0f);
+        if (multiplier <= 1f)
+            return;
+
+        if (TryComp<FSWaveDamageScaleComponent>(enemy, out var dmgScale))
+            dmgScale.MeleeDamageMultiplier = multiplier;
+
+        if (TryComp<FSFlamethrowerComponent>(enemy, out var flamer))
+            flamer.ParticlesPerBurst = Math.Max(2, (int) MathF.Round(2f * multiplier));
+
+        if (TryComp<FSTeslaZombieComponent>(enemy, out var tesla))
+        {
+            tesla.PrimaryDamageShock = 15f * multiplier;
+            tesla.ChainDamageShock = 9f * multiplier;
+        }
+    }
+
+    private void ScaleEnemyFireRate(EntityUid enemy, int wave)
+    {
+        var t = Math.Clamp((wave - 15f) / 5f, 0f, 1f);
+        var rateMultiplier = 1f + t;
+        if (rateMultiplier <= 1f)
+            return;
+
+        if (TryComp<FSFlamethrowerComponent>(enemy, out var flamer))
+        {
+            flamer.ParticleSpawnRate = 0.08f / rateMultiplier;
+            flamer.AttackCooldown = 4f / rateMultiplier;
+        }
+
+        if (TryComp<FSTeslaZombieComponent>(enemy, out var tesla))
+            tesla.AttackCooldown = 5f / rateMultiplier;
     }
 
     private void OnWaveStartRequest(WaveStartRequestEvent ev)

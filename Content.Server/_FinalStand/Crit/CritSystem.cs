@@ -68,10 +68,11 @@ public sealed class CritSystem : EntitySystem
 
         var hitEffect = new FSProjectileHitEffectEvent
         {
-            Target = args.Target,
-            Weapon = comp.Weapon,
-            Shooter = comp.Shooter,
-            Damage = args.Damage,
+            Target        = args.Target,
+            Weapon        = comp.Weapon,
+            Shooter       = comp.Shooter,
+            ProjectileUid = uid,
+            Damage        = args.Damage,
         };
         RaiseLocalEvent(hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)
