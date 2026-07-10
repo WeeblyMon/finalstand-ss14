@@ -8,7 +8,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperMosin
-    price: 30000
+    price: 15000
     starterAmmoProtoId: MagazineBoxLightRifle
     starterAmmoCount: 1
     category: .30 Bolt-Action Sniper

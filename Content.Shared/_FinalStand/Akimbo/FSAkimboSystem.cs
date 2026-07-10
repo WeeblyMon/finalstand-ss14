@@ -24,7 +24,6 @@ public sealed class FSAkimboSystem : EntitySystem
         SubscribeLocalEvent<FSAkimboGunComponent, GotEquippedHandEvent>(OnAkimboEquipped);
         SubscribeLocalEvent<FSAkimboGunComponent, DroppedEvent>(OnAkimboDropped);
         SubscribeLocalEvent<FSAkimboGunComponent, ComponentShutdown>(OnAkimboShutdown);
-        SubscribeLocalEvent<FSAkimboGunComponent, VirtualItemDeletedEvent>(OnMirrorDeleted);
         SubscribeLocalEvent<FSAkimboGunComponent, WieldAttemptEvent>(OnAkimboWieldAttempt);
     }
 
@@ -54,14 +53,6 @@ public sealed class FSAkimboSystem : EntitySystem
     {
         if (args.Wielded == uid)
             args.Cancel();
-    }
-
-    // If the mirror is destroyed while the real gun is still held (e.g. player pressed Q on the mirror hand),
-    // re-spawn it so the akimbo pair stays visible.
-    private void OnMirrorDeleted(EntityUid uid, FSAkimboGunComponent comp, VirtualItemDeletedEvent args)
-    {
-        if (TryGetHolder(uid, out var holder))
-            _virtualItems.TrySpawnVirtualItemInHand(uid, holder);
     }
 
     private bool TryGetHolder(EntityUid uid, out EntityUid holder)
