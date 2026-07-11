@@ -193,3 +193,75 @@
     damage:
       types:
         Piercing: 27
+
+# ── Hydra grenade projectile — FSGrenadeExplosion blocks struct/player damage ──
+- type: entity
+  parent: BulletGrenadeFrag
+  id: FSBulletGrenadeFrag
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 5
+    intensitySlope: 3
+    totalIntensity: 20
+    canCreateVacuum: false
+
+# ── RPG rocket projectile — FSRocketExplosion blocks struct/player damage ──────
+- type: entity
+  parent: BulletRocket
+  id: FSBulletRocket
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Explosive
+    explosionType: FSRocketExplosion
+    maxIntensity: 40
+    intensitySlope: 6
+    totalIntensity: 200
+    maxTileBreak: 0
+
+# ── Tesla gun orb — custom FS arcing, no LightningArcShooter or Electrified ───
+- type: entity
+  parent: TeslaGunBullet
+  id: FSTeslaGunBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: LightningArcShooter
+    shootMinInterval: 9999
+    shootMaxInterval: 9999
+  - type: Electrified
+    requirePower: true
+  - type: FSTeslaArc
+    arcInterval: 0.3
+    arcRange: 6
+    maxArcs: 3
+    damage:
+      types:
+        Shock: 40
+
+# ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
+- type: entity
+  id: FSXrayLaser
+  name: X-ray pulse beam
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HitscanAmmo
+  - type: FSXrayRaycast
+    maxDistance: 20
+  - type: HitscanBasicVisuals
+    muzzleFlash:
+      sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
+      state: muzzle_xray
+    travelFlash:
+      sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
+      state: xray
+    impactFlash:
+      sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi
+      state: impact_xray
+  - type: HitscanReflect
+  - type: HitscanBasicEffects
+  - type: HitscanBasicDamage
+    damage:
+      types:
+        Heat: 10
+        Radiation: 10

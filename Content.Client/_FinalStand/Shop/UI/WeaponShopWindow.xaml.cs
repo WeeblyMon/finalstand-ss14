@@ -1153,6 +1153,8 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.PulseCascade       => "Cascade",
         WeaponUpgradeType.Aftershock         => "Aftershock",
         WeaponUpgradeType.SpeedLoader        => "Speed Loader",
+        WeaponUpgradeType.Overclocked        => "Spool",
+        WeaponUpgradeType.IronBeast          => "Damage Resist",
         WeaponUpgradeType.ConcussionClub     => "Stun (Heavy)",
         WeaponUpgradeType.CritVsStunned      => "Stun Crit",
         WeaponUpgradeType.StunOnHit          => "Stun",

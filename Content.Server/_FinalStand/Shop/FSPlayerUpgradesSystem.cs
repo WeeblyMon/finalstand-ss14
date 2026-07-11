@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
@@ -197,6 +198,17 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             case WeaponUpgradeType.Akimbo:
                 if (newLevel == 1)
                     TryApplyAkimbo(weapon, player);
+                break;
+
+            case WeaponUpgradeType.Overclocked:
+            {
+                var oc = EnsureComp<FSOverclockedComponent>(weapon);
+                oc.Level = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.IronBeast:
+                EnsureComp<FSIronBeastComponent>(weapon);
                 break;
 
             case WeaponUpgradeType.SpeedLoader:

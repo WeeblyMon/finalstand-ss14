@@ -186,6 +186,7 @@
       maxLevel: 1
       baseCost: 28000
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/bulldog.rsi

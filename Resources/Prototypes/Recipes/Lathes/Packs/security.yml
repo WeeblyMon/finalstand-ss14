@@ -50,6 +50,8 @@
   - MagazineRifle
   - MagazineShotgun
   - SpeedLoaderMagnum
+  - FSLauncherGrenadeFrag
+  - FSCartridgeRocketFS
 
 - type: latheRecipePack
   id: SecurityWeaponsStatic

@@ -32,12 +32,45 @@
       - HideContextMenu
 
 - type: entity
+  id: FSTeslaGunBeamSegment
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Tesla/tesla_gun_lightning.rsi
+    drawdepth: Effects
+    layers:
+    - state: "lightning"
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Tag
+    tags:
+      - HideContextMenu
+
+- type: entity
   id: FSTeslaHitEffect
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: _FinalStand/Effects/Tesla/tesla_hit.rsi
     drawdepth: Effects
+    layers:
+    - state: "hit"
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Tag
+    tags:
+      - HideContextMenu
+
+- type: entity
+  id: FSTeslaGunHitEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Tesla/tesla_gun_hit.rsi
+    drawdepth: Effects
+    scale: 0.33, 0.33
     layers:
     - state: "hit"
       shader: unshaded

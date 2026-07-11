@@ -74,6 +74,7 @@
       maxLevel: 1
       baseCost: 2400
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: viper-hollow-point
       name: Hollow Point
@@ -261,6 +262,7 @@
       maxLevel: 1
       baseCost: 7200
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: n1984-ap-rounds
       name: AP Rounds
@@ -424,6 +426,7 @@
       maxLevel: 1
       baseCost: 4000
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: atreides-hair-trigger
       name: Hair Trigger
@@ -488,6 +491,7 @@
       maxLevel: 1
       baseCost: 7200
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: wt550-hair-trigger
       name: Hair Trigger
@@ -609,6 +613,7 @@
       maxLevel: 1
       baseCost: 16000
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: c20r-hair-trigger
       name: Hair Trigger

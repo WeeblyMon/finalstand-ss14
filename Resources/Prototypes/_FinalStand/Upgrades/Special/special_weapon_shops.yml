@@ -24,6 +24,7 @@
       maxLevel: 1
       baseCost: 25000
       type: Akimbo
+      isStub: true
       valuePerLevel: 1
     - id: l6-fire-rate
       name: Shredder
@@ -55,12 +56,11 @@
       valuePerLevel: 0.2
     - id: l6-overclocked
       name: Overclocked
-      description: Holding fire continuously spools the barrel faster, ramping fire rate and damage over time.
+      description: Sustained fire spools the barrel, ramping fire rate up to +1.2/level at full heat. The barrel glows red as it spools. Heat bleeds off when you stop firing.
       maxLevel: 3
       baseCost: 18000
-      type: FireRate
+      type: Overclocked
       valuePerLevel: 1
-      isStub: true
     - id: l6-damage
       name: Heavy Slug
       description: Dense subsonic rounds increase damage by 20% per level.
@@ -82,7 +82,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponLauncherHydraFS
     price: 160000
-    starterAmmoProtoId: GrenadeFrag
+    starterAmmoProtoId: FSLauncherGrenadeFrag
     starterAmmoCount: 6
     category: Rotary Grenade Launcher
     statDamage: 85
@@ -142,7 +142,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponLauncherRocket
     price: 150000
-    starterAmmoProtoId: CartridgeRocket
+    starterAmmoProtoId: FSCartridgeRocketFS
     starterAmmoCount: 3
     category: Single-Shot Rocket Launcher
     statDamage: 95
@@ -200,7 +200,7 @@
   description: The power of the primordial element of lightning in your hands. Self-recharging energy weapon.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponTeslaGun
+    weaponProtoId: WeaponTeslaGunFS
     price: 175000
     category: Self-Recharging Tesla Cannon
     statDamage: 70
@@ -259,7 +259,7 @@
   description: Experimental energy weapon that punches through solid matter. Self-recharging. No ammo required.
   components:
   - type: FSShopWeapon
-    weaponProtoId: WeaponXrayCannon
+    weaponProtoId: WeaponXrayCannonFS
     price: 175000
     category: Self-Recharging X-Ray Cannon
     statDamage: 75
@@ -346,12 +346,11 @@
       valuePerLevel: 1
     - id: minigun-iron-beast
       name: Iron Beast
-      description: Gain 20% damage resistance while firing when below 50% health.
+      description: While firing at below 50% health, you take 20% less damage. Requires sustained fire to maintain.
       maxLevel: 1
       baseCost: 22000
-      type: Damage
-      valuePerLevel: 0.2
-      isStub: true
+      type: IronBeast
+      valuePerLevel: 1
     - id: minigun-damage
       name: Depleted Core
       description: Heavier core ammunition increases damage by 20% per level.

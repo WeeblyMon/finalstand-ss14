@@ -128,22 +128,39 @@ namespace Content.Client.Lathe.UI
             if (!entities.HasComponent<GunComponent>(item))
                 return;
 
-            if (!entities.TryGetComponent<ItemSlotsComponent>(item, out var slots))
-                return;
-
-            foreach (var (_, slot) in slots.Slots)
+            // ItemSlots-based guns (magazine-fed)
+            if (entities.TryGetComponent<ItemSlotsComponent>(item, out var slots))
             {
-                if (slot.Whitelist?.Tags is { } whitelistTags)
+                foreach (var (_, slot) in slots.Slots)
                 {
-                    foreach (var tag in whitelistTags)
-                        tags.Add(tag);
-                }
+                    if (slot.Whitelist?.Tags is { } whitelistTags)
+                    {
+                        foreach (var tag in whitelistTags)
+                            tags.Add(tag);
+                    }
 
-                if (slot.Item is { } loaded && entities.TryGetComponent<TagComponent>(loaded, out var loadedTags))
-                {
-                    foreach (var tag in loadedTags.Tags)
-                        tags.Add(tag);
+                    if (slot.Item is { } loaded && entities.TryGetComponent<TagComponent>(loaded, out var loadedTags))
+                    {
+                        foreach (var tag in loadedTags.Tags)
+                            tags.Add(tag);
+                    }
                 }
+            }
+
+            // BallisticAmmoProvider guns (tube/cylinder-fed, e.g. Hydra, RPG)
+            if (entities.TryGetComponent<BallisticAmmoProviderComponent>(item, out var ballistic)
+                && ballistic.Whitelist?.Tags is { } ballisticTags)
+            {
+                foreach (var tag in ballisticTags)
+                    tags.Add(tag);
+            }
+
+            // RevolverAmmoProvider guns
+            if (entities.TryGetComponent<RevolverAmmoProviderComponent>(item, out var revolver)
+                && revolver.Whitelist?.Tags is { } revolverTags)
+            {
+                foreach (var tag in revolverTags)
+                    tags.Add(tag);
             }
         }
     }

@@ -51,6 +51,8 @@ public enum WeaponUpgradeType : byte
     PulseCascade,
     Aftershock,
     SpeedLoader,
+    Overclocked,
+    IronBeast,
 
     ConcussionClub,
     CritVsStunned,

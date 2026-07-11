@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "copyright": "VFX6 lightning impact from Pixel Art Skill Animations pack",
+  "size": {
+    "x": 128,
+    "y": 128
+  },
+  "states": [
+    {
+      "name": "hit",
+      "delays": [[0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]]
+    }
+  ]
+}

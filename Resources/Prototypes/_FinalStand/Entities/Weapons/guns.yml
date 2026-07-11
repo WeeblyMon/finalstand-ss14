@@ -133,6 +133,8 @@
       tags:
       - Grenade
     capacity: 6
+    proto: FSLauncherGrenadeFrag
+    unspawnedCount: 6
     soundInsert:
       path: /Audio/Weapons/Guns/MagIn/sfrifle_magin.ogg
     soundEject:
@@ -564,3 +566,49 @@
     damage:
       types:
         Slash: 8
+
+# ── FS launcher ammo — use FS explosion types to block struct/player damage ────
+- type: entity
+  parent: GrenadeFrag
+  id: FSLauncherGrenadeFrag
+  suffix: FinalStand
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletGrenadeFrag
+
+- type: entity
+  parent: CartridgeRocket
+  id: FSCartridgeRocketFS
+  suffix: FinalStand
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletRocket
+    deleteOnSpawn: true
+
+# ── Tesla Gun FS override — fires FSTeslaGunBullet ────────────────────────────
+- type: entity
+  id: WeaponTeslaGunFS
+  parent: WeaponTeslaGun
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BatteryAmmoProvider
+    proto: FSTeslaGunBullet
+    fireCost: 300
+  - type: BatterySelfRecharger
+    autoRechargeRate: 30
+    autoRechargePauseTime: 2
+
+# ── X-Ray Cannon FS override — fires FSXrayLaser (wall-piercing) ───────────────
+- type: entity
+  id: WeaponXrayCannonFS
+  parent: WeaponXrayCannon
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BatteryAmmoProvider
+    proto: FSXrayLaser
+    fireCost: 100
+  - type: BatterySelfRecharger
+    autoRechargeRate: 20
+    autoRechargePauseTime: 2
