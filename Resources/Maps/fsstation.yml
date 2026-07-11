@@ -4,8 +4,8 @@ meta:
   engineVersion: 275.2.0
   forkId: ""
   forkVersion: ""
-  time: 07/08/2026 10:56:42
-  entityCount: 10607
+  time: 07/11/2026 06:56:01
+  entityCount: 10609
 maps:
 - 259
 grids:
@@ -7112,7 +7112,7 @@ entities:
       pos: 30.5,6.5
       parent: 1
     - type: Door
-      secondsUntilStateChange: -69976.11
+      secondsUntilStateChange: -70371.73
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -7191,7 +7191,7 @@ entities:
       pos: -13.5,2.5
       parent: 1
     - type: Door
-      secondsUntilStateChange: -3705.9724
+      secondsUntilStateChange: -4101.589
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -7222,7 +7222,7 @@ entities:
       pos: -16.5,-12.5
       parent: 1
     - type: Door
-      secondsUntilStateChange: -27537.85
+      secondsUntilStateChange: -27933.467
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -7347,7 +7347,7 @@ entities:
       pos: 6.5,-6.5
       parent: 1
     - type: Door
-      secondsUntilStateChange: -9303.538
+      secondsUntilStateChange: -9699.154
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -7365,7 +7365,7 @@ entities:
       pos: 13.5,-3.5
       parent: 1
     - type: Door
-      secondsUntilStateChange: -94775.22
+      secondsUntilStateChange: -95170.836
       state: Opening
     - type: DeviceLinkSource
       lastSignals:
@@ -7451,13 +7451,13 @@ entities:
     - type: Transform
       pos: 15.5,6.5
       parent: 1
-- proto: AirlockSecurityGlassLocked
-  entities:
   - uid: 1262
     components:
     - type: Transform
       pos: 19.5,11.5
       parent: 1
+- proto: AirlockSecurityGlassLocked
+  entities:
   - uid: 2702
     components:
     - type: Transform
@@ -9682,7 +9682,7 @@ entities:
   - uid: 2208
     components:
     - type: Transform
-      pos: 6.553137,-24.726234
+      pos: 5.4673505,-31.4667
       parent: 1
 - proto: BoxMousetrap
   entities:
@@ -32756,12 +32756,26 @@ entities:
     - type: Transform
       pos: 11.5,17.5
       parent: 1
+- proto: FSWeaponShopHydra
+  entities:
+  - uid: 2139
+    components:
+    - type: Transform
+      pos: 18.5,17.5
+      parent: 1
 - proto: FSWeaponShopKammerer
   entities:
   - uid: 10488
     components:
     - type: Transform
       pos: 10.5,17.5
+      parent: 1
+- proto: FSWeaponShopL6Saw
+  entities:
+  - uid: 1305
+    components:
+    - type: Transform
+      pos: 18.5,18.5
       parent: 1
 - proto: FSWeaponShopLaserCarbine
   entities:
@@ -32783,6 +32797,13 @@ entities:
     components:
     - type: Transform
       pos: 10.5,15.5
+      parent: 1
+- proto: FSWeaponShopMinigun
+  entities:
+  - uid: 10609
+    components:
+    - type: Transform
+      pos: 18.5,13.5
       parent: 1
 - proto: FSWeaponShopMk58
   entities:
@@ -32812,12 +32833,26 @@ entities:
     - type: Transform
       pos: 16.5,15.5
       parent: 1
+- proto: FSWeaponShopRpg
+  entities:
+  - uid: 2201
+    components:
+    - type: Transform
+      pos: 18.5,16.5
+      parent: 1
 - proto: FSWeaponShopSurvivalKnife
   entities:
   - uid: 3444
     components:
     - type: Transform
       pos: 9.5,19.5
+      parent: 1
+- proto: FSWeaponShopTeslaGun
+  entities:
+  - uid: 10608
+    components:
+    - type: Transform
+      pos: 18.5,14.5
       parent: 1
 - proto: FSWeaponShopViper
   entities:
@@ -32832,6 +32867,13 @@ entities:
     components:
     - type: Transform
       pos: 7.5,17.5
+      parent: 1
+- proto: FSWeaponShopXrayCannon
+  entities:
+  - uid: 9671
+    components:
+    - type: Transform
+      pos: 18.5,15.5
       parent: 1
 - proto: Fulton
   entities:
@@ -48440,11 +48482,6 @@ entities:
     - type: Transform
       pos: 7.5,-29.5
       parent: 1
-  - uid: 2139
-    components:
-    - type: Transform
-      pos: 4.5,-25.5
-      parent: 1
   - uid: 2140
     components:
     - type: Transform
@@ -48469,11 +48506,6 @@ entities:
     components:
     - type: Transform
       pos: 6.5,-31.5
-      parent: 1
-  - uid: 2201
-    components:
-    - type: Transform
-      pos: 4.5,-25.5
       parent: 1
   - uid: 2202
     components:
@@ -49684,7 +49716,7 @@ entities:
   - uid: 8986
     components:
     - type: Transform
-      pos: 18.55957,15.985227
+      pos: 21.456226,15.913724
       parent: 1
     - type: Paper
       content: >2-
@@ -53801,6 +53833,13 @@ entities:
     - type: CollisionWake
       enabled: False
     - type: Conveyed
+- proto: SeedExtractor
+  entities:
+  - uid: 1304
+    components:
+    - type: Transform
+      pos: 4.5,-25.5
+      parent: 1
 - proto: ShardGlass
   entities:
   - uid: 3428
@@ -55759,13 +55798,6 @@ entities:
     components:
     - type: Transform
       pos: 12.5,24.5
-      parent: 1
-- proto: SpawnPointWardenWeapon
-  entities:
-  - uid: 9671
-    components:
-    - type: Transform
-      pos: 13.5,23.5
       parent: 1
 - proto: SprayBottleWater
   entities:
@@ -68564,18 +68596,6 @@ entities:
     components:
     - type: Transform
       pos: 3.5,-7.5
-      parent: 1
-- proto: WardrobeSecurityFilled
-  entities:
-  - uid: 1304
-    components:
-    - type: Transform
-      pos: 18.5,9.5
-      parent: 1
-  - uid: 1305
-    components:
-    - type: Transform
-      pos: 18.5,8.5
       parent: 1
 - proto: WaterCooler
   entities:
