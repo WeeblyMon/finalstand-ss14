@@ -1,21 +1,12 @@
-using Content.Shared._FinalStand.ReadyCheck;
-
 namespace Content.Server._FinalStand.ReadyCheck;
 
 [RegisterComponent]
 public sealed partial class ReadyCheckComponent : Component
 {
-    public Dictionary<string, ReadyStatus> DepartmentStatus = new();
+    public HashSet<EntityUid> ReadiedPlayers = new();
+    public int TotalPlayers;
     public bool IsCombatPhase;
 
-    public int ReadyCount
-    {
-        get
-        {
-            var n = 0;
-            foreach (var s in DepartmentStatus.Values)
-                if (s == ReadyStatus.Ready) n++;
-            return n;
-        }
-    }
+    public int ReadyCount => ReadiedPlayers.Count;
+    public bool HasMajority => TotalPlayers > 0 && ReadiedPlayers.Count > TotalPlayers / 2;
 }

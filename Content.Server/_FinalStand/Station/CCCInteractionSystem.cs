@@ -74,7 +74,6 @@ public sealed class CCCInteractionSystem : EntitySystem
     {
         var jobId = GetJobId(actor);
         var canStart = !_readyCheck.IsCombatPhase()
-            && _readyCheck.ReadyCount() >= 1
             && jobId != null
             && ReadyCheckDepts.IsCaptain(jobId);
         if (!TryComp<ActorComponent>(actor, out var actorComp)) return;
@@ -97,7 +96,6 @@ public sealed class CCCInteractionSystem : EntitySystem
     private void OnStartWave(EntityUid uid, FinalStandCCCComponent comp, CCCStartWaveMessage args)
     {
         if (_readyCheck.IsCombatPhase()) return;
-        if (_readyCheck.ReadyCount() < 1) return;
         var jobId = GetJobId(args.Actor);
         if (jobId == null || !ReadyCheckDepts.IsCaptain(jobId)) return;
         RaiseLocalEvent(new WaveStartRequestEvent());
@@ -142,7 +140,6 @@ public sealed class CCCInteractionSystem : EntitySystem
             ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
             : 0;
 
-        var statuses = _readyCheck.GetStatuses();
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
             estimatedEnemyCount: wave.TotalEnemies,
@@ -153,8 +150,8 @@ public sealed class CCCInteractionSystem : EntitySystem
             secondsToPhaseEnd: wave.SecondsLeft,
             aliveEnemyCount: wave.AliveEnemies,
             activeSpawnerDirections: wave.SpawnerDirections,
-            departmentStatus: statuses,
-            readyCount: _readyCheck.ReadyCount(),
+            readiedPlayerCount: _readyCheck.GetReadyCount(),
+            totalPlayerCount: _readyCheck.GetTotalCount(),
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
             cccMaxHealth: 2000);

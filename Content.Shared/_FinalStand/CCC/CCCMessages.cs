@@ -1,5 +1,4 @@
 using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.ReadyCheck;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.CCC;
@@ -14,16 +13,16 @@ public enum CCCUiKey : byte
 public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
 {
     public int WaveNumber;
-    public int EstimatedEnemyCount;     // server has already applied ±20% variance
-    public string FactionDisplay;       // "Xenos detected", "Undead detected", etc.
+    public int EstimatedEnemyCount;
+    public string FactionDisplay;
     public bool IsBossWave;
     public string WaveModifier;
     public WavePhase CurrentPhase;
     public float SecondsToPhaseEnd;
     public int AliveEnemyCount;
     public string ActiveSpawnerDirections;
-    public Dictionary<string, ReadyStatus> DepartmentStatus;
-    public int ReadyCount;
+    public int ReadiedPlayerCount;
+    public int TotalPlayerCount;
     public List<string> NextWaveEnemyTypes;
     public int CCCCurrentDamage;
     public int CCCMaxHealth;
@@ -38,8 +37,8 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         float secondsToPhaseEnd,
         int aliveEnemyCount,
         string activeSpawnerDirections,
-        Dictionary<string, ReadyStatus> departmentStatus,
-        int readyCount,
+        int readiedPlayerCount,
+        int totalPlayerCount,
         List<string> nextWaveEnemyTypes,
         int cccCurrentDamage = 0,
         int cccMaxHealth = 2000)
@@ -53,8 +52,8 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         SecondsToPhaseEnd = secondsToPhaseEnd;
         AliveEnemyCount = aliveEnemyCount;
         ActiveSpawnerDirections = activeSpawnerDirections;
-        DepartmentStatus = departmentStatus;
-        ReadyCount = readyCount;
+        ReadiedPlayerCount = readiedPlayerCount;
+        TotalPlayerCount = totalPlayerCount;
         NextWaveEnemyTypes = nextWaveEnemyTypes;
         CCCCurrentDamage = cccCurrentDamage;
         CCCMaxHealth = cccMaxHealth;
@@ -64,8 +63,6 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
 [Serializable, NetSerializable]
 public sealed class CCCStartWaveMessage : BoundUserInterfaceMessage { }
 
-// Sent server→client to tell the opening player whether they can start the wave.
-// Avoids unreliable client-side mind/job lookups (JobComponent is server-only).
 [Serializable, NetSerializable]
 public sealed class CCCCanStartWaveEvent : EntityEventArgs
 {
@@ -73,7 +70,6 @@ public sealed class CCCCanStartWaveEvent : EntityEventArgs
     public CCCCanStartWaveEvent(bool canStartWave) => CanStartWave = canStartWave;
 }
 
-// Broadcast server→all-clients when the CCC takes damage. Client-side 3s timeout controls hide.
 [Serializable, NetSerializable]
 public sealed class CCCUnderAttackEvent : EntityEventArgs { }
 

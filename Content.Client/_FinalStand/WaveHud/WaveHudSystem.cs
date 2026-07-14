@@ -1,10 +1,10 @@
 using Content.Shared._FinalStand.Augments;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
 using Robust.Shared.Player;
-using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
 
@@ -23,6 +23,8 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
         SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
         SubscribeNetworkEvent<FSPrepTimerUpdateEvent>(OnPrepTimer);
+        SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
+        SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -31,8 +33,10 @@ public sealed class WaveHudSystem : EntitySystem
     {
         base.Shutdown();
         _client.PlayerJoinedServer -= OnPlayerJoinedServer;
+
         if (_overlay != null)
         {
+            _overlay.OnReadyUpClicked -= SendReadyRequest;
             _overlayManager.RemoveOverlay(_overlay);
             _overlay = null;
         }
@@ -49,47 +53,62 @@ public sealed class WaveHudSystem : EntitySystem
         RaiseNetworkEvent(new FSAugmentStateRequestMessage());
     }
 
-    private WaveHudOverlay? EnsureOverlay()
+    private WaveHudOverlay EnsureOverlay()
     {
         if (_overlay != null)
             return _overlay;
         _overlay = new WaveHudOverlay();
+        _overlay.OnReadyUpClicked += SendReadyRequest;
         _overlayManager.AddOverlay(_overlay);
         return _overlay;
     }
 
+    private void SendReadyRequest(bool isReady)
+    {
+        RaiseNetworkEvent(new FSReadyUpRequestMessage(isReady));
+    }
+
     private void OnWaveUpdate(WaveCounterUpdateEvent ev)
     {
-        if (EnsureOverlay() is { } overlay)
-            overlay.CurrentWave = ev.Wave;
+        EnsureOverlay().CurrentWave = ev.Wave;
     }
 
     private void OnWalletUpdate(WalletUpdatedEvent ev)
     {
-        if (EnsureOverlay() is { } overlay)
-            overlay.CurrentCredits = ev.Credits;
+        EnsureOverlay().CurrentCredits = ev.Credits;
     }
 
     private void OnEnemyCount(FSEnemyCountEvent ev)
     {
-        if (EnsureOverlay() is { } overlay)
-        {
-            overlay.EnemiesAlive = ev.Alive;
-            overlay.EnemiesTotal = ev.Total;
-        }
+        var overlay = EnsureOverlay();
+        overlay.EnemiesAlive = ev.Alive;
+        overlay.EnemiesTotal = ev.Total;
     }
 
     private void OnAugmentsState(FSAugmentsStateEvent ev)
     {
-        if (EnsureOverlay() is not { } overlay) return;
+        var overlay = EnsureOverlay();
         overlay.ActiveSlots   = ev.Slots;
         overlay.AugmentLevels = ev.Levels;
     }
 
     private void OnPrepTimer(FSPrepTimerUpdateEvent ev)
     {
-        if (EnsureOverlay() is not { } overlay) return;
+        var overlay = EnsureOverlay();
         overlay.IsPrepPhase = ev.IsPrepPhase;
         overlay.PrepSecondsRemaining = ev.SecondsRemaining;
+    }
+
+    private void OnPhaseChanged(WavePhaseChangedEvent ev)
+    {
+        EnsureOverlay().IsReadyUpVisible = ev.IsPrepPhase;
+    }
+
+    private void OnReadyUpState(FSReadyUpStateEvent ev)
+    {
+        var overlay = EnsureOverlay();
+        overlay.ReadyUpCount         = ev.ReadyCount;
+        overlay.ReadyUpTotal         = ev.TotalCount;
+        overlay.ReadyUpPlayerIsReady = ev.PlayerIsReady;
     }
 }

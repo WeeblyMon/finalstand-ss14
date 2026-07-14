@@ -684,6 +684,32 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
     }
 
+    // Returns the active prep-phase component so FSReadyUpSystem can read PrepDuration + TotalPlayers.
+    public WaveGameRuleComponent? GetPrepComponent()
+    {
+        var q = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (q.MoveNext(out var uid, out var comp, out var gr))
+        {
+            if (GameTicker.IsGameRuleActive(uid, gr) && comp.Phase == WavePhase.Prep)
+                return comp;
+        }
+        return null;
+    }
+
+    public void ReducePrepTimeBy(double seconds)
+    {
+        var q = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (q.MoveNext(out var uid, out var comp, out var gr))
+        {
+            if (!GameTicker.IsGameRuleActive(uid, gr)) continue;
+            if (comp.Phase != WavePhase.Prep) continue;
+            comp.PhaseEndTime -= TimeSpan.FromSeconds(seconds);
+            if (comp.PhaseEndTime < Timing.CurTime)
+                comp.PhaseEndTime = Timing.CurTime;
+            return;
+        }
+    }
+
     public void ToggleSpawnPause(IConsoleShell shell)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();

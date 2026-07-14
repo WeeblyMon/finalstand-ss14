@@ -54,9 +54,9 @@
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
-            <!-- Department Readiness -->
-            <Label Text="DEPARTMENT STATUS" StyleClasses="LabelHeading" Modulate="#7EB8D4" Margin="0 0 0 4" />
-            <BoxContainer Name="DeptContainer" Orientation="Vertical" Margin="0 0 0 8" />
+            <!-- Player Readiness -->
+            <Label Text="READINESS" StyleClasses="LabelHeading" Modulate="#7EB8D4" Margin="0 0 0 4" />
+            <Label Name="ReadinessLabel" Modulate="#AAFFAA" Margin="0 0 0 8" />
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 

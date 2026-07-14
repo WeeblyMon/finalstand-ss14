@@ -10,6 +10,7 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
@@ -43,6 +44,23 @@ public sealed class WaveHudOverlay : Overlay
     public Dictionary<string, int> AugmentLevels = new();
     public float PrepSecondsRemaining = -1f;
     public bool IsPrepPhase = false;
+
+    // Used by WaveHudSystem to position and drive the ready-up overlay section.
+    public float PanelLeft = -1f;
+    public float PanelTop = -1f;
+    public float PanelWidth = 205f;
+
+    public bool IsReadyUpVisible = false;
+    public int  ReadyUpCount = 0;
+    public int  ReadyUpTotal = 0;
+    public bool ReadyUpPlayerIsReady = false;
+
+    // Screen-pixel bounds of the YES and NO buttons; valid only when IsReadyUpVisible.
+    public UIBox2 ReadyUpYesBounds = new(-100, -100, -99, -99);
+    public UIBox2 ReadyUpNoBounds  = new(-100, -100, -99, -99);
+
+    public event Action<bool>? OnReadyUpClicked;
+    private bool _prevClickDown;
 
     private static readonly TextureLoadParameters LinearParams = new()
     {
@@ -119,7 +137,12 @@ public sealed class WaveHudOverlay : Overlay
         var sepColor = new Color(0.23f, 0.26f, 0.32f, 0.8f);
         var muted = Color.FromHex("#8FA1B3");
 
+        const float btnPad = 3f;
+        var btnH = labelH + btnPad * 2f;
+
         var totalH = sepH;
+        if (IsReadyUpVisible)
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
         totalH += sepH + rowH;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
         totalH += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
@@ -131,6 +154,46 @@ public sealed class WaveHudOverlay : Overlay
         var rightEdge = isSeparated ? GetViewportPixelWidth() : screenSize.X;
         var panelX = rightEdge - margin - panelW;
         float y = screenSize.Y - margin - totalH;
+
+        PanelLeft = panelX;
+        PanelTop = y;
+        PanelWidth = panelW;
+
+        if (IsReadyUpVisible)
+        {
+            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            y += sepH + rowPad;
+
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), "READY UP", muted);
+            y += labelH + 2f;
+
+            var countText  = ReadyUpTotal > 0 ? $"{ReadyUpCount} / {ReadyUpTotal} ready" : "—";
+            var countColor = ReadyUpCount > 0 ? Color.FromHex("#44FF44") : Color.White;
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), countText, countColor);
+            y += labelH + 3f;
+
+            var halfW = (panelW - 3f) / 2f;
+            var yesBg = ReadyUpPlayerIsReady ? Color.FromHex("#2a6b2a") : Color.FromHex("#1a3d1a");
+            var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? Color.FromHex("#6b2a2a") : Color.FromHex("#3d1a1a");
+
+            ReadyUpYesBounds = new UIBox2(panelX,             y, panelX + halfW,      y + btnH);
+            ReadyUpNoBounds  = new UIBox2(panelX + halfW + 3f, y, panelX + panelW,    y + btnH);
+
+            screen.DrawRect(ReadyUpYesBounds, yesBg);
+            screen.DrawRect(ReadyUpNoBounds,  noBg);
+
+            var yesDim = screen.GetDimensions(_labelFont!, "YES", 1f);
+            var noDim  = screen.GetDimensions(_labelFont!, "NO",  1f);
+
+            screen.DrawString(_labelFont!,
+                new Vector2(panelX             + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
+                "YES", Color.FromHex("#44CC44"));
+            screen.DrawString(_labelFont!,
+                new Vector2(panelX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
+                "NO", Color.FromHex("#CC4444"));
+
+            y += btnH;
+        }
 
         float DrawRow(Texture? icon, string label, string value, Color valueColor)
         {
@@ -226,6 +289,20 @@ public sealed class WaveHudOverlay : Overlay
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), effectText, muted);
             break;
         }
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
+        if (IsReadyUpVisible && down && !_prevClickDown)
+        {
+            var pos = _input.MouseScreenPosition.Position;
+            if (ReadyUpYesBounds.Contains(pos))
+                OnReadyUpClicked?.Invoke(true);
+            else if (ReadyUpNoBounds.Contains(pos))
+                OnReadyUpClicked?.Invoke(false);
+        }
+        _prevClickDown = down;
     }
 
     private float GetViewportPixelWidth()

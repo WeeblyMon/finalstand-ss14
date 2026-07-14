@@ -24,12 +24,8 @@ public sealed class ReadyCheckSystem : EntitySystem
     {
         var rc = FindCCCReadyCheck();
         if (rc == null) return;
-
         rc.IsCombatPhase = false;
-        rc.DepartmentStatus.Clear();
-        foreach (var code in ReadyCheckDepts.AllDisplayCodes)
-            rc.DepartmentStatus[code] = ReadyStatus.NoResponse;
-
+        rc.ReadiedPlayers.Clear();
         RaiseLocalEvent(new ReadyCheckUpdatedEvent());
     }
 
@@ -37,29 +33,38 @@ public sealed class ReadyCheckSystem : EntitySystem
     {
         var rc = FindCCCReadyCheck();
         if (rc == null) return;
-
         rc.IsCombatPhase = true;
         RaiseLocalEvent(new ReadyCheckUpdatedEvent());
     }
 
-    public bool SetDepartmentStatus(string deptCode, ReadyStatus status)
+    public void SetPlayerReady(EntityUid player, bool ready)
     {
         var rc = FindCCCReadyCheck();
-        if (rc == null) return false;
-
-        rc.DepartmentStatus[deptCode] = status;
+        if (rc == null) return;
+        if (ready)
+            rc.ReadiedPlayers.Add(player);
+        else
+            rc.ReadiedPlayers.Remove(player);
         RaiseLocalEvent(new ReadyCheckUpdatedEvent());
-        return true;
     }
 
-    public Dictionary<string, ReadyStatus> GetStatuses()
+    public void SetTotalPlayers(int count)
     {
         var rc = FindCCCReadyCheck();
-        return rc == null
-            ? new Dictionary<string, ReadyStatus>()
-            : new Dictionary<string, ReadyStatus>(rc.DepartmentStatus);
+        if (rc != null) rc.TotalPlayers = count;
+    }
+
+    public void ResetReadyStates()
+    {
+        var rc = FindCCCReadyCheck();
+        if (rc == null) return;
+        rc.ReadiedPlayers.Clear();
+        rc.IsCombatPhase = false;
     }
 
     public bool IsCombatPhase() => FindCCCReadyCheck()?.IsCombatPhase ?? false;
-    public int ReadyCount() => FindCCCReadyCheck()?.ReadyCount ?? 0;
+    public int GetReadyCount() => FindCCCReadyCheck()?.ReadyCount ?? 0;
+    public int GetTotalCount() => FindCCCReadyCheck()?.TotalPlayers ?? 0;
+    public bool HasMajority() => FindCCCReadyCheck()?.HasMajority ?? false;
+    public bool IsPlayerReady(EntityUid player) => FindCCCReadyCheck()?.ReadiedPlayers.Contains(player) ?? false;
 }
