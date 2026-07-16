@@ -7,6 +7,8 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
@@ -73,6 +75,12 @@ public sealed class FSStuckRecoverySystem : EntitySystem
         var query = EntityQueryEnumerator<WaveSpawnedTagComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
+            if (TryComp<MobStateComponent>(uid, out var mobState) && mobState.CurrentState != MobState.Alive)
+            {
+                _state.Remove(uid);
+                continue;
+            }
+
             var worldPos = _transform.GetWorldPosition(xform);
 
             if (!_state.TryGetValue(uid, out var s))

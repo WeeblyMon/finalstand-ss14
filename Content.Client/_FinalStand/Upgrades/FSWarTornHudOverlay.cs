@@ -56,19 +56,19 @@ public sealed class FSWarTornHudOverlay : Overlay
         var bonusDims  = screen.GetDimensions(_font, bonusStr, 1f);
         var totalText  = streakDims.X + bonusDims.X;
 
-        const float iconSize = 20f;
+        const float iconSize = 40f;
         const float iconGap  = 6f;
         var hasIcon    = _skullTexture != null;
         var totalWidth = hasIcon ? iconSize + iconGap + totalText : totalText;
 
-        var x = screenSize.X / 2f - totalWidth / 2f;
-        var y = screenSize.Y - 160f;
+        var x = MathF.Floor(screenSize.X / 2f - totalWidth / 2f);
+        var y = (float)(screenSize.Y - 160);
 
         // Skull icon (if loaded)
         var textX = x;
         if (hasIcon)
         {
-            var iconY = y + (streakDims.Y - iconSize) / 2f;
+            var iconY = MathF.Floor(y + (streakDims.Y - iconSize) / 2f);
             screen.DrawTextureRect(_skullTexture!, UIBox2.FromDimensions(x, iconY, iconSize, iconSize));
             textX = x + iconSize + iconGap;
         }

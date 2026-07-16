@@ -96,6 +96,8 @@
     - suitStorage
   - type: StaticPrice
     price: 2500
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: energy dagger

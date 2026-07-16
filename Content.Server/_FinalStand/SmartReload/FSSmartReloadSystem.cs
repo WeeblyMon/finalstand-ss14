@@ -218,6 +218,8 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         _slots.TryInsert(gun, SharedGunSystem.MagazineSlot, newMag.Value, args.User);
 
+        var reloaded = new FSGunReloadedEvent(gun, args.User);
+        RaiseLocalEvent(ref reloaded);
     }
 
     private void TryStoreItemInInventory(EntityUid user, EntityUid item)
@@ -337,6 +339,12 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
         var prevCount = comp.Count;
         _gunSystem.TryBallisticInsert((gun, comp), toInsert, args.User);
+
+        if (comp.Count > prevCount)
+        {
+            var reloaded = new FSGunReloadedEvent(gun, args.User);
+            RaiseLocalEvent(ref reloaded);
+        }
 
         if (comp.Count == prevCount)
         {
@@ -470,7 +478,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private void ReloadBattery(EntityUid gun, EntityUid user)
     {
-        if (!_slots.TryGetSlot(gun, "gun_cell", out _))
+        if (!HasComp<ItemSlotsComponent>(gun) || !_slots.TryGetSlot(gun, "gun_cell", out _))
         {
             var msg = HasComp<BatterySelfRechargerComponent>(gun)
                 ? "This weapon self-recharges."

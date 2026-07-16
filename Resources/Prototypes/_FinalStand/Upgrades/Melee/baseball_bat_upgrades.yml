@@ -18,11 +18,11 @@
     upgrades:
     - id: bat-heavy-club
       name: Heavy Club
-      description: Reinforced barrel adds +115 damage per level.
+      description: Reinforced barrel adds +80% damage per level.
       maxLevel: 2
       baseCost: 2500
       type: Damage
-      valuePerLevel: 1.15
+      valuePerLevel: 0.80
     - id: bat-lucille
       name: Lucille
       description: Enemies hit bleed, slowing them and dealing damage over time. +150 bleed per level.

@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
@@ -61,7 +62,8 @@ public sealed class FSTeslaArcSystem : EntitySystem
         foreach (var (targetUid, _) in candidates)
         {
             if (arcsLeft <= 0) break;
-            if (!_mobQuery.HasComponent(targetUid)) continue;
+            if (!_mobQuery.TryGetComponent(targetUid, out var mobState)) continue;
+            if (mobState.CurrentState != MobState.Alive) continue;
             if (_ffQuery.HasComponent(targetUid)) continue;
 
             _damageable.TryChangeDamage(targetUid, comp.Damage, ignoreResistances: false, origin: uid);

@@ -105,6 +105,8 @@
       gun_chamber: !type:ContainerSlot
   - type: StaticPrice
     price: 1000
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: echis
@@ -217,6 +219,8 @@
       path: /Audio/Weapons/Guns/Gunshots/mk58.ogg
   - type: StealTarget
     stealGroup: OfficerHandgun
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: N1984
@@ -264,3 +268,5 @@
         whitelist:
           tags:
             - CartridgeMagnum
+  - type: Crit
+    baseCritChance: 0.05

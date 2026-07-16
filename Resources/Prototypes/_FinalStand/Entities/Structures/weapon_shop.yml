@@ -68,14 +68,6 @@
       baseCost: 450
       type: Accuracy
       valuePerLevel: 0.3
-    - id: viper-akimbo
-      name: Akimbo
-      description: Dual wield. A second Viper spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 2400
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: viper-hollow-point
       name: Hollow Point
       description: Bullets slow hit enemies by 30% for 2 seconds. Hitting again resets the timer.
@@ -83,14 +75,6 @@
       baseCost: 800
       type: Slowing
       valuePerLevel: 1
-    - id: viper-recoil-comp
-      name: Recoil Compensator
-      description: Dynamic recoil reduction. (Coming soon.)
-      maxLevel: 1
-      baseCost: 450
-      type: Recoil
-      valuePerLevel: 1
-      isStub: true
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
     state: base
@@ -256,14 +240,6 @@
       baseCost: 1350
       type: Accuracy
       valuePerLevel: 14
-    - id: n1984-akimbo
-      name: Akimbo
-      description: Dual wield. A second N1984 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 7200
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: n1984-ap-rounds
       name: AP Rounds
       description: Armor-piercing ammunition. Bullets bypass enemy armor entirely.
@@ -285,6 +261,13 @@
       maxLevel: 4
       baseCost: 1350
       type: Pierce
+      valuePerLevel: 1
+    - id: n1984-hand-cannon
+      name: Hand Cannon
+      description: Level 1 staggers on every hit. Level 2 launches targets back.
+      maxLevel: 2
+      baseCost: 2000
+      type: Knockback
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
@@ -341,6 +324,13 @@
       baseCost: 4750
       type: BeamChaining
       valuePerLevel: 1
+    - id: advlaser-extended-cell
+      name: Extended Cell
+      description: Reduces energy cost per shot, extending shots per full charge. +15 shots per charge per level.
+      maxLevel: 3
+      baseCost: 2700
+      type: MagazineSize
+      valuePerLevel: 15.0
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
     state: base
@@ -396,6 +386,13 @@
       baseCost: 4500
       type: Pierce
       valuePerLevel: 1
+    - id: energymagnum-vaporise
+      name: Vaporise
+      description: Shots instantly vaporise Runners and Normal zombies on hit. No effect on armored, elite, or boss enemies.
+      maxLevel: 1
+      baseCost: 12000
+      type: VaporiseWeakMob
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_magnum.rsi
     state: base
@@ -420,14 +417,6 @@
     statAccuracy: 55
     statCapacity: 75
     upgrades:
-    - id: atreides-akimbo
-      name: Akimbo
-      description: Dual wield. A second Atreides spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 4000
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: atreides-hair-trigger
       name: Hair Trigger
       description: Lighter pull increases fire rate by 0.5/level.
@@ -485,14 +474,6 @@
     statAccuracy: 70
     statCapacity: 65
     upgrades:
-    - id: wt550-akimbo
-      name: Akimbo
-      description: Dual wield. A second WT550 spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 7200
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: wt550-hair-trigger
       name: Hair Trigger
       description: Faster cycling increases fire rate by 0.5/level.
@@ -595,9 +576,9 @@
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
     category: .35 Auto Burst SMG
-    statDamage: 40
+    statDamage: 55
     statFireRate: 65
-    statAccuracy: 55
+    statAccuracy: 65
     statCapacity: 75
     upgrades:
     - id: c20r-lifesteal
@@ -607,14 +588,6 @@
       baseCost: 5250
       type: LifeSteal
       valuePerLevel: 0.05
-    - id: c20r-akimbo
-      name: Akimbo
-      description: Dual wield. A second C-20r spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 16000
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: c20r-hair-trigger
       name: Hair Trigger
       description: Lighter pull increases fire rate by 0.5/level.

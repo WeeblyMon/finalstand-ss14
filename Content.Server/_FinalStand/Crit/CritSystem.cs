@@ -60,7 +60,8 @@ public sealed class CritSystem : EntitySystem
         if (comp.Shooter == null || comp.Weapon == null)
             return;
 
-        if (TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier))
+        var didCrit = TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier);
+        if (didCrit)
         {
             args.Damage *= multiplier;
             _pendingCrits.Add((comp.Shooter.Value, args.Target));
@@ -73,6 +74,7 @@ public sealed class CritSystem : EntitySystem
             Shooter       = comp.Shooter,
             ProjectileUid = uid,
             Damage        = args.Damage,
+            WasCrit       = didCrit,
         };
         RaiseLocalEvent(hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)

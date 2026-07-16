@@ -579,13 +579,13 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
     }
 
-    private static readonly float[] LevelCostMults = [1.0f, 1.5f, 2.5f, 4.0f, 6.0f];
+    private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
 
     private static int GetUpgradeLevelCost(WeaponUpgradeDef def, int level)
     {
         var mult = level > 0 && level <= LevelCostMults.Length
             ? LevelCostMults[level - 1]
-            : (float)level;
+            : 3.6f + (level - LevelCostMults.Length) * 1.2f;
         return (int)MathF.Round(def.BaseCost * mult);
     }
 

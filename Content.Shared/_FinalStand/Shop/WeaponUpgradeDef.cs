@@ -75,6 +75,18 @@ public enum WeaponUpgradeType : byte
     GrenadeEffectRadius,
     GrenadeBlastBonus,
     GrenadeCluster,
+
+    VaporiseWeakMob,
+    PointBlankCrit,
+    ExecutionShot,
+    MarksmansRhythm,
+
+    ClusterBarrage,
+    Barrage,
+    ShapedCharge,
+    RadiationCoating,
+    GravitonCore,
+    TeslaArcRange,
 }
 
 [DataDefinition]

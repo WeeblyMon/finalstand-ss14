@@ -728,6 +728,9 @@
   - type: Gun
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg
+  - type: Battery
+    maxCharge: 4000
+    startingCharge: 4000
   - type: BatteryAmmoProvider
     proto: RedMediumLaser
     fireCost: 100
@@ -744,6 +747,8 @@
     tags:
     - Sidearm
     - LaserWeapon
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: C.H.I.M.P. handcannon
@@ -932,6 +937,8 @@
     emptyPenaltyDuration: 6
     rechargeStartSound:
       path: /Audio/Weapons/Guns/Gunshots/charge.ogg
+  - type: Crit
+    baseCritChance: 0.10
 
 - type: entity
   name: temperature gun

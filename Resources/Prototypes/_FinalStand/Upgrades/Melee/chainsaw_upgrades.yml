@@ -32,11 +32,11 @@
       valuePerLevel: 0.05
     - id: chainsaw-steel-chains
       name: Steel Chains
-      description: Hardened links add +150% damage per level.
-      maxLevel: 4
+      description: Hardened links add +75% damage per level.
+      maxLevel: 3
       baseCost: 12500
       type: Damage
-      valuePerLevel: 1.5
+      valuePerLevel: 0.75
     - id: chainsaw-hungry-chains
       name: Hungry Chains
       description: Saw drinks back +0.5 lifesteal per hit.

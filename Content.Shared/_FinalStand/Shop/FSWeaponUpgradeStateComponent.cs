@@ -63,4 +63,14 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float HeldSpeedBonusPercent = 0f;
 
     [DataField] public int TotalSpent = 0;
+
+    [DataField] public bool VaporiseWeakMobEnabled = false;
+    [DataField] public bool PointBlankCritEnabled = false;
+    [DataField] public bool ExecutionShotUpgradeEnabled = false;
+
+    [DataField] public bool ClusterBarrageEnabled = false;
+    [DataField] public int BlastRadiusBonus = 0;
+    [DataField] public int ShapedChargeLevel = 0;
+    [DataField] public int RadiationCoatingLevel = 0;
+    [DataField] public float TeslaArcRangeBonus = 0f;
 }

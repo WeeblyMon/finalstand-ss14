@@ -8,8 +8,8 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperMosin
-    price: 15000
-    starterAmmoProtoId: MagazineBoxLightRifle
+    price: 10000
+    starterAmmoProtoId: FSMagazineBoxMosin
     starterAmmoCount: 1
     category: .30 Bolt-Action Sniper
     statDamage: 80
@@ -17,6 +17,13 @@
     statAccuracy: 85
     statCapacity: 35
     upgrades:
+    - id: mosin-marksmans-rhythm
+      name: Marksman's Rhythm
+      description: Each consecutive hit builds a stack. Each stack adds 10% damage. Miss a shot and lose all stacks. Stacks decay after 10 seconds of not firing.
+      maxLevel: 1
+      baseCost: 6000
+      type: MarksmansRhythm
+      valuePerLevel: 1
     - id: mosin-full-auto
       name: Custom Receiver
       description: Fully automatic conversion. Enables full-auto and doubles fire rate.
@@ -26,11 +33,11 @@
       valuePerLevel: 2
     - id: mosin-lucky-shot
       name: Lucky Shot
-      description: Adds a 10% critical hit chance per level.
+      description: Adds a 15% critical hit chance per level. Maxes out at 100%.
       maxLevel: 5
       baseCost: 4000
       type: CritChance
-      valuePerLevel: 0.1
+      valuePerLevel: 0.15
     - id: mosin-damage
       name: Heavy Grain
       description: Higher-grain ammunition increases damage by 50% per level.
@@ -68,7 +75,8 @@
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Snipers/bolt_gun_wood.rsi
-    state: base
+    layers:
+    - state: base
     scale: 1,1
 
 - type: entity

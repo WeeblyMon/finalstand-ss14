@@ -1,5 +1,26 @@
 # FinalStand-specific gun overrides.
 
+# ── Mosin ammo chain — 30 Piercing ───────────────────────────────────────────
+- type: entity
+  parent: CartridgeLightRifle
+  id: FSCartridgeMosin
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletMosin
+
+- type: entity
+  parent: MagazineBoxLightRifle
+  id: FSMagazineBoxMosin
+  name: ammunition box (.30 mosin)
+  description: A box of heavy-grain .30 Mosin cartridges.
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeMosin
+    whitelist:
+      tags:
+      - CartridgeLightRifle
+
 # ── Double Barrel (no-structural ammo chain) ──────────────────────────────────
 - type: entity
   parent: BaseShellShotgun
@@ -43,6 +64,8 @@
     whitelist:
       tags:
       - ShellDoubleBarrelFS
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   parent: CartridgeMagnum
@@ -102,6 +125,8 @@
       path: /Audio/Weapons/Guns/MagOut/revolver_magout.ogg
   - type: StaticPrice
     price: 500
+  - type: Crit
+    baseCritChance: 0.15
 
 # WeaponLauncherHydraFS: replaces RevolverAmmoProvider with BallisticAmmoProvider
 # so the SmartReload system can tube-feed grenades one at a time (same fix as FSWeaponMateba).
@@ -139,6 +164,8 @@
       path: /Audio/Weapons/Guns/MagIn/sfrifle_magin.ogg
     soundEject:
       path: /Audio/Weapons/Guns/MagOut/sfrifle_magout.ogg
+  - type: Crit
+    baseCritChance: 0.05
 
 # ── FS SMG ammo ───────────────────────────────────────────────────────────────
 - type: entity
@@ -209,6 +236,8 @@
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
     capacity: 1
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   parent: WeaponShotgunKammerer
@@ -217,6 +246,8 @@
   components:
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
+  - type: Crit
+    baseCritChance: 0.05
 
 # ── Hushpup ammo ──────────────────────────────────────────────────────────────
 - type: entity
@@ -256,6 +287,8 @@
         whitelist:
           tags:
             - CartridgePistol
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   id: FSWeaponWt550
@@ -284,6 +317,8 @@
         whitelist:
           tags:
             - CartridgePistol
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   id: FSWeaponC20r
@@ -312,6 +347,8 @@
         whitelist:
           tags:
             - CartridgePistol
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   id: FSWeaponDrozd
@@ -340,6 +377,8 @@
         whitelist:
           tags:
             - CartridgePistol
+  - type: Crit
+    baseCritChance: 0.05
 
 # Shotgun overrides — adds AkimboEligible tag and FS magazine for doubled base damage.
 
@@ -363,6 +402,8 @@
         whitelistFailPopup: gun-magazine-whitelist-fail
         insertSound: /Audio/Weapons/Guns/MagIn/smg_magin.ogg
         ejectSound: /Audio/Weapons/Guns/MagOut/smg_magout.ogg
+  - type: Crit
+    baseCritChance: 0.05
 
 # Hushpup override — uses FS pellets for +40% base damage.
 - type: entity
@@ -373,6 +414,8 @@
   - type: BallisticAmmoProvider
     proto: FSShellShotgunHushpup
     capacity: 4
+  - type: Crit
+    baseCritChance: 0.05
 
 # E-shottie override — upstream has no self-recharge; needed for the Rapid Charge upgrade to work.
 # Also uses FS laser projectiles for +50% base damage.
@@ -395,6 +438,8 @@
     - proto: BulletDisablerSmgSpread
       fireCost: 48
       pacifismAllowedMode: true
+  - type: Crit
+    baseCritChance: 0.05
 
 # Laser Carbine override — adds self-recharge and spread for upgrade interactions.
 
@@ -413,6 +458,8 @@
   - type: GunWieldBonus
     minAngle: -21
     maxAngle: -24
+  - type: Crit
+    baseCritChance: 0.05
 
 # Pulse Rifle override — perfectly accurate, semi-auto by default; FullAuto upgrade unlocks full auto.
 
@@ -434,6 +481,8 @@
   - type: BatteryAmmoProvider
     proto: FSPulse
     fireCost: 100
+  - type: Crit
+    baseCritChance: 0.05
 
 # .20 rifle ammo chain — +40% damage (17 → 24 Piercing)
 - type: entity
@@ -491,6 +540,8 @@
         whitelist:
           tags:
             - CartridgeRifle
+  - type: Crit
+    baseCritChance: 0.05
 
 # AK override — uses FS .30 rifle magazine
 - type: entity
@@ -516,6 +567,8 @@
         whitelist:
           tags:
             - CartridgeLightRifle
+  - type: Crit
+    baseCritChance: 0.05
 
 # L6 SAW override — fixes reversed wield accuracy bonus.
 - type: entity
@@ -529,6 +582,8 @@
   - type: GunWieldBonus
     minAngle: -20
     maxAngle: -25
+  - type: Crit
+    baseCritChance: 0.05
 
 # Cutlass override — doubled base damage (16 → 32 Slash).
 - type: entity
@@ -542,6 +597,8 @@
         Slash: 32
     soundHit:
       path: /Audio/Weapons/bladeslice.ogg
+  - type: Crit
+    baseCritChance: 0.05
 
 # Chainsaw override — doubled base damage (4/4 → 8/8 Slash/Blunt, wield bonus 4 → 8 Slash).
 - type: entity
@@ -566,6 +623,8 @@
     damage:
       types:
         Slash: 8
+  - type: Crit
+    baseCritChance: 0.05
 
 # ── FS launcher ammo — use FS explosion types to block struct/player damage ────
 - type: entity
@@ -592,12 +651,17 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: Battery
+    maxCharge: 3000
+    startingCharge: 3000
   - type: BatteryAmmoProvider
     proto: FSTeslaGunBullet
     fireCost: 300
   - type: BatterySelfRecharger
     autoRechargeRate: 30
     autoRechargePauseTime: 2
+  - type: Crit
+    baseCritChance: 0.05
 
 # ── X-Ray Cannon FS override — fires FSXrayLaser (wall-piercing) ───────────────
 - type: entity
@@ -606,9 +670,24 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: Gun
+    minAngle: 0
+    maxAngle: 0
+    angleIncrease: 0
+    fireRate: 5
+    availableModes: FullAuto
+    selectedMode: FullAuto
+  - type: GunWieldBonus
+    minAngle: 0
+    maxAngle: 0
+  - type: Battery
+    maxCharge: 30000
+    startingCharge: 30000
   - type: BatteryAmmoProvider
     proto: FSXrayLaser
     fireCost: 100
   - type: BatterySelfRecharger
     autoRechargeRate: 20
     autoRechargePauseTime: 2
+  - type: Crit
+    baseCritChance: 0.05

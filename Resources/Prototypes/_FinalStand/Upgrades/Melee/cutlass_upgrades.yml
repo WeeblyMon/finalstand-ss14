@@ -18,8 +18,8 @@
     upgrades:
     - id: cutlass-quick-slash
       name: Quick Slash
-      description: Lighter blade increases attack speed by 20%.
-      maxLevel: 1
+      description: Lighter blade increases attack speed by 20% per level.
+      maxLevel: 3
       baseCost: 6000
       type: AttackSpeed
       valuePerLevel: 0.2
@@ -44,6 +44,13 @@
       baseCost: 5000
       type: StaminaSteal
       valuePerLevel: 10
+    - id: cutlass-swashbuckler
+      name: Swashbuckler
+      description: A duelist's eye. +10% crit chance per level. Stacks with the Pirate crit-swap window.
+      maxLevel: 3
+      baseCost: 4000
+      type: CritChance
+      valuePerLevel: 0.1
     - id: cutlass-pirate
       name: Pirate
       description: Crits with all flintlocks after a Cutlass kill (and vice versa). Spawns a flintlock. 5s crit window.

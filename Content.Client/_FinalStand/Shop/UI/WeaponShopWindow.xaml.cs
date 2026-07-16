@@ -487,9 +487,13 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var angleDeg = gunComp != null
             ? (float)gunComp.MaxAngleModified.Degrees
             : gunProto != null ? (float)gunProto.MaxAngle.Degrees : 15f;
-        if (accParts.Count > 0) accParts.Add($"= {angleDeg:F1}°");
+        if (accParts.Count > 0) accParts.Add($"= {(int)Math.Round(Math.Max(0f, 1f - angleDeg / 30f) * 100f)}");
+
+        var accFill = shopComp.StatAccuracy / 100f;
+        var accText = shopComp.StatAccuracy.ToString();
+
         StatBarsContainer.AddChild(BuildStatBar("Accuracy",
-            Math.Max(0f, 1f - angleDeg / 30f), $"{angleDeg:F1}°",
+            accFill, accText,
             accParts.Count > 0 ? Color.FromHex("#A3BE8C") : null,
             accParts.Count > 0 ? string.Join("\n", accParts) : null));
 
@@ -604,9 +608,10 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             case WeaponUpgradeType.AngleMax  when _rangedCache.IsRanged:
             {
                 var newAngle = Math.Max(0f, _rangedCache.AngleDeg - def.ValuePerLevel);
-                var newFill  = Math.Max(0f, 1f - newAngle / 30f);
+                var newFill = Math.Max(0f, 1f - newAngle / 30f);
+                var newStat = (int)Math.Round(newFill * 100f);
                 if (_statBarRefs.TryGetValue("Accuracy", out var refs))
-                    ApplyStatBar(refs, newFill, $"↑ {newAngle:F1}°", Color.FromHex("#A3BE8C"), true);
+                    ApplyStatBar(refs, newFill, $"↑ {newStat}", Color.FromHex("#A3BE8C"), true);
                 break;
             }
             case WeaponUpgradeType.MagazineSize when _rangedCache.IsRanged && _rangedCache.Capacity >= 0:
@@ -1166,6 +1171,15 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.FuelCapacity       => "Fuel Cap.",
         WeaponUpgradeType.WielderResistance  => "Resist",
         WeaponUpgradeType.DualWieldEnergySword => "Dual Wield",
+        WeaponUpgradeType.VaporiseWeakMob    => "Vaporise",
+        WeaponUpgradeType.PointBlankCrit     => "Point Blank",
+        WeaponUpgradeType.ExecutionShot      => "First Strike",
+        WeaponUpgradeType.MarksmansRhythm    => "Rhythm",
+        WeaponUpgradeType.Barrage            => "Spool+Blast",
+        WeaponUpgradeType.ShapedCharge       => "Shaped",
+        WeaponUpgradeType.RadiationCoating   => "Radiation",
+        WeaponUpgradeType.GravitonCore       => "Gravity Pull",
+        WeaponUpgradeType.TeslaArcRange      => "Arc Range",
         _                                    => "",
     };
 

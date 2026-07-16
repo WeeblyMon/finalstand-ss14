@@ -2,7 +2,7 @@
 # Spawns wave 9+, weighted at ~12.5% of wave composition via weighted selection.
 - type: entity
   id: FSZombieFlamethrower
-  parent: FSZombieNormal
+  parent: FSZombieFootsoldierBase
   suffix: Flamethrower
   name: flamethrower zombie
   components:

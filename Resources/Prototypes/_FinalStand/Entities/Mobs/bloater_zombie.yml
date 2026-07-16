@@ -2,7 +2,7 @@
 # Spawns wave 7+, weighted at ~25% of wave composition via FSFlamethrowerSystem weighted selection.
 - type: entity
   id: FSZombieBloater
-  parent: FSZombieNormal
+  parent: FSZombieFootsoldierBase
   suffix: Bloater
   name: bloater
   components:

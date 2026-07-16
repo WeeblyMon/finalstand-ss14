@@ -82,6 +82,14 @@
   - type: Sharp
     butcherDelayModifier: 2 #It's a bayonet
   - type: GunRequiresWield
+  - type: BallisticAmmoProvider
+    capacity: 10
+    proto: FSCartridgeMosin
+    whitelist:
+      tags:
+      - CartridgeLightRifle
+  - type: Crit
+    baseCritChance: 0.25
   - type: StaticPrice
     price: 500
 
@@ -122,6 +130,8 @@
     pvsIncrease: 0.3
   - type: StaticPrice
     price: 3500
+  - type: Crit
+    baseCritChance: 0.25
 
 - type: entity
   name: musket

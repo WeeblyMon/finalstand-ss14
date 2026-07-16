@@ -194,6 +194,17 @@
       types:
         Piercing: 27
 
+- type: entity
+  parent: BulletLightRifle
+  id: FSBulletMosin
+  categories: [ HideSpawnMenu ]
+  name: bullet (.30 mosin)
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 30
+
 # ── Hydra grenade projectile — FSGrenadeExplosion blocks struct/player damage ──
 - type: entity
   parent: BulletGrenadeFrag
@@ -206,6 +217,23 @@
     intensitySlope: 3
     totalIntensity: 20
     canCreateVacuum: false
+
+# ── Cluster Barrage mini-grenade — spawned on Hydra detonation ────────────────
+- type: entity
+  parent: FSBulletGrenadeFrag
+  id: FSBulletGrenadeFragMini
+  categories: [ HideSpawnMenu ]
+  removeComponents:
+  - FSClusterBarrageTag
+  components:
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 3
+    intensitySlope: 3
+    totalIntensity: 8
+    canCreateVacuum: false
+  - type: TimedDespawn
+    lifetime: 3
 
 # ── RPG rocket projectile — FSRocketExplosion blocks struct/player damage ──────
 - type: entity
@@ -238,6 +266,7 @@
     damage:
       types:
         Shock: 40
+
 
 # ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
 - type: entity

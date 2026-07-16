@@ -18,11 +18,11 @@
     upgrades:
     - id: fireaxe-sharpened
       name: Sharpened Blade
-      description: Hones the edge for +270% damage per level.
+      description: Hones the edge for +100% damage per level.
       maxLevel: 2
       baseCost: 10500
       type: Damage
-      valuePerLevel: 2.7
+      valuePerLevel: 1.0
     - id: fireaxe-axtinguish
       name: Axtinguish
       description: Critical hits against enemies on fire.

@@ -54,3 +54,5 @@
     containers:
       ballistic-ammo: !type:Container
         ents: []
+  - type: Crit
+    baseCritChance: 0.01

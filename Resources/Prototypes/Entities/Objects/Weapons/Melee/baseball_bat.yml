@@ -46,6 +46,8 @@
   - type: Tag
     tags:
     - BaseballBat
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: incomplete baseball bat

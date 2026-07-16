@@ -13,4 +13,5 @@ public sealed class FSProjectileHitEffectEvent : EntityEventArgs
     public EntityUid? ProjectileUid;
     public DamageSpecifier Damage = new();
     public float AdditionalMultiplier = 1f;
+    public bool WasCrit = false;
 }

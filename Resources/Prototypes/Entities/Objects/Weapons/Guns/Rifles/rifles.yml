@@ -277,3 +277,5 @@
     steps: 1
     zeroVisible: true
   - type: Appearance
+  - type: Crit
+    baseCritChance: 0.10

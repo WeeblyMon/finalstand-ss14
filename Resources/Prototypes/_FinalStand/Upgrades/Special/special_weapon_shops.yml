@@ -18,14 +18,6 @@
     statAccuracy: 45
     statCapacity: 90
     upgrades:
-    - id: l6-akimbo
-      name: Akimbo
-      description: Dual-wield two L6 SAWs simultaneously.
-      maxLevel: 1
-      baseCost: 25000
-      type: Akimbo
-      isStub: true
-      valuePerLevel: 1
     - id: l6-fire-rate
       name: Shredder
       description: Optimized cycling increases fire rate by 1.5/level.
@@ -90,6 +82,13 @@
     statAccuracy: 60
     statCapacity: 40
     upgrades:
+    - id: hydra-full-auto
+      name: Full Auto
+      description: Converts the drum to continuous-fire mode. Hold the trigger to keep it spinning.
+      maxLevel: 1
+      baseCost: 12000
+      type: FullAuto
+      valuePerLevel: 1
     - id: hydra-fire-rate
       name: Rapid Cycling
       description: Faster drum rotation increases fire rate by 0.5/level.
@@ -104,7 +103,6 @@
       baseCost: 10000
       type: MagazineSize
       valuePerLevel: 2
-      isStub: true
     - id: hydra-reload-speed
       name: Rapid Reload
       description: Streamlined loading cuts reload time by 20% per level.
@@ -112,22 +110,13 @@
       baseCost: 9000
       type: ReloadSpeed
       valuePerLevel: 0.2
-    - id: hydra-ricochet
-      name: Ricochet Grenades
-      description: Grenades bounce several times before detonating, covering more area.
-      maxLevel: 1
-      baseCost: 20000
-      type: MagazineSize
-      valuePerLevel: 0
-      isStub: true
     - id: hydra-barrage
       name: Barrage Mode
-      description: Sustained fire gradually increases fire rate and explosive output.
+      description: Sustained fire spools the launcher, ramping fire rate and explosive output up to maximum heat. Heat bleeds off when you stop firing.
       maxLevel: 3
       baseCost: 18000
-      type: FireRate
-      valuePerLevel: 0.5
-      isStub: true
+      type: Barrage
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
     state: icon
@@ -164,14 +153,13 @@
       baseCost: 12000
       type: Radius
       valuePerLevel: 2
-      isStub: true
     - id: rpg-armor-break
       name: Armor Break
-      description: Explosive force shreds armor on hit, reducing target's protection per level.
+      description: Explosive force damages armour integrity. Each level strips 25% of the target's maximum armour within the blast radius.
       maxLevel: 2
       baseCost: 14000
       type: ArmorShred
-      valuePerLevel: 1
+      valuePerLevel: 0.25
     - id: rpg-velocity
       name: Rocket Velocity
       description: Higher-thrust propellant increases rocket travel speed significantly.
@@ -179,15 +167,13 @@
       baseCost: 11000
       type: Range
       valuePerLevel: 10
-      isStub: true
     - id: rpg-shaped-charge
       name: Shaped Charge
-      description: Direct hits massively increase damage against elites and bosses.
+      description: Optimised warhead geometry concentrates the blast, dramatically raising peak damage at the point of impact.
       maxLevel: 1
       baseCost: 22000
-      type: Damage
-      valuePerLevel: 0.5
-      isStub: true
+      type: ShapedCharge
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
     state: base
@@ -217,36 +203,32 @@
       valuePerLevel: 2.0
     - id: tesla-energy-capacity
       name: Energy Cell Upgrade
-      description: Expanded power cell allows more shots before recharge.
+      description: Expanded power cell reduces energy cost per shot. +3-4 extra shots per level.
       maxLevel: 3
       baseCost: 12000
       type: MagazineSize
-      valuePerLevel: 1
-      isStub: true
+      valuePerLevel: 50
     - id: tesla-pull-strength
       name: Graviton Core
-      description: Stronger vacuum effect drags targets in faster and farther.
+      description: Graviton emitter creates a gravity well around the orb, pulling nearby enemies inward with increasing force per level.
       maxLevel: 3
       baseCost: 14000
-      type: Knockback
+      type: GravitonCore
       valuePerLevel: 1
-      isStub: true
     - id: tesla-arc-range
       name: Extended Arc
-      description: Modified field emitter extends the range lightning chains from the orb.
+      description: Modified field emitter extends the range lightning chains from the orb by 2m per level.
       maxLevel: 3
       baseCost: 13000
-      type: BeamChaining
-      valuePerLevel: 1
-      isStub: true
-    - id: tesla-magnetic-split
-      name: Magnetic Split
-      description: The Tesla ball splits into 2-3 smaller orbs mid-flight, each with reduced pull but increased chain arcs.
-      maxLevel: 1
-      baseCost: 25000
-      type: BeamChaining
+      type: TeslaArcRange
       valuePerLevel: 2
-      isStub: true
+    - id: tesla-fire-rate
+      name: Overcharged Coil
+      description: Tuned discharge coil increases fire rate by 0.5/level.
+      maxLevel: 3
+      baseCost: 11000
+      type: FireRate
+      valuePerLevel: 0.5
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/tesla_gun.rsi
     state: base
@@ -304,12 +286,11 @@
       valuePerLevel: 1
     - id: xray-dot
       name: Radiation Coating
-      description: Targets struck are irradiated, taking damage over time after impact.
+      description: Irradiated targets emit radiation, taking ticking damage while marked. Duration and intensity scale per level.
       maxLevel: 3
       baseCost: 16000
-      type: Damage
-      valuePerLevel: 0.1
-      isStub: true
+      type: RadiationCoating
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/xray.rsi
     state: base

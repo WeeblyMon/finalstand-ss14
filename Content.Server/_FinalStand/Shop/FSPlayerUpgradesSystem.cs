@@ -5,6 +5,7 @@ using Content.Server.Popups;
 using Content.Shared._FinalStand.Akimbo;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.Components;
@@ -348,7 +349,11 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
             }
 
             case WeaponUpgradeType.Radius:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.BlastRadiusBonus += (int)def.ValuePerLevel;
                 break;
+            }
 
             case WeaponUpgradeType.PelletCount:
             {
@@ -682,6 +687,76 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 }
                 break;
             }
+
+            case WeaponUpgradeType.VaporiseWeakMob:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.VaporiseWeakMobEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.PointBlankCrit:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.PointBlankCritEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.ExecutionShot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ExecutionShotUpgradeEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.MarksmansRhythm:
+            {
+                EnsureComp<FSMarksmansRhythmComponent>(weapon);
+                break;
+            }
+
+            case WeaponUpgradeType.ClusterBarrage:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ClusterBarrageEnabled = true;
+                break;
+            }
+
+            case WeaponUpgradeType.Barrage:
+            {
+                var barrage = EnsureComp<FSBarrageComponent>(weapon);
+                barrage.Level = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.ShapedCharge:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.ShapedChargeLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.RadiationCoating:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.RadiationCoatingLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.GravitonCore:
+            {
+                var core = EnsureComp<FSGravitonCoreComponent>(weapon);
+                core.Level = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.TeslaArcRange:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.TeslaArcRangeBonus += def.ValuePerLevel;
+                break;
+            }
+
         }
     }
 

@@ -2,7 +2,7 @@
 # Spawns wave 11+, weighted at ~12.5% of wave composition via weighted selection.
 - type: entity
   id: FSZombieTesla
-  parent: FSZombieNormal
+  parent: FSZombieFootsoldierBase
   suffix: Tesla
   name: tesla zombie
   components:

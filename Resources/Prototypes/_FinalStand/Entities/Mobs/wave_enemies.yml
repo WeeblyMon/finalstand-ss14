@@ -80,11 +80,12 @@
   - type: Flammable
     fireSpread: false
 
+# Shared stat base for foot-soldier tier zombies — no FSVaporiseWeak here so that
+# only Normal and Runner (which add it explicitly) are vaporisable.
 - type: entity
-  id: FSZombieNormal
+  id: FSZombieFootsoldierBase
   parent: FSZombieBase
-  suffix: Normal
-  name: zombie
+  abstract: true
   components:
   - type: MobThresholds
     thresholds:
@@ -97,11 +98,20 @@
     killCredits: 150
 
 - type: entity
+  id: FSZombieNormal
+  parent: FSZombieFootsoldierBase
+  suffix: Normal
+  name: zombie
+  components:
+  - type: FSVaporiseWeak
+
+- type: entity
   id: FSZombieRunner
-  parent: FSZombieNormal
+  parent: FSZombieFootsoldierBase
   suffix: Runner
   name: runner zombie
   components:
+  - type: FSVaporiseWeak
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/runner.png
   - type: Sprite
@@ -124,7 +134,7 @@
 
 - type: entity
   id: FSZombieArmoured
-  parent: FSZombieNormal
+  parent: FSZombieFootsoldierBase
   suffix: Armoured
   name: armoured zombie
   components:

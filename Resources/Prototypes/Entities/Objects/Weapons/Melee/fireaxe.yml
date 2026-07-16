@@ -47,6 +47,8 @@
     stealGroup: FireAxe
   - type: IgniteOnMeleeHit
     fireStacks: -4
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   id: FireAxeFlaming

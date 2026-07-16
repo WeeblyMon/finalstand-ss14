@@ -137,6 +137,8 @@
     steps: 2
     zeroVisible: false
   - type: Appearance
+  - type: Crit
+    baseCritChance: 0.05
 
 - type: entity
   name: multiple rocket launcher

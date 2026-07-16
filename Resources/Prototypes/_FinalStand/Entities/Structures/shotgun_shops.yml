@@ -59,6 +59,13 @@
       baseCost: 2100
       type: SetOnFire
       valuePerLevel: 1
+    - id: blunderbuss-point-blank-crit
+      name: Point-Blank
+      description: Shots under 2 tiles always crit. Get in close.
+      maxLevel: 1
+      baseCost: 3500
+      type: PointBlankCrit
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/blunderbuss.rsi
     state: icon
@@ -136,13 +143,13 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponShotgunBulldog
-    price: 35000
+    price: 25000
     starterAmmoProtoId: FSMagazineShotgun
     starterAmmoCount: 2
     category: .50 Full-Auto Shotgun
     statDamage: 60
     statFireRate: 70
-    statAccuracy: 40
+    statAccuracy: 50
     statCapacity: 100
     upgrades:
     - id: bulldog-fire-rate
@@ -179,14 +186,6 @@
       maxLevel: 1
       baseCost: 9200
       type: SetOnFire
-      valuePerLevel: 1
-    - id: bulldog-akimbo
-      name: Akimbo
-      description: Dual wield. A second Bulldog spawns in your off-hand. Fire alternates between both. Accuracy suffers.
-      maxLevel: 1
-      baseCost: 28000
-      type: Akimbo
-      isStub: true
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/bulldog.rsi
@@ -309,6 +308,13 @@
       baseCost: 2700
       type: FireRate
       valuePerLevel: 0.5
+    - id: hushpup-execution-shot
+      name: First Strike
+      description: After each reload, your next shot is a guaranteed critical hit.
+      maxLevel: 1
+      baseCost: 5500
+      type: ExecutionShot
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/hushpup.rsi
     state: icon

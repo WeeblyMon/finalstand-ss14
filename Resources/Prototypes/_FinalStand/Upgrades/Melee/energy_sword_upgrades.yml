@@ -31,11 +31,11 @@
       valuePerLevel: 0.2
     - id: esword-enhanced
       name: Enhanced Blades
-      description: "Plasma intensity scaling: +25% damage per level."
+      description: "Plasma intensity scaling: +35% damage per level."
       maxLevel: 4
       baseCost: 15000
       type: Damage
-      valuePerLevel: 0.25
+      valuePerLevel: 0.35
     - id: esword-energy-overflow
       name: Energy Overflow Mobility
       description: "Excess plasma channeled to legs: +10% movement speed per level."
