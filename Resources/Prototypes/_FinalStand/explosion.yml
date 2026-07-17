@@ -44,7 +44,6 @@
   damagePerIntensity:
     types:
       Cellular: 25
-      Blunt: 5
   tileBreakChance: [0, 0, 0]
   tileBreakIntensity: [0, 0, 0]
   tileBreakRerollReduction: 0
