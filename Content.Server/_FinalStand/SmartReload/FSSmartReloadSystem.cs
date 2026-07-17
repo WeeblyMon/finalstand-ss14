@@ -592,13 +592,16 @@ public sealed class FSSmartReloadSystem : EntitySystem
         {
             foreach (var item in container.ContainedEntities)
             {
+                // Never treat the gun being reloaded as an ammo source.
+                if (item == skipInside)
+                    continue;
+
                 if (IsValidAmmo(item, whitelist))
                     return item;
 
                 fallbackBox ??= IsCompatibleAmmoBox(item, whitelist) ? item : null;
 
-                // Don't look inside the gun being reloaded — its rounds are already loaded.
-                if (item == skipInside || !TryComp<ContainerManagerComponent>(item, out var innerMgr))
+                if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
                     continue;
 
                 foreach (var inner in innerMgr.Containers.Values)
