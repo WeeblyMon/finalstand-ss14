@@ -619,6 +619,9 @@
 - type: Tag
   id: Fruit # SpecialDigestible: OrganReptilianStomach. CargoBounty: BountyFruit
 
+- type: Tag
+  id: FSArmorTierItem # FinalStand: marks a hardsuit spawned by the Armor Vendor so it can be safely replaced on tier upgrade.
+
 ## G ##
 
 - type: Tag

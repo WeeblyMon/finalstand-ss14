@@ -1,0 +1,35 @@
+- type: entity
+  id: FSArmorShop
+  name: Armor Vendor
+  description: Purchase combat hardsuits to reduce incoming damage.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Machines/VendingMachines/vendomat.rsi
+    state: off
+  - type: FSArmorShop
+  - type: UserInterface
+    interfaces:
+      enum.FSArmorShopUiKey.Key:
+        type: FSArmorShopBoundUserInterface
+  - type: ActivatableUI
+    key: enum.FSArmorShopUiKey.Key
