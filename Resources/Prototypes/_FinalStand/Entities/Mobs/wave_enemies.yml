@@ -274,6 +274,15 @@
         layer:
         - MobLayer
   - type: FSGiantStomp
+  - type: Tag
+    tags:
+    - StunImmune
+    - FootstepSound
+  - type: FootstepModifier
+    footstepSoundCollection:
+      params:
+        volume: 3
+      collection: FSGiantZombieFootstep
 
 # ── Giant zombie debris — spawned on floor when parts are blown off ──────────
 

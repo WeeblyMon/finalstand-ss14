@@ -1,0 +1,6 @@
+- type: soundCollection
+  id: FSGiantZombieFootstep
+  files:
+    - /Audio/_FinalStand/Mobs/GiantZombie/alien_footstep_large1.ogg
+    - /Audio/_FinalStand/Mobs/GiantZombie/alien_footstep_large2.ogg
+    - /Audio/_FinalStand/Mobs/GiantZombie/alien_footstep_large3.ogg
