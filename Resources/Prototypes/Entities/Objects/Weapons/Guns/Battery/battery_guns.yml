@@ -727,7 +727,7 @@
     sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
   - type: Gun
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg
+      path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: Battery
     maxCharge: 4000
     startingCharge: 4000
@@ -939,6 +939,8 @@
       path: /Audio/Weapons/Guns/Gunshots/charge.ogg
   - type: Crit
     baseCritChance: 0.10
+  - type: FSMuzzleFlashColor
+    color: "#FF3300"
 
 - type: entity
   name: temperature gun

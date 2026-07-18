@@ -92,6 +92,14 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField]
     public SoundSpecifier? WaveEndSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/wave_end.ogg");
 
+    [DataField]
+    public SoundSpecifier? WaveVoteCountdownSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/vote_countdown.ogg");
+
+    // Set to true when a majority vote has triggered the 10-second countdown; reset each prep phase.
+    public bool VoteCountdownActive = false;
+    public bool VoteCountdownSoundPlayed = false;
+    public TimeSpan VoteCountdownSoundTime = TimeSpan.Zero;
+
     // ── Runtime state
 
     public int WaveNumber = 1;

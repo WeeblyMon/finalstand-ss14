@@ -37,9 +37,11 @@ public sealed partial class MeleeOperator : HTNOperator, IHtnConditionalShutdown
     public override void Startup(NPCBlackboard blackboard)
     {
         base.Startup(blackboard);
+        if (!blackboard.TryGetValue<EntityUid>(TargetKey, out var target, _entManager))
+            return;
         var melee = _entManager.EnsureComponent<NPCMeleeCombatComponent>(blackboard.GetValue<EntityUid>(NPCBlackboard.Owner));
         melee.MissChance = blackboard.GetValueOrDefault<float>(NPCBlackboard.MeleeMissChance, _entManager);
-        melee.Target = blackboard.GetValue<EntityUid>(TargetKey);
+        melee.Target = target;
     }
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(NPCBlackboard blackboard,

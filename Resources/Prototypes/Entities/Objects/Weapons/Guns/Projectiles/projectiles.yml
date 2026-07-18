@@ -1372,8 +1372,10 @@
     - state: magnum
       shader: unshaded
   - type: PointLight
-    enabled: true
+    castShadows: false
     color: "#ff4300"
+    radius: 2.5
+    energy: 7.0
   - type: Projectile
     impactEffect: BulletImpactEffectOrangeDisabler
     damage:
@@ -1392,8 +1394,10 @@
     - state: magnum_piercing
       shader: unshaded
   - type: PointLight
-    enabled: true
+    castShadows: false
     color: "#ff4300"
+    radius: 2.5
+    energy: 7.0
   - type: Projectile
     impactEffect: BulletImpactEffectOrangeDisabler
     damage:

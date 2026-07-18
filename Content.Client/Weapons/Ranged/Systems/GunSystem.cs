@@ -26,6 +26,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
+using Content.Shared._FinalStand.Weapons;
 using SharedGunSystem = Content.Shared.Weapons.Ranged.Systems.SharedGunSystem;
 using TimedDespawnComponent = Robust.Shared.Spawners.TimedDespawnComponent;
 
@@ -394,7 +395,10 @@ public sealed partial class GunSystem : SharedGunSystem
         Lights.SetRotation(gunUid, angle + Angle.FromDegrees(90), light);
         Lights.SetEnabled(gunUid, true, light);
         Lights.SetRadius(gunUid, 10f, light);
-        Lights.SetColor(gunUid, Color.FromHex("#FFCC66"), light);
+        var flashColor = TryComp<FSMuzzleFlashColorComponent>(gunUid, out var flashComp)
+            ? flashComp.Color
+            : Color.FromHex("#FFCC66");
+        Lights.SetColor(gunUid, flashColor, light);
         Lights.SetEnergy(gunUid, 13f, light);
 
         var animTwo = new Animation()

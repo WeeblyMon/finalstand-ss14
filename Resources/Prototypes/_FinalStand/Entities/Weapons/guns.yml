@@ -425,6 +425,8 @@
   parent: WeaponEnergyShotgun
   suffix: FinalStand
   components:
+  - type: FSMuzzleFlashColor
+    color: "#FF3300"
   - type: BatterySelfRecharger
     autoRechargeRate: 25
     autoRechargePauseTime: 3

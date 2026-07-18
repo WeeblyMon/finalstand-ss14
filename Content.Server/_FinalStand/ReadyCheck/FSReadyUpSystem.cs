@@ -71,13 +71,10 @@ public sealed class FSReadyUpSystem : EntitySystem
                 _waveRule.ReducePrepTimeBy(prepComp.PrepDuration.TotalSeconds / total);
         }
 
-        if (_readyCheck.HasMajority())
-        {
-            RaiseLocalEvent(new WaveStartRequestEvent());
-            return;
-        }
-
         BroadcastState();
+
+        if (_readyCheck.HasMajority())
+            RaiseLocalEvent(new WaveStartRequestEvent());
     }
 
     private void BroadcastState()

@@ -31,7 +31,7 @@ public sealed partial class CCVars
     ///     Whether the arrivals shuttle is enabled.
     /// </summary>
     public static readonly CVarDef<bool> ArrivalsShuttles =
-        CVarDef.Create("shuttle.arrivals", true, CVar.SERVERONLY);
+        CVarDef.Create("shuttle.arrivals", false, CVar.SERVERONLY);
 
     /// <summary>
     ///     The map to use for the arrivals station.
@@ -68,7 +68,7 @@ public sealed partial class CCVars
     ///     Whether to automatically spawn escape shuttles.
     /// </summary>
     public static readonly CVarDef<bool> GridFill =
-        CVarDef.Create("shuttle.grid_fill", true, CVar.SERVERONLY);
+        CVarDef.Create("shuttle.grid_fill", false, CVar.SERVERONLY);
 
     /// <summary>
     ///     Whether to automatically preloading grids by GridPreloaderSystem
@@ -181,7 +181,7 @@ public sealed partial class CCVars
     /// </summary>
     [CVarControl(AdminFlags.Server | AdminFlags.Mapping, min: 0, max: int.MaxValue)]
     public static readonly CVarDef<int> EmergencyShuttleAutoCallTime =
-        CVarDef.Create("shuttle.auto_call_time", 90, CVar.SERVERONLY);
+        CVarDef.Create("shuttle.auto_call_time", 0, CVar.SERVERONLY);
 
     /// <summary>
     ///     Time in minutes after the round was extended (by recalling the shuttle) to call

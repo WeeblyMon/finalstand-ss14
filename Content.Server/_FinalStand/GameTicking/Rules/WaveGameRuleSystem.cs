@@ -95,6 +95,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                             comp.SpawnerEntities.Add(unlocked[i]);
                     }
                 }
+                if (comp.VoteCountdownActive && !comp.VoteCountdownSoundPlayed && now >= comp.VoteCountdownSoundTime)
+                {
+                    comp.VoteCountdownSoundPlayed = true;
+                    if (comp.WaveVoteCountdownSound != null)
+                        _audio.PlayGlobal(comp.WaveVoteCountdownSound, Filter.Broadcast(), true);
+                }
                 if (now >= comp.PhaseEndTime)
                 {
                     Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");
@@ -149,6 +155,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void StartPrepPhase(EntityUid uid, WaveGameRuleComponent comp)
     {
         comp.Phase = WavePhase.Prep;
+        comp.VoteCountdownActive = false;
+        comp.VoteCountdownSoundPlayed = false;
+        comp.VoteCountdownSoundTime = TimeSpan.Zero;
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
 
         // Pre-select spawners for the upcoming wave so the CCC UI can show them during prep.
@@ -570,7 +579,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 continue;
             if (comp.Phase != WavePhase.Prep)
                 continue;
-            StartCombatPhase(uid, comp);
+            if (comp.VoteCountdownActive)
+                return;
+
+            comp.VoteCountdownActive = true;
+            comp.VoteCountdownSoundPlayed = false;
+            comp.PhaseEndTime = Timing.CurTime + TimeSpan.FromSeconds(10);
+            comp.VoteCountdownSoundTime = Timing.CurTime + TimeSpan.FromSeconds(2);
+            comp.NextTimerBroadcastTime = Timing.CurTime;
             return;
         }
     }
