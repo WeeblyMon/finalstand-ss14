@@ -30,6 +30,6 @@
   - type: PointLight
     enabled: false
     color: "#4488FF"
-    radius: 2.5
-    energy: 3.0
+    radius: 5.0
+    energy: 8.0
     softness: 1.0

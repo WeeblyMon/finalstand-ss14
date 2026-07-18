@@ -3,7 +3,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Shop;
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
 public sealed partial class FSWeaponUpgradeStateComponent : Component
 {
     [DataField] public float CritChance = 0f;
@@ -63,6 +63,8 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float HeldSpeedBonusPercent = 0f;
 
     [DataField] public int TotalSpent = 0;
+
+    [DataField, AutoNetworkedField] public bool KnifeGolden = false;
 
     [DataField] public bool VaporiseWeakMobEnabled = false;
     [DataField] public bool PointBlankCritEnabled = false;

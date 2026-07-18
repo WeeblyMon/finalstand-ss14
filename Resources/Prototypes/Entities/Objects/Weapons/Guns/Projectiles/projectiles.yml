@@ -1321,6 +1321,11 @@
     damage:
       types:
         Heat: 13
+  - type: PointLight
+    castShadows: false
+    color: "#FF6600"
+    radius: 2.0
+    energy: 5.0
 
 - type: entity
   name: wide laser barrage

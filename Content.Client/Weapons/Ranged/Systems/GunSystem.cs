@@ -45,6 +45,7 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private readonly SharedMapSystem _maps = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private readonly PointLightSystem _pointLightSystem = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
 
@@ -121,6 +122,16 @@ public sealed partial class GunSystem : SharedGunSystem
                 continue;
 
             var ent = Spawn(HitscanProto, coords);
+
+            var beamLight = Factory.GetComponent<PointLightComponent>();
+            beamLight.NetSyncEnabled = false;
+            AddComp(ent, beamLight);
+            Lights.SetCastShadows(ent, false, beamLight);
+            Lights.SetColor(ent, GetHitscanColor(rsi.RsiState), beamLight);
+            Lights.SetRadius(ent, 3f, beamLight);
+            Lights.SetEnergy(ent, 8f, beamLight);
+            Lights.SetEnabled(ent, true, beamLight);
+
             var sprite = Comp<SpriteComponent>(ent);
 
             var xform = Transform(ent);
@@ -363,21 +374,32 @@ public sealed partial class GunSystem : SharedGunSystem
         };
 
         _animPlayer.Play(ent, anim, "muzzle-flash");
+        CreateMuzzleFlashLight(gunUid, message.Angle);
+    }
+
+    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle)
+    {
+        const float lightDuration = 0.08f;
+
         if (!TryComp(gunUid, out PointLightComponent? light))
         {
             light = Factory.GetComponent<PointLightComponent>();
             light.NetSyncEnabled = false;
             AddComp(gunUid, light);
+            Lights.SetCastShadows(gunUid, false, light);
+            Lights.SetMaskAutoRotate(gunUid, false, light);
+            _pointLightSystem.SetMask("/Textures/Effects/LightMasks/cone.png", light);
         }
 
+        Lights.SetRotation(gunUid, angle + Angle.FromDegrees(90), light);
         Lights.SetEnabled(gunUid, true, light);
-        Lights.SetRadius(gunUid, 2f, light);
-        Lights.SetColor(gunUid, Color.FromHex("#cc8e2b"), light);
-        Lights.SetEnergy(gunUid, 5f, light);
+        Lights.SetRadius(gunUid, 10f, light);
+        Lights.SetColor(gunUid, Color.FromHex("#FFCC66"), light);
+        Lights.SetEnergy(gunUid, 13f, light);
 
         var animTwo = new Animation()
         {
-            Length = TimeSpan.FromSeconds(lifetime),
+            Length = TimeSpan.FromSeconds(lightDuration),
             AnimationTracks =
             {
                 new AnimationTrackComponentProperty
@@ -387,8 +409,8 @@ public sealed partial class GunSystem : SharedGunSystem
                     InterpolationMode = AnimationInterpolationMode.Linear,
                     KeyFrames =
                     {
-                        new AnimationTrackProperty.KeyFrame(5f, 0),
-                        new AnimationTrackProperty.KeyFrame(0f, lifetime)
+                        new AnimationTrackProperty.KeyFrame(13f, 0f),
+                        new AnimationTrackProperty.KeyFrame(0f, lightDuration)
                     }
                 },
                 new AnimationTrackComponentProperty
@@ -398,18 +420,25 @@ public sealed partial class GunSystem : SharedGunSystem
                     InterpolationMode = AnimationInterpolationMode.Linear,
                     KeyFrames =
                     {
-                        new AnimationTrackProperty.KeyFrame(true, 0),
-                        new AnimationTrackProperty.KeyFrame(false, lifetime)
+                        new AnimationTrackProperty.KeyFrame(true, 0f),
+                        new AnimationTrackProperty.KeyFrame(false, lightDuration)
                     }
                 }
             }
         };
 
         var uidPlayer = EnsureComp<AnimationPlayerComponent>(gunUid);
-
         _animPlayer.Stop(gunUid, uidPlayer, "muzzle-flash-light");
         _animPlayer.Play((gunUid, uidPlayer), animTwo, "muzzle-flash-light");
     }
+
+    private static Color GetHitscanColor(string state) => state switch
+    {
+        _ when state.Contains("blue") => Color.FromHex("#4466FF"),
+        _ when state.Contains("xray") => Color.FromHex("#00CCAA"),
+        _ when state.Contains("heavy") => Color.FromHex("#FFAA44"),
+        _ => Color.FromHex("#FF6600"),
+    };
 
     // TODO: Move RangedDamageSoundComponent to shared so this can be predicted.
     public override void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound) { }

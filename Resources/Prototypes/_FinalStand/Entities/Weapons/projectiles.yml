@@ -9,6 +9,11 @@
     layers:
     - state: heavylaser
       shader: unshaded
+  - type: PointLight
+    castShadows: false
+    color: "#BB00FF"
+    radius: 3.0
+    energy: 8.0
 
 - type: entity
   id: FSOverchargeShard
@@ -21,6 +26,11 @@
     layers:
     - state: heavylaser
       shader: unshaded
+  - type: PointLight
+    castShadows: false
+    color: "#CC44FF"
+    radius: 1.5
+    energy: 4.0
 
 - type: entity
   parent: BasicHitscan
@@ -117,6 +127,11 @@
     layers:
     - state: heavylaser
       shader: unshaded
+  - type: PointLight
+    castShadows: false
+    color: "#00DDFF"
+    radius: 2.0
+    energy: 5.0
 
 # ── SMG bullet (+40% vs BulletPistol 16 → 22) ──���─────────────────────────────
 - type: entity
@@ -160,6 +175,11 @@
     damage:
       types:
         Heat: 40
+  - type: PointLight
+    castShadows: false
+    color: "#FF6600"
+    radius: 1.5
+    energy: 4.0
 
 - type: entity
   id: FSBulletLaserShotgunSpread
@@ -266,6 +286,11 @@
     damage:
       types:
         Shock: 40
+  - type: PointLight
+    castShadows: false
+    color: "#88BBFF"
+    radius: 3.0
+    energy: 7.0
 
 
 # ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
