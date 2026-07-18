@@ -25,8 +25,8 @@ public static class FSArmorShopDefs
         new("ert_security_hardsuit",    "ERT Security Hardsuit",        30_000, 0.50f, 0.50f, 0.50f, 0.50f, 0.50f, 0.50f, 0.30f, 0.55f, -0.15f, 0.40f, "FSArmorTierERTSecurityHardsuit"),
         new("nukie_commander_hardsuit", "Nukie Commander Hardsuit",     40_000, 0.60f, 0.60f, 0.60f, 0.60f, 0.65f, 0.60f, 0.40f, 0.65f, -0.10f, 0.50f, "FSArmorTierNukieCommanderHardsuit"),
         new("elite_hardsuit",           "Elite Hardsuit",               50_000, 0.70f, 0.70f, 0.70f, 0.70f, 0.75f, 0.70f, 0.50f, 0.75f, -0.05f, 0.50f, "FSArmorTierEliteHardsuit"),
-        new("cybersun_juggernaut",      "Cybersun Juggernaut Hardsuit", 70_000, 0.75f, 0.75f, 0.75f, 0.85f, 0.75f, 0.75f, 0.60f, 0.85f, -0.35f, 0.75f, "FSArmorTierCybersunJuggernaut"),
-        new("death_squad_hardsuit",     "Death Squad Hardsuit",        100_000, 0.85f, 0.85f, 0.85f, 0.90f, 0.85f, 0.85f, 0.70f, 0.90f,  0.15f, 0.25f, "FSArmorTierDeathSquadHardsuit"),
+        new("cybersun_juggernaut",      "Cybersun Juggernaut Hardsuit", 70_000, 0.75f, 0.75f, 0.75f, 0.85f, 0.75f, 0.75f, 0.60f, 0.85f,  0.00f, 0.75f, "FSArmorTierCybersunJuggernaut"),
+        new("death_squad_hardsuit",     "Death Squad Hardsuit",        100_000, 0.85f, 0.85f, 0.85f, 0.90f, 0.85f, 0.85f, 0.70f, 0.90f,  0.15f, 0.85f, "FSArmorTierDeathSquadHardsuit"),
     };
 
     public static FSArmorTierDef? GetTier(string id)
