@@ -12,8 +12,11 @@ public sealed class HordeBrainSystem : EntitySystem
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
-    private readonly Dictionary<(EntityUid, Vector2i), int> _occupancy = new();
+    private Dictionary<(EntityUid, Vector2i), int> _occupancy = new();
     private readonly Dictionary<(EntityUid, Vector2i), float> _smoothedOccupancy = new();
+
+    // Atomically-replaced snapshot safe for concurrent reads from background pathfinding threads.
+    private volatile Dictionary<(EntityUid, Vector2i), int> _occupancyStable = new();
 
     private bool _enabled;
     private int _occupancyThreshold;
@@ -68,7 +71,7 @@ public sealed class HordeBrainSystem : EntitySystem
 
     private void RebuildSnapshot()
     {
-        _occupancy.Clear();
+        var newOccupancy = new Dictionary<(EntityUid, Vector2i), int>();
         _smoothedOccupancy.Clear();
 
         var query = EntityQueryEnumerator<WaveSpawnedTagComponent, TransformComponent>();
@@ -80,8 +83,8 @@ public sealed class HordeBrainSystem : EntitySystem
             var localPos = xform.LocalPosition;
             var tile = new Vector2i((int)MathF.Floor(localPos.X), (int)MathF.Floor(localPos.Y));
 
-            _occupancy.TryGetValue((gridUid, tile), out var current);
-            _occupancy[(gridUid, tile)] = current + 1;
+            newOccupancy.TryGetValue((gridUid, tile), out var current);
+            newOccupancy[(gridUid, tile)] = current + 1;
 
             AddSmoothed(gridUid, tile, 1.0f);
             for (var dx = -1; dx <= 1; dx++)
@@ -94,6 +97,9 @@ public sealed class HordeBrainSystem : EntitySystem
                 }
             }
         }
+
+        _occupancy = newOccupancy;
+        _occupancyStable = newOccupancy; // atomic reference publish; safe for concurrent reads
     }
 
     private void AddSmoothed(EntityUid gridUid, Vector2i tile, float weight)
@@ -108,6 +114,13 @@ public sealed class HordeBrainSystem : EntitySystem
             return 0;
 
         _occupancy.TryGetValue((gridUid, tile), out var count);
+        return count;
+    }
+
+    // Safe to call from background pathfinding threads.
+    public int GetOccupancyStable(EntityUid gridUid, Vector2i tile)
+    {
+        _occupancyStable.TryGetValue((gridUid, tile), out var count);
         return count;
     }
 

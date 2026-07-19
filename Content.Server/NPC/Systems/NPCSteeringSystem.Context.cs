@@ -673,7 +673,7 @@ public sealed partial class NPCSteeringSystem
         if (!_waveTagQuery.HasComponent(uid)) return;
         if (!_inputMoverQuery.TryGetComponent(uid, out var myMover)) return;
         var myDir = myMover.CurTickSprintMovement;
-        if (myDir == Vector2.Zero) return;
+        var isMoving = myDir != Vector2.Zero;
 
         const float SeparationRadius    = 1.2f;
         const float PeerYieldRadius     = 2.0f;
@@ -682,7 +682,7 @@ public sealed partial class NPCSteeringSystem
         const float LateralYieldWeight  = 0.35f;
         const float LateralSpreadWeight = 0.45f;
 
-        var myDirNorm  = myDir.Normalized();
+        var myDirNorm  = isMoving ? myDir.Normalized() : Vector2.Zero;
         var preferLeft = ((int)uid & 1) == 0;
 
         var ents = _entSetPool.Get();
@@ -712,7 +712,8 @@ public sealed partial class NPCSteeringSystem
                 }
             }
 
-            // Cases 2+3 only apply to peers heading the same general direction.
+            // Cases 2+3 only apply when we're moving and the peer is heading the same general direction.
+            if (!isMoving) continue;
             if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
             var peerDir = peerMover.CurTickSprintMovement;
             if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f) continue;
