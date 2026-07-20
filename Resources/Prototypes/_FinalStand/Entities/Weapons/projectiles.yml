@@ -209,10 +209,28 @@
   categories: [ HideSpawnMenu ]
   name: bullet (.30 rifle)
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
         Piercing: 27
+
+- type: entity
+  parent: CartridgeLightRifle
+  id: FSCartridgeLightRifle
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletLightRifle
+
+- type: entity
+  parent: MagazineLightRifleBox
+  id: FSMagazineLightRifleBox
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeLightRifle
+    capacity: 100
 
 - type: entity
   parent: BulletLightRifle

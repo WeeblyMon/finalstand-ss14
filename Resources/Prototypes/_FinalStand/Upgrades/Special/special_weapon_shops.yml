@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponLightMachineGunL6
     price: 140000
-    starterAmmoProtoId: MagazineLightRifleBox
+    starterAmmoProtoId: FSMagazineLightRifleBox
     starterAmmoCount: 2
     category: .30 Light Machine Gun
     statDamage: 60
