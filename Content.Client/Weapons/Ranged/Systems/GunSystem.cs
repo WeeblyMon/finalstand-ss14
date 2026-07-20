@@ -388,11 +388,15 @@ public sealed partial class GunSystem : SharedGunSystem
             light.NetSyncEnabled = false;
             AddComp(gunUid, light);
             Lights.SetCastShadows(gunUid, false, light);
-            Lights.SetMaskAutoRotate(gunUid, false, light);
+#pragma warning disable RA0002
+            light.MaskAutoRotate = false;
+#pragma warning restore RA0002
             _pointLightSystem.SetMask("/Textures/Effects/LightMasks/cone.png", light);
         }
 
-        Lights.SetRotation(gunUid, angle + Angle.FromDegrees(90), light);
+#pragma warning disable RA0002
+        light.Rotation = angle + Angle.FromDegrees(90);
+#pragma warning restore RA0002
         Lights.SetEnabled(gunUid, true, light);
         Lights.SetRadius(gunUid, 10f, light);
         var flashColor = TryComp<FSMuzzleFlashColorComponent>(gunUid, out var flashComp)
