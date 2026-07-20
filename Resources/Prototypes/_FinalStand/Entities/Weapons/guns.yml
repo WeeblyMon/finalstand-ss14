@@ -518,6 +518,15 @@
     proto: FSCartridgeLightRifle
     capacity: 30
 
+- type: entity
+  id: FSMagazineLightRifleBox
+  parent: MagazineLightRifleBox
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeLightRifle
+    capacity: 100
+
 # Lecter override — uses FS .20 rifle magazine
 - type: entity
   id: FSWeaponRifleLecter
