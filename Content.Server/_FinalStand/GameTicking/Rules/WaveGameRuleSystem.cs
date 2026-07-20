@@ -27,7 +27,9 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
+using Robust.Shared.Map;
 using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -48,7 +50,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
     [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
+    [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly TagSystem _tags = default!;
 
     private static readonly ProtoId<TagPrototype> DoorBumpTag = "DoorBumpOpener";
@@ -326,6 +330,19 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     // wave spawning
 
+    private bool IsSpawnClear(EntityCoordinates coords)
+    {
+        var mapCoords = _transform.ToMapCoordinates(coords);
+        var ents = new HashSet<EntityUid>();
+        _lookup.GetEntitiesInRange(mapCoords.MapId, mapCoords.Position, 0.4f, ents, LookupFlags.Static | LookupFlags.Approximate);
+        foreach (var ent in ents)
+        {
+            if (TryComp<PhysicsComponent>(ent, out var body) && body.Hard && body.CanCollide && body.BodyType == BodyType.Static)
+                return false;
+        }
+        return true;
+    }
+
     private void SpawnNextBatch(EntityUid uid, WaveGameRuleComponent comp)
     {
         var pool = GetDirectorPool(comp);
@@ -339,9 +356,21 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var coords = Transform(spawnerUid).Coordinates;
             if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawnerComp) && spawnerComp.SpawnRadius > 0f)
             {
-                var angle = RobustRandom.NextFloat() * MathF.Tau;
-                var radius = MathF.Sqrt(RobustRandom.NextFloat()) * spawnerComp.SpawnRadius;
-                coords = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
+                var found = false;
+                for (var attempt = 0; attempt < 8; attempt++)
+                {
+                    var angle = RobustRandom.NextFloat() * MathF.Tau;
+                    var radius = MathF.Sqrt(RobustRandom.NextFloat()) * spawnerComp.SpawnRadius;
+                    var candidate = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
+                    if (IsSpawnClear(candidate))
+                    {
+                        coords = candidate;
+                        found = true;
+                        break;
+                    }
+                }
+                // If all attempts hit walls, spawner centre is used as fallback.
+                _ = found;
             }
 
             var proto = SelectEnemyProto(comp, pool);

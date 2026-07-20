@@ -235,9 +235,9 @@
   components:
   - type: Explosive
     explosionType: FSGrenadeExplosion
-    maxIntensity: 5
+    maxIntensity: 2.5
     intensitySlope: 3
-    totalIntensity: 20
+    totalIntensity: 10
     canCreateVacuum: false
 
 # ── Cluster Barrage mini-grenade — spawned on Hydra detonation ────────────────
@@ -250,9 +250,9 @@
   components:
   - type: Explosive
     explosionType: FSGrenadeExplosion
-    maxIntensity: 3
+    maxIntensity: 1.5
     intensitySlope: 3
-    totalIntensity: 8
+    totalIntensity: 4
     canCreateVacuum: false
   - type: TimedDespawn
     lifetime: 3
@@ -282,12 +282,13 @@
   - type: Electrified
     requirePower: true
   - type: FSTeslaArc
-    arcInterval: 0.3
+    arcInterval: 0.8
     arcRange: 6
     maxArcs: 3
+    maxTotalArcs: 4
     damage:
       types:
-        Shock: 40
+        Shock: 30
   - type: PointLight
     castShadows: false
     color: "#88BBFF"

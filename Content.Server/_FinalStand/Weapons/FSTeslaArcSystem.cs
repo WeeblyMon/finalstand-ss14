@@ -49,6 +49,9 @@ public sealed class FSTeslaArcSystem : EntitySystem
                 continue;
             comp.NextArcTime = curTime + comp.ArcInterval;
             FireArcs(uid, comp);
+            comp.TotalArcsFired++;
+            if (comp.TotalArcsFired >= comp.MaxTotalArcs)
+                QueueDel(uid);
         }
     }
 
