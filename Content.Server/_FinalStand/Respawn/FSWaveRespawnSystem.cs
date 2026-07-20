@@ -1,8 +1,9 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared.Administration.Systems;
+using Content.Shared.Mind.Components;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
-using Robust.Shared.Player;
 using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Respawn;
@@ -21,7 +22,6 @@ public sealed class FSWaveRespawnSystem : EntitySystem
 
     private void OnWaveEnded(ref WaveEndedEvent ev)
     {
-        // Collect all respawn point coordinates.
         var points = new List<EntityCoordinates>();
         var pointQuery = EntityQueryEnumerator<FSRespawnPointComponent, TransformComponent>();
         while (pointQuery.MoveNext(out _, out _, out var xform))
@@ -30,10 +30,11 @@ public sealed class FSWaveRespawnSystem : EntitySystem
         if (points.Count == 0)
             return;
 
-        // Teleport and rejuvenate every downed player.
-        var actorQuery = EntityQueryEnumerator<ActorComponent>();
-        while (actorQuery.MoveNext(out var uid, out _))
+        var mindQuery = EntityQueryEnumerator<MindContainerComponent, MobStateComponent>();
+        while (mindQuery.MoveNext(out var uid, out var mindContainer, out _))
         {
+            if (!mindContainer.HasMind)
+                continue;
             if (!_mobState.IsIncapacitated(uid))
                 continue;
 

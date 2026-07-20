@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -23,6 +24,7 @@ public sealed class FSXrayRaycastSystem : EntitySystem
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
     private EntityQuery<HitscanBasicVisualsComponent> _visualsQuery;
+    private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
 
     public override void Initialize()
     {
@@ -30,6 +32,7 @@ public sealed class FSXrayRaycastSystem : EntitySystem
         _ffQuery = GetEntityQuery<FSFriendlyFireComponent>();
         _mobQuery = GetEntityQuery<MobStateComponent>();
         _visualsQuery = GetEntityQuery<HitscanBasicVisualsComponent>();
+        _upgradeQuery = GetEntityQuery<FSWeaponUpgradeStateComponent>();
         SubscribeLocalEvent<FSXrayRaycastComponent, HitscanTraceEvent>(OnTrace);
     }
 
@@ -42,13 +45,37 @@ public sealed class FSXrayRaycastSystem : EntitySystem
 
         var isFriendly = args.Shooter != null && _ffQuery.HasComponent(args.Shooter.Value);
 
+        var pierceCount = 0;
+        if (_upgradeQuery.TryGetComponent(args.Gun, out var upgradeState))
+            pierceCount = (int) Math.Round(upgradeState.PierceThreshold.Float());
+
         // Iterate all ray hits; skip non-mobs (walls, tables) and friendly players.
+        // With pierce upgrades, damage intermediate targets and continue to the next one.
         RayCastResults? hit = null;
         var totalDist = ent.Comp.MaxDistance;
         foreach (var r in results)
         {
             if (!_mobQuery.HasComponent(r.HitEntity)) continue;
             if (isFriendly && _ffQuery.HasComponent(r.HitEntity)) continue;
+
+            if (pierceCount > 0)
+            {
+                var pierceHitEvent = new HitscanRaycastFiredEvent
+                {
+                    Data = new HitscanRaycastFiredData
+                    {
+                        ShotDirection = args.ShotDirection,
+                        Gun = args.Gun,
+                        Shooter = args.Shooter,
+                        HitEntity = r.HitEntity,
+                    }
+                };
+                RaiseLocalEvent(ent, ref pierceHitEvent);
+                totalDist = r.Distance;
+                pierceCount--;
+                continue;
+            }
+
             hit = r;
             totalDist = r.Distance;
             break;

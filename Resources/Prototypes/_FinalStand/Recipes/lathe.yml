@@ -21,3 +21,10 @@
     Steel: 1000
     Plastic: 600
     Gold: 300
+
+- type: latheRecipe
+  parent: BaseAmmoBoxRecipe
+  id: FSBoxDoubleBarrel
+  result: FSBoxDoubleBarrel
+  materials:
+    Steel: 320

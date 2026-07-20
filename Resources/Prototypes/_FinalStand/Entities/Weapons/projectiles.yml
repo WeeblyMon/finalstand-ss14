@@ -240,23 +240,6 @@
     totalIntensity: 10
     canCreateVacuum: false
 
-# ── Cluster Barrage mini-grenade — spawned on Hydra detonation ────────────────
-- type: entity
-  parent: FSBulletGrenadeFrag
-  id: FSBulletGrenadeFragMini
-  categories: [ HideSpawnMenu ]
-  removeComponents:
-  - FSClusterBarrageTag
-  components:
-  - type: Explosive
-    explosionType: FSGrenadeExplosion
-    maxIntensity: 1.5
-    intensitySlope: 3
-    totalIntensity: 4
-    canCreateVacuum: false
-  - type: TimedDespawn
-    lifetime: 3
-
 # ── RPG rocket projectile — FSRocketExplosion blocks struct/player damage ──────
 - type: entity
   parent: BulletRocket
