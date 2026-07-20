@@ -785,8 +785,7 @@ public sealed partial class NPCSteeringSystem
         foreach (var ent in ents)
         {
             if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
-            if (!_physicsQuery.HasComponent(ent)) continue;
-            if (TryComp<MobStateComponent>(ent, out var ms) && ms.CurrentState == MobState.Dead) continue;
+            if (!TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState == MobState.Dead) continue;
 
             var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
             var toEnt = entPos - worldPos;

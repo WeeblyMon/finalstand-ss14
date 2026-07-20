@@ -12,9 +12,6 @@ public sealed partial class FSSetBreachTargetOperator : HTNOperator
 {
     [Dependency] private readonly IEntityManager _entManager = default!;
 
-    private const float GoldenStride = 2.399963f;
-    private const float ApproachRadius = 0.85f;
-
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(
         NPCBlackboard blackboard, CancellationToken cancelToken)
     {
@@ -22,14 +19,10 @@ public sealed partial class FSSetBreachTargetOperator : HTNOperator
             || !_entManager.EntityExists(target))
             return (false, null);
 
-        var self = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
-        var angle = ((int)self * GoldenStride) % MathF.Tau;
-        var offset = new Vector2(MathF.Cos(angle) * ApproachRadius, MathF.Sin(angle) * ApproachRadius);
-
         return (true, new Dictionary<string, object>
         {
             { "Target", target },
-            { "TargetCoordinates", new EntityCoordinates(target, offset) },
+            { "TargetCoordinates", new EntityCoordinates(target, Vector2.Zero) },
         });
     }
 }
