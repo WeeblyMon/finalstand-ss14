@@ -166,3 +166,8 @@
   parent: [ PartSkeletonBase, BaseRightFoot ]
   id: RightFootSkeleton
   name: "right skeleton foot"
+
+- type: entity
+  parent: ChestSkeleton
+  id: TorsoSkeleton
+  name: skeleton torso

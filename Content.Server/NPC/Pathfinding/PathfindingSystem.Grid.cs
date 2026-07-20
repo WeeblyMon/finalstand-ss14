@@ -449,6 +449,11 @@ public sealed partial class PathfindingSystem
                         continue;
                     }
 
+                    // Skip non-anchored entities (loose items, debris) — only structural
+                    // obstacles like walls, doors, and furniture should affect pathfinding.
+                    if (!xform.Anchored)
+                        continue;
+
                     tileEntities.Add(ent);
                 }
 

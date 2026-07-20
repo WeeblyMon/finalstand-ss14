@@ -15,6 +15,7 @@ public sealed partial class FSFlamethrowerComponent : Component
     [DataField] public int ParticlesPerBurst = 2;
     [DataField] public float FireProjectileSpeed = 10f;
     [DataField] public float WindupDuration = 0.6f;
+    [DataField] public float TrackingRotationSpeed = 1.2f; // radians per second
     [DataField] public SoundSpecifier FireLoopSound =
         new SoundPathSpecifier("/Audio/_FinalStand/Mobs/Flamethrower/fire_loop.ogg")
         {

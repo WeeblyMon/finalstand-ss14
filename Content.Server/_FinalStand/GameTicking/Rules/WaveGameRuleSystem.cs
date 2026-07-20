@@ -519,9 +519,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private static float GetHpMultiplier(int wave)
     {
         if (wave < 10) return 1f;
-        if (wave < 20) return 2.2f;
-        if (wave < 30) return 4.2f;
-        return 6.6f;
+        if (wave < 20) return 2.8f;
+        if (wave < 30) return 5.5f;
+        return 9f;
     }
 
     private void ScaleEnemySpeed(EntityUid enemy, int wave)
@@ -529,14 +529,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (wave <= 1) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
-        const float MaxSpeedMultiplier = 2.0f;
+        const float MaxSpeedMultiplier = 2.5f;
         var multiplier = Math.Min(1f + (wave - 1) * 0.0096f, MaxSpeedMultiplier);
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 
     private void ScaleEnemyDamage(EntityUid enemy, int wave, int playerCount)
     {
-        var multiplier = MathF.Min(1f + wave * (0.03f + (playerCount - 1) * 0.006f), 3.0f);
+        var multiplier = MathF.Min(1f + wave * (0.035f + (playerCount - 1) * 0.007f), 3.5f);
         if (multiplier <= 1f)
             return;
 
@@ -719,6 +719,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             if (!GameTicker.IsGameRuleActive(uid, gr)) continue;
             if (comp.Phase != WavePhase.Prep) continue;
+            if (comp.VoteCountdownActive) return;
             comp.PhaseEndTime -= TimeSpan.FromSeconds(seconds);
             if (comp.PhaseEndTime < Timing.CurTime)
                 comp.PhaseEndTime = Timing.CurTime;

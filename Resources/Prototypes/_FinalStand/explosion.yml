@@ -53,6 +53,20 @@
   temperature: 1200
 
 - type: explosion
+  id: FSReflectedExplosion
+  damagePerIntensity:
+    types:
+      Blunt: 15
+      Heat: 10
+  tileBreakChance: [0, 0, 0]
+  tileBreakIntensity: [0, 0, 0]
+  tileBreakRerollReduction: 0
+  lightColor: Orange
+  texturePath: /Textures/Effects/fire.rsi
+  fireStates: 3
+  temperature: 1200
+
+- type: explosion
   id: FSPulseCascadeExplosion
   damagePerIntensity:
     types:

@@ -6,7 +6,7 @@ namespace Content.Shared._FinalStand.Mobs;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class FSArmouredDeflectComponent : Component
 {
-    [DataField] public float DeflectChance = 0.01f;
+    [DataField] public float DeflectChance = 0.06f;
 
     [DataField]
     public SoundSpecifier DeflectSound =

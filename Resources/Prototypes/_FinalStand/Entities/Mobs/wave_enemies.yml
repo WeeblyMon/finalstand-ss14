@@ -71,6 +71,7 @@
     stunTime: 0.3
     decay: 45
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
   - type: FSWaveDamageScale
   - type: ConveyorImmune
   - type: ContainmentFieldImmune
@@ -361,6 +362,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
   - type: Fixtures
     fixtures:
       fix1:
@@ -389,6 +392,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobXenoDrone
@@ -406,6 +411,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobXenoPraetorian
@@ -423,6 +430,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobSpiderSpace
@@ -440,6 +449,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobFleshJared
@@ -457,6 +468,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobHivebotRanged
@@ -474,6 +487,8 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale
 
 - type: entity
   id: FSMobSyndicateFootsoldier
@@ -491,3 +506,5 @@
       NavInteract: !type:Bool
         false
   - type: WaveSpawnedTag
+  - type: IgnoreSlowOnDamage
+  - type: FSWaveDamageScale

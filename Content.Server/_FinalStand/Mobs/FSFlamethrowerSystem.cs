@@ -87,6 +87,7 @@ public sealed class FSFlamethrowerSystem : EntitySystem
         {
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
+            if (TryComp<MobStateComponent>(targetUid, out var targetMobState) && targetMobState.CurrentState != MobState.Alive) continue;
             if (!_examine.InRangeUnOccluded(uid, targetUid, comp.FlameRange, null)) continue;
             var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
             if (dist < nearestDist)
@@ -137,6 +138,8 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             return;
         }
 
+        TrackNearestPlayer(uid, comp, frameTime);
+
         comp.WindupAccumulator += frameTime;
         if (comp.WindupAccumulator < comp.WindupDuration)
             return;
@@ -169,6 +172,8 @@ public sealed class FSFlamethrowerSystem : EntitySystem
             return;
         }
 
+        TrackNearestPlayer(uid, comp, frameTime);
+
         comp.FireAccumulator += frameTime;
 
         comp.ParticleAccumulator += frameTime;
@@ -180,6 +185,45 @@ public sealed class FSFlamethrowerSystem : EntitySystem
 
         if (comp.FireAccumulator >= comp.AttackDuration)
             StopFiring(uid, comp);
+    }
+
+    private void TrackNearestPlayer(EntityUid uid, FSFlamethrowerComponent comp, float frameTime)
+    {
+        var worldPos = _transform.GetWorldPosition(uid);
+        var myMap = Transform(uid).MapID;
+
+        EntityUid? nearest = null;
+        var nearestDist = float.MaxValue;
+
+        var query = EntityQueryEnumerator<ActorComponent, TransformComponent>();
+        while (query.MoveNext(out var targetUid, out _, out var targetXform))
+        {
+            if (targetXform.MapID != myMap) continue;
+            if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
+            if (HasComp<GhostComponent>(targetUid)) continue;
+            if (TryComp<MobStateComponent>(targetUid, out var ms) && ms.CurrentState != MobState.Alive) continue;
+            var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetXform));
+            if (dist > comp.FlameRange || dist >= nearestDist) continue;
+            nearestDist = dist;
+            nearest = targetUid;
+        }
+
+        if (nearest == null)
+            return;
+
+        var toTarget = Vector2.Normalize(_transform.GetWorldPosition(nearest.Value) - worldPos);
+        var currentAngle = MathF.Atan2(comp.FiringDirection.Y, comp.FiringDirection.X);
+        var targetAngle = MathF.Atan2(toTarget.Y, toTarget.X);
+
+        var delta = targetAngle - currentAngle;
+        while (delta > MathF.PI) delta -= MathF.Tau;
+        while (delta < -MathF.PI) delta += MathF.Tau;
+        var maxStep = comp.TrackingRotationSpeed * frameTime;
+        var step = Math.Clamp(delta, -maxStep, maxStep);
+        var newAngle = currentAngle + step;
+
+        comp.FiringDirection = new Vector2(MathF.Cos(newAngle), MathF.Sin(newAngle));
+        _transform.SetLocalRotation(uid, new Angle(comp.FiringDirection) - MathF.PI / 2f);
     }
 
     private void SpawnFireBurst(EntityUid uid, FSFlamethrowerComponent comp)

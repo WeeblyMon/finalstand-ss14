@@ -50,6 +50,27 @@ public abstract class SharedExplosionSystem : EntitySystem
     {
     }
 
+    public void SetExplosionType(EntityUid uid, ProtoId<ExplosionPrototype> type, ExplosiveComponent? explosive = null)
+    {
+        if (!Resolve(uid, ref explosive))
+            return;
+        explosive.ExplosionType = type;
+    }
+
+    public void SetTotalIntensity(EntityUid uid, float value, ExplosiveComponent? explosive = null)
+    {
+        if (!Resolve(uid, ref explosive))
+            return;
+        explosive.TotalIntensity = value;
+    }
+
+    public void SetMaxIntensity(EntityUid uid, float value, ExplosiveComponent? explosive = null)
+    {
+        if (!Resolve(uid, ref explosive))
+            return;
+        explosive.MaxIntensity = value;
+    }
+
     /// <summary>
     /// Queue an explosion centered on some entity. Bypasses needing <see cref="ExplosiveComponent"/>.
     /// </summary>
