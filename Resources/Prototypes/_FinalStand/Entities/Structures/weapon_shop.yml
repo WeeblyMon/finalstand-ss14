@@ -331,6 +331,13 @@
       baseCost: 2700
       type: MagazineSize
       valuePerLevel: 15.0
+    - id: advlaser-amplifier
+      name: Beam Amplifier
+      description: Boosts beam output by 20% per level.
+      maxLevel: 3
+      baseCost: 2700
+      type: Damage
+      valuePerLevel: 0.2
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/advancedlasergun.rsi
     state: base
