@@ -4,12 +4,9 @@ using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
-using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Movement.Systems;
-using Content.Shared.Weapons.Melee;
-using Content.Shared.Weapons.Melee.Events;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -25,15 +22,12 @@ public sealed class FSRampageSystem : EntitySystem
 
     private static readonly TimeSpan StackDecayInterval = TimeSpan.FromSeconds(2);
 
-    private readonly Dictionary<EntityUid, EntityUid> _lastMeleeHitter = new();
     private TimeSpan _nextDecayTick;
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<MeleeWeaponComponent, MeleeHitEvent>(OnMeleeHit);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     public override void Update(float frameTime)
@@ -55,7 +49,6 @@ public sealed class FSRampageSystem : EntitySystem
                 _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
         }
 
-        // Regen tick for all active rampage minds.
         var regenQuery = EntityQueryEnumerator<FSRampageComponent, FSAugmentLevelsComponent>();
         while (regenQuery.MoveNext(out var mindId, out var ramp, out var augs))
         {
@@ -68,23 +61,13 @@ public sealed class FSRampageSystem : EntitySystem
         }
     }
 
-    private void OnMeleeHit(EntityUid weapon, MeleeWeaponComponent _, MeleeHitEvent args)
-    {
-        foreach (var hit in args.HitEntities)
-        {
-            if (!HasComp<FSZombieVisualsComponent>(hit)) continue;
-            _lastMeleeHitter[hit] = args.User;
-        }
-    }
-
     private void OnMobStateChanged(MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
         if (!HasComp<FSZombieVisualsComponent>(args.Target)) return;
-        if (!_lastMeleeHitter.TryGetValue(args.Target, out var attacker)) return;
-        _lastMeleeHitter.Remove(args.Target);
+        if (args.Origin == null) return;
 
-        if (!_mind.TryGetMind(attacker, out var mindId, out _)) return;
+        if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
         if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
         var level = augs.GetSlottedLevel("Rampage");
         if (level <= 0) return;
@@ -96,11 +79,6 @@ public sealed class FSRampageSystem : EntitySystem
 
         if (TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity.HasValue)
             _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
-    }
-
-    private void OnRoundRestart(RoundRestartCleanupEvent _)
-    {
-        _lastMeleeHitter.Clear();
     }
 
     private void SendStacksUpdate(EntityUid mindId, int stacks)
