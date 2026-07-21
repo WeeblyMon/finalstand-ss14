@@ -30,7 +30,7 @@ public sealed partial class AugmentShopWindow : FancyWindow
 
     private static readonly TextureLoadParameters LinearParams = new()
     {
-        SampleParameters = new TextureSampleParameters { Filter = true },
+        SampleParameters = new TextureSampleParameters { Filter = true, Mipmap = true },
     };
     private readonly Dictionary<string, OwnedTexture> _iconCache = new();
 
@@ -98,7 +98,7 @@ public sealed partial class AugmentShopWindow : FancyWindow
         LayoutContainer.SetAnchorPreset(SelectedIconLevelBg, LayoutContainer.LayoutPreset.Wide);
         LayoutContainer.SetAnchorPreset(SelectedAugmentIcon, LayoutContainer.LayoutPreset.Wide);
 
-        ShopTabs.SetTabTitle(0, "Augments");
+        ShopTabs.SetTabTitle(0, "Perks");
         ShopTabs.SetTabTitle(1, "Prestige");
 
         FilterAll.OnPressed    += _ => SetFilter(null);
@@ -613,7 +613,7 @@ public sealed partial class AugmentShopWindow : FancyWindow
         });
         vbox.AddChild(new Label
         {
-            Text     = "Augments and points are kept.",
+            Text     = "Perks and points are kept.",
             Margin   = new Thickness(0, 0, 0, 4),
         });
         vbox.AddChild(new Label

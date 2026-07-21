@@ -51,7 +51,7 @@ public sealed class FSAugmentShopIndicatorOverlay : Overlay
             var worldPos  = _xformSys.GetWorldPosition(xform);
             var screenPos = Vector2.Transform(worldPos, matrix);
 
-            const string label = "AUGMENTS";
+            const string label = "PERKS";
             const string arrow = "▼";
             const float  o     = 1f;
 

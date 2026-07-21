@@ -1,7 +1,6 @@
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
-using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
@@ -28,8 +27,7 @@ public sealed class CritSystem : EntitySystem
     {
         var weaponCrit = TryComp<CritComponent>(gun, out var critComp) ? critComp.BaseCritChance : 0f;
         var upgradeCrit = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState) ? upgradeState.CritChance : 0f;
-        var perkCrit = TryComp<PerkComponent>(shooter, out var perks) ? perks.PerkCritChanceContribution : 0f;
-        return MathF.Min(1f - (1f - weaponCrit) * (1f - upgradeCrit) * (1f - perkCrit), 1f);
+        return MathF.Min(1f - (1f - weaponCrit) * (1f - upgradeCrit), 1f);
     }
 
     public float CalculateCritMultiplier(EntityUid shooter, EntityUid gun)

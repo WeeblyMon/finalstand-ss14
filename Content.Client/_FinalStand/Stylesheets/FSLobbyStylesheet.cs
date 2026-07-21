@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client.Resources;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;

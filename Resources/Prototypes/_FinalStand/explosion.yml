@@ -79,3 +79,17 @@
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
   temperature: 0
+
+- type: explosion
+  id: FSMartyrExplosion
+  damagePerIntensity:
+    types:
+      Blunt: 8
+  tileBreakChance: [0, 0, 0]
+  tileBreakIntensity: [0, 0, 0]
+  tileBreakRerollReduction: 0
+  lightColor: "#8B0000"
+  fireColor: "#660000"
+  texturePath: /Textures/Effects/fire_greyscale.rsi
+  fireStates: 3
+  temperature: 0

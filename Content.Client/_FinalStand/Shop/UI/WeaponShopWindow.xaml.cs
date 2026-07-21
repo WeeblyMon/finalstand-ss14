@@ -2,7 +2,6 @@ using Content.Client._FinalStand.Augments;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Grenades;
-using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
@@ -30,7 +29,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
     public event Action? OnBuyPressed;
     public event Action<string>? OnUpgradePressed;
-    public event Action<string>? OnBuyPerkPressed;
     public event Action? OnSellConfirmed;
 
     private int _price;
@@ -194,7 +192,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var shopClient = _entityManager.System<FSShopClientSystem>();
         BuildStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), entMan);
         RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
-        RefreshPerks(shopEntity, entMan, shopClient.CurrentCredits);
         UpdateBalance(shopClient.CurrentCredits);
     }
 
@@ -263,32 +260,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         }
         UpgradeCounterLabel.Text = $"{totalPurchased} / {totalMax}";
         UpgradeCounterLabel.Modulate = Color.FromHex("#8FA1B3");
-    }
-
-    public void RefreshPerks(EntityUid shopEntity, IEntityManager entMan, int credits)
-    {
-        PerksContainer.RemoveAllChildren();
-
-        if (!entMan.TryGetComponent<FSShopPerksComponent>(shopEntity, out var perksComp)
-            || perksComp.Perks.Count == 0)
-        {
-            PerksSection.Visible = false;
-            return;
-        }
-
-        PerksSection.Visible = true;
-
-        var localPlayer = IoCManager.Resolve<Robust.Client.Player.IPlayerManager>().LocalSession?.AttachedEntity;
-        List<PerkType> activePerks = [];
-        if (localPlayer != null && entMan.TryGetComponent<PerkComponent>(localPlayer.Value, out var perkComp))
-            activePerks = perkComp.ActivePerks;
-
-        foreach (var protoId in perksComp.Perks)
-        {
-            if (!_proto.TryIndex<PerkPrototype>(protoId, out var perkDef))
-                continue;
-            PerksContainer.AddChild(BuildPerkRow(perkDef, activePerks, credits));
-        }
     }
 
     // ── stat bar construction ──────────────────────────────────────────────────
@@ -929,56 +900,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         BorderColor = border,
         BorderThickness = new Thickness(1),
     };
-
-    private BoxContainer BuildPerkRow(PerkPrototype perkDef, List<PerkType> activePerks, int credits)
-    {
-        var row = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            Margin = new Thickness(0, 0, 0, 6),
-        };
-
-        var isActive = activePerks.Contains(perkDef.PerkType);
-        var canAfford = credits >= perkDef.Cost;
-
-        var btn = new Button
-        {
-            Text = perkDef.Name,
-            MinWidth = 130,
-            Disabled = perkDef.IsLocked || isActive || !canAfford,
-            ToolTip = perkDef.Description,
-        };
-        btn.Modulate = Color.FromHex("#C5E1A5");
-        btn.OnPressed += _ => OnBuyPerkPressed?.Invoke(perkDef.ID);
-        row.AddChild(btn);
-
-        if (perkDef.IsLocked)
-        {
-            btn.Disabled = true;
-            row.AddChild(new Label
-            {
-                Text = "SOON",
-                Modulate = Color.FromHex("#888888"),
-                HorizontalExpand = true,
-                HorizontalAlignment = HAlignment.Right,
-            });
-            return row;
-        }
-
-        var statusLabel = new Label { HorizontalExpand = true, HorizontalAlignment = HAlignment.Right };
-        if (isActive)
-        {
-            statusLabel.Text = "ACTIVE";
-            statusLabel.Modulate = Color.FromHex("#69F0AE");
-        }
-        else
-        {
-            statusLabel.Text = $"${perkDef.Cost:N0}";
-            statusLabel.Modulate = canAfford ? Color.FromHex("#EBCB8B") : Color.FromHex("#BF616A");
-        }
-        row.AddChild(statusLabel);
-        return row;
-    }
 
     // ── helpers ────────────────────────────────────────────────────────────────
 

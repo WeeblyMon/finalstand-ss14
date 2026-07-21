@@ -1,6 +1,6 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
-                      Title="Augment Shop"
+                      Title="Perk Shop"
                       Resizable="False"
                       SetSize="860 640"
                       MinSize="860 640">
@@ -85,7 +85,7 @@
                     <Button Name="FilterPurple" Text="Hybrid"  HorizontalExpand="True" ToggleMode="True" />
                 </BoxContainer>
 
-                <LineEdit Name="SearchBar" PlaceHolder="Search augments..." Margin="0 0 0 6" />
+                <LineEdit Name="SearchBar" PlaceHolder="Search perks..." Margin="0 0 0 6" />
 
                 <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
                     <BoxContainer Name="AugmentGrid" Orientation="Vertical" HorizontalExpand="True" />

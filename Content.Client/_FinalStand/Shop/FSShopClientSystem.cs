@@ -1,5 +1,4 @@
 using Content.Shared._FinalStand.Economy;
-using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
@@ -36,7 +35,6 @@ public sealed class FSShopClientSystem : EntitySystem
     public event Action? CreditsChanged;
     public event Action? UpgradeLevelsChanged;
     public event Action? RefreshNeeded;
-    public event Action? PerkStateChanged;
     public event Action? SellCompleted;
     public event Action<string>? SellFailed;
 
@@ -47,8 +45,6 @@ public sealed class FSShopClientSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<UpgradeLevelsUpdatedEvent>(OnUpgradesUpdated);
-        SubscribeNetworkEvent<PerkAddedEvent>(OnPerkAdded);
-        SubscribeNetworkEvent<PerkRemovedAllEvent>(OnPerkRemovedAll);
         SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
@@ -129,23 +125,6 @@ public sealed class FSShopClientSystem : EntitySystem
         UpgradeLevels = ev.Levels;
         WeaponTitle = ev.WeaponTitle;
         UpgradeLevelsChanged?.Invoke();
-    }
-
-    private void OnPerkAdded(PerkAddedEvent ev)
-    {
-        // Only fire for the local player so other players' purchases don't trigger a refresh
-        var localEntity = _player.LocalSession?.AttachedEntity;
-        if (localEntity == null)
-            return;
-        PerkStateChanged?.Invoke();
-    }
-
-    private void OnPerkRemovedAll(PerkRemovedAllEvent ev)
-    {
-        var localEntity = _player.LocalSession?.AttachedEntity;
-        if (localEntity == null)
-            return;
-        PerkStateChanged?.Invoke();
     }
 
     private void OnJoined(object? _, PlayerEventArgs __)

@@ -140,6 +140,20 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
         {
             args.Damage *= 1f - snsLevel * 0.12f;
         }
+
+        // Glass Cannon: doubles all incoming damage.
+        if (augs.GetSlottedLevel("GlassCannon") > 0)
+            args.Damage *= 2.0f;
+
+        // Pacifist: high incoming damage resistance.
+        var pacifistLevel = augs.GetSlottedLevel("Pacifist");
+        if (pacifistLevel > 0)
+            args.Damage *= 1f - pacifistLevel * 0.20f;
+
+        // Rampage: stacks-based incoming damage resistance.
+        var rampLevel = augs.GetSlottedLevel("Rampage");
+        if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
+            args.Damage *= Math.Max(0f, 1f - ramp.Stacks * rampLevel * 0.03f);
     }
 
     private bool TryGetHeldWielderBuff(EntityUid uid, HandsComponent hands, out FSWeaponUpgradeStateComponent? state)

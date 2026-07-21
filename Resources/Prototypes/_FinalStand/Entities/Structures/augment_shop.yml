@@ -1,7 +1,7 @@
 - type: entity
   id: FSAugmentShop
-  name: Augment Machine
-  description: Upgrade your combat capabilities with cybernetic augmentations.
+  name: Perk Machine
+  description: Unlock and upgrade perks to enhance your combat capabilities.
   placement:
     mode: SnapgridCenter
   components:

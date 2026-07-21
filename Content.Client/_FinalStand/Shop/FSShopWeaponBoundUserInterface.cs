@@ -13,7 +13,6 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private Action? _onCreditsChanged;
     private Action? _onUpgradesChanged;
     private Action? _onRefreshNeeded;
-    private Action? _onPerkStateChanged;
     private Action? _onSellCompleted;
     private Action<string>? _onSellFailed;
 
@@ -25,7 +24,6 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _window = this.CreateWindowCenteredLeft<WeaponShopWindow>();
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnUpgradePressed += OnUpgradePressed;
-        _window.OnBuyPerkPressed += OnBuyPerkPressed;
         _window.OnSellConfirmed += OnSellConfirmed;
         _window.OnClose += Close;
         _window.Populate(Owner, EntMan);
@@ -34,13 +32,11 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _onCreditsChanged  = OnCreditsChanged;
         _onUpgradesChanged = OnUpgradesChanged;
         _onRefreshNeeded   = OnRefreshNeeded;
-        _onPerkStateChanged = OnPerkStateChanged;
         _onSellCompleted = OnSellCompleted;
         _onSellFailed = OnSellFailed;
         shopClient.CreditsChanged       += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
         shopClient.RefreshNeeded        += _onRefreshNeeded;
-        shopClient.PerkStateChanged     += _onPerkStateChanged;
         shopClient.SellCompleted        += _onSellCompleted;
         shopClient.SellFailed           += _onSellFailed;
 
@@ -55,11 +51,6 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     private void OnUpgradePressed(string upgradeId)
     {
         SendPredictedMessage(new FSShopUpgradeMessage(upgradeId));
-    }
-
-    private void OnBuyPerkPressed(string perkProtoId)
-    {
-        SendPredictedMessage(new FSShopBuyPerkMessage(perkProtoId));
     }
 
     private void OnSellConfirmed()
@@ -113,7 +104,6 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
         _window.UpdateBalance(shopClient.CurrentCredits);
-        _window.RefreshPerks(Owner, EntMan, shopClient.CurrentCredits);
         UpdateSellButtonState();
     }
 
@@ -130,14 +120,6 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         UpdateSellButtonState();
     }
 
-    private void OnPerkStateChanged()
-    {
-        if (_window == null)
-            return;
-        var shopClient = EntMan.System<FSShopClientSystem>();
-        _window.RefreshPerks(Owner, EntMan, shopClient.CurrentCredits);
-    }
-
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
@@ -145,18 +127,16 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
 
         var shopClient = EntMan.System<FSShopClientSystem>();
-        if (_onCreditsChanged   != null) shopClient.CreditsChanged       -= _onCreditsChanged;
-        if (_onUpgradesChanged  != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
-        if (_onRefreshNeeded    != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
-        if (_onPerkStateChanged != null) shopClient.PerkStateChanged     -= _onPerkStateChanged;
-        if (_onSellCompleted    != null) shopClient.SellCompleted        -= _onSellCompleted;
-        if (_onSellFailed       != null) shopClient.SellFailed           -= _onSellFailed;
+        if (_onCreditsChanged  != null) shopClient.CreditsChanged       -= _onCreditsChanged;
+        if (_onUpgradesChanged != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
+        if (_onRefreshNeeded   != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
+        if (_onSellCompleted   != null) shopClient.SellCompleted        -= _onSellCompleted;
+        if (_onSellFailed      != null) shopClient.SellFailed           -= _onSellFailed;
 
         if (_window == null)
             return;
         _window.OnBuyPressed     -= OnBuyPressed;
         _window.OnUpgradePressed -= OnUpgradePressed;
-        _window.OnBuyPerkPressed -= OnBuyPerkPressed;
         _window.OnSellConfirmed  -= OnSellConfirmed;
         _window.OnClose          -= Close;
         _window.Dispose();

@@ -627,24 +627,3 @@
     sprite: Objects/Weapons/Guns/SMGs/c20r.rsi
     state: base
     scale: 1,1
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-- type: entity
-  id: FSPerkShop
-  parent: FSWeaponShopBase
-  name: Perk Shop
-  description: Purchase powerful perks to survive the onslaught.
-  components:
-  - type: FSShopWeapon
-  - type: FSShopPerks
-    perks:
-    - FSPerkJuggernog
-    - FSPerkSpeedCola
-    - FSPerkDoubleTap
-    - FSPerkStaminUp
-    - FSPerkQuickRevive
-  - type: Sprite
-    sprite: Structures/Machines/arcade.rsi
-    state: icon
-    scale: 1,1

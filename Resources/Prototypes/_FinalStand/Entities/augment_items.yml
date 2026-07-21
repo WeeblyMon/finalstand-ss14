@@ -1,0 +1,12 @@
+- type: entity
+  parent: BaseWhistle
+  id: FSOfficerWhistle
+  name: officer's whistle
+  description: A shrill whistle that rallies nearby allies, boosting their combat effectiveness.
+  components:
+  - type: Item
+    sprite: Objects/Fun/whistles.rsi
+    size: Tiny
+  - type: UseDelay
+    delay: 8
+  - type: FSOfficerWhistle

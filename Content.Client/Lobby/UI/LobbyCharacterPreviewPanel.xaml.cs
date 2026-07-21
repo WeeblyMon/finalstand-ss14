@@ -70,7 +70,7 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
 
     public void SetAugmentPointsText(int augmentPoints)
     {
-        PerkPointsLabel.Text = $"Augment Points: {augmentPoints:N0}";
+        PerkPointsLabel.Text = $"Perk Points: {augmentPoints:N0}";
     }
 
     // FINALSTAND: leveling display

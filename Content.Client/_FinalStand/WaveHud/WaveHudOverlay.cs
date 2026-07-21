@@ -42,6 +42,7 @@ public sealed class WaveHudOverlay : Overlay
     public int EnemiesTotal   = 0;
     public string[] ActiveSlots  = Array.Empty<string>();
     public Dictionary<string, int> AugmentLevels = new();
+    public Dictionary<string, int> AugmentStacks = new();
     public float PrepSecondsRemaining = -1f;
     public bool IsPrepPhase = false;
 
@@ -64,7 +65,7 @@ public sealed class WaveHudOverlay : Overlay
 
     private static readonly TextureLoadParameters LinearParams = new()
     {
-        SampleParameters = new TextureSampleParameters { Filter = true },
+        SampleParameters = new TextureSampleParameters { Filter = true, Mipmap = true },
     };
 
     private readonly Dictionary<string, Texture?> _augIconCache = new();
@@ -114,7 +115,7 @@ public sealed class WaveHudOverlay : Overlay
         var iconGap = MathF.Round(9f * s);
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
-        var augIconSz = MathF.Round(29f * s);
+        var augIconSz = MathF.Round(32f * s);
         var augGap = MathF.Round(3f * s);
         var panelW = MathF.Round(205f * s);
 
@@ -221,7 +222,7 @@ public sealed class WaveHudOverlay : Overlay
         // ── Augments ─────────────────────────────────────────────────────────
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
         var augLabelY = y + sepH + rowPad;
-        screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "AUGMENTS", muted);
+        screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "PERKS", muted);
         var augIconsY = augLabelY + labelH + 4f;
 
         _augCells.Clear();
@@ -235,6 +236,18 @@ public sealed class WaveHudOverlay : Overlay
             {
                 var tex = GetAugmentIcon(id);
                 if (tex != null) screen.DrawTextureRect(tex, cell);
+
+                if (AugmentStacks.TryGetValue(id, out var stacks) && stacks > 0)
+                {
+                    var stackStr = stacks.ToString();
+                    var stackDim = screen.GetDimensions(_labelFont!, stackStr, 1f);
+                    var badgeW = Math.Max(stackDim.Y, stackDim.X + 3f);
+                    var badgeBox = new UIBox2(cell.Right - badgeW, cell.Bottom - stackDim.Y, cell.Right, cell.Bottom);
+                    screen.DrawRect(badgeBox, Color.FromHex("#CC000099"));
+                    screen.DrawString(_labelFont!,
+                        new Vector2(badgeBox.Left + (badgeW - stackDim.X) / 2f, badgeBox.Top),
+                        stackStr, Color.White);
+                }
             }
             ix += augIconSz + augGap;
         }

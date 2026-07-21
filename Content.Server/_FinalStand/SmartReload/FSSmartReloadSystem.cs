@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Server._FinalStand.Grenades;
-using Content.Server._FinalStand.Perks;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
@@ -43,7 +42,6 @@ public sealed class FSSmartReloadSystem : EntitySystem
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly PerkSystem _perks = default!;
     [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
@@ -937,7 +935,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
 
     private float GetReloadMultiplier(EntityUid user, EntityUid gun)
     {
-        var mult = _perks.GetReloadMultiplier(user);
+        var mult = 1.0f;
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
             mult *= state.ReloadSpeedMultiplier;
         return mult;

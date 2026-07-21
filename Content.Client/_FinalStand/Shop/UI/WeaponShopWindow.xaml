@@ -39,15 +39,6 @@
                     </BoxContainer>
                 </PanelContainer>
 
-                <!-- Perks section -->
-                <PanelContainer Name="PerksSection" Margin="0 8 0 0">
-                    <BoxContainer Orientation="Vertical" Margin="8">
-                        <Label Text="PERKS" Modulate="#7EB8D4" Margin="0 0 0 6" />
-                        <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
-                        <BoxContainer Name="PerksContainer" Orientation="Vertical" HorizontalExpand="True" />
-                    </BoxContainer>
-                </PanelContainer>
-
             </BoxContainer>
 
             <!-- RIGHT: stats + buy -->

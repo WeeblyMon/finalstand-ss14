@@ -59,6 +59,9 @@
   id: FSWeaponDoubleBarrel
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponGunShotgun
   - type: BallisticAmmoProvider
     proto: FSShellDoubleBarrel
     whitelist:
@@ -233,6 +236,9 @@
   id: FSWeaponShotgunBlunderbuss
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponGunShotgun
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
     capacity: 1
@@ -244,6 +250,9 @@
   id: FSWeaponShotgunKammerer
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponGunShotgun
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
   - type: Crit
@@ -390,6 +399,7 @@
   - type: Tag
     tags:
     - AkimboEligible
+    - WeaponGunShotgun
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -411,6 +421,9 @@
   parent: WeaponShotgunHushpup
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunShotgun
   - type: BallisticAmmoProvider
     proto: FSShellShotgunHushpup
     capacity: 4
@@ -425,6 +438,9 @@
   parent: WeaponEnergyShotgun
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunShotgun
   - type: FSMuzzleFlashColor
     color: "#FF3300"
   - type: BatterySelfRecharger

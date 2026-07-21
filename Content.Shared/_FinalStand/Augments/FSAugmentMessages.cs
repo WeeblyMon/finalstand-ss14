@@ -15,6 +15,13 @@ public sealed class FSAugmentsStateEvent : EntityEventArgs
 public sealed class FSAugmentStateRequestMessage : EntityEventArgs { }
 
 [Serializable, NetSerializable]
+public sealed class FSAugmentStacksUpdateEvent : EntityEventArgs
+{
+    public string AugId = "";
+    public int Stacks;
+}
+
+[Serializable, NetSerializable]
 public sealed class FSBuyAugmentMessage : EntityEventArgs
 {
     public string AugmentId = "";

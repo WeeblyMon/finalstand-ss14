@@ -1524,6 +1524,12 @@
   id: WeaponAntiqueLaser # Storage whitelist: GlassBoxLaser
 
 - type: Tag
+  id: WeaponGunLauncher # FinalStand: marks a weapon as a launcher (RPG, grenade launcher) for augment checks.
+
+- type: Tag
+  id: WeaponGunShotgun # FinalStand: marks a weapon as a shotgun for KnockbackBlast augment.
+
+- type: Tag
   id: WeaponPistolCHIMPUpgradeKit # ConstructionGraph: UpgradeWeaponPistolCHIMP
 
 - type: Tag

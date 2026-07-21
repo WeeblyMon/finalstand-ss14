@@ -1,0 +1,112 @@
+using Content.Server._FinalStand.Augments;
+using Content.Shared._FinalStand.Augments;
+using Content.Shared._FinalStand.Visuals;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Systems;
+using Content.Shared.FixedPoint;
+using Content.Shared.GameTicking;
+using Content.Shared.Mind;
+using Content.Shared.Mobs;
+using Content.Shared.Movement.Systems;
+using Content.Shared.Weapons.Melee.Events;
+using Robust.Server.Player;
+using Robust.Shared.Player;
+using Robust.Shared.Timing;
+
+namespace Content.Server._FinalStand.Augments;
+
+public sealed class FSRampageSystem : EntitySystem
+{
+    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
+
+    private static readonly TimeSpan StackDecayInterval = TimeSpan.FromSeconds(2);
+
+    private readonly Dictionary<EntityUid, EntityUid> _lastMeleeHitter = new();
+    private TimeSpan _nextDecayTick;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<MeleeHitEvent>(OnMeleeHit);
+        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        var now = _timing.CurTime;
+        if (now < _nextDecayTick) return;
+        _nextDecayTick = now + TimeSpan.FromSeconds(1);
+
+        var query = EntityQueryEnumerator<FSRampageComponent>();
+        while (query.MoveNext(out var mindId, out var ramp))
+        {
+            if (ramp.Stacks <= 0) continue;
+            if (now - ramp.LastKillTime < StackDecayInterval) continue;
+
+            ramp.Stacks--;
+            SendStacksUpdate(mindId, ramp.Stacks);
+            if (TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity.HasValue)
+                _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
+        }
+
+        // Regen tick for all active rampage minds.
+        var regenQuery = EntityQueryEnumerator<FSRampageComponent, FSAugmentLevelsComponent>();
+        while (regenQuery.MoveNext(out var mindId, out var ramp, out var augs))
+        {
+            if (ramp.Stacks <= 0) continue;
+            var level = augs.GetSlottedLevel("Rampage");
+            if (level <= 0) continue;
+            if (!TryComp<MindComponent>(mindId, out var mind) || !mind.CurrentEntity.HasValue) continue;
+
+            _damageable.HealEvenly(mind.CurrentEntity.Value, FixedPoint2.New(-(ramp.Stacks * level * 0.2f)));
+        }
+    }
+
+    private void OnMeleeHit(MeleeHitEvent args)
+    {
+        foreach (var hit in args.HitEntities)
+        {
+            if (!HasComp<FSZombieVisualsComponent>(hit)) continue;
+            _lastMeleeHitter[hit] = args.User;
+        }
+    }
+
+    private void OnMobStateChanged(MobStateChangedEvent args)
+    {
+        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
+        if (!HasComp<FSZombieVisualsComponent>(args.Target)) return;
+        if (!_lastMeleeHitter.TryGetValue(args.Target, out var attacker)) return;
+        _lastMeleeHitter.Remove(args.Target);
+
+        if (!_mind.TryGetMind(attacker, out var mindId, out _)) return;
+        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
+        var level = augs.GetSlottedLevel("Rampage");
+        if (level <= 0) return;
+
+        var ramp = EnsureComp<FSRampageComponent>(mindId);
+        ramp.Stacks = Math.Min(5, ramp.Stacks + 1);
+        ramp.LastKillTime = _timing.CurTime;
+        SendStacksUpdate(mindId, ramp.Stacks);
+
+        if (TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity.HasValue)
+            _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent _)
+    {
+        _lastMeleeHitter.Clear();
+    }
+
+    private void SendStacksUpdate(EntityUid mindId, int stacks)
+    {
+        if (!TryComp<MindComponent>(mindId, out var mind) || !mind.CurrentEntity.HasValue) return;
+        if (!TryComp<ActorComponent>(mind.CurrentEntity.Value, out var actor)) return;
+        RaiseNetworkEvent(new FSAugmentStacksUpdateEvent { AugId = "Rampage", Stacks = stacks },
+            Filter.SinglePlayer(actor.PlayerSession));
+    }
+}

@@ -25,6 +25,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSPrepTimerUpdateEvent>(OnPrepTimer);
         SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
+        SubscribeNetworkEvent<FSAugmentStacksUpdateEvent>(OnAugmentStacksUpdate);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -110,5 +111,10 @@ public sealed class WaveHudSystem : EntitySystem
         overlay.ReadyUpCount         = ev.ReadyCount;
         overlay.ReadyUpTotal         = ev.TotalCount;
         overlay.ReadyUpPlayerIsReady = ev.PlayerIsReady;
+    }
+
+    private void OnAugmentStacksUpdate(FSAugmentStacksUpdateEvent ev)
+    {
+        EnsureOverlay().AugmentStacks[ev.AugId] = ev.Stacks;
     }
 }
