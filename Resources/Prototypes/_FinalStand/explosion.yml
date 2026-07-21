@@ -84,7 +84,7 @@
   id: FSMartyrExplosion
   damagePerIntensity:
     types:
-      Blunt: 8
+      Cellular: 15
   tileBreakChance: [0, 0, 0]
   tileBreakIntensity: [0, 0, 0]
   tileBreakRerollReduction: 0

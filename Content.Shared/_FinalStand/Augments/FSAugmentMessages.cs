@@ -54,3 +54,10 @@ public sealed class FSLoadLoadoutMessage : EntityEventArgs
 
 [Serializable, NetSerializable]
 public sealed class FSOpenAugmentShopEvent : EntityEventArgs { }
+
+[Serializable, NetSerializable]
+public sealed class FSInterestPayoutEvent : EntityEventArgs
+{
+    public string AugId = "";
+    public int Amount;
+}

@@ -26,6 +26,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSAugmentStacksUpdateEvent>(OnAugmentStacksUpdate);
+        SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -116,5 +117,10 @@ public sealed class WaveHudSystem : EntitySystem
     private void OnAugmentStacksUpdate(FSAugmentStacksUpdateEvent ev)
     {
         EnsureOverlay().AugmentStacks[ev.AugId] = ev.Stacks;
+    }
+
+    private void OnInterestPayout(FSInterestPayoutEvent ev)
+    {
+        EnsureOverlay().AddInterestPopup(ev.AugId, ev.Amount);
     }
 }

@@ -1,11 +1,12 @@
 using Content.Server._FinalStand.Augments;
 using Content.Shared._FinalStand.Augments;
 using Content.Shared._FinalStand.Visuals;
+using Content.Shared.Damage.Components;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
-using Content.Shared.Damage.Components;
-using Content.Shared.Mobs.Systems;
 using Content.Server.Damage.Systems;
+using Robust.Server.Player;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Augments;
@@ -34,9 +35,18 @@ public sealed class FSAdrenalineSystem : EntitySystem
             if (now >= adr.EndTime)
             {
                 RemComp<FSAdrenalineComponent>(uid);
+                SendTimerUpdate(uid, 0);
                 continue;
             }
+
             _stamina.TakeStaminaDamage(uid, -(stamina.CritThreshold * frameTime * 10f));
+
+            var secondsLeft = (int)Math.Ceiling((adr.EndTime - now).TotalSeconds);
+            if (secondsLeft != adr.LastSentSeconds)
+            {
+                adr.LastSentSeconds = secondsLeft;
+                SendTimerUpdate(uid, secondsLeft);
+            }
         }
     }
 
@@ -51,7 +61,22 @@ public sealed class FSAdrenalineSystem : EntitySystem
         var level = augs.GetSlottedLevel("Adrenaline");
         if (level <= 0) return;
 
+        var duration = TimeSpan.FromSeconds(Durations[level - 1]);
+        var newEnd = _timing.CurTime + duration;
+
         var adr = EnsureComp<FSAdrenalineComponent>(args.Origin.Value);
-        adr.EndTime = _timing.CurTime + TimeSpan.FromSeconds(Durations[level - 1]);
+        // Don't let kills stack duration beyond the base — only refresh if almost expired.
+        if (newEnd > adr.EndTime)
+        {
+            adr.EndTime = newEnd;
+            adr.LastSentSeconds = -1;
+        }
+    }
+
+    private void SendTimerUpdate(EntityUid bodyUid, int seconds)
+    {
+        if (!TryComp<ActorComponent>(bodyUid, out var actor)) return;
+        RaiseNetworkEvent(new FSAugmentStacksUpdateEvent { AugId = "Adrenaline", Stacks = seconds },
+            Filter.SinglePlayer(actor.PlayerSession));
     }
 }

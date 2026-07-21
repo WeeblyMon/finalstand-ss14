@@ -72,6 +72,16 @@ public sealed class WaveHudOverlay : Overlay
     // rebuilt each frame: augment cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
+    private readonly record struct InterestPopup(string AugId, int Amount, float Life, float TotalLife);
+    private readonly List<InterestPopup> _interestPopups = new();
+    private float _creditsRowY;
+
+    public void AddInterestPopup(string augId, int amount)
+    {
+        const float life = 2.5f;
+        _interestPopups.Add(new InterestPopup(augId, amount, life, life));
+    }
+
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     public WaveHudOverlay()
@@ -211,7 +221,34 @@ public sealed class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
+        _creditsRowY = y;
         y = DrawRow(_iconCredits, "CREDITS", $"${CurrentCredits:N0}", Color.White);
+
+        // ── Interest popups ───────────────────────────────────────────────────
+        for (var pi = 0; pi < _interestPopups.Count; pi++)
+        {
+            var p = _interestPopups[pi];
+            var t = p.Life / p.TotalLife;
+            var alpha = MathF.Min(1f, t * 3f); // fade in fast, fade out slow
+            var floatOffset = (1f - t) * 40f;  // float upward as it expires
+
+            var popupY = _creditsRowY - floatOffset;
+            var amtText = $"+${p.Amount:N0}";
+            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
+
+            var popupIconSz = augIconSz * 0.75f;
+            var totalW = popupIconSz + 4f + amtDim.X;
+            var popupX = panelX - totalW - 8f;
+
+            var tex = GetAugmentIcon(p.AugId);
+            if (tex != null)
+                screen.DrawTextureRect(tex,
+                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
+                    Color.White.WithAlpha(alpha));
+
+            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
+            screen.DrawString(_labelFont!, textPos, amtText, Color.FromHex("#FFD740").WithAlpha(alpha));
+        }
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
@@ -241,12 +278,14 @@ public sealed class WaveHudOverlay : Overlay
                 {
                     var stackStr = stacks.ToString();
                     var stackDim = screen.GetDimensions(_labelFont!, stackStr, 1f);
-                    var badgeW = Math.Max(stackDim.Y, stackDim.X + 3f);
-                    var badgeBox = new UIBox2(cell.Right - badgeW, cell.Bottom - stackDim.Y, cell.Right, cell.Bottom);
-                    screen.DrawRect(badgeBox, Color.FromHex("#CC000099"));
-                    screen.DrawString(_labelFont!,
-                        new Vector2(badgeBox.Left + (badgeW - stackDim.X) / 2f, badgeBox.Top),
-                        stackStr, Color.White);
+                    var tx = cell.Right - stackDim.X - 1f;
+                    var ty = cell.Bottom - stackDim.Y;
+                    var outline = new Color(0f, 0f, 0f, 0.9f);
+                    screen.DrawString(_labelFont!, new Vector2(tx - 1, ty),     stackStr, outline);
+                    screen.DrawString(_labelFont!, new Vector2(tx + 1, ty),     stackStr, outline);
+                    screen.DrawString(_labelFont!, new Vector2(tx,     ty - 1), stackStr, outline);
+                    screen.DrawString(_labelFont!, new Vector2(tx,     ty + 1), stackStr, outline);
+                    screen.DrawString(_labelFont!, new Vector2(tx,     ty),     stackStr, Color.FromHex("#FF3333"));
                 }
             }
             ix += augIconSz + augGap;
@@ -306,6 +345,16 @@ public sealed class WaveHudOverlay : Overlay
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
+        for (var i = _interestPopups.Count - 1; i >= 0; i--)
+        {
+            var p = _interestPopups[i];
+            var updated = p with { Life = p.Life - args.DeltaSeconds };
+            if (updated.Life <= 0f)
+                _interestPopups.RemoveAt(i);
+            else
+                _interestPopups[i] = updated;
+        }
+
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
         if (IsReadyUpVisible && down && !_prevClickDown)
         {

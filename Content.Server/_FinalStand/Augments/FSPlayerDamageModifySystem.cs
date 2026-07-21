@@ -3,6 +3,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
 using Content.Shared.Players;
+using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -13,6 +14,7 @@ public sealed class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IPlayerManager _playerManager = default!;
 
     private static readonly TimeSpan ChargeReloadTime = TimeSpan.FromSeconds(30);
 
@@ -42,6 +44,7 @@ public sealed class FSPlayerDamageModifySystem : EntitySystem
             {
                 unt.CurrentCharges++;
                 unt.NextChargeTime = unt.CurrentCharges < maxCharges ? now + ChargeReloadTime : default;
+                SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }
     }
@@ -58,13 +61,17 @@ public sealed class FSPlayerDamageModifySystem : EntitySystem
             var unt = EnsureComp<FSUntouchableComponent>(uid);
             // Pre-load charges on first creation (CurrentCharges==0 with no timer means brand-new component).
             if (unt.CurrentCharges == 0 && unt.NextChargeTime == default)
+            {
                 unt.CurrentCharges = untouchableLevel;
+                SendChargesUpdate(uid, unt.CurrentCharges);
+            }
             if (unt.CurrentCharges > 0)
             {
                 args.Damage = new DamageSpecifier();
                 unt.CurrentCharges--;
                 if (unt.NextChargeTime == default)
                     unt.NextChargeTime = _timing.CurTime + ChargeReloadTime;
+                SendChargesUpdate(uid, unt.CurrentCharges);
                 return;
             }
         }
@@ -75,5 +82,12 @@ public sealed class FSPlayerDamageModifySystem : EntitySystem
         {
             args.Damage *= 1f + medicLevel * 0.15f;
         }
+    }
+
+    private void SendChargesUpdate(EntityUid bodyUid, int charges)
+    {
+        if (!TryComp<ActorComponent>(bodyUid, out var actor)) return;
+        RaiseNetworkEvent(new FSAugmentStacksUpdateEvent { AugId = "Untouchable", Stacks = charges },
+            Filter.SinglePlayer(actor.PlayerSession));
     }
 }

@@ -1,13 +1,17 @@
 using Content.Server._FinalStand.Augments;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Augments;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
+using Content.Shared.Damage.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Projectiles;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
@@ -25,6 +29,7 @@ public sealed class FSAugmentBuffSystem : EntitySystem
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private readonly StaminaSystem _stamina = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
@@ -32,13 +37,13 @@ public sealed class FSAugmentBuffSystem : EntitySystem
 
     private const float BaseHitPayout = 30f;
     private const float ProfiteerFraction = 0.07f;
-    private static readonly TimeSpan LegBreakerDuration = TimeSpan.FromSeconds(1.5);
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<GunComponent, GunRefreshModifiersEvent>(OnBulletStorm);
+        SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnDeepImpact);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
@@ -76,29 +81,22 @@ public sealed class FSAugmentBuffSystem : EntitySystem
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * 0.15f;
 
-        if (!ev.WasCrit) goto noKnockback;
+        // Knockback Blast: shotgun knockback on every pellet.
+        var kbLevel = augs.GetSlottedLevel("KnockbackBlast");
+        if (kbLevel > 0 && ev.Weapon.HasValue && _tags.HasTag(ev.Weapon.Value, ShotgunTag) && ev.Shooter.HasValue)
+            _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(kbLevel, 1, 3));
+
+        if (!ev.WasCrit) return;
 
         // Back Breaker: crit knockback.
         var bbLevel = augs.GetSlottedLevel("BackBreaker");
         if (bbLevel > 0 && ev.Shooter.HasValue)
             _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(bbLevel, 1, 3));
 
-        // Leg Breaker: crit slow.
+        // Leg Breaker: crit stamina drain — staggering via stamina works on NPCs unlike speed modifiers.
         var lbLevel = augs.GetSlottedLevel("LegBreaker");
-        if (lbLevel > 0)
-        {
-            var slow = EnsureComp<FSSlowedComponent>(ev.Target);
-            slow.EndTime = _timing.CurTime + LegBreakerDuration;
-            slow.SlowFactor = 1f - lbLevel * 0.10f;
-            _movement.RefreshMovementSpeedModifiers(ev.Target);
-        }
-
-        noKnockback:
-
-        // Knockback Blast: shotgun knockback on every pellet.
-        var kbLevel = augs.GetSlottedLevel("KnockbackBlast");
-        if (kbLevel > 0 && ev.Weapon.HasValue && _tags.HasTag(ev.Weapon.Value, ShotgunTag) && ev.Shooter.HasValue)
-            _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(kbLevel, 1, 3));
+        if (lbLevel > 0 && HasComp<StaminaComponent>(ev.Target))
+            _stamina.TakeStaminaDamage(ev.Target, lbLevel * 25f, source: ev.Shooter);
     }
 
     private void OnBulletStorm(EntityUid uid, GunComponent gunComp, ref GunRefreshModifiersEvent args)
@@ -137,6 +135,25 @@ public sealed class FSAugmentBuffSystem : EntitySystem
 
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.ModifySpeed(mult, mult);
+    }
+
+    private void OnDeepImpact(EntityUid uid, GunComponent _, AmmoShotEvent args)
+    {
+        var holder = Transform(uid).ParentUid;
+        if (!holder.IsValid()) return;
+        if (!_mind.TryGetMind(holder, out var mindId, out MindComponent? _)) return;
+        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
+
+        var level = augs.GetSlottedLevel("DeepImpact");
+        if (level <= 0) return;
+
+        foreach (var projUid in args.FiredProjectiles)
+        {
+            if (!TryComp<ProjectileComponent>(projUid, out var proj)) continue;
+            proj.DeleteOnCollide = false;
+            var pierce = EnsureComp<FSPierceComponent>(projUid);
+            pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, level);
+        }
     }
 
     private void OnSwordAndShieldDamage(EntityUid weapon, MeleeWeaponComponent melee, ref GetMeleeDamageEvent args)

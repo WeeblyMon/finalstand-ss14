@@ -145,7 +145,7 @@ public sealed class FSAugmentDef
 
             new("BackBreaker", "Back Breaker",
                 "Critical shots knock enemies back.",
-                AugmentCategory.Red,
+                AugmentCategory.Green,
                 ["+3 Knockback", "+6 Knockback", "+9 Knockback", "+12 Knockback"]),
 
             new("KnockbackBlast", "Knockback Blast",

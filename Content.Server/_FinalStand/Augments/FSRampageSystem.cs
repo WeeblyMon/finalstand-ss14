@@ -8,6 +8,7 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -30,7 +31,7 @@ public sealed class FSRampageSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<MeleeHitEvent>(OnMeleeHit);
+        SubscribeLocalEvent<MeleeWeaponComponent, MeleeHitEvent>(OnMeleeHit);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
@@ -67,7 +68,7 @@ public sealed class FSRampageSystem : EntitySystem
         }
     }
 
-    private void OnMeleeHit(MeleeHitEvent args)
+    private void OnMeleeHit(EntityUid weapon, MeleeWeaponComponent _, MeleeHitEvent args)
     {
         foreach (var hit in args.HitEntities)
         {
