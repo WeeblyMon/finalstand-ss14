@@ -6,6 +6,7 @@ using Content.Client.Message;
 using Content.Client.Playtime;
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Client.Voting;
+using Content.Shared._FinalStand.Lobby;
 using Content.Shared.CCVar;
 using Robust.Client;
 using Robust.Client.Console;
@@ -63,9 +64,6 @@ namespace Content.Client.Lobby
                 ? Loc.GetString("ui-lobby-title", ("serverName", serverName))
                 : lobbyNameCvar;
 
-            var width = _cfg.GetCVar(CCVars.ServerLobbyRightPanelWidth);
-            Lobby.RightSide.SetWidth = width;
-
             UpdateLobbyUi();
 
             Lobby.CharacterPreview.CharacterSetupButton.OnPressed += OnSetupPressed;
@@ -75,6 +73,10 @@ namespace Content.Client.Lobby
             _gameTicker.InfoBlobUpdated += UpdateLobbyUi;
             _gameTicker.LobbyStatusUpdated += LobbyStatusUpdated;
             _gameTicker.LobbyLateJoinStatusUpdated += LobbyLateJoinStatusUpdated;
+
+            // FS: ask for an initial roster snapshot — the server only pushes updates on join/leave,
+            // which misses sessions (e.g. the host) that connected before FSPlayerRosterSystem started listening.
+            _entityManager.EntityNetManager?.SendSystemNetworkMessage(new FSPlayerRosterRequestMessage());
         }
 
         protected override void Shutdown()

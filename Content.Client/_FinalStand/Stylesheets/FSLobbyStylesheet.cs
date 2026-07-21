@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client.Resources;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -31,15 +32,30 @@ public sealed class FSLobbyStylesheet
             return box;
         }
 
-        var cardBox = NineSlice("fs_card.png", 12, 12, 8);
-        var pillBox = NineSlice("fs_pill.png", 20, 16, 6);
+        var backdropBox = new StyleBoxFlat(Color.FromHex("#0A0A0A"));
+        var cardBox = NineSlice("fs_card.png", 12, 18, 16);
+        var pillBox = NineSlice("fs_pill.png", 20, 18, 10);
 
         var btnNormal   = NineSlice("fs_button_normal.png", 10);
         var btnHover    = NineSlice("fs_button_hover.png", 10);
         var btnPressed  = NineSlice("fs_button_pressed.png", 10);
         var btnDisabled = NineSlice("fs_button_disabled.png", 10);
 
-        var navActiveBox = NineSlice("fs_nav_active.png", 10);
+        // Nav tabs are flat/borderless — only a hover tint and the active tab's underline give them away
+        StyleBoxFlat NavBox(Color bg, Color? borderBottom = null) => new StyleBoxFlat
+        {
+            BackgroundColor = bg,
+            BorderColor = borderBottom ?? bg,
+            BorderThickness = new Thickness(0, 0, 0, borderBottom == null ? 0 : 2),
+            ContentMarginLeftOverride = 12,
+            ContentMarginRightOverride = 12,
+            ContentMarginTopOverride = 6,
+            ContentMarginBottomOverride = 6,
+        };
+        var navNormal = NavBox(Color.Transparent);
+        var navHover = NavBox(Color.FromHex("#1A1A1A"));
+        var navPressed = NavBox(Color.FromHex("#222222"));
+        var navActiveBox = NavBox(Color.Transparent, gold);
 
         var leaveNormal  = NineSlice("fs_leave_normal.png", 10);
         var leaveHover   = NineSlice("fs_leave_hover.png", 10);
@@ -47,6 +63,10 @@ public sealed class FSLobbyStylesheet
 
         var custom = new List<StyleRule>
         {
+            // Full-bleed backdrop behind the whole lobby panel
+            Element<PanelContainer>().Class("FSLobbyBackdrop")
+                .Prop(PanelContainer.StylePropertyPanel, backdropBox),
+
             // Cards / pill bars
             Element<PanelContainer>().Class("FSLobbyCard")
                 .Prop(PanelContainer.StylePropertyPanel, cardBox),
@@ -71,10 +91,28 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, btnDisabled)
                 .Prop(Control.StylePropertyModulateSelf, new Color(0.5f, 0.5f, 0.5f, 1f)),
 
-            // Active nav tab — gold fill override (declared after the generic rules above so it wins
-            // on buttons that carry both StyleClassButton and FSNavActive)
+            // Nav tabs — flat/borderless override (declared after the generic rules above so it wins
+            // on buttons that carry both StyleClassButton and FSNavTab)
+            Element<ContainerButton>().Class("FSNavTab")
+                .Pseudo(ContainerButton.StylePseudoClassNormal)
+                .Prop(ContainerButton.StylePropertyStyleBox, navNormal)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSNavTab")
+                .Pseudo(ContainerButton.StylePseudoClassHover)
+                .Prop(ContainerButton.StylePropertyStyleBox, navHover)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSNavTab")
+                .Pseudo(ContainerButton.StylePseudoClassPressed)
+                .Prop(ContainerButton.StylePropertyStyleBox, navPressed)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+
+            // Active nav tab — gold underline, no fill (wins over FSNavTab since declared after it)
             Element<ContainerButton>().Class("FSNavActive")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
+                .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSNavActive")
+                .Pseudo(ContainerButton.StylePseudoClassHover)
                 .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 

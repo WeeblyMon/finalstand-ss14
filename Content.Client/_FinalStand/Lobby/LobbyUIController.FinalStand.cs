@@ -2,6 +2,8 @@ using Content.Client._FinalStand.Augments;
 using Content.Client.Lobby.UI;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Lobby;
+using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client.Lobby;
 
@@ -17,6 +19,35 @@ public sealed partial class LobbyUIController
     {
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnFSWalletUpdated);
         SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnFSLevelingUpdated);
+    }
+
+    private void InitializeFinalStandRoster()
+    {
+        SubscribeNetworkEvent<FSPlayerRosterUpdatedEvent>(OnFSRosterUpdated);
+    }
+
+    private LobbyGui? GetLobbyGui()
+    {
+        return _stateManager.CurrentState is LobbyState lobby ? lobby.Lobby : null;
+    }
+
+    private void OnFSRosterUpdated(FSPlayerRosterUpdatedEvent ev, EntitySessionEventArgs args)
+    {
+        var lobby = GetLobbyGui();
+        if (lobby == null) return;
+
+        lobby.PlayersHeader.Text = $"PLAYERS ({ev.Players.Count}/{ev.MaxPlayers})";
+
+        lobby.PlayerRosterList.RemoveAllChildren();
+        foreach (var player in ev.Players)
+        {
+            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+            row.AddChild(new Label { Text = player.Name, HorizontalExpand = true, StyleClasses = { "FSHeading" } });
+            if (player.IsAdmin)
+                row.AddChild(new Label { Text = "ADMIN", StyleClasses = { "FSTextRed" } });
+
+            lobby.PlayerRosterList.AddChild(row);
+        }
     }
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)

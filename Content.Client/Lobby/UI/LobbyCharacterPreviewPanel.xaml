@@ -4,12 +4,9 @@
     xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
     xmlns:profile="clr-namespace:Content.Client.Lobby.UI.ProfileEditorControls">
     <BoxContainer Name="VBox" Orientation="Vertical">
-        <controls:NanoHeading Name="Header" Text="{Loc 'lobby-character-preview-panel-header'}">
-
-        </controls:NanoHeading>
         <BoxContainer Name="Loaded" Orientation="Vertical"
                       Visible="False">
-            <Label Name="Summary" HorizontalAlignment="Center" Margin="3 3"/>
+            <Label Name="Summary" HorizontalAlignment="Center" Margin="3 3" StyleClasses="FSTextDim"/>
             <BoxContainer Name="ViewBox" Orientation="Horizontal" HorizontalAlignment="Center">
                 <profile:ProfilePreviewSpriteView Name="ProfilePreviewSpriteView"
                                                   OverrideDirection="South"
@@ -18,18 +15,14 @@
                                                   Stretch="Fill"
                                                   Access="Public" />
             </BoxContainer>
-            <controls:VSpacer/>
             <Button Name="CharacterSetup" Text="{Loc 'lobby-character-preview-panel-character-setup-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 5 0 0"/>
-            <Label Name="PerkPointsLabel" HorizontalAlignment="Center" Margin="3 3"
-                   FontColorOverride="#FFD700"/>
+            <Label Name="PerkPointsLabel" HorizontalAlignment="Center" Margin="3 1" StyleClasses="FSTextGold"/>
             <!-- FINALSTAND: level / XP / prestige -->
-            <Label Name="LevelLabel" HorizontalAlignment="Center" Margin="1 1"
-                   FontColorOverride="#FFD700"/>
-            <Label Name="XpLabel" HorizontalAlignment="Center" Margin="1 3"
-                   FontColorOverride="#AAAAAA"/>
-            <Button Name="AugmentShopButton" Text="Augments"
+            <Label Name="LevelLabel" HorizontalAlignment="Center" Margin="1 1" StyleClasses="FSTextGold"/>
+            <Label Name="XpLabel" HorizontalAlignment="Center" Margin="1 1" StyleClasses="FSTextDim"/>
+            <Button Name="AugmentShopButton" Text="AUGMENTS"
                     HorizontalAlignment="Center"
                     Margin="0 4 0 0"/>
             <Button Name="PrestigeButton" Text="✦ PRESTIGE"
@@ -37,6 +30,6 @@
                     Margin="0 4 0 0"
                     Visible="False"/>
         </BoxContainer>
-        <Label Name="Unloaded" Text="{Loc 'lobby-character-preview-panel-unloaded-preferences-label'}"/>
+        <Label Name="Unloaded" Text="{Loc 'lobby-character-preview-panel-unloaded-preferences-label'}" StyleClasses="FSTextDim"/>
     </BoxContainer>
 </Control>

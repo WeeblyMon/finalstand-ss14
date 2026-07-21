@@ -160,6 +160,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
         _configurationManager.OnValueChanged(CCVars.GameRoleWhitelist, _ => RefreshProfileEditor());
 
         InitializeFinalStandWallet(); // FS partial hook
+        InitializeFinalStandRoster(); // FS partial hook
     }
 
     private LobbyCharacterPreviewPanel? GetLobbyPreview()
