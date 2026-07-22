@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.Augments;
+﻿using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
@@ -21,11 +21,11 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WaveCounterUpdateEvent>(OnWaveUpdate);
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<FSEnemyCountEvent>(OnEnemyCount);
-        SubscribeNetworkEvent<FSAugmentsStateEvent>(OnAugmentsState);
+        SubscribeNetworkEvent<FSPerksStateEvent>(OnPerksState);
         SubscribeNetworkEvent<FSPrepTimerUpdateEvent>(OnPrepTimer);
         SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
-        SubscribeNetworkEvent<FSAugmentStacksUpdateEvent>(OnAugmentStacksUpdate);
+        SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
         SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
@@ -47,12 +47,12 @@ public sealed class WaveHudSystem : EntitySystem
     private void OnPlayerJoinedServer(object? sender, PlayerEventArgs _)
     {
         RaiseNetworkEvent(new WalletRequestEvent());
-        RaiseNetworkEvent(new FSAugmentStateRequestMessage());
+        RaiseNetworkEvent(new FSPerkStateRequestMessage());
     }
 
     private void OnLocalPlayerAttached(LocalPlayerAttachedEvent _)
     {
-        RaiseNetworkEvent(new FSAugmentStateRequestMessage());
+        RaiseNetworkEvent(new FSPerkStateRequestMessage());
     }
 
     private WaveHudOverlay EnsureOverlay()
@@ -87,11 +87,11 @@ public sealed class WaveHudSystem : EntitySystem
         overlay.EnemiesTotal = ev.Total;
     }
 
-    private void OnAugmentsState(FSAugmentsStateEvent ev)
+    private void OnPerksState(FSPerksStateEvent ev)
     {
         var overlay = EnsureOverlay();
         overlay.ActiveSlots   = ev.Slots;
-        overlay.AugmentLevels = ev.Levels;
+        overlay.PerkLevels = ev.Levels;
     }
 
     private void OnPrepTimer(FSPrepTimerUpdateEvent ev)
@@ -114,13 +114,13 @@ public sealed class WaveHudSystem : EntitySystem
         overlay.ReadyUpPlayerIsReady = ev.PlayerIsReady;
     }
 
-    private void OnAugmentStacksUpdate(FSAugmentStacksUpdateEvent ev)
+    private void OnPerkStacksUpdate(FSPerkStacksUpdateEvent ev)
     {
-        EnsureOverlay().AugmentStacks[ev.AugId] = ev.Stacks;
+        EnsureOverlay().PerkStacks[ev.PerkId] = ev.Stacks;
     }
 
     private void OnInterestPayout(FSInterestPayoutEvent ev)
     {
-        EnsureOverlay().AddInterestPopup(ev.AugId, ev.Amount);
+        EnsureOverlay().AddInterestPopup(ev.PerkId, ev.Amount);
     }
 }

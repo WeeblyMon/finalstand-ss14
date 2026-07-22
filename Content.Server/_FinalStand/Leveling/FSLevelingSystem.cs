@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
@@ -192,7 +192,7 @@ public sealed class FSLevelingSystem : EntitySystem
             lvl.Level++;
             lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
             var ap = lvl.Level % 5 == 0 ? 5 : 1;
-            _wallet.AddAugmentPoints(mindId, ap);
+            _wallet.AddPerkPoints(mindId, ap);
             totalAp += ap;
             RaiseLocalEvent(mindId, new FSLevelUpEvent
             {

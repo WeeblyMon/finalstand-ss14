@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Augments;
+﻿using Content.Server._FinalStand.Perks;
 using Content.Server.Body.Components;
 using Content.Server.Temperature.Systems;
 using Content.Shared._FinalStand.Shop;
@@ -127,7 +127,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
 
         // Augment resistances — Juggernaught and SwordAndShield.
         if (!_mind.TryGetMind(uid, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
         var juggLevel = augs.GetSlottedLevel("Juggernaught");
         if (juggLevel > 0 && args.Origin != null && HasComp<FSZombieVisualsComponent>(args.Origin.Value))

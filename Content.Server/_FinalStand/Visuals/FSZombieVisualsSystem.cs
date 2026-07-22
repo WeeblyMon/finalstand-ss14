@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Augments;
+﻿using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Visuals;
@@ -76,7 +76,7 @@ public sealed class FSZombieVisualsSystem : EntitySystem
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
         if (args.Origin == null) return;
         if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
-        if (!TryComp<FSAugmentLevelsComponent>(mindId, out var augs)) return;
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
         var level = augs.GetSlottedLevel("Profiteer");
         if (level <= 0) return;
         _wallet.GiveCredits(mindId, (int)(ProfiteerKillBase * level * ProfiteerFraction));

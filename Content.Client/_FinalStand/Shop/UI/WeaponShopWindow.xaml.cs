@@ -1,4 +1,4 @@
-using Content.Client._FinalStand.Augments;
+﻿using Content.Client._FinalStand.Perks;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Grenades;
@@ -358,7 +358,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var (damagePerShot, baseDmgPerShot, pellets) = ComputeDamage(shopComp, weapon, weaponProto, damageMultiplier, extraPellets, entMan);
         var basePellets = pellets - extraPellets;
 
-        var augSystem  = _entityManager.System<FSAugmentShopSystem>();
+        var augSystem  = _entityManager.System<FSPerkShopSystem>();
         var shopLevels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
 
         var spLevel = augSystem.GetSlottedAugmentLevel("StoppingPower");

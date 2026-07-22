@@ -1,6 +1,6 @@
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
-using Content.Server._FinalStand.Augments;
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
@@ -27,7 +27,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
 
     private record struct FullRecord(
-        int AugmentPoints,
+        int PerkPoints,
         int Level,
         int Experience,
         int PrestigeLevel,
@@ -245,7 +245,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             reader.IsDBNull(4) ? "{}" : reader.GetString(4));
     }
 
-    private int DbGetAugmentPoints(Guid userId)
+    private int DbGetPerkPoints(Guid userId)
     {
         using var cmd = _db!.CreateCommand();
         cmd.CommandText = "SELECT augment_points FROM prestige WHERE user_id = $id";
@@ -254,7 +254,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         return result is long l ? (int)l : 0;
     }
 
-    private void DbUpsert(Guid userId, string username, int augmentPoints)
+    private void DbUpsert(Guid userId, string username, int PerkPoints)
     {
         using var cmd = _db!.CreateCommand();
         cmd.CommandText = """
@@ -266,12 +266,12 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             """;
         cmd.Parameters.AddWithValue("$id",   userId.ToString());
         cmd.Parameters.AddWithValue("$name", username);
-        cmd.Parameters.AddWithValue("$ap",   augmentPoints);
+        cmd.Parameters.AddWithValue("$ap",   PerkPoints);
         cmd.ExecuteNonQuery();
     }
 
     private void DbUpsertFull(Guid userId, string username,
-        int augmentPoints, int level, int experience, int prestigeLevel,
+        int PerkPoints, int level, int experience, int prestigeLevel,
         string prestigeBuffsJson = "{}")
     {
         using var cmd = _db!.CreateCommand();
@@ -290,7 +290,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             """;
         cmd.Parameters.AddWithValue("$id",      userId.ToString());
         cmd.Parameters.AddWithValue("$name",    username);
-        cmd.Parameters.AddWithValue("$ap",      augmentPoints);
+        cmd.Parameters.AddWithValue("$ap",      PerkPoints);
         cmd.Parameters.AddWithValue("$lvl",     level);
         cmd.Parameters.AddWithValue("$xp",      experience);
         cmd.Parameters.AddWithValue("$prestige",prestigeLevel);
@@ -333,7 +333,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var row = DbGetFullRecord(ev.Player.UserId.UserId);
 
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-        wallet.AugmentPoints = row.AugmentPoints;
+        wallet.PerkPoints = row.PerkPoints;
         if (wallet.Credits == 0)
             wallet.Credits = 500;
         NotifyClient(mindId, wallet);
@@ -362,7 +362,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
-        Log.Info($"[FSWallet] SpawnComplete {ev.Player.Name} — augment={wallet.AugmentPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
+        Log.Info($"[FSWallet] SpawnComplete {ev.Player.Name} — augment={wallet.PerkPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -382,11 +382,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
             DbUpsertFull(
                 mind.UserId.Value.UserId, username,
-                wallet.AugmentPoints,
+                wallet.PerkPoints,
                 lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
                 SerializePrestigeBuffs(buffs));
 
-            Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.AugmentPoints} lvl={lvl?.Level}");
+            Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.PerkPoints} lvl={lvl?.Level}");
             break;
         }
     }
@@ -414,38 +414,38 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         Log.Info($"[FSWallet] DistributeCredits +{amount} → {count} player(s)");
     }
 
-    public void DistributeAugmentPoints(int amount)
+    public void DistributePerkPoints(int amount)
     {
         var count = 0;
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
         while (query.MoveNext(out var mindId, out var wallet, out var mind))
         {
-            wallet.AugmentPoints += amount;
+            wallet.PerkPoints += amount;
             NotifyClient(mindId, wallet);
             if (mind.UserId != null && _playerManager.TryGetSessionById(mind.UserId.Value, out var session))
-                DbUpsert(mind.UserId.Value.UserId, session.Name, wallet.AugmentPoints);
+                DbUpsert(mind.UserId.Value.UserId, session.Name, wallet.PerkPoints);
             count++;
         }
-        Log.Info($"[FSWallet] DistributeAugmentPoints +{amount} → {count} player(s)");
+        Log.Info($"[FSWallet] DistributePerkPoints +{amount} → {count} player(s)");
     }
 
-    public void AddAugmentPoints(EntityUid mindId, int amount)
+    public void AddPerkPoints(EntityUid mindId, int amount)
     {
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-        wallet.AugmentPoints += amount;
+        wallet.PerkPoints += amount;
         NotifyClient(mindId, wallet);
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
-        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.AugmentPoints);
+        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
     }
 
-    public bool TryDeductAugmentPoints(EntityUid mindId, int cost)
+    public bool TryDeductPerkPoints(EntityUid mindId, int cost)
     {
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.AugmentPoints < cost)
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.PerkPoints < cost)
             return false;
-        wallet.AugmentPoints -= cost;
+        wallet.PerkPoints -= cost;
         NotifyClient(mindId, wallet);
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return true;
-        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.AugmentPoints);
+        DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
         return true;
     }
 
@@ -461,7 +461,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
         DbUpsertFull(
             mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
-            wallet.AugmentPoints, level, experience, prestigeLevel,
+            wallet.PerkPoints, level, experience, prestigeLevel,
             SerializePrestigeBuffs(buffs));
     }
 
@@ -499,7 +499,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
             DbUpsertFull(
                 mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
-                wallet.AugmentPoints,
+                wallet.PerkPoints,
                 lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
                 SerializePrestigeBuffs(buffs));
             count++;
@@ -507,21 +507,21 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
     }
 
-    public int GetStoredAugmentPoints(Guid userId) => DbGetAugmentPoints(userId);
+    public int GetStoredPerkPoints(Guid userId) => DbGetPerkPoints(userId);
 
-    public void GiveAugmentPoints(ICommonSession session, int amount)
+    public void GivePerkPoints(ICommonSession session, int amount)
     {
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
         while (query.MoveNext(out var mindId, out var wallet, out var mind))
         {
             if (mind.UserId != session.UserId) continue;
-            wallet.AugmentPoints = Math.Max(0, wallet.AugmentPoints + amount);
+            wallet.PerkPoints = Math.Max(0, wallet.PerkPoints + amount);
             NotifyClient(mindId, wallet);
-            DbUpsert(session.UserId.UserId, session.Name, wallet.AugmentPoints);
+            DbUpsert(session.UserId.UserId, session.Name, wallet.PerkPoints);
             return;
         }
 
-        var current = DbGetAugmentPoints(session.UserId.UserId);
+        var current = DbGetPerkPoints(session.UserId.UserId);
         DbUpsert(session.UserId.UserId, session.Name, Math.Max(0, current + amount));
     }
 
@@ -587,7 +587,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, FSPlayerLevelComponent, MindComponent>();
         while (query.MoveNext(out var mindId, out var wallet, out var lvl, out _))
         {
-            wallet.AugmentPoints = 0;
+            wallet.PerkPoints = 0;
             wallet.Credits = 500;
             lvl.Level         = 1;
             lvl.Experience    = 0;
@@ -596,7 +596,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             lvl.XpMultiplier  = FSLevelingSystem.ComputeXpMultiplier(0);
             NotifyClient(mindId, wallet);
             _levelingSystem.SendLevelingUpdate(mindId, lvl);
-            if (TryComp<FSAugmentLevelsComponent>(mindId, out var augs))
+            if (TryComp<FSPerkLevelsComponent>(mindId, out var augs))
             {
                 augs.Levels.Clear();
                 Array.Fill(augs.Slots, string.Empty);
@@ -615,7 +615,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
         while (query.MoveNext(out _, out var wallet, out var mind))
         {
-            shell.WriteLine($"  {mind.UserId?.ToString() ?? "unknown"} — credits={wallet.Credits}  augment={wallet.AugmentPoints}");
+            shell.WriteLine($"  {mind.UserId?.ToString() ?? "unknown"} — credits={wallet.Credits}  augment={wallet.PerkPoints}");
             found = true;
         }
         if (!found)
@@ -626,7 +626,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     {
         var session = args.SenderSession;
         _cachedUsernames[session.UserId] = session.Name;
-        var ap = DbGetAugmentPoints(session.UserId.UserId);
+        var ap = DbGetPerkPoints(session.UserId.UserId);
         var credits = 0;
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
         while (query.MoveNext(out _, out var wallet, out var mind))
@@ -646,7 +646,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             return;
         if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session))
             return;
-        RaiseNetworkEvent(new WalletUpdatedEvent(wallet.Credits, wallet.AugmentPoints),
+        RaiseNetworkEvent(new WalletUpdatedEvent(wallet.Credits, wallet.PerkPoints),
             Filter.SinglePlayer(session));
     }
 }

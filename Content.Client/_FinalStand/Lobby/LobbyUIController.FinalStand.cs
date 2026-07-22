@@ -1,4 +1,4 @@
-using Content.Client._FinalStand.Augments;
+﻿using Content.Client._FinalStand.Perks;
 using Content.Client.Lobby.UI;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
@@ -7,7 +7,7 @@ namespace Content.Client.Lobby;
 
 public sealed partial class LobbyUIController
 {
-    private int _fsAugmentPoints;
+    private int _FSPerkPoints;
     private int _fsLevel = 1;
     private int _fsPrestige;
     private int _fsExperience;
@@ -21,8 +21,8 @@ public sealed partial class LobbyUIController
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)
     {
-        _fsAugmentPoints = ev.AugmentPoints;
-        UpdateFSAugmentPoints();
+        _FSPerkPoints = ev.PerkPoints;
+        UpdateFSPerkPoints();
     }
 
     private void OnFSLevelingUpdated(FSLevelingUpdatedEvent ev, EntitySessionEventArgs args)
@@ -34,10 +34,10 @@ public sealed partial class LobbyUIController
         UpdateFSLevelDisplay();
     }
 
-    private void UpdateFSAugmentPoints()
+    private void UpdateFSPerkPoints()
     {
         HookLobbyButtons();
-        PreviewPanel?.SetAugmentPointsText(_fsAugmentPoints);
+        PreviewPanel?.SetPerkPointsText(_FSPerkPoints);
     }
 
     // new panel instance = new lobby entry, so re-wire buttons
@@ -52,8 +52,8 @@ public sealed partial class LobbyUIController
         panel.PrestigeButtonControl.OnPressed += _ =>
             EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSPrestigeRequestMessage());
 
-        panel.AugmentShopButtonControl.OnPressed += _ =>
-            IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<FSAugmentShopSystem>().OpenWindow();
+        panel.PerkShopButtonControl.OnPressed += _ =>
+            IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<FSPerkShopSystem>().OpenWindow();
     }
 
     private void UpdateFSLevelDisplay()
