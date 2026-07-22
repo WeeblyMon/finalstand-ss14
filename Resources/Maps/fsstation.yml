@@ -32643,7 +32643,7 @@ entities:
     - type: Transform
       pos: 20.5,10.5
       parent: 1
-- proto: FSAugmentShop
+- proto: FSPerkShop
   entities:
   - uid: 10501
     components:
