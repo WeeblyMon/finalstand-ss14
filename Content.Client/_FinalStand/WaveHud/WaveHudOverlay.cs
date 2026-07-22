@@ -1,6 +1,6 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Client.UserInterface.Screens;
-using Content.Shared._FinalStand.Augments;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -41,8 +41,8 @@ public sealed class WaveHudOverlay : Overlay
     public int EnemiesAlive   = 0;
     public int EnemiesTotal   = 0;
     public string[] ActiveSlots  = Array.Empty<string>();
-    public Dictionary<string, int> AugmentLevels = new();
-    public Dictionary<string, int> AugmentStacks = new();
+    public Dictionary<string, int> PerkLevels = new();
+    public Dictionary<string, int> PerkStacks = new();
     public float PrepSecondsRemaining = -1f;
     public bool IsPrepPhase = false;
 
@@ -65,21 +65,21 @@ public sealed class WaveHudOverlay : Overlay
 
     private static readonly TextureLoadParameters LinearParams = new()
     {
-        SampleParameters = new TextureSampleParameters { Filter = true, Mipmap = true },
+        SampleParameters = new TextureSampleParameters { Filter = true },
     };
 
     private readonly Dictionary<string, Texture?> _augIconCache = new();
     // rebuilt each frame: augment cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
-    private readonly record struct InterestPopup(string AugId, int Amount, float Life, float TotalLife);
+    private readonly record struct InterestPopup(string PerkId, int Amount, float Life, float TotalLife);
     private readonly List<InterestPopup> _interestPopups = new();
     private float _creditsRowY;
 
-    public void AddInterestPopup(string augId, int amount)
+    public void AddInterestPopup(string PerkId, int amount)
     {
         const float life = 2.5f;
-        _interestPopups.Add(new InterestPopup(augId, amount, life, life));
+        _interestPopups.Add(new InterestPopup(PerkId, amount, life, life));
     }
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
@@ -240,7 +240,7 @@ public sealed class WaveHudOverlay : Overlay
             var totalW = popupIconSz + 4f + amtDim.X;
             var popupX = panelX - totalW - 8f;
 
-            var tex = GetAugmentIcon(p.AugId);
+            var tex = GetPerkIcon(p.PerkId);
             if (tex != null)
                 screen.DrawTextureRect(tex,
                     new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
@@ -256,7 +256,7 @@ public sealed class WaveHudOverlay : Overlay
             y = DrawRow(_iconTimer, "TIMER", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
         }
 
-        // ── Augments ─────────────────────────────────────────────────────────
+        // ── Perks ─────────────────────────────────────────────────────────
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
         var augLabelY = y + sepH + rowPad;
         screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "PERKS", muted);
@@ -271,10 +271,10 @@ public sealed class WaveHudOverlay : Overlay
             screen.DrawRect(cell, Color.FromHex("#1A1D23"));
             if (!string.IsNullOrEmpty(id))
             {
-                var tex = GetAugmentIcon(id);
+                var tex = GetPerkIcon(id);
                 if (tex != null) screen.DrawTextureRect(tex, cell);
 
-                if (AugmentStacks.TryGetValue(id, out var stacks) && stacks > 0)
+                if (PerkStacks.TryGetValue(id, out var stacks) && stacks > 0)
                 {
                     var stackStr = stacks.ToString();
                     var stackDim = screen.GetDimensions(_labelFont!, stackStr, 1f);
@@ -298,17 +298,17 @@ public sealed class WaveHudOverlay : Overlay
         y = DrawRow(_iconWave, "WAVE", $"{CurrentWave:D2}", Color.FromHex("#d1292c"));
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
 
-        // ── Augment tooltip ───────────────────────────────────────────────────
+        // ── Perk tooltip ───────────────────────────────────────────────────
         var mouse = _input.MouseScreenPosition.Position;
         foreach (var (cell, id) in _augCells)
         {
             if (string.IsNullOrEmpty(id) || !cell.Contains(mouse))
                 continue;
-            if (!FSAugmentDef.All.TryGetValue(id, out var def))
+            if (!FSPerkDef.All.TryGetValue(id, out var def))
                 break;
 
-            var level = AugmentLevels.GetValueOrDefault(id, 0);
-            var levelText = $"Level {level} / {FSAugmentDef.MaxLevel}";
+            var level = PerkLevels.GetValueOrDefault(id, 0);
+            var levelText = $"Level {level} / {FSPerkDef.MaxLevel}";
             var effectText = level > 0 ? def.LevelEffects[level - 1] : "Not yet upgraded.";
 
             const float tipPad = 8f;
@@ -387,22 +387,22 @@ public sealed class WaveHudOverlay : Overlay
         return _clyde.ScreenSize.X - 300f;
     }
 
-    private Texture? GetAugmentIcon(string augmentId)
+    private Texture? GetPerkIcon(string perkId)
     {
-        if (_augIconCache.TryGetValue(augmentId, out var cached))
+        if (_augIconCache.TryGetValue(perkId, out var cached))
             return cached;
-        if (!FSAugmentDef.All.TryGetValue(augmentId, out var def))
+        if (!FSPerkDef.All.TryGetValue(perkId, out var def))
         {
-            _augIconCache[augmentId] = null;
+            _augIconCache[perkId] = null;
             return null;
         }
         var file = def.IconFile ?? def.Id.ToLowerInvariant();
-        var path = $"/Textures/_FinalStand/Interface/Augments/Icons/{file}.png";
+        var path = $"/Textures/_FinalStand/Interface/Perks/Icons/{file}.png";
         Texture? tex = null;
         if (_resourceCache.TryContentFileRead(path, out var stream))
             using (stream)
                 tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
-        _augIconCache[augmentId] = tex;
+        _augIconCache[perkId] = tex;
         return tex;
     }
 }
