@@ -24,7 +24,7 @@
         - WallLayer
   - type: Sprite
     drawdepth: SmallObjects
-    sprite: _FinalStand/Structures/perk_shop.rsi
+    sprite: _FinalStand/Structures/augment_shop.rsi
     state: icon
     scale: 1,1
   - type: FSPerkShop
