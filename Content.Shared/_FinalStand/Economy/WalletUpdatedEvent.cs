@@ -1,4 +1,4 @@
-using Robust.Shared.Serialization;
+﻿using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Economy;
 
@@ -6,11 +6,11 @@ namespace Content.Shared._FinalStand.Economy;
 public sealed class WalletUpdatedEvent : EntityEventArgs
 {
     public readonly int Credits;
-    public readonly int AugmentPoints;
+    public readonly int PerkPoints;
 
-    public WalletUpdatedEvent(int credits, int augmentPoints)
+    public WalletUpdatedEvent(int credits, int perkPoints)
     {
         Credits = credits;
-        AugmentPoints = augmentPoints;
+        PerkPoints = perkPoints;
     }
 }
