@@ -86,7 +86,7 @@ public sealed class FSDamageNumberOverlay : Overlay
 
             var font = _fontNormal;
             var text = num.IsLevelUp
-                ? $"LEVEL UP +{num.LevelUpAp}AP"
+                ? $"LEVEL UP +{num.LevelUpAp}PP"
                 : ((int)MathF.Round(num.Amount)).ToString();
             var dims = handle.GetDimensions(font, text, 1f);
             var origin = screenPos - dims / 2f;

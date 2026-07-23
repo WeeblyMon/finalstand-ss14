@@ -564,7 +564,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         {
             var cost = FSPerkDef.CostForUpgrade(level);
             UpgradeButton.Text     = level == 0 ? "Unlock" : $"Upgrade → Lv {level + 1}";
-            SelectedCostLabel.Text = $"Cost: {cost} AP";
+            SelectedCostLabel.Text = $"Cost: {cost} PP";
             UpgradeButton.Disabled = _state == null || _state.PerkPoints < cost;
         }
         else
