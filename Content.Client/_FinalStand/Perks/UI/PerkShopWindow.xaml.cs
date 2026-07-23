@@ -85,6 +85,7 @@ public sealed partial class PerkShopWindow : FancyWindow
     public event Action<FSUnequipAugmentMessage>? OnUnequipAugment;
     public event Action<FSSaveLoadoutMessage>? OnSaveLoadout;
     public event Action<FSLoadLoadoutMessage>? OnLoadLoadout;
+    public event Action? OnRespecRequested;
     public event Action? OnPrestigeRequested;
 
     public PerkShopWindow()
@@ -151,6 +152,8 @@ public sealed partial class PerkShopWindow : FancyWindow
         LoadLoadout1.OnPressed += _ => OnLoadLoadout?.Invoke(new FSLoadLoadoutMessage { LoadoutIndex = 1 });
         SaveLoadout2.OnPressed += _ => OnSaveLoadout?.Invoke(new FSSaveLoadoutMessage { LoadoutIndex = 2 });
         LoadLoadout2.OnPressed += _ => OnLoadLoadout?.Invoke(new FSLoadLoadoutMessage { LoadoutIndex = 2 });
+
+        RespecButton.OnPressed += _ => ShowRespecConfirmation();
 
         PrestigeButton.OnPressed += _ => ShowPrestigeConfirmation();
     }
@@ -516,8 +519,7 @@ public sealed partial class PerkShopWindow : FancyWindow
             SelectedLevelLabel.Text        = "";
             SelectedCategoryLabel.Text     = "";
             SelectedDescLabel.SetMessage("");
-            SelectedEffectLabel.Text       = "";
-            SelectedNextEffectLabel.Text   = "";
+            LevelEffectsBox.RemoveAllChildren();
             SelectedCostLabel.Text         = "";
             UpgradeButton.Text             = "Unlock / Upgrade";
             UpgradeButton.Disabled         = true;
@@ -540,13 +542,23 @@ public sealed partial class PerkShopWindow : FancyWindow
         SelectedCategoryLabel.Modulate = accent;
         SelectedDescLabel.SetMessage(def.Description);
 
-        SelectedEffectLabel.Text = level > 0
-            ? $"Current: {def.LevelEffects[level - 1]}"
-            : "Not yet unlocked.";
+        LevelEffectsBox.RemoveAllChildren();
+        for (var i = 0; i < FSPerkDef.MaxLevel; i++)
+        {
+            Color labelColor;
+            if (i < level)
+                labelColor = Color.FromHex("#88FF88");
+            else if (i == level)
+                labelColor = Color.FromHex("#AAAAFF");
+            else
+                labelColor = Color.FromHex("#555555");
 
-        SelectedNextEffectLabel.Text = level < FSPerkDef.MaxLevel
-            ? $"Next: {def.LevelEffects[level]}"
-            : "";
+            LevelEffectsBox.AddChild(new Label
+            {
+                Text = $"Lv {i + 1}: {def.LevelEffects[i]}",
+                Modulate = labelColor,
+            });
+        }
 
         if (level < FSPerkDef.MaxLevel)
         {
@@ -589,6 +601,33 @@ public sealed partial class PerkShopWindow : FancyWindow
         PrestigeButton.Modulate = eligible
             ? CatAccent[AugmentCategory.Yellow]
             : Color.FromHex("#555555");
+    }
+
+    private void ShowRespecConfirmation()
+    {
+        var dialog = new FancyWindow
+        {
+            Title     = "Respec Perks",
+            Resizable = false,
+            SetSize   = new Vector2(360, 160),
+        };
+
+        var vbox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(12) };
+        vbox.AddChild(new Label { Text = "Reset all perks to level 0 and refund your AP?", Margin = new Thickness(0, 0, 0, 16) });
+
+        var btnRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+        var confirm = new Button { Text = "Refund All", HorizontalExpand = true, Margin = new Thickness(0, 0, 6, 0) };
+        confirm.Modulate = Color.FromHex("#FF8888");
+        var cancel = new Button { Text = "Cancel", HorizontalExpand = true };
+
+        confirm.OnPressed += _ => { OnRespecRequested?.Invoke(); dialog.Close(); };
+        cancel.OnPressed  += _ => dialog.Close();
+
+        btnRow.AddChild(confirm);
+        btnRow.AddChild(cancel);
+        vbox.AddChild(btnRow);
+        dialog.AddChild(vbox);
+        dialog.OpenCentered();
     }
 
     private void ShowPrestigeConfirmation()

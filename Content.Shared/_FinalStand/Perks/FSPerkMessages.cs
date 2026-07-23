@@ -56,6 +56,9 @@ public sealed class FSLoadLoadoutMessage : EntityEventArgs
 public sealed class FSOpenPerkShopEvent : EntityEventArgs { }
 
 [Serializable, NetSerializable]
+public sealed class FSRespecPerkMessage : EntityEventArgs { }
+
+[Serializable, NetSerializable]
 public sealed class FSInterestPayoutEvent : EntityEventArgs
 {
     public string PerkId = "";

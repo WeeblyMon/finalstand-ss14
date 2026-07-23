@@ -33,6 +33,7 @@ public sealed class FSPerkSystem : EntitySystem
         SubscribeNetworkEvent<FSUnequipAugmentMessage>(OnUnequipAugment);
         SubscribeNetworkEvent<FSSaveLoadoutMessage>(OnSaveLoadout);
         SubscribeNetworkEvent<FSLoadLoadoutMessage>(OnLoadLoadout);
+        SubscribeNetworkEvent<FSRespecPerkMessage>(OnRespec);
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -252,6 +253,70 @@ public sealed class FSPerkSystem : EntitySystem
             }
             return true;
         });
+    }
+
+    private void OnRespec(FSRespecPerkMessage msg, EntitySessionEventArgs args)
+    {
+        if (_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
+            OnRespecInRound(args.SenderSession, mindId, mind);
+        else
+            OnRespecLobby(args.SenderSession);
+    }
+
+    private void OnRespecInRound(ICommonSession session, EntityUid mindId, MindComponent? mind)
+    {
+        var aug = EnsureAugComponent(mindId, mind);
+        if (aug == null || aug.Levels.Count == 0) return;
+
+        var refund = CalcRefund(aug);
+        aug.Levels.Clear();
+        Array.Fill(aug.Slots, string.Empty);
+        foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
+
+        _wallet.AddPerkPoints(mindId, refund);
+        SaveToDb(mindId, aug);
+        SendStateToClient(mindId, aug);
+        if (mind?.CurrentEntity.HasValue == true)
+            _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
+    }
+
+    private void OnRespecLobby(ICommonSession session)
+    {
+        var userId = session.UserId.UserId;
+        var (lj, sj, oj) = _wallet.LoadAugmentData(userId);
+        var aug = new FSPerkLevelsComponent();
+        DeserializeInto(aug, lj, sj, oj);
+        if (aug.Levels.Count == 0) return;
+
+        var refund = CalcRefund(aug);
+        aug.Levels.Clear();
+        Array.Fill(aug.Slots, string.Empty);
+        foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
+
+        _wallet.GivePerkPoints(session, refund);
+        _wallet.SaveAugmentDataByUser(userId,
+            JsonSerializer.Serialize(aug.Levels),
+            JsonSerializer.Serialize(aug.Slots),
+            JsonSerializer.Serialize(aug.Loadouts));
+
+        if (!_playerManager.TryGetSessionById(session.UserId, out var pSession)) return;
+        var newAp = _wallet.GetStoredPerkPoints(userId);
+        RaiseNetworkEvent(new FSPerksStateEvent
+        {
+            PerkPoints = newAp,
+            Levels = new Dictionary<string, int>(aug.Levels),
+            Slots = (string[])aug.Slots.Clone(),
+            Loadouts = aug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
+        }, Filter.SinglePlayer(pSession));
+    }
+
+    private static int CalcRefund(FSPerkLevelsComponent aug)
+    {
+        var total = 0;
+        foreach (var (_, level) in aug.Levels)
+            for (var i = 0; i < level; i++)
+                total += FSPerkDef.CostForUpgrade(i);
+        return total;
     }
 
     // Runs a mutation on a player's FSPerkLevelsComponent, saving and notifying on success.
