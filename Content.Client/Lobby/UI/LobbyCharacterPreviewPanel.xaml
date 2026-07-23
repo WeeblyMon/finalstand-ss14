@@ -15,14 +15,14 @@
                                                   Stretch="Fill"
                                                   Access="Public" />
             </BoxContainer>
-            <Button Name="CharacterSetup" Text="{Loc 'lobby-character-preview-panel-character-setup-button'}"
-                    HorizontalAlignment="Center"
-                    Margin="0 5 0 0"/>
-            <Label Name="PerkPointsLabel" HorizontalAlignment="Center" Margin="3 1" StyleClasses="FSTextGold"/>
+            <Label Name="PerkPointsLabel" HorizontalAlignment="Center" Margin="3 6 3 1" StyleClasses="FSTextGold"/>
             <!-- FINALSTAND: level / XP / prestige -->
             <Label Name="LevelLabel" HorizontalAlignment="Center" Margin="1 1" StyleClasses="FSTextGold"/>
             <Label Name="XpLabel" HorizontalAlignment="Center" Margin="1 1" StyleClasses="FSTextDim"/>
-            <Button Name="AugmentShopButton" Text="AUGMENTS"
+            <Button Name="AugmentShopButton" Text="PERKS"
+                    HorizontalAlignment="Center"
+                    Margin="0 4 0 0"/>
+            <Button Name="CharacterSetup" Text="{Loc 'lobby-character-preview-panel-character-setup-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 4 0 0"/>
             <Button Name="PrestigeButton" Text="✦ PRESTIGE"

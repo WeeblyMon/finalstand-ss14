@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.Lobby;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Maths;
 
 namespace Content.Client.Lobby;
 
@@ -41,8 +42,13 @@ public sealed partial class LobbyUIController
         lobby.PlayerRosterList.RemoveAllChildren();
         foreach (var player in ev.Players)
         {
-            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
-            row.AddChild(new Label { Text = player.Name, HorizontalExpand = true, StyleClasses = { "FSHeading" } });
+            // Left/right padding inside each row so names/tags aren't flush against the card edges.
+            var row = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                Margin = new Thickness(8, 4),
+            };
+            row.AddChild(new Label { Text = player.Name, HorizontalExpand = true, StyleClasses = { "FSTextWhite" } });
             if (player.IsAdmin)
                 row.AddChild(new Label { Text = "ADMIN", StyleClasses = { "FSTextRed" } });
 

@@ -38,60 +38,64 @@
                         <Button Name="NavGuidebookButton" Text="GUIDEBOOK" StyleClasses="FSNavTab" />
                         <Button Name="NavChangelogButton" Text="CHANGELOG" StyleClasses="FSNavTab" />
                         <Control HorizontalExpand="True" MinSize="20 0" />
-                        <Label Name="ServerName" Access="Public" StyleClasses="LabelHeadingBigger FSHeading"
-                               VAlign="Center" />
-                        <Control MinSize="10 0" />
-                        <Button Name="AHelpButton" Access="Public" Text="{Loc 'ui-lobby-ahelp-button'}" />
+                        <Label Name="ServerName" Access="Public" StyleClasses="FSTitle" VAlign="Center" />
+                        <Control HorizontalExpand="True" MinSize="20 0" />
+                        <Button Name="AHelpButton" Access="Public" Text="AHELP" />
                         <vote:VoteCallMenuButton Name="CallVoteButton" />
-                        <Button Name="OptionsButton" Access="Public" Text="{Loc 'ui-lobby-options-button'}" />
-                        <Button Name="LeaveButton" Access="Public" Text="{Loc 'ui-lobby-leave-button'}"
+                        <Button Name="OptionsButton" Access="Public" Text="OPTIONS" />
+                        <Button Name="LeaveButton" Access="Public" Text="LEAVE"
                                 StyleClasses="FSLeaveButton" />
                     </BoxContainer>
-                    <!-- Gold divider under the nav row -->
-                    <controls:HLine StyleClasses="highlight" Thickness="1" />
+                    <!-- Divider under the nav row -->
+                    <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
                     <!-- Voting popups -->
                     <BoxContainer Orientation="Vertical" SeparationOverride="4" Name="VoteContainer"
                                   Access="Public" HorizontalAlignment="Left" />
-                    <!-- Status pill: observe / countdown / ready — left-aligned so it hugs its content -->
-                    <PanelContainer StyleClasses="FSStatusPill" HorizontalAlignment="Left">
-                        <BoxContainer Orientation="Horizontal" SeparationOverride="10" VerticalAlignment="Center">
-                            <cc:UICommandButton Command="observe" Name="ObserveButton" Access="Public"
-                                                Text="{Loc 'ui-lobby-observe-button'}"
-                                                WindowType="{x:Type lobbyUi:ObserveWarningWindow}" />
-                            <Label Text="|" StyleClasses="FSTextDim" VAlign="Center" />
-                            <Label Name="StartTime" Access="Public" Align="Left" StyleClasses="FSTextDim"
-                                   VAlign="Center" />
-                            <Label Text="•" StyleClasses="FSTextDim" VAlign="Center" />
-                            <Button Name="ReadyButton" Access="Public" ToggleMode="True"
-                                    Text="{Loc 'ui-lobby-ready-up-button'}" MinWidth="120" />
-                        </BoxContainer>
-                    </PanelContainer>
+                    <!-- Status pill row: pill spans the first card's width, empty space fills the rest -->
+                    <BoxContainer Orientation="Horizontal" SeparationOverride="8" Margin="0 0 0 4">
+                        <PanelContainer StyleClasses="FSStatusPill" HorizontalExpand="True" SizeFlagsStretchRatio="1.15">
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="8" VerticalAlignment="Center">
+                                <TextureRect TexturePath="/Textures/Interface/Actions/eyeopen.png"
+                                             Stretch="KeepAspectCentered" SetSize="18 18" VerticalAlignment="Center" />
+                                <cc:UICommandButton Command="observe" Name="ObserveButton" Access="Public"
+                                                    Text="{Loc 'ui-lobby-observe-button'}"
+                                                    WindowType="{x:Type lobbyUi:ObserveWarningWindow}" />
+                                <Label Text="|" StyleClasses="FSTextDim" VAlign="Center" />
+                                <Label Name="StartTime" Access="Public" Align="Left" StyleClasses="FSTextDim"
+                                       HorizontalExpand="True" VAlign="Center" />
+                                <Label Text="•" StyleClasses="FSTextDim" VAlign="Center" />
+                                <Button Name="ReadyButton" Access="Public" ToggleMode="True"
+                                        Text="{Loc 'ui-lobby-ready-up-button'}" MinWidth="120" />
+                            </BoxContainer>
+                        </PanelContainer>
+                        <Control HorizontalExpand="True" SizeFlagsStretchRatio="1.85" />
+                    </BoxContainer>
                     <RichTextLabel Name="PlaytimeComment" Visible="False" Access="Public" />
                     <!-- Three-card row (shortened so the bottom row grows to fill the freed space) -->
                     <BoxContainer Orientation="Horizontal" SeparationOverride="8" HorizontalExpand="True"
                                   VerticalExpand="True" SizeFlagsStretchRatio="1.35">
                         <!-- Server Info card -->
-                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="1">
+                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="1.15">
                             <BoxContainer Orientation="Vertical" SeparationOverride="6">
                                 <BoxContainer Orientation="Horizontal" SeparationOverride="6">
                                     <TextureRect TexturePath="/Textures/_FinalStand/Interface/Lobby/lobby_info.png"
                                                  Stretch="KeepAspectCentered" SetSize="18 18" VerticalAlignment="Center" />
                                     <Label Text="SERVER INFO" StyleClasses="FSHeading" VAlign="Center" />
                                 </BoxContainer>
-                                <controls:HLine StyleClasses="highlight" Thickness="1" />
+                                <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
                                 <info:ServerInfo Name="ServerInfo" Access="Public" VerticalExpand="True" />
                                 <Label Name="StationTime" Access="Public" StyleClasses="FSTextDim" />
                             </BoxContainer>
                         </PanelContainer>
-                        <!-- Character card -->
-                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="1">
+                        <!-- Character card (narrower — the other two take the freed space) -->
+                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="0.7">
                             <BoxContainer Orientation="Vertical" SeparationOverride="6">
                                 <BoxContainer Orientation="Horizontal" SeparationOverride="6">
                                     <TextureRect TexturePath="/Textures/Interface/character.svg.192dpi.png"
                                                  Stretch="KeepAspectCentered" SetSize="18 18" VerticalAlignment="Center" />
                                     <Label Text="CHARACTER" StyleClasses="FSHeading" VAlign="Center" />
                                 </BoxContainer>
-                                <controls:HLine StyleClasses="highlight" Thickness="1" />
+                                <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
                                 <!-- Expanding spacers above/below vertically center the preview in the card -->
                                 <BoxContainer Orientation="Vertical" VerticalExpand="True">
                                     <Control VerticalExpand="True" />
@@ -102,7 +106,7 @@
                             </BoxContainer>
                         </PanelContainer>
                         <!-- Players card -->
-                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="1">
+                        <PanelContainer StyleClasses="FSLobbyCard" HorizontalExpand="True" SizeFlagsStretchRatio="1.15">
                             <BoxContainer Orientation="Vertical" SeparationOverride="6">
                                 <BoxContainer Orientation="Horizontal" SeparationOverride="6">
                                     <TextureRect TexturePath="/Textures/Interface/VerbIcons/group.svg.192dpi.png"
@@ -110,7 +114,7 @@
                                     <Label Name="PlayersHeader" Access="Public" Text="PLAYERS"
                                            StyleClasses="FSHeading" VAlign="Center" />
                                 </BoxContainer>
-                                <controls:HLine StyleClasses="highlight" Thickness="1" />
+                                <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
                                 <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
                                     <BoxContainer Name="PlayerRosterList" Access="Public" Orientation="Vertical"
                                                   SeparationOverride="2" />
@@ -128,12 +132,12 @@
                                                  Stretch="KeepAspectCentered" SetSize="18 18" VerticalAlignment="Center" />
                                     <Label Text="GAME MODE: FINAL STAND" StyleClasses="FSHeading" VAlign="Center" />
                                 </BoxContainer>
-                                <controls:HLine StyleClasses="highlight" Thickness="1" />
-                                <BoxContainer Orientation="Horizontal" SeparationOverride="14" HorizontalExpand="True"
+                                <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
+                                <BoxContainer Orientation="Horizontal" SeparationOverride="10" HorizontalExpand="True"
                                               VerticalExpand="True">
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
                                         <TextureRect TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_survive.png"
                                                      Stretch="KeepAspectCentered" SetSize="44 44"
                                                      HorizontalAlignment="Center" Margin="0 4 0 0" />
@@ -141,9 +145,10 @@
                                         <RichTextLabel Text="[color=#9A9A9A]Fight endless waves of enemies that get stronger over time.[/color]"
                                                HorizontalAlignment="Center" MaxWidth="200" />
                                     </BoxContainer>
+                                    <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
                                         <TextureRect TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_defend.png"
                                                      Stretch="KeepAspectCentered" SetSize="44 44"
                                                      HorizontalAlignment="Center" Margin="0 4 0 0" />
@@ -151,20 +156,22 @@
                                         <RichTextLabel Text="[color=#9A9A9A]Protect the Central Command Console at all costs.[/color]"
                                                HorizontalAlignment="Center" MaxWidth="200" />
                                     </BoxContainer>
+                                    <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
                                         <TextureRect
                                             TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_teamup.png"
                                             Stretch="KeepAspectCentered" SetSize="44 44"
                                             HorizontalAlignment="Center" Margin="0 4 0 0" />
-                                        <Label Text="TEAM UP" StyleClasses="FSHeading" HorizontalAlignment="Center" />
+                                        <Label Text="TEAM UP" StyleClasses="FSTextWhite" HorizontalAlignment="Center" />
                                         <RichTextLabel Text="[color=#9A9A9A]Work together, upgrade your augmentations.[/color]"
                                                HorizontalAlignment="Center" MaxWidth="200" />
                                     </BoxContainer>
+                                    <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
                                         <TextureRect
                                             TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_getstronger.png"
                                             Stretch="KeepAspectCentered" SetSize="44 44"
@@ -181,12 +188,12 @@
                             <widgets:ChatBox Name="Chat" Access="Public" VerticalExpand="True" MinHeight="50" />
                         </PanelContainer>
                     </BoxContainer>
-                    <!-- Very bottom row (single Credits button; DevInfoBanner removed — it carried a second one) -->
-                    <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+                    <!-- Very bottom row: Credits button + song / menu-art attribution beside it (left-aligned) -->
+                    <BoxContainer Orientation="Horizontal" SeparationOverride="10" VerticalAlignment="Center">
                         <Button Name="CreditsButton" Text="CREDITS" />
+                        <RichTextLabel Name="LobbySong" Access="Public" VerticalAlignment="Center" />
+                        <RichTextLabel Name="LobbyBackground" Access="Public" VerticalAlignment="Center" />
                         <Control HorizontalExpand="True" />
-                        <RichTextLabel Name="LobbySong" Access="Public" HorizontalAlignment="Right" />
-                        <RichTextLabel Name="LobbyBackground" Access="Public" HorizontalAlignment="Right" />
                     </BoxContainer>
                 </BoxContainer>
                 <TextureButton Name="CollapseButton"

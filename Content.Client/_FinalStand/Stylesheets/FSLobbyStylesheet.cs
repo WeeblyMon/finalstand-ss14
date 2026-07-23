@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Content.Client.Resources;
+using Content.Client.Stylesheets;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -18,8 +19,17 @@ public sealed class FSLobbyStylesheet
     {
         var textMain = Color.FromHex("#EDEDED");
         var textDim  = Color.FromHex("#9A9A9A");
-        var gold     = Color.FromHex("#FFD700");
+        var btnText  = Color.FromHex("#707070"); // nav + top-bar button labels
+        var gold     = Color.FromHex("#CFA550");
         var red      = Color.FromHex("#E74C3C");
+        var divider  = Color.FromHex("#2E2E2E");
+
+        // Fonts — the lobby was rendering at the default ~12px, which read flat/small.
+        var fTitle   = resCache.NotoStack("Bold", 22, display: true); // server name
+        var fHeading = resCache.NotoStack("Bold", 15);                // card / section headers
+        var fButton  = resCache.NotoStack("Bold", 12);                // nav tabs + top-bar buttons
+        var fLabel   = resCache.NotoStack("Bold", 13);                // feature titles, tags
+        var fBody    = resCache.NotoStack("Regular", 13);             // dim body text
 
         const string dir = "/Textures/_FinalStand/Interface/UI/";
 
@@ -36,30 +46,29 @@ public sealed class FSLobbyStylesheet
         var cardBox = NineSlice("fs_card.png", 12, 18, 16);
         var pillBox = NineSlice("fs_pill.png", 20, 18, 10);
 
-        var btnNormal   = NineSlice("fs_button_normal.png", 10);
-        var btnHover    = NineSlice("fs_button_hover.png", 10);
-        var btnPressed  = NineSlice("fs_button_pressed.png", 10);
-        var btnDisabled = NineSlice("fs_button_disabled.png", 10);
+        // Tiny-radius buttons with wide horizontal / short vertical padding
+        var btnNormal   = NineSlice("fs_button_normal.png", 6, 22, 6);
+        var btnHover    = NineSlice("fs_button_hover.png", 6, 22, 6);
+        var btnPressed  = NineSlice("fs_button_pressed.png", 6, 22, 6);
+        var btnDisabled = NineSlice("fs_button_disabled.png", 6, 22, 6);
 
-        // Nav tabs are flat/borderless — only a hover tint and the active tab's underline give them away
-        StyleBoxFlat NavBox(Color bg, Color? borderBottom = null) => new StyleBoxFlat
+        // Nav tabs are pure text (no box) — only the active tab's gold underline shows
+        StyleBoxFlat NavBox(Color? borderBottom = null) => new StyleBoxFlat
         {
-            BackgroundColor = bg,
-            BorderColor = borderBottom ?? bg,
+            BackgroundColor = Color.Transparent,
+            BorderColor = borderBottom ?? Color.Transparent,
             BorderThickness = new Thickness(0, 0, 0, borderBottom == null ? 0 : 2),
             ContentMarginLeftOverride = 12,
             ContentMarginRightOverride = 12,
-            ContentMarginTopOverride = 6,
-            ContentMarginBottomOverride = 6,
+            ContentMarginTopOverride = 9,
+            ContentMarginBottomOverride = 9,
         };
-        var navNormal = NavBox(Color.Transparent);
-        var navHover = NavBox(Color.FromHex("#1A1A1A"));
-        var navPressed = NavBox(Color.FromHex("#222222"));
-        var navActiveBox = NavBox(Color.Transparent, gold);
+        var navNormal = NavBox();
+        var navActiveBox = NavBox(gold);
 
-        var leaveNormal  = NineSlice("fs_leave_normal.png", 10);
-        var leaveHover   = NineSlice("fs_leave_hover.png", 10);
-        var leavePressed = NineSlice("fs_leave_pressed.png", 10);
+        var leaveNormal  = NineSlice("fs_leave_normal.png", 6, 22, 6);
+        var leaveHover   = NineSlice("fs_leave_hover.png", 6, 22, 6);
+        var leavePressed = NineSlice("fs_leave_pressed.png", 6, 22, 6);
 
         var custom = new List<StyleRule>
         {
@@ -91,19 +100,19 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, btnDisabled)
                 .Prop(Control.StylePropertyModulateSelf, new Color(0.5f, 0.5f, 0.5f, 1f)),
 
-            // Nav tabs — flat/borderless override (declared after the generic rules above so it wins
-            // on buttons that carry both StyleClassButton and FSNavTab)
+            // Nav tabs — pure text, no box, same in every state (declared after the generic rules
+            // above so it wins on buttons that carry both StyleClassButton and FSNavTab)
             Element<ContainerButton>().Class("FSNavTab")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, navNormal)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
             Element<ContainerButton>().Class("FSNavTab")
                 .Pseudo(ContainerButton.StylePseudoClassHover)
-                .Prop(ContainerButton.StylePropertyStyleBox, navHover)
+                .Prop(ContainerButton.StylePropertyStyleBox, navNormal)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
             Element<ContainerButton>().Class("FSNavTab")
                 .Pseudo(ContainerButton.StylePseudoClassPressed)
-                .Prop(ContainerButton.StylePropertyStyleBox, navPressed)
+                .Prop(ContainerButton.StylePropertyStyleBox, navNormal)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Active nav tab — gold underline, no fill (wins over FSNavTab since declared after it)
@@ -130,16 +139,39 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, leavePressed)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
-            // Button label — centered, standard button text color
+            // Button label — centered, small bold grey text (top-bar aesthetic)
             Element<Label>().Class(ContainerButton.StyleClassButton)
                 .Prop(Label.StylePropertyAlignMode, Label.AlignMode.Center)
-                .Prop(Label.StylePropertyFontColor, textMain),
+                .Prop(Label.StylePropertyFont, fButton)
+                .Prop(Label.StylePropertyFontColor, btnText),
 
-            // Text color helper classes for card/section labels
-            Element<Label>().Class("FSHeading").Prop(Label.StylePropertyFontColor, textMain),
-            Element<Label>().Class("FSTextDim").Prop(Label.StylePropertyFontColor, textDim),
-            Element<Label>().Class("FSTextGold").Prop(Label.StylePropertyFontColor, gold),
-            Element<Label>().Class("FSTextRed").Prop(Label.StylePropertyFontColor, red),
+            // On hover, a button's label goes gold. Leave + active-nav labels set FontColorOverride in
+            // code, which beats the stylesheet, so they stay put — matching "leave stays as-is on hover".
+            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
+                .Pseudo(ContainerButton.StylePseudoClassHover)
+                .ParentOf(Element<Label>().Class(ContainerButton.StyleClassButton))
+                .Prop(Label.StylePropertyFontColor, gold),
+
+            // Server-info / body richtext a touch larger so it reads like the reference
+            Element<RichTextLabel>().Prop(Label.StylePropertyFont, fBody),
+
+            // Thin vertical divider (game-mode feature separators)
+            Element<PanelContainer>().Class("FSVDivider")
+                .Prop(PanelContainer.StylePropertyPanel, new StyleBoxFlat(divider)),
+
+            // Text classes: font + color for card/section labels
+            Element<Label>().Class("FSTitle")
+                .Prop(Label.StylePropertyFont, fTitle).Prop(Label.StylePropertyFontColor, textMain),
+            Element<Label>().Class("FSHeading")
+                .Prop(Label.StylePropertyFont, fHeading).Prop(Label.StylePropertyFontColor, textMain),
+            Element<Label>().Class("FSTextWhite")
+                .Prop(Label.StylePropertyFont, fLabel).Prop(Label.StylePropertyFontColor, textMain),
+            Element<Label>().Class("FSTextDim")
+                .Prop(Label.StylePropertyFont, fBody).Prop(Label.StylePropertyFontColor, textDim),
+            Element<Label>().Class("FSTextGold")
+                .Prop(Label.StylePropertyFont, fLabel).Prop(Label.StylePropertyFontColor, gold),
+            Element<Label>().Class("FSTextRed")
+                .Prop(Label.StylePropertyFont, fLabel).Prop(Label.StylePropertyFontColor, red),
         };
 
         // Global rules first (lower indices), our overrides last (higher indices = higher priority)

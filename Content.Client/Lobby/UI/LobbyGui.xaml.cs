@@ -35,9 +35,11 @@ namespace Content.Client.Lobby.UI
             OptionsButton.OnPressed += _ => UserInterfaceManager.GetUIController<OptionsUIController>().ToggleWindow();
             CreditsButton.OnPressed += _ => new CreditsWindow().Open();
 
-            // Button only ever tags its internal Label with the base "Button" style class, so the
-            // active-tab gold text has to be set directly rather than through a StyleClasses selector.
-            NavLobbyButton.Label.FontColorOverride = Robust.Shared.Maths.Color.FromHex("#FFD700");
+            // Button only ever tags its internal Label with the base "Button" style class, so these
+            // per-button label colors have to be set directly rather than through a StyleClasses selector:
+            // active nav tab is gold, and Leave stays light so it reads on the dark-red button.
+            NavLobbyButton.Label.FontColorOverride = Robust.Shared.Maths.Color.FromHex("#CFA550");
+            LeaveButton.Label.FontColorOverride = Robust.Shared.Maths.Color.FromHex("#D0D0D0");
 
             NavRulesButton.OnPressed += _ => new RulesAndInfoWindow().Open();
             NavDiscordButton.OnPressed += _ =>
