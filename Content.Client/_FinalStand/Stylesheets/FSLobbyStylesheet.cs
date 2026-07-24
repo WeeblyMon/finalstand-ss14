@@ -43,6 +43,8 @@ public sealed class FSLobbyStylesheet
         }
 
         var backdropBox = new StyleBoxFlat(Color.FromHex("#0A0A0A"));
+        var navBarBox  = new StyleBoxFlat(Color.FromHex("#050505")); // solid black top band
+        var scrimBox   = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.35f)); // dims the splash art behind the UI
         var cardBox = NineSlice("fs_card.png", 12, 18, 16);
         var pillBox = NineSlice("fs_pill.png", 20, 18, 10);
 
@@ -70,11 +72,22 @@ public sealed class FSLobbyStylesheet
         var leaveHover   = NineSlice("fs_leave_hover.png", 6, 22, 6);
         var leavePressed = NineSlice("fs_leave_pressed.png", 6, 22, 6);
 
+        // Observe / Join — slightly rounder than the flat top-bar buttons
+        var pillbtnNormal  = NineSlice("fs_pillbtn_normal.png", 8, 16, 6);
+        var pillbtnHover   = NineSlice("fs_pillbtn_hover.png", 8, 16, 6);
+        var pillbtnPressed = NineSlice("fs_pillbtn_pressed.png", 8, 16, 6);
+
         var custom = new List<StyleRule>
         {
             // Full-bleed backdrop behind the whole lobby panel
             Element<PanelContainer>().Class("FSLobbyBackdrop")
                 .Prop(PanelContainer.StylePropertyPanel, backdropBox),
+
+            // Dark scrim over the splash art + solid black top bar
+            Element<PanelContainer>().Class("FSScrim")
+                .Prop(PanelContainer.StylePropertyPanel, scrimBox),
+            Element<PanelContainer>().Class("FSNavBar")
+                .Prop(PanelContainer.StylePropertyPanel, navBarBox),
 
             // Cards / pill bars
             Element<PanelContainer>().Class("FSLobbyCard")
@@ -115,7 +128,8 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, navNormal)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
-            // Active nav tab — gold underline, no fill (wins over FSNavTab since declared after it)
+            // Active nav tab — self-contained (LOBBY carries only this class): transparent box + gold
+            // underline in every state, so the generic grey button box never shows through.
             Element<ContainerButton>().Class("FSNavActive")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
@@ -123,6 +137,24 @@ public sealed class FSLobbyStylesheet
             Element<ContainerButton>().Class("FSNavActive")
                 .Pseudo(ContainerButton.StylePseudoClassHover)
                 .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSNavActive")
+                .Pseudo(ContainerButton.StylePseudoClassPressed)
+                .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+
+            // Observe / Join pill buttons — rounder box override
+            Element<ContainerButton>().Class("FSPillButton")
+                .Pseudo(ContainerButton.StylePseudoClassNormal)
+                .Prop(ContainerButton.StylePropertyStyleBox, pillbtnNormal)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSPillButton")
+                .Pseudo(ContainerButton.StylePseudoClassHover)
+                .Prop(ContainerButton.StylePropertyStyleBox, pillbtnHover)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
+            Element<ContainerButton>().Class("FSPillButton")
+                .Pseudo(ContainerButton.StylePseudoClassPressed)
+                .Prop(ContainerButton.StylePropertyStyleBox, pillbtnPressed)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Leave button — red override

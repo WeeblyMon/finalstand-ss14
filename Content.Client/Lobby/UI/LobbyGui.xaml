@@ -9,11 +9,11 @@
     xmlns:lobbyUi="clr-namespace:Content.Client.Lobby.UI"
     xmlns:info="clr-namespace:Content.Client.Info"
     xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Chat.Widgets">
-    <!-- Background (hidden per request; LobbyState still sets .Texture on this each round) -->
+    <!-- Background: the lobby splash art (LobbyState sets .Texture from the selected lobbyBackground) -->
     <TextureRect Access="Public" VerticalExpand="True" HorizontalExpand="True" Name="Background"
-                 Stretch="KeepAspectCovered" Visible="False" />
+                 Stretch="KeepAspectCovered" />
     <BoxContainer Name="MainContainer" VerticalExpand="True" HorizontalExpand="True" Orientation="Horizontal"
-                  Margin="10 10 10 10" SeparationOverride="2">
+                  Margin="0 0 0 0" SeparationOverride="2">
         <SplitContainer State="Auto" ResizeMode="NotResizable" HorizontalExpand="True">
             <!-- LHS: only carries visible content in CharacterSetup mode; empty in the default lobby view -->
             <BoxContainer Name="LeftSide" Orientation="Vertical" SeparationOverride="4">
@@ -27,27 +27,37 @@
                  lobby splash art shows through around the cards. -->
             <PanelContainer Name="RightSide" Access="Public"
                             HorizontalExpand="True" VerticalExpand="True">
-                <BoxContainer Orientation="Vertical" HorizontalExpand="True" SeparationOverride="8"
-                              Margin="12 12 12 12">
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True" SeparationOverride="0">
+                    <!-- Solid black band from the top down to the divider (contains nav so it auto-aligns) -->
+                    <PanelContainer StyleClasses="FSNavBar">
+                        <BoxContainer Orientation="Vertical" SeparationOverride="0" Margin="14 12 14 0">
                     <!-- Nav row -->
                     <BoxContainer Name="HeaderContainer" Access="Public" Orientation="Horizontal" MinSize="0 36"
                                   SeparationOverride="4">
-                        <Button Name="NavLobbyButton" Text="LOBBY" StyleClasses="FSNavTab FSNavActive" />
-                        <Button Name="NavRulesButton" Text="RULES" StyleClasses="FSNavTab" />
-                        <Button Name="NavDiscordButton" Text="DISCORD" StyleClasses="FSNavTab" />
-                        <Button Name="NavGuidebookButton" Text="GUIDEBOOK" StyleClasses="FSNavTab" />
-                        <Button Name="NavChangelogButton" Text="CHANGELOG" StyleClasses="FSNavTab" />
-                        <Control HorizontalExpand="True" MinSize="20 0" />
-                        <Label Name="ServerName" Access="Public" StyleClasses="FSTitle" VAlign="Center" />
-                        <Control HorizontalExpand="True" MinSize="20 0" />
-                        <Button Name="AHelpButton" Access="Public" Text="AHELP" />
-                        <vote:VoteCallMenuButton Name="CallVoteButton" />
-                        <Button Name="OptionsButton" Access="Public" Text="OPTIONS" />
-                        <Button Name="LeaveButton" Access="Public" Text="LEAVE"
-                                StyleClasses="FSLeaveButton" />
+                            <!-- Single class: XAML StyleClasses doesn't split on spaces, so a two-class value
+                                 would match neither selector and fall back to the generic grey button box. -->
+                            <Button Name="NavLobbyButton" Text="LOBBY" StyleClasses="FSNavActive" />
+                            <Button Name="NavRulesButton" Text="RULES" StyleClasses="FSNavTab" />
+                            <Button Name="NavDiscordButton" Text="DISCORD" StyleClasses="FSNavTab" />
+                            <Button Name="NavGuidebookButton" Text="GUIDEBOOK" StyleClasses="FSNavTab" />
+                            <Button Name="NavChangelogButton" Text="CHANGELOG" StyleClasses="FSNavTab" />
+                            <Control HorizontalExpand="True" MinSize="20 0" />
+                            <Label Name="ServerName" Access="Public" StyleClasses="FSTitle" VAlign="Center" />
+                            <Control HorizontalExpand="True" MinSize="20 0" />
+                            <Button Name="AHelpButton" Access="Public" Text="AHELP" />
+                            <vote:VoteCallMenuButton Name="CallVoteButton" />
+                            <Button Name="OptionsButton" Access="Public" Text="OPTIONS" />
+                            <Button Name="LeaveButton" Access="Public" Text="LEAVE"
+                                    StyleClasses="FSLeaveButton" />
                     </BoxContainer>
-                    <!-- Divider under the nav row -->
-                    <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
+                    <!-- Divider = bottom edge of the black band -->
+                    <controls:HLine Color="#2E2E2E" Thickness="2" Margin="0 6 0 0" />
+                        </BoxContainer>
+                    </PanelContainer>
+                    <!-- Content below the top band, inset (black band above is full-bleed).
+                         VerticalExpand so the cards fill the height instead of bunching at the top. -->
+                    <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True"
+                                  SeparationOverride="8" Margin="14 8 14 14">
                     <!-- Voting popups -->
                     <BoxContainer Orientation="Vertical" SeparationOverride="4" Name="VoteContainer"
                                   Access="Public" HorizontalAlignment="Left" />
@@ -59,12 +69,14 @@
                                              Stretch="KeepAspectCentered" SetSize="18 18" VerticalAlignment="Center" />
                                 <cc:UICommandButton Command="observe" Name="ObserveButton" Access="Public"
                                                     Text="{Loc 'ui-lobby-observe-button'}"
+                                                    StyleClasses="FSPillButton"
                                                     WindowType="{x:Type lobbyUi:ObserveWarningWindow}" />
                                 <Label Text="|" StyleClasses="FSTextDim" VAlign="Center" />
                                 <Label Name="StartTime" Access="Public" Align="Left" StyleClasses="FSTextDim"
-                                       HorizontalExpand="True" VAlign="Center" />
+                                       HorizontalExpand="True" VAlign="Center" Margin="6 0 0 0" />
                                 <Label Text="•" StyleClasses="FSTextDim" VAlign="Center" />
                                 <Button Name="ReadyButton" Access="Public" ToggleMode="True"
+                                        StyleClasses="FSPillButton"
                                         Text="{Loc 'ui-lobby-ready-up-button'}" MinWidth="120" />
                             </BoxContainer>
                         </PanelContainer>
@@ -194,6 +206,7 @@
                         <RichTextLabel Name="LobbySong" Access="Public" VerticalAlignment="Center" />
                         <RichTextLabel Name="LobbyBackground" Access="Public" VerticalAlignment="Center" />
                         <Control HorizontalExpand="True" />
+                    </BoxContainer>
                     </BoxContainer>
                 </BoxContainer>
                 <TextureButton Name="CollapseButton"

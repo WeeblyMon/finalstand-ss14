@@ -1,3 +1,6 @@
+lobby-state-background-fsblackhole-title = Singularity
+lobby-state-background-fsblackhole-artist = Unknown
+
 lobby-state-background-warden-title = Warden
 lobby-state-background-warden-artist = Solbusaur
 

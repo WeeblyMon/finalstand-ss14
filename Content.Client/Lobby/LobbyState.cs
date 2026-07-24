@@ -129,11 +129,13 @@ namespace Content.Client.Lobby
             if (_gameTicker.IsGameStarted)
             {
                 Lobby!.StartTime.Text = "ROUND STARTED";
+                Lobby!.StartTime.FontColorOverride = Robust.Shared.Maths.Color.FromHex("#5CC85C"); // green
                 var roundTime = _gameTiming.CurTime.Subtract(_gameTicker.RoundStartTimeSpan);
                 Lobby!.StationTime.Text = Loc.GetString("lobby-state-player-status-round-time", ("hours", roundTime.Hours), ("minutes", roundTime.Minutes));
                 return;
             }
 
+            Lobby!.StartTime.FontColorOverride = null; // fall back to the dim class while counting down
             Lobby!.StationTime.Text = Loc.GetString("lobby-state-player-status-round-not-started");
             string text;
 
@@ -182,19 +184,21 @@ namespace Content.Client.Lobby
         {
             if (_gameTicker.IsGameStarted)
             {
-                Lobby!.ReadyButton.Text = Loc.GetString("lobby-state-ready-button-join-state");
+                Lobby!.ReadyButton.Text = Loc.GetString("lobby-state-ready-button-join-state").ToUpperInvariant();
                 Lobby!.ReadyButton.ToggleMode = false;
                 Lobby!.ReadyButton.Pressed = false;
                 Lobby!.ObserveButton.Disabled = false;
+                Lobby!.ObserveButton.Label.FontColorOverride = Robust.Shared.Maths.Color.White; // pure white while active
             }
             else
             {
                 Lobby!.StartTime.Text = string.Empty;
                 Lobby!.ReadyButton.Pressed = _gameTicker.AreWeReady;
-                Lobby!.ReadyButton.Text = Loc.GetString(Lobby!.ReadyButton.Pressed ? "lobby-state-player-status-ready": "lobby-state-player-status-not-ready");
+                Lobby!.ReadyButton.Text = Loc.GetString(Lobby!.ReadyButton.Pressed ? "lobby-state-player-status-ready": "lobby-state-player-status-not-ready").ToUpperInvariant();
                 Lobby!.ReadyButton.ToggleMode = true;
                 Lobby!.ReadyButton.Disabled = false;
                 Lobby!.ObserveButton.Disabled = true;
+                Lobby!.ObserveButton.Label.FontColorOverride = null; // back to the grey button color
             }
 
             if (_gameTicker.ServerInfoBlob != null)
