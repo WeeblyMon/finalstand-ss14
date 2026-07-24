@@ -29,6 +29,8 @@ public sealed class FSDamageNumberOverlay : Overlay
     private static readonly Color ArmorOutline    = new(0.15f, 0.15f, 0.15f, 0.9f);
     private static readonly Color LevelUpFg       = new(1f,    0.84f, 0f,    1f);
     private static readonly Color LevelUpOutline  = new(0.45f, 0.28f, 0f,    0.9f);
+    private static readonly Color HealFg          = new(0.1f,  1f,    0.1f,  1f);
+    private static readonly Color HealOutline     = new(0f,    0.35f, 0f,    0.9f);
 
     public FSDamageNumberOverlay()
     {
@@ -63,7 +65,12 @@ public sealed class FSDamageNumberOverlay : Overlay
             alpha = Math.Clamp(alpha, 0f, 1f);
 
             Color fg, outline;
-            if (num.IsLevelUp)
+            if (num.IsHeal)
+            {
+                fg      = HealFg.WithAlpha(alpha);
+                outline = HealOutline.WithAlpha(alpha * 0.9f);
+            }
+            else if (num.IsLevelUp)
             {
                 fg      = LevelUpFg.WithAlpha(alpha);
                 outline = LevelUpOutline.WithAlpha(alpha * 0.9f);
@@ -87,7 +94,9 @@ public sealed class FSDamageNumberOverlay : Overlay
             var font = _fontNormal;
             var text = num.IsLevelUp
                 ? $"LEVEL UP +{num.LevelUpAp}PP"
-                : ((int)MathF.Round(num.Amount)).ToString();
+                : num.IsHeal
+                    ? $"+{(int)MathF.Round(num.Amount)}"
+                    : ((int)MathF.Round(num.Amount)).ToString();
             var dims = handle.GetDimensions(font, text, 1f);
             var origin = screenPos - dims / 2f;
 
@@ -108,6 +117,7 @@ public sealed class FSDamageNumberOverlay : Overlay
         public bool IsCrit;
         public bool IsArmor;
         public bool IsLevelUp;
+        public bool IsHeal;
         public int LevelUpAp;
         public float Age;
         public float Lifetime;

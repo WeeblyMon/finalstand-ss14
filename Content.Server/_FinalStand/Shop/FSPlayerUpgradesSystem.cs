@@ -755,6 +755,38 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
+            case WeaponUpgradeType.Thorns:
+            {
+                if (TryComp<Content.Shared._FinalStand.RiotShield.FSRiotShieldComponent>(weapon, out var thorns))
+                {
+                    thorns.ThornsPercent += def.ValuePerLevel;
+                    Dirty(weapon, thorns);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.ShieldVampire:
+            {
+                if (TryComp<Content.Shared._FinalStand.RiotShield.FSRiotShieldComponent>(weapon, out var vamp))
+                {
+                    vamp.VampirePercent += def.ValuePerLevel;
+                    Dirty(weapon, vamp);
+                }
+                break;
+            }
+
+            case WeaponUpgradeType.ShieldDurability:
+            {
+                if (TryComp<Content.Shared._FinalStand.RiotShield.FSRiotShieldComponent>(weapon, out var dur))
+                {
+                    dur.DurabilityMultiplier *= 2f;
+                    dur.CurrentDurability = dur.BaseDurability * dur.DurabilityMultiplier;
+                    dur.IsBroken = false;
+                    Dirty(weapon, dur);
+                }
+                break;
+            }
+
         }
     }
 

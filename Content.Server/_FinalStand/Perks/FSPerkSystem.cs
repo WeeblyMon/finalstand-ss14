@@ -269,11 +269,12 @@ public sealed class FSPerkSystem : EntitySystem
         if (aug == null || aug.Levels.Count == 0) return;
 
         var refund = CalcRefund(aug);
+        Log.Debug($"[FSPerk] Respec for {session.Name}: refunding {refund} PP, had {aug.Levels.Count} perk(s)");
         aug.Levels.Clear();
         Array.Fill(aug.Slots, string.Empty);
         foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
 
-        _wallet.AddPerkPoints(mindId, refund);
+        _wallet.GivePerkPoints(session, refund);
         SaveToDb(mindId, aug);
         SendStateToClient(mindId, aug);
         if (mind?.CurrentEntity.HasValue == true)

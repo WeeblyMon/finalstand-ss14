@@ -1,5 +1,4 @@
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Shop;
 
@@ -87,6 +86,10 @@ public enum WeaponUpgradeType : byte
     RadiationCoating,
     GravitonCore,
     TeslaArcRange,
+
+    Thorns,
+    ShieldVampire,
+    ShieldDurability,
 }
 
 [DataDefinition]

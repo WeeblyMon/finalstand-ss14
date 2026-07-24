@@ -107,8 +107,20 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 }
                 if (now >= comp.PhaseEndTime)
                 {
-                    Log.Info($"[WaveGameRule] Prep timer expired for wave {comp.WaveNumber}, auto-starting.");
-                    StartCombatPhase(uid, comp);
+                    if (!comp.VoteCountdownActive)
+                    {
+                        Log.Info($"[WaveGameRule] Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
+                        comp.VoteCountdownActive = true;
+                        comp.VoteCountdownSoundPlayed = false;
+                        comp.PhaseEndTime = now + TimeSpan.FromSeconds(10);
+                        comp.VoteCountdownSoundTime = now + TimeSpan.FromSeconds(2);
+                        comp.NextTimerBroadcastTime = now;
+                    }
+                    else
+                    {
+                        Log.Info($"[WaveGameRule] Countdown ended for wave {comp.WaveNumber}, starting combat.");
+                        StartCombatPhase(uid, comp);
+                    }
                     break;
                 }
                 if (now >= comp.NextTimerBroadcastTime)

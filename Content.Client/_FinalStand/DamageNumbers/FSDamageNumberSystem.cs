@@ -31,6 +31,7 @@ public sealed class FSDamageNumberSystem : EntitySystem
         SubscribeNetworkEvent<FSDamageNumberEvent>(OnDamageNumber);
         SubscribeNetworkEvent<FSArmorDamageNumberEvent>(OnArmorDamageNumber);
         SubscribeNetworkEvent<FSLevelUpNumberEvent>(OnLevelUpNumber);
+        SubscribeNetworkEvent<FSHealNumberEvent>(OnHealNumber);
     }
 
     public override void Shutdown()
@@ -120,6 +121,30 @@ public sealed class FSDamageNumberSystem : EntitySystem
         }
 
         _hpBarOverlay?.RevealedEntities.Add(target);
+    }
+
+    private void OnHealNumber(FSHealNumberEvent ev)
+    {
+        var target = GetEntity(ev.Target);
+        if (!Exists(target) || _numberOverlay == null)
+            return;
+
+        var xform = Transform(target);
+        var worldPos = _transform.GetWorldPosition(xform);
+        var spread = (_random.NextFloat() - 0.5f) * 0.5f + 0.2f;
+        var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
+
+        if (_numberOverlay.Numbers.Count >= MaxNumbers)
+            _numberOverlay.Numbers.RemoveAt(0);
+
+        _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
+        {
+            OriginWorldPos = worldPos + new Vector2(spread, vertOffset),
+            MapId   = xform.MapID,
+            Amount  = ev.Amount,
+            IsHeal  = true,
+            Age     = 0f,
+        });
     }
 
     private void OnLevelUpNumber(FSLevelUpNumberEvent ev)

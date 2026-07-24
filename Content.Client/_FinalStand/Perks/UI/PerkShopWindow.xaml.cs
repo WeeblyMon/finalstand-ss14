@@ -613,7 +613,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         };
 
         var vbox = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new Thickness(12) };
-        vbox.AddChild(new Label { Text = "Reset all perks to level 0 and refund your AP?", Margin = new Thickness(0, 0, 0, 16) });
+        vbox.AddChild(new Label { Text = "Reset all perks to level 0 and refund your PP?", Margin = new Thickness(0, 0, 0, 16) });
 
         var btnRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
         var confirm = new Button { Text = "Refund All", HorizontalExpand = true, Margin = new Thickness(0, 0, 6, 0) };

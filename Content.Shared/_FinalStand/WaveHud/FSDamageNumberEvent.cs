@@ -23,3 +23,10 @@ public sealed class FSLevelUpNumberEvent : EntityEventArgs
     public NetEntity Target;
     public int ApGained;
 }
+
+[Serializable, NetSerializable]
+public sealed class FSHealNumberEvent : EntityEventArgs
+{
+    public NetEntity Target;
+    public float Amount;
+}

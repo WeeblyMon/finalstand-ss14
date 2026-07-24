@@ -1,0 +1,15 @@
+- type: entity
+  parent: RiotShield
+  id: FSRiotShield
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSRiotShield
+    baseDurability: 200
+  - type: Destructible
+    thresholds: []
+  - type: MeleeWeapon
+    damage:
+      types:
+        Blunt: 8
+    wideAnimationRotation: -135
+    animation: WeaponArcThrust
