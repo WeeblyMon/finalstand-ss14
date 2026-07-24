@@ -44,6 +44,7 @@ public sealed class FSLobbyStylesheet
 
         var backdropBox = new StyleBoxFlat(Color.FromHex("#0A0A0A"));
         var navBarBox  = new StyleBoxFlat(Color.FromHex("#050505")); // solid black top band
+        var fadeBox    = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.20f)); // faint black continuation below the divider
         var scrimBox   = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.35f)); // dims the splash art behind the UI
         var cardBox = NineSlice("fs_card.png", 12, 18, 16);
         var pillBox = NineSlice("fs_pill.png", 20, 18, 10);
@@ -88,6 +89,8 @@ public sealed class FSLobbyStylesheet
                 .Prop(PanelContainer.StylePropertyPanel, scrimBox),
             Element<PanelContainer>().Class("FSNavBar")
                 .Prop(PanelContainer.StylePropertyPanel, navBarBox),
+            Element<PanelContainer>().Class("FSTopFade")
+                .Prop(PanelContainer.StylePropertyPanel, fadeBox),
 
             // Cards / pill bars
             Element<PanelContainer>().Class("FSLobbyCard")

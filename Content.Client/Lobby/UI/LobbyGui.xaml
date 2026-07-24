@@ -14,7 +14,7 @@
                  Stretch="KeepAspectCovered" />
     <BoxContainer Name="MainContainer" VerticalExpand="True" HorizontalExpand="True" Orientation="Horizontal"
                   Margin="0 0 0 0" SeparationOverride="2">
-        <SplitContainer State="Auto" ResizeMode="NotResizable" HorizontalExpand="True">
+        <SplitContainer State="Auto" ResizeMode="NotResizable" HorizontalExpand="True" SplitWidth="0">
             <!-- LHS: only carries visible content in CharacterSetup mode; empty in the default lobby view -->
             <BoxContainer Name="LeftSide" Orientation="Vertical" SeparationOverride="4">
                 <Control Access="Public" Name="DefaultState" VerticalExpand="True" />
@@ -54,6 +54,8 @@
                     <controls:HLine Color="#2E2E2E" Thickness="2" Margin="0 6 0 0" />
                         </BoxContainer>
                     </PanelContainer>
+                    <!-- Faint black continuation (~5px, 20% opacity) just below the divider -->
+                    <PanelContainer StyleClasses="FSTopFade" MinSize="0 5" />
                     <!-- Content below the top band, inset (black band above is full-bleed).
                          VerticalExpand so the cards fill the height instead of bunching at the top. -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True"
