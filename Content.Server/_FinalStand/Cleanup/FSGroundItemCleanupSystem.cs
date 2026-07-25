@@ -1,5 +1,7 @@
+using Content.Shared.Explosion.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Item;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Containers;
 using Robust.Shared.Timing;
@@ -46,6 +48,18 @@ public sealed class FSGroundItemCleanupSystem : EntitySystem
 
         var magQuery = EntityQueryEnumerator<BallisticAmmoProviderComponent, ItemComponent>();
         while (magQuery.MoveNext(out var uid, out _, out _))
+            Check(uid, now, toDelete);
+
+        var meleeQuery = EntityQueryEnumerator<MeleeWeaponComponent, ItemComponent>();
+        while (meleeQuery.MoveNext(out var uid, out _, out _))
+            Check(uid, now, toDelete);
+
+        var explosiveQuery = EntityQueryEnumerator<ExplosiveComponent, ItemComponent>();
+        while (explosiveQuery.MoveNext(out var uid, out _, out _))
+            Check(uid, now, toDelete);
+
+        var cartridgeQuery = EntityQueryEnumerator<CartridgeAmmoComponent, ItemComponent>();
+        while (cartridgeQuery.MoveNext(out var uid, out _, out _))
             Check(uid, now, toDelete);
 
         foreach (var uid in toDelete)
