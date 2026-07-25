@@ -10,6 +10,9 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Graphics;
 using Robust.Shared.Utility;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using ISImage = SixLabors.ImageSharp.Image;
 
 namespace Content.Client._FinalStand.Perks.UI;
 
@@ -28,10 +31,6 @@ public sealed partial class PerkShopWindow : FancyWindow
     private readonly IResourceCache _res;
     private readonly IClyde _clyde;
 
-    private static readonly TextureLoadParameters LinearParams = new()
-    {
-        SampleParameters = new TextureSampleParameters { Filter = true },
-    };
     private readonly Dictionary<string, OwnedTexture> _iconCache = new();
 
     private static readonly Dictionary<AugmentCategory, Color> CatBg = new()
@@ -200,8 +199,10 @@ public sealed partial class PerkShopWindow : FancyWindow
         if (_res.TryContentFileRead(path, out var stream))
         {
             using (stream)
+            using (var img = ISImage.Load<Rgba32>(stream))
+            using (var resized = img.Clone(x => x.Resize(CellSize, CellSize)))
             {
-                var tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
+                var tex = _clyde.LoadTextureFromImage(resized, path);
                 _iconCache[path] = tex;
                 return tex;
             }
@@ -424,7 +425,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         LayoutContainer.SetAnchorPreset(levelPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(levelPanel);
 
-        // Layer 3: icon texture
+        // Layer 3: icon texture — margin centres 64px texture inside 70px cell so it renders 1:1
         var icon = GetPerkIcon(def.Id);
         if (icon != null)
         {
@@ -432,6 +433,7 @@ public sealed partial class PerkShopWindow : FancyWindow
             {
                 Texture = icon,
                 Stretch = TextureRect.StretchMode.Scale,
+                Margin = new Thickness(3),
             };
             LayoutContainer.SetAnchorPreset(tex, LayoutContainer.LayoutPreset.Wide);
             layers.AddChild(tex);
