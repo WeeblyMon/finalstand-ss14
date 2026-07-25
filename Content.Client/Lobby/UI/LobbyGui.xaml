@@ -54,8 +54,8 @@
                     <controls:HLine Color="#2E2E2E" Thickness="2" Margin="0 6 0 0" />
                         </BoxContainer>
                     </PanelContainer>
-                    <!-- Faint black continuation (~5px, 20% opacity) just below the divider -->
-                    <PanelContainer StyleClasses="FSTopFade" MinSize="0 5" />
+                    <!-- Black bleed below the divider (~4px, 40% opacity) -->
+                    <PanelContainer StyleClasses="FSTopFade" MinSize="0 4" />
                     <!-- Content below the top band, inset (black band above is full-bleed).
                          VerticalExpand so the cards fill the height instead of bunching at the top. -->
                     <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True"
@@ -147,11 +147,14 @@
                                     <Label Text="GAME MODE: FINAL STAND" StyleClasses="FSHeading" VAlign="Center" />
                                 </BoxContainer>
                                 <controls:HLine Color="#2E2E2E" Thickness="1" Margin="0 4 0 2" />
-                                <BoxContainer Orientation="Horizontal" SeparationOverride="10" HorizontalExpand="True"
-                                              VerticalExpand="True">
+                                <!-- Centers the row as a whole block in the leftover height, while each
+                                     column stays Top-aligned within the row so icons/titles line up. -->
+                                <BoxContainer Orientation="Vertical" VerticalExpand="True">
+                                <Control VerticalExpand="True" />
+                                <BoxContainer Orientation="Horizontal" SeparationOverride="10" HorizontalExpand="True">
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="200">
                                         <TextureRect TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_survive.png"
                                                      Stretch="KeepAspectCentered" SetSize="44 44"
                                                      HorizontalAlignment="Center" Margin="0 4 0 0" />
@@ -162,7 +165,7 @@
                                     <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="200">
                                         <TextureRect TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_defend.png"
                                                      Stretch="KeepAspectCentered" SetSize="44 44"
                                                      HorizontalAlignment="Center" Margin="0 4 0 0" />
@@ -173,28 +176,30 @@
                                     <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="200">
                                         <TextureRect
                                             TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_teamup.png"
                                             Stretch="KeepAspectCentered" SetSize="44 44"
                                             HorizontalAlignment="Center" Margin="0 4 0 0" />
                                         <Label Text="TEAM UP" StyleClasses="FSTextWhite" HorizontalAlignment="Center" />
-                                        <RichTextLabel Text="[color=#9A9A9A]Work together, upgrade your augmentations.[/color]"
+                                        <RichTextLabel Text="[color=#9A9A9A]Work together as a team, do your role, support each other.[/color]"
                                                HorizontalAlignment="Center" MaxWidth="200" />
                                     </BoxContainer>
                                     <PanelContainer StyleClasses="FSVDivider" MinSize="1 0" VerticalExpand="True" Margin="0 6" />
                                     <BoxContainer Orientation="Vertical" SeparationOverride="6"
                                                   HorizontalExpand="True" SizeFlagsStretchRatio="1"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="200">
+                                                  HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="200">
                                         <TextureRect
                                             TexturePath="/Textures/_FinalStand/Interface/Lobby/feature_getstronger.png"
                                             Stretch="KeepAspectCentered" SetSize="44 44"
                                             HorizontalAlignment="Center" Margin="0 4 0 0" />
                                         <Label Text="GET STRONGER" StyleClasses="FSTextRed"
                                                HorizontalAlignment="Center" />
-                                        <RichTextLabel Text="[color=#9A9A9A]Earn Augment Points, unlock powerful upgrades.[/color]"
+                                        <RichTextLabel Text="[color=#9A9A9A]Upgrade your weapons, earn Perk Points, unlock Perks.[/color]"
                                                HorizontalAlignment="Center" MaxWidth="200" />
                                     </BoxContainer>
+                                </BoxContainer>
+                                <Control VerticalExpand="True" />
                                 </BoxContainer>
                             </BoxContainer>
                         </PanelContainer>

@@ -44,7 +44,7 @@ public sealed class FSLobbyStylesheet
 
         var backdropBox = new StyleBoxFlat(Color.FromHex("#0A0A0A"));
         var navBarBox  = new StyleBoxFlat(Color.FromHex("#050505")); // solid black top band
-        var fadeBox    = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.20f)); // faint black continuation below the divider
+        var fadeBox    = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.40f)); // black bleed below the divider
         var scrimBox   = new StyleBoxFlat(new Color(0f, 0f, 0f, 0.35f)); // dims the splash art behind the UI
         var cardBox = NineSlice("fs_card.png", 12, 18, 16);
         var pillBox = NineSlice("fs_pill.png", 20, 18, 10);
@@ -82,21 +82,30 @@ public sealed class FSLobbyStylesheet
         {
             // Full-bleed backdrop behind the whole lobby panel
             Element<PanelContainer>().Class("FSLobbyBackdrop")
-                .Prop(PanelContainer.StylePropertyPanel, backdropBox),
+                .Prop(PanelContainer.StylePropertyPanel, backdropBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Dark scrim over the splash art + solid black top bar
+            // (ModulateSelf forced to opaque white on all of these: the base theme applies some
+            // default translucency to PanelContainer that was compounding with our own texture
+            // alpha, which is why cards looked ~70% opaque instead of the ~99% we set.)
             Element<PanelContainer>().Class("FSScrim")
-                .Prop(PanelContainer.StylePropertyPanel, scrimBox),
+                .Prop(PanelContainer.StylePropertyPanel, scrimBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
             Element<PanelContainer>().Class("FSNavBar")
-                .Prop(PanelContainer.StylePropertyPanel, navBarBox),
+                .Prop(PanelContainer.StylePropertyPanel, navBarBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
             Element<PanelContainer>().Class("FSTopFade")
-                .Prop(PanelContainer.StylePropertyPanel, fadeBox),
+                .Prop(PanelContainer.StylePropertyPanel, fadeBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Cards / pill bars
             Element<PanelContainer>().Class("FSLobbyCard")
-                .Prop(PanelContainer.StylePropertyPanel, cardBox),
+                .Prop(PanelContainer.StylePropertyPanel, cardBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
             Element<PanelContainer>().Class("FSStatusPill")
-                .Prop(PanelContainer.StylePropertyPanel, pillBox),
+                .Prop(PanelContainer.StylePropertyPanel, pillBox)
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Generic buttons — flat dark rounded style for all four states
             Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
@@ -192,7 +201,8 @@ public sealed class FSLobbyStylesheet
 
             // Thin vertical divider (game-mode feature separators)
             Element<PanelContainer>().Class("FSVDivider")
-                .Prop(PanelContainer.StylePropertyPanel, new StyleBoxFlat(divider)),
+                .Prop(PanelContainer.StylePropertyPanel, new StyleBoxFlat(divider))
+                .Prop(Control.StylePropertyModulateSelf, Color.White),
 
             // Text classes: font + color for card/section labels
             Element<Label>().Class("FSTitle")

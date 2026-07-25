@@ -1,5 +1,6 @@
 using Content.Client._FinalStand.Augments;
 using Content.Client.Lobby.UI;
+using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.Lobby;
@@ -40,8 +41,14 @@ public sealed partial class LobbyUIController
         lobby.PlayersHeader.Text = $"PLAYERS ({ev.Players.Count}/{ev.MaxPlayers})";
 
         lobby.PlayerRosterList.RemoveAllChildren();
+        var first = true;
         foreach (var player in ev.Players)
         {
+            // Divider between rows (not before the first one).
+            if (!first)
+                lobby.PlayerRosterList.AddChild(new HLine { Color = Color.FromHex("#2E2E2E"), Thickness = 1 });
+            first = false;
+
             // Left/right padding inside each row so names/tags aren't flush against the card edges.
             var row = new BoxContainer
             {
