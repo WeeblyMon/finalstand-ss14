@@ -16,6 +16,7 @@ using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Tag;
+using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Containers;
@@ -132,7 +133,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     state.BatteryFireCostReduction += def.ValuePerLevel;
                     Dirty(weapon, bat);
                 }
-                else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
+                else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon) || HasComp<MagazineAmmoProviderComponent>(weapon))
                 {
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                     state.MagazineSizeBonus += (int)def.ValuePerLevel;

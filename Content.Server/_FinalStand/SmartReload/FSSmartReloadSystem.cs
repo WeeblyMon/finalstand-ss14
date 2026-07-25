@@ -11,6 +11,7 @@ using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Inventory;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
@@ -43,6 +44,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
     [Dependency] private readonly ThrowingSystem _throwing = default!;
     [Dependency] private readonly TagSystem _tags = default!;
     [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
@@ -82,6 +84,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
         user = session?.AttachedEntity ?? EntityUid.Invalid;
 
         return user.IsValid()
+               && !_mobState.IsIncapacitated(user)
                && HasComp<GunComponent>(gun)
                && _hands.IsHolding(user, gun);
     }
@@ -776,6 +779,9 @@ public sealed class FSSmartReloadSystem : EntitySystem
     {
         var user = args.SenderSession.AttachedEntity;
         if (user == null)
+            return;
+
+        if (_mobState.IsIncapacitated(user.Value))
             return;
 
         // Prefer grenade pack system if the player has bought any type.

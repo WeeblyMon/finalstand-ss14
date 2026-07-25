@@ -278,7 +278,8 @@ public sealed class FSShopWeaponSystem : EntitySystem
             return;
 
         CleanRecentSells(now);
-        var candidates = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value);
+        var candidates = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value,
+            comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null);
         if (candidates.Count == 0)
         {
             SendSellResponse(userId, success: false, "No copy of this weapon found in inventory.");
@@ -347,10 +348,27 @@ public sealed class FSShopWeaponSystem : EntitySystem
             RaiseNetworkEvent(new FSShopSellFailedEvent(reason), Filter.SinglePlayer(session));
     }
 
-    private List<EntityUid> FindAllInventoryWeapons(EntityUid player, EntProtoId protoId)
+    private List<EntityUid> FindAllInventoryWeapons(EntityUid player, EntProtoId protoId, List<EntProtoId>? aliases = null)
     {
         var results = new List<EntityUid>();
         var targetId = (string) protoId;
+
+        bool Matches(EntityUid ent)
+        {
+            var protoIdStr = MetaData(ent).EntityPrototype?.ID;
+            if (protoIdStr == null)
+                return false;
+            if (protoIdStr == targetId)
+                return true;
+            if (aliases == null)
+                return false;
+            foreach (var alias in aliases)
+            {
+                if (protoIdStr == (string) alias)
+                    return true;
+            }
+            return false;
+        }
 
         if (TryComp<HandsComponent>(player, out var hands))
         {
@@ -358,8 +376,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             {
                 if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
                     continue;
-                if (MetaData(held.Value).EntityPrototype?.ID == targetId
-                    && HasComp<FSWeaponUpgradeStateComponent>(held.Value))
+                if (Matches(held.Value) && HasComp<FSWeaponUpgradeStateComponent>(held.Value))
                     results.Add(held.Value);
             }
         }
@@ -368,8 +385,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         {
             if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
-            if (MetaData(slotEnt.Value).EntityPrototype?.ID == targetId
-                && HasComp<FSWeaponUpgradeStateComponent>(slotEnt.Value))
+            if (Matches(slotEnt.Value) && HasComp<FSWeaponUpgradeStateComponent>(slotEnt.Value))
                 results.Add(slotEnt.Value);
         }
 
@@ -381,8 +397,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
                 {
                     foreach (var item in container.ContainedEntities)
                     {
-                        if (MetaData(item).EntityPrototype?.ID == targetId
-                            && HasComp<FSWeaponUpgradeStateComponent>(item))
+                        if (Matches(item) && HasComp<FSWeaponUpgradeStateComponent>(item))
                             results.Add(item);
                     }
                 }

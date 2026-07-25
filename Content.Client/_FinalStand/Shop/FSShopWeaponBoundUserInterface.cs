@@ -75,7 +75,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
         var refund = ComputeEstimatedRefund(comp, shopClient.UpgradeLevels);
-        var hasWeapon = shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), comp.WeaponProtoId);
+        var hasWeapon = shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), comp.WeaponProtoId,
+            comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null);
         _window.UpdateSellButton(refund, hasWeapon);
     }
 

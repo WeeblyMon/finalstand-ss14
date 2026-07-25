@@ -5,7 +5,7 @@
   id: FSWeaponShopBaseballBat
   parent: FSWeaponShopBase
   name: Baseball Bat
-  description: A robust wooden bat. Tunes enemies into pulp with the right upgrades.
+  description: A robust wooden bat. Turns enemies into pulp with the right upgrades.
   components:
   - type: FSShopWeapon
     weaponProtoId: BaseBallBat

@@ -202,21 +202,38 @@ public sealed class FSShopClientSystem : EntitySystem
 
     private static readonly string[] InventorySlots = ["belt", "suitstorage", "pocket1", "pocket2"];
 
-    public bool PlayerHasWeaponInInventory(EntityUid? player, EntProtoId? protoId)
+    public bool PlayerHasWeaponInInventory(EntityUid? player, EntProtoId? protoId, List<EntProtoId>? aliases = null)
     {
         if (player == null || protoId == null) return false;
         var targetId = protoId.Value.Id;
 
+        bool Matches(EntityUid ent)
+        {
+            var id = MetaData(ent).EntityPrototype?.ID;
+            if (id == null)
+                return false;
+            if (id == targetId)
+                return true;
+            if (aliases == null)
+                return false;
+            foreach (var alias in aliases)
+            {
+                if (id == alias.Id)
+                    return true;
+            }
+            return false;
+        }
+
         foreach (var held in _hands.EnumerateHeld(player.Value))
         {
-            if (MetaData(held).EntityPrototype?.ID == targetId)
+            if (Matches(held))
                 return true;
         }
 
         foreach (var slot in InventorySlots)
         {
             if (_inventory.TryGetSlotEntity(player.Value, slot, out var item) && item != null
-                && MetaData(item.Value).EntityPrototype?.ID == targetId)
+                && Matches(item.Value))
                 return true;
         }
 
@@ -227,7 +244,7 @@ public sealed class FSShopClientSystem : EntitySystem
             {
                 foreach (var entity in container.ContainedEntities)
                 {
-                    if (MetaData(entity).EntityPrototype?.ID == targetId)
+                    if (Matches(entity))
                         return true;
                 }
             }
