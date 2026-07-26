@@ -240,6 +240,8 @@
       map: ["enum.GunVisualLayers.Mag"]
   - type: Clothing
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
+    equipSound:
+      path: /Audio/_FinalStand/Weapons/N1984/equip.ogg
   - type: Gun
     minAngle: 0.7
     maxAngle: 14
@@ -249,13 +251,15 @@
     availableModes:
     - SemiAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/mk58.ogg
+      path: /Audio/_FinalStand/Weapons/N1984/fire.ogg
+    soundEmpty:
+      path: /Audio/_FinalStand/Weapons/N1984/fire_dry.ogg
   - type: ItemSlots
     slots:
       gun_magazine:
         name: Magazine
         startingItem: MagazineMagnum
-        insertSound: /Audio/Weapons/Guns/MagIn/pistol_magin.ogg
+        insertSound: /Audio/_FinalStand/Weapons/N1984/reload.ogg
         ejectSound: /Audio/Weapons/Guns/MagOut/pistol_magout.ogg
         priority: 2
         whitelist:
