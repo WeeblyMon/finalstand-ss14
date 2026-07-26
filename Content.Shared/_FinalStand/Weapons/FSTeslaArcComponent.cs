@@ -13,4 +13,5 @@ public sealed partial class FSTeslaArcComponent : Component
 
     public double NextArcTime;
     public int TotalArcsFired;
+    public EntityUid? Shooter;
 }

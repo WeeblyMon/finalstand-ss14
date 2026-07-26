@@ -5,6 +5,7 @@ using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -48,6 +49,8 @@ public sealed class FSTeslaArcSystem : EntitySystem
             if (curTime < comp.NextArcTime)
                 continue;
             comp.NextArcTime = curTime + comp.ArcInterval;
+            if (comp.Shooter == null && TryComp<ProjectileComponent>(uid, out var proj))
+                comp.Shooter = proj.Shooter;
             FireArcs(uid, comp);
             comp.TotalArcsFired++;
             if (comp.TotalArcsFired >= comp.MaxTotalArcs)
@@ -69,7 +72,7 @@ public sealed class FSTeslaArcSystem : EntitySystem
             if (mobState.CurrentState != MobState.Alive) continue;
             if (_ffQuery.HasComponent(targetUid)) continue;
 
-            _damageable.TryChangeDamage(targetUid, comp.Damage, ignoreResistances: false, origin: uid);
+            _damageable.TryChangeDamage(targetUid, comp.Damage, ignoreResistances: false, origin: comp.Shooter ?? uid);
             DrawBeam(uid, targetUid);
             Spawn(HitEffect, new EntityCoordinates(targetUid, Vector2.Zero));
             arcsLeft--;
