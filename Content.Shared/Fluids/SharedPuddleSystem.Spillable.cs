@@ -16,6 +16,7 @@ using Content.Shared.Spillable;
 using Content.Shared.Verbs;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
+using Robust.Shared.Audio;
 using Robust.Shared.Player;
 
 namespace Content.Shared.Fluids;
@@ -23,6 +24,7 @@ namespace Content.Shared.Fluids;
 public abstract partial class SharedPuddleSystem
 {
     private static readonly FixedPoint2 MeleeHitTransferProportion = 0.25;
+    private static readonly SoundSpecifier MeleeSplashSound = new SoundPathSpecifier("/Audio/Effects/Fluids/splat.ogg");
     [Dependency] private readonly InjectorSystem _injectorSystem = default!;
 
     protected virtual void InitializeSpillable()
@@ -156,11 +158,14 @@ public abstract partial class SharedPuddleSystem
                 hitCount -= 1;
         }
 
+        var splashed = false;
+
         foreach (var hit in args.HitEntities)
         {
             if (!_reactiveQuery.HasComp(hit))
                 continue;
 
+            splashed = true;
             var splitSolution = _solutionContainerSystem.SplitSolution(soln.Value, totalSplit / hitCount);
 
             AdminLogger.Add(LogType.MeleeHit,
@@ -186,6 +191,9 @@ public abstract partial class SharedPuddleSystem
                 true,
                 PopupType.SmallCaution);
         }
+
+        if (splashed)
+            Audio.PlayPredicted(MeleeSplashSound, entity.Owner, args.User);
     }
 
     /// <summary>

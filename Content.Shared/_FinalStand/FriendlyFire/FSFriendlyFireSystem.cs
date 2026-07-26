@@ -45,11 +45,11 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
 
     private void OnAttackAttempt(EntityUid uid, FSFriendlyFireComponent _, AttackAttemptEvent args)
     {
-        if (args.Target != null && HasComp<FSFriendlyFireComponent>(args.Target.Value))
+        if (args.Target != null && args.Target.Value != uid && HasComp<FSFriendlyFireComponent>(args.Target.Value))
             args.Cancel();
     }
 
-    // strips non-mob entities so melee can't damage structures; if ALL remaining are wave players, cancels the hit
+    // strips non-mob entities so melee can't damage structures; if ALL remaining are OTHER wave players, cancels the hit
     private void OnMeleeHit(EntityUid uid, MeleeWeaponComponent _, MeleeHitEvent args)
     {
         if (args.HitEntities is List<EntityUid> mutableList)
@@ -58,7 +58,8 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
         if (!HasComp<FSFriendlyFireComponent>(args.User))
             return;
 
-        if (args.HitEntities.Count > 0 && args.HitEntities.All(e => HasComp<FSFriendlyFireComponent>(e)))
+        var others = args.HitEntities.Where(e => e != args.User).ToList();
+        if (others.Count > 0 && others.All(e => HasComp<FSFriendlyFireComponent>(e)))
             args.Handled = true;
     }
 }
