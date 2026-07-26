@@ -334,6 +334,8 @@
   parent: WeaponSubMachineGunC20r
   suffix: FinalStand
   components:
+  - type: ChamberMagazineAmmoProvider
+    autoEject: false
   - type: Tag
     tags:
     - Sidearm
