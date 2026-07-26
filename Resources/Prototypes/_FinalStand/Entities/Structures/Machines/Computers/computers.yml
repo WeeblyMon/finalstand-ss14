@@ -1,0 +1,14 @@
+- type: entity
+  parent: ComputerResearchAndDevelopment
+  id: FSResearchComputer
+  name: R&D computer
+  description: A computer used to interface with R&D tools.
+  components:
+  - type: UserInterface
+    interfaces:
+      enum.ResearchConsoleUiKey.Key:
+        type: FSResearchConsoleBoundUserInterface
+      enum.ResearchClientUiKey.Key:
+        type: ResearchClientBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface

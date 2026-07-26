@@ -1,0 +1,94 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:gfx="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
+                      xmlns:ui="clr-namespace:Content.Client._FinalStand.Research.UI"
+                      Title="{Loc 'research-console-menu-title'}"
+                      MinSize="1050 620"
+                      SetSize="1150 680">
+    <BoxContainer Orientation="Vertical"
+                  HorizontalExpand="True"
+                  VerticalExpand="True">
+        <BoxContainer Orientation="Horizontal"
+                      HorizontalExpand="True"
+                      VerticalExpand="False"
+                      MinHeight="40"
+                      Margin="10 10 10 0">
+            <TextureRect Name="HeaderResearchIcon" Stretch="KeepAspectCentered" SetWidth="22" SetHeight="22" Margin="0 0 6 0" VerticalAlignment="Center"/>
+            <RichTextLabel Name="ResearchAmountLabel" HorizontalExpand="True"/>
+            <Button Name="ServerButton" Text="{Loc 'research-console-menu-server-selection-button'}" MinHeight="30"/>
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal"
+                      HorizontalExpand="True"
+                      VerticalExpand="True"
+                      Margin="10">
+            <PanelContainer Name="GraphPanelContainer"
+                            HorizontalExpand="True"
+                            VerticalExpand="True"
+                            SizeFlagsStretchRatio="2"
+                            MinWidth="420"
+                            Margin="0 0 10 0">
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="6">
+                    <LineEdit Name="SearchBox" PlaceHolder="Search technologies..." Margin="0 0 0 6"/>
+                    <ScrollContainer Name="GraphScroll"
+                                     HScrollEnabled="True"
+                                     VScrollEnabled="True"
+                                     HorizontalExpand="True"
+                                     VerticalExpand="True">
+                        <ui:FSResearchNodeGraphControl Name="GraphControl"/>
+                    </ScrollContainer>
+                    <BoxContainer Name="TierLegendContainer"
+                                  Orientation="Horizontal"
+                                  HorizontalExpand="True"
+                                  Margin="0 6 0 0"/>
+                    <BoxContainer Name="DisciplineRailContainer"
+                                  Orientation="Horizontal"
+                                  HorizontalExpand="True"
+                                  Margin="0 6 0 0"/>
+                </BoxContainer>
+            </PanelContainer>
+            <PanelContainer Name="DetailPanelContainer"
+                            VerticalExpand="True"
+                            SizeFlagsStretchRatio="1.3"
+                            MinWidth="338">
+                <BoxContainer Orientation="Vertical"
+                              Margin="10"
+                              HorizontalExpand="True"
+                              VerticalExpand="True">
+                    <ScrollContainer HScrollEnabled="False"
+                                     HorizontalExpand="True"
+                                     VerticalExpand="True">
+                        <BoxContainer Name="DetailPanel"
+                                      Orientation="Vertical"
+                                      HorizontalExpand="True">
+                            <BoxContainer Name="EmptyStateContainer"
+                                          Orientation="Vertical"
+                                          HorizontalExpand="True"
+                                          Margin="0 40 0 30"/>
+                            <Label Name="TechNameLabel" Text="" HorizontalAlignment="Center"/>
+                            <customControls:HSeparator StyleClasses="LowDivider" Margin="0 4 0 4"/>
+                            <RichTextLabel Name="TechDescLabel"/>
+                            <Control MinHeight="8"/>
+                            <Label Name="StatsHeaderLabel" Text="Stats/Buffs:"/>
+                            <RichTextLabel Name="TechStatsLabel"/>
+                            <Control MinHeight="8"/>
+                            <Label Name="RequirementsHeaderLabel" Text="Requirements:"/>
+                            <RichTextLabel Name="RequirementsLabel"/>
+                            <Control MinHeight="8"/>
+                            <Label Name="MaterialsLabel" Text=""/>
+                            <Label Name="RpNeededLabel" Text=""/>
+                            <Control MinHeight="8"/>
+                            <Label Text="Research Progress"/>
+                            <BoxContainer Name="ProgressBarContainer"
+                                          Orientation="Horizontal"
+                                          HorizontalExpand="True"
+                                          Margin="0 0 0 10"/>
+                        </BoxContainer>
+                    </ScrollContainer>
+                    <Button Name="StartResearchButton" Text="Start Research" Margin="0 6 0 0"/>
+                    <Button Name="CancelButton" Text="Cancel" Margin="0 6 0 0"/>
+                </BoxContainer>
+            </PanelContainer>
+        </BoxContainer>
+    </BoxContainer>
+</controls:FancyWindow>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
@@ -9,21 +10,24 @@ using static Robust.Client.UserInterface.StylesheetHelpers;
 
 namespace Content.Client._FinalStand.Stylesheets;
 
-public sealed class FSShopStylesheet
+// Shared stylesheet for every FS menu window (Weapon Shop, Research Computer, ...) - buttons,
+// scrollbars and window chrome are keyed off engine-generic style classes so one Stylesheet
+// object restyles all of them consistently, sourced from FSUiPalette's tokens.
+public sealed class FSMenuStylesheet
 {
     public Stylesheet Stylesheet { get; }
 
-    public FSShopStylesheet(IUserInterfaceManager uiManager)
+    public FSMenuStylesheet(IUserInterfaceManager uiManager, IResourceCache resCache)
     {
-        var crust     = Color.FromHex("#0D1117");
-        var mantle    = Color.FromHex("#0A0D14");
-        var surface1  = Color.FromHex("#1B1F2E");
-        var surface2  = Color.FromHex("#22273A");
-        var overlay0  = Color.FromHex("#2A3248");
-        var overlay1  = Color.FromHex("#3A4468");
-        var accent    = Color.FromHex("#5E81F4");
-        var accentDim = Color.FromHex("#4E71E4");
-        var textMain  = Color.FromHex("#CDD6F4");
+        var crust     = FSUiPalette.BgDeep;
+        var mantle    = FSUiPalette.BgRecess;
+        var surface1  = FSUiPalette.BgSurface;
+        var surface2  = Color.FromHex("#1E2536");
+        var overlay0  = FSUiPalette.BorderNeutral;
+        var overlay1  = Color.FromHex("#647089");
+        var accent    = FSUiPalette.AccentBrand;
+        var accentDim = Color.FromHex("#6B74D6");
+        var textMain  = FSUiPalette.TextPrimary;
 
         StyleBoxFlat Box(Color bg, Color? border = null, float bw = 0, float ph = 8, float pv = 4) =>
             new StyleBoxFlat
@@ -37,8 +41,20 @@ public sealed class FSShopStylesheet
                 ContentMarginBottomOverride = pv,
             };
 
-        var winPanel   = Box(crust,  null, 0, 0, 0);
-        var winHeader  = Box(mantle, null, 0, 0, 0);
+        StyleBoxTexture RoundedPanel(Color tint) => new()
+        {
+            Texture = resCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/panel_bg.png").Texture,
+            Modulate = tint,
+            PatchMarginLeft = FSUiPalette.PanelCornerRadius,
+            PatchMarginRight = FSUiPalette.PanelCornerRadius,
+            PatchMarginTop = FSUiPalette.PanelCornerRadius,
+            PatchMarginBottom = FSUiPalette.PanelCornerRadius,
+        };
+
+        var winPanel   = RoundedPanel(crust);
+        // header stays a flat rectangle, not rounded - a rounded title bar at the very top edge
+        // of a window reads as a floating pill rather than window chrome
+        var winHeader  = Box(mantle);
         var btnNormal  = Box(surface1, overlay0, 1);
         var btnHover   = Box(surface2, accent,   1);
         var btnPressed = Box(Color.FromHex("#181B2B"), accentDim, 1);
@@ -55,12 +71,21 @@ public sealed class FSShopStylesheet
 
         var custom = new List<StyleRule>
         {
-            // Window chrome
+            // Window chrome - DefaultWindow (Weapon Shop) uses one set of style classes,
+            // FancyWindow (Research Computer) uses a completely different set for the same
+            // roles, so both need their own rule pointing at the same tokens/panels.
             Element<PanelContainer>().Class(DefaultWindow.StyleClassWindowPanel)
                 .Prop(PanelContainer.StylePropertyPanel, winPanel),
             Element<PanelContainer>().Class(DefaultWindow.StyleClassWindowHeader)
                 .Prop(PanelContainer.StylePropertyPanel, winHeader),
             Element<Label>().Class(DefaultWindow.StyleClassWindowTitle)
+                .Prop(Label.StylePropertyFontColor, textMain),
+
+            Element<PanelContainer>().Class("BackgroundPanel")
+                .Prop(PanelContainer.StylePropertyPanel, winPanel),
+            Element<PanelContainer>().Class("WindowHeadingBackground")
+                .Prop(PanelContainer.StylePropertyPanel, winHeader),
+            Element<Label>().Class("FancyWindowTitle")
                 .Prop(Label.StylePropertyFontColor, textMain),
 
             // Thin horizontal rule
