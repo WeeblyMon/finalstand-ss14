@@ -1,4 +1,5 @@
 using Content.Client._FinalStand.Research.UI;
+using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
 using JetBrains.Annotations;
@@ -41,7 +42,7 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
     {
         base.OnProtoReload(args);
 
-        if (!args.WasModified<TechnologyPrototype>())
+        if (!args.WasModified<TechnologyPrototype>() && !args.WasModified<FSTechNodePrototype>())
             return;
 
         if (State is not ResearchConsoleBoundInterfaceState rState)

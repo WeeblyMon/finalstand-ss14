@@ -1,0 +1,1191 @@
+# Ballistic line - L6-SAW and Minigun both hang off the shared L6 trunk (Basic Munitions, Heavy-
+# Duty Receivers) below; there's no separate shared Ballistic T1/T2 root anymore, per your detailed
+# structures for both weapons.
+
+# L6-SAW sub-tree - its own independent root chain (not fed by the shared Ballistic T1/T2 nodes
+# above, which still lead to Minigun) fanning into three parallel mutually-exclusive choice pairs
+# that all converge on the capstone, per the detailed structure you provided.
+
+- type: fsTechNode
+  id: FSOrdnanceL6BasicMunitions
+  name: Basic Munitions
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Casings/ammo_casing.rsi
+    state: base
+  branch: Ordnance
+  tier: 1
+  waveGate: 0
+  cost: 2000
+  bonusDescription: Team-wide light machine gun ammo capacity bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6HeavyDutyReceivers
+  name: Heavy-Duty Receivers
+  icon:
+    sprite: Objects/Tools/wrench.rsi
+    state: icon
+  branch: Ordnance
+  tier: 2
+  waveGate: 2
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceL6BasicMunitions
+  bonusDescription: Team-wide light machine gun jam-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6GasPistonHarnessing
+  name: Gas-Piston Harnessing
+  icon:
+    sprite: Objects/Tools/welder.rsi
+    state: icon
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceL6HeavyDutyReceivers
+  bonusDescription: Team-wide light machine gun fire-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6FeedSystem
+  name: Feed System
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/light_rifle.rsi
+    state: base
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceL6GasPistonHarnessing
+  bonusDescription: Team-wide light machine gun reload-speed bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6BarrelInterchange
+  name: Barrel Interchange
+  icon:
+    sprite: Objects/Tools/drill.rsi
+    state: drill_bolt
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceL6GasPistonHarnessing
+  bonusDescription: Team-wide light machine gun accuracy bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6ReceiverDesign
+  name: Receiver Design
+  icon:
+    sprite: Objects/Tools/screwdriver.rsi
+    state: screwdriver
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceL6GasPistonHarnessing
+  bonusDescription: Team-wide light machine gun recoil-control bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceL6SoftPackAmmoBags
+  name: Soft-Pack Ammo Bags
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/light_rifle_mag.rsi
+    state: base
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6FeedSystem
+  exclusiveGroup: FSOrdnanceL6FeedChoice
+  bonusDescription: Light machine guns reload faster, at the cost of a smaller magazine.
+
+- type: fsTechNode
+  id: FSOrdnanceL6DisintegratingBeltLinks
+  name: Disintegrating Belt Links
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/pk_box.rsi
+    state: mag-3
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6FeedSystem
+  exclusiveGroup: FSOrdnanceL6FeedChoice
+  bonusDescription: Light machine guns carry more ammo, at the cost of a slower reload.
+
+- type: fsTechNode
+  id: FSOrdnanceL6QuickChangeBarrels
+  name: Quick-Change Barrels
+  icon:
+    sprite: Objects/Tools/drill.rsi
+    state: drill_screw
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6BarrelInterchange
+  exclusiveGroup: FSOrdnanceL6BarrelChoice
+  bonusDescription: Light machine guns resist overheating during sustained fire, at the cost of range.
+
+- type: fsTechNode
+  id: FSOrdnanceL6FlutedBarrels
+  name: Fluted Barrels
+  icon:
+    sprite: Objects/Tools/multitool.rsi
+    state: icon
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6BarrelInterchange
+  exclusiveGroup: FSOrdnanceL6BarrelChoice
+  bonusDescription: Light machine guns gain accuracy and range, at the cost of heat resistance.
+
+- type: fsTechNode
+  id: FSOrdnanceL6OpenBoltFiring
+  name: Open-Bolt Firing
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Casings/large_casing.rsi
+    state: base
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6ReceiverDesign
+  exclusiveGroup: FSOrdnanceL6ReceiverChoice
+  bonusDescription: Light machine guns fire faster, at the cost of first-shot accuracy.
+
+- type: fsTechNode
+  id: FSOrdnanceL6ConstantRecoilSystem
+  name: Constant-Recoil System
+  icon:
+    sprite: Objects/Tools/access_configurator.rsi
+    state: icon
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 2000
+  prerequisites:
+  - FSOrdnanceL6ReceiverDesign
+  exclusiveGroup: FSOrdnanceL6ReceiverChoice
+  bonusDescription: Light machine guns gain recoil control and accuracy, at the cost of fire-rate.
+
+- type: fsTechNode
+  id: FSOrdnanceL6ModernAutomaticSaw
+  name: Modern Automatic SAW
+  icon:
+    sprite: Objects/Weapons/Guns/LMGs/l6.rsi
+    state: base
+  branch: Ordnance
+  tier: 6
+  waveGate: 10
+  cost: 6000
+  prerequisiteGroups:
+  - - FSOrdnanceL6SoftPackAmmoBags
+    - FSOrdnanceL6DisintegratingBeltLinks
+  - - FSOrdnanceL6QuickChangeBarrels
+    - FSOrdnanceL6FlutedBarrels
+  - - FSOrdnanceL6OpenBoltFiring
+    - FSOrdnanceL6ConstantRecoilSystem
+  weaponShopUnlock: FSWeaponShopL6Saw
+
+# Minigun sub-tree - shares the L6-SAW trunk (Basic Munitions, Heavy-Duty Receivers) above, then
+# splits into Internal Feed Drives (left) and Multi-Barrel Metallurgy (right), converging at
+# Optical Sight Mounts before a mutually-exclusive power fork and a bottleneck node that needs
+# Counter-Weight Buffers AND one of the two power choices. 16 unique nodes, per your structure.
+
+# -- Left sub-branch: Feeding & Power Systems --
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunHighTorqueGearboxes
+  name: High-Torque Gearboxes
+  icon:
+    sprite: Objects/Tools/omnitool.rsi
+    state: omnitool-wrenching
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceL6HeavyDutyReceivers
+  bonusDescription: Team-wide ballistic fire-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunExtendedDrumTuning
+  name: Extended Drum Tuning
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Casings/rocket_shell.rsi
+    state: base
+  branch: Ordnance
+  tier: 4
+  waveGate: 5
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceMinigunHighTorqueGearboxes
+  bonusDescription: Augments the Minigun's Extended Drum upgrade - an extra +50 rounds onto the baseline capacity per level.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunDisintegratingLinks
+  name: Disintegrating Links
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/LightRifle/pk_box.rsi
+    state: base
+  branch: Ordnance
+  tier: 4
+  waveGate: 5
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceMinigunHighTorqueGearboxes
+  bonusDescription: Team-wide ballistic reload-speed bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunAxialFeedChutes
+  name: Axial Feed Chutes
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Dart/darts.rsi
+    state: base
+  branch: Ordnance
+  tier: 5
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunDisintegratingLinks
+  bonusDescription: Team-wide ballistic jam-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunSynchronizedFeedGates
+  name: Synchronized Feed Gates
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Dart/darts.rsi
+    state: mag-unshaded-1
+  branch: Ordnance
+  tier: 6
+  waveGate: 7
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunAxialFeedChutes
+  - FSOrdnanceMinigunExtendedDrumTuning
+  bonusDescription: Team-wide ballistic magazine-size bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigun12vElectricActuators
+  name: 12V Electric Actuators
+  icon:
+    sprite: Objects/Tools/network_configurator.rsi
+    state: icon
+  branch: Ordnance
+  tier: 7
+  waveGate: 8
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunSynchronizedFeedGates
+  bonusDescription: Team-wide ballistic fire-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunBarrelOverclockSync
+  name: Barrel Overclock Sync
+  icon:
+    sprite: Objects/Tools/omnitool.rsi
+    state: omnitool-pulsing
+  branch: Ordnance
+  tier: 8
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceMinigun12vElectricActuators
+  bonusDescription: Augments the Minigun's Overclocked Barrel upgrade - an extra +0.2 rate of fire per level.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunArmouredSolenoids
+  name: Armoured Solenoids
+  icon:
+    sprite: Objects/Tools/crowbar.rsi
+    state: icon
+  branch: Ordnance
+  tier: 8
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceMinigun12vElectricActuators
+  bonusDescription: Team-wide ballistic weapon malfunction-resistance bonus.
+
+# -- Right sub-branch: Barrel Arrays & Target Acquisition --
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunClusterBarrelCollars
+  name: Cluster Barrel Collars
+  icon:
+    sprite: Objects/Tools/omnitool.rsi
+    state: omnitool-snipping
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceL6HeavyDutyReceivers
+  bonusDescription: Team-wide ballistic accuracy bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunIronBeastBracing
+  name: Iron Beast Bracing
+  icon:
+    sprite: Objects/Tools/rcl.rsi
+    state: rcl-30
+  branch: Ordnance
+  tier: 4
+  waveGate: 5
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceMinigunClusterBarrelCollars
+  bonusDescription: Augments the Minigun's Iron Beast upgrade - damage resistance while below half health boosted from 20% to 25%.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunChromedBoreLinings
+  name: Chromed Bore Linings
+  icon:
+    sprite: Objects/Tools/omnitool.rsi
+    state: omnitool-prying
+  branch: Ordnance
+  tier: 4
+  waveGate: 5
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceMinigunClusterBarrelCollars
+  bonusDescription: Team-wide ballistic overheat-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunHeatSinkJackets
+  name: Heat-Sink Jackets
+  icon:
+    sprite: Objects/Tools/rcl.rsi
+    state: rcl-20
+  branch: Ordnance
+  tier: 5
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunChromedBoreLinings
+  bonusDescription: Team-wide ballistic overheat-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunRotaryDriveShafts
+  name: Rotary Drive Shafts
+  icon:
+    sprite: Objects/Tools/rcl.rsi
+    state: rcl-10
+  branch: Ordnance
+  tier: 6
+  waveGate: 7
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunHeatSinkJackets
+  - FSOrdnanceMinigunIronBeastBracing
+  bonusDescription: Team-wide ballistic fire-rate bonus.
+
+# -- Convergence: left and right sub-branches meet here --
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunOpticalSightMounts
+  name: Optical Sight Mounts
+  icon:
+    sprite: Objects/Tools/handheld_mass_scanner.rsi
+    state: icon
+  branch: Ordnance
+  tier: 9
+  waveGate: 10
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceMinigunRotaryDriveShafts
+  - FSOrdnanceMinigunBarrelOverclockSync
+  bonusDescription: Team-wide ballistic accuracy bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunCoreCastingVats
+  name: Core Casting Vats
+  icon:
+    sprite: Objects/Tools/rcl.rsi
+    state: rcl-0
+  branch: Ordnance
+  tier: 10
+  waveGate: 11
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceMinigunOpticalSightMounts
+  bonusDescription: Augments the Minigun's Depleted Core upgrade - a flat +5% bonus damage on top of the upgrade's base values.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunBallisticCalculators
+  name: Ballistic Calculators
+  icon:
+    sprite: Objects/Tools/handheld_mass_scanner.rsi
+    state: scanner
+  branch: Ordnance
+  tier: 10
+  waveGate: 11
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceMinigunOpticalSightMounts
+  bonusDescription: Team-wide ballistic crit-chance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunCounterWeightBuffers
+  name: Counter-Weight Buffers
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coilmv-30
+  branch: Ordnance
+  tier: 11
+  waveGate: 12
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceMinigunBallisticCalculators
+  - FSOrdnanceMinigunCoreCastingVats
+  bonusDescription: Team-wide ballistic recoil-control bonus.
+
+# -- Mutually exclusive power fork (off Armoured Solenoids) --
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunExternalPowerDriveHookups
+  name: External Power-Drive Hookups
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coilhv-20
+  branch: Ordnance
+  tier: 9
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceMinigunArmouredSolenoids
+  exclusiveGroup: FSOrdnanceMinigunPowerChoice
+  bonusDescription: Minigun sustained-fire uptime bonus, at the cost of squad mobility (tethered to a power source).
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunInternalBatteryPacks
+  name: Internal Battery Packs
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coillv-30
+  branch: Ordnance
+  tier: 9
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceMinigunArmouredSolenoids
+  exclusiveGroup: FSOrdnanceMinigunPowerChoice
+  bonusDescription: Minigun gains mobility (self-powered), at the cost of sustained-fire duration.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunGyroMatrixAugment
+  name: Gyro Matrix Augment
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coilex-30
+  branch: Ordnance
+  tier: 10
+  waveGate: 11
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceMinigunInternalBatteryPacks
+  bonusDescription: Augments the Minigun's Gyro Stabilizer upgrade - an extra +2 degrees of accuracy per level.
+
+# -- Bottleneck and final assembly --
+
+- type: fsTechNode
+  id: FSOrdnanceMinigunKnockbackRage
+  name: Knockback Rage
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coilex-20
+  branch: Ordnance
+  tier: 12
+  waveGate: 13
+  cost: 5000
+  prerequisites:
+  - FSOrdnanceMinigunCounterWeightBuffers
+  prerequisiteGroups:
+  - - FSOrdnanceMinigunExternalPowerDriveHookups
+    - FSOrdnanceMinigunGyroMatrixAugment
+  bonusDescription: Augments the Minigun's Knockback Rage upgrade - an extra +5% physical pushback force per level.
+
+- type: fsTechNode
+  id: FSOrdnanceMinigun
+  name: Minigun
+  icon:
+    sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
+    state: icon
+  branch: Ordnance
+  tier: 13
+  waveGate: 14
+  cost: 10000
+  prerequisites:
+  - FSOrdnanceMinigunKnockbackRage
+  weaponShopUnlock: FSWeaponShopMinigun
+
+# Explosive line - shared root (Steps 1-3), then splits into the Hydra sub-tree (rotary/mechanical
+# parts) and the RPG-7 sub-tree (rocketry/propulsion parts), each ending in a mutually-exclusive
+# modification pair before final assembly, per the detailed structure you provided.
+
+- type: fsTechNode
+  id: FSOrdnanceExplosiveTechnology
+  name: Explosive Technology
+  icon:
+    sprite: Objects/Devices/payload.rsi
+    state: payload-explosive-armed
+  branch: Ordnance
+  tier: 1
+  waveGate: 0
+  cost: 3000
+  bonusDescription: Team-wide explosive damage bonus.
+
+- type: fsTechNode
+  id: FSOrdnancePercussionCapFusing
+  name: Percussion-Cap Fusing
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Casings/capgun_casing.rsi
+    state: base
+  branch: Ordnance
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceExplosiveTechnology
+  bonusDescription: Team-wide heavy-launcher detonation reliability bonus (reduced dud chance).
+
+- type: fsTechNode
+  id: FSOrdnanceHighLowGasChambers
+  name: High-Low Gas Chambers
+  icon:
+    sprite: Objects/Devices/payload.rsi
+    state: payload-empty
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 4000
+  prerequisites:
+  - FSOrdnancePercussionCapFusing
+  bonusDescription: Team-wide heavy-launcher recoil/handling bonus (reduced fumble chance).
+
+# -- Hydra sub-tree (rotary engineering parts) --
+
+- type: fsTechNode
+  id: FSOrdnanceHeavyCylinderIndexing
+  name: Heavy Cylinder Indexing
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Grenade/grenade_cartridge.rsi
+    state: base
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceHighLowGasChambers
+  bonusDescription: Team-wide grenade launcher cylinder-cycling speed bonus.
+
+- type: fsTechNode
+  id: FSOrdnance40mmRimmedCasings
+  name: 40mm Rimmed Casings
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/anti_materiel.rsi
+    state: base
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceHeavyCylinderIndexing
+  bonusDescription: Team-wide grenade launcher reload-speed bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceInternalGasPistons
+  name: Internal Gas Pistons
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    state: bolt-open
+  branch: Ordnance
+  tier: 6
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnance40mmRimmedCasings
+  bonusDescription: Team-wide grenade launcher jam-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceSpigotSleeves
+  name: Spigot Sleeves
+  icon:
+    sprite: Objects/Tools/wirecutters.rsi
+    state: cutters
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceInternalGasPistons
+  exclusiveGroup: FSOrdnanceHydraBarrelChoice
+  bonusDescription: Grenade launchers gain velocity and range, at the cost of accuracy.
+
+- type: fsTechNode
+  id: FSOrdnanceVentedChambers
+  name: Vented Chambers
+  icon:
+    sprite: Objects/Devices/payload.rsi
+    state: payload-chemical-left
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceInternalGasPistons
+  exclusiveGroup: FSOrdnanceHydraBarrelChoice
+  bonusDescription: Grenade launchers gain payload capacity, at the cost of velocity and range.
+
+- type: fsTechNode
+  id: FSOrdnanceHydra
+  name: Hydra Grenade Launcher
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
+    state: icon
+  branch: Ordnance
+  tier: 8
+  waveGate: 12
+  cost: 9000
+  prerequisiteGroups:
+  - - FSOrdnanceSpigotSleeves
+    - FSOrdnanceVentedChambers
+  weaponShopUnlock: FSWeaponShopHydra
+
+# -- RPG-7 sub-tree (rocketry propulsion parts) --
+
+- type: fsTechNode
+  id: FSOrdnanceCounterMassVentingTubes
+  name: Counter-Mass Venting Tubes
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
+    state: mag-0
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceHighLowGasChambers
+  bonusDescription: Team-wide rocket launcher back-blast safety bonus (reduced self-damage radius).
+
+- type: fsTechNode
+  id: FSOrdnanceVenturiExhaustNozzles
+  name: Venturi Exhaust Nozzles
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
+    state: mag-1
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceCounterMassVentingTubes
+  bonusDescription: Team-wide rocket launcher projectile-velocity bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceStabilizingFinAssemblies
+  name: Stabilizing Fin Assemblies
+  icon:
+    sprite: Objects/Devices/pinpointer.rsi
+    state: pinpointer
+  branch: Ordnance
+  tier: 6
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceVenturiExhaustNozzles
+  bonusDescription: Team-wide rocket launcher accuracy bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceTandemWarheads
+  name: Tandem Warheads
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Explosives/explosives.rsi
+    state: rpg
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceStabilizingFinAssemblies
+  exclusiveGroup: FSOrdnanceRpgWarheadChoice
+  bonusDescription: Rockets gain armor penetration, at the cost of blast radius.
+
+- type: fsTechNode
+  id: FSOrdnanceThermobaricPayloads
+  name: Thermobaric Payloads
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Explosives/explosives.rsi
+    state: blast
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceStabilizingFinAssemblies
+  exclusiveGroup: FSOrdnanceRpgWarheadChoice
+  bonusDescription: Rockets gain blast radius and burn damage, at the cost of armor penetration.
+
+- type: fsTechNode
+  id: FSOrdnanceRpg7
+  name: RPG-7
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/rocket.rsi
+    state: base
+  branch: Ordnance
+  tier: 8
+  waveGate: 12
+  cost: 11000
+  prerequisiteGroups:
+  - - FSOrdnanceTandemWarheads
+    - FSOrdnanceThermobaricPayloads
+  weaponShopUnlock: FSWeaponShopRpg
+
+# Energy line - shared root (WeaponizedLaserManipulation + High-Output Capacitors), then splits
+# into the X-Ray Cannon branch and Tesla Gun branch. WaveParticleHarnessing and
+# ConcentratedLaserWeaponry keep their repurposed identities but are no longer the weapon gate
+# themselves - they're mid-chain component nodes now, with a dedicated final-assembly node at the
+# end of each branch. Several "Upgrade Augment" nodes reference real named upgrades that already
+# exist on the X-Ray Cannon/Tesla Gun shop entries (special_weapon_shops.yml) - the actual
+# value-boost hook is stage-3 work, same as every other bonus node so far, but the descriptions
+# are written against the real upgrade names/values so that hook has something exact to bind to.
+
+- type: fsTechNode
+  id: FSOrdnanceWeaponizedLaserManipulation
+  name: Weaponized Laser Manipulation
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/laser_gun.rsi
+    state: icon
+  branch: Ordnance
+  tier: 1
+  waveGate: 0
+  cost: 3000
+  bonusDescription: Team-wide energy weapon damage bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceHighOutputCapacitors
+  name: High-Output Capacitors
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: high
+  branch: Ordnance
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceWeaponizedLaserManipulation
+  bonusDescription: Team-wide energy weapon charge-rate bonus.
+
+# -- X-Ray Cannon branch --
+
+- type: fsTechNode
+  id: FSOrdnanceWaveParticleHarnessing
+  name: Wave Particle Harnessing
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/xray.rsi
+    state: icon
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceHighOutputCapacitors
+  bonusDescription: Team-wide energy weapon range bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceLeadLinedEmitters
+  name: Lead-Lined Emitters
+  icon:
+    sprite: Objects/Tools/geiger.rsi
+    state: geiger_base
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceWaveParticleHarnessing
+  bonusDescription: Team-wide energy weapon armor-penetration bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceIsotopeSynthesiser
+  name: Isotope Synthesiser
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: o1
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceWaveParticleHarnessing
+  bonusDescription: Augments the X-Ray Cannon's Radiation Coating upgrade - ticking damage per level increased by 5%.
+
+- type: fsTechNode
+  id: FSOrdnanceConcentratedLaserWeaponry
+  name: Concentrated Laser Weaponry
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/laser_cannon.rsi
+    state: icon
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceLeadLinedEmitters
+  bonusDescription: Team-wide energy damage bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceDielectricCoatings
+  name: Dielectric Coatings
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: o2
+  branch: Ordnance
+  tier: 6
+  waveGate: 9
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceConcentratedLaserWeaponry
+  bonusDescription: Augments the X-Ray Cannon's Resonant Cell upgrade - shaves 15% off its shop price.
+
+- type: fsTechNode
+  id: FSOrdnanceCryogenicCoolingPumps
+  name: Cryogenic Cooling Pumps
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: antique
+  branch: Ordnance
+  tier: 6
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceConcentratedLaserWeaponry
+  bonusDescription: Team-wide energy weapon overheat-resistance bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceFocusingCrystalPrisms
+  name: Focusing Crystal Prisms
+  icon:
+    sprite: Objects/Materials/Shards/crystal.rsi
+    state: shard1
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceCryogenicCoolingPumps
+  exclusiveGroup: FSOrdnanceXrayCoolingChoice
+  bonusDescription: X-Ray Cannon beam-focus damage bonus - simpler and more reliable than the Collimator Flanges route.
+
+- type: fsTechNode
+  id: FSOrdnanceCollimatorFlanges
+  name: Collimator Flanges
+  icon:
+    sprite: Objects/Materials/Shards/crystal.rsi
+    state: shard2
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceCryogenicCoolingPumps
+  exclusiveGroup: FSOrdnanceXrayCoolingChoice
+  bonusDescription: Augments the X-Ray Cannon's Collimator upgrade - an extra +2 degrees of accuracy per level.
+
+- type: fsTechNode
+  id: FSOrdnanceDensityTuning
+  name: Density Tuning
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: small
+  branch: Ordnance
+  tier: 8
+  waveGate: 11
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceCollimatorFlanges
+  bonusDescription: Augments the X-Ray Cannon's Deep Penetration upgrade - max level pierces one additional target.
+
+- type: fsTechNode
+  id: FSOrdnanceFrequencySync
+  name: Frequency Sync
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: medium
+  branch: Ordnance
+  tier: 9
+  waveGate: 12
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceDensityTuning
+  bonusDescription: Augments the X-Ray Cannon's Pulse Accelerator upgrade - an extra +0.1 fire rate per level.
+
+- type: fsTechNode
+  id: FSOrdnanceFocalOverdrive
+  name: Focal Overdrive
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: hyper
+  branch: Ordnance
+  tier: 10
+  waveGate: 13
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceFrequencySync
+  bonusDescription: Augments the X-Ray Cannon's Overloaded Emitter upgrade - a flat +5% damage on top of the upgrade's base value.
+
+- type: fsTechNode
+  id: FSOrdnanceXrayCannon
+  name: X-Ray Cannon
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/xray.rsi
+    state: icon
+  branch: Ordnance
+  tier: 11
+  waveGate: 14
+  cost: 9000
+  prerequisiteGroups:
+  - - FSOrdnanceFocusingCrystalPrisms
+    - FSOrdnanceFocalOverdrive
+  weaponShopUnlock: FSWeaponShopXrayCannon
+
+# -- Tesla Gun branch --
+
+- type: fsTechNode
+  id: FSOrdnanceSubAtomicParticleIonizers
+  name: Sub-Atomic Particle Ionizers
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: microreactor
+  branch: Ordnance
+  tier: 3
+  waveGate: 4
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceHighOutputCapacitors
+  bonusDescription: Team-wide energy weapon charge-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceOverclockedTiming
+  name: Overclocked Timing
+  icon:
+    sprite: Objects/Devices/signaller.rsi
+    state: advanced
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceSubAtomicParticleIonizers
+  bonusDescription: Augments the Tesla Gun's Overcharged Coil upgrade - an extra +10% fire rate on top of the shop level.
+
+- type: fsTechNode
+  id: FSOrdnanceMagnetoHydrodynamicCores
+  name: Magneto-Hydrodynamic Cores
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: potato
+  branch: Ordnance
+  tier: 4
+  waveGate: 6
+  cost: 4000
+  prerequisites:
+  - FSOrdnanceSubAtomicParticleIonizers
+  bonusDescription: Team-wide energy weapon damage bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceToroidalInductionFields
+  name: Toroidal Induction Fields
+  icon:
+    sprite: Objects/Tools/cable-coils.rsi
+    state: coilhv-30
+  branch: Ordnance
+  tier: 5
+  waveGate: 8
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceMagnetoHydrodynamicCores
+  - FSOrdnanceOverclockedTiming
+  bonusDescription: Team-wide energy weapon accuracy bonus.
+
+- type: fsTechNode
+  id: FSOrdnancePulseWidthModulators
+  name: Pulse-Width Modulators
+  icon:
+    sprite: Objects/Devices/signaller.rsi
+    state: signaller
+  branch: Ordnance
+  tier: 6
+  waveGate: 9
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceToroidalInductionFields
+  bonusDescription: Team-wide energy weapon fire-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceDenseLithiumStorage
+  name: Dense Lithium Storage
+  icon:
+    sprite: Objects/Power/powersink.rsi
+    state: powersink
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 4000
+  prerequisites:
+  - FSOrdnancePulseWidthModulators
+  bonusDescription: Augments the Tesla Gun's Energy Cell Upgrade - a bonus flat +10 capacity to the gun's magazine.
+
+- type: fsTechNode
+  id: FSOrdnanceHeavyStepUpTransformers
+  name: Heavy Step-Up Transformers
+  icon:
+    sprite: Objects/Power/power_cages.rsi
+    state: high
+  branch: Ordnance
+  tier: 7
+  waveGate: 10
+  cost: 4500
+  prerequisites:
+  - FSOrdnancePulseWidthModulators
+  bonusDescription: Team-wide energy weapon charge-rate bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceArcStabilizingGroundRods
+  name: Arc-Stabilizing Ground Rods
+  icon:
+    sprite: Structures/Power/Generation/Tesla/coil.rsi
+    state: grounding_rod
+  branch: Ordnance
+  tier: 8
+  waveGate: 11
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceHeavyStepUpTransformers
+  - FSOrdnanceDenseLithiumStorage
+  bonusDescription: Team-wide energy weapon stability bonus (reduced self-damage on discharge).
+
+- type: fsTechNode
+  id: FSOrdnanceCascadeDischargeRelays
+  name: Cascade Discharge Relays
+  icon:
+    sprite: Objects/Power/AME/ame_jar.rsi
+    state: jar
+  branch: Ordnance
+  tier: 9
+  waveGate: 12
+  cost: 4500
+  prerequisites:
+  - FSOrdnanceArcStabilizingGroundRods
+  bonusDescription: Team-wide energy weapon damage bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceHighFrequencyTeslaCoils
+  name: High-Frequency Tesla Coils
+  icon:
+    sprite: Structures/Power/Generation/Tesla/coil.rsi
+    state: coil
+  branch: Ordnance
+  tier: 10
+  waveGate: 13
+  cost: 5000
+  prerequisites:
+  - FSOrdnanceCascadeDischargeRelays
+  bonusDescription: Team-wide energy weapon range bonus.
+
+- type: fsTechNode
+  id: FSOrdnanceIonizedAtmosphericPath
+  name: Ionized Atmospheric Path
+  icon:
+    sprite: Objects/Power/light_tube.rsi
+    state: normal
+  branch: Ordnance
+  tier: 11
+  waveGate: 14
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceHighFrequencyTeslaCoils
+  bonusDescription: Augments the Tesla Gun's Extended Arc upgrade - lightning chain range stretched an extra +0.5m per level.
+
+- type: fsTechNode
+  id: FSOrdnanceChainLightningBridging
+  name: Chain-Lightning Bridging
+  icon:
+    sprite: Objects/Power/power_cages.rsi
+    state: o1
+  branch: Ordnance
+  tier: 11
+  waveGate: 14
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceHighFrequencyTeslaCoils
+  exclusiveGroup: FSOrdnanceTeslaDischargeChoice
+  bonusDescription: Tesla Gun arcs strike one additional nearby target.
+
+- type: fsTechNode
+  id: FSOrdnanceOverchargeCapacitors
+  name: Overcharge Capacitors
+  icon:
+    sprite: Objects/Power/power_cages.rsi
+    state: o2
+  branch: Ordnance
+  tier: 11
+  waveGate: 14
+  cost: 3000
+  prerequisites:
+  - FSOrdnanceHighFrequencyTeslaCoils
+  exclusiveGroup: FSOrdnanceTeslaDischargeChoice
+  bonusDescription: High-insulation storage groundwork for Flux Tuning.
+
+- type: fsTechNode
+  id: FSOrdnanceFluxTuning
+  name: Flux Tuning
+  icon:
+    sprite: Objects/Power/power_cages.rsi
+    state: medium
+  branch: Ordnance
+  tier: 12
+  waveGate: 15
+  cost: 3500
+  prerequisites:
+  - FSOrdnanceOverchargeCapacitors
+  bonusDescription: Augments the Tesla Gun's Capacitor Boost upgrade - recharge speed multiplier bumped by an extra 25%.
+
+- type: fsTechNode
+  id: FSOrdnanceSingularityHarnessing
+  name: Singularity Harnessing
+  icon:
+    sprite: Objects/Devices/singularity_beacon.rsi
+    state: icon
+  branch: Ordnance
+  tier: 13
+  waveGate: 16
+  cost: 5000
+  prerequisiteGroups:
+  - - FSOrdnanceChainLightningBridging
+    - FSOrdnanceFluxTuning
+  bonusDescription: Augments the Tesla Gun's Graviton Core upgrade - pull radius and vacuum velocity increased by 15%.
+
+- type: fsTechNode
+  id: FSOrdnanceTeslaCannon
+  name: Tesla Gun
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/tesla_gun.rsi
+    state: base
+  branch: Ordnance
+  tier: 14
+  waveGate: 18
+  cost: 12000
+  prerequisites:
+  - FSOrdnanceSingularityHarnessing
+  weaponShopUnlock: FSWeaponShopTeslaGun

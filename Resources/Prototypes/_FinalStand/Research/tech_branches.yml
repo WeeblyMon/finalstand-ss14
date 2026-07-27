@@ -1,0 +1,7 @@
+- type: fsTechBranch
+  id: Ordnance
+  name: Ordnance
+  color: "#F97316"
+  icon:
+    sprite: Objects/Devices/payload.rsi
+    state: payload-explosive-armed

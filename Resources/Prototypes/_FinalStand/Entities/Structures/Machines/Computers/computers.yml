@@ -4,6 +4,7 @@
   name: R&D computer
   description: A computer used to interface with R&D tools.
   components:
+  - type: FSTechDatabase
   - type: UserInterface
     interfaces:
       enum.ResearchConsoleUiKey.Key:
