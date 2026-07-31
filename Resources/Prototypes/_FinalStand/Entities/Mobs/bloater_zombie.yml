@@ -23,3 +23,6 @@
       state: base
   - type: FSZombieVisuals
     simpleSpriteMode: true
+  - type: FSDeathLoot
+    lootProtoId: FSResearchDisk
+    chance: 0.0005

@@ -32,3 +32,6 @@
     radius: 5.0
     energy: 8.0
     softness: 1.0
+  - type: FSDeathLoot
+    lootProtoId: FSResearchDisk
+    chance: 0.0005

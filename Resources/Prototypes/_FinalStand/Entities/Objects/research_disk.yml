@@ -1,0 +1,11 @@
+- type: entity
+  parent: BaseItem
+  id: FSResearchDisk
+  name: research point disk
+  description: A disk of salvaged research data, recovered from a fallen enemy. Insert into an R&D server.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Research/researchdisk.rsi
+    state: icon
+  - type: FSResearchDisk
+    points: 1000

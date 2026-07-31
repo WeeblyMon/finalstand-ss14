@@ -176,6 +176,9 @@
     radius: 2.0
     energy: 3.0
     softness: 1.0
+  - type: FSDeathLoot
+    lootProtoId: FSResearchDisk
+    chance: 0.0005
 
 # TODO(finalstand): add ArmorComponent when FSZombieDestroyer is implemented
 # maxHPRatio: 0.7, regenRate: 10 (tankier by design — targets infrastructure)
@@ -284,6 +287,9 @@
       params:
         volume: 3
       collection: FSGiantZombieFootstep
+  - type: FSDeathLoot
+    lootProtoId: FSResearchDisk
+    chance: 0.0005
 
 # ── Giant zombie debris — spawned on floor when parts are blown off ──────────
 
