@@ -8,6 +8,8 @@
   description: Waffle Corp's answer to every problem. 300 rounds of suppressive .30 fire. It doesn't stop.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceL6ModernAutomaticSaw
+    requiresScience: true
     weaponProtoId: FSWeaponLightMachineGunL6
     price: 140000
     starterAmmoProtoId: FSMagazineLightRifleBox
@@ -72,6 +74,8 @@
   description: Six-chamber rotary grenade launcher. Load it, spin it, pray. Uses standard grenades.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceHydra
+    requiresScience: true
     weaponProtoId: WeaponLauncherHydraFS
     price: 160000
     starterAmmoProtoId: FSLauncherGrenadeFrag
@@ -129,6 +133,8 @@
   description: Ancient. Loud. Devastating. One rocket, one problem solved. Uses rocket cartridges.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceRpg7
+    requiresScience: true
     weaponProtoId: WeaponLauncherRocket
     price: 150000
     starterAmmoProtoId: FSCartridgeRocketFS
@@ -186,6 +192,8 @@
   description: The power of the primordial element of lightning in your hands. Self-recharging energy weapon.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceTeslaCannon
+    requiresScience: true
     weaponProtoId: WeaponTeslaGunFS
     price: 175000
     category: Self-Recharging Tesla Cannon
@@ -241,6 +249,8 @@
   description: Experimental energy weapon that punches through solid matter. Self-recharging. No ammo required.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceXrayCannon
+    requiresScience: true
     weaponProtoId: WeaponXrayCannonFS
     price: 175000
     category: Self-Recharging X-Ray Cannon
@@ -303,6 +313,8 @@
   description: Vzzzzzt! Rahrahrahrah! Vrrrrr! 1000 rounds of .10 rifle. Nothing survives the spin-up.
   components:
   - type: FSShopWeapon
+    requiresResearch: FSOrdnanceMinigun
+    requiresScience: true
     weaponProtoId: WeaponMinigun
     price: 200000
     category: .10 Rotary Heavy Machine Gun
@@ -355,5 +367,34 @@
       valuePerLevel: 250
   - type: Sprite
     sprite: Objects/Weapons/Guns/HMGs/minigun.rsi
+    state: icon
+    scale: 1,1
+
+# No requiresResearch - the Harvester is the RP source that feeds the research tree itself.
+- type: entity
+  id: FSWeaponShopHarvester
+  parent: FSWeaponShopBase
+  name: Harvester
+  description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: WeaponHarvesterFS
+    requiresScience: true
+    price: 500
+    category: Sustained-Fire Bio-Radiation Beam
+    statDamage: 35
+    statFireRate: 100
+    statAccuracy: 90
+    statCapacity: 80
+    upgrades:
+    - id: harvester-damage
+      name: Amplified Emitter
+      description: Boosts beam damage by 15% per level.
+      maxLevel: 5
+      baseCost: 12000
+      type: Damage
+      valuePerLevel: 0.15
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: icon
     scale: 1,1

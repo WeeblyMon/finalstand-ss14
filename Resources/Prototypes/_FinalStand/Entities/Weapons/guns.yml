@@ -720,3 +720,42 @@
     autoRechargePauseTime: 2
   - type: Crit
     baseCritChance: 0.05
+
+# ── Harvester — original FS weapon. Fires FSHarvesterBeam at a very high fire rate (20/sec) so consecutive hitscan shots overlap into a continuous-looking beam. ──
+- type: entity
+  id: WeaponHarvesterFS
+  name: harvester
+  parent: [BaseWeaponBattery, BaseGunWieldable]
+  description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSHarvester
+  - type: FSScienceOnly
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    layers:
+    - state: base
+      map: ["enum.GunVisualLayers.Base"]
+  - type: Clothing
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    quickEquip: false
+    slots:
+    - Back
+    - suitStorage
+  - type: Gun
+    fireRate: 20
+    minAngle: 0
+    maxAngle: 0
+    angleIncrease: 0
+    availableModes: FullAuto
+    selectedMode: FullAuto
+    soundGunshot: null
+  - type: GunWieldBonus
+    minAngle: 0
+    maxAngle: 0
+  - type: Battery
+    maxCharge: 6000
+    startingCharge: 6000
+  - type: BatteryAmmoProvider
+    proto: FSHarvesterBeam
+    fireCost: 0

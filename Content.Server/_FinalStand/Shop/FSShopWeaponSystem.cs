@@ -1,5 +1,7 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Research;
+using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Shop;
@@ -9,6 +11,7 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Mind;
 using Content.Shared.Storage.EntitySystems;
+using Content.Shared.UserInterface;
 using Robust.Server.Player;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -22,6 +25,8 @@ public sealed class FSShopWeaponSystem : EntitySystem
 {
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly FSPlayerUpgradesSystem _upgrades = default!;
+    [Dependency] private readonly FSResearchSystem _fsResearch = default!;
+    [Dependency] private readonly FSScienceOnlySystem _science = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
@@ -41,6 +46,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSShopWeaponComponent, ExaminedEvent>(OnExamined);
+        SubscribeLocalEvent<FSShopWeaponComponent, ActivatableUIOpenAttemptEvent>(OnOpenAttempt);
         Subs.BuiEvents<FSShopWeaponComponent>(FSShopWeaponUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnShopOpened);
@@ -54,6 +60,28 @@ public sealed class FSShopWeaponSystem : EntitySystem
     private void OnExamined(EntityUid uid, FSShopWeaponComponent comp, ExaminedEvent args)
     {
         args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
+    }
+
+    // Locked shops (missing research or wrong department) can't be opened at all.
+    private void OnOpenAttempt(EntityUid uid, FSShopWeaponComponent comp, ActivatableUIOpenAttemptEvent args)
+    {
+        if (args.Cancelled)
+            return;
+
+        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
+        {
+            args.Cancel();
+            if (!args.Silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, args.User);
+            return;
+        }
+
+        if (comp.RequiresScience && !_science.IsScience(args.User))
+        {
+            args.Cancel();
+            if (!args.Silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, args.User);
+        }
     }
 
     private void OnShopOpened(EntityUid uid, FSShopWeaponComponent comp, BoundUIOpenedEvent args)
@@ -93,6 +121,18 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         if (comp.WeaponProtoId == null)
             return;
+
+        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
+        {
+            _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, player);
+            return;
+        }
+
+        if (comp.RequiresScience && !_science.IsScience(player))
+        {
+            _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, player);
+            return;
+        }
 
         // Grenade packs are one per type — block duplicate purchases before charging.
         var existing = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value);

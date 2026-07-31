@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "license": "CC-BY-NC-4.0",
+  "copyright": "Pixel Art VFX - Blood Mage (FREE Version) by the original asset pack author, repackaged into RSI format for FinalStand",
+  "size": { "x": 128, "y": 128 },
+  "states": [
+    {
+      "name": "activate",
+      "delays": [[0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08]]
+    },
+    {
+      "name": "loop",
+      "delays": [[1.0]]
+    },
+    {
+      "name": "destroy",
+      "delays": [[0.06, 0.06, 0.06, 0.06, 0.06]]
+    }
+  ]
+}

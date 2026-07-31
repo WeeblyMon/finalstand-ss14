@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Shop;
@@ -7,6 +8,12 @@ public sealed partial class FSShopWeaponComponent : Component
 {
     [DataField]
     public EntProtoId? WeaponProtoId;
+
+    [DataField]
+    public ProtoId<FSTechNodePrototype>? RequiresResearch;
+
+    [DataField]
+    public bool RequiresScience;
 
     [DataField]
     public List<EntProtoId> WeaponProtoIdAliases = [];

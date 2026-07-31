@@ -1,0 +1,74 @@
+# ── Null Field - held item (planted via use-in-hand) ──────────────────────────────────────────
+- type: entity
+  id: FSNullFieldItem
+  parent: BaseItem
+  name: null field emitter
+  description: A portable stasis-field emitter. Slows enemies caught in its radius. Press Z to aim a placement, click to deploy - or throw it (Ctrl+Q) to deploy where it lands.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Small
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/NullField.rsi
+    state: icon
+  - type: FSScienceOnly
+  - type: FSDeployableItem
+    deployedProtoId: FSNullFieldDeployed
+  - type: FSPlaceable
+    previewProtoId: FSNullFieldDeployed
+    range: 10
+
+# ── Null Field - placed/anchored ──────────────────────────────────────────────────────────────
+- type: entity
+  id: FSNullFieldDeployed
+  name: null field emitter
+  description: A stasis-field emitter. Slows enemies caught in its radius.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/NullField.rsi
+    layers:
+    - texture: _FinalStand/Objects/Devices/NullField.rsi/field_decal.png
+      shader: unshaded
+      map: [ "decal" ]
+    - state: base
+      map: [ "base" ]
+  - type: PointLight
+    enabled: true
+    radius: 3
+    energy: 5
+    color: "#33CCFF"
+  - type: FSNullField
+    radius: 4
+    slowFactor: 0.5
+  - type: FSDeployableLifetime
+    lifetime: 45
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.3,-0.3,0.3,0.3"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - MachineLayer
+  - type: Anchorable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 40
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]

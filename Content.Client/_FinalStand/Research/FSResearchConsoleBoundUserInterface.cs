@@ -1,4 +1,5 @@
 using Content.Client._FinalStand.Research.UI;
+using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
@@ -13,6 +14,9 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
     private FSResearchTreeMenu? _consoleMenu;
+
+    private Action<EntityUid>? _onDatabaseUpdated;
+    private Action<string>? _onAuthorityDenied;
 
     public FSResearchConsoleBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -32,10 +36,27 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             SendMessage(new ConsoleUnlockTechnologyMessage(id));
         };
 
+        _consoleMenu.OnFsNodeSelected += id =>
+        {
+            SendMessage(new FSSelectResearchNodeMessage(id));
+        };
+
         _consoleMenu.OnServerButtonPressed += () =>
         {
             SendMessage(new ConsoleServerSelectionMessage());
         };
+
+        // FSTechDatabaseComponent changes don't push a BUI state, so wire this manually.
+        var researchClient = EntMan.System<FSResearchClientSystem>();
+        _onDatabaseUpdated = uid =>
+        {
+            if (uid == owner)
+                _consoleMenu?.RefreshLiveState();
+        };
+        researchClient.DatabaseUpdated += _onDatabaseUpdated;
+
+        _onAuthorityDenied = reason => _consoleMenu?.ShowAuthorityDenied(reason);
+        researchClient.AuthorityDenied += _onAuthorityDenied;
     }
 
     public override void OnProtoReload(PrototypesReloadedEventArgs args)
@@ -60,5 +81,18 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             return;
         _consoleMenu?.UpdatePanels(castState);
         _consoleMenu?.UpdateInformationPanel(castState);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (!disposing)
+            return;
+
+        var researchClient = EntMan.System<FSResearchClientSystem>();
+        if (_onDatabaseUpdated != null)
+            researchClient.DatabaseUpdated -= _onDatabaseUpdated;
+        if (_onAuthorityDenied != null)
+            researchClient.AuthorityDenied -= _onAuthorityDenied;
     }
 }

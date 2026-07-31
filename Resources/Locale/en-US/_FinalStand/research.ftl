@@ -1,0 +1,10 @@
+fs-research-selected = Now researching: {$name}
+fs-research-already-unlocked = Already researched.
+fs-research-prereqs-not-met = Prerequisites not met.
+fs-research-exclusive-locked = A mutually exclusive alternative has already been researched.
+fs-research-no-authority = You are not the Research Director
+fs-research-no-authority-detail = (or Captain, or the RD has not been away long enough for you to step in).
+fs-research-insufficient-materials = Not enough materials in the linked Silo.
+shop-weapon-locked-research = This weapon hasn't been researched yet.
+shop-weapon-locked-department = Science personnel only.
+fs-science-only-use = Only Science personnel can use this.

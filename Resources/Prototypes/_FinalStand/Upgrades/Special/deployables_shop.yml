@@ -1,0 +1,40 @@
+# ── SCI Deployables ──────────────────────────────────────────────────────────────────────────
+- type: entity
+  id: FSDeployableShopNullField
+  parent: FSWeaponShopBase
+  name: Null Field Emitter
+  description: A portable stasis-field emitter. Slows enemies caught in its radius. Diminishing returns - overlapping fields don't stack.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSNullFieldItem
+    requiresScience: true
+    price: 3000
+    category: Area Denial Deployable
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/NullField.rsi
+    state: icon
+    scale: 1,1
+
+- type: entity
+  id: FSDeployableShopDamageBeacon
+  parent: FSWeaponShopBase
+  name: Damage Beacon
+  description: A portable targeting beacon. Amplifies damage dealt to enemies in its radius. Diminishing returns - overlapping beacons don't stack.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSDamageBeaconItem
+    requiresScience: true
+    price: 3500
+    category: Area Denial Deployable
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
+    state: icon
+    scale: 1,1

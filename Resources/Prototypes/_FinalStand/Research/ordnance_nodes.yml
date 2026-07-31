@@ -543,6 +543,8 @@
   tier: 1
   waveGate: 0
   cost: 3000
+  materialCost:
+    Steel: 1
   bonusDescription: Team-wide explosive damage bonus.
 
 - type: fsTechNode

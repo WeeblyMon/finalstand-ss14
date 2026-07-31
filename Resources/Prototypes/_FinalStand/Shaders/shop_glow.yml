@@ -23,6 +23,14 @@
     glow_intensity: 1.5
 
 - type: shader
+  id: FSShopGlowLocked
+  kind: source
+  path: "/Textures/Shaders/shop_glow.swsl"
+  params:
+    glow_color: "#808080D9"
+    glow_intensity: 1.0
+
+- type: shader
   id: FSTeslaGlow
   kind: source
   path: "/Textures/Shaders/shop_glow.swsl"

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client.Cooldown;
 using Content.Client.UserInterface.Systems.Inventory.Controls;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Grenades;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
@@ -229,6 +230,12 @@ namespace Content.Client.UserInterface.Controls
                 _chargesLabel.Text = pack.Stock.ToString();
                 _chargesLabel.Visible = true;
                 _chargesLabel.FontColorOverride = pack.Stock == 0 ? Color.Gray : Color.White;
+            }
+            else if (Entity is { } deployableEnt && _entMan.TryGetComponent<FSDeployableItemComponent>(deployableEnt, out var deployable))
+            {
+                _chargesLabel.Text = deployable.Stock.ToString();
+                _chargesLabel.Visible = true;
+                _chargesLabel.FontColorOverride = deployable.Stock == 0 ? Color.Gray : Color.White;
             }
             else
             {

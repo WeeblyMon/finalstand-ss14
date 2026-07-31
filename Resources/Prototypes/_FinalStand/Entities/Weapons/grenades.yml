@@ -64,6 +64,7 @@
 
 - type: entity
   id: FSGrenadePackBase
+  parent: BaseItem
   abstract: true
   components:
   - type: Item

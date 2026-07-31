@@ -305,3 +305,16 @@
       types:
         Heat: 10
         Radiation: 10
+
+# ── Harvester beam — damage dealt entirely by FSHarvesterWeaponSystem, not HitscanBasicDamage. ──
+- type: entity
+  id: FSHarvesterBeam
+  name: harvester beam
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSHarvester
+  - type: HitscanAmmo
+  - type: HitscanBasicRaycast
+    maxDistance: 9
+  - type: HitscanReflect
+  - type: HitscanBasicEffects

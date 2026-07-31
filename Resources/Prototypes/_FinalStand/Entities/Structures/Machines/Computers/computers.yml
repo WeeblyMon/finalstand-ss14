@@ -5,6 +5,8 @@
   description: A computer used to interface with R&D tools.
   components:
   - type: FSTechDatabase
+  - type: MaterialStorage
+  - type: OreSiloClient
   - type: UserInterface
     interfaces:
       enum.ResearchConsoleUiKey.Key:

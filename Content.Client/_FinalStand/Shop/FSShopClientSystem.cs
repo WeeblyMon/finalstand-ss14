@@ -1,4 +1,6 @@
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Research;
+using Content.Shared._FinalStand.Science;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
@@ -9,6 +11,7 @@ using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
 
@@ -19,14 +22,22 @@ public sealed class FSShopClientSystem : EntitySystem
     [Dependency] private readonly IBaseClient _client = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
 
     private static readonly ProtoId<ShaderPrototype> ShaderAffordable = "FSShopGlowAffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderUnaffordable = "FSShopGlowUnaffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderOwned = "FSShopGlowOwned";
+    private static readonly ProtoId<ShaderPrototype> ShaderLocked = "FSShopGlowLocked";
+    private const string LockLayerKey = "fs-shop-lock-overlay";
 
-    private enum ShopGlowState { Unaffordable, Affordable, Owned }
+    private enum ShopGlowState { Unaffordable, Affordable, Owned, Locked }
+
+    private HashSet<string> _unlockedResearchNodes = new();
+    private bool _isScience;
+    private Texture? _lockTexture;
 
     public int CurrentCredits { get; private set; }
     public Dictionary<string, int> UpgradeLevels { get; private set; } = [];
@@ -47,12 +58,16 @@ public sealed class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<UpgradeLevelsUpdatedEvent>(OnUpgradesUpdated);
         SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
+        SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
+        SubscribeNetworkEvent<FSPlayerScienceStatusEvent>(OnScienceStatus);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
         SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);
         SubscribeLocalEvent<DidUnequipHandEvent>(OnDidUnequipHand);
         _client.PlayerJoinedServer += OnJoined;
         _client.PlayerLeaveServer += OnLeft;
+
+        _lockTexture = _resourceCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Shop/lock_icon.png").Texture;
     }
 
     public override void Shutdown()
@@ -70,7 +85,11 @@ public sealed class FSShopClientSystem : EntitySystem
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
             ShopGlowState state;
-            if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
+            if (shop.RequiresResearch is { } required && !_unlockedResearchNodes.Contains(required.Id))
+                state = ShopGlowState.Locked;
+            else if (shop.RequiresScience && !_isScience)
+                state = ShopGlowState.Locked;
+            else if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
                 state = ShopGlowState.Owned;
             else if (CurrentCredits >= shop.Price)
                 state = ShopGlowState.Affordable;
@@ -82,7 +101,23 @@ public sealed class FSShopClientSystem : EntitySystem
 
             _lastGlowState[uid] = state;
             ApplyOutline(sprite, state);
+            ApplyLockOverlay(uid, sprite, state == ShopGlowState.Locked);
         }
+    }
+
+    private void ApplyLockOverlay(EntityUid uid, SpriteComponent sprite, bool locked)
+    {
+        if (!_sprite.LayerMapTryGet((uid, sprite), LockLayerKey, out var index, false))
+        {
+            if (!locked)
+                return;
+
+            index = sprite.LayerMapReserveBlank(LockLayerKey);
+            _sprite.LayerSetTexture((uid, sprite), index, _lockTexture);
+            _sprite.LayerSetScale((uid, sprite), index, new System.Numerics.Vector2(0.5f, 0.5f));
+        }
+
+        _sprite.LayerSetVisible((uid, sprite), index, locked);
     }
 
     private void OnHandSelected(HandSelectedEvent ev)
@@ -132,6 +167,7 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
+        _isScience = false;
         _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
@@ -141,6 +177,7 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
+        _isScience = false;
         ClearAllShaders();
         CreditsChanged?.Invoke();
     }
@@ -192,6 +229,18 @@ public sealed class FSShopClientSystem : EntitySystem
         }
 
         return null;
+    }
+
+    private void OnResearchUnlocksChanged(FSResearchUnlocksChangedEvent ev)
+    {
+        _unlockedResearchNodes = ev.UnlockedNodes;
+        _lastGlowState.Clear();
+    }
+
+    private void OnScienceStatus(FSPlayerScienceStatusEvent ev)
+    {
+        _isScience = ev.IsScience;
+        _lastGlowState.Clear();
     }
 
     private void OnSellCompleted(FSShopSellCompletedEvent _) => SellCompleted?.Invoke();
@@ -269,6 +318,7 @@ public sealed class FSShopClientSystem : EntitySystem
     {
         var protoId = state switch
         {
+            ShopGlowState.Locked => ShaderLocked,
             ShopGlowState.Owned => ShaderOwned,
             ShopGlowState.Affordable => ShaderAffordable,
             _ => ShaderUnaffordable,

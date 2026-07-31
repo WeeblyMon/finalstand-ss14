@@ -36,6 +36,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     private readonly ResearchSystem _research;
+    private readonly FSResearchClientSystem _fsResearch;
     private readonly SpriteSystem _sprite;
     private readonly FontResource _fontResource;
     private readonly Texture _discTexture;
@@ -125,6 +126,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         RobustXamlLoader.Load(this);
 
         _research = _entityManager.System<ResearchSystem>();
+        _fsResearch = _entityManager.System<FSResearchClientSystem>();
         _sprite = _entityManager.System<SpriteSystem>();
 
         _fontResource = _resourceCache.GetResource<FontResource>("/EngineFonts/NotoSans/NotoSansMono-Regular.ttf");
@@ -271,20 +273,25 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             });
         }
 
+        var unlockedFsList = fsDatabase?.UnlockedNodes.Select(u => u.Id).ToList() ?? new List<string>();
+
         foreach (var fsTech in _prototype.EnumeratePrototypes<FSTechNodePrototype>())
         {
             if (fsTech.Hidden)
                 continue;
 
             var state = IsUnlocked(fsTech.ID) ? FSResearchNodeState.Unlocked
+                : _fsResearch.IsExclusivelyBlocked(fsTech, unlockedFsList) ? FSResearchNodeState.ExclusivelyBlocked
                 : fsTech.Prerequisites.All(IsUnlocked) && fsTech.PrerequisiteGroups.All(g => g.Any(IsUnlocked))
                     ? FSResearchNodeState.Available
                     : FSResearchNodeState.Locked;
 
+            var isActive = fsDatabase?.ActiveResearch is { } active && active.Id == fsTech.ID;
+
             nodes.Add(new FSResearchNodeView
             {
                 Id = fsTech.ID,
-                Name = Loc.GetString(fsTech.Name),
+                Name = fsTech.Name,
                 Icon = fsTech.Icon,
                 GroupId = fsTech.Branch.Id,
                 Tier = fsTech.Tier,
@@ -293,6 +300,8 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                 PrerequisiteGroups = fsTech.PrerequisiteGroups,
                 State = state,
                 FsNode = fsTech,
+                IsActiveResearch = isActive,
+                Progress = isActive ? fsDatabase!.NodeProgress.GetValueOrDefault(fsTech.ID) : 0,
             });
         }
 
@@ -807,6 +816,8 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             var matchesSearch = _filter.Length == 0 ||
                                  node.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
             var opacity = matchesSearch ? 1f : 0.25f;
+            if (node.State == FSResearchNodeState.ExclusivelyBlocked)
+                opacity *= 0.4f;
 
             var stateColor = node.State switch
             {
@@ -863,7 +874,23 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             var ringBox = UIBox2.FromDimensions(center - new Vector2(iconRadius, iconRadius), new Vector2(iconRadius * 2, iconRadius * 2));
             handle.DrawTextureRect(_ringTexture, ringBox, color);
 
+            if (node.State == FSResearchNodeState.ExclusivelyBlocked)
+                DrawBlockedX(handle, center, iconRadius);
+
             DrawHSlicedRect(handle, _plateBgTexture, plateBox, Fade(PlateBackgroundColor, opacity));
+
+            if (node.IsActiveResearch && node.Cost > 0)
+            {
+                var barFrac = Math.Clamp((float)node.Progress / node.Cost, 0f, 1f);
+                if (barFrac > 0f)
+                {
+                    var fillBox = new UIBox2(
+                        plateBox.Left, plateBox.Top,
+                        plateBox.Left + plateBox.Width * barFrac, plateBox.Bottom);
+                    DrawHSlicedRect(handle, _plateBgTexture, fillBox, Fade(FSUiPalette.StatePositive, opacity));
+                }
+            }
+
             DrawHSlicedRect(handle, _plateRingTexture, plateBox, color);
 
             var lineDims = handle.GetDimensions(_font, line, 1);
@@ -915,9 +942,42 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
     private static Color Fade(Color color, float opacity) => new(color.R, color.G, color.B, color.A * opacity);
 
-    // Manual dash subdivision - DrawingHandleScreen has no native dashed-line mode. Used for OR-
-    // group prerequisite edges (dotted = "either of these", matching HOI4's convention) vs the
-    // plain solid DrawLine used for mandatory AND edges.
+    private void DrawBlockedX(DrawingHandleScreen handle, Vector2 center, float iconRadius)
+    {
+        var inset = iconRadius * 0.32f;
+        var a = center + new Vector2(-iconRadius + inset, -iconRadius + inset);
+        var b = center + new Vector2(iconRadius - inset, iconRadius - inset);
+        var c = center + new Vector2(-iconRadius + inset, iconRadius - inset);
+        var d = center + new Vector2(iconRadius - inset, -iconRadius + inset);
+
+        var thickness = Math.Max(1f, 2f * UIScale * _zoom);
+        DrawThickLine(handle, a, b, FSUiPalette.StateNegative, thickness);
+        DrawThickLine(handle, c, d, FSUiPalette.StateNegative, thickness);
+    }
+
+    private static void DrawThickLine(DrawingHandleScreen handle, Vector2 from, Vector2 to, Color color, float thickness)
+    {
+        var delta = to - from;
+        var length = delta.Length();
+        if (length < 0.01f)
+            return;
+
+        var normal = new Vector2(-delta.Y, delta.X) / length;
+        var steps = Math.Max(1, (int)MathF.Ceiling(thickness));
+        if (steps == 1)
+        {
+            handle.DrawLine(from, to, color);
+            return;
+        }
+
+        for (var i = 0; i < steps; i++)
+        {
+            var offset = normal * (thickness * (i / (float)(steps - 1) - 0.5f));
+            handle.DrawLine(from + offset, to + offset, color);
+        }
+    }
+
+    // Dotted = OR-group prerequisite edges ("either of these"); solid DrawLine is used for mandatory AND edges.
     private void DrawDashedLine(DrawingHandleScreen handle, Vector2 from, Vector2 to, Color color)
     {
         var dashLength = 8f * UIScale * _zoom;
