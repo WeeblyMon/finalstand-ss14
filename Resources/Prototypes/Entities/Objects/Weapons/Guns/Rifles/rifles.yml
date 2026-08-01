@@ -10,6 +10,9 @@
     size: Huge
     shape:
     - 0,0,3,2
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Clothing
     sprite: Objects/Weapons/Guns/Rifles/ak.rsi
     quickEquip: false

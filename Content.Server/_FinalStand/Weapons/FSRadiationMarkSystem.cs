@@ -62,8 +62,12 @@ public sealed class FSRadiationMarkSystem : EntitySystem
         var target = args.Data.HitEntity.Value;
 
         var coatingLevel = 0;
+        var coatingResearchBonus = 0f;
         if (TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var state))
+        {
             coatingLevel = state.RadiationCoatingLevel;
+            coatingResearchBonus = state.RadiationCoatingResearchBonus;
+        }
 
         var duration = MarkDurationSeconds + coatingLevel;
         var mark = EnsureComp<FSRadiationMarkComponent>(target);
@@ -73,7 +77,7 @@ public sealed class FSRadiationMarkSystem : EntitySystem
         if (coatingLevel > 0)
         {
             mark.HasDot = true;
-            mark.DotPerSecond = 8f * coatingLevel;
+            mark.DotPerSecond = 8f * coatingLevel * (1f + coatingResearchBonus);
             mark.DotRemaining = (1.5f + coatingLevel) * mark.DotPerSecond;
         }
     }

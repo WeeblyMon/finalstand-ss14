@@ -75,4 +75,10 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int ShapedChargeLevel = 0;
     [DataField] public int RadiationCoatingLevel = 0;
     [DataField] public float TeslaArcRangeBonus = 0f;
+
+    // Ordnance research: recomputed from scratch every GunRefreshModifiersEvent, not accumulated.
+    [DataField] public float ResearchReloadMultiplier = 1f;
+    [DataField] public int TeslaChainTargetBonus = 0;
+    [DataField] public float KnockbackResearchForceBonus = 0f;
+    [DataField] public float RadiationCoatingResearchBonus = 0f;
 }

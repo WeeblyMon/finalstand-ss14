@@ -60,6 +60,7 @@
   - type: Tag
     tags:
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   id: BaseWeaponPowerCell
@@ -164,6 +165,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: retro laser blaster
@@ -193,6 +195,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: makeshift laser pistol
@@ -227,6 +230,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: tesla gun
@@ -234,6 +238,9 @@
   id: WeaponTeslaGun
   description: The power of the primordial element of lightning in your hands.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Item
     size: Large
     shape:
@@ -319,6 +326,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: pulse carbine
@@ -326,6 +334,9 @@
   id: WeaponPulseCarbine
   description: A high tech energy carbine favoured by the NT-ERT operatives.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Item
     size: Large
   - type: Sprite
@@ -364,6 +375,9 @@
   id: WeaponPulseRifle
   description: A weapon that is almost as infamous as its users.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Item
     size: Huge
     shape:
@@ -429,6 +443,7 @@
   - type: Tag
     tags:
     - TurretCompatibleWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: portable particle decelerator
@@ -467,6 +482,9 @@
   id: WeaponXrayCannon
   description: An experimental weapon that uses concentrated x-ray energy against its target.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Item
     size: Huge
     shape:
@@ -696,6 +714,7 @@
     - Sidearm
     - WeaponAntiqueLaser
     - LaserWeapon
+    - WeaponGunEnergy
   - type: StaticPrice
     price: 750
   - type: StealTarget
@@ -747,6 +766,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
   - type: Crit
     baseCritChance: 0.05
 
@@ -756,6 +776,9 @@
   id: WeaponPistolCHIMP
   description: Just because it's a little C.H.I.M.P. doesn't mean it can't punch like an A.P.E.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/chimp.rsi
     layers:
@@ -842,6 +865,7 @@
     tags:
     - Sidearm
     - LaserWeapon
+    - WeaponGunEnergy
 
 - type: entity
   name: energy shotgun
@@ -849,6 +873,9 @@
   id: WeaponEnergyShotgun
   description: A one-of-a-kind prototype energy weapon that uses various shotgun configurations. It offers the possibility of both lethal and non-lethal shots, making it a versatile weapon.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_shotgun.rsi
     layers:
@@ -913,6 +940,7 @@
     tags:
     - HighRiskItem
     - Sidearm
+    - WeaponGunEnergy
   - type: StealTarget
     stealGroup: WeaponEnergyMagnum
   - type: Gun

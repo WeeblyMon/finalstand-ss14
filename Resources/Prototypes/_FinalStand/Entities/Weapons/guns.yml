@@ -62,6 +62,7 @@
   - type: Tag
     tags:
     - WeaponGunShotgun
+    - WeaponGunBallistic
   - type: BallisticAmmoProvider
     proto: FSShellDoubleBarrel
     whitelist:
@@ -90,6 +91,7 @@
     tags:
       - Sidearm
       - AkimboEligible
+      - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
     state: icon
@@ -139,6 +141,9 @@
   name: hydra
   description: PLOOP... FSSSSSS...
   components:
+  - type: Tag
+    tags:
+    - WeaponGunLauncher
   - type: Sprite
     sprite: Objects/Weapons/Guns/Launchers/hydra_launcher.rsi
     layers:
@@ -239,6 +244,7 @@
   - type: Tag
     tags:
     - WeaponGunShotgun
+    - WeaponGunBallistic
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
     capacity: 1
@@ -253,6 +259,7 @@
   - type: Tag
     tags:
     - WeaponGunShotgun
+    - WeaponGunBallistic
   - type: BallisticAmmoProvider
     proto: FSShellShotgunStandard
   - type: Crit
@@ -278,6 +285,7 @@
     tags:
     - Sidearm
     - AkimboEligible
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -308,6 +316,7 @@
     tags:
     - Sidearm
     - AkimboEligible
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -340,6 +349,7 @@
     tags:
     - Sidearm
     - AkimboEligible
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -370,6 +380,7 @@
     tags:
     - Sidearm
     - AkimboEligible
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -402,6 +413,7 @@
     tags:
     - AkimboEligible
     - WeaponGunShotgun
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -426,6 +438,7 @@
   - type: Tag
     tags:
     - WeaponGunShotgun
+    - WeaponGunBallistic
   - type: BallisticAmmoProvider
     proto: FSShellShotgunHushpup
     capacity: 4
@@ -443,6 +456,7 @@
   - type: Tag
     tags:
     - WeaponGunShotgun
+    - WeaponGunEnergy
   - type: FSMuzzleFlashColor
     color: "#FF3300"
   - type: BatterySelfRecharger
@@ -468,6 +482,9 @@
   parent: WeaponLaserCarbine
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: BatterySelfRecharger
     autoRechargeRate: 50
     autoRechargePauseTime: 1.5
@@ -488,6 +505,9 @@
   parent: WeaponPulseRifle
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: BatterySelfRecharger
     autoRechargeRate: 200
     autoRechargePauseTime: 2
@@ -551,6 +571,9 @@
   parent: WeaponRifleLecter
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -578,6 +601,9 @@
   parent: WeaponRifleAk
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: ItemSlots
     slots:
       gun_magazine:
@@ -605,6 +631,9 @@
   parent: WeaponLightMachineGunL6
   suffix: FinalStand
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Gun
     minAngle: 24
     maxAngle: 45
@@ -680,6 +709,9 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Battery
     maxCharge: 3000
     startingCharge: 3000
@@ -699,6 +731,9 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponGunEnergy
   - type: Gun
     minAngle: 0
     maxAngle: 0
@@ -720,6 +755,28 @@
     autoRechargePauseTime: 2
   - type: Crit
     baseCritChance: 0.05
+
+# ── Minigun FS override — tags for Ordnance team-wide ballistic research bonuses ───
+- type: entity
+  id: FSWeaponMinigun
+  parent: WeaponMinigun
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
+
+# ── RPG-7 FS override — tags for Ordnance launcher research bonuses ────────────
+- type: entity
+  id: FSWeaponLauncherRocket
+  parent: WeaponLauncherRocket
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - WeaponGunLauncher
 
 # ── Harvester — original FS weapon. Fires FSHarvesterBeam at a very high fire rate (20/sec) so consecutive hitscan shots overlap into a continuous-looking beam. ──
 - type: entity

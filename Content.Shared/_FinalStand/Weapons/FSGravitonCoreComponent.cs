@@ -6,4 +6,7 @@ public sealed partial class FSGravitonCoreComponent : Component
     [DataField] public int Level = 1;
     [DataField] public float PullStrengthBase = 5f;
     [DataField] public float MaxRangeBase = 4f;
+
+    // Ordnance research (Singularity Harnessing): flat multiplier, not accumulated.
+    public float ResearchMultiplier = 1f;
 }

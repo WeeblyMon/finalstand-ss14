@@ -329,6 +329,7 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         station.Comp.ActiveResearch = null;
         Dirty(station);
         BroadcastUnlockedNodes();
+        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
 
         Log.Info($"[FSResearch] Completed node {node.ID}");
     }

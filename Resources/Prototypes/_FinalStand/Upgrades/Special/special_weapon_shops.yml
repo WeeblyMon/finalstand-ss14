@@ -135,7 +135,7 @@
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceRpg7
     requiresScience: true
-    weaponProtoId: WeaponLauncherRocket
+    weaponProtoId: FSWeaponLauncherRocket
     price: 150000
     starterAmmoProtoId: FSCartridgeRocketFS
     starterAmmoCount: 3
@@ -315,7 +315,7 @@
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceMinigun
     requiresScience: true
-    weaponProtoId: WeaponMinigun
+    weaponProtoId: FSWeaponMinigun
     price: 200000
     category: .10 Rotary Heavy Machine Gun
     statDamage: 55

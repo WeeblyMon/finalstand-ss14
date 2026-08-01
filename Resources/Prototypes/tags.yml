@@ -1524,7 +1524,16 @@
   id: WeaponAntiqueLaser # Storage whitelist: GlassBoxLaser
 
 - type: Tag
-  id: WeaponGunLauncher # FinalStand: marks a weapon as a launcher (RPG, grenade launcher) for augment checks.
+  id: WeaponGunBallistic # FinalStand: kinetic/cartridge guns - Ordnance ballistic research bonuses.
+
+- type: Tag
+  id: WeaponGunEnergy # FinalStand: laser/pulse guns - Ordnance energy research bonuses.
+
+- type: Tag
+  id: WeaponGunLauncher # FinalStand: launchers (RPG, grenade launcher) - augment checks and Ordnance launcher research bonuses.
+
+- type: Tag
+  id: WeaponExplosive # FinalStand: grenades and rockets - Ordnance blast-intensity research bonuses.
 
 - type: Tag
   id: WeaponGunShotgun # FinalStand: marks a weapon as a shotgun for KnockbackBlast augment.

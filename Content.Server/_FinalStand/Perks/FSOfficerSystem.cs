@@ -1,4 +1,5 @@
-﻿using Content.Server.Popups;
+﻿using Content.Server._FinalStand.Leveling;
+using Content.Server.Popups;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Actions;
 using Content.Shared.GameTicking;
@@ -22,6 +23,7 @@ public sealed class FSOfficerSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private readonly FSPlayerBonusSummarySystem _bonusSummary = default!;
 
     private const float WhistleRange = 10f;
     private static readonly TimeSpan BuffDuration = TimeSpan.FromSeconds(8);
@@ -105,6 +107,9 @@ public sealed class FSOfficerSystem : EntitySystem
             buff.Level = level;
 
             _popup.PopupEntity("Buffed!", targetUid, Filter.Pvs(targetUid), true, PopupType.Medium);
+
+            if (TryComp<ActorComponent>(targetUid, out var actor))
+                _bonusSummary.RecomputeFor(targetUid, actor.PlayerSession);
         }
     }
 

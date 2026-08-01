@@ -1,7 +1,9 @@
 ﻿using Content.Client._FinalStand.Perks;
+using Content.Client._FinalStand.Shop;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Grenades;
+using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
@@ -433,16 +435,23 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             frParts.Add($"{bsTag}  + {bsRpmBonus} RPM");
         }
 
+        var weaponProtoId = shopComp.WeaponProtoId?.Id;
+        var researchDmg = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.Damage);
+        var researchFr = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.FireRate);
+        var researchAcc = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.Accuracy);
+        var researchCap = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.Capacity);
+
         // ── Damage ──
         var finalPerShot = damagePerShot * augDmgMult;
         var finalTotal   = finalPerShot * pellets;
         if (finalTotal - baseDmgPerShot * basePellets > 0.01f)
             dmgLines.Add($"= {finalTotal - baseDmgPerShot * basePellets:0.#}");
+        dmgLines.AddRange(researchDmg);
 
         var damageText = pellets > 1 ? $"{finalPerShot:0.#}×{pellets}" : $"{finalPerShot:0.#}";
         StatBarsContainer.AddChild(BuildStatBar("Damage",
             Math.Min(1f, finalTotal / 100f), damageText,
-            dmgLines.Count > 0 ? FSUiPalette.StatePositive : null,
+            researchDmg.Count > 0 ? FSUiPalette.StateResearch : dmgLines.Count > 0 ? FSUiPalette.StatePositive : null,
             dmgLines.Count > 0 ? string.Join("\n", dmgLines) : null));
 
         // ── Fire Rate ──
@@ -450,9 +459,10 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         var fireRate = (baseFireRate + frBonus) * bulletStormMult;
         var rpm = (int)Math.Round(fireRate * 60f);
         if (frParts.Count > 0) frParts.Add($"= {rpm} RPM");
+        frParts.AddRange(researchFr);
         StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
             Math.Min(1f, fireRate / 10f), $"{rpm} RPM",
-            frParts.Count > 0 ? FSUiPalette.StatePositive : null,
+            researchFr.Count > 0 ? FSUiPalette.StateResearch : frParts.Count > 0 ? FSUiPalette.StatePositive : null,
             frParts.Count > 0 ? string.Join("\n", frParts) : null));
 
         // ── Accuracy ──
@@ -460,20 +470,22 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             ? (float)gunComp.MaxAngleModified.Degrees
             : gunProto != null ? (float)gunProto.MaxAngle.Degrees : 15f;
         if (accParts.Count > 0) accParts.Add($"= {(int)Math.Round(Math.Max(0f, 1f - angleDeg / 30f) * 100f)}");
+        accParts.AddRange(researchAcc);
 
         var accFill = shopComp.StatAccuracy / 100f;
         var accText = shopComp.StatAccuracy.ToString();
 
         StatBarsContainer.AddChild(BuildStatBar("Accuracy",
             accFill, accText,
-            accParts.Count > 0 ? FSUiPalette.StatePositive : null,
+            researchAcc.Count > 0 ? FSUiPalette.StateResearch : accParts.Count > 0 ? FSUiPalette.StatePositive : null,
             accParts.Count > 0 ? string.Join("\n", accParts) : null));
 
         // ── Capacity ──
         var (capFill, capText, capRaw) = GetCapacityDisplay(shopComp, weapon, weaponProto, entMan);
         if (capParts.Count > 0) capParts.Add($"= {capText}");
+        capParts.AddRange(researchCap);
         StatBarsContainer.AddChild(BuildStatBar("Capacity", capFill, capText,
-            capParts.Count > 0 ? FSUiPalette.StatePositive : null,
+            researchCap.Count > 0 ? FSUiPalette.StateResearch : capParts.Count > 0 ? FSUiPalette.StatePositive : null,
             capParts.Count > 0 ? string.Join("\n", capParts) : null));
 
         // Cache everything for hover preview.
@@ -635,6 +647,24 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
         refs.ValueLabel.Text = text;
         refs.ValueLabel.Modulate = valueColor ?? FSUiPalette.TextMuted;
+    }
+
+    // ── research indicator ─────────────────────────────────────────────────────
+
+    private List<string> GetResearchLines(string? weaponProtoId, string category)
+    {
+        var lines = new List<string>();
+        var shopClient = _entityManager.System<FSShopClientSystem>();
+        foreach (var nodeId in FSResearchStatBonusTable.GetNodes(weaponProtoId, category))
+        {
+            if (!shopClient.IsResearchNodeUnlocked(nodeId))
+                continue;
+            string name = nodeId;
+            if (_proto.TryIndex<FSTechNodePrototype>(nodeId, out var node))
+                name = node.Name;
+            lines.Add($"[Research] {name}");
+        }
+        return lines;
     }
 
     // ── bar construction ───────────────────────────────────────────────────────

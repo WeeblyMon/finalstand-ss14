@@ -943,7 +943,7 @@ public sealed class FSSmartReloadSystem : EntitySystem
     {
         var mult = 1.0f;
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
-            mult *= state.ReloadSpeedMultiplier;
+            mult *= state.ReloadSpeedMultiplier * state.ResearchReloadMultiplier;
         return mult;
     }
 }

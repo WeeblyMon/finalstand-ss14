@@ -35,6 +35,7 @@ public sealed class FSIronBeastSystem : EntitySystem
     {
         var buff = EnsureComp<FSIronBeastBuffComponent>(args.User);
         buff.LastFireTime = _timing.CurTime.TotalSeconds;
+        buff.ResistBonus = comp.ResistBonus;
     }
 
     private void OnDamageModify(EntityUid uid, FSIronBeastBuffComponent buff, DamageModifyEvent args)
@@ -48,6 +49,6 @@ public sealed class FSIronBeastSystem : EntitySystem
         if (damageable.TotalDamage * 2 < deadThreshold!.Value)
             return;
 
-        args.Damage *= 0.8f;
+        args.Damage *= 1f - (0.2f + buff.ResistBonus);
     }
 }

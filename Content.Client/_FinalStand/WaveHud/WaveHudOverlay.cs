@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
+using Content.Client._FinalStand.Shop;
 using Content.Client.UserInterface.Screens;
+using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.CCVar;
 using Robust.Client.Graphics;
@@ -9,6 +11,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Graphics;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -22,6 +25,7 @@ public sealed class WaveHudOverlay : Overlay
     [Dependency] private readonly IInputManager _input = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
+    [Dependency] private readonly IEntityManager _entityManager = default!;
 
     private Font? _labelFont;
     private Font? _valueFont;
@@ -45,6 +49,13 @@ public sealed class WaveHudOverlay : Overlay
     public Dictionary<string, int> PerkStacks = new();
     public float PrepSecondsRemaining = -1f;
     public bool IsPrepPhase = false;
+
+    public FSBonusCategory GunDamage;
+    public FSBonusCategory FireRate;
+    public FSBonusCategory MeleeDamage;
+    public FSBonusCategory ExplosiveDamage;
+    public FSBonusCategory ReloadSpeed;
+    public FSBonusCategory MagazineSize;
 
     // Used by WaveHudSystem to position and drive the ready-up overlay section.
     public float PanelLeft = -1f;
@@ -71,6 +82,9 @@ public sealed class WaveHudOverlay : Overlay
     private readonly Dictionary<string, Texture?> _augIconCache = new();
     // rebuilt each frame: augment cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
+
+    // rebuilt each frame: current-bonuses row bounds + label/source tooltip lines for hover detection
+    private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
     private readonly record struct InterestPopup(string PerkId, int Amount, float Life, float TotalLife);
     private readonly List<InterestPopup> _interestPopups = new();
@@ -169,6 +183,8 @@ public sealed class WaveHudOverlay : Overlay
         PanelLeft = panelX;
         PanelTop = y;
         PanelWidth = panelW;
+
+        DrawBonusIndicator(screen, margin);
 
         if (IsReadyUpVisible)
         {
@@ -341,6 +357,43 @@ public sealed class WaveHudOverlay : Overlay
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), effectText, muted);
             break;
         }
+
+        // ── Current-bonuses tooltip ───────────────────────────────────────────
+        foreach (var (cell, label, tooltip) in _bonusRowCells)
+        {
+            if (!cell.Contains(mouse))
+                continue;
+
+            const float tipPad = 8f;
+            const float tipW = 200f;
+            const float lineGap = 3f;
+
+            var headerDims = screen.GetDimensions(_tooltipNameFont!, label, 1f);
+            var lineH = screen.GetDimensions(_tooltipBodyFont!, "Ay", 1f).Y;
+            var tipH = tipPad * 2f + headerDims.Y + 4f + tooltip.Length * lineH + Math.Max(0, tooltip.Length - 1) * lineGap;
+
+            var tipX = cell.Left;
+            var tipY = cell.Top - tipH - 6f;
+            if (tipY < 0f) tipY = cell.Bottom + 6f;
+
+            var tipBox = new UIBox2(tipX, tipY, tipX + tipW, tipY + tipH);
+            screen.DrawRect(tipBox, Color.FromHex("#0D0F12"));
+            screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Right, tipBox.Top + 1f), sepColor);
+            screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Bottom - 1f, tipBox.Right, tipBox.Bottom), sepColor);
+            screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Left + 1f, tipBox.Bottom), sepColor);
+            screen.DrawRect(new UIBox2(tipBox.Right - 1f, tipBox.Top, tipBox.Right, tipBox.Bottom), sepColor);
+
+            var lx = tipX + tipPad;
+            var ly = tipY + tipPad;
+            screen.DrawString(_tooltipNameFont!, new Vector2(lx, ly), label, Color.White);
+            ly += headerDims.Y + 4f;
+            foreach (var line in tooltip)
+            {
+                screen.DrawString(_tooltipBodyFont!, new Vector2(lx, ly), line, muted);
+                ly += lineH + lineGap;
+            }
+            break;
+        }
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -365,6 +418,130 @@ public sealed class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(false);
         }
         _prevClickDown = down;
+    }
+
+    private Font? _tinyFont;
+    private readonly Dictionary<string, Texture?> _statIconCache = new();
+
+    private Texture? GetStatIcon(string key)
+    {
+        if (_statIconCache.TryGetValue(key, out var cached))
+            return cached;
+        var path = $"/Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png";
+        Texture? tex = null;
+        if (_resourceCache.TryContentFileRead(path, out var stream))
+            using (stream)
+                tex = _clyde.LoadTextureFromPNGStream(stream, path, LinearParams);
+        _statIconCache[key] = tex;
+        return tex;
+    }
+
+    private void DrawBonusIndicator(DrawingHandleScreen screen, float margin)
+    {
+        var rows = BuildVisibleBonusRows();
+        _bonusRowCells.Clear();
+        if (rows.Count == 0)
+            return;
+
+        var notoRes = _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf"));
+        _tinyFont ??= new VectorFont(notoRes, 11);
+
+        const float rowGap = 4f;
+        const float iconTextGap = 4f;
+        const float bottomGap = 10f;
+        var textH = screen.GetDimensions(_tinyFont, "Ay", 1f).Y;
+        var iconSz = textH * 2f;
+        var blockH = rows.Count * iconSz + (rows.Count - 1) * rowGap;
+
+        var hotbarTop = FindHotbarTop();
+        var blockBottom = (hotbarTop ?? _clyde.ScreenSize.Y - margin) - bottomGap;
+        var x = margin;
+        var y = blockBottom - blockH;
+
+        foreach (var row in rows)
+        {
+            var icon = GetStatIcon(row.IconKey);
+            if (icon != null)
+                screen.DrawTextureRect(icon, new UIBox2(x, y, x + iconSz, y + iconSz), Color.White);
+
+            var textDims = screen.GetDimensions(_tinyFont, row.ValueText, 1f);
+            var textPos = new Vector2(x + iconSz + iconTextGap, y + (iconSz - textDims.Y) * 0.5f);
+            screen.DrawString(_tinyFont, textPos, row.ValueText, row.ValueColor);
+
+            var cellW = iconSz + iconTextGap + textDims.X;
+            _bonusRowCells.Add((new UIBox2(x, y, x + cellW, y + iconSz), row.Label, row.Tooltip));
+            y += iconSz + rowGap;
+        }
+    }
+
+    // Recurses since Hotbar nests at different depths between the two HUD layouts.
+    private Control? FindNamedScreenControl(string name)
+    {
+        var screen = _uiManager.ActiveScreen;
+        return screen == null ? null : FindNamedControlRecursive(screen, name, 0);
+    }
+
+    private static Control? FindNamedControlRecursive(Control root, string name, int depth)
+    {
+        if (depth > 5)
+            return null;
+        foreach (var child in root.Children)
+        {
+            if (child.Name == name)
+                return child;
+            var found = FindNamedControlRecursive(child, name, depth + 1);
+            if (found != null)
+                return found;
+        }
+        return null;
+    }
+
+    private float? FindHotbarTop()
+    {
+        var hotbar = FindNamedScreenControl("Hotbar");
+        return hotbar == null ? null : (float)hotbar.GlobalPixelRect.Top;
+    }
+
+    private readonly record struct BonusRow(string Label, string ValueText, Color ValueColor, string[] Tooltip, string IconKey);
+
+    private static readonly Color BonusPositive = Color.FromHex("#22C55E");
+    private static readonly Color BonusNegative = Color.FromHex("#EF4444");
+
+    private List<BonusRow> BuildVisibleBonusRows()
+    {
+        var rows = new List<BonusRow>();
+        var shop = _entityManager.System<Content.Client._FinalStand.Shop.FSShopClientSystem>();
+
+        var holdingGun = shop.IsHoldingAnyGun();
+        var holdingNonLauncherGun = shop.IsHoldingNonLauncherGun();
+        var holdingExplosive = shop.IsHoldingExplosive();
+        var holdingMelee = shop.IsHoldingMelee();
+
+        if (holdingNonLauncherGun) AddPctRow(rows, "Gun", "damage", GunDamage);
+        if (holdingGun) AddPctRow(rows, "Fire Rate", "firerate", FireRate);
+        if (holdingMelee) AddPctRow(rows, "Melee", "melee", MeleeDamage);
+        if (holdingExplosive) AddPctRow(rows, "Explosive", "explosive", ExplosiveDamage);
+        if (holdingGun) AddPctRow(rows, "Reload", "reload", ReloadSpeed);
+        if (holdingGun) AddFlatRow(rows, "Mag Size", "magsize", MagazineSize);
+
+        return rows;
+    }
+
+    private static void AddPctRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
+    {
+        if (MathF.Abs(cat.Percent) < 0.05f)
+            return;
+        var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}%";
+        rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
+    }
+
+    private static void AddFlatRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
+    {
+        if (MathF.Abs(cat.Percent) < 0.5f)
+            return;
+        var n = (int)MathF.Round(cat.Percent);
+        var text = n >= 0 ? $"+{n}" : n.ToString();
+        rows.Add(new BonusRow(label, text, n >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
     }
 
     private float GetViewportPixelWidth()

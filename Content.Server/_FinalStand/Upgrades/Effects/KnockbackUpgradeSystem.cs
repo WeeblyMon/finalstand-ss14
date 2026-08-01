@@ -50,13 +50,13 @@ public sealed class KnockbackUpgradeSystem : EntitySystem
         if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.KnockbackLevel <= 0)
             return;
 
-        ApplyKnockback(ev.Target, ev.Shooter.Value, state.KnockbackLevel);
+        ApplyKnockback(ev.Target, ev.Shooter.Value, state.KnockbackLevel, 1f + state.KnockbackResearchForceBonus);
     }
 
-    public void ApplyKnockback(EntityUid target, EntityUid origin, int level)
+    public void ApplyKnockback(EntityUid target, EntityUid origin, int level, float forceMultiplier = 1f)
     {
         var idx = Math.Clamp(level, 1, VelocityByLevel.Length) - 1;
-        var speed    = VelocityByLevel[idx];
+        var speed    = VelocityByLevel[idx] * forceMultiplier;
         var duration = DurationByLevel[idx];
 
         var originPos = _transform.GetWorldPosition(origin);

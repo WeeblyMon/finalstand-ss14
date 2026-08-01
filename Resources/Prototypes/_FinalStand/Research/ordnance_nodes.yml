@@ -16,7 +16,7 @@
   tier: 1
   waveGate: 0
   cost: 2000
-  bonusDescription: Team-wide light machine gun ammo capacity bonus.
+  bonusDescription: +5 Magazine Capacity (Team)
 
 - type: fsTechNode
   id: FSOrdnanceL6HeavyDutyReceivers
@@ -30,7 +30,7 @@
   cost: 2500
   prerequisites:
   - FSOrdnanceL6BasicMunitions
-  bonusDescription: Team-wide light machine gun jam-resistance bonus.
+  bonusDescription: +2% Damage (Team)
 
 - type: fsTechNode
   id: FSOrdnanceL6GasPistonHarnessing
@@ -44,7 +44,9 @@
   cost: 3000
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: Team-wide light machine gun fire-rate bonus.
+  bonusDescription: |-
+    +1.5% Fire Rate (Team)
+    +1.5% Fire Rate (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6FeedSystem
@@ -58,7 +60,9 @@
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: Team-wide light machine gun reload-speed bonus.
+  bonusDescription: |-
+    +2% Reload Speed (Team)
+    +2% Reload Speed (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6BarrelInterchange
@@ -72,7 +76,9 @@
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: Team-wide light machine gun accuracy bonus.
+  bonusDescription: |-
+    +1.5% Accuracy (Team)
+    +1.5% Accuracy (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6ReceiverDesign
@@ -86,7 +92,9 @@
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
-  bonusDescription: Team-wide light machine gun recoil-control bonus.
+  bonusDescription: |-
+    +2.5% Recoil Control (Team)
+    +2.5% Recoil Control (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6SoftPackAmmoBags
@@ -101,7 +109,9 @@
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
-  bonusDescription: Light machine guns reload faster, at the cost of a smaller magazine.
+  bonusDescription: |-
+    +12% Reload Speed (L6-SAW)
+    -7 Magazine Capacity (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6DisintegratingBeltLinks
@@ -116,7 +126,9 @@
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
-  bonusDescription: Light machine guns carry more ammo, at the cost of a slower reload.
+  bonusDescription: |-
+    +20 Magazine Capacity (L6-SAW)
+    -10% Reload Speed (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6QuickChangeBarrels
@@ -131,7 +143,9 @@
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
-  bonusDescription: Light machine guns resist overheating during sustained fire, at the cost of range.
+  bonusDescription: |-
+    +15% Overclocked Ramp Ceiling (L6-SAW)
+    -6% Projectile Speed (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6FlutedBarrels
@@ -146,7 +160,10 @@
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
-  bonusDescription: Light machine guns gain accuracy and range, at the cost of heat resistance.
+  bonusDescription: |-
+    +6% Accuracy (L6-SAW)
+    +8% Projectile Speed (L6-SAW)
+    -15% Overclocked Ramp Ceiling (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6OpenBoltFiring
@@ -161,7 +178,9 @@
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
-  bonusDescription: Light machine guns fire faster, at the cost of first-shot accuracy.
+  bonusDescription: |-
+    +10% Fire Rate (L6-SAW)
+    +8° First-Shot Spread (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6ConstantRecoilSystem
@@ -176,7 +195,10 @@
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
-  bonusDescription: Light machine guns gain recoil control and accuracy, at the cost of fire-rate.
+  bonusDescription: |-
+    +10% Recoil Control (L6-SAW)
+    -4° Min Spread (L6-SAW)
+    -8% Fire Rate (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6ModernAutomaticSaw
@@ -196,6 +218,11 @@
   - - FSOrdnanceL6OpenBoltFiring
     - FSOrdnanceL6ConstantRecoilSystem
   weaponShopUnlock: FSWeaponShopL6Saw
+  bonusDescription: |-
+    Unlocks the L6-SAW shop.
+    +5% Damage (L6-SAW)
+    +5% Fire Rate (L6-SAW)
+    +5% Crit Chance (L6-SAW)
 
 # Minigun sub-tree - shares the L6-SAW trunk (Basic Munitions, Heavy-Duty Receivers) above, then
 # splits into Internal Feed Drives (left) and Multi-Barrel Metallurgy (right), converging at
@@ -216,7 +243,9 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: Team-wide ballistic fire-rate bonus.
+  bonusDescription: |-
+    +2.5% Fire Rate (Team)
+    +2% Fire Rate (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunExtendedDrumTuning
@@ -230,7 +259,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
-  bonusDescription: Augments the Minigun's Extended Drum upgrade - an extra +50 rounds onto the baseline capacity per level.
+  bonusDescription: +50 Magazine Capacity per Extended Drum level (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunDisintegratingLinks
@@ -244,7 +273,9 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
-  bonusDescription: Team-wide ballistic reload-speed bonus.
+  bonusDescription: |-
+    +2.5% Reload Speed (Team)
+    +2% Reload Speed (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunAxialFeedChutes
@@ -258,7 +289,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunDisintegratingLinks
-  bonusDescription: Team-wide ballistic jam-resistance bonus.
+  bonusDescription: |-
+    +2% Damage (Team)
+    +2% Damage (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunSynchronizedFeedGates
@@ -273,7 +306,9 @@
   prerequisites:
   - FSOrdnanceMinigunAxialFeedChutes
   - FSOrdnanceMinigunExtendedDrumTuning
-  bonusDescription: Team-wide ballistic magazine-size bonus.
+  bonusDescription: |-
+    +15 Magazine Capacity (Team)
+    +15 Magazine Capacity (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigun12vElectricActuators
@@ -287,7 +322,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunSynchronizedFeedGates
-  bonusDescription: Team-wide ballistic fire-rate bonus.
+  bonusDescription: |-
+    +3% Fire Rate (Team)
+    +2.5% Fire Rate (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunBarrelOverclockSync
@@ -301,7 +338,7 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
-  bonusDescription: Augments the Minigun's Overclocked Barrel upgrade - an extra +0.2 rate of fire per level.
+  bonusDescription: +0.2 Fire Rate per Overclocked Barrel level (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunArmouredSolenoids
@@ -315,7 +352,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
-  bonusDescription: Team-wide ballistic weapon malfunction-resistance bonus.
+  bonusDescription: |-
+    +3% Reload Speed (Team, 2nd source)
+    +2.5% Reload Speed (Minigun)
 
 # -- Right sub-branch: Barrel Arrays & Target Acquisition --
 
@@ -331,7 +370,9 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
-  bonusDescription: Team-wide ballistic accuracy bonus.
+  bonusDescription: |-
+    +2.5% Accuracy (Team)
+    +2% Accuracy (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunIronBeastBracing
@@ -345,7 +386,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
-  bonusDescription: Augments the Minigun's Iron Beast upgrade - damage resistance while below half health boosted from 20% to 25%.
+  bonusDescription: Iron Beast resist 20% -> 25% (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunChromedBoreLinings
@@ -359,7 +400,9 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
-  bonusDescription: Team-wide ballistic overheat-resistance bonus.
+  bonusDescription: |-
+    +2% Projectile Speed (Team)
+    +1.5% Projectile Speed (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunHeatSinkJackets
@@ -373,7 +416,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunChromedBoreLinings
-  bonusDescription: Team-wide ballistic overheat-resistance bonus.
+  bonusDescription: |-
+    +2.5% Projectile Speed (Team, 2nd source)
+    +2% Projectile Speed (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunRotaryDriveShafts
@@ -388,7 +433,9 @@
   prerequisites:
   - FSOrdnanceMinigunHeatSinkJackets
   - FSOrdnanceMinigunIronBeastBracing
-  bonusDescription: Team-wide ballistic fire-rate bonus.
+  bonusDescription: |-
+    +3% Fire Rate (Team)
+    +2.5% Fire Rate (Minigun)
 
 # -- Convergence: left and right sub-branches meet here --
 
@@ -405,7 +452,9 @@
   prerequisites:
   - FSOrdnanceMinigunRotaryDriveShafts
   - FSOrdnanceMinigunBarrelOverclockSync
-  bonusDescription: Team-wide ballistic accuracy bonus.
+  bonusDescription: |-
+    +3.5% Accuracy (Team)
+    +3% Accuracy (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunCoreCastingVats
@@ -419,7 +468,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
-  bonusDescription: Augments the Minigun's Depleted Core upgrade - a flat +5% bonus damage on top of the upgrade's base values.
+  bonusDescription: +5% Damage once Depleted Core is owned (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunBallisticCalculators
@@ -433,7 +482,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
-  bonusDescription: Team-wide ballistic crit-chance bonus.
+  bonusDescription: |-
+    +2.5% Crit Chance (Team)
+    +2% Crit Chance (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunCounterWeightBuffers
@@ -448,7 +499,9 @@
   prerequisites:
   - FSOrdnanceMinigunBallisticCalculators
   - FSOrdnanceMinigunCoreCastingVats
-  bonusDescription: Team-wide ballistic recoil-control bonus.
+  bonusDescription: |-
+    +3.5% Recoil Control (Team)
+    +3% Recoil Control (Minigun)
 
 # -- Mutually exclusive power fork (off Armoured Solenoids) --
 
@@ -465,7 +518,9 @@
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
-  bonusDescription: Minigun sustained-fire uptime bonus, at the cost of squad mobility (tethered to a power source).
+  bonusDescription: |-
+    +12% Fire Rate (Minigun)
+    -10% Move Speed while wielded (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunInternalBatteryPacks
@@ -480,7 +535,9 @@
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
-  bonusDescription: Minigun gains mobility (self-powered), at the cost of sustained-fire duration.
+  bonusDescription: |-
+    +8% Move Speed while wielded (Minigun)
+    -8% Fire Rate (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigunGyroMatrixAugment
@@ -494,7 +551,7 @@
   cost: 3000
   prerequisites:
   - FSOrdnanceMinigunInternalBatteryPacks
-  bonusDescription: Augments the Minigun's Gyro Stabilizer upgrade - an extra +2 degrees of accuracy per level.
+  bonusDescription: +2° Accuracy per Gyro Stabilizer level (Minigun)
 
 # -- Bottleneck and final assembly --
 
@@ -513,7 +570,7 @@
   prerequisiteGroups:
   - - FSOrdnanceMinigunExternalPowerDriveHookups
     - FSOrdnanceMinigunGyroMatrixAugment
-  bonusDescription: Augments the Minigun's Knockback Rage upgrade - an extra +5% physical pushback force per level.
+  bonusDescription: +5% Pushback Force per Knockback Rage level (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigun
@@ -528,6 +585,11 @@
   prerequisites:
   - FSOrdnanceMinigunKnockbackRage
   weaponShopUnlock: FSWeaponShopMinigun
+  bonusDescription: |-
+    Unlocks the Minigun shop.
+    +5% Damage (Minigun)
+    +5% Fire Rate (Minigun)
+    +5% Accuracy (Minigun)
 
 # Explosive line - shared root (Steps 1-3), then splits into the Hydra sub-tree (rotary/mechanical
 # parts) and the RPG-7 sub-tree (rocketry/propulsion parts), each ending in a mutually-exclusive
@@ -545,7 +607,7 @@
   cost: 3000
   materialCost:
     Steel: 1
-  bonusDescription: Team-wide explosive damage bonus.
+  bonusDescription: +2% Damage (Team)
 
 - type: fsTechNode
   id: FSOrdnancePercussionCapFusing
@@ -559,7 +621,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceExplosiveTechnology
-  bonusDescription: Team-wide heavy-launcher detonation reliability bonus (reduced dud chance).
+  bonusDescription: +2% Damage (Team, 2nd source)
 
 - type: fsTechNode
   id: FSOrdnanceHighLowGasChambers
@@ -573,7 +635,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnancePercussionCapFusing
-  bonusDescription: Team-wide heavy-launcher recoil/handling bonus (reduced fumble chance).
+  bonusDescription: +2.5% Accuracy (Team)
 
 # -- Hydra sub-tree (rotary engineering parts) --
 
@@ -589,7 +651,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceHighLowGasChambers
-  bonusDescription: Team-wide grenade launcher cylinder-cycling speed bonus.
+  bonusDescription: +4% Fire Rate (Hydra)
 
 - type: fsTechNode
   id: FSOrdnance40mmRimmedCasings
@@ -603,7 +665,7 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceHeavyCylinderIndexing
-  bonusDescription: Team-wide grenade launcher reload-speed bonus.
+  bonusDescription: +6% Reload Speed (Hydra)
 
 - type: fsTechNode
   id: FSOrdnanceInternalGasPistons
@@ -617,7 +679,7 @@
   cost: 4500
   prerequisites:
   - FSOrdnance40mmRimmedCasings
-  bonusDescription: Team-wide grenade launcher jam-resistance bonus.
+  bonusDescription: +3% Damage (Hydra)
 
 - type: fsTechNode
   id: FSOrdnanceSpigotSleeves
@@ -632,7 +694,9 @@
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
-  bonusDescription: Grenade launchers gain velocity and range, at the cost of accuracy.
+  bonusDescription: |-
+    +10% Projectile Speed & Range (Hydra)
+    +6° Spread (Hydra)
 
 - type: fsTechNode
   id: FSOrdnanceVentedChambers
@@ -647,7 +711,9 @@
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
-  bonusDescription: Grenade launchers gain payload capacity, at the cost of velocity and range.
+  bonusDescription: |-
+    +2 Chamber Capacity (Hydra)
+    -10% Projectile Speed (Hydra)
 
 - type: fsTechNode
   id: FSOrdnanceHydra
@@ -663,6 +729,11 @@
   - - FSOrdnanceSpigotSleeves
     - FSOrdnanceVentedChambers
   weaponShopUnlock: FSWeaponShopHydra
+  bonusDescription: |-
+    Unlocks the Hydra shop.
+    +5% Damage (Hydra)
+    +5% Fire Rate (Hydra)
+    +1 Chamber Capacity (Hydra)
 
 # -- RPG-7 sub-tree (rocketry propulsion parts) --
 
@@ -678,7 +749,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceHighLowGasChambers
-  bonusDescription: Team-wide rocket launcher back-blast safety bonus (reduced self-damage radius).
+  bonusDescription: +5% Accuracy (RPG-7)
 
 - type: fsTechNode
   id: FSOrdnanceVenturiExhaustNozzles
@@ -692,7 +763,7 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceCounterMassVentingTubes
-  bonusDescription: Team-wide rocket launcher projectile-velocity bonus.
+  bonusDescription: +8% Projectile Speed (RPG-7)
 
 - type: fsTechNode
   id: FSOrdnanceStabilizingFinAssemblies
@@ -706,7 +777,7 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceVenturiExhaustNozzles
-  bonusDescription: Team-wide rocket launcher accuracy bonus.
+  bonusDescription: +5% Accuracy (RPG-7, 2nd source)
 
 - type: fsTechNode
   id: FSOrdnanceTandemWarheads
@@ -721,7 +792,9 @@
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
-  bonusDescription: Rockets gain armor penetration, at the cost of blast radius.
+  bonusDescription: |-
+    +12% Armor Shred (RPG-7)
+    -1 Blast Radius (RPG-7)
 
 - type: fsTechNode
   id: FSOrdnanceThermobaricPayloads
@@ -736,7 +809,9 @@
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
-  bonusDescription: Rockets gain blast radius and burn damage, at the cost of armor penetration.
+  bonusDescription: |-
+    +2 Blast Radius (RPG-7)
+    -10% Direct-Hit Damage (RPG-7)
 
 - type: fsTechNode
   id: FSOrdnanceRpg7
@@ -752,15 +827,17 @@
   - - FSOrdnanceTandemWarheads
     - FSOrdnanceThermobaricPayloads
   weaponShopUnlock: FSWeaponShopRpg
+  bonusDescription: |-
+    Unlocks the RPG-7 shop.
+    +5% Damage (RPG-7)
+    +1 Blast Radius (RPG-7)
+    +5% Projectile Speed (RPG-7)
 
 # Energy line - shared root (WeaponizedLaserManipulation + High-Output Capacitors), then splits
 # into the X-Ray Cannon branch and Tesla Gun branch. WaveParticleHarnessing and
 # ConcentratedLaserWeaponry keep their repurposed identities but are no longer the weapon gate
 # themselves - they're mid-chain component nodes now, with a dedicated final-assembly node at the
-# end of each branch. Several "Upgrade Augment" nodes reference real named upgrades that already
-# exist on the X-Ray Cannon/Tesla Gun shop entries (special_weapon_shops.yml) - the actual
-# value-boost hook is stage-3 work, same as every other bonus node so far, but the descriptions
-# are written against the real upgrade names/values so that hook has something exact to bind to.
+# end of each branch.
 
 - type: fsTechNode
   id: FSOrdnanceWeaponizedLaserManipulation
@@ -772,7 +849,7 @@
   tier: 1
   waveGate: 0
   cost: 3000
-  bonusDescription: Team-wide energy weapon damage bonus.
+  bonusDescription: +2% Damage (Team)
 
 - type: fsTechNode
   id: FSOrdnanceHighOutputCapacitors
@@ -786,7 +863,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceWeaponizedLaserManipulation
-  bonusDescription: Team-wide energy weapon charge-rate bonus.
+  bonusDescription: +5% Charge Rate (Team)
 
 # -- X-Ray Cannon branch --
 
@@ -802,7 +879,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
-  bonusDescription: Team-wide energy weapon range bonus.
+  bonusDescription: +8% Hitscan Range (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceLeadLinedEmitters
@@ -816,7 +893,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
-  bonusDescription: Team-wide energy weapon armor-penetration bonus.
+  bonusDescription: +5% Armor Shred (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceIsotopeSynthesiser
@@ -830,7 +907,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
-  bonusDescription: Augments the X-Ray Cannon's Radiation Coating upgrade - ticking damage per level increased by 5%.
+  bonusDescription: +5% Radiation Coating tick damage per level (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceConcentratedLaserWeaponry
@@ -844,7 +921,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceLeadLinedEmitters
-  bonusDescription: Team-wide energy damage bonus.
+  bonusDescription: |-
+    +3% Damage (Team)
+    +2% Damage (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceDielectricCoatings
@@ -858,7 +937,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
-  bonusDescription: Augments the X-Ray Cannon's Resonant Cell upgrade - shaves 15% off its shop price.
+  bonusDescription: -15% Resonant Cell shop price (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceCryogenicCoolingPumps
@@ -872,7 +951,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
-  bonusDescription: Team-wide energy weapon overheat-resistance bonus.
+  bonusDescription: |-
+    +4% Charge Rate (Team, 2nd source)
+    +2% Charge Rate (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceFocusingCrystalPrisms
@@ -887,7 +968,9 @@
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
   exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: X-Ray Cannon beam-focus damage bonus - simpler and more reliable than the Collimator Flanges route.
+  bonusDescription: |-
+    +10% Damage (X-Ray)
+    -8% Charge Rate (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceCollimatorFlanges
@@ -902,7 +985,9 @@
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
   exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: Augments the X-Ray Cannon's Collimator upgrade - an extra +2 degrees of accuracy per level.
+  bonusDescription: |-
+    +2° Accuracy per Collimator level (X-Ray)
+    -5% Damage (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceDensityTuning
@@ -916,7 +1001,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceCollimatorFlanges
-  bonusDescription: Augments the X-Ray Cannon's Deep Penetration upgrade - max level pierces one additional target.
+  bonusDescription: +1 Pierce once Deep Penetration is maxed (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceFrequencySync
@@ -930,7 +1015,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceDensityTuning
-  bonusDescription: Augments the X-Ray Cannon's Pulse Accelerator upgrade - an extra +0.1 fire rate per level.
+  bonusDescription: +0.1 Fire Rate per Pulse Accelerator level (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceFocalOverdrive
@@ -944,7 +1029,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceFrequencySync
-  bonusDescription: Augments the X-Ray Cannon's Overloaded Emitter upgrade - a flat +5% damage on top of the upgrade's base value.
+  bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceXrayCannon
@@ -960,6 +1045,11 @@
   - - FSOrdnanceFocusingCrystalPrisms
     - FSOrdnanceFocalOverdrive
   weaponShopUnlock: FSWeaponShopXrayCannon
+  bonusDescription: |-
+    Unlocks the X-Ray Cannon shop.
+    +5% Damage (X-Ray)
+    +5% Charge Rate (X-Ray)
+    +1 Pierce (X-Ray)
 
 # -- Tesla Gun branch --
 
@@ -975,7 +1065,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
-  bonusDescription: Team-wide energy weapon charge-rate bonus.
+  bonusDescription: |-
+    +3% Charge Rate (Team)
+    +2% Charge Rate (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceOverclockedTiming
@@ -989,7 +1081,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
-  bonusDescription: Augments the Tesla Gun's Overcharged Coil upgrade - an extra +10% fire rate on top of the shop level.
+  bonusDescription: +0.5 Fire Rate once Overcharged Coil is owned (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceMagnetoHydrodynamicCores
@@ -1003,7 +1095,9 @@
   cost: 4000
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
-  bonusDescription: Team-wide energy weapon damage bonus.
+  bonusDescription: |-
+    +3% Damage (Team)
+    +2% Damage (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceToroidalInductionFields
@@ -1018,7 +1112,9 @@
   prerequisites:
   - FSOrdnanceMagnetoHydrodynamicCores
   - FSOrdnanceOverclockedTiming
-  bonusDescription: Team-wide energy weapon accuracy bonus.
+  bonusDescription: |-
+    +3% Accuracy (Team)
+    +2% Accuracy (Tesla)
 
 - type: fsTechNode
   id: FSOrdnancePulseWidthModulators
@@ -1032,7 +1128,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceToroidalInductionFields
-  bonusDescription: Team-wide energy weapon fire-rate bonus.
+  bonusDescription: |-
+    +3% Fire Rate (Team)
+    +2% Fire Rate (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceDenseLithiumStorage
@@ -1046,7 +1144,7 @@
   cost: 4000
   prerequisites:
   - FSOrdnancePulseWidthModulators
-  bonusDescription: Augments the Tesla Gun's Energy Cell Upgrade - a bonus flat +10 capacity to the gun's magazine.
+  bonusDescription: +10 effective shots once Energy Cell Upgrade is owned (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceHeavyStepUpTransformers
@@ -1060,7 +1158,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnancePulseWidthModulators
-  bonusDescription: Team-wide energy weapon charge-rate bonus.
+  bonusDescription: |-
+    +3% Charge Rate (Team)
+    +2% Charge Rate (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceArcStabilizingGroundRods
@@ -1075,7 +1175,9 @@
   prerequisites:
   - FSOrdnanceHeavyStepUpTransformers
   - FSOrdnanceDenseLithiumStorage
-  bonusDescription: Team-wide energy weapon stability bonus (reduced self-damage on discharge).
+  bonusDescription: |-
+    +3% Damage (Team)
+    +2% Damage (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceCascadeDischargeRelays
@@ -1089,7 +1191,9 @@
   cost: 4500
   prerequisites:
   - FSOrdnanceArcStabilizingGroundRods
-  bonusDescription: Team-wide energy weapon damage bonus.
+  bonusDescription: |-
+    +3.5% Damage (Team)
+    +2% Damage (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceHighFrequencyTeslaCoils
@@ -1103,7 +1207,9 @@
   cost: 5000
   prerequisites:
   - FSOrdnanceCascadeDischargeRelays
-  bonusDescription: Team-wide energy weapon range bonus.
+  bonusDescription: |-
+    +4% Projectile Speed (Team)
+    +2% Projectile Speed (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceIonizedAtmosphericPath
@@ -1117,7 +1223,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
-  bonusDescription: Augments the Tesla Gun's Extended Arc upgrade - lightning chain range stretched an extra +0.5m per level.
+  bonusDescription: +0.5m Arc Range per Extended Arc level (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceChainLightningBridging
@@ -1132,7 +1238,9 @@
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
-  bonusDescription: Tesla Gun arcs strike one additional nearby target.
+  bonusDescription: |-
+    +1 Chain Target (Tesla)
+    -8% Damage per arc hit (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceOverchargeCapacitors
@@ -1147,7 +1255,9 @@
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
-  bonusDescription: High-insulation storage groundwork for Flux Tuning.
+  bonusDescription: |-
+    +10% Charge Rate (Tesla)
+    -5% Projectile Speed (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceFluxTuning
@@ -1161,7 +1271,7 @@
   cost: 3500
   prerequisites:
   - FSOrdnanceOverchargeCapacitors
-  bonusDescription: Augments the Tesla Gun's Capacitor Boost upgrade - recharge speed multiplier bumped by an extra 25%.
+  bonusDescription: +25% Capacitor Boost recharge multiplier once owned (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceSingularityHarnessing
@@ -1176,7 +1286,7 @@
   prerequisiteGroups:
   - - FSOrdnanceChainLightningBridging
     - FSOrdnanceFluxTuning
-  bonusDescription: Augments the Tesla Gun's Graviton Core upgrade - pull radius and vacuum velocity increased by 15%.
+  bonusDescription: +15% Graviton Core pull radius & velocity once owned (Tesla)
 
 - type: fsTechNode
   id: FSOrdnanceTeslaCannon
@@ -1191,3 +1301,8 @@
   prerequisites:
   - FSOrdnanceSingularityHarnessing
   weaponShopUnlock: FSWeaponShopTeslaGun
+  bonusDescription: |-
+    Unlocks the Tesla Gun shop.
+    +5% Damage (Tesla)
+    +5% Charge Rate (Tesla)
+    +5% Arc Range (Tesla)

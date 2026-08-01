@@ -10,6 +10,9 @@
     size: Large
     shape:
     - 0,0,2,1
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Clothing
     sprite: Objects/Weapons/Guns/SMGs/atreides.rsi
     quickEquip: false
@@ -128,6 +131,9 @@
   parent: BaseItem
   description: A burst-fire C-20r submachine gun for use by cyborgs. Creates .35 caliber ammo on the fly from an internal ammo fabricator, which slowly self-charges.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Gun
     minAngle: 2
     maxAngle: 16

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Science;
 using Content.Shared._FinalStand.Shop;
@@ -6,6 +7,8 @@ using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
+using Content.Shared.Tag;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client;
 using Robust.Client.GameObjects;
@@ -26,6 +29,9 @@ public sealed class FSShopClientSystem : EntitySystem
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private readonly TagSystem _tags = default!;
+
+    private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
 
     private static readonly ProtoId<ShaderPrototype> ShaderAffordable = "FSShopGlowAffordable";
     private static readonly ProtoId<ShaderPrototype> ShaderUnaffordable = "FSShopGlowUnaffordable";
@@ -195,6 +201,42 @@ public sealed class FSShopClientSystem : EntitySystem
         return held.Value;
     }
 
+    public EntityUid? GetActiveHeldItem()
+    {
+        var player = _player.LocalSession?.AttachedEntity;
+        if (player == null || !TryComp<HandsComponent>(player.Value, out var hands))
+            return null;
+        if (hands.ActiveHandId == null)
+            return null;
+        _hands.TryGetHeldItem((player.Value, hands), hands.ActiveHandId, out var held);
+        return held;
+    }
+
+    public bool IsHoldingAnyGun()
+    {
+        var held = GetActiveHeldItem();
+        return held is { } uid && HasComp<GunComponent>(uid);
+    }
+
+    // Launchers still HasComp<GunComponent>, so this excludes them explicitly.
+    public bool IsHoldingNonLauncherGun()
+    {
+        var held = GetActiveHeldItem();
+        return held is { } uid && HasComp<GunComponent>(uid) && !_tags.HasTag(uid, LauncherTag);
+    }
+
+    public bool IsHoldingExplosive()
+    {
+        var held = GetActiveHeldItem();
+        return held is { } uid && (_tags.HasTag(uid, LauncherTag) || HasComp<FSGrenadePackComponent>(uid));
+    }
+
+    public bool IsHoldingMelee()
+    {
+        var held = GetActiveHeldItem();
+        return held is { } uid && HasComp<MeleeWeaponComponent>(uid);
+    }
+
     // Finds the owned instance of the weapon/grenade-pack matching protoId across hands and inventory.
     public EntityUid? FindOwnedWeapon(EntProtoId? protoId)
     {
@@ -235,7 +277,12 @@ public sealed class FSShopClientSystem : EntitySystem
     {
         _unlockedResearchNodes = ev.UnlockedNodes;
         _lastGlowState.Clear();
+        ResearchNodesChanged?.Invoke();
     }
+
+    public event Action? ResearchNodesChanged;
+
+    public bool IsResearchNodeUnlocked(string nodeId) => _unlockedResearchNodes.Contains(nodeId);
 
     private void OnScienceStatus(FSPlayerScienceStatusEvent ev)
     {

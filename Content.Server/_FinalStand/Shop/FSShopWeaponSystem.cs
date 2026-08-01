@@ -26,6 +26,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly FSPlayerUpgradesSystem _upgrades = default!;
     [Dependency] private readonly FSResearchSystem _fsResearch = default!;
+    [Dependency] private readonly FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private readonly FSScienceOnlySystem _science = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
@@ -255,6 +256,8 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         var cost = GetUpgradeLevelCost(def, currentLevel + 1);
+        if (def.Id == "xray-self-charge" && _fsResearch.IsNodeUnlocked("FSOrdnanceDielectricCoatings"))
+            cost = (int)MathF.Round(cost * 0.85f);
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
@@ -266,6 +269,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         state.Levels[def.Id] = newLevel;
         state.TotalSpent += cost;
         _upgrades.ApplySingleUpgrade(weapon.Value, player, def, newLevel);
+        _researchStaticGrant.Reconcile(weapon.Value);
 
         if (isFirstUpgradeEver)
             MarkAsUpgraded(weapon.Value);

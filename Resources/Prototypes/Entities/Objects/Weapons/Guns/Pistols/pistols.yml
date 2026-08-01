@@ -20,6 +20,7 @@
   - type: Tag
     tags:
     - Sidearm
+    - WeaponGunBallistic
   - type: Clothing
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
     quickEquip: false
@@ -78,6 +79,7 @@
   - type: Tag
     tags:
       - AkimboEligible
+      - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
   - type: ItemSlots
@@ -114,6 +116,9 @@
   id: WeaponPistolEchis
   description: A cyborg-mounted weapon system based on the Viper pistol. Creates ammunition on the fly from an internal fabricator, which slowly self-charges.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Gun
     fireRate: 6
     selectedMode: SemiAuto
@@ -231,6 +236,7 @@
   - type: Tag
     tags:
       - AkimboEligible
+      - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     layers:

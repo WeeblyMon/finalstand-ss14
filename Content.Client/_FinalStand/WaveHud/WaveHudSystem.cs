@@ -1,4 +1,5 @@
-﻿using Content.Shared._FinalStand.Perks;
+﻿using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
@@ -27,6 +28,7 @@ public sealed class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
         SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
+        SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -122,5 +124,16 @@ public sealed class WaveHudSystem : EntitySystem
     private void OnInterestPayout(FSInterestPayoutEvent ev)
     {
         EnsureOverlay().AddInterestPopup(ev.PerkId, ev.Amount);
+    }
+
+    private void OnBonusSummary(FSPlayerBonusSummaryEvent ev)
+    {
+        var overlay = EnsureOverlay();
+        overlay.GunDamage = ev.GunDamage;
+        overlay.FireRate = ev.FireRate;
+        overlay.MeleeDamage = ev.MeleeDamage;
+        overlay.ExplosiveDamage = ev.ExplosiveDamage;
+        overlay.ReloadSpeed = ev.ReloadSpeed;
+        overlay.MagazineSize = ev.MagazineSize;
     }
 }

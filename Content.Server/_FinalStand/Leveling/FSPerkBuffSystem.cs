@@ -58,7 +58,7 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
         var spLevel = augs.GetSlottedLevel("StoppingPower");
         if (spLevel > 0 && !isLauncher)
-            ev.AdditionalMultiplier *= 1f + spLevel * 0.04f;
+            ev.AdditionalMultiplier *= 1f + spLevel * FSPerkBonusConstants.StoppingPowerPerLevel;
 
         var profLevel = augs.GetSlottedLevel("Profiteer");
         if (profLevel > 0)
@@ -66,20 +66,20 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
         // Death Aura: stacks → outgoing damage bonus.
         if (TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
-            ev.AdditionalMultiplier *= 1f + da.Stacks * 0.02f;
+            ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
 
         // Glass Cannon: flat outgoing bonus.
         var gcLevel = augs.GetSlottedLevel("GlassCannon");
         if (gcLevel > 0)
-            ev.AdditionalMultiplier *= 1f + gcLevel * 0.07f;
+            ev.AdditionalMultiplier *= 1f + gcLevel * FSPerkBonusConstants.GlassCannonPerLevel;
 
         // Pacifist: outgoing penalty.
         if (augs.GetSlottedLevel("Pacifist") > 0)
-            ev.AdditionalMultiplier *= 0.75f;
+            ev.AdditionalMultiplier *= 1f - FSPerkBonusConstants.PacifistPenalty;
 
         // Officer buff: ally damage bonus.
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
-            ev.AdditionalMultiplier *= 1f + ob.Level * 0.15f;
+            ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
 
         // Knockback Blast: shotgun knockback on every pellet.
         var kbLevel = augs.GetSlottedLevel("KnockbackBlast");
@@ -109,7 +109,7 @@ public sealed class FSPerkBuffSystem : EntitySystem
         var level = augs.GetSlottedLevel("BulletStorm");
         if (level <= 0) return;
 
-        args.FireRate *= 1f + level * 0.08f;
+        args.FireRate *= 1f + level * FSPerkBonusConstants.BulletStormPerLevel;
     }
 
     private void OnLightweight(EntityUid uid, MobMoverComponent mover, RefreshMovementSpeedModifiersEvent args)
@@ -163,15 +163,15 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
         var snsLevel = augs.GetSlottedLevel("SwordAndShield");
         if (snsLevel > 0)
-            args.Damage *= 1f + snsLevel * 0.05f;
+            args.Damage *= 1f + snsLevel * FSPerkBonusConstants.SwordAndShieldPerLevel;
 
         // Pacifist: melee damage penalty.
         if (augs.GetSlottedLevel("Pacifist") > 0)
-            args.Damage *= 0.75f;
+            args.Damage *= 1f - FSPerkBonusConstants.PacifistPenalty;
 
         // Glass Cannon: melee damage bonus.
         var gcLevel = augs.GetSlottedLevel("GlassCannon");
         if (gcLevel > 0)
-            args.Damage *= 1f + gcLevel * 0.07f;
+            args.Damage *= 1f + gcLevel * FSPerkBonusConstants.GlassCannonPerLevel;
     }
 }

@@ -154,6 +154,9 @@
   description: A fragmentation grenade with a short fuse.
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
     layers:
@@ -265,6 +268,9 @@
   description: Detonates to create a decoy that attracts zombie attention.
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
     layers:
@@ -342,6 +348,9 @@
   description: A small shaped charge that detonates shortly after landing.
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
     layers:

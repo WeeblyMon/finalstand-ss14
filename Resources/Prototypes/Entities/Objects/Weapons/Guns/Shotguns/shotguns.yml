@@ -13,6 +13,9 @@
     size: Large
     shape:
     - 0,0,4,0
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Clothing
     sprite: Objects/Weapons/Guns/Shotguns/db_shotgun.rsi
     quickEquip: false
@@ -51,6 +54,9 @@
   id: WeaponShotgunBulldog
   description: An automatic magazine-fed shotgun for close-quarters combat. Kicks like a mule on steroids. Uses .50 shotgun shells.
   components:
+  - type: Tag
+    tags:
+    - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/bulldog.rsi
     layers:
@@ -177,6 +183,7 @@
   - type: Tag
     tags:
     - WeaponShotgunKammerer
+    - WeaponGunBallistic
 
 - type: entity
   name: sawn-off shotgun

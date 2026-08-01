@@ -16,6 +16,7 @@
   - type: Tag
     tags:
     - Sidearm
+    - WeaponGunBallistic
   - type: Clothing
     sprite: Objects/Weapons/Guns/Revolvers/deckard.rsi
     quickEquip: false
@@ -107,6 +108,7 @@
   - type: Tag
     tags:
       - AkimboEligible
+      - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
   - type: Clothing

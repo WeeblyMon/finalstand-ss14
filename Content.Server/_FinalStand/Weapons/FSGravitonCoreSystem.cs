@@ -39,8 +39,8 @@ public sealed class FSGravitonCoreSystem : EntitySystem
                 continue;
 
             var pull = EnsureComp<FSGravitonPullComponent>(orbUid.Value);
-            pull.Strength = core.PullStrengthBase * core.Level;
-            pull.Range = core.MaxRangeBase + core.Level;
+            pull.Strength = core.PullStrengthBase * core.Level * core.ResearchMultiplier;
+            pull.Range = (core.MaxRangeBase + core.Level) * core.ResearchMultiplier;
         }
     }
 
@@ -78,7 +78,7 @@ public sealed class FSGravitonCoreSystem : EntitySystem
 
     private void OnUpgradeStateShot(EntityUid gunUid, FSWeaponUpgradeStateComponent state, ref GunShotEvent args)
     {
-        if (state.TeslaArcRangeBonus <= 0f)
+        if (state.TeslaArcRangeBonus <= 0f && state.TeslaChainTargetBonus <= 0)
             return;
 
         foreach (var (orbUid, _) in args.Ammo)
@@ -89,6 +89,7 @@ public sealed class FSGravitonCoreSystem : EntitySystem
                 continue;
 
             arc.ArcRange += state.TeslaArcRangeBonus;
+            arc.MaxArcs += state.TeslaChainTargetBonus;
         }
     }
 }

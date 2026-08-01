@@ -233,6 +233,9 @@
   id: FSBulletGrenadeFrag
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
   - type: Explosive
     explosionType: FSGrenadeExplosion
     maxIntensity: 2.5
@@ -246,6 +249,9 @@
   id: FSBulletRocket
   categories: [ HideSpawnMenu ]
   components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
   - type: Explosive
     explosionType: FSRocketExplosion
     maxIntensity: 40

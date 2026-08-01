@@ -11,6 +11,9 @@ public sealed partial class FSOverclockedComponent : Component
     // normalized spool 0..1 — networked so the client can drive the glow
     [AutoNetworkedField] public float Spool;
 
+    // Ordnance research ramp multiplier - recomputed each refresh, not accumulated.
+    public float ResearchRampMultiplier = 1f;
+
     // server-only timing, not networked
     public double LastShotTime;
 

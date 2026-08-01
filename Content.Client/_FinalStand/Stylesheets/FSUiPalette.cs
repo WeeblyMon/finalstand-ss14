@@ -23,6 +23,7 @@ public static class FSUiPalette
     public static readonly Color StatePositive = Color.FromHex("#22C55E");
     public static readonly Color StateNegative = Color.FromHex("#EF4444");
     public static readonly Color StatePending = Color.FromHex("#FBBF24");
+    public static readonly Color StateResearch = Color.FromHex("#A855F7");
 
     public const float DisabledOpacity = 0.6f;
     public const int CardCornerRadius = 10;

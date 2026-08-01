@@ -43,6 +43,6 @@ public sealed class FSOverclockedSystem : EntitySystem
 
     private void OnRefreshModifiers(EntityUid uid, FSOverclockedComponent comp, ref GunRefreshModifiersEvent args)
     {
-        args.FireRate += comp.Spool * comp.Level * FSOverclockedComponent.FireRateBonusPerLevel;
+        args.FireRate += comp.Spool * comp.Level * FSOverclockedComponent.FireRateBonusPerLevel * comp.ResearchRampMultiplier;
     }
 }
