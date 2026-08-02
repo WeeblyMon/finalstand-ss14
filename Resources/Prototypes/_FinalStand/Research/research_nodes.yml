@@ -1,0 +1,161 @@
+# Wrapper nodes over the vanilla Experimental discipline - all prerequisites redesigned from scratch, self-contained (no cross-branch links).
+
+- type: fsTechNode
+  id: FSResearchBasicRobotics
+  name: Basic Robotics
+  icon:
+    sprite: Structures/Machines/exosuit_fabricator.rsi
+    state: fab-idle
+  branch: Research
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: BasicRobotics
+
+- type: fsTechNode
+  id: FSResearchBasicAnomalousResearch
+  name: Basic Anomalous Research
+  icon:
+    sprite: Objects/Specific/Research/anomalyscanner.rsi
+    state: icon
+  branch: Research
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: BasicAnomalousResearch
+
+- type: fsTechNode
+  id: FSResearchBasicXenoArcheology
+  name: Basic Xenoarcheology
+  icon:
+    sprite: Structures/Machines/artifact_analyzer.rsi
+    state: display
+  branch: Research
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: BasicXenoArcheology
+
+- type: fsTechNode
+  id: FSResearchAlternativeResearch
+  name: Alternative Research
+  icon:
+    sprite: Structures/Machines/tech_disk_printer.rsi
+    state: display
+  branch: Research
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AlternativeResearch
+
+- type: fsTechNode
+  id: FSResearchMagnetsTech
+  name: Magnets Tech
+  icon:
+    sprite: Clothing/Shoes/Boots/magboots-science.rsi
+    state: icon
+  branch: Research
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: MagnetsTech
+
+- type: fsTechNode
+  id: FSResearchAnomalyCoreHarnessing
+  name: Anomaly Core Harnessing
+  icon:
+    sprite: Objects/Weapons/Melee/gorilla.rsi
+    state: icon
+  branch: Research
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSResearchBasicAnomalousResearch
+  vanillaTechnologyId: AnomalyCoreHarnessing
+
+- type: fsTechNode
+  id: FSResearchAbnormalArtifactManipulation
+  name: Abnormal Artifact Manipulation
+  icon:
+    sprite: Structures/Machines/artifact_crusher.rsi
+    state: icon
+  branch: Research
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSResearchBasicXenoArcheology
+  vanillaTechnologyId: AbnormalArtifactManipulation
+
+- type: fsTechNode
+  id: FSResearchAdvancedAnomalyResearch
+  name: Advanced Anomaly Research
+  icon:
+    sprite: Structures/Machines/anomaly_sync.rsi
+    state: base
+  branch: Research
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSResearchBasicAnomalousResearch
+  vanillaTechnologyId: AdvancedAnomalyResearch
+
+- type: fsTechNode
+  id: FSResearchDeterrenceTechnologies
+  name: Deterrence Technologies
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/particle_decelerator.rsi
+    state: base
+  branch: Research
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSResearchBasicRobotics
+  vanillaTechnologyId: DeterrenceTechnologies
+
+- type: fsTechNode
+  id: FSResearchGravityManipulation
+  name: Gravity Manipulation
+  icon:
+    sprite: Objects/Weapons/Guns/Launchers/tether_gun.rsi
+    state: base
+  branch: Research
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSResearchMagnetsTech
+  vanillaTechnologyId: GravityManipulation
+
+- type: fsTechNode
+  id: FSResearchQuantumLeaping
+  name: Quantum Leaping
+  icon:
+    sprite: Objects/Devices/swapper.rsi
+    state: icon
+  branch: Research
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisiteGroups:
+  - - FSResearchAdvancedAnomalyResearch
+    - FSResearchGravityManipulation
+  vanillaTechnologyId: QuantumLeaping
+
+- type: fsTechNode
+  id: FSResearchBluespaceTimeManipulation
+  name: Bluespace Time Manipulation
+  icon:
+    sprite: Objects/Devices/desynchronizer.rsi
+    state: icon
+  branch: Research
+  tier: 4
+  waveGate: 6
+  cost: 6000
+  prerequisites:
+  - FSResearchQuantumLeaping
+  - FSResearchAnomalyCoreHarnessing
+  vanillaTechnologyId: BluespaceTimeManipulation

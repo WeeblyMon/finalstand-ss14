@@ -1,4 +1,5 @@
 using Content.Shared.Materials;
+using Content.Shared.Research.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -46,6 +47,10 @@ public sealed partial class FSTechNodePrototype : IPrototype
 
     [DataField]
     public EntProtoId? WeaponShopUnlock;
+
+    // When set, completing this node grants the referenced vanilla technology's recipe/generic unlocks via ResearchSystem.AddTechnology.
+    [DataField]
+    public ProtoId<TechnologyPrototype>? VanillaTechnologyId;
 
     [DataField]
     public bool Hidden;

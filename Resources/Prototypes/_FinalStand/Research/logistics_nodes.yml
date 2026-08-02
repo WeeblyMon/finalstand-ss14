@@ -1,0 +1,159 @@
+# Wrapper nodes over the vanilla CivilianServices service subset (non-medical).
+
+- type: fsTechNode
+  id: FSLogisticsHydroponics
+  name: Hydroponics
+  icon:
+    sprite: Structures/Machines/seed_extractor.rsi
+    state: seedextractor
+  branch: Logistics
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: Hydroponics
+
+- type: fsTechNode
+  id: FSLogisticsCritterMechs
+  name: Critter Mechs
+  icon:
+    sprite: Objects/Specific/Mech/mecha.rsi
+    state: hamtr
+  branch: Logistics
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: CritterMechs
+
+- type: fsTechNode
+  id: FSLogisticsAudioVisualCommunication
+  name: Audio-Visual Communication
+  icon:
+    sprite: Structures/Wallmounts/camera.rsi
+    state: cameracase
+  branch: Logistics
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AudioVisualCommunication
+
+- type: fsTechNode
+  id: FSLogisticsAdvancedEntertainment
+  name: Advanced Entertainment
+  icon:
+    sprite: Structures/Machines/computers.rsi
+    state: television
+  branch: Logistics
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AdvancedEntertainment
+
+- type: fsTechNode
+  id: FSLogisticsMeatManipulation
+  name: Meat Manipulation
+  icon:
+    sprite: Structures/Machines/fat_sucker.rsi
+    state: display
+  branch: Logistics
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: MeatManipulation
+
+- type: fsTechNode
+  id: FSLogisticsFauxAstroTiles
+  name: Faux Astro Tiles
+  icon:
+    sprite: Objects/Tiles/tile.rsi
+    state: astroice
+  branch: Logistics
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSLogisticsAdvancedEntertainment
+  vanillaTechnologyId: FauxAstroTiles
+
+- type: fsTechNode
+  id: FSLogisticsAdvancedCleaning
+  name: Advanced Cleaning
+  icon:
+    sprite: Objects/Specific/Janitorial/advmop.rsi
+    state: advmop
+  branch: Logistics
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSLogisticsMeatManipulation
+  vanillaTechnologyId: AdvancedCleaning
+
+- type: fsTechNode
+  id: FSLogisticsHONKMech
+  name: HONK Mech
+  icon:
+    sprite: Objects/Specific/Mech/mecha.rsi
+    state: honker
+  branch: Logistics
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSLogisticsCritterMechs
+  vanillaTechnologyId: HONKMech
+
+- type: fsTechNode
+  id: FSLogisticsBluespaceCargoTransport
+  name: Bluespace Cargo Transport
+  icon:
+    sprite: Structures/cargo_telepad.rsi
+    state: display
+  branch: Logistics
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSLogisticsMeatManipulation
+  vanillaTechnologyId: BluespaceCargoTransport
+
+- type: fsTechNode
+  id: FSLogisticsAdvancedSpray
+  name: Advanced Spray
+  icon:
+    sprite: Objects/Weapons/Guns/Basic/spraynozzle.rsi
+    state: icon
+  branch: Logistics
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSLogisticsAdvancedCleaning
+  vanillaTechnologyId: AdvancedSpray
+
+- type: fsTechNode
+  id: FSLogisticsPushHorn
+  name: Push Horn
+  icon:
+    sprite: Objects/Fun/push_horn.rsi
+    state: icon
+  branch: Logistics
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSLogisticsHONKMech
+  vanillaTechnologyId: PushHorn
+
+- type: fsTechNode
+  id: FSLogisticsQuantumFiberWeaving
+  name: Quantum Fiber Weaving
+  icon:
+    sprite: Clothing/Shoes/Boots/speedboots.rsi
+    state: icon
+  branch: Logistics
+  tier: 4
+  waveGate: 6
+  cost: 6000
+  prerequisites:
+  - FSLogisticsBluespaceCargoTransport
+  vanillaTechnologyId: QuantumFiberWeaving

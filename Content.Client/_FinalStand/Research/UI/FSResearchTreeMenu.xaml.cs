@@ -50,7 +50,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private FSResearchNodeView? _selectedNode;
     private ResearchConsoleBoundInterfaceState? _state;
-    private readonly List<(Button Button, string? GroupId)> _disciplineButtons = new();
+    private readonly List<(Button Button, string? GroupId, Color? Accent)> _disciplineButtons = new();
 
     public FSResearchTreeMenu()
     {
@@ -124,9 +124,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     }
 
     // Tabs are separate pages, not a dimming filter (see FSResearchNodeGraphControl.Rebuild) - one
-    // tab per FS branch (Ordnance today) shown first and selected by default, then a single
-    // "VANILLA" catch-all bundling every vanilla discipline together until they get split into
-    // their own pages later, then "ALL" last.
+    // tab per FS branch, then "ALL" last.
     private void RebuildDisciplineRail()
     {
         DisciplineRailContainer.RemoveAllChildren();
@@ -136,19 +134,18 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             return;
 
         string? defaultPage = null;
-        foreach (var branch in _prototype.EnumeratePrototypes<FSTechBranchPrototype>())
+        foreach (var branch in _prototype.EnumeratePrototypes<FSTechBranchPrototype>().OrderBy(b => b.SortOrder))
         {
-            AddDisciplineButton(branch.ID, branch.Name.ToUpperInvariant());
+            AddDisciplineButton(branch.ID, branch.Name.ToUpperInvariant(), branch.Color);
             defaultPage ??= branch.ID;
         }
 
-        AddDisciplineButton(FSResearchNodeGraphControl.VanillaPageId, "VANILLA");
-        AddDisciplineButton(null, "ALL");
+        AddDisciplineButton(null, "ALL", null);
 
         SelectDiscipline(defaultPage);
     }
 
-    private void AddDisciplineButton(string? groupId, string label)
+    private void AddDisciplineButton(string? groupId, string label, Color? accent)
     {
         var button = new Button
         {
@@ -157,14 +154,28 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         };
         button.OnPressed += _ => SelectDiscipline(groupId);
         DisciplineRailContainer.AddChild(button);
-        _disciplineButtons.Add((button, groupId));
+        _disciplineButtons.Add((button, groupId, accent));
     }
 
     private void SelectDiscipline(string? groupId)
     {
         GraphControl.SetDisciplineFilter(groupId);
-        foreach (var (button, id) in _disciplineButtons)
-            button.Label.FontColorOverride = id == groupId ? FSUiPalette.AccentBrand : FSUiPalette.TextMuted;
+        foreach (var (button, id, accent) in _disciplineButtons)
+        {
+            var selected = id == groupId;
+            var accentColor = accent ?? FSUiPalette.AccentBrand;
+            button.Label.FontColorOverride = accent != null ? accentColor : selected ? FSUiPalette.AccentBrand : FSUiPalette.TextMuted;
+            button.StyleBoxOverride = new StyleBoxFlat
+            {
+                BackgroundColor = selected ? accentColor.WithAlpha(0.18f) : Color.Transparent,
+                BorderColor = accentColor,
+                BorderThickness = new Thickness(1),
+                ContentMarginLeftOverride = 10,
+                ContentMarginRightOverride = 10,
+                ContentMarginTopOverride = 5,
+                ContentMarginBottomOverride = 5,
+            };
+        }
     }
 
     private void BuildTierLegend()
@@ -372,6 +383,13 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private void UpdateDetailPanelFsNode(FSTechNodePrototype fsNode)
     {
+        // Wrapper node - defer entirely to the vanilla tech's own unlocks-list rendering.
+        if (fsNode.VanillaTechnologyId is { } vanillaId && _prototype.TryIndex(vanillaId, out var vanillaTech))
+        {
+            UpdateDetailPanelVanilla(vanillaTech);
+            return;
+        }
+
         var descMsg = new FormattedMessage();
         if (fsNode.WeaponShopUnlock is { } shopId)
         {

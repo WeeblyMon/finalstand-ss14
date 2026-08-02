@@ -1,0 +1,151 @@
+# Wrapper nodes over the vanilla CivilianServices medical subset + Shitmed cybernetics chain - self-contained, drops the old cross-branch BasicRobotics prereq on BasicCybernetics.
+
+- type: fsTechNode
+  id: FSMedicalBiochemicalStasis
+  name: Biochemical Stasis
+  icon:
+    sprite: Structures/Machines/stasis_bed.rsi
+    state: icon
+  branch: Medical
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: BiochemicalStasis
+
+- type: fsTechNode
+  id: FSMedicalAdvancedTreatment
+  name: Advanced Treatment
+  icon:
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/e-scalpel.rsi
+    state: e-scalpel-on
+  branch: Medical
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AdvancedTreatment
+
+- type: fsTechNode
+  id: FSMedicalMechanizedTreatment
+  name: Mechanized Treatment
+  icon:
+    sprite: Mobs/Silicon/chassis.rsi
+    state: medical
+  branch: Medical
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSMedicalBiochemicalStasis
+  vanillaTechnologyId: MechanizedTreatment
+
+- type: fsTechNode
+  id: FSMedicalBasicCybernetics
+  name: Basic Cybernetics
+  icon:
+    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
+    state: eyes
+  branch: Medical
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSMedicalAdvancedTreatment
+  vanillaTechnologyId: BasicCybernetics
+
+- type: fsTechNode
+  id: FSMedicalBluespaceChemistry
+  name: Bluespace Chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/beaker_bluespace.rsi
+    state: beakerbluespace
+  branch: Medical
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSMedicalMechanizedTreatment
+  vanillaTechnologyId: BluespaceChemistry
+
+- type: fsTechNode
+  id: FSMedicalAutodoc
+  name: Autodoc
+  icon:
+    sprite: _Shitmed/Structures/Machines/autodoc.rsi
+    state: idle
+  branch: Medical
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSMedicalBasicCybernetics
+  vanillaTechnologyId: Autodoc
+
+- type: fsTechNode
+  id: FSMedicalBasicAugmentation
+  name: Basic Augmentation
+  icon:
+    sprite: _Shitmed/Objects/Augments/power.rsi
+    state: cell
+  branch: Medical
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSMedicalBasicCybernetics
+  vanillaTechnologyId: BasicAugmentation
+
+- type: fsTechNode
+  id: FSMedicalAdvancedCybernetics
+  name: Advanced Cybernetics
+  icon:
+    sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
+    state: heart-u-on
+  branch: Medical
+  tier: 4
+  waveGate: 6
+  cost: 6000
+  prerequisites:
+  - FSMedicalAutodoc
+  vanillaTechnologyId: AdvancedCybernetics
+
+- type: fsTechNode
+  id: FSMedicalImplantedTools
+  name: Implanted Tools
+  icon:
+    sprite: _Shitmed/Objects/Augments/arm.rsi
+    state: base
+  branch: Medical
+  tier: 4
+  waveGate: 6
+  cost: 6000
+  prerequisites:
+  - FSMedicalBasicAugmentation
+  vanillaTechnologyId: ImplantedTools
+
+- type: fsTechNode
+  id: FSMedicalCombatAugmentation
+  name: Combat Augmentation
+  icon:
+    sprite: _Shitmed/Objects/Augments/arm.rsi
+    state: strength
+  branch: Medical
+  tier: 4
+  waveGate: 6
+  cost: 6000
+  prerequisites:
+  - FSMedicalBasicAugmentation
+  vanillaTechnologyId: CombatAugmentation
+
+- type: fsTechNode
+  id: FSMedicalHighEndSurgery
+  name: High-End Surgery
+  icon:
+    sprite: _Shitmed/Clothing/Hands/surgery_gloves.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  waveGate: 8
+  cost: 7500
+  prerequisites:
+  - FSMedicalAdvancedCybernetics
+  vanillaTechnologyId: HighEndSurgery

@@ -1,0 +1,247 @@
+# Wrapper nodes over the vanilla Industrial discipline (incl. atmospherics) plus all of Arsenal (shuttle/mining defense weapons - Salvage/Engineering territory, not personal armory).
+
+- type: fsTechNode
+  id: FSEngineeringSalvageEquipment
+  name: Salvage Equipment
+  icon:
+    sprite: Objects/Tools/handdrill.rsi
+    state: handdrill
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: SalvageEquipment
+
+- type: fsTechNode
+  id: FSEngineeringSpaceScanning
+  name: Space Scanning
+  icon:
+    sprite: Objects/Tools/handheld_mass_scanner.rsi
+    state: icon
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: SpaceScanning
+
+- type: fsTechNode
+  id: FSEngineeringAdvancedPowercells
+  name: Advanced Powercells
+  icon:
+    sprite: Structures/Power/turbo_recharger.rsi
+    state: empty
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AdvancedPowercells
+
+- type: fsTechNode
+  id: FSEngineeringMechanicalCompression
+  name: Mechanical Compression
+  icon:
+    sprite: Structures/Machines/flatpacker.rsi
+    state: base
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: MechanicalCompression
+
+- type: fsTechNode
+  id: FSEngineeringIndustrialEngineering
+  name: Industrial Engineering
+  icon:
+    sprite: Structures/Machines/protolathe_hypercon.rsi
+    state: building
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: IndustrialEngineering
+
+- type: fsTechNode
+  id: FSEngineeringPowerGeneration
+  name: Power Generation
+  icon:
+    sprite: Structures/Power/Generation/portable_generator.rsi
+    state: portgen0
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: PowerGeneration
+
+- type: fsTechNode
+  id: FSEngineeringRipleyAPLU
+  name: Ripley APLU
+  icon:
+    sprite: Objects/Specific/Mech/mecha.rsi
+    state: ripley
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: RipleyAPLU
+
+- type: fsTechNode
+  id: FSEngineeringSalvageWeapons
+  name: Salvage Weapons
+  icon:
+    sprite: Objects/Weapons/Guns/Basic/kinetic_accelerator.rsi
+    state: icon
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: SalvageWeapons
+
+- type: fsTechNode
+  id: FSEngineeringSpecialMeans
+  name: Special Means
+  icon:
+    sprite: Clothing/Back/Backpacks/electropack.rsi
+    state: icon
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: SpecialMeans
+
+- type: fsTechNode
+  id: FSEngineeringAtmosphericTech
+  name: Atmospheric Tech
+  icon:
+    sprite: Structures/Piping/Atmospherics/thermomachine.rsi
+    state: freezerOff
+  branch: Engineering
+  tier: 1
+  waveGate: 0
+  cost: 2500
+  vanillaTechnologyId: AtmosphericTech
+
+- type: fsTechNode
+  id: FSEngineeringShuttlecraft
+  name: Shuttlecraft
+  icon:
+    sprite: Structures/Shuttles/gyroscope.rsi
+    state: base
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringSpaceScanning
+  vanillaTechnologyId: Shuttlecraft
+
+- type: fsTechNode
+  id: FSEngineeringAdvancedAtmospherics
+  name: Advanced Atmospherics
+  icon:
+    sprite: Objects/Devices/Holoprojectors/atmos.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringAtmosphericTech
+  vanillaTechnologyId: AdvancedAtmospherics
+
+- type: fsTechNode
+  id: FSEngineeringAdvancedToolsTechnology
+  name: Advanced Tools Technology
+  icon:
+    sprite: Objects/Tools/welder_experimental.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringIndustrialEngineering
+  vanillaTechnologyId: AdvancedToolsTechnology
+
+- type: fsTechNode
+  id: FSEngineeringMassExcavation
+  name: Mass Excavation
+  icon:
+    sprite: Objects/Tools/handdrilldiamond.rsi
+    state: handdrill
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringSalvageEquipment
+  vanillaTechnologyId: MassExcavation
+
+- type: fsTechNode
+  id: FSEngineeringOptimizedMicrogalvanism
+  name: Optimized Microgalvanism
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: microreactor
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringAdvancedPowercells
+  vanillaTechnologyId: OptimizedMicrogalvanism
+
+- type: fsTechNode
+  id: FSEngineeringBasicShuttleArmament
+  name: Basic Shuttle Armament
+  icon:
+    sprite: Structures/Power/cage_recharger.rsi
+    state: full
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringSalvageWeapons
+  vanillaTechnologyId: BasicShuttleArmament
+
+- type: fsTechNode
+  id: FSEngineeringDualWieldingTechnology
+  name: Dual Wielding Technology
+  icon:
+    sprite: Clothing/Back/Specific/harmpack.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  waveGate: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringSpecialMeans
+  vanillaTechnologyId: DualWieldingTechnology
+
+- type: fsTechNode
+  id: FSEngineeringBluespaceStorage
+  name: Bluespace Storage
+  icon:
+    sprite: Clothing/Back/Backpacks/holding.rsi
+    state: holding
+  branch: Engineering
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSEngineeringMassExcavation
+  vanillaTechnologyId: BluespaceStorage
+
+- type: fsTechNode
+  id: FSEngineeringAdvancedShuttleWeapon
+  name: Advanced Shuttle Weapon
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Grenade/grenade_cartridge.rsi
+    state: icon
+  branch: Engineering
+  tier: 3
+  waveGate: 4
+  cost: 4500
+  prerequisites:
+  - FSEngineeringBasicShuttleArmament
+  vanillaTechnologyId: AdvancedShuttleWeapon

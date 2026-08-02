@@ -18,4 +18,8 @@ public sealed partial class FSTechBranchPrototype : IPrototype
 
     [DataField]
     public SpriteSpecifier? Icon;
+
+    // Explicit tab order in the research console's discipline rail - prototype enumeration order isn't stable.
+    [DataField]
+    public int SortOrder;
 }
