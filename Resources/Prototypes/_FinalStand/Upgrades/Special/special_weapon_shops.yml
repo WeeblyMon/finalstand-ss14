@@ -9,7 +9,6 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceL6ModernAutomaticSaw
-    requiresScience: true
     weaponProtoId: FSWeaponLightMachineGunL6
     price: 140000
     starterAmmoProtoId: FSMagazineLightRifleBox
@@ -75,11 +74,10 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceHydra
-    requiresScience: true
     weaponProtoId: WeaponLauncherHydraFS
     price: 160000
-    starterAmmoProtoId: FSLauncherGrenadeFrag
-    starterAmmoCount: 6
+    starterAmmoProtoId: FSBoxHydraGrenade
+    starterAmmoCount: 2
     category: Rotary Grenade Launcher
     statDamage: 85
     statFireRate: 30
@@ -134,11 +132,10 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceRpg7
-    requiresScience: true
     weaponProtoId: FSWeaponLauncherRocket
     price: 150000
-    starterAmmoProtoId: FSCartridgeRocketFS
-    starterAmmoCount: 3
+    starterAmmoProtoId: FSBoxRPGRocket
+    starterAmmoCount: 2
     category: Single-Shot Rocket Launcher
     statDamage: 95
     statFireRate: 10
@@ -193,7 +190,6 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceTeslaCannon
-    requiresScience: true
     weaponProtoId: WeaponTeslaGunFS
     price: 175000
     category: Self-Recharging Tesla Cannon
@@ -250,7 +246,6 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceXrayCannon
-    requiresScience: true
     weaponProtoId: WeaponXrayCannonFS
     price: 175000
     category: Self-Recharging X-Ray Cannon
@@ -314,7 +309,6 @@
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceMinigun
-    requiresScience: true
     weaponProtoId: FSWeaponMinigun
     price: 200000
     category: .10 Rotary Heavy Machine Gun
@@ -379,7 +373,6 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponHarvesterFS
-    requiresScience: true
     price: 500
     category: Sustained-Fire Bio-Radiation Beam
     statDamage: 35

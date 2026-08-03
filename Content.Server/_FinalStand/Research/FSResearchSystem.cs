@@ -400,4 +400,29 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         var station = GetOrCreateStation();
         return IsNodeUnlocked((station.Owner, station.Comp), nodeId);
     }
+
+    public int UnlockAllNodes()
+    {
+        var station = GetOrCreateStation();
+        var alreadyUnlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+
+        var count = 0;
+        foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
+        {
+            if (!alreadyUnlocked.Add(node.ID))
+                continue;
+
+            station.Comp.UnlockedNodes.Add(node.ID);
+            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
+            count++;
+        }
+
+        station.Comp.ActiveResearch = null;
+        station.Comp.PersonalPicks.Clear();
+        Dirty(station);
+        SyncConsoles();
+        BroadcastUnlockedNodes();
+
+        return count;
+    }
 }

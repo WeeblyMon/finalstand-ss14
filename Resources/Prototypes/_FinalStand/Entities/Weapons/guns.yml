@@ -708,6 +708,9 @@
   name: hydra grenade case
   description: A padded storage case holding a reserve of frag grenades for the hydra launcher.
   components:
+  - type: Tag
+    tags:
+    - Grenade
   - type: BallisticAmmoProvider
     mayTransfer: true
     proto: FSLauncherGrenadeFrag
@@ -725,6 +728,9 @@
   name: RPG-7 rocket case
   description: A padded storage case holding a reserve of rockets for the RPG-7 launcher.
   components:
+  - type: Tag
+    tags:
+    - CartridgeRocket
   - type: BallisticAmmoProvider
     mayTransfer: true
     proto: FSCartridgeRocketFS

@@ -50,7 +50,8 @@ public sealed class FSResearchBuffSystem : EntitySystem
 
     private bool IsOrdnanceWeapon(EntityUid uid)
     {
-        return _tags.HasTag(uid, BallisticTag) || _tags.HasTag(uid, EnergyTag) || _tags.HasTag(uid, LauncherTag);
+        return _tags.HasTag(uid, BallisticTag) || _tags.HasTag(uid, EnergyTag) || _tags.HasTag(uid, LauncherTag)
+            || Prototype(uid)?.ID == HarvesterProto;
     }
 
     private bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);

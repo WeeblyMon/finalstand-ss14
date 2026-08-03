@@ -481,6 +481,10 @@ public sealed partial class ExplosionSystem
             }
         }
 
+        // FinalStand: FS explosion types only push mobs - don't fling every table/light/dropped item in range
+        if (FsExplosionTypes.Contains(id) && !_mobStateQuery.HasComponent(uid))
+            throwForce = 0;
+
         // throw
         if (xform != null // null implies anchored or in a container
             && !xform.Anchored

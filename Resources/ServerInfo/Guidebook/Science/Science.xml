@@ -1,6 +1,6 @@
 <Document>
 # Science
-[color=#c96dbf]Science[/color] generates [color=#a4885c]Research Points[/color] by fighting - not by sitting at a console - and spends them unlocking new gear across several specialized research branches, including weapons no other department can ever buy.
+[color=#c96dbf]Science[/color] generates [color=#a4885c]Research Points[/color] by fighting - not by sitting at a console - and spends them unlocking new gear across several specialized research branches, including a line of heavy weapons anyone on the station can buy once researched.
 
 ## Personnel
 [color=#c96dbf]Science[/color]'s staff is made up of Research Assistants and Scientists. [color=#c96dbf]Science[/color] is run by the Research Director.
@@ -31,7 +31,7 @@ The R&D console shows six colored tabs, one per research branch. Each branch is 
   <Box>
     <GuideEntityEmbed Entity="WeaponXrayCannon" Caption="X-Ray Cannon"/>
   </Box>
-[color=#F97316]Ordnance[/color] is the weapons branch, and the one reason to main Science even if you never touch a lathe: researching far enough down a weapon line unlocks a shop that only [color=#c96dbf]Science[/color] personnel can buy from - the L6-SAW, Minigun, Hydra grenade launcher, RPG-7, X-Ray Cannon, and Tesla Cannon are all Science-exclusive. The Harvester itself also has its own small research line inside Ordnance, so time spent researching makes your own weapon stronger too, not just everyone else's.
+[color=#F97316]Ordnance[/color] is the weapons branch, and the one reason to main Science even if you never touch a lathe: researching far enough down a weapon line unlocks its shop - the L6-SAW, Minigun, Hydra grenade launcher, RPG-7, X-Ray Cannon, and Tesla Cannon. Anyone on the station can buy from an unlocked shop, so Science's payoff is being the one who makes it possible in the first place. The Harvester itself also has its own small research line inside Ordnance, so time spent researching makes your own weapon stronger too, not just everyone else's.
 
 ## Medical, Logistics, Engineering, Research
 The other four branches wrap the station's Medical, Service, Salvage/Engineering, and general Research disciplines - unlocking a node there prints new recipes at the relevant lathes (medical gear, cargo/service equipment, engineering machinery, and so on) rather than granting a combat buff.

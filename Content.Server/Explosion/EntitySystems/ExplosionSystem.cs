@@ -19,6 +19,7 @@ using Content.Shared.Explosion.EntitySystems;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
 using Content.Shared.Maps;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
 using Robust.Server.GameStates;
@@ -69,6 +70,15 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     [Dependency] private readonly EntityQuery<InjurableComponent> _injurableQuery = default!;
     private EntityQuery<AirtightComponent> _airtightQuery;
     private EntityQuery<TileHistoryComponent> _tileHistoryQuery;
+    private EntityQuery<MobStateComponent> _mobStateQuery;
+
+    // FinalStand: these explosion types only deal Cellular damage to mobs (see FSExplosionFilterSystem),
+    // so don't also fling every table/light/dropped item in range around - it's pure physics-lag noise.
+    private static readonly HashSet<string> FsExplosionTypes = new()
+    {
+        "FSGrenadeExplosion",
+        "FSRocketExplosion",
+    };
 
     /// <summary>
     ///     "Tile-size" for space when there are no nearby grids to use as a reference.
@@ -112,6 +122,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         _damageableQuery = GetEntityQuery<DamageableComponent>();
         _airtightQuery = GetEntityQuery<AirtightComponent>();
         _tileHistoryQuery = GetEntityQuery<TileHistoryComponent>();
+        _mobStateQuery = GetEntityQuery<MobStateComponent>();
 
         _prototypeManager.PrototypesReloaded += ReloadExplosionPrototypes;
     }
