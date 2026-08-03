@@ -148,6 +148,8 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             LockToFirstNode();
     }
 
+    public FSResearchNodeView? GetNode(string id) => _nodes.FirstOrDefault(n => n.Id == id);
+
     public void SetFilter(string filter)
     {
         _filter = filter.Trim();
@@ -251,6 +253,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             var isActive = fsDatabase?.ActiveResearch is { } active && active.Id == fsTech.ID;
             var isMyPersonalPick = _fsResearch.MyPersonalPickId is { } mine && mine.Id == fsTech.ID;
+            var contributorSlots = fsDatabase?.PersonalContributorSlots.GetValueOrDefault(fsTech.ID) ?? new List<int>();
 
             nodes.Add(new FSResearchNodeView
             {
@@ -267,7 +270,8 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                 IsActiveResearch = isActive,
                 IsMyPersonalPick = isMyPersonalPick,
                 Progress = fsDatabase?.NodeProgress.GetValueOrDefault(fsTech.ID) ?? 0,
-                PersonalContributorCount = fsDatabase?.PersonalContributorCounts.GetValueOrDefault(fsTech.ID) ?? 0,
+                PersonalContributorCount = contributorSlots.Count,
+                ContributorSlots = contributorSlots,
             });
         }
 
@@ -826,6 +830,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                     texW: 172f, texH: 84f, capPx: 42f);
             }
 
+            if (node.ContributorSlots.Count > 0)
+                DrawContributorRings(handle, center, iconRadius, node.ContributorSlots, opacity);
+
             var innerRadius = iconRadius - IconBorderThickness;
             var discBox = UIBox2.FromDimensions(center - new Vector2(innerRadius, innerRadius), new Vector2(innerRadius * 2, innerRadius * 2));
             handle.DrawTextureRect(_discTexture, discBox, Fade(PlateBackgroundColor, opacity));
@@ -844,9 +851,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             if (node.Progress > 0 && node.Cost > 0)
             {
-                // Shared-pick cost is halved server-side too (see FSResearchSystem.GrantResearchPoints).
-                var effectiveCost = node.IsActiveResearch ? Math.Max(1, node.Cost / 2) : node.Cost;
-                var barFrac = Math.Clamp((float)node.Progress / effectiveCost, 0f, 1f);
+                var barFrac = Math.Clamp((float)node.Progress / node.Cost, 0f, 1f);
                 if (barFrac > 0f)
                 {
                     var fillColor = node.IsMyPersonalPick ? FSUiPalette.AccentBrand
@@ -926,6 +931,33 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         var dims = handle.GetDimensions(_font, text, 1);
         var textPos = badgeCenter - new Vector2(dims.X / 2, dims.Y / 2);
         handle.DrawString(_font, textPos, text, Fade(FSUiPalette.TextPrimary, opacity));
+    }
+
+    private static readonly Color[] ContributorSlotPalette =
+    {
+        Color.FromHex("#F87171"),
+        Color.FromHex("#60A5FA"),
+        Color.FromHex("#4ADE80"),
+        Color.FromHex("#FBBF24"),
+        Color.FromHex("#C084FC"),
+        Color.FromHex("#2DD4BF"),
+        Color.FromHex("#F472B6"),
+        Color.FromHex("#A3E635"),
+    };
+
+    // Tootsie-pop layering: draws outermost-in so each smaller circle overpaints the previous one's center, leaving only a thin ring per contributor.
+    private void DrawContributorRings(DrawingHandleScreen handle, Vector2 center, float iconRadius, List<int> slots, float opacity)
+    {
+        var thickness = Math.Max(2.5f, iconRadius * 0.09f);
+        var gap = thickness * 0.5f;
+
+        for (var i = slots.Count - 1; i >= 0; i--)
+        {
+            var outerR = iconRadius + (i + 1) * (thickness + gap);
+            var color = ContributorSlotPalette[((slots[i] % ContributorSlotPalette.Length) + ContributorSlotPalette.Length) % ContributorSlotPalette.Length];
+            handle.DrawCircle(center, outerR, Fade(color, opacity));
+            handle.DrawCircle(center, outerR - thickness, Fade(FSUiPalette.BgDeep, opacity));
+        }
     }
 
     private void DrawBlockedX(DrawingHandleScreen handle, Vector2 center, float iconRadius)

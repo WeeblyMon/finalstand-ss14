@@ -18,6 +18,7 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
     private Action<EntityUid>? _onDatabaseUpdated;
     private Action<string>? _onAuthorityDenied;
     private Action? _onPersonalPickChanged;
+    private Action? _onSharedResearchChanged;
 
     public FSResearchConsoleBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -52,6 +53,11 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             SendMessage(new FSClearPersonalResearchMessage());
         };
 
+        _consoleMenu.OnClearSharedPick += () =>
+        {
+            SendMessage(new FSClearSharedResearchMessage());
+        };
+
         // FSTechDatabaseComponent changes don't push a BUI state, so wire this manually.
         var researchClient = EntMan.System<FSResearchClientSystem>();
         _onDatabaseUpdated = uid =>
@@ -66,6 +72,9 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
 
         _onPersonalPickChanged = () => _consoleMenu?.RefreshLiveState();
         researchClient.PersonalPickChanged += _onPersonalPickChanged;
+
+        _onSharedResearchChanged = () => _consoleMenu?.RefreshLiveState();
+        researchClient.SharedResearchChanged += _onSharedResearchChanged;
     }
 
     public override void OnProtoReload(PrototypesReloadedEventArgs args)
@@ -105,5 +114,7 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             researchClient.AuthorityDenied -= _onAuthorityDenied;
         if (_onPersonalPickChanged != null)
             researchClient.PersonalPickChanged -= _onPersonalPickChanged;
+        if (_onSharedResearchChanged != null)
+            researchClient.SharedResearchChanged -= _onSharedResearchChanged;
     }
 }

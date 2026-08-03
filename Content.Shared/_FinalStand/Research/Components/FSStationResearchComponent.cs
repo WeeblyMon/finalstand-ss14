@@ -31,4 +31,10 @@ public sealed partial class FSStationResearchComponent : Component
 
     // Server-only, never broadcast wholesale - each player learns only their own pick via FSPersonalResearchStateEvent.
     public Dictionary<EntityUid, ProtoId<FSTechNodePrototype>> PersonalPicks = new();
+
+    // Mind of whichever RD/Captain most recently set the shared pick - gives them a contributor ring on it too.
+    public EntityUid? ActiveResearchSetBy;
+
+    // First-come slot index per mind that's personally picked a node - only the index is ever networked, never the mind/name.
+    public Dictionary<EntityUid, int> ContributorColorSlots = new();
 }

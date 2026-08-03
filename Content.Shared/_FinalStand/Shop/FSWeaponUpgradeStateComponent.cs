@@ -81,4 +81,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public int TeslaChainTargetBonus = 0;
     [DataField] public float KnockbackResearchForceBonus = 0f;
     [DataField] public float RadiationCoatingResearchBonus = 0f;
+
+    [DataField] public int OverloadRoundLevel = 0;
+    [DataField] public int RicochetLevel = 0;
 }

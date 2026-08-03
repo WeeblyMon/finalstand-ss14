@@ -20,12 +20,14 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
     private FSHarvesterRpHudOverlay? _overlay;
     private int _points;
     private string? _personalLine;
+    private string? _sharedLine;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeNetworkEvent<FSStationRpChangedEvent>(OnRpChanged);
         SubscribeNetworkEvent<FSPersonalResearchStateEvent>(OnPersonalResearchState);
+        SubscribeNetworkEvent<FSSharedResearchStateEvent>(OnSharedResearchState);
     }
 
     public override void Shutdown()
@@ -51,8 +53,23 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
             ? $"{node.Name}: {ev.Progress}/{node.Cost}"
             : null;
 
+        UpdateOverlayLine();
+    }
+
+    // Fallback for anyone with no personal pick - shows what their default hits are funding.
+    private void OnSharedResearchState(FSSharedResearchStateEvent ev)
+    {
+        _sharedLine = ev.NodeId is { } nodeId && _prototype.TryIndex(nodeId, out var node)
+            ? $"{node.Name}: {ev.Progress}/{node.Cost} (shared, 2x)"
+            : null;
+
+        UpdateOverlayLine();
+    }
+
+    private void UpdateOverlayLine()
+    {
         if (_overlay != null)
-            _overlay.PersonalLine = _personalLine;
+            _overlay.PersonalLine = _personalLine ?? _sharedLine;
     }
 
     public override void FrameUpdate(float frameTime)
@@ -66,7 +83,7 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
         {
             _overlay ??= new FSHarvesterRpHudOverlay();
             _overlay.Points = _points;
-            _overlay.PersonalLine = _personalLine;
+            _overlay.PersonalLine = _personalLine ?? _sharedLine;
             if (!_overlayManager.HasOverlay<FSHarvesterRpHudOverlay>())
                 _overlayManager.AddOverlay(_overlay);
         }

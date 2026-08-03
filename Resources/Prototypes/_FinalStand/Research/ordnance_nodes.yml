@@ -15,6 +15,9 @@
   branch: Ordnance
   tier: 1
   cost: 2000
+  materialCost:
+    Steel: 2
+    Plastic: 2
   bonusDescription: +5 Magazine Capacity (Team)
 
 - type: fsTechNode
@@ -26,6 +29,9 @@
   branch: Ordnance
   tier: 2
   cost: 2500
+  materialCost:
+    Steel: 10
+    Plastic: 6
   prerequisites:
   - FSOrdnanceL6BasicMunitions
   bonusDescription: +2% Damage (Team)
@@ -39,6 +45,9 @@
   branch: Ordnance
   tier: 3
   cost: 3000
+  materialCost:
+    Steel: 22
+    Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
   bonusDescription: |-
@@ -54,6 +63,9 @@
   branch: Ordnance
   tier: 4
   cost: 2500
+  materialCost:
+    Steel: 40
+    Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
   bonusDescription: |-
@@ -69,6 +81,9 @@
   branch: Ordnance
   tier: 4
   cost: 2500
+  materialCost:
+    Steel: 40
+    Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
   bonusDescription: |-
@@ -84,6 +99,9 @@
   branch: Ordnance
   tier: 4
   cost: 2500
+  materialCost:
+    Steel: 40
+    Plastic: 24
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
   bonusDescription: |-
@@ -99,6 +117,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
@@ -115,6 +136,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
@@ -131,6 +155,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
@@ -147,6 +174,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
   exclusiveGroup: FSOrdnanceL6BarrelChoice
@@ -164,6 +194,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
@@ -180,6 +213,9 @@
   branch: Ordnance
   tier: 5
   cost: 2000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
   exclusiveGroup: FSOrdnanceL6ReceiverChoice
@@ -197,6 +233,9 @@
   branch: Ordnance
   tier: 6
   cost: 6000
+  materialCost:
+    Steel: 90
+    Plastic: 54
   prerequisiteGroups:
   - - FSOrdnanceL6SoftPackAmmoBags
     - FSOrdnanceL6DisintegratingBeltLinks
@@ -225,6 +264,9 @@
   branch: Ordnance
   tier: 3
   cost: 3500
+  materialCost:
+    Steel: 22
+    Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
   bonusDescription: |-
@@ -240,6 +282,9 @@
   branch: Ordnance
   tier: 5
   cost: 3500
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
   bonusDescription: +50 Magazine Capacity per Extended Drum level (Minigun)
@@ -253,6 +298,9 @@
   branch: Ordnance
   tier: 4
   cost: 3500
+  materialCost:
+    Steel: 40
+    Plastic: 24
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
   bonusDescription: |-
@@ -268,6 +316,9 @@
   branch: Ordnance
   tier: 5
   cost: 4000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunDisintegratingLinks
   bonusDescription: |-
@@ -283,6 +334,9 @@
   branch: Ordnance
   tier: 6
   cost: 4000
+  materialCost:
+    Steel: 90
+    Plastic: 54
   prerequisites:
   - FSOrdnanceMinigunExtendedDrumTuning
   bonusDescription: |-
@@ -298,6 +352,9 @@
   branch: Ordnance
   tier: 7
   cost: 4000
+  materialCost:
+    Steel: 122
+    Plastic: 74
   prerequisites:
   - FSOrdnanceMinigunSynchronizedFeedGates
   bonusDescription: |-
@@ -313,6 +370,9 @@
   branch: Ordnance
   tier: 8
   cost: 4500
+  materialCost:
+    Steel: 160
+    Plastic: 96
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
   bonusDescription: +0.2 Fire Rate per Overclocked Barrel level (Minigun)
@@ -326,6 +386,9 @@
   branch: Ordnance
   tier: 8
   cost: 4500
+  materialCost:
+    Steel: 160
+    Plastic: 96
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
   bonusDescription: |-
@@ -343,6 +406,9 @@
   branch: Ordnance
   tier: 3
   cost: 3500
+  materialCost:
+    Steel: 22
+    Plastic: 14
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
   bonusDescription: |-
@@ -358,6 +424,9 @@
   branch: Ordnance
   tier: 5
   cost: 3500
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
   bonusDescription: Iron Beast resist 20% -> 25% (Minigun)
@@ -371,6 +440,9 @@
   branch: Ordnance
   tier: 4
   cost: 3500
+  materialCost:
+    Steel: 40
+    Plastic: 24
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
   bonusDescription: |-
@@ -386,6 +458,9 @@
   branch: Ordnance
   tier: 5
   cost: 4000
+  materialCost:
+    Steel: 62
+    Plastic: 38
   prerequisites:
   - FSOrdnanceMinigunChromedBoreLinings
   bonusDescription: |-
@@ -401,6 +476,9 @@
   branch: Ordnance
   tier: 6
   cost: 4000
+  materialCost:
+    Steel: 90
+    Plastic: 54
   prerequisites:
   - FSOrdnanceMinigunIronBeastBracing
   bonusDescription: |-
@@ -418,6 +496,9 @@
   branch: Ordnance
   tier: 9
   cost: 4500
+  materialCost:
+    Steel: 202
+    Plastic: 122
   prerequisites:
   - FSOrdnanceMinigunRotaryDriveShafts
   - FSOrdnanceMinigunBarrelOverclockSync
@@ -434,6 +515,9 @@
   branch: Ordnance
   tier: 10
   cost: 3500
+  materialCost:
+    Steel: 250
+    Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
   bonusDescription: +5% Damage once Depleted Core is owned (Minigun)
@@ -447,6 +531,9 @@
   branch: Ordnance
   tier: 10
   cost: 4000
+  materialCost:
+    Steel: 250
+    Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
   bonusDescription: |-
@@ -462,6 +549,9 @@
   branch: Ordnance
   tier: 11
   cost: 4500
+  materialCost:
+    Steel: 302
+    Plastic: 182
   prerequisites:
   - FSOrdnanceMinigunBallisticCalculators
   - FSOrdnanceMinigunCoreCastingVats
@@ -480,6 +570,9 @@
   branch: Ordnance
   tier: 9
   cost: 3000
+  materialCost:
+    Steel: 202
+    Plastic: 122
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
@@ -496,6 +589,9 @@
   branch: Ordnance
   tier: 9
   cost: 3000
+  materialCost:
+    Steel: 202
+    Plastic: 122
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
   exclusiveGroup: FSOrdnanceMinigunPowerChoice
@@ -512,6 +608,9 @@
   branch: Ordnance
   tier: 10
   cost: 3000
+  materialCost:
+    Steel: 250
+    Plastic: 150
   prerequisites:
   - FSOrdnanceMinigunInternalBatteryPacks
   bonusDescription: +2° Accuracy per Gyro Stabilizer level (Minigun)
@@ -527,6 +626,9 @@
   branch: Ordnance
   tier: 12
   cost: 5000
+  materialCost:
+    Steel: 360
+    Plastic: 216
   prerequisites:
   - FSOrdnanceMinigunCounterWeightBuffers
   prerequisiteGroups:
@@ -543,6 +645,9 @@
   branch: Ordnance
   tier: 13
   cost: 10000
+  materialCost:
+    Steel: 422
+    Plastic: 254
   prerequisites:
   - FSOrdnanceMinigunKnockbackRage
   weaponShopUnlock: FSWeaponShopMinigun
@@ -566,7 +671,9 @@
   tier: 1
   cost: 3000
   materialCost:
-    Steel: 1
+    Steel: 3
+    Plastic: 2
+    Gold: 2
   bonusDescription: +2% Damage (Team)
 
 - type: fsTechNode
@@ -578,6 +685,10 @@
   branch: Ordnance
   tier: 2
   cost: 3500
+  materialCost:
+    Steel: 12
+    Plastic: 8
+    Gold: 6
   prerequisites:
   - FSOrdnanceExplosiveTechnology
   bonusDescription: +2% Damage (Team, 2nd source)
@@ -591,6 +702,10 @@
   branch: Ordnance
   tier: 3
   cost: 4000
+  materialCost:
+    Steel: 27
+    Plastic: 18
+    Gold: 14
   prerequisites:
   - FSOrdnancePercussionCapFusing
   bonusDescription: +2.5% Accuracy (Team)
@@ -606,6 +721,10 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 48
+    Plastic: 32
+    Gold: 24
   prerequisites:
   - FSOrdnanceHighLowGasChambers
   bonusDescription: +4% Fire Rate (Hydra)
@@ -619,6 +738,10 @@
   branch: Ordnance
   tier: 5
   cost: 4500
+  materialCost:
+    Steel: 75
+    Plastic: 50
+    Gold: 38
   prerequisites:
   - FSOrdnanceHeavyCylinderIndexing
   bonusDescription: +6% Reload Speed (Hydra)
@@ -632,6 +755,10 @@
   branch: Ordnance
   tier: 6
   cost: 4500
+  materialCost:
+    Steel: 108
+    Plastic: 72
+    Gold: 54
   prerequisites:
   - FSOrdnance40mmRimmedCasings
   bonusDescription: +3% Damage (Hydra)
@@ -645,6 +772,10 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 147
+    Plastic: 98
+    Gold: 74
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
@@ -661,6 +792,10 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 147
+    Plastic: 98
+    Gold: 74
   prerequisites:
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
@@ -677,6 +812,10 @@
   branch: Ordnance
   tier: 8
   cost: 9000
+  materialCost:
+    Steel: 192
+    Plastic: 128
+    Gold: 96
   prerequisiteGroups:
   - - FSOrdnanceSpigotSleeves
     - FSOrdnanceVentedChambers
@@ -698,6 +837,10 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 48
+    Plastic: 32
+    Gold: 24
   prerequisites:
   - FSOrdnanceHighLowGasChambers
   bonusDescription: +5% Accuracy (RPG-7)
@@ -711,6 +854,10 @@
   branch: Ordnance
   tier: 5
   cost: 4500
+  materialCost:
+    Steel: 75
+    Plastic: 50
+    Gold: 38
   prerequisites:
   - FSOrdnanceCounterMassVentingTubes
   bonusDescription: +8% Projectile Speed (RPG-7)
@@ -724,6 +871,10 @@
   branch: Ordnance
   tier: 6
   cost: 4500
+  materialCost:
+    Steel: 108
+    Plastic: 72
+    Gold: 54
   prerequisites:
   - FSOrdnanceVenturiExhaustNozzles
   bonusDescription: +5% Accuracy (RPG-7, 2nd source)
@@ -737,6 +888,10 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 147
+    Plastic: 98
+    Gold: 74
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
@@ -753,6 +908,10 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 147
+    Plastic: 98
+    Gold: 74
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
   exclusiveGroup: FSOrdnanceRpgWarheadChoice
@@ -769,6 +928,10 @@
   branch: Ordnance
   tier: 8
   cost: 11000
+  materialCost:
+    Steel: 192
+    Plastic: 128
+    Gold: 96
   prerequisiteGroups:
   - - FSOrdnanceTandemWarheads
     - FSOrdnanceThermobaricPayloads
@@ -794,6 +957,9 @@
   branch: Ordnance
   tier: 1
   cost: 3000
+  materialCost:
+    Steel: 2
+    Gold: 1
   bonusDescription: +2% Damage (Team)
 
 - type: fsTechNode
@@ -805,6 +971,9 @@
   branch: Ordnance
   tier: 2
   cost: 3500
+  materialCost:
+    Steel: 8
+    Gold: 5
   prerequisites:
   - FSOrdnanceWeaponizedLaserManipulation
   bonusDescription: +5% Charge Rate (Team)
@@ -820,6 +989,9 @@
   branch: Ordnance
   tier: 3
   cost: 4000
+  materialCost:
+    Steel: 18
+    Gold: 12
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
   bonusDescription: +8% Hitscan Range (X-Ray)
@@ -833,6 +1005,9 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 32
+    Gold: 21
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
   bonusDescription: +5% Armor Shred (X-Ray)
@@ -846,6 +1021,9 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 32
+    Gold: 21
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
   bonusDescription: +5% Radiation Coating tick damage per level (X-Ray)
@@ -859,6 +1037,9 @@
   branch: Ordnance
   tier: 5
   cost: 4500
+  materialCost:
+    Steel: 50
+    Gold: 32
   prerequisites:
   - FSOrdnanceLeadLinedEmitters
   bonusDescription: |-
@@ -874,6 +1055,9 @@
   branch: Ordnance
   tier: 6
   cost: 4000
+  materialCost:
+    Steel: 72
+    Gold: 47
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
   bonusDescription: -15% Resonant Cell shop price (X-Ray)
@@ -887,6 +1071,9 @@
   branch: Ordnance
   tier: 6
   cost: 4500
+  materialCost:
+    Steel: 72
+    Gold: 47
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
   bonusDescription: |-
@@ -902,6 +1089,9 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 98
+    Gold: 64
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
   exclusiveGroup: FSOrdnanceXrayCoolingChoice
@@ -918,6 +1108,9 @@
   branch: Ordnance
   tier: 7
   cost: 3000
+  materialCost:
+    Steel: 98
+    Gold: 64
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
   exclusiveGroup: FSOrdnanceXrayCoolingChoice
@@ -934,6 +1127,9 @@
   branch: Ordnance
   tier: 8
   cost: 3500
+  materialCost:
+    Steel: 128
+    Gold: 83
   prerequisites:
   - FSOrdnanceCollimatorFlanges
   bonusDescription: +1 Pierce once Deep Penetration is maxed (X-Ray)
@@ -947,6 +1143,9 @@
   branch: Ordnance
   tier: 9
   cost: 3500
+  materialCost:
+    Steel: 162
+    Gold: 105
   prerequisites:
   - FSOrdnanceDensityTuning
   bonusDescription: +0.1 Fire Rate per Pulse Accelerator level (X-Ray)
@@ -960,6 +1159,9 @@
   branch: Ordnance
   tier: 10
   cost: 3500
+  materialCost:
+    Steel: 200
+    Gold: 130
   prerequisites:
   - FSOrdnanceFrequencySync
   bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)
@@ -973,6 +1175,9 @@
   branch: Ordnance
   tier: 11
   cost: 9000
+  materialCost:
+    Steel: 242
+    Gold: 157
   prerequisiteGroups:
   - - FSOrdnanceFocusingCrystalPrisms
     - FSOrdnanceFocalOverdrive
@@ -994,6 +1199,9 @@
   branch: Ordnance
   tier: 3
   cost: 4000
+  materialCost:
+    Steel: 18
+    Gold: 12
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
   bonusDescription: |-
@@ -1009,6 +1217,9 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 32
+    Gold: 21
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
   bonusDescription: +0.5 Fire Rate once Overcharged Coil is owned (Tesla)
@@ -1022,6 +1233,9 @@
   branch: Ordnance
   tier: 4
   cost: 4000
+  materialCost:
+    Steel: 32
+    Gold: 21
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
   bonusDescription: |-
@@ -1037,6 +1251,9 @@
   branch: Ordnance
   tier: 5
   cost: 4500
+  materialCost:
+    Steel: 50
+    Gold: 32
   prerequisites:
   - FSOrdnanceMagnetoHydrodynamicCores
   - FSOrdnanceOverclockedTiming
@@ -1053,6 +1270,9 @@
   branch: Ordnance
   tier: 6
   cost: 4500
+  materialCost:
+    Steel: 72
+    Gold: 47
   prerequisites:
   - FSOrdnanceToroidalInductionFields
   bonusDescription: |-
@@ -1068,6 +1288,9 @@
   branch: Ordnance
   tier: 7
   cost: 4000
+  materialCost:
+    Steel: 98
+    Gold: 64
   prerequisites:
   - FSOrdnancePulseWidthModulators
   bonusDescription: +10 effective shots once Energy Cell Upgrade is owned (Tesla)
@@ -1081,6 +1304,9 @@
   branch: Ordnance
   tier: 7
   cost: 4500
+  materialCost:
+    Steel: 98
+    Gold: 64
   prerequisites:
   - FSOrdnancePulseWidthModulators
   bonusDescription: |-
@@ -1096,6 +1322,9 @@
   branch: Ordnance
   tier: 8
   cost: 4500
+  materialCost:
+    Steel: 128
+    Gold: 83
   prerequisites:
   - FSOrdnanceHeavyStepUpTransformers
   - FSOrdnanceDenseLithiumStorage
@@ -1112,6 +1341,9 @@
   branch: Ordnance
   tier: 9
   cost: 4500
+  materialCost:
+    Steel: 162
+    Gold: 105
   prerequisites:
   - FSOrdnanceArcStabilizingGroundRods
   bonusDescription: |-
@@ -1127,6 +1359,9 @@
   branch: Ordnance
   tier: 10
   cost: 5000
+  materialCost:
+    Steel: 200
+    Gold: 130
   prerequisites:
   - FSOrdnanceCascadeDischargeRelays
   bonusDescription: |-
@@ -1142,6 +1377,9 @@
   branch: Ordnance
   tier: 11
   cost: 3500
+  materialCost:
+    Steel: 242
+    Gold: 157
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   bonusDescription: +0.5m Arc Range per Extended Arc level (Tesla)
@@ -1155,6 +1393,9 @@
   branch: Ordnance
   tier: 11
   cost: 3000
+  materialCost:
+    Steel: 242
+    Gold: 157
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
@@ -1171,6 +1412,9 @@
   branch: Ordnance
   tier: 11
   cost: 3000
+  materialCost:
+    Steel: 242
+    Gold: 157
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
   exclusiveGroup: FSOrdnanceTeslaDischargeChoice
@@ -1187,6 +1431,9 @@
   branch: Ordnance
   tier: 12
   cost: 3500
+  materialCost:
+    Steel: 288
+    Gold: 187
   prerequisites:
   - FSOrdnanceOverchargeCapacitors
   bonusDescription: +25% Capacitor Boost recharge multiplier once owned (Tesla)
@@ -1200,6 +1447,9 @@
   branch: Ordnance
   tier: 13
   cost: 5000
+  materialCost:
+    Steel: 338
+    Gold: 220
   prerequisiteGroups:
   - - FSOrdnanceChainLightningBridging
     - FSOrdnanceFluxTuning
@@ -1214,6 +1464,9 @@
   branch: Ordnance
   tier: 14
   cost: 12000
+  materialCost:
+    Steel: 392
+    Gold: 255
   prerequisites:
   - FSOrdnanceSingularityHarnessing
   weaponShopUnlock: FSWeaponShopTeslaGun
@@ -1235,6 +1488,9 @@
   branch: Ordnance
   tier: 1
   cost: 2000
+  materialCost:
+    Steel: 5
+    Gold: 2
   bonusDescription: +5% Damage (Harvester)
 
 - type: fsTechNode
@@ -1246,6 +1502,9 @@
   branch: Ordnance
   tier: 1
   cost: 2000
+  materialCost:
+    Steel: 5
+    Gold: 2
   bonusDescription: +5% Fire Rate (Harvester)
 
 - type: fsTechNode
@@ -1257,6 +1516,9 @@
   branch: Ordnance
   tier: 2
   cost: 2500
+  materialCost:
+    Steel: 20
+    Gold: 10
   prerequisites:
   - FSOrdnanceHarvesterFocusingLens
   bonusDescription: +5% Damage (Harvester, 2nd source)
@@ -1270,6 +1532,9 @@
   branch: Ordnance
   tier: 2
   cost: 2500
+  materialCost:
+    Steel: 20
+    Gold: 10
   prerequisites:
   - FSOrdnanceHarvesterCoolantLoop
   bonusDescription: +5% Fire Rate (Harvester, 2nd source)
@@ -1283,6 +1548,9 @@
   branch: Ordnance
   tier: 3
   cost: 3500
+  materialCost:
+    Steel: 45
+    Gold: 22
   prerequisiteGroups:
   - - FSOrdnanceHarvesterCapacitorBank
     - FSOrdnanceHarvesterOscillatorTuning

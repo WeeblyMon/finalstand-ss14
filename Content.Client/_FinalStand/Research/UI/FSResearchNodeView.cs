@@ -39,6 +39,9 @@ public sealed class FSResearchNodeView
     // Includes yourself if IsMyPersonalPick.
     public int PersonalContributorCount;
 
+    // One color-slot index per contributor, join order - used to draw one ring per contributor.
+    public List<int> ContributorSlots = new();
+
     public TechnologyPrototype? Vanilla;
     public FSTechNodePrototype? FsNode;
 

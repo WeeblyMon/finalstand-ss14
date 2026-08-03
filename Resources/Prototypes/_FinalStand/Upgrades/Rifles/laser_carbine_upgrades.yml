@@ -1,21 +1,28 @@
 # ── Laser Carbine Shop ───────────────────────────────────────────────────────
-# The Techie. Shots do more than just damage. Builds momentum, lots of secondary effects.
+# Full-auto energy rifle. Sprays laser bolts, drains its cell fast, full of tricks.
 
 - type: entity
   id: FSWeaponShopLaserCarbine
   parent: FSWeaponShopBase
   name: Laser Carbine
-  description: Semi-automatic energy rifle. Self-powered, accurate, and full of tricks. No ammo required.
+  description: Full-automatic energy rifle. Self-powered and full of tricks, but sustained fire drains the cell fast. No ammo required.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponLaserCarbine
     price: 45000
-    category: Self-Recharging Semi-Auto Laser
-    statDamage: 50
-    statFireRate: 40
-    statAccuracy: 80
-    statCapacity: 75
+    category: Self-Recharging Full-Auto Laser
+    statDamage: 45
+    statFireRate: 70
+    statAccuracy: 65
+    statCapacity: 80
     upgrades:
+    - id: lcarbine-battery-capacity
+      name: Extended Cell
+      description: Denser energy cell reduces cost per shot, giving more shots between recharges.
+      maxLevel: 3
+      baseCost: 6750
+      type: MagazineSize
+      valuePerLevel: 5
     - id: lcarbine-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
@@ -24,32 +31,32 @@
       type: SelfChargeSpeed
       valuePerLevel: 2.0
     - id: lcarbine-accuracy
-      name: Focusing Lens
-      description: Precision optics tighten spread by 2.5° per level.
+      name: Gyro-Stabilized Barrel
+      description: Recoil compensation tightens spread and reduces climb during sustained fire.
       maxLevel: 3
       baseCost: 6750
       type: Accuracy
       valuePerLevel: 2.5
-    - id: lcarbine-chain
-      name: Chain Targets
-      description: Beam arcs to 1 additional enemy per level on hit.
-      maxLevel: 3
-      baseCost: 11800
-      type: BeamChaining
-      valuePerLevel: 1
-    - id: lcarbine-prismatic
-      name: Prismatic
-      description: 25%/50%/75% chance per hit to split into 3 beams that seek nearby enemies for 40% damage. Beams do not chain.
-      maxLevel: 3
-      baseCost: 20250
-      type: Prismatic
-      valuePerLevel: 1
-    - id: lcarbine-mag-efficiency
-      name: Mag Efficiency
-      description: 10%/20%/30% chance per shot to not consume energy. Effectively extends battery life.
+    - id: lcarbine-fire-rate
+      name: Overclocked Cycling
+      description: Tuned capacitor discharge increases fire rate by 0.5/level.
       maxLevel: 3
       baseCost: 6750
-      type: MagEfficiency
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: lcarbine-overload
+      name: Overload Round
+      description: Every 5th/4th/3rd shot is automatically supercharged, dealing double damage.
+      maxLevel: 3
+      baseCost: 13000
+      type: OverloadRound
+      valuePerLevel: 1
+    - id: lcarbine-ricochet
+      name: Ricochet Bolts
+      description: 25%/50%/75% chance for a bolt that misses to redirect toward the nearest enemy for 70% damage.
+      maxLevel: 3
+      baseCost: 14000
+      type: Ricochet
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/laser_gun.rsi

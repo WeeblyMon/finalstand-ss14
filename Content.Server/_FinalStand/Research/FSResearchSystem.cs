@@ -43,12 +43,14 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<FSStationResearchComponent, EntityTerminatingEvent>(OnStationTerminating);
         SubscribeLocalEvent<FSTechDatabaseComponent, ResearchRegistrationChangedEvent>(OnConsoleServerLinkChanged);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
 
         Subs.BuiEvents<FSTechDatabaseComponent>(ResearchConsoleUiKey.Key, subs =>
         {
             subs.Event<FSSelectResearchNodeMessage>(OnSelectResearchNode);
             subs.Event<FSClearPersonalResearchMessage>(OnClearPersonalResearch);
+            subs.Event<FSClearSharedResearchMessage>(OnClearSharedResearch);
         });
     }
 
@@ -58,9 +60,21 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.SinglePlayer(args.Player));
+        RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Entity)), Filter.SinglePlayer(args.Player));
+
+        var activeProgress = station.Comp.ActiveResearch is { } activeId
+            ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
+            : 0;
+        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.SinglePlayer(args.Player));
 
         if (_mind.TryGetMind(args.Player, out var mindId, out _))
             SendPersonalResearchState(mindId);
+    }
+
+    // PlayerAttachedEvent fires before MindAddJobRole runs, so IsRdOrCaptain sees no job yet there - re-check once the job is actually assigned.
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent args)
+    {
+        RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Mob)), Filter.SinglePlayer(args.Player));
     }
 
     private void OnWaveEnded(ref WaveEndedEvent args)
@@ -86,6 +100,8 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             comp.NodeProgress.Clear();
             comp.Points = 0;
             comp.PersonalPicks.Clear();
+            comp.ContributorColorSlots.Clear();
+            comp.ActiveResearchSetBy = null;
             Dirty(uid, comp);
         }
 
@@ -168,9 +184,22 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
     {
         var station = GetOrCreateStation();
 
-        var contributorCounts = new Dictionary<string, int>();
-        foreach (var nodeId in station.Comp.PersonalPicks.Values)
-            contributorCounts[nodeId.Id] = contributorCounts.GetValueOrDefault(nodeId.Id) + 1;
+        var contributorSlots = new Dictionary<string, List<int>>();
+        foreach (var (mindId, nodeId) in station.Comp.PersonalPicks)
+        {
+            var slot = GetOrAssignColorSlot(station, mindId);
+            if (!contributorSlots.TryGetValue(nodeId.Id, out var slots))
+                contributorSlots[nodeId.Id] = slots = new List<int>();
+            slots.Add(slot);
+        }
+
+        if (station.Comp.ActiveResearch is { } activeNodeId && station.Comp.ActiveResearchSetBy is { } setterMindId)
+        {
+            var setterSlot = GetOrAssignColorSlot(station, setterMindId);
+            if (!contributorSlots.TryGetValue(activeNodeId.Id, out var activeSlots))
+                contributorSlots[activeNodeId.Id] = activeSlots = new List<int>();
+            activeSlots.Add(setterSlot);
+        }
 
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
@@ -182,13 +211,28 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             foreach (var (id, amount) in station.Comp.NodeProgress)
                 console.NodeProgress[id] = amount;
             console.Points = station.Comp.Points;
-            console.PersonalContributorCounts.Clear();
-            foreach (var (id, count) in contributorCounts)
-                console.PersonalContributorCounts[id] = count;
+            console.PersonalContributorSlots.Clear();
+            foreach (var (id, slots) in contributorSlots)
+                console.PersonalContributorSlots[id] = new List<int>(slots);
             Dirty(uid, console);
         }
 
         RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
+
+        var activeProgress = station.Comp.ActiveResearch is { } activeId
+            ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
+            : 0;
+        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.Broadcast());
+    }
+
+    private static int GetOrAssignColorSlot(Entity<FSStationResearchComponent> station, EntityUid mindId)
+    {
+        if (station.Comp.ContributorColorSlots.TryGetValue(mindId, out var slot))
+            return slot;
+
+        slot = station.Comp.ContributorColorSlots.Count;
+        station.Comp.ContributorColorSlots[mindId] = slot;
+        return slot;
     }
 
     // RD/Captain picks become the shared, discounted default; any other Science member can still set their own personal pick.
@@ -265,6 +309,9 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         {
             station.Comp.ActiveResearch = node.ID;
 
+            if (_mind.TryGetMind(player, out var setterMindId, out _))
+                station.Comp.ActiveResearchSetBy = setterMindId;
+
             // Banked RP (accrued with nothing selected) immediately reinvests into the newly-selected shared pick.
             var banked = station.Comp.Points;
             station.Comp.Points = 0;
@@ -299,7 +346,24 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             return;
 
         Dirty(station);
+        SyncConsoles();
         SendPersonalResearchState(mindId);
+    }
+
+    private void OnClearSharedResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearSharedResearchMessage args)
+    {
+        var player = args.Actor;
+        if (!player.IsValid() || !IsRdOrCaptain(player))
+            return;
+
+        var station = GetOrCreateStation();
+        if (station.Comp.ActiveResearch == null)
+            return;
+
+        station.Comp.ActiveResearch = null;
+        station.Comp.ActiveResearchSetBy = null;
+        Dirty(station);
+        SyncConsoles();
     }
 
     public void GrantResearchPoints(int amount, string source, EntityUid? contributorMindId = null)
@@ -330,21 +394,24 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             return;
         }
 
+        // Forward-only: node.Cost never changes, past progress keeps its original value (no retroactive sniping).
         var discounted = id.Id == station.Comp.ActiveResearch?.Id;
-        var effectiveCost = discounted ? Math.Max(1, node.Cost / 2) : node.Cost;
+        var multiplier = discounted ? 2 : 1;
 
         var current = station.Comp.NodeProgress.GetValueOrDefault(id.Id);
-        var room = Math.Max(0, effectiveCost - current);
-        var applied = Math.Min(amount, room);
+        var room = Math.Max(0, node.Cost - current);
+        var maxUsableRp = (room + multiplier - 1) / multiplier; // ceiling division - floor can strand the last point of room unreachable
+        var applied = Math.Min(amount, maxUsableRp);
+        var progressGain = applied * multiplier;
         var overflow = amount - applied;
 
-        station.Comp.NodeProgress[id.Id] = current + applied;
+        station.Comp.NodeProgress[id.Id] = current + progressGain;
         if (overflow > 0)
             station.Comp.Points += overflow;
 
         Dirty(station);
 
-        if (station.Comp.NodeProgress[id.Id] >= effectiveCost)
+        if (station.Comp.NodeProgress[id.Id] >= node.Cost)
             CompleteResearch(station, node, discounted, contributorMindId);
 
         SyncConsoles();
@@ -360,6 +427,7 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         if (wasShared)
         {
             station.Comp.ActiveResearch = null;
+            station.Comp.ActiveResearchSetBy = null;
 
             var stale = station.Comp.PersonalPicks.Where(kv => kv.Value.Id == node.ID).Select(kv => kv.Key).ToList();
             foreach (var mind in stale)

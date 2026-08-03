@@ -259,6 +259,48 @@
     totalIntensity: 200
     maxTileBreak: 0
 
+# ── Laser carbine bolt — custom sprite, real flying projectile instead of hitscan ──
+- type: entity
+  id: FSBulletLaserCarbine
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt.rsi
+    scale: 0.2, 0.2
+    rotation: -90
+    layers:
+    - state: bolt
+      shader: unshaded
+  - type: Projectile
+    damage:
+      types:
+        Heat: 12
+  - type: PointLight
+    castShadows: false
+    color: "#FF0000"
+    radius: 1.5
+    energy: 4.0
+
+# ── Overload Round supercharged bolt — visually distinct, replaces the normal bolt on proc ──
+- type: entity
+  id: FSBulletLaserCarbineOverload
+  parent: FSBulletLaserCarbine
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
+    scale: 0.2, 0.2
+    rotation: -90
+    layers:
+    - state: bolt
+      shader: unshaded
+  - type: PointLight
+    castShadows: false
+    color: "#FF0000"
+    radius: 2.2
+    energy: 6.0
+
 # ── Tesla gun orb — custom FS arcing, no LightningArcShooter or Electrified ───
 - type: entity
   parent: TeslaGunBullet

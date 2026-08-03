@@ -28,6 +28,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     public Action<string>? OnFsNodeSelected;
     public Action? OnServerButtonPressed;
     public Action? OnClearPersonalPick;
+    public Action? OnClearSharedPick;
 
     [Dependency] private readonly IEntityManager _entity = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
@@ -83,6 +84,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         StatsHeaderLabel.FontColorOverride = FSUiPalette.AccentBrand;
         RequirementsHeaderLabel.FontColorOverride = FSUiPalette.AccentBrand;
         AuthorityWarningLabel.FontColorOverride = FSUiPalette.StateNegative;
+        DefaultTargetTipLabel.FontColorOverride = FSUiPalette.TextMuted;
 
         HeaderResearchIcon.Texture = _resourceCache
             .GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/research_icon_purple.png").Texture;
@@ -112,6 +114,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         };
 
         ClearPersonalPickButton.OnPressed += _ => OnClearPersonalPick?.Invoke();
+        ClearSharedPickButton.OnPressed += _ => OnClearSharedPick?.Invoke();
 
         GraphControl.OnNodeSelected += node =>
         {
@@ -242,13 +245,22 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         _state = state;
         GraphControl.SetConsole(Entity);
+        ResyncSelectedNode();
         UpdateDetailPanel();
     }
 
     public void RefreshLiveState()
     {
         GraphControl.SetConsole(Entity);
+        ResyncSelectedNode();
         UpdateDetailPanel();
+    }
+
+    // SetConsole rebuilds every FSResearchNodeView from scratch, so the selected instance goes stale - re-point at the fresh one for the same id.
+    private void ResyncSelectedNode()
+    {
+        if (_selectedNode != null)
+            _selectedNode = GraphControl.GetNode(_selectedNode.Id) ?? _selectedNode;
     }
 
     public void UpdateInformationPanel(ResearchConsoleBoundInterfaceState state)
@@ -280,6 +292,8 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         AuthorityWarningLabel.Visible = false;
         AuthorityWarningLabel.Text = "";
         ClearPersonalPickButton.Visible = false;
+        ClearSharedPickButton.Visible = false;
+        ResearchStatusLabel.Visible = false;
 
         EmptyStateContainer.Visible = _selectedNode == null;
 
@@ -315,11 +329,9 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         {
             MaterialsLabel.SetMessage(BuildMaterialsMessage(node.FsNode, out var hasEnoughMaterials));
 
-            // Shared-pick cost is halved server-side too (see FSResearchSystem.GrantResearchPoints).
-            var effectiveCost = node.IsActiveResearch ? Math.Max(1, node.Cost / 2) : node.Cost;
-            var fsFill = effectiveCost > 0 ? Math.Min(1f, (float)node.Progress / effectiveCost) : 1f;
+            var fsFill = node.Cost > 0 ? Math.Min(1f, (float)node.Progress / node.Cost) : 1f;
             BuildProgressBar(fsFill);
-            RpNeededLabel.Text = node.IsActiveResearch ? $"RP Needed: {effectiveCost} (shared, half-cost)" : $"RP Needed: {effectiveCost}";
+            RpNeededLabel.Text = $"RP Needed: {node.Cost}";
 
             var otherContributors = node.PersonalContributorCount - (node.IsMyPersonalPick ? 1 : 0);
             var contributorSuffix = otherContributors switch
@@ -330,24 +342,45 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             };
             ProgressCounterLabel.Text = node.State == FSResearchNodeState.Unlocked
                 ? "Completed"
-                : $"{node.Progress}/{effectiveCost}{contributorSuffix}";
+                : $"{node.Progress}/{node.Cost}{contributorSuffix}";
 
             ClearPersonalPickButton.Visible = node.IsMyPersonalPick && node.State != FSResearchNodeState.Unlocked;
+
+            if (node.IsActiveResearch && node.State != FSResearchNodeState.Unlocked)
+            {
+                ResearchStatusLabel.Visible = true;
+                ResearchStatusLabel.Text = "RD's Choice - Sped Up";
+            }
+            else if (node.IsMyPersonalPick && node.State != FSResearchNodeState.Unlocked)
+            {
+                ResearchStatusLabel.Visible = true;
+                ResearchStatusLabel.Text = "Your Choice";
+            }
 
             if (node.State == FSResearchNodeState.Unlocked)
             {
                 StartResearchButton.Text = "Researched";
                 StartResearchButton.Disabled = true;
             }
-            else if (node.IsActiveResearch)
-            {
-                StartResearchButton.Text = "Researching (Shared, Half-Cost)...";
-                StartResearchButton.Disabled = true;
-            }
             else if (node.IsMyPersonalPick)
             {
                 StartResearchButton.Text = "Personally Researching...";
                 StartResearchButton.Disabled = true;
+            }
+            else if (node.IsActiveResearch)
+            {
+                if (_fsResearch.IsRdOrCaptain)
+                {
+                    StartResearchButton.Text = "Researching (Shared)...";
+                    StartResearchButton.Disabled = true;
+                    ClearSharedPickButton.Visible = true;
+                }
+                else
+                {
+                    // Locks the viewer's own contribution to this node even if the RD later switches away.
+                    StartResearchButton.Text = "Also Set as My Pick (Full Cost)";
+                    StartResearchButton.Disabled = false;
+                }
             }
             else
             {

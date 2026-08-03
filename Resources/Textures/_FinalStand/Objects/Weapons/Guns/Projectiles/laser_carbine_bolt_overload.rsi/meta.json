@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Repackaged free asset (Sprites - Lasers Bullets #1), used for the FinalStand laser carbine Overload Round shot",
+  "size": { "x": 233, "y": 134 },
+  "states": [
+    {
+      "name": "bolt"
+    }
+  ]
+}

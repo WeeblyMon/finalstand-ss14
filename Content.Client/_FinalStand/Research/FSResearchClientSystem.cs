@@ -12,9 +12,15 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
     public event Action<EntityUid>? DatabaseUpdated;
     public event Action<string>? AuthorityDenied;
     public event Action? PersonalPickChanged;
+    public event Action? SharedResearchChanged;
 
     public ProtoId<FSTechNodePrototype>? MyPersonalPickId { get; private set; }
     public int MyPersonalProgress { get; private set; }
+
+    public bool IsRdOrCaptain { get; private set; }
+
+    public ProtoId<FSTechNodePrototype>? SharedResearchId { get; private set; }
+    public int SharedResearchProgress { get; private set; }
 
     public override void Initialize()
     {
@@ -22,6 +28,8 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
         SubscribeLocalEvent<FSTechDatabaseComponent, AfterAutoHandleStateEvent>(OnAfterHandleState);
         SubscribeNetworkEvent<FSResearchAuthorityDeniedEvent>(OnAuthorityDenied);
         SubscribeNetworkEvent<FSPersonalResearchStateEvent>(OnPersonalResearchState);
+        SubscribeNetworkEvent<FSPlayerResearchAuthorityEvent>(OnResearchAuthority);
+        SubscribeNetworkEvent<FSSharedResearchStateEvent>(OnSharedResearchState);
     }
 
     private void OnAfterHandleState(EntityUid uid, FSTechDatabaseComponent component, ref AfterAutoHandleStateEvent args)
@@ -39,5 +47,17 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
         MyPersonalPickId = ev.NodeId;
         MyPersonalProgress = ev.Progress;
         PersonalPickChanged?.Invoke();
+    }
+
+    private void OnResearchAuthority(FSPlayerResearchAuthorityEvent ev)
+    {
+        IsRdOrCaptain = ev.IsRdOrCaptain;
+    }
+
+    private void OnSharedResearchState(FSSharedResearchStateEvent ev)
+    {
+        SharedResearchId = ev.NodeId;
+        SharedResearchProgress = ev.Progress;
+        SharedResearchChanged?.Invoke();
     }
 }

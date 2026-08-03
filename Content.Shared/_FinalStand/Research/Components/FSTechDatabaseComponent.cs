@@ -24,8 +24,8 @@ public sealed partial class FSTechDatabaseComponent : Component
     [DataField]
     public int Points;
 
-    // Counts only, never identities - safe to broadcast to everyone.
+    // Per node, one stable color-slot index per contributor - lets the client render a ring per contributor without ever sending names.
     [AutoNetworkedField]
     [DataField]
-    public Dictionary<string, int> PersonalContributorCounts = new();
+    public Dictionary<string, List<int>> PersonalContributorSlots = new();
 }

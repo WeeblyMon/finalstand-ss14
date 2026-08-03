@@ -15,6 +15,10 @@ public sealed class FSSelectResearchNodeMessage(string nodeId) : BoundUserInterf
 [Serializable, NetSerializable]
 public sealed class FSClearPersonalResearchMessage : BoundUserInterfaceMessage;
 
+// Sent by a console when the RD/Captain backs out of the shared pick entirely (back to banking RP with nothing selected).
+[Serializable, NetSerializable]
+public sealed class FSClearSharedResearchMessage : BoundUserInterfaceMessage;
+
 // Broadcast whenever the station-wide UnlockedNodes set changes.
 [Serializable, NetSerializable]
 public sealed class FSResearchUnlocksChangedEvent(HashSet<string> unlockedNodes) : EntityEventArgs
@@ -39,6 +43,21 @@ public sealed class FSStationRpChangedEvent(int points) : EntityEventArgs
 // Sent to a single player whenever their own personal research pick or its progress changes.
 [Serializable, NetSerializable]
 public sealed class FSPersonalResearchStateEvent(ProtoId<FSTechNodePrototype>? nodeId, int progress) : EntityEventArgs
+{
+    public readonly ProtoId<FSTechNodePrototype>? NodeId = nodeId;
+    public readonly int Progress = progress;
+}
+
+// Sent to a player whether they currently have RD/Captain research authority (sets the shared pick).
+[Serializable, NetSerializable]
+public sealed class FSPlayerResearchAuthorityEvent(bool isRdOrCaptain) : EntityEventArgs
+{
+    public readonly bool IsRdOrCaptain = isRdOrCaptain;
+}
+
+// Broadcast whenever the station's shared pick or its progress changes.
+[Serializable, NetSerializable]
+public sealed class FSSharedResearchStateEvent(ProtoId<FSTechNodePrototype>? nodeId, int progress) : EntityEventArgs
 {
     public readonly ProtoId<FSTechNodePrototype>? NodeId = nodeId;
     public readonly int Progress = progress;

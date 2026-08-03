@@ -55,6 +55,10 @@
                               Margin="10"
                               HorizontalExpand="True"
                               VerticalExpand="True">
+                    <Label Name="DefaultTargetTipLabel"
+                           Text="Tip: your hits fund the RD/Captain's choice (double value) unless you set your own pick."
+                           HorizontalAlignment="Center"
+                           Margin="0 0 0 8"/>
                     <ScrollContainer HScrollEnabled="False"
                                      HorizontalExpand="True"
                                      VerticalExpand="True">
@@ -94,8 +98,14 @@
                            HorizontalAlignment="Center"
                            Visible="False"
                            Margin="0 6 0 0"/>
+                    <Label Name="ResearchStatusLabel"
+                           Text=""
+                           HorizontalAlignment="Center"
+                           Visible="False"
+                           Margin="0 6 0 0"/>
                     <Button Name="StartResearchButton" Text="Start Research" Margin="0 6 0 0"/>
                     <Button Name="ClearPersonalPickButton" Text="Clear My Pick" Visible="False" Margin="0 6 0 0"/>
+                    <Button Name="ClearSharedPickButton" Text="Clear Shared Pick" Visible="False" Margin="0 6 0 0"/>
                     <Button Name="CancelButton" Text="Cancel" Margin="0 6 0 0"/>
                 </BoxContainer>
             </PanelContainer>

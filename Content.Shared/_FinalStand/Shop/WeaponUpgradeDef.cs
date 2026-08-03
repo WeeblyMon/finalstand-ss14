@@ -91,6 +91,9 @@ public enum WeaponUpgradeType : byte
     Thorns,
     ShieldVampire,
     ShieldDurability,
+
+    OverloadRound,
+    Ricochet,
 }
 
 [DataDefinition]

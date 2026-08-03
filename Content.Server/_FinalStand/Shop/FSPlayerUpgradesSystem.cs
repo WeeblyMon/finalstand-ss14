@@ -481,6 +481,20 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
+            case WeaponUpgradeType.OverloadRound:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.OverloadRoundLevel = newLevel;
+                break;
+            }
+
+            case WeaponUpgradeType.Ricochet:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.RicochetLevel = newLevel;
+                break;
+            }
+
             case WeaponUpgradeType.PulseCascade:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
@@ -870,6 +884,8 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         to.PrismaticLevel = from.PrismaticLevel;
         to.MagEfficiencyLevel = from.MagEfficiencyLevel;
         to.PulseCascadeEnabled = from.PulseCascadeEnabled;
+        to.OverloadRoundLevel = from.OverloadRoundLevel;
+        to.RicochetLevel = from.RicochetLevel;
         to.AftershockEnabled = from.AftershockEnabled;
         to.MagazineSizeBonus = from.MagazineSizeBonus;
         to.AttackSpeedMultiplier = from.AttackSpeedMultiplier;

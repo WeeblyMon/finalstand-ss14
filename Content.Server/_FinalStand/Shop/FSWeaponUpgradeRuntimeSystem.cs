@@ -15,6 +15,7 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
     [Dependency] private readonly PelletCountUpgradeSystem _pelletCount = default!;
     [Dependency] private readonly FlechetteRoundsUpgradeSystem _flechette = default!;
     [Dependency] private readonly MagEfficiencyUpgradeSystem _magEfficiency = default!;
+    [Dependency] private readonly OverloadRoundUpgradeSystem _overloadRound = default!;
 
     public override void Initialize()
     {
@@ -67,6 +68,7 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
         }
 
         _magEfficiency.HandleAmmoShot(uid, comp, args);
+        _overloadRound.HandleAmmoShot(uid, comp, args);
     }
 
     private void OnGetAmmoSpread(EntityUid uid, FSWeaponUpgradeStateComponent comp, ref GunGetAmmoSpreadEvent args)
