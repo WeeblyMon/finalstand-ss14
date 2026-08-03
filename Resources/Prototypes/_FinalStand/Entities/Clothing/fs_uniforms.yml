@@ -1,0 +1,21 @@
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitMatikane
+  name: Matikanetannhauser dress
+  description: A dress modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/matikane.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/matikane.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitSuperCreek
+  name: Super Creek dress
+  description: A dress modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/supercreek.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/supercreek.rsi
