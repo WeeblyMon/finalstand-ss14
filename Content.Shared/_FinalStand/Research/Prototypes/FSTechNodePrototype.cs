@@ -5,7 +5,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Research.Prototypes;
 
-// FS-authored equivalent of TechnologyPrototype: wave-gating, server-wide RP-progress-bar research, and cross-branch prerequisite joins with vanilla nodes.
+// FS-authored equivalent of TechnologyPrototype: server-wide RP-progress-bar research and cross-branch prerequisite joins with vanilla nodes.
 [Prototype("fsTechNode")]
 public sealed partial class FSTechNodePrototype : IPrototype
 {
@@ -23,9 +23,6 @@ public sealed partial class FSTechNodePrototype : IPrototype
 
     [DataField(required: true)]
     public int Tier;
-
-    [DataField]
-    public int WaveGate;
 
     [DataField]
     public int Cost = 5000;

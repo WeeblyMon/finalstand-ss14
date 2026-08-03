@@ -14,6 +14,14 @@
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 0
+    upgrades:
+    - id: null-field-capacity
+      name: Extra Charge
+      description: Carry one additional Null Field charge.
+      maxLevel: 1
+      baseCost: 5000
+      type: DeployableCapacity
+      valuePerLevel: 1
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/NullField.rsi
     state: icon
@@ -34,6 +42,14 @@
     statFireRate: 0
     statAccuracy: 0
     statCapacity: 0
+    upgrades:
+    - id: damage-beacon-capacity
+      name: Extra Charge
+      description: Carry one additional Damage Beacon charge.
+      maxLevel: 1
+      baseCost: 5000
+      type: DeployableCapacity
+      valuePerLevel: 1
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
     state: icon

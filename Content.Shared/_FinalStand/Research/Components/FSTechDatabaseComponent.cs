@@ -23,4 +23,9 @@ public sealed partial class FSTechDatabaseComponent : Component
     [AutoNetworkedField]
     [DataField]
     public int Points;
+
+    // Counts only, never identities - safe to broadcast to everyone.
+    [AutoNetworkedField]
+    [DataField]
+    public Dictionary<string, int> PersonalContributorCounts = new();
 }

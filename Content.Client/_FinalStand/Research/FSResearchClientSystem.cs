@@ -1,20 +1,27 @@
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Components;
+using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Research.Systems;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Research;
 
-// Notifies the open research window when FSTechDatabaseComponent changes server-side.
+// Notifies the open research window when FSTechDatabaseComponent changes server-side, or the viewer's own personal pick changes.
 public sealed class FSResearchClientSystem : SharedFSResearchSystem
 {
     public event Action<EntityUid>? DatabaseUpdated;
     public event Action<string>? AuthorityDenied;
+    public event Action? PersonalPickChanged;
+
+    public ProtoId<FSTechNodePrototype>? MyPersonalPickId { get; private set; }
+    public int MyPersonalProgress { get; private set; }
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSTechDatabaseComponent, AfterAutoHandleStateEvent>(OnAfterHandleState);
         SubscribeNetworkEvent<FSResearchAuthorityDeniedEvent>(OnAuthorityDenied);
+        SubscribeNetworkEvent<FSPersonalResearchStateEvent>(OnPersonalResearchState);
     }
 
     private void OnAfterHandleState(EntityUid uid, FSTechDatabaseComponent component, ref AfterAutoHandleStateEvent args)
@@ -25,5 +32,12 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
     private void OnAuthorityDenied(FSResearchAuthorityDeniedEvent ev)
     {
         AuthorityDenied?.Invoke(ev.Reason);
+    }
+
+    private void OnPersonalResearchState(FSPersonalResearchStateEvent ev)
+    {
+        MyPersonalPickId = ev.NodeId;
+        MyPersonalProgress = ev.Progress;
+        PersonalPickChanged?.Invoke();
     }
 }

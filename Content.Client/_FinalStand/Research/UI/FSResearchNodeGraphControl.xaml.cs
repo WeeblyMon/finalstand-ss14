@@ -242,13 +242,15 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             if (fsTech.Hidden)
                 continue;
 
+            var prereqsMet = fsTech.Prerequisites.All(IsUnlocked) && fsTech.PrerequisiteGroups.All(g => g.Any(IsUnlocked));
+
             var state = IsUnlocked(fsTech.ID) ? FSResearchNodeState.Unlocked
                 : _fsResearch.IsExclusivelyBlocked(fsTech, unlockedFsList) ? FSResearchNodeState.ExclusivelyBlocked
-                : fsTech.Prerequisites.All(IsUnlocked) && fsTech.PrerequisiteGroups.All(g => g.Any(IsUnlocked))
-                    ? FSResearchNodeState.Available
-                    : FSResearchNodeState.Locked;
+                : !prereqsMet ? FSResearchNodeState.Locked
+                : FSResearchNodeState.Available;
 
             var isActive = fsDatabase?.ActiveResearch is { } active && active.Id == fsTech.ID;
+            var isMyPersonalPick = _fsResearch.MyPersonalPickId is { } mine && mine.Id == fsTech.ID;
 
             nodes.Add(new FSResearchNodeView
             {
@@ -263,7 +265,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                 State = state,
                 FsNode = fsTech,
                 IsActiveResearch = isActive,
-                Progress = isActive ? fsDatabase!.NodeProgress.GetValueOrDefault(fsTech.ID) : 0,
+                IsMyPersonalPick = isMyPersonalPick,
+                Progress = fsDatabase?.NodeProgress.GetValueOrDefault(fsTech.ID) ?? 0,
+                PersonalContributorCount = fsDatabase?.PersonalContributorCounts.GetValueOrDefault(fsTech.ID) ?? 0,
             });
         }
 
@@ -745,7 +749,8 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                     continue;
                 }
 
-                var soloMidY = (parentBottom.Y + childTop.Y) / 2f;
+                // Anchored to the child's row so multiple long edges converging on one node bend at a consistent height.
+                var soloMidY = childTop.Y - RowSpacing * 0.4f;
                 handle.DrawLine(parentBottom, new Vector2(parentBottom.X, soloMidY), trunkColor);
                 handle.DrawLine(new Vector2(parentBottom.X, soloMidY), new Vector2(childTop.X, soloMidY), trunkColor);
                 DrawEdgeLine(new Vector2(childTop.X, soloMidY), childTop, childColor, children[0], parentId);
@@ -837,17 +842,26 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             DrawHSlicedRect(handle, _plateBgTexture, plateBox, Fade(PlateBackgroundColor, opacity));
 
-            if (node.IsActiveResearch && node.Cost > 0)
+            if (node.Progress > 0 && node.Cost > 0)
             {
-                var barFrac = Math.Clamp((float)node.Progress / node.Cost, 0f, 1f);
+                // Shared-pick cost is halved server-side too (see FSResearchSystem.GrantResearchPoints).
+                var effectiveCost = node.IsActiveResearch ? Math.Max(1, node.Cost / 2) : node.Cost;
+                var barFrac = Math.Clamp((float)node.Progress / effectiveCost, 0f, 1f);
                 if (barFrac > 0f)
                 {
+                    var fillColor = node.IsMyPersonalPick ? FSUiPalette.AccentBrand
+                        : node.IsActiveResearch ? FSUiPalette.StatePositive
+                        : FSUiPalette.StateResearch;
                     var fillBox = new UIBox2(
                         plateBox.Left, plateBox.Top,
                         plateBox.Left + plateBox.Width * barFrac, plateBox.Bottom);
-                    DrawHSlicedRect(handle, _plateBgTexture, fillBox, Fade(FSUiPalette.StatePositive, opacity));
+                    DrawHSlicedRect(handle, _plateBgTexture, fillBox, Fade(fillColor, opacity));
                 }
             }
+
+            var otherContributors = node.PersonalContributorCount - (node.IsMyPersonalPick ? 1 : 0);
+            if (otherContributors > 0)
+                DrawContributorBadge(handle, center, iconRadius, otherContributors, opacity);
 
             DrawHSlicedRect(handle, _plateRingTexture, plateBox, color);
 
@@ -899,6 +913,20 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     }
 
     private static Color Fade(Color color, float opacity) => new(color.R, color.G, color.B, color.A * opacity);
+
+    private void DrawContributorBadge(DrawingHandleScreen handle, Vector2 center, float iconRadius, int count, float opacity)
+    {
+        var badgeRadius = Math.Max(6f, iconRadius * 0.24f);
+        var badgeCenter = center + new Vector2(iconRadius * 0.72f, -iconRadius * 0.72f);
+
+        handle.DrawCircle(badgeCenter, badgeRadius + 1.5f, Fade(FSUiPalette.BgDeep, opacity));
+        handle.DrawCircle(badgeCenter, badgeRadius, Fade(FSUiPalette.StateResearch, opacity));
+
+        var text = count > 9 ? "9+" : count.ToString();
+        var dims = handle.GetDimensions(_font, text, 1);
+        var textPos = badgeCenter - new Vector2(dims.X / 2, dims.Y / 2);
+        handle.DrawString(_font, textPos, text, Fade(FSUiPalette.TextPrimary, opacity));
+    }
 
     private void DrawBlockedX(DrawingHandleScreen handle, Vector2 center, float iconRadius)
     {

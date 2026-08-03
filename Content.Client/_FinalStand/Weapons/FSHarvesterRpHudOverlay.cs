@@ -13,6 +13,7 @@ public sealed class FSHarvesterRpHudOverlay : Overlay
     [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     public int Points;
+    public string? PersonalLine;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -72,5 +73,19 @@ public sealed class FSHarvesterRpHudOverlay : Overlay
         screen.DrawString(_font, new Vector2(textX + o, y + o), rpStr, black);
 
         screen.DrawString(_font, new Vector2(textX, y), rpStr, Color.FromHex("#AA44FF"));
+
+        if (PersonalLine != null)
+        {
+            var personalDims = screen.GetDimensions(_font, PersonalLine, 1f);
+            var px = MathF.Floor(screenSize.X / 2f - personalDims.X / 2f);
+            var py = y + dims.Y + 2f;
+
+            screen.DrawString(_font, new Vector2(px - o, py - o), PersonalLine, black);
+            screen.DrawString(_font, new Vector2(px + o, py - o), PersonalLine, black);
+            screen.DrawString(_font, new Vector2(px - o, py + o), PersonalLine, black);
+            screen.DrawString(_font, new Vector2(px + o, py + o), PersonalLine, black);
+
+            screen.DrawString(_font, new Vector2(px, py), PersonalLine, Color.FromHex("#818CF8"));
+        }
     }
 }

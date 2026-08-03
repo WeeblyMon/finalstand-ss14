@@ -1,11 +1,14 @@
 using System.Numerics;
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Research;
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
+using Content.Shared.Mind;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Events;
@@ -23,6 +26,8 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly FSResearchSystem _research = default!;
+    [Dependency] private readonly FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
@@ -105,12 +110,16 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
         if (args.Data.HitEntity is not { } hit)
             return;
 
-        var multiplier = _upgradeQuery.TryGetComponent(args.Data.Gun, out var upgrade)
+        var shopMultiplier = _upgradeQuery.TryGetComponent(args.Data.Gun, out var upgrade)
             ? upgrade.DamageMultiplier
             : 1f;
+        var researchMultiplier = _researchBuff.GetDamageMultiplier(
+            isBallistic: false, isEnergy: false, isLauncher: false,
+            isL6: false, isMinigun: false, isHydra: false, isRpg: false, isXray: false, isTesla: false,
+            isHarvester: true);
 
         var dmg = new DamageSpecifier();
-        dmg.DamageDict["Radiation"] = FixedPoint2.New(BaseDamage * multiplier);
+        dmg.DamageDict["Radiation"] = FixedPoint2.New(BaseDamage * shopMultiplier * researchMultiplier);
 
         if (!_damageable.TryChangeDamage(hit, dmg, out var dealt, origin: args.Data.Shooter ?? args.Data.Gun))
             return;
@@ -119,7 +128,17 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
         RaiseLocalEvent(uid, ref damageEvent);
 
         if (_enemyQuery.HasComponent(hit))
-            _research.GrantResearchPoints(RpPerHit, "harvester-hit");
+        {
+            EntityUid? contributorMindId = args.Data.Shooter is { } shooter && _mind.TryGetMind(shooter, out var mindId, out _)
+                ? mindId
+                : null;
+
+            var perkBonus = contributorMindId is { } cmid && TryComp<FSPerkLevelsComponent>(cmid, out var perks)
+                ? perks.GetSlottedLevel("HarvesterTuning")
+                : 0;
+
+            _research.GrantResearchPoints(RpPerHit + perkBonus, "harvester-hit", contributorMindId);
+        }
     }
 
     public override void Update(float frameTime)

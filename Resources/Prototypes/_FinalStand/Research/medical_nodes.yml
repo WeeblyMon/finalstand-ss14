@@ -8,7 +8,6 @@
     state: icon
   branch: Medical
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: BiochemicalStasis
 
@@ -20,7 +19,6 @@
     state: e-scalpel-on
   branch: Medical
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AdvancedTreatment
 
@@ -32,7 +30,6 @@
     state: medical
   branch: Medical
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSMedicalBiochemicalStasis
@@ -46,7 +43,6 @@
     state: eyes
   branch: Medical
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSMedicalAdvancedTreatment
@@ -60,7 +56,6 @@
     state: beakerbluespace
   branch: Medical
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSMedicalMechanizedTreatment
@@ -74,7 +69,6 @@
     state: idle
   branch: Medical
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSMedicalBasicCybernetics
@@ -88,7 +82,6 @@
     state: cell
   branch: Medical
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSMedicalBasicCybernetics
@@ -102,7 +95,6 @@
     state: heart-u-on
   branch: Medical
   tier: 4
-  waveGate: 6
   cost: 6000
   prerequisites:
   - FSMedicalAutodoc
@@ -116,7 +108,6 @@
     state: base
   branch: Medical
   tier: 4
-  waveGate: 6
   cost: 6000
   prerequisites:
   - FSMedicalBasicAugmentation
@@ -130,7 +121,6 @@
     state: strength
   branch: Medical
   tier: 4
-  waveGate: 6
   cost: 6000
   prerequisites:
   - FSMedicalBasicAugmentation
@@ -144,7 +134,6 @@
     state: icon
   branch: Medical
   tier: 5
-  waveGate: 8
   cost: 7500
   prerequisites:
   - FSMedicalAdvancedCybernetics

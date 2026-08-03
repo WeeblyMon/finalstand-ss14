@@ -8,7 +8,6 @@
     state: fab-idle
   branch: Research
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: BasicRobotics
 
@@ -20,7 +19,6 @@
     state: icon
   branch: Research
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: BasicAnomalousResearch
 
@@ -32,7 +30,6 @@
     state: display
   branch: Research
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: BasicXenoArcheology
 
@@ -44,7 +41,6 @@
     state: display
   branch: Research
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AlternativeResearch
 
@@ -56,7 +52,6 @@
     state: icon
   branch: Research
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: MagnetsTech
 
@@ -67,8 +62,7 @@
     sprite: Objects/Weapons/Melee/gorilla.rsi
     state: icon
   branch: Research
-  tier: 2
-  waveGate: 2
+  tier: 3
   cost: 3500
   prerequisites:
   - FSResearchBasicAnomalousResearch
@@ -82,7 +76,6 @@
     state: icon
   branch: Research
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSResearchBasicXenoArcheology
@@ -96,7 +89,6 @@
     state: base
   branch: Research
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSResearchBasicAnomalousResearch
@@ -110,7 +102,6 @@
     state: base
   branch: Research
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSResearchBasicRobotics
@@ -124,7 +115,6 @@
     state: base
   branch: Research
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSResearchMagnetsTech
@@ -138,7 +128,6 @@
     state: icon
   branch: Research
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisiteGroups:
   - - FSResearchAdvancedAnomalyResearch
@@ -153,7 +142,6 @@
     state: icon
   branch: Research
   tier: 4
-  waveGate: 6
   cost: 6000
   prerequisites:
   - FSResearchQuantumLeaping

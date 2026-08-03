@@ -613,6 +613,17 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
+            case WeaponUpgradeType.DeployableCapacity:
+            {
+                if (TryComp<Content.Shared._FinalStand.Deployables.FSDeployableItemComponent>(weapon, out var deployable))
+                {
+                    deployable.MaxStock += (int) def.ValuePerLevel;
+                    deployable.Stock = Math.Min(deployable.Stock + (int) def.ValuePerLevel, deployable.MaxStock);
+                    Dirty(weapon, deployable);
+                }
+                break;
+            }
+
             case WeaponUpgradeType.GrenadeBurnDuration:
             {
                 if (TryComp<Content.Shared._FinalStand.Grenades.FSGrenadePackComponent>(weapon, out var pack))

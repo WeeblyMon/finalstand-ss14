@@ -1,9 +1,11 @@
 using Content.Shared._FinalStand.Research;
+using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Weapons;
 
@@ -12,15 +14,18 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
 {
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
     [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
 
     private FSHarvesterRpHudOverlay? _overlay;
     private int _points;
+    private string? _personalLine;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeNetworkEvent<FSStationRpChangedEvent>(OnRpChanged);
+        SubscribeNetworkEvent<FSPersonalResearchStateEvent>(OnPersonalResearchState);
     }
 
     public override void Shutdown()
@@ -40,6 +45,16 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
             _overlay.Points = _points;
     }
 
+    private void OnPersonalResearchState(FSPersonalResearchStateEvent ev)
+    {
+        _personalLine = ev.NodeId is { } nodeId && _prototype.TryIndex(nodeId, out var node)
+            ? $"{node.Name}: {ev.Progress}/{node.Cost}"
+            : null;
+
+        if (_overlay != null)
+            _overlay.PersonalLine = _personalLine;
+    }
+
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
@@ -51,6 +66,7 @@ public sealed class FSHarvesterRpHudSystem : EntitySystem
         {
             _overlay ??= new FSHarvesterRpHudOverlay();
             _overlay.Points = _points;
+            _overlay.PersonalLine = _personalLine;
             if (!_overlayManager.HasOverlay<FSHarvesterRpHudOverlay>())
                 _overlayManager.AddOverlay(_overlay);
         }

@@ -8,7 +8,6 @@
     state: seedextractor
   branch: Logistics
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: Hydroponics
 
@@ -20,7 +19,6 @@
     state: hamtr
   branch: Logistics
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: CritterMechs
 
@@ -32,7 +30,6 @@
     state: cameracase
   branch: Logistics
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AudioVisualCommunication
 
@@ -44,7 +41,6 @@
     state: television
   branch: Logistics
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AdvancedEntertainment
 
@@ -56,7 +52,6 @@
     state: display
   branch: Logistics
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: MeatManipulation
 
@@ -68,7 +63,6 @@
     state: astroice
   branch: Logistics
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSLogisticsAdvancedEntertainment
@@ -82,7 +76,6 @@
     state: advmop
   branch: Logistics
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSLogisticsMeatManipulation
@@ -96,7 +89,6 @@
     state: honker
   branch: Logistics
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSLogisticsCritterMechs
@@ -110,7 +102,6 @@
     state: display
   branch: Logistics
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSLogisticsMeatManipulation
@@ -124,7 +115,6 @@
     state: icon
   branch: Logistics
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSLogisticsAdvancedCleaning
@@ -138,7 +128,6 @@
     state: icon
   branch: Logistics
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSLogisticsHONKMech
@@ -152,7 +141,6 @@
     state: icon
   branch: Logistics
   tier: 4
-  waveGate: 6
   cost: 6000
   prerequisites:
   - FSLogisticsBluespaceCargoTransport

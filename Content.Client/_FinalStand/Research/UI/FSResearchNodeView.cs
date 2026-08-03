@@ -33,7 +33,11 @@ public sealed class FSResearchNodeView
     public required FSResearchNodeState State;
 
     public bool IsActiveResearch;
+    public bool IsMyPersonalPick;
     public int Progress;
+
+    // Includes yourself if IsMyPersonalPick.
+    public int PersonalContributorCount;
 
     public TechnologyPrototype? Vanilla;
     public FSTechNodePrototype? FsNode;

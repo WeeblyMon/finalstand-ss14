@@ -15,7 +15,7 @@ using Robust.Server.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
-using Robust.Shared.Timing;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
@@ -27,7 +27,6 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly SharedMaterialStorageSystem _materials = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
 
     private const string ResearchDirectorJob = "ResearchDirector";
     private const string CaptainJob = "Captain";
@@ -44,42 +43,24 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<FSStationResearchComponent, EntityTerminatingEvent>(OnStationTerminating);
         SubscribeLocalEvent<FSTechDatabaseComponent, ResearchRegistrationChangedEvent>(OnConsoleServerLinkChanged);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
-        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
 
         Subs.BuiEvents<FSTechDatabaseComponent>(ResearchConsoleUiKey.Key, subs =>
         {
             subs.Event<FSSelectResearchNodeMessage>(OnSelectResearchNode);
+            subs.Event<FSClearPersonalResearchMessage>(OnClearPersonalResearch);
         });
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent args)
     {
-        RefreshRdActivity();
-
         var station = GetOrCreateStation();
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.SinglePlayer(args.Player));
-    }
 
-    private void OnPlayerDetached(PlayerDetachedEvent args) => RefreshRdActivity();
-
-    private void RefreshRdActivity()
-    {
-        foreach (var session in _playerManager.Sessions)
-        {
-            if (!_mind.TryGetMind(session, out var mindId, out _))
-                continue;
-
-            if (!_jobs.MindHasJobWithId(mindId, ResearchDirectorJob))
-                continue;
-
-            var station = GetOrCreateStation();
-            station.Comp.RdLastSeenActive = _timing.CurTime;
-            Dirty(station);
-            return;
-        }
+        if (_mind.TryGetMind(args.Player, out var mindId, out _))
+            SendPersonalResearchState(mindId);
     }
 
     private void OnWaveEnded(ref WaveEndedEvent args)
@@ -104,7 +85,7 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             comp.ActiveResearch = null;
             comp.NodeProgress.Clear();
             comp.Points = 0;
-            comp.RdLastSeenActive = null;
+            comp.PersonalPicks.Clear();
             Dirty(uid, comp);
         }
 
@@ -186,6 +167,11 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
     public void SyncConsoles()
     {
         var station = GetOrCreateStation();
+
+        var contributorCounts = new Dictionary<string, int>();
+        foreach (var nodeId in station.Comp.PersonalPicks.Values)
+            contributorCounts[nodeId.Id] = contributorCounts.GetValueOrDefault(nodeId.Id) + 1;
+
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
@@ -196,33 +182,28 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             foreach (var (id, amount) in station.Comp.NodeProgress)
                 console.NodeProgress[id] = amount;
             console.Points = station.Comp.Points;
+            console.PersonalContributorCounts.Clear();
+            foreach (var (id, count) in contributorCounts)
+                console.PersonalContributorCounts[id] = count;
             Dirty(uid, console);
         }
 
         RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
     }
 
-    // RD and Captain always have authority; any other Science member only once the RD has been away past RdInactivityTimeout.
-    private bool HasResearchAuthority(EntityUid player, Entity<FSStationResearchComponent> station)
+    // RD/Captain picks become the shared, discounted default; any other Science member can still set their own personal pick.
+    private bool IsRdOrCaptain(EntityUid player)
     {
-        if (!_mind.TryGetMind(player, out var mindId, out _))
-            return false;
+        return _mind.TryGetMind(player, out var mindId, out _) &&
+               (_jobs.MindHasJobWithId(mindId, ResearchDirectorJob) || _jobs.MindHasJobWithId(mindId, CaptainJob));
+    }
 
-        if (_jobs.MindHasJobWithId(mindId, ResearchDirectorJob))
-            return true;
-
-        if (_jobs.MindHasJobWithId(mindId, CaptainJob))
-            return true;
-
-        if (!_jobs.MindTryGetJob(mindId, out var job) ||
-            !_jobs.TryGetPrimaryDepartment(job.ID, out var dept) ||
-            dept.ID != ScienceDepartment)
-            return false;
-
-        if (station.Comp.RdLastSeenActive is not { } lastSeen)
-            return true;
-
-        return _timing.CurTime - lastSeen >= station.Comp.RdInactivityTimeout;
+    private bool IsScienceDepartment(EntityUid player)
+    {
+        return _mind.TryGetMind(player, out var mindId, out _) &&
+               _jobs.MindTryGetJob(mindId, out var job) &&
+               _jobs.TryGetPrimaryDepartment(job.ID, out var dept) &&
+               dept.ID == ScienceDepartment;
     }
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
@@ -236,7 +217,8 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
 
         var station = GetOrCreateStation();
 
-        if (!HasResearchAuthority(player, station))
+        var isRdOrCaptain = IsRdOrCaptain(player);
+        if (!isRdOrCaptain && !IsScienceDepartment(player))
         {
             // Two locale keys joined with a real newline - Fluent multiline placeables don't parse here.
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
@@ -266,7 +248,8 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
         }
 
         // TryChangeMaterialAmount pre-checks every entry before applying any, so a shortfall never partially spends.
-        if (node.MaterialCost.Count > 0)
+        var alreadyStarted = station.Comp.NodeProgress.ContainsKey(node.ID);
+        if (node.MaterialCost.Count > 0 && !alreadyStarted)
         {
             var toConsume = node.MaterialCost.ToDictionary(kv => kv.Key, kv => -kv.Value);
             if (!_materials.TryChangeMaterialAmount(uid, toConsume))
@@ -275,30 +258,71 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
                 return;
             }
         }
+        if (!alreadyStarted)
+            station.Comp.NodeProgress[node.ID] = 0;
 
-        station.Comp.ActiveResearch = node.ID;
+        if (isRdOrCaptain)
+        {
+            station.Comp.ActiveResearch = node.ID;
 
-        // Banked RP (accrued with nothing selected) immediately reinvests into the newly-selected node.
-        var banked = station.Comp.Points;
-        station.Comp.Points = 0;
-        Dirty(station);
-        SyncConsoles();
+            // Banked RP (accrued with nothing selected) immediately reinvests into the newly-selected shared pick.
+            var banked = station.Comp.Points;
+            station.Comp.Points = 0;
+            Dirty(station);
+            SyncConsoles();
 
-        if (banked > 0)
-            GrantResearchPoints(banked, "banked-rp-reinvest");
+            if (banked > 0)
+                GrantResearchPoints(banked, "banked-rp-reinvest");
+        }
+        else
+        {
+            if (!_mind.TryGetMind(player, out var mindId, out _))
+                return;
+
+            station.Comp.PersonalPicks[mindId] = node.ID;
+            Dirty(station);
+            SyncConsoles();
+            SendPersonalResearchState(mindId);
+        }
 
         _popup.PopupEntity(Loc.GetString("fs-research-selected", ("name", node.Name)), uid, player);
     }
 
-    public void GrantResearchPoints(int amount, string source)
+    private void OnClearPersonalResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearPersonalResearchMessage args)
+    {
+        var player = args.Actor;
+        if (!player.IsValid() || !_mind.TryGetMind(player, out var mindId, out _))
+            return;
+
+        var station = GetOrCreateStation();
+        if (!station.Comp.PersonalPicks.Remove(mindId))
+            return;
+
+        Dirty(station);
+        SendPersonalResearchState(mindId);
+    }
+
+    public void GrantResearchPoints(int amount, string source, EntityUid? contributorMindId = null)
     {
         if (amount <= 0)
             return;
 
         var station = GetOrCreateStation();
 
-        if (station.Comp.ActiveResearch is not { } activeId ||
-            !PrototypeManager.TryIndex<FSTechNodePrototype>(activeId, out var node))
+        ProtoId<FSTechNodePrototype>? targetId = null;
+        if (contributorMindId is { } contributor &&
+            station.Comp.PersonalPicks.TryGetValue(contributor, out var personalId) &&
+            !station.Comp.UnlockedNodes.Any(u => u.Id == personalId.Id))
+        {
+            targetId = personalId;
+        }
+        else if (station.Comp.ActiveResearch is { } activeId &&
+            !station.Comp.UnlockedNodes.Any(u => u.Id == activeId.Id))
+        {
+            targetId = activeId;
+        }
+
+        if (targetId is not { } id || !PrototypeManager.TryIndex<FSTechNodePrototype>(id, out var node))
         {
             station.Comp.Points += amount;
             Dirty(station);
@@ -306,32 +330,62 @@ public sealed class FSResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        var current = station.Comp.NodeProgress.GetValueOrDefault(activeId.Id);
-        var room = Math.Max(0, node.Cost - current);
+        var discounted = id.Id == station.Comp.ActiveResearch?.Id;
+        var effectiveCost = discounted ? Math.Max(1, node.Cost / 2) : node.Cost;
+
+        var current = station.Comp.NodeProgress.GetValueOrDefault(id.Id);
+        var room = Math.Max(0, effectiveCost - current);
         var applied = Math.Min(amount, room);
         var overflow = amount - applied;
 
-        station.Comp.NodeProgress[activeId.Id] = current + applied;
+        station.Comp.NodeProgress[id.Id] = current + applied;
         if (overflow > 0)
             station.Comp.Points += overflow;
 
         Dirty(station);
 
-        if (station.Comp.NodeProgress[activeId.Id] >= node.Cost)
-            CompleteActiveResearch(station, node);
+        if (station.Comp.NodeProgress[id.Id] >= effectiveCost)
+            CompleteResearch(station, node, discounted, contributorMindId);
 
         SyncConsoles();
+
+        if (!discounted && contributorMindId is { } cid)
+            SendPersonalResearchState(cid);
     }
 
-    private void CompleteActiveResearch(Entity<FSStationResearchComponent> station, FSTechNodePrototype node)
+    private void CompleteResearch(Entity<FSStationResearchComponent> station, FSTechNodePrototype node, bool wasShared, EntityUid? contributorMindId)
     {
         station.Comp.UnlockedNodes.Add(node.ID);
-        station.Comp.ActiveResearch = null;
+
+        if (wasShared)
+        {
+            station.Comp.ActiveResearch = null;
+
+            var stale = station.Comp.PersonalPicks.Where(kv => kv.Value.Id == node.ID).Select(kv => kv.Key).ToList();
+            foreach (var mind in stale)
+                station.Comp.PersonalPicks.Remove(mind);
+        }
+        else if (contributorMindId is { } mind)
+        {
+            station.Comp.PersonalPicks.Remove(mind);
+        }
+
         Dirty(station);
         BroadcastUnlockedNodes();
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
 
         Log.Info($"[FSResearch] Completed node {node.ID}");
+    }
+
+    private void SendPersonalResearchState(EntityUid mindId)
+    {
+        if (!TryComp<MindComponent>(mindId, out var mindComp) || !_playerManager.TryGetSessionById(mindComp.UserId, out var session))
+            return;
+
+        var station = GetOrCreateStation();
+        ProtoId<FSTechNodePrototype>? nodeId = station.Comp.PersonalPicks.TryGetValue(mindId, out var picked) ? (ProtoId<FSTechNodePrototype>?)picked : null;
+        var progress = nodeId is { } id ? station.Comp.NodeProgress.GetValueOrDefault(id.Id) : 0;
+        RaiseNetworkEvent(new FSPersonalResearchStateEvent(nodeId, progress), Filter.SinglePlayer(session));
     }
 
     private void BroadcastUnlockedNodes()

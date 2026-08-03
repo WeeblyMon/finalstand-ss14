@@ -95,6 +95,7 @@
                            Visible="False"
                            Margin="0 6 0 0"/>
                     <Button Name="StartResearchButton" Text="Start Research" Margin="0 6 0 0"/>
+                    <Button Name="ClearPersonalPickButton" Text="Clear My Pick" Visible="False" Margin="0 6 0 0"/>
                     <Button Name="CancelButton" Text="Cancel" Margin="0 6 0 0"/>
                 </BoxContainer>
             </PanelContainer>

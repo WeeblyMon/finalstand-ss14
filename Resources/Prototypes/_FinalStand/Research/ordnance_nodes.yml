@@ -14,7 +14,6 @@
     state: base
   branch: Ordnance
   tier: 1
-  waveGate: 0
   cost: 2000
   bonusDescription: +5 Magazine Capacity (Team)
 
@@ -26,7 +25,6 @@
     state: icon
   branch: Ordnance
   tier: 2
-  waveGate: 2
   cost: 2500
   prerequisites:
   - FSOrdnanceL6BasicMunitions
@@ -40,7 +38,6 @@
     state: icon
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 3000
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
@@ -56,7 +53,6 @@
     state: base
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
@@ -72,7 +68,6 @@
     state: drill_bolt
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
@@ -88,7 +83,6 @@
     state: screwdriver
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 2500
   prerequisites:
   - FSOrdnanceL6GasPistonHarnessing
@@ -104,7 +98,6 @@
     state: base
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6FeedSystem
@@ -121,7 +114,6 @@
     state: mag-3
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6FeedSystem
@@ -138,7 +130,6 @@
     state: drill_screw
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
@@ -155,7 +146,6 @@
     state: icon
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6BarrelInterchange
@@ -173,7 +163,6 @@
     state: base
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
@@ -190,7 +179,6 @@
     state: icon
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 2000
   prerequisites:
   - FSOrdnanceL6ReceiverDesign
@@ -202,21 +190,18 @@
 
 - type: fsTechNode
   id: FSOrdnanceL6ModernAutomaticSaw
-  name: Modern Automatic SAW
+  name: L6 Saw
   icon:
     sprite: Objects/Weapons/Guns/LMGs/l6.rsi
     state: base
   branch: Ordnance
   tier: 6
-  waveGate: 10
   cost: 6000
   prerequisiteGroups:
   - - FSOrdnanceL6SoftPackAmmoBags
     - FSOrdnanceL6DisintegratingBeltLinks
   - - FSOrdnanceL6QuickChangeBarrels
     - FSOrdnanceL6FlutedBarrels
-  - - FSOrdnanceL6OpenBoltFiring
-    - FSOrdnanceL6ConstantRecoilSystem
   weaponShopUnlock: FSWeaponShopL6Saw
   bonusDescription: |-
     Unlocks the L6-SAW shop.
@@ -239,7 +224,6 @@
     state: omnitool-wrenching
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 3500
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
@@ -254,8 +238,7 @@
     sprite: Objects/Weapons/Guns/Ammunition/Casings/rocket_shell.rsi
     state: base
   branch: Ordnance
-  tier: 4
-  waveGate: 5
+  tier: 5
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
@@ -269,7 +252,6 @@
     state: base
   branch: Ordnance
   tier: 4
-  waveGate: 5
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunHighTorqueGearboxes
@@ -285,7 +267,6 @@
     state: base
   branch: Ordnance
   tier: 5
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunDisintegratingLinks
@@ -301,10 +282,8 @@
     state: mag-unshaded-1
   branch: Ordnance
   tier: 6
-  waveGate: 7
   cost: 4000
   prerequisites:
-  - FSOrdnanceMinigunAxialFeedChutes
   - FSOrdnanceMinigunExtendedDrumTuning
   bonusDescription: |-
     +15 Magazine Capacity (Team)
@@ -318,7 +297,6 @@
     state: icon
   branch: Ordnance
   tier: 7
-  waveGate: 8
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunSynchronizedFeedGates
@@ -334,7 +312,6 @@
     state: omnitool-pulsing
   branch: Ordnance
   tier: 8
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
@@ -348,7 +325,6 @@
     state: icon
   branch: Ordnance
   tier: 8
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigun12vElectricActuators
@@ -366,7 +342,6 @@
     state: omnitool-snipping
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 3500
   prerequisites:
   - FSOrdnanceL6HeavyDutyReceivers
@@ -381,8 +356,7 @@
     sprite: Objects/Tools/rcl.rsi
     state: rcl-30
   branch: Ordnance
-  tier: 4
-  waveGate: 5
+  tier: 5
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
@@ -396,7 +370,6 @@
     state: omnitool-prying
   branch: Ordnance
   tier: 4
-  waveGate: 5
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunClusterBarrelCollars
@@ -412,7 +385,6 @@
     state: rcl-20
   branch: Ordnance
   tier: 5
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunChromedBoreLinings
@@ -428,10 +400,8 @@
     state: rcl-10
   branch: Ordnance
   tier: 6
-  waveGate: 7
   cost: 4000
   prerequisites:
-  - FSOrdnanceMinigunHeatSinkJackets
   - FSOrdnanceMinigunIronBeastBracing
   bonusDescription: |-
     +3% Fire Rate (Team)
@@ -447,7 +417,6 @@
     state: icon
   branch: Ordnance
   tier: 9
-  waveGate: 10
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigunRotaryDriveShafts
@@ -464,7 +433,6 @@
     state: rcl-0
   branch: Ordnance
   tier: 10
-  waveGate: 11
   cost: 3500
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
@@ -478,7 +446,6 @@
     state: scanner
   branch: Ordnance
   tier: 10
-  waveGate: 11
   cost: 4000
   prerequisites:
   - FSOrdnanceMinigunOpticalSightMounts
@@ -494,7 +461,6 @@
     state: coilmv-30
   branch: Ordnance
   tier: 11
-  waveGate: 12
   cost: 4500
   prerequisites:
   - FSOrdnanceMinigunBallisticCalculators
@@ -513,7 +479,6 @@
     state: coilhv-20
   branch: Ordnance
   tier: 9
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
@@ -530,7 +495,6 @@
     state: coillv-30
   branch: Ordnance
   tier: 9
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceMinigunArmouredSolenoids
@@ -547,7 +511,6 @@
     state: coilex-30
   branch: Ordnance
   tier: 10
-  waveGate: 11
   cost: 3000
   prerequisites:
   - FSOrdnanceMinigunInternalBatteryPacks
@@ -563,7 +526,6 @@
     state: coilex-20
   branch: Ordnance
   tier: 12
-  waveGate: 13
   cost: 5000
   prerequisites:
   - FSOrdnanceMinigunCounterWeightBuffers
@@ -580,7 +542,6 @@
     state: icon
   branch: Ordnance
   tier: 13
-  waveGate: 14
   cost: 10000
   prerequisites:
   - FSOrdnanceMinigunKnockbackRage
@@ -603,7 +564,6 @@
     state: payload-explosive-armed
   branch: Ordnance
   tier: 1
-  waveGate: 0
   cost: 3000
   materialCost:
     Steel: 1
@@ -617,7 +577,6 @@
     state: base
   branch: Ordnance
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSOrdnanceExplosiveTechnology
@@ -631,7 +590,6 @@
     state: payload-empty
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 4000
   prerequisites:
   - FSOrdnancePercussionCapFusing
@@ -647,7 +605,6 @@
     state: base
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceHighLowGasChambers
@@ -661,7 +618,6 @@
     state: base
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 4500
   prerequisites:
   - FSOrdnanceHeavyCylinderIndexing
@@ -675,7 +631,6 @@
     state: bolt-open
   branch: Ordnance
   tier: 6
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnance40mmRimmedCasings
@@ -689,7 +644,6 @@
     state: cutters
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceInternalGasPistons
@@ -706,7 +660,6 @@
     state: payload-chemical-left
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceInternalGasPistons
@@ -723,7 +676,6 @@
     state: icon
   branch: Ordnance
   tier: 8
-  waveGate: 12
   cost: 9000
   prerequisiteGroups:
   - - FSOrdnanceSpigotSleeves
@@ -745,7 +697,6 @@
     state: mag-0
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceHighLowGasChambers
@@ -759,7 +710,6 @@
     state: mag-1
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 4500
   prerequisites:
   - FSOrdnanceCounterMassVentingTubes
@@ -773,7 +723,6 @@
     state: pinpointer
   branch: Ordnance
   tier: 6
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnanceVenturiExhaustNozzles
@@ -787,7 +736,6 @@
     state: rpg
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
@@ -804,7 +752,6 @@
     state: blast
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceStabilizingFinAssemblies
@@ -821,7 +768,6 @@
     state: base
   branch: Ordnance
   tier: 8
-  waveGate: 12
   cost: 11000
   prerequisiteGroups:
   - - FSOrdnanceTandemWarheads
@@ -847,7 +793,6 @@
     state: icon
   branch: Ordnance
   tier: 1
-  waveGate: 0
   cost: 3000
   bonusDescription: +2% Damage (Team)
 
@@ -859,7 +804,6 @@
     state: high
   branch: Ordnance
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSOrdnanceWeaponizedLaserManipulation
@@ -875,7 +819,6 @@
     state: icon
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 4000
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
@@ -889,7 +832,6 @@
     state: geiger_base
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
@@ -903,7 +845,6 @@
     state: o1
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceWaveParticleHarnessing
@@ -917,7 +858,6 @@
     state: icon
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 4500
   prerequisites:
   - FSOrdnanceLeadLinedEmitters
@@ -933,7 +873,6 @@
     state: o2
   branch: Ordnance
   tier: 6
-  waveGate: 9
   cost: 4000
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
@@ -947,7 +886,6 @@
     state: antique
   branch: Ordnance
   tier: 6
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
@@ -963,7 +901,6 @@
     state: shard1
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
@@ -980,7 +917,6 @@
     state: shard2
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 3000
   prerequisites:
   - FSOrdnanceCryogenicCoolingPumps
@@ -997,7 +933,6 @@
     state: small
   branch: Ordnance
   tier: 8
-  waveGate: 11
   cost: 3500
   prerequisites:
   - FSOrdnanceCollimatorFlanges
@@ -1011,7 +946,6 @@
     state: medium
   branch: Ordnance
   tier: 9
-  waveGate: 12
   cost: 3500
   prerequisites:
   - FSOrdnanceDensityTuning
@@ -1025,7 +959,6 @@
     state: hyper
   branch: Ordnance
   tier: 10
-  waveGate: 13
   cost: 3500
   prerequisites:
   - FSOrdnanceFrequencySync
@@ -1039,7 +972,6 @@
     state: icon
   branch: Ordnance
   tier: 11
-  waveGate: 14
   cost: 9000
   prerequisiteGroups:
   - - FSOrdnanceFocusingCrystalPrisms
@@ -1061,7 +993,6 @@
     state: microreactor
   branch: Ordnance
   tier: 3
-  waveGate: 4
   cost: 4000
   prerequisites:
   - FSOrdnanceHighOutputCapacitors
@@ -1077,7 +1008,6 @@
     state: advanced
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
@@ -1091,7 +1021,6 @@
     state: potato
   branch: Ordnance
   tier: 4
-  waveGate: 6
   cost: 4000
   prerequisites:
   - FSOrdnanceSubAtomicParticleIonizers
@@ -1107,7 +1036,6 @@
     state: coilhv-30
   branch: Ordnance
   tier: 5
-  waveGate: 8
   cost: 4500
   prerequisites:
   - FSOrdnanceMagnetoHydrodynamicCores
@@ -1124,7 +1052,6 @@
     state: signaller
   branch: Ordnance
   tier: 6
-  waveGate: 9
   cost: 4500
   prerequisites:
   - FSOrdnanceToroidalInductionFields
@@ -1140,7 +1067,6 @@
     state: powersink
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 4000
   prerequisites:
   - FSOrdnancePulseWidthModulators
@@ -1154,7 +1080,6 @@
     state: high
   branch: Ordnance
   tier: 7
-  waveGate: 10
   cost: 4500
   prerequisites:
   - FSOrdnancePulseWidthModulators
@@ -1170,7 +1095,6 @@
     state: grounding_rod
   branch: Ordnance
   tier: 8
-  waveGate: 11
   cost: 4500
   prerequisites:
   - FSOrdnanceHeavyStepUpTransformers
@@ -1187,7 +1111,6 @@
     state: jar
   branch: Ordnance
   tier: 9
-  waveGate: 12
   cost: 4500
   prerequisites:
   - FSOrdnanceArcStabilizingGroundRods
@@ -1203,7 +1126,6 @@
     state: coil
   branch: Ordnance
   tier: 10
-  waveGate: 13
   cost: 5000
   prerequisites:
   - FSOrdnanceCascadeDischargeRelays
@@ -1219,7 +1141,6 @@
     state: normal
   branch: Ordnance
   tier: 11
-  waveGate: 14
   cost: 3500
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
@@ -1233,7 +1154,6 @@
     state: o1
   branch: Ordnance
   tier: 11
-  waveGate: 14
   cost: 3000
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
@@ -1250,7 +1170,6 @@
     state: o2
   branch: Ordnance
   tier: 11
-  waveGate: 14
   cost: 3000
   prerequisites:
   - FSOrdnanceHighFrequencyTeslaCoils
@@ -1267,7 +1186,6 @@
     state: medium
   branch: Ordnance
   tier: 12
-  waveGate: 15
   cost: 3500
   prerequisites:
   - FSOrdnanceOverchargeCapacitors
@@ -1281,7 +1199,6 @@
     state: icon
   branch: Ordnance
   tier: 13
-  waveGate: 16
   cost: 5000
   prerequisiteGroups:
   - - FSOrdnanceChainLightningBridging
@@ -1296,7 +1213,6 @@
     state: base
   branch: Ordnance
   tier: 14
-  waveGate: 18
   cost: 12000
   prerequisites:
   - FSOrdnanceSingularityHarnessing
@@ -1306,3 +1222,70 @@
     +5% Damage (Tesla)
     +5% Charge Rate (Tesla)
     +5% Arc Range (Tesla)
+
+# Harvester line - Science's own weapon, previously excluded from every other Ordnance bonus.
+# Small independent root cluster (own tier axis, not fed by or feeding into the other trunks).
+
+- type: fsTechNode
+  id: FSOrdnanceHarvesterFocusingLens
+  name: Focusing Lens
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    state: base
+  branch: Ordnance
+  tier: 1
+  cost: 2000
+  bonusDescription: +5% Damage (Harvester)
+
+- type: fsTechNode
+  id: FSOrdnanceHarvesterCoolantLoop
+  name: Coolant Loop
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    state: base
+  branch: Ordnance
+  tier: 1
+  cost: 2000
+  bonusDescription: +5% Fire Rate (Harvester)
+
+- type: fsTechNode
+  id: FSOrdnanceHarvesterCapacitorBank
+  name: Capacitor Bank
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    state: base
+  branch: Ordnance
+  tier: 2
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceHarvesterFocusingLens
+  bonusDescription: +5% Damage (Harvester, 2nd source)
+
+- type: fsTechNode
+  id: FSOrdnanceHarvesterOscillatorTuning
+  name: Oscillator Tuning
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    state: base
+  branch: Ordnance
+  tier: 2
+  cost: 2500
+  prerequisites:
+  - FSOrdnanceHarvesterCoolantLoop
+  bonusDescription: +5% Fire Rate (Harvester, 2nd source)
+
+- type: fsTechNode
+  id: FSOrdnanceHarvesterOverdrive
+  name: Harvester Overdrive
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
+    state: base
+  branch: Ordnance
+  tier: 3
+  cost: 3500
+  prerequisiteGroups:
+  - - FSOrdnanceHarvesterCapacitorBank
+    - FSOrdnanceHarvesterOscillatorTuning
+  bonusDescription: |-
+    +8% Damage (Harvester)
+    +8% Fire Rate (Harvester)

@@ -67,6 +67,7 @@ public enum WeaponUpgradeType : byte
 
     GrenadeCapacity,
     GrenadeRegen,
+    DeployableCapacity,
     GrenadeBurnDuration,
     GrenadeStunDuration,
     GrenadeBaitDuration,

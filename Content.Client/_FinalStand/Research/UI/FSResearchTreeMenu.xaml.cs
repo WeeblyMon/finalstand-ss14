@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client._FinalStand.Research;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.Research;
 using Content.Client.UserInterface.Controls;
@@ -26,12 +27,14 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     public Action<string>? OnTechnologyCardPressed;
     public Action<string>? OnFsNodeSelected;
     public Action? OnServerButtonPressed;
+    public Action? OnClearPersonalPick;
 
     [Dependency] private readonly IEntityManager _entity = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
 
     private readonly ResearchSystem _research;
+    private readonly FSResearchClientSystem _fsResearch;
     private readonly SharedMaterialStorageSystem _materialStorage;
 
     private const int ProgressSegments = 12;
@@ -58,6 +61,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         IoCManager.InjectDependencies(this);
 
         _research = _entity.System<ResearchSystem>();
+        _fsResearch = _entity.System<FSResearchClientSystem>();
         _materialStorage = _entity.System<SharedMaterialStorageSystem>();
 
         // FancyWindow shadows Control.Stylesheet with a `new string?` (registered-name lookup)
@@ -106,6 +110,8 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             _selectedNode = null;
             UpdateDetailPanel();
         };
+
+        ClearPersonalPickButton.OnPressed += _ => OnClearPersonalPick?.Invoke();
 
         GraphControl.OnNodeSelected += node =>
         {
@@ -273,6 +279,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
         AuthorityWarningLabel.Visible = false;
         AuthorityWarningLabel.Text = "";
+        ClearPersonalPickButton.Visible = false;
 
         EmptyStateContainer.Visible = _selectedNode == null;
 
@@ -308,28 +315,43 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         {
             MaterialsLabel.SetMessage(BuildMaterialsMessage(node.FsNode, out var hasEnoughMaterials));
 
-            var hasFsDb = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var fsDb);
-            var progress = hasFsDb ? fsDb!.NodeProgress.GetValueOrDefault(node.Id) : 0;
-            var isActive = hasFsDb && fsDb!.ActiveResearch is { } active && active.Id == node.Id;
-            var fsFill = node.Cost > 0 ? Math.Min(1f, (float)progress / node.Cost) : 1f;
+            // Shared-pick cost is halved server-side too (see FSResearchSystem.GrantResearchPoints).
+            var effectiveCost = node.IsActiveResearch ? Math.Max(1, node.Cost / 2) : node.Cost;
+            var fsFill = effectiveCost > 0 ? Math.Min(1f, (float)node.Progress / effectiveCost) : 1f;
             BuildProgressBar(fsFill);
+            RpNeededLabel.Text = node.IsActiveResearch ? $"RP Needed: {effectiveCost} (shared, half-cost)" : $"RP Needed: {effectiveCost}";
+
+            var otherContributors = node.PersonalContributorCount - (node.IsMyPersonalPick ? 1 : 0);
+            var contributorSuffix = otherContributors switch
+            {
+                <= 0 => "",
+                1 => " · 1 other scientist researching this",
+                _ => $" · {otherContributors} other scientists researching this",
+            };
             ProgressCounterLabel.Text = node.State == FSResearchNodeState.Unlocked
                 ? "Completed"
-                : $"{progress}/{node.Cost}";
+                : $"{node.Progress}/{effectiveCost}{contributorSuffix}";
+
+            ClearPersonalPickButton.Visible = node.IsMyPersonalPick && node.State != FSResearchNodeState.Unlocked;
 
             if (node.State == FSResearchNodeState.Unlocked)
             {
                 StartResearchButton.Text = "Researched";
                 StartResearchButton.Disabled = true;
             }
-            else if (isActive)
+            else if (node.IsActiveResearch)
             {
-                StartResearchButton.Text = "Researching...";
+                StartResearchButton.Text = "Researching (Shared, Half-Cost)...";
+                StartResearchButton.Disabled = true;
+            }
+            else if (node.IsMyPersonalPick)
+            {
+                StartResearchButton.Text = "Personally Researching...";
                 StartResearchButton.Disabled = true;
             }
             else
             {
-                StartResearchButton.Text = "Start Research";
+                StartResearchButton.Text = otherContributors > 0 ? $"Join Research ({otherContributors} others)" : "Start Research";
                 StartResearchButton.Disabled = node.State != FSResearchNodeState.Available;
 
                 if (node.State == FSResearchNodeState.Available && !hasEnoughMaterials)

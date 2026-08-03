@@ -162,6 +162,11 @@ public sealed class FSPerkDef
                 "Using a whistle near allies increases their damage for 8 seconds.",
                 AugmentCategory.Green,
                 ["+15% Ally Damage", "+30% Ally Damage", "+45% Ally Damage", "+45% Ally Damage"]),
+
+            new("HarvesterTuning", "Harvester Tuning",
+                "Increases research points gained per Harvester hit.",
+                AugmentCategory.Yellow,
+                ["+1 RP/Hit", "+2 RP/Hit", "+3 RP/Hit", "+4 RP/Hit"]),
         ];
 
         All = list.ToDictionary(a => a.Id);

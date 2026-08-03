@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Research.Components;
 
-// Server-wide singleton holding the real "one node researches at a time, station-wide" state - FSTechDatabaseComponent on each console is a synced mirror of this, see FSResearchSystem.
+// Server-wide singleton holding the shared research state - FSTechDatabaseComponent on each console is a synced mirror of this, see FSResearchSystem.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 [Access(typeof(SharedFSResearchSystem))]
 public sealed partial class FSStationResearchComponent : Component
@@ -29,9 +29,6 @@ public sealed partial class FSStationResearchComponent : Component
     [DataField]
     public int WaveTrickleAmount = 500;
 
-    [DataField]
-    public TimeSpan? RdLastSeenActive;
-
-    [DataField]
-    public TimeSpan RdInactivityTimeout = TimeSpan.FromMinutes(5);
+    // Server-only, never broadcast wholesale - each player learns only their own pick via FSPersonalResearchStateEvent.
+    public Dictionary<EntityUid, ProtoId<FSTechNodePrototype>> PersonalPicks = new();
 }

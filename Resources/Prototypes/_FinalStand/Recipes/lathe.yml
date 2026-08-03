@@ -28,3 +28,23 @@
   result: FSBoxDoubleBarrel
   materials:
     Steel: 320
+
+- type: latheRecipe
+  parent: BaseAmmoBoxRecipe
+  id: FSBoxHydraGrenade
+  result: FSBoxHydraGrenade
+  completetime: 8
+  materials:
+    Steel: 3000
+    Plastic: 1800
+    Gold: 1200
+
+- type: latheRecipe
+  parent: BaseAmmoBoxRecipe
+  id: FSBoxRPGRocket
+  result: FSBoxRPGRocket
+  completetime: 10
+  materials:
+    Steel: 4000
+    Plastic: 2400
+    Gold: 1200

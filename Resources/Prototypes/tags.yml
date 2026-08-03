@@ -1536,6 +1536,9 @@
   id: WeaponExplosive # FinalStand: grenades and rockets - Ordnance blast-intensity research bonuses.
 
 - type: Tag
+  id: WeaponHarvester # FinalStand: the Science Harvester - Ordnance research bonuses, required only so its GunRefreshModifiersEvent routes through TagComponent.
+
+- type: Tag
   id: WeaponGunShotgun # FinalStand: marks a weapon as a shotgun for KnockbackBlast augment.
 
 - type: Tag

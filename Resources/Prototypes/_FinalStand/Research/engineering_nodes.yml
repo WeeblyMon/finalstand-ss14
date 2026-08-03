@@ -8,7 +8,6 @@
     state: handdrill
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: SalvageEquipment
 
@@ -20,7 +19,6 @@
     state: icon
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: SpaceScanning
 
@@ -32,7 +30,6 @@
     state: empty
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AdvancedPowercells
 
@@ -44,7 +41,6 @@
     state: base
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: MechanicalCompression
 
@@ -56,7 +52,6 @@
     state: building
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: IndustrialEngineering
 
@@ -68,7 +63,6 @@
     state: portgen0
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: PowerGeneration
 
@@ -80,7 +74,6 @@
     state: ripley
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: RipleyAPLU
 
@@ -92,7 +85,6 @@
     state: icon
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: SalvageWeapons
 
@@ -104,7 +96,6 @@
     state: icon
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: SpecialMeans
 
@@ -116,7 +107,6 @@
     state: freezerOff
   branch: Engineering
   tier: 1
-  waveGate: 0
   cost: 2500
   vanillaTechnologyId: AtmosphericTech
 
@@ -128,7 +118,6 @@
     state: base
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringSpaceScanning
@@ -142,7 +131,6 @@
     state: icon
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringAtmosphericTech
@@ -156,7 +144,6 @@
     state: icon
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringIndustrialEngineering
@@ -170,7 +157,6 @@
     state: handdrill
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringSalvageEquipment
@@ -184,7 +170,6 @@
     state: microreactor
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringAdvancedPowercells
@@ -198,7 +183,6 @@
     state: full
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringSalvageWeapons
@@ -212,7 +196,6 @@
     state: icon
   branch: Engineering
   tier: 2
-  waveGate: 2
   cost: 3500
   prerequisites:
   - FSEngineeringSpecialMeans
@@ -226,7 +209,6 @@
     state: holding
   branch: Engineering
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSEngineeringMassExcavation
@@ -240,7 +222,6 @@
     state: icon
   branch: Engineering
   tier: 3
-  waveGate: 4
   cost: 4500
   prerequisites:
   - FSEngineeringBasicShuttleArmament

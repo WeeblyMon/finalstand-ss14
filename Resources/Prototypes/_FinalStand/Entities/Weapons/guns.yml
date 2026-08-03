@@ -702,6 +702,40 @@
     proto: FSBulletRocket
     deleteOnSpawn: true
 
+- type: entity
+  parent: BaseAmmoProvider
+  id: FSBoxHydraGrenade
+  name: hydra grenade case
+  description: A padded storage case holding a reserve of frag grenades for the hydra launcher.
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSLauncherGrenadeFrag
+    whitelist:
+      tags:
+      - Grenade
+    capacity: 30
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Ammunition/nade_box.rsi
+    state: icon
+
+- type: entity
+  parent: BaseAmmoProvider
+  id: FSBoxRPGRocket
+  name: RPG-7 rocket case
+  description: A padded storage case holding a reserve of rockets for the RPG-7 launcher.
+  components:
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    proto: FSCartridgeRocketFS
+    whitelist:
+      tags:
+      - CartridgeRocket
+    capacity: 20
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Ammunition/nade_box.rsi
+    state: icon
+
 # ── Tesla Gun FS override — fires FSTeslaGunBullet ────────────────────────────
 - type: entity
   id: WeaponTeslaGunFS
@@ -788,6 +822,9 @@
   components:
   - type: FSHarvester
   - type: FSScienceOnly
+  - type: Tag
+    tags:
+    - WeaponHarvester
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     layers:

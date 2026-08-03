@@ -26,6 +26,7 @@ public sealed class FSResearchBuffSystem : EntitySystem
     private const string RpgProto = "FSWeaponLauncherRocket";
     private const string XrayProto = "WeaponXrayCannonFS";
     private const string TeslaProto = "WeaponTeslaGunFS";
+    private const string HarvesterProto = "WeaponHarvesterFS";
 
     public override void Initialize()
     {
@@ -58,10 +59,17 @@ public sealed class FSResearchBuffSystem : EntitySystem
 
     // Pure - shared with FSPlayerBonusSummarySystem.
     public (float FireRateMul, float ReloadPct) GetFireRateReloadTotals(
-        bool isBallistic, bool isL6, bool isMinigun, bool isHydra, bool isEnergy, bool isTesla)
+        bool isBallistic, bool isL6, bool isMinigun, bool isHydra, bool isEnergy, bool isTesla, bool isHarvester = false)
     {
         var fireRateMul = 1f;
         var reloadPct = 0f;
+
+        if (isHarvester)
+        {
+            if (Unlocked("FSOrdnanceHarvesterCoolantLoop")) fireRateMul *= 1.05f;
+            if (Unlocked("FSOrdnanceHarvesterOscillatorTuning")) fireRateMul *= 1.05f;
+            if (Unlocked("FSOrdnanceHarvesterOverdrive")) fireRateMul *= 1.08f;
+        }
 
         if (isBallistic)
         {
@@ -125,9 +133,16 @@ public sealed class FSResearchBuffSystem : EntitySystem
     // Pure - shared with FSPlayerBonusSummarySystem.
     public float GetDamageMultiplier(
         bool isBallistic, bool isEnergy, bool isLauncher,
-        bool isL6, bool isMinigun, bool isHydra, bool isRpg, bool isXray, bool isTesla)
+        bool isL6, bool isMinigun, bool isHydra, bool isRpg, bool isXray, bool isTesla, bool isHarvester = false)
     {
         var mul = 1f;
+
+        if (isHarvester)
+        {
+            if (Unlocked("FSOrdnanceHarvesterFocusingLens")) mul *= 1.05f;
+            if (Unlocked("FSOrdnanceHarvesterCapacitorBank")) mul *= 1.05f;
+            if (Unlocked("FSOrdnanceHarvesterOverdrive")) mul *= 1.08f;
+        }
 
         if (isBallistic)
         {
@@ -192,10 +207,11 @@ public sealed class FSResearchBuffSystem : EntitySystem
         var isBallistic = _tags.HasTag(uid, BallisticTag);
         var isEnergy = _tags.HasTag(uid, EnergyTag);
         var isLauncher = _tags.HasTag(uid, LauncherTag);
-        if (!isBallistic && !isEnergy && !isLauncher)
+        var protoId = Prototype(uid)?.ID;
+        var isHarvester = protoId == HarvesterProto;
+        if (!isBallistic && !isEnergy && !isLauncher && !isHarvester)
             return;
 
-        var protoId = Prototype(uid)?.ID;
         var isL6 = protoId == L6Proto;
         var isMinigun = HasComp<FSMinigunComponent>(uid);
         var isHydra = protoId == HydraProto;
@@ -208,7 +224,7 @@ public sealed class FSResearchBuffSystem : EntitySystem
         var angleDecayPct = 0.0;
         var projectileSpeedMul = 1f;
 
-        var (fireRateMul, reloadPct) = GetFireRateReloadTotals(isBallistic, isL6, isMinigun, isHydra, isEnergy, isTesla);
+        var (fireRateMul, reloadPct) = GetFireRateReloadTotals(isBallistic, isL6, isMinigun, isHydra, isEnergy, isTesla, isHarvester);
 
         if (isBallistic)
         {
