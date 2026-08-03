@@ -41,6 +41,7 @@
     gloves: ClothingHandsGlovesCaptain
     id: CaptainPDA
     ears: ClothingHeadsetAltCommand
+    pocket1: WeaponEnergyMagnum
   storage:
     back:
     - Flash

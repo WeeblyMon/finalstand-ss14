@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Repackaged free asset, used for the FinalStand Hydra/RPG ammo cases",
+  "size": { "x": 32, "y": 32 },
+  "states": [
+    {
+      "name": "icon"
+    }
+  ]
+}

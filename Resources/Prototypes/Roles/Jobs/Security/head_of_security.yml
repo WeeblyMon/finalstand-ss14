@@ -46,11 +46,10 @@
     id: HoSPDA
     gloves: ClothingHandsGlovesCombat
     ears: ClothingHeadsetAltSecurity
-    pocket1: WeaponPistolMk58
   storage:
     back:
     - Flash
-    - MagazinePistol
+    - FSWeaponWt550
 
 - type: chameleonOutfit
   id: HeadOfSecurityChameleonOutfit

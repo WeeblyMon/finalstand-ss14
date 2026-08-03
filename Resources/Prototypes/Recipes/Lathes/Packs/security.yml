@@ -53,6 +53,8 @@
   - SpeedLoaderMagnum
   - FSLauncherGrenadeFrag
   - FSCartridgeRocketFS
+  - FSBoxHydraGrenade
+  - FSBoxRPGRocket
 
 - type: latheRecipePack
   id: SecurityWeaponsStatic
