@@ -83,5 +83,5 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float RadiationCoatingResearchBonus = 0f;
 
     [DataField] public int OverloadRoundLevel = 0;
-    [DataField] public int RicochetLevel = 0;
+    [DataField] public int HomingLevel = 0;
 }

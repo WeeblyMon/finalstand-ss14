@@ -485,6 +485,12 @@
   - type: Tag
     tags:
     - WeaponGunEnergy
+  - type: FSMuzzleFlashColor
+    color: "#FF0000"
+  - type: FSLaserCarbineAmmo
+  - type: Battery
+    maxCharge: 2000
+    startingCharge: 2000
   - type: BatterySelfRecharger
     autoRechargeRate: 50
     autoRechargePauseTime: 1.5
@@ -498,12 +504,14 @@
     maxAngle: 18
     angleIncrease: 2.2
     angleDecay: 5
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/LaserCarbine/fire.ogg
   - type: GunWieldBonus
     minAngle: -4
     maxAngle: -12
   - type: BatteryAmmoProvider
     proto: FSBulletLaserCarbine
-    fireCost: 30
+    fireCost: 32
   - type: Crit
     baseCritChance: 0.05
 

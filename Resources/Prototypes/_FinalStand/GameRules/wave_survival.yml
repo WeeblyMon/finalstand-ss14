@@ -73,6 +73,9 @@
     - enemyId: FSZombieArmoured
       fromWave: 5
       spawnChance: 0.05
+    - enemyId: FSZombieDevastator
+      fromWave: 13
+      spawnChance: 0.05
     prepDuration: 300
     maxCombatDuration: 1800
     factionDisplay: "Undead detected"

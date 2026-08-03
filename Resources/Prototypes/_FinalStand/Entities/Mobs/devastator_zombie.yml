@@ -1,0 +1,45 @@
+# FINALSTAND: Devastator — chainsaw-wielding berserker that grows faster and stronger as it takes damage.
+# Spawns wave 13+. 375 HP (5× base), lifesteal on hit, berserk scaling up to 3.5× speed and 3× damage.
+- type: entity
+  id: FSZombieDevastator
+  parent: FSZombieFootsoldierBase
+  suffix: Devastator
+  name: devastator zombie
+  components:
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/devastatorzombie.png
+  - type: FSDevastator
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      375: Dead
+  - type: MeleeWeapon
+    altDisarm: false
+    angle: 0
+    animation: WeaponArcClaw
+    soundHit:
+      path: /Audio/_FinalStand/Mobs/Devastator/chainsawattack.ogg
+    damage:
+      types:
+        Slash: 18
+  - type: FSEnemyValue
+    killCredits: 600
+  - type: FSMoneyOnHitCap
+    maxMoneyPerPlayer: 1200
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/Devastator/devastator_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: AmbientSound
+    enabled: true
+    volume: -3
+    range: 8
+    sound:
+      path: /Audio/_FinalStand/Mobs/Devastator/chainsawidle.ogg
+  - type: FSZombieVisuals
+    simpleSpriteMode: true
+  - type: FSDeathLoot
+    lootProtoId: FSResearchDisk
+    chance: 0.0005

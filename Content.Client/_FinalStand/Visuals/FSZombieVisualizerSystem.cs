@@ -5,6 +5,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Visuals;
@@ -14,9 +15,13 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
     [Dependency] private readonly SpriteSystem _sprite = default!;
     [Dependency] private readonly IPrototypeManager _protoManager = default!;
 
-    private const string TeslaGlowShader   = "FSTeslaGlow";
-    private const string FlamerGlowShader  = "FSFlamerGlow";
-    private const string ArmourGlowShader  = "FSArmourGlow";
+    private const string TeslaGlowShader      = "FSTeslaGlow";
+    private const string FlamerGlowShader     = "FSFlamerGlow";
+    private const string ArmourGlowShader     = "FSArmourGlow";
+    private const string DevastatorGlowShader = "FSDevastatorGlow";
+
+    private static readonly Color DevastatorFullHealth = Color.White;
+    private static readonly Color DevastatorNearDeath  = new(1f, 0.05f, 0.05f);
 
     public override void Initialize()
     {
@@ -27,6 +32,8 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
         SubscribeLocalEvent<FSFlamethrowerComponent, AfterAutoHandleStateEvent>(OnFlamethrowerStateHandled);
         SubscribeLocalEvent<FSTeslaZombieComponent, AfterAutoHandleStateEvent>(OnTeslaStateHandled);
         SubscribeLocalEvent<FSArmouredDeflectComponent, AfterAutoHandleStateEvent>(OnArmouredDeflectStateHandled);
+        SubscribeLocalEvent<FSDevastatorComponent, ComponentStartup>(OnDevastatorStartup);
+        SubscribeLocalEvent<FSDevastatorComponent, AfterAutoHandleStateEvent>(OnDevastatorStateHandled);
     }
 
     private void OnStartup(EntityUid uid, FSZombieVisualsComponent comp, ComponentStartup args)
@@ -72,6 +79,21 @@ public sealed class FSZombieVisualizerSystem : EntitySystem
         sprite.PostShader = comp.IsFiring
             ? _protoManager.Index<ShaderPrototype>(TeslaGlowShader).InstanceUnique()
             : null;
+    }
+
+    private void OnDevastatorStartup(EntityUid uid, FSDevastatorComponent comp, ComponentStartup args)
+    {
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+        sprite.PostShader = _protoManager.Index<ShaderPrototype>(DevastatorGlowShader).InstanceUnique();
+        sprite.Color = DevastatorFullHealth;
+    }
+
+    private void OnDevastatorStateHandled(EntityUid uid, FSDevastatorComponent comp, AfterAutoHandleStateEvent args)
+    {
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+        sprite.Color = Color.InterpolateBetween(DevastatorFullHealth, DevastatorNearDeath, comp.BerserkRatio);
     }
 
     private void UpdateSprite(EntityUid uid, FSZombieVisualsComponent comp)

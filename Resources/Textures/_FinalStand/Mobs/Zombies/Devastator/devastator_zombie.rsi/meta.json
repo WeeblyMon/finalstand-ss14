@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "license": "CC0-1.0",
+    "copyright": "FinalStand custom art",
+    "size": {
+        "x": 48,
+        "y": 48
+    },
+    "states": [
+        {
+            "name": "base",
+            "directions": 4
+        },
+        {
+            "name": "dead"
+        }
+    ]
+}

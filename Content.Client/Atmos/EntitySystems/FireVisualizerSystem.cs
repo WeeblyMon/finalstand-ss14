@@ -12,6 +12,16 @@ namespace Content.Client.Atmos.EntitySystems;
 public sealed class FireVisualizerSystem : VisualizerSystem<FireVisualsComponent>
 {
     [Dependency] private readonly PointLightSystem _lights = default!;
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+
+    // A crowd of burning entities (e.g. a corridor full of zombies set on fire at once) each
+    // spawn their own independent light, and those stack additively with no cap - a dozen of them
+    // together blows out into a solid white wall. This dampens each light's energy based on how
+    // many OTHER active fire-lights are nearby, so brightness grows much slower than linearly
+    // with crowd size. Radius is left alone so a packed room still reads as "lots of small
+    // fires" instead of every light shrinking to nothing.
+    private const float NearbyFireRadius = 6f;
+    private const float MinDampenFactor = 0.2f;
 
     public override void Initialize()
     {
@@ -88,11 +98,28 @@ public sealed class FireVisualizerSystem : VisualizerSystem<FireVisualsComponent
 
         _lights.SetColor(component.LightEntity.Value, component.LightColor, light);
 
+        var dampen = GetCrowdDampening(uid);
+
         // light needs a minimum radius to be visible at all, hence the + 1.5f
         _lights.SetRadius(component.LightEntity.Value, Math.Clamp(1.5f + component.LightRadiusPerStack * fireStacks, 0f, component.MaxLightRadius), light);
-        _lights.SetEnergy(component.LightEntity.Value, Math.Clamp(1 + component.LightEnergyPerStack * fireStacks, 0f, component.MaxLightEnergy), light);
+        _lights.SetEnergy(component.LightEntity.Value, Math.Clamp(1 + component.LightEnergyPerStack * fireStacks, 0f, component.MaxLightEnergy) * dampen, light);
 
         // TODO flickering animation? Or just add a noise mask to the light? But that requires an engine PR.
+    }
+
+    private float GetCrowdDampening(EntityUid uid)
+    {
+        var nearby = new HashSet<Entity<FireVisualsComponent>>();
+        _lookup.GetEntitiesInRange(Transform(uid).Coordinates, NearbyFireRadius, nearby);
+
+        var count = 0;
+        foreach (var (_, other) in nearby)
+        {
+            if (other.LightEntity != null)
+                count++;
+        }
+
+        return count <= 1 ? 1f : Math.Max(MinDampenFactor, 1f / MathF.Sqrt(count));
     }
 }
 

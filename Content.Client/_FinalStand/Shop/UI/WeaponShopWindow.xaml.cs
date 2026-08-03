@@ -1132,6 +1132,8 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.RadiationCoating   => "Radiation",
         WeaponUpgradeType.GravitonCore       => "Gravity Pull",
         WeaponUpgradeType.TeslaArcRange      => "Arc Range",
+        WeaponUpgradeType.OverloadRound      => "Overload",
+        WeaponUpgradeType.HomingBolts        => "Homing",
         _                                    => "",
     };
 

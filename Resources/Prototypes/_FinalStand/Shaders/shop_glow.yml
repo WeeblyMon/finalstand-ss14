@@ -53,3 +53,11 @@
   params:
     glow_color: "#AAAAAAD9"
     glow_intensity: 2.0
+
+- type: shader
+  id: FSDevastatorGlow
+  kind: source
+  path: "/Textures/Shaders/shop_glow.swsl"
+  params:
+    glow_color: "#990000D9"
+    glow_intensity: 2.5

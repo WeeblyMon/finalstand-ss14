@@ -266,7 +266,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
-    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt.rsi
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
     scale: 0.2, 0.2
     rotation: -90
     layers:
@@ -275,7 +275,7 @@
   - type: Projectile
     damage:
       types:
-        Heat: 12
+        Heat: 24
   - type: PointLight
     castShadows: false
     color: "#FF0000"
@@ -289,7 +289,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
-    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt.rsi
     scale: 0.2, 0.2
     rotation: -90
     layers:

@@ -132,6 +132,9 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                     var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
                     state.BatteryFireCostReduction += def.ValuePerLevel;
                     Dirty(weapon, bat);
+                    // Shots/Capacity are cached off FireCost and only recomputed on ChargeChangedEvent -
+                    // force a refresh now so the ammo counter reflects the new FireCost immediately.
+                    _gun.UpdateShots((weapon, bat));
                 }
                 else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon) || HasComp<MagazineAmmoProviderComponent>(weapon))
                 {
@@ -488,10 +491,10 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
-            case WeaponUpgradeType.Ricochet:
+            case WeaponUpgradeType.HomingBolts:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
-                state.RicochetLevel = newLevel;
+                state.HomingLevel = newLevel;
                 break;
             }
 
@@ -885,7 +888,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         to.MagEfficiencyLevel = from.MagEfficiencyLevel;
         to.PulseCascadeEnabled = from.PulseCascadeEnabled;
         to.OverloadRoundLevel = from.OverloadRoundLevel;
-        to.RicochetLevel = from.RicochetLevel;
+        to.HomingLevel = from.HomingLevel;
         to.AftershockEnabled = from.AftershockEnabled;
         to.MagazineSizeBonus = from.MagazineSizeBonus;
         to.AttackSpeedMultiplier = from.AttackSpeedMultiplier;

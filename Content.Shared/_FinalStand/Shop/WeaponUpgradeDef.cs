@@ -93,7 +93,7 @@ public enum WeaponUpgradeType : byte
     ShieldDurability,
 
     OverloadRound,
-    Ricochet,
+    HomingBolts,
 }
 
 [DataDefinition]

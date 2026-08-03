@@ -11,10 +11,10 @@
     weaponProtoId: FSWeaponLaserCarbine
     price: 45000
     category: Self-Recharging Full-Auto Laser
-    statDamage: 45
+    statDamage: 80
     statFireRate: 70
     statAccuracy: 65
-    statCapacity: 80
+    statCapacity: 95
     upgrades:
     - id: lcarbine-battery-capacity
       name: Extended Cell
@@ -22,7 +22,7 @@
       maxLevel: 3
       baseCost: 6750
       type: MagazineSize
-      valuePerLevel: 5
+      valuePerLevel: 10
     - id: lcarbine-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
@@ -44,6 +44,13 @@
       baseCost: 6750
       type: FireRate
       valuePerLevel: 0.5
+    - id: lcarbine-damage
+      name: Amplified Emitter
+      description: Higher energy output increases damage by 20% per level.
+      maxLevel: 4
+      baseCost: 8000
+      type: Damage
+      valuePerLevel: 0.2
     - id: lcarbine-overload
       name: Overload Round
       description: Every 5th/4th/3rd shot is automatically supercharged, dealing double damage.
@@ -51,12 +58,12 @@
       baseCost: 13000
       type: OverloadRound
       valuePerLevel: 1
-    - id: lcarbine-ricochet
-      name: Ricochet Bolts
-      description: 25%/50%/75% chance for a bolt that misses to redirect toward the nearest enemy for 70% damage.
+    - id: lcarbine-homing
+      name: Homing Bolts
+      description: Bolts steer toward the nearest enemy in flight. Higher levels turn faster and tighter.
       maxLevel: 3
       baseCost: 14000
-      type: Ricochet
+      type: HomingBolts
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/laser_gun.rsi

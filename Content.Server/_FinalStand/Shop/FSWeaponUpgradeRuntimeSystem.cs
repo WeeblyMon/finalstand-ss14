@@ -57,6 +57,17 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
 
             if (comp.DamageMultiplier > 1.0f)
                 proj.Damage = proj.Damage * FixedPoint2.New(comp.DamageMultiplier);
+
+            if (comp.HomingLevel > 0)
+            {
+                var homing = EnsureComp<FSHomingProjectileComponent>(projUid);
+                homing.TurnRateDegrees = comp.HomingLevel switch
+                {
+                    1 => 90f,
+                    2 => 180f,
+                    _ => 320f,
+                };
+            }
         }
 
         var overchargeFired = _overcharge.HandleAmmoShot(uid, comp, args);

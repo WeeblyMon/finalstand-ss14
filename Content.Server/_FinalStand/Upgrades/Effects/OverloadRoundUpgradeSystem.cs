@@ -54,6 +54,11 @@ public sealed class OverloadRoundUpgradeSystem : EntitySystem
                 damage = origProj.Damage * 2.0f;
             }
 
+            // carry the Homing Bolts turn rate over - the original bolt is about to be deleted
+            var turnRate = 0f;
+            if (TryComp<FSHomingProjectileComponent>(projUid, out var origHoming))
+                turnRate = origHoming.TurnRateDegrees;
+
             Vector2 dir;
             float speed;
             if (TryComp<PhysicsComponent>(projUid, out var phys) && phys.LinearVelocity.LengthSquared() > 0.001f)
@@ -74,6 +79,9 @@ public sealed class OverloadRoundUpgradeSystem : EntitySystem
             var bolt = Spawn(OverloadBoltProto, spawnCoords);
             if (TryComp<ProjectileComponent>(bolt, out var boltProj))
                 boltProj.Damage = damage;
+
+            if (turnRate > 0f)
+                EnsureComp<FSHomingProjectileComponent>(bolt).TurnRateDegrees = turnRate;
 
             _gun.ShootProjectile(bolt, dir, Vector2.Zero, uid, shooter, speed);
         }
