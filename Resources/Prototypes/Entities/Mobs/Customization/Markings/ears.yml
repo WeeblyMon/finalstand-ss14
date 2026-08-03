@@ -1,4 +1,4 @@
-﻿- type: marking
+- type: marking
   id: HumanLongEars
   bodyPart: HeadTop
   markingCategory: HeadTop
@@ -57,3 +57,13 @@
   sprites:
   - sprite: Mobs/Customization/ears.rsi
     state: long_ears_thin
+
+- type: marking
+  id: Umaearsandtail
+  bodyPart: HeadTop
+  markingCategory: HeadTop
+  forcedColoring: true
+  speciesRestriction: [Dwarf, Human]
+  sprites:
+  - sprite: Mobs/Customization/ears.rsi
+    state: Uma_ears_and_tail
