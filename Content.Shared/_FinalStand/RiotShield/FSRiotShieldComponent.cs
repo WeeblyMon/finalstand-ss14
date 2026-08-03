@@ -17,4 +17,6 @@ public sealed partial class FSRiotShieldComponent : Component
     [DataField] public float ThornsPercent;
 
     [DataField] public float VampirePercent;
+
+    public EntityUid? Wielder;
 }

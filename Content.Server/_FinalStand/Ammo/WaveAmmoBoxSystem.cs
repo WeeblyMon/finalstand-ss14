@@ -1,6 +1,8 @@
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.RiotShield;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Ammo;
+using Content.Shared._FinalStand.RiotShield;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Power;
@@ -16,6 +18,7 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly SharedContainerSystem _containers = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private readonly FSRiotShieldSystem _riotShield = default!;
 
     public override void Initialize()
     {
@@ -117,6 +120,7 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
             {
                 TryRefill(item);
                 TryRefillGunMag(item);
+                TryRepairShield(item);
 
                 if (!TryComp<ContainerManagerComponent>(item, out var itemMgr))
                     continue;
@@ -126,6 +130,7 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
                     {
                         TryRefill(nested);
                         TryRefillGunMag(nested);
+                        TryRepairShield(nested);
                     }
                 }
             }
@@ -150,5 +155,11 @@ public sealed class WaveAmmoBoxSystem : EntitySystem
         if (target <= ballistic.UnspawnedCount)
             return;
         _gun.SetBallisticUnspawned((entity, ballistic), target);
+    }
+
+    private void TryRepairShield(EntityUid entity)
+    {
+        if (TryComp<FSRiotShieldComponent>(entity, out var shield))
+            _riotShield.RepairShield(entity, shield);
     }
 }

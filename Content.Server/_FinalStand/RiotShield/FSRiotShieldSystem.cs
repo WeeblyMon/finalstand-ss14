@@ -5,6 +5,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.RiotShield;
@@ -12,6 +13,7 @@ namespace Content.Server._FinalStand.RiotShield;
 public sealed class FSRiotShieldSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
 
     public override void Initialize()
     {
@@ -27,17 +29,22 @@ public sealed class FSRiotShieldSystem : EntitySystem
     {
         var marker = EnsureComp<FSRiotShieldUserComponent>(args.User);
         marker.Shield = uid;
+        comp.Wielder = args.User;
     }
 
     private void OnShieldUnequipped(EntityUid uid, FSRiotShieldComponent comp, GotUnequippedHandEvent args)
     {
         if (TryComp<FSRiotShieldUserComponent>(args.User, out var marker) && marker.Shield == uid)
             RemComp<FSRiotShieldUserComponent>(args.User);
+        comp.Wielder = null;
     }
 
     private void OnShieldDamaged(EntityUid uid, FSRiotShieldComponent comp, DamageChangedEvent args)
     {
         if (!args.DamageIncreased || args.DamageDelta == null || comp.IsBroken)
+            return;
+
+        if (comp.Wielder is { } wielder && _mobState.IsIncapacitated(wielder))
             return;
 
         var blocked = (float) args.DamageDelta.GetTotal();
@@ -76,14 +83,18 @@ public sealed class FSRiotShieldSystem : EntitySystem
     {
         var query = EntityQueryEnumerator<FSRiotShieldComponent>();
         while (query.MoveNext(out var uid, out var comp))
-        {
-            if (!comp.IsBroken)
-                continue;
+            RepairShield(uid, comp);
+    }
 
-            _damageable.SetAllDamage(uid, FixedPoint2.Zero);
-            comp.CurrentDurability = comp.BaseDurability * comp.DurabilityMultiplier;
-            comp.IsBroken = false;
-            Dirty(uid, comp);
-        }
+    public void RepairShield(EntityUid uid, FSRiotShieldComponent comp)
+    {
+        var maxDurability = comp.BaseDurability * comp.DurabilityMultiplier;
+        if (!comp.IsBroken && comp.CurrentDurability >= maxDurability)
+            return;
+
+        _damageable.SetAllDamage(uid, FixedPoint2.Zero);
+        comp.CurrentDurability = maxDurability;
+        comp.IsBroken = false;
+        Dirty(uid, comp);
     }
 }
