@@ -437,7 +437,6 @@
     factions:
     - NanoTrasen
   - type: CreamPied
-  - type: Stripping
   - type: UserInterface
     interfaces:
       enum.HumanoidMarkingModifierKey.Key:
@@ -497,6 +496,8 @@
   id: BaseMobSpeciesOrganic
   abstract: true
   components:
+  - type: Flammable
+    fireSpread: false
   - type: Absorbable # Goobstation - changelings
   - type: Barotrauma
     damage:
