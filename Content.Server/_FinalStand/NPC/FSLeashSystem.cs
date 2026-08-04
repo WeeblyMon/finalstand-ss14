@@ -3,6 +3,7 @@ using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared.Examine;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
@@ -44,8 +45,9 @@ public sealed class FSLeashSystem : EntitySystem
         _accumulator -= TickInterval;
 
         var curTime = _timing.CurTime;
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
-        while (query.MoveNext(out var uid, out _, out var htn))
+        // ActiveNPCComponent is dropped on death, so corpses are skipped.
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var htn))
             Tick(uid, htn, curTime);
     }
 

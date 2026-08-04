@@ -84,7 +84,10 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         StatsHeaderLabel.FontColorOverride = FSUiPalette.AccentBrand;
         RequirementsHeaderLabel.FontColorOverride = FSUiPalette.AccentBrand;
         AuthorityWarningLabel.FontColorOverride = FSUiPalette.StateNegative;
-        DefaultTargetTipLabel.FontColorOverride = FSUiPalette.TextMuted;
+
+        var tipMsg = new FormattedMessage();
+        tipMsg.AddMarkupOrThrow($"[color={FSUiPalette.TextMuted.ToHex()}]Tip: your hits fund the RD/Captain's choice (double value) unless you set your own pick.[/color]");
+        DefaultTargetTipLabel.SetMessage(tipMsg);
 
         HeaderResearchIcon.Texture = _resourceCache
             .GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/research_icon_purple.png").Texture;

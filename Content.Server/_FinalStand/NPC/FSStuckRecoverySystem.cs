@@ -1,17 +1,12 @@
-// Teleports genuinely stuck wave zombies to an adjacent tile.
-// Also fast-paths zombies whose pathfinder gave up (SteeringStatus.NoPath) via a flow-field
-// reachability check — stranded zombies get relocated to a reachable spawner instead of
-// standing idle at their unreachable spawn tile until the 20s position-based check fires.
+// Recovers wave zombies that stop making progress: nudges the boxed-in, relocates the stranded.
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
-using Content.Shared.Mobs;
-using Content.Shared.Mobs.Components;
+using Content.Shared.NPC;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
-using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Random;
@@ -21,7 +16,6 @@ namespace Content.Server._FinalStand.NPC;
 
 public sealed class FSStuckRecoverySystem : EntitySystem
 {
-    [Dependency] private readonly HordeBrainSystem _hordeBrain = default!;
     [Dependency] private readonly HordeFlowFieldSystem _flow = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
@@ -33,6 +27,11 @@ public sealed class FSStuckRecoverySystem : EntitySystem
     private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince);
     private readonly Dictionary<EntityUid, StuckState> _state = new();
 
+    private readonly List<EntityUid> _removeBuffer = new();
+    private readonly List<EntityCoordinates> _spawnerBuffer = new();
+    private readonly HashSet<EntityUid> _entBuffer = new();
+    private readonly Dictionary<Vector2i, int> _neighborCrowd = new();
+
     private bool _enabled;
     private int _nudgeLimit;
     private const float StuckDistance = 1f;
@@ -40,6 +39,12 @@ public sealed class FSStuckRecoverySystem : EntitySystem
     private const float NudgeCooldown = 8f;
     private const float PurgeInterval = 30f;
     private const float NoPathGraceSeconds = 5f;
+
+    // Stuck detection works on a 20 s horizon, so sampling faster than 1 Hz buys nothing
+    // and costs a full horde scan every tick.
+    private const float TickInterval = 1f;
+
+    private float _accumulator;
     private float _purgeTimer;
 
     public override void Initialize()
@@ -56,31 +61,31 @@ public sealed class FSStuckRecoverySystem : EntitySystem
         if (!_enabled)
             return;
 
+        _accumulator += frameTime;
+        if (_accumulator < TickInterval)
+            return;
+        _accumulator -= TickInterval;
+
         var curTime = _timing.CurTime;
 
-        _purgeTimer += frameTime;
+        _purgeTimer += TickInterval;
         if (_purgeTimer >= PurgeInterval)
         {
             _purgeTimer = 0f;
-            var toRemove = new List<EntityUid>();
+            _removeBuffer.Clear();
             foreach (var uid in _state.Keys)
             {
                 if (!Exists(uid))
-                    toRemove.Add(uid);
+                    _removeBuffer.Add(uid);
             }
-            foreach (var uid in toRemove)
+            foreach (var uid in _removeBuffer)
                 _state.Remove(uid);
         }
 
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform))
+        // ActiveNPCComponent is dropped when a mob dies or sleeps, so corpses never reach here.
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var xform))
         {
-            if (TryComp<MobStateComponent>(uid, out var mobState) && mobState.CurrentState != MobState.Alive)
-            {
-                _state.Remove(uid);
-                continue;
-            }
-
             var worldPos = _transform.GetWorldPosition(xform);
 
             if (!_state.TryGetValue(uid, out var s))
@@ -129,45 +134,34 @@ public sealed class FSStuckRecoverySystem : EntitySystem
 
     private bool IsFlowReachable(TransformComponent xform)
     {
-        if (xform.GridUid is not { } gridUid) return false;
-        var localPos = xform.LocalPosition;
-        var tile = new Vector2i((int)MathF.Floor(localPos.X), (int)MathF.Floor(localPos.Y));
-        return _flow.IsReachable(gridUid, tile);
+        if (xform.GridUid is not { } gridUid)
+            return false;
+
+        return _flow.IsReachable(gridUid, HordeFlowFieldSystem.ToTile(xform.LocalPosition));
     }
 
     private void TryRelocateStranded(EntityUid uid, TransformComponent xform)
     {
         // Collect wave spawners whose tile is reachable per the flow field.
-        var candidates = new List<EntityCoordinates>();
+        _spawnerBuffer.Clear();
         var spawnerQuery = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
         while (spawnerQuery.MoveNext(out _, out _, out var spXform))
         {
-            if (spXform.GridUid is not { } spGrid) continue;
-            var sp = spXform.LocalPosition;
-            var spTile = new Vector2i((int)MathF.Floor(sp.X), (int)MathF.Floor(sp.Y));
-            if (_flow.IsReachable(spGrid, spTile))
-                candidates.Add(spXform.Coordinates);
+            if (spXform.GridUid is not { } spGrid)
+                continue;
+            if (_flow.IsReachable(spGrid, HordeFlowFieldSystem.ToTile(spXform.LocalPosition)))
+                _spawnerBuffer.Add(spXform.Coordinates);
         }
 
-        if (candidates.Count == 0)
+        if (_spawnerBuffer.Count == 0)
         {
             Log.Info($"[FSStuckRecovery] Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
             QueueDel(uid);
             return;
         }
 
-        var target = _random.Pick(candidates);
-        _transform.SetCoordinates(uid, target);
-
-        if (TryComp<NPCSteeringComponent>(uid, out var steering))
-        {
-            steering.Status = SteeringStatus.Moving;
-            steering.CurrentPath.Clear();
-            steering.FailedPathCount = 0;
-            steering.PathfindToken?.Cancel();
-            steering.PathfindToken = null;
-        }
-
+        _transform.SetCoordinates(uid, _random.Pick(_spawnerBuffer));
+        ResetSteering(uid);
         Log.Info($"[FSStuckRecovery] Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
     }
 
@@ -192,13 +186,14 @@ public sealed class FSStuckRecoverySystem : EntitySystem
 
         var (ourLayer, ourMask) = _physics.GetHardCollision(uid);
         var localPos = xform.LocalPosition;
-        var myTile = new Vector2i((int)MathF.Floor(localPos.X), (int)MathF.Floor(localPos.Y));
+        var myTile = HordeFlowFieldSystem.ToTile(localPos);
+        BuildNeighborCrowd(gridUid, myTile);
 
         EntityCoordinates? goalCoords = null;
         if (TryComp<NPCSteeringComponent>(uid, out var steering))
             goalCoords = steering.Coordinates;
 
-        float myDistToGoal = float.MaxValue;
+        var myDistToGoal = float.MaxValue;
         if (goalCoords != null)
         {
             var zombieCoords = new EntityCoordinates(gridUid, localPos);
@@ -226,7 +221,7 @@ public sealed class FSStuckRecoverySystem : EntitySystem
                         continue;
                 }
 
-                var count = _hordeBrain.GetOccupancy(gridUid, neighborTile);
+                _neighborCrowd.TryGetValue(neighborTile, out var count);
                 if (count >= bestCount)
                     continue;
 
@@ -246,28 +241,55 @@ public sealed class FSStuckRecoverySystem : EntitySystem
         }
 
         _transform.SetCoordinates(uid, target.Value);
-
-        if (steering != null)
-        {
-            steering.Status = SteeringStatus.Moving;
-            steering.CurrentPath.Clear();
-            steering.FailedPathCount = 0;
-            steering.PathfindToken?.Cancel();
-            steering.PathfindToken = null;
-        }
+        ResetSteering(uid);
 
         var newWorldPos = _transform.GetWorldPosition(xform);
         s = s with { LastPos = newWorldPos, LastMoveTime = curTime, LastNudge = curTime, NudgeCount = s.NudgeCount + 1 };
         Log.Info($"[FSStuckRecovery] Nudged wave zombie {ToPrettyString(uid)} from {myTile} (nudge {s.NudgeCount}/{_nudgeLimit}).");
     }
 
+    private void ResetSteering(EntityUid uid)
+    {
+        if (!TryComp<NPCSteeringComponent>(uid, out var steering))
+            return;
+
+        steering.Status = SteeringStatus.Moving;
+        steering.CurrentPath.Clear();
+        steering.FailedPathCount = 0;
+        steering.PathfindToken?.Cancel();
+        steering.PathfindToken = null;
+    }
+
+    // Counts wave zombies per surrounding tile in one query, so the nudge prefers the least
+    // crowded step out. A radius of 2 covers every tile adjacent to the zombie's own.
+    private void BuildNeighborCrowd(EntityUid gridUid, Vector2i myTile)
+    {
+        _neighborCrowd.Clear();
+        _entBuffer.Clear();
+        var center = new Vector2(myTile.X + 0.5f, myTile.Y + 0.5f);
+        _lookup.GetLocalEntitiesIntersecting(gridUid, Box2.CenteredAround(center, new Vector2(4f, 4f)), _entBuffer);
+
+        foreach (var ent in _entBuffer)
+        {
+            if (!HasComp<WaveSpawnedTagComponent>(ent))
+                continue;
+
+            var entXform = Transform(ent);
+            if (entXform.GridUid != gridUid)
+                continue;
+
+            var tile = HordeFlowFieldSystem.ToTile(entXform.LocalPosition);
+            _neighborCrowd.TryGetValue(tile, out var count);
+            _neighborCrowd[tile] = count + 1;
+        }
+    }
+
     private bool IsTileWalkable(EntityUid gridUid, Vector2 center, int ourLayer, int ourMask)
     {
-        var box = Box2.CenteredAround(center, new Vector2(0.9f, 0.9f));
-        var ents = new HashSet<EntityUid>();
-        _lookup.GetLocalEntitiesIntersecting(gridUid, box, ents, LookupFlags.Static);
+        _entBuffer.Clear();
+        _lookup.GetLocalEntitiesIntersecting(gridUid, Box2.CenteredAround(center, new Vector2(0.9f, 0.9f)), _entBuffer, LookupFlags.Static);
 
-        foreach (var ent in ents)
+        foreach (var ent in _entBuffer)
         {
             if (!TryComp<PhysicsComponent>(ent, out var body) || !body.Hard || !body.CanCollide)
                 continue;

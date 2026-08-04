@@ -55,10 +55,10 @@
                               Margin="10"
                               HorizontalExpand="True"
                               VerticalExpand="True">
-                    <Label Name="DefaultTargetTipLabel"
-                           Text="Tip: your hits fund the RD/Captain's choice (double value) unless you set your own pick."
-                           HorizontalAlignment="Center"
-                           Margin="0 0 0 8"/>
+                    <RichTextLabel Name="DefaultTargetTipLabel"
+                                   HorizontalExpand="True"
+                                   MaxWidth="270"
+                                   Margin="0 0 0 8"/>
                     <ScrollContainer HScrollEnabled="False"
                                      HorizontalExpand="True"
                                      VerticalExpand="True">

@@ -22,8 +22,6 @@ namespace Content.Server.NPC.Systems;
 
 public sealed partial class NPCSteeringSystem
 {
-    [Dependency] private readonly HordeBrainSystem _hordeBrain = default!;
-
     private EntityQuery<WaveSpawnedTagComponent> _waveTagQuery;
 
     /*
@@ -225,50 +223,6 @@ public sealed partial class NPCSteeringSystem
         }
 
         return SteeringObstacleStatus.Completed;
-    }
-
-    private bool TryFindBetterNeighbor(EntityUid uid, PathPoly poly, NPCSteeringComponent steering)
-    {
-        if (!_xformQuery.TryGetComponent(uid, out var xform))
-            return false;
-
-        // Zombie's current tile in the grid's local space.
-        var zombieTile = new Vector2i(
-            (int)MathF.Floor(xform.LocalPosition.X),
-            (int)MathF.Floor(xform.LocalPosition.Y));
-
-        // Use the zombie's current distance to the goal as the acceptance threshold.
-        // Any neighbor at or within this distance is a valid lateral/forward step.
-        var zombieCoords = new EntityCoordinates(poly.GraphUid, xform.LocalPosition);
-        if (!zombieCoords.TryDistance(EntityManager, steering.Coordinates, out var zombieDist))
-            return false;
-
-        foreach (var neighbor in poly.Neighbors)
-        {
-            if (!neighbor.Data.IsFreeSpace)
-                continue;
-
-            var neighborTile = new Vector2i(
-                (int)MathF.Floor(neighbor.Box.Center.X),
-                (int)MathF.Floor(neighbor.Box.Center.Y));
-
-            // Skip the zombie's own tile — repaths there would re-route through the same obstacle.
-            if (neighborTile == zombieTile)
-                continue;
-
-            if (_hordeBrain.GetOccupancy(poly.GraphUid, neighborTile) >= _hordeBrain.OccupancyThreshold)
-                continue;
-
-            var neighborCoords = new EntityCoordinates(poly.GraphUid, neighbor.Box.Center);
-            if (!neighborCoords.TryDistance(EntityManager, steering.Coordinates, out var neighborDist))
-                continue;
-
-            // Accept neighbors that are not farther from the goal than where the zombie is now.
-            if (neighborDist <= zombieDist)
-                return true;
-        }
-
-        return false;
     }
 
     private void GetObstacleEntities(PathPoly poly, int mask, int layer, List<EntityUid> ents)

@@ -15,6 +15,4 @@ public static class FSAIBlackboardKeys
     public static readonly string BreachEvalFailCount = "FSBreachEvalFailCount";
     public static readonly string BreachCooldown      = "FSBreachCooldown";
     public static readonly string MazeCheckTimer      = "FSMazeCheckTimer";
-    public static readonly string SpawnGrace          = "FSSpawnGrace";
-    public static readonly string PhysicsStuckTimer   = "FSPhysicsStuckTimer";
 }

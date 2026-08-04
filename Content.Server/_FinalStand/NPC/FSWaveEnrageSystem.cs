@@ -1,4 +1,4 @@
-// Boosts wave zombie speed at T-60s (1.25x) and T-30s (1.375x total); restores on wave end.
+// Boosts wave zombie speed at T-60s (1.25x) and T-30s (1.375x total); restores when combat ends.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.NPC;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.NPC;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
@@ -16,24 +17,57 @@ public sealed class FSWaveEnrageSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _speedMod = default!;
 
-    private readonly Dictionary<EntityUid, (bool T60, bool T30)> _applied = new();
-    private readonly Dictionary<EntityUid, (float Walk, float Sprint)> _origSpeeds = new();
+    // Pre-enrage base speeds plus the stage they are currently boosted to.
+    private readonly Dictionary<EntityUid, (float Walk, float Sprint, int Stage)> _boosted = new();
 
     private const float T60Multiplier = 1.25f;
     private const float T30TotalMultiplier = 1.375f;
+    private const float TickInterval = 1f;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
-    }
+    // 0 = not enraged, 1 = T-60 reached, 2 = T-30 reached.
+    private int _stage;
+    private float _accumulator;
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var ruleQuery = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
-        while (ruleQuery.MoveNext(out var ruleUid, out var rule, out _))
+        _accumulator += frameTime;
+        if (_accumulator < TickInterval)
+            return;
+        _accumulator -= TickInterval;
+
+        var stage = GetRuleStage();
+
+        // Derived entirely from rule state, so every way a wave can end — kill clear, fallback
+        // timer, admin force — winds the boost back without needing its own event.
+        if (stage == 0)
+        {
+            if (_stage != 0)
+            {
+                _stage = 0;
+                RestoreSpeeds();
+            }
+            return;
+        }
+
+        if (stage > _stage)
+        {
+            _stage = stage;
+            if (stage == 2)
+                ClearBreachCooldowns();
+        }
+
+        // Re-applied each tick rather than once at the threshold: spawning runs the whole combat
+        // phase, so most of the horde arrives after the threshold and would otherwise never enrage.
+        ApplyEnrage(_stage == 2 ? T30TotalMultiplier : T60Multiplier);
+    }
+
+    private int GetRuleStage()
+    {
+        var stage = 0;
+        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
+        while (query.MoveNext(out _, out var rule, out _))
         {
             if (rule.Phase != WavePhase.Combat)
                 continue;
@@ -42,63 +76,55 @@ public sealed class FSWaveEnrageSystem : EntitySystem
             if (remaining <= 0f)
                 continue;
 
-            if (!_applied.TryGetValue(ruleUid, out var state))
-                state = (false, false);
-
-            if (!state.T60 && remaining <= 60f)
-            {
-                state.T60 = true;
-                _applied[ruleUid] = state;
-                ApplySpeedBoost(T60Multiplier);
-            }
-
-            if (!state.T30 && remaining <= 30f)
-            {
-                state.T30 = true;
-                _applied[ruleUid] = state;
-                ApplySpeedBoost(T30TotalMultiplier);
-                ClearBreachCooldowns();
-            }
+            if (remaining <= 30f)
+                stage = Math.Max(stage, 2);
+            else if (remaining <= 60f)
+                stage = Math.Max(stage, 1);
         }
+        return stage;
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent args)
+    private void ApplyEnrage(float totalMultiplier)
     {
-        _applied.Clear();
-        RestoreSpeeds();
-    }
-
-    private void ApplySpeedBoost(float totalMultiplier)
-    {
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, MovementSpeedModifierComponent, HTNComponent>();
-        while (query.MoveNext(out var uid, out _, out var move, out var htn))
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, MovementSpeedModifierComponent, HTNComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var move, out var htn))
         {
-            if (!_origSpeeds.ContainsKey(uid))
-                _origSpeeds[uid] = (move.BaseWalkSpeed, move.BaseSprintSpeed);
+            if (_boosted.TryGetValue(uid, out var entry))
+            {
+                if (entry.Stage == _stage)
+                    continue;
+            }
+            else
+            {
+                entry = (move.BaseWalkSpeed, move.BaseSprintSpeed, 0);
+                htn.Blackboard.SetValue("FSAggroGraceUntil", _timing.CurTime + TimeSpan.FromSeconds(90));
+            }
 
-            var (origWalk, origSprint) = _origSpeeds[uid];
-            _speedMod.ChangeBaseSpeed(uid, origWalk * totalMultiplier, origSprint * totalMultiplier, move.Acceleration, move);
-            htn.Blackboard.SetValue("FSAggroGraceUntil", _timing.CurTime + TimeSpan.FromSeconds(90));
+            _speedMod.ChangeBaseSpeed(uid,
+                entry.Walk * totalMultiplier,
+                entry.Sprint * totalMultiplier,
+                move.Acceleration,
+                move);
+            _boosted[uid] = (entry.Walk, entry.Sprint, _stage);
         }
     }
 
+    // BreachCooldown is a float everywhere it is read; removing the key is what "clear" means.
     private void ClearBreachCooldowns()
     {
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
-        while (query.MoveNext(out _, out _, out var htn))
-            htn.Blackboard.SetValue(FSAIBlackboardKeys.BreachCooldown, TimeSpan.Zero);
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out _, out _, out _, out var htn))
+            htn.Blackboard.Remove<float>(FSAIBlackboardKeys.BreachCooldown);
     }
 
     private void RestoreSpeeds()
     {
-        foreach (var (uid, (walk, sprint)) in _origSpeeds)
+        foreach (var (uid, (walk, sprint, _)) in _boosted)
         {
-            if (!Exists(uid))
-                continue;
             if (!TryComp<MovementSpeedModifierComponent>(uid, out var move))
                 continue;
             _speedMod.ChangeBaseSpeed(uid, walk, sprint, move.Acceleration, move);
         }
-        _origSpeeds.Clear();
+        _boosted.Clear();
     }
 }

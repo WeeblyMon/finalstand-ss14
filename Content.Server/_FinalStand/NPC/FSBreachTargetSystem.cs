@@ -17,6 +17,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC;
 using Content.Shared.Doors;
 using Content.Shared.Doors.Components;
 using Content.Shared.Weapons.Melee;
@@ -45,6 +46,20 @@ public sealed class FSBreachTargetSystem : EntitySystem
     private const float TickInterval = 0.1f;
     private float _accumulator;
     private float _baseZombieDamage = 10f;
+
+    // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
+    private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
+    private readonly HashSet<Entity<MobStateComponent>> _mobBuffer = new();
+    private readonly HashSet<Entity<DoorComponent>> _doorBuffer = new();
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
+
+    // How many peers are already breaching each candidate. Built once per evaluation from a
+    // single radius query, instead of re-scanning the whole horde for every candidate scored.
+    private readonly Dictionary<EntityUid, int> _attackerTally = new();
+
+    // Candidates sit within 6 tiles and their attackers stand next to them, so this covers
+    // every zombie that can plausibly be hitting one of them.
+    private const float AttackerTallyRadius = 8f;
 
     private static readonly EntProtoId ZombieNormalProto = "FSZombieNormal";
 
@@ -135,27 +150,16 @@ public sealed class FSBreachTargetSystem : EntitySystem
     }
 
 
-    public void TryUpdateRetaliationState(EntityUid uid, EntityUid attacker, TimeSpan curTime)
-    {
-        if (!HasComp<MobStateComponent>(attacker)) return;
-        if (!Exists(attacker) || _mobState.IsDead(attacker)) return;
-        if (HasComp<WaveSpawnedTagComponent>(attacker)) return;
-        if (!TryComp<HTNComponent>(uid, out var htn)) return;
-
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.RetaliationTimer, 2f);
-        htn.Blackboard.SetValue("FSAggroGraceUntil", curTime + TimeSpan.FromSeconds(2));
-    }
-
-
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
         _accumulator += frameTime;
         if (_accumulator < TickInterval) return;
         _accumulator -= TickInterval;
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
-        while (query.MoveNext(out var uid, out _, out var htn))
+        // ActiveNPCComponent is dropped when a mob dies, so corpses — of which up to
+        // FSCorpseCleanupSystem.MaxZombieCorpses linger between waves — never reach here.
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var htn))
             Tick(uid, htn, TickInterval);
     }
 
@@ -238,12 +242,13 @@ public sealed class FSBreachTargetSystem : EntitySystem
             || lockVal <= 0f)
             return;
 
-        var worldPos = _transform.GetWorldPosition(uid);
-        var mapId = Transform(uid).MapID;
+        var xform = Transform(uid);
+        var worldPos = _transform.GetWorldPosition(xform);
+        var mapId = xform.MapID;
         var epicenter = new MapCoordinates(worldPos, mapId);
-        var nearbyMobs = new HashSet<Entity<MobStateComponent>>();
-        _lookup.GetEntitiesInRange<MobStateComponent>(epicenter, 1.5f, nearbyMobs);
-        foreach (var (nearUid, _) in nearbyMobs)
+        _mobBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, 1.5f, _mobBuffer);
+        foreach (var (nearUid, _) in _mobBuffer)
         {
             if (nearUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(nearUid)) continue;
@@ -259,13 +264,14 @@ public sealed class FSBreachTargetSystem : EntitySystem
             return;
 
         var baseDamage = GetBaseZombieDamage();
-        var destructibles = new HashSet<Entity<DestructibleComponent>>();
-        _lookup.GetEntitiesInRange<DestructibleComponent>(epicenter, 4f, destructibles);
+        BuildAttackerTally(epicenter, uid);
+        _destructibleBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, 4f, _destructibleBuffer);
 
         TryComp<FSBreachStateComponent>(uid, out var state);
         var curTime = _timing.CurTime;
 
-        foreach (var (candidate, _) in destructibles)
+        foreach (var (candidate, _) in _destructibleBuffer)
         {
             if (candidate == breachTarget) continue;
             if (HasComp<WaveSpawnedTagComponent>(candidate)) continue;
@@ -345,9 +351,9 @@ public sealed class FSBreachTargetSystem : EntitySystem
         // while suppressed, so evaluation starts fresh once the zombie moves clear.
         var mapId = Transform(uid).MapID;
         var zombieEpicenter = new MapCoordinates(zombiePos, mapId);
-        var nearDoors = new HashSet<Entity<DoorComponent>>();
-        _lookup.GetEntitiesInRange<DoorComponent>(zombieEpicenter, 2.5f, nearDoors);
-        if (nearDoors.Count > 0)
+        _doorBuffer.Clear();
+        _lookup.GetEntitiesInRange(zombieEpicenter, 2.5f, _doorBuffer);
+        if (_doorBuffer.Count > 0)
             return;
 
         var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
@@ -427,9 +433,9 @@ public sealed class FSBreachTargetSystem : EntitySystem
         {
             var mapId = Transform(uid).MapID;
             var epicenter = new MapCoordinates(currentPos, mapId);
-            var doorNearby = new HashSet<Entity<DoorComponent>>();
-            _lookup.GetEntitiesInRange<DoorComponent>(epicenter, 1.5f, doorNearby);
-            if (doorNearby.Count > 0)
+            _doorBuffer.Clear();
+            _lookup.GetEntitiesInRange(epicenter, 1.5f, _doorBuffer);
+            if (_doorBuffer.Count > 0)
             {
                 bb.SetValue(FSAIBlackboardKeys.LastPathProgress, currentPos);
                 bb.SetValue(FSAIBlackboardKeys.PathProgressTimer, 0f);
@@ -446,6 +452,8 @@ public sealed class FSBreachTargetSystem : EntitySystem
         var epicenter = new MapCoordinates(zombieWorldPos, mapId);
         var curTime = _timing.CurTime;
         var isMazeMode = mazeTargetPos.HasValue;
+
+        BuildAttackerTally(epicenter, zombie);
 
         TryComp<FSBreachStateComponent>(zombie, out var state);
         if (state != null)
@@ -499,8 +507,8 @@ public sealed class FSBreachTargetSystem : EntitySystem
         EntityUid zombie, float baseDamage, Vector2 zombieWorldPos, MapId mapId,
         FSBreachStateComponent? state, TimeSpan curTime, Vector2? mazeTargetPos = null)
     {
-        var destructibles = new HashSet<Entity<DestructibleComponent>>();
-        _lookup.GetEntitiesInRange<DestructibleComponent>(epicenter, radius, destructibles);
+        _destructibleBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, radius, _destructibleBuffer);
 
         var travelDir = Vector2.Zero;
         var hasTravelDir = false;
@@ -545,7 +553,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
         EntityUid best = EntityUid.Invalid;
         float bestScore = -1f;
 
-        foreach (var (candidate, _) in destructibles)
+        foreach (var (candidate, _) in _destructibleBuffer)
         {
             if (HasComp<WaveSpawnedTagComponent>(candidate)) continue;
             if (HasComp<DoorComponent>(candidate)) continue; // doors handled by pry/smash system
@@ -564,7 +572,7 @@ public sealed class FSBreachTargetSystem : EntitySystem
             }
 
             var score = mazeTargetPos.HasValue
-                ? ScoreCandidateMaze(candidate, zombie, baseDamage, zombieWorldPos, mazeTargetPos.Value)
+                ? ScoreCandidateMaze(candidate, baseDamage, zombieWorldPos, mazeTargetPos.Value)
                 : ScoreCandidate(candidate, zombie, baseDamage, zombieWorldPos, mapId);
             if (score > bestScore)
             {
@@ -667,36 +675,45 @@ public sealed class FSBreachTargetSystem : EntitySystem
         var navValue = GetNavValue(structure, zombie, zombieWorldPos, mapId);
         var cost = GetBreachCost(structure, baseDamage);
         var baseScore = (weakness * 0.3f + navValue * 0.7f) / cost;
-        var attackers = CountZombiesAttackingTarget(structure, zombie);
-        return baseScore * (1f + MathF.Min(attackers, 5) * 0.2f);
+        return baseScore * PackBonus(structure);
     }
 
     // Maze scoring: replaces GetNavValue with shortcut geometry.
     // A structure's "shortcut value" is how well it sits on the direct zombie→target line.
     // Structures directly in the way score 1.0; 4+ tiles off the line score 0.2 (still non-zero
     // so even off-axis barriers are considered if they're cheap enough).
-    private float ScoreCandidateMaze(EntityUid structure, EntityUid zombie, float baseDamage,
+    private float ScoreCandidateMaze(EntityUid structure, float baseDamage,
         Vector2 zombiePos, Vector2 targetPos)
     {
         var weakness = GetWeakness(structure);
         var shortcut = GetShortcutValue(structure, zombiePos, targetPos);
         var cost = GetBreachCost(structure, baseDamage);
         var baseScore = (weakness * 0.3f + shortcut * 0.7f) / cost;
-        var attackers = CountZombiesAttackingTarget(structure, zombie);
-        return baseScore * (1f + MathF.Min(attackers, 5) * 0.2f);
+        return baseScore * PackBonus(structure);
     }
 
-    private int CountZombiesAttackingTarget(EntityUid target, EntityUid exclude)
+    private void BuildAttackerTally(MapCoordinates epicenter, EntityUid exclude)
     {
-        var count = 0;
-        var query = EntityQueryEnumerator<WaveSpawnedTagComponent, HTNComponent>();
-        while (query.MoveNext(out var uid, out _, out var htn))
+        _attackerTally.Clear();
+        _peerBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, AttackerTallyRadius, _peerBuffer);
+
+        foreach (var (peer, _) in _peerBuffer)
         {
-            if (uid == exclude) continue;
-            if (htn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var bt, EntityManager) && bt == target)
-                count++;
+            if (peer == exclude) continue;
+            if (!TryComp<HTNComponent>(peer, out var peerHtn)) continue;
+            if (!peerHtn.Blackboard.TryGetValue<EntityUid>(FSAIBlackboardKeys.BreachTarget, out var bt, EntityManager))
+                continue;
+
+            _attackerTally.TryGetValue(bt, out var count);
+            _attackerTally[bt] = count + 1;
         }
-        return count;
+    }
+
+    private float PackBonus(EntityUid structure)
+    {
+        _attackerTally.TryGetValue(structure, out var attackers);
+        return 1f + MathF.Min(attackers, 5) * 0.2f;
     }
 
     // Projects the structure's position onto the direct zombie→target line and measures

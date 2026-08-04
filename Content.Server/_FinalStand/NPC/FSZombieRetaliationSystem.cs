@@ -21,6 +21,8 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
     private const float AlertDuration = 1.5f;
     private const float AlertCooldown = 0.5f;
 
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
+
     public void TryRetaliate(EntityUid uid, EntityUid attacker)
     {
         if (!HasComp<MobStateComponent>(attacker))
@@ -32,20 +34,30 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
         if (!TryComp<HTNComponent>(uid, out var htn))
             return;
 
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
-        htn.Blackboard.SetValue(FSAIBlackboardKeys.RetaliationTimer, RetaliationDuration);
-        htn.Blackboard.SetValue("FSAggroGraceUntil", _timing.CurTime + TimeSpan.FromSeconds(RetaliationDuration));
+        var bb = htn.Blackboard;
+        var curTime = _timing.CurTime;
+        bb.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
+        bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, RetaliationDuration);
+        bb.SetValue("FSAggroGraceUntil", curTime + TimeSpan.FromSeconds(RetaliationDuration));
         _htn.Replan(htn);
 
+        // This fires once per damage instance, so an automatic weapon would otherwise run a
+        // 10-tile query per bullet. The cooldown that already rate-limits each peer's alert
+        // now also gates the broadcast itself.
+        if (bb.TryGetValue<TimeSpan>("FSPackAlertCooldown", out var ownCooldown, EntityManager)
+            && curTime < ownCooldown)
+            return;
+
+        bb.SetValue("FSPackAlertCooldown", curTime + TimeSpan.FromSeconds(AlertCooldown));
         AlertNearby(uid, attacker);
     }
 
     private void AlertNearby(EntityUid uid, EntityUid attacker)
     {
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
-        _lookup.GetEntitiesInRange(Transform(uid).Coordinates, AlertRadius, nearby);
+        _peerBuffer.Clear();
+        _lookup.GetEntitiesInRange(Transform(uid).Coordinates, AlertRadius, _peerBuffer);
 
-        foreach (var peer in nearby)
+        foreach (var peer in _peerBuffer)
         {
             if (peer.Owner == uid) continue;
             if (!TryComp<HTNComponent>(peer.Owner, out var peerHtn)) continue;
