@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared.Audio;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -14,12 +15,20 @@ public sealed class FSDevastatorSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private readonly SharedAmbientSoundSystem _ambientSound = default!;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSDevastatorComponent, MeleeHitEvent>(OnMeleeHit);
+        SubscribeLocalEvent<FSDevastatorComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSDevastatorComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
+    }
+
+    private void OnMobStateChanged(EntityUid uid, FSDevastatorComponent comp, MobStateChangedEvent args)
+    {
+        if (args.NewMobState == MobState.Dead)
+            _ambientSound.SetAmbience(uid, false);
     }
 
     private void OnRefreshSpeed(EntityUid uid, FSDevastatorComponent comp, RefreshMovementSpeedModifiersEvent args)

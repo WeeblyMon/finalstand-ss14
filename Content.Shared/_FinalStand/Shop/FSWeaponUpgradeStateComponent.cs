@@ -84,4 +84,5 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int OverloadRoundLevel = 0;
     [DataField] public int HomingLevel = 0;
+    [DataField] public int MultishotLevel = 0;
 }

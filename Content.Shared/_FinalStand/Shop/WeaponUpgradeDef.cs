@@ -94,6 +94,7 @@ public enum WeaponUpgradeType : byte
 
     OverloadRound,
     HomingBolts,
+    Multishot,
 }
 
 [DataDefinition]

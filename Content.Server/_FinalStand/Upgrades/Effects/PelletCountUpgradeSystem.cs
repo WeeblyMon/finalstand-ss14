@@ -79,6 +79,9 @@ public sealed class PelletCountUpgradeSystem : EntitySystem
                 newFlags.Flags = flags.Flags;
                 newFlags.ArmorShredMagnitude = flags.ArmorShredMagnitude;
             }
+
+            if (TryComp<FSHomingProjectileComponent>(firstProj, out var homing))
+                EnsureComp<FSHomingProjectileComponent>(newProj).TurnRateDegrees = homing.TurnRateDegrees;
         }
     }
 }

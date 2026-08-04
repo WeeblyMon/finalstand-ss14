@@ -498,6 +498,13 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
                 break;
             }
 
+            case WeaponUpgradeType.Multishot:
+            {
+                var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+                state.MultishotLevel = newLevel;
+                break;
+            }
+
             case WeaponUpgradeType.PulseCascade:
             {
                 var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
@@ -889,6 +896,7 @@ public sealed class FSPlayerUpgradesSystem : EntitySystem
         to.PulseCascadeEnabled = from.PulseCascadeEnabled;
         to.OverloadRoundLevel = from.OverloadRoundLevel;
         to.HomingLevel = from.HomingLevel;
+        to.MultishotLevel = from.MultishotLevel;
         to.AftershockEnabled = from.AftershockEnabled;
         to.MagazineSizeBonus = from.MagazineSizeBonus;
         to.AttackSpeedMultiplier = from.AttackSpeedMultiplier;

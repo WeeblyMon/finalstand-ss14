@@ -16,6 +16,7 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
     [Dependency] private readonly FlechetteRoundsUpgradeSystem _flechette = default!;
     [Dependency] private readonly MagEfficiencyUpgradeSystem _magEfficiency = default!;
     [Dependency] private readonly OverloadRoundUpgradeSystem _overloadRound = default!;
+    [Dependency] private readonly MultishotUpgradeSystem _multishot = default!;
 
     public override void Initialize()
     {
@@ -79,6 +80,7 @@ public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
         }
 
         _magEfficiency.HandleAmmoShot(uid, comp, args);
+        _multishot.HandleAmmoShot(uid, comp, args);
         _overloadRound.HandleAmmoShot(uid, comp, args);
     }
 

@@ -1134,6 +1134,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         WeaponUpgradeType.TeslaArcRange      => "Arc Range",
         WeaponUpgradeType.OverloadRound      => "Overload",
         WeaponUpgradeType.HomingBolts        => "Homing",
+        WeaponUpgradeType.Multishot          => "Multishot",
         _                                    => "",
     };
 
