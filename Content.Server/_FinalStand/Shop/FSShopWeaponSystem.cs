@@ -25,6 +25,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
 {
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly FSPlayerUpgradesSystem _upgrades = default!;
+    [Dependency] private readonly FSItemStashSystem _stash = default!;
     [Dependency] private readonly FSResearchSystem _fsResearch = default!;
     [Dependency] private readonly FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private readonly FSScienceOnlySystem _science = default!;
@@ -41,7 +42,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
     private const double SellDedupWindowSeconds = 5.0;
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastSellTime = new();
-    private readonly Dictionary<EntityUid, TimeSpan> _recentSells = new();
+    private readonly Dictionary<NetEntity, TimeSpan> _recentSells = new();
 
     public override void Initialize()
     {
@@ -161,7 +162,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             for (var i = 0; i < comp.StarterAmmoCount; i++)
             {
                 var ammo = Spawn(comp.StarterAmmoProtoId.Value, coords);
-                TryStashItemOnPlayer(player, ammo);
+                _stash.Stash(player, ammo);
             }
         }
 
@@ -230,27 +231,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
                 || shopState.Levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
             {
                 _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
-                return;
-            }
-        }
-
-        if (def.Type == WeaponUpgradeType.Akimbo)
-        {
-            var hasFreeHand = false;
-            if (TryComp<HandsComponent>(player, out var playerHands))
-            {
-                foreach (var handName in playerHands.SortedHands)
-                {
-                    if (!_hands.TryGetHeldItem((player, playerHands), handName, out _))
-                    {
-                        hasFreeHand = true;
-                        break;
-                    }
-                }
-            }
-            if (!hasFreeHand)
-            {
-                _popup.PopupEntity(Loc.GetString("shop-upgrade-no-free-hand"), uid, player);
                 return;
             }
         }
@@ -338,7 +318,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         });
         var weapon = candidates[0];
 
-        if (_recentSells.ContainsKey(weapon))
+        if (_recentSells.ContainsKey(GetNetEntity(weapon)))
             return;
 
         var combinedSpent = TryComp<FSWeaponUpgradeStateComponent>(weapon, out var ws) ? ws.TotalSpent : 0;
@@ -348,21 +328,15 @@ public sealed class FSShopWeaponSystem : EntitySystem
         var totalRefund   = baseRefund + upgradeRefund;
         totalRefund = (int)(Math.Round(totalRefund / 50.0) * 50);
         totalRefund = Math.Max(0, totalRefund);
-        try
-        {
-            QueueDel(weapon);
-            CleanupAmmoForWeapon(player, comp);
-            _wallet.GiveCredits(mindId, totalRefund);
 
-            _lastSellTime[userId] = now;
-            _recentSells[weapon] = now;
-        }
-        catch (Exception ex)
-        {
-            Log.Error($"[FSSell] Primary deletion failed for weapon {weapon}, player {player}: {ex}");
-            SendSellResponse(userId, success: false, "Internal error during sell.");
-            return;
-        }
+        // Record the sale before deleting. The dedup key is the net entity, because a raw
+        // EntityUid is recycled and would block an unrelated later sale inside the window.
+        _lastSellTime[userId] = now;
+        _recentSells[GetNetEntity(weapon)] = now;
+
+        QueueDel(weapon);
+        CleanupAmmoForWeapon(player, comp);
+        _wallet.GiveCredits(mindId, totalRefund);
 
         _popup.PopupEntity($"Sold for ${totalRefund:N0}.", shopUid, player);
         SendSellResponse(userId, success: true, "");
@@ -372,7 +346,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
     private void CleanRecentSells(TimeSpan now)
     {
-        var stale = new List<EntityUid>();
+        var stale = new List<NetEntity>();
         foreach (var (uid, time) in _recentSells)
         {
             if ((now - time).TotalSeconds >= SellDedupWindowSeconds)
@@ -425,7 +399,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        foreach (var slot in new[] { "belt", "suitstorage", "pocket1", "pocket2" })
+        foreach (var slot in FSItemStashSystem.SlotPriority)
         {
             if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
@@ -451,33 +425,19 @@ public sealed class FSShopWeaponSystem : EntitySystem
         return results;
     }
 
-    private static readonly string[] InventorySlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
-
     private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
         // Grenade packs are pocket items — they must stay in inventory, never in hand.
         if (HasComp<FSGrenadePackComponent>(item))
         {
-            TryStashItemOnPlayer(player, item);
+            _stash.Stash(player, item);
             return;
         }
 
         if (_hands.TryPickupAnyHand(player, item))
             return;
 
-        TryStashItemOnPlayer(player, item);
-    }
-
-    private void TryStashItemOnPlayer(EntityUid player, EntityUid item)
-    {
-        foreach (var slot in InventorySlotPriority)
-        {
-            if (_inventory.TryEquip(player, item, slot, silent: true))
-                return;
-        }
-
-        if (_inventory.TryGetSlotEntity(player, "back", out var backpack))
-            _storage.Insert(backpack.Value, item, out _, user: player, playSound: false);
+        _stash.Stash(player, item);
     }
 
     private void MarkAsUpgraded(EntityUid weapon)
@@ -560,7 +520,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         // Also check pocket/belt/suit-storage slots for non-handheld items (e.g. grenade packs).
-        foreach (var slot in InventorySlotPriority)
+        foreach (var slot in FSItemStashSystem.SlotPriority)
         {
             if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
@@ -608,7 +568,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        foreach (var slot in new[] { "belt", "suitstorage", "pocket1", "pocket2" })
+        foreach (var slot in FSItemStashSystem.SlotPriority)
         {
             if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
                 continue;
