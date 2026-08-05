@@ -15,7 +15,7 @@ public static class ReadyCheckDepts
 {
     public static readonly Dictionary<string, string> HeadJobToDisplay = new()
     {
-        { "HeadOfSecurity",    "TAC" },
+        { "HeadOfSecurity",    "SEC" },
         { "ResearchDirector",  "SCI" },
         { "ChiefEngineer",     "ENG" },
         { "ChiefMedicalOfficer", "MED" },

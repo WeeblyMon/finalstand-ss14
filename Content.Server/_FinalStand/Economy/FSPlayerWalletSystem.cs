@@ -401,11 +401,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     public void DistributeCredits(int amount)
     {
         var count = 0;
-        var query = EntityQueryEnumerator<MindComponent>();
-        while (query.MoveNext(out var mindId, out var mind))
+        foreach (var session in _playerManager.Sessions)
         {
-            if (mind.UserId == null) continue;
-            if (!_playerManager.TryGetSessionById(mind.UserId.Value, out _)) continue;
+            if (!_mind.TryGetMind(session, out var mindId, out _))
+                continue;
+
             var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
             wallet.Credits += amount;
             NotifyClient(mindId, wallet);
@@ -417,13 +417,15 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     public void DistributePerkPoints(int amount)
     {
         var count = 0;
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out var mindId, out var wallet, out var mind))
+        foreach (var session in _playerManager.Sessions)
         {
+            if (!_mind.TryGetMind(session, out var mindId, out _))
+                continue;
+
+            var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
             wallet.PerkPoints += amount;
             NotifyClient(mindId, wallet);
-            if (mind.UserId != null && _playerManager.TryGetSessionById(mind.UserId.Value, out var session))
-                DbUpsert(mind.UserId.Value.UserId, session.Name, wallet.PerkPoints);
+            DbUpsert(session.UserId.UserId, session.Name, wallet.PerkPoints);
             count++;
         }
         Log.Info($"[FSWallet] DistributePerkPoints +{amount} → {count} player(s)");

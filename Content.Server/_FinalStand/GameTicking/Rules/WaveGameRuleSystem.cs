@@ -49,6 +49,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly SharedJobSystem _jobs = default!;
     [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
     [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
@@ -56,6 +57,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private readonly TagSystem _tags = default!;
 
     private static readonly ProtoId<TagPrototype> DoorBumpTag = "DoorBumpOpener";
+    private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
+
+    private readonly List<EntityUid> _spawnerBuffer = new();
+    private readonly HashSet<EntityUid> _spawnClearBuffer = new();
 
     public override void Initialize()
     {
@@ -81,23 +87,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         switch (comp.Phase)
         {
             case WavePhase.Prep:
-                // If no spawners were found at prep start (e.g. map not yet loaded), keep retrying.
-                if (comp.SpawnerEntities.Count == 0)
+                // The map may not be loaded when prep starts, so retry — but at 1 Hz, not
+                // every tick, or a map with no spawners scans the whole round.
+                if (comp.SpawnerEntities.Count == 0 && now >= comp.NextSpawnerRetryTime)
                 {
-                    var unlocked = new List<EntityUid>();
-                    var sq2 = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
-                    while (sq2.MoveNext(out var spawnerUid2, out var spawner2))
-                    {
-                        if (comp.WaveNumber >= spawner2.FromWave)
-                            unlocked.Add(spawnerUid2);
-                    }
-                    if (unlocked.Count > 0)
-                    {
-                        if (unlocked.Count > 1) RobustRandom.Shuffle(unlocked);
-                        var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
-                        for (var i = 0; i < activeCount; i++)
-                            comp.SpawnerEntities.Add(unlocked[i]);
-                    }
+                    comp.NextSpawnerRetryTime = now + TimeSpan.FromSeconds(1);
+                    SelectSpawners(comp);
                 }
                 if (comp.VoteCountdownActive && !comp.VoteCountdownSoundPlayed && now >= comp.VoteCountdownSoundTime)
                 {
@@ -177,34 +172,17 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
 
         // Pre-select spawners for the upcoming wave so the CCC UI can show them during prep.
-        comp.SpawnerEntities.Clear();
-        var unlocked = new List<EntityUid>();
-        var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
-        while (sq.MoveNext(out var spawnerUid, out var spawner))
-        {
-            if (comp.WaveNumber >= spawner.FromWave)
-                unlocked.Add(spawnerUid);
-        }
-        if (unlocked.Count == 0)
-        {
+        SelectSpawners(comp);
+        if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
-        }
-        else
-        {
-            if (unlocked.Count > 1)
-                RobustRandom.Shuffle(unlocked);
-            var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
-            for (var i = 0; i < activeCount; i++)
-                comp.SpawnerEntities.Add(unlocked[i]);
-        }
 
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
+        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
         comp.NextTimerBroadcastTime = Timing.CurTime;
         RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
-        Log.Info($"[WaveGameRule] WaveEndSound is {(comp.WaveEndSound == null ? "NULL" : comp.WaveEndSound.ToString())}");
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
         RaiseLocalEvent(new WavePrepStartedEvent());
@@ -216,20 +194,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         // Spawners were pre-selected in StartPrepPhase; re-select only if somehow empty.
         if (comp.SpawnerEntities.Count == 0)
-        {
-            var unlocked = new List<EntityUid>();
-            var sq = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
-            while (sq.MoveNext(out var spawnerUid, out var spawner))
-            {
-                if (comp.WaveNumber >= spawner.FromWave)
-                    unlocked.Add(spawnerUid);
-            }
-            if (unlocked.Count > 1)
-                RobustRandom.Shuffle(unlocked);
-            var activeCount = RobustRandom.Next(1, unlocked.Count + 1);
-            for (var i = 0; i < activeCount; i++)
-                comp.SpawnerEntities.Add(unlocked[i]);
-        }
+            SelectSpawners(comp);
 
         comp.CCCEntity = EntityUid.Invalid;
         var cq = EntityQueryEnumerator<FinalStandCCCComponent>();
@@ -239,8 +204,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!comp.CCCEntity.IsValid())
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
+        // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
+        comp.PlayersThisWave = CountActivePlayers();
+
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
-            ? _playerManager.Sessions.Length * comp.PlayerEnemyBonus
+            ? comp.PlayersThisWave * comp.PlayerEnemyBonus
             : 0;
         comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
         // Single-corridor waves past wave 5 double the count — one lane is too easy to hold otherwise.
@@ -269,12 +237,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
             ScaleEnemyHp(giant, comp.WaveNumber);
             ScaleEnemySpeed(giant, comp.WaveNumber);
-            ScaleEnemyDamage(giant, comp.WaveNumber, _playerManager.Sessions.Length);
+            ScaleEnemyDamage(giant, comp.WaveNumber, comp.PlayersThisWave);
             ScaleEnemyFireRate(giant, comp.WaveNumber);
             RaiseLocalEvent(giant, new FSEnemyHpScaledEvent()); // FINALSTAND: armor recalculates after HP scale
             comp.AliveEnemies.Add(giant);
             comp.GiantEntity = giant;
+            // The boss counts against the wave quota. Both counters move, or the batch loop
+            // spawns a full quota of regulars on top of it.
             comp.EnemyTotalThisWave++;
+            comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
@@ -285,9 +256,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
-        RaiseNetworkEvent(new FSEnemyCountEvent(0, comp.EnemyTotalThisWave), Filter.Broadcast());
+        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
+        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
         RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
-        Log.Info($"[WaveGameRule] WaveStartSound is {(comp.WaveStartSound == null ? "NULL" : comp.WaveStartSound.ToString())}");
         if (comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
         RaiseLocalEvent(new WaveCombatStartedEvent());
@@ -296,6 +267,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
+        foreach (var enemy in comp.AliveEnemies)
+            QueueDel(enemy);
+        comp.AliveEnemies.Clear();
+
         if (!isForced)
         {
             var ended = new WaveEndedEvent(comp.WaveNumber);
@@ -304,15 +279,65 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var waveBonus = GetCompletionBonus(comp.WaveNumber) + GetSurvivalBonus(comp.WaveNumber);
         _wallet.DistributeCredits(waveBonus);
         comp.AccumulatedSurvivalBonus += waveBonus;
+
+        // The boss may have survived to the fallback timer. Pay the reward either way.
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
-            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss fallback — Giant never died.");
+            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
+            AwardBossReward(comp);
         }
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
         comp.WavesCompleted++;
         comp.WaveNumber++;
         StartPrepPhase(uid, comp);
+    }
+
+    private void AwardBossReward(WaveGameRuleComponent comp)
+    {
+        comp.GiantApAwarded = true;
+        if (comp.BossWavePerkReward <= 0)
+            return;
+
+        _wallet.DistributePerkPoints(comp.BossWavePerkReward);
+        Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
+    }
+
+    // Picks a random non-empty subset of the spawners unlocked at the current wave number.
+    private void SelectSpawners(WaveGameRuleComponent comp)
+    {
+        _spawnerBuffer.Clear();
+        var query = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
+        while (query.MoveNext(out var spawnerUid, out var spawner))
+        {
+            if (comp.WaveNumber >= spawner.FromWave)
+                _spawnerBuffer.Add(spawnerUid);
+        }
+
+        comp.SpawnerEntities.Clear();
+        if (_spawnerBuffer.Count == 0)
+            return;
+
+        if (_spawnerBuffer.Count > 1)
+            RobustRandom.Shuffle(_spawnerBuffer);
+
+        var activeCount = RobustRandom.Next(1, _spawnerBuffer.Count + 1);
+        for (var i = 0; i < activeCount; i++)
+            comp.SpawnerEntities.Add(_spawnerBuffer[i]);
+    }
+
+    private int CountActivePlayers()
+    {
+        var count = 0;
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity is not { } mob)
+                continue;
+            if (!HasComp<MobStateComponent>(mob) || _mobState.IsDead(mob))
+                continue;
+            count++;
+        }
+        return count;
     }
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
@@ -333,10 +358,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
     {
-        var allSpawned = comp.EnemiesSpawnedThisWave >= comp.EnemyTotalThisWave;
-        var allDead = comp.AliveEnemies.Count == 0;
-        Log.Debug($"[WaveGameRule] CheckWaveComplete: allSpawned={allSpawned} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}), allDead={allDead} ({comp.AliveEnemies.Count} alive)");
-        if (allSpawned && allDead)
+        if (comp.EnemiesSpawnedThisWave >= comp.EnemyTotalThisWave && comp.AliveEnemies.Count == 0)
             EndCombatPhase(uid, comp);
     }
 
@@ -345,9 +367,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private bool IsSpawnClear(EntityCoordinates coords)
     {
         var mapCoords = _transform.ToMapCoordinates(coords);
-        var ents = new HashSet<EntityUid>();
-        _lookup.GetEntitiesInRange(mapCoords.MapId, mapCoords.Position, 0.4f, ents, LookupFlags.Static | LookupFlags.Approximate);
-        foreach (var ent in ents)
+        _spawnClearBuffer.Clear();
+        _lookup.GetEntitiesInRange(mapCoords.MapId, mapCoords.Position, 0.4f, _spawnClearBuffer, LookupFlags.Static | LookupFlags.Approximate);
+        foreach (var ent in _spawnClearBuffer)
         {
             if (TryComp<PhysicsComponent>(ent, out var body) && body.Hard && body.CanCollide && body.BodyType == BodyType.Static)
                 return false;
@@ -357,6 +379,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void SpawnNextBatch(EntityUid uid, WaveGameRuleComponent comp)
     {
+        if (comp.SpawnerEntities.Count == 0)
+        {
+            SelectSpawners(comp);
+            comp.NextSpawnTime = Timing.CurTime + TimeSpan.FromSeconds(1);
+            if (comp.SpawnerEntities.Count == 0)
+                return;
+        }
+
         var pool = GetDirectorPool(comp);
         var remaining = comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave;
         var toSpawn = Math.Min(remaining, comp.SpawnerEntities.Count * comp.SpawnBatchSize);
@@ -368,7 +398,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var coords = Transform(spawnerUid).Coordinates;
             if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawnerComp) && spawnerComp.SpawnRadius > 0f)
             {
-                var found = false;
+                // If all attempts hit walls, the spawner centre is used as the fallback.
                 for (var attempt = 0; attempt < 8; attempt++)
                 {
                     var angle = RobustRandom.NextFloat() * MathF.Tau;
@@ -377,12 +407,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     if (IsSpawnClear(candidate))
                     {
                         coords = candidate;
-                        found = true;
                         break;
                     }
                 }
-                // If all attempts hit walls, spawner centre is used as fallback.
-                _ = found;
             }
 
             var proto = SelectEnemyProto(comp, pool);
@@ -410,21 +437,28 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
             ScaleEnemyHp(enemy, comp.WaveNumber);
             ScaleEnemySpeed(enemy, comp.WaveNumber);
-            ScaleEnemyDamage(enemy, comp.WaveNumber, _playerManager.Sessions.Length);
+            ScaleEnemyDamage(enemy, comp.WaveNumber, comp.PlayersThisWave);
             ScaleEnemyFireRate(enemy, comp.WaveNumber);
             RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
-            Log.Info($"[WaveGameRule] Spawned {proto} ({comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave}) " +
-                     $"at spawner {spawnerUid}.");
         }
 
         var intervalSec = comp.MinSpawnInterval + RobustRandom.NextFloat() * (comp.MaxSpawnInterval - comp.MinSpawnInterval);
         comp.NextSpawnTime = Timing.CurTime + TimeSpan.FromSeconds(intervalSec);
-        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
+        PushEnemyCount(comp);
 
-        // guard for the uh the no-spawner edge case where all enemies were already counted before this batch
         CheckWaveComplete(uid, comp);
+    }
+
+    private void PushEnemyCount(WaveGameRuleComponent comp)
+    {
+        var now = Timing.CurTime;
+        if (now < comp.NextEnemyCountBroadcast)
+            return;
+
+        comp.NextEnemyCountBroadcast = now + EnemyCountBroadcastInterval;
+        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
     }
 
     private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, List<EntProtoId> pool)
@@ -448,7 +482,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 match = config;
             }
         }
-        return match?.EnemyPool ?? new List<EntProtoId> { "MobXeno" };
+        return match?.EnemyPool ?? FallbackEnemyPool;
     }
 
     // event handlerss
@@ -482,10 +516,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.TotalEnemiesKilled++;
 
             if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
-            {
-                comp.GiantApAwarded = true;
-                Log.Info($"[WaveGameRule] Giant {ent.Owner} died.");
-            }
+                AwardBossReward(comp);
 
             var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
                 ? enemyVal.KillCredits
@@ -498,9 +529,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 killerMind = mindId;
                 _wallet.GiveCredits(mindId, killCredits);
 
-                // TODO(finalstand): update department ID to "TAC" once Security role is renamed
-                if (IsTacRole(mindId))
-                    _wallet.GiveCredits(mindId, comp.TacKillBonus);
+                if (IsSecurityRole(mindId))
+                    _wallet.GiveCredits(mindId, comp.SecKillBonus);
             }
 
             if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
@@ -513,18 +543,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 }
             }
 
-            Log.Info($"[WaveGameRule] Enemy {ent.Owner} died (origin={args.Origin}). " +
-                     $"{comp.AliveEnemies.Count} alive, " +
-                     $"{comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave} not yet spawned (wave {comp.WaveNumber}).");
-            RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
+            PushEnemyCount(comp);
             CheckWaveComplete(uid, comp);
             break;
         }
     }
 
-    private bool IsTacRole(EntityUid mindId)
+    private bool IsSecurityRole(EntityUid mindId)
     {
-        // TODO(finalstand): update department ID to "TAC" once Security role is renamed
         return _jobs.MindTryGetJob(mindId, out var job)
             && _jobs.TryGetPrimaryDepartment(job.ID, out var dept)
             && dept.ID == "Security";
@@ -540,7 +566,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (!ruleComp.AliveEnemies.Remove(uid))
                 continue;
 
-            RaiseNetworkEvent(new FSEnemyCountEvent(ruleComp.AliveEnemies.Count, ruleComp.EnemyTotalThisWave), Filter.Broadcast());
+            PushEnemyCount(ruleComp);
             CheckWaveComplete(ruleUid, ruleComp);
             break;
         }
@@ -729,6 +755,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         while (query.MoveNext(out var uid, out var comp, out var gameRule))
         {
             if (!GameTicker.IsGameRuleActive(uid, gameRule)) continue;
+
+
+            if (!comp.PaidCatchUpMinds.Add(mindId))
+                break;
 
             var wavesMissed = comp.WaveNumber - 1;
             if (wavesMissed > 0)

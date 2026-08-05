@@ -69,13 +69,10 @@ public sealed partial class WaveGameRuleComponent : Component
     public int KillReward = 100;
 
     [DataField]
-    public int TacKillBonus = 50;
+    public int SecKillBonus = 50;
 
     [DataField]
-    public int WaveSurvivalBonus = 500;
-
-    [DataField]
-    public int BossWavePerkReward = 50;
+    public int BossWavePerkReward = 1;
 
     [DataField]
     public List<EntProtoId> BossPool = new() { "FSZombieGiant" };
@@ -116,6 +113,11 @@ public sealed partial class WaveGameRuleComponent : Component
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
     public TimeSpan NextTimerBroadcastTime = TimeSpan.Zero;
+    public TimeSpan NextEnemyCountBroadcast = TimeSpan.Zero;
+    public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
+
+    public int PlayersThisWave = 0;
+    public readonly HashSet<EntityUid> PaidCatchUpMinds = new();
 
     [DataField]
     public float BaseZombieMeleeDamage = 10f;
