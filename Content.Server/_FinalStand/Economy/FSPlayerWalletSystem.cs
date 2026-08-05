@@ -26,6 +26,26 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     private SqliteConnection? _db;
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
 
+    // Credits change on every damaging hit (money-on-hit), every kill and every assist.
+    // Pushing a network event per change floods one client with hundreds of messages a wave,
+    // so the hot path marks the wallet dirty and a flush coalesces them.
+    private readonly HashSet<EntityUid> _dirtyWallets = new();
+    private float _notifyAccumulator;
+    private const float NotifyInterval = 0.25f;
+
+    private const int StartingCredits = 500;
+
+    // Set while SaveAll batches. Microsoft.Data.Sqlite rejects a command that does not carry
+    // the connection's open transaction, so every command is built through DbCommand().
+    private SqliteTransaction? _activeTx;
+
+    private SqliteCommand DbCommand()
+    {
+        var cmd = _db!.CreateCommand();
+        cmd.Transaction = _activeTx;
+        return cmd;
+    }
+
     private record struct FullRecord(
         int PerkPoints,
         int Level,
@@ -52,6 +72,25 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         _db = null;
     }
 
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (_dirtyWallets.Count == 0)
+            return;
+
+        _notifyAccumulator += frameTime;
+        if (_notifyAccumulator < NotifyInterval)
+            return;
+        _notifyAccumulator = 0f;
+
+        foreach (var mindId in _dirtyWallets)
+        {
+            if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+                PushWalletState(mindId, wallet);
+        }
+        _dirtyWallets.Clear();
+    }
+
     private void OpenDatabase()
     {
         var rootDir = _res.UserData.RootDir;
@@ -67,6 +106,15 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         }
 
         _db.Open();
+
+        // Every perk-point change writes through immediately. On the default rollback journal
+        // each of those is its own fsync on the game thread; WAL makes them cheap.
+        foreach (var pragmaText in new[] { "PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL" })
+        {
+            using var pragma = _db.CreateCommand();
+            pragma.CommandText = pragmaText;
+            pragma.ExecuteNonQuery();
+        }
 
         using var createCmd = _db.CreateCommand();
         createCmd.CommandText = """
@@ -227,7 +275,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private FullRecord DbGetFullRecord(Guid userId)
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = """
             SELECT augment_points, level, experience, prestige_level, prestige_buffs
             FROM prestige WHERE user_id = $id
@@ -247,7 +295,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private int DbGetPerkPoints(Guid userId)
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = "SELECT augment_points FROM prestige WHERE user_id = $id";
         cmd.Parameters.AddWithValue("$id", userId.ToString());
         var result = cmd.ExecuteScalar();
@@ -256,7 +304,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     private void DbUpsert(Guid userId, string username, int PerkPoints)
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = """
             INSERT INTO prestige (user_id, username, augment_points)
             VALUES ($id, $name, $ap)
@@ -274,7 +322,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         int PerkPoints, int level, int experience, int prestigeLevel,
         string prestigeBuffsJson = "{}")
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = """
             INSERT INTO prestige (
                 user_id, username, augment_points,
@@ -301,11 +349,15 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
         SaveAll();
+        _dirtyWallets.Clear();
+
+        // Credits are round-scoped. Clearing Loaded makes the next spawn re-read the row, which
+        // is what carries perk points and levels into the new round.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
-        while (query.MoveNext(out var mindId, out var wallet))
+        while (query.MoveNext(out _, out var wallet))
         {
-            wallet.Credits = 500;
-            NotifyClient(mindId, wallet);
+            wallet.Credits = 0;
+            wallet.Loaded = false;
         }
         Log.Debug("[FSWallet] Round restart — saved all players, cleared credits.");
     }
@@ -320,7 +372,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             _levelingSystem.SendLevelingUpdate(mindId, lvl);
         if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
-            NotifyClient(mindId, wallet);
+            MarkWalletDirty(mindId);
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
@@ -330,13 +382,25 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
 
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+
+        // A second spawn for the same mind must not re-read the row. Everything earned since
+        // the first spawn lives on the component, and the row is only as fresh as the last
+        // write-through.
+        if (wallet.Loaded)
+        {
+            MarkWalletDirty(mindId);
+            return;
+        }
+
         var row = DbGetFullRecord(ev.Player.UserId.UserId);
 
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.PerkPoints = row.PerkPoints;
-        if (wallet.Credits == 0)
-            wallet.Credits = 500;
-        NotifyClient(mindId, wallet);
+        // Added, not assigned: another handler on this same event may have already paid this
+        // player (late-join catch-up), and handler order between systems is not defined.
+        wallet.Credits += StartingCredits;
+        wallet.Loaded = true;
+        MarkWalletDirty(mindId);
 
         var lvlComp = EnsureComp<FSPlayerLevelComponent>(mindId);
         lvlComp.Level          = row.Level;
@@ -362,33 +426,32 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
         _levelingSystem.SendLevelingUpdate(mindId, lvlComp);
 
-        Log.Info($"[FSWallet] SpawnComplete {ev.Player.Name} — augment={wallet.PerkPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
+        Log.Info($"[FSWallet] Loaded {ev.Player.Name} — perkPoints={wallet.PerkPoints} lvl={lvlComp.Level} xp={lvlComp.Experience}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Entity, out _, out var mind) || mind.UserId == null)
+        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind) || mind.UserId == null)
             return;
 
-        var username = ResolveUsername(mind.UserId.Value);
+        SaveMind(mindId, mind.UserId.Value);
+    }
 
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out var mindId, out var wallet, out var m))
-        {
-            if (m.UserId != mind.UserId) continue;
+    // Writes one mind's persistent state to its user's row. Every save path goes through here,
+    // so the mind that owns the state is always the mind that gets written.
+    private void SaveMind(EntityUid mindId, NetUserId userId)
+    {
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            return;
 
-            TryComp<FSPlayerLevelComponent>(mindId, out var lvl);
-            TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+        TryComp<FSPlayerLevelComponent>(mindId, out var lvl);
+        TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
 
-            DbUpsertFull(
-                mind.UserId.Value.UserId, username,
-                wallet.PerkPoints,
-                lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
-                SerializePrestigeBuffs(buffs));
-
-            Log.Debug($"[FSWallet] Detached {mind.UserId} ({username}) — saved augment={wallet.PerkPoints} lvl={lvl?.Level}");
-            break;
-        }
+        DbUpsertFull(
+            userId.UserId, ResolveUsername(userId),
+            wallet.PerkPoints,
+            lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
+            SerializePrestigeBuffs(buffs));
     }
 
     private string ResolveUsername(NetUserId userId)
@@ -408,7 +471,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
             var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
             wallet.Credits += amount;
-            NotifyClient(mindId, wallet);
+            MarkWalletDirty(mindId);
             count++;
         }
         Log.Info($"[FSWallet] DistributeCredits +{amount} → {count} player(s)");
@@ -424,7 +487,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
             var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
             wallet.PerkPoints += amount;
-            NotifyClient(mindId, wallet);
+            MarkWalletDirty(mindId);
             DbUpsert(session.UserId.UserId, session.Name, wallet.PerkPoints);
             count++;
         }
@@ -435,7 +498,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     {
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.PerkPoints += amount;
-        NotifyClient(mindId, wallet);
+        MarkWalletDirty(mindId);
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
         DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
     }
@@ -445,7 +508,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.PerkPoints < cost)
             return false;
         wallet.PerkPoints -= cost;
-        NotifyClient(mindId, wallet);
+        MarkWalletDirty(mindId);
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return true;
         DbUpsert(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
         return true;
@@ -467,18 +530,11 @@ public sealed class FSPlayerWalletSystem : EntitySystem
             SerializePrestigeBuffs(buffs));
     }
 
-    public void SavePrestigeBuffs(EntityUid mindId, FSPrestigeBuffsComponent buffs)
-    {
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl)) return;
-        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
-    }
-
     public void GiveCredits(EntityUid mindId, int amount)
     {
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.Credits += amount;
-        NotifyClient(mindId, wallet);
-        Log.Debug($"[FSWallet] GiveCredits +{amount} → mind {mindId}");
+        MarkWalletDirty(mindId);
     }
 
     public bool TryDeductCredits(EntityUid mindId, int amount)
@@ -486,39 +542,51 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
-        NotifyClient(mindId, wallet);
+        MarkWalletDirty(mindId);
         return true;
     }
 
+    // Flushes every connected player. Players who left were already saved on detach.
     public void SaveAll()
     {
+        if (_db == null)
+            return;
+
         var count = 0;
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out var mindId, out var wallet, out var mind))
+        using var tx = _db.BeginTransaction();
+        _activeTx = tx;
+        try
         {
-            if (mind.UserId == null) continue;
-            TryComp<FSPlayerLevelComponent>(mindId, out var lvl);
-            TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
-            DbUpsertFull(
-                mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value),
-                wallet.PerkPoints,
-                lvl?.Level ?? 1, lvl?.Experience ?? 0, lvl?.PrestigeLevel ?? 0,
-                SerializePrestigeBuffs(buffs));
-            count++;
+            foreach (var session in _playerManager.Sessions)
+            {
+                if (!_mind.TryGetMind(session, out var mindId, out _))
+                    continue;
+
+                SaveMind(mindId, session.UserId);
+                count++;
+            }
+            tx.Commit();
         }
+        finally
+        {
+            _activeTx = null;
+        }
+
         Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
     }
 
     public int GetStoredPerkPoints(Guid userId) => DbGetPerkPoints(userId);
 
+    // Works both in-round and from the lobby. A player in the lobby has no mind, so the row is
+    // the only copy of their perk points; a player in the round has a wallet that must stay in
+    // step with it. This is the single bridge between those two states.
     public void GivePerkPoints(ICommonSession session, int amount)
     {
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out var mindId, out var wallet, out var mind))
+        if (_mind.TryGetMind(session, out var mindId, out _)
+            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
         {
-            if (mind.UserId != session.UserId) continue;
             wallet.PerkPoints = Math.Max(0, wallet.PerkPoints + amount);
-            NotifyClient(mindId, wallet);
+            MarkWalletDirty(mindId);
             DbUpsert(session.UserId.UserId, session.Name, wallet.PerkPoints);
             return;
         }
@@ -529,7 +597,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadAugmentData(Guid userId)
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = "SELECT augment_data FROM prestige WHERE user_id = $id";
         cmd.Parameters.AddWithValue("$id", userId.ToString());
         using var reader = cmd.ExecuteReader();
@@ -568,7 +636,7 @@ public sealed class FSPlayerWalletSystem : EntitySystem
     {
         var mergedJson = BuildAugmentDataJson(levelsJson, slotsJson, loadoutsJson);
 
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = """
             INSERT INTO prestige (user_id, augment_data)
             VALUES ($id, $data)
@@ -582,22 +650,29 @@ public sealed class FSPlayerWalletSystem : EntitySystem
 
     public int WipeAllPrestige()
     {
-        using var cmd = _db!.CreateCommand();
+        using var cmd = DbCommand();
         cmd.CommandText = "DELETE FROM prestige";
         var deleted = cmd.ExecuteNonQuery();
 
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, FSPlayerLevelComponent, MindComponent>();
-        while (query.MoveNext(out var mindId, out var wallet, out var lvl, out _))
+        // Anchored on the wallet, not on all three components — a player without a level
+        // component would otherwise keep their perk points through a wipe.
+        var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
+        while (query.MoveNext(out var mindId, out var wallet))
         {
             wallet.PerkPoints = 0;
-            wallet.Credits = 500;
-            lvl.Level         = 1;
-            lvl.Experience    = 0;
-            lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(1);
-            lvl.PrestigeLevel = 0;
-            lvl.XpMultiplier  = FSLevelingSystem.ComputeXpMultiplier(0);
-            NotifyClient(mindId, wallet);
-            _levelingSystem.SendLevelingUpdate(mindId, lvl);
+            wallet.Credits = StartingCredits;
+            MarkWalletDirty(mindId);
+
+            if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+            {
+                lvl.Level         = 1;
+                lvl.Experience    = 0;
+                lvl.XpToNextLevel = FSLevelingSystem.XpToNextLevel(1);
+                lvl.PrestigeLevel = 0;
+                lvl.XpMultiplier  = FSLevelingSystem.ComputeXpMultiplier(0);
+                _levelingSystem.SendLevelingUpdate(mindId, lvl);
+            }
+
             if (TryComp<FSPerkLevelsComponent>(mindId, out var augs))
             {
                 augs.Levels.Clear();
@@ -617,32 +692,40 @@ public sealed class FSPlayerWalletSystem : EntitySystem
         var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
         while (query.MoveNext(out _, out var wallet, out var mind))
         {
-            shell.WriteLine($"  {mind.UserId?.ToString() ?? "unknown"} — credits={wallet.Credits}  augment={wallet.PerkPoints}");
+            shell.WriteLine($"  {mind.UserId?.ToString() ?? "unknown"} — credits={wallet.Credits}  perkPoints={wallet.PerkPoints}");
             found = true;
         }
         if (!found)
             shell.WriteLine("  (no wallets found)");
     }
 
+    // Client-triggered, so it must not touch the database — a client can send this in a loop.
+    // The live wallet is authoritative in-round; the row is only read for a lobby client that
+    // has no mind yet.
     private void OnWalletRequested(WalletRequestEvent req, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
         _cachedUsernames[session.UserId] = session.Name;
-        var ap = DbGetPerkPoints(session.UserId.UserId);
-        var credits = 0;
-        var query = EntityQueryEnumerator<FSPlayerWalletComponent, MindComponent>();
-        while (query.MoveNext(out _, out var wallet, out var mind))
+
+        if (_mind.TryGetMind(session, out var mindId, out _)
+            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
         {
-            if (mind.UserId?.UserId == session.UserId.UserId)
-            {
-                credits = wallet.Credits;
-                break;
-            }
+            RaiseNetworkEvent(new WalletUpdatedEvent(wallet.Credits, wallet.PerkPoints),
+                Filter.SinglePlayer(session));
+            return;
         }
-        RaiseNetworkEvent(new WalletUpdatedEvent(credits, ap), Filter.SinglePlayer(session));
+
+        RaiseNetworkEvent(new WalletUpdatedEvent(0, DbGetPerkPoints(session.UserId.UserId)),
+            Filter.SinglePlayer(session));
     }
 
-    private void NotifyClient(EntityUid mindId, FSPlayerWalletComponent wallet)
+    /// <summary>Queues a balance update. Several changes in the same tick send one message.</summary>
+    private void MarkWalletDirty(EntityUid mindId)
+    {
+        _dirtyWallets.Add(mindId);
+    }
+
+    private void PushWalletState(EntityUid mindId, FSPlayerWalletComponent wallet)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
             return;
