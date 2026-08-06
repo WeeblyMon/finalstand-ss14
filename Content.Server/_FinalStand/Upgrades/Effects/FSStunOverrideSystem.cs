@@ -37,7 +37,6 @@ public sealed class FSStunOverrideSystem : EntitySystem
         if (hadImmunity)
             _tags.AddTag(target, StunImmuneTag);
 
-        Log.Warning($"[FSForceStun] target={ToPrettyString(target)} hadImmunity={hadImmunity} stunApplied={stunApplied} kdApplied={kdApplied} dur={duration}");
 
         if (stunApplied)
         {

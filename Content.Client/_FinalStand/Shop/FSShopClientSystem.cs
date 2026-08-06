@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Science;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.GameTicking;
 using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -44,6 +45,7 @@ public sealed class FSShopClientSystem : EntitySystem
     private HashSet<string> _unlockedResearchNodes = new();
     private bool _isScience;
     private Texture? _lockTexture;
+    private readonly Dictionary<ShopGlowState, ShaderInstance> _glowShaders = [];
 
     public int CurrentCredits { get; private set; }
     public Dictionary<string, int> UpgradeLevels { get; private set; } = [];
@@ -66,6 +68,7 @@ public sealed class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
         SubscribeNetworkEvent<FSPlayerScienceStatusEvent>(OnScienceStatus);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
         SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);
@@ -124,6 +127,11 @@ public sealed class FSShopClientSystem : EntitySystem
         }
 
         _sprite.LayerSetVisible((uid, sprite), index, locked);
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent _)
+    {
+        _lastGlowState.Clear();
     }
 
     private void OnHandSelected(HandSelectedEvent ev)
@@ -363,14 +371,20 @@ public sealed class FSShopClientSystem : EntitySystem
 
     private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
     {
-        var protoId = state switch
+        if (!_glowShaders.TryGetValue(state, out var shader))
         {
-            ShopGlowState.Locked => ShaderLocked,
-            ShopGlowState.Owned => ShaderOwned,
-            ShopGlowState.Affordable => ShaderAffordable,
-            _ => ShaderUnaffordable,
-        };
-        sprite.PostShader = _prototypeManager.Index(protoId).InstanceUnique();
+            var protoId = state switch
+            {
+                ShopGlowState.Locked => ShaderLocked,
+                ShopGlowState.Owned => ShaderOwned,
+                ShopGlowState.Affordable => ShaderAffordable,
+                _ => ShaderUnaffordable,
+            };
+            shader = _prototypeManager.Index(protoId).InstanceUnique();
+            _glowShaders[state] = shader;
+        }
+
+        sprite.PostShader = shader;
     }
 
     private void ClearAllShaders()

@@ -62,7 +62,6 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
 
         if (_justConsumedCrit.Contains(killer))
         {
-            Log.Warning($"[Pirate] skip re-arm for {ToPrettyString(killer)} — crit was consumed this tick");
             return;
         }
 
@@ -87,7 +86,6 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
         var durationSec = GetSynergyDuration(killer, hands);
         if (durationSec <= 0)
         {
-            Log.Warning($"[Pirate] {ToPrettyString(killer)} killed but no cutlass synergy duration found");
             return;
         }
 
@@ -103,7 +101,6 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
             if (armThis)
             {
                 EnsureComp<FSCritReadyComponent>(held);
-                Log.Warning($"[Pirate] armed {ToPrettyString(held)} for {durationSec}s after {ToPrettyString(killer)} killed with {(killedWithCutlass ? "cutlass" : "flintlock")}");
             }
         }
     }
@@ -129,7 +126,6 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
         foreach (var target in args.HitEntities)
             _crit.MarkPendingCrit(args.User, target);
 
-        Log.Warning($"[Pirate] melee crit consumed on {ToPrettyString(weapon)}, +50% dmg to {args.HitEntities.Count} target(s)");
         _justConsumedCrit.Add(args.User);
         CloseWindow(args.User);
     }
@@ -144,7 +140,6 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
         ev.AdditionalMultiplier *= CritMultiplier;
         _crit.MarkPendingCrit(shooter, ev.Target);
 
-        Log.Warning($"[Pirate] projectile crit consumed on {ToPrettyString(weapon)}, x{CritMultiplier} dmg");
         _justConsumedCrit.Add(shooter);
         CloseWindow(shooter);
     }

@@ -12,10 +12,16 @@ public sealed class FSOverclockedGlowSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        base.Update(frameTime);
+
         var query = EntityQueryEnumerator<FSOverclockedComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var oc, out var sprite))
         {
             var color = Color.InterpolateBetween(Color.White, MaxGlow, oc.Spool);
+
+            if (sprite.Color == color)
+                continue;
+
             _sprite.SetColor((uid, sprite), color);
         }
     }

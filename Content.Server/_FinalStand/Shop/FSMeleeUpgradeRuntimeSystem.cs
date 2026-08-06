@@ -93,7 +93,7 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
 
             if (state.CritVsStunned && HasComp<StunnedComponent>(target))
             {
-                args.BonusDamage += args.BaseDamage;
+                _damageable.TryChangeDamage(target, args.BaseDamage, origin: user);
                 _crit.MarkPendingCrit(user, target);
             }
 
@@ -101,7 +101,7 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 && TryComp<FlammableComponent>(target, out var targetFlammable)
                 && targetFlammable.OnFire)
             {
-                args.BonusDamage += args.BaseDamage;
+                _damageable.TryChangeDamage(target, args.BaseDamage, origin: user);
                 _crit.MarkPendingCrit(user, target);
             }
 
@@ -119,7 +119,7 @@ public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
                     _stamina.TakeStaminaDamage(user, -(state.StaminaStealLevel * StaminaRestorePerLevel));
             }
 
-            if (state.BleedLevel > 0 && totalBaseDamage > 0f)
+            if (state.BleedLevel > 0 && totalBaseDamage > 0f && !_ffQuery.HasComponent(target))
             {
                 var dps = totalBaseDamage * BleedScalePerLevel * state.BleedLevel;
                 if (dps > 0f)

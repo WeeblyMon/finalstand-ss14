@@ -4,6 +4,7 @@ using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
@@ -12,11 +13,14 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 public sealed class FSHomingProjectileSystem : EntitySystem
 {
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
 
     private const float SearchRadius = 8f;
+    // A bolt with nothing in range would otherwise run a radius query every tick for its whole life.
+    private static readonly TimeSpan SearchInterval = TimeSpan.FromSeconds(0.2);
 
     public override void Update(float frameTime)
     {
@@ -30,6 +34,11 @@ public sealed class FSHomingProjectileSystem : EntitySystem
 
             if (homing.Target is not { } target || Deleted(target) || _mobState.IsDead(target))
             {
+                var now = _timing.CurTime;
+                if (now < homing.NextSearch)
+                    continue;
+
+                homing.NextSearch = now + SearchInterval;
                 homing.Target = FindTarget(xform);
                 if (homing.Target is not { } found)
                     continue;

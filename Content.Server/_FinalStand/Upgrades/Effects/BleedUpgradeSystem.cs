@@ -18,6 +18,8 @@ public sealed class BleedUpgradeSystem : EntitySystem
 
     private const string TourniquetContainerId = "Tourniquet";
 
+    private readonly List<EntityUid> _expired = new();
+
     private static readonly TimeSpan BleedDuration = TimeSpan.FromSeconds(3);
     private const float BleedScalePerLevel = 0.2f;
 
@@ -31,13 +33,13 @@ public sealed class BleedUpgradeSystem : EntitySystem
     {
         base.Update(frameTime);
         var now = _timing.CurTime;
-        var toRemove = new List<EntityUid>();
+        _expired.Clear();
         var query = EntityQueryEnumerator<FSBleedingComponent>();
         while (query.MoveNext(out var uid, out var bleed))
         {
             if (bleed.ExpiresAt <= now)
             {
-                toRemove.Add(uid);
+                _expired.Add(uid);
                 continue;
             }
 
@@ -52,7 +54,7 @@ public sealed class BleedUpgradeSystem : EntitySystem
             dmg.DamageDict["Slash"] = FixedPoint2.New(bleed.DamagePerSecond * 0.5f);
             _damageable.TryChangeDamage(uid, dmg, ignoreResistances: false, origin: bleed.Instigator);
         }
-        foreach (var uid in toRemove)
+        foreach (var uid in _expired)
             RemComp<FSBleedingComponent>(uid);
     }
 

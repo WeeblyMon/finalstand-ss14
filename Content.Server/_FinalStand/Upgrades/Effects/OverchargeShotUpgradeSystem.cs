@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades;
 using Content.Shared.Damage;
+using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -49,11 +50,14 @@ public sealed class OverchargeShotUpgradeSystem : EntitySystem
         if (overcharge.ShotCounter % FSOverchargeComponent.ShotsPerCycle != 0)
             return false;
 
-        // Get direction and shooter from the first normal pellet before deleting.
         var firstProj = args.FiredProjectiles[0];
         EntityUid? shooter = null;
+        var pelletDamage = new DamageSpecifier();
         if (TryComp<ProjectileComponent>(firstProj, out var projComp))
+        {
             shooter = projComp.Shooter;
+            pelletDamage = projComp.Damage;
+        }
 
         Vector2 dir;
         float speed;
@@ -76,17 +80,12 @@ public sealed class OverchargeShotUpgradeSystem : EntitySystem
         // Spawn the overcharge bolt.
         var bolt = Spawn(BoltProto, Transform(uid).Coordinates);
 
-        // The bolt carries the combined damage of the deleted pellets (pellet damage × count).
-        DamageSpecifier boltDamage;
+        var boltDamage = new DamageSpecifier();
         if (TryComp<ProjectileComponent>(bolt, out var boltProj))
         {
-            // Multiply single-pellet base damage by pellet count for bolt damage.
-            boltDamage = boltProj.Damage * args.FiredProjectiles.Count;
+            var perPellet = pelletDamage.GetTotal() > FixedPoint2.Zero ? pelletDamage : boltProj.Damage;
+            boltDamage = perPellet * args.FiredProjectiles.Count;
             boltProj.Damage = boltDamage;
-        }
-        else
-        {
-            boltDamage = new DamageSpecifier();
         }
 
         var boltComp = EnsureComp<FSOverchargeBoltComponent>(bolt);

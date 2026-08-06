@@ -52,6 +52,11 @@ public sealed class OverkillUpgradeSystem : EntitySystem
 
         var currentDamage = _damageable.GetPositiveDamage((ev.Target, damageable)).GetTotal();
         var hitTotal = ev.Damage.GetTotal();
+        // A target already past its dead threshold gives a negative remainder, which a zero-damage
+        // hit clears. Without this the ratio below divides by zero and transfers NaN damage.
+        if (hitTotal <= FixedPoint2.Zero)
+            return;
+
         var remaining = deadThreshold - currentDamage;
         if (hitTotal <= remaining)
             return;

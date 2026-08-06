@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
@@ -22,14 +23,14 @@ public sealed class LifeStealUpgradeSystem : EntitySystem
         if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.LifeStealPercent <= 0f)
             return;
 
+        if (HasComp<FSPlayerDamageImmuneComponent>(ev.Target) || HasComp<FSFriendlyFireComponent>(ev.Target))
+            return;
+
         var totalDamage = ev.Damage.GetTotal().Float();
         if (totalDamage <= 0f)
             return;
 
         var healAmount = totalDamage * state.LifeStealPercent;
-        // HealEvenly distributes healing across all damage types the player actually has.
-        // DamageDict["Brute"] does not work at runtime — "Brute" is a group name and is only
-        // expanded during YAML deserialization, not by TryChangeDamage.
         _damageable.HealEvenly(ev.Shooter.Value, FixedPoint2.New(-healAmount));
     }
 }

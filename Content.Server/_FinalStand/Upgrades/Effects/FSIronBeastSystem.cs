@@ -45,10 +45,12 @@ public sealed class FSIronBeastSystem : EntitySystem
         if (!TryComp<DamageableComponent>(uid, out var damageable))
             return;
 
-        // Only active when below 50% health (taken more than half of max damage)
         if (damageable.TotalDamage * 2 < deadThreshold!.Value)
             return;
 
-        args.Damage *= 1f - (0.2f + buff.ResistBonus);
+        // Clamped: research stacks ResistBonus on top of the base 20%, and a total at or above
+        // 1.0 would flip the multiplier negative and heal the wielder on every hit.
+        var resist = Math.Clamp(0.2f + buff.ResistBonus, 0f, 0.95f);
+        args.Damage *= 1f - resist;
     }
 }

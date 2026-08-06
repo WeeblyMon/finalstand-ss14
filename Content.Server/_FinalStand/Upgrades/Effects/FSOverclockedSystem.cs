@@ -12,6 +12,7 @@ public sealed class FSOverclockedSystem : EntitySystem
 
     public override void Initialize()
     {
+        base.Initialize();
         SubscribeLocalEvent<FSOverclockedComponent, GunShotEvent>(OnShot);
         SubscribeLocalEvent<FSOverclockedComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
     }

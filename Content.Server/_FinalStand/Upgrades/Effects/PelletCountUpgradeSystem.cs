@@ -66,11 +66,16 @@ public sealed class PelletCountUpgradeSystem : EntitySystem
             var newProj = Spawn(proto.ID, gunCoords);
             _gun.ShootProjectile(newProj, dir, Vector2.Zero, gun, projComp.Shooter, speed);
 
-            if (addPierce && TryComp<ProjectileComponent>(newProj, out var np))
+            if (TryComp<ProjectileComponent>(newProj, out var np))
             {
-                np.DeleteOnCollide = false;
-                var pierce = EnsureComp<FSPierceComponent>(newProj);
-                pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, 1);
+                np.Damage = projComp.Damage;
+
+                if (addPierce)
+                {
+                    np.DeleteOnCollide = false;
+                    var pierce = EnsureComp<FSPierceComponent>(newProj);
+                    pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, 1);
+                }
             }
 
             if (TryComp<FSProjectileFlagsComponent>(firstProj, out var flags))
