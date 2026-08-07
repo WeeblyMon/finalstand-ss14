@@ -1,9 +1,11 @@
 // Retaliates against off-screen attackers; alerts nearby allies with attenuated duration.
 using Content.Server._FinalStand.Spawners;
+using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
@@ -21,7 +23,51 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
     private const float AlertDuration = 1.5f;
     private const float AlertCooldown = 0.5f;
 
+    // Same rate FSBreachTargetSystem ticks at, kept in sync though the two accumulators are separate.
+    private const float TickInterval = 0.1f;
+    private float _accumulator;
+
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _accumulator += frameTime;
+        if (_accumulator < TickInterval) return;
+        _accumulator -= TickInterval;
+
+        // ActiveNPCComponent is dropped when a mob dies, so corpses never reach here.
+        var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
+        while (query.MoveNext(out _, out _, out _, out var htn))
+            TickRetaliationTimer(htn, TickInterval);
+    }
+
+    // Owns the full lifecycle of RetaliationTimer/LastAttacker: TryRetaliate sets them, this decays them.
+    private void TickRetaliationTimer(HTNComponent htn, float dt)
+    {
+        var bb = htn.Blackboard;
+
+        if (bb.TryGetValue<float>(FSAIBlackboardKeys.RetaliationTimer, out var retTimer, EntityManager))
+        {
+            retTimer -= dt;
+            if (retTimer <= 0f)
+            {
+                bb.Remove<float>(FSAIBlackboardKeys.RetaliationTimer);
+                if (bb.ContainsKey(FSAIBlackboardKeys.LastAttacker))
+                    bb.Remove<EntityUid>(FSAIBlackboardKeys.LastAttacker);
+                return;
+            }
+            bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, retTimer);
+        }
+
+        if (bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var attacker, EntityManager)
+            && (!Exists(attacker) || _mobState.IsDead(attacker)))
+        {
+            bb.Remove<EntityUid>(FSAIBlackboardKeys.LastAttacker);
+            bb.Remove<float>(FSAIBlackboardKeys.RetaliationTimer);
+            _htn.Replan(htn);
+        }
+    }
 
     public void TryRetaliate(EntityUid uid, EntityUid attacker)
     {
@@ -38,17 +84,17 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
         var curTime = _timing.CurTime;
         bb.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
         bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, RetaliationDuration);
-        bb.SetValue("FSAggroGraceUntil", curTime + TimeSpan.FromSeconds(RetaliationDuration));
+        bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, curTime + TimeSpan.FromSeconds(RetaliationDuration));
         _htn.Replan(htn);
 
         // This fires once per damage instance, so an automatic weapon would otherwise run a
         // 10-tile query per bullet. The cooldown that already rate-limits each peer's alert
         // now also gates the broadcast itself.
-        if (bb.TryGetValue<TimeSpan>("FSPackAlertCooldown", out var ownCooldown, EntityManager)
+        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.PackAlertCooldown, out var ownCooldown, EntityManager)
             && curTime < ownCooldown)
             return;
 
-        bb.SetValue("FSPackAlertCooldown", curTime + TimeSpan.FromSeconds(AlertCooldown));
+        bb.SetValue(FSAIBlackboardKeys.PackAlertCooldown, curTime + TimeSpan.FromSeconds(AlertCooldown));
         AlertNearby(uid, attacker);
     }
 
@@ -68,7 +114,7 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
                 && Exists(existing) && !_mobState.IsDead(existing))
                 continue;
 
-            if (bb.TryGetValue<TimeSpan>("FSPackAlertCooldown", out var cooldownEnd, EntityManager)
+            if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.PackAlertCooldown, out var cooldownEnd, EntityManager)
                 && _timing.CurTime < cooldownEnd)
                 continue;
 
@@ -79,8 +125,8 @@ public sealed class FSZombieRetaliationSystem : EntitySystem
 
             bb.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
             bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, attenuated);
-            bb.SetValue("FSAggroGraceUntil", _timing.CurTime + TimeSpan.FromSeconds(attenuated));
-            bb.SetValue("FSPackAlertCooldown", _timing.CurTime + TimeSpan.FromSeconds(AlertCooldown));
+            bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, _timing.CurTime + TimeSpan.FromSeconds(attenuated));
+            bb.SetValue(FSAIBlackboardKeys.PackAlertCooldown, _timing.CurTime + TimeSpan.FromSeconds(AlertCooldown));
             _htn.Replan(peerHtn);
         }
     }

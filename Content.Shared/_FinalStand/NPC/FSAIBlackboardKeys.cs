@@ -15,4 +15,10 @@ public static class FSAIBlackboardKeys
     public static readonly string BreachEvalFailCount = "FSBreachEvalFailCount";
     public static readonly string BreachCooldown      = "FSBreachCooldown";
     public static readonly string MazeCheckTimer      = "FSMazeCheckTimer";
+
+    // Written by FSZombieRetaliationSystem and FSWaveEnrageSystem; read by FSLeashSystem.
+    public static readonly string AggroGraceUntil     = "FSAggroGraceUntil";
+    public static readonly string PackAlertCooldown   = "FSPackAlertCooldown";
+    public static readonly string AggroOrigin         = "FSAggroOrigin";
+    public static readonly string TargetLastSeen      = "FSTargetLastSeen";
 }

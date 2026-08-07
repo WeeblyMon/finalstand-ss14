@@ -1,4 +1,9 @@
-// Boosts wave zombie speed at T-60s (1.25x) and T-30s (1.375x total); restores when combat ends.
+// Boosts wave zombie speed once a wave's combat phase has run long: 1.25x after Stage1Elapsed,
+// 1.375x total after Stage2Elapsed. Restores when combat ends. Previously keyed off time
+// *remaining* until the 1800s hard fallback timer, so it only fired for a wave about to hit that
+// ceiling — which normal play never reaches, since waves end when the horde is cleared. Rebased
+// to elapsed combat time so it actually fires for any wave that runs long, not just one about to
+// time out.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
@@ -20,11 +25,16 @@ public sealed class FSWaveEnrageSystem : EntitySystem
     // Pre-enrage base speeds plus the stage they are currently boosted to.
     private readonly Dictionary<EntityUid, (float Walk, float Sprint, int Stage)> _boosted = new();
 
-    private const float T60Multiplier = 1.25f;
-    private const float T30TotalMultiplier = 1.375f;
+    private const float Stage1Multiplier = 1.25f;
+    private const float Stage2TotalMultiplier = 1.375f;
     private const float TickInterval = 1f;
 
-    // 0 = not enraged, 1 = T-60 reached, 2 = T-30 reached.
+    // Best-guess defaults, not tuned against real playtest telemetry — easy to retune, they're
+    // the only two numbers that matter here.
+    private static readonly TimeSpan Stage1Elapsed = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan Stage2Elapsed = TimeSpan.FromMinutes(8);
+
+    // 0 = not enraged, 1 = Stage1Elapsed reached, 2 = Stage2Elapsed reached.
     private int _stage;
     private float _accumulator;
 
@@ -58,9 +68,7 @@ public sealed class FSWaveEnrageSystem : EntitySystem
                 ClearBreachCooldowns();
         }
 
-        // Re-applied each tick rather than once at the threshold: spawning runs the whole combat
-        // phase, so most of the horde arrives after the threshold and would otherwise never enrage.
-        ApplyEnrage(_stage == 2 ? T30TotalMultiplier : T60Multiplier);
+        ApplyEnrage(_stage == 2 ? Stage2TotalMultiplier : Stage1Multiplier);
     }
 
     private int GetRuleStage()
@@ -71,14 +79,14 @@ public sealed class FSWaveEnrageSystem : EntitySystem
         {
             if (rule.Phase != WavePhase.Combat)
                 continue;
-
-            var remaining = (float)(rule.PhaseEndTime - _timing.CurTime).TotalSeconds;
-            if (remaining <= 0f)
+            var remaining = rule.PhaseEndTime - _timing.CurTime;
+            if (remaining <= TimeSpan.Zero)
                 continue;
+            var elapsed = rule.MaxCombatDuration - remaining;
 
-            if (remaining <= 30f)
+            if (elapsed >= Stage2Elapsed)
                 stage = Math.Max(stage, 2);
-            else if (remaining <= 60f)
+            else if (elapsed >= Stage1Elapsed)
                 stage = Math.Max(stage, 1);
         }
         return stage;
@@ -97,7 +105,7 @@ public sealed class FSWaveEnrageSystem : EntitySystem
             else
             {
                 entry = (move.BaseWalkSpeed, move.BaseSprintSpeed, 0);
-                htn.Blackboard.SetValue("FSAggroGraceUntil", _timing.CurTime + TimeSpan.FromSeconds(90));
+                htn.Blackboard.SetValue(FSAIBlackboardKeys.AggroGraceUntil, _timing.CurTime + TimeSpan.FromSeconds(90));
             }
 
             _speedMod.ChangeBaseSpeed(uid,

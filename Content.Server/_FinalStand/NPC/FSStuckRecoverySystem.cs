@@ -51,8 +51,8 @@ public sealed class FSStuckRecoverySystem : EntitySystem
     {
         base.Initialize();
         UpdatesAfter.Add(typeof(NPCSteeringSystem));
-        Subs.CVar(_cfg, CCVars.HordeBrainEnabled, v => _enabled = v, true);
-        Subs.CVar(_cfg, CCVars.HordeBrainNudgeLimit, v => _nudgeLimit = v, true);
+        Subs.CVar(_cfg, CCVars.WaveZombiePathingEnabled, v => _enabled = v, true);
+        Subs.CVar(_cfg, CCVars.WaveZombieStuckNudgeLimit, v => _nudgeLimit = v, true);
     }
 
     public override void Update(float frameTime)

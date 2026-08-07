@@ -37,7 +37,7 @@ public sealed class HordeFlowFieldSystem : EntitySystem
     {
         base.Initialize();
         UpdatesBefore.Add(typeof(NPCSteeringSystem));
-        Subs.CVar(_cfg, CCVars.HordeBrainEnabled, v => _enabled = v, true);
+        Subs.CVar(_cfg, CCVars.WaveZombiePathingEnabled, v => _enabled = v, true);
 
         // Only tile topology and the CCC set can change reachability. Walls and doors do not:
         // wave zombies smash and pry, so a barrier is a detour, never a dead end.

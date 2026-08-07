@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.NPC;
 using Content.Shared.Examine;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC;
@@ -60,34 +61,34 @@ public sealed class FSLeashSystem : EntitySystem
             || !Exists(target)
             || _mobState.IsDead(target))
         {
-            bb.Remove<MapCoordinates>("FSAggroOrigin");
-            bb.Remove<TimeSpan>("FSTargetLastSeen");
-            bb.Remove<TimeSpan>("FSAggroGraceUntil");
+            bb.Remove<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin);
+            bb.Remove<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen);
+            bb.Remove<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil);
             return;
         }
 
         // ── Record aggro origin on the first tick after Target is set. ────────
         // This covers both the LOS-detection path (utility operator) and the
         // retaliation path (FSZombieRetaliationSystem) without any cross-dependency.
-        if (!bb.TryGetValue<MapCoordinates>("FSAggroOrigin", out var aggroOrigin, EntityManager))
+        if (!bb.TryGetValue<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin, out var aggroOrigin, EntityManager))
         {
             aggroOrigin = _transform.GetMapCoordinates(uid);
-            bb.SetValue("FSAggroOrigin", aggroOrigin);
-            bb.SetValue("FSTargetLastSeen", curTime);
+            bb.SetValue(FSAIBlackboardKeys.AggroOrigin, aggroOrigin);
+            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
             return; // leash checks start next tick
         }
 
         // ── Update last-seen timestamp whenever we have clear LOS. ────────────
         if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
-            bb.SetValue("FSTargetLastSeen", curTime);
+            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
 
         // ── Grace period: skip leash checks for freshly shot zombies. ─────────
-        if (bb.TryGetValue<TimeSpan>("FSAggroGraceUntil", out var graceUntil, EntityManager)
+        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
             && curTime < graceUntil)
             return;
 
         // ── LOS timeout check. ────────────────────────────────────────────────
-        if (bb.TryGetValue<TimeSpan>("FSTargetLastSeen", out var lastSeen, EntityManager)
+        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
             && curTime - lastSeen > LosTimeout)
         {
             ClearTarget(htn, bb);
@@ -106,9 +107,9 @@ public sealed class FSLeashSystem : EntitySystem
     private void ClearTarget(HTNComponent htn, NPCBlackboard bb)
     {
         bb.Remove<EntityUid>("Target");
-        bb.Remove<MapCoordinates>("FSAggroOrigin");
-        bb.Remove<TimeSpan>("FSTargetLastSeen");
-        bb.Remove<TimeSpan>("FSAggroGraceUntil");
+        bb.Remove<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin);
+        bb.Remove<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen);
+        bb.Remove<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil);
         _htn.Replan(htn);
     }
 }

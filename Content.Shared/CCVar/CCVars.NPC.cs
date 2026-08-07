@@ -14,11 +14,12 @@ public sealed partial class CCVars
     /// </summary>
     public static readonly CVarDef<bool> NPCPathfinding = CVarDef.Create("npc.pathfinding", true);
 
-    // Master toggle for the wave-zombie support systems: flow field and stuck recovery.
-    public static readonly CVarDef<bool> HordeBrainEnabled =
-        CVarDef.Create("npc.hordebrain_enabled", true);
+    // Master toggle for the wave-zombie pathing support systems: HordeFlowFieldSystem and
+    // FSStuckRecoverySystem.
+    public static readonly CVarDef<bool> WaveZombiePathingEnabled =
+        CVarDef.Create("npc.wave_zombie_pathing_enabled", true);
 
     // How many backward-nudge attempts before a stuck wave zombie is silently deleted.
-    public static readonly CVarDef<int> HordeBrainNudgeLimit =
-        CVarDef.Create("npc.hordebrain_nudge_limit", 3);
+    public static readonly CVarDef<int> WaveZombieStuckNudgeLimit =
+        CVarDef.Create("npc.wave_zombie_stuck_nudge_limit", 3);
 }
