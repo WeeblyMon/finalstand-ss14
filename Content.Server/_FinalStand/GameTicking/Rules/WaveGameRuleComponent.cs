@@ -30,7 +30,7 @@ public sealed partial class WaveEnemyConfig
     public List<EntProtoId> EnemyPool = new() { "MobXeno" };
 }
 
-[RegisterComponent, Access(typeof(WaveGameRuleSystem))]
+[RegisterComponent, Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
 public sealed partial class WaveGameRuleComponent : Component
 {
     // adjustable timers

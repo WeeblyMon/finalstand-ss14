@@ -1,5 +1,5 @@
 using Content.Shared._FinalStand.Grenades;
-using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared._FinalStand.GameTicking;
 
 namespace Content.Server._FinalStand.Grenades;
 

@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
