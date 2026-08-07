@@ -154,6 +154,11 @@ public sealed class FSPerkSystem : EntitySystem
         Log.Debug($"[FSPerk] OnBuyPerk: SUCCESS — '{msg.PerkId}' → Lv{currentLevel + 1} for {session.Name}");
         SaveToDb(mindId, aug);
         SendStateToClient(mindId, aug);
+
+        // The perk may already be slotted (leveling up, not first purchase) — a slotted speed
+        // perk's new level must take effect immediately, same as every other mutation path.
+        if (mind?.CurrentEntity is { } playerEntity)
+            _movement.RefreshMovementSpeedModifiers(playerEntity);
     }
 
     private void OnBuyPerkLobby(FSBuyPerkMessage msg, ICommonSession session)

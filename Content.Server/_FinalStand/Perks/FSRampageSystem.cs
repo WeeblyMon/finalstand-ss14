@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Perks;
+﻿using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage;
@@ -57,7 +57,7 @@ public sealed class FSRampageSystem : EntitySystem
             if (level <= 0) continue;
             if (!TryComp<MindComponent>(mindId, out var mind) || !mind.CurrentEntity.HasValue) continue;
 
-            _damageable.HealEvenly(mind.CurrentEntity.Value, FixedPoint2.New(-(ramp.Stacks * level * 0.2f)));
+            _damageable.HealEvenly(mind.CurrentEntity.Value, FixedPoint2.New(-(ramp.Stacks * level * FSPerkBonusConstants.RampageRegenPerLevel)));
         }
     }
 

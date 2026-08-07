@@ -1,5 +1,5 @@
-﻿using Content.Server._FinalStand.Perks;
-using Content.Server._FinalStand.Economy;
+﻿using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Damage.Systems;
@@ -20,7 +20,7 @@ using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
-namespace Content.Server._FinalStand.Leveling;
+namespace Content.Server._FinalStand.Perks;
 
 public sealed class FSPerkBuffSystem : EntitySystem
 {
@@ -34,9 +34,6 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
-
-    private const float BaseHitPayout = 30f;
-    private const float ProfiteerFraction = 0.07f;
 
     public override void Initialize()
     {
@@ -62,10 +59,11 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
         var profLevel = augs.GetSlottedLevel("Profiteer");
         if (profLevel > 0)
-            _wallet.GiveCredits(mindId, (int)(BaseHitPayout * profLevel * ProfiteerFraction));
+            _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
-        // Death Aura: stacks → outgoing damage bonus.
-        if (TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
+        // Death Aura: stacks → outgoing damage bonus. Re-checks the slot, like Speed Demon and
+        // Rampage below do — banked stacks must not keep paying out after the perk is unslotted.
+        if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
 
         // Glass Cannon: flat outgoing bonus.
@@ -96,7 +94,7 @@ public sealed class FSPerkBuffSystem : EntitySystem
         // Leg Breaker: crit stamina drain — staggering via stamina works on NPCs unlike speed modifiers.
         var lbLevel = augs.GetSlottedLevel("LegBreaker");
         if (lbLevel > 0 && HasComp<StaminaComponent>(ev.Target))
-            _stamina.TakeStaminaDamage(ev.Target, lbLevel * 25f, source: ev.Shooter);
+            _stamina.TakeStaminaDamage(ev.Target, lbLevel * FSPerkBonusConstants.LegBreakerStaminaPerLevel, source: ev.Shooter);
     }
 
     private void OnBulletStorm(EntityUid uid, GunComponent gunComp, ref GunRefreshModifiersEvent args)
@@ -121,17 +119,17 @@ public sealed class FSPerkBuffSystem : EntitySystem
 
         var lwLevel = augs.GetSlottedLevel("Lightweight");
         if (lwLevel > 0)
-            mult *= 1f + lwLevel * 0.03f;
+            mult *= 1f + lwLevel * FSPerkBonusConstants.LightweightPerLevel;
 
         // Speed Demon: kill-stack speed bonus.
         var sdLevel = augs.GetSlottedLevel("SpeedDemon");
         if (sdLevel > 0 && TryComp<FSSpeedDemonComponent>(mindId, out var sd) && sd.Stacks > 0)
-            mult *= 1f + sd.Stacks * sdLevel * 0.01f;
+            mult *= 1f + sd.Stacks * sdLevel * FSPerkBonusConstants.SpeedDemonPerLevel;
 
         // Rampage: melee-kill speed bonus.
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
-            mult *= 1f + ramp.Stacks * rampLevel * 0.01f;
+            mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
 
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.ModifySpeed(mult, mult);

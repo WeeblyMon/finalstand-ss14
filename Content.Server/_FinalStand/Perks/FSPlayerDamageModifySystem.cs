@@ -1,4 +1,5 @@
-﻿using Content.Shared._FinalStand.Perks;
+﻿using Content.Server._FinalStand.Leveling;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
@@ -80,7 +81,7 @@ public sealed class FSPlayerDamageModifySystem : EntitySystem
         var medicLevel = augs.GetSlottedLevel("FieldMedic");
         if (medicLevel > 0 && args.Damage.GetTotal().Float() < 0)
         {
-            args.Damage *= 1f + medicLevel * 0.15f;
+            args.Damage *= 1f + medicLevel * FSPerkBonusConstants.FieldMedicPerLevel;
         }
     }
 

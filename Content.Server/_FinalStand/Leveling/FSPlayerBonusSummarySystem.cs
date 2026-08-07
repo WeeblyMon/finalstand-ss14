@@ -78,7 +78,9 @@ public sealed class FSPlayerBonusSummarySystem : EntitySystem
         var perks = CompOrNull<FSPerkLevelsComponent>(mindId);
         var hasOfficer = TryComp<FSOfficerBuffComponent>(mindId, out var officerBuff) && _timing.CurTime < officerBuff.EndTime;
         var officerLevel = hasOfficer ? officerBuff!.Level : 0;
-        var deathAuraStacks = CompOrNull<FSDeathAuraComponent>(mindId)?.Stacks ?? 0;
+        var deathAuraStacks = (perks?.GetSlottedLevel("DeathAura") ?? 0) > 0
+            ? CompOrNull<FSDeathAuraComponent>(mindId)?.Stacks ?? 0
+            : 0;
 
         EntityUid? held = null;
         if (TryComp<HandsComponent>(mob, out var hands) && hands.ActiveHandId != null)
@@ -253,7 +255,9 @@ public sealed class FSPlayerBonusSummarySystem : EntitySystem
         var perks = CompOrNull<FSPerkLevelsComponent>(mindId);
         var hasOfficer = TryComp<FSOfficerBuffComponent>(mindId, out var officerBuff) && _timing.CurTime < officerBuff.EndTime;
         var officerLevel = hasOfficer ? officerBuff!.Level : 0;
-        var deathAuraStacks = CompOrNull<FSDeathAuraComponent>(mindId)?.Stacks ?? 0;
+        var deathAuraStacks = (perks?.GetSlottedLevel("DeathAura") ?? 0) > 0
+            ? CompOrNull<FSDeathAuraComponent>(mindId)?.Stacks ?? 0
+            : 0;
 
         EntityUid? held = null;
         if (TryComp<HandsComponent>(mob, out var hands) && hands.ActiveHandId != null)

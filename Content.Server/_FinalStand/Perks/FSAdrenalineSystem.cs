@@ -32,7 +32,13 @@ public sealed class FSAdrenalineSystem : EntitySystem
         var query = EntityQueryEnumerator<FSAdrenalineComponent, StaminaComponent>();
         while (query.MoveNext(out var uid, out var adr, out var stamina))
         {
-            if (now >= adr.EndTime)
+            // Unslotting mid-buff must not keep the regen running for the rest of the timer,
+            // same reasoning as Death Aura's slot re-check in FSPerkBuffSystem.
+            var stillSlotted = _mind.TryGetMind(uid, out var mindId, out _)
+                && TryComp<FSPerkLevelsComponent>(mindId, out var augs)
+                && augs.GetSlottedLevel("Adrenaline") > 0;
+
+            if (now >= adr.EndTime || !stillSlotted)
             {
                 RemComp<FSAdrenalineComponent>(uid);
                 SendTimerUpdate(uid, 0);

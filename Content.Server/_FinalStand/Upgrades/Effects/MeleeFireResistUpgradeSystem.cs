@@ -2,7 +2,6 @@
 using Content.Server.Body.Components;
 using Content.Server.Temperature.Systems;
 using Content.Shared._FinalStand.Shop;
-using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Damage;
@@ -10,11 +9,8 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
-using Content.Shared.Mind;
 using Content.Shared.Temperature;
 using Content.Shared.Temperature.Components;
-using Content.Shared.Weapons.Melee;
-using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
@@ -26,7 +22,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly TemperatureSystem _temperature = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private readonly FSIncomingDamagePerkSystem _incomingPerks = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
 
@@ -104,7 +100,6 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
         // single directed (HandsComponent, DamageModifyEvent) subscription — Robust forbids two on same pair globally
         var bestFireResist = 0f;
         var bestWielderResist = 0f;
-        EntityUid? activeHeld = null;
         foreach (var held in _hands.EnumerateHeld((uid, hands)))
         {
             if (TryComp<FSWeaponUpgradeStateComponent>(held, out var state))
@@ -125,35 +120,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
             args.Damage.DamageDict["Heat"] = heat * FixedPoint2.New(1f - bestFireResist);
         }
 
-        // Augment resistances — Juggernaught and SwordAndShield.
-        if (!_mind.TryGetMind(uid, out var mindId, out _)) return;
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
-
-        var juggLevel = augs.GetSlottedLevel("Juggernaught");
-        if (juggLevel > 0 && args.Origin != null && HasComp<FSZombieVisualsComponent>(args.Origin.Value))
-            args.Damage *= 1f - juggLevel * 0.15f;
-
-        var snsLevel = augs.GetSlottedLevel("SwordAndShield");
-        if (snsLevel > 0
-            && _hands.TryGetActiveItem(uid, out activeHeld) && activeHeld.HasValue
-            && HasComp<MeleeWeaponComponent>(activeHeld.Value) && !HasComp<GunComponent>(activeHeld.Value))
-        {
-            args.Damage *= 1f - snsLevel * 0.12f;
-        }
-
-        // Glass Cannon: doubles all incoming damage.
-        if (augs.GetSlottedLevel("GlassCannon") > 0)
-            args.Damage *= 2.0f;
-
-        // Pacifist: high incoming damage resistance.
-        var pacifistLevel = augs.GetSlottedLevel("Pacifist");
-        if (pacifistLevel > 0)
-            args.Damage *= 1f - pacifistLevel * 0.20f;
-
-        // Rampage: stacks-based incoming damage resistance.
-        var rampLevel = augs.GetSlottedLevel("Rampage");
-        if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
-            args.Damage *= Math.Max(0f, 1f - ramp.Stacks * rampLevel * 0.03f);
+        _incomingPerks.ApplyIncomingPerkModifiers(uid, args);
     }
 
     private bool TryGetHeldWielderBuff(EntityUid uid, HandsComponent hands, out FSWeaponUpgradeStateComponent? state)

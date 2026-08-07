@@ -75,7 +75,7 @@ public sealed class FSPerkDef
 
             // ── Kill-stack augments ──────────────────────────────────────────────
             new("DeathAura", "Death Aura",
-                "Kills grant stacks, increasing your damage by 1% per stack. Lose all stacks after 8s.",
+                "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
                 AugmentCategory.Red,
                 ["+5 Max Stacks", "+10 Max Stacks", "+15 Max Stacks", "+20 Max Stacks"]),
 
@@ -125,7 +125,7 @@ public sealed class FSPerkDef
             new("Pacifist", "Pacifist",
                 "Deal 25% less damage, but gain significant damage resistance.",
                 AugmentCategory.Blue,
-                ["+40% Resistance", "+60% Resistance", "+80% Resistance", "+100% Resistance"]),
+                ["+20% Resistance", "+40% Resistance", "+60% Resistance", "+80% Resistance"]),
 
             new("FieldMedic", "Field Medic",
                 "Increases the potency of your healing.",
@@ -139,9 +139,9 @@ public sealed class FSPerkDef
 
             // ── Weapon augments ─────────────────────────────────────────────────
             new("LegBreaker", "Leg Breaker",
-                "Critical hits slow enemies.",
+                "Critical hits stagger enemies with stamina damage.",
                 AugmentCategory.Blue,
-                ["-10% Enemy Speed on Crit", "-20%", "-30%", "-40%"]),
+                ["25 Stamina Damage on Crit", "50 Stamina Damage on Crit", "75 Stamina Damage on Crit", "100 Stamina Damage on Crit"]),
 
             new("BackBreaker", "Back Breaker",
                 "Critical shots knock enemies back.",
@@ -161,7 +161,7 @@ public sealed class FSPerkDef
             new("Officer", "Officer",
                 "Using a whistle near allies increases their damage for 8 seconds.",
                 AugmentCategory.Green,
-                ["+15% Ally Damage", "+30% Ally Damage", "+45% Ally Damage", "+45% Ally Damage"]),
+                ["+15% Ally Damage", "+30% Ally Damage", "+45% Ally Damage", "+60% Ally Damage"]),
 
             new("HarvesterTuning", "Harvester Tuning",
                 "Increases research points gained per Harvester hit.",
