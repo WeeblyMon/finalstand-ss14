@@ -14,6 +14,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed class FSPerkSystem : EntitySystem
 {
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private readonly FSPlayerDataStore _store = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
@@ -49,7 +50,7 @@ public sealed class FSPerkSystem : EntitySystem
             return;
         }
 
-        var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
+        var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
         var aug = EnsureComp<FSPerkLevelsComponent>(mindId);
         DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
         Log.Debug($"[FSPerk] OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
@@ -89,7 +90,7 @@ public sealed class FSPerkSystem : EntitySystem
 
         // lobby: no mind yet — load from db and send so the shop window populates
         var userId = args.SenderSession.UserId.UserId;
-        var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(userId);
+        var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(userId);
         var tempAug = new FSPerkLevelsComponent();
         DeserializeInto(tempAug, levelsJson, slotsJson, loadoutsJson);
         var ap = _wallet.GetStoredPerkPoints(userId);
@@ -131,7 +132,7 @@ public sealed class FSPerkSystem : EntitySystem
                 Log.Debug($"[FSPerk] OnBuyPerk: no UserId on mind {mindId}");
                 return;
             }
-            var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
+            var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
             aug = EnsureComp<FSPerkLevelsComponent>(mindId);
             DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
         }
@@ -164,7 +165,7 @@ public sealed class FSPerkSystem : EntitySystem
     private void OnBuyPerkLobby(FSBuyPerkMessage msg, ICommonSession session)
     {
         var userId = session.UserId.UserId;
-        var (levelsJson, slotsJson, loadoutsJson) = _wallet.LoadAugmentData(userId);
+        var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(userId);
         var aug = new FSPerkLevelsComponent();
         DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
 
@@ -187,7 +188,7 @@ public sealed class FSPerkSystem : EntitySystem
         var newAp = currentAp - cost;
 
         _wallet.GivePerkPoints(session, -cost);
-        _wallet.SaveAugmentDataByUser(userId,
+        _store.SaveLoadoutJson(userId,
             JsonSerializer.Serialize(aug.Levels),
             JsonSerializer.Serialize(aug.Slots),
             JsonSerializer.Serialize(aug.Loadouts));
@@ -289,7 +290,7 @@ public sealed class FSPerkSystem : EntitySystem
     private void OnRespecLobby(ICommonSession session)
     {
         var userId = session.UserId.UserId;
-        var (lj, sj, oj) = _wallet.LoadAugmentData(userId);
+        var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
         var aug = new FSPerkLevelsComponent();
         DeserializeInto(aug, lj, sj, oj);
         if (aug.Levels.Count == 0) return;
@@ -300,7 +301,7 @@ public sealed class FSPerkSystem : EntitySystem
         foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
 
         _wallet.GivePerkPoints(session, refund);
-        _wallet.SaveAugmentDataByUser(userId,
+        _store.SaveLoadoutJson(userId,
             JsonSerializer.Serialize(aug.Levels),
             JsonSerializer.Serialize(aug.Slots),
             JsonSerializer.Serialize(aug.Loadouts));
@@ -344,13 +345,13 @@ public sealed class FSPerkSystem : EntitySystem
 
         // Lobby path: no mind yet — operate on DB directly
         var userId = session.UserId.UserId;
-        var (lj, sj, oj) = _wallet.LoadAugmentData(userId);
+        var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
         var lobbyAug = new FSPerkLevelsComponent();
         DeserializeInto(lobbyAug, lj, sj, oj);
 
         if (!mutate(lobbyAug)) return;
 
-        _wallet.SaveAugmentDataByUser(userId,
+        _store.SaveLoadoutJson(userId,
             JsonSerializer.Serialize(lobbyAug.Levels),
             JsonSerializer.Serialize(lobbyAug.Slots),
             JsonSerializer.Serialize(lobbyAug.Loadouts));
@@ -377,7 +378,7 @@ public sealed class FSPerkSystem : EntitySystem
         if (mind?.UserId == null)
             return null;
 
-        var (lj, sj, oj) = _wallet.LoadAugmentData(mind.UserId.Value.UserId);
+        var (lj, sj, oj) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
         var aug = EnsureComp<FSPerkLevelsComponent>(mindId);
         DeserializeInto(aug, lj, sj, oj);
         Log.Debug($"[FSPerk] EnsureAugComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
@@ -386,7 +387,10 @@ public sealed class FSPerkSystem : EntitySystem
 
     private void SaveToDb(EntityUid mindId, FSPerkLevelsComponent aug)
     {
-        _wallet.SaveAugmentData(mindId,
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+            return;
+
+        _store.SaveLoadoutJson(mind.UserId.Value.UserId,
             JsonSerializer.Serialize(aug.Levels),
             JsonSerializer.Serialize(aug.Slots),
             JsonSerializer.Serialize(aug.Loadouts));

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
@@ -18,6 +19,7 @@ namespace Content.Server._FinalStand.Leveling;
 public sealed class FSLevelingSystem : EntitySystem
 {
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private readonly FSPlayerDataStore _store = default!;
     [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
@@ -39,6 +41,8 @@ public sealed class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
     }
 
@@ -121,9 +125,87 @@ public sealed class FSLevelingSystem : EntitySystem
         }
     }
 
-    private void OnRoundRestart(RoundRestartCleanupEvent _)
+    // Leveling loads and saves its own columns of the prestige row. The wallet owns only its own.
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
+            return;
+
+        var lvl = EnsureComp<FSPlayerLevelComponent>(mindId);
+        if (lvl.Loaded)
+        {
+            SendLevelingUpdate(mindId, lvl);
+            return;
+        }
+
+        var row = _store.GetFullRecord(ev.Player.UserId.UserId);
+        lvl.Level         = row.Level;
+        lvl.Experience    = row.Experience;
+        lvl.XpToNextLevel = XpToNextLevel(row.Level);
+        lvl.PrestigeLevel = row.PrestigeLevel;
+        lvl.XpMultiplier  = ComputeXpMultiplier(row.PrestigeLevel);
+        lvl.Loaded        = true;
+
+        var buffs = EnsureComp<FSPrestigeBuffsComponent>(mindId);
+        if (!string.IsNullOrEmpty(row.PrestigeBuffsJson) && row.PrestigeBuffsJson != "{}")
+        {
+            try
+            {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, int>>(row.PrestigeBuffsJson);
+                if (dict != null)
+                {
+                    buffs.StoppingPower = dict.GetValueOrDefault("StoppingPower");
+                    buffs.BulletStorm   = dict.GetValueOrDefault("BulletStorm");
+                }
+            }
+            catch { }
+        }
+
+        SendLevelingUpdate(mindId, lvl);
+    }
+
+    public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
+    {
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+            return;
+
+        TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+        _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
+            SerializePrestigeBuffs(buffs));
+    }
+
+    private static string SerializePrestigeBuffs(FSPrestigeBuffsComponent? buffs)
+    {
+        if (buffs == null) return "{}";
+        var dict = new Dictionary<string, int>();
+        if (buffs.StoppingPower > 0) dict["StoppingPower"] = buffs.StoppingPower;
+        if (buffs.BulletStorm   > 0) dict["BulletStorm"]   = buffs.BulletStorm;
+        return JsonSerializer.Serialize(dict);
+    }
+
+    private void OnPrestigeWiped(ref FSPrestigeWipedEvent _)
+    {
+        var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
+        while (query.MoveNext(out var mindId, out var lvl))
+        {
+            lvl.Level         = 1;
+            lvl.Experience    = 0;
+            lvl.XpToNextLevel = XpToNextLevel(1);
+            lvl.PrestigeLevel = 0;
+            lvl.XpMultiplier  = ComputeXpMultiplier(0);
+            SendLevelingUpdate(mindId, lvl);
+        }
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _roundStats.Clear();
+
+        // Clearing Loaded makes the next spawn re-read the row, which is what carries level and
+        // prestige into the new round.
+        var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
+        while (query.MoveNext(out _, out var lvl))
+            lvl.Loaded = false;
     }
 
     private void OnPrestigeRequest(FSPrestigeRequestMessage _, EntitySessionEventArgs args)
@@ -139,7 +221,7 @@ public sealed class FSLevelingSystem : EntitySystem
         lvl.XpMultiplier = ComputeXpMultiplier(lvl.PrestigeLevel);
 
         SendLevelingUpdate(mindId, lvl);
-        _wallet.SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
 
         var charName = TryComp<MindComponent>(mindId, out var mind)
             ? mind.CharacterName ?? "Unknown"
@@ -206,7 +288,7 @@ public sealed class FSLevelingSystem : EntitySystem
             AnnounceLevelUp(mindId, lvl, lvl.Level - startLevel, totalAp);
 
         SendLevelingUpdate(mindId, lvl);
-        _wallet.SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
     }
 
     private void AnnounceLevelUp(EntityUid mindId, FSPlayerLevelComponent lvl, int levelsGained, int totalAp)
