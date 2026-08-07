@@ -6,14 +6,12 @@ using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Examine;
+using Content.Shared.GameTicking;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
-using Content.Shared.Inventory;
 using Content.Shared.Mind;
-using Content.Shared.Storage.EntitySystems;
 using Content.Shared.UserInterface;
 using Robust.Server.Player;
-using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -21,25 +19,26 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Shop;
 
-public sealed class FSShopWeaponSystem : EntitySystem
+public sealed partial class FSShopWeaponSystem : EntitySystem
 {
     [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
     [Dependency] private readonly FSPlayerUpgradesSystem _upgrades = default!;
     [Dependency] private readonly FSItemStashSystem _stash = default!;
+    [Dependency] private readonly FSInventorySearchSystem _search = default!;
     [Dependency] private readonly FSResearchSystem _fsResearch = default!;
     [Dependency] private readonly FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private readonly FSScienceOnlySystem _science = default!;
     [Dependency] private readonly PopupSystem _popup = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly MetaDataSystem _metaData = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly IPrototypeManager _protoManager = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
+    private const string UpgradedSuffix = " (Upgraded)";
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastSellTime = new();
     private readonly Dictionary<NetEntity, TimeSpan> _recentSells = new();
@@ -47,6 +46,7 @@ public sealed class FSShopWeaponSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSShopWeaponComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<FSShopWeaponComponent, ActivatableUIOpenAttemptEvent>(OnOpenAttempt);
         Subs.BuiEvents<FSShopWeaponComponent>(FSShopWeaponUiKey.Key, subs =>
@@ -59,31 +59,44 @@ public sealed class FSShopWeaponSystem : EntitySystem
         });
     }
 
+    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
+    {
+        _lastSellTime.Clear();
+        _recentSells.Clear();
+    }
+
     private void OnExamined(EntityUid uid, FSShopWeaponComponent comp, ExaminedEvent args)
     {
         args.PushMarkup(Loc.GetString("shop-weapon-examine-price", ("price", comp.Price)));
     }
 
-    // Locked shops (missing research or wrong department) can't be opened at all.
+    // Research and department locks. Every entry point checks this, not just the UI open.
+    private bool TryAccess(EntityUid uid, FSShopWeaponComponent comp, EntityUid player, bool silent = false)
+    {
+        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, player);
+            return false;
+        }
+
+        if (comp.RequiresScience && !_science.IsScience(player))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, player);
+            return false;
+        }
+
+        return true;
+    }
+
     private void OnOpenAttempt(EntityUid uid, FSShopWeaponComponent comp, ActivatableUIOpenAttemptEvent args)
     {
         if (args.Cancelled)
             return;
 
-        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
-        {
+        if (!TryAccess(uid, comp, args.User, args.Silent))
             args.Cancel();
-            if (!args.Silent)
-                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, args.User);
-            return;
-        }
-
-        if (comp.RequiresScience && !_science.IsScience(args.User))
-        {
-            args.Cancel();
-            if (!args.Silent)
-                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, args.User);
-        }
     }
 
     private void OnShopOpened(EntityUid uid, FSShopWeaponComponent comp, BoundUIOpenedEvent args)
@@ -108,8 +121,9 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         var levels = CollectShopLevels(player, comp);
-        var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
-        SendWeaponLevels(mindId, levels, title);
+        var title = ComputeWeaponTitle(player, comp);
+        var (acc, nextAcc) = ComputeAccuracy(player, comp);
+        SendWeaponLevels(mindId, levels, title, acc, nextAcc);
     }
 
     private void OnBuyMessage(EntityUid uid, FSShopWeaponComponent comp, FSShopBuyMessage args)
@@ -124,21 +138,13 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (comp.WeaponProtoId == null)
             return;
 
-        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
-        {
-            _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, player);
+        if (!TryAccess(uid, comp, player))
             return;
-        }
-
-        if (comp.RequiresScience && !_science.IsScience(player))
-        {
-            _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, player);
-            return;
-        }
 
         // Grenade packs are one per type — block duplicate purchases before charging.
-        var existing = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value);
-        if (existing.Any(HasComp<FSGrenadePackComponent>))
+        var owned = new List<CarriedItem>();
+        _search.Collect(player, ShopProtoIds(comp), owned);
+        if (owned.Any(c => HasComp<FSGrenadePackComponent>(c.Uid)))
         {
             _popup.PopupEntity(Loc.GetString("shop-grenade-already-owned"), uid, player);
             return;
@@ -167,8 +173,8 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
-        var title = ComputeWeaponTitle(player, comp.WeaponProtoId.Value);
-        SendWeaponLevels(mindId, new Dictionary<string, int>(), title);
+        var (buyAcc, buyNextAcc) = ComputeAccuracy(player, comp);
+        SendWeaponLevels(mindId, new Dictionary<string, int>(), ComputeWeaponTitle(player, comp), buyAcc, buyNextAcc);
     }
 
     private void OnUpgradeMessage(EntityUid uid, FSShopWeaponComponent comp, FSShopUpgradeMessage args)
@@ -180,6 +186,12 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out _))
             return;
 
+        if (comp.WeaponProtoId == null)
+            return;
+
+        if (!TryAccess(uid, comp, player))
+            return;
+
         WeaponUpgradeDef? def = null;
         foreach (var upgrade in comp.Upgrades)
         {
@@ -188,30 +200,21 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (def == null)
             return;
 
-        if (comp.WeaponProtoId == null)
-            return;
+        // An upgrade either retargets a specific weapon, or applies to the shop's own weapon and its aliases.
+        var targetIds = def.TargetWeaponProtoId is { } retarget
+            ? new HashSet<string> { retarget.Id }
+            : ShopProtoIds(comp);
 
-        EntProtoId targetProto;
-        List<EntProtoId>? aliases;
-        if (def.TargetWeaponProtoId != null)
+        var found = _search.FindFirst(player, targetIds);
+        if (found == null)
         {
-            targetProto = def.TargetWeaponProtoId.Value;
-            aliases = null;
-        }
-        else
-        {
-            targetProto = comp.WeaponProtoId.Value;
-            aliases = comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null;
-        }
-
-        var weapon = FindHeldWeapon(player, targetProto, aliases);
-        if (weapon == null)
-        {
-            _popup.PopupEntity(Loc.GetString("shop-upgrade-hold-target", ("proto", targetProto.Id)), uid, player);
+            var label = def.TargetWeaponProtoId?.Id ?? comp.WeaponProtoId.Value.Id;
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-hold-target", ("proto", label)), uid, player);
             return;
         }
 
-        var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon.Value);
+        var weapon = found.Value.Uid;
+        var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
         var currentLevel = state.Levels.GetValueOrDefault(def.Id, 0);
 
         if (currentLevel >= def.MaxLevel)
@@ -222,10 +225,9 @@ public sealed class FSShopWeaponSystem : EntitySystem
 
         if (def.RequiresUpgrade != null)
         {
-            var shopWeapon = FindHeldWeapon(player, comp.WeaponProtoId.Value,
-                comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null);
+            var shopWeapon = _search.FindFirst(player, ShopProtoIds(comp));
             var shopState = shopWeapon != null
-                ? CompOrNull<FSWeaponUpgradeStateComponent>(shopWeapon.Value)
+                ? CompOrNull<FSWeaponUpgradeStateComponent>(shopWeapon.Value.Uid)
                 : null;
             if (shopState == null
                 || shopState.Levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
@@ -236,8 +238,9 @@ public sealed class FSShopWeaponSystem : EntitySystem
         }
 
         var cost = GetUpgradeLevelCost(def, currentLevel + 1);
-        if (def.Id == "xray-self-charge" && _fsResearch.IsNodeUnlocked("FSOrdnanceDielectricCoatings"))
-            cost = (int)MathF.Round(cost * 0.85f);
+        if (def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode))
+            cost = (int)MathF.Round(cost * def.DiscountMultiplier);
+
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
@@ -248,15 +251,36 @@ public sealed class FSShopWeaponSystem : EntitySystem
         var isFirstUpgradeEver = state.Levels.Count == 0;
         state.Levels[def.Id] = newLevel;
         state.TotalSpent += cost;
-        _upgrades.ApplySingleUpgrade(weapon.Value, player, def, newLevel);
-        _researchStaticGrant.Reconcile(weapon.Value);
+        _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
+        _researchStaticGrant.Reconcile(weapon);
 
         if (isFirstUpgradeEver)
-            MarkAsUpgraded(weapon.Value);
+            MarkAsUpgraded(weapon);
 
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
-        var title = comp.WeaponProtoId != null ? ComputeWeaponTitle(player, comp.WeaponProtoId.Value) : "";
-        SendWeaponLevels(mindId, CollectShopLevels(player, comp), title);
+        var (upAcc, upNextAcc) = ComputeAccuracy(player, comp);
+        SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), upAcc, upNextAcc);
+    }
+
+    // Every prototype this shop considers "its" weapon: the weapon itself, its aliases, and any
+    // upgrade retarget. One search over all of them beats one search per prototype.
+    private static HashSet<string> ShopProtoIds(FSShopWeaponComponent comp, bool includeUpgradeTargets = false)
+    {
+        var protos = new HashSet<string>();
+        if (comp.WeaponProtoId is { } main)
+            protos.Add(main.Id);
+        foreach (var alias in comp.WeaponProtoIdAliases)
+            protos.Add(alias.Id);
+
+        if (!includeUpgradeTargets)
+            return protos;
+
+        foreach (var up in comp.Upgrades)
+        {
+            if (up.TargetWeaponProtoId is { } t)
+                protos.Add(t.Id);
+        }
+        return protos;
     }
 
     private Dictionary<string, int> CollectShopLevels(EntityUid player, FSShopWeaponComponent comp)
@@ -265,19 +289,12 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (comp.WeaponProtoId == null)
             return merged;
 
-        var protos = new HashSet<EntProtoId> { comp.WeaponProtoId.Value };
-        foreach (var alias in comp.WeaponProtoIdAliases)
-            protos.Add(alias);
-        foreach (var up in comp.Upgrades)
-        {
-            if (up.TargetWeaponProtoId is { } t)
-                protos.Add(t);
-        }
+        var carried = new List<CarriedItem>();
+        _search.Collect(player, ShopProtoIds(comp, includeUpgradeTargets: true), carried);
 
-        foreach (var proto in protos)
+        foreach (var item in carried)
         {
-            var weapon = FindHeldWeapon(player, proto);
-            if (weapon == null || !TryComp<FSWeaponUpgradeStateComponent>(weapon.Value, out var st))
+            if (!TryComp<FSWeaponUpgradeStateComponent>(item.Uid, out var st))
                 continue;
             foreach (var (k, v) in st.Levels)
                 merged[k] = v;
@@ -294,6 +311,9 @@ public sealed class FSShopWeaponSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out var mind) || mind.UserId == null)
             return;
 
+        if (!TryAccess(shopUid, comp, player))
+            return;
+
         var userId = mind.UserId.Value;
 
         var now = _timing.CurTime;
@@ -302,21 +322,22 @@ public sealed class FSShopWeaponSystem : EntitySystem
             return;
 
         CleanRecentSells(now);
-        var candidates = FindAllInventoryWeapons(player, comp.WeaponProtoId.Value,
-            comp.WeaponProtoIdAliases.Count > 0 ? comp.WeaponProtoIdAliases : null);
+        var candidates = new List<CarriedItem>();
+        _search.Collect(player, ShopProtoIds(comp), candidates, requireUpgradeState: true);
         if (candidates.Count == 0)
         {
             SendSellResponse(userId, success: false, "No copy of this weapon found in inventory.");
             return;
         }
 
+        // Sell the least upgraded copy, so a player with two never loses the better one.
         candidates.Sort((a, b) =>
         {
-            var aSum = TryComp<FSWeaponUpgradeStateComponent>(a, out var as_) ? as_.Levels.Values.Sum() : 0;
-            var bSum = TryComp<FSWeaponUpgradeStateComponent>(b, out var bs_) ? bs_.Levels.Values.Sum() : 0;
+            var aSum = TryComp<FSWeaponUpgradeStateComponent>(a.Uid, out var as_) ? as_.Levels.Values.Sum() : 0;
+            var bSum = TryComp<FSWeaponUpgradeStateComponent>(b.Uid, out var bs_) ? bs_.Levels.Values.Sum() : 0;
             return aSum.CompareTo(bSum);
         });
-        var weapon = candidates[0];
+        var weapon = candidates[0].Uid;
 
         if (_recentSells.ContainsKey(GetNetEntity(weapon)))
             return;
@@ -366,65 +387,6 @@ public sealed class FSShopWeaponSystem : EntitySystem
             RaiseNetworkEvent(new FSShopSellFailedEvent(reason), Filter.SinglePlayer(session));
     }
 
-    private List<EntityUid> FindAllInventoryWeapons(EntityUid player, EntProtoId protoId, List<EntProtoId>? aliases = null)
-    {
-        var results = new List<EntityUid>();
-        var targetId = (string) protoId;
-
-        bool Matches(EntityUid ent)
-        {
-            var protoIdStr = MetaData(ent).EntityPrototype?.ID;
-            if (protoIdStr == null)
-                return false;
-            if (protoIdStr == targetId)
-                return true;
-            if (aliases == null)
-                return false;
-            foreach (var alias in aliases)
-            {
-                if (protoIdStr == (string) alias)
-                    return true;
-            }
-            return false;
-        }
-
-        if (TryComp<HandsComponent>(player, out var hands))
-        {
-            foreach (var handName in hands.SortedHands)
-            {
-                if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
-                    continue;
-                if (Matches(held.Value) && HasComp<FSWeaponUpgradeStateComponent>(held.Value))
-                    results.Add(held.Value);
-            }
-        }
-
-        foreach (var slot in FSItemStashSystem.SlotPriority)
-        {
-            if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
-                continue;
-            if (Matches(slotEnt.Value) && HasComp<FSWeaponUpgradeStateComponent>(slotEnt.Value))
-                results.Add(slotEnt.Value);
-        }
-
-        if (_inventory.TryGetSlotEntity(player, "back", out var backpack) && backpack != null)
-        {
-            if (TryComp<ContainerManagerComponent>(backpack.Value, out var cm))
-            {
-                foreach (var container in cm.Containers.Values)
-                {
-                    foreach (var item in container.ContainedEntities)
-                    {
-                        if (Matches(item) && HasComp<FSWeaponUpgradeStateComponent>(item))
-                            results.Add(item);
-                    }
-                }
-            }
-        }
-
-        return results;
-    }
-
     private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
         // Grenade packs are pocket items — they must stay in inventory, never in hand.
@@ -443,158 +405,84 @@ public sealed class FSShopWeaponSystem : EntitySystem
     private void MarkAsUpgraded(EntityUid weapon)
     {
         var meta = MetaData(weapon);
-        if (!meta.EntityName.EndsWith(" (Upgraded)"))
-            _metaData.SetEntityName(weapon, meta.EntityName + " (Upgraded)", meta);
+        if (!meta.EntityName.EndsWith(UpgradedSuffix))
+            _metaData.SetEntityName(weapon, meta.EntityName + UpgradedSuffix, meta);
     }
 
-    private string ComputeWeaponTitle(EntityUid player, EntProtoId protoId)
+    private string ComputeWeaponTitle(EntityUid player, FSShopWeaponComponent comp)
     {
-        if (!TryComp<HandsComponent>(player, out var hands))
+        if (comp.WeaponProtoId == null)
             return "";
 
-        var matches = new List<(EntityUid uid, string handName)>();
-        foreach (var handName in hands.SortedHands)
-        {
-            if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
-                continue;
-            if (MetaData(held.Value).EntityPrototype?.ID == (string) protoId)
-                matches.Add((held.Value, handName));
-        }
-
+        var matches = new List<CarriedItem>();
+        _search.Collect(player, ShopProtoIds(comp), matches);
         if (matches.Count == 0)
             return "";
 
-        var rawName = MetaData(matches[0].uid).EntityName;
-        var baseName = rawName.EndsWith(" (Upgraded)")
-            ? rawName[..^" (Upgraded)".Length]
+        var rawName = MetaData(matches[0].Uid).EntityName;
+        var baseName = rawName.EndsWith(UpgradedSuffix)
+            ? rawName[..^UpgradedSuffix.Length]
             : rawName;
         baseName = Capitalize(baseName);
 
-        var handLabel = HandLabel(player, hands, matches[0].handName);
+        var label = CarryLabel(player, matches[0]);
 
         return matches.Count == 1
-            ? $"{baseName} ({handLabel})"
-            : $"{baseName} No. 1 ({handLabel})";
+            ? $"{baseName} ({label})"
+            : $"{baseName} No. 1 ({label})";
     }
 
-    private string HandLabel(EntityUid player, HandsComponent hands, string handName)
+    private string CarryLabel(EntityUid player, CarriedItem item)
     {
-        if (!_hands.TryGetHand((player, hands), handName, out var hand))
-            return "Hand";
-        return hand.Value.Location switch
+        switch (item.Kind)
         {
-            HandLocation.Left  => "Left Hand",
-            HandLocation.Right => "Right Hand",
-            _                  => "Hand",
-        };
+            case CarryKind.Hand:
+                if (!TryComp<HandsComponent>(player, out var hands)
+                    || !_hands.TryGetHand((player, hands), item.Where, out var hand))
+                    return "Hand";
+                return hand.Value.Location switch
+                {
+                    HandLocation.Left  => "Left Hand",
+                    HandLocation.Right => "Right Hand",
+                    _                  => "Hand",
+                };
+            case CarryKind.Equipped:
+                return item.Where switch
+                {
+                    "belt"        => "Belt",
+                    "suitstorage" => "Suit Storage",
+                    "pocket1"     => "Pocket 1",
+                    "pocket2"     => "Pocket 2",
+                    _             => Capitalize(item.Where),
+                };
+            default:
+                return "Backpack";
+        }
     }
 
     private static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 
-    private EntityUid? FindHeldWeapon(EntityUid player, EntProtoId protoId)
-        => FindHeldWeapon(player, protoId, null);
-
-    private EntityUid? FindHeldWeapon(EntityUid player, EntProtoId protoId, List<EntProtoId>? aliases)
-    {
-        if (TryComp<HandsComponent>(player, out var hands))
-        {
-            foreach (var handName in hands.SortedHands)
-            {
-                if (!_hands.TryGetHeldItem((player, hands), handName, out var held))
-                    continue;
-                var heldProto = MetaData(held.Value).EntityPrototype?.ID;
-                if (heldProto == null)
-                    continue;
-                if (heldProto == (string) protoId)
-                    return held;
-                if (aliases != null)
-                {
-                    foreach (var alias in aliases)
-                    {
-                        if (heldProto == (string) alias)
-                            return held;
-                    }
-                }
-            }
-        }
-
-        // Also check pocket/belt/suit-storage slots for non-handheld items (e.g. grenade packs).
-        foreach (var slot in FSItemStashSystem.SlotPriority)
-        {
-            if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
-                continue;
-            var slotProto = MetaData(slotEnt.Value).EntityPrototype?.ID;
-            if (slotProto == null)
-                continue;
-            if (slotProto == (string) protoId)
-                return slotEnt;
-            if (aliases != null)
-            {
-                foreach (var alias in aliases)
-                {
-                    if (slotProto == (string) alias)
-                        return slotEnt;
-                }
-            }
-        }
-
-        return null;
-    }
-
     private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp)
     {
         var ammoProtos = new HashSet<string>();
         if (shopComp.StarterAmmoProtoId != null)
-            ammoProtos.Add((string)shopComp.StarterAmmoProtoId.Value);
+            ammoProtos.Add(shopComp.StarterAmmoProtoId.Value.Id);
         foreach (var upgrade in shopComp.Upgrades)
         {
             if (upgrade.Type == WeaponUpgradeType.SpawnItem && upgrade.SpawnProtoId != null)
-                ammoProtos.Add((string)upgrade.SpawnProtoId.Value);
+                ammoProtos.Add(upgrade.SpawnProtoId.Value.Id);
         }
         if (ammoProtos.Count == 0)
             return;
 
-        var toDelete = new List<EntityUid>();
-
-        if (TryComp<HandsComponent>(player, out var hands))
-        {
-            foreach (var handName in hands.SortedHands)
-            {
-                if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
-                    continue;
-                if (ammoProtos.Contains(MetaData(held.Value).EntityPrototype?.ID ?? ""))
-                    toDelete.Add(held.Value);
-            }
-        }
-
-        foreach (var slot in FSItemStashSystem.SlotPriority)
-        {
-            if (!_inventory.TryGetSlotEntity(player, slot, out var slotEnt) || slotEnt == null)
-                continue;
-            if (ammoProtos.Contains(MetaData(slotEnt.Value).EntityPrototype?.ID ?? ""))
-                toDelete.Add(slotEnt.Value);
-        }
-
-        if (_inventory.TryGetSlotEntity(player, "back", out var backpack) && backpack != null)
-        {
-            if (TryComp<ContainerManagerComponent>(backpack.Value, out var cm))
-            {
-                foreach (var container in cm.Containers.Values)
-                {
-                    foreach (var item in container.ContainedEntities)
-                    {
-                        if (ammoProtos.Contains(MetaData(item).EntityPrototype?.ID ?? ""))
-                            toDelete.Add(item);
-                    }
-                }
-            }
-        }
+        var toDelete = new List<CarriedItem>();
+        _search.Collect(player, ammoProtos, toDelete);
 
         foreach (var item in toDelete)
         {
-            if (Exists(item))
-                QueueDel(item);
+            if (Exists(item.Uid))
+                QueueDel(item.Uid);
         }
     }
 
@@ -608,13 +496,15 @@ public sealed class FSShopWeaponSystem : EntitySystem
         return (int)MathF.Round(def.BaseCost * mult);
     }
 
-    private void SendWeaponLevels(EntityUid mindId, Dictionary<string, int> levels, string title = "")
+    private void SendWeaponLevels(EntityUid mindId, Dictionary<string, int> levels, string title = "",
+        int accuracy = -1, Dictionary<string, int>? nextAccuracy = null)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
             return;
         if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session))
             return;
-        RaiseNetworkEvent(new UpgradeLevelsUpdatedEvent(new Dictionary<string, int>(levels), title),
+        RaiseNetworkEvent(
+            new UpgradeLevelsUpdatedEvent(new Dictionary<string, int>(levels), title, accuracy, nextAccuracy),
             Filter.SinglePlayer(session));
     }
 }

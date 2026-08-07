@@ -51,6 +51,10 @@ public sealed class FSShopClientSystem : EntitySystem
     public Dictionary<string, int> UpgradeLevels { get; private set; } = [];
     public string WeaponTitle { get; private set; } = "";
 
+    // Server-computed. -1 when the shop sells no gun or the player owns no copy.
+    public int Accuracy { get; private set; } = -1;
+    public Dictionary<string, int> NextLevelAccuracy { get; private set; } = [];
+
     public event Action? CreditsChanged;
     public event Action? UpgradeLevelsChanged;
     public event Action? RefreshNeeded;
@@ -173,6 +177,8 @@ public sealed class FSShopClientSystem : EntitySystem
     {
         UpgradeLevels = ev.Levels;
         WeaponTitle = ev.WeaponTitle;
+        Accuracy = ev.Accuracy;
+        NextLevelAccuracy = ev.NextLevelAccuracy;
         UpgradeLevelsChanged?.Invoke();
     }
 
@@ -181,6 +187,8 @@ public sealed class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
+        Accuracy = -1;
+        NextLevelAccuracy = [];
         _isScience = false;
         _lastGlowState.Clear();
         CreditsChanged?.Invoke();

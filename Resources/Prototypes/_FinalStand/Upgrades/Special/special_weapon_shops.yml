@@ -261,6 +261,8 @@
       baseCost: 11000
       type: SelfChargeSpeed
       valuePerLevel: 2.0
+      discountResearch: FSOrdnanceDielectricCoatings
+      discountMultiplier: 0.85
     - id: xray-accuracy
       name: Collimator
       description: Precision collimator tightens the beam by 10° per level.

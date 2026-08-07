@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Shop;
@@ -112,4 +113,8 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public string? RequiresUpgrade;
 
     [DataField] public EntProtoId? TargetWeaponProtoId;
+
+    // Cost multiplier applied while DiscountResearch is unlocked.
+    [DataField] public ProtoId<FSTechNodePrototype>? DiscountResearch;
+    [DataField] public float DiscountMultiplier = 1.0f;
 }
