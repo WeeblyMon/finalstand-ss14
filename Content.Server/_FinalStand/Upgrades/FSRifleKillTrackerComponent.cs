@@ -2,7 +2,7 @@ using Content.Shared.Damage;
 
 namespace Content.Server._FinalStand.Upgrades;
 
-// placed on wave enemies on hit by WarTorn; detects kills to accumulate damage stacks
+// placed on wave enemies on hit by BattleTrance; detects kills to accumulate damage stacks
 [RegisterComponent]
 public sealed partial class FSRifleKillTrackerComponent : Component
 {

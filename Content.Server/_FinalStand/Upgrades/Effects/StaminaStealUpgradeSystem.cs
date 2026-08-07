@@ -24,7 +24,7 @@ public sealed class StaminaStealUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.StaminaStealLevel <= 0)
+        if (ev.State is not { } state || state.StaminaStealLevel <= 0)
             return;
 
         // Drain stamina from target — they stagger briefly, but their high regen means it doesn't last.

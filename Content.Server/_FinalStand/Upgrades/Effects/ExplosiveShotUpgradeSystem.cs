@@ -1,4 +1,5 @@
-using System.Linq;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Explosion.EntitySystems;
 using Content.Shared._FinalStand.Shop;
@@ -19,6 +20,11 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
+
     private const float AoeRadius = 2.5f;
 
     public override void Initialize()
@@ -31,7 +37,7 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.ExplosiveShotLevel <= 0)
+        if (ev.State is not { } state || state.ExplosiveShotLevel <= 0)
             return;
         if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
             return;
@@ -54,18 +60,21 @@ public sealed class ExplosiveShotUpgradeSystem : EntitySystem
             canCreateVacuum: false,
             addLog: false);
 
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), AoeRadius, nearby);
 
         var primaryTarget = ev.Target;
         var shooter = ev.Shooter;
 
-        foreach (var splashTarget in nearby
-            .Where(e => e.Owner != primaryTarget && !_mobState.IsDead(e.Owner)))
+        foreach (var splashTarget in nearby)
         {
+            if (splashTarget.Owner == primaryTarget || _mobState.IsDead(splashTarget.Owner))
+                continue;
+
             _damageable.TryChangeDamage(splashTarget.Owner, splashDamage, ignoreResistances: false, origin: shooter);
             if (state.KnockbackLevel > 0 && shooter != null)
                 _knockback.ApplyKnockback(splashTarget.Owner, shooter.Value, state.KnockbackLevel);
         }
+        _entSetPool.Return(nearby);
     }
 }

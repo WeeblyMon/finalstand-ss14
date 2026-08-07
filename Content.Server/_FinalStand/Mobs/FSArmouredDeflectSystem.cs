@@ -58,7 +58,8 @@ public sealed class FSArmouredDeflectSystem : EntitySystem
         if (!_random.Prob(comp.DeflectChance))
             return;
 
-        ev.AdditionalMultiplier = 0f;
+        // Multiplied, not assigned: zero still wins, without discarding other subscribers.
+        ev.AdditionalMultiplier *= 0f;
 
         _audio.PlayPvs(comp.DeflectSound, ev.Target);
         comp.IsGlowing = true;

@@ -328,7 +328,7 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.OverchargeShot     => "Overcharge",
         WeaponUpgradeType.Overkill           => "Overkill",
         WeaponUpgradeType.Execution          => "Execution",
-        WeaponUpgradeType.WarTorn            => "Battle Trance",
+        WeaponUpgradeType.BattleTrance       => "Battle Trance",
         WeaponUpgradeType.Suppression        => "Suppress",
         WeaponUpgradeType.Resonance          => "Resonance",
         WeaponUpgradeType.Prismatic          => "Prismatic",

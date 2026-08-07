@@ -51,7 +51,7 @@
       description: Each kill increases damage by 2%/4%/6% per stack, up to 15/30/50 stacks. Resets between waves.
       maxLevel: 3
       baseCost: 13500
-      type: WarTorn
+      type: BattleTrance
       valuePerLevel: 1
     - id: akms-suppression
       name: Suppression

@@ -21,7 +21,7 @@ public sealed class PointBlankCritUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.PointBlankCritEnabled)
+        if (ev.State is not { } state || !state.PointBlankCritEnabled)
             return;
         if (ev.WasCrit)
             return;

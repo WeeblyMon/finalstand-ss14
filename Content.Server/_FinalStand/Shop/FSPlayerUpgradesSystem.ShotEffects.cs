@@ -139,10 +139,10 @@ public sealed partial class FSPlayerUpgradesSystem
                     Dirty(weapon, state);
                     break;
                 }
-            case WeaponUpgradeType.WarTorn:
+            case WeaponUpgradeType.BattleTrance:
                 {
-                    state.WarTornEnabled = true;
-                    var wt = EnsureComp<FSWarTornComponent>(weapon);
+                    state.BattleTranceEnabled = true;
+                    var wt = EnsureComp<FSBattleTranceComponent>(weapon);
                     wt.BonusPerStack = newLevel * 0.02f;
                     wt.MaxStacks = newLevel switch { 1 => 15, 2 => 30, _ => 50 };
                     break;

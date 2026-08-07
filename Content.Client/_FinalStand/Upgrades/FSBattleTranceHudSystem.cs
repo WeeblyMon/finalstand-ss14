@@ -3,16 +3,16 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Upgrades;
 
-public sealed class FSWarTornHudSystem : EntitySystem
+public sealed class FSBattleTranceHudSystem : EntitySystem
 {
     [Dependency] private readonly IOverlayManager _overlayManager = default!;
 
-    private FSWarTornHudOverlay? _overlay;
+    private FSBattleTranceHudOverlay? _overlay;
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSWarTornStateEvent>(OnState);
+        SubscribeNetworkEvent<FSBattleTranceStateEvent>(OnState);
     }
 
     public override void Shutdown()
@@ -25,10 +25,10 @@ public sealed class FSWarTornHudSystem : EntitySystem
         }
     }
 
-    private void OnState(FSWarTornStateEvent ev)
+    private void OnState(FSBattleTranceStateEvent ev)
     {
-        _overlay ??= new FSWarTornHudOverlay();
-        if (!_overlayManager.HasOverlay<FSWarTornHudOverlay>())
+        _overlay ??= new FSBattleTranceHudOverlay();
+        if (!_overlayManager.HasOverlay<FSBattleTranceHudOverlay>())
             _overlayManager.AddOverlay(_overlay);
 
         _overlay.Stacks    = ev.Stacks;

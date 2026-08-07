@@ -73,6 +73,7 @@ public sealed class CritSystem : EntitySystem
             ProjectileUid = uid,
             Damage        = args.Damage,
             WasCrit       = didCrit,
+            State         = CompOrNull<FSWeaponUpgradeStateComponent>(comp.Weapon.Value),
         };
         RaiseLocalEvent(hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)

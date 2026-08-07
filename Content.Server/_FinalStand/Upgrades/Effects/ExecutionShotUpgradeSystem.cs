@@ -27,7 +27,7 @@ public sealed class ExecutionShotUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.ExecutionShotUpgradeEnabled)
+        if (ev.State is not { } state || !state.ExecutionShotUpgradeEnabled)
             return;
         if (!HasComp<FSExecutionReadyComponent>(ev.Weapon.Value))
             return;

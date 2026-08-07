@@ -159,10 +159,26 @@ public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
         RemComp<FSFlintlockCritWindowComponent>(wielder);
     }
 
+    // Exact ids: a substring match also caught FSCartridgeFlintlock and FSBulletFlintlock, so
+    // holding flintlock ammo counted as holding the gun.
+    private static readonly string[] FlintlockProtos =
+    [
+        "WeaponPistolFlintlock",
+        "WeaponPistolFlintlockEmpty",
+    ];
+
     private bool IsFlintlock(EntityUid weapon)
     {
         var protoId = MetaData(weapon).EntityPrototype?.ID;
-        return protoId != null && protoId.Contains("Flintlock");
+        if (protoId == null)
+            return false;
+
+        foreach (var candidate in FlintlockProtos)
+        {
+            if (protoId == candidate)
+                return true;
+        }
+        return false;
     }
 
     private bool IsCutlassWithSynergy(EntityUid weapon)

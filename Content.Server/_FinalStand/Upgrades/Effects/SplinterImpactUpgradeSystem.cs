@@ -27,7 +27,7 @@ public sealed class SplinterImpactUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.SplinterImpactEnabled)
+        if (ev.State is not { } state || !state.SplinterImpactEnabled)
             return;
 
         var targetPos = _xform.GetWorldPosition(ev.Target);

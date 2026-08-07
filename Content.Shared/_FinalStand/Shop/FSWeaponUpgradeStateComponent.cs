@@ -36,7 +36,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int OverkillLevel = 0;
     [DataField, AutoNetworkedField] public bool ExecutionEnabled = false;
-    [DataField] public bool WarTornEnabled = false;
+    [DataField] public bool BattleTranceEnabled = false;
     [DataField] public int SuppressionLevel = 0;
     [DataField] public bool ResonanceEnabled = false;
     [DataField] public int PrismaticLevel = 0;

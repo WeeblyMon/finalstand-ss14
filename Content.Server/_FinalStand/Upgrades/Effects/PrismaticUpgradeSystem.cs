@@ -1,4 +1,5 @@
-using System.Linq;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
@@ -21,6 +22,13 @@ public sealed class PrismaticUpgradeSystem : EntitySystem
     [Dependency] private readonly SharedGunSystem _gun = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
+
+    private readonly List<EntityUid> _beamTargets = new();
+
     private const string BeamProto = "FSPrismaticBeam";
     private const float BeamSpeed = 20f;
     private const float BeamRange = 10f;
@@ -36,7 +44,7 @@ public sealed class PrismaticUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.PrismaticLevel <= 0)
+        if (ev.State is not { } state || state.PrismaticLevel <= 0)
             return;
 
         if (!_random.Prob(state.PrismaticLevel * 0.25f))
@@ -44,13 +52,19 @@ public sealed class PrismaticUpgradeSystem : EntitySystem
 
         var targetPos = _xform.GetWorldPosition(ev.Target);
         var mapId = Transform(ev.Target).MapID;
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), BeamRange, nearby);
 
-        var targets = nearby
-            .Where(e => e.Owner != ev.Target && !_mobState.IsDead(e.Owner))
-            .Take(3)
-            .ToList();
+        _beamTargets.Clear();
+        foreach (var candidate in nearby)
+        {
+            if (_beamTargets.Count == 3)
+                break;
+            if (candidate.Owner == ev.Target || _mobState.IsDead(candidate.Owner))
+                continue;
+            _beamTargets.Add(candidate.Owner);
+        }
+        _entSetPool.Return(nearby);
 
         var beamDamage = ev.Damage * FixedPoint2.New(BeamDamageRatio);
         var targetCoords = Transform(ev.Target).Coordinates;
@@ -58,9 +72,9 @@ public sealed class PrismaticUpgradeSystem : EntitySystem
         for (var i = 0; i < 3; i++)
         {
             Vector2 dir;
-            if (i < targets.Count)
+            if (i < _beamTargets.Count)
             {
-                var enemyPos = _xform.GetWorldPosition(targets[i].Owner);
+                var enemyPos = _xform.GetWorldPosition(_beamTargets[i]);
                 var toEnemy = enemyPos - targetPos;
                 if (toEnemy.LengthSquared() < 0.001f)
                     continue;

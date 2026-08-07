@@ -20,7 +20,7 @@ public sealed class LifeStealUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.LifeStealPercent <= 0f)
+        if (ev.State is not { } state || state.LifeStealPercent <= 0f)
             return;
 
         if (HasComp<FSPlayerDamageImmuneComponent>(ev.Target) || HasComp<FSFriendlyFireComponent>(ev.Target))

@@ -20,7 +20,7 @@ public sealed class SetOnFireUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.SetOnFireEnabled)
+        if (ev.State is not { } state || !state.SetOnFireEnabled)
             return;
         if (HasComp<FSFriendlyFireComponent>(ev.Target))
             return;

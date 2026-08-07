@@ -1,3 +1,4 @@
+using Content.Shared.Mobs.Systems;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
@@ -13,6 +14,7 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 public sealed class ExecutionUpgradeSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
 
     private const float ExecutionThreshold = 0.25f;
     private const float ExecutionMultiplier = 5.0f;
@@ -27,23 +29,14 @@ public sealed class ExecutionUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.ExecutionEnabled)
+        if (ev.State is not { } state || !state.ExecutionEnabled)
             return;
         if (!TryComp<DamageableComponent>(ev.Target, out var damageable))
             return;
-        if (!TryComp<MobThresholdsComponent>(ev.Target, out var thresholds))
+        if (!_thresholds.TryGetDeadThreshold(ev.Target, out var dead) || dead.Value <= 0)
             return;
 
-        FixedPoint2 deadThreshold = 0;
-        foreach (var (hp, mobState) in thresholds.Thresholds)
-        {
-            if (mobState == MobState.Dead && hp > deadThreshold)
-                deadThreshold = hp;
-        }
-        if (deadThreshold <= 0)
-            return;
-
-        var maxHp = deadThreshold.Float();
+        var maxHp = dead.Value.Float();
         var currentDamage = _damageable.GetPositiveDamage((ev.Target, damageable)).GetTotal().Float();
         var currentHp = maxHp - currentDamage;
         if (currentHp / maxHp >= ExecutionThreshold)

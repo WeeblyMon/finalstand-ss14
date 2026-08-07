@@ -12,7 +12,7 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // kill stacks increase AKMS damage; resets at wave end
-public sealed class WarTornUpgradeSystem : EntitySystem
+public sealed class BattleTranceUpgradeSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
@@ -22,7 +22,8 @@ public sealed class WarTornUpgradeSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
         SubscribeLocalEvent<FSRifleKillTrackerComponent, MobStateChangedEvent>(OnKill);
-        SubscribeLocalEvent<FSWarTornComponent, GotUnequippedHandEvent>(OnUnequipped);
+        SubscribeLocalEvent<FSBattleTranceComponent, GotEquippedHandEvent>(OnEquipped);
+        SubscribeLocalEvent<FSBattleTranceComponent, GotUnequippedHandEvent>(OnUnequipped);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnd);
     }
 
@@ -30,13 +31,13 @@ public sealed class WarTornUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWarTornComponent>(ev.Weapon.Value, out var warTorn))
+        if (!TryComp<FSBattleTranceComponent>(ev.Weapon.Value, out var battleTrance))
             return;
         if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
             return;
 
         if (ev.Shooter != null)
-            warTorn.Shooter = ev.Shooter;
+            battleTrance.Shooter = ev.Shooter;
 
         var tracker = EnsureComp<FSRifleKillTrackerComponent>(ev.Target);
         tracker.Weapon = ev.Weapon;
@@ -49,46 +50,56 @@ public sealed class WarTornUpgradeSystem : EntitySystem
             return;
         if (tracker.Weapon is not { } gun || !Exists(gun))
             return;
-        if (!TryComp<FSWarTornComponent>(gun, out var warTorn))
+        if (!TryComp<FSBattleTranceComponent>(gun, out var battleTrance))
             return;
         if (!TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
             return;
-        if (warTorn.Stacks >= warTorn.MaxStacks)
+        if (battleTrance.Stacks >= battleTrance.MaxStacks)
             return;
 
-        state.DamageMultiplier -= warTorn.CurrentBonus;
-        warTorn.Stacks++;
-        warTorn.CurrentBonus = warTorn.Stacks * warTorn.BonusPerStack;
-        state.DamageMultiplier += warTorn.CurrentBonus;
-        BroadcastState(warTorn);
+        state.DamageMultiplier -= battleTrance.CurrentBonus;
+        battleTrance.Stacks++;
+        battleTrance.CurrentBonus = battleTrance.Stacks * battleTrance.BonusPerStack;
+        state.DamageMultiplier += battleTrance.CurrentBonus;
+        BroadcastState(battleTrance);
     }
 
-    private void OnUnequipped(EntityUid uid, FSWarTornComponent warTorn, GotUnequippedHandEvent args)
+    // Stacks live on the weapon and survive being dropped — only the wave end clears them.
+    // Picking it back up has to restore the readout, or it shows zero until the next kill.
+    private void OnEquipped(EntityUid uid, FSBattleTranceComponent battleTrance, GotEquippedHandEvent args)
     {
-        if (warTorn.Stacks <= 0)
+        battleTrance.Shooter = args.User;
+        if (battleTrance.Stacks <= 0)
             return;
-        BroadcastZero(warTorn);
+        BroadcastState(battleTrance);
+    }
+
+    private void OnUnequipped(EntityUid uid, FSBattleTranceComponent battleTrance, GotUnequippedHandEvent args)
+    {
+        if (battleTrance.Stacks <= 0)
+            return;
+        BroadcastZero(battleTrance);
     }
 
     private void OnWaveEnd(ref WaveEndedEvent args)
     {
-        var query = EntityQueryEnumerator<FSWarTornComponent, FSWeaponUpgradeStateComponent>();
-        while (query.MoveNext(out _, out var warTorn, out var state))
+        var query = EntityQueryEnumerator<FSBattleTranceComponent, FSWeaponUpgradeStateComponent>();
+        while (query.MoveNext(out _, out var battleTrance, out var state))
         {
-            state.DamageMultiplier -= warTorn.CurrentBonus;
-            warTorn.Stacks = 0;
-            warTorn.CurrentBonus = 0f;
-            BroadcastZero(warTorn);
+            state.DamageMultiplier -= battleTrance.CurrentBonus;
+            battleTrance.Stacks = 0;
+            battleTrance.CurrentBonus = 0f;
+            BroadcastZero(battleTrance);
         }
     }
 
-    private void BroadcastState(FSWarTornComponent comp)
+    private void BroadcastState(FSBattleTranceComponent comp)
         => BroadcastToShooter(comp, comp.Stacks, (int)MathF.Round(comp.CurrentBonus * 100f));
 
-    private void BroadcastZero(FSWarTornComponent comp)
+    private void BroadcastZero(FSBattleTranceComponent comp)
         => BroadcastToShooter(comp, 0, 0);
 
-    private void BroadcastToShooter(FSWarTornComponent comp, int stacks, int bonusPct)
+    private void BroadcastToShooter(FSBattleTranceComponent comp, int stacks, int bonusPct)
     {
         if (comp.Shooter is not { } shooter || !Exists(shooter))
             return;
@@ -98,7 +109,7 @@ public sealed class WarTornUpgradeSystem : EntitySystem
             return;
 
         RaiseNetworkEvent(
-            new FSWarTornStateEvent(stacks, comp.MaxStacks, bonusPct),
+            new FSBattleTranceStateEvent(stacks, comp.MaxStacks, bonusPct),
             Filter.SinglePlayer(session));
     }
 }

@@ -38,7 +38,7 @@ public sealed class SlowingUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.SlowingEnabled)
+        if (ev.State is not { } state || !state.SlowingEnabled)
             return;
 
         // Reset timer if already slowed; don't stack.

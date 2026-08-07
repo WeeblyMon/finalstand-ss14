@@ -6,7 +6,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Upgrades;
 
-public sealed class FSWarTornHudOverlay : Overlay
+public sealed class FSBattleTranceHudOverlay : Overlay
 {
     [Dependency] private readonly IClyde _clyde = default!;
     [Dependency] private readonly IResourceCache _resourceCache = default!;
@@ -21,7 +21,7 @@ public sealed class FSWarTornHudOverlay : Overlay
     private Texture? _skullTexture;
     private bool     _skullLoadAttempted;
 
-    public FSWarTornHudOverlay()
+    public FSBattleTranceHudOverlay()
     {
         IoCManager.InjectDependencies(this);
     }

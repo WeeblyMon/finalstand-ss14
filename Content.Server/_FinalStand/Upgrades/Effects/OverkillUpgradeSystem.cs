@@ -1,3 +1,5 @@
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -18,7 +20,13 @@ public sealed class OverkillUpgradeSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
+
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
 
     private const float TransferRangeL1 = 5f;
     private const float TransferRangeL2 = 8f;
@@ -34,21 +42,13 @@ public sealed class OverkillUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.OverkillLevel <= 0)
+        if (ev.State is not { } state || state.OverkillLevel <= 0)
             return;
         if (!TryComp<DamageableComponent>(ev.Target, out var damageable))
             return;
-        if (!TryComp<MobThresholdsComponent>(ev.Target, out var thresholds))
+        if (!_thresholds.TryGetDeadThreshold(ev.Target, out var dead) || dead.Value <= 0)
             return;
-
-        FixedPoint2 deadThreshold = 0;
-        foreach (var (hp, mobState) in thresholds.Thresholds)
-        {
-            if (mobState == MobState.Dead && hp > deadThreshold)
-                deadThreshold = hp;
-        }
-        if (deadThreshold <= 0)
-            return;
+        var deadThreshold = dead.Value;
 
         var currentDamage = _damageable.GetPositiveDamage((ev.Target, damageable)).GetTotal();
         var hitTotal = ev.Damage.GetTotal();
@@ -74,17 +74,27 @@ public sealed class OverkillUpgradeSystem : EntitySystem
 
         var targetPos = _xform.GetWorldPosition(ev.Target);
         var mapId = Transform(ev.Target).MapID;
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), range, nearby);
 
+        // Nearest, not first: the set is unordered, so taking the first hit transferred the
+        // overkill to an arbitrary enemy in range.
+        EntityUid? nearest = null;
+        var nearestDistSq = float.MaxValue;
         foreach (var candidate in nearby)
         {
-            if (candidate.Owner == ev.Target)
+            if (candidate.Owner == ev.Target || _mobState.IsDead(candidate.Owner))
                 continue;
-            if (_mobState.IsDead(candidate.Owner))
+
+            var distSq = (_xform.GetWorldPosition(candidate.Owner) - targetPos).LengthSquared();
+            if (distSq >= nearestDistSq)
                 continue;
-            _damageable.TryChangeDamage(candidate.Owner, excessDamage, ignoreResistances: false, origin: ev.Shooter);
-            break;
+            nearestDistSq = distSq;
+            nearest = candidate.Owner;
         }
+        _entSetPool.Return(nearby);
+
+        if (nearest is { } victim)
+            _damageable.TryChangeDamage(victim, excessDamage, ignoreResistances: false, origin: ev.Shooter);
     }
 }

@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._FinalStand.Shop;
@@ -12,6 +11,8 @@ public sealed class ResonanceUpgradeSystem : EntitySystem
 {
     [Dependency] private readonly FlammableSystem _flammable = default!;
 
+    private readonly List<EntityUid> _staleKeys = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -24,12 +25,18 @@ public sealed class ResonanceUpgradeSystem : EntitySystem
             return;
         if (!TryComp<FSResonanceComponent>(ev.Weapon.Value, out var resonance))
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.ResonanceEnabled)
+        if (ev.State is not { } state || !state.ResonanceEnabled)
             return;
 
         if (resonance.HitCounts.Count > 30)
         {
-            foreach (var key in resonance.HitCounts.Keys.Where(k => !Exists(k)).ToList())
+            _staleKeys.Clear();
+            foreach (var key in resonance.HitCounts.Keys)
+            {
+                if (!Exists(key))
+                    _staleKeys.Add(key);
+            }
+            foreach (var key in _staleKeys)
                 resonance.HitCounts.Remove(key);
         }
 

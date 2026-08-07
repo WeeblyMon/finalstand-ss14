@@ -40,7 +40,7 @@ public sealed class SuppressionUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.SuppressionLevel <= 0)
+        if (ev.State is not { } state || state.SuppressionLevel <= 0)
             return;
         if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
             return;

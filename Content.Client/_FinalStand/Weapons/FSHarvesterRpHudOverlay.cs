@@ -6,7 +6,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Weapons;
 
-// Mirrors FSWarTornHudOverlay - a screen-space overlay above the hand HUD, not an ItemStatus panel.
+// Mirrors FSBattleTranceHudOverlay - a screen-space overlay above the hand HUD, not an ItemStatus panel.
 public sealed class FSHarvesterRpHudOverlay : Overlay
 {
     [Dependency] private readonly IClyde _clyde = default!;

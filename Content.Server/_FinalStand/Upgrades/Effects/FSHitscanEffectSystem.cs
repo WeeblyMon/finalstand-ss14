@@ -1,5 +1,8 @@
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Crit;
 using Content.Shared._FinalStand.Crit;
+using Content.Shared.Damage;
+using Content.Shared.FixedPoint;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
@@ -8,10 +11,13 @@ using Content.Shared.Weapons.Hitscan.Events;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-// raises CritLandedEvent with the correct shooter so hitscan weapons show enemy health bars
+// Bridges hitscan into the upgrade-effect pipeline. Vanilla HitscanBasicDamageSystem has already
+// applied the base damage by the time effects run, and the event carries no mutable damage, so a
+// crit or an AdditionalMultiplier is paid as a second TryChangeDamage for the difference.
 public sealed class FSHitscanEffectSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly CritSystem _crit = default!;
 
     public override void Initialize()
     {
@@ -27,27 +33,60 @@ public sealed class FSHitscanEffectSystem : EntitySystem
             return;
 
         var damage = dmgComp.Damage * _damageable.UniversalHitscanDamageModifier;
+        var target = args.Data.HitEntity.Value;
 
-        if (HasComp<WaveSpawnedTagComponent>(args.Data.HitEntity.Value) && args.Data.Shooter is { } shooter)
+        var didCrit = false;
+        var critMultiplier = 1f;
+        if (args.Data.Shooter is { } critShooter
+            && _crit.TryRollCrit(critShooter, args.Data.Gun, target, out critMultiplier))
         {
-            RaiseLocalEvent(args.Data.HitEntity.Value, new CritLandedEvent
+            didCrit = true;
+            _crit.MarkPendingCrit(critShooter, target);
+        }
+
+        var finalDamage = didCrit ? damage * critMultiplier : damage;
+
+        if (HasComp<WaveSpawnedTagComponent>(target) && args.Data.Shooter is { } shooter)
+        {
+            RaiseLocalEvent(target, new CritLandedEvent
             {
-                Target      = args.Data.HitEntity.Value,
+                Target      = target,
                 Shooter     = shooter,
-                FinalDamage = damage.GetTotal().Float(),
-                WasCrit     = false,
+                FinalDamage = finalDamage.GetTotal().Float(),
+                WasCrit     = didCrit,
             });
         }
 
-        if (!HasComp<FSWeaponUpgradeStateComponent>(args.Data.Gun))
-            return;
-
-        RaiseLocalEvent(new FSProjectileHitEffectEvent
+        if (!TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var upgradeState))
         {
-            Target  = args.Data.HitEntity.Value,
+            PayDelta(target, damage, finalDamage, args.Data.Shooter);
+            return;
+        }
+
+        var hitEffect = new FSProjectileHitEffectEvent
+        {
+            Target  = target,
             Weapon  = args.Data.Gun,
             Shooter = args.Data.Shooter,
-            Damage  = damage,
-        });
+            Damage  = finalDamage,
+            State   = upgradeState,
+            WasCrit = didCrit,
+        };
+        RaiseLocalEvent(hitEffect);
+
+        if (hitEffect.AdditionalMultiplier != 1f)
+            finalDamage *= hitEffect.AdditionalMultiplier;
+
+        PayDelta(target, damage, finalDamage, args.Data.Shooter);
+    }
+
+    // Vanilla already dealt the base damage; only the surplus is owed.
+    private void PayDelta(EntityUid target, DamageSpecifier applied, DamageSpecifier wanted, EntityUid? origin)
+    {
+        var delta = wanted - applied;
+        if (delta.GetTotal() <= FixedPoint2.Zero)
+            return;
+
+        _damageable.TryChangeDamage(target, delta, ignoreResistances: false, origin: origin);
     }
 }

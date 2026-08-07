@@ -23,7 +23,7 @@ public sealed class MoneyGainBonusUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state))
+        if (ev.State is not { } state)
             return;
 
         if (state.MoneyGainBonusPerKill > 0)

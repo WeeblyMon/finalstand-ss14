@@ -47,7 +47,7 @@ public sealed class KnockbackUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.KnockbackLevel <= 0)
+        if (ev.State is not { } state || state.KnockbackLevel <= 0)
             return;
 
         ApplyKnockback(ev.Target, ev.Shooter.Value, state.KnockbackLevel, 1f + state.KnockbackResearchForceBonus);

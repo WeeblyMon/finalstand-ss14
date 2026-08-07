@@ -41,7 +41,7 @@ public enum WeaponUpgradeType : byte
     Damage,
     Overkill,
     Execution,
-    WarTorn,
+    BattleTrance,
     Suppression,
     Resonance,
     Prismatic,

@@ -1,4 +1,5 @@
-using System.Linq;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Explosion.EntitySystems;
@@ -23,6 +24,11 @@ public sealed class PulseCascadeUpgradeSystem : EntitySystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
+
     private const string CascadeExplosionProto = "FSPulseCascadeExplosion";
     private const int CascadeCount = 3;
     private const float CascadeRadius = 2f;
@@ -38,7 +44,7 @@ public sealed class PulseCascadeUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.PulseCascadeEnabled)
+        if (ev.State is not { } state || !state.PulseCascadeEnabled)
             return;
         if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
             return;
@@ -73,7 +79,7 @@ public sealed class PulseCascadeUpgradeSystem : EntitySystem
                 canCreateVacuum: false, addLog: false);
         }
 
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(epicenter, CascadeRadius, nearby);
 
         foreach (var target in nearby)
@@ -88,5 +94,6 @@ public sealed class PulseCascadeUpgradeSystem : EntitySystem
 
             _damageable.TryChangeDamage(target.Owner, cascadeDamage, ignoreResistances: false, origin: tracker.Shooter);
         }
+        _entSetPool.Return(nearby);
     }
 }

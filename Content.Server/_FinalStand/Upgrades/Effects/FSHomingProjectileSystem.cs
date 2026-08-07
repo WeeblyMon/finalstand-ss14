@@ -1,3 +1,5 @@
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared.Mobs.Systems;
@@ -17,6 +19,10 @@ public sealed class FSHomingProjectileSystem : EntitySystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
 
     private const float SearchRadius = 8f;
     // A bolt with nothing in range would otherwise run a radius query every tick for its whole life.
@@ -72,7 +78,7 @@ public sealed class FSHomingProjectileSystem : EntitySystem
     private EntityUid? FindTarget(TransformComponent xform)
     {
         var selfPos = _xform.GetWorldPosition(xform);
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(selfPos, xform.MapID), SearchRadius, nearby);
 
         EntityUid? nearest = null;
@@ -89,6 +95,7 @@ public sealed class FSHomingProjectileSystem : EntitySystem
                 nearest = candidate.Owner;
             }
         }
+        _entSetPool.Return(nearby);
 
         return nearest;
     }

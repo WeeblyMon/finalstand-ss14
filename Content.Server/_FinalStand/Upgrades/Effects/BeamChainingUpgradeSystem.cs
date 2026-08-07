@@ -1,4 +1,5 @@
-using System.Linq;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
@@ -17,6 +18,14 @@ public sealed class BeamChainingUpgradeSystem : EntitySystem
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
 
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
+
+    // Reused across hits; the damage below cannot re-enter this handler.
+    private readonly List<(EntityUid Uid, float DistSq)> _candidates = new();
+
     private const float ChainRange = 5f;
     private const string ChainBeamSegment = "FSChainBeamSegment";
 
@@ -30,28 +39,32 @@ public sealed class BeamChainingUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.BeamChainTargets <= 0)
+        if (ev.State is not { } state || state.BeamChainTargets <= 0)
             return;
 
         var targetPos = _transform.GetWorldPosition(ev.Target);
         var mapId = Transform(ev.Target).MapID;
 
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), ChainRange, nearby);
 
-        var primaryTarget = ev.Target;
-        var chainDamage   = ev.Damage;
-        var shooter       = ev.Shooter;
-
-        var candidates = nearby
-            .Where(e => e.Owner != primaryTarget && !_mobState.IsDead(e.Owner))
-            .OrderBy(e => (_transform.GetWorldPosition(e.Owner) - targetPos).LengthSquared())
-            .Take(state.BeamChainTargets);
-
-        foreach (var chainTarget in candidates)
+        _candidates.Clear();
+        foreach (var candidate in nearby)
         {
-            _damageable.TryChangeDamage(chainTarget.Owner, chainDamage, ignoreResistances: false, origin: shooter);
-            DrawChainBeam(primaryTarget, chainTarget.Owner);
+            if (candidate.Owner == ev.Target || _mobState.IsDead(candidate.Owner))
+                continue;
+            var distSq = (_transform.GetWorldPosition(candidate.Owner) - targetPos).LengthSquared();
+            _candidates.Add((candidate.Owner, distSq));
+        }
+        _entSetPool.Return(nearby);
+
+        _candidates.Sort(static (a, b) => a.DistSq.CompareTo(b.DistSq));
+
+        var chainCount = Math.Min(state.BeamChainTargets, _candidates.Count);
+        for (var i = 0; i < chainCount; i++)
+        {
+            _damageable.TryChangeDamage(_candidates[i].Uid, ev.Damage, ignoreResistances: false, origin: ev.Shooter);
+            DrawChainBeam(ev.Target, _candidates[i].Uid);
         }
     }
 

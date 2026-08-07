@@ -16,11 +16,11 @@ public sealed class VaporiseUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.VaporiseWeakMobEnabled)
+        if (ev.State is not { } state || !state.VaporiseWeakMobEnabled)
             return;
         if (!HasComp<FSVaporiseWeakComponent>(ev.Target))
             return;
 
-        ev.AdditionalMultiplier = 10000f;
+        ev.AdditionalMultiplier *= 10000f;
     }
 }

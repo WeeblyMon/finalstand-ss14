@@ -1,3 +1,5 @@
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Shared._FinalStand.Shop;
@@ -17,6 +19,11 @@ public sealed class AftershockUpgradeSystem : EntitySystem
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly SharedTransformSystem _xform = default!;
 
+
+    private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
+        new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
+            new SetPolicy<Entity<WaveSpawnedTagComponent>>());
+
     private const float StunRadius = 3f;
     private static readonly TimeSpan StunDuration = TimeSpan.FromSeconds(0.3);
 
@@ -31,7 +38,7 @@ public sealed class AftershockUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || !state.AftershockEnabled)
+        if (ev.State is not { } state || !state.AftershockEnabled)
             return;
         if (!HasComp<WaveSpawnedTagComponent>(ev.Target))
             return;
@@ -52,7 +59,7 @@ public sealed class AftershockUpgradeSystem : EntitySystem
 
         var killPos = _xform.GetWorldPosition(uid);
         var mapId = Transform(uid).MapID;
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
+        var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(killPos, mapId), StunRadius, nearby);
 
         foreach (var target in nearby)
@@ -61,5 +68,6 @@ public sealed class AftershockUpgradeSystem : EntitySystem
                 continue;
             _stun.TryAddStunDuration(target.Owner, StunDuration);
         }
+        _entSetPool.Return(nearby);
     }
 }

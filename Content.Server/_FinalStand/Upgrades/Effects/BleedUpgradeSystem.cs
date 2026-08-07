@@ -62,7 +62,7 @@ public sealed class BleedUpgradeSystem : EntitySystem
     {
         if (ev.Weapon == null)
             return;
-        if (!TryComp<FSWeaponUpgradeStateComponent>(ev.Weapon.Value, out var state) || state.BleedLevel <= 0)
+        if (ev.State is not { } state || state.BleedLevel <= 0)
             return;
 
         var dps = ev.Damage.GetTotal().Float() * BleedScalePerLevel * state.BleedLevel;
