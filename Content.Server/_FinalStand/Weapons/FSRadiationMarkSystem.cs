@@ -37,7 +37,8 @@ public sealed class FSRadiationMarkSystem : EntitySystem
         {
             if (curTime >= comp.ExpiresAt)
             {
-                RemComp<FSRadiationMarkComponent>(uid);
+                // Deferred: removing a component while its own query enumerates is not safe.
+                RemCompDeferred<FSRadiationMarkComponent>(uid);
                 continue;
             }
 

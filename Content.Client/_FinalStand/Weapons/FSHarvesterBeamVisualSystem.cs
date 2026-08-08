@@ -7,6 +7,7 @@ using Robust.Client.Graphics;
 using Robust.Shared.Animations;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Weapons;
@@ -18,6 +19,7 @@ public sealed class FSHarvesterBeamVisualSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _xform = default!;
     [Dependency] private readonly AnimationPlayerSystem _animPlayer = default!;
     [Dependency] private readonly SharedPointLightSystem _lights = default!;
+    [Dependency] private readonly IGameTiming _timing = default!;
 
     private static readonly EntProtoId HitscanProto = "HitscanEffect";
     private static readonly Color BeamColor = Color.FromHex("#AA44FF");
@@ -25,10 +27,50 @@ public sealed class FSHarvesterBeamVisualSystem : EntitySystem
 
     private const string RsiPath = "/Textures/_FinalStand/Effects/Harvester.rsi";
 
+    // One light for the whole beam: the flashes spawn 60 a second.
+    private static readonly TimeSpan GlowTimeout = TimeSpan.FromSeconds(0.2);
+    private EntityUid? _glow;
+    private TimeSpan _lastBeam;
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeNetworkEvent<FSHarvesterBeamFiredEvent>(OnBeamFired);
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        if (_glow is not { } glow)
+            return;
+        if (_timing.CurTime - _lastBeam < GlowTimeout)
+            return;
+
+        if (Exists(glow))
+            QueueDel(glow);
+        _glow = null;
+    }
+
+    private void UpdateGlow(EntityCoordinates origin, Angle angle, float distance)
+    {
+        _lastBeam = _timing.CurTime;
+
+        var midpoint = origin.Offset(angle.ToVec() * (distance * 0.5f));
+
+        if (_glow is { } existing && Exists(existing))
+        {
+            _xform.SetCoordinates(existing, midpoint);
+            return;
+        }
+
+        _glow = Spawn(null, midpoint);
+        var light = EnsureComp<PointLightComponent>(_glow.Value);
+        _lights.SetCastShadows(_glow.Value, false, light);
+        _lights.SetColor(_glow.Value, BeamColor, light);
+        _lights.SetRadius(_glow.Value, 4.5f, light);
+        _lights.SetEnergy(_glow.Value, 7f, light);
+        _lights.SetEnabled(_glow.Value, true, light);
     }
 
     private void OnBeamFired(FSHarvesterBeamFiredEvent ev)
@@ -46,6 +88,8 @@ public sealed class FSHarvesterBeamVisualSystem : EntitySystem
 
         // Impact uses the same angle as the beam - Angle.FlipPositive() only normalizes to a positive range, it does not reverse direction.
         SpawnFlash(coords, relativeXform, angle, "impact_harvester_beam", 1f, ev.Distance);
+
+        UpdateGlow(coords, angle, ev.Distance);
     }
 
     private void SpawnFlash(EntityCoordinates origin, TransformComponent relativeXform, Angle angle,
@@ -56,13 +100,6 @@ public sealed class FSHarvesterBeamVisualSystem : EntitySystem
 
         var coords = origin.Offset(angle.ToVec() * offsetAlongBeam);
         var ent = Spawn(HitscanProto, coords);
-
-        var light = EnsureComp<PointLightComponent>(ent);
-        _lights.SetCastShadows(ent, false, light);
-        _lights.SetColor(ent, BeamColor, light);
-        _lights.SetRadius(ent, 2.5f, light);
-        _lights.SetEnergy(ent, 6f, light);
-        _lights.SetEnabled(ent, true, light);
 
         var sprite = Comp<SpriteComponent>(ent);
         var xform = Transform(ent);

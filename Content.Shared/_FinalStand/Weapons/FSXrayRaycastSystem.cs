@@ -20,6 +20,7 @@ public sealed class FSXrayRaycastSystem : EntitySystem
 {
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly FSHitscanCoordSystem _hitscanCoords = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
@@ -105,20 +106,7 @@ public sealed class FSXrayRaycastSystem : EntitySystem
             return;
 
         var sprites = new List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale)>();
-        var fromXform = Transform(fromCoordinates.EntityId);
-
-        var gridUid = fromXform.GridUid;
-        if (gridUid != fromCoordinates.EntityId && TryComp(gridUid, out TransformComponent? gridXform))
-        {
-            var (_, gridRot, gridInvMatrix) = _transform.GetWorldPositionRotationInvMatrix(gridXform);
-            var map = _transform.ToMapCoordinates(fromCoordinates);
-            fromCoordinates = new EntityCoordinates(gridUid.Value, Vector2.Transform(map.Position, gridInvMatrix));
-            shotAngle -= gridRot;
-        }
-        else
-        {
-            shotAngle -= _transform.GetWorldRotation(fromXform);
-        }
+        (fromCoordinates, shotAngle) = _hitscanCoords.ToGridRelative(fromCoordinates, shotAngle);
 
         if (distance >= 1f)
         {

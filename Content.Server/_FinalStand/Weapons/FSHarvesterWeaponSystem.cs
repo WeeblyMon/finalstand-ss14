@@ -6,6 +6,7 @@ using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Damage;
+using Content.Shared.GameTicking;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mind;
@@ -29,6 +30,7 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private readonly FSResearchBuffSystem _researchBuff = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly FSHitscanCoordSystem _hitscanCoords = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
     private const float BaseDamage = 2f;
@@ -48,12 +50,23 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         _upgradeQuery = GetEntityQuery<FSWeaponUpgradeStateComponent>();
         _enemyQuery = GetEntityQuery<WaveSpawnedTagComponent>();
         _raycastQuery = GetEntityQuery<HitscanBasicRaycastComponent>();
 
         SubscribeLocalEvent<FSHarvesterComponent, AmmoShotEvent>(OnShot);
         SubscribeLocalEvent<FSHarvesterComponent, HitscanRaycastFiredEvent>(OnHit);
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        foreach (var (_, data) in _active)
+        {
+            if (Exists(data.Stream))
+                _audio.Stop(data.Stream);
+        }
+        _active.Clear();
     }
 
     private void OnShot(EntityUid uid, FSHarvesterComponent comp, AmmoShotEvent args)
@@ -89,20 +102,7 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
             distance = (targetMap.Position - fromMap.Position).Length();
         }
 
-        // Re-express relative to the grid, mirroring HitscanBasicRaycastSystem.FireEffects exactly.
-        var fromXform = Transform(fromCoords.EntityId);
-        var gridUid = fromXform.GridUid;
-        if (gridUid != fromCoords.EntityId && TryComp(gridUid, out TransformComponent? gridXform))
-        {
-            var (_, gridRot, gridInvMatrix) = _transform.GetWorldPositionRotationInvMatrix(gridXform);
-            var map = _transform.ToMapCoordinates(fromCoords);
-            fromCoords = new EntityCoordinates(gridUid.Value, Vector2.Transform(map.Position, gridInvMatrix));
-            shotAngle -= gridRot;
-        }
-        else
-        {
-            shotAngle -= _transform.GetWorldRotation(fromXform);
-        }
+        (fromCoords, shotAngle) = _hitscanCoords.ToGridRelative(fromCoords, shotAngle);
 
         RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords), (float)shotAngle.Theta, distance),
             Filter.Pvs(fromCoords, entityMan: EntityManager));
@@ -155,7 +155,8 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
             if (now - data.LastShot < StopAfter)
                 continue;
 
-            _audio.Stop(data.Stream);
+            if (Exists(data.Stream))
+                _audio.Stop(data.Stream);
             stale ??= new List<EntityUid>();
             stale.Add(gunUid);
         }

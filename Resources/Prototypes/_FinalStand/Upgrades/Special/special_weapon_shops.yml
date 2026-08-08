@@ -375,6 +375,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponHarvesterFS
+    requiresScience: true
     price: 500
     category: Sustained-Fire Bio-Radiation Beam
     statDamage: 35
