@@ -1,4 +1,4 @@
-﻿using Content.Client._FinalStand.Perks.UI;
+using Content.Client._FinalStand.Perks.UI;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
@@ -28,7 +28,7 @@ public sealed class FSPerkShopSystem : EntitySystem
             _window = new PerkShopWindow();
             _window.OnBuyPerk    += msg => RaiseNetworkEvent(msg);
             _window.OnEquipPerk  += msg => RaiseNetworkEvent(msg);
-            _window.OnUnequipAugment += msg => RaiseNetworkEvent(msg);
+            _window.OnUnequipPerk += msg => RaiseNetworkEvent(msg);
             _window.OnSaveLoadout   += msg => RaiseNetworkEvent(msg);
             _window.OnLoadLoadout   += msg => RaiseNetworkEvent(msg);
             _window.OnRespecRequested += () =>
@@ -69,7 +69,7 @@ public sealed class FSPerkShopSystem : EntitySystem
             _window.UpdateState(_cachedState);
     }
 
-    public int GetSlottedAugmentLevel(string id)
+    public int GetSlottedPerkLevel(string id)
     {
         if (_cachedState == null) return 0;
         return _cachedState.Slots.Contains(id) && _cachedState.Levels.TryGetValue(id, out var lvl) ? lvl : 0;

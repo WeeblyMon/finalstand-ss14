@@ -120,11 +120,11 @@ public sealed partial class WeaponShopWindow
         var (damagePerShot, baseDmgPerShot, pellets) = ComputeDamage(shopComp, weapon, weaponProto, damageMultiplier, extraPellets, entMan);
         var basePellets = pellets - extraPellets;
 
-        var augSystem  = _entityManager.System<FSPerkShopSystem>();
+        var perkSystem  = _entityManager.System<FSPerkShopSystem>();
         var shopLevels = _entityManager.System<FSShopClientSystem>().UpgradeLevels;
 
-        var spLevel = augSystem.GetSlottedAugmentLevel("StoppingPower");
-        var bsLevel = augSystem.GetSlottedAugmentLevel("BulletStorm");
+        var spLevel = perkSystem.GetSlottedPerkLevel("StoppingPower");
+        var bsLevel = perkSystem.GetSlottedPerkLevel("BulletStorm");
         var augDmgMult = 1f + spLevel * 0.04f;
 
         // The live weapon carries the server's applied upgrades. Only fall back to the prototype

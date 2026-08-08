@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Client._FinalStand.Shop;
 using Content.Client.UserInterface.Screens;
 using Content.Shared._FinalStand.Leveling;
@@ -80,7 +80,7 @@ public sealed class WaveHudOverlay : Overlay
     };
 
     private readonly Dictionary<string, Texture?> _augIconCache = new();
-    // rebuilt each frame: augment cell bounds + id for hover detection
+    // rebuilt each frame: perk cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
     // rebuilt each frame: current-bonuses row bounds + label/source tooltip lines for hover detection

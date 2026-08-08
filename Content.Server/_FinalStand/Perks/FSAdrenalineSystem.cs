@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Perks;
+using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage.Components;
@@ -16,13 +16,14 @@ public sealed class FSAdrenalineSystem : EntitySystem
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly StaminaSystem _stamina = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
 
     private static readonly float[] Durations = [2.1f, 2.8f, 3.5f, 4.2f];
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSZombieKilledByPlayerEvent>(OnZombieKilled);
     }
 
     public override void Update(float frameTime)
@@ -41,7 +42,7 @@ public sealed class FSAdrenalineSystem : EntitySystem
             if (now >= adr.EndTime || !stillSlotted)
             {
                 RemComp<FSAdrenalineComponent>(uid);
-                SendTimerUpdate(uid, 0);
+                _notify.SendStacksToBody(uid, "Adrenaline", 0);
                 continue;
             }
 
@@ -51,26 +52,20 @@ public sealed class FSAdrenalineSystem : EntitySystem
             if (secondsLeft != adr.LastSentSeconds)
             {
                 adr.LastSentSeconds = secondsLeft;
-                SendTimerUpdate(uid, secondsLeft);
+                _notify.SendStacksToBody(uid, "Adrenaline", secondsLeft);
             }
         }
     }
 
-    private void OnMobStateChanged(MobStateChangedEvent args)
+    private void OnZombieKilled(ref FSZombieKilledByPlayerEvent ev)
     {
-        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
-        if (!HasComp<FSZombieVisualsComponent>(args.Target)) return;
-        if (!args.Origin.HasValue) return;
-        if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
-
-        var level = augs.GetSlottedLevel("Adrenaline");
+        var level = ev.Perks.GetSlottedLevel("Adrenaline");
         if (level <= 0) return;
 
         var duration = TimeSpan.FromSeconds(Durations[level - 1]);
         var newEnd = _timing.CurTime + duration;
 
-        var adr = EnsureComp<FSAdrenalineComponent>(args.Origin.Value);
+        var adr = EnsureComp<FSAdrenalineComponent>(ev.Killer);
         // Don't let kills stack duration beyond the base — only refresh if almost expired.
         if (newEnd > adr.EndTime)
         {
@@ -79,10 +74,4 @@ public sealed class FSAdrenalineSystem : EntitySystem
         }
     }
 
-    private void SendTimerUpdate(EntityUid bodyUid, int seconds)
-    {
-        if (!TryComp<ActorComponent>(bodyUid, out var actor)) return;
-        RaiseNetworkEvent(new FSPerkStacksUpdateEvent { PerkId = "Adrenaline", Stacks = seconds },
-            Filter.SinglePlayer(actor.PlayerSession));
-    }
 }

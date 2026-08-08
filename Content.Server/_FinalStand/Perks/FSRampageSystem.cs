@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Leveling;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage;
@@ -19,6 +19,7 @@ public sealed class FSRampageSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
 
     private static readonly TimeSpan StackDecayInterval = TimeSpan.FromSeconds(2);
 
@@ -27,7 +28,7 @@ public sealed class FSRampageSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSZombieKilledByPlayerEvent>(OnZombieKilled);
     }
 
     public override void Update(float frameTime)
@@ -44,7 +45,7 @@ public sealed class FSRampageSystem : EntitySystem
             if (now - ramp.LastKillTime < StackDecayInterval) continue;
 
             ramp.Stacks--;
-            SendStacksUpdate(mindId, ramp.Stacks);
+            _notify.SendStacks(mindId, "Rampage", ramp.Stacks);
             if (TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity.HasValue)
                 _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
         }
@@ -61,31 +62,19 @@ public sealed class FSRampageSystem : EntitySystem
         }
     }
 
-    private void OnMobStateChanged(MobStateChangedEvent args)
+    private void OnZombieKilled(ref FSZombieKilledByPlayerEvent ev)
     {
-        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
-        if (!HasComp<FSZombieVisualsComponent>(args.Target)) return;
-        if (args.Origin == null) return;
-
-        if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
-        var level = augs.GetSlottedLevel("Rampage");
+        var level = ev.Perks.GetSlottedLevel("Rampage");
         if (level <= 0) return;
 
+        var mindId = ev.MindId;
         var ramp = EnsureComp<FSRampageComponent>(mindId);
         ramp.Stacks = Math.Min(5, ramp.Stacks + 1);
         ramp.LastKillTime = _timing.CurTime;
-        SendStacksUpdate(mindId, ramp.Stacks);
+        _notify.SendStacks(mindId, "Rampage", ramp.Stacks);
 
         if (TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity.HasValue)
             _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
     }
 
-    private void SendStacksUpdate(EntityUid mindId, int stacks)
-    {
-        if (!TryComp<MindComponent>(mindId, out var mind) || !mind.CurrentEntity.HasValue) return;
-        if (!TryComp<ActorComponent>(mind.CurrentEntity.Value, out var actor)) return;
-        RaiseNetworkEvent(new FSPerkStacksUpdateEvent { PerkId = "Rampage", Stacks = stacks },
-            Filter.SinglePlayer(actor.PlayerSession));
-    }
 }

@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Perks;
+using Content.Server._FinalStand.Perks;
 using Content.Server.Body.Components;
 using Content.Server.Temperature.Systems;
 using Content.Shared._FinalStand.Shop;
@@ -22,7 +22,6 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly TemperatureSystem _temperature = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSIncomingDamagePerkSystem _incomingPerks = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
 
@@ -120,7 +119,12 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
             args.Damage.DamageDict["Heat"] = heat * FixedPoint2.New(1f - bestFireResist);
         }
 
-        _incomingPerks.ApplyIncomingPerkModifiers(uid, args);
+        // Broadcast rather than calling the perk system directly: this stays the correct point
+        // in the pipeline (after weapon resists), but the upgrades module no longer has to know
+        // perks exist. Robust allows one directed subscriber per (component, event) pair and this
+        // system owns (HandsComponent, DamageModifyEvent), so a relay is the way in.
+        var perkEv = new FSIncomingDamageModifyEvent(uid, args);
+        RaiseLocalEvent(ref perkEv);
     }
 
     private bool TryGetHeldWielderBuff(EntityUid uid, HandsComponent hands, out FSWeaponUpgradeStateComponent? state)

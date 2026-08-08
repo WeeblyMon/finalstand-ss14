@@ -9,7 +9,7 @@ namespace Content.Server._FinalStand.Commands;
 public sealed class FSResetPrestigeCommand : IConsoleCommand
 {
     public string Command => "fsresetprestige";
-    public string Description => "Wipe all rows from fsprestige.db and reset every connected player's AP, level, and augments.";
+    public string Description => "Wipe all rows from fsprestige.db and reset every connected player's AP, level, and perks.";
     public string Help => "fsresetprestige — no arguments, affects all players";
 
     public void Execute(IConsoleShell shell, string argStr, string[] args)

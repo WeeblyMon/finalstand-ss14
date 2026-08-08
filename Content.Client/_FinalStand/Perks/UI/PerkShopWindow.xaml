@@ -1,4 +1,4 @@
-﻿<controls:FancyWindow xmlns="https://spacestation14.io"
+<controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       Title="Perk Shop"
                       Resizable="False"
@@ -6,14 +6,14 @@
                       MinSize="860 640">
     <TabContainer Name="ShopTabs" VerticalExpand="True">
 
-        <!-- ═══════════════════ TAB 0: AUGMENTS ═══════════════════ -->
+        <!-- ═══════════════════ TAB 0: PERKS ═══════════════════ -->
         <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True" Margin="8">
 
             <!-- LEFT: Info + Slots + Loadouts -->
             <ScrollContainer SetWidth="270" VerticalExpand="True" HScrollEnabled="False">
             <BoxContainer Orientation="Vertical" SetWidth="260" Margin="10 0 0 0">
 
-                <!-- Selected augment icon (cat bg → level bg → icon); anchors set in constructor -->
+                <!-- Selected perk icon (cat bg → level bg → icon); anchors set in constructor -->
                 <LayoutContainer Name="SelectedIconContainer" SetWidth="64" SetHeight="64" Margin="0 0 0 6">
                     <PanelContainer Name="SelectedIconCatBg" />
                     <PanelContainer Name="SelectedIconLevelBg" />
@@ -89,7 +89,7 @@
                 <LineEdit Name="SearchBar" PlaceHolder="Search perks..." Margin="0 0 0 6" />
 
                 <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
-                    <BoxContainer Name="AugmentGrid" Orientation="Vertical" HorizontalExpand="True" />
+                    <BoxContainer Name="PerkGrid" Orientation="Vertical" HorizontalExpand="True" />
                 </ScrollContainer>
 
             </BoxContainer>

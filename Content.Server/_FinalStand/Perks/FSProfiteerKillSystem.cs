@@ -21,21 +21,15 @@ public sealed class FSProfiteerKillSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSZombieKilledByPlayerEvent>(OnZombieKilled);
     }
 
-    private void OnMobStateChanged(MobStateChangedEvent args)
+    private void OnZombieKilled(ref FSZombieKilledByPlayerEvent ev)
     {
-        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
-        if (!HasComp<FSZombieVisualsComponent>(args.Target)) return;
-        if (!args.Origin.HasValue) return;
-        if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _)) return;
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
-
-        var level = augs.GetSlottedLevel("Profiteer");
+        var level = ev.Perks.GetSlottedLevel("Profiteer");
         if (level <= 0) return;
 
         var amount = (int)(FSPerkBonusConstants.ProfiteerKillBase * level * FSPerkBonusConstants.ProfiteerFraction);
-        _wallet.GiveCredits(mindId, amount);
+        _wallet.GiveCredits(ev.MindId, amount);
     }
 }

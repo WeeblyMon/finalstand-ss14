@@ -11,14 +11,22 @@ using Content.Shared.Weapons.Ranged.Components;
 namespace Content.Server._FinalStand.Perks;
 
 // Every incoming-damage-reduction perk: Juggernaught, Sword and Shield's resistance half, Glass
-// Cannon, Pacifist, Rampage. Called from MeleeFireResistUpgradeSystem.OnWielderDamageModify
-// rather than owning its own (HandsComponent, DamageModifyEvent) subscription — Robust Toolbox
-// allows only one directed subscription per (component, event) pair, and that one is already
-// taken by the wielder weapon-resistance logic this perk logic used to live inside.
+// Cannon, Pacifist, Rampage. Driven by FSIncomingDamageModifyEvent, which the weapon-resistance
+// system raises once it has applied its own modifiers — Robust Toolbox allows only one directed
+// subscriber per (component, event) pair and that system owns (HandsComponent, DamageModifyEvent).
 public sealed class FSIncomingDamagePerkSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSIncomingDamageModifyEvent>(OnIncomingDamage);
+    }
+
+    private void OnIncomingDamage(ref FSIncomingDamageModifyEvent ev)
+        => ApplyIncomingPerkModifiers(ev.Target, ev.Args);
 
     public void ApplyIncomingPerkModifiers(EntityUid uid, DamageModifyEvent args)
     {

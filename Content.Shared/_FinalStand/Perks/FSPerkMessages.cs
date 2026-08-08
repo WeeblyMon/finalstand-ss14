@@ -1,4 +1,4 @@
-﻿using Robust.Shared.Serialization;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Perks;
 
@@ -35,7 +35,7 @@ public sealed class FSEquipPerkMessage : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
-public sealed class FSUnequipAugmentMessage : EntityEventArgs
+public sealed class FSUnequipPerkMessage : EntityEventArgs
 {
     public int SlotIndex;
 }

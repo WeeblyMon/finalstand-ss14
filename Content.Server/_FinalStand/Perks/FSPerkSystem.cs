@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;
@@ -31,7 +31,7 @@ public sealed class FSPerkSystem : EntitySystem
         SubscribeNetworkEvent<FSPerkStateRequestMessage>(OnStateRequested);
         SubscribeNetworkEvent<FSBuyPerkMessage>(OnBuyPerk);
         SubscribeNetworkEvent<FSEquipPerkMessage>(OnEquipPerk);
-        SubscribeNetworkEvent<FSUnequipAugmentMessage>(OnUnequipAugment);
+        SubscribeNetworkEvent<FSUnequipPerkMessage>(OnUnequipPerk);
         SubscribeNetworkEvent<FSSaveLoadoutMessage>(OnSaveLoadout);
         SubscribeNetworkEvent<FSLoadLoadoutMessage>(OnLoadLoadout);
         SubscribeNetworkEvent<FSRespecPerkMessage>(OnRespec);
@@ -51,11 +51,11 @@ public sealed class FSPerkSystem : EntitySystem
         }
 
         var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-        var aug = EnsureComp<FSPerkLevelsComponent>(mindId);
-        DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
+        var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
+        DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
         Log.Debug($"[FSPerk] OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
-        SendStateToClient(mindId, aug, mind.UserId.Value.UserId);
+        SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -66,8 +66,8 @@ public sealed class FSPerkSystem : EntitySystem
             _playerManager.TryGetSessionById(mind.UserId.Value, out var session))
             _stateRequestCooldown.Remove(session);
 
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var aug)) return;
-        SaveToDb(mindId, aug);
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks)) return;
+        SaveToDb(mindId, perks);
     }
 
     private void OnStateRequested(FSPerkStateRequestMessage msg, EntitySessionEventArgs args)
@@ -80,10 +80,10 @@ public sealed class FSPerkSystem : EntitySystem
 
         if (_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? mind))
         {
-            var aug = EnsureAugComponent(mindId, mind);
-            if (aug != null)
+            var perks = EnsurePerkComponent(mindId, mind);
+            if (perks != null)
             {
-                SendStateToClient(mindId, aug);
+                SendStateToClient(mindId, perks);
                 return;
             }
         }
@@ -91,121 +91,40 @@ public sealed class FSPerkSystem : EntitySystem
         // lobby: no mind yet — load from db and send so the shop window populates
         var userId = args.SenderSession.UserId.UserId;
         var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(userId);
-        var tempAug = new FSPerkLevelsComponent();
-        DeserializeInto(tempAug, levelsJson, slotsJson, loadoutsJson);
+        var tempPerks = new FSPerkLevelsComponent();
+        DeserializeInto(tempPerks, levelsJson, slotsJson, loadoutsJson);
         var ap = _wallet.GetStoredPerkPoints(userId);
 
-        RaiseNetworkEvent(new FSPerksStateEvent
-        {
-            PerkPoints = ap,
-            Levels = new Dictionary<string, int>(tempAug.Levels),
-            Slots = (string[])tempAug.Slots.Clone(),
-            Loadouts = tempAug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
-        }, Filter.SinglePlayer(args.SenderSession));
+        SendState(args.SenderSession, tempPerks, ap);
     }
 
     private void OnBuyPerk(FSBuyPerkMessage msg, EntitySessionEventArgs args)
     {
         if (!FSPerkDef.All.ContainsKey(msg.PerkId))
         {
-            Log.Debug($"[FSPerk] OnBuyPerk: unknown augment id '{msg.PerkId}'");
+            Log.Debug($"[FSPerk] OnBuyPerk: unknown perk id '{msg.PerkId}'");
             return;
         }
 
-        if (_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
+        var session = args.SenderSession;
+        var available = GetPerkPoints(session);
+
+        DispatchPerkMutation(session, perks =>
         {
-            OnBuyPerkInRound(msg, args.SenderSession, mindId, mind);
-        }
-        else
-        {
-            OnBuyPerkLobby(msg, args.SenderSession);
-        }
-    }
+            var currentLevel = perks.GetLevel(msg.PerkId);
+            if (currentLevel >= FSPerkDef.MaxLevel)
+                return false;
 
-    private void OnBuyPerkInRound(FSBuyPerkMessage msg, ICommonSession session,
-        EntityUid mindId, MindComponent? mind)
-    {
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var aug))
-        {
-            if (mind?.UserId == null)
-            {
-                Log.Debug($"[FSPerk] OnBuyPerk: no UserId on mind {mindId}");
-                return;
-            }
-            var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-            aug = EnsureComp<FSPerkLevelsComponent>(mindId);
-            DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
-        }
+            var cost = FSPerkDef.CostForUpgrade(currentLevel);
+            if (available < cost)
+                return false;
 
-        var currentLevel = aug.GetLevel(msg.PerkId);
-        if (currentLevel >= FSPerkDef.MaxLevel)
-        {
-            Log.Debug($"[FSPerk] OnBuyPerk: '{msg.PerkId}' already max level ({currentLevel})");
-            return;
-        }
-
-        var cost = FSPerkDef.CostForUpgrade(currentLevel);
-        if (!_wallet.TryDeductPerkPoints(mindId, cost))
-        {
-            Log.Debug($"[FSPerk] OnBuyPerk: TryDeductPerkPoints failed — mind={mindId} cost={cost}");
-            return;
-        }
-
-        aug.Levels[msg.PerkId] = currentLevel + 1;
-        Log.Debug($"[FSPerk] OnBuyPerk: SUCCESS — '{msg.PerkId}' → Lv{currentLevel + 1} for {session.Name}");
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
-
-        // The perk may already be slotted (leveling up, not first purchase) — a slotted speed
-        // perk's new level must take effect immediately, same as every other mutation path.
-        if (mind?.CurrentEntity is { } playerEntity)
-            _movement.RefreshMovementSpeedModifiers(playerEntity);
-    }
-
-    private void OnBuyPerkLobby(FSBuyPerkMessage msg, ICommonSession session)
-    {
-        var userId = session.UserId.UserId;
-        var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(userId);
-        var aug = new FSPerkLevelsComponent();
-        DeserializeInto(aug, levelsJson, slotsJson, loadoutsJson);
-
-        var currentLevel = aug.GetLevel(msg.PerkId);
-        if (currentLevel >= FSPerkDef.MaxLevel)
-        {
-            Log.Debug($"[FSPerk] OnBuyPerk (lobby): '{msg.PerkId}' already max level");
-            return;
-        }
-
-        var cost = FSPerkDef.CostForUpgrade(currentLevel);
-        var currentAp = _wallet.GetStoredPerkPoints(userId);
-        if (currentAp < cost)
-        {
-            Log.Debug($"[FSPerk] OnBuyPerk (lobby): insufficient AP — have {currentAp}, need {cost}");
-            return;
-        }
-
-        aug.Levels[msg.PerkId] = currentLevel + 1;
-        var newAp = currentAp - cost;
-
-        _wallet.GivePerkPoints(session, -cost);
-        _store.SaveLoadoutJson(userId,
-            JsonSerializer.Serialize(aug.Levels),
-            JsonSerializer.Serialize(aug.Slots),
-            JsonSerializer.Serialize(aug.Loadouts));
-
-        Log.Debug($"[FSPerk] OnBuyPerk (lobby): SUCCESS — '{msg.PerkId}' → Lv{currentLevel + 1} for {session.Name}");
-
-        if (!_playerManager.TryGetSessionById(session.UserId, out var pSession))
-            return;
-
-        RaiseNetworkEvent(new WalletUpdatedEvent(0, newAp), Filter.SinglePlayer(pSession));
-        RaiseNetworkEvent(new FSPerksStateEvent
-        {
-            PerkPoints = newAp,
-            Levels = new Dictionary<string, int>(aug.Levels),
-            Slots = (string[])aug.Slots.Clone(),
-            Loadouts = aug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
-        }, Filter.SinglePlayer(pSession));
+            // GivePerkPoints is the wallet's lobby/in-round bridge, so this one call is correct
+            // whether or not the player has a mind yet.
+            _wallet.GivePerkPoints(session, -cost);
+            perks.Levels[msg.PerkId] = currentLevel + 1;
+            return true;
+        });
     }
 
     private void OnEquipPerk(FSEquipPerkMessage msg, EntitySessionEventArgs args)
@@ -213,23 +132,23 @@ public sealed class FSPerkSystem : EntitySystem
         if (!FSPerkDef.All.ContainsKey(msg.PerkId)) return;
         if (msg.SlotIndex < 0 || msg.SlotIndex >= FSPerkDef.SlotCount) return;
 
-        DispatchAugMutation(args.SenderSession, aug =>
+        DispatchPerkMutation(args.SenderSession, perks =>
         {
-            if (aug.GetLevel(msg.PerkId) <= 0) return false;
-            if (!string.IsNullOrEmpty(aug.Slots[msg.SlotIndex])) return false;
-            if (aug.Slots.Contains(msg.PerkId)) return false;
-            aug.Slots[msg.SlotIndex] = msg.PerkId;
+            if (perks.GetLevel(msg.PerkId) <= 0) return false;
+            if (!string.IsNullOrEmpty(perks.Slots[msg.SlotIndex])) return false;
+            if (perks.Slots.Contains(msg.PerkId)) return false;
+            perks.Slots[msg.SlotIndex] = msg.PerkId;
             return true;
         });
     }
 
-    private void OnUnequipAugment(FSUnequipAugmentMessage msg, EntitySessionEventArgs args)
+    private void OnUnequipPerk(FSUnequipPerkMessage msg, EntitySessionEventArgs args)
     {
         if (msg.SlotIndex < 0 || msg.SlotIndex >= FSPerkDef.SlotCount) return;
 
-        DispatchAugMutation(args.SenderSession, aug =>
+        DispatchPerkMutation(args.SenderSession, perks =>
         {
-            aug.Slots[msg.SlotIndex] = string.Empty;
+            perks.Slots[msg.SlotIndex] = string.Empty;
             return true;
         });
     }
@@ -238,9 +157,9 @@ public sealed class FSPerkSystem : EntitySystem
     {
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
-        DispatchAugMutation(args.SenderSession, aug =>
+        DispatchPerkMutation(args.SenderSession, perks =>
         {
-            Array.Copy(aug.Slots, aug.Loadouts[msg.LoadoutIndex], FSPerkDef.SlotCount);
+            Array.Copy(perks.Slots, perks.Loadouts[msg.LoadoutIndex], FSPerkDef.SlotCount);
             return true;
         });
     }
@@ -249,13 +168,13 @@ public sealed class FSPerkSystem : EntitySystem
     {
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
-        DispatchAugMutation(args.SenderSession, aug =>
+        DispatchPerkMutation(args.SenderSession, perks =>
         {
-            var src = aug.Loadouts[msg.LoadoutIndex];
+            var src = perks.Loadouts[msg.LoadoutIndex];
             for (var i = 0; i < FSPerkDef.SlotCount; i++)
             {
                 var id = src[i];
-                aug.Slots[i] = !string.IsNullOrEmpty(id) && aug.GetLevel(id) > 0 ? id : string.Empty;
+                perks.Slots[i] = !string.IsNullOrEmpty(id) && perks.GetLevel(id) > 0 ? id : string.Empty;
             }
             return true;
         });
@@ -263,64 +182,36 @@ public sealed class FSPerkSystem : EntitySystem
 
     private void OnRespec(FSRespecPerkMessage msg, EntitySessionEventArgs args)
     {
-        if (_mind.TryGetMind(args.SenderSession, out var mindId, out var mind))
-            OnRespecInRound(args.SenderSession, mindId, mind);
-        else
-            OnRespecLobby(args.SenderSession);
-    }
+        var session = args.SenderSession;
 
-    private void OnRespecInRound(ICommonSession session, EntityUid mindId, MindComponent? mind)
-    {
-        var aug = EnsureAugComponent(mindId, mind);
-        if (aug == null || aug.Levels.Count == 0) return;
-
-        var refund = CalcRefund(aug);
-        Log.Debug($"[FSPerk] Respec for {session.Name}: refunding {refund} PP, had {aug.Levels.Count} perk(s)");
-        aug.Levels.Clear();
-        Array.Fill(aug.Slots, string.Empty);
-        foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
-
-        _wallet.GivePerkPoints(session, refund);
-        SaveToDb(mindId, aug);
-        SendStateToClient(mindId, aug);
-        if (mind?.CurrentEntity.HasValue == true)
-            _movement.RefreshMovementSpeedModifiers(mind.CurrentEntity.Value);
-    }
-
-    private void OnRespecLobby(ICommonSession session)
-    {
-        var userId = session.UserId.UserId;
-        var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
-        var aug = new FSPerkLevelsComponent();
-        DeserializeInto(aug, lj, sj, oj);
-        if (aug.Levels.Count == 0) return;
-
-        var refund = CalcRefund(aug);
-        aug.Levels.Clear();
-        Array.Fill(aug.Slots, string.Empty);
-        foreach (var loadout in aug.Loadouts) Array.Fill(loadout, string.Empty);
-
-        _wallet.GivePerkPoints(session, refund);
-        _store.SaveLoadoutJson(userId,
-            JsonSerializer.Serialize(aug.Levels),
-            JsonSerializer.Serialize(aug.Slots),
-            JsonSerializer.Serialize(aug.Loadouts));
-
-        if (!_playerManager.TryGetSessionById(session.UserId, out var pSession)) return;
-        var newAp = _wallet.GetStoredPerkPoints(userId);
-        RaiseNetworkEvent(new FSPerksStateEvent
+        DispatchPerkMutation(session, perks =>
         {
-            PerkPoints = newAp,
-            Levels = new Dictionary<string, int>(aug.Levels),
-            Slots = (string[])aug.Slots.Clone(),
-            Loadouts = aug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
-        }, Filter.SinglePlayer(pSession));
+            if (perks.Levels.Count == 0)
+                return false;
+
+            _wallet.GivePerkPoints(session, CalcRefund(perks));
+            perks.Levels.Clear();
+            Array.Fill(perks.Slots, string.Empty);
+            foreach (var loadout in perks.Loadouts)
+                Array.Fill(loadout, string.Empty);
+            return true;
+        });
     }
 
-    private static int CalcRefund(FSPerkLevelsComponent aug)
+    // Live component in round, database row in the lobby.
+    private int GetPerkPoints(ICommonSession session)
+    {
+        if (_mind.TryGetMind(session, out var mindId, out _)
+            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            return wallet.PerkPoints;
+
+        return _wallet.GetStoredPerkPoints(session.UserId.UserId);
+    }
+
+    private static int CalcRefund(FSPerkLevelsComponent perks)
     {
         var total = 0;
-        foreach (var (_, level) in aug.Levels)
+        foreach (var (_, level) in perks.Levels)
             for (var i = 0; i < level; i++)
                 total += FSPerkDef.CostForUpgrade(i);
         return total;
@@ -328,16 +219,17 @@ public sealed class FSPerkSystem : EntitySystem
 
     // Runs a mutation on a player's FSPerkLevelsComponent, saving and notifying on success.
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
-    private void DispatchAugMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
+    private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
         if (_mind.TryGetMind(session, out var mindId, out var mind))
         {
             // In-round path: operate on the ECS component, creating it lazily if OnPlayerAttached missed it.
-            var aug = EnsureAugComponent(mindId, mind);
-            if (aug == null) return;
-            if (!mutate(aug)) return;
-            SaveToDb(mindId, aug);
-            SendStateToClient(mindId, aug);
+            var perks = EnsurePerkComponent(mindId, mind);
+            if (perks == null) return;
+            if (!mutate(perks)) return;
+            perks.Invalidate();
+            SaveToDb(mindId, perks);
+            SendStateToClient(mindId, perks);
             if (mind?.CurrentEntity is { } playerEntity)
                 _movement.RefreshMovementSpeedModifiers(playerEntity);
             return;
@@ -346,31 +238,24 @@ public sealed class FSPerkSystem : EntitySystem
         // Lobby path: no mind yet — operate on DB directly
         var userId = session.UserId.UserId;
         var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
-        var lobbyAug = new FSPerkLevelsComponent();
-        DeserializeInto(lobbyAug, lj, sj, oj);
+        var lobbyPerks = new FSPerkLevelsComponent();
+        DeserializeInto(lobbyPerks, lj, sj, oj);
 
-        if (!mutate(lobbyAug)) return;
+        if (!mutate(lobbyPerks)) return;
 
         _store.SaveLoadoutJson(userId,
-            JsonSerializer.Serialize(lobbyAug.Levels),
-            JsonSerializer.Serialize(lobbyAug.Slots),
-            JsonSerializer.Serialize(lobbyAug.Loadouts));
+            JsonSerializer.Serialize(lobbyPerks.Levels),
+            JsonSerializer.Serialize(lobbyPerks.Slots),
+            JsonSerializer.Serialize(lobbyPerks.Loadouts));
 
         if (!_playerManager.TryGetSessionById(session.UserId, out var pSession)) return;
 
-        var ap = _wallet.GetStoredPerkPoints(userId);
-        RaiseNetworkEvent(new FSPerksStateEvent
-        {
-            PerkPoints = ap,
-            Levels = new Dictionary<string, int>(lobbyAug.Levels),
-            Slots = (string[])lobbyAug.Slots.Clone(),
-            Loadouts = lobbyAug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
-        }, Filter.SinglePlayer(pSession));
+        SendState(pSession, lobbyPerks, _wallet.GetStoredPerkPoints(userId));
     }
 
     // Returns the existing FSPerkLevelsComponent on mindId, or creates one from DB if missing.
     // Returns null if the mind has no UserId (can't load data).
-    private FSPerkLevelsComponent? EnsureAugComponent(EntityUid mindId, MindComponent? mind)
+    private FSPerkLevelsComponent? EnsurePerkComponent(EntityUid mindId, MindComponent? mind)
     {
         if (TryComp<FSPerkLevelsComponent>(mindId, out var existing))
             return existing;
@@ -379,24 +264,24 @@ public sealed class FSPerkSystem : EntitySystem
             return null;
 
         var (lj, sj, oj) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-        var aug = EnsureComp<FSPerkLevelsComponent>(mindId);
-        DeserializeInto(aug, lj, sj, oj);
-        Log.Debug($"[FSPerk] EnsureAugComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
-        return aug;
+        var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
+        DeserializeInto(perks, lj, sj, oj);
+        Log.Debug($"[FSPerk] EnsurePerkComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
+        return perks;
     }
 
-    private void SaveToDb(EntityUid mindId, FSPerkLevelsComponent aug)
+    private void SaveToDb(EntityUid mindId, FSPerkLevelsComponent perks)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
             return;
 
         _store.SaveLoadoutJson(mind.UserId.Value.UserId,
-            JsonSerializer.Serialize(aug.Levels),
-            JsonSerializer.Serialize(aug.Slots),
-            JsonSerializer.Serialize(aug.Loadouts));
+            JsonSerializer.Serialize(perks.Levels),
+            JsonSerializer.Serialize(perks.Slots),
+            JsonSerializer.Serialize(perks.Loadouts));
     }
 
-    private void SendStateToClient(EntityUid mindId, FSPerkLevelsComponent aug, Guid? userId = null)
+    private void SendStateToClient(EntityUid mindId, FSPerkLevelsComponent perks, Guid? userId = null)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
         if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session)) return;
@@ -407,23 +292,31 @@ public sealed class FSPerkSystem : EntitySystem
         else
             ap = _wallet.GetStoredPerkPoints(mind.UserId.Value.UserId);
 
+        SendState(session, perks, ap);
+    }
+
+    // The payload is deep-copied: the component's arrays keep mutating after this returns.
+    private void SendState(ICommonSession session, FSPerkLevelsComponent perks, int perkPoints)
+    {
         RaiseNetworkEvent(new FSPerksStateEvent
         {
-            PerkPoints = ap,
-            Levels = new Dictionary<string, int>(aug.Levels),
-            Slots = (string[])aug.Slots.Clone(),
-            Loadouts = aug.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
+            PerkPoints = perkPoints,
+            Levels = new Dictionary<string, int>(perks.Levels),
+            Slots = (string[])perks.Slots.Clone(),
+            Loadouts = perks.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
         }, Filter.SinglePlayer(session));
     }
 
-    private const int MaxJsonBytes = 65_536; // 64 KB — any legitimate augment payload is <1 KB
+    private const int MaxJsonBytes = 65_536; // 64 KB — any legitimate perk payload is <1 KB
 
-    private void DeserializeInto(FSPerkLevelsComponent aug,
+    private void DeserializeInto(FSPerkLevelsComponent perks,
         string levelsJson, string slotsJson, string loadoutsJson)
     {
+        perks.Invalidate();
+
         if (levelsJson.Length > MaxJsonBytes || slotsJson.Length > MaxJsonBytes || loadoutsJson.Length > MaxJsonBytes)
         {
-            Log.Error($"[FSPerk] Oversized JSON in augment data (levels={levelsJson.Length} slots={slotsJson.Length} loadouts={loadoutsJson.Length}) — discarding all.");
+            Log.Error($"[FSPerk] Oversized JSON in perk data (levels={levelsJson.Length} slots={slotsJson.Length} loadouts={loadoutsJson.Length}) — discarding all.");
             return;
         }
 
@@ -436,12 +329,12 @@ public sealed class FSPerkSystem : EntitySystem
                 {
                     foreach (var key in levels.Keys.Where(k => !FSPerkDef.All.ContainsKey(k)).ToList())
                         levels.Remove(key);
-                    aug.Levels = levels;
+                    perks.Levels = levels;
                 }
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize augment levels JSON: {e.Message}\nJSON was: {levelsJson}");
+                Log.Error($"[FSPerk] Failed to deserialize perk levels JSON: {e.Message}\nJSON was: {levelsJson}");
             }
         }
 
@@ -455,13 +348,13 @@ public sealed class FSPerkSystem : EntitySystem
                     for (var i = 0; i < FSPerkDef.SlotCount; i++)
                     {
                         if (!string.IsNullOrEmpty(slots[i]) &&
-                            (!FSPerkDef.All.ContainsKey(slots[i]) || aug.GetLevel(slots[i]) <= 0))
+                            (!FSPerkDef.All.ContainsKey(slots[i]) || perks.GetLevel(slots[i]) <= 0))
                         {
-                            Log.Warning($"[FSPerk] Slot {i} contained invalid/unowned augment '{slots[i]}' — clearing.");
+                            Log.Warning($"[FSPerk] Slot {i} contained invalid/unowned perk '{slots[i]}' — clearing.");
                             slots[i] = string.Empty;
                         }
                     }
-                    aug.Slots = slots;
+                    perks.Slots = slots;
                 }
                 else if (slots != null)
                 {
@@ -470,7 +363,7 @@ public sealed class FSPerkSystem : EntitySystem
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize augment slots JSON: {e.Message}\nJSON was: {slotsJson}");
+                Log.Error($"[FSPerk] Failed to deserialize perk slots JSON: {e.Message}\nJSON was: {slotsJson}");
             }
         }
 
@@ -484,7 +377,7 @@ public sealed class FSPerkSystem : EntitySystem
                     for (var i = 0; i < 3; i++)
                     {
                         if (loadouts[i]?.Length == FSPerkDef.SlotCount)
-                            aug.Loadouts[i] = loadouts[i];
+                            perks.Loadouts[i] = loadouts[i];
                         else if (loadouts[i] != null)
                             Log.Warning($"[FSPerk] Loadout {i} had {loadouts[i]!.Length} entries — discarding (SlotCount mismatch).");
                     }
@@ -492,7 +385,7 @@ public sealed class FSPerkSystem : EntitySystem
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize augment loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
+                Log.Error($"[FSPerk] Failed to deserialize perk loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
             }
         }
     }
