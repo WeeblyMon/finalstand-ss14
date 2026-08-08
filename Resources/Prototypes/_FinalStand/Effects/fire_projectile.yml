@@ -26,9 +26,5 @@
     modifier: 0
   - type: TimedDespawn
     lifetime: 0.6
-  - type: PointLight
-    enabled: true
-    castShadows: false
-    color: "#FF6600"
-    radius: 2.5
-    energy: 6.0
+  # No PointLight: ~15 of these are alive at once per firing zombie. FSFlamethrowerSystem
+  # lights the cone with a single FSFlamethrowerGlow.

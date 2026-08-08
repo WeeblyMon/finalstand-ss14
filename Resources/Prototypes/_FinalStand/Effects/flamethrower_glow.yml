@@ -1,0 +1,13 @@
+- type: entity
+  id: FSFlamethrowerGlow
+  categories: [ HideSpawnMenu ]
+  description: Lights the flame cone. One per firing flamethrower, moved along the firing direction.
+  components:
+  - type: Transform
+    anchored: false
+  - type: PointLight
+    enabled: true
+    castShadows: false
+    color: "#FF6600"
+    radius: 5.0
+    energy: 8.0

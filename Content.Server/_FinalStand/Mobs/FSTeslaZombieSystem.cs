@@ -1,4 +1,6 @@
 using System.Numerics;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Server.NPC.HTN;
@@ -21,12 +23,17 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed class FSTeslaZombieSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
     [Dependency] private readonly ExamineSystemShared _examine = default!;
     [Dependency] private readonly HTNSystem _htn = default!;
     [Dependency] private readonly PointLightSystem _pointLight = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly FSTargetAcquisitionSystem _targeting = default!;
+    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+
+    private readonly ObjectPool<HashSet<Entity<FSFriendlyFireComponent>>> _chainSetPool =
+        new DefaultObjectPool<HashSet<Entity<FSFriendlyFireComponent>>>(
+            new SetPolicy<Entity<FSFriendlyFireComponent>>());
 
     private const string BeamSegment = "FSTeslaBeamSegment";
     private const string HitEffect = "FSTeslaHitEffect";
@@ -74,40 +81,11 @@ public sealed class FSTeslaZombieSystem : EntitySystem
             return;
         }
 
+        if (_targeting.AcquireTarget(uid, comp.DetectionRange) is not { } target)
+            return;
+
         var myPos = _transform.GetMapCoordinates(uid);
-
-        var candidates = new HashSet<Entity<ActorComponent>>();
-        _lookup.GetEntitiesInRange<ActorComponent>(myPos, comp.DetectionRange, candidates);
-
-        EntityUid? target = null;
-        float nearestDist = float.MaxValue;
-        foreach (var (targetUid, _) in candidates)
-        {
-            if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
-            if (HasComp<GhostComponent>(targetUid)) continue;
-            if (!_examine.InRangeUnOccluded(uid, targetUid, comp.DetectionRange, null)) continue;
-            var dist = Vector2.Distance(myPos.Position, _transform.GetMapCoordinates(targetUid).Position);
-            if (dist < nearestDist)
-            {
-                nearestDist = dist;
-                target = targetUid;
-            }
-        }
-
-        if (target == null)
-        {
-            var cccSet = new HashSet<Entity<FinalStandCCCComponent>>();
-            _lookup.GetEntitiesInRange<FinalStandCCCComponent>(myPos, comp.DetectionRange, cccSet);
-            foreach (var (cccUid, _) in cccSet)
-            {
-                target = cccUid;
-                break;
-            }
-            if (target == null)
-                return;
-        }
-
-        var dir = _transform.GetMapCoordinates(target.Value).Position - myPos.Position;
+        var dir = _transform.GetMapCoordinates(target).Position - myPos.Position;
         if (dir != Vector2.Zero)
             _transform.SetLocalRotation(uid, new Angle(dir) - MathF.PI / 2f);
 
@@ -176,16 +154,15 @@ public sealed class FSTeslaZombieSystem : EntitySystem
         chainDmg.DamageDict["Shock"] = comp.ChainDamageShock;
 
         var chainCount = 0;
-        var chainQuery = EntityQueryEnumerator<FSFriendlyFireComponent, MobStateComponent>();
-        while (chainQuery.MoveNext(out var chainUid, out _, out var chainMobState))
+        var chainCandidates = _chainSetPool.Get();
+        _lookup.GetEntitiesInRange<FSFriendlyFireComponent>(primaryMapPos, comp.ChainRange, chainCandidates);
+
+        foreach (var (chainUid, _) in chainCandidates)
         {
             if (chainCount >= comp.MaxChainTargets) break;
             if (chainUid == primaryTarget.Value) continue;
+            if (!TryComp<MobStateComponent>(chainUid, out var chainMobState)) continue;
             if (chainMobState.CurrentState != MobState.Alive) continue;
-
-            var chainMapPos = _transform.GetMapCoordinates(chainUid);
-            if (chainMapPos.MapId != primaryMapPos.MapId) continue;
-            if (Vector2.Distance(chainMapPos.Position, primaryMapPos.Position) > comp.ChainRange) continue;
             if (!_examine.InRangeUnOccluded(primaryTarget.Value, chainUid, comp.ChainRange, null)) continue;
 
             _damageable.TryChangeDamage(chainUid, chainDmg, ignoreResistances: false, origin: uid);
@@ -193,6 +170,7 @@ public sealed class FSTeslaZombieSystem : EntitySystem
             Spawn(HitEffect, new EntityCoordinates(chainUid, Vector2.Zero));
             chainCount++;
         }
+        _chainSetPool.Return(chainCandidates);
 
         _audio.PlayPvs(comp.FireSound, uid);
     }

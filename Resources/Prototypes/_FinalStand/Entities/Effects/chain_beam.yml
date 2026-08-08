@@ -18,6 +18,7 @@
 - type: entity
   id: FSTeslaBeamSegment
   categories: [ HideSpawnMenu ]
+  # One per tile of beam, per chain target. Keep it sprite-only.
   components:
   - type: Sprite
     sprite: _FinalStand/Effects/Tesla/tesla_lightning.rsi

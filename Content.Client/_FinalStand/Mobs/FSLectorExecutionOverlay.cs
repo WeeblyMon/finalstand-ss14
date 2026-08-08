@@ -79,14 +79,14 @@ public sealed class FSLectorExecutionOverlay : Overlay
             if (!spriteQuery.TryGetComponent(uid, out var spriteComp))
                 continue;
 
-            var ratio = CalcHealthRatio(uid, mobStateComp, dmg, thresholds);
-            if (ratio is not < 0.25f)
-                continue;
-
             var bounds   = _sprite.GetLocalBounds((uid, spriteComp));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
 
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
+                continue;
+
+            var ratio = CalcHealthRatio(uid, mobStateComp, dmg, thresholds);
+            if (ratio is not < 0.25f)
                 continue;
 
             var worldMatrix  = Matrix3Helpers.CreateTranslation(worldPos);

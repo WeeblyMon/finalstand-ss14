@@ -19,9 +19,11 @@ public sealed class FSDeathLootSystem : EntitySystem
         if (args.NewMobState != MobState.Dead)
             return;
 
-        if (!_random.Prob(ent.Comp.Chance))
-            return;
-
-        Spawn(ent.Comp.LootProtoId, Transform(ent).Coordinates);
+        var coords = Transform(ent).Coordinates;
+        foreach (var drop in ent.Comp.Drops)
+        {
+            if (_random.Prob(drop.Chance))
+                Spawn(drop.Proto, coords);
+        }
     }
 }

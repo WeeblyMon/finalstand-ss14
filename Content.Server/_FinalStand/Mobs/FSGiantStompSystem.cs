@@ -1,4 +1,6 @@
 using System.Numerics;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Explosion.EntitySystems;
 using Content.Shared._FinalStand.Mobs;
@@ -28,11 +30,12 @@ public sealed class FSGiantStompSystem : EntitySystem
 
     private const string StompExplosionProto = "FSGiantStompExplosion";
 
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<FSGiantStompComponent, MobStateChangedEvent>(OnGiantDied);
-    }
+    private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorSetPool =
+        new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(
+            new SetPolicy<Entity<ActorComponent>>());
+
+    private readonly List<EntityUid> _stompTargets = new();
+    private readonly List<(EntityUid Uid, float Dist)> _shakeTargets = new();
 
     public override void Update(float frameTime)
     {
@@ -58,41 +61,43 @@ public sealed class FSGiantStompSystem : EntitySystem
         var giantPos = _transform.GetWorldPosition(uid);
         var mapId = Transform(uid).MapID;
         var epicenter = new MapCoordinates(giantPos, mapId);
-        var targets = new HashSet<Entity<ActorComponent>>();
-        _lookup.GetEntitiesInRange<ActorComponent>(epicenter, comp.StompRadius, targets);
+        // One query at the wider radius; damage and shake filter it by their own.
+        var searchRadius = MathF.Max(comp.StompRadius, comp.ShakeRadius);
+        var nearby = _actorSetPool.Get();
+        _lookup.GetEntitiesInRange<ActorComponent>(epicenter, searchRadius, nearby);
 
-        var validTargets = new List<EntityUid>();
-        foreach (var (targetUid, _) in targets)
+        _stompTargets.Clear();
+        _shakeTargets.Clear();
+        foreach (var (targetUid, _) in nearby)
         {
-            if (_mobState.IsAlive(targetUid))
-                validTargets.Add(targetUid);
+            var dist = Vector2.Distance(giantPos, _transform.GetWorldPosition(targetUid));
+            if (dist <= comp.ShakeRadius)
+                _shakeTargets.Add((targetUid, dist));
+            if (dist <= comp.StompRadius && _mobState.IsAlive(targetUid))
+                _stompTargets.Add(targetUid);
         }
+        _actorSetPool.Return(nearby);
 
-        if (validTargets.Count == 0)
+        if (_stompTargets.Count == 0)
             return false;
 
         // TODO(finalstand): tune stomp damage — 3x FSZombieNormal melee (Slash: 10) = Blunt: 30
         var stompDamage = new DamageSpecifier();
         stompDamage.DamageDict["Blunt"] = FixedPoint2.New(30);
 
-        foreach (var targetUid in validTargets)
+        foreach (var targetUid in _stompTargets)
         {
             _damageable.TryChangeDamage(targetUid, stompDamage, ignoreResistances: false, origin: uid);
             _knockback.ApplyKnockback(targetUid, uid, 3);
         }
 
-        var shakeSet = new HashSet<Entity<ActorComponent>>();
-        _lookup.GetEntitiesInRange<ActorComponent>(epicenter, comp.ShakeRadius, shakeSet);
-        foreach (var (shakeUid, _) in shakeSet)
+        foreach (var (shakeUid, dist) in _shakeTargets)
         {
-            var shakePos = _transform.GetWorldPosition(shakeUid);
-            var dist = Vector2.Distance(giantPos, shakePos);
-
             var shakeMag = 0.6f * MathF.Max(0f, 1f - dist / comp.ShakeRadius);
             if (shakeMag < 0.01f)
                 continue;
 
-            var shakeDir = shakePos - giantPos;
+            var shakeDir = _transform.GetWorldPosition(shakeUid) - giantPos;
             if (shakeDir == Vector2.Zero)
                 shakeDir = new Vector2(1f, 0f);
             _recoil.KickCamera(shakeUid, Vector2.Normalize(shakeDir) * shakeMag);
@@ -115,13 +120,5 @@ public sealed class FSGiantStompSystem : EntitySystem
             _audio.PlayPvs(comp.StompSound, uid);
 
         return true;
-    }
-
-    private void OnGiantDied(EntityUid uid, FSGiantStompComponent comp, MobStateChangedEvent args)
-    {
-        if (args.NewMobState != MobState.Dead)
-            return;
-
-        Spawn("ArtifactFragment", Transform(uid).Coordinates);
     }
 }

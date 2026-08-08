@@ -4,6 +4,8 @@
   id: FSBloaterExplosionEffect
   categories: [ HideSpawnMenu ]
   components:
+  # One per tile of the blast circle (29 at radius 3). Keep it sprite-only — a PointLight
+  # or Physics here multiplies by that count.
   - type: Sprite
     drawdepth: Effects
     sprite: Effects/foam.rsi

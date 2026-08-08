@@ -1,4 +1,6 @@
 using System.Numerics;
+using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -26,6 +28,16 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+
+    private const float ProximityInterval = 0.25f;
+
+    private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorSetPool =
+        new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(
+            new SetPolicy<Entity<ActorComponent>>());
+
+    private readonly ObjectPool<HashSet<Entity<DamageableComponent>>> _damageableSetPool =
+        new DefaultObjectPool<HashSet<Entity<DamageableComponent>>>(
+            new SetPolicy<Entity<DamageableComponent>>());
 
     public override void Update(float frameTime)
     {
@@ -69,10 +81,15 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
             if (comp.ProximityRange <= 0f)
                 continue;
 
+            comp.ProximityAccumulator += frameTime;
+            if (comp.ProximityAccumulator < ProximityInterval)
+                continue;
+            comp.ProximityAccumulator = 0f;
+
             var worldPos = _transform.GetWorldPosition(uid);
             var mapId = Transform(uid).MapID;
             var epicenter = new MapCoordinates(worldPos, mapId);
-            var players = new HashSet<Entity<ActorComponent>>();
+            var players = _actorSetPool.Get();
             _lookup.GetEntitiesInRange<ActorComponent>(epicenter, comp.ProximityRange, players);
 
             foreach (var (playerUid, _) in players)
@@ -87,6 +104,7 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
                 comp.ExplosionTimer = comp.FlashCount * comp.FlashInterval * 2f;
                 break;
             }
+            _actorSetPool.Return(players);
         }
     }
 
@@ -114,34 +132,34 @@ public sealed class FSBoomOnDeathSystem : EntitySystem
         blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
         blastDamage.DamageDict["Toxin"] = FixedPoint2.New(comp.ToxinDamage);
 
-        var inRange = new HashSet<Entity<DamageableComponent>>();
-        _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, comp.ExplosionRadius, inRange);
+        // One query at the wider radius; each effect then filters by its own.
+        var searchRadius = MathF.Max(comp.ExplosionRadius, comp.SlowRadius);
+        var inRange = _damageableSetPool.Get();
+        _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, searchRadius, inRange);
+
         foreach (var (targetUid, _) in inRange)
         {
             if (targetUid == uid) continue;
             if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
             if (HasComp<GhostComponent>(targetUid)) continue;
             if (!HasComp<MobStateComponent>(targetUid)) continue; // skip structures, walls, machines
-            _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
-            _vulnerability.Apply(targetUid, duration: 5f);
+
+            var dist = Vector2.Distance(worldPos, _transform.GetWorldPosition(targetUid));
+
+            if (dist <= comp.ExplosionRadius)
+            {
+                _damageable.TryChangeDamage(targetUid, blastDamage, ignoreResistances: false, origin: uid);
+                _vulnerability.Apply(targetUid, duration: 5f);
+            }
+
+            if (comp.SlowRadius > 0f && dist <= comp.SlowRadius)
+            {
+                var slow = EnsureComp<FSSlowedComponent>(targetUid);
+                slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.SlowDuration);
+                slow.SlowFactor = comp.SlowAmount;
+                _movement.RefreshMovementSpeedModifiers(targetUid);
+            }
         }
-
-        if (comp.SlowRadius <= 0f)
-            return;
-
-        var slowTargets = new HashSet<Entity<DamageableComponent>>();
-        _lookup.GetEntitiesInRange<DamageableComponent>(epicenter, comp.SlowRadius, slowTargets);
-        foreach (var (targetUid, _) in slowTargets)
-        {
-            if (targetUid == uid) continue;
-            if (HasComp<WaveSpawnedTagComponent>(targetUid)) continue;
-            if (HasComp<GhostComponent>(targetUid)) continue;
-            if (!HasComp<MobStateComponent>(targetUid)) continue;
-
-            var slow = EnsureComp<FSSlowedComponent>(targetUid);
-            slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.SlowDuration);
-            slow.SlowFactor = comp.SlowAmount;
-            _movement.RefreshMovementSpeedModifiers(targetUid);
-        }
+        _damageableSetPool.Return(inRange);
     }
 }

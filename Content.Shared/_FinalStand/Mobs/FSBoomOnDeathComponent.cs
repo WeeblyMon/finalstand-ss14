@@ -23,4 +23,5 @@ public sealed partial class FSBoomOnDeathComponent : Component
     public bool PendingExplosion = false;
     public float ExplosionTimer = 0f;
     public bool Exploded = false;
+    public float ProximityAccumulator = 0f;
 }

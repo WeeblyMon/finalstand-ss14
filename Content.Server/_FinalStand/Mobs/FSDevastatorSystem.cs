@@ -6,6 +6,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee.Events;
 
@@ -14,6 +15,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed class FSDevastatorSystem : EntitySystem
 {
     [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedAmbientSoundSystem _ambientSound = default!;
 
@@ -62,17 +64,10 @@ public sealed class FSDevastatorSystem : EntitySystem
             if (mobState.CurrentState != MobState.Alive)
                 continue;
 
-            // Find the Dead threshold (maximum damage before death)
-            var maxDamage = 0f;
-            foreach (var (threshold, state) in thresholds.Thresholds)
-            {
-                if (state == MobState.Dead && threshold.Float() > maxDamage)
-                    maxDamage = threshold.Float();
-            }
-
-            if (maxDamage <= 0f)
+            if (!_thresholds.TryGetDeadThreshold(uid, out var dead, thresholds) || dead.Value <= 0)
                 continue;
 
+            var maxDamage = dead.Value.Float();
             var hpRatio = Math.Clamp(1f - damageable.TotalDamage.Float() / maxDamage, 0f, 1f);
             var newSpeedMult = 1f + (comp.MaxSpeedMultiplier - 1f) * (1f - hpRatio);
             var newDamageMult = 1f + (comp.MaxDamageMultiplier - 1f) * (1f - hpRatio);

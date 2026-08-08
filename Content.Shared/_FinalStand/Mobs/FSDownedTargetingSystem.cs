@@ -7,6 +7,8 @@ namespace Content.Shared._FinalStand.Mobs;
 // Vanilla RequireProjectileTargetComponent stops stray fire from hitting a downed ally unless you
 // explicitly target them. Wave enemies shouldn't get that protection when flashbanged/knocked down —
 // it made stunned zombies require pixel-precise clicks and blocked pierce from hitting them at all.
+// Keyed on FSWaveDamageScaleComponent, not WaveSpawnedTagComponent: this system is shared and
+// that one is server-only. FSZombieBase carries it, so every zombie inherits it.
 public sealed class FSDownedTargetingSystem : EntitySystem
 {
     public override void Initialize()
