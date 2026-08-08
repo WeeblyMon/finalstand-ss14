@@ -84,6 +84,10 @@ public sealed partial class CCCWindow : FancyWindow
         RebuildZombieIcons(state.NextWaveEnemyTypes);
     }
 
+    // Fixed-width left panel (340px) only fits ~5 icons per row before they'd overflow the
+    // column and get clipped - wrap into rows instead of relying on the container to grow.
+    private const int IconsPerRow = 5;
+
     private void RebuildZombieIcons(List<string> types)
     {
         ZombieIconsContainer.RemoveAllChildren();
@@ -97,6 +101,7 @@ public sealed partial class CCCWindow : FancyWindow
         var protos = IoCManager.Resolve<IPrototypeManager>();
         var cache = IoCManager.Resolve<IResourceCache>();
         var anyAdded = false;
+        BoxContainer? row = null;
 
         foreach (var protoId in types)
         {
@@ -112,7 +117,14 @@ public sealed partial class CCCWindow : FancyWindow
             var displayName = proto.Name.Length > 0
                 ? new string(char.ToUpperInvariant(proto.Name[0]), 1) + proto.Name.Substring(1)
                 : protoId;
-            ZombieIconsContainer.AddChild(new TextureRect
+
+            if (row == null || row.ChildCount >= IconsPerRow)
+            {
+                row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+                ZombieIconsContainer.AddChild(row);
+            }
+
+            row.AddChild(new TextureRect
             {
                 Texture = texRes.Texture,
                 SetWidth = 64,

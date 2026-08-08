@@ -26,7 +26,7 @@
                 <Label Text="Est. enemies: " Modulate="#888888" />
                 <Label Name="EnemyEstLabel" Modulate="#FF8A65" />
             </BoxContainer>
-            <BoxContainer Name="ZombieIconsContainer" Orientation="Horizontal" Margin="0 0 0 8" Visible="False" />
+            <BoxContainer Name="ZombieIconsContainer" Orientation="Vertical" Margin="0 0 0 8" Visible="False" />
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
