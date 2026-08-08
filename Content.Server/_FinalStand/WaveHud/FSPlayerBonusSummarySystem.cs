@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.WaveHud;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Grenades;
@@ -15,7 +16,7 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
-namespace Content.Server._FinalStand.Leveling;
+namespace Content.Server._FinalStand.WaveHud;
 
 // Drives the wave-HUD "current bonuses" indicator, recomputed from source data each time.
 public sealed class FSPlayerBonusSummarySystem : EntitySystem

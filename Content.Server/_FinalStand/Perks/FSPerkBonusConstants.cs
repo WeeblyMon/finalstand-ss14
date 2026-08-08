@@ -1,4 +1,4 @@
-namespace Content.Server._FinalStand.Leveling;
+namespace Content.Server._FinalStand.Perks;
 
 // Every numeric perk formula, in one place, so a formula and the catalog text that describes it
 // (Content.Shared/_FinalStand/Perks/FSPerkDef.cs) can never drift apart silently. Read by the buff

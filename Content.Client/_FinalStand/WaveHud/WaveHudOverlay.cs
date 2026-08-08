@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
 using Content.Client.UserInterface.Screens;

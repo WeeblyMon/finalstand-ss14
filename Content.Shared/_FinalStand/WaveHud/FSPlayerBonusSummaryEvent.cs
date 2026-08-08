@@ -1,6 +1,6 @@
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._FinalStand.Leveling;
+namespace Content.Shared._FinalStand.WaveHud;
 
 [Serializable, NetSerializable]
 public readonly struct FSBonusCategory

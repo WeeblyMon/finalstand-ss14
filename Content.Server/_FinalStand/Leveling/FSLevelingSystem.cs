@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
@@ -27,6 +28,9 @@ public sealed class FSLevelingSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 
+    private long _saveTicks;
+    private int _saveCount;
+
     private const int WaveCompletionXpPerWave = 100;
     private const int RoundEndXpPerWave = 200;
     private const int PrestigeThreshold = 50;
@@ -42,6 +46,7 @@ public sealed class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
     }
@@ -55,8 +60,6 @@ public sealed class FSLevelingSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
 
-        Log.Debug($"[FSLevel] Enemy {uid} died. Origin={args.Origin}, HasOrigin={args.Origin.HasValue}");
-
         // wave 0 when no active rule → 1× multiplier
         _waveRule.TryGetActiveState(out var wave);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
@@ -66,8 +69,6 @@ public sealed class FSLevelingSystem : EntitySystem
 
         if (args.Origin.HasValue && args.Origin.Value.IsValid())
             GiveExperience(args.Origin.Value, killXp, "kill");
-        else
-            Log.Debug($"[FSLevel] No valid origin — kill XP skipped for enemy {uid}");
 
         var totalTracked = tracker.DamageByPlayer.Values.Sum();
         if (totalTracked > 0f)
@@ -83,6 +84,15 @@ public sealed class FSLevelingSystem : EntitySystem
 
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
+        if (_saveCount > 0)
+        {
+            var ms = _saveTicks * 1000.0 / Stopwatch.Frequency;
+            Log.Info($"[FSLevel] wave {args.WaveNumber}: {_saveCount} leveling writes, {ms:F1} ms total, {ms / _saveCount:F3} ms each");
+            _saveTicks = 0;
+            _saveCount = 0;
+        }
+
+
         var xp = WaveCompletionXpPerWave * args.WaveNumber;
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
@@ -164,14 +174,31 @@ public sealed class FSLevelingSystem : EntitySystem
         SendLevelingUpdate(mindId, lvl);
     }
 
+    private void OnPlayerDetached(PlayerDetachedEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Entity, out var mindId, out _))
+            return;
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+            return;
+
+        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+    }
+
     public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
     {
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
             return;
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
+
+        // Temporary instrumentation. Every XP gain writes a row, and whether that is worth
+        // batching is a question about microseconds, not a question about design taste.
+        // Reported once per wave by OnWaveEnded.
+        var start = Stopwatch.GetTimestamp();
         _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
             SerializePrestigeBuffs(buffs));
+        _saveTicks += Stopwatch.GetTimestamp() - start;
+        _saveCount++;
     }
 
     private static string SerializePrestigeBuffs(FSPrestigeBuffsComponent? buffs)
@@ -238,10 +265,7 @@ public sealed class FSLevelingSystem : EntitySystem
         if (resolveBody)
         {
             if (!_mind.TryGetMind(playerEntity, out mindId, out _))
-            {
-                Log.Debug($"[FSLevel] GiveExperience: TryGetMind failed for entity {playerEntity} (source={source})");
                 return;
-            }
         }
         else
         {
@@ -249,10 +273,7 @@ public sealed class FSLevelingSystem : EntitySystem
         }
 
         if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
-        {
-            Log.Debug($"[FSLevel] GiveExperience: FSPlayerLevelComponent missing on mind {mindId} (source={source})");
             return;
-        }
 
         var amount = (int)(rawAmount * lvl.XpMultiplier);
         lvl.Experience += amount;

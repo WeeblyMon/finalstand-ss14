@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.WaveHud;
 using Content.Server._FinalStand.Leveling;
 using Content.Server.Administration;
 using Content.Shared.Administration;

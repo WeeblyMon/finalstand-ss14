@@ -14,12 +14,6 @@ public sealed class FSLevelingUpdatedEvent : EntityEventArgs
 [Serializable, NetSerializable]
 public sealed class FSPrestigeRequestMessage : EntityEventArgs { }
 
-[Serializable, NetSerializable]
-public sealed class FSBuyPrestigeBuffMessage : EntityEventArgs
-{
-    public string BuffId { get; init; } = "";
-}
-
 public sealed class FSLevelUpEvent : EntityEventArgs
 {
     public EntityUid MindId;

@@ -1,4 +1,5 @@
-﻿using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.WaveHud;
+using Content.Server._FinalStand.Leveling;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Actions;
