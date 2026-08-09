@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Audio;
 using Content.Shared.Damage;
@@ -26,11 +27,22 @@ public sealed class FSDevastatorSystem : EntitySystem
         SubscribeLocalEvent<FSDevastatorComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSDevastatorComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
         SubscribeLocalEvent<FSDevastatorComponent, DamageModifyEvent>(OnDamageModify);
+        SubscribeLocalEvent<FSIncomingDamageModifyEvent>(OnArmorPen);
+    }
+
+    private void OnArmorPen(ref FSIncomingDamageModifyEvent ev)
+    {
+        if (ev.Args.Origin == null || !HasComp<FSDevastatorComponent>(ev.Args.Origin.Value))
+            return;
+
+        // Restore 25% of whatever armor/resistances reduced from the original hit
+        var penetrated = (ev.Args.OriginalDamage - ev.Args.Damage) * 0.25f;
+        ev.Args.Damage += penetrated;
     }
 
     private void OnDamageModify(EntityUid uid, FSDevastatorComponent comp, DamageModifyEvent args)
     {
-        // 0% resistance at full HP, 80% at near-death — scales linearly with BerserkRatio
+        // 0% resistance at full HP, 90% at near-death — scales linearly with BerserkRatio
         var multiplier = 1f - 0.9f * comp.BerserkRatio;
         args.Damage *= multiplier;
     }
