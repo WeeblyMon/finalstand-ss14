@@ -34,7 +34,7 @@ public sealed class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
 
     private const float BaseDamage = 2f;
-    private const int RpPerHit = 5;
+    private const int RpPerHit = 10;
     private const float DefaultRange = 7f;
 
     private static readonly SoundSpecifier LoopSound =

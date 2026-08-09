@@ -8,7 +8,7 @@ internal static class FSPerkBonusConstants
 {
     // ── Outgoing damage and fire rate ──────────────────────────────────────
     public const float StoppingPowerPerLevel = 0.04f;   // ranged, non-launcher only
-    public const float GlassCannonPerLevel = 0.07f;     // outgoing, ranged (incl. launcher) and melee
+    public const float GlassCannonPerLevel = 0.25f;     // outgoing, ranged (incl. launcher) and melee
     public const float BulletStormPerLevel = 0.08f;     // fire rate, any gun incl. launcher
     public const float SwordAndShieldPerLevel = 0.05f;  // outgoing melee damage
     public const float OfficerBuffPerLevel = 0.15f;     // ally buff, ranged (incl. launcher) and melee

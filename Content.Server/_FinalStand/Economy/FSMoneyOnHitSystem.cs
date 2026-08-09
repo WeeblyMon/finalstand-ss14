@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -15,13 +16,19 @@ public sealed class FSMoneyOnHitSystem : EntitySystem
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
+    private EntityQuery<FSHarvesterComponent> _harvesterQuery;
 
     private const int BaseMoneyPerHit = 30;
+
+    // The Harvester lands 20 hitscans a second, so at full rate it caps every enemy almost
+    // instantly. Its payout is scaled down to keep it a research weapon, not an income weapon.
+    private const float HarvesterMoneyMultiplier = 0.30f;
     public override void Initialize()
     {
         base.Initialize();
         _upgradeQuery = GetEntityQuery<FSWeaponUpgradeStateComponent>();
         _armorQuery = GetEntityQuery<FSArmorComponent>();
+        _harvesterQuery = GetEntityQuery<FSHarvesterComponent>();
 
         SubscribeLocalEvent<FSMoneyOnHitCapComponent, DamageChangedEvent>(OnDamageChanged);
     }
@@ -41,11 +48,13 @@ public sealed class FSMoneyOnHitSystem : EntitySystem
             return;
 
         var payout = BaseMoneyPerHit;
-        if (_hands.TryGetActiveItem(args.Origin.Value, out var heldItem)
-            && _upgradeQuery.TryGetComponent(heldItem.Value, out var ws)
-            && ws.MoneyPerHitBonus > 0)
+        if (_hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
         {
-            payout += ws.MoneyPerHitBonus;
+            if (_upgradeQuery.TryGetComponent(heldItem.Value, out var ws) && ws.MoneyPerHitBonus > 0)
+                payout += ws.MoneyPerHitBonus;
+
+            if (_harvesterQuery.HasComponent(heldItem.Value))
+                payout = (int) MathF.Round(payout * HarvesterMoneyMultiplier);
         }
 
         var give = Math.Min(payout, cap.MaxMoneyPerPlayer - alreadyGiven);

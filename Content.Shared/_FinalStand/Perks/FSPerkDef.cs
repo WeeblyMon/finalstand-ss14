@@ -120,7 +120,7 @@ public sealed class FSPerkDef
             new("GlassCannon", "Glass Cannon",
                 "Take 100% more damage, but deal more damage.",
                 PerkCategory.Red,
-                ["+7% Damage", "+14% Damage", "+21% Damage", "+28% Damage"]),
+                ["+25% Damage", "+50% Damage", "+75% Damage", "+100% Damage"]),
 
             new("Pacifist", "Pacifist",
                 "Deal 25% less damage, but gain significant damage resistance.",
