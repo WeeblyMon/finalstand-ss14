@@ -61,6 +61,7 @@
     damageModifierSet: Metallic
   - type: Injurable
     damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
   - type: Destructible
     thresholds:
     - trigger:
