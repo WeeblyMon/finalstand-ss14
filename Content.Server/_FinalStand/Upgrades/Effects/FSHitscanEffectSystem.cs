@@ -35,6 +35,13 @@ public sealed class FSHitscanEffectSystem : EntitySystem
         var damage = dmgComp.Damage * _damageable.UniversalHitscanDamageModifier;
         var target = args.Data.HitEntity.Value;
 
+        TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var upgradeState);
+
+        // damage stays the vanilla-applied baseline for PayDelta; wantedDamage is what we actually owe.
+        var wantedDamage = damage;
+        if (upgradeState is { DamageMultiplier: > 1.0f })
+            wantedDamage *= upgradeState.DamageMultiplier;
+
         var didCrit = false;
         var critMultiplier = 1f;
         if (args.Data.Shooter is { } critShooter
@@ -44,7 +51,7 @@ public sealed class FSHitscanEffectSystem : EntitySystem
             _crit.MarkPendingCrit(critShooter, target);
         }
 
-        var finalDamage = didCrit ? damage * critMultiplier : damage;
+        var finalDamage = didCrit ? wantedDamage * critMultiplier : wantedDamage;
 
         if (HasComp<WaveSpawnedTagComponent>(target) && args.Data.Shooter is { } shooter)
         {
@@ -57,7 +64,7 @@ public sealed class FSHitscanEffectSystem : EntitySystem
             });
         }
 
-        if (!TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var upgradeState))
+        if (upgradeState == null)
         {
             PayDelta(target, damage, finalDamage, args.Data.Shooter);
             return;
