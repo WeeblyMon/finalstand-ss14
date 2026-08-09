@@ -5,7 +5,9 @@ using Content.Shared.Trigger;
 using Robust.Shared.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Spawners;
+using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Grenades;
 
@@ -16,6 +18,14 @@ public sealed class FSFireZoneSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
+    // Elapsed time is accumulated and passed through, so throttling does not change how fast
+    // a zone builds fire stacks.
+    private const float TickInterval = 0.25f;
+
+    private readonly ObjectPool<HashSet<Entity<FlammableComponent>>> _flammableSetPool =
+        new DefaultObjectPool<HashSet<Entity<FlammableComponent>>>(
+            new SetPolicy<Entity<FlammableComponent>>());
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -23,8 +33,15 @@ public sealed class FSFireZoneSystem : EntitySystem
         var query = EntityQueryEnumerator<FSFireZoneComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var zone, out var xform))
         {
+            zone.Accumulator += frameTime;
+            if (zone.Accumulator < TickInterval)
+                continue;
+
+            var elapsed = zone.Accumulator;
+            zone.Accumulator = 0f;
+
             var worldPos = _transform.GetWorldPosition(uid);
-            var candidates = new HashSet<Entity<FlammableComponent>>();
+            var candidates = _flammableSetPool.Get();
             _lookup.GetEntitiesInRange<FlammableComponent>(
                 new MapCoordinates(worldPos, xform.MapID),
                 zone.Radius,
@@ -34,9 +51,11 @@ public sealed class FSFireZoneSystem : EntitySystem
             {
                 if (HasComp<ActorComponent>(targetUid))
                     continue;
-                flammable.FireStacks += zone.IgniteStacksPerSecond * frameTime;
+                flammable.FireStacks += zone.IgniteStacksPerSecond * elapsed;
                 _flammable.Ignite(targetUid, uid, flammable);
             }
+
+            _flammableSetPool.Return(candidates);
         }
     }
 }

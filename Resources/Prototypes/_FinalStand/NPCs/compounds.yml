@@ -162,8 +162,9 @@
 
 # HTN compound for all Final Stand wave enemies.
 # Branch priority order:
-#   1. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
-#   2. BaitDistraction — pipe bomb decoy active
+#   1. BaitDistraction — a pipe bomb is live. Outranks retaliation, which refreshes on
+#      every hit and would otherwise hold priority for the grenade's whole fuse
+#   2. PlayerRetaliation — zombie was shot, pursue attacker regardless of leash/LOS
 #   3. MeleeCombat (PlayerHunt) — scan for nearby hostiles and engage
 #   4. BreachMode — attack a structure blocking the path to CCC
 #   5. CCCBeeline — path directly to the objective (skipped if no CCC ordered target)
@@ -171,7 +172,14 @@
 - type: htnCompound
   id: FinalStandEnemyCompound
   branches:
-    # Priority 1 — PlayerRetaliation
+    # Priority 1 — BaitDistraction (live pipe bomb)
+    - preconditions:
+        - !type:KeyExistsPrecondition
+          key: FSBaitTarget
+      tasks:
+        - !type:HTNCompoundTask
+          task: FinalStandBaitBeeline
+    # Priority 2 — PlayerRetaliation
     - preconditions:
         - !type:KeyExistsPrecondition
           key: FSLastAttacker
@@ -181,13 +189,6 @@
       tasks:
         - !type:HTNCompoundTask
           task: FinalStandPlayerRetaliationCompound
-    # Priority 2 — BaitDistraction (pipe bomb decoy)
-    - preconditions:
-        - !type:KeyExistsPrecondition
-          key: FSBaitTarget
-      tasks:
-        - !type:HTNCompoundTask
-          task: FinalStandBaitBeeline
     # Priority 3 — PlayerHunt (melee scan for nearby hostiles)
     - tasks:
         - !type:HTNCompoundTask

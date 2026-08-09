@@ -4,13 +4,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Grenades;
 
-[RegisterComponent]
-public sealed partial class FSGrenadeTimerBlinkComponent : Component
-{
-    public TimeSpan NextBlink;
-    public bool ShowPrimed;
-}
-
 public sealed class FSGrenadeTimerBlinkSystem : EntitySystem
 {
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;

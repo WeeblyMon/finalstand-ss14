@@ -3,16 +3,12 @@ using Content.Server.NPC.Systems;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.NPC;
 using Robust.Shared.Containers;
+using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Map;
+using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Grenades;
-
-[RegisterComponent]
-public sealed partial class FSBaitAttractTrackerComponent : Component
-{
-    // zombie uid → bait uid that zombie is currently chasing
-    public Dictionary<EntityUid, EntityUid> ZombieToBait = new();
-}
 
 public sealed class FSBaitAttractSystem : EntitySystem
 {
@@ -21,7 +17,18 @@ public sealed class FSBaitAttractSystem : EntitySystem
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
 
+    [Dependency] private readonly IGameTiming _timing = default!;
+
     private const float AttractRadius = 20f;
+    private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(0.25);
+
+    private TimeSpan _nextTick;
+
+    private readonly ObjectPool<HashSet<Entity<HTNComponent>>> _htnSetPool =
+        new DefaultObjectPool<HashSet<Entity<HTNComponent>>>(
+            new SetPolicy<Entity<HTNComponent>>());
+
+    private readonly List<EntityUid> _released = new();
 
     public override void Initialize()
     {
@@ -33,6 +40,10 @@ public sealed class FSBaitAttractSystem : EntitySystem
     {
         base.Update(frameTime);
 
+        if (_timing.CurTime < _nextTick)
+            return;
+        _nextTick = _timing.CurTime + TickInterval;
+
         var query = EntityQueryEnumerator<FSBaitDecoyComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
@@ -43,18 +54,43 @@ public sealed class FSBaitAttractSystem : EntitySystem
             var worldPos = _transform.GetWorldPosition(uid);
             var coords = new MapCoordinates(worldPos, xform.MapID);
 
-            var zombieCandidates = new HashSet<Entity<HTNComponent>>();
+            var zombieCandidates = _htnSetPool.Get();
             _lookup.GetEntitiesInRange<HTNComponent>(coords, AttractRadius, zombieCandidates);
 
             foreach (var (npcUid, _) in zombieCandidates)
             {
-                if (tracker.ZombieToBait.ContainsKey(npcUid))
-                    continue;
-
+                // Re-asserted every tick. Other branches clear the key, and a one-shot set
+                // meant a zombie that lost it never re-acquired the bait.
                 tracker.ZombieToBait[npcUid] = uid;
                 _npc.SetBlackboard(npcUid, FSAIBlackboardKeys.BaitTarget, uid);
             }
+
+            // A zombie that walked out of range keeps chasing the bait forever otherwise.
+            _released.Clear();
+            foreach (var (npcUid, _) in tracker.ZombieToBait)
+            {
+                if (!InRange(npcUid, coords))
+                    _released.Add(npcUid);
+            }
+
+            foreach (var npcUid in _released)
+            {
+                tracker.ZombieToBait.Remove(npcUid);
+                if (TryComp<HTNComponent>(npcUid, out var htn))
+                    htn.Blackboard.Remove<EntityUid>(FSAIBlackboardKeys.BaitTarget);
+            }
+
+            _htnSetPool.Return(zombieCandidates);
         }
+    }
+
+    private bool InRange(EntityUid npcUid, MapCoordinates baitCoords)
+    {
+        if (!TryComp<TransformComponent>(npcUid, out var xform) || xform.MapID != baitCoords.MapId)
+            return false;
+
+        var pos = _transform.GetWorldPosition(xform);
+        return (pos - baitCoords.Position).LengthSquared() <= AttractRadius * AttractRadius;
     }
 
     private void OnTrackerShutdown(Entity<FSBaitAttractTrackerComponent> ent, ref ComponentShutdown args)
