@@ -6,6 +6,8 @@ namespace Content.Client._FinalStand.Grenades;
 
 public sealed class FSGrenadePackVisualsSystem : EntitySystem
 {
+    [Dependency] private readonly SpriteSystem _sprite = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -17,5 +19,8 @@ public sealed class FSGrenadePackVisualsSystem : EntitySystem
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
         sprite.Color = comp.Stock <= 0 ? new Color(0.45f, 0.45f, 0.45f) : Color.White;
+
+        if (comp.IsSingularity && comp.SingularitySprite != null)
+            _sprite.LayerSetSprite((uid, sprite), 0, comp.SingularitySprite);
     }
 }

@@ -141,6 +141,9 @@
     regenPerWave: 1
     grenadeProtoId: FSGrenadePipe
     selectActionProtoId: FSActionSelectPipe
+    singularitySprite:
+      sprite: _FinalStand/Objects/Weapons/Grenades/GravatonBomb.rsi
+      state: icon
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
     state: icon
@@ -299,6 +302,70 @@
     delay: 3
   - type: Appearance
   - type: TimerTriggerVisuals
+
+# ─── Singularity (Gravaton bomb) — replaces the pipe bomb once the upgrade is bought ──
+
+- type: entity
+  parent: [TimerGrenadeBase]
+  id: FSGrenadeSingularity
+  name: gravaton bomb
+  description: Collapses into a miniature singularity that drags nearby enemies into its centre.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - WeaponExplosive
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/GravatonBomb.rsi
+    layers:
+    - state: icon
+      map: ["enum.TriggerVisualLayers.Base"]
+  - type: Item
+    sprite: _FinalStand/Objects/Weapons/Grenades/GravatonBomb.rsi
+  - type: GenericVisualizer
+    visuals:
+      enum.Trigger.TriggerVisuals.VisualState:
+        enum.TriggerVisualLayers.Base:
+          Primed: { state: primed }
+          Unprimed: { state: icon }
+  - type: FSSingularityOnTrigger
+    keysIn:
+    - timer
+  - type: EmitSoundOnTrigger
+    keysIn:
+    - timer
+    sound:
+      path: "/Audio/Effects/explosion_small1.ogg"
+  - type: DeleteOnTrigger
+    keysIn:
+    - timer
+  - type: TimerTrigger
+    delay: 3
+  - type: Appearance
+  - type: TimerTriggerVisuals
+
+- type: entity
+  id: FSSingularityEffect
+  name: singularity
+  description: A collapsing point of gravity.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSSingularity
+  - type: Sprite
+    drawdepth: Effects
+    sprite: _FinalStand/Effects/Singularity.rsi
+    layers:
+    - state: start
+      map: ["enum.TriggerVisualLayers.Base"]
+      shader: unshaded
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSSingularityVisuals.Phase:
+        enum.TriggerVisualLayers.Base:
+          Start: { state: start }
+          Loop: { state: loop }
+          End: { state: end }
 
 # ─── Cluster frag grenade (spawns 3 sub-munitions on detonation) ───────────────
 

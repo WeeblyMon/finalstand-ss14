@@ -35,3 +35,12 @@ public sealed partial class FSClusterOnTriggerComponent : BaseXOnTriggerComponen
     [DataField] public float Distance = 3f;
     [DataField] public float Velocity = 7f;
 }
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSSingularityOnTriggerComponent : BaseXOnTriggerComponent
+{
+    [DataField] public EntProtoId SingularityProtoId = "FSSingularityEffect";
+    [DataField, AutoNetworkedField] public float ExtraRadius;
+    [DataField, AutoNetworkedField] public float ExtraDuration;
+    [DataField, AutoNetworkedField] public float DamageMultiplier = 1f;
+}

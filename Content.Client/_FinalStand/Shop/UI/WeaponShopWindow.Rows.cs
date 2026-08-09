@@ -99,7 +99,7 @@ public sealed partial class WeaponShopWindow
 
     // ── upgrade rows ───────────────────────────────────────────────────────────
 
-    private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits)
+    private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits, string name, string description, string? label = null)
     {
         var atMax     = currentLevel >= def.MaxLevel;
         var nextCost  = def.BaseCost * (currentLevel + 1);
@@ -142,12 +142,12 @@ public sealed partial class WeaponShopWindow
         // Purchase button — natural sizing capped at 185px; left-aligned ClipText from stylesheet
         var btn = new Button
         {
-            Text = def.Name,
+            Text = name,
             MinWidth = 140,
             MaxWidth = 185,
             ClipText = true,
             Disabled = def.IsStub || atMax || !canAfford,
-            ToolTip = string.IsNullOrEmpty(def.Description) ? def.Name : def.Description,
+            ToolTip = string.IsNullOrEmpty(description) ? name : description,
         };
         btn.OnPressed += _ => OnUpgradePressed?.Invoke(def.Id);
         inner.AddChild(btn);
@@ -181,7 +181,7 @@ public sealed partial class WeaponShopWindow
         }
 
         // Category label — takes remaining space between button and right section
-        var catText = UpgradeTypeToStatLabel(def.Type);
+        var catText = label ?? UpgradeTypeToStatLabel(def.Type);
         if (!string.IsNullOrEmpty(catText))
         {
             var catLabel = new Label
@@ -361,6 +361,21 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.OverloadRound      => "Overload",
         WeaponUpgradeType.HomingBolts        => "Homing",
         WeaponUpgradeType.Multishot          => "Multishot",
+        WeaponUpgradeType.ClusterBarrage     => "Barrage",
+        WeaponUpgradeType.GrenadeCapacity    => "Capacity",
+        WeaponUpgradeType.GrenadeRegen       => "Regen",
+        WeaponUpgradeType.GrenadeBurnDuration => "Burn Time",
+        WeaponUpgradeType.GrenadeStunDuration => "Stun Time",
+        WeaponUpgradeType.GrenadeBaitDuration => "Bait Time",
+        WeaponUpgradeType.GrenadeEffectRadius => "Effect Radius",
+        WeaponUpgradeType.GrenadeBlastBonus  => "Blast",
+        WeaponUpgradeType.GrenadeCluster     => "Cluster",
+        WeaponUpgradeType.GrenadeImpactFuse  => "Impact Fuse",
+        WeaponUpgradeType.GrenadeSingularity => "Singularity",
+        WeaponUpgradeType.DeployableCapacity => "Capacity",
+        WeaponUpgradeType.ShieldDurability   => "Durability",
+        WeaponUpgradeType.ShieldVampire      => "Lifesteal",
+        WeaponUpgradeType.Thorns             => "Thorns",
         _                                    => "",
     };
 

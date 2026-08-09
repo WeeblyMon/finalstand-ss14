@@ -187,6 +187,10 @@
       baseCost: 5000
       type: GrenadeBlastBonus
       valuePerLevel: 0.25
+      altWhenUpgrade: pipe-singularity
+      altName: Event Horizon
+      altDescription: +25% singularity damage per second per level.
+      altLabel: Damage
     - id: pipe-bait-duration
       name: Persistent Bait
       description: Bait decoy lasts +2 seconds longer per level.
@@ -194,6 +198,10 @@
       baseCost: 5000
       type: GrenadeBaitDuration
       valuePerLevel: 2
+      altWhenUpgrade: pipe-singularity
+      altName: Sustained Collapse
+      altDescription: The singularity holds +2 seconds longer per level.
+      altLabel: Hold Time
     - id: pipe-extra-charges
       name: Extra Charges
       description: +1 max grenade per level.
@@ -201,6 +209,9 @@
       baseCost: 3000
       type: GrenadeCapacity
       valuePerLevel: 1
+      altWhenUpgrade: pipe-singularity
+      altName: Extra Cores
+      altDescription: +1 max gravaton bomb per level.
     - id: pipe-faster-regen
       name: Faster Regen
       description: Refill +1 extra grenade each prep phase per level.
@@ -208,6 +219,9 @@
       baseCost: 3500
       type: GrenadeRegen
       valuePerLevel: 1
+      altWhenUpgrade: pipe-singularity
+      altName: Core Fabrication
+      altDescription: Refill +1 extra gravaton bomb each prep phase per level.
     - id: pipe-effect-radius
       name: Wide Blast
       description: Explosion radius +1 tile and bait detection range +1 tile.
@@ -215,14 +229,17 @@
       baseCost: 5000
       type: GrenadeEffectRadius
       valuePerLevel: 1.0
+      altWhenUpgrade: pipe-singularity
+      altName: Deep Well
+      altDescription: Singularity pull radius +1 tile.
+      altLabel: Pull Radius
     - id: pipe-singularity
       name: Singularity
-      description: Creates a miniature singularity at the detonation point.
+      description: Replaces the pipe bomb with a gravaton bomb. Instead of baiting, it collapses into a singularity that drags nearby enemies into its centre.
       maxLevel: 1
       baseCost: 20000
-      type: Radius
-      valuePerLevel: 0
-      isStub: true
+      type: GrenadeSingularity
+      valuePerLevel: 1
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
     state: icon

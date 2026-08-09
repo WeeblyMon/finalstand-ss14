@@ -1,4 +1,5 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Utility;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Content.Shared.Actions;
@@ -49,6 +50,12 @@ public sealed partial class FSGrenadePackComponent : Component
 
     /// <summary>If true, grenade splits into sub-munitions on detonation. Upgraded via GrenadeCluster.</summary>
     [DataField, AutoNetworkedField] public bool IsCluster = false;
+
+    /// <summary>If true, the pack throws a gravaton bomb instead of its normal grenade.</summary>
+    [DataField, AutoNetworkedField] public bool IsSingularity = false;
+
+    /// <summary>Sprite the pack switches to once IsSingularity is set.</summary>
+    [DataField] public SpriteSpecifier? SingularitySprite;
 
     /// <summary>The selection action entity granted when this pack is first bought.</summary>
     [DataField] public EntProtoId? SelectActionProtoId;

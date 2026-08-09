@@ -26,6 +26,10 @@ public sealed class FSQuickGrenadeSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
+    // Matches baitDuration on FSGrenadePackPipe. Upgrades add to that field, so the
+    // singularity needs the unupgraded value to recover how much was added.
+    private const float PipeBaseBaitDuration = 8f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -58,7 +62,11 @@ public sealed class FSQuickGrenadeSystem : EntitySystem
                 _grenadeSelect.SyncPackCounter(pack.Value, packComp);
 
                 var coords = Transform(user.Value).Coordinates;
-                var protoToSpawn = packComp.IsCluster ? (EntProtoId)"FSGrenadeFragCluster" : packComp.GrenadeProtoId;
+                var protoToSpawn = packComp.IsSingularity
+                    ? (EntProtoId)"FSGrenadeSingularity"
+                    : packComp.IsCluster
+                        ? (EntProtoId)"FSGrenadeFragCluster"
+                        : packComp.GrenadeProtoId;
                 var grenade = Spawn(protoToSpawn, coords);
 
                 // Transfer pack-level upgrade data to the spawned grenade.
@@ -75,6 +83,12 @@ public sealed class FSQuickGrenadeSystem : EntitySystem
                 }
                 if (TryComp<FSBaitOnTriggerComponent>(grenade, out var bait))
                     bait.BaitDuration = packComp.BaitDuration;
+                if (TryComp<FSSingularityOnTriggerComponent>(grenade, out var singularity))
+                {
+                    singularity.ExtraRadius = packComp.EffectRadius;
+                    singularity.ExtraDuration = packComp.BaitDuration - PipeBaseBaitDuration;
+                    singularity.DamageMultiplier = 1f + packComp.BlastBonus;
+                }
                 if (TryComp<ExplosiveComponent>(grenade, out var expComp) && packComp.BlastBonus > 0f)
                 {
 #pragma warning disable RA0002

@@ -110,6 +110,16 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     break;
                 }
+            case WeaponUpgradeType.GrenadeSingularity:
+                {
+                    if (TryComp<FSGrenadePackComponent>(weapon, out var pack) && !pack.IsSingularity)
+                    {
+                        pack.IsSingularity = true;
+                        Dirty(weapon, pack);
+                        _grenadeSelect.SyncPackCounter(weapon, pack);
+                    }
+                    break;
+                }
 
             default:
                 return false;

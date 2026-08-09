@@ -25,6 +25,14 @@ public sealed class FSDevastatorSystem : EntitySystem
         SubscribeLocalEvent<FSDevastatorComponent, MeleeHitEvent>(OnMeleeHit);
         SubscribeLocalEvent<FSDevastatorComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSDevastatorComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
+        SubscribeLocalEvent<FSDevastatorComponent, DamageModifyEvent>(OnDamageModify);
+    }
+
+    private void OnDamageModify(EntityUid uid, FSDevastatorComponent comp, DamageModifyEvent args)
+    {
+        // 0% resistance at full HP, 80% at near-death — scales linearly with BerserkRatio
+        var multiplier = 1f - 0.8f * comp.BerserkRatio;
+        args.Damage *= multiplier;
     }
 
     private void OnMobStateChanged(EntityUid uid, FSDevastatorComponent comp, MobStateChangedEvent args)

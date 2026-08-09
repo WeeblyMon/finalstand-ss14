@@ -248,7 +248,12 @@ public sealed partial class WeaponShopWindow : DefaultWindow
                 continue;
 
             var level = levels.GetValueOrDefault(def.Id, 0);
-            UpgradesContainer.AddChild(BuildUpgradeRow(def, level, credits));
+            var alt = def.AltWhenUpgrade != null
+                      && levels.GetValueOrDefault(def.AltWhenUpgrade, 0) > 0;
+            var name = alt && def.AltName != null ? def.AltName : def.Name;
+            var desc = alt && def.AltDescription != null ? def.AltDescription : def.Description;
+            var label = alt ? def.AltLabel : null;
+            UpgradesContainer.AddChild(BuildUpgradeRow(def, level, credits, name, desc, label));
         }
 
         var totalPurchased = 0;

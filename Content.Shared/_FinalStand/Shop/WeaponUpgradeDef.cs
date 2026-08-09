@@ -74,6 +74,7 @@ public enum WeaponUpgradeType : byte
     GrenadeEffectRadius,
     GrenadeBlastBonus,
     GrenadeCluster,
+    GrenadeSingularity,
 
     VaporiseWeakMob,
     PointBlankCrit,
@@ -111,6 +112,14 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public bool IsStub = false;
 
     [DataField] public string? RequiresUpgrade;
+
+    /// <summary>While this upgrade is owned, the row shows AltName and AltDescription instead.</summary>
+    [DataField] public string? AltWhenUpgrade;
+    [DataField] public string? AltName;
+    [DataField] public string? AltDescription;
+
+    /// <summary>Replaces the type-derived category label while AltWhenUpgrade is owned.</summary>
+    [DataField] public string? AltLabel;
 
     [DataField] public EntProtoId? TargetWeaponProtoId;
 
