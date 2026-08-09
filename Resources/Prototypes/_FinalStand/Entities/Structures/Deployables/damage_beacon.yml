@@ -28,7 +28,7 @@
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
     layers:
-    - texture: _FinalStand/Objects/Devices/DamageBeacon.rsi/field_decal.png
+    - texture: _FinalStand/Effects/Deployables/damage_beacon_field.png
       shader: unshaded
       map: [ "decal" ]
     - state: base
