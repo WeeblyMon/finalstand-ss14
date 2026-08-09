@@ -63,7 +63,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public int PlayerEnemyBonus = 9;
 
     [DataField]
-    public int PlayerBonusFromWave = 10;
+    public int PlayerBonusFromWave = 1;
 
     [DataField]
     public int KillReward = 100;
