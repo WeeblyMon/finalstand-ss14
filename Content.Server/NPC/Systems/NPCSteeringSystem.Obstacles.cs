@@ -1,3 +1,4 @@
+using Content.Shared.Standing;
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
@@ -23,6 +24,7 @@ namespace Content.Server.NPC.Systems;
 public sealed partial class NPCSteeringSystem
 {
     private EntityQuery<WaveSpawnedTagComponent> _waveTagQuery;
+    private EntityQuery<StandingStateComponent> _standingQuery;
 
     /*
      * For any custom path handlers, e.g. destroying walls, opening airlocks, etc.

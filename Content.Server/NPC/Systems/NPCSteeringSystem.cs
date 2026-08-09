@@ -1,3 +1,4 @@
+using Content.Shared.Standing;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,6 +108,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         _physicsQuery = GetEntityQuery<PhysicsComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
         _waveTagQuery = GetEntityQuery<WaveSpawnedTagComponent>();
+        _standingQuery = GetEntityQuery<StandingStateComponent>();
         _inputMoverQuery = GetEntityQuery<InputMoverComponent>();
 
         for (var i = 0; i < InterestDirections; i++)

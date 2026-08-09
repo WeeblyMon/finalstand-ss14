@@ -785,7 +785,10 @@ public sealed partial class NPCSteeringSystem
         foreach (var ent in ents)
         {
             if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
-            if (!TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState == MobState.Dead) continue;
+            // Only stand off from someone still on their feet. A downed or dead body is walked
+            // over, otherwise every crit player becomes a wall the horde has to path around.
+            if (!TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState != MobState.Alive) continue;
+            if (_standingQuery.TryGetComponent(ent, out var standing) && !standing.Standing) continue;
 
             var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
             var toEnt = entPos - worldPos;
