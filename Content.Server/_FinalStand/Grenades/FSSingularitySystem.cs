@@ -26,6 +26,9 @@ public sealed class FSSingularitySystem : EntitySystem
 
     private const float DamageInterval = 0.1f;
 
+    // Pull multiplier at the edge of the radius, ramping to 1 at the centre.
+    private const float RimPull = 0.45f;
+
     private EntityQuery<PhysicsComponent> _physicsQuery;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _targetSetPool =
@@ -135,9 +138,17 @@ public sealed class FSSingularitySystem : EntitySystem
             if (dist < 0.1f)
                 continue;
 
-            var falloff = 1f - dist / comp.Radius;
-            var pull = toCentre / dist * (comp.PullStrength * falloff);
-            _physics.SetLinearVelocity(targetUid, body.LinearVelocity + pull, body: body);
+            var inward = toCentre / dist;
+            var velocity = body.LinearVelocity;
+
+            // Cancelling the outward component is what makes the well inescapable: adding a fixed
+            // pull only wins against targets slower than it, and wave scaling keeps raising that bar.
+            var outward = Vector2.Dot(velocity, -inward);
+            if (outward > 0f)
+                velocity += inward * outward;
+
+            var falloff = RimPull + (1f - RimPull) * (1f - dist / comp.Radius);
+            _physics.SetLinearVelocity(targetUid, velocity + inward * (comp.PullStrength * falloff), body: body);
         }
 
         _targetSetPool.Return(targets);

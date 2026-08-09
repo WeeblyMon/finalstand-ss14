@@ -39,7 +39,7 @@ public sealed partial class FSSingularityComponent : Component
     [DataField] public float VisualRadius = 1.8f;
 
     /// <summary>Pull speed in tiles per second at the rim, rising toward the centre.</summary>
-    [DataField] public float PullStrength = 4f;
+    [DataField] public float PullStrength = 6f;
 
     /// <summary>Applied per second to everything caught in the pull.</summary>
     [DataField] public DamageSpecifier DamagePerSecond = new()
