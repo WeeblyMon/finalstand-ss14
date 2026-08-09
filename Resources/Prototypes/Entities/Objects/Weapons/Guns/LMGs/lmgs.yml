@@ -75,7 +75,6 @@
   components:
   - type: Tag
     tags:
-    - AkimboEligible
     - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/LMGs/l6.rsi

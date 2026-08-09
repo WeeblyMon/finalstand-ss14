@@ -88,8 +88,7 @@ public sealed class FSSmartReloadInputSystem : EntitySystem
     }
 
     // Returns the gun the player intends to reload/eject from the active hand.
-    // Unwraps akimbo virtual-item mirrors to the real gun (must still be held) so
-    // reload works from either hand.
+    // A virtual item is resolved back to the gun it mirrors, which must still be held.
     private EntityUid? ResolveActiveGun()
     {
         var active = _hands.GetActiveHandEntity();

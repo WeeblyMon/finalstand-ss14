@@ -206,7 +206,7 @@ public abstract partial class SharedGunSystem : EntitySystem
                 return true;
             }
 
-            // FS: unwrap virtual items (e.g. Akimbo mirror) so firing works from either hand.
+            // FS: unwrap virtual items so firing works from either hand.
             // Mirrors the safety guard in SharedVirtualItemSystem.OnGetUsedEntity — only unwrap
             // when the real gun is also held by the same user.
             if (TryComp<VirtualItemComponent>(held, out var virtualItem)
@@ -485,7 +485,7 @@ public abstract partial class SharedGunSystem : EntitySystem
     /// <summary>
     /// Call this whenever the ammo count for a gun changes.
     /// </summary>
-    public virtual void UpdateAmmoCount(EntityUid uid, bool prediction = true) { } // FINALSTAND: exposed for akimbo second-shot ammo UI sync
+    public virtual void UpdateAmmoCount(EntityUid uid, bool prediction = true) { } // FINALSTAND: exposed for FS ammo UI sync
 
     protected void SetCartridgeSpent(EntityUid uid, CartridgeAmmoComponent cartridge, bool spent)
     {

@@ -1,4 +1,4 @@
-﻿<widgets:HotbarGui
+<widgets:HotbarGui
     xmlns="https://spacestation14.io"
     xmlns:inventory="clr-namespace:Content.Client.UserInterface.Systems.Inventory.Controls"
     xmlns:hands="clr-namespace:Content.Client.UserInterface.Systems.Hands.Controls"
@@ -56,12 +56,6 @@
                 SetWidth="125"
                 SetHeight="60"/>
             <BoxContainer Orientation="Vertical" HorizontalAlignment="Center">
-                <Label Name="AkimboLabel"
-                       Access="Public"
-                       Text="⚔ AKIMBO ⚔"
-                       HorizontalAlignment="Center"
-                       Visible="False"
-                       Modulate="#FFD700"/>
                 <hands:HandsContainer
                     Name="HandContainer"
                     Access="Public"

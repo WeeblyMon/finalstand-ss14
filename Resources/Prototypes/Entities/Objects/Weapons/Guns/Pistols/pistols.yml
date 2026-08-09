@@ -78,7 +78,6 @@
   components:
   - type: Tag
     tags:
-      - AkimboEligible
       - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/viper.rsi
@@ -235,7 +234,6 @@
   components:
   - type: Tag
     tags:
-      - AkimboEligible
       - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi

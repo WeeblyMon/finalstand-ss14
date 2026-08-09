@@ -90,7 +90,6 @@
   - type: Tag
     tags:
       - Sidearm
-      - AkimboEligible
       - WeaponGunBallistic
   - type: Sprite
     sprite: Objects/Weapons/Guns/Revolvers/mateba.rsi
@@ -274,7 +273,7 @@
   - type: CartridgeAmmo
     proto: FSPelletShotgunHushpupSpread
 
-# SMG overrides — adds AkimboEligible tag and buffed FS ammo.
+# SMG overrides — buffed FS ammo.
 
 - type: entity
   id: FSWeaponAtreides
@@ -284,7 +283,6 @@
   - type: Tag
     tags:
     - Sidearm
-    - AkimboEligible
     - WeaponGunBallistic
   - type: ItemSlots
     slots:
@@ -315,7 +313,6 @@
   - type: Tag
     tags:
     - Sidearm
-    - AkimboEligible
     - WeaponGunBallistic
   - type: ItemSlots
     slots:
@@ -348,7 +345,6 @@
   - type: Tag
     tags:
     - Sidearm
-    - AkimboEligible
     - WeaponGunBallistic
   - type: ItemSlots
     slots:
@@ -379,7 +375,6 @@
   - type: Tag
     tags:
     - Sidearm
-    - AkimboEligible
     - WeaponGunBallistic
   - type: ItemSlots
     slots:
@@ -402,7 +397,7 @@
   - type: Crit
     baseCritChance: 0.05
 
-# Shotgun overrides — adds AkimboEligible tag and FS magazine for doubled base damage.
+# Shotgun overrides — FS magazine for doubled base damage.
 
 - type: entity
   id: FSWeaponShotgunBulldog
@@ -411,7 +406,6 @@
   components:
   - type: Tag
     tags:
-    - AkimboEligible
     - WeaponGunShotgun
     - WeaponGunBallistic
   - type: ItemSlots

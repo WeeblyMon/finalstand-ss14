@@ -4,7 +4,6 @@ using Content.Client.Hands.Systems;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Hands.Controls;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
-using Content.Shared._FinalStand.Akimbo;
 using Content.Shared.Hands.Components;
 using Content.Shared.Input;
 using Content.Shared.Inventory.VirtualItem;
@@ -361,17 +360,12 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
         HandsGui?.Visible = _playerHandsComponent != null;
     }
 
-    private static readonly Color GoldColor   = Color.FromHex("#FFD700");
-    private static readonly Color WhiteColor  = Color.White;
-
     public override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
 
         if (HandsGui is not { } handsGui)
             return;
-
-        var anyAkimbo = false;
 
         // TODO this should be event based but 2 systems modify the same component differently for some reason
         foreach (var hand in handsGui.HandContainer.GetButtons())
@@ -386,23 +380,7 @@ public sealed class HandsUIController : UIController, IOnStateEntered<GameplaySt
                 hand.CooldownDisplay.Visible = true;
                 hand.CooldownDisplay.FromTime(delay.StartTime, delay.EndTime);
             }
-
-            // Golden highlight for akimbo hands.
-            var isAkimbo = hand.Entity != null && _entities.HasComponent<FSAkimboGunComponent>(hand.Entity.Value);
-            if (isAkimbo)
-            {
-                anyAkimbo = true;
-                hand.Highlight = true;
-                hand.HighlightRect.Modulate = GoldColor;
-            }
-            else
-            {
-                // Restore to white so the normal active-hand blue tint applies.
-                hand.HighlightRect.Modulate = WhiteColor;
-            }
         }
-
-        handsGui.AkimboLabel.Visible = anyAkimbo;
 
         // CCC Under Attack indicator
         if (_cccAttack.IsActive)

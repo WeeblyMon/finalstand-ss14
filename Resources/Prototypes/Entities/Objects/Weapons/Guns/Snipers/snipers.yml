@@ -183,7 +183,6 @@
   components:
   - type: Tag
     tags:
-      - AkimboEligible
       - WeaponGunBallistic
   - type: Gun
     minAngle: 0

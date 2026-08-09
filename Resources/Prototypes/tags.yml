@@ -7,9 +7,6 @@
   id: AccessBreakerImmune # Default value in EmagProviderComponent. Marks tagged entity as immune to AccessBreakerUnlimited.
 
 - type: Tag
-  id: AkimboEligible # FinalStand: marks a gun as eligible for the Akimbo upgrade.
-
-- type: Tag
   id: AirAlarm # Used by AtmosAlarmableComponent for syncing devices.
 
 - type: Tag
