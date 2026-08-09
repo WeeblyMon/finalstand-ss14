@@ -70,5 +70,9 @@
   coloring:
     default:
       type:
-        !type:TattooColoring
-      fallbackColor: "#666666"
+        !type:CategoryColoring
+          category: Hair
+      fallbackTypes:
+        - !type:CategoryColoring
+          category: FacialHair
+        - !type:SkinColoring
