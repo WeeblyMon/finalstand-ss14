@@ -86,7 +86,11 @@ public sealed class FSBaitAttractSystem : EntitySystem
 
     private bool InRange(EntityUid npcUid, MapCoordinates baitCoords)
     {
-        if (!TryComp<TransformComponent>(npcUid, out var xform) || xform.MapID != baitCoords.MapId)
+        if (TerminatingOrDeleted(npcUid))
+            return false;
+
+        var xform = Transform(npcUid);
+        if (xform.MapID != baitCoords.MapId)
             return false;
 
         var pos = _transform.GetWorldPosition(xform);
