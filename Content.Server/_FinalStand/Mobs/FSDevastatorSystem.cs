@@ -31,7 +31,7 @@ public sealed class FSDevastatorSystem : EntitySystem
     private void OnDamageModify(EntityUid uid, FSDevastatorComponent comp, DamageModifyEvent args)
     {
         // 0% resistance at full HP, 80% at near-death — scales linearly with BerserkRatio
-        var multiplier = 1f - 0.8f * comp.BerserkRatio;
+        var multiplier = 1f - 0.9f * comp.BerserkRatio;
         args.Damage *= multiplier;
     }
 
