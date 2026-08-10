@@ -124,7 +124,7 @@
   id: BaseMobMoth
   abstract: true
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Moth
     hideLayersOnEquip:
     - HeadTop
@@ -324,7 +324,7 @@
   id: MobMothDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Moth
   - type: Inventory
     speciesId: moth

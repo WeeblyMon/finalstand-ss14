@@ -9,7 +9,7 @@
     sprite: Mobs/Animals/scurret/scurret.rsi
     state: scurret
   - type: Appearance
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Scurret
   - type: Body
     prototype: Scurret

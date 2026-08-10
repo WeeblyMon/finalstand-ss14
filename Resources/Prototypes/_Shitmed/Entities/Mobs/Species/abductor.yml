@@ -25,7 +25,7 @@
   components:
   - type: Absorbable # BLOOD FOR THE BLOOD GOD
   # - type: GlorpAccent # GoobStation - Glorpshit # Removed for EE - Languages
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Abductor
   - type: Icon
     sprite: _Shitmed/Mobs/Species/Abductor/parts.rsi
@@ -82,5 +82,5 @@
   id: MobAbductorDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Abductor

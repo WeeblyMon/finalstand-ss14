@@ -25,7 +25,7 @@
     understands:
     - TauCetiBasic
     - SolCommon
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vulpkanin
     hideLayersOnEquip:
     - Hair
@@ -37,5 +37,5 @@
   id: MobVulpkaninDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vulpkanin

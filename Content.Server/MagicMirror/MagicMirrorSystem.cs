@@ -420,7 +420,7 @@ public sealed class MagicMirrorSystem : SharedMagicMirrorSystem
     }
     private void OnAddSlotDoAfter(EntityUid uid, MagicMirrorComponent component, MagicMirrorAddSlotDoAfterEvent args)
     {
-        if (args.Handled || args.Target == null || args.Cancelled || !TryComp(component.Target, out HumanoidAppearanceComponent? humanoid))
+        if (args.Handled || args.Target == null || args.Cancelled || !TryComp(component.Target, out HumanoidProfileComponent? humanoid))
             return;
 
         MarkingCategories category;

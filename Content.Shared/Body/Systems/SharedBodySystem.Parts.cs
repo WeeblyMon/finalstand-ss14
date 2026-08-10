@@ -492,7 +492,7 @@ public partial class SharedBodySystem
         part.ParentSlot = slot;
 
         if (parentPart.Body is { } body
-            && TryComp<HumanoidAppearanceComponent>(body, out var humanoid)
+            && TryComp<HumanoidProfileComponent>(body, out var humanoid)
             && !humanoid.ProfileLoaded)
         {
             humanoid.ProfileLoaded = true;

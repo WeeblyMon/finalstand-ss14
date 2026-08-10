@@ -77,7 +77,7 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
             sb.AppendLine("No SpriteComponent.");
         }
 
-        if (_ent.TryGetComponent<HumanoidAppearanceComponent>(target, out var hum))
+        if (_ent.TryGetComponent<HumanoidProfileComponent>(target, out var hum))
         {
             sb.AppendLine($"Humanoid: species={hum.Species} sex={hum.Sex} markings={hum.MarkingSet.Markings.Count}");
             foreach (var (cat, list) in hum.MarkingSet.Markings)

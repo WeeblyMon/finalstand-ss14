@@ -196,7 +196,7 @@ public sealed partial class ZombieSystem
 
         // Goob port: organ-keyed marking/profile gather+apply removed.
         // FSZombies handle visuals separately; vanilla zombies just get skin/eye recolor.
-        if (TryComp<HumanoidAppearanceComponent>(target, out var huAppear))
+        if (TryComp<HumanoidProfileComponent>(target, out var huAppear))
         {
             _humanoid.SetSkinColor(target, zombiecomp.SkinColor, verify: false, humanoid: huAppear);
             huAppear.EyeColor = zombiecomp.EyeColor;
@@ -204,7 +204,7 @@ public sealed partial class ZombieSystem
         }
 
         //We have specific stuff for humanoid zombies because they matter more
-        if (HasComp<HumanoidAppearanceComponent>(target))
+        if (HasComp<HumanoidProfileComponent>(target))
         {
             //This is done here because non-humanoids shouldn't get baller damage
             melee.Damage = zombiecomp.DamageOnBite;

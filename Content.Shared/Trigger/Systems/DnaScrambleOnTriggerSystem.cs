@@ -21,7 +21,7 @@ public sealed class DnaScrambleOnTriggerSystem : XOnTriggerSystem<DnaScrambleOnT
 
     protected override void OnTrigger(Entity<DnaScrambleOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {
-        if (!TryComp<HumanoidAppearanceComponent>(target, out var humanoid))
+        if (!TryComp<HumanoidProfileComponent>(target, out var humanoid))
             return;
 
         args.Handled = true;

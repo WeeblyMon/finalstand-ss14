@@ -46,7 +46,7 @@
   id: BaseMobDiona
   abstract: true
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Diona
   - type: Satiation
     satiations:
@@ -173,7 +173,7 @@
   id: MobDionaDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Diona
   - type: Inventory
     templateId: diona

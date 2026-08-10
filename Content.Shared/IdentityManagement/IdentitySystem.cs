@@ -208,7 +208,7 @@ public sealed class IdentitySystem : EntitySystem
     /// Gets an 'identity representation' of an entity, with their true name being the entity name
     /// and their 'presumed name' and 'presumed job' being the name/job on their ID card, if they have one.
     /// </summary>
-    private IdentityRepresentation GetIdentityRepresentation(Entity<InventoryComponent?, HumanoidAppearanceComponent?> target)
+    private IdentityRepresentation GetIdentityRepresentation(Entity<InventoryComponent?, HumanoidProfileComponent?> target)
     {
         var age = 18;
         var gender = Gender.Epicene;

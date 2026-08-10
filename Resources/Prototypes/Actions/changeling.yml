@@ -124,7 +124,7 @@
     canTargetSelf: false
     whitelist:
       components:
-      - HumanoidAppearance
+      - HumanoidProfile
     event: !type:ChangelingStingDnaEvent
   - type: PopupOnAction
     popupType: Medium

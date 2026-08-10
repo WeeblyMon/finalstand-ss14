@@ -672,7 +672,7 @@ public partial class PainSystem
             if (_mobState.IsCritical(body))
             {
                 var sex = Sex.Unsexed;
-                if (TryComp<HumanoidAppearanceComponent>(body, out var humanoid))
+                if (TryComp<HumanoidProfileComponent>(body, out var humanoid))
                     sex = humanoid.Sex;
 
                 CleanupSounds(nerveSys);
@@ -792,7 +792,7 @@ public partial class PainSystem
             return;
 
         var sex = Sex.Unsexed;
-        if (TryComp<HumanoidAppearanceComponent>(body, out var humanoid))
+        if (TryComp<HumanoidProfileComponent>(body, out var humanoid))
             sex = humanoid.Sex;
 
         switch (reaction)

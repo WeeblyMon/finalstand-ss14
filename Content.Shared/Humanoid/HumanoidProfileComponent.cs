@@ -27,7 +27,7 @@ using Robust.Shared.Utility;
 namespace Content.Shared.Humanoid;
 
 [NetworkedComponent, RegisterComponent, AutoGenerateComponentState(true)]
-public sealed partial class HumanoidAppearanceComponent : Component
+public sealed partial class HumanoidProfileComponent : Component
 {
     public MarkingSet ClientOldMarkings = new();
 

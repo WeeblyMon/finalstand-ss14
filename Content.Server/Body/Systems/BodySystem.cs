@@ -166,7 +166,7 @@ public sealed partial class BodySystem : SharedBodySystem // Shitmed change: mad
     {
         base.RemovePart(bodyEnt, partEnt, slotId);
 
-        if (!TryComp<HumanoidAppearanceComponent>(bodyEnt, out var humanoid))
+        if (!TryComp<HumanoidProfileComponent>(bodyEnt, out var humanoid))
             return;
 
         var layer = partEnt.Comp.ToHumanoidLayers();
@@ -259,7 +259,7 @@ public sealed partial class BodySystem : SharedBodySystem // Shitmed change: mad
         return;
     }
 
-    protected override void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidAppearanceComponent bodyAppearance)
+    protected override void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidProfileComponent bodyAppearance)
     {
         foreach (var (visualLayer, markingList) in partAppearance.Markings)
             foreach (var marking in markingList)

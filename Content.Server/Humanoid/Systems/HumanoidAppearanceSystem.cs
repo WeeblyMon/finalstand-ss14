@@ -32,9 +32,9 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
     {
         base.Initialize();
 
-        SubscribeLocalEvent<HumanoidAppearanceComponent, HumanoidMarkingModifierMarkingSetMessage>(OnMarkingsSet);
-        SubscribeLocalEvent<HumanoidAppearanceComponent, HumanoidMarkingModifierBaseLayersSetMessage>(OnBaseLayersSet);
-        SubscribeLocalEvent<HumanoidAppearanceComponent, GetVerbsEvent<Verb>>(OnVerbsRequest);
+        SubscribeLocalEvent<HumanoidProfileComponent, HumanoidMarkingModifierMarkingSetMessage>(OnMarkingsSet);
+        SubscribeLocalEvent<HumanoidProfileComponent, HumanoidMarkingModifierBaseLayersSetMessage>(OnBaseLayersSet);
+        SubscribeLocalEvent<HumanoidProfileComponent, GetVerbsEvent<Verb>>(OnVerbsRequest);
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
     /// <param name="marking">The marking to try and remove.</param>
     /// <param name="sync">Whether to immediately sync this to the humanoid</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void RemoveMarking(EntityUid uid, string marking, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void RemoveMarking(EntityUid uid, string marking, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid)
             || !_markingManager.Markings.TryGetValue(marking, out var prototype))
@@ -65,7 +65,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
     /// <param name="category">Category of the marking</param>
     /// <param name="index">Index of the marking</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void RemoveMarking(EntityUid uid, MarkingCategories category, int index, HumanoidAppearanceComponent? humanoid = null)
+    public void RemoveMarking(EntityUid uid, MarkingCategories category, int index, HumanoidProfileComponent? humanoid = null)
     {
         if (index < 0
             || !Resolve(uid, ref humanoid)
@@ -87,7 +87,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
     /// <param name="index">Index of the marking</param>
     /// <param name="markingId">The marking ID to use</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetMarkingId(EntityUid uid, MarkingCategories category, int index, string markingId, HumanoidAppearanceComponent? humanoid = null)
+    public void SetMarkingId(EntityUid uid, MarkingCategories category, int index, string markingId, HumanoidProfileComponent? humanoid = null)
     {
         if (index < 0
             || !_markingManager.MarkingsByCategory(category).TryGetValue(markingId, out var markingPrototype)
@@ -117,7 +117,7 @@ public sealed partial class HumanoidAppearanceSystem : SharedHumanoidAppearanceS
     /// <param name="colors">The marking colors to use</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
     public void SetMarkingColor(EntityUid uid, MarkingCategories category, int index, List<Color> colors,
-        HumanoidAppearanceComponent? humanoid = null)
+        HumanoidProfileComponent? humanoid = null)
     {
         if (index < 0
             || !Resolve(uid, ref humanoid)

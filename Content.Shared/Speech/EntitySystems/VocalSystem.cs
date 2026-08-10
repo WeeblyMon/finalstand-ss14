@@ -116,7 +116,7 @@ public sealed partial class VocalSystem : EntitySystem
     {
         if (protoId == null)
         {
-            sex ??= CompOrNull<HumanoidAppearanceComponent>(ent.Owner)?.Sex ?? Sex.Unsexed;
+            sex ??= CompOrNull<HumanoidProfileComponent>(ent.Owner)?.Sex ?? Sex.Unsexed;
 
             if (ent.Comp.Sounds?.TryGetValue(sex.Value, out var sexSounds) != true)
                 return;

@@ -476,7 +476,7 @@ public abstract partial class SharedSurgerySystem
     // TODO: Refactor bodies to include ears as a prototype instead of doing whatever the hell this is.
     private void OnAddMarkingStep(Entity<SurgeryAddMarkingStepComponent> ent, ref SurgeryStepEvent args)
     {
-        if (!TryComp(args.Body, out HumanoidAppearanceComponent? bodyAppearance)
+        if (!TryComp(args.Body, out HumanoidProfileComponent? bodyAppearance)
             || ent.Comp.Organ == null)
             return;
 
@@ -514,7 +514,7 @@ public abstract partial class SharedSurgerySystem
     {
         var markingCategory = MarkingCategoriesConversion.FromHumanoidVisualLayers(ent.Comp.MarkingCategory);
 
-        if (!TryComp(args.Body, out HumanoidAppearanceComponent? bodyAppearance)
+        if (!TryComp(args.Body, out HumanoidProfileComponent? bodyAppearance)
             || !bodyAppearance.MarkingSet.Markings.TryGetValue(markingCategory, out var markingList)
             || !markingList.Any(marking => ((string)marking.MarkingId).Contains(ent.Comp.MatchString)))
             args.Cancelled = true;

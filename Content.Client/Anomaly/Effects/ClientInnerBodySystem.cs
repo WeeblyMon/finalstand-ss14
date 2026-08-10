@@ -29,7 +29,7 @@ public sealed partial class ClientInnerBodyAnomalySystem : SharedInnerBodyAnomal
 
         var index = _sprite.LayerMapReserve((ent.Owner, sprite), ent.Comp.LayerMap);
 
-        if (TryComp<HumanoidAppearanceComponent>(ent, out var humanoid) &&
+        if (TryComp<HumanoidProfileComponent>(ent, out var humanoid) &&
             ent.Comp.SpeciesSprites.TryGetValue(humanoid.Species, out var speciesSprite))
         {
             _sprite.LayerSetSprite((ent.Owner, sprite), index, speciesSprite);

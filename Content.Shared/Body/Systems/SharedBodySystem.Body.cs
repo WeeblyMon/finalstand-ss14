@@ -453,7 +453,7 @@ public partial class SharedBodySystem
 
     private void OnProfileLoadFinished(EntityUid uid, BodyComponent component, ProfileLoadFinishedEvent args)
     {
-        if (!TryComp<HumanoidAppearanceComponent>(uid, out var humanoid)
+        if (!TryComp<HumanoidProfileComponent>(uid, out var humanoid)
             || TerminatingOrDeleted(uid)
             || !Initialized(uid))
             return;

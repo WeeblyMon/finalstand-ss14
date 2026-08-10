@@ -62,7 +62,7 @@ public sealed partial class ChangelingLastResortSystem : SharedChangelingLastRes
     /// </summary>
     private bool CanTakeOver(EntityUid user, EntityUid target, bool showPopups = true)
     {
-        if (!HasComp<HumanoidAppearanceComponent>(target))
+        if (!HasComp<HumanoidProfileComponent>(target))
             return false;
 
         if (HasComp<ChangelingIdentityComponent>(target))

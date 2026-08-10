@@ -240,7 +240,7 @@
       sprite: "Effects/creampie.rsi"
       state: "creampie_vox" # Not default
       visible: false
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vox
     markingsDisplacement:
       Hair:
@@ -382,7 +382,7 @@
   id: MobVoxDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vox
     markingsDisplacement:
       Hair:

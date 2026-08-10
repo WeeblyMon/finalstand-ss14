@@ -52,7 +52,7 @@
   id: BaseMobSkeletonPerson
   abstract: true
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Skeleton
   - type: Icon
     sprite: Mobs/Species/Skeleton/parts.rsi
@@ -184,7 +184,7 @@
   id: MobSkeletonPersonDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Skeleton
   - type: Inventory
     femaleDisplacements:

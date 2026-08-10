@@ -145,7 +145,7 @@
         Shock: 0.75
     operatorWhitelist:
       components:
-        - HumanoidAppearance
+        - HumanoidProfile
   - type: MeleeWeapon
     hidden: true
     attackRate: 1
@@ -200,7 +200,7 @@
         Shock: 0.5
     operatorWhitelist:
       components:
-      - HumanoidAppearance
+      - HumanoidProfile
 
 - type: entity
   parent: MechHonker

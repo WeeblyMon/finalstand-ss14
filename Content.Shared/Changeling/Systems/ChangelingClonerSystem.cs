@@ -132,7 +132,7 @@ public sealed class ChangelingClonerSystem : EntitySystem
         if (ent.Comp.State != ChangelingClonerState.Empty)
             return false;
 
-        if (!HasComp<HumanoidAppearanceComponent>(target))
+        if (!HasComp<HumanoidProfileComponent>(target))
             return false; // cloning only works for humanoids at the moment
 
         var args = new DoAfterArgs(EntityManager, user, ent.Comp.DoAfter, new ClonerDrawDoAfterEvent(), ent, target: target, used: ent)
@@ -168,7 +168,7 @@ public sealed class ChangelingClonerSystem : EntitySystem
         if (ent.Comp.State != ChangelingClonerState.Filled)
             return false;
 
-        if (!HasComp<HumanoidAppearanceComponent>(target))
+        if (!HasComp<HumanoidProfileComponent>(target))
             return false; // cloning only works for humanoids at the moment
 
         var args = new DoAfterArgs(EntityManager, user, ent.Comp.DoAfter, new ClonerInjectDoAfterEvent(), ent, target: target, used: ent)
@@ -205,7 +205,7 @@ public sealed class ChangelingClonerSystem : EntitySystem
         if (ent.Comp.State != ChangelingClonerState.Empty)
             return;
 
-        if (!HasComp<HumanoidAppearanceComponent>(target))
+        if (!HasComp<HumanoidProfileComponent>(target))
             return; // cloning only works for humanoids at the moment
 
         _adminLogger.Add(LogType.Identity,
@@ -235,7 +235,7 @@ public sealed class ChangelingClonerSystem : EntitySystem
         if (ent.Comp.State != ChangelingClonerState.Filled)
             return;
 
-        if (!HasComp<HumanoidAppearanceComponent>(target))
+        if (!HasComp<HumanoidProfileComponent>(target))
             return; // cloning only works for humanoids at the moment
 
         if (!_prototype.Resolve(ent.Comp.Settings, out var settings))

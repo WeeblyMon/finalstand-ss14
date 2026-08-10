@@ -36,7 +36,7 @@ public sealed class HideLayerClothingSystem : EntitySystem
 
     private void SetLayerVisibility(
         Entity<HideLayerClothingComponent?, ClothingComponent?> clothing,
-        Entity<HumanoidAppearanceComponent?> user,
+        Entity<HumanoidProfileComponent?> user,
         bool hideLayers)
     {
         if (_timing.ApplyingState)
