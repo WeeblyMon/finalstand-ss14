@@ -8,6 +8,7 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Stunnable;
+using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
@@ -20,6 +21,7 @@ public sealed class FSSprintServerSystem : EntitySystem
     [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly AlertsSystem _alerts = default!;
+    [Dependency] private readonly SharedContainerSystem _container = default!;
 
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
 
@@ -103,7 +105,7 @@ public sealed class FSSprintServerSystem : EntitySystem
         var query = EntityQueryEnumerator<FSSprintComponent, StaminaComponent>();
         while (query.MoveNext(out var uid, out var sprint, out var stamina))
         {
-            if (sprint.IsSprinting && HasComp<MechPilotComponent>(uid))
+            if (sprint.IsSprinting && IsPilotingMech(uid))
             {
                 ForceStopSprint(uid, sprint);
                 continue;
@@ -186,6 +188,13 @@ public sealed class FSSprintServerSystem : EntitySystem
 
     private void OnBuckled(EntityUid uid, FSSprintComponent sprint, ref BuckledEvent args)
         => ForceStopSprint(uid, sprint);
+
+    private bool IsPilotingMech(EntityUid uid)
+    {
+        return _container.TryGetContainingContainer((uid, null, null), out var container)
+               && TryComp<MechComponent>(container.Owner, out var mech)
+               && container.ID == mech.PilotSlotId;
+    }
 
     private void ForceStopSprint(EntityUid uid, FSSprintComponent sprint)
     {

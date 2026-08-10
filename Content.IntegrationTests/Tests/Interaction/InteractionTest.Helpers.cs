@@ -302,7 +302,7 @@ public abstract partial class InteractionTest
     {
         await Server.WaitPost(() =>
         {
-            HandSys.SwapHands((ToServer(Player), Hands), reverse: reverse);
+            HandSys.SwapHands((ToServer(Player), Hands!), reverse: reverse);
         });
 
         await RunTicks(1);

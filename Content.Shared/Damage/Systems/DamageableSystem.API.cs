@@ -459,4 +459,15 @@ public sealed partial class DamageableSystem
 
         return SupportsType(ent.Comp.DamageContainer, type);
     }
+
+    public DamageModifierSet? GetDamageModifierSet(Entity<DamageableComponent?> entity)
+    {
+        if (!_damageableQuery.Resolve(entity, ref entity.Comp, false)
+            || entity.Comp.DamageModifierSetId is not { } proto
+            || !ProtoMan.Resolve(proto, out var modifierSet)
+           )
+            return null;
+
+        return modifierSet;
+    }
 }

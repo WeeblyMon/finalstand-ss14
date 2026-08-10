@@ -17,6 +17,15 @@ public sealed partial class MindContainerComponent : Component
     public EntityUid? Mind;
 
     /// <summary>
+    /// Last mind that had control of this mob. If null, it was never controlled by a player.
+    /// </summary>
+    /// <remarks>
+    /// Because minds only get networked to their owners, this field will be <see cref="EntityUid.Invalid"/> on client unless the last mind was the one belonging to the local client.
+    /// </remarks>
+    [DataField, AutoNetworkedField]
+    public EntityUid? LastMind;
+
+    /// <summary>
     ///     True if we have a mind, false otherwise.
     /// </summary>
     [DataField, AutoNetworkedField, ViewVariables(VVAccess.ReadOnly)]

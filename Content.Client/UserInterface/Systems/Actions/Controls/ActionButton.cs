@@ -4,6 +4,7 @@ using Content.Client.Actions.UI;
 using Content.Client.Cooldown;
 using Content.Client.Stylesheets;
 using Content.Shared._FinalStand.Grenades;
+using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
 using Content.Shared.Examine;
 using Robust.Client.GameObjects;
@@ -24,6 +25,7 @@ public sealed class ActionButton : Control, IEntityControl
     public const string StyleClassActionHighlightRect = "ActionHighlightRect";
 
     private IEntityManager _entities;
+    private SharedAppearanceSystem _appearance;
     private IPlayerManager _player;
     private ActionsSystem? _actionsSys;
     private ActionUIController? _controller;
@@ -68,6 +70,7 @@ public sealed class ActionButton : Control, IEntityControl
         // TODO why is this constructor so slooooow. The rest of the code is fine
 
         _entities = entities;
+        _appearance = entities.System<SharedAppearanceSystem>();
         _player = IoCManager.Resolve<IPlayerManager>();
         _controller = controller;
 
@@ -354,6 +357,10 @@ public sealed class ActionButton : Control, IEntityControl
         if (_toggled != action.Toggled)
             _toggled = action.Toggled;
 
+        var iconColor = _appearance.TryGetData<Color>(Action!.Value.Owner, ActionState.Color, out var tint)
+            ? tint
+            : Color.White;
+
         // Stock counter badge for grenade packs
         if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
         {
@@ -362,12 +369,12 @@ public sealed class ActionButton : Control, IEntityControl
             _chargesLabel.FontColorOverride = counter.Current == 0 ? Color.Gray : Color.White;
             _bigActionIcon.Modulate = counter.Current == 0
                 ? new Color(0.4f, 0.4f, 0.4f, 1f)
-                : action.IconColor;
+                : iconColor;
         }
         else
         {
             _chargesLabel.Visible = false;
-            _bigActionIcon.Modulate = action.IconColor;
+            _bigActionIcon.Modulate = iconColor;
         }
 
         // Refresh highlight every frame for grenade selector buttons so switching

@@ -5,6 +5,8 @@ using Content.Server.GameTicking;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Ghost;
+using Content.Shared.Ghost.Components;
+using Content.Shared.Ghost.Systems;
 using Content.Shared.Interaction;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Temperature;

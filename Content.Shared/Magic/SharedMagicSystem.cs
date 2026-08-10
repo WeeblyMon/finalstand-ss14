@@ -109,7 +109,7 @@ public abstract class SharedMagicSystem : EntitySystem
             }
         }
 
-        if (comp.RequiresSpeech && HasComp<MutedComponent>(args.Performer))
+        if (comp.RequiresSpeech && HasComp<MutedStatusEffectComponent>(args.Performer))
             hasReqs = false;
 
         if (hasReqs)
