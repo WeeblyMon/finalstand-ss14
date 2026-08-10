@@ -12,7 +12,6 @@ namespace Content.Client._FinalStand.Placement;
 public sealed class AlignFSPlacement : PlacementMode
 {
     [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IMapManager _mapManager = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     private readonly SharedMapSystem _mapSystem;
     private readonly HandsSystem _handsSystem;
@@ -34,7 +33,7 @@ public sealed class AlignFSPlacement : PlacementMode
     public override void AlignPlacementMode(ScreenCoordinates mouseScreen)
     {
         var unalignedMouseCoords = ScreenToCursorGrid(mouseScreen);
-        MouseCoords = unalignedMouseCoords.AlignWithClosestGridTile(SearchBoxSize, _entityManager, _mapManager);
+        MouseCoords = unalignedMouseCoords.AlignWithClosestGridTile(SearchBoxSize, _entityManager);
 
         var gridId = _transformSystem.GetGrid(MouseCoords);
 
