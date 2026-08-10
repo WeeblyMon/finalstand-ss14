@@ -49,6 +49,7 @@
 // SPDX-FileCopyrightText: 2025 pheenty <fedorlukin2006@gmail.com>
 //
 
+using Content.Shared.Chat.Prototypes;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Content.Shared.CCVar;
@@ -80,6 +81,8 @@ namespace Content.Shared.Preferences
     {
         private static readonly Regex RestrictedNameRegex = new(@"[^A-Za-z0-9 '\-]");
         private static readonly Regex ICNameCaseRegex = new(@"^(?<word>\w)|\b(?<word>\w)(?=\w*$)");
+
+        public static readonly ProtoId<EmoteSoundsPrototype> DefaultVoice = "MaleHuman";
 
         /// <summary>
         /// Job preferences for initial spawn.

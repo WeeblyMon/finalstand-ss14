@@ -114,9 +114,11 @@ public sealed partial class VocalSystem : EntitySystem
     /// </summary>
     private void LoadSounds(Entity<VocalComponent> ent, ProtoId<EmoteSoundsPrototype>? protoId = null, Sex? sex = null)
     {
+        var humanoid = CompOrNull<HumanoidProfileComponent>(ent.Owner);
+
         if (protoId == null)
         {
-            sex ??= CompOrNull<HumanoidProfileComponent>(ent.Owner)?.Sex ?? Sex.Unsexed;
+            sex ??= humanoid?.Sex ?? Sex.Unsexed;
 
             if (ent.Comp.Sounds?.TryGetValue(sex.Value, out var sexSounds) != true)
                 return;
@@ -129,5 +131,14 @@ public sealed partial class VocalSystem : EntitySystem
 
         ent.Comp.EmoteSounds = protoId;
         Dirty(ent);
+
+        // Mirror the resolved sounds onto the humanoid so anything reading Voice sees the truth.
+        if (humanoid == null || humanoid.Voice == protoId.Value)
+            return;
+
+        var ev = new VoiceChangedEvent(humanoid.Voice, protoId.Value);
+        humanoid.Voice = protoId.Value;
+        Dirty(ent.Owner, humanoid);
+        RaiseLocalEvent(ent.Owner, ref ev);
     }
 }
