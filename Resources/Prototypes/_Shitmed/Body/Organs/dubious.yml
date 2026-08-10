@@ -109,7 +109,7 @@
     state: species
   - type: Organ
     onAdd:
-    - type: PressureImmunity
+    - type: PressureImmunityStatusEffect
     - type: BreathingImmunity
 
 - type: entity
