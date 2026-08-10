@@ -1,4 +1,4 @@
-﻿using Content.Client.Overlays;
+using Content.Client.Overlays;
 using Content.Shared.Access.Systems;
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
@@ -6,9 +6,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.Access.Systems;
 
-public sealed class JobStatusSystem : SharedJobStatusSystem
+public sealed partial class JobStatusSystem : SharedJobStatusSystem
 {
-    [Dependency] private readonly ShowCrewIconsSystem _showCrewIcons = default!;
+    [Dependency] private ShowJobIconsSystem _showJobIcons = default!;
+    [Dependency] private ShowCrewIconsSystem _showCrewIcons = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
 
     private static readonly ProtoId<SecurityIconPrototype> CrewBorderIcon = "CrewBorderIcon";
@@ -23,15 +24,15 @@ public sealed class JobStatusSystem : SharedJobStatusSystem
 
     private void OnGetStatusIconsEvent(Entity<JobStatusComponent> ent, ref GetStatusIconsEvent ev)
     {
-        if (ent.Comp.JobStatusIcon != null)
-            ev.StatusIcons.Add(_prototype.Index(ent.Comp.JobStatusIcon));
+        if (_showJobIcons.IsActive && ent.Comp.JobStatusIcon != null)
+            ev.StatusIcons.Add(ProtoMan.Index(ent.Comp.JobStatusIcon));
 
         if (_showCrewIcons.IsActive)
         {
             if (_showCrewIcons.UncertainCrewBorder)
-                ev.StatusIcons.Add(_prototype.Index(CrewUncertainBorderIcon));
+                ev.StatusIcons.Add(ProtoMan.Index(CrewUncertainBorderIcon));
             else if (ent.Comp.IsCrew)
-                ev.StatusIcons.Add(_prototype.Index(CrewBorderIcon));
+                ev.StatusIcons.Add(ProtoMan.Index(CrewBorderIcon));
         }
     }
 }

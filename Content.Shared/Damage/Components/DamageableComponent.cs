@@ -1,5 +1,6 @@
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared.DisplacementMap;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.StatusIcon;
@@ -63,6 +64,13 @@ public sealed partial class DamageableComponent : Component
 
     [ViewVariables]
     public TimeSpan LastModifiedTime = TimeSpan.Zero;
+
+    /// <summary>
+    /// Sets the displacement map used for any of the DamageVisuals sprites for this entity.
+    /// TODO: The entirety of DamageVisualsSystem needs to be rewritten.
+    /// </summary>
+    [DataField]
+    public ProtoId<DisplacementDataPrototype>? Displacement;
 }
 
 [Serializable, NetSerializable]
