@@ -300,8 +300,6 @@
   description: Contains the brain of a formerly fully-formed Diona. Killing this would kill the Diona forever. You monster.
   components:
   - type: IsDeadIC
-  - type: Body
-    prototype: AnimalNymphBrain
   - type: VentCrawler # goob
 
 - type: entity
@@ -313,8 +311,6 @@
   description: Contains the stomach of a formerly fully-formed Diona. It doesn't taste any better for it.
   components:
   - type: IsDeadIC
-  - type: Body
-    prototype: AnimalNymphStomach
   - type: VentCrawler # goob
 
 - type: entity
@@ -326,6 +322,4 @@
   description: Contains the lungs of a formerly fully-formed Diona. Breathtaking.
   components:
   - type: IsDeadIC
-  - type: Body
-    prototype: AnimalNymphLungs
   - type: VentCrawler # goob

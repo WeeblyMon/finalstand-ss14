@@ -281,7 +281,8 @@ public sealed partial class ExplosionSystem
 
                     if (modifiers.FlatReduction.TryGetValue(type, out var flat))
                     {
-                        if (flat > 0)
+                        // value can be zero for damageless explosions, which would divide by zero below.
+                        if (flat > 0 && value > 0)
                         {
                             // If the flat modifier is reducing damage, we cache the extra damage per intensity for later!
                             var intensity = flat / value;

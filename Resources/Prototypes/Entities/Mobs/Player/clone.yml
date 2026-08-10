@@ -39,7 +39,7 @@
   - Dna
   - Fingerprint
   - Grammar # Pronouns
-  - HumanoidProfile # Age, Sex, Gender
+  - HumanoidAppearance # Age, Sex, Gender
   - MeleeWeapon # Attack animation, damage and sound
   - NpcFactionMember
   - RandomPrice

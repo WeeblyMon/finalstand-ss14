@@ -329,3 +329,8 @@
   coefficients:
     Heat: 1.15
     Cold: 0.85
+
+# FINALSTAND: explicit no-op set, used to override an inherited modifier set.
+- type: damageModifierSet
+  id: NoResistance
+  coefficients: {}

@@ -23,7 +23,7 @@
         layer:
         - MachineLayer
   - type: Damageable
-    damageModifierSet: ~ # FINALSTAND: removed StructuralMetallic so zombies can damage vending machines
+    damageModifierSet: NoResistance # FINALSTAND: removed StructuralMetallic so zombies can damage vending machines
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
