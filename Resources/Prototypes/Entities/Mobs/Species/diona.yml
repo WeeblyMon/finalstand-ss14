@@ -51,11 +51,9 @@
   - type: Satiation
     satiations:
       Hunger:
-        prototype: NormalSatiationHunger
+        prototype: DionaHunger
       Thirst:
-        prototype: NormalSatiationThirst
-    baseDecayRate: 0.0083
-    baseDecayRate: 0.0083
+        prototype: DionaThirst
   - type: Icon
     sprite: Mobs/Species/Diona/parts.rsi
     state: full

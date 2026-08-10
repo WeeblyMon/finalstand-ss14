@@ -77,19 +77,19 @@ public sealed class CrewManifestSystem : EntitySystem
     // Not a big fan of this one. Rebuilds the crew manifest every time
     // somebody spawns in, meaning that at round start, it rebuilds the crew manifest
     // wrt the amount of players readied up.
-    private void AfterGeneralRecordCreated(GeneralRecordCreatedEvent ev)
+    private void AfterGeneralRecordCreated(ref GeneralRecordCreatedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);
     }
 
-    private void OnRecordModified(RecordModifiedEvent ev)
+    private void OnRecordModified(ref RecordModifiedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);
     }
 
-    private void OnRecordRemoved(RecordRemovedEvent ev)
+    private void OnRecordRemoved(ref RecordRemovedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);

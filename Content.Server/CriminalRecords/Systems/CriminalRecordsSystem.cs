@@ -41,7 +41,7 @@ public sealed class CriminalRecordsSystem : SharedCriminalRecordsSystem
         SubscribeLocalEvent<WantedListCartridgeComponent, CriminalHistoryRemovedEvent>(OnHistoryRemoved);
     }
 
-    private void OnGeneralRecordCreated(GeneralRecordCreatedEvent ev)
+    private void OnGeneralRecordCreated(ref GeneralRecordCreatedEvent ev)
     {
         _records.AddRecordEntry(ev.Key, new CriminalRecord());
         _records.Synchronize(ev.Key);

@@ -1419,6 +1419,7 @@
 - type: marking
   id: HumanHairTerminal
   bodyPart: Hair
+  markingCategory: Hair
   coloring:
     layers:
       terminal_headband:
