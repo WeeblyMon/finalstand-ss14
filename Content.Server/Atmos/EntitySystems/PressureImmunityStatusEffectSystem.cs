@@ -31,4 +31,10 @@ public sealed partial class PressureImmunityStatusEffectSystem : EntitySystem
     {
         args.Args = args.Args with { IsImmune = true };
     }
+
+    [SubscribeLocalEvent]
+    private void OnRefreshPressureImmunityDirect(Entity<PressureImmunityStatusEffectComponent> ent, ref RefreshPressureImmunityEvent args)
+    {
+        args.IsImmune = true;
+    }
 }

@@ -3,6 +3,7 @@ using System.Linq;
 using Content.Shared.Body.Events;
 using Content.Shared.Body;
 using Content.Shared.Body.Organ;
+using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Chemistry.EntitySystems;
@@ -33,6 +34,7 @@ public sealed class MetabolizerSystem : EntitySystem
     [Dependency] private readonly SharedEntityEffectsSystem _entityEffects = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutionContainerSystem = default!;
 
+    [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly EntityQuery<OrganComponent> _organQuery = default!;
     [Dependency] private readonly EntityQuery<SolutionManagerComponent> _solutionQuery = default!;
 
@@ -323,6 +325,33 @@ public sealed class MetabolizerSystem : EntitySystem
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Adds a metabolizer type to all organs with <see cref="MetabolizerComponent"/> owned by an entity.
+    /// </summary>
+    public void AddMetabolizerToBody(EntityUid entity, ProtoId<MetabolizerTypePrototype> metabolizer)
+    {
+        if (!_body.TryGetOrgansWithComponent<MetabolizerComponent>(entity, out var organs))
+            return;
+
+        foreach (var organ in organs)
+        {
+            TryAddMetabolizerType((organ.Owner, organ.Comp), metabolizer);
+        }
+    }
+
+    /// <summary>
+    /// Tries to add a new metabolizer type to an entity with <see cref="MetabolizerComponent"/>.
+    /// </summary>
+    public bool TryAddMetabolizerType(Entity<MetabolizerComponent?> ent, ProtoId<MetabolizerTypePrototype> metabolizer)
+    {
+        if (!Resolve(ent, ref ent.Comp, false))
+            return false;
+
+        ent.Comp.MetabolizerTypes ??= new HashSet<ProtoId<MetabolizerTypePrototype>>();
+
+        return ent.Comp.MetabolizerTypes.Add(metabolizer);
     }
 }
 
