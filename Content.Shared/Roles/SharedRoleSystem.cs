@@ -724,7 +724,7 @@ public abstract partial class SharedRoleSystem : EntitySystem
         if (_requirementOverride != null && _requirementOverride.Antags.TryGetValue(antag, out var req))
             return req;
 
-        return _prototypes.Index(antag).Requirements;
+        return ProtoMan.Index(antag).Requirements;
     }
 
     public HashSet<JobRequirement>? GetAntagRequirement(AntagPrototype antag)

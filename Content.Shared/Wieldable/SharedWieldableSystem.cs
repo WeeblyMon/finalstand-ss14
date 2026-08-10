@@ -86,7 +86,7 @@ public abstract partial class SharedWieldableSystem : EntitySystem
             return;
 
         // Auto-wield on first shot attempt instead of spamming a popup.
-        TryWield(uid, wieldable, args.User);
+        TryWield((uid, wieldable), args.User);
 
         if (!wieldable.Wielded)
             args.Cancel();
