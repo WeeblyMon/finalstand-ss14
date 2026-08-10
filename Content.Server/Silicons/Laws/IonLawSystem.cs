@@ -1,23 +1,24 @@
-﻿using Content.Shared.Dataset;
+﻿using Content.Server.StationRecords.Systems;
+using Content.Shared.Dataset;
 using Content.Shared.Silicons.Laws;
 using Content.Shared.Station;
 using Content.Shared.StationRecords;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using System.Linq;
-using Content.Shared.StationRecords.Components;
-using Content.Shared.StationRecords.Systems;
 
 namespace Content.Server.Silicons.Laws;
 
 /// <summary>
 /// This handles generating random ion laws.
 /// </summary>
-public sealed partial class IonLawSystem : EntitySystem
+public sealed class IonLawSystem : EntitySystem
 {
-    [Dependency] private IRobustRandom _random = default!;
-    [Dependency] private SharedStationSystem _stationSystem = default!;
-    [Dependency] private StationRecordsSystem _stationRecordsSystem = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedStationSystem _stationSystem = default!;
+    [Dependency] private readonly StationRecordsSystem _stationRecordsSystem = default!;
+    [Dependency] private readonly ILogManager _logManager = default!;
 
     private ISawmill _sawmill = default!;
     private readonly Dictionary<string, List<IonLawSelector>> _selectors = new();
@@ -27,7 +28,7 @@ public sealed partial class IonLawSystem : EntitySystem
     {
         base.Initialize();
 
-        _sawmill = LogManager.GetSawmill("ion-law");
+        _sawmill = _logManager.GetSawmill("ion-law");
 
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypesReloaded);
         BuildSelectors();
@@ -133,7 +134,7 @@ public sealed partial class IonLawSystem : EntitySystem
     /// <returns>A formatted string representing the new ion law.</returns>
     public string GetIonLaw()
     {
-        var laws = ProtoMan.EnumeratePrototypes<IonLawPrototype>().ToList();
+        var laws = _prototypeManager.EnumeratePrototypes<IonLawPrototype>().ToList();
         if (laws.Count == 0)
         {
             _sawmill.Error("No Ion Laws found");
@@ -254,11 +255,11 @@ public sealed partial class IonLawSystem : EntitySystem
         switch (selector)
         {
             case DatasetFill datasetFill:
-                if (ProtoMan.TryIndex(datasetFill.Dataset, out var dataset) && dataset.Values.Any())
+                if (_prototypeManager.TryIndex(datasetFill.Dataset, out var dataset) && dataset.Values.Any())
                 {
                     return _random.Pick(dataset.Values);
                 }
-                _sawmill.Error("Selected DataSet (" + selector + ") was empty or not found");
+                _sawmill.Error("Selected DataSet (" + selector + ") was empty or not found" );
                 return Loc.GetString("ion-law-error-dataset-empty-or-not-found");
             case RandomManifestFill randomManifestFill:
                 var stations = _stationSystem.GetStations();
@@ -274,20 +275,22 @@ public sealed partial class IonLawSystem : EntitySystem
                 }
 
                 // Fallback to dataset if no manifest record found or stations are empty
-                if (ProtoMan.TryIndex(randomManifestFill.FallbackDataset, out var fallbackDataset) && fallbackDataset.Values.Any())
+                if (_prototypeManager.TryIndex(randomManifestFill.FallbackDataset, out var fallbackDataset) && fallbackDataset.Values.Any())
                 {
                     return _random.Pick(fallbackDataset.Values);
                 }
-                _sawmill.Error("Fallback DataSet (" + selector + ") was empty or not found");
+                _sawmill.Error("Fallback DataSet (" + selector + ") was empty or not found" );
                 return Loc.GetString("ion-law-error-fallback-dataset-empty-or-not-found");
             case ConstantFill constantFill:
                 if (constantFill.BoolValue.HasValue)
                     return constantFill.BoolValue.Value;
-                _sawmill.Error("The selected Constant Fill did not have a value: " + constantFill);
+                _sawmill.Error("The selected Constant Fill did not have a value: " + constantFill );
                 return Loc.GetString("ion-law-error-no-bool-value");
             default:
-                _sawmill.Error("Selected DataSet (" + selector + ") was not selected");
+            {
+                _sawmill.Error("Selected DataSet (" + selector + ") was not selected" );
                 return Loc.GetString("ion-law-error-no-selector-selected");
+            }
         }
     }
 }

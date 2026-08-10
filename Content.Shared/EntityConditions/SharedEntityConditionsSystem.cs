@@ -142,7 +142,6 @@ public record struct EntityConditionEvent<T>(T Condition) where T : EntityCondit
     /// <summary>
     /// The result of our check, defaults to false if nothing handles it.
     /// </summary>
-    [DataField]
     public bool Result;
 
     /// <summary>

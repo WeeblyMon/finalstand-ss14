@@ -1,5 +1,7 @@
 using System.Linq;
+using Content.Server.DeviceNetwork;
 using Content.Server.DeviceNetwork.Systems;
+using Content.Server.Power.Components;
 using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Events;
 using Content.Shared.Power;
@@ -10,11 +12,11 @@ using Robust.Shared.Player;
 
 namespace Content.Server.SurveillanceCamera;
 
-public sealed partial class SurveillanceCameraMonitorSystem : EntitySystem
+public sealed class SurveillanceCameraMonitorSystem : EntitySystem
 {
-    [Dependency] private SurveillanceCameraSystem _surveillanceCameras = default!;
-    [Dependency] private UserInterfaceSystem _userInterface = default!;
-    [Dependency] private DeviceNetworkSystem _deviceNetworkSystem = default!;
+    [Dependency] private readonly SurveillanceCameraSystem _surveillanceCameras = default!;
+    [Dependency] private readonly UserInterfaceSystem _userInterface = default!;
+    [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
 
     public override void Initialize()
     {
@@ -43,6 +45,11 @@ public sealed partial class SurveillanceCameraMonitorSystem : EntitySystem
         var query = EntityQueryEnumerator<ActiveSurveillanceCameraMonitorComponent, SurveillanceCameraMonitorComponent>();
         while (query.MoveNext(out var uid, out _, out var monitor))
         {
+            if (Paused(uid))
+            {
+                continue;
+            }
+
             monitor.LastHeartbeatSent += frameTime;
             SendHeartbeat(uid, monitor);
             monitor.LastHeartbeat += frameTime;
@@ -233,7 +240,6 @@ public sealed partial class SurveillanceCameraMonitorSystem : EntitySystem
         };
 
         _deviceNetworkSystem.QueuePacket(uid, subnetAddress, payload);
-        monitor.LastHeartbeatSent = 0;
     }
 
     private void DisconnectCamera(EntityUid uid, bool removeViewers, SurveillanceCameraMonitorComponent? monitor = null)

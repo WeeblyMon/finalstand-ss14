@@ -4,6 +4,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Overlays;
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
+using Robust.Shared.Prototypes;
 using Content.Shared.Damage.Components;
 
 namespace Content.Client.Overlays;
@@ -11,8 +12,10 @@ namespace Content.Client.Overlays;
 /// <summary>
 /// Shows a healthy icon on mobs.
 /// </summary>
-public sealed partial class ShowHealthIconsSystem : EquipmentHudSystem<ShowHealthIconsComponent>
+public sealed class ShowHealthIconsSystem : EquipmentHudSystem<ShowHealthIconsComponent>
 {
+    [Dependency] private readonly IPrototypeManager _prototypeMan = default!;
+
     [ViewVariables]
     public HashSet<string> DamageContainers = new();
 
@@ -78,9 +81,9 @@ public sealed partial class ShowHealthIconsSystem : EquipmentHudSystem<ShowHealt
             if (TryComp<MobStateComponent>(entity, out var state))
             {
                 // Since there is no MobState for a rotting mob, we have to deal with this case first.
-                if (HasComp<RottingComponent>(entity) && ProtoMan.Resolve(injurableComp.RottingIcon, out var rottingIcon))
+                if (HasComp<RottingComponent>(entity) && _prototypeMan.Resolve(injurableComp.RottingIcon, out var rottingIcon))
                     result.Add(rottingIcon);
-                else if (injurableComp.HealthIcons.TryGetValue(state.CurrentState, out var value) && ProtoMan.Resolve(value, out var icon))
+                else if (injurableComp.HealthIcons.TryGetValue(state.CurrentState, out var value) && _prototypeMan.Resolve(value, out var icon))
                     result.Add(icon);
             }
         }

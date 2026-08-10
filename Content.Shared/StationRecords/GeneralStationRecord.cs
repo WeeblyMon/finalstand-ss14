@@ -1,4 +1,5 @@
 using Robust.Shared.Enums;
+using Robust.Shared.Serialization.Manager.Attributes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.StationRecords;
@@ -6,8 +7,9 @@ namespace Content.Shared.StationRecords;
 /// <summary>
 ///     General station record. Indicates the crewmember's name and job.
 /// </summary>
+[DataDefinition]
 [Serializable, NetSerializable]
-public sealed record GeneralStationRecord
+public sealed partial record GeneralStationRecord
 {
     /// <summary>
     ///     Name tied to this station record.

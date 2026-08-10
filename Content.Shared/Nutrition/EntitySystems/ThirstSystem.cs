@@ -150,7 +150,7 @@ public sealed class ThirstSystem : EntitySystem
         if (IsMovementThreshold(component.LastThirstThreshold) != IsMovementThreshold(component.CurrentThirstThreshold) &&
                 TryComp(uid, out MovementSpeedModifierComponent? movementSlowdownComponent))
         {
-            _movement.RefreshMovementSpeedModifiers(uid, movementSlowdownComponent);
+            _movement.RefreshMovementSpeedModifiers((uid, movementSlowdownComponent));
         }
 
         // Update UI

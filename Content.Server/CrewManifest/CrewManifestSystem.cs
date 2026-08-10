@@ -2,6 +2,8 @@ using System.Linq;
 using Content.Server.Administration;
 using Content.Server.EUI;
 using Content.Server.Station.Systems;
+using Content.Server.StationRecords;
+using Content.Server.StationRecords.Systems;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.CrewManifest;
@@ -9,21 +11,20 @@ using Content.Shared.GameTicking;
 using Content.Shared.Roles;
 using Content.Shared.Station.Components;
 using Content.Shared.StationRecords;
-using Content.Shared.StationRecords.Components;
-using Content.Shared.StationRecords.Events;
-using Content.Shared.StationRecords.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server.CrewManifest;
 
-public sealed partial class CrewManifestSystem : EntitySystem
+public sealed class CrewManifestSystem : EntitySystem
 {
-    [Dependency] private StationSystem _stationSystem = default!;
-    [Dependency] private StationRecordsSystem _recordsSystem = default!;
-    [Dependency] private EuiManager _euiManager = default!;
-    [Dependency] private IConfigurationManager _configManager = default!;
+    [Dependency] private readonly StationSystem _stationSystem = default!;
+    [Dependency] private readonly StationRecordsSystem _recordsSystem = default!;
+    [Dependency] private readonly EuiManager _euiManager = default!;
+    [Dependency] private readonly IConfigurationManager _configManager = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
 
     /// <summary>
     ///     Cached crew manifest entries. The alternative is to outright
@@ -36,7 +37,7 @@ public sealed partial class CrewManifestSystem : EntitySystem
 
     public override void Initialize()
     {
-        SubscribeLocalEvent<GeneralRecordCreatedEvent>(GeneralRecordCreated);
+        SubscribeLocalEvent<AfterGeneralRecordCreatedEvent>(AfterGeneralRecordCreated);
         SubscribeLocalEvent<RecordModifiedEvent>(OnRecordModified);
         SubscribeLocalEvent<RecordRemovedEvent>(OnRecordRemoved);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
@@ -74,19 +75,19 @@ public sealed partial class CrewManifestSystem : EntitySystem
     // Not a big fan of this one. Rebuilds the crew manifest every time
     // somebody spawns in, meaning that at round start, it rebuilds the crew manifest
     // wrt the amount of players readied up.
-    private void GeneralRecordCreated(ref GeneralRecordCreatedEvent ev)
+    private void AfterGeneralRecordCreated(AfterGeneralRecordCreatedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);
     }
 
-    private void OnRecordModified(ref RecordModifiedEvent ev)
+    private void OnRecordModified(RecordModifiedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);
     }
 
-    private void OnRecordRemoved(ref RecordRemovedEvent ev)
+    private void OnRecordRemoved(RecordRemovedEvent ev)
     {
         BuildCrewManifest(ev.Key.OriginStation);
         UpdateEuis(ev.Key.OriginStation);
@@ -230,22 +231,18 @@ public sealed partial class CrewManifestSystem : EntitySystem
             var record = recordObject.Item2;
             var entry = new CrewManifestEntry(record.Name, record.JobTitle, record.JobIcon, record.JobPrototype);
 
-            ProtoMan.TryIndex(record.JobPrototype, out JobPrototype? job);
+            _prototypeManager.TryIndex(record.JobPrototype, out JobPrototype? job);
             entriesSort.Add((job, entry));
         }
 
-        var jobWeights = Comp<StationDataComponent>(station).JobWeights;
-        if (JobUIComparer.TryCreate(ProtoMan, jobWeights, out var comparer))
+        entriesSort.Sort((a, b) =>
         {
-            entriesSort.Sort((a, b) =>
-            {
-                var cmp = comparer.Compare(a.job, b.job);
-                if (cmp != 0)
-                    return cmp;
+            var cmp = JobUIComparer.Instance.Compare(a.job, b.job);
+            if (cmp != 0)
+                return cmp;
 
-                return string.Compare(a.entry.Name, b.entry.Name, StringComparison.CurrentCultureIgnoreCase);
-            });
-        }
+            return string.Compare(a.entry.Name, b.entry.Name, StringComparison.CurrentCultureIgnoreCase);
+        });
 
         entries.Entries = entriesSort.Select(x => x.entry).ToArray();
         _cachedEntries[station] = entries;
@@ -253,9 +250,9 @@ public sealed partial class CrewManifestSystem : EntitySystem
 }
 
 [AdminCommand(AdminFlags.Admin)]
-public sealed partial class CrewManifestCommand : LocalizedEntityCommands
+public sealed class CrewManifestCommand : LocalizedEntityCommands
 {
-    [Dependency] private CrewManifestSystem _manifestSystem = default!;
+    [Dependency] private readonly CrewManifestSystem _manifestSystem = default!;
 
     public override string Command => "crewmanifest";
 
