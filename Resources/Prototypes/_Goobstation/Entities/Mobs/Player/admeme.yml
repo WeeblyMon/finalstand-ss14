@@ -86,8 +86,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ NavyOfficerGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -126,8 +124,6 @@
     rules: ghost-role-information-navy-captain-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ NavyCaptainGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -166,8 +162,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [  NavyOfficerUndercoverGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -206,8 +200,6 @@
     rules: ghost-role-information-special-operations-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ SpecialOperationsOfficerGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -246,8 +238,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ DiplomatGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -286,8 +276,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ InspectorGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -315,8 +303,6 @@
   parent: EventHumanoidMindShielded
   id: ChronoLegionnaire
   components:
-  - type: Loadout
-    prototypes: [ ChronoLegionnaireGear ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -353,8 +339,6 @@
     rules: ghost-role-information-Hecu-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [HECUOperativeGear]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -388,8 +372,6 @@
     rules: ghost-role-information-Gman-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [GovernmentManGear]
   - type: Tag
     tags:
     - InstantDoAfters
@@ -438,8 +420,6 @@
     rules: ghost-role-information-conquest-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ConquestGear]
   - type: Puller
     needsHands: false
     throwCooldown: 0.1
