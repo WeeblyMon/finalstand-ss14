@@ -1,4 +1,5 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Alert;
@@ -21,6 +22,8 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 
 public sealed partial class TraumaSystem : EntitySystem
 {
+    [Dependency] private readonly OrganManipulationSystem _manipulation = default!;
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly INetManager _net = default!;

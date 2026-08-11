@@ -1,4 +1,5 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;

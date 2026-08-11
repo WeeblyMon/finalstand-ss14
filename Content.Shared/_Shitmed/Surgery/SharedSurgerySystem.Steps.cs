@@ -62,7 +62,7 @@ public abstract partial class SharedSurgerySystem
 
     private void InitializeSteps()
     {
-        _partQuery = GetEntityQuery<BodyPartComponent>();
+        _partQuery = GetEntityQuery<OrganComponent>();
         _ignoreQuery = GetEntityQuery<SurgeryIgnoreClothingComponent>();
         _stepQuery = GetEntityQuery<SurgeryStepComponent>();
         _toolQuery = GetEntityQuery<SurgeryToolComponent>();
@@ -293,7 +293,7 @@ public abstract partial class SharedSurgerySystem
         if (!TryComp(args.Surgery, out SurgeryOrganSlotConditionComponent? condition))
             return;
 
-        args.Cancelled |= !_body.CanInsertOrgan(args.Part, condition.OrganSlot);
+        args.Cancelled |= !_manipulation.CanInsertOrgan(args.Part, condition.OrganSlot);
     }
 
     private void OnAffixPartStep(Entity<SurgeryAffixPartStepComponent> ent, ref SurgeryStepEvent args)
@@ -301,7 +301,7 @@ public abstract partial class SharedSurgerySystem
         if (!TryComp(args.Surgery, out SurgeryPartRemovedConditionComponent? removedComp))
             return;
 
-        var targetPart = _lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Symmetry).FirstOrDefault();
+        var targetPart = _lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Category).FirstOrDefault();
 
         if (targetPart != default)
         {
@@ -316,7 +316,7 @@ public abstract partial class SharedSurgerySystem
         if (!TryComp(args.Surgery, out SurgeryPartRemovedConditionComponent? removedComp))
             return;
 
-        var targetPart = _lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Symmetry).FirstOrDefault();
+        var targetPart = _lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Category).FirstOrDefault();
 
         if (targetPart != default
             && HasComp<BodyPartReattachedComponent>(targetPart.Id))
@@ -326,7 +326,7 @@ public abstract partial class SharedSurgerySystem
     private void OnAddPartCheck(Entity<SurgeryAddPartStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
         if (!TryComp(args.Surgery, out SurgeryPartRemovedConditionComponent? removedComp)
-            || !_lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Symmetry).Any())
+            || !_lookup.EnumerateOrgansOfCategory(args.Body, removedComp.Part, symmetry: removedComp.Category).Any())
             args.Cancelled = true;
     }
 
@@ -363,7 +363,7 @@ public abstract partial class SharedSurgerySystem
 
         if (!HasComp(args.Tool, firstOrgan.Component.GetType())
             || !TryComp<OrganComponent>(args.Tool, out var insertedOrgan)
-            || !_body.InsertOrgan(args.Part, args.Tool, insertedOrgan.SlotId, partComp, insertedOrgan))
+            || !_manipulation.InsertOrgan(args.Part, args.Tool, insertedOrgan.SlotId, partComp, insertedOrgan))
             return;
 
         EnsureComp<OrganReattachedComponent>(args.Tool);
@@ -389,7 +389,7 @@ public abstract partial class SharedSurgerySystem
         // to know if they need 2 hearts, 2 lungs, etc.
         foreach (var reg in organComp.Organ.Values)
         {
-            if (!_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var _))
+            if (!_lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var _))
             {
                 args.Cancelled = true;
             }
@@ -405,7 +405,7 @@ public abstract partial class SharedSurgerySystem
 
         foreach (var reg in removedOrganComp.Organ.Values)
         {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
+            _lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var organs);
             if (organs != null && organs.Count > 0)
                 RemComp<OrganReattachedComponent>(organs[0].Id);
         }
@@ -421,10 +421,10 @@ public abstract partial class SharedSurgerySystem
 
         foreach (var reg in removedOrganComp.Organ.Values)
         {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
+            _lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var organs);
             if (organs != null
                 && organs.Count > 0
-                && organs.Any(organ => HasComp<OrganReattachedComponent>(organ.Id)))
+                && organs.Any(organ => HasComp<OrganReattachedComponent>(organ.Owner)))
                 args.Cancelled = true;
         }
     }
@@ -437,10 +437,10 @@ public abstract partial class SharedSurgerySystem
 
         foreach (var reg in organComp.Organ.Values)
         {
-            _body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs);
+            _lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var organs);
             if (organs != null && organs.Count > 0)
             {
-                if (_body.TryRemoveOrgan(organs[0].Id, organs[0].Organ))
+                if (_manipulation.RemoveOrgan(organs[0].Id, organs[0].Organ))
                     _hands.TryPickupAnyHand(args.User, organs[0].Id);
                 else
                     _popup.PopupClient(Loc.GetString("surgery-popup-step-SurgeryStepRemoveOrgan-failed"), args.User, args.User);
@@ -458,7 +458,7 @@ public abstract partial class SharedSurgerySystem
 
         foreach (var reg in organComp.Organ.Values)
         {
-            if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
+            if (_lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var organs)
                 && organs.Count > 0)
             {
                 args.Cancelled = true;
@@ -475,13 +475,13 @@ public abstract partial class SharedSurgerySystem
             return;
 
         var organType = ent.Comp.Organ.Values.FirstOrDefault();
-        if (organType.Component is null)
+        if (organType.Comp is null)
             return;
 
         var markingCategory = MarkingCategoriesConversion.FromHumanoidVisualLayers(ent.Comp.MarkingCategory);
 
         if (!TryComp(args.Tool, out MarkingContainerComponent? markingComp)
-            || !HasComp(args.Tool, organType.Component.GetType())
+            || !HasComp(args.Tool, organType.Comp.GetType())
             || bodyAppearance.MarkingSet.Markings.TryGetValue(markingCategory, out var markingList))
             return;
 
@@ -532,26 +532,26 @@ public abstract partial class SharedSurgerySystem
             case TraumaType.OrganDamage:
                 foreach (var organ in _lookup.GetBodyOrgans(args.Body))
                 {
-                    foreach (var modifier in organ.Component.IntegrityModifiers)
+                    foreach (var modifier in organ.Comp.IntegrityModifiers)
                     {
                         var delta = healAmount - modifier.Value;
                         if (delta > 0)
                         {
                             healAmount -= modifier.Value;
                             _trauma.TryRemoveOrganDamageModifier(
-                                organ.Id,
+                                organ.Owner,
                                 modifier.Key.Item2,
                                 modifier.Key.Item1,
-                                organ.Component);
+                                organ.Comp);
                         }
                         else
                         {
                             _trauma.TryChangeOrganDamageModifier(
-                                organ.Id,
+                                organ.Owner,
                                 -healAmount,
                                 modifier.Key.Item2,
                                 modifier.Key.Item1,
-                                organ.Component);
+                                organ.Comp);
                             break;
                         }
                     }

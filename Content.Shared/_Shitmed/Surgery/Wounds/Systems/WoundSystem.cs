@@ -43,6 +43,7 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 
 public sealed partial class WoundSystem : EntitySystem
 {
+    [Dependency] private readonly OrganManipulationSystem _manipulation = default!;
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IComponentFactory _factory = default!;
@@ -130,7 +131,7 @@ public sealed partial class WoundSystem : EntitySystem
                 || _timing.CurTime - damageable.LastModifiedTime < _minimumTimeBeforeHeal
                 || _timing.CurTime < body.HealAt
                 || _mobState.IsIncapacitated(ent)
-                || !_body.TryGetRootPart(ent, out var rootPart, body: body))
+                || !_lookup.TryGetRootOrgan(ent, out var rootPart, body: body))
                 continue;
 
             body.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
@@ -241,7 +242,7 @@ public sealed partial class WoundSystem : EntitySystem
                     var ev1 = new WoundAddedEvent(component, parentWoundable, woundableRoot);
                     RaiseLocalEvent(holdingWoundable, ref ev1);
 
-                    var bodyPart = Comp<BodyPartComponent>(holdingWoundable);
+                    var bodyPart = Comp<OrganComponent>(holdingWoundable);
                     if (bodyPart.Body.HasValue)
                     {
                         var ev2 = new WoundAddedOnBodyEvent((uid, component), parentWoundable, woundableRoot);
@@ -378,7 +379,7 @@ public sealed partial class WoundSystem : EntitySystem
             RaiseLocalEvent(uid, ref ev);
 
             var bodySeverity = FixedPoint2.Zero;
-            if (TryComp<BodyPartComponent>(uid, out var bodyPart) && bodyPart.Body.HasValue)
+            if (TryComp<OrganComponent>(uid, out var bodyPart) && bodyPart.Body.HasValue)
             {
                 if (!TryComp<BodyComponent>(bodyPart.Body.Value, out var bodyComp))
                     return;

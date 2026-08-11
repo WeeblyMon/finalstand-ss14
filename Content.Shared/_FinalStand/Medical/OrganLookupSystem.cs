@@ -109,4 +109,20 @@ public sealed partial class OrganLookupSystem : EntitySystem
             ? OrganCategories.ToTarget(organ.Comp.Category)
             : null;
     }
+
+    public IEnumerable<Entity<OrganComponent>> GetLegOrgans(Entity<BodyComponent?> body)
+    {
+        foreach (var category in OrganCategories.Legs)
+        {
+            foreach (var organ in EnumerateOrgansOfCategory(body, category))
+            {
+                yield return organ;
+            }
+        }
+    }
+
+    public int GetRequiredLegs(EntityUid body)
+    {
+        return CompOrNull<BodyLocomotionComponent>(body)?.RequiredLegs ?? OrganCategories.Legs.Length;
+    }
 }

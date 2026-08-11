@@ -42,13 +42,13 @@ public partial class TraumaSystem
             || args.NewSeverity < args.OldSeverity)
             return;
 
-        var bodyComp = Comp<BodyPartComponent>(bone.Comp.BoneWoundable.Value);
+        var bodyComp = Comp<OrganComponent>(bone.Comp.BoneWoundable.Value);
 
         if (!bodyComp.Body.HasValue)
             return;
 
         var part = bodyComp.ParentSlot is null
-            ? bodyComp.PartType.ToString().ToLower()
+            ? bodyComp.Category.ToString().ToLower()
             : bodyComp.ParentSlot.Value.Id;
 
         _popup.PopupClient(Loc.GetString($"popup-trauma-BoneDamage-{args.NewSeverity.ToString()}", ("part", part)),
@@ -71,13 +71,13 @@ public partial class TraumaSystem
         if (bone.Comp.BoneWoundable == null)
             return;
 
-        var bodyComp = Comp<BodyPartComponent>(bone.Comp.BoneWoundable.Value);
+        var bodyComp = Comp<OrganComponent>(bone.Comp.BoneWoundable.Value);
         if (!bodyComp.Body.HasValue)
             return;
 
         if (args.NewIntegrity == bone.Comp.IntegrityCap)
         {
-            if (bodyComp.PartType == BodyPartType.Hand)
+            if (bodyComp.Category == BodyPartType.Hand)
                 _virtual.DeleteInHandsMatching(bodyComp.Body.Value, bone);
 
             if (TryGetWoundableTrauma(bone.Comp.BoneWoundable.Value, out var traumas, TraumaType.BoneDamage))
@@ -85,7 +85,7 @@ public partial class TraumaSystem
                     RemoveTrauma(trauma);
         }
 
-        switch (bodyComp.PartType)
+        switch (bodyComp.Category)
         {
             case BodyPartType.Leg:
             case BodyPartType.Foot:
@@ -118,7 +118,7 @@ public partial class TraumaSystem
         if (odds == 0f
             || args.Handled
             || bone.Comp.BoneWoundable is null
-            || !TryComp(bone.Comp.BoneWoundable.Value, out BodyPartComponent? bodyPart)
+            || !TryComp(bone.Comp.BoneWoundable.Value, out OrganComponent? bodyPart)
             || bodyPart.Body is not { } body)
             return;
 
@@ -141,7 +141,7 @@ public partial class TraumaSystem
         if (odds == 0f
             || args.Handled
             || bone.Comp.BoneWoundable is null
-            || !TryComp(bone.Comp.BoneWoundable.Value, out BodyPartComponent? bodyPart)
+            || !TryComp(bone.Comp.BoneWoundable.Value, out OrganComponent? bodyPart)
             || bodyPart.Body is not { } body)
             return;
 
@@ -279,7 +279,7 @@ public partial class TraumaSystem
         Dirty(bone, boneComp);
 
         if (boneComp.BoneWoundable != null
-            && TryComp<BodyPartComponent>(boneComp.BoneWoundable.Value, out var bodyPartComp)
+            && TryComp<OrganComponent>(boneComp.BoneWoundable.Value, out var bodyPartComp)
             && bodyPartComp.Body is { } body)
             UpdateBodyBoneAlert(body);
     }
@@ -295,7 +295,7 @@ public partial class TraumaSystem
         var sprintSpeed = 0f;
         var acceleration = 0f;
 
-        foreach (var legEntity in bodyComp.LegEntities)
+        foreach (var legEntity in _lookup.GetLegOrgans(body).Select(o => o.Owner).ToList())
         {
             if (!TryComp<MovementBodyPartComponent>(legEntity, out var movement))
                 continue;
@@ -315,7 +315,7 @@ public partial class TraumaSystem
             var footEnt =
                 _lookup.EnumerateOrgansOfCategory(body,
                         BodyPartType.Foot,
-                        symmetry: Comp<BodyPartComponent>(legEntity).Symmetry)
+                        symmetry: Comp<OrganComponent>(legEntity).Category)
                     .FirstOrNull();
 
             if (footEnt != null)
@@ -364,10 +364,10 @@ public partial class TraumaSystem
             }
         }
 
-        rawWalkSpeed /= bodyComp.RequiredLegs;
-        walkSpeed /= bodyComp.RequiredLegs;
-        sprintSpeed /= bodyComp.RequiredLegs;
-        acceleration /= bodyComp.RequiredLegs;
+        rawWalkSpeed /= _lookup.GetRequiredLegs(body);
+        walkSpeed /= _lookup.GetRequiredLegs(body);
+        sprintSpeed /= _lookup.GetRequiredLegs(body);
+        acceleration /= _lookup.GetRequiredLegs(body);
 
         _movementSpeed.ChangeBaseSpeed(body, walkSpeed, sprintSpeed, acceleration);
 

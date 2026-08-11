@@ -34,8 +34,8 @@ public partial class WoundSystem
     /// <param name="woundable">The entity on which to update the pain state</param>
     private void UpdatePainAfterHealing(EntityUid woundable)
     {
-        // Check if the entity has a BodyPartComponent and if it is part of a body.
-        if (!TryComp<BodyPartComponent>(woundable, out var bodyPart) || !bodyPart.Body.HasValue)
+        // Check if the entity has a OrganComponent and if it is part of a body.
+        if (!TryComp<OrganComponent>(woundable, out var bodyPart) || !bodyPart.Body.HasValue)
             return;
 
         // Get the body entity.
@@ -331,15 +331,15 @@ public partial class WoundSystem
         woundable = null;
         foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp))
+            if (!TryComp<WoundableComponent>(bodyPart.Owner, out var woundableComp))
                 continue;
 
-            var woundableDamage = GetWoundableSeverityPoint(bodyPart.Id, woundableComp, damageGroup, healable);
+            var woundableDamage = GetWoundableSeverityPoint(bodyPart.Owner, woundableComp, damageGroup, healable);
             if (woundableDamage <= biggestDamage)
                 continue;
 
             biggestDamage = woundableDamage;
-            woundable = (bodyPart.Id, woundableComp);
+            woundable = (bodyPart.Owner, woundableComp);
         }
 
         return woundable != null;
@@ -441,7 +441,7 @@ public partial class WoundSystem
     {
         wounds = [];
 
-        if (!_body.TryGetRootPart(target, out var body))
+        if (!_lookup.TryGetRootOrgan(target, out var body))
             return false;
 
         wounds = GetAllWounds(body!.Value.Owner).ToList();
@@ -461,10 +461,10 @@ public partial class WoundSystem
 
         foreach (var bodyPart in _lookup.GetBodyOrgans(target))
         {
-            if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp) || !woundableComp.Wounds.ContainedEntities.Any())
+            if (!TryComp<WoundableComponent>(bodyPart.Owner, out var woundableComp) || !woundableComp.Wounds.ContainedEntities.Any())
                 continue;
 
-            woundables.Add((bodyPart.Id, woundableComp));
+            woundables.Add((bodyPart.Owner, woundableComp));
         }
 
         return woundables.Any();

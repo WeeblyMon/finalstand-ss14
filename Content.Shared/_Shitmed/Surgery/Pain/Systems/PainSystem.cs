@@ -182,14 +182,14 @@ public sealed partial class PainSystem : EntitySystem
         component.Nerves.Clear();
         foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<NerveComponent>(bodyPart.Id, out var nerve))
+            if (!TryComp<NerveComponent>(bodyPart.Owner, out var nerve))
                 continue;
 
-            component.Nerves.Add(bodyPart.Id, nerve);
+            component.Nerves.Add(bodyPart.Owner, nerve);
             Dirty(uid, component);
 
             nerve.ParentedNerveSystem = uid;
-            Dirty(bodyPart.Id, nerve); // ヾ(≧▽≦*)o
+            Dirty(bodyPart.Owner, nerve); // ヾ(≧▽≦*)o
         }
     }
 
