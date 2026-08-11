@@ -281,6 +281,10 @@
     state: "l_hand"
   - type: Organ
     category: HandLeft
+  - type: HandOrgan
+    handID: left
+    data:
+      location: Left
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LHand
@@ -314,6 +318,10 @@
     state: "r_hand"
   - type: Organ
     category: HandRight
+  - type: HandOrgan
+    handID: right
+    data:
+      location: Right
   - type: Woundable
     integrity: 60
     integrityCap: 60

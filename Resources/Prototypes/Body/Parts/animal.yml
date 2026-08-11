@@ -29,6 +29,10 @@
     state: l_hand
   - type: Organ
     category: HandLeft
+  - type: HandOrgan
+    handID: left
+    data:
+      location: Left
 
 - type: entity
   parent: PartAnimalBase
