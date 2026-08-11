@@ -131,6 +131,8 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:

@@ -28,6 +28,8 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
     intCap: 13
     integrity: 13

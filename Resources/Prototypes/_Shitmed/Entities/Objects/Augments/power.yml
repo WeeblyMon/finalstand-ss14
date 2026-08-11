@@ -73,6 +73,8 @@
   parent: BaseAugment
   id: BaseAugmentRecharger
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
     state: cell

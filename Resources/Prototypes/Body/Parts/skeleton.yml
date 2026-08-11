@@ -44,6 +44,8 @@
   id: PartSkeletonBase
   name: skeleton body part
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: Mobs/Species/Skeleton/parts.rsi
   - type: Icon

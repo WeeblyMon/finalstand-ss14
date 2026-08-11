@@ -14,6 +14,8 @@
   name: torso
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -21,6 +23,8 @@
   name: head
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -28,6 +32,8 @@
   name: left arm
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -35,6 +41,8 @@
   name: right arm
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -42,6 +50,8 @@
   name: left hand
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
   - type: HandOrgan
     handID: left
@@ -53,6 +63,8 @@
   name: right hand
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
   - type: HandOrgan
     handID: right
@@ -64,6 +76,8 @@
   name: left leg
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -71,6 +85,8 @@
   name: right leg
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -78,6 +94,8 @@
   name: left foot
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -85,6 +103,8 @@
   name: right foot
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -92,6 +112,8 @@
   name: brain
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -117,6 +139,8 @@
   name: eyes
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -129,6 +153,8 @@
   name: tongue
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -141,6 +167,8 @@
   name: appendix
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -153,6 +181,8 @@
   name: ears
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -165,6 +195,8 @@
   name: lungs
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Lung
@@ -194,6 +226,8 @@
   name: heart
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -209,6 +243,8 @@
   name: stomach
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Stomach
@@ -240,6 +276,8 @@
   name: liver
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -257,6 +295,8 @@
   name: kidneys
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite

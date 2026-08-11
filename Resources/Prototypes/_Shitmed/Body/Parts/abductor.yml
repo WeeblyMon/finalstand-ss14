@@ -12,6 +12,8 @@
   parent: BasePart
   id: PartAbductorBase
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: _Shitmed/Mobs/Species/Abductor/parts.rsi
   - type: Icon

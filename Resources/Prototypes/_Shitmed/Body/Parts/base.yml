@@ -37,6 +37,8 @@
   parent: BaseChestInorganic
   id: BaseChest
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
   - type: Woundable
     damageContainer: Biological
@@ -80,6 +82,8 @@
   id: BaseGroin
   parent: BaseGroinInorganic
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
   - type: Woundable
     damageContainer: Biological

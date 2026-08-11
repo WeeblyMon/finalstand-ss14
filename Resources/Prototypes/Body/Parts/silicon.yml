@@ -8,6 +8,8 @@
   parent: BasePartInorganic
   id: PartSiliconBase
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: Icon

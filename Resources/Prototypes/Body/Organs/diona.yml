@@ -31,6 +31,8 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: Mobs/Species/Diona/organs.rsi
   - type: Organ

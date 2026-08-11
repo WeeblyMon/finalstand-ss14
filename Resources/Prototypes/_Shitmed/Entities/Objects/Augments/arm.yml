@@ -3,6 +3,8 @@
   parent: BaseAugment
   id: BaseArmAugment
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/arm.rsi
   - type: Item

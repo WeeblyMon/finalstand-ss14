@@ -3,6 +3,8 @@
   parent: BaseItem
   id: BaseAugment
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Augment
   - type: SurgeryTool
     ignoreToggle: true # ItemToggle is used for augment logic not surgical tool usability

@@ -16,6 +16,8 @@
   parent: BasePart
   id: PartVulpkaninBase
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: _DV/Mobs/Species/Vulpkanin/parts.rsi
   - type: Icon

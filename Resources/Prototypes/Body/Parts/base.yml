@@ -58,6 +58,8 @@
   id: BaseChestInorganic
   name: "chest"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "chest_m"
   - type: Icon
@@ -101,6 +103,8 @@
   id: BaseGroinInorganic
   name: "groin"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "groin_m"
   - type: Icon
@@ -144,6 +148,8 @@
   id: BaseHead
   name: "head"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Damageable
     damageContainer: Biological
   - type: Sprite
@@ -201,6 +207,8 @@
   id: BaseLeftArm
   name: "left arm"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "l_arm"
   - type: Icon
@@ -232,6 +240,8 @@
   id: BaseRightArm
   name: "right arm"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "r_arm"
   - type: Icon
@@ -263,6 +273,8 @@
   id: BaseLeftHand
   name: "left hand"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "l_hand"
   - type: Icon
@@ -294,6 +306,8 @@
   id: BaseRightHand
   name: "right hand"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "r_hand"
   - type: Icon
@@ -325,6 +339,8 @@
   id: BaseLeftLeg
   name: "left leg"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "l_leg"
   - type: Icon
@@ -357,6 +373,8 @@
   id: BaseRightLeg
   name: "right leg"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "r_leg"
   - type: Icon
@@ -389,6 +407,8 @@
   id: BaseLeftFoot
   name: "left foot"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "l_foot"
   - type: Icon
@@ -420,6 +440,8 @@
   id: BaseRightFoot
   name: "right foot"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     state: "r_foot"
   - type: Icon
