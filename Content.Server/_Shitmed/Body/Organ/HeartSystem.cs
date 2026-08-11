@@ -41,7 +41,7 @@ public sealed class HeartSystem : EntitySystem
             return;
 
         if (_lookup.TryGetBodyOrgans<BrainComponent>(args.Target, out var _))
-            RemComp<DelayedDeathComponent>(args.Body);
+            RemComp<DelayedDeathComponent>(args.Target);
     }
     // Shitmed-End
 }

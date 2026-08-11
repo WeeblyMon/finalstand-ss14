@@ -75,7 +75,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
                 if (GetSingleton(surgery) is not { } surgeryEnt)
                     continue;
 
-                var ev = new SurgeryValidEvent(body, part.Id);
+                var ev = new SurgeryValidEvent(body, part.Owner);
                 RaiseLocalEvent(surgeryEnt, ref ev);
 
                 if (ev.Cancelled)
@@ -83,7 +83,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
 
                 valid.Add(surgery);
             }
-            _surgeries[GetNetEntity(part.Id)] = valid;
+            _surgeries[GetNetEntity(part.Owner)] = valid;
         }
         _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(_surgeries));
         /*
@@ -116,7 +116,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
             damage,
             true,
             origin: user,
-            targetPart: affectAll ? TargetBodyPart.All : _lookup.GetTarget(partComp));
+            targetPart: affectAll ? TargetBodyPart.All : _lookup.GetTarget(part) ?? TargetBodyPart.Chest);
     }
 
     private void OnSurgeryStepDamage(Entity<SurgeryTargetComponent> ent, ref SurgeryStepDamageEvent args) =>

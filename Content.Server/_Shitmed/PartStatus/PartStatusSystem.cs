@@ -38,6 +38,7 @@ namespace Content.Server._Shitmed.PartStatus;
 
 public sealed class PartStatusSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly WoundSystem _woundSystem = default!;
     [Dependency] private readonly BodyAppearanceSystem _bodySystem = default!;
     [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
@@ -77,10 +78,10 @@ public sealed class PartStatusSystem : EntitySystem
 
         if (_mobStateSystem.IsIncapacitated(entity) ||
             !TryComp<ActorComponent>(entity, out var actor) ||
-            !_bodySystem.TryGetRootPart(entity, out var rootPart))
+            !_lookup.TryGetRootOrgan(entity, out var rootPart))
             return;
 
-        var partStatusSet = CollectPartStatuses(rootPart!.Value);
+        var partStatusSet = CollectPartStatuses(rootPart.Owner);
         var text = GetExamineText(entity, entity, partStatusSet);
 
         _chat.ChatMessageToOne(
@@ -122,10 +123,10 @@ public sealed class PartStatusSystem : EntitySystem
 
     public FormattedMessage CreateMarkup(EntityUid uid, EntityUid examiner, HealthExaminableComponent component, DamageableComponent damage)
     {
-        if (!_bodySystem.TryGetRootPart(uid, out var rootPart))
+        if (!_lookup.TryGetRootOrgan(uid, out var rootPart))
             return new FormattedMessage();
 
-        var partStatusSet = CollectPartStatuses(rootPart!.Value);
+        var partStatusSet = CollectPartStatuses(rootPart.Owner);
         var text = GetExamineText(uid, examiner, partStatusSet, false);
         // Anything else want to add on to this?
         RaiseLocalEvent(uid, new HealthBeingExaminedEvent(text), true);
@@ -134,7 +135,7 @@ public sealed class PartStatusSystem : EntitySystem
     }
 
 
-    private HashSet<PartStatus> CollectPartStatuses(Entity<OrganComponent> rootPart)
+    private HashSet<PartStatus> CollectPartStatuses(EntityUid rootPart)
     {
         var partStatusSet = new HashSet<PartStatus>();
 
@@ -144,12 +145,14 @@ public sealed class PartStatusSystem : EntitySystem
                 !TryComp<BoneComponent>(woundable.Comp.Bone.ContainedEntities.FirstOrNull(), out var bone))
                 continue;
 
-            var partName = bodyPartComponent.ParentSlot?.Id ?? bodyPartComponent.PartType.ToString().ToLower();
+            if (bodyPartComponent.Category is not { } category)
+                continue;
+
+            var partName = category.Id.ToLower();
             var (damageSeverities, isBleeding) = AnalyzeWounds(woundable);
 
             partStatusSet.Add(new PartStatus(
-                bodyPartComponent.PartType,
-                bodyPartComponent.Symmetry,
+                category,
                 partName,
                 woundable.Comp.WoundableSeverity,
                 damageSeverities,

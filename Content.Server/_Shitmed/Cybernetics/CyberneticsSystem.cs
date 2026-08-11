@@ -56,7 +56,7 @@ internal sealed class CyberneticsSystem : EntitySystem
                     && part.Body is not null)
                 {
                     var shock = new DamageSpecifier(_prototypes.Index(ShockDamageType), 30);
-                    var targetPart = _lookup.GetTarget(part);
+                    var targetPart = _lookup.GetTarget((cyberEnt, part));
                     _damageable.TryChangeDamage(part.Body.Value, shock, ignoreResistances: true, targetPart: targetPart);
                     Dirty(cyberEnt, damageable);
                 }
