@@ -125,4 +125,19 @@ public sealed partial class OrganLookupSystem : EntitySystem
     {
         return CompOrNull<BodyLocomotionComponent>(body)?.RequiredLegs ?? OrganCategories.Legs.Length;
     }
+
+    public bool TryGetParentOrgan(EntityUid organ, out EntityUid parent, out OrganComponent? parentComp)
+    {
+        parentComp = null;
+        if (!TryGetParentOrgan(organ, out parent))
+            return false;
+
+        return _organQuery.TryComp(parent, out parentComp);
+    }
+
+    public bool TryGetRootOrgan(Entity<BodyComponent?> body, out Entity<OrganComponent> root, BodyComponent? bodyComp)
+    {
+        body.Comp ??= bodyComp;
+        return TryGetRootOrgan(body, out root);
+    }
 }

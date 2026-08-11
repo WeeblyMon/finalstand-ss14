@@ -677,7 +677,7 @@ public partial class TraumaSystem
                     var chosenOrgan = organs.FirstOrNull();
                     if (chosenOrgan != null)
                     {
-                        targetChosen = chosenOrgan.Value.Id;
+                        targetChosen = chosenOrgan.Value.Owner;
                     }
 
                     break;

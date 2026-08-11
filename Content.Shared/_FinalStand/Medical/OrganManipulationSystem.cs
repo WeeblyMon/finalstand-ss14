@@ -81,4 +81,14 @@ public sealed partial class OrganManipulationSystem : EntitySystem
 
         return true;
     }
+
+    public bool RemoveOrgan(EntityUid body, Entity<OrganComponent?> organ)
+    {
+        return RemoveOrgan(organ);
+    }
+
+    public bool RemoveOrgan(EntityUid body, EntityUid organ, OrganComponent? organComp)
+    {
+        return RemoveOrgan((organ, organComp));
+    }
 }
