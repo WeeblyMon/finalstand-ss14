@@ -1,0 +1,8 @@
+# Categories vanilla has no equivalent for. Groin is a distinct visual layer and Tail is worn by
+# arachnid, moth and reptilian species.
+
+- type: organCategory
+  id: Groin
+
+- type: organCategory
+  id: Tail
