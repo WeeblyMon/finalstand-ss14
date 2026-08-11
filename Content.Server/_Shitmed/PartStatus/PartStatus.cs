@@ -8,8 +8,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
-using Content.Shared.Body.Organ;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 
 namespace Content.Server._Shitmed.PartStatus;
 

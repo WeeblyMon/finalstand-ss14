@@ -14,7 +14,7 @@ using System.Linq;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;

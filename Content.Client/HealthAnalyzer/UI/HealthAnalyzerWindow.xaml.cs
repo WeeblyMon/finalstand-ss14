@@ -26,7 +26,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reagent;
 using System.Globalization;

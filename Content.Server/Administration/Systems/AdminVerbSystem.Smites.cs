@@ -23,7 +23,6 @@ using Content.Shared.Administration.Systems;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Organ;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Clumsy;
 using Content.Shared.Cluwne;

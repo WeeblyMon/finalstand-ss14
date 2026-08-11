@@ -3,7 +3,7 @@ using Content.Server.Stack;
 using Content.Server.Stunnable;
 using Content.Shared.ActionBlocker;
 using Content.Shared._FinalStand.Medical;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage.Systems;

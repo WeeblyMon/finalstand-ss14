@@ -7,7 +7,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.Body.Systems;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;

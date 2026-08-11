@@ -1,4 +1,4 @@
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Robust.Shared.Audio;
 
 namespace Content.Server._Shitmed.Medical.Tourniquet;

@@ -9,7 +9,7 @@
 
 using System.Linq;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
@@ -30,8 +30,8 @@ public partial class SharedBodySystem
 
         SubscribeLocalEvent<BodyPartAppearanceComponent, ComponentStartup>(OnPartAppearanceStartup);
         SubscribeLocalEvent<BodyPartAppearanceComponent, AfterAutoHandleStateEvent>(HandleState);
-        SubscribeLocalEvent<BodyComponent, BodyPartAddedEvent>(OnPartAttachedToBody);
-        SubscribeLocalEvent<BodyComponent, BodyPartRemovedEvent>(OnPartDroppedFromBody);
+        SubscribeLocalEvent<BodyComponent, OrganInsertedIntoEvent>(OnPartAttachedToBody);
+        SubscribeLocalEvent<BodyComponent, OrganRemovedFromEvent>(OnPartDroppedFromBody);
     }
 
     private void OnPartAppearanceStartup(EntityUid uid, BodyPartAppearanceComponent component, ComponentStartup args)
@@ -140,7 +140,7 @@ public partial class SharedBodySystem
     private void HandleState(EntityUid uid, BodyPartAppearanceComponent component, ref AfterAutoHandleStateEvent args) =>
         ApplyPartMarkings(uid, component);
 
-    private void OnPartAttachedToBody(EntityUid uid, BodyComponent component, ref BodyPartAddedEvent args)
+    private void OnPartAttachedToBody(EntityUid uid, BodyComponent component, ref OrganInsertedIntoEvent args)
     {
         if (!TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
             || _net.IsClient
@@ -149,8 +149,8 @@ public partial class SharedBodySystem
 
         BodyPartAppearanceComponent? partAppearance = null;
 
-        if (!TryComp(args.Part, out partAppearance))
-            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Part);
+        if (!TryComp(args.Organ, out partAppearance))
+            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Organ);
 
         if (partAppearance.ID != null)
             _humanoid.SetBaseLayerId(uid, partAppearance.Type, partAppearance.ID, sync: true, bodyAppearance);
@@ -158,10 +158,10 @@ public partial class SharedBodySystem
         UpdateAppearance(uid, partAppearance);
     }
 
-    private void OnPartDroppedFromBody(EntityUid uid, BodyComponent component, ref BodyPartRemovedEvent args)
+    private void OnPartDroppedFromBody(EntityUid uid, BodyComponent component, ref OrganRemovedFromEvent args)
     {
         if (TerminatingOrDeleted(uid)
-            || TerminatingOrDeleted(args.Part)
+            || TerminatingOrDeleted(args.Organ)
             || !TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
             || _timing.ApplyingState)
             return;
@@ -169,10 +169,10 @@ public partial class SharedBodySystem
         BodyPartAppearanceComponent? partAppearance = null;
         // We check for this conditional here since some entities may not have a profile... If they dont
         // have one, and their part is gibbed, the markings will not be removed or applied properly.
-        if (!TryComp<BodyPartAppearanceComponent>(args.Part, out partAppearance))
-            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Part);
+        if (!TryComp<BodyPartAppearanceComponent>(args.Organ, out partAppearance))
+            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Organ);
 
-        RemoveAppearance(uid, partAppearance, args.Part);
+        RemoveAppearance(uid, partAppearance, args.Organ);
     }
 
     protected void UpdateAppearance(EntityUid target,

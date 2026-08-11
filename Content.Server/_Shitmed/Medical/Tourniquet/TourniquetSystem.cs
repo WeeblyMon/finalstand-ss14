@@ -13,7 +13,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;

@@ -13,7 +13,7 @@
 using Content.Server.Atmos.Rotting;
 using Content.Server.Body.Systems;
 using Content.Server.Chat.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Server.Popups;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Damage;

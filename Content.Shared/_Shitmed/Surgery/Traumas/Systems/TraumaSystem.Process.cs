@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Robust.Shared.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
@@ -13,7 +14,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared.Armor;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Damage.Components;
 using Content.Shared.Inventory;
 using Robust.Shared.Containers;
@@ -298,11 +299,11 @@ public partial class TraumaSystem
         return traumaList;
     }
 
-    public FixedPoint2 GetArmourChanceDeduction(EntityUid body, Entity<TraumaInflicterComponent> inflicter, TraumaType traumaType, BodyPartType coverage)
+    public FixedPoint2 GetArmourChanceDeduction(EntityUid body, Entity<TraumaInflicterComponent> inflicter, TraumaType traumaType, ProtoId<OrganCategoryPrototype> coverage)
     {
         var deduction = FixedPoint2.Zero;
 
-        var ev = new GetSecondSkinDeductionEvent((int) coverage, (int) traumaType);
+        var ev = new GetSecondSkinDeductionEvent(coverage.Id, (int) traumaType);
         RaiseLocalEvent(body, ref ev);
         deduction += ev.Deduction;
 
@@ -329,7 +330,7 @@ public partial class TraumaSystem
         Entity<WoundableComponent> traumaTarget,
         FixedPoint2 severity,
         TraumaType traumaType,
-        BodyPartType coverage)
+        ProtoId<OrganCategoryPrototype> coverage)
     {
         var deduction = traumaTarget.Comp.TraumaDeductions.GetValueOrDefault(traumaType, FixedPoint2.Zero);
         deduction += GetArmourChanceDeduction(body, inflicter, traumaType, coverage);
@@ -563,7 +564,7 @@ public partial class TraumaSystem
         Entity<TraumaInflicterComponent> inflicter,
         TraumaType traumaType,
         FixedPoint2 severity,
-        (BodyPartType, BodyPartSymmetry)? targetType = null)
+        ProtoId<OrganCategoryPrototype>? targetCategory = null)
     {
         if (TerminatingOrDeleted(inflicter))
             return EntityUid.Invalid;
@@ -578,8 +579,8 @@ public partial class TraumaSystem
             // Right now wounds on a specified woundable can't wound other woundables, but in case IF something happens or IF someone decides to do that
 
             //  Allows us to create multiple dismemberment traumas on the same body part.
-            if (targetType.HasValue
-                && targetType.Value != containedTraumaComp.TargetType)
+            if (targetCategory.HasValue
+                && targetCategory.Value != containedTraumaComp.TargetCategory)
                 continue;
 
             containedTraumaComp.TraumaSeverity = severity;
@@ -593,8 +594,8 @@ public partial class TraumaSystem
 
         traumaComp.TraumaTarget = target;
 
-        if (targetType.HasValue)
-            traumaComp.TargetType = targetType.Value;
+        if (targetCategory.HasValue)
+            traumaComp.TargetCategory = targetCategory.Value;
 
         traumaComp.HoldingWoundable = holdingWoundable;
 

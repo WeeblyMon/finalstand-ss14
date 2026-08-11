@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using JetBrains.Annotations;
 
 // Leaving this one in the default namespace because I am afraid to test it

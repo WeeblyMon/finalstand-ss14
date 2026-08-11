@@ -10,7 +10,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Weapons.Melee.Events;
 using Content.Shared._Shitmed.Weapons.Ranged.Events;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Components;
 using Content.Shared.Popups;

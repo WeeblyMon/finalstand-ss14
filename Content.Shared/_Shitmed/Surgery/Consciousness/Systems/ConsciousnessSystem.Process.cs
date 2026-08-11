@@ -16,10 +16,8 @@ public partial class ConsciousnessSystem
         SubscribeLocalEvent<ConsciousnessComponent, MobStateChangedEvent>(OnMobStateChanged);
         // To prevent people immediately falling down as rejuvenated
         SubscribeLocalEvent<ConsciousnessComponent, RejuvenateEvent>(OnRejuvenate, after: [typeof(SharedBodySystem)]);
-        SubscribeLocalEvent<ConsciousnessRequiredComponent, BodyPartAddedEvent>(OnBodyPartAdded);
-        SubscribeLocalEvent<ConsciousnessRequiredComponent, BodyPartRemovedEvent>(OnBodyPartRemoved);
-        SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganAddedToBodyEvent>(OnOrganAdded);
-        SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganRemovedFromBodyEvent>(OnOrganRemoved);
+        SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganGotInsertedEvent>(OnOrganAdded);
+        SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganGotRemovedEvent>(OnOrganRemoved);
         SubscribeLocalEvent<ConsciousnessComponent, MapInitEvent>(OnConsciousnessMapInit);
     }
 
@@ -116,69 +114,37 @@ public partial class ConsciousnessSystem
         CheckConscious(uid, consciousness);
     }
 
-    private void OnBodyPartAdded(EntityUid uid, ConsciousnessRequiredComponent component, ref BodyPartAddedEvent args)
+    private void OnOrganAdded(EntityUid uid, ConsciousnessRequiredComponent component, ref OrganGotInsertedEvent args)
     {
         if (!_timing.IsFirstTimePredicted
-            || args.Part.Comp.Body == null
-            || !TryComp<ConsciousnessComponent>(args.Part.Comp.Body, out var consciousness))
+            || !TryComp<ConsciousnessComponent>(args.Target, out var consciousness))
             return;
 
         if (consciousness.RequiredConsciousnessParts.TryGetValue(component.Identifier, out var value) && value.Item1 != null && value.Item1 != uid)
             Log.Warning($"ConsciousnessRequirementPart with duplicate Identifier {component.Identifier}:{uid} added to a body:" +
-                        $" {args.Part.Comp.Body} this will result in unexpected behaviour!");
-
-        consciousness.RequiredConsciousnessParts[component.Identifier] = (uid, component.CausesDeath, false);
-        CheckRequiredParts(args.Part.Comp.Body.Value, consciousness);
-    }
-
-    private void OnBodyPartRemoved(EntityUid uid, ConsciousnessRequiredComponent component, ref BodyPartRemovedEvent args)
-    {
-        if (!_timing.IsFirstTimePredicted
-            || args.Part.Comp.Body == null
-            || !TryComp<ConsciousnessComponent>(args.Part.Comp.Body.Value, out var consciousness))
-            return;
-
-        if (!consciousness.RequiredConsciousnessParts.TryGetValue(component.Identifier, out var value))
-        {
-            Log.Warning($"ConsciousnessRequirementPart with identifier {component.Identifier}:{uid} not found on body:{args.Part.Comp.Body}");
-            return;
-        }
-
-        consciousness.RequiredConsciousnessParts[component.Identifier] = (uid, value.Item2, true);
-        CheckRequiredParts(args.Part.Comp.Body.Value, consciousness);
-    }
-
-    private void OnOrganAdded(EntityUid uid, ConsciousnessRequiredComponent component, ref OrganAddedToBodyEvent args)
-    {
-        if (!_timing.IsFirstTimePredicted
-            || !TryComp<ConsciousnessComponent>(args.Body, out var consciousness))
-            return;
-
-        if (consciousness.RequiredConsciousnessParts.TryGetValue(component.Identifier, out var value) && value.Item1 != null && value.Item1 != uid)
-            Log.Warning($"ConsciousnessRequirementPart with duplicate Identifier {component.Identifier}:{uid} added to a body:" +
-                             $" {args.Body} this will result in unexpected behaviour! Old {component.Identifier} wielder: {value.Item1}");
+                             $" {args.Target} this will result in unexpected behaviour! Old {component.Identifier} wielder: {value.Item1}");
 
         consciousness.RequiredConsciousnessParts[component.Identifier] = (uid, component.CausesDeath, false);
 
         if (component.Identifier == NerveSystemIdentifier)
             consciousness.NerveSystem = (uid, Comp<NerveSystemComponent>(uid));
 
-        CheckRequiredParts(args.Body, consciousness);
+        CheckRequiredParts(args.Target, consciousness);
     }
 
-    private void OnOrganRemoved(EntityUid uid, ConsciousnessRequiredComponent component, ref OrganRemovedFromBodyEvent args)
+    private void OnOrganRemoved(EntityUid uid, ConsciousnessRequiredComponent component, ref OrganGotRemovedEvent args)
     {
         if (!_timing.IsFirstTimePredicted
-            || !TryComp<ConsciousnessComponent>(args.OldBody, out var consciousness))
+            || !TryComp<ConsciousnessComponent>(args.Target, out var consciousness))
             return;
 
         if (!consciousness.RequiredConsciousnessParts.TryGetValue(component.Identifier, out var value))
         {
-            Log.Warning($"ConsciousnessRequirementPart with identifier {component.Identifier}:{uid} not found on body:{args.OldBody}");
+            Log.Warning($"ConsciousnessRequirementPart with identifier {component.Identifier}:{uid} not found on body:{args.Target}");
             return;
         }
 
         consciousness.RequiredConsciousnessParts[component.Identifier] = (uid, value.Item2, true);
-        CheckRequiredParts(args.OldBody, consciousness);
+        CheckRequiredParts(args.Target, consciousness);
     }
 }

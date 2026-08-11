@@ -19,7 +19,7 @@ using Content.Shared._Shitmed.Weapons.Ranged.Events;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._Shitmed.Targeting.Events;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;

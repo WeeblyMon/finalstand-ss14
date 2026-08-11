@@ -3,7 +3,7 @@ using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Pain;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
 using Content.Shared.Popups;

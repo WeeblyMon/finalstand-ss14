@@ -10,8 +10,7 @@ using Content.Server.Emp;
 
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Cybernetics;
-using Content.Shared.Body.Part;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;

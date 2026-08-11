@@ -15,7 +15,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;

@@ -1,6 +1,6 @@
 using System.Text;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
 using Robust.Shared.Console;

@@ -14,7 +14,7 @@ using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;

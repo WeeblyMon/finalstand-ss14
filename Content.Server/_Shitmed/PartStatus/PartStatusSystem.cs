@@ -17,7 +17,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.PartStatus.Events;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Chat;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Player;

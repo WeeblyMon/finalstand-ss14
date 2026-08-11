@@ -9,7 +9,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared._Shitmed.BodyEffects.Subsystems;
 using Robust.Shared.Map;

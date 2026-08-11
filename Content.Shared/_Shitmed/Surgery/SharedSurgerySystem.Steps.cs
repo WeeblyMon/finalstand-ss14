@@ -22,8 +22,7 @@
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Bed.Sleep;
-using Content.Shared.Body.Part;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared._Shitmed.BodyEffects;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Containers.ItemSlots;
@@ -53,7 +52,7 @@ namespace Content.Shared._Shitmed.Medical.Surgery;
 
 public abstract partial class SharedSurgerySystem
 {
-    private EntityQuery<BodyPartComponent> _partQuery;
+    private EntityQuery<OrganComponent> _partQuery;
     private EntityQuery<SurgeryIgnoreClothingComponent> _ignoreQuery;
     private EntityQuery<SurgeryStepComponent> _stepQuery;
     private EntityQuery<SurgeryToolComponent> _toolQuery;

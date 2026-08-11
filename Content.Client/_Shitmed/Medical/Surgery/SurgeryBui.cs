@@ -17,7 +17,7 @@ using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.Player;

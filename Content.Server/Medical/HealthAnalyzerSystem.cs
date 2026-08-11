@@ -137,7 +137,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Targeting;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
