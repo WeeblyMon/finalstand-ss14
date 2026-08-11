@@ -10,6 +10,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Server.Atmos.Rotting;
 using Content.Server.Body.Systems;
 using Content.Server.Chat.Systems;
@@ -38,6 +39,7 @@ namespace Content.Server._Shitmed.Medical.Surgery;
 
 public sealed class SurgerySystem : SharedSurgerySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly BodySystem _body = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
@@ -65,7 +67,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
     protected override void RefreshUI(EntityUid body)
     {
         _surgeries.Clear();
-        foreach (var part in _body.GetBodyChildren(body))
+        foreach (var part in _lookup.GetBodyOrgans(body))
         {
             var valid = new List<EntProtoId>();
             foreach (var surgery in AllSurgeries)
@@ -114,7 +116,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
             damage,
             true,
             origin: user,
-            targetPart: affectAll ? TargetBodyPart.All : _body.GetTargetBodyPart(partComp));
+            targetPart: affectAll ? TargetBodyPart.All : _lookup.GetTarget(partComp));
     }
 
     private void OnSurgeryStepDamage(Entity<SurgeryTargetComponent> ent, ref SurgeryStepDamageEvent args) =>

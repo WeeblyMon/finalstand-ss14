@@ -6,6 +6,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Shitmed.CCVar;
@@ -918,7 +919,7 @@ public sealed partial class WoundSystem
             && !ampEv.Cancelled) // goob edit
             _damageable.TryChangeDamage(bodyPart.Body.Value,
                 woundableComp.DamageOnAmputate,
-                targetPart: _body.GetTargetBodyPart(rootPart!.Value));
+                targetPart: _lookup.GetTarget(rootPart!.Value));
 
         AmputateWoundableSafely(parentWoundableEntity, woundableEntity);
 
@@ -1022,7 +1023,7 @@ public sealed partial class WoundSystem
         if (!Resolve(woundable, ref woundableComp, false))
             return;
 
-        foreach (var organ in _body.GetPartOrgans(woundable))
+        foreach (var organ in _lookup.EnumerateChildOrgans(woundable))
         {
             if (organ.Component.OrganSeverity == OrganSeverity.Normal)
             {
@@ -1445,9 +1446,9 @@ public sealed partial class WoundSystem
             result[part] = WoundableSeverity.Severed;
         }
 
-        foreach (var (id, bodyPart) in _body.GetBodyChildren(body))
+        foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _body.GetTargetBodyPart(bodyPart);
+            var target = _lookup.GetTarget(bodyPart);
 
             if (!TryComp<WoundableComponent>(id, out var woundable))
                 continue;
@@ -1467,9 +1468,9 @@ public sealed partial class WoundSystem
             result[part] = WoundableSeverity.Severed;
         }
 
-        foreach (var (id, bodyPart) in _body.GetBodyChildren(body))
+        foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _body.GetTargetBodyPart(bodyPart);
+            var target = _lookup.GetTarget(bodyPart);
 
             if (!TryComp<WoundableComponent>(id, out var woundable)
                 || !TryComp<DamageableComponent>(id, out var damageable))
@@ -1514,9 +1515,9 @@ public sealed partial class WoundSystem
             result[part] = WoundableSeverity.Severed;
         }
 
-        foreach (var (id, bodyPart) in _body.GetBodyChildren(body))
+        foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _body.GetTargetBodyPart(bodyPart);
+            var target = _lookup.GetTarget(bodyPart);
 
             if (!TryComp<WoundableComponent>(id, out var woundable) || !TryComp<NerveComponent>(id, out var nerve))
                 continue;

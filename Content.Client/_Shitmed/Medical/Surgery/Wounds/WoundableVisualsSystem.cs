@@ -9,6 +9,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
@@ -30,6 +31,7 @@ namespace Content.Client._Shitmed.Medical.Surgery.Wounds;
 public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsComponent>
 {
     #region Dependencies
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
@@ -123,7 +125,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         if (body is null)
             return;
 
-        foreach (var part in _body.GetBodyPartChildren(ent))
+        foreach (var part in _lookup.GetBodyOrgans(ent))
         {
             if (!TryComp<WoundableVisualsComponent>(part.Id, out var woundableVisuals))
                 continue;
@@ -233,7 +235,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         BodyPartComponent bodyPart,
         Entity<SpriteComponent?> sprite)
     {
-        if (!_body.TryGetParentBodyPart(woundable, out var parentUid, out _))
+        if (!_lookup.TryGetParentOrgan(woundable, out var parentUid, out _))
             return;
 
         var partKey = GetLimbBleedingKey(bodyPart);

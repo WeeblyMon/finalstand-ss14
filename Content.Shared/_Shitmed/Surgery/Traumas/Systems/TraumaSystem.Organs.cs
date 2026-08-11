@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Pain;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
@@ -35,7 +36,7 @@ public partial class TraumaSystem
         if (!_consciousness.TryGetNerveSystem(args.Organ.Comp.Body.Value, out var nerveSys))
             return;
 
-        var organs = _body.GetPartOrgans(args.Organ.Comp.Body.Value).ToList();
+        var organs = _lookup.EnumerateChildOrgans(args.Organ.Comp.Body.Value).ToList();
         var totalIntegrity = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.OrganIntegrity);
         var totalIntegrityCap = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.IntegrityCap);
         // Getting your organ turned into a blood mush inside you applies a LOT of internal pain, that can get you dead.

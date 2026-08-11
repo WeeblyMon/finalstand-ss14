@@ -502,7 +502,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     /// the Goob source or our port — checking it always returns 0, so per-part
     /// bleeding never appears in the analyzer. Aggregate by walking each wound on
     /// the body part and checking BleedInflicterComponent.IsBleeding, which IS
-    /// updated by SharedBloodstreamSystem when wounds open.
+    /// updated by BloodstreamSystem when wounds open.
     /// </summary>
     private bool IsWoundableBleeding(EntityUid woundable)
     {

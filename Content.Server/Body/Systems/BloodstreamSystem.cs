@@ -5,7 +5,7 @@ using Content.Shared.Forensics;
 
 namespace Content.Server.Body.Systems;
 
-public sealed class BloodstreamSystem : SharedBloodstreamSystem
+public sealed class BloodstreamSystem : BloodstreamSystem
 {
     public override void Initialize()
     {

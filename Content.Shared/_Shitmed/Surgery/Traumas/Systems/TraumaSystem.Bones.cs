@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.DoAfter;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
@@ -312,7 +313,7 @@ public partial class TraumaSystem
             // Get the foot penalty
             var penalty = 1f;
             var footEnt =
-                _body.GetBodyChildrenOfType(body,
+                _lookup.EnumerateOrgansOfCategory(body,
                         BodyPartType.Foot,
                         symmetry: Comp<BodyPartComponent>(legEntity).Symmetry)
                     .FirstOrNull();

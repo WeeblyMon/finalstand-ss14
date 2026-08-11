@@ -180,7 +180,7 @@ public sealed partial class PainSystem : EntitySystem
     private void UpdateNerveSystemNerves(EntityUid uid, EntityUid body, NerveSystemComponent component)
     {
         component.Nerves.Clear();
-        foreach (var bodyPart in _body.GetBodyChildren(body))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
             if (!TryComp<NerveComponent>(bodyPart.Id, out var nerve))
                 continue;

@@ -50,14 +50,14 @@ public sealed partial class SharedForensicsSystem : EntitySystem
         ApplyEvidence(ent.Owner, args.Other);
     }
 
-    [SubscribeLocalEvent(after: [typeof(SharedBloodstreamSystem)])]
+    [SubscribeLocalEvent(after: [typeof(BloodstreamSystem)])]
     private void OnFingerprintInit(Entity<FingerprintComponent> ent, ref MapInitEvent args)
     {
         if (ent.Comp.Fingerprint == null)
             RandomizeFingerprint((ent.Owner, ent.Comp));
     }
 
-    [SubscribeLocalEvent(after: [typeof(SharedBloodstreamSystem)])]
+    [SubscribeLocalEvent(after: [typeof(BloodstreamSystem)])]
     private void OnDNAInit(Entity<DnaComponent> ent, ref MapInitEvent args)
     {
         if (ent.Comp.DNA == null)

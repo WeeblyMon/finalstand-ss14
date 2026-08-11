@@ -42,9 +42,18 @@ public sealed partial class BloodstreamSystem : EntitySystem
     [Dependency] private DamageableSystem _damageableSystem = default!;
     [Dependency] private MetabolizerSystem _metabolizer = default!;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        InitializeWounds();
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        UpdateWounds(frameTime);
 
         var curTime = _timing.CurTime;
         var query = EntityQueryEnumerator<BloodstreamComponent>();

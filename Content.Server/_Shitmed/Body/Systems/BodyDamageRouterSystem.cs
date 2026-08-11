@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
@@ -29,6 +30,7 @@ namespace Content.Server._Shitmed.Body.Systems;
 /// </remarks>
 public sealed class BodyDamageRouterSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
@@ -48,7 +50,7 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         // Collect woundable body parts. The mob itself doesn't have WoundableComponent —
         // its anatomical sub-entities do.
         var parts = new List<EntityUid>();
-        foreach (var (partId, _) in _body.GetBodyChildren(uid, body))
+        foreach (var (partId, _) in _lookup.GetBodyOrgans(uid, body))
         {
             if (HasComp<WoundableComponent>(partId))
                 parts.Add(partId);
@@ -94,7 +96,7 @@ public sealed class BodyDamageRouterSystem : EntitySystem
     {
         foreach (var part in candidates)
         {
-            if (_body.GetTargetBodyPart(part) == target)
+            if (_lookup.GetTarget(part) == target)
                 return part;
         }
         return null;

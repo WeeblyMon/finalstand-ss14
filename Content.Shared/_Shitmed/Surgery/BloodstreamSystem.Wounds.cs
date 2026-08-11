@@ -23,17 +23,14 @@ using Content.Shared.Body.Components;
 namespace Content.Shared.Body.Systems;
 
 [UsedImplicitly]
-public abstract partial class SharedBloodstreamSystem
+public sealed partial class BloodstreamSystem
 {
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly ConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
 
     private void InitializeWounds()
     {
-        base.Initialize();
-
         SubscribeLocalEvent<BleedInflicterComponent, WoundSeverityPointChangedEvent>(OnBleedInflicterSeverityUpdate);
         SubscribeLocalEvent<BleedRemoverComponent, WoundSeverityPointChangedEvent>(OnBleedRemoverSeverityUpdate);
         SubscribeLocalEvent<BleedInflicterComponent, WoundHealAttemptEvent>(OnWoundHealAttempt);
@@ -42,8 +39,6 @@ public abstract partial class SharedBloodstreamSystem
 
     private void UpdateWounds(float frameTime)
     {
-        base.Update(frameTime);
-
         var bleedsQuery = EntityQueryEnumerator<BleedInflicterComponent>();
         while (bleedsQuery.MoveNext(out var ent, out var bleeds))
         {

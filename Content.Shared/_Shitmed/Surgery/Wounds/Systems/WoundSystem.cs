@@ -8,6 +8,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Body;
 using Content.Shared._Shitmed.CCVar;
@@ -42,6 +43,7 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 
 public sealed partial class WoundSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IPrototypeManager _prototype = default!;
     [Dependency] private readonly IComponentFactory _factory = default!;
 
@@ -176,7 +178,7 @@ public sealed partial class WoundSystem : EntitySystem
         _damageable.TryChangeDamage(bodyEnt,
             damageSpecifier,
             ignoreResistances: false,
-            targetPart: _body.GetTargetBodyPart(woundable));
+            targetPart: _lookup.GetTarget(woundable));
     }
 
     private void OnWoundComponentGet(EntityUid uid, WoundComponent comp, ref ComponentGetState args)

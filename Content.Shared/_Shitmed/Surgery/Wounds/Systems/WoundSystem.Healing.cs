@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Components;
@@ -104,7 +105,7 @@ public partial class WoundSystem
 
         // Collect all woundables and their total bleeding amounts
         var bleedingWoundables = new List<(EntityUid Woundable, FixedPoint2 BleedAmount)>();
-        foreach (var (bodyPart, _) in _body.GetBodyChildren(body))
+        foreach (var (bodyPart, _) in _lookup.GetBodyOrgans(body))
         {
             FixedPoint2 totalBleedAmount = FixedPoint2.Zero;
             bool hasBleedingWounds = false;
@@ -328,7 +329,7 @@ public partial class WoundSystem
         var biggestDamage = FixedPoint2.Zero;
 
         woundable = null;
-        foreach (var bodyPart in _body.GetBodyChildren(body))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
             if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp))
                 continue;
@@ -458,7 +459,7 @@ public partial class WoundSystem
     {
         woundables = [];
 
-        foreach (var bodyPart in _body.GetBodyChildren(target))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(target))
         {
             if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp) || !woundableComp.Wounds.ContainedEntities.Any())
                 continue;

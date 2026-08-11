@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using Content.Server.Body.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Components;
@@ -34,6 +35,7 @@ namespace Content.Server._Shitmed.Medical.Tourniquet;
 /// </summary>
 public sealed class TourniquetSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly SharedBodySystem _body = default!;
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
@@ -157,12 +159,12 @@ public sealed class TourniquetSystem : EntitySystem
 
         var (partType, symmetry) = _body.ConvertTargetBodyPart(targeting.Target);
 
-        var targetPart = _body.GetBodyChildrenOfType(ent, partType, symmetry: symmetry).FirstOrNull();
+        var targetPart = _lookup.EnumerateOrgansOfCategory(ent, partType, symmetry: symmetry).FirstOrNull();
 
         if (targetPart == null)
         {
             var tourniquetable = EntityUid.Invalid;
-            foreach (var bodyPart in _body.GetBodyChildren(ent, comp))
+            foreach (var bodyPart in _lookup.GetBodyOrgans(ent, comp))
             {
                 if (!bodyPart.Component.Children
                         .Any(bodyPartSlot =>

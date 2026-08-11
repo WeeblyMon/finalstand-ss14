@@ -1,5 +1,6 @@
 // Well-known organ category ids and the groupings that replace Goob's (BodyPartType, Symmetry) pairs.
 
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body;
 using Robust.Shared.Prototypes;
 
@@ -33,4 +34,35 @@ public static class OrganCategories
     public static readonly ProtoId<OrganCategoryPrototype>[] Hands = [HandLeft, HandRight];
     public static readonly ProtoId<OrganCategoryPrototype>[] Legs = [LegLeft, LegRight];
     public static readonly ProtoId<OrganCategoryPrototype>[] Feet = [FootLeft, FootRight];
+
+    // Targeting stays a flags enum because damage spreads across several parts at once, which a
+    // single category id cannot express.
+    private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, TargetBodyPart> ToTargetMap = new()
+    {
+        [Head] = TargetBodyPart.Head,
+        [Torso] = TargetBodyPart.Chest,
+        [Groin] = TargetBodyPart.Groin,
+        [ArmLeft] = TargetBodyPart.LeftArm,
+        [ArmRight] = TargetBodyPart.RightArm,
+        [HandLeft] = TargetBodyPart.LeftHand,
+        [HandRight] = TargetBodyPart.RightHand,
+        [LegLeft] = TargetBodyPart.LeftLeg,
+        [LegRight] = TargetBodyPart.RightLeg,
+        [FootLeft] = TargetBodyPart.LeftFoot,
+        [FootRight] = TargetBodyPart.RightFoot,
+    };
+
+    public static TargetBodyPart? ToTarget(ProtoId<OrganCategoryPrototype>? category)
+    {
+        return category is { } id && ToTargetMap.TryGetValue(id, out var target) ? target : null;
+    }
+
+    public static IEnumerable<ProtoId<OrganCategoryPrototype>> FromTarget(TargetBodyPart target)
+    {
+        foreach (var (category, flag) in ToTargetMap)
+        {
+            if ((target & flag) != 0)
+                yield return category;
+        }
+    }
 }

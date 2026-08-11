@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Robust.Shared.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
@@ -243,7 +244,7 @@ public partial class TraumaSystem
         TraumaType? traumaType = null,
         BodyComponent? bodyComp = null)
     {
-        return Resolve(body, ref bodyComp, false) && _body.GetBodyChildren(body, bodyComp).Any(bodyPart => HasWoundableTrauma(bodyPart.Id, traumaType));
+        return Resolve(body, ref bodyComp, false) && _lookup.GetBodyOrgans(body, bodyComp).Any(bodyPart => HasWoundableTrauma(bodyPart.Id, traumaType));
     }
 
     public bool TryGetBodyTraumas(
@@ -257,7 +258,7 @@ public partial class TraumaSystem
             return false;
 
         traumas = new List<Entity<TraumaComponent>>();
-        foreach (var bodyPart in _body.GetBodyChildren(body, bodyComp))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(body, bodyComp))
         {
             if (TryGetWoundableTrauma(bodyPart.Id, out var traumasFound, traumaType))
                 traumas.AddRange(traumasFound);
@@ -461,7 +462,7 @@ public partial class TraumaSystem
             return false; // No entity to apply pain to
 
         var totalIntegrity =
-            _body.GetPartOrgans(target, bodyPart)
+            _lookup.EnumerateChildOrgans(target, bodyPart)
                 .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.OrganIntegrity);
 
         if (totalIntegrity <= 0) // No surviving organs
@@ -670,7 +671,7 @@ public partial class TraumaSystem
                     break;
 
                 case TraumaType.OrganDamage:
-                    var organs = _body.GetPartOrgans(target).ToList();
+                    var organs = _lookup.EnumerateChildOrgans(target).ToList();
                     _random.Shuffle(organs);
 
                     var chosenOrgan = organs.FirstOrNull();
