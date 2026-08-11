@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using Content.Shared._Shitmed.Body.Part;
@@ -26,8 +27,6 @@ public partial class SharedBodySystem
 
     private void InitializePartAppearances()
     {
-        base.Initialize();
-
         SubscribeLocalEvent<BodyPartAppearanceComponent, ComponentStartup>(OnPartAppearanceStartup);
         SubscribeLocalEvent<BodyPartAppearanceComponent, AfterAutoHandleStateEvent>(HandleState);
         SubscribeLocalEvent<BodyComponent, OrganInsertedIntoEvent>(OnPartAttachedToBody);
@@ -36,13 +35,13 @@ public partial class SharedBodySystem
 
     private void OnPartAppearanceStartup(EntityUid uid, BodyPartAppearanceComponent component, ComponentStartup args)
     {
-        if (!TryComp(uid, out BodyPartComponent? part)
+        if (!TryComp(uid, out OrganComponent? part)
             || part.ToHumanoidLayers() is not { } relevantLayer)
             return;
 
-        if (part.BaseLayerId != null)
+        if (component.BaseLayerId != null)
         {
-            component.ID = part.BaseLayerId;
+            component.ID = component.BaseLayerId;
             component.Type = relevantLayer;
             return;
         }
@@ -55,7 +54,7 @@ public partial class SharedBodySystem
         var spriteLayers = bodyAppearance.BaseLayers;
         component.Type = relevantLayer;
 
-        part.Species = bodyAppearance.Species;
+        component.Species = bodyAppearance.Species;
 
         if (customLayers.ContainsKey(component.Type))
         {
@@ -74,7 +73,7 @@ public partial class SharedBodySystem
         }
 
         // I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS
-        if (part.PartType == BodyPartType.Head)
+        if (part.Category == OrganCategories.Head)
             component.EyeColor = bodyAppearance.EyeColor;
 
         var markingsByLayer = new Dictionary<HumanoidVisualLayers, List<Marking>>();
@@ -163,7 +162,7 @@ public partial class SharedBodySystem
         if (TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(args.Organ)
             || !TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
-            || _timing.ApplyingState)
+            || Timing.ApplyingState)
             return;
 
         BodyPartAppearanceComponent? partAppearance = null;
