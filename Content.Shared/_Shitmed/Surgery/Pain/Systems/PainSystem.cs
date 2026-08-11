@@ -10,7 +10,8 @@ using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Humanoid;
 using Content.Shared.Jittering;
@@ -50,6 +51,7 @@ public sealed partial class PainSystem : EntitySystem
 
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly ConsciousnessSystem _consciousness = default!;
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly TraumaSystem _trauma = default!;
 
     private bool _screamsEnabled = false;
@@ -61,8 +63,8 @@ public sealed partial class PainSystem : EntitySystem
         SubscribeLocalEvent<NerveComponent, ComponentHandleState>(OnComponentHandleState);
         SubscribeLocalEvent<NerveComponent, ComponentGetState>(OnComponentGet);
 
-        SubscribeLocalEvent<NerveComponent, BodyPartAddedEvent>(OnBodyPartAdded);
-        SubscribeLocalEvent<NerveComponent, BodyPartRemovedEvent>(OnBodyPartRemoved);
+        SubscribeLocalEvent<NerveComponent, OrganGotInsertedEvent>(OnOrganInserted);
+        SubscribeLocalEvent<NerveComponent, OrganGotRemovedEvent>(OnOrganRemoved);
 
         SubscribeLocalEvent<NerveSystemComponent, MobStateChangedEvent>(OnMobStateChanged);
 
@@ -136,32 +138,24 @@ public sealed partial class PainSystem : EntitySystem
         args.State = state;
     }
 
-    private void OnBodyPartAdded(EntityUid uid, NerveComponent nerve, ref BodyPartAddedEvent args)
+    private void OnOrganInserted(EntityUid uid, NerveComponent nerve, ref OrganGotInsertedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(uid);
-        if (!bodyPart.Body.HasValue)
+        if (!_consciousness.TryGetNerveSystem(args.Target, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
             return;
 
-        if (!_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
-            return;
-
-        UpdateNerveSystemNerves(brainUid.Value, bodyPart.Body.Value, Comp<NerveSystemComponent>(brainUid.Value));
+        UpdateNerveSystemNerves(brainUid.Value, args.Target, Comp<NerveSystemComponent>(brainUid.Value));
     }
 
-    private void OnBodyPartRemoved(EntityUid uid, NerveComponent nerve, ref BodyPartRemovedEvent args)
+    private void OnOrganRemoved(EntityUid uid, NerveComponent nerve, ref OrganGotRemovedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(uid);
-        if (!bodyPart.Body.HasValue)
-            return;
-
-        if (!_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
+        if (!_consciousness.TryGetNerveSystem(args.Target, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
             return;
 
         foreach (var modifier in brainUid.Value.Comp.Modifiers
                      .Where(modifier => modifier.Key.Item1 == uid))
             brainUid.Value.Comp.Modifiers.Remove((modifier.Key.Item1, modifier.Key.Item2));
 
-        UpdateNerveSystemNerves(brainUid.Value, bodyPart.Body.Value, Comp<NerveSystemComponent>(brainUid.Value));
+        UpdateNerveSystemNerves(brainUid.Value, args.Target, Comp<NerveSystemComponent>(brainUid.Value));
     }
 
     private void OnMobStateChanged(EntityUid uid, NerveSystemComponent nerveSys, MobStateChangedEvent args)

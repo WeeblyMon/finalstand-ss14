@@ -1,7 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.EntityEffects;
 using Content.Shared.FixedPoint;
@@ -41,23 +42,23 @@ public sealed partial class SuppressPain : EntityEffect
         if (!args.EntityManager.System<ConsciousnessSystem>().TryGetNerveSystem(args.TargetEntity, out var nerveSys))
             return;
 
-        var bodyPart = args.EntityManager.System<SharedBodySystem>()
-            .GetBodyChildrenOfType(args.TargetEntity, BodyPartType.Head)
+        var head = args.EntityManager.System<OrganLookupSystem>()
+            .EnumerateOrgansOfCategory(args.TargetEntity, OrganCategories.Head)
             .FirstOrNull();
 
-        if (bodyPart == null)
+        if (head == null)
             return;
 
         if (!args.EntityManager.System<PainSystem>()
-                .TryGetPainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, out var modifier))
+                .TryGetPainModifier(nerveSys.Value, head.Value.Owner, ModifierIdentifier, out var modifier))
         {
             args.EntityManager.System<PainSystem>()
-                .TryAddPainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, -Amount * scale, time: Time);
+                .TryAddPainModifier(nerveSys.Value, head.Value.Owner, ModifierIdentifier, -Amount * scale, time: Time);
         }
         else
         {
             args.EntityManager.System<PainSystem>()
-                .TryChangePainModifier(nerveSys.Value, bodyPart.Value.Id, ModifierIdentifier, modifier.Value.Change - Amount * scale, time: Time);
+                .TryChangePainModifier(nerveSys.Value, head.Value.Owner, ModifierIdentifier, modifier.Value.Change - Amount * scale, time: Time);
         }
     }
 }

@@ -12,8 +12,6 @@ using Content.Shared._Shitmed.Medical.Surgery.Consciousness;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
-using Content.Shared.Body.Organ;
-using Content.Shared.Body.Part;
 using Content.Shared.Damage.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Systems;
@@ -628,8 +626,8 @@ public partial class PainSystem
         if (!Resolve(nerveUid, ref nerveComp, false))
             return;
 
-        var bodyPart = Comp<BodyPartComponent>(nerveUid);
-        if (bodyPart.Body == null)
+        var organ = Comp<OrganComponent>(nerveUid);
+        if (organ.Body == null)
             return;
 
         var ev = new PainFeelsChangedEvent(nerveComp.ParentedNerveSystem, nerveUid, nerveComp.PainFeels);

@@ -1,7 +1,7 @@
 ﻿using System.Linq;
-using Content.Shared.Body.Part;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
+using Content.Shared.Body;
 using Content.Shared.Body.Events;
 using Content.Shared.Body.Systems;
 using Content.Shared.Mobs;

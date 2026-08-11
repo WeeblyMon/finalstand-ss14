@@ -12,8 +12,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Organ;
-using Content.Shared.Body.Part;
 using Content.Shared.Examine;
 using Content.Shared.Verbs;
 using Robust.Shared.Utility;
@@ -41,7 +39,6 @@ public sealed class SurgeryToolExamineSystem : EntitySystem
         SubscribeLocalEvent<TendingComponent, SurgeryToolExaminedEvent>(OnExamined);
         SubscribeLocalEvent<TweezersComponent, SurgeryToolExaminedEvent>(OnExamined);
         SubscribeLocalEvent<BoneSetterComponent, SurgeryToolExaminedEvent>(OnExamined);
-        SubscribeLocalEvent<BodyPartComponent, SurgeryToolExaminedEvent>(OnExamined);
         SubscribeLocalEvent<OrganComponent, SurgeryToolExaminedEvent>(OnExamined);
         SubscribeLocalEvent<StitchesComponent, SurgeryToolExaminedEvent>(OnExamined);
     }

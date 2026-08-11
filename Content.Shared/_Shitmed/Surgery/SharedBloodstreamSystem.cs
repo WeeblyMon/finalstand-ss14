@@ -9,7 +9,6 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body.Part;
 using Content.Shared.FixedPoint;
 using Content.Shared.Popups;
 using JetBrains.Annotations;
@@ -17,6 +16,7 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Utility;
 using Robust.Shared.Audio;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
+using Content.Shared.Body;
 using Content.Shared.Body.Components;
 
 // ReSharper disable once CheckNamespace
@@ -343,8 +343,8 @@ public abstract partial class SharedBloodstreamSystem
             || !TryComp(uid, out WoundComponent? wound)
             || TerminatingOrDeleted(wound.HoldingWoundable)
             || !TryComp(wound.HoldingWoundable, out WoundableComponent? woundable)
-            || !TryComp(wound.HoldingWoundable, out BodyPartComponent? bodyPart)
-            || !bodyPart.Body.HasValue)
+            || !TryComp(wound.HoldingWoundable, out OrganComponent? organ)
+            || !organ.Body.HasValue)
             return;
 
         var result = _wound.TryHealBleedingWounds(wound.HoldingWoundable,
@@ -355,10 +355,10 @@ public abstract partial class SharedBloodstreamSystem
         if (!result)
             return;
 
-        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Effects/lightburn.ogg"), bodyPart.Body.Value);
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Effects/lightburn.ogg"), organ.Body.Value);
         _popup.PopupPredicted(Loc.GetString("bloodstream-component-wounds-cauterized"),
-            bodyPart.Body.Value,
-            bodyPart.Body.Value,
+            organ.Body.Value,
+            organ.Body.Value,
             PopupType.Medium);
     }
 
