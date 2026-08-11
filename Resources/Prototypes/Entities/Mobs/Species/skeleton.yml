@@ -59,6 +59,7 @@
     sprite: Mobs/Species/Skeleton/parts.rsi
     state: full
   - type: Body
+  - type: BodyWoundHealing
     gibSound: /Audio/Effects/bone_rattle.ogg
   - type: BodyLocomotion
     requiredLegs: 2

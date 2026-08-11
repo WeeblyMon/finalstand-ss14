@@ -39,7 +39,6 @@
     sprite: _Shitmed/Objects/Augments/power.rsi
     state: cell
   - type: Organ
-    slotId: powerCell
   - type: OrganEffect
     onAdd:
     - type: HasAugmentPowerCellSlot
@@ -79,7 +78,6 @@
     sprite: _Shitmed/Objects/Augments/power.rsi
     state: cell
   - type: Organ
-    slotId: charger
   - type: AugmentCharger
 
 - type: entity

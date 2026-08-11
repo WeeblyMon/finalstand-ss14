@@ -55,6 +55,7 @@
   abstract: true
   components:
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: HumanoidProfile

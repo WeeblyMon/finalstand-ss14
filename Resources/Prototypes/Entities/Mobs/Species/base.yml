@@ -394,6 +394,7 @@
     - Brainrotted # Goobstation - skibidi rizz ohio update
     - Dementia # Goobstation - Amnestic spray!
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: Identity
@@ -624,6 +625,7 @@
   - type: HumanoidProfile
     species: Human
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: Absorbable # Goobstation - changelings

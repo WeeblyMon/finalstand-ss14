@@ -147,6 +147,7 @@
   - type: Sprite
     sprite: Mobs/Species/Human/organs.rsi
   - type: Organ
+  - type: OrganIntegrity
     intCap: 15
     integrity: 15
     integrityThresholds:
@@ -205,7 +206,6 @@
   - type: Sprite
     state: brain
   - type: Organ
-    slotId: brain # Shitmed Change
   - type: Input
     context: "ghost"
   - type: Brain

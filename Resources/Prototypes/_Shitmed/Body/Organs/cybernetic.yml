@@ -33,13 +33,13 @@
     sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
     state: eyes
   - type: Organ
+  - type: OrganIntegrity
     intCap: 21
     integrity: 21
     integrityThresholds:
       Normal: 21
       Damaged: 11
       Destroyed: 0
-    slotId: eyes
   - type: OrganEffect
     onAdd:
     - type: FlashImmunity
@@ -118,13 +118,13 @@
     state: heart-on
   - type: Heart
   - type: Organ
+  - type: OrganIntegrity
     intCap: 25
     integrity: 25
     integrityThresholds:
       Normal: 25
       Damaged: 9
       Destroyed: 0
-    slotId: heart
   - type: OrganEffect
     onAdd:
     - type: StaminaModifier
@@ -157,13 +157,13 @@
   - type: Sprite
     state: heart-u-on
   - type: Organ
+  - type: OrganIntegrity
     intCap: 32
     integrity: 32
     integrityThresholds:
       Normal: 32
       Damaged: 9
       Destroyed: 0
-    slotId: heart
   - type: OrganEffect
     onAdd:
     - type: StaminaModifier
@@ -190,13 +190,13 @@
   components:
   - type: Liver
   - type: Organ
+  - type: OrganIntegrity
     intCap: 29
     integrity: 29
     integrityThresholds:
       Normal: 29
       Damaged: 12
       Destroyed: 0
-    slotId: liver
   - type: Sprite
     state: liver
   - type: Item
@@ -227,13 +227,13 @@
       - state: lung-l
       - state: lung-r
   - type: Organ
+  - type: OrganIntegrity
     intCap: 25
     integrity: 25
     integrityThresholds:
       Normal: 25
       Damaged: 9
       Destroyed: 0
-    slotId: lungs
   - type: Item
     size: Small
     heldPrefix: lungs
@@ -268,13 +268,13 @@
       - state: lung-u-l
       - state: lung-u-r
   - type: Organ
+  - type: OrganIntegrity
     intCap: 32
     integrity: 32
     integrityThresholds:
       Normal: 32
       Damaged: 9
       Destroyed: 0
-    slotId: lungs
   - type: OrganEffect
     onAdd:
     - type: StaminaRegeneration

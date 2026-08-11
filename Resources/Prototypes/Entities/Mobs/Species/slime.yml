@@ -81,6 +81,7 @@
     sprite: Mobs/Species/Slime/parts.rsi
     state: full
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   # they like eat it idk lol

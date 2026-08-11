@@ -58,6 +58,7 @@
     sprite: Mobs/Species/Diona/parts.rsi
     state: full
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: Damageable

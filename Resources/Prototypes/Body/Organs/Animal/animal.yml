@@ -31,6 +31,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: Organ
+  - type: OrganIntegrity
     intCap: 13
     integrity: 13
     integrityThresholds:
@@ -78,7 +79,7 @@
     - state: lung-l
     - state: lung-r
   - type: Organ
-    slotId: lungs # Shitmed
+  - type: OrganIntegrity
     intCap: 17 # animal lungs are less tuff than human's one
     integrity: 17
     integrityThresholds:
@@ -120,7 +121,7 @@
   - type: Sprite
     state: stomach
   - type: Organ
-    slotId: stomach # Shitmed
+  - type: OrganIntegrity
     intCap: 28
     integrity: 28
     integrityThresholds:
@@ -176,7 +177,7 @@
   - type: Sprite
     state: liver
   - type: Organ
-    slotId: liver # Shitmed
+  - type: OrganIntegrity
     intCap: 17
     integrity: 17
     integrityThresholds:
@@ -209,7 +210,7 @@
   - type: Sprite
     state: heart-on
   - type: Organ
-    slotId: heart # Shitmed
+  - type: OrganIntegrity
     intCap: 14
     integrity: 14
     integrityThresholds:
@@ -245,7 +246,7 @@
     - state: kidney-l
     - state: kidney-r
   - type: Organ
-    slotId: kidneys # Shitmed
+  - type: OrganIntegrity
     intCap: 17
     integrity: 17
     integrityThresholds:

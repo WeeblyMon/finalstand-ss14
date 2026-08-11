@@ -17,6 +17,7 @@
   - type: HumanoidProfile
     species: Monkey
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
@@ -38,6 +39,7 @@
   - type: HumanoidProfile
     species: Kobold
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface

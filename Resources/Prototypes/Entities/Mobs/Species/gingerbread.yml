@@ -31,6 +31,7 @@
     sprite: Mobs/Species/Gingerbread/parts.rsi
     state: full
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: Damageable

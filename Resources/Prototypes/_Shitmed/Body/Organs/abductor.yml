@@ -42,7 +42,6 @@
   - type: Lung
     alert: LowNitrogen
   - type: Organ
-    slotId: lungs
 
 - type: entity
   id: OrganAbductorHeart

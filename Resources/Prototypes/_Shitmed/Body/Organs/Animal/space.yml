@@ -11,6 +11,7 @@
   name: space animal lungs
   components:
   - type: Organ
+  - type: OrganIntegrity
     intCap: 28
     integrity: 28
     integrityThresholds:
@@ -27,6 +28,7 @@
   name: space animal heart
   components:
   - type: Organ
+  - type: OrganIntegrity
     intCap: 21
     integrity: 21
     integrityThresholds:

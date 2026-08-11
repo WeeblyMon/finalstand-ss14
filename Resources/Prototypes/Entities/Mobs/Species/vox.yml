@@ -143,6 +143,7 @@
     sprite: Mobs/Species/Vox/parts.rsi
     state: vox_m
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
     #- type: VoxAccent # Not yet coded
@@ -391,6 +392,7 @@
             sprite: Mobs/Species/Vox/displacement.rsi
             state: hair
   - type: Body
+  - type: BodyWoundHealing
   - type: Inventory
     speciesId: vox
     displacements:

@@ -152,6 +152,7 @@
     sprite: Mobs/Species/Reptilian/parts.rsi
     state: full
   - type: Body
+  - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
   - type: Butcherable

@@ -29,3 +29,4 @@
   abstract: true
   components:
   - type: Body
+  - type: BodyWoundHealing

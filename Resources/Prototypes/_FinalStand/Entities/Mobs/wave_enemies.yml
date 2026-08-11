@@ -7,6 +7,7 @@
   suffix: FinalStand
   components:
   - type: Body
+  - type: BodyWoundHealing
   # Override BaseMobAnimal's organs — LegsAnimal would call MovementBodyPart and reset all
   # zombie speeds to the 2.5/4.5 defaults.
   - type: InitialBody
