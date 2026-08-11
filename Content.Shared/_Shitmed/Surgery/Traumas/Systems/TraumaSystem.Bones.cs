@@ -47,9 +47,7 @@ public partial class TraumaSystem
         if (!bodyComp.Body.HasValue)
             return;
 
-        var part = bodyComp.ParentSlot is null
-            ? bodyComp.Category.ToString().ToLower()
-            : bodyComp.ParentSlot.Value.Id;
+        var part = bodyComp.Category?.Id.ToLower() ?? "body";
 
         _popup.PopupClient(Loc.GetString($"popup-trauma-BoneDamage-{args.NewSeverity.ToString()}", ("part", part)),
             bodyComp.Body.Value,
@@ -77,7 +75,7 @@ public partial class TraumaSystem
 
         if (args.NewIntegrity == bone.Comp.IntegrityCap)
         {
-            if (bodyComp.Category == BodyPartType.Hand)
+            if (bodyComp.Category == OrganCategories.HandLeft || bodyComp.Category == OrganCategories.HandRight)
                 _virtual.DeleteInHandsMatching(bodyComp.Body.Value, bone);
 
             if (TryGetWoundableTrauma(bone.Comp.BoneWoundable.Value, out var traumas, TraumaType.BoneDamage))
@@ -85,13 +83,12 @@ public partial class TraumaSystem
                     RemoveTrauma(trauma);
         }
 
-        switch (bodyComp.Category)
+        if (bodyComp.Category == OrganCategories.LegLeft
+            || bodyComp.Category == OrganCategories.LegRight
+            || bodyComp.Category == OrganCategories.FootLeft
+            || bodyComp.Category == OrganCategories.FootRight)
         {
-            case BodyPartType.Leg:
-            case BodyPartType.Foot:
-                ProcessLegsState(bodyComp.Body.Value);
-
-                break;
+            ProcessLegsState(bodyComp.Body.Value);
         }
     }
 
@@ -220,10 +217,9 @@ public partial class TraumaSystem
 
         bool hasBrokenBones = false;
 
-        var rootPart = bodyComp.RootContainer.ContainedEntity;
-        if (rootPart.HasValue)
+        if (_lookup.TryGetRootOrgan((body, bodyComp), out var rootPart))
         {
-            foreach (var (_, woundable) in _wound.GetAllWoundableChildren(rootPart.Value))
+            foreach (var (_, woundable) in _wound.GetAllWoundableChildren(rootPart.Owner))
             {
                 if (woundable.Bone == null)
                     continue;
@@ -312,11 +308,11 @@ public partial class TraumaSystem
 
             // Get the foot penalty
             var penalty = 1f;
-            var footEnt =
-                _lookup.EnumerateOrgansOfCategory(body,
-                        BodyPartType.Foot,
-                        symmetry: Comp<OrganComponent>(legEntity).Category)
-                    .FirstOrNull();
+            var footEnt = _lookup.EnumerateChildOrgans(legEntity)
+                .Where(organ => organ.Comp.Category == OrganCategories.FootLeft
+                                || organ.Comp.Category == OrganCategories.FootRight)
+                .Cast<Entity<OrganComponent>?>()
+                .FirstOrDefault();
 
             if (footEnt != null)
             {

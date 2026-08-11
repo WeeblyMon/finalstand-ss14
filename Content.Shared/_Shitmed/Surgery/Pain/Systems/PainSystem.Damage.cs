@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared.Body;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Targeting;
@@ -634,14 +635,14 @@ public partial class PainSystem
         var ev = new PainFeelsChangedEvent(nerveComp.ParentedNerveSystem, nerveUid, nerveComp.PainFeels);
         RaiseLocalEvent(nerveUid, ref ev);
 
-        if (!TryComp<TargetingComponent>(bodyPart.Body.Value, out var targeting))
+        if (!TryComp<TargetingComponent>(organ.Body.Value, out var targeting))
             return;
 
-        targeting.BodyStatus = _wound.GetWoundableStatesOnBodyPainFeels(bodyPart.Body.Value);
-        Dirty(bodyPart.Body.Value, targeting);
+        targeting.BodyStatus = _wound.GetWoundableStatesOnBodyPainFeels(organ.Body.Value);
+        Dirty(organ.Body.Value, targeting);
 
         if (_net.IsServer)
-            RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(bodyPart.Body.Value)), bodyPart.Body.Value);
+            RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(organ.Body.Value)), organ.Body.Value);
     }
 
     private void UpdateDamage(EntityUid nerveSysEnt, NerveSystemComponent nerveSys)
