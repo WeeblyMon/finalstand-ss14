@@ -18,6 +18,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.Medical.Effects;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
@@ -28,9 +30,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Surgery;
 using Content.Shared.Buckle.Components;
-using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
-using Content.Shared.Body.Systems;
+using Content.Shared.Body;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.DoAfter;
 using Content.Shared.Mobs.Systems;
@@ -51,7 +51,6 @@ using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
-using Content.Shared.Body.Organ;
 
 namespace Content.Shared._Shitmed.Medical.Surgery;
 
@@ -62,7 +61,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlotsSystem = default!;
@@ -115,7 +115,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         SubscribeLocalEvent<SurgeryOrganConditionComponent, SurgeryValidEvent>(OnOrganConditionValid);
         SubscribeLocalEvent<SurgeryWoundedConditionComponent, SurgeryValidEvent>(OnWoundedValid);
         SubscribeLocalEvent<SurgeryPartRemovedConditionComponent, SurgeryValidEvent>(OnPartRemovedConditionValid);
-        SubscribeLocalEvent<SurgeryBodyConditionComponent, SurgeryValidEvent>(OnBodyConditionValid);
         SubscribeLocalEvent<SurgeryOrganSlotConditionComponent, SurgeryValidEvent>(OnOrganSlotConditionValid);
         SubscribeLocalEvent<SurgeryPartPresentConditionComponent, SurgeryValidEvent>(OnPartPresentConditionValid);
         SubscribeLocalEvent<SurgeryTraumaPresentConditionComponent, SurgeryValidEvent>(OnTraumaPresentConditionValid);
@@ -212,11 +211,11 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnCloseIncisionValid(Entity<SurgeryCloseIncisionConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!HasComp<IncisionOpenComponent>(args.Part) ||
-            !HasComp<BleedersClampedComponent>(args.Part) ||
-            !HasComp<SkinRetractedComponent>(args.Part) ||
-            !HasComp<BodyPartReattachedComponent>(args.Part) ||
-            !HasComp<InternalBleedersClampedComponent>(args.Part))
+        if (!HasComp<IncisionOpenComponent>(args.Organ) ||
+            !HasComp<BleedersClampedComponent>(args.Organ) ||
+            !HasComp<SkinRetractedComponent>(args.Organ) ||
+            !HasComp<BodyPartReattachedComponent>(args.Organ) ||
+            !HasComp<InternalBleedersClampedComponent>(args.Organ))
         {
             args.Cancelled = true;
         }
@@ -224,9 +223,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnWoundedValid(Entity<SurgeryWoundedConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp(args.Part, out WoundableComponent? partWoundable)
+        if (!TryComp(args.Organ, out WoundableComponent? partWoundable)
             || _wounds.GetWoundableSeverityPoint(
-                args.Part,
+                args.Organ,
                 partWoundable,
                 ent.Comp.DamageGroup,
                 healable: true) <= 0)
@@ -253,7 +252,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         foreach (var reg in ent.Comp.Components.Values)
         {
             var compType = reg.Component.GetType();
-            if (!HasComp(args.Part, compType))
+            if (!HasComp(args.Organ, compType))
                 present = false;
         }
 
@@ -263,26 +262,31 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     // This is literally a duplicate of the checks in OnToolCheck for SurgeryStepComponent.AddOrganOnAdd
     private void OnOrganOnAddConditionValid(Entity<SurgeryOrganOnAddConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp<BodyPartComponent>(args.Part, out var part)
-            || part.Body != args.Body)
+        if (!TryComp<OrganComponent>(args.Organ, out var organ)
+            || organ.Body != args.Body)
         {
             args.Cancelled = true;
             return;
         }
 
-        var organSlotIdToOrgan = _body.GetPartOrgans(args.Part, part).ToDictionary(o => o.Component.SlotId, o => o.Component);
+        var byCategory = new Dictionary<ProtoId<OrganCategoryPrototype>, OrganEffectComponent>();
+        foreach (var child in _lookup.EnumerateChildOrgans<OrganEffectComponent>(args.Organ))
+        {
+            if (child.Comp1.Category is { } category)
+                byCategory[category] = child.Comp3;
+        }
 
         var allOnAddFound = true;
         var zeroOnAddFound = true;
 
-        foreach (var (organSlotId, components) in ent.Comp.Components)
+        foreach (var (category, components) in ent.Comp.Components)
         {
-            if (!organSlotIdToOrgan.TryGetValue(organSlotId, out var organ))
+            if (!byCategory.TryGetValue(category, out var effect))
                 continue;
 
             foreach (var key in components.Keys)
             {
-                if (!organ.AddedKeys.Contains(key))
+                if (!effect.Active.ContainsKey(key))
                     allOnAddFound = false;
                 else
                     zeroOnAddFound = false;
@@ -295,21 +299,19 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnHasBodyConditionValid(Entity<SurgeryHasBodyConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (CompOrNull<BodyPartComponent>(args.Part)?.Body == null)
+        if (CompOrNull<OrganComponent>(args.Organ)?.Body == null)
             args.Cancelled = true;
     }
 
     private void OnPartConditionValid(Entity<SurgeryPartConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp<BodyPartComponent>(args.Part, out var part))
+        if (!TryComp<OrganComponent>(args.Organ, out var organ))
         {
             args.Cancelled = true;
             return;
         }
 
-        var typeMatch = ent.Comp.Parts.Contains(part.PartType);
-        var symmetryMatch = ent.Comp.Symmetry == null || part.Symmetry == ent.Comp.Symmetry;
-        var valid = typeMatch && symmetryMatch;
+        var valid = organ.Category is { } category && ent.Comp.Categories.Contains(category);
 
         if (ent.Comp.Inverse ? valid : !valid)
             args.Cancelled = true;
@@ -317,8 +319,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
     private void OnOrganConditionValid(Entity<SurgeryOrganConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp<BodyPartComponent>(args.Part, out var partComp)
-            || partComp.Body != args.Body
+        if (!TryComp<OrganComponent>(args.Organ, out var organ)
+            || organ.Body != args.Body
             || ent.Comp.Organ == null)
         {
             args.Cancelled = true;
@@ -327,56 +329,42 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
         foreach (var reg in ent.Comp.Organ.Values)
         {
-            if (_body.TryGetBodyPartOrgans(args.Part, reg.Component.GetType(), out var organs)
-                && organs.Count > 0)
+            var matches = _lookup.EnumerateChildOrgans(args.Organ)
+                .Where(child => HasComp(child.Owner, reg.Component.GetType()))
+                .ToList();
+
+            if (matches.Count == 0)
             {
-                if (ent.Comp.Inverse
-                    && (!ent.Comp.Reattaching
-                    || ent.Comp.Reattaching
-                    && !organs.Any(organ => HasComp<OrganReattachedComponent>(organ.Id))))
+                if (!ent.Comp.Inverse)
                     args.Cancelled = true;
-                // Start of DeltaV Additions - Checks if any organ has the removable component set to true, hiding it from the surgery UI
-                if (!organs.Any(organ => !TryComp<OrganComponent>(organ.Id, out var organComp)
-                    || organComp.Removable))
-                    args.Cancelled = true;
-                // End of DeltaV Additions
+                continue;
             }
-            else if (!ent.Comp.Inverse)
+
+            if (ent.Comp.Inverse
+                && (!ent.Comp.Reattaching
+                    || !matches.Any(child => HasComp<OrganReattachedComponent>(child.Owner))))
                 args.Cancelled = true;
         }
     }
 
-    private void OnBodyConditionValid(Entity<SurgeryBodyConditionComponent> ent, ref SurgeryValidEvent args)
-    {
-        if (_bodyQuery.CompOrNull(args.Body)?.Prototype is { } bodyId)
-            args.Cancelled |= ent.Comp.Accepted.Contains(bodyId) == ent.Comp.Inverse;
-    }
-
     private void OnOrganSlotConditionValid(Entity<SurgeryOrganSlotConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        args.Cancelled |= _body.CanInsertOrgan(args.Part, ent.Comp.OrganSlot) ^ !ent.Comp.Inverse;
+        var occupied = _lookup.EnumerateChildOrgans(args.Organ)
+            .Any(child => child.Comp.Category == ent.Comp.Category);
+
+        args.Cancelled |= occupied != ent.Comp.Inverse;
     }
 
     private void OnPartRemovedConditionValid(Entity<SurgeryPartRemovedConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!_body.CanAttachToSlot(args.Part, ent.Comp.Connection))
-        {
-            args.Cancelled = true;
-            return;
-        }
-
-        var results = _body.GetBodyChildrenOfType(args.Body, ent.Comp.Part, symmetry: ent.Comp.Symmetry).ToList();
-        if (results is not { } || !results.Any())
-            return;
-
-        if (!results.Any(part => HasComp<BodyPartReattachedComponent>(part.Id)))
+        if (_lookup.HasOrganOfCategory(args.Body, ent.Comp.Category))
             args.Cancelled = true;
     }
 
     private void OnPartPresentConditionValid(Entity<SurgeryPartPresentConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (args.Part == EntityUid.Invalid
-            || !HasComp<BodyPartComponent>(args.Part))
+        if (args.Organ == EntityUid.Invalid
+            || !HasComp<OrganComponent>(args.Organ))
             args.Cancelled = true;
     }
 
@@ -387,20 +375,20 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
         // not inverted = cancel if no trauma present
         // inverted = cancel if trauma present
-        if (_trauma.HasWoundableTrauma(args.Part, ent.Comp.TraumaType) == ent.Comp.Inverted)
+        if (_trauma.HasWoundableTrauma(args.Organ, ent.Comp.TraumaType) == ent.Comp.Inverted)
             args.Cancelled = true;
     }
 
     private void OnBleedsPresentConditionValid(Entity<SurgeryBleedsPresentConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp<WoundableComponent>(args.Part, out var woundable))
+        if (!TryComp<WoundableComponent>(args.Organ, out var woundable))
         {
             args.Cancelled = true;
             return;
         }
 
         if (ent.Comp.Inverted == woundable.Bleeds > 0
-            && !HasComp<BleedersClampedComponent>(args.Part))
+            && !HasComp<BleedersClampedComponent>(args.Organ))
             args.Cancelled = true;
     }
 
@@ -442,7 +430,7 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
             !TryComp(surgeryEntId, out SurgeryComponent? surgeryComp) ||
             !surgeryComp.Steps.Contains(stepId) ||
             GetSingleton(stepId) is not { } stepEnt
-            || !HasComp<BodyPartComponent>(targetPart)
+            || !HasComp<OrganComponent>(targetPart)
             && !_bodyQuery.HasComp(targetPart))
             return false;
 

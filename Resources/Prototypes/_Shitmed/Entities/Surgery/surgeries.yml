@@ -39,7 +39,7 @@
     - SurgeryStepInsertOrgan
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Head ] # change if needed
+    categories: [ Head ]
   - type: SurgeryOrganCondition
     inverse: true
     reattaching: true
@@ -58,7 +58,7 @@
     - SurgeryStepClampBleeders
     - SurgeryStepRemoveOrgan
   - type: SurgeryPartCondition
-    parts: [ Head ] # change if needed
+    categories: [ Head ]
   # add SurgeryOrganCondition.organ
 
 # Common
@@ -113,9 +113,7 @@
     - SurgeryStepSealBones
     - SurgeryStepCloseIncision
   - type: SurgeryPartCondition
-    parts:  # Everything but the head and chest
-    - Head
-    - Chest
+    categories: [ Head, Torso ]
     inverse: true
 
 - type: entity
@@ -129,7 +127,7 @@
     - SurgeryStepSealSkull
     - SurgeryStepCloseIncision
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
     inverse: false
 
 - type: entity
@@ -143,7 +141,7 @@
     - SurgeryStepSealRibcage
     - SurgeryStepCloseIncision
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
     inverse: false
 
 - type: entity
@@ -157,7 +155,7 @@
     - SurgeryStepSawBones
     - SurgeryStepPriseOpenBones
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
 
 - type: entity
   parent: SurgeryBase
@@ -172,7 +170,7 @@
     - SurgeryStepRemoveFeature
   - type: SurgeryHasBodyCondition
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
     inverse: true
 
 - type: entity
@@ -220,13 +218,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: head
-    part: Head
+    category: Head
 
 - type: entity
   parent: SurgeryBase
@@ -239,13 +236,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: groin
-    part: Groin
+    category: Groin
 
 - type: entity
   parent: SurgeryBase
@@ -258,14 +254,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: left arm
-    part: Arm
-    symmetry: Left
+    category: ArmLeft
 
 - type: entity
   parent: SurgeryBase
@@ -278,14 +272,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: right arm
-    part: Arm
-    symmetry: Right
+    category: ArmRight
 
 - type: entity
   parent: SurgeryBase
@@ -298,14 +290,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: left leg
-    part: Leg
-    symmetry: Left
+    category: LegLeft
 
 - type: entity
   parent: SurgeryBase
@@ -318,14 +308,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: right leg
-    part: Leg
-    symmetry: Right
+    category: LegRight
 
 
 - type: entity
@@ -339,15 +327,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Arm ]
-    symmetry: Left
+    categories: [ ArmLeft ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: left hand
-    part: Hand
-    symmetry: Left
+    category: HandLeft
 
 - type: entity
   parent: SurgeryBase
@@ -360,15 +345,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Arm ]
-    symmetry: Right
+    categories: [ ArmRight ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: right hand
-    part: Hand
-    symmetry: Right
+    category: HandRight
 
 - type: entity
   parent: SurgeryBase
@@ -381,15 +363,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Leg ]
-    symmetry: Left
+    categories: [ LegLeft ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: left foot
-    part: Foot
-    symmetry: Left
+    category: FootLeft
 
 - type: entity
   parent: SurgeryBase
@@ -402,15 +381,12 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Leg ]
-    symmetry: Right
+    categories: [ LegRight ]
   - type: SurgeryTraumaPresentCondition
     inverted: true
     trauma: Dismemberment
   - type: SurgeryPartRemovedCondition
-    connection: right foot
-    part: Foot
-    symmetry: Right
+    category: FootRight
 
 # Surgery for animals - They have a single legs/hands entity.
 
@@ -425,11 +401,9 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryPartRemovedCondition
-    connection: legs
-    part: Leg
-    symmetry: None
+    category: LegLeft
 
 - type: entity
   parent: SurgeryBase
@@ -442,11 +416,9 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryPartRemovedCondition
-    connection: hands
-    part: Hand
-    symmetry: Left # shitcode i guess because of ui icons
+    category: HandLeft
 
 - type: entity
   parent: SurgeryBase
@@ -459,10 +431,9 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryPartRemovedCondition
-    connection: feet
-    part: Foot
+    category: FootLeft
 
 - type: entity
   parent: SurgeryBase
@@ -475,11 +446,9 @@
     - SurgeryStepInsertFeature
     - SurgeryStepSealWounds
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryPartRemovedCondition
-    connection: tail
-    part: Tail
-    symmetry: None
+    category: Tail
 
 #- type: entity
 #  parent: SurgeryBase
@@ -534,7 +503,7 @@
     - SurgeryStepInsertItem
     - SurgeryStepRemoveItem
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
 
 # Note for any Organ manipulation surgeries. Most of the organs are only defined on the server.
 # I added some of them to the client too, but we should probably move them to a shared
@@ -552,7 +521,7 @@
     - SurgeryStepClampInternalBleeders
     - SurgeryStepRemoveOrgan
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
   - type: SurgeryOrganCondition
     organ:
     - type: Brain
@@ -564,7 +533,7 @@
   components:
   # TODO: ipc surgery steps
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: BorgBrain
@@ -575,7 +544,7 @@
   name: Insert Brain
   components:
   - type: SurgeryOrganSlotCondition
-    organSlot: brain
+    category: Brain
   - type: SurgeryOrganCondition
     organ:
     - type: Brain
@@ -586,9 +555,9 @@
   name: Insert Positronic Brain
   components:
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: posbrain
+    category: PositronicBrain
   - type: SurgeryOrganCondition
     organ:
     - type: BorgBrain
@@ -601,9 +570,9 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: heart # there's an identical surgery for ipc hearts but they go in the "pump" slot
+    category: Heart # there's an identical surgery for ipc hearts but they go in the "pump" slot
   - type: SurgeryOrganCondition
     organ:
     - type: Heart
@@ -620,9 +589,9 @@
     - SurgeryStepInsertHeart
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: heart
+    category: Heart
   - type: SurgeryOrganCondition
     organ:
     - type: Heart
@@ -635,9 +604,9 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: pump
+    category: Pump
   - type: SurgeryOrganCondition
     organ:
     - type: Heart
@@ -654,9 +623,9 @@
     - SurgeryStepInsertPump
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: pump
+    category: Pump
   - type: SurgeryOrganCondition
     organ:
     - type: Heart
@@ -667,7 +636,7 @@
   name: Remove Liver
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: Liver
@@ -682,9 +651,9 @@
     - SurgeryStepInsertLiver
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: liver
+    category: Liver
   - type: SurgeryOrganCondition
     organ:
     - type: Liver
@@ -697,7 +666,7 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: Lung
@@ -714,9 +683,9 @@
     - SurgeryStepInsertLungs
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: lungs
+    category: Lungs
   - type: SurgeryOrganCondition
     organ:
     - type: Lung
@@ -727,7 +696,7 @@
   name: Remove Stomach
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: Stomach
@@ -742,9 +711,9 @@
     - SurgeryStepInsertOrgan
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: stomach
+    category: Stomach
   - type: SurgeryOrganCondition
     organ:
     - type: Stomach
@@ -769,7 +738,7 @@
     - SurgeryStepInsertEyes
     - SurgeryStepSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: eyes
+    category: Eyes
   - type: SurgeryOrganCondition
     organ:
     - type: Eyes
@@ -852,9 +821,6 @@
     - SurgeryStepOpenOrganSlot
   - type: SurgeryOrganSlotCondition
     inverse: true
-  - type: SurgeryBodyCondition
-    accepted: [ IPC ]
-    inverse: true
 
 - type: entity
   abstract: true
@@ -892,12 +858,12 @@
     - SurgeryStepInsertAugmentPowerCellSlot
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentPowerCellSlot
   - type: SurgeryOrganSlotCondition
-    organSlot: powerCell
+    category: PowerCell
 
 - type: entity
   parent: SurgeryOpenCavityBase
@@ -905,9 +871,9 @@
   name: Open Cavity For Power Cell Slot
   components:
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: powerCell
+    category: PowerCell
 
 - type: entity
   parent: SurgeryRemoveAugmentBase
@@ -915,7 +881,7 @@
   name: Remove Power Cell Slot
   components:
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentPowerCellSlot
@@ -933,12 +899,12 @@
     - SurgeryStepInsertAugmentPowerCellCharger
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentCharger
   - type: SurgeryOrganSlotCondition
-    organSlot: charger
+    category: Charger
 
 - type: entity
   parent: SurgeryOpenCavityBase
@@ -946,9 +912,9 @@
   name: Open Cavity For Power Cell Charger
   components:
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
-    organSlot: charger
+    category: Charger
 
 - type: entity
   parent: SurgeryRemoveAugmentBase
@@ -956,7 +922,7 @@
   name: Remove Internal Power Cell Charger
   components:
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentCharger
@@ -971,9 +937,9 @@
   - type: Surgery
     requirement: SurgeryOpenIncision # no ribcage
   - type: SurgeryPartCondition
-    parts: [ Arm ]
+    categories: [ ArmLeft, ArmRight ]
   - type: SurgeryOrganSlotCondition
-    organSlot: armImplant
+    category: ArmImplant
 
 - type: entity
   parent: SurgeryInstallAugmentBase
@@ -987,12 +953,12 @@
     - SurgeryStepInsertAugmentArm
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Arm ]
+    categories: [ ArmLeft, ArmRight ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentArm
   - type: SurgeryOrganSlotCondition
-    organSlot: armImplant
+    category: ArmImplant
 
 - type: entity
   parent: SurgeryRemoveAugmentBase
@@ -1002,7 +968,7 @@
   - type: Surgery
     requirement: SurgeryOpenIncision # no ribcage
   - type: SurgeryPartCondition
-    parts: [ Arm ]
+    categories: [ ArmLeft, ArmRight ]
   - type: SurgeryOrganCondition
     organ:
     - type: AugmentArm
@@ -1024,13 +990,13 @@
     - type: Brain
   - type: SurgeryOrganOnAddCondition
     components:
-      brain:
+      Brain:
       - type: OhioAccent
       - type: RatvarianLanguage
       - type: Clumsy
     inverse: true
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
 
 - type: entity
   parent: SurgeryBase
@@ -1048,9 +1014,9 @@
     - type: Brain
   - type: SurgeryOrganOnAddCondition
     components:
-      brain:
+      Brain:
       - type: OhioAccent
       - type: RatvarianLanguage
       - type: Clumsy
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]

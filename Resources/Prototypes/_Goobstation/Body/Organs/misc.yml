@@ -15,6 +15,7 @@
     state: icon
     scale: 0.5, 0.5
   - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: SandevistanUser
 
@@ -43,6 +44,7 @@
     state: icon
     scale: 0.5, 0.5
   - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: InjectOnMobState
       reagents:

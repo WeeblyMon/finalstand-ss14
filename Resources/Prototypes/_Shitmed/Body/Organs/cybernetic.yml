@@ -40,6 +40,7 @@
       Damaged: 11
       Destroyed: 0
     slotId: eyes
+  - type: OrganEffect
     onAdd:
     - type: FlashImmunity
     - type: EyeProtection
@@ -57,6 +58,7 @@
   - type: Sprite
     state: eyes-sechud
   - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: ShowJobIcons
     - type: ShowMindShieldIcons
@@ -73,6 +75,7 @@
   - type: Sprite
     state: eyes-medhud
   - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: ShowHealthBars
       damageContainers:
@@ -90,6 +93,7 @@
   - type: Sprite
     state: eyes-diagnostic
   - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: ShowHealthBars
       damageContainers:
@@ -121,6 +125,7 @@
       Damaged: 9
       Destroyed: 0
     slotId: heart
+  - type: OrganEffect
     onAdd:
     - type: StaminaModifier
       modifier: 1.35
@@ -159,6 +164,7 @@
       Damaged: 9
       Destroyed: 0
     slotId: heart
+  - type: OrganEffect
     onAdd:
     - type: StaminaModifier
       modifier: 1.7
@@ -269,6 +275,7 @@
       Damaged: 9
       Destroyed: 0
     slotId: lungs
+  - type: OrganEffect
     onAdd:
     - type: StaminaRegeneration
       regenerationRate: -3.0

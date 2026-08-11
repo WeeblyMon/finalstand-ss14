@@ -11,8 +11,3 @@ public interface IOrganRelayEvent
 
     bool RaiseOnParent { get; }
 }
-
-public sealed class OrganRelayedEvent<T>(T args) : EntityEventArgs
-{
-    public T Args = args;
-}

@@ -194,6 +194,7 @@
   description: A cybernetic left arm with the ability to pry doors open.
   components:
   - type: BodyPart
+  - type: OrganEffect
     onAdd:
     - type: Prying
       speedModifier: 1.5
@@ -208,6 +209,7 @@
   description: A cybernetic right arm with the ability to pry doors open.
   components:
   - type: BodyPart
+  - type: OrganEffect
     onAdd:
     - type: Prying
       speedModifier: 1.5

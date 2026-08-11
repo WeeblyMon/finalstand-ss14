@@ -25,7 +25,7 @@
   name: Open Hive Node Cavity
   components:
   - type: SurgeryOrganSlotCondition
-    organSlot: hive_node
+    category: HiveNode
 
 - type: entity
   parent: BaseSurgeryOpenXenoCavity
@@ -33,7 +33,7 @@
   name: Open Resin Spinner Cavity
   components:
   - type: SurgeryOrganSlotCondition
-    organSlot: resin_spinner
+    category: ResinSpinner
 
 - type: entity
   parent: BaseSurgeryOpenXenoCavity
@@ -41,7 +41,7 @@
   name: Open Neurotoxin Gland Cavity
   components:
   - type: SurgeryOrganSlotCondition
-    organSlot: neurotoxin_gland
+    category: NeurotoxinGland
 
 - type: entity
   parent: BaseSurgeryOpenXenoCavity
@@ -49,7 +49,7 @@
   name: Open Acid Gland Cavity
   components:
   - type: SurgeryOrganSlotCondition
-    organSlot: acid_gland
+    category: AcidGland
 
 - type: entity
   parent: BaseSurgeryOpenXenoCavity
@@ -61,7 +61,7 @@
   - type: SurgeryPartCondition
     parts: [ Chest ]
   - type: SurgeryOrganSlotCondition
-    organSlot: plasma_vessel
+    category: PlasmaVessel
 
 - type: entity
   parent: BaseSurgeryOpenXenoCavity
@@ -71,7 +71,7 @@
   - type: SurgeryPartCondition
     parts: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: egg_sack
+    category: EggSack
 
 # Insert organs (human surgeries)
 
@@ -87,7 +87,7 @@
     - SurgeryStepInsertHiveNode
     - SurgeryStepSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: hive_node
+    category: HiveNode
   - type: SurgeryOrganCondition
     organ:
     - type: HiveNode
@@ -104,7 +104,7 @@
     - SurgeryStepInsertResinSpinner
     - SurgeryStepSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: resin_spinner
+    category: ResinSpinner
   - type: SurgeryOrganCondition
     organ:
     - type: ResinSpinner
@@ -121,7 +121,7 @@
     - SurgeryStepInsertNeurotoxinGland
     - SurgeryStepSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: neurotoxin_gland
+    category: NeurotoxinGland
   - type: SurgeryOrganCondition
     organ:
     - type: NeurotoxinGland
@@ -138,7 +138,7 @@
     - SurgeryStepInsertAcidGland
     - SurgeryStepSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: acid_gland
+    category: AcidGland
   - type: SurgeryOrganCondition
     organ:
     - type: AcidGland
@@ -157,7 +157,7 @@
   - type: SurgeryPartCondition
     parts: [ Chest ]
   - type: SurgeryOrganSlotCondition
-    organSlot: plasma_vessel
+    category: PlasmaVessel
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel
@@ -176,7 +176,7 @@
   - type: SurgeryPartCondition
     parts: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: egg_sack
+    category: EggSack
   - type: SurgeryOrganCondition
     organ:
     - type: EggSack

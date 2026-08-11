@@ -55,11 +55,11 @@ public sealed class RespiratorSystem : EntitySystem
         SubscribeLocalEvent<RespiratorComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
 
         // BodyComp stuff
-        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_body.RelayOrganEvent);
-        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_body.RelayOrganEvent);
-        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_body.RelayOrganEvent);
-        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_body.RelayOrganEvent);
-        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_body.RelayOrganEvent);
+        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_body.RelayEvent);
 
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<InhaledGasEvent>>(OnGasInhaled);
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<ExhaledGasEvent>>(OnGasExhaled);
