@@ -2,7 +2,7 @@ using System.Numerics;
 using Content.Server.Stack;
 using Content.Server.Stunnable;
 using Content.Shared.ActionBlocker;
-using Content.Shared._Shitmed.Body.Events;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.CombatMode;
@@ -63,8 +63,8 @@ namespace Content.Server.Hands.Systems
             // FS: body-part events must wire HandsComponent or players spawn with no usable hands
             SubscribeLocalEvent<HandsComponent, BodyPartAddedEvent>(HandleBodyPartAdded);
             SubscribeLocalEvent<HandsComponent, BodyPartRemovedEvent>(HandleBodyPartRemoved);
-            SubscribeLocalEvent<HandsComponent, BodyPartEnabledEvent>(HandleBodyPartEnabled);
-            SubscribeLocalEvent<HandsComponent, BodyPartDisabledEvent>(HandleBodyPartDisabled);
+            SubscribeLocalEvent<HandsComponent, OrganEnabledEvent>(HandleBodyPartEnabled);
+            SubscribeLocalEvent<HandsComponent, OrganDisabledEvent>(HandleBodyPartDisabled);
 
             CommandBinds.Builder
                 .Bind(ContentKeyFunctions.ThrowItemInHand, new PointerInputCmdHandler(HandleThrowItem))
@@ -251,10 +251,10 @@ namespace Content.Server.Hands.Systems
             RemoveHand(uid, args.Slot);
         }
 
-        private void HandleBodyPartEnabled(EntityUid uid, HandsComponent component, ref BodyPartEnabledEvent args)
+        private void HandleBodyPartEnabled(EntityUid uid, HandsComponent component, ref OrganEnabledEvent args)
             => TryAddHand(uid, component, args.Part, SharedBodySystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
 
-        private void HandleBodyPartDisabled(EntityUid uid, HandsComponent component, ref BodyPartDisabledEvent args)
+        private void HandleBodyPartDisabled(EntityUid uid, HandsComponent component, ref OrganDisabledEvent args)
         {
             if (TerminatingOrDeleted(uid)
                 || args.Part.Comp is null

@@ -7,7 +7,7 @@
 using System.Linq;
 using Robust.Shared.Containers;
 using Robust.Shared.Timing;
-using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared._FinalStand.Medical;
 
 namespace Content.Shared._Shitmed.Antags.Abductor;
 

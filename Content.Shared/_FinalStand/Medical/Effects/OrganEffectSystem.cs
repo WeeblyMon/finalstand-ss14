@@ -30,7 +30,10 @@ public sealed partial class OrganEffectSystem : EntitySystem
         var query = EntityQueryEnumerator<OrganEffectComponent, OrganComponent>();
         while (query.MoveNext(out var uid, out var effect, out var organ))
         {
-            if (now < effect.NextUpdate || effect.Active.Count == 0 || organ.Body is not { } body)
+            if (now < effect.NextUpdate
+                || effect.Active.Count == 0
+                || organ.Body is not { } body
+                || HasComp<OrganDisabledComponent>(uid))
                 continue;
 
             effect.NextUpdate = now + effect.Delay;

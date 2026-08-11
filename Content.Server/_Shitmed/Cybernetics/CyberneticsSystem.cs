@@ -7,8 +7,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.Emp;
-using Content.Shared._Shitmed.Body.Organ;
-using Content.Shared._Shitmed.Body.Events;
+
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Cybernetics;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Organ;
@@ -49,7 +49,7 @@ internal sealed class CyberneticsSystem : EntitySystem
             }
             else if (TryComp(cyberEnt, out BodyPartComponent? part))
             {
-                var disableEvent = new BodyPartEnableChangedEvent(false);
+                var disableEvent = new OrganEnableChangedEvent(false);
                 RaiseLocalEvent(cyberEnt, ref disableEvent);
 
                 if (TryComp(cyberEnt, out DamageableComponent? damageable)
@@ -76,7 +76,7 @@ internal sealed class CyberneticsSystem : EntitySystem
             }
             else if (HasComp<BodyPartComponent>(cyberEnt))
             {
-                var enableEvent = new BodyPartEnableChangedEvent(true);
+                var enableEvent = new OrganEnableChangedEvent(true);
                 RaiseLocalEvent(cyberEnt, ref enableEvent);
             }
         }

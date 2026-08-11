@@ -113,7 +113,7 @@ using Content.Shared.Nutrition.Components;
 using System.Linq;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry;
 using Content.Shared.Containers.ItemSlots;

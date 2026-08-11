@@ -1,5 +1,5 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 
