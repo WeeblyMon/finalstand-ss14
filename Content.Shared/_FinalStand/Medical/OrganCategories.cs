@@ -65,4 +65,33 @@ public static class OrganCategories
                 yield return category;
         }
     }
+
+    // Worn slots emptied when the organ underneath them is lost.
+    private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, string[]> SlotNames = new()
+    {
+        [Head] = ["head", "eyes", "ears", "mask"],
+        [Torso] = ["outerClothing", "jumpsuit"],
+        [HandLeft] = ["gloves"],
+        [HandRight] = ["gloves"],
+        [FootLeft] = ["shoes"],
+        [FootRight] = ["shoes"],
+    };
+
+    public static bool TryGetSlotNames(ProtoId<OrganCategoryPrototype>? category, out string[] names)
+    {
+        if (category is { } id && SlotNames.TryGetValue(id, out var found))
+        {
+            names = found;
+            return true;
+        }
+
+        names = [];
+        return false;
+    }
+
+    public static bool IsArmOrHand(ProtoId<OrganCategoryPrototype>? category)
+    {
+        return category is { } id
+               && (id == ArmLeft || id == ArmRight || id == HandLeft || id == HandRight);
+    }
 }

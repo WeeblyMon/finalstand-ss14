@@ -539,11 +539,10 @@ public sealed partial class WoundSystem
 
             if (bodyPart.Body.HasValue)
             {
-                var rootPart = Comp<BodyComponent>(bodyPart.Body.Value).RootContainer.ContainedEntity;
-                if (rootPart.HasValue)
+                if (_lookup.TryGetRootOrgan(bodyPart.Body.Value, out var rootPart))
                 {
                     bodySeverity =
-                        GetAllWoundableChildren(rootPart.Value)
+                        GetAllWoundableChildren(rootPart.Owner)
                             .Aggregate(bodySeverity, (current, woundable) => current + GetWoundableSeverityPoint(woundable, woundable));
                 }
 
@@ -600,11 +599,10 @@ public sealed partial class WoundSystem
 
             if (bodyPart.Body.HasValue)
             {
-                var rootPart = Comp<BodyComponent>(bodyPart.Body.Value).RootContainer.ContainedEntity;
-                if (rootPart.HasValue)
+                if (_lookup.TryGetRootOrgan(bodyPart.Body.Value, out var rootPart))
                 {
                     bodySeverity =
-                        GetAllWoundableChildren(rootPart.Value)
+                        GetAllWoundableChildren(rootPart.Owner)
                             .Aggregate(bodySeverity,
                                 (current, woundable) => current + GetWoundableSeverityPoint(woundable, woundable));
                 }
@@ -797,7 +795,7 @@ public sealed partial class WoundSystem
                     (woundInduced.Value.Owner, traumaInflicter),
                     TraumaType.Dismemberment,
                     15f,
-                    (bodyPart.Category, bodyPart.Category));
+                    bodyPart.Category);
 
                 // Goobstation start
                 var bleedInflicter = EnsureComp<BleedInflicterComponent>(woundInduced.Value.Owner);
@@ -832,7 +830,7 @@ public sealed partial class WoundSystem
 
                 if (TryComp<InventoryComponent>(body, out var inventory) // Prevent error for non-humanoids
                     && _lookup.CountOrgansOfCategory(body, bodyPart.Category) == 1
-                    && _body.TryGetPartSlotContainerName(bodyPart.Category, out var containerNames))
+                    && OrganCategories.TryGetSlotNames(bodyPart.Category, out var containerNames))
                 {
                     foreach (var containerName in containerNames)
                     {
@@ -842,7 +840,7 @@ public sealed partial class WoundSystem
                 var bodyPartId = container.ID;
 
                 // Prevent anomalous behaviour
-                if (bodyPart.Category is BodyPartType.Hand or BodyPartType.Arm)
+                if (OrganCategories.IsArmOrHand(bodyPart.Category))
                     _hands.TryDrop(body, woundableEntity);
 
                 DropWoundableOrgans(woundableEntity, woundableComp);
@@ -877,7 +875,7 @@ public sealed partial class WoundSystem
                 }*/
                 // Goobstation end
 
-                _manipulation.RemoveOrgan(parentWoundableEntity, bodyPartId.Remove(0, 15), woundableEntity);
+                _manipulation.RemoveOrgan(woundableEntity);
                 DestroyWoundableChildren(woundableEntity, woundableComp);
 
 
@@ -919,7 +917,7 @@ public sealed partial class WoundSystem
             && !ampEv.Cancelled) // goob edit
             _damageable.TryChangeDamage(bodyPart.Body.Value,
                 woundableComp.DamageOnAmputate,
-                targetPart: _lookup.GetTarget(rootPart!.Value));
+                targetPart: _lookup.GetTarget(rootPart.Owner));
 
         AmputateWoundableSafely(parentWoundableEntity, woundableEntity);
 
@@ -995,13 +993,13 @@ public sealed partial class WoundSystem
         var childBodyPart = Comp<OrganComponent>(woundableEntity);
         if (TryComp<InventoryComponent>(bodyPart.Body, out var inventory)
             && _lookup.CountOrgansOfCategory(body, bodyPart.Category) == 1
-            && _body.TryGetPartSlotContainerName(childBodyPart.Category, out var containerNames))
+            && OrganCategories.TryGetSlotNames(childBodyPart.Category, out var containerNames))
         {
             foreach (var containerName in containerNames)
                 _inventory.DropSlotContents(body, containerName, inventory);
         }
 
-        if (childBodyPart.Category is BodyPartType.Hand or BodyPartType.Arm)
+        if (OrganCategories.IsArmOrHand(childBodyPart.Category))
             _hands.TryDrop(body, woundableEntity);
 
         Dirty(woundableEntity, woundableComp);
@@ -1011,7 +1009,7 @@ public sealed partial class WoundSystem
 
         // Still does the funny popping, if the children are critted. for the funny :3
         DestroyWoundableChildren(woundableEntity, woundableComp, amputateChildrenSafely);
-        _manipulation.RemoveOrgan(parentWoundableEntity, bodyPartId.Remove(0, 15), woundableEntity);
+        _manipulation.RemoveOrgan(woundableEntity);
     }
 
     #endregion
@@ -1025,10 +1023,11 @@ public sealed partial class WoundSystem
 
         foreach (var organ in _lookup.EnumerateChildOrgans(woundable))
         {
-            if (organ.Comp.OrganSeverity == OrganSeverity.Normal)
+            var integrity = CompOrNull<OrganIntegrityComponent>(organ.Owner);
+            if (integrity == null || integrity.OrganSeverity == OrganSeverity.Normal)
             {
                 // TODO: SFX for organs getting not destroyed, but thrown out
-                _manipulation.RemoveOrgan(organ.Owner, organ.Comp);
+                _manipulation.RemoveOrgan((organ.Owner, organ.Comp));
                 var direction = _random.NextAngle().ToWorldVec();
                 var dropAngle = _random.NextFloat(0.8f, 1.2f);
                 var worldRotation = _transform.GetWorldRotation(organ.Owner).ToVec();
@@ -1046,10 +1045,10 @@ public sealed partial class WoundSystem
                 // Destroy it
                 _trauma.TrySetOrganDamageModifier(
                     organ.Owner,
-                    organ.Comp.OrganIntegrity * 100,
+                    integrity.OrganIntegrity * 100,
                     woundable,
                     "LETMETELLYOUHOWMUCHIVECOMETOHATEYOUSINCEIBEGANTOLIVE",
-                    organ.Comp);
+                    integrity);
             }
         }
     }
@@ -1073,10 +1072,10 @@ public sealed partial class WoundSystem
         var bodyPart = Comp<OrganComponent>(severed);
 
         if (TryComp(severed, out DamageableComponent? severedDamageable)
-            && bodyComp.RootContainer.ContainedEntities.Count > 0
+            && _lookup.TryGetRootOrgan((body, bodyComp), out var bodyRoot)
             && severedDamageable.Damage.DamageDict.TryGetValue(woundComp.DamageType, out var damage))
         {
-            _damageable.TryChangeDamage(bodyComp.RootContainer.ContainedEntities.First(),
+            _damageable.TryChangeDamage(bodyRoot.Owner,
                 new DamageSpecifier(damageType, damage),
                 ignoreResistances: true,
                 interruptsDoAfters: false);
@@ -1121,11 +1120,10 @@ public sealed partial class WoundSystem
 
         if (bodyPart.Body.HasValue)
         {
-            var rootPart = Comp<BodyComponent>(bodyPart.Body.Value)?.RootContainer?.ContainedEntity;
-            if (rootPart.HasValue)
+            if (_lookup.TryGetRootOrgan(bodyPart.Body.Value, out var rootPart))
             {
                 bodySeverity =
-                    GetAllWoundableChildren(rootPart.Value)
+                    GetAllWoundableChildren(rootPart.Owner)
                         .Aggregate(bodySeverity, (current, woundable) => current + GetWoundableIntegrityDamage(woundable, woundable));
             }
 
@@ -1448,9 +1446,8 @@ public sealed partial class WoundSystem
 
         foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _lookup.GetTarget(bodyPart);
-
-            if (!TryComp<WoundableComponent>(id, out var woundable))
+            if (_lookup.GetTarget((id, bodyPart)) is not { } target
+                || !TryComp<WoundableComponent>(id, out var woundable))
                 continue;
 
             result[target] = woundable.WoundableSeverity;
@@ -1470,9 +1467,8 @@ public sealed partial class WoundSystem
 
         foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _lookup.GetTarget(bodyPart);
-
-            if (!TryComp<WoundableComponent>(id, out var woundable)
+            if (_lookup.GetTarget((id, bodyPart)) is not { } target
+                || !TryComp<WoundableComponent>(id, out var woundable)
                 || !TryComp<DamageableComponent>(id, out var damageable))
                 continue;
 
@@ -1517,9 +1513,9 @@ public sealed partial class WoundSystem
 
         foreach (var (id, bodyPart) in _lookup.GetBodyOrgans(body))
         {
-            var target = _lookup.GetTarget(bodyPart);
-
-            if (!TryComp<WoundableComponent>(id, out var woundable) || !TryComp<NerveComponent>(id, out var nerve))
+            if (_lookup.GetTarget((id, bodyPart)) is not { } target
+                || !TryComp<WoundableComponent>(id, out var woundable)
+                || !TryComp<NerveComponent>(id, out var nerve))
                 continue;
 
             var damageFeeling = woundable.WoundableIntegrity * nerve.PainFeels;
