@@ -32,7 +32,6 @@ public sealed class BloodstreamDnaSystem : EntitySystem
         }
 
         var data = _bloodstream.GetEntityBloodData(entity.Owner);
-        entity.Comp.BloodReferenceSolution.SetReagentData(data);
 
         foreach (var reagent in bloodSolution.Contents)
         {

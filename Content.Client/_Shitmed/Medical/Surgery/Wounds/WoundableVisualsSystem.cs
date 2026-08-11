@@ -137,7 +137,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
 
     private void OnWoundableIntegrityChanged(Entity<WoundableVisualsComponent> ent, ref WoundableIntegrityChangedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(ent);
+        var bodyPart = Comp<OrganComponent>(ent);
         if (!bodyPart.Body.HasValue)
         {
             if (TryComp(ent, out SpriteComponent? partSprite))
@@ -218,7 +218,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
     }
     private void UpdateBleedingVisuals(Entity<WoundableVisualsComponent> ent, Entity<SpriteComponent?> sprite)
     {
-        if (!TryComp<BodyPartComponent>(ent, out var bodyPart))
+        if (!TryComp<OrganComponent>(ent, out var bodyPart))
             return;
 
         if (ent.Comp.BleedingOverlay is null)
@@ -232,7 +232,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
 
     private void UpdateParentBleedingVisuals(
         Entity<WoundableVisualsComponent> woundable,
-        BodyPartComponent bodyPart,
+        OrganComponent bodyPart,
         Entity<SpriteComponent?> sprite)
     {
         if (!_lookup.TryGetParentOrgan(woundable, out var parentUid, out _))
@@ -392,7 +392,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         }
     }
 
-    private static string GetLimbBleedingKey(BodyPartComponent bodyPart)
+    private static string GetLimbBleedingKey(OrganComponent bodyPart)
     {
         var symmetry = bodyPart.Symmetry == BodyPartSymmetry.Left ? "L" : "R";
         var partType = bodyPart.PartType == BodyPartType.Foot ? "Leg" : "Arm";

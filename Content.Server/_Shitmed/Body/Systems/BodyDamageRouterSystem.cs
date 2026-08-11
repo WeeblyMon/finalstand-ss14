@@ -1,3 +1,5 @@
+using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
@@ -50,7 +52,7 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         // Collect woundable body parts. The mob itself doesn't have WoundableComponent —
         // its anatomical sub-entities do.
         var parts = new List<EntityUid>();
-        foreach (var (partId, _) in _lookup.GetBodyOrgans(uid, body))
+        foreach (var (partId, _) in _lookup.GetBodyOrgans((uid, body)))
         {
             if (HasComp<WoundableComponent>(partId))
                 parts.Add(partId);

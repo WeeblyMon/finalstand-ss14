@@ -74,6 +74,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Body.Organ;
 using System.Linq;
 using System.Numerics;
 using Content.Server.Body.Components;
@@ -98,6 +100,7 @@ namespace Content.Server.Body.Systems;
 
 public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem // Shitmed change: made partial
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly Content.Shared.Body.Systems.BloodstreamSystem _bloodstream = default!; // Shitmed Change
     [Dependency] private readonly GhostSystem _ghostSystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
@@ -112,7 +115,9 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
 
         SubscribeLocalEvent<BodyComponent, MoveInputEvent>(OnRelayMoveInput);
         SubscribeLocalEvent<BodyComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
-        SubscribeLocalEvent<BodyPartComponent, AttemptEntityGibEvent>(OnGibTorsoAttempt); // Shitmed Change
+        SubscribeLocalEvent<OrganComponent, AttemptEntityGibEvent>(OnGibTorsoAttempt); // Shitmed Change
+        SubscribeLocalEvent<BodyComponent, OrganInsertedIntoEvent>(OnOrganInserted);
+        SubscribeLocalEvent<BodyComponent, OrganRemovedFromEvent>(OnOrganRemoved);
     }
 
     private void OnRelayMoveInput(Entity<BodyComponent> ent, ref MoveInputEvent args)
@@ -135,20 +140,18 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         Entity<BodyComponent> ent,
         ref ApplyMetabolicMultiplierEvent args)
     {
-        foreach (var organ in GetBodyOrgans(ent, ent))
+        foreach (var organ in _lookup.GetBodyOrgans((ent, ent)))
         {
-            RaiseLocalEvent(organ.Id, ref args);
+            RaiseLocalEvent(organ.Owner, ref args);
         }
     }
 
-    protected override void AddPart(
-        Entity<BodyComponent?> bodyEnt,
-        Entity<BodyPartComponent> partEnt,
-        string slotId)
+    private void OnOrganInserted(Entity<BodyComponent> bodyEnt, ref OrganInsertedIntoEvent args)
     {
-        // TODO: Predict this probably.
-        base.AddPart(bodyEnt, partEnt, slotId);
+        if (!TryComp<OrganComponent>(args.Organ, out var organ))
+            return;
 
+        var partEnt = new Entity<OrganComponent>(args.Organ, organ);
         var layer = partEnt.Comp.ToHumanoidLayers();
         if (layer != null)
         {
@@ -159,12 +162,12 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         }
     }
 
-    protected override void RemovePart(
-        Entity<BodyComponent?> bodyEnt,
-        Entity<BodyPartComponent> partEnt,
-        string slotId)
+    private void OnOrganRemoved(Entity<BodyComponent> bodyEnt, ref OrganRemovedFromEvent args)
     {
-        base.RemovePart(bodyEnt, partEnt, slotId);
+        if (!TryComp<OrganComponent>(args.Organ, out var organ))
+            return;
+
+        var partEnt = new Entity<OrganComponent>(args.Organ, organ);
 
         if (!TryComp<HumanoidProfileComponent>(bodyEnt, out var humanoid))
             return;
@@ -220,7 +223,7 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
     // Shitmed Change Start
     public override HashSet<EntityUid> GibPart(
         EntityUid partId,
-        BodyPartComponent? part = null,
+        OrganComponent? part = null,
         bool launchGibs = true,
         Vector2? splatDirection = null,
         float splatModifier = 1,
@@ -244,14 +247,14 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         return gibs;
     }
 
-    public override bool BurnPart(EntityUid partId, BodyPartComponent? part = null)
+    public override bool BurnPart(EntityUid partId, OrganComponent? part = null)
     {
         if (!Resolve(partId, ref part, logMissing: false)
             || TerminatingOrDeleted(partId)
             || EntityManager.IsQueuedForDeletion(partId))
             return false;
 
-        return base.BurnPart(partId, part);
+        return true;
     }
 
     protected override void ApplyPartMarkings(EntityUid target, BodyPartAppearanceComponent component)
@@ -268,7 +271,7 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         Dirty(target, bodyAppearance);
     }
 
-    private void OnGibTorsoAttempt(Entity<BodyPartComponent> ent, ref AttemptEntityGibEvent args)
+    private void OnGibTorsoAttempt(Entity<OrganComponent> ent, ref AttemptEntityGibEvent args)
     {
         // FS: GibType API not present; chest-gib special-casing handled elsewhere if needed.
     }

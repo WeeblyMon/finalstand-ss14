@@ -6,6 +6,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using System.Text;
 using Content.Server.Body.Systems;
@@ -45,23 +46,20 @@ public sealed class PartStatusSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly ExamineSystemShared _examineSystem = default!;
 
-    private static readonly IReadOnlyList<BodyPartType> BodyPartOrder = new List<BodyPartType>
+    private static readonly IReadOnlyList<ProtoId<OrganCategoryPrototype>> BodyPartOrder = new List<ProtoId<OrganCategoryPrototype>>
     {
-        BodyPartType.Head,
-        BodyPartType.Chest,
-        BodyPartType.Arm,
-        BodyPartType.Hand,
-        BodyPartType.Groin,
-        BodyPartType.Leg,
-        BodyPartType.Foot,
+        OrganCategories.Head,
+        OrganCategories.Torso,
+        OrganCategories.ArmLeft,
+        OrganCategories.ArmRight,
+        OrganCategories.HandLeft,
+        OrganCategories.HandRight,
+        OrganCategories.Groin,
+        OrganCategories.LegLeft,
+        OrganCategories.LegRight,
+        OrganCategories.FootLeft,
+        OrganCategories.FootRight,
     }.AsReadOnly();
-
-    private static List<BodyPartSymmetry> _symmetryPriority =
-    [
-        BodyPartSymmetry.Left,
-        BodyPartSymmetry.Right,
-        BodyPartSymmetry.None,
-    ];
 
     private const string BleedLocaleStr = "inspect-wound-Bleeding-moderate";
     private const string BoneLocaleStr = "inspect-trauma-BoneDamage";
@@ -136,13 +134,13 @@ public sealed class PartStatusSystem : EntitySystem
     }
 
 
-    private HashSet<PartStatus> CollectPartStatuses(Entity<BodyPartComponent> rootPart)
+    private HashSet<PartStatus> CollectPartStatuses(Entity<OrganComponent> rootPart)
     {
         var partStatusSet = new HashSet<PartStatus>();
 
         foreach (var woundable in _woundSystem.GetAllWoundableChildren(rootPart))
         {
-            if (!TryComp<BodyPartComponent>(woundable, out var bodyPartComponent) ||
+            if (!TryComp<OrganComponent>(woundable, out var bodyPartComponent) ||
                 !TryComp<BoneComponent>(woundable.Comp.Bone.ContainedEntities.FirstOrNull(), out var bone))
                 continue;
 
@@ -224,10 +222,9 @@ public sealed class PartStatusSystem : EntitySystem
         ref FormattedMessage message,
         bool styleless = false)
     {
+        // BodyPartOrder is already head-to-toe and left-before-right.
         var orderedParts = BodyPartOrder
-            .SelectMany(partType => partStatusSet.Where(p => p.PartType == partType)
-                .ToList()
-                .OrderBy(p => _symmetryPriority.IndexOf(p.PartSymmetry)))
+            .SelectMany(category => partStatusSet.Where(p => p.Category == category))
             .ToList();
 
         foreach (var partStatus in orderedParts)

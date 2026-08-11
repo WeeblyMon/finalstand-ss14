@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Server._Shitmed.DelayedDeath;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared.Body.Systems;
@@ -20,6 +21,7 @@ namespace Content.Server._Shitmed.Body.Systems;
 /// </summary>
 public sealed class DebrainedSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly SharedBodyAppearanceSystem _bodySystem = default!;
     [Dependency] private readonly PopupSystem _popupSystem = default!;
     [Dependency] private readonly StandingStateSystem _standingSystem = default!;
@@ -50,7 +52,7 @@ public sealed class DebrainedSystem : EntitySystem
 
         RemComp<DelayedDeathComponent>(uid);
         RemComp<StunnedComponent>(uid);
-        if (_bodySystem.TryGetBodyOrganEntityComps<HeartComponent>(uid, out var _))
+        if (_lookup.TryGetBodyOrgans<HeartComponent>(uid, out var _))
             RemComp<DelayedDeathComponent>(uid);
     }
 

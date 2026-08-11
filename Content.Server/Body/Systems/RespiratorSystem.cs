@@ -30,6 +30,7 @@ namespace Content.Server.Body.Systems;
 [UsedImplicitly]
 public sealed class RespiratorSystem : EntitySystem
 {
+    [Dependency] private readonly Content.Shared.Body.BodySystem _vanillaBody = default!;
     [Dependency] private readonly IAdminLogManager _adminLogger = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly IPrototypeManager _protoMan = default!;
@@ -55,11 +56,11 @@ public sealed class RespiratorSystem : EntitySystem
         SubscribeLocalEvent<RespiratorComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
 
         // BodyComp stuff
-        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_body.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_body.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_body.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_body.RelayEvent);
-        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_body.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, InhaledGasEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, ExhaledGasEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, CanMetabolizeGasEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, SuffocationEvent>(_vanillaBody.RelayEvent);
+        SubscribeLocalEvent<BodyComponent, StopSuffocatingEvent>(_vanillaBody.RelayEvent);
 
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<InhaledGasEvent>>(OnGasInhaled);
         SubscribeLocalEvent<LungComponent, BodyRelayedEvent<ExhaledGasEvent>>(OnGasExhaled);

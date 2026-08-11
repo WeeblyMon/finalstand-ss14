@@ -47,7 +47,7 @@ internal sealed class CyberneticsSystem : EntitySystem
                 var disableEvent = new OrganEnableChangedEvent(false);
                 RaiseLocalEvent(cyberEnt, ref disableEvent);
             }
-            else if (TryComp(cyberEnt, out BodyPartComponent? part))
+            else if (TryComp(cyberEnt, out OrganComponent? part))
             {
                 var disableEvent = new OrganEnableChangedEvent(false);
                 RaiseLocalEvent(cyberEnt, ref disableEvent);
@@ -74,7 +74,7 @@ internal sealed class CyberneticsSystem : EntitySystem
                 var enableEvent = new OrganEnableChangedEvent(true);
                 RaiseLocalEvent(cyberEnt, ref enableEvent);
             }
-            else if (HasComp<BodyPartComponent>(cyberEnt))
+            else if (HasComp<OrganComponent>(cyberEnt))
             {
                 var enableEvent = new OrganEnableChangedEvent(true);
                 RaiseLocalEvent(cyberEnt, ref enableEvent);

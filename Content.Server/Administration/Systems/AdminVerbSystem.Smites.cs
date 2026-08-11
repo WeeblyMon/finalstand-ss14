@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -66,6 +67,8 @@ public sealed partial class AdminVerbSystem
 {
     private readonly ProtoId<PolymorphPrototype> LizardSmite = "AdminLizardSmite";
     private readonly ProtoId<PolymorphPrototype> VulpkaninSmite = "AdminVulpSmite";
+
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
 
     [Dependency] private readonly SharedActionsSystem _actions = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
@@ -320,7 +323,7 @@ public sealed partial class AdminVerbSystem
                 Act = () =>
                 {
                     _vomitSystem.Vomit(args.Target, -1000, -1000); // You feel hollow!
-                    _bodySystem.TryGetOrgansWithComponent<TransformComponent>(args.Target, out var organs, body);
+                    _lookup.TryGetBodyOrgans<TransformComponent>(args.Target, out var organs);
                     var baseXform = Transform(args.Target);
                     foreach (var organ in organs)
                     {
@@ -388,7 +391,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "stomach"),
                 Act = () =>
                 {
-                    _bodySystem.TryGetOrgansWithComponent<StomachComponent>(args.Target, out var organs, body);
+                    _lookup.TryGetBodyOrgans<StomachComponent>(args.Target, out var organs);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);
@@ -410,7 +413,7 @@ public sealed partial class AdminVerbSystem
                 Icon = new SpriteSpecifier.Rsi(new("/Textures/Mobs/Species/Human/organs.rsi"), "lung-r"),
                 Act = () =>
                 {
-                    _bodySystem.TryGetOrgansWithComponent<LungComponent>(args.Target, out var organs, body);
+                    _lookup.TryGetBodyOrgans<LungComponent>(args.Target, out var organs);
                     foreach (var entity in organs)
                     {
                         QueueDel(entity.Owner);

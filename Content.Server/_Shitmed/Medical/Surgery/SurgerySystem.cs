@@ -106,7 +106,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
         EntityUid part,
         bool affectAll = false)
     {
-        if (!TryComp<BodyPartComponent>(part, out var partComp))
+        if (!TryComp<OrganComponent>(part, out var partComp))
             return;
 
         // kinda funky but still works

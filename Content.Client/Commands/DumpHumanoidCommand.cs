@@ -48,7 +48,7 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
                 var cx = _ent.GetComponent<TransformComponent>(c);
                 var inContainer = containerSys.TryGetContainingContainer((c, null), out var cont);
                 var hasSprite = _ent.TryGetComponent<SpriteComponent>(c, out var childSprite);
-                var hasBodyPart = _ent.TryGetComponent<BodyPartComponent>(c, out var bp);
+                var hasBodyPart = _ent.TryGetComponent<OrganComponent>(c, out var bp);
                 sb.Append($"  {_ent.ToPrettyString(c)} pos={cx.LocalPosition}");
                 sb.Append($" inContainer={(inContainer ? cont!.ID : "NO")}");
                 if (hasSprite)

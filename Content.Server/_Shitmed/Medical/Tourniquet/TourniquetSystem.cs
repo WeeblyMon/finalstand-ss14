@@ -164,7 +164,7 @@ public sealed class TourniquetSystem : EntitySystem
         if (targetPart == null)
         {
             var tourniquetable = EntityUid.Invalid;
-            foreach (var bodyPart in _lookup.GetBodyOrgans(ent, comp))
+            foreach (var bodyPart in _lookup.GetBodyOrgans((ent, comp)))
             {
                 if (!bodyPart.Component.Children
                         .Any(bodyPartSlot =>
@@ -246,7 +246,7 @@ public sealed class TourniquetSystem : EntitySystem
         if (tourniquetedBodyPart == null)
             return;
 
-        var bodyPartComp = Comp<BodyPartComponent>(tourniquetedBodyPart.Value);
+        var bodyPartComp = Comp<OrganComponent>(tourniquetedBodyPart.Value);
         if (tourniquet.BlockedBodyParts.Contains(bodyPartComp.PartType))
         {
             foreach (var woundEnt in _wound.GetWoundableWounds(tourniquetedBodyPart.Value))

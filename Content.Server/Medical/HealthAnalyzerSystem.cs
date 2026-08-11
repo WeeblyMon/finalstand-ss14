@@ -104,6 +104,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Server.Body.Components;
 using Content.Server.Medical.Components;
 using Content.Shared.PowerCell;
@@ -149,6 +150,7 @@ namespace Content.Server.Medical;
 
 public sealed class HealthAnalyzerSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly PowerCellSystem _cell = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
@@ -200,7 +202,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
             // Shitmed Change Start
             if (component.CurrentBodyPart != null
                 && (Deleted(component.CurrentBodyPart)
-                || TryComp(component.CurrentBodyPart, out BodyPartComponent? bodyPartComponent)
+                || TryComp(component.CurrentBodyPart, out OrganComponent? bodyPartComponent)
                 && bodyPartComponent.Body is null))
             {
                 BeginAnalyzingEntity((uid, component), patient, null);
@@ -345,9 +347,15 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         }
         else
         {
-            var (targetType, targetSymmetry) = _bodySystem.ConvertTargetBodyPart(args.BodyPart.Value);
-            if (_bodySystem.GetBodyChildrenOfType(owner.Value, targetType, symmetry: targetSymmetry) is { } part)
-                BeginAnalyzingEntity(healthAnalyzer, owner.Value, part.FirstOrDefault().Id);
+            foreach (var category in OrganCategories.FromTarget(args.BodyPart.Value))
+            {
+                var organ = _lookup.EnumerateOrgansOfCategory(owner.Value, category).FirstOrDefault();
+                if (organ == default)
+                    continue;
+
+                BeginAnalyzingEntity(healthAnalyzer, owner.Value, organ.Owner);
+                break;
+            }
         }
     }
 
@@ -417,7 +425,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         {
             case HealthAnalyzerMode.Body:
                 var unrevivable = false;
-                FetchBodyData(target, body, out var traumas, out var pain, out bleeding);
+                FetchBodyData(target, target, out var traumas, out var pain, out bleeding);
                 if (TryComp<UnrevivableComponent>(target, out var unrevivableComp) && unrevivableComp.Analyzable)
                     unrevivable = true;
 
@@ -437,7 +445,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
                 break;
 
             case HealthAnalyzerMode.Organs:
-                bleeding = FetchBleedData(body);
+                bleeding = FetchBleedData(target);
                 var organs = FetchOrganData(target);
                 _uiSystem.ServerSendUiMessage(healthAnalyzer, HealthAnalyzerUiKey.Key, new HealthAnalyzerOrgansMessage(
                     GetNetEntity(target),
@@ -452,7 +460,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
                 break;
 
             case HealthAnalyzerMode.Chemicals:
-                bleeding = FetchBleedData(body);
+                bleeding = FetchBleedData(target);
                 var chemicals = FetchChemicalData(target);
                 _uiSystem.ServerSendUiMessage(healthAnalyzer, HealthAnalyzerUiKey.Key, new HealthAnalyzerChemicalsMessage(
                     GetNetEntity(target),
@@ -477,7 +485,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
     }
 
     private void FetchBodyData(EntityUid target,
-        BodyComponent body,
+        EntityUid bodyEnt,
         out Dictionary<NetEntity, List<WoundableTraumaData>> traumas,
         out Dictionary<NetEntity, FixedPoint2> pain,
         out Dictionary<TargetBodyPart, bool> bleeding)
@@ -486,14 +494,16 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         pain = new();
         bleeding = new();
 
-        if (body.RootContainer.ContainedEntity is not { } rootPart)
+        if (!_lookup.TryGetRootOrgan(bodyEnt, out var root))
             return;
+
+        var rootPart = root.Owner;
 
         foreach (var (woundable, component) in _woundSystem.GetAllWoundableChildren(rootPart))
         {
             traumas.Add(GetNetEntity(woundable), FetchTraumaData(woundable, component));
             pain.Add(GetNetEntity(woundable), FetchPainData(woundable, component));
-            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), IsWoundableBleeding(woundable));
+            bleeding.Add(_lookup.GetTarget(woundable) ?? TargetBodyPart.Chest, IsWoundableBleeding(woundable));
         }
     }
 
@@ -514,15 +524,17 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         return false;
     }
 
-    private Dictionary<TargetBodyPart, bool> FetchBleedData(BodyComponent body)
+    private Dictionary<TargetBodyPart, bool> FetchBleedData(EntityUid bodyEnt)
     {
         var bleeding = new Dictionary<TargetBodyPart, bool>();
 
-        if (body.RootContainer.ContainedEntity is not { } rootPart)
+        if (!_lookup.TryGetRootOrgan(bodyEnt, out var root))
             return bleeding;
 
+        var rootPart = root.Owner;
+
         foreach (var (woundable, _) in _woundSystem.GetAllWoundableChildren(rootPart))
-            bleeding.Add(_bodySystem.GetTargetBodyPart(woundable), IsWoundableBleeding(woundable));
+            bleeding.Add(_lookup.GetTarget(woundable) ?? TargetBodyPart.Chest, IsWoundableBleeding(woundable));
 
         return bleeding;
     }
@@ -541,13 +553,13 @@ public sealed class HealthAnalyzerSystem : EntitySystem
                     && TryComp(boneWoundable, out BoneComponent? boneComp))
                 {
                     traumasList.Add(new WoundableTraumaData(ToPrettyString(target),
-                        trauma.Comp.TraumaType.ToString(), trauma.Comp.TraumaSeverity, boneComp.BoneSeverity.ToString(), trauma.Comp.TargetType));
+                        trauma.Comp.TraumaType.ToString(), trauma.Comp.TraumaSeverity, boneComp.BoneSeverity.ToString(), trauma.Comp.TargetCategory));
 
                     continue;
                 }
 
                 traumasList.Add(new WoundableTraumaData(ToPrettyString(trauma),
-                        trauma.Comp.TraumaType.ToString(), trauma.Comp.TraumaSeverity, targetType: trauma.Comp.TargetType));
+                        trauma.Comp.TraumaType.ToString(), trauma.Comp.TraumaSeverity, targetCategory: trauma.Comp.TargetCategory));
             }
         }
 
@@ -571,12 +583,15 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         if (!TryComp<BodyComponent>(target, out var body))
             return organs;
 
-        foreach (var (organId, organComp) in _bodySystem.GetBodyOrgans(target))
+        foreach (var (organId, _) in _lookup.GetBodyOrgans(target))
         {
-            organs.Add(GetNetEntity(organId), new OrganTraumaData(organComp.OrganIntegrity,
-                organComp.IntegrityCap,
-                organComp.OrganSeverity,
-                organComp.IntegrityModifiers
+            if (!TryComp<OrganIntegrityComponent>(organId, out var integrity))
+                continue;
+
+            organs.Add(GetNetEntity(organId), new OrganTraumaData(integrity.OrganIntegrity,
+                integrity.IntegrityCap,
+                integrity.OrganSeverity,
+                integrity.IntegrityModifiers
                     .Select(x => (x.Key.Item1, x.Value))
                     .ToList()));
         }
@@ -608,9 +623,9 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         var bleeding = false;
         if (TryComp<BodyComponent>(target, out var body))
         {
-            if (body.RootContainer.ContainedEntity is { } rootPart)
+            if (_lookup.TryGetRootOrgan(target, out var bleedRoot))
             {
-                foreach (var (woundableUid, _) in _woundSystem.GetAllWoundableChildren(rootPart))
+                foreach (var (woundableUid, _) in _woundSystem.GetAllWoundableChildren(bleedRoot.Owner))
                 {
                     if (IsWoundableBleeding(woundableUid))
                     {
@@ -647,18 +662,17 @@ public sealed class HealthAnalyzerSystem : EntitySystem
             solutionsList.Add(name, solution.Comp.Solution);
         }
 
-        if (TryComp<BodyComponent>(target, out var body)
-            && _bodySystem.TryGetBodyOrganEntityComps<StomachComponent>((target, body), out var stomachs))
+        if (_lookup.TryGetBodyOrgans<StomachComponent>(target, out var stomachs))
         {
             var stomachIndex = 0;
             foreach (var stomach in stomachs)
             {
-                if (stomach.Comp1.Solution is null)
+                if (stomach.Comp.Solution is null)
                     continue;
 
                 // Multiple stomachs (e.g. ruminant) get suffixed names so the dict keys stay unique.
                 var key = stomachs.Count > 1 ? $"stomach{++stomachIndex}" : "stomach";
-                solutionsList.TryAdd(key, stomach.Comp1.Solution.Value.Comp.Solution);
+                solutionsList.TryAdd(key, stomach.Comp.Solution.Value.Comp.Solution);
             }
         }
 

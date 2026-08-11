@@ -5,6 +5,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared.Body;
+using Content.Shared._FinalStand.Medical;
 using Content.Server.Body.Components;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared.Body.Components;
@@ -23,9 +25,9 @@ public partial class BodyAppearanceSystem
             return false; // no organs to be missing
 
         var ent = (uid, body);
-        if (!TryGetBodyOrganEntityComps<BrainComponent>(ent, out _))
+        if (!_lookup.TryGetBodyOrgans<BrainComponent>(ent, out _))
             return false;
 
-        return TryGetBodyOrganEntityComps<HeartComponent>(ent, out _);
+        return _lookup.TryGetBodyOrgans<HeartComponent>(ent, out _);
     }
 }
