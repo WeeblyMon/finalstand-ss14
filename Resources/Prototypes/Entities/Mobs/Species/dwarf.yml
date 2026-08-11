@@ -45,7 +45,7 @@
 - type: entity
   save: false
   name: Urist McHands The Dwarf
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansDwarf ]
   id: BaseMobDwarf
   abstract: true
   components:
@@ -84,7 +84,7 @@
         layer:
         - MobLayer
   - type: Body
-    prototype: Dwarf
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Butcherable
     butcheringType: Spike

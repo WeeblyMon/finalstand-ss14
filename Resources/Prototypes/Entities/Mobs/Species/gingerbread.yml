@@ -21,7 +21,7 @@
 - type: entity
   save: false
   name: Urist McCookie
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansGingerbread ]
   id: BaseMobGingerbread
   abstract: true
   components:
@@ -31,7 +31,7 @@
     sprite: Mobs/Species/Gingerbread/parts.rsi
     state: full
   - type: Body
-    prototype: Gingerbread
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Damageable
     damageContainer: Biological

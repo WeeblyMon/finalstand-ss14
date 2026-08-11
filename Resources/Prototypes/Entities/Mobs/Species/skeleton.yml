@@ -49,6 +49,7 @@
   parent:
   - MobFlammable
   - BaseMobSpecies
+  - BodyOrgansSkeleton
   id: BaseMobSkeletonPerson
   abstract: true
   components:
@@ -58,9 +59,9 @@
     sprite: Mobs/Species/Skeleton/parts.rsi
     state: full
   - type: Body
-    prototype: Skeleton
-    requiredLegs: 2
     gibSound: /Audio/Effects/bone_rattle.ogg
+  - type: BodyLocomotion
+    requiredLegs: 2
   - type: Damageable
     damageContainer: Biological
     damageModifierSet: Skeleton

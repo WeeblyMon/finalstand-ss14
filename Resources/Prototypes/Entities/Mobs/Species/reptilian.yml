@@ -130,7 +130,7 @@
 - type: entity
   save: false
   name: Urisst' Mzhand
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansReptilian ]
   id: BaseMobReptilian
   abstract: true
   components:
@@ -152,7 +152,7 @@
     sprite: Mobs/Species/Reptilian/parts.rsi
     state: full
   - type: Body
-    prototype: Reptilian
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Butcherable
     butcheringType: Spike

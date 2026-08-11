@@ -11,58 +11,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Shitmed - this is just a copy of human body but with animal organs.
-- type: body
-  id: Kobold
-  name: "Kobold"
-  root: chest
-  slots:
-    head:
-      part: HeadKobold
-      connections:
-      - chest
-      organs:
-        brain: OrganAnimalBrain
-        eyes: OrganAnimalEyes
-    chest:
-      part: ChestKobold
-      connections:
-      - groin
-      - right arm
-      - left arm
-      - head
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganAnimalLungs
-    groin:
-      part: GroinKobold
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganAnimalStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganAnimalKidneys
-    right arm:
-      part: RightArmKobold
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmKobold
-      connections:
-      - left hand
-    right hand:
-      part: RightHandKobold
-    left hand:
-      part: LeftHandKobold
-    right leg:
-      part: RightLegKobold
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegKobold
-      connections:
-      - left foot
-    right foot:
-      part: RightFootKobold
-    left foot:
-      part: LeftFootKobold
+- type: entity
+  abstract: true
+  id: BodyOrgansKobold
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadKobold
+      Brain: OrganAnimalBrain
+      Eyes: OrganAnimalEyes
+      Torso: ChestKobold
+      Heart: OrganAnimalHeart
+      Lungs: OrganAnimalLungs
+      Groin: GroinKobold
+      Stomach: OrganAnimalStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganAnimalKidneys
+      ArmRight: RightArmKobold
+      ArmLeft: LeftArmKobold
+      HandRight: RightHandKobold
+      HandLeft: LeftHandKobold
+      LegRight: RightLegKobold
+      LegLeft: LeftLegKobold
+      FootRight: RightFootKobold
+      FootLeft: LeftFootKobold
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

@@ -1,6 +1,6 @@
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobHemocyanin
   abstract: true
   components:
   - type: Body
-    prototype: Animal

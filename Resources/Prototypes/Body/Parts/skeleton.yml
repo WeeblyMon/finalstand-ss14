@@ -48,8 +48,7 @@
     sprite: Mobs/Species/Skeleton/parts.rsi
   - type: Icon
     sprite: Mobs/Species/Skeleton/parts.rsi
-  - type: BodyPart
-    species: Skeleton # Shitmed Change
+  - type: Organ
   - type: StaticPrice
     price: 20
   - type: Tag

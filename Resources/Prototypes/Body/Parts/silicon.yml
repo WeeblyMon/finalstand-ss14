@@ -14,8 +14,7 @@
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: StaticPrice
     price: 15
-  - type: BodyPart
-    species: Cyborg
+  - type: Organ
   - type: Tag
     tags:
     - Trash

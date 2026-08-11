@@ -42,7 +42,7 @@
 - type: entity
   save: false
   name: Urist McPlants
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansDiona ]
   id: BaseMobDiona
   abstract: true
   components:
@@ -58,7 +58,7 @@
     sprite: Mobs/Species/Diona/parts.rsi
     state: full
   - type: Body
-    prototype: Diona
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Damageable
     damageContainer: Biological

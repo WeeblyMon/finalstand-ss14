@@ -6,24 +6,20 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: RatKing
-  name: "animal"
-  root: chest
-  slots:
-    chest:
-      part: ChestRat
-      connections:
-      - legs
-      organs:
-        lungs: OrganRatLungs
-        stomach: OrganRatKingStomach
-        liver: OrganAnimalLiver
-        heart: OrganAnimalHeart
-        kidneys: OrganAnimalKidneys
-    legs:
-      part: LegsAnimal
-      connections:
-      - feet
-    feet:
-      part: FeetAnimal
+- type: entity
+  abstract: true
+  id: BodyOrgansRatKing
+  components:
+  - type: InitialBody
+    organs:
+      Torso: ChestRat
+      Lungs: OrganRatLungs
+      Stomach: OrganRatKingStomach
+      Liver: OrganAnimalLiver
+      Heart: OrganAnimalHeart
+      Kidneys: OrganAnimalKidneys
+      LegLeft: LegsAnimal
+      FootLeft: FeetAnimal
+    relationships:
+      Torso: [ Heart, Kidneys, LegLeft, Liver, Lungs, Stomach ]
+      LegLeft: [ FootLeft ]

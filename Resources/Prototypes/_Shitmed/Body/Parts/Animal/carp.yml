@@ -26,8 +26,8 @@
     state: tail
   - type: Icon
     state: tail
-  - type: BodyPart
-    partType: Tail
+  - type: Organ
+    category: Tail
   - type: MovementBodyPart
     walkSpeed: 2.5
     sprintSpeed: 3.5

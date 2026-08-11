@@ -12,56 +12,34 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: BananaMen
-  name: bananamen
-  root: chest
-  slots:
-    head:
-      part: HeadHuman
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-    chest:
-      part: ChestHuman
-      connections:
-      - groin
-      - right arm
-      - left arm
-      organs:
-        heart: OrganBananaMenHeart
-        lungs: OrganBananaMenLungs
-    groin:
-      part: GroinHuman
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganBananaMenStomach
-        liver: OrganBananaMenLiver
-        kidneys: OrganBananaMenKidneys
-    right arm:
-      part: RightArmHuman
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmHuman
-      connections:
-      - left hand
-    right hand:
-      part: RightHandBananamen
-    left hand:
-      part: LeftHandBananamen
-    right leg:
-      part: RightLegHuman
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegHuman
-      connections:
-      - left foot
-    right foot:
-      part: RightFootHuman
-    left foot:
-      part: LeftFootHuman
+- type: entity
+  abstract: true
+  id: BodyOrgansBananaMen
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadHuman
+      Brain: OrganHumanBrain
+      Torso: ChestHuman
+      Heart: OrganBananaMenHeart
+      Lungs: OrganBananaMenLungs
+      Groin: GroinHuman
+      Stomach: OrganBananaMenStomach
+      Liver: OrganBananaMenLiver
+      Kidneys: OrganBananaMenKidneys
+      ArmRight: RightArmHuman
+      ArmLeft: LeftArmHuman
+      HandRight: RightHandBananamen
+      HandLeft: LeftHandBananamen
+      LegRight: RightLegHuman
+      LegLeft: LeftLegHuman
+      FootRight: RightFootHuman
+      FootLeft: LeftFootHuman
+    relationships:
+      Head: [ Brain ]
+      Torso: [ ArmLeft, ArmRight, Groin, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

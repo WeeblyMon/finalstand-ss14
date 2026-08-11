@@ -32,8 +32,7 @@
     sprite: Mobs/Species/Human/parts.rsi
   - type: Damageable
     damageContainer: Inorganic # Shitmed Change
-  - type: BodyPart
-    partComposition: Inorganic
+  - type: Organ
   - type: SurgeryTool # Shitmed Change
     startSound:
       path: /Audio/_Shitmed/Medical/Surgery/organ1.ogg
@@ -61,29 +60,9 @@
     state: "chest_m"
   - type: Icon
     state: "chest_m"
-  - type: BodyPart
-    partType: Chest
-    # Shitmed Change Start
-    toolName: "a chest"
-    containerName: "chest_slot"
-    children:
-      groin:
-        id: groin
-        type: Groin
-      right arm:
-        id: right arm
-        type: Arm
-      left arm:
-        id: left arm
-        type: Arm
-      head:
-        id: head
-        type: Head
-    organs:
-      heart:
-        id: heart
-      lungs:
-        id: lungs
+  - type: Organ
+    category: Torso
+  - type: OrganCavity
   - type: Woundable
     damageContainer: Inorganic
     integrity: 200
@@ -124,25 +103,8 @@
     state: "groin_m"
   - type: Icon
     state: "groin_m"
-  - type: BodyPart
-    partType: Groin
-    # Shitmed Change Start
-    toolName: "a groin"
-    containerName: "groin_slot"
-    children:
-      right leg:
-        id: right leg
-        type: Leg
-      left leg:
-        id: left leg
-        type: Leg
-    organs:
-      stomach:
-        id: stomach
-      liver:
-        id: liver
-      kidneys:
-        id: kidneys
+  - type: Organ
+    category: Groin
   - type: Woundable
     integrity: 100
     integrityCap: 100
@@ -186,14 +148,8 @@
     state: "head_m"
   - type: Icon
     state: "head_m"
-  - type: BodyPart
-    partType: Head
-    toolName: "a head" # Shitmed Change
-    organs: # Shitmed Change
-      brain:
-        id: brain
-      eyes:
-        id: eyes
+  - type: Organ
+    category: Head
   - type: Input
     context: "ghost"
   - type: Tag
@@ -247,14 +203,8 @@
     state: "l_arm"
   - type: Icon
     state: "l_arm"
-  - type: BodyPart
-    partType: Arm
-    symmetry: Left
-    toolName: "a left arm" # Shitmed Change
-    children: # Shitmed Change
-      left hand:
-        id: left hand
-        type: Hand
+  - type: Organ
+    category: ArmLeft
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LArm
@@ -284,14 +234,8 @@
     state: "r_arm"
   - type: Icon
     state: "r_arm"
-  - type: BodyPart
-    partType: Arm
-    symmetry: Right
-    toolName: "a right arm" # Shitmed Change
-    children: # Shitmed Change
-      right hand:
-        id: right hand
-        type: Hand
+  - type: Organ
+    category: ArmRight
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RArm
@@ -321,10 +265,8 @@
     state: "l_hand"
   - type: Icon
     state: "l_hand"
-  - type: BodyPart
-    partType: Hand
-    symmetry: Left
-    toolName: "a left hand" # Shitmed Change
+  - type: Organ
+    category: HandLeft
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LHand
@@ -354,10 +296,8 @@
     state: "r_hand"
   - type: Icon
     state: "r_hand"
-  - type: BodyPart
-    partType: Hand
-    symmetry: Right
-    toolName: "a right hand" # Shitmed Change
+  - type: Organ
+    category: HandRight
   - type: Woundable
     integrity: 60
     integrityCap: 60
@@ -387,14 +327,8 @@
     state: "l_leg"
   - type: Icon
     state: "l_leg"
-  - type: BodyPart
-    partType: Leg
-    symmetry: Left
-    toolName: "a left leg" # Shitmed Change
-    children: # Shitmed Change
-      left foot:
-        id: left foot
-        type: Foot
+  - type: Organ
+    category: LegLeft
   - type: MovementBodyPart
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
@@ -425,14 +359,8 @@
     state: "r_leg"
   - type: Icon
     state: "r_leg"
-  - type: BodyPart
-    partType: Leg
-    symmetry: Right
-    toolName: "a right leg" # Shitmed Change
-    children: # Shitmed Change
-      right foot:
-        id: right foot
-        type: Foot
+  - type: Organ
+    category: LegRight
   - type: MovementBodyPart
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
@@ -463,10 +391,8 @@
     state: "l_foot"
   - type: Icon
     state: "l_foot"
-  - type: BodyPart
-    partType: Foot
-    symmetry: Left
-    toolName: "a left foot" # Shitmed Change
+  - type: Organ
+    category: FootLeft
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LFoot
@@ -496,10 +422,8 @@
     state: "r_foot"
   - type: Icon
     state: "r_foot"
-  - type: BodyPart
-    partType: Foot
-    symmetry: Right
-    toolName: "a right foot" # Shitmed Change
+  - type: Organ
+    category: FootRight
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RFoot

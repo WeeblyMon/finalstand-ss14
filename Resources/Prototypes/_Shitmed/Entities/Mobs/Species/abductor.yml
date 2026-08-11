@@ -33,7 +33,9 @@
   - type: Fingerprint
   - type: Blindable
   - type: Body
-    prototype: Abductor
+  - type: InitialBody
+    # organs come from BodyOrgansAbductor
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: FireVisuals
     alternateState: Standing

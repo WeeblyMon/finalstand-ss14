@@ -4,57 +4,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Abductor
-  name: Abductor
-  root: chest
-  slots:
-    head:
-      part: HeadAbductor
-      connections:
-      - chest
-      organs:
-        brain: OrganAbductorBrain
-        eyes: OrganAbductorEyes
-    chest:
-      part: ChestAbductor
-      connections:
-      - groin
-      - right arm
-      - left arm
-      organs:
-        heart: OrganAbductorHeart
-        lungs: OrganAbductorLungs
-    groin:
-      part: GroinAbductor
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganAbductorStomach
-        liver: OrganAbductorLiver
-        kidneys: OrganAbductorKidneys
-    right arm:
-      part: RightArmAbductor
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmAbductor
-      connections:
-      - left hand
-    right hand:
-      part: RightHandAbductor
-    left hand:
-      part: LeftHandAbductor
-    right leg:
-      part: RightLegAbductor
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegAbductor
-      connections:
-      - left foot
-    right foot:
-      part: RightFootAbductor
-    left foot:
-      part: LeftFootAbductor
+- type: entity
+  abstract: true
+  id: BodyOrgansAbductor
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadAbductor
+      Brain: OrganAbductorBrain
+      Eyes: OrganAbductorEyes
+      Torso: ChestAbductor
+      Heart: OrganAbductorHeart
+      Lungs: OrganAbductorLungs
+      Groin: GroinAbductor
+      Stomach: OrganAbductorStomach
+      Liver: OrganAbductorLiver
+      Kidneys: OrganAbductorKidneys
+      ArmRight: RightArmAbductor
+      ArmLeft: LeftArmAbductor
+      HandRight: RightHandAbductor
+      HandLeft: LeftHandAbductor
+      LegRight: RightLegAbductor
+      LegLeft: LeftLegAbductor
+      FootRight: RightFootAbductor
+      FootLeft: LeftFootAbductor
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

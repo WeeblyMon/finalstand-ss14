@@ -16,58 +16,34 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Tajaran
-  name: tajaran
-  root: chest
-  slots:
-    head:
-      part: HeadTajaran
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestTajaran
-      connections:
-      - groin
-      - right arm
-      - left arm
-      - head # Shitmed Change
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganHumanLungs
-    groin:
-      part: GroinTajaran
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganAnimalStomach
-        liver:  OrganAnimalLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmTajaran
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmTajaran
-      connections:
-      - left hand
-    right hand:
-      part: RightHandTajaran
-    left hand:
-      part: LeftHandTajaran
-    right leg:
-      part: RightLegTajaran
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegTajaran
-      connections:
-      - left foot
-    right foot:
-      part: RightFootTajaran
-    left foot:
-      part: LeftFootTajaran
+- type: entity
+  abstract: true
+  id: BodyOrgansTajaran
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadTajaran
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestTajaran
+      Heart: OrganAnimalHeart
+      Lungs: OrganHumanLungs
+      Groin: GroinTajaran
+      Stomach: OrganAnimalStomach
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmTajaran
+      ArmLeft: LeftArmTajaran
+      HandRight: RightHandTajaran
+      HandLeft: LeftHandTajaran
+      LegRight: RightLegTajaran
+      LegLeft: LeftLegTajaran
+      FootRight: RightFootTajaran
+      FootLeft: LeftFootTajaran
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

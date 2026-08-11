@@ -10,48 +10,27 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Skeleton
-  name: "skeleton"
-  root: chest
-  slots:
-    head:
-      part: HeadSkeleton
-      connections:
-      - chest
-    chest:
-      part: ChestSkeleton
-      connections:
-      - right arm
-      - left arm
-      - head # Shitmed
-      - groin # Shitmed
-    groin:
-      part: GroinSkeleton
-      connections:
-      - right leg
-      - left leg
-    right arm:
-      part: RightArmSkeleton
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmSkeleton
-      connections:
-      - left hand
-    right hand:
-      part: RightHandSkeleton
-    left hand:
-      part: LeftHandSkeleton
-    right leg:
-      part: RightLegSkeleton
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegSkeleton
-      connections:
-      - left foot
-    right foot:
-      part: RightFootSkeleton
-    left foot:
-      part: LeftFootSkeleton
+- type: entity
+  abstract: true
+  id: BodyOrgansSkeleton
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadSkeleton
+      Torso: ChestSkeleton
+      Groin: GroinSkeleton
+      ArmRight: RightArmSkeleton
+      ArmLeft: LeftArmSkeleton
+      HandRight: RightHandSkeleton
+      HandLeft: LeftHandSkeleton
+      LegRight: RightLegSkeleton
+      LegLeft: LeftLegSkeleton
+      FootRight: RightFootSkeleton
+      FootLeft: LeftFootSkeleton
+    relationships:
+      Torso: [ ArmLeft, ArmRight, Groin, Head ]
+      Groin: [ LegLeft, LegRight ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

@@ -12,7 +12,9 @@
   - type: HumanoidProfile
     species: Scurret
   - type: Body
-    prototype: Scurret
+  - type: InitialBody
+    # organs come from BodyOrgansScurret
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
     interfaces:

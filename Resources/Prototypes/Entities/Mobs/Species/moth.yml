@@ -120,7 +120,7 @@
 - type: entity
   save: false
   name: Urist McFluff
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansMoth ]
   id: BaseMobMoth
   abstract: true
   components:
@@ -138,7 +138,7 @@
     sprite: Mobs/Species/Moth/parts.rsi
     state: full
   - type: Body
-    prototype: Moth
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Damageable
     damageContainer: Biological

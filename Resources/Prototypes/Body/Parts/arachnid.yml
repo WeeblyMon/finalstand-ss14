@@ -37,8 +37,7 @@
   name: "arachnid body part"
   abstract: true
   components:
-  - type: BodyPart # Shitmed Change
-    species: Arachnid
+  - type: Organ # Shitmed Change
   - type: Extractable
     juiceSolution:
       reagents:
@@ -60,8 +59,7 @@
   name: "arachnid body part"
   abstract: true
   components:
-  - type: BodyPart # Shitmed Change
-    species: Arachnid
+  - type: Organ # Shitmed Change
   - type: Extractable
     juiceSolution:
       reagents:

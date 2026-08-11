@@ -37,8 +37,7 @@
     sprite: Mobs/Species/Vox/parts.rsi
   - type: Icon
     sprite: Mobs/Species/Vox/parts.rsi
-  - type: BodyPart # Shitmed Change
-    species: Vox
+  - type: Organ # Shitmed Change
   - type: WoundableVisuals
     damageOverlayGroups:
       Brute:

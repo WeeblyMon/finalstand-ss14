@@ -17,7 +17,9 @@
   - type: HumanoidProfile
     species: Monkey
   - type: Body
-    prototype: Monkey
+  - type: InitialBody
+    # organs come from BodyOrgansMonkey
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
     interfaces:
@@ -38,7 +40,9 @@
   - type: HumanoidProfile
     species: Kobold
   - type: Body
-    prototype: Kobold
+  - type: InitialBody
+    # organs come from BodyOrgansKobold
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
     interfaces:

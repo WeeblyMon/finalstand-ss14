@@ -1,6 +1,6 @@
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobRat
   abstract: true
   components:
   - type: Body
-    prototype: Animal
