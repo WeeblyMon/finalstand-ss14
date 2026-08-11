@@ -1,8 +1,10 @@
+using Content.Shared._FinalStand.Medical;
 ﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared.Body;
 using System.Text.Json.Serialization;
 using Content.Shared.Body.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
@@ -31,9 +33,10 @@ public sealed partial class AdjustBoneDamage : EntityEffect
 
     public override void Effect(EntityEffectBaseArgs args)
     {
-        if (!args.EntityManager.TryGetComponent<BodyComponent>(args.TargetEntity, out var body)
-            || body.RootContainer.ContainedEntities.FirstOrNull() is not { } root)
+        if (!args.EntityManager.System<OrganLookupSystem>().TryGetRootOrgan(args.TargetEntity, out var rootOrgan))
             return;
+
+        var root = rootOrgan.Owner;
 
         var traumaSystem = args.EntityManager.System<TraumaSystem>();
         var woundables = args.EntityManager.System<WoundSystem>().GetAllWoundableChildren(root).ToList();

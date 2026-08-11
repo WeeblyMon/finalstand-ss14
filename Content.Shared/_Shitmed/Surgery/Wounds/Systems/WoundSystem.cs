@@ -122,20 +122,20 @@ public sealed partial class WoundSystem : EntitySystem
             return;
 
         // If this still causes lag, we go with the nuclear option of also checking for ConsciousnessComponent :niceportrait:
-        using var query = EntityQueryEnumerator<BodyComponent, DamageableComponent>();
-        while (query.MoveNext(out var ent, out var body, out var damageable))
+        using var query = EntityQueryEnumerator<BodyWoundHealingComponent, DamageableComponent>();
+        while (query.MoveNext(out var ent, out var healing, out var damageable))
         {
             if (TerminatingOrDeleted(ent)
                 || Paused(ent)
-                || body.BodyType == BodyType.Simple
+                || healing.BodyType == BodyType.Simple
                 || _timing.CurTime - damageable.LastModifiedTime < _minimumTimeBeforeHeal
-                || _timing.CurTime < body.HealAt
+                || _timing.CurTime < healing.HealAt
                 || _mobState.IsIncapacitated(ent)
-                || !_lookup.TryGetRootOrgan(ent, out var rootPart, body: body))
+                || !_lookup.TryGetRootOrgan(ent, out var rootPart))
                 continue;
 
-            body.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
-            foreach (var woundable in GetAllWoundableChildren(rootPart!.Value))
+            healing.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
+            foreach (var woundable in GetAllWoundableChildren(rootPart.Owner))
                 if (woundable.Comp.CanHealDamage || woundable.Comp.CanHealBleeds)
                     _woundJobQueue.EnqueueJob(new WoundJob(this, woundable, ent, WoundJobTime));
         }
@@ -179,7 +179,7 @@ public sealed partial class WoundSystem : EntitySystem
         _damageable.TryChangeDamage(bodyEnt,
             damageSpecifier,
             ignoreResistances: false,
-            targetPart: _lookup.GetTarget(woundable));
+            targetPart: _lookup.GetTarget(woundable.Owner));
     }
 
     private void OnWoundComponentGet(EntityUid uid, WoundComponent comp, ref ComponentGetState args)
@@ -381,20 +381,18 @@ public sealed partial class WoundSystem : EntitySystem
             var bodySeverity = FixedPoint2.Zero;
             if (TryComp<OrganComponent>(uid, out var bodyPart) && bodyPart.Body.HasValue)
             {
-                if (!TryComp<BodyComponent>(bodyPart.Body.Value, out var bodyComp))
+                if (!_lookup.TryGetRootOrgan(bodyPart.Body.Value, out var rootPart))
                     return;
 
-                var rootPart = bodyComp.RootContainer?.ContainedEntity;
-                if (rootPart.HasValue)
                 {
-                    foreach (var woundable in GetAllWoundableChildren(rootPart.Value))
+                    foreach (var woundable in GetAllWoundableChildren(rootPart.Owner))
                     {
                         if (!MetaData(woundable).Initialized)
                             continue;
 
                         // The first check is for the root (chest) part entities, the other one is for attached entities
                         if (woundable.Comp.RootWoundable == woundable.Owner
-                            && woundable.Owner != rootPart)
+                            && woundable.Owner != rootPart.Owner)
                             continue;
 
                         bodySeverity += GetWoundableIntegrityDamage(woundable, woundable);

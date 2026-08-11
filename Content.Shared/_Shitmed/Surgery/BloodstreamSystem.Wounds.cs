@@ -357,13 +357,4 @@ public sealed partial class BloodstreamSystem
             PopupType.Medium);
     }
 
-    // begin Goobstation: port EE height/width sliders
-    public void SetBloodMaxVolume(Entity<BloodstreamComponent?> ent, FixedPoint2 volume)
-    {
-        if (!Resolve(ent.Owner, ref ent.Comp))
-            return;
-
-        ent.Comp.BloodMaxVolume = volume;
-    }
-    // end Goobstation: port EE height/width sliders
 }

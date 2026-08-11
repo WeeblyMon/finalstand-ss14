@@ -98,9 +98,7 @@ public partial class WoundSystem
         if (!Resolve(body, ref component) || healAmount <= 0)
             return false;
 
-        // Get the root part of the body
-        var rootPart = component.RootContainer.ContainedEntity;
-        if (!rootPart.HasValue)
+        if (!_lookup.TryGetRootOrgan((body, component), out _))
             return false;
 
         // Collect all woundables and their total bleeding amounts
@@ -441,10 +439,10 @@ public partial class WoundSystem
     {
         wounds = [];
 
-        if (!_lookup.TryGetRootOrgan(target, out var body))
+        if (!_lookup.TryGetRootOrgan(target, out var bodyRoot))
             return false;
 
-        wounds = GetAllWounds(body!.Value.Owner).ToList();
+        wounds = GetAllWounds(bodyRoot.Owner).ToList();
 
         return wounds.Any();
     }

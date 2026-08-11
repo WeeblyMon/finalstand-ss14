@@ -1,4 +1,6 @@
 ﻿using System.Text.Json.Serialization;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 using Content.Shared.EntityEffects;
@@ -36,16 +38,16 @@ public sealed partial class AdjustPainFeels : EntityEffect
         if (!args.EntityManager.System<ConsciousnessSystem>().TryGetNerveSystem(args.TargetEntity, out var nerveSys))
             return;
 
-        foreach (var bodyPart in args.EntityManager.System<SharedBodySystem>().GetBodyChildren(args.TargetEntity))
+        foreach (var bodyPart in args.EntityManager.System<OrganLookupSystem>().GetBodyOrgans(args.TargetEntity))
         {
             if (!args.EntityManager.System<PainSystem>()
-                    .TryGetPainFeelsModifier(bodyPart.Id, nerveSys.Value, ModifierIdentifier, out var modifier))
+                    .TryGetPainFeelsModifier(bodyPart.Owner, nerveSys.Value, ModifierIdentifier, out var modifier))
             {
                 args.EntityManager.System<PainSystem>()
                     .TryAddPainFeelsModifier(
                         nerveSys.Value,
                         ModifierIdentifier,
-                        bodyPart.Id,
+                        bodyPart.Owner,
                         IoCManager.Resolve<IRobustRandom>().Prob(0.3f) ? Amount * scale : -Amount * scale);
             }
             else
@@ -55,7 +57,7 @@ public sealed partial class AdjustPainFeels : EntityEffect
                     .TryChangePainFeelsModifier(
                         nerveSys.Value,
                         ModifierIdentifier,
-                        bodyPart.Id,
+                        bodyPart.Owner,
                         add * scale);
             }
         }

@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Administration.Logs;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -44,6 +45,7 @@ namespace Content.Shared.Nutrition.EntitySystems;
 /// </summary>
 public sealed partial class IngestionSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
     [Dependency] private readonly SharedForensicsSystem _forensics = default!;
     [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
@@ -252,7 +254,7 @@ public sealed partial class IngestionSystem : EntitySystem
         var food = args.Ingested;
         var forceFed = args.User != entity.Owner;
 
-        if (!_body.TryGetOrgansWithComponent<StomachComponent>(entity!, out var stomachs))
+        if (!_lookup.TryGetBodyOrgans<StomachComponent>(entity!, out var stomachs))
             return;
 
         // Can we digest the specific item we're trying to eat?
@@ -317,7 +319,7 @@ public sealed partial class IngestionSystem : EntitySystem
         if (!CanConsume(args.User, entity, food, out var solution, out _))
             return;
 
-        if (!_body.TryGetOrgansWithComponent<StomachComponent>(entity!, out var stomachs))
+        if (!_lookup.TryGetBodyOrgans<StomachComponent>(entity!, out var stomachs))
             return;
 
         var forceFed = args.User != entity.Owner;

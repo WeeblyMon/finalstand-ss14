@@ -399,7 +399,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.BoneDamage,
-            bodyPart.Category);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -438,7 +438,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.NerveDamage,
-            bodyPart.Category);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -462,8 +462,8 @@ public partial class TraumaSystem
             return false; // No entity to apply pain to
 
         var totalIntegrity =
-            _lookup.EnumerateChildOrgans(target)
-                .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp.OrganIntegrity);
+            _lookup.EnumerateChildOrgans<OrganIntegrityComponent>(target)
+                .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp2.OrganIntegrity);
 
         if (totalIntegrity <= 0) // No surviving organs
             return false;
@@ -474,7 +474,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.OrganDamage,
-            bodyPart.Category);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -504,8 +504,8 @@ public partial class TraumaSystem
         if (!parentWoundable.HasValue)
             return false;
 
-        if (bodyPart.Category == BodyPartType.Chest
-            || bodyPart.Category == BodyPartType.Groin
+        if (bodyPart.Category == OrganCategories.Torso
+            || bodyPart.Category == OrganCategories.Groin
             && Comp<WoundableComponent>(parentWoundable.Value).WoundableSeverity != WoundableSeverity.Mangled)
             return false;
 
@@ -515,7 +515,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.Dismemberment,
-            bodyPart.Category);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -766,7 +766,7 @@ public partial class TraumaSystem
                             (woundInduced.Value.Owner, EnsureComp<TraumaInflicterComponent>(woundInduced.Value.Owner)),
                             TraumaType.Dismemberment,
                             severity,
-                            bodyPart.Category);
+                            bodyPart.Category ?? OrganCategories.Torso);
 
                         _wound.AmputateWoundable(targetChosen.Value, target, target);
                         Logger.Debug($"Amputating woundable.");

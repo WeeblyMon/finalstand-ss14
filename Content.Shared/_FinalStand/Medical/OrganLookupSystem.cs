@@ -140,4 +140,27 @@ public sealed partial class OrganLookupSystem : EntitySystem
         body.Comp ??= bodyComp;
         return TryGetRootOrgan(body, out root);
     }
+
+    public bool TryGetChildOrgans<T>(EntityUid organ, out List<Entity<T>> organs) where T : IComponent
+    {
+        organs = new List<Entity<T>>();
+        foreach (var child in EnumerateChildOrgans<T>(organ))
+        {
+            organs.Add((child.Owner, child.Comp2));
+        }
+
+        return organs.Count > 0;
+    }
+
+    public bool TryGetBodyOrgans<T>(Entity<BodyComponent?> body, out List<Entity<T>> organs) where T : IComponent
+    {
+        organs = new List<Entity<T>>();
+        foreach (var organ in GetBodyOrgans(body))
+        {
+            if (TryComp<T>(organ.Owner, out var comp))
+                organs.Add((organ.Owner, comp));
+        }
+
+        return organs.Count > 0;
+    }
 }

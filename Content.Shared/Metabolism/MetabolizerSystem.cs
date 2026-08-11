@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Events;
@@ -26,6 +27,7 @@ namespace Content.Shared.Metabolism;
 /// <inheritdoc/>
 public sealed class MetabolizerSystem : EntitySystem
 {
+    [Dependency] private readonly OrganLookupSystem _lookup = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
@@ -331,7 +333,7 @@ public sealed class MetabolizerSystem : EntitySystem
     /// </summary>
     public void AddMetabolizerToBody(EntityUid entity, ProtoId<MetabolizerTypePrototype> metabolizer)
     {
-        if (!_body.TryGetOrgansWithComponent<MetabolizerComponent>(entity, out var organs))
+        if (!_lookup.TryGetBodyOrgans<MetabolizerComponent>(entity, out var organs))
             return;
 
         foreach (var organ in organs)

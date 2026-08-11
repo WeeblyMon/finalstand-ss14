@@ -277,7 +277,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         foreach (var child in _lookup.EnumerateChildOrgans<OrganEffectComponent>(args.Organ))
         {
             if (child.Comp1.Category is { } category)
-                byCategory[category] = child.Comp3;
+                byCategory[category] = child.Comp2;
         }
 
         var allOnAddFound = true;
