@@ -11,7 +11,7 @@ using Content.Shared.Body.Components;
 
 namespace Content.Server.Body.Systems;
 
-public partial class BodySystem
+public partial class BodyAppearanceSystem
 {
     /// <summary>
     /// Returns whether an entity is missing a brain and heart.

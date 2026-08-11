@@ -54,7 +54,7 @@ public sealed partial class WoundSystem : EntitySystem
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
 
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;

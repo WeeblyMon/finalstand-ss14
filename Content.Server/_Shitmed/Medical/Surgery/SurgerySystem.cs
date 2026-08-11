@@ -40,7 +40,7 @@ namespace Content.Server._Shitmed.Medical.Surgery;
 public sealed class SurgerySystem : SharedSurgerySystem
 {
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly BodySystem _body = default!;
+    [Dependency] private readonly BodyAppearanceSystem _body = default!;
     [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly DamageableSystem _damageable = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;

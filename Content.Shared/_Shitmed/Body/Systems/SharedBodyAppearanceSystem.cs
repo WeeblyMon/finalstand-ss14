@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared.Body.Systems;
 
-public abstract partial class SharedBodySystem : EntitySystem
+public abstract partial class SharedBodyAppearanceSystem : EntitySystem
 {
     [Dependency] protected readonly IPrototypeManager Prototypes = default!;
     [Dependency] protected readonly IGameTiming Timing = default!;

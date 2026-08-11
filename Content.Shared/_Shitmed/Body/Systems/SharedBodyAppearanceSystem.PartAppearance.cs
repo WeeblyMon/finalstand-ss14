@@ -19,7 +19,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Body.Systems;
-public partial class SharedBodySystem
+public partial class SharedBodyAppearanceSystem
 {
     [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoid = default!;
     [Dependency] private readonly MarkingManager _markingManager = default!;

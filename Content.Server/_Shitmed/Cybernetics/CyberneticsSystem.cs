@@ -28,7 +28,7 @@ internal sealed class CyberneticsSystem : EntitySystem
 
     private static readonly ProtoId<DamageTypePrototype> ShockDamageType = "Shock";
     [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<CyberneticsComponent, EmpPulseEvent>(OnEmpPulse);

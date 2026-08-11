@@ -35,7 +35,7 @@ public sealed class MetabolizerSystem : EntitySystem
     [Dependency] private readonly SharedEntityEffectsSystem _entityEffects = default!;
     [Dependency] private readonly SharedSolutionContainerSystem _solutionContainerSystem = default!;
 
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
     [Dependency] private readonly EntityQuery<OrganComponent> _organQuery = default!;
     [Dependency] private readonly EntityQuery<SolutionManagerComponent> _solutionQuery = default!;
 

@@ -31,7 +31,7 @@ namespace Content.Server._Shitmed.Body.Systems;
 public sealed class BodyDamageRouterSystem : EntitySystem
 {
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 

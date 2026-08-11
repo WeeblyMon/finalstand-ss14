@@ -36,7 +36,7 @@ namespace Content.Server.Hands.Systems
         [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
         [Dependency] private readonly PullingSystem _pullingSystem = default!;
         [Dependency] private readonly ThrowingSystem _throwingSystem = default!;
-        [Dependency] private readonly SharedBodySystem _bodySystem = default!;
+        [Dependency] private readonly SharedBodyAppearanceSystem _bodySystem = default!;
 
         private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -252,7 +252,7 @@ namespace Content.Server.Hands.Systems
         }
 
         private void HandleBodyPartEnabled(EntityUid uid, HandsComponent component, ref OrganEnabledEvent args)
-            => TryAddHand(uid, component, args.Part, SharedBodySystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
+            => TryAddHand(uid, component, args.Part, SharedBodyAppearanceSystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
 
         private void HandleBodyPartDisabled(EntityUid uid, HandsComponent component, ref OrganDisabledEvent args)
         {
@@ -261,7 +261,7 @@ namespace Content.Server.Hands.Systems
                 || args.Part.Comp.PartType != BodyPartType.Hand)
                 return;
 
-            RemoveHand(uid, SharedBodySystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
+            RemoveHand(uid, SharedBodyAppearanceSystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
         }
     }
 }

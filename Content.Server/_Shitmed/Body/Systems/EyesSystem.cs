@@ -21,7 +21,7 @@ namespace Content.Server._Shitmed.Body.Systems
     {
         [Dependency] private readonly IEntityManager _entityManager = default!;
         [Dependency] private readonly BlindableSystem _blindableSystem = default!;
-        [Dependency] private readonly BodySystem _bodySystem = default!;
+        [Dependency] private readonly BodyAppearanceSystem _bodySystem = default!;
 
         public override void Initialize()
         {

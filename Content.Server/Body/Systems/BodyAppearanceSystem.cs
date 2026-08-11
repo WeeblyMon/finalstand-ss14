@@ -96,9 +96,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Body.Systems;
 
-public sealed partial class BodySystem : SharedBodySystem // Shitmed change: made partial
+public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem // Shitmed change: made partial
 {
-    [Dependency] private readonly BloodstreamSystem _bloodstream = default!; // Shitmed Change
+    [Dependency] private readonly Content.Shared.Body.Systems.BloodstreamSystem _bloodstream = default!; // Shitmed Change
     [Dependency] private readonly GhostSystem _ghostSystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly HumanoidAppearanceSystem _humanoidSystem = default!;

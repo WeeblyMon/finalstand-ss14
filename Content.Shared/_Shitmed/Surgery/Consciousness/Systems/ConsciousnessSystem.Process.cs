@@ -15,7 +15,7 @@ public partial class ConsciousnessSystem
     {
         SubscribeLocalEvent<ConsciousnessComponent, MobStateChangedEvent>(OnMobStateChanged);
         // To prevent people immediately falling down as rejuvenated
-        SubscribeLocalEvent<ConsciousnessComponent, RejuvenateEvent>(OnRejuvenate, after: [typeof(SharedBodySystem)]);
+        SubscribeLocalEvent<ConsciousnessComponent, RejuvenateEvent>(OnRejuvenate, after: [typeof(SharedBodyAppearanceSystem)]);
         SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganGotInsertedEvent>(OnOrganAdded);
         SubscribeLocalEvent<ConsciousnessRequiredComponent, OrganGotRemovedEvent>(OnOrganRemoved);
         SubscribeLocalEvent<ConsciousnessComponent, MapInitEvent>(OnConsciousnessMapInit);

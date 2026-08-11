@@ -38,7 +38,7 @@ namespace Content.Server._Shitmed.PartStatus;
 public sealed class PartStatusSystem : EntitySystem
 {
     [Dependency] private readonly WoundSystem _woundSystem = default!;
-    [Dependency] private readonly BodySystem _bodySystem = default!;
+    [Dependency] private readonly BodyAppearanceSystem _bodySystem = default!;
     [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
     [Dependency] private readonly TraumaSystem _trauma = default!;
     [Dependency] private readonly IChatManager _chat = default!;

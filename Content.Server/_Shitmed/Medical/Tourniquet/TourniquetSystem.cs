@@ -36,7 +36,7 @@ namespace Content.Server._Shitmed.Medical.Tourniquet;
 public sealed class TourniquetSystem : EntitySystem
 {
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
     [Dependency] private readonly WoundSystem _wound = default!;
     [Dependency] private readonly SharedContainerSystem _container = default!;
     [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
@@ -44,7 +44,7 @@ public sealed class TourniquetSystem : EntitySystem
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedHandsSystem _hands = default!;
     [Dependency] private readonly PainSystem _pain = default!;
-    [Dependency] private readonly BloodstreamSystem _bloodstream = default!;
+    [Dependency] private readonly Content.Shared.Body.Systems.BloodstreamSystem _bloodstream = default!;
 
     private const string TourniquetContainerId = "Tourniquet";
 

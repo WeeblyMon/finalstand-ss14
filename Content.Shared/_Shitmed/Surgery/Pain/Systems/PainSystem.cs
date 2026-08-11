@@ -38,7 +38,7 @@ public sealed partial class PainSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
 
     [Dependency] private readonly SharedAudioSystem _IHaveNoMouthAndIMustScream = default!;
     [Dependency] private readonly SharedPopupSystem _popup = default!;

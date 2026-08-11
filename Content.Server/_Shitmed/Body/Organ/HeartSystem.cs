@@ -14,7 +14,7 @@ namespace Content.Server._Shitmed.Body.Organ;
 
 public sealed class HeartSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
+    [Dependency] private readonly SharedBodyAppearanceSystem _bodySystem = default!;
     public override void Initialize()
     {
         base.Initialize();

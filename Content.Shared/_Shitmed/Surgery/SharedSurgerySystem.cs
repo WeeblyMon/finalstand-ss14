@@ -64,7 +64,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private readonly BodySystem _body = default!;
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
     // Part appearance still lives on Goob's body system until the markings port lands.
-    [Dependency] private readonly Content.Shared.Body.Systems.SharedBodySystem _appearance = default!;
+    [Dependency] private readonly Content.Shared.Body.Systems.SharedBodyAppearanceSystem _appearance = default!;
     [Dependency] private readonly OrganManipulationSystem _manipulation = default!;
     [Dependency] private readonly OrganEffectSystem _organEffects = default!;
     [Dependency] private readonly INetManager _net = default!;
