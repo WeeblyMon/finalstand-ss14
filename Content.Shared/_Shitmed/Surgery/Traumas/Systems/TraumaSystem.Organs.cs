@@ -30,15 +30,18 @@ public partial class TraumaSystem
 
     private void OnOrganIntegrityOnWoundableChanged(Entity<WoundableComponent> bodyPart, ref OrganIntegrityChangedEventOnWoundable args)
     {
-        if (args.Organ.Comp.Body == null)
+        if (CompOrNull<OrganComponent>(args.Organ)?.Body is not { } organBody)
             return;
 
-        if (!_consciousness.TryGetNerveSystem(args.Organ.Comp.Body.Value, out var nerveSys))
+        if (!_consciousness.TryGetNerveSystem(organBody, out var nerveSys))
             return;
 
-        var organs = _lookup.EnumerateChildOrgans(args.Organ.Comp.Body.Value).ToList();
-        var totalIntegrity = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp.OrganIntegrity);
-        var totalIntegrityCap = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp.IntegrityCap);
+        var organs = _lookup.GetBodyOrgans(organBody)
+            .Select(organ => CompOrNull<OrganIntegrityComponent>(organ.Owner))
+            .Where(integrity => integrity != null)
+            .ToList();
+        var totalIntegrity = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ!.OrganIntegrity);
+        var totalIntegrityCap = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ!.IntegrityCap);
         // Getting your organ turned into a blood mush inside you applies a LOT of internal pain, that can get you dead.
         if (!_pain.TryChangePainModifier(
                 nerveSys.Value,
@@ -73,7 +76,7 @@ public partial class TraumaSystem
 
     private void OnOrganSeverityChanged(Entity<WoundableComponent> bodyPart, ref OrganDamageSeverityChangedOnWoundable args)
     {
-        var body = args.Organ.Comp.Body;
+        var body = CompOrNull<OrganComponent>(args.Organ)?.Body;
         if (body == null
             || args.NewSeverity < args.OldSeverity)
             return;
@@ -120,7 +123,7 @@ public partial class TraumaSystem
         }
 
         _audio.PlayPvs(args.Organ.Comp.OrganDestroyedSound, body.Value);
-        _manipulation.RemoveOrgan(args.Organ, args.Organ.Comp);
+        _manipulation.RemoveOrgan(args.Organ.Owner);
 
         if (_net.IsServer)
             QueueDel(args.Organ);

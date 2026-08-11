@@ -55,7 +55,7 @@ public partial class TraumaSystem
         {
             TraumaTarget = GetNetEntity(comp.TraumaTarget),
             HoldingWoundable = GetNetEntity(comp.HoldingWoundable),
-            TargetType = comp.TargetType,
+            TargetCategory = comp.TargetCategory,
             TraumaType = comp.TraumaType,
             TraumaSeverity = comp.TraumaSeverity,
         };
@@ -70,7 +70,7 @@ public partial class TraumaSystem
 
         component.TraumaTarget = GetEntity(state.TraumaTarget);
         component.HoldingWoundable = GetEntity(state.HoldingWoundable);
-        component.TargetType = state.TargetType;
+        component.TargetCategory = state.TargetCategory;
         component.TraumaType = state.TraumaType;
         component.TraumaSeverity = state.TraumaSeverity;
     }
@@ -244,7 +244,7 @@ public partial class TraumaSystem
         TraumaType? traumaType = null,
         BodyComponent? bodyComp = null)
     {
-        return Resolve(body, ref bodyComp, false) && _lookup.GetBodyOrgans(body, bodyComp).Any(bodyPart => HasWoundableTrauma(bodyPart.Owner, traumaType));
+        return Resolve(body, ref bodyComp, false) && _lookup.GetBodyOrgans((body, bodyComp)).Any(bodyPart => HasWoundableTrauma(bodyPart.Owner, traumaType));
     }
 
     public bool TryGetBodyTraumas(
@@ -258,7 +258,7 @@ public partial class TraumaSystem
             return false;
 
         traumas = new List<Entity<TraumaComponent>>();
-        foreach (var bodyPart in _lookup.GetBodyOrgans(body, bodyComp))
+        foreach (var bodyPart in _lookup.GetBodyOrgans((body, bodyComp)))
         {
             if (TryGetWoundableTrauma(bodyPart.Owner, out var traumasFound, traumaType))
                 traumas.AddRange(traumasFound);
@@ -462,7 +462,7 @@ public partial class TraumaSystem
             return false; // No entity to apply pain to
 
         var totalIntegrity =
-            _lookup.EnumerateChildOrgans(target, bodyPart)
+            _lookup.EnumerateChildOrgans(target)
                 .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp.OrganIntegrity);
 
         if (totalIntegrity <= 0) // No surviving organs
@@ -766,7 +766,7 @@ public partial class TraumaSystem
                             (woundInduced.Value.Owner, EnsureComp<TraumaInflicterComponent>(woundInduced.Value.Owner)),
                             TraumaType.Dismemberment,
                             severity,
-                            (bodyPart.Category, bodyPart.Category));
+                            bodyPart.Category);
 
                         _wound.AmputateWoundable(targetChosen.Value, target, target);
                         Logger.Debug($"Amputating woundable.");
