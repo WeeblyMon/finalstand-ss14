@@ -7,7 +7,8 @@
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
+using Robust.Shared.Prototypes;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
 using Content.Shared.Chemistry.Components;
@@ -158,19 +159,19 @@ public struct WoundableTraumaData
     public string TraumaType;
     public FixedPoint2 Severity;
     public string? SeverityString; // Used mostly in Bone Damage traumas to keep track of the secondary severity.
-    public (BodyPartType, BodyPartSymmetry)? TargetType;
+    public ProtoId<OrganCategoryPrototype>? TargetCategory;
 
     public WoundableTraumaData(string name,
         string traumaType,
         FixedPoint2 severity,
         string? severityString = null,
-        (BodyPartType, BodyPartSymmetry)? targetType = null)
+        ProtoId<OrganCategoryPrototype>? targetCategory = null)
     {
         Name = name;
         TraumaType = traumaType;
         Severity = severity;
         SeverityString = severityString;
-        TargetType = targetType;
+        TargetCategory = targetCategory;
     }
 }
 

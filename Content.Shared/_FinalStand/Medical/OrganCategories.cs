@@ -21,6 +21,14 @@ public static class OrganCategories
     public static readonly ProtoId<OrganCategoryPrototype> FootLeft = "FootLeft";
     public static readonly ProtoId<OrganCategoryPrototype> FootRight = "FootRight";
 
+    // The categories a surgery can target, in head-to-toe order for UI listing.
+    public static readonly ProtoId<OrganCategoryPrototype>[] Body =
+    [
+        Head, Torso, Groin, Tail,
+        ArmLeft, ArmRight, HandLeft, HandRight,
+        LegLeft, LegRight, FootLeft, FootRight,
+    ];
+
     public static readonly ProtoId<OrganCategoryPrototype>[] Arms = [ArmLeft, ArmRight];
     public static readonly ProtoId<OrganCategoryPrototype>[] Hands = [HandLeft, HandRight];
     public static readonly ProtoId<OrganCategoryPrototype>[] Legs = [LegLeft, LegRight];

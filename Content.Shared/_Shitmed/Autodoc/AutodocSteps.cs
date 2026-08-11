@@ -7,7 +7,7 @@
 using Content.Shared._Shitmed.Autodoc.Components;
 using Content.Shared._Shitmed.Autodoc.Systems;
 using Content.Shared._Shitmed.Medical.Surgery;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Hands.Components;
 using Content.Shared.Whitelist;
 using Robust.Shared.Prototypes;
@@ -56,16 +56,10 @@ public partial interface IAutodocStep
 public sealed partial class SurgeryAutodocStep : IAutodocStep
 {
     /// <summary>
-    /// The type of part to operate on.
+    /// The category of organ to operate on.
     /// </summary>
     [DataField(required: true)]
-    public BodyPartType Part;
-
-    /// <summary>
-    /// The symmetry required. If this is null then symmetry is not checked (operate on an arbitrary leg for example).
-    /// </summary>
-    [DataField]
-    public BodyPartSymmetry? Symmetry;
+    public ProtoId<OrganCategoryPrototype> Category;
 
     /// <summary>
     /// The ID of the surgery to perform.
@@ -77,7 +71,7 @@ public sealed partial class SurgeryAutodocStep : IAutodocStep
         get {
             var protoMan = IoCManager.Resolve<IPrototypeManager>();
             var proto = protoMan.Index(Surgery);
-            var part = Loc.GetString("autodoc-body-part-" + Part.ToString());
+            var part = Loc.GetString("autodoc-body-part-" + Category.Id);
             return Loc.GetString("autodoc-program-step-surgery", ("part", part), ("name", proto.Name));
         }
     }
@@ -85,7 +79,7 @@ public sealed partial class SurgeryAutodocStep : IAutodocStep
     bool IAutodocStep.Run(Entity<AutodocComponent, HandsComponent> ent, SharedAutodocSystem autodoc)
     {
         var patient = autodoc.GetPatientOrThrow((ent.Owner, ent.Comp1));
-        if (autodoc.FindPart(patient, Part, Symmetry) is not {} part)
+        if (autodoc.FindPart(patient, Category) is not {} part)
             throw new AutodocError("body-part");
 
         if (!autodoc.StartSurgeryOrThrow((ent.Owner, ent.Comp1), patient, part, Surgery))

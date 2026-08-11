@@ -63,20 +63,17 @@ autodoc-add-step-set-label-prompt = Label
 autodoc-add-step-wait = WAIT
 autodoc-add-step-wait-prompt = Seconds to wait
 
-autodoc-body-part-Other = Other
 autodoc-body-part-Torso = Torso
-autodoc-body-part-Chest = Chest
 autodoc-body-part-Groin = Groin
 autodoc-body-part-Head = Head
-autodoc-body-part-Arm = Arm
-autodoc-body-part-Hand = Hand
-autodoc-body-part-Leg = Leg
-autodoc-body-part-Foot = Foot
 autodoc-body-part-Tail = Tail
-
-autodoc-body-symmetry-ignored = Any
-autodoc-body-symmetry-None = None
-autodoc-body-symmetry-Left = Left
-autodoc-body-symmetry-Right = Right
+autodoc-body-part-ArmLeft = Left Arm
+autodoc-body-part-ArmRight = Right Arm
+autodoc-body-part-HandLeft = Left Hand
+autodoc-body-part-HandRight = Right Hand
+autodoc-body-part-LegLeft = Left Leg
+autodoc-body-part-LegRight = Right Leg
+autodoc-body-part-FootLeft = Left Foot
+autodoc-body-part-FootRight = Right Foot
 
 autodoc-submit = Submit
