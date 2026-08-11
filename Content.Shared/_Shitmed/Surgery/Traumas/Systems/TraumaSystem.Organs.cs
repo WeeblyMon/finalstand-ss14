@@ -22,7 +22,7 @@ public partial class TraumaSystem
     private void InitOrgans()
     {
         SubscribeLocalEvent<WoundableComponent, OrganIntegrityChangedEventOnWoundable>(OnOrganIntegrityOnWoundableChanged);
-        SubscribeLocalEvent<OrganComponent, OrganIntegrityChangedEvent>(OnOrganIntegrityChanged);
+        SubscribeLocalEvent<OrganIntegrityComponent, OrganIntegrityChangedEvent>(OnOrganIntegrityChanged);
         SubscribeLocalEvent<WoundableComponent, OrganDamageSeverityChangedOnWoundable>(OnOrganSeverityChanged);
     }
 
@@ -57,12 +57,12 @@ public partial class TraumaSystem
         }
     }
 
-    private void OnOrganIntegrityChanged(Entity<OrganComponent> organ, ref OrganIntegrityChangedEvent args)
+    private void OnOrganIntegrityChanged(Entity<OrganIntegrityComponent> organ, ref OrganIntegrityChangedEvent args)
     {
-        if (organ.Comp.Body == null)
+        if (CompOrNull<OrganComponent>(organ)?.Body is not { } organBody)
             return;
 
-        if (args.NewIntegrity < organ.Comp.IntegrityCap || !TryGetBodyTraumas(organ.Comp.Body.Value, out var traumas, TraumaType.OrganDamage))
+        if (args.NewIntegrity < organ.Comp.IntegrityCap || !TryGetBodyTraumas(organBody, out var traumas, TraumaType.OrganDamage))
             return;
 
         foreach (var trauma in traumas.Where(trauma => trauma.Comp.TraumaTarget == organ))
@@ -133,7 +133,7 @@ public partial class TraumaSystem
         FixedPoint2 severity,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (severity == 0
             || !Resolve(uid, ref organ))
@@ -151,7 +151,7 @@ public partial class TraumaSystem
         FixedPoint2 severity,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (severity == 0
             || !Resolve(uid, ref organ))
@@ -167,7 +167,7 @@ public partial class TraumaSystem
         FixedPoint2 change,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (change == 0
             || !Resolve(uid, ref organ))
@@ -185,7 +185,7 @@ public partial class TraumaSystem
     public bool TryRemoveOrganDamageModifier(EntityUid uid,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (!Resolve(uid, ref organ))
             return false;
@@ -204,7 +204,7 @@ public partial class TraumaSystem
 
     #region Private API
 
-    private void UpdateOrganIntegrity(EntityUid uid, OrganComponent organ)
+    private void UpdateOrganIntegrity(EntityUid uid, OrganIntegrityComponent organ)
     {
         var oldIntegrity = organ.OrganIntegrity;
 

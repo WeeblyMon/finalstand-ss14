@@ -1,4 +1,5 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Serialization;
@@ -32,10 +33,10 @@ public record struct OrganIntegrityChangedEvent(FixedPoint2 OldIntegrity, FixedP
 public record struct OrganDamageSeverityChanged(OrganSeverity OldSeverity, OrganSeverity NewSeverity);
 
 [ByRefEvent]
-public record struct OrganIntegrityChangedEventOnWoundable(Entity<OrganComponent> Organ, FixedPoint2 OldIntegrity, FixedPoint2 NewIntegrity);
+public record struct OrganIntegrityChangedEventOnWoundable(Entity<OrganIntegrityComponent> Organ, FixedPoint2 OldIntegrity, FixedPoint2 NewIntegrity);
 
 [ByRefEvent]
-public record struct OrganDamageSeverityChangedOnWoundable(Entity<OrganComponent> Organ, OrganSeverity OldSeverity, OrganSeverity NewSeverity);
+public record struct OrganDamageSeverityChangedOnWoundable(Entity<OrganIntegrityComponent> Organ, OrganSeverity OldSeverity, OrganSeverity NewSeverity);
 [ByRefEvent]
 public record struct TraumaChanceDeductionEvent(FixedPoint2 TraumaSeverity, TraumaType TraumaType, FixedPoint2 ChanceDeduction);
 

@@ -63,6 +63,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly BodySystem _body = default!;
     [Dependency] private readonly OrganLookupSystem _lookup = default!;
+    [Dependency] private readonly OrganManipulationSystem _manipulation = default!;
+    [Dependency] private readonly OrganEffectSystem _organEffects = default!;
     [Dependency] private readonly INetManager _net = default!;
     [Dependency] private readonly InventorySystem _inventory = default!;
     [Dependency] private readonly ItemSlotsSystem _itemSlotsSystem = default!;
