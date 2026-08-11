@@ -13,6 +13,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using Content.Shared._FinalStand.Medical;
+using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
@@ -21,7 +24,6 @@ using Content.Shared.Body;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.Player;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
@@ -122,36 +124,26 @@ public sealed class SurgeryBui : BoundUserInterface
         _part = null;
         _surgery = null;
 
-        var options = new List<(NetEntity netEntity, EntityUid entity, string Name, BodyPartType? PartType)>();
+        var options = new List<(NetEntity netEntity, EntityUid entity, string Name, ProtoId<OrganCategoryPrototype>? Category)>();
         foreach (var choice in state.Choices.Keys)
             if (_entities.TryGetEntity(choice, out var ent))
             {
                 if (_entities.TryGetComponent(ent, out OrganComponent? part))
-                    options.Add((choice, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, part.PartType));
+                    options.Add((choice, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, part.Category));
                 else if (_entities.TryGetComponent(ent, out BodyComponent? body))
                     options.Add((choice, ent.Value, _entities.GetComponent<MetaDataComponent>(ent.Value).EntityName, null));
             }
 
         options.Sort((a, b) =>
         {
-            int GetScore(BodyPartType? partType)
+            // Head to toe, so the surgery list reads the way a doctor would look at a patient.
+            int GetScore(ProtoId<OrganCategoryPrototype>? category)
             {
-                return partType switch
-                {
-                    BodyPartType.Head => 1,
-                    BodyPartType.Chest => 2,
-                    BodyPartType.Groin => 3,
-                    BodyPartType.Arm => 4,
-                    BodyPartType.Hand => 5,
-                    BodyPartType.Leg => 6,
-                    BodyPartType.Foot => 7,
-                    // BodyPartType.Tail => 8, No tails yet!
-                    BodyPartType.Other => 9,
-                    _ => 10
-                };
+                var index = category is { } id ? Array.IndexOf(OrganCategories.Body, id) : -1;
+                return index < 0 ? int.MaxValue : index;
             }
 
-            return GetScore(a.PartType) - GetScore(b.PartType);
+            return GetScore(a.Category) - GetScore(b.Category);
         });
 
         foreach (var (netEntity, entity, partName, _) in options)

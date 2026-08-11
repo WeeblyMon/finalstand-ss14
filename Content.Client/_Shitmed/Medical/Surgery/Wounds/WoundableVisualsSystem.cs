@@ -49,8 +49,8 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         base.Initialize();
         SubscribeLocalEvent<WoundableVisualsComponent, ComponentInit>(InitializeEntity, after: [typeof(WoundSystem)]);
         SubscribeLocalEvent<WoundableVisualsComponent, AfterAutoHandleStateEvent>(OnAfterAutoHandleState);
-        SubscribeLocalEvent<WoundableVisualsComponent, BodyPartRemovedEvent>(OnWoundableRemoved);
-        SubscribeLocalEvent<WoundableVisualsComponent, BodyPartAddedEvent>(OnWoundableConnected);
+        SubscribeLocalEvent<WoundableVisualsComponent, OrganGotRemovedEvent>(OnWoundableRemoved);
+        SubscribeLocalEvent<WoundableVisualsComponent, OrganGotInsertedEvent>(OnWoundableConnected);
         SubscribeLocalEvent<WoundableVisualsComponent, WoundableIntegrityChangedEvent>(OnWoundableIntegrityChanged);
     }
 
@@ -89,10 +89,10 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         UpdateWoundableVisuals(ent, (ent, partSprite));
     }
 
-    private void OnWoundableConnected(Entity<WoundableVisualsComponent> ent, ref BodyPartAddedEvent args)
+    private void OnWoundableConnected(Entity<WoundableVisualsComponent> ent, ref OrganGotInsertedEvent args)
     {
-        var bodyPart = args.Part.Comp;
-        if (bodyPart.Body is not { } bodyUid || !HasComp<HumanoidProfileComponent>(bodyUid))
+        var bodyUid = args.Target;
+        if (!HasComp<HumanoidProfileComponent>(bodyUid))
             return;
 
         if (ent.Comp.DamageOverlayGroups != null)
@@ -119,19 +119,18 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         UpdateWoundableVisuals(ent, bodyUid);
     }
 
-    private void OnWoundableRemoved(Entity<WoundableVisualsComponent> ent, ref BodyPartRemovedEvent args)
+    private void OnWoundableRemoved(Entity<WoundableVisualsComponent> ent, ref OrganGotRemovedEvent args)
     {
-        var body = args.Part.Comp.Body;
-        if (body is null)
-            return;
+        var body = args.Target;
 
-        foreach (var part in _lookup.GetBodyOrgans(ent))
+        foreach (var part in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<WoundableVisualsComponent>(part.Id, out var woundableVisuals))
+            if (!TryComp<WoundableVisualsComponent>(part.Owner, out var woundableVisuals))
                 continue;
-            RemoveWoundableLayers(body.Value, woundableVisuals);
+
+            RemoveWoundableLayers(body, woundableVisuals);
             if (TryComp(ent, out SpriteComponent? pieceSprite))
-                UpdateWoundableVisuals((part.Id, woundableVisuals), (ent, pieceSprite));
+                UpdateWoundableVisuals((part.Owner, woundableVisuals), (ent, pieceSprite));
         }
     }
 
@@ -241,7 +240,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         var partKey = GetLimbBleedingKey(bodyPart);
         var layerKey = BuildLayerKey(partKey, BleedingSuffix);
         var hasWounds = TryGetWoundData(woundable.Owner, out var wounds);
-        var hasParentWounds = TryGetWoundData(parentUid!.Value, out var parentWounds);
+        var hasParentWounds = TryGetWoundData(parentUid, out var parentWounds);
 
         if (!hasWounds && !hasParentWounds)
         {
@@ -394,9 +393,20 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
 
     private static string GetLimbBleedingKey(OrganComponent bodyPart)
     {
-        var symmetry = bodyPart.Symmetry == BodyPartSymmetry.Left ? "L" : "R";
-        var partType = bodyPart.PartType == BodyPartType.Foot ? "Leg" : "Arm";
-        return $"{symmetry}{partType}";
+        var category = bodyPart.Category;
+        var symmetry = category == OrganCategories.ArmLeft
+                       || category == OrganCategories.HandLeft
+                       || category == OrganCategories.LegLeft
+                       || category == OrganCategories.FootLeft
+            ? "L"
+            : "R";
+
+        var limb = category == OrganCategories.FootLeft || category == OrganCategories.FootRight
+                   || category == OrganCategories.LegLeft || category == OrganCategories.LegRight
+            ? "Leg"
+            : "Arm";
+
+        return $"{symmetry}{limb}";
     }
 
 

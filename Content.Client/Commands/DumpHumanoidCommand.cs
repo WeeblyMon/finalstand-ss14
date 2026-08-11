@@ -54,7 +54,7 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
                 if (hasSprite)
                     sb.Append($" sprite[vis={childSprite!.Visible},occluded={childSprite.ContainerOccluded}]");
                 if (hasBodyPart)
-                    sb.Append($" BodyPart(Type={bp!.PartType},Sym={bp.Symmetry},Body={(bp.Body == null ? "null" : _ent.ToPrettyString(bp.Body.Value))})");
+                    sb.Append($" Organ(Category={bp!.Category},Body={(bp.Body == null ? "null" : _ent.ToPrettyString(bp.Body.Value))})");
                 sb.AppendLine();
             }
         }
@@ -90,7 +90,7 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
 
         if (_ent.TryGetComponent<BodyComponent>(target, out var body))
         {
-            sb.AppendLine($"Body: prototype={body.Prototype} rootSlot={body.RootPartSlot} root={(body.RootContainer.ContainedEntity is { } r ? _ent.ToPrettyString(r) : "null")} legs={body.LegEntities.Count}");
+            sb.AppendLine($"Body: organs={body.Organs?.ContainedEntities.Count ?? 0}");
         }
 
         shell.WriteLine(sb.ToString());
