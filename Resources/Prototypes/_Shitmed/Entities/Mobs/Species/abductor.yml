@@ -21,6 +21,7 @@
   - MobFlammable
   - BaseMobSpecies
   - BaseMobDisgust # Goobstation
+  - BodyOrgansAbductor
   id: MobAbductor
   components:
   - type: Absorbable # BLOOD FOR THE BLOOD GOD
@@ -33,8 +34,6 @@
   - type: Fingerprint
   - type: Blindable
   - type: Body
-  - type: InitialBody
-    # organs come from BodyOrgansAbductor
   - type: BodyLocomotion
     requiredLegs: 2
   - type: FireVisuals

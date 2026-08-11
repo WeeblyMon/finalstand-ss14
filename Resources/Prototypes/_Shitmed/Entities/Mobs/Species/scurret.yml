@@ -1,6 +1,6 @@
 - type: entity
   save: false
-  parent: BaseSpeciesDummy
+  parent: [ BaseSpeciesDummy, BodyOrgansScurret ]
   id: MobScurretDummy
   categories: [ HideSpawnMenu ]
   description: A dummy scurret meant to be used in character setup.
@@ -12,8 +12,6 @@
   - type: HumanoidProfile
     species: Scurret
   - type: Body
-  - type: InitialBody
-    # organs come from BodyOrgansScurret
   - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface

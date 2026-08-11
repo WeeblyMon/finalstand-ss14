@@ -179,6 +179,8 @@
   parent: BaseHumanOrganUnGibbable
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Gibbable
   - type: PhysicalComposition #Goobstation - Recycle update
     materialComposition:

@@ -15,6 +15,8 @@
   parent: BasePartInorganic
   id: BasePart
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
   - type: Damageable
     damageContainer: Biological # Shitmed Change

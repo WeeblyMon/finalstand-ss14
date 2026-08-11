@@ -4,6 +4,8 @@
   abstract: true
   parent: BaseItem
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Organ
 
 - type: entity

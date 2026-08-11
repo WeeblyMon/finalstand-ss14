@@ -15,28 +15,25 @@ public sealed class HandOrganTest : GameTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
-- type: body
-  id: TheBodyProto
-  name: the body
-  root: chest
-  slots:
-    chest:
-      part: ChestHuman
-      organs:
-        left: LeftHand
-        right: RightHand
-
 - type: entity
   id: TheBody
   components:
   - type: Body
-    prototype: TheBodyProto
+  - type: InitialBody
+    organs:
+      Torso: ChestHuman
+      HandLeft: LeftHand
+      HandRight: RightHand
+    relationships:
+      Torso: [ HandLeft, HandRight ]
   - type: Hands
 
 - type: entity
   id: LeftHand
   components:
   - type: Organ
+    category: HandLeft
+  - type: ChildOrgan
   - type: HandOrgan
     handID: left
     data:
@@ -46,6 +43,8 @@ public sealed class HandOrganTest : GameTest
   id: RightHand
   components:
   - type: Organ
+    category: HandRight
+  - type: ChildOrgan
   - type: HandOrgan
     handID: right
     data:

@@ -141,6 +141,8 @@ public partial class SharedBodyAppearanceSystem
 
     private void OnPartAttachedToBody(EntityUid uid, BodyComponent component, ref OrganInsertedIntoEvent args)
     {
+        OnOrganAttached((uid, component), args.Organ);
+
         if (!TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
             || _net.IsClient
             || !bodyAppearance.ProfileLoaded)
@@ -159,6 +161,8 @@ public partial class SharedBodyAppearanceSystem
 
     private void OnPartDroppedFromBody(EntityUid uid, BodyComponent component, ref OrganRemovedFromEvent args)
     {
+        OnOrganDetached((uid, component), args.Organ);
+
         if (TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(args.Organ)
             || !TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
@@ -219,4 +223,13 @@ public partial class SharedBodyAppearanceSystem
     protected abstract void ApplyPartMarkings(EntityUid target, BodyPartAppearanceComponent component);
 
     protected abstract void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidProfileComponent bodyAppearance);
+
+    // Layer visibility is server-authoritative.
+    protected virtual void OnOrganAttached(Entity<BodyComponent> body, EntityUid organ)
+    {
+    }
+
+    protected virtual void OnOrganDetached(Entity<BodyComponent> body, EntityUid organ)
+    {
+    }
 }

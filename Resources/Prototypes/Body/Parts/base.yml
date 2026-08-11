@@ -22,6 +22,8 @@
   id: BasePartInorganic
   name: "body part"
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
   - type: Sprite
     sprite: Mobs/Species/Human/parts.rsi
     enableOverrideDir: true

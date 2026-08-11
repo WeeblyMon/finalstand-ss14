@@ -129,8 +129,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 - type: entity
-  parent: BodyOrgansVox
-  parent: [ MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust ] # Goobstation - unperishable voxes
+  parent: [ MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust, BodyOrgansVox ] # Goobstation - unperishable voxes
   id: BaseMobVox
   abstract: true
   components:

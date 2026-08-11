@@ -114,10 +114,7 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         base.Initialize();
 
         SubscribeLocalEvent<BodyComponent, MoveInputEvent>(OnRelayMoveInput);
-        SubscribeLocalEvent<BodyComponent, ApplyMetabolicMultiplierEvent>(OnApplyMetabolicMultiplier);
         SubscribeLocalEvent<OrganComponent, AttemptEntityGibEvent>(OnGibTorsoAttempt); // Shitmed Change
-        SubscribeLocalEvent<BodyComponent, OrganInsertedIntoEvent>(OnOrganInserted);
-        SubscribeLocalEvent<BodyComponent, OrganRemovedFromEvent>(OnOrganRemoved);
     }
 
     private void OnRelayMoveInput(Entity<BodyComponent> ent, ref MoveInputEvent args)
@@ -136,22 +133,12 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         }
     }
 
-    private void OnApplyMetabolicMultiplier(
-        Entity<BodyComponent> ent,
-        ref ApplyMetabolicMultiplierEvent args)
+    protected override void OnOrganAttached(Entity<BodyComponent> bodyEnt, EntityUid organUid)
     {
-        foreach (var organ in _lookup.GetBodyOrgans((ent, ent)))
-        {
-            RaiseLocalEvent(organ.Owner, ref args);
-        }
-    }
-
-    private void OnOrganInserted(Entity<BodyComponent> bodyEnt, ref OrganInsertedIntoEvent args)
-    {
-        if (!TryComp<OrganComponent>(args.Organ, out var organ))
+        if (!TryComp<OrganComponent>(organUid, out var organ))
             return;
 
-        var partEnt = new Entity<OrganComponent>(args.Organ, organ);
+        var partEnt = new Entity<OrganComponent>(organUid, organ);
         var layer = partEnt.Comp.ToHumanoidLayers();
         if (layer != null)
         {
@@ -162,12 +149,12 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         }
     }
 
-    private void OnOrganRemoved(Entity<BodyComponent> bodyEnt, ref OrganRemovedFromEvent args)
+    protected override void OnOrganDetached(Entity<BodyComponent> bodyEnt, EntityUid organUid)
     {
-        if (!TryComp<OrganComponent>(args.Organ, out var organ))
+        if (!TryComp<OrganComponent>(organUid, out var organ))
             return;
 
-        var partEnt = new Entity<OrganComponent>(args.Organ, organ);
+        var partEnt = new Entity<OrganComponent>(organUid, organ);
 
         if (!TryComp<HumanoidProfileComponent>(bodyEnt, out var humanoid))
             return;
