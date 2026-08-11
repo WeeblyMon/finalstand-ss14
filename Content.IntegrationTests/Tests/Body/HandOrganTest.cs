@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Medical;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -63,32 +64,33 @@ public sealed class HandOrganTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var bodySystem = entityManager.System<SharedBodySystem>();
+            var lookup = entityManager.System<OrganLookupSystem>();
+            var manipulation = entityManager.System<OrganManipulationSystem>();
             var body = entityManager.SpawnEntity("TheBody", mapData.GridCoords);
             var hands = entityManager.GetComponent<HandsComponent>(body);
 
             Assert.That(hands.Count, Is.EqualTo(2));
 
-            var handOrgans = bodySystem.GetBodyOrganEntityComps<HandOrganComponent>(body).ToList();
+            lookup.TryGetBodyOrgans<HandOrganComponent>(body, out var handOrgans);
             Assert.That(handOrgans.Count, Is.EqualTo(2));
 
             var expectedCount = 2;
             foreach (var handOrgan in handOrgans)
             {
                 expectedCount--;
-                bodySystem.RemoveOrgan(handOrgan.Owner);
+                manipulation.RemoveOrgan(handOrgan.Owner);
                 Assert.That(hands.Count, Is.EqualTo(expectedCount));
             }
 
-            bodySystem.TryGetRootPart(body, out var rootPart);
-            var chestUid = rootPart!.Value.Owner;
+            lookup.TryGetRootOrgan(body, out var rootPart);
+            var chestUid = rootPart.Owner;
 
             var protos = new List<string>() { "LeftHand", "RightHand" };
             foreach (var proto in protos)
             {
                 expectedCount++;
                 var organ = entityManager.SpawnEntity(proto, mapData.GridCoords);
-                bodySystem.AddOrganToFirstValidSlot(chestUid, organ);
+                manipulation.InsertOrgan(body, organ, chestUid);
                 Assert.That(hands.Count, Is.EqualTo(expectedCount));
             }
         });
