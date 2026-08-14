@@ -903,6 +903,7 @@ public abstract partial class SharedSurgerySystem
             NeedHand = true,
             BreakOnHandChange = true,
             AttemptFrequency = AttemptFrequency.EveryTick,
+            DistanceThreshold = null,
         };
 
         if (!_doAfter.TryStartDoAfter(doAfter))
