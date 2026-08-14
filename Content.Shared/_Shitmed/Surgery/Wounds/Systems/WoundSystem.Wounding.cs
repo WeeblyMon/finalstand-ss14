@@ -50,6 +50,8 @@ public sealed partial class WoundSystem
         SubscribeLocalEvent<WoundableComponent, MapInitEvent>(OnWoundableMapInit);
         SubscribeLocalEvent<WoundableComponent, EntInsertedIntoContainerMessage>(OnWoundableInserted);
         SubscribeLocalEvent<WoundableComponent, EntRemovedFromContainerMessage>(OnWoundableRemoved);
+        SubscribeLocalEvent<WoundableComponent, OrganRelatedEvent>(OnOrganRelated);
+        SubscribeLocalEvent<WoundableComponent, OrganOrphanedEvent>(OnOrganOrphaned);
         SubscribeLocalEvent<WoundComponent, EntGotInsertedIntoContainerMessage>(OnWoundInserted);
         SubscribeLocalEvent<WoundComponent, EntGotRemovedFromContainerMessage>(OnWoundRemoved);
         SubscribeLocalEvent<WoundableComponent, AttemptEntityContentsGibEvent>(OnWoundableContentsGibAttempt);
@@ -128,6 +130,28 @@ public sealed partial class WoundSystem
 
         if (_net.IsServer && !IsClientSide(woundableEntity))
             QueueDel(woundableEntity);
+    }
+
+    private void OnOrganRelated(Entity<WoundableComponent> child, ref OrganRelatedEvent args)
+    {
+        if (!_net.IsServer || !TryComp<WoundableComponent>(args.Parent, out var parentWoundable))
+            return;
+
+        InternalAddWoundableToParent(args.Parent, child.Owner, parentWoundable, child.Comp);
+
+        if (TryComp<OrganComponent>(args.Parent, out var organ) && organ.Body is { } body)
+            _trauma.UpdateBodyBoneAlert(body);
+    }
+
+    private void OnOrganOrphaned(Entity<WoundableComponent> child, ref OrganOrphanedEvent args)
+    {
+        if (!_net.IsServer || !TryComp<WoundableComponent>(args.Parent, out var parentWoundable))
+            return;
+
+        InternalRemoveWoundableFromParent(args.Parent, child.Owner, parentWoundable, child.Comp);
+
+        if (TryComp<OrganComponent>(args.Parent, out var organ) && organ.Body is { } body)
+            _trauma.UpdateBodyBoneAlert(body);
     }
 
     private void OnWoundableInserted(EntityUid parentEntity, WoundableComponent parentWoundable, EntInsertedIntoContainerMessage args)

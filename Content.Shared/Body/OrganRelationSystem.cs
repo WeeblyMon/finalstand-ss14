@@ -56,6 +56,9 @@ public sealed partial class OrganRelationSystem : EntitySystem
 
         child.Comp.Parent = parent;
         Dirty(child, child.Comp);
+
+        var ev = new OrganRelatedEvent(parent, child);
+        RaiseLocalEvent(child, ref ev);
     }
 
     /// <summary>
@@ -76,6 +79,9 @@ public sealed partial class OrganRelationSystem : EntitySystem
         var parentComp = _parent.Comp(parentUid);
         parentComp.Children.Remove(child);
         Dirty(parentUid, parentComp);
+
+        var ev = new OrganOrphanedEvent(parentUid, child);
+        RaiseLocalEvent(child, ref ev);
     }
 
     /// <summary>
@@ -118,3 +124,15 @@ public sealed partial class OrganRelationSystem : EntitySystem
         }
     }
 }
+
+/// <summary>
+/// Raised on a child organ when it is parented to another organ.
+/// </summary>
+[ByRefEvent]
+public readonly record struct OrganRelatedEvent(EntityUid Parent, EntityUid Child);
+
+/// <summary>
+/// Raised on a child organ when it is detached from its parent.
+/// </summary>
+[ByRefEvent]
+public readonly record struct OrganOrphanedEvent(EntityUid Parent, EntityUid Child);
