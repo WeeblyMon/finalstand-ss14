@@ -671,7 +671,7 @@ public partial class TraumaSystem
                     break;
 
                 case TraumaType.OrganDamage:
-                    var organs = _lookup.EnumerateChildOrgans(target).ToList();
+                    var organs = _lookup.EnumerateChildOrgans<OrganIntegrityComponent>(target).ToList();
                     _random.Shuffle(organs);
 
                     var chosenOrgan = organs.FirstOrNull();

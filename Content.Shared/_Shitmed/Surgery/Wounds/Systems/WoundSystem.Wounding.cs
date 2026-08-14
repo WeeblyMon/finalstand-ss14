@@ -849,9 +849,6 @@ public sealed partial class WoundSystem
             }
             else
             {
-                if (!_container.TryGetContainingContainer(parentWoundableEntity, woundableEntity, out var container))
-                    return;
-
                 if (TryComp<InventoryComponent>(body, out var inventory) // Prevent error for non-humanoids
                     && _lookup.CountOrgansOfCategory(body, bodyPart.Category) == 1
                     && OrganCategories.TryGetSlotNames(bodyPart.Category, out var containerNames))
@@ -861,8 +858,6 @@ public sealed partial class WoundSystem
                         _inventory.DropSlotContents(body, containerName, inventory);
                     }
                 }
-                var bodyPartId = container.ID;
-
                 // Prevent anomalous behaviour
                 if (OrganCategories.IsArmOrHand(bodyPart.Category))
                     _hands.TryDrop(body, woundableEntity);
@@ -997,12 +992,10 @@ public sealed partial class WoundSystem
 
         var bodyPart = Comp<OrganComponent>(parentWoundableEntity);
 
-        if (!bodyPart.Body.HasValue
-            || !_container.TryGetContainingContainer(parentWoundableEntity, woundableEntity, out var container))
+        if (!bodyPart.Body.HasValue)
             return;
 
         var body = bodyPart.Body.Value;
-        var bodyPartId = container.ID;
         woundableComp.WoundableSeverity = WoundableSeverity.Severed;
 
         if (TryComp<TargetingComponent>(body, out var targeting))
