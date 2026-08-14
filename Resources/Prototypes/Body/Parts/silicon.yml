@@ -11,6 +11,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Sprite
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: Icon

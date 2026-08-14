@@ -134,6 +134,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: OrganSurgeryTool
+  - type: GibbableOrgan
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:
@@ -186,6 +187,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Gibbable
   - type: PhysicalComposition #Goobstation - Recycle update
     materialComposition:

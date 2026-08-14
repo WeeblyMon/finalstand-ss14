@@ -50,7 +50,8 @@ public sealed class GibletTest : GameTest
             var gibbing = entityManager.System<GibbingSystem>();
             var giblets = gibbing.Gib(body);
 
-            Assert.That(giblets.Count, Is.EqualTo(3));
+            // the torso is an organ too, so it scatters alongside the three giblets
+            Assert.That(giblets.Count, Is.EqualTo(4));
 
             foreach (var giblet in giblets)
             {

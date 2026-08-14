@@ -15,6 +15,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Sprite
     sprite: _Shitmed/Mobs/Species/Abductor/parts.rsi
   - type: Icon

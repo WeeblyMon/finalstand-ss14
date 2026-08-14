@@ -31,6 +31,7 @@
   - type: ParentOrgan
   - type: ChildOrgan
   - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Organ
   - type: OrganIntegrity
     intCap: 13
