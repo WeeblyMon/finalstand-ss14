@@ -1,8 +1,8 @@
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Events;
 using Content.Shared.Body;
-using Content.Shared.Body.Organ;
 using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Components.SolutionManager;
@@ -25,18 +25,19 @@ using Robust.Shared.Timing;
 namespace Content.Shared.Metabolism;
 
 /// <inheritdoc/>
-public sealed class MetabolizerSystem : EntitySystem
+public sealed partial class MetabolizerSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-    [Dependency] private readonly SharedEntityConditionsSystem _entityConditions = default!;
-    [Dependency] private readonly SharedEntityEffectsSystem _entityEffects = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private MobStateSystem _mobStateSystem = default!;
+    [Dependency] private SharedEntityConditionsSystem _entityConditions = default!;
+    [Dependency] private SharedEntityEffectsSystem _entityEffects = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
 
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly EntityQuery<OrganComponent> _organQuery = default!;
-    [Dependency] private readonly EntityQuery<SolutionManagerComponent> _solutionQuery = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private EntityQuery<OrganComponent> _organQuery = default!;
+    [Dependency] private EntityQuery<SolutionManagerComponent> _solutionQuery = default!;
 
     public override void Initialize()
     {
@@ -332,7 +333,7 @@ public sealed class MetabolizerSystem : EntitySystem
     /// </summary>
     public void AddMetabolizerToBody(EntityUid entity, ProtoId<MetabolizerTypePrototype> metabolizer)
     {
-        if (!_body.TryGetOrgansWithComponent<MetabolizerComponent>(entity, out var organs))
+        if (!_lookup.TryGetBodyOrgans<MetabolizerComponent>(entity, out var organs))
             return;
 
         foreach (var organ in organs)

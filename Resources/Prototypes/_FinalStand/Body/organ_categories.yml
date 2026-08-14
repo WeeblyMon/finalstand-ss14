@@ -1,0 +1,53 @@
+# Categories vanilla has no equivalent for. Groin is a distinct visual layer and Tail is worn by
+# arachnid, moth and reptilian species. The rest replace Goob's organ slot ids.
+
+- type: organCategory
+  id: Groin
+
+- type: organCategory
+  id: Tail
+
+- type: organCategory
+  id: PositronicBrain
+
+- type: organCategory
+  id: Pump
+
+- type: organCategory
+  id: StomachSecondary
+
+- type: organCategory
+  id: PowerCell
+
+- type: organCategory
+  id: Charger
+
+- type: organCategory
+  id: ChargerSlot
+
+- type: organCategory
+  id: ArmImplant
+
+- type: organCategory
+  id: EntityStorage
+
+- type: organCategory
+  id: Core
+
+- type: organCategory
+  id: HiveNode
+
+- type: organCategory
+  id: AcidGland
+
+- type: organCategory
+  id: NeurotoxinGland
+
+- type: organCategory
+  id: PlasmaVessel
+
+- type: organCategory
+  id: ResinSpinner
+
+- type: organCategory
+  id: EggSack

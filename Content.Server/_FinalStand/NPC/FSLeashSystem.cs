@@ -20,13 +20,13 @@ namespace Content.Server._FinalStand.NPC;
 /// A grace period (set by FSZombieRetaliationSystem) delays leash activation for zombies that
 /// were shot, so they don't immediately give up on a nearby attacker.
 /// </summary>
-public sealed class FSLeashSystem : EntitySystem
+public sealed partial class FSLeashSystem : EntitySystem
 {
-    [Dependency] private readonly HTNSystem _htn = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly ExamineSystemShared _examine = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private HTNSystem _htn = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private ExamineSystemShared _examine = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     // TODO(finalstand): tune leash distance
     private const float LeashDistance = 10f;

@@ -11,11 +11,11 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Research;
 
 // Mirrors FSPerkBuffSystem, but reads FSResearchSystem.IsNodeUnlocked (station-wide) instead of per-mind perk levels.
-public sealed class FSResearchBuffSystem : EntitySystem
+public sealed partial class FSResearchBuffSystem : EntitySystem
 {
-    [Dependency] private readonly FSResearchSystem _research = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly SharedGunSystem _gun = default!;
+    [Dependency] private FSResearchSystem _research = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";

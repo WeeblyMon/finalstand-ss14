@@ -2,9 +2,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.CCC;
 
-public sealed class FSCCCHealthBarSystem : EntitySystem
+public sealed partial class FSCCCHealthBarSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSCCCHealthBarOverlay? _overlay;
 

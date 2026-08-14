@@ -10,11 +10,11 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.Armor;
 
-public sealed class FSArmorSystem : EntitySystem
+public sealed partial class FSArmorSystem : EntitySystem
 {
-    [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     // Set in ProjectileHitEvent, consumed in DamageModifyEvent same frame. Cleared each Update.
     private readonly Dictionary<EntityUid, FinalStandDamageFlags> _pendingFlags = [];

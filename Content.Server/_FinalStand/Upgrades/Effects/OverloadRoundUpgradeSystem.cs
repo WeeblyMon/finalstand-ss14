@@ -16,10 +16,10 @@ public sealed partial class FSOverloadRoundComponent : Component
 }
 
 // every Nth shot (interval shrinks per level) is replaced with a visually distinct bolt dealing double damage
-public sealed class OverloadRoundUpgradeSystem : EntitySystem
+public sealed partial class OverloadRoundUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
     private const string OverloadBoltProto = "FSBulletLaserCarbineOverload";
     private const float FallbackBoltSpeed = 20f;

@@ -22,15 +22,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSPerkBuffSystem : EntitySystem
+public sealed partial class FSPerkBuffSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly StaminaSystem _stamina = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private KnockbackUpgradeSystem _knockback = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";

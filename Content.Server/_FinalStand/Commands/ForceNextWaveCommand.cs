@@ -8,9 +8,9 @@ namespace Content.Server._FinalStand.Commands;
 // Fallback timer too long sometimes, use during testing, waves and stuff.
 
 [AdminCommand(AdminFlags.Round)]
-public sealed class ForceNextWaveCommand : LocalizedEntityCommands
+public sealed partial class ForceNextWaveCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
 
     public override string Command => "forcenextwave";
 

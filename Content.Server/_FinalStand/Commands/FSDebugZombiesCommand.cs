@@ -16,11 +16,11 @@ namespace Content.Server._FinalStand.Commands;
 // Dumps a snapshot of every wave zombie's state — position, target, speed, steering status,
 // flow-field reachability, HTN keys. Useful for diagnosing idling / stranded / stuck zombies.
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSDebugZombiesCommand : LocalizedEntityCommands
+public sealed partial class FSDebugZombiesCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IEntityManager _ent = default!;
-    [Dependency] private readonly HordeFlowFieldSystem _flow = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private IEntityManager _ent = default!;
+    [Dependency] private HordeFlowFieldSystem _flow = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override string Command => "fsdebugzombies";
 

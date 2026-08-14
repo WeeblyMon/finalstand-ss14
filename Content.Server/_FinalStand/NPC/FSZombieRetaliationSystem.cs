@@ -10,13 +10,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-public sealed class FSZombieRetaliationSystem : EntitySystem
+public sealed partial class FSZombieRetaliationSystem : EntitySystem
 {
-    [Dependency] private readonly HTNSystem _htn = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private HTNSystem _htn = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float RetaliationDuration = 2f;
     private const float AlertRadius = 10f;

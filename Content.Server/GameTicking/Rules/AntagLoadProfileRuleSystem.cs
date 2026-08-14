@@ -10,10 +10,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server.GameTicking.Rules;
 
-public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfileRuleComponent>
+public sealed partial class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfileRuleComponent>
 {
-    [Dependency] private readonly IServerPreferencesManager _prefs = default!;
-    [Dependency] private readonly Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
+    [Dependency] private IServerPreferencesManager _prefs = default!;
+    [Dependency] private Content.Server.Humanoid.HumanoidAppearanceSystem _humanoid = default!;
 
     public override void Initialize()
     {

@@ -1,7 +1,8 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
+using Content.Shared.Body;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
 using Content.Shared.FixedPoint;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
@@ -23,9 +24,9 @@ public partial class PainSystem
 
     private void OnPainChanged(Entity<PainInflicterComponent> woundEnt, ref WoundSeverityPointChangedEvent args)
     {
-        if (!TryComp<BodyPartComponent>(args.Component.HoldingWoundable, out var bodyPart)
-            || bodyPart.Body == null
-            || !_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var nerveSys))
+        if (!TryComp<OrganComponent>(args.Component.HoldingWoundable, out var organ)
+            || organ.Body == null
+            || !_consciousness.TryGetNerveSystem(organ.Body.Value, out var nerveSys))
             return;
 
         // bro how
@@ -76,14 +77,12 @@ public partial class PainSystem
 
     private void OnPainRemoved(Entity<PainInflicterComponent> woundEnt, ref WoundRemovedEvent args)
     {
-        if (!TryComp<BodyPartComponent>(args.Component.HoldingWoundable, out var bodyPart)
-            || bodyPart.Body == null)
+        if (!TryComp<OrganComponent>(args.Component.HoldingWoundable, out var organ)
+            || organ.Body == null)
             return;
 
-        var rootPart = Comp<BodyComponent>(bodyPart.Body.Value).RootContainer.ContainedEntity;
-
-        if (!rootPart.HasValue
-            || !_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var nerveSys))
+        if (!_lookup.HasOrganOfCategory(organ.Body.Value, OrganCategories.Torso)
+            || !_consciousness.TryGetNerveSystem(organ.Body.Value, out var nerveSys))
             return;
 
         // bro how

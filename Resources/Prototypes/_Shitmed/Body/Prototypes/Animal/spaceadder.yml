@@ -8,29 +8,22 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: SpaceAdder
-  name: "space adder"
-  root: chest
-  slots:
-    chest:
-      part: ChestAnimal
-      connections:
-      - groin
-      organs:
-        lungs: OrganAnimalLungs
-        heart: OrganAnimalHeart
-    groin:
-      part: GroinAnimal
-      connections:
-      - legs
-      organs:
-        stomach: OrganAnimalStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganAnimalKidneys
-    legs:
-      part: LegsAnimal
-      connections:
-      - feet
-    feet:
-      part: FeetAnimal
+- type: entity
+  abstract: true
+  id: BodyOrgansSpaceAdder
+  components:
+  - type: InitialBody
+    organs:
+      Torso: ChestAnimal
+      Lungs: OrganAnimalLungs
+      Heart: OrganAnimalHeart
+      Groin: GroinAnimal
+      Stomach: OrganAnimalStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganAnimalKidneys
+      LegLeft: LegsAnimal
+      FootLeft: FeetAnimal
+    relationships:
+      Torso: [ Groin, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, Liver, Stomach ]
+      LegLeft: [ FootLeft ]

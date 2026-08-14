@@ -14,7 +14,7 @@
   - type: Sprite
     state: brain
   - type: Organ
-    slotId: brain
+  - type: OrganIntegrity
     intCap: 28
     integrity: 28
     integrityThresholds:
@@ -67,7 +67,7 @@
   components:
   # start-backmen: surgery
   - type: Organ
-    slotId: eyes
+  - type: OrganIntegrity
     intCap: 12
     integrity: 12
     integrityThresholds:

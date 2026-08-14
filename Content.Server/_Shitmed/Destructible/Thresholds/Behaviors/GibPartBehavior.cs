@@ -4,7 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using JetBrains.Annotations;
 
 // Leaving this one in the default namespace because I am afraid to test it
@@ -17,9 +17,9 @@ public sealed partial class GibPartBehavior : IThresholdBehavior
 {
     public void Execute(EntityUid owner, DestructibleSystem system, EntityUid? cause = null)
     {
-        if (!system.EntityManager.TryGetComponent(owner, out BodyPartComponent? part))
+        if (!system.EntityManager.TryGetComponent(owner, out OrganComponent? part))
             return;
 
-        system.BodySystem.GibPart(owner, part);
+        system.BodyAppearanceSystem.GibPart(owner, part);
     }
 }

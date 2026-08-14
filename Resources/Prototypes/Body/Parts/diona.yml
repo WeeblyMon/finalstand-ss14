@@ -46,8 +46,7 @@
     sprite: Mobs/Species/Diona/parts.rsi
   - type: Icon # Shitmed Change
     sprite: Mobs/Species/Diona/parts.rsi
-  - type: BodyPart # Shitmed Change
-    species: Diona
+  - type: Organ # Shitmed Change
   - type: Damageable # Shitmed
     damageModifierSet: Diona
 
@@ -122,9 +121,8 @@
   components:
   - type: Sprite
     state: "r_leg"
-  - type: BodyPart
-    partType: Leg
-    symmetry: Right
+  - type: Organ
+    category: LegRight
 
 - type: entity
   id: LeftFootDiona
@@ -133,9 +131,8 @@
   components:
   - type: Sprite
     state: "l_foot"
-  - type: BodyPart
-    partType: Foot
-    symmetry: Left
+  - type: Organ
+    category: FootLeft
 
 - type: entity
   id: RightFootDiona
@@ -144,6 +141,5 @@
   components:
   - type: Sprite
     state: "r_foot"
-  - type: BodyPart
-    partType: Foot
-    symmetry: Right
+  - type: Organ
+    category: FootRight

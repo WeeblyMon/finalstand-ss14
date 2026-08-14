@@ -1,18 +1,19 @@
-using Content.Shared.Body.Systems;
-using Content.Shared.Body.Part;
-using Content.Shared.Hands.Components;
+using Content.Shared._FinalStand.Medical.Relay;
 using Content.Shared._Shitmed.Weapons.Melee.Events;
 using Content.Shared._Shitmed.Weapons.Ranged.Events;
+using Content.Shared.Body;
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
 
 namespace Content.Shared._Shitmed.Weapons.Systems;
 
-public sealed class FumbleOnDamageSystem : EntitySystem
+public sealed partial class FumbleOnDamageSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private BodySystem _body = default!;
+    [Dependency] private OrganRelaySystem _relay = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     public override void Initialize()
     {
@@ -24,35 +25,18 @@ public sealed class FumbleOnDamageSystem : EntitySystem
 
     private void OnAttemptMeleeEvent(EntityUid uid, HandsComponent hands, ref AttemptMeleeEvent ev)
     {
-        bool raiseOnAll = ev.WeaponComponent.MustBeEquippedToUse
+        var useAllHands = ev.WeaponComponent.MustBeEquippedToUse
                           || TryComp(ev.Weapon, out WieldableComponent? wieldable)
                           && wieldable.Wielded;
-        // This might get messy with furry species that have more than two hands, but who cares.
 
-        var hand = _hands.GetActiveHand((uid, hands));
         var ev2 = new AttemptHandsMeleeEvent();
-        if (raiseOnAll)
-        {
-            RaiseLocalEvent(uid, ev2);
-        }
-        else if (hand != null) // I dont think its possible for it to be null???
-        {
-            foreach (var part in _body.GetBodyChildrenOfType(uid, BodyPartType.Hand))
-            {
-                // Holy shit I need to add slotId assignment to each part this is so ass :wilted_rose:
-                if (SharedBodySystem.GetPartSlotContainerId(part.Component.ParentSlot?.Id ?? "") == hand)
-                {
-                    ev2 = new AttemptHandsMeleeEvent(part.Component.Symmetry);
-                    RaiseLocalEvent(part.Id, ev2);
-                }
-            }
-        }
+        if (useAllHands)
+            _relay.RelayEvent(uid, ev2);
+        else if (GetActiveHandOrgan(uid, hands) is { } organ)
+            RaiseLocalEvent(organ, ev2);
 
         if (ev2.Cancelled)
-        {
             ev.Cancelled = true;
-            return;
-        }
     }
 
     private void OnAttemptShootEvent(EntityUid uid, HandsComponent hands, GunShotBodyEvent ev)
@@ -60,26 +44,26 @@ public sealed class FumbleOnDamageSystem : EntitySystem
         if (ev.GunUid == uid) // If the gun is the same user with a component e.g. laser eyes, dont bother.
             return;
 
-        bool raiseOnAll = TryComp(ev.GunUid, out WieldableComponent? wieldable)
-                          && wieldable.Wielded;
+        var useAllHands = TryComp(ev.GunUid, out WieldableComponent? wieldable) && wieldable.Wielded;
 
-        var hand = _hands.GetActiveHand((uid, hands));
         var ev2 = new AttemptHandsShootEvent();
-        if (raiseOnAll)
+        if (useAllHands)
+            _relay.RelayEvent(uid, ev2);
+        else if (GetActiveHandOrgan(uid, hands) is { } organ)
+            RaiseLocalEvent(organ, ev2);
+    }
+
+    private EntityUid? GetActiveHandOrgan(EntityUid uid, HandsComponent hands)
+    {
+        if (_hands.GetActiveHand((uid, hands)) is not { } hand)
+            return null;
+
+        foreach (var organ in _body.EnumerateOrgans<HandOrganComponent>(uid))
         {
-            RaiseLocalEvent(uid, ev2);
+            if (organ.Comp2.HandID == hand)
+                return organ.Owner;
         }
-        else if (hand != null)
-        {
-            foreach (var part in _body.GetBodyChildrenOfType(uid, BodyPartType.Hand))
-            {
-                if (SharedBodySystem.GetPartSlotContainerId(part.Component.ParentSlot?.Id ?? "") == hand)
-                {
-                    ev2 = new AttemptHandsShootEvent(part.Component.Symmetry);
-                    RaiseLocalEvent(part.Id, ev2);
-                }
-            }
-        }
+
+        return null;
     }
 }
-

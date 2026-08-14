@@ -8,12 +8,12 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Deployables;
 
 // Reuses FSSlowedComponent for the slow effect - refreshing rather than stacking keeps overlapping fields from producing a stronger/permanent slow.
-public sealed class FSNullFieldSystem : EntitySystem
+public sealed partial class FSNullFieldSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan RefreshDuration = TimeSpan.FromSeconds(1);
 

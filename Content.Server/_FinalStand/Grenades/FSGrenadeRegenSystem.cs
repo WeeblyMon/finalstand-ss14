@@ -3,9 +3,9 @@ using Content.Shared._FinalStand.GameTicking;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSGrenadeRegenSystem : EntitySystem
+public sealed partial class FSGrenadeRegenSystem : EntitySystem
 {
-    [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
+    [Dependency] private FSGrenadeSelectActionSystem _grenadeSelect = default!;
 
     public override void Initialize()
     {

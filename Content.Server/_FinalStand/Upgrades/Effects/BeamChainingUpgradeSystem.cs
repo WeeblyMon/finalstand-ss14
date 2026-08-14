@@ -11,12 +11,12 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class BeamChainingUpgradeSystem : EntitySystem
+public sealed partial class BeamChainingUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

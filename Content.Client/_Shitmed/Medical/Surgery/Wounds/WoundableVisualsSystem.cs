@@ -9,12 +9,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
@@ -27,14 +28,15 @@ namespace Content.Client._Shitmed.Medical.Surgery.Wounds;
 /// <summary>
 /// Handles visual representation of wounds and damage on body parts
 /// </summary>
-public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsComponent>
+public sealed partial class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsComponent>
 {
     #region Dependencies
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
     #endregion
     #region Constants
     private const float AltBleedingSpriteChance = 0.15f;
@@ -47,8 +49,8 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         base.Initialize();
         SubscribeLocalEvent<WoundableVisualsComponent, ComponentInit>(InitializeEntity, after: [typeof(WoundSystem)]);
         SubscribeLocalEvent<WoundableVisualsComponent, AfterAutoHandleStateEvent>(OnAfterAutoHandleState);
-        SubscribeLocalEvent<WoundableVisualsComponent, BodyPartRemovedEvent>(OnWoundableRemoved);
-        SubscribeLocalEvent<WoundableVisualsComponent, BodyPartAddedEvent>(OnWoundableConnected);
+        SubscribeLocalEvent<WoundableVisualsComponent, OrganGotRemovedEvent>(OnWoundableRemoved);
+        SubscribeLocalEvent<WoundableVisualsComponent, OrganGotInsertedEvent>(OnWoundableConnected);
         SubscribeLocalEvent<WoundableVisualsComponent, WoundableIntegrityChangedEvent>(OnWoundableIntegrityChanged);
     }
 
@@ -87,10 +89,10 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         UpdateWoundableVisuals(ent, (ent, partSprite));
     }
 
-    private void OnWoundableConnected(Entity<WoundableVisualsComponent> ent, ref BodyPartAddedEvent args)
+    private void OnWoundableConnected(Entity<WoundableVisualsComponent> ent, ref OrganGotInsertedEvent args)
     {
-        var bodyPart = args.Part.Comp;
-        if (bodyPart.Body is not { } bodyUid || !HasComp<HumanoidProfileComponent>(bodyUid))
+        var bodyUid = args.Target;
+        if (!HasComp<HumanoidProfileComponent>(bodyUid))
             return;
 
         if (ent.Comp.DamageOverlayGroups != null)
@@ -117,25 +119,24 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         UpdateWoundableVisuals(ent, bodyUid);
     }
 
-    private void OnWoundableRemoved(Entity<WoundableVisualsComponent> ent, ref BodyPartRemovedEvent args)
+    private void OnWoundableRemoved(Entity<WoundableVisualsComponent> ent, ref OrganGotRemovedEvent args)
     {
-        var body = args.Part.Comp.Body;
-        if (body is null)
-            return;
+        var body = args.Target;
 
-        foreach (var part in _body.GetBodyPartChildren(ent))
+        foreach (var part in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<WoundableVisualsComponent>(part.Id, out var woundableVisuals))
+            if (!TryComp<WoundableVisualsComponent>(part.Owner, out var woundableVisuals))
                 continue;
-            RemoveWoundableLayers(body.Value, woundableVisuals);
+
+            RemoveWoundableLayers(body, woundableVisuals);
             if (TryComp(ent, out SpriteComponent? pieceSprite))
-                UpdateWoundableVisuals((part.Id, woundableVisuals), (ent, pieceSprite));
+                UpdateWoundableVisuals((part.Owner, woundableVisuals), (ent, pieceSprite));
         }
     }
 
     private void OnWoundableIntegrityChanged(Entity<WoundableVisualsComponent> ent, ref WoundableIntegrityChangedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(ent);
+        var bodyPart = Comp<OrganComponent>(ent);
         if (!bodyPart.Body.HasValue)
         {
             if (TryComp(ent, out SpriteComponent? partSprite))
@@ -216,7 +217,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
     }
     private void UpdateBleedingVisuals(Entity<WoundableVisualsComponent> ent, Entity<SpriteComponent?> sprite)
     {
-        if (!TryComp<BodyPartComponent>(ent, out var bodyPart))
+        if (!TryComp<OrganComponent>(ent, out var bodyPart))
             return;
 
         if (ent.Comp.BleedingOverlay is null)
@@ -230,16 +231,16 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
 
     private void UpdateParentBleedingVisuals(
         Entity<WoundableVisualsComponent> woundable,
-        BodyPartComponent bodyPart,
+        OrganComponent bodyPart,
         Entity<SpriteComponent?> sprite)
     {
-        if (!_body.TryGetParentBodyPart(woundable, out var parentUid, out _))
+        if (!_lookup.TryGetParentOrgan(woundable, out var parentUid, out _))
             return;
 
         var partKey = GetLimbBleedingKey(bodyPart);
         var layerKey = BuildLayerKey(partKey, BleedingSuffix);
         var hasWounds = TryGetWoundData(woundable.Owner, out var wounds);
-        var hasParentWounds = TryGetWoundData(parentUid!.Value, out var parentWounds);
+        var hasParentWounds = TryGetWoundData(parentUid, out var parentWounds);
 
         if (!hasWounds && !hasParentWounds)
         {
@@ -390,11 +391,22 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
         }
     }
 
-    private static string GetLimbBleedingKey(BodyPartComponent bodyPart)
+    private static string GetLimbBleedingKey(OrganComponent bodyPart)
     {
-        var symmetry = bodyPart.Symmetry == BodyPartSymmetry.Left ? "L" : "R";
-        var partType = bodyPart.PartType == BodyPartType.Foot ? "Leg" : "Arm";
-        return $"{symmetry}{partType}";
+        var category = bodyPart.Category;
+        var symmetry = category == OrganCategories.ArmLeft
+                       || category == OrganCategories.HandLeft
+                       || category == OrganCategories.LegLeft
+                       || category == OrganCategories.FootLeft
+            ? "L"
+            : "R";
+
+        var limb = category == OrganCategories.FootLeft || category == OrganCategories.FootRight
+                   || category == OrganCategories.LegLeft || category == OrganCategories.LegRight
+            ? "Leg"
+            : "Arm";
+
+        return $"{symmetry}{limb}";
     }
 
 

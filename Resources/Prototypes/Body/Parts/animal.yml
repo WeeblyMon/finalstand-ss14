@@ -27,9 +27,12 @@
     - state: r_hand
   - type: Icon
     state: l_hand
-  - type: BodyPart
-    partType: Hand
-    slotId: hands
+  - type: Organ
+    category: HandLeft
+  - type: HandOrgan
+    handID: left
+    data:
+      location: Left
 
 - type: entity
   parent: PartAnimalBase
@@ -42,9 +45,8 @@
     - state: r_leg
   - type: Icon
     state: l_leg
-  - type: BodyPart
-    partType: Leg
-    slotId: legs
+  - type: Organ
+    category: LegLeft
   - type: MovementBodyPart
 
 - type: entity
@@ -58,9 +60,8 @@
     - state: l_foot
   - type: Icon
     state: l_foot
-  - type: BodyPart
-    partType: Foot
-    slotId: feet
+  - type: Organ
+    category: FootLeft
 
 - type: entity
   parent: [ PartAnimalBase, BaseChest ]
@@ -70,11 +71,7 @@
   - type: Sprite
     layers:
     - state: chest_m
-  - type: BodyPart
-    children:
-      groin:
-        id: groin
-        type: Groin
+  - type: Organ
   - type: Extractable
     juiceSolution:
       reagents:
@@ -91,11 +88,7 @@
   - type: Sprite
     layers:
     - state: groin_m
-  - type: BodyPart
-    children:
-      legs:
-        id: legs
-        type: Leg
+  - type: Organ
   - type: Extractable
     juiceSolution:
       reagents:

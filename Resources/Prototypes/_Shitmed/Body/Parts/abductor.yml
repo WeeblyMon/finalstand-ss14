@@ -12,12 +12,15 @@
   parent: BasePart
   id: PartAbductorBase
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
+  - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Sprite
     sprite: _Shitmed/Mobs/Species/Abductor/parts.rsi
   - type: Icon
     sprite: _Shitmed/Mobs/Species/Abductor/parts.rsi
-  - type: BodyPart
-    species: Abductor
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: Chest # Default to Chest if something anomalous happens.

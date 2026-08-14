@@ -13,12 +13,12 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Research;
 
 // Handles every Ordnance node effect that isn't a GunRefreshModifiersEvent field; applied idempotently via FSResearchAppliedComponent.
-public sealed class FSResearchStaticGrantSystem : EntitySystem
+public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 {
-    [Dependency] private readonly FSResearchSystem _research = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly SharedBatterySystem _battery = default!;
-    [Dependency] private readonly SharedGunSystem _gun = default!;
+    [Dependency] private FSResearchSystem _research = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";

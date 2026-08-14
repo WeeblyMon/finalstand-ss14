@@ -8,10 +8,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Cleanup;
 
-public sealed class FSGroundItemCleanupSystem : EntitySystem
+public sealed partial class FSGroundItemCleanupSystem : EntitySystem
 {
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const double LifetimeSeconds = 5 * 60;
     private const float ScanInterval = 30f;

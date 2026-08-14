@@ -1,0 +1,166 @@
+// Queries over a body's organ graph: by category, and by parent/child relation.
+
+using System.Linq;
+using Content.Shared._Shitmed.Targeting;
+using Content.Shared.Body;
+using Robust.Shared.Prototypes;
+
+namespace Content.Shared._FinalStand.Medical;
+
+public sealed partial class OrganLookupSystem : EntitySystem
+{
+    [Dependency] private EntityQuery<BodyComponent> _bodyQuery = default!;
+    [Dependency] private EntityQuery<OrganComponent> _organQuery = default!;
+    [Dependency] private EntityQuery<ChildOrganComponent> _childQuery = default!;
+    [Dependency] private EntityQuery<ParentOrganComponent> _parentQuery = default!;
+
+    public IEnumerable<Entity<OrganComponent>> GetBodyOrgans(Entity<BodyComponent?> body)
+    {
+        if (!_bodyQuery.Resolve(body, ref body.Comp, false))
+            yield break;
+
+        foreach (var organ in body.Comp.Organs?.ContainedEntities ?? [])
+        {
+            if (_organQuery.TryComp(organ, out var comp))
+                yield return (organ, comp);
+        }
+    }
+
+    public IEnumerable<Entity<OrganComponent>> EnumerateOrgansOfCategory(
+        Entity<BodyComponent?> body,
+        ProtoId<OrganCategoryPrototype> category)
+    {
+        foreach (var organ in GetBodyOrgans(body))
+        {
+            if (organ.Comp.Category == category)
+                yield return organ;
+        }
+    }
+
+    public bool HasOrganOfCategory(Entity<BodyComponent?> body, ProtoId<OrganCategoryPrototype> category)
+    {
+        using var enumerator = EnumerateOrgansOfCategory(body, category).GetEnumerator();
+        return enumerator.MoveNext();
+    }
+
+    public int CountOrgansOfCategory(Entity<BodyComponent?> body, ProtoId<OrganCategoryPrototype>? category)
+    {
+        return category is { } id ? EnumerateOrgansOfCategory(body, id).Count() : 0;
+    }
+
+    public bool TryGetRootOrgan(Entity<BodyComponent?> body, out Entity<OrganComponent> root)
+    {
+        foreach (var organ in EnumerateOrgansOfCategory(body, OrganCategories.Torso))
+        {
+            root = organ;
+            return true;
+        }
+
+        root = default;
+        return false;
+    }
+
+    public IEnumerable<Entity<OrganComponent>> EnumerateChildOrgans(EntityUid organ)
+    {
+        if (!_parentQuery.TryComp(organ, out var parent))
+            yield break;
+
+        foreach (var child in parent.Children)
+        {
+            if (_organQuery.TryComp(child, out var comp))
+                yield return (child, comp);
+        }
+    }
+
+    public IEnumerable<Entity<OrganComponent, T>> EnumerateChildOrgans<T>(EntityUid organ) where T : IComponent
+    {
+        foreach (var child in EnumerateChildOrgans(organ))
+        {
+            if (TryComp<T>(child.Owner, out var comp))
+                yield return (child.Owner, child.Comp, comp);
+        }
+    }
+
+    public bool TryGetChildOrgans(EntityUid organ, Type component, out List<Entity<OrganComponent>> organs)
+    {
+        organs = new List<Entity<OrganComponent>>();
+        foreach (var child in EnumerateChildOrgans(organ))
+        {
+            if (HasComp(child.Owner, component))
+                organs.Add(child);
+        }
+
+        return organs.Count > 0;
+    }
+
+    public bool TryGetParentOrgan(EntityUid organ, out EntityUid parent)
+    {
+        parent = default;
+        if (!_childQuery.TryComp(organ, out var child) || child.Parent is not { } uid)
+            return false;
+
+        parent = uid;
+        return true;
+    }
+
+    public TargetBodyPart? GetTarget(Entity<OrganComponent?> organ)
+    {
+        return _organQuery.Resolve(organ, ref organ.Comp, false)
+            ? OrganCategories.ToTarget(organ.Comp.Category)
+            : null;
+    }
+
+    public IEnumerable<Entity<OrganComponent>> GetLegOrgans(Entity<BodyComponent?> body)
+    {
+        foreach (var category in OrganCategories.Legs)
+        {
+            foreach (var organ in EnumerateOrgansOfCategory(body, category))
+            {
+                yield return organ;
+            }
+        }
+    }
+
+    public int GetRequiredLegs(EntityUid body)
+    {
+        return CompOrNull<BodyLocomotionComponent>(body)?.RequiredLegs ?? OrganCategories.Legs.Length;
+    }
+
+    public bool TryGetParentOrgan(EntityUid organ, out EntityUid parent, out OrganComponent? parentComp)
+    {
+        parentComp = null;
+        if (!TryGetParentOrgan(organ, out parent))
+            return false;
+
+        return _organQuery.TryComp(parent, out parentComp);
+    }
+
+    public bool TryGetRootOrgan(Entity<BodyComponent?> body, out Entity<OrganComponent> root, BodyComponent? bodyComp)
+    {
+        body.Comp ??= bodyComp;
+        return TryGetRootOrgan(body, out root);
+    }
+
+    public bool TryGetChildOrgans<T>(EntityUid organ, out List<Entity<T>> organs) where T : IComponent
+    {
+        organs = new List<Entity<T>>();
+        foreach (var child in EnumerateChildOrgans<T>(organ))
+        {
+            organs.Add((child.Owner, child.Comp2));
+        }
+
+        return organs.Count > 0;
+    }
+
+    public bool TryGetBodyOrgans<T>(Entity<BodyComponent?> body, out List<Entity<T>> organs) where T : IComponent
+    {
+        organs = new List<Entity<T>>();
+        foreach (var organ in GetBodyOrgans(body))
+        {
+            if (TryComp<T>(organ.Owner, out var comp))
+                organs.Add((organ.Owner, comp));
+        }
+
+        return organs.Count > 0;
+    }
+}

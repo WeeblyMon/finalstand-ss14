@@ -2,8 +2,8 @@ using System.Numerics;
 using Content.Server.Stack;
 using Content.Server.Stunnable;
 using Content.Shared.ActionBlocker;
-using Content.Shared._Shitmed.Body.Events;
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage.Systems;
@@ -27,16 +27,16 @@ using Robust.Shared.Timing;
 
 namespace Content.Server.Hands.Systems
 {
-    public sealed class HandsSystem : SharedHandsSystem
+    public sealed partial class HandsSystem : SharedHandsSystem
     {
-        [Dependency] private readonly IGameTiming _timing = default!;
-        [Dependency] private readonly IRobustRandom _random = default!;
-        [Dependency] private readonly StackSystem _stackSystem = default!;
-        [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
-        [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-        [Dependency] private readonly PullingSystem _pullingSystem = default!;
-        [Dependency] private readonly ThrowingSystem _throwingSystem = default!;
-        [Dependency] private readonly SharedBodySystem _bodySystem = default!;
+        [Dependency] private IGameTiming _timing = default!;
+        [Dependency] private IRobustRandom _random = default!;
+        [Dependency] private StackSystem _stackSystem = default!;
+        [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+        [Dependency] private SharedTransformSystem _transformSystem = default!;
+        [Dependency] private PullingSystem _pullingSystem = default!;
+        [Dependency] private ThrowingSystem _throwingSystem = default!;
+        [Dependency] private SharedBodyAppearanceSystem _bodySystem = default!;
 
         private EntityQuery<PhysicsComponent> _physicsQuery;
 
@@ -61,10 +61,10 @@ namespace Content.Server.Hands.Systems
             // SubscribeLocalEvent<HandsComponent, DropHandItemsEvent>(OnDropHandItems);
 
             // FS: body-part events must wire HandsComponent or players spawn with no usable hands
-            SubscribeLocalEvent<HandsComponent, BodyPartAddedEvent>(HandleBodyPartAdded);
-            SubscribeLocalEvent<HandsComponent, BodyPartRemovedEvent>(HandleBodyPartRemoved);
-            SubscribeLocalEvent<HandsComponent, BodyPartEnabledEvent>(HandleBodyPartEnabled);
-            SubscribeLocalEvent<HandsComponent, BodyPartDisabledEvent>(HandleBodyPartDisabled);
+            // Adding and removing hands with limbs is vanilla HandOrganSystem's job now; we only
+            // react to a limb being disabled, which vanilla has no concept of.
+            SubscribeLocalEvent<HandsComponent, OrganEnabledEvent>(HandleOrganEnabled);
+            SubscribeLocalEvent<HandsComponent, OrganDisabledEvent>(HandleOrganDisabled);
 
             CommandBinds.Builder
                 .Bind(ContentKeyFunctions.ThrowItemInHand, new PointerInputCmdHandler(HandleThrowItem))
@@ -222,46 +222,20 @@ namespace Content.Server.Hands.Systems
 
         #endregion
 
-        private void TryAddHand(EntityUid uid, HandsComponent component, Entity<BodyPartComponent> part, string slot)
+        private void HandleOrganEnabled(EntityUid uid, HandsComponent component, ref OrganEnabledEvent args)
         {
-            if (part.Comp.PartType != BodyPartType.Hand)
+            if (!TryComp<HandOrganComponent>(args.Organ.Owner, out var hand))
                 return;
 
-            var location = part.Comp.Symmetry switch
-            {
-                BodyPartSymmetry.None => HandLocation.Middle,
-                BodyPartSymmetry.Left => HandLocation.Left,
-                BodyPartSymmetry.Right => HandLocation.Right,
-                _ => HandLocation.Middle,
-            };
-
-            if (part.Comp.Enabled
-                && _bodySystem.TryGetParentBodyPart(part, out _, out var parentPartComp)
-                && parentPartComp.Enabled)
-                AddHand(uid, slot, location);
+            AddHand(uid, hand.HandID, hand.Data.Location);
         }
 
-        private void HandleBodyPartAdded(Entity<HandsComponent> ent, ref BodyPartAddedEvent args)
-            => TryAddHand(ent.Owner, ent.Comp, args.Part, args.Slot);
-
-        private void HandleBodyPartRemoved(EntityUid uid, HandsComponent component, ref BodyPartRemovedEvent args)
+        private void HandleOrganDisabled(EntityUid uid, HandsComponent component, ref OrganDisabledEvent args)
         {
-            if (args.Part.Comp is null || args.Part.Comp.PartType != BodyPartType.Hand)
-                return;
-            RemoveHand(uid, args.Slot);
-        }
-
-        private void HandleBodyPartEnabled(EntityUid uid, HandsComponent component, ref BodyPartEnabledEvent args)
-            => TryAddHand(uid, component, args.Part, SharedBodySystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
-
-        private void HandleBodyPartDisabled(EntityUid uid, HandsComponent component, ref BodyPartDisabledEvent args)
-        {
-            if (TerminatingOrDeleted(uid)
-                || args.Part.Comp is null
-                || args.Part.Comp.PartType != BodyPartType.Hand)
+            if (TerminatingOrDeleted(uid) || !TryComp<HandOrganComponent>(args.Organ.Owner, out var hand))
                 return;
 
-            RemoveHand(uid, SharedBodySystem.GetPartSlotContainerId(args.Part.Comp.ParentSlot?.Id ?? string.Empty));
+            RemoveHand(uid, hand.HandID);
         }
     }
 }

@@ -9,58 +9,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Gingerbread
-  name: gingerbread
-  root: chest
-  slots:
-    head:
-      part: HeadGingerbread
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestGingerbread
-      connections:
-      - right arm
-      - left arm
-      - groin
-      - head # Shitmed
-      organs:
-        heart: OrganHumanHeart
-        lungs: OrganHumanLungs
-    groin:
-      part: GroinGingerbread
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganHumanStomach
-        liver: OrganHumanLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmGingerbread
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmGingerbread
-      connections:
-      - left hand
-    right hand:
-      part: RightHandGingerbread
-    left hand:
-      part: LeftHandGingerbread
-    right leg:
-      part: RightLegGingerbread
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegGingerbread
-      connections:
-      - left foot
-    right foot:
-      part: RightFootGingerbread
-    left foot:
-      part: LeftFootGingerbread
+- type: entity
+  abstract: true
+  id: BodyOrgansGingerbread
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadGingerbread
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestGingerbread
+      Heart: OrganHumanHeart
+      Lungs: OrganHumanLungs
+      Groin: GroinGingerbread
+      Stomach: OrganHumanStomach
+      Liver: OrganHumanLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmGingerbread
+      ArmLeft: LeftArmGingerbread
+      HandRight: RightHandGingerbread
+      HandLeft: LeftHandGingerbread
+      LegRight: RightLegGingerbread
+      LegLeft: LeftLegGingerbread
+      FootRight: RightFootGingerbread
+      FootLeft: LeftFootGingerbread
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

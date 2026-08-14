@@ -8,11 +8,11 @@ using Robust.Shared.Map;
 namespace Content.Server._FinalStand.Deployables;
 
 // Reuses FSDamageVulnerabilitySystem for the damage buff - refreshing rather than stacking keeps overlapping beacons from multiplying damage twice.
-public sealed class FSDamageBeaconSystem : EntitySystem
+public sealed partial class FSDamageBeaconSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly FSDamageVulnerabilitySystem _vulnerability = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
 
     private const float RefreshDuration = 1f;
 

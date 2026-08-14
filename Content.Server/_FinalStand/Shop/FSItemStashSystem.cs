@@ -4,10 +4,10 @@ using Content.Shared.Storage.EntitySystems;
 
 namespace Content.Server._FinalStand.Shop;
 
-public sealed class FSItemStashSystem : EntitySystem
+public sealed partial class FSItemStashSystem : EntitySystem
 {
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly SharedStorageSystem _storage = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedStorageSystem _storage = default!;
     public static readonly string[] SlotPriority = ["belt", "suitstorage", "pocket1", "pocket2"];
 
     public void Stash(EntityUid player, EntityUid item)

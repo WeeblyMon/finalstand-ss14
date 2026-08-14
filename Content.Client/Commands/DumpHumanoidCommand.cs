@@ -1,6 +1,6 @@
 using System.Text;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
 using Robust.Shared.Console;
@@ -9,9 +9,9 @@ using Robust.Shared.GameObjects;
 
 namespace Content.Client.Commands;
 
-public sealed class DumpHumanoidCommand : LocalizedEntityCommands
+public sealed partial class DumpHumanoidCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IEntityManager _ent = default!;
+    [Dependency] private IEntityManager _ent = default!;
 
     public override string Command => "dumphumanoid";
     public override string Description => "Dump sprite layers + child entities + humanoid state for the given entity (or the local player).";
@@ -48,13 +48,13 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
                 var cx = _ent.GetComponent<TransformComponent>(c);
                 var inContainer = containerSys.TryGetContainingContainer((c, null), out var cont);
                 var hasSprite = _ent.TryGetComponent<SpriteComponent>(c, out var childSprite);
-                var hasBodyPart = _ent.TryGetComponent<BodyPartComponent>(c, out var bp);
+                var hasBodyPart = _ent.TryGetComponent<OrganComponent>(c, out var bp);
                 sb.Append($"  {_ent.ToPrettyString(c)} pos={cx.LocalPosition}");
                 sb.Append($" inContainer={(inContainer ? cont!.ID : "NO")}");
                 if (hasSprite)
                     sb.Append($" sprite[vis={childSprite!.Visible},occluded={childSprite.ContainerOccluded}]");
                 if (hasBodyPart)
-                    sb.Append($" BodyPart(Type={bp!.PartType},Sym={bp.Symmetry},Body={(bp.Body == null ? "null" : _ent.ToPrettyString(bp.Body.Value))})");
+                    sb.Append($" Organ(Category={bp!.Category},Body={(bp.Body == null ? "null" : _ent.ToPrettyString(bp.Body.Value))})");
                 sb.AppendLine();
             }
         }
@@ -90,7 +90,7 @@ public sealed class DumpHumanoidCommand : LocalizedEntityCommands
 
         if (_ent.TryGetComponent<BodyComponent>(target, out var body))
         {
-            sb.AppendLine($"Body: prototype={body.Prototype} rootSlot={body.RootPartSlot} root={(body.RootContainer.ContainedEntity is { } r ? _ent.ToPrettyString(r) : "null")} legs={body.LegEntities.Count}");
+            sb.AppendLine($"Body: organs={body.Organs?.ContainedEntities.Count ?? 0}");
         }
 
         shell.WriteLine(sb.ToString());

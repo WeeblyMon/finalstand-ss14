@@ -8,10 +8,10 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // passive slow on every hit; no-refresh until expired; boss-immune via WaveSpawnedTagComponent check
-public sealed class SuppressionUpgradeSystem : EntitySystem
+public sealed partial class SuppressionUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private static readonly TimeSpan SuppressionDuration = TimeSpan.FromSeconds(1.5);
 

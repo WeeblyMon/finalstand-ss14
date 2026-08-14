@@ -5,18 +5,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared._Shitmed.BodyEffects.Subsystems;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.StatusEffect;
 using Robust.Shared.Timing;
 using Robust.Shared.Random;
 
 namespace Content.Server._Shitmed.BodyEffects.Subsystems;
 
-public sealed class RandomStatusActivationSystem : EntitySystem
+public sealed partial class RandomStatusActivationSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly StatusEffectsSystem _effects = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private StatusEffectsSystem _effects = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public override void Initialize()
     {

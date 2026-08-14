@@ -16,11 +16,11 @@ namespace Content.Server._Shitmed.StatusEffects;
 /// when <see cref="ScrambleLocationEffectComponent"/> is first added (e.g. from a dubious organ).
 /// Replaces the upstream implementation which required Content.Goobstation.Shared.Teleportation.
 /// </summary>
-public sealed class ScrambleLocationEffectSystem : EntitySystem
+public sealed partial class ScrambleLocationEffectSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
     private const float ScrambleRange = 8f;
 

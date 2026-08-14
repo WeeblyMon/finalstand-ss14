@@ -15,16 +15,16 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Perks;
 
 // Owns FSWhistleActionEvent — officer whistle action buffs nearby allies.
-public sealed class FSOfficerSystem : EntitySystem
+public sealed partial class FSOfficerSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly FSPlayerBonusSummarySystem _bonusSummary = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private FSPlayerBonusSummarySystem _bonusSummary = default!;
 
     private const float WhistleRange = 10f;
     private static readonly TimeSpan BuffDuration = TimeSpan.FromSeconds(8);

@@ -7,8 +7,9 @@
     metabolizerTypes: [ Bloodsucker ]
 
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobBloodsucker
   abstract: true
   components:
   - type: Body
-    prototype: Animal
+  - type: BodyWoundHealing

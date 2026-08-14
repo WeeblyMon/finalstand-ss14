@@ -7,9 +7,9 @@ using Content.Shared.Atmos.Components;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // per-target hit counter; ignites on 5th hit; counter cleared on ignition or target death/deletion
-public sealed class ResonanceUpgradeSystem : EntitySystem
+public sealed partial class ResonanceUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly FlammableSystem _flammable = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
 
     private readonly List<EntityUid> _staleKeys = new();
 

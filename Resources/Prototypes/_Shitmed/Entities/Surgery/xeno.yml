@@ -98,7 +98,7 @@
     - SurgeryStepInsertEyes
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: eyes
+    category: Eyes
   - type: SurgeryOrganCondition
     organ:
     - type: Eyes
@@ -116,7 +116,7 @@
   - type: SurgeryPartCondition
     parts: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: liver
+    category: Liver
   - type: SurgeryOrganCondition
     organ:
     - type: Liver
@@ -134,7 +134,7 @@
   - type: SurgeryPartCondition
     parts: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: stomach
+    category: Stomach
   - type: SurgeryOrganCondition
     organ:
     - type: Stomach
@@ -153,7 +153,7 @@
     - SurgeryStepInsertHiveNode
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: hive_node
+    category: HiveNode
   - type: SurgeryOrganCondition
     organ:
     - type: HiveNode
@@ -170,7 +170,7 @@
     - SurgeryStepInsertResinSpinner
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: resin_spinner
+    category: ResinSpinner
   - type: SurgeryOrganCondition
     organ:
     - type: ResinSpinner
@@ -187,7 +187,7 @@
     - SurgeryStepInsertNeurotoxinGland
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: neurotoxin_gland
+    category: NeurotoxinGland
   - type: SurgeryOrganCondition
     organ:
     - type: NeurotoxinGland
@@ -204,7 +204,7 @@
     - SurgeryStepInsertAcidGland
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryOrganSlotCondition
-    organSlot: acid_gland
+    category: AcidGland
   - type: SurgeryOrganCondition
     organ:
     - type: AcidGland
@@ -223,7 +223,7 @@
   - type: SurgeryPartCondition
     parts: [ Chest ]
   - type: SurgeryOrganSlotCondition
-    organSlot: plasma_vessel
+    category: PlasmaVessel
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel
@@ -242,7 +242,7 @@
   - type: SurgeryPartCondition
     parts: [ Groin ]
   - type: SurgeryOrganSlotCondition
-    organSlot: egg_sack
+    category: EggSack
   - type: SurgeryOrganCondition
     organ:
     - type: EggSack

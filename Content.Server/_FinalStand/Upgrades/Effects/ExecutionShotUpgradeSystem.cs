@@ -5,9 +5,9 @@ using Content.Shared._FinalStand.Upgrades.Effects;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class ExecutionShotUpgradeSystem : EntitySystem
+public sealed partial class ExecutionShotUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly CritSystem _crit = default!;
+    [Dependency] private CritSystem _crit = default!;
 
     public override void Initialize()
     {

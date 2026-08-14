@@ -16,15 +16,15 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.CashTransfer;
 
-public sealed class FSCashTransferSystem : EntitySystem
+public sealed partial class FSCashTransferSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedInteractionSystem _interaction = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private UserInterfaceSystem _uiSystem = default!;
 
     private static readonly EntProtoId SessionProto = "FSCashTransferSession";
 

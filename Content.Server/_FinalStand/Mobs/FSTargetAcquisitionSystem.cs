@@ -14,11 +14,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSTargetAcquisitionSystem : EntitySystem
+public sealed partial class FSTargetAcquisitionSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly ExamineSystemShared _examine = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ExamineSystemShared _examine = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorSetPool =
         new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(

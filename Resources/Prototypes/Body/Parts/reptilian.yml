@@ -42,8 +42,7 @@
   components:
   - type: Icon # Shitmed Change
     sprite: Mobs/Species/Reptilian/parts.rsi
-  - type: BodyPart # Shitmed Change
-    species: Reptilian
+  - type: Organ # Shitmed Change
   - type: Extractable
     juiceSolution:
       reagents:

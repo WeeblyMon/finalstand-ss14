@@ -6,6 +6,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using System.Text;
 using Content.Server.Body.Systems;
@@ -17,7 +18,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.PartStatus.Events;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Chat;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Player;
@@ -35,33 +36,31 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._Shitmed.PartStatus;
 
-public sealed class PartStatusSystem : EntitySystem
+public sealed partial class PartStatusSystem : EntitySystem
 {
-    [Dependency] private readonly WoundSystem _woundSystem = default!;
-    [Dependency] private readonly BodySystem _bodySystem = default!;
-    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
-    [Dependency] private readonly TraumaSystem _trauma = default!;
-    [Dependency] private readonly IChatManager _chat = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly ExamineSystemShared _examineSystem = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private WoundSystem _woundSystem = default!;
+    [Dependency] private BodyAppearanceSystem _bodySystem = default!;
+    [Dependency] private MobStateSystem _mobStateSystem = default!;
+    [Dependency] private TraumaSystem _trauma = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private ExamineSystemShared _examineSystem = default!;
 
-    private static readonly IReadOnlyList<BodyPartType> BodyPartOrder = new List<BodyPartType>
+    private static readonly IReadOnlyList<ProtoId<OrganCategoryPrototype>> BodyPartOrder = new List<ProtoId<OrganCategoryPrototype>>
     {
-        BodyPartType.Head,
-        BodyPartType.Chest,
-        BodyPartType.Arm,
-        BodyPartType.Hand,
-        BodyPartType.Groin,
-        BodyPartType.Leg,
-        BodyPartType.Foot,
+        OrganCategories.Head,
+        OrganCategories.Torso,
+        OrganCategories.ArmLeft,
+        OrganCategories.ArmRight,
+        OrganCategories.HandLeft,
+        OrganCategories.HandRight,
+        OrganCategories.Groin,
+        OrganCategories.LegLeft,
+        OrganCategories.LegRight,
+        OrganCategories.FootLeft,
+        OrganCategories.FootRight,
     }.AsReadOnly();
-
-    private static List<BodyPartSymmetry> _symmetryPriority =
-    [
-        BodyPartSymmetry.Left,
-        BodyPartSymmetry.Right,
-        BodyPartSymmetry.None,
-    ];
 
     private const string BleedLocaleStr = "inspect-wound-Bleeding-moderate";
     private const string BoneLocaleStr = "inspect-trauma-BoneDamage";
@@ -79,10 +78,10 @@ public sealed class PartStatusSystem : EntitySystem
 
         if (_mobStateSystem.IsIncapacitated(entity) ||
             !TryComp<ActorComponent>(entity, out var actor) ||
-            !_bodySystem.TryGetRootPart(entity, out var rootPart))
+            !_lookup.TryGetRootOrgan(entity, out var rootPart))
             return;
 
-        var partStatusSet = CollectPartStatuses(rootPart!.Value);
+        var partStatusSet = CollectPartStatuses(rootPart.Owner);
         var text = GetExamineText(entity, entity, partStatusSet);
 
         _chat.ChatMessageToOne(
@@ -124,10 +123,10 @@ public sealed class PartStatusSystem : EntitySystem
 
     public FormattedMessage CreateMarkup(EntityUid uid, EntityUid examiner, HealthExaminableComponent component, DamageableComponent damage)
     {
-        if (!_bodySystem.TryGetRootPart(uid, out var rootPart))
+        if (!_lookup.TryGetRootOrgan(uid, out var rootPart))
             return new FormattedMessage();
 
-        var partStatusSet = CollectPartStatuses(rootPart!.Value);
+        var partStatusSet = CollectPartStatuses(rootPart.Owner);
         var text = GetExamineText(uid, examiner, partStatusSet, false);
         // Anything else want to add on to this?
         RaiseLocalEvent(uid, new HealthBeingExaminedEvent(text), true);
@@ -136,22 +135,24 @@ public sealed class PartStatusSystem : EntitySystem
     }
 
 
-    private HashSet<PartStatus> CollectPartStatuses(Entity<BodyPartComponent> rootPart)
+    private HashSet<PartStatus> CollectPartStatuses(EntityUid rootPart)
     {
         var partStatusSet = new HashSet<PartStatus>();
 
         foreach (var woundable in _woundSystem.GetAllWoundableChildren(rootPart))
         {
-            if (!TryComp<BodyPartComponent>(woundable, out var bodyPartComponent) ||
+            if (!TryComp<OrganComponent>(woundable, out var bodyPartComponent) ||
                 !TryComp<BoneComponent>(woundable.Comp.Bone.ContainedEntities.FirstOrNull(), out var bone))
                 continue;
 
-            var partName = bodyPartComponent.ParentSlot?.Id ?? bodyPartComponent.PartType.ToString().ToLower();
+            if (bodyPartComponent.Category is not { } category)
+                continue;
+
+            var partName = category.Id.ToLower();
             var (damageSeverities, isBleeding) = AnalyzeWounds(woundable);
 
             partStatusSet.Add(new PartStatus(
-                bodyPartComponent.PartType,
-                bodyPartComponent.Symmetry,
+                category,
                 partName,
                 woundable.Comp.WoundableSeverity,
                 damageSeverities,
@@ -225,9 +226,7 @@ public sealed class PartStatusSystem : EntitySystem
         bool styleless = false)
     {
         var orderedParts = BodyPartOrder
-            .SelectMany(partType => partStatusSet.Where(p => p.PartType == partType)
-                .ToList()
-                .OrderBy(p => _symmetryPriority.IndexOf(p.PartSymmetry)))
+            .SelectMany(category => partStatusSet.Where(p => p.Category == category))
             .ToList();
 
         foreach (var partStatus in orderedParts)

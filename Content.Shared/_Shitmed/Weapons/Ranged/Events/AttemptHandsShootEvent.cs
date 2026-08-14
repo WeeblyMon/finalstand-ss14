@@ -1,12 +1,14 @@
-using Content.Shared.Body.Part;
-using Content.Shared.Body.Systems;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.Medical.Relay;
+using Content.Shared.Body;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Shitmed.Weapons.Ranged.Events;
 
-public sealed class AttemptHandsShootEvent(BodyPartSymmetry? targetBodyPartSymmetry = null) : HandledEntityEventArgs, IBodyPartRelayEvent, IBoneRelayEvent
+public sealed class AttemptHandsShootEvent(ProtoId<OrganCategoryPrototype>[]? hands = null)
+    : HandledEntityEventArgs, IOrganRelayEvent
 {
-    public BodyPartType TargetBodyPart => BodyPartType.Hand;
-    public BodyPartSymmetry? TargetBodyPartSymmetry => targetBodyPartSymmetry;
+    public ProtoId<OrganCategoryPrototype>[] TargetCategories => hands ?? OrganCategories.Hands;
 
     public bool RaiseOnParent => true;
 }

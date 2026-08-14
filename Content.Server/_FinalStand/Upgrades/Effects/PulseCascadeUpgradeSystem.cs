@@ -15,14 +15,14 @@ using Robust.Shared.Map;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // on kill, spawns 3 explosion puffs and applies 50% damage to nearby enemies; kills chain
-public sealed class PulseCascadeUpgradeSystem : EntitySystem
+public sealed partial class PulseCascadeUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly ExplosionSystem _explosion = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ExplosionSystem _explosion = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

@@ -9,10 +9,10 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._FinalStand.Placement;
 
 // Ghost snaps to the nearest tile center; validity is range-only (no tile-blocking checks yet).
-public sealed class AlignFSPlacement : PlacementMode
+public sealed partial class AlignFSPlacement : PlacementMode
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
     private readonly SharedMapSystem _mapSystem;
     private readonly HandsSystem _handsSystem;
     private readonly SharedTransformSystem _transformSystem;

@@ -1,0 +1,233 @@
+// SPDX-FileCopyrightText: 2024 Piras314 <p1r4s@proton.me>
+// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
+// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+// SPDX-FileCopyrightText: 2025 SX-7 <sn1.test.preria.2002@gmail.com>
+// SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
+// SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using System.Linq;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body.Components;
+using Content.Shared.Body;
+using Content.Shared._Shitmed.Body.Part;
+using Content.Shared.Humanoid;
+using Content.Shared.Humanoid.Markings;
+using Content.Shared.Humanoid.Prototypes;
+using Robust.Shared.Network;
+using Robust.Shared.Prototypes;
+
+namespace Content.Shared.Body.Systems;
+public partial class SharedBodyAppearanceSystem
+{
+    [Dependency] private SharedHumanoidAppearanceSystem _humanoid = default!;
+    [Dependency] private MarkingManager _markingManager = default!;
+    [Dependency] private INetManager _net = default!;
+
+    private void InitializePartAppearances()
+    {
+        SubscribeLocalEvent<BodyPartAppearanceComponent, ComponentStartup>(OnPartAppearanceStartup);
+        SubscribeLocalEvent<BodyPartAppearanceComponent, AfterAutoHandleStateEvent>(HandleState);
+        SubscribeLocalEvent<BodyComponent, OrganInsertedIntoEvent>(OnPartAttachedToBody);
+        SubscribeLocalEvent<BodyComponent, OrganRemovedFromEvent>(OnPartDroppedFromBody);
+    }
+
+    private void OnPartAppearanceStartup(EntityUid uid, BodyPartAppearanceComponent component, ComponentStartup args)
+    {
+        if (!TryComp(uid, out OrganComponent? part)
+            || part.ToHumanoidLayers() is not { } relevantLayer)
+            return;
+
+        if (component.BaseLayerId != null)
+        {
+            component.ID = component.BaseLayerId;
+            component.Type = relevantLayer;
+            return;
+        }
+
+        if (part.Body is not { Valid: true } body
+            || !TryComp(body, out HumanoidProfileComponent? bodyAppearance))
+            return;
+
+        var customLayers = bodyAppearance.CustomBaseLayers;
+        var spriteLayers = bodyAppearance.BaseLayers;
+        component.Type = relevantLayer;
+
+        component.Species = bodyAppearance.Species;
+
+        if (customLayers.ContainsKey(component.Type))
+        {
+            component.ID = customLayers[component.Type].Id;
+            component.Color = customLayers[component.Type].Color;
+        }
+        else if (spriteLayers.ContainsKey(component.Type))
+        {
+            component.ID = spriteLayers[component.Type].ID;
+            component.Color = bodyAppearance.SkinColor;
+        }
+        else
+        {
+            component.ID = CreateIdFromPart(bodyAppearance, relevantLayer);
+            component.Color = bodyAppearance.SkinColor;
+        }
+
+        // I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS I HATE HARDCODED CHECKS
+        if (part.Category == OrganCategories.Head)
+            component.EyeColor = bodyAppearance.EyeColor;
+
+        var markingsByLayer = new Dictionary<HumanoidVisualLayers, List<Marking>>();
+
+        foreach (var layer in HumanoidVisualLayersExtension.Sublayers(relevantLayer))
+        {
+            var category = MarkingCategoriesConversion.FromHumanoidVisualLayers(layer);
+            if (bodyAppearance.MarkingSet.Markings.TryGetValue(category, out var markingList))
+                markingsByLayer[layer] = markingList.Select(m => new Marking(m.MarkingId, m.MarkingColors.ToList())).ToList();
+        }
+
+        component.Markings = markingsByLayer;
+        Dirty(uid, component);
+    }
+
+    private string? CreateIdFromPart(HumanoidProfileComponent bodyAppearance, HumanoidVisualLayers part)
+    {
+        var speciesProto = Prototypes.Index(bodyAppearance.Species);
+        var baseSprites = Prototypes.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet);
+
+        return baseSprites.Sprites.TryGetValue(part, out var value)
+            ? HumanoidVisualLayersExtension.GetSexMorph(part, bodyAppearance.Sex, value)
+            : null;
+    }
+
+    public void ModifyMarkings(EntityUid uid,
+        Entity<BodyPartAppearanceComponent?> partAppearance,
+        HumanoidProfileComponent bodyAppearance,
+        HumanoidVisualLayers targetLayer,
+        string markingId,
+        bool remove = false)
+    {
+
+        if (!Resolve(partAppearance, ref partAppearance.Comp))
+            return;
+
+        if (!remove)
+        {
+
+            if (!_markingManager.Markings.TryGetValue(markingId, out var prototype))
+                return;
+
+            var markingColors = MarkingColoring.GetMarkingLayerColors(
+                    prototype,
+                    bodyAppearance.SkinColor,
+                    bodyAppearance.EyeColor,
+                    bodyAppearance.MarkingSet
+                );
+
+            var marking = new Marking(markingId, markingColors);
+
+            _humanoid.SetLayerVisibility((uid, bodyAppearance), targetLayer, true);
+            _humanoid.AddMarking(uid, markingId, markingColors, true, true, bodyAppearance);
+            if (!partAppearance.Comp.Markings.ContainsKey(targetLayer))
+                partAppearance.Comp.Markings[targetLayer] = new List<Marking>();
+
+            partAppearance.Comp.Markings[targetLayer].Add(marking);
+        }
+        //else
+            //RemovePartMarkings(uid, component, bodyAppearance);
+    }
+
+    private void HandleState(EntityUid uid, BodyPartAppearanceComponent component, ref AfterAutoHandleStateEvent args) =>
+        ApplyPartMarkings(uid, component);
+
+    private void OnPartAttachedToBody(EntityUid uid, BodyComponent component, ref OrganInsertedIntoEvent args)
+    {
+        OnOrganAttached((uid, component), args.Organ);
+
+        if (!TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
+            || _net.IsClient
+            || !bodyAppearance.ProfileLoaded)
+            return;
+
+        BodyPartAppearanceComponent? partAppearance = null;
+
+        if (!TryComp(args.Organ, out partAppearance))
+            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Organ);
+
+        if (partAppearance.ID != null)
+            _humanoid.SetBaseLayerId(uid, partAppearance.Type, partAppearance.ID, sync: true, bodyAppearance);
+
+        UpdateAppearance(uid, partAppearance);
+    }
+
+    private void OnPartDroppedFromBody(EntityUid uid, BodyComponent component, ref OrganRemovedFromEvent args)
+    {
+        OnOrganDetached((uid, component), args.Organ);
+
+        if (TerminatingOrDeleted(uid)
+            || TerminatingOrDeleted(args.Organ)
+            || !TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
+            || Timing.ApplyingState)
+            return;
+
+        BodyPartAppearanceComponent? partAppearance = null;
+        // We check for this conditional here since some entities may not have a profile... If they dont
+        // have one, and their part is gibbed, the markings will not be removed or applied properly.
+        if (!TryComp<BodyPartAppearanceComponent>(args.Organ, out partAppearance))
+            partAppearance = EnsureComp<BodyPartAppearanceComponent>(args.Organ);
+
+        RemoveAppearance(uid, partAppearance, args.Organ);
+    }
+
+    protected void UpdateAppearance(EntityUid target,
+        BodyPartAppearanceComponent component)
+    {
+        if (!TryComp(target, out HumanoidProfileComponent? bodyAppearance))
+            return;
+
+        if (component.EyeColor != null)
+        {
+            bodyAppearance.EyeColor = component.EyeColor.Value;
+            _humanoid.SetLayerVisibility((target, bodyAppearance), HumanoidVisualLayers.Eyes, true);
+        }
+
+        if (component.Color != null)
+            _humanoid.SetBaseLayerColor(target, component.Type, component.Color, true, bodyAppearance);
+
+        _humanoid.SetLayerVisibility((target, bodyAppearance), component.Type, true);
+
+        foreach (var (visualLayer, markingList) in component.Markings)
+        {
+            _humanoid.SetLayerVisibility((target, bodyAppearance), visualLayer, true);
+            foreach (var marking in markingList)
+            {
+                _humanoid.AddMarking(target, marking.MarkingId, marking.MarkingColors, true, true, bodyAppearance);
+            }
+        }
+
+        Dirty(target, bodyAppearance);
+    }
+
+    protected void RemoveAppearance(EntityUid entity, BodyPartAppearanceComponent component, EntityUid partEntity)
+    {
+        if (!TryComp(entity, out HumanoidProfileComponent? bodyAppearance))
+            return;
+
+        _humanoid.SetLayerVisibility(entity, component.Type, false);
+        foreach (var (visualLayer, markingList) in component.Markings)
+        {
+            _humanoid.SetLayerVisibility((entity, bodyAppearance), visualLayer, false);
+        }
+        RemoveBodyMarkings(entity, component, bodyAppearance);
+    }
+
+    protected abstract void ApplyPartMarkings(EntityUid target, BodyPartAppearanceComponent component);
+
+    protected abstract void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidProfileComponent bodyAppearance);
+    protected virtual void OnOrganAttached(Entity<BodyComponent> body, EntityUid organ)
+    {
+    }
+
+    protected virtual void OnOrganDetached(Entity<BodyComponent> body, EntityUid organ)
+    {
+    }
+}

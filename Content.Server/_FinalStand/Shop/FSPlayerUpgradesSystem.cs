@@ -21,14 +21,14 @@ namespace Content.Server._FinalStand.Shop;
 
 public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly FSGrenadeSelectActionSystem _grenadeSelect = default!;
-    [Dependency] private readonly SharedBatterySystem _battery = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly ItemSlotsSystem _itemSlots = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly ISerializationManager _serialization = default!;
-    [Dependency] private readonly FSItemStashSystem _stash = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private FSGrenadeSelectActionSystem _grenadeSelect = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private ItemSlotsSystem _itemSlots = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private ISerializationManager _serialization = default!;
+    [Dependency] private FSItemStashSystem _stash = default!;
 
     public override void Initialize()
     {

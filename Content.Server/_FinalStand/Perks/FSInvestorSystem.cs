@@ -8,10 +8,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSInvestorSystem : EntitySystem
+public sealed partial class FSInvestorSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {

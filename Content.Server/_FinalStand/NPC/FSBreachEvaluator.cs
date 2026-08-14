@@ -26,16 +26,16 @@ namespace Content.Server._FinalStand.NPC;
 
 // Finds and scores breach-target candidates for FSBreachTargetSystem. Scoring, candidate search,
 // and blacklist bookkeeping are shared identically by the stall and maze detection modes.
-public sealed class FSBreachEvaluator : EntitySystem
+public sealed partial class FSBreachEvaluator : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _mobThreshold = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly TurfSystem _turf = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _mobThreshold = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();

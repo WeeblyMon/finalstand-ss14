@@ -1,4 +1,3 @@
-using Content.Shared.Body.Events;
 using Content.Shared.Gibbing;
 
 namespace Content.Shared.Body;

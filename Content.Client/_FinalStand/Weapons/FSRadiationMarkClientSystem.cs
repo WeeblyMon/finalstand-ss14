@@ -2,9 +2,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Weapons;
 
-public sealed class FSRadiationMarkClientSystem : EntitySystem
+public sealed partial class FSRadiationMarkClientSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSRadiationMarkOverlay? _overlay;
 

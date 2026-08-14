@@ -3,8 +3,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Conditions;
 
@@ -12,10 +13,7 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Conditions;
 public sealed partial class SurgeryPartConditionComponent : Component
 {
     [DataField]
-    public HashSet<BodyPartType> Parts;
-
-    [DataField]
-    public BodyPartSymmetry? Symmetry;
+    public HashSet<ProtoId<OrganCategoryPrototype>> Categories = new();
 
     [DataField]
     public bool Inverse;

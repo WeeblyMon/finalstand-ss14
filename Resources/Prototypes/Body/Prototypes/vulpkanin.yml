@@ -11,58 +11,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  name: "vulpkanin"
-  id: Vulpkanin
-  root: chest
-  slots:
-    head:
-      part: HeadVulpkanin
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestVulpkanin
-      connections: # Goobstation - fix some species having their hands the wrong way around
-      - groin
-      - right arm
-      - left arm
-      - head # Shitmed Change
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganHumanLungs
-    groin:
-      part: GroinVulpkanin
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganVulpkaninStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmVulpkanin
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmVulpkanin
-      connections:
-      - left hand
-    right hand:
-      part: RightHandVulpkanin
-    left hand:
-      part: LeftHandVulpkanin
-    right leg:
-      part: RightLegVulpkanin
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegVulpkanin
-      connections:
-      - left foot
-    right foot:
-      part: RightFootVulpkanin
-    left foot:
-      part: LeftFootVulpkanin
+- type: entity
+  abstract: true
+  id: BodyOrgansVulpkanin
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadVulpkanin
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestVulpkanin
+      Heart: OrganAnimalHeart
+      Lungs: OrganHumanLungs
+      Groin: GroinVulpkanin
+      Stomach: OrganVulpkaninStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmVulpkanin
+      ArmLeft: LeftArmVulpkanin
+      HandRight: RightHandVulpkanin
+      HandLeft: LeftHandVulpkanin
+      LegRight: RightLegVulpkanin
+      LegLeft: LeftLegVulpkanin
+      FootRight: RightFootVulpkanin
+      FootLeft: LeftFootVulpkanin
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

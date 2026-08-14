@@ -12,12 +12,12 @@ using Robust.Shared.Map;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // on kill, stuns all wave enemies within 3 tiles for 0.3 seconds
-public sealed class AftershockUpgradeSystem : EntitySystem
+public sealed partial class AftershockUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedStunSystem _stun = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedStunSystem _stun = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

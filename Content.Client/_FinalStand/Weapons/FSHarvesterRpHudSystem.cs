@@ -10,12 +10,12 @@ using Robust.Shared.Prototypes;
 namespace Content.Client._FinalStand.Weapons;
 
 // Shows FSHarvesterRpHudOverlay only while holding the Harvester; polls every frame instead of hand-change events so it also catches an already-held Harvester on reconnect/spawn.
-public sealed class FSHarvesterRpHudSystem : EntitySystem
+public sealed partial class FSHarvesterRpHudSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     private FSHarvesterRpHudOverlay? _overlay;
     private int _points;

@@ -8,11 +8,11 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.ReadyCheck;
 
-public sealed class FSReadyUpSystem : EntitySystem
+public sealed partial class FSReadyUpSystem : EntitySystem
 {
-    [Dependency] private readonly ReadyCheckSystem _readyCheck = default!;
-    [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private ReadyCheckSystem _readyCheck = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     // Players who have already shaved time this prep phase; cleared each new phase.
     private readonly HashSet<EntityUid> _hasContributed = [];

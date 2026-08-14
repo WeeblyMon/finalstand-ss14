@@ -16,12 +16,12 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // FireResist (scale incoming Heat damage) + WhileBurningBuff HoT tick. Damage-boost is in FSMeleeUpgradeRuntimeSystem.
-public sealed class MeleeFireResistUpgradeSystem : EntitySystem
+public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly TemperatureSystem _temperature = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private TemperatureSystem _temperature = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
 

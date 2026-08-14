@@ -15,13 +15,13 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Sprint;
 
-public sealed class FSSprintServerSystem : EntitySystem
+public sealed partial class FSSprintServerSystem : EntitySystem
 {
-    [Dependency] private readonly StaminaSystem _stamina = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly AlertsSystem _alerts = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private AlertsSystem _alerts = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
 

@@ -12,10 +12,10 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // kill stacks increase AKMS damage; resets at wave end
-public sealed class BattleTranceUpgradeSystem : EntitySystem
+public sealed partial class BattleTranceUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     public override void Initialize()
     {

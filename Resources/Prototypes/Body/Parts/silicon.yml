@@ -8,14 +8,17 @@
   parent: BasePartInorganic
   id: PartSiliconBase
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
+  - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Sprite
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: Icon
     sprite: Objects/Specific/Robotics/cyborg_parts.rsi
   - type: StaticPrice
     price: 15
-  - type: BodyPart
-    species: Cyborg
+  - type: Organ
   - type: Tag
     tags:
     - Trash

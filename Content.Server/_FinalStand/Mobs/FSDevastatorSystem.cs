@@ -13,12 +13,12 @@ using Content.Shared.Weapons.Melee.Events;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSDevastatorSystem : EntitySystem
+public sealed partial class FSDevastatorSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly SharedAmbientSoundSystem _ambientSound = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedAmbientSoundSystem _ambientSound = default!;
 
     public override void Initialize()
     {

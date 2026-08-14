@@ -21,8 +21,9 @@
     sprite: Mobs/Species/Human/organs.rsi
 
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobAnimal
   abstract: true
   components:
   - type: Body
-    prototype: Animal
+  - type: BodyWoundHealing

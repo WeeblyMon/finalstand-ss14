@@ -24,8 +24,9 @@
       maxVol: 240
 
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobRuminant
   abstract: true
   components:
   - type: Body
-    prototype: Animal
+  - type: BodyWoundHealing

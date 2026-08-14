@@ -39,13 +39,17 @@
             VeinsDamage: 0
             NerveDamage: 0
           coverage:
-          - Chest
+          - Torso
           - Groin
-          - Arm
-          - Leg
+          - ArmLeft
+          - ArmRight
+          - LegLeft
+          - LegRight
           - Tail
-          - Hand
-          - Foot
+          - HandLeft
+          - HandRight
+          - FootLeft
+          - FootRight
           modifiers:
             coefficients:
               Blunt: 0.6
@@ -76,10 +80,12 @@
             VeinsDamage: 0
             NerveDamage: 0
           coverage:
-          - Chest
+          - Torso
           - Groin
-          - Arm
-          - Leg
+          - ArmLeft
+          - ArmRight
+          - LegLeft
+          - LegRight
           - Tail
           modifiers:
             coefficients:
@@ -109,10 +115,12 @@
     sprite: _Shitmed/Clothing/OuterClothing/Coats/abductor.rsi
   - type: Armor
     coverage:
-    - Chest
+    - Torso
     - Groin
-    - Arm
-    - Leg
+    - ArmLeft
+    - ArmRight
+    - LegLeft
+    - LegRight
     - Tail
     traumaDeductions:
       Dismemberment: 0.3

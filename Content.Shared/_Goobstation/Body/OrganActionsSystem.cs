@@ -1,17 +1,16 @@
-using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
-using Content.Shared.Body.Events;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Robust.Shared.Network;
 
 namespace Content.Goobstation.Shared.Body;
 
-public sealed class OrganActionsSystem : EntitySystem
+public sealed partial class OrganActionsSystem : EntitySystem
 {
-    [Dependency] private readonly ActionContainerSystem _actionContainer = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
+    [Dependency] private ActionContainerSystem _actionContainer = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
 
     private EntityQuery<OrganComponent> _organQuery;
 
@@ -22,10 +21,10 @@ public sealed class OrganActionsSystem : EntitySystem
         _organQuery = GetEntityQuery<OrganComponent>();
 
         SubscribeLocalEvent<OrganActionsComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<OrganActionsComponent, OrganAddedEvent>(OnAdded);
+        SubscribeLocalEvent<OrganActionsComponent, OrganGotInsertedEvent>(OnAdded);
         SubscribeLocalEvent<OrganActionsComponent, OrganEnabledEvent>(OnEnabled);
         SubscribeLocalEvent<OrganActionsComponent, OrganDisabledEvent>(OnDisabled);
-        SubscribeLocalEvent<OrganActionsComponent, OrganRemovedEvent>(OnRemoved);
+        SubscribeLocalEvent<OrganActionsComponent, OrganGotRemovedEvent>(OnRemoved);
     }
 
     private void OnMapInit(Entity<OrganActionsComponent> ent, ref MapInitEvent args)
@@ -37,14 +36,14 @@ public sealed class OrganActionsSystem : EntitySystem
         }
     }
 
-    private void OnAdded(Entity<OrganActionsComponent> ent, ref OrganAddedEvent args)
+    private void OnAdded(Entity<OrganActionsComponent> ent, ref OrganGotInsertedEvent args)
     {
         // container shit chuds out
         if (_net.IsClient)
             return;
 
         if (TryComp<ActionsContainerComponent>(ent, out var container))
-            _actions.GrantContainedActions(args.Body, (ent, container));
+            _actions.GrantContainedActions(args.Target, (ent, container));
     }
 
     private void OnEnabled(Entity<OrganActionsComponent> ent, ref OrganEnabledEvent args)
@@ -62,9 +61,8 @@ public sealed class OrganActionsSystem : EntitySystem
             _actions.RemoveProvidedActions(body, ent.Owner);
     }
 
-    private void OnRemoved(Entity<OrganActionsComponent> ent, ref OrganRemovedEvent args)
+    private void OnRemoved(Entity<OrganActionsComponent> ent, ref OrganGotRemovedEvent args)
     {
-        if (args.OldBody is {} body)
-            _actions.RemoveProvidedActions(body, ent.Owner);
+        _actions.RemoveProvidedActions(args.Target, ent.Owner);
     }
 }

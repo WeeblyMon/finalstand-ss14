@@ -17,10 +17,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-public sealed class FSWaveEnrageSystem : EntitySystem
+public sealed partial class FSWaveEnrageSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _speedMod = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _speedMod = default!;
 
     // Pre-enrage base speeds plus the stage they are currently boosted to.
     private readonly Dictionary<EntityUid, (float Walk, float Sprint, int Stage)> _boosted = new();

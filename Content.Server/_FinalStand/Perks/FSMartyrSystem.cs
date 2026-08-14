@@ -10,11 +10,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSMartyrSystem : EntitySystem
+public sealed partial class FSMartyrSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly ExplosionSystem _explosion = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private ExplosionSystem _explosion = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly ProtoId<ExplosionPrototype> MartyrExplosionType = "FSMartyrExplosion";
 

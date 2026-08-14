@@ -10,7 +10,7 @@ namespace Content.Server._FinalStand.NPC;
 
 public sealed partial class SetCCCTargetOperator : HTNOperator
 {
-    [Dependency] private readonly IEntityManager _entManager = default!;
+    [Dependency] private IEntityManager _entManager = default!;
 
     private FSSlotRingSystem _slotRing = default!;
 

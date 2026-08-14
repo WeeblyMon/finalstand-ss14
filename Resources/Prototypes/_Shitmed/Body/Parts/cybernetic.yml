@@ -36,8 +36,7 @@
     state: "l_arm-combined"
   - type: Icon
     state: "l_arm-combined"
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopLArm
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LArm
@@ -58,8 +57,7 @@
     state: "r_arm-combined"
   - type: Icon
     state: "r_arm-combined"
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopRArm
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RArm
@@ -80,8 +78,7 @@
     state: "l_leg-combined"
   - type: Icon
     state: "l_leg-combined"
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopLLeg
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LLeg
@@ -102,8 +99,7 @@
     state: "r_leg-combined"
   - type: Icon
     state: "r_leg-combined"
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopRLeg
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RLeg
@@ -120,8 +116,7 @@
   id: LeftHandCybernetic
   name: cybernetic left hand
   components:
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopLHand
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LHand
@@ -138,8 +133,7 @@
   id: RightHandCybernetic
   name: cybernetic right hand
   components:
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopRHand
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RHand
@@ -156,8 +150,7 @@
   id: LeftFootCybernetic
   name: cybernetic left foot
   components:
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopLFoot
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: LFoot
@@ -174,8 +167,7 @@
   id: RightFootCybernetic
   name: cybernetic right foot
   components:
-  - type: BodyPart
-    baseLayerId: MobCyberneticBishopRFoot
+  - type: Organ
   - type: WoundableVisuals
     thresholds: [ 10, 20, 30, 50, 70, 100 ]
     occupiedLayer: RFoot
@@ -193,7 +185,8 @@
   name: J.W.L left arm
   description: A cybernetic left arm with the ability to pry doors open.
   components:
-  - type: BodyPart
+  - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: Prying
       speedModifier: 1.5
@@ -207,7 +200,8 @@
   name: J.W.L right arm
   description: A cybernetic right arm with the ability to pry doors open.
   components:
-  - type: BodyPart
+  - type: Organ
+  - type: OrganEffect
     onAdd:
     - type: Prying
       speedModifier: 1.5

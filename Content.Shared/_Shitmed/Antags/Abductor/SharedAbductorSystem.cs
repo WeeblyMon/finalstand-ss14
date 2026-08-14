@@ -7,15 +7,15 @@
 using System.Linq;
 using Robust.Shared.Containers;
 using Robust.Shared.Timing;
-using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared._FinalStand.Medical;
 
 namespace Content.Shared._Shitmed.Antags.Abductor;
 
-public abstract class SharedAbductorSystem : EntitySystem
+public abstract partial class SharedAbductorSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _entityLookup = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] protected readonly IGameTiming Timing = default!;
+    [Dependency] private EntityLookupSystem _entityLookup = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] protected IGameTiming Timing = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<AbductorExperimentatorComponent, EntInsertedIntoContainerMessage>(OnInsertedContainer);

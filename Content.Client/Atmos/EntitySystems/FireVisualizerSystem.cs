@@ -15,7 +15,7 @@ public sealed partial class FireVisualizerSystem : VisualizerSystem<FireVisualsC
 {
     [Dependency] private PointLightSystem _lights = default!;
     [Dependency] private DisplacementMapSystem _displacement = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     // A crowd of burning entities (e.g. a corridor full of zombies set on fire at once) each
     // spawn their own independent light, and those stack additively with no cap - a dozen of them

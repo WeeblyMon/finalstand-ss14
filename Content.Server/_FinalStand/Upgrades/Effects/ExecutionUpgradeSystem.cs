@@ -11,10 +11,10 @@ using Content.Shared.Mobs.Components;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // 5× damage multiplier against targets below 25% max HP
-public sealed class ExecutionUpgradeSystem : EntitySystem
+public sealed partial class ExecutionUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
 
     private const float ExecutionThreshold = 0.25f;
     private const float ExecutionMultiplier = 5.0f;

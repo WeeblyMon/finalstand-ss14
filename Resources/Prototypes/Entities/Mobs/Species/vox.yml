@@ -129,7 +129,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 - type: entity
-  parent: [ MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust ] # Goobstation - unperishable voxes
+  parent: [ MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust, BodyOrgansVox ] # Goobstation - unperishable voxes
   id: BaseMobVox
   abstract: true
   components:
@@ -143,7 +143,8 @@
     sprite: Mobs/Species/Vox/parts.rsi
     state: vox_m
   - type: Body
-    prototype: Vox
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
     #- type: VoxAccent # Not yet coded
   - type: Speech
@@ -378,7 +379,7 @@
       - NewKinPidgin        # Vox language from Floofstation
 
 - type: entity
-  parent: BaseSpeciesDummy
+  parent: [ BaseSpeciesDummy, BodyOrgansVox ]
   id: MobVoxDummy
   categories: [ HideSpawnMenu ]
   components:
@@ -391,7 +392,7 @@
             sprite: Mobs/Species/Vox/displacement.rsi
             state: hair
   - type: Body
-    prototype: Vox
+  - type: BodyWoundHealing
   - type: Inventory
     speciesId: vox
     displacements:

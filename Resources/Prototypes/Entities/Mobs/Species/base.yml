@@ -257,6 +257,7 @@
   - MobPolymorphable
   - MobCombat
   - StripableInventoryBase
+  - BodyOrgansHuman
   id: BaseMobSpecies
   abstract: true
   components:
@@ -393,7 +394,8 @@
     - Brainrotted # Goobstation - skibidi rizz ohio update
     - Dementia # Goobstation - Amnestic spray!
   - type: Body
-    prototype: Human
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Identity
   - type: IdExaminable
@@ -478,6 +480,7 @@
     - DoorBumpOpener
     - AnomalyHost
   - type: Targeting # Shitmed Change
+  - type: SurgeryTarget # surgery verbs only appear on entities that declare this
   - type: CanEscapeInventory # GoobStation - Escape being picked up by players
   - type: Consciousness
     cap: 190
@@ -564,7 +567,7 @@
 - type: entity
   save: false
   id: BaseSpeciesDummy
-  parent: InventoryBase
+  parent: [ InventoryBase, BodyOrgansHuman ]
   abstract: true
   components:
   - type: Hands
@@ -623,7 +626,8 @@
   - type: HumanoidProfile
     species: Human
   - type: Body
-    prototype: Human
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: Absorbable # Goobstation - changelings
   - type: UserInterface

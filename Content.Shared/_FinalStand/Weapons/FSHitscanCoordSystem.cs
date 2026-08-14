@@ -3,9 +3,9 @@ using Robust.Shared.Map;
 
 namespace Content.Shared._FinalStand.Weapons;
 
-public sealed class FSHitscanCoordSystem : EntitySystem
+public sealed partial class FSHitscanCoordSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public (EntityCoordinates Coords, Angle Angle) ToGridRelative(EntityCoordinates from, Angle shotAngle)
     {

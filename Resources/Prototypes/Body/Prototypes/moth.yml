@@ -10,58 +10,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Moth
-  name: "moth"
-  root: chest
-  slots:
-    head:
-      part: HeadMoth
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestMoth
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganHumanLungs
-      connections:
-      - right arm
-      - left arm
-      - groin
-      - head # Shitmed
-    groin:
-      part: GroinMoth
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganMothStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmMoth
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmMoth
-      connections:
-      - left hand
-    right hand:
-      part: RightHandMoth
-    left hand:
-      part: LeftHandMoth
-    right leg:
-      part: RightLegMoth
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegMoth
-      connections:
-      - left foot
-    right foot:
-      part: RightFootMoth
-    left foot:
-      part: LeftFootMoth
+- type: entity
+  abstract: true
+  id: BodyOrgansMoth
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadMoth
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestMoth
+      Heart: OrganAnimalHeart
+      Lungs: OrganHumanLungs
+      Groin: GroinMoth
+      Stomach: OrganMothStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmMoth
+      ArmLeft: LeftArmMoth
+      HandRight: RightHandMoth
+      HandLeft: LeftHandMoth
+      LegRight: RightLegMoth
+      LegLeft: LeftLegMoth
+      FootRight: RightFootMoth
+      FootLeft: LeftFootMoth
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

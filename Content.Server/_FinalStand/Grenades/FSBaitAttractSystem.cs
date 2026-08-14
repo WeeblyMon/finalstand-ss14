@@ -10,14 +10,14 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSBaitAttractSystem : EntitySystem
+public sealed partial class FSBaitAttractSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly NPCSystem _npc = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private NPCSystem _npc = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float AttractRadius = 20f;
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(0.25);

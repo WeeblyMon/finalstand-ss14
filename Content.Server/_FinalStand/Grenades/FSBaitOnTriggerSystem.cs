@@ -4,9 +4,9 @@ using Robust.Shared.Spawners;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSBaitOnTriggerSystem : XOnTriggerSystem<FSBaitOnTriggerComponent>
+public sealed partial class FSBaitOnTriggerSystem : XOnTriggerSystem<FSBaitOnTriggerComponent>
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     protected override void OnTrigger(Entity<FSBaitOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {

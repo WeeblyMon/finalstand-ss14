@@ -3,9 +3,9 @@ using Content.Shared.Trigger;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSSingularityOnTriggerSystem : XOnTriggerSystem<FSSingularityOnTriggerComponent>
+public sealed partial class FSSingularityOnTriggerSystem : XOnTriggerSystem<FSSingularityOnTriggerComponent>
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     protected override void OnTrigger(Entity<FSSingularityOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {

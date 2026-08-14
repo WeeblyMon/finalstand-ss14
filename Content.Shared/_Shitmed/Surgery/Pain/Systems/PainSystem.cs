@@ -10,7 +10,8 @@ using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Humanoid;
 using Content.Shared.Jittering;
@@ -33,24 +34,25 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 
 public sealed partial class PainSystem : EntitySystem
 {
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
 
-    [Dependency] private readonly SharedAudioSystem _IHaveNoMouthAndIMustScream = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedJitteringSystem _jitter = default!;
-    [Dependency] private readonly SharedStunSystem _stun = default!;
+    [Dependency] private SharedAudioSystem _IHaveNoMouthAndIMustScream = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedJitteringSystem _jitter = default!;
+    [Dependency] private SharedStunSystem _stun = default!;
 
-    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
-    [Dependency] private readonly StandingStateSystem _standing = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
 
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly ConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly TraumaSystem _trauma = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private ConsciousnessSystem _consciousness = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private TraumaSystem _trauma = default!;
 
     private bool _screamsEnabled = false;
     private float _screamChance = 0.20f;
@@ -61,8 +63,8 @@ public sealed partial class PainSystem : EntitySystem
         SubscribeLocalEvent<NerveComponent, ComponentHandleState>(OnComponentHandleState);
         SubscribeLocalEvent<NerveComponent, ComponentGetState>(OnComponentGet);
 
-        SubscribeLocalEvent<NerveComponent, BodyPartAddedEvent>(OnBodyPartAdded);
-        SubscribeLocalEvent<NerveComponent, BodyPartRemovedEvent>(OnBodyPartRemoved);
+        SubscribeLocalEvent<NerveComponent, OrganGotInsertedEvent>(OnOrganInserted);
+        SubscribeLocalEvent<NerveComponent, OrganGotRemovedEvent>(OnOrganRemoved);
 
         SubscribeLocalEvent<NerveSystemComponent, MobStateChangedEvent>(OnMobStateChanged);
 
@@ -136,32 +138,24 @@ public sealed partial class PainSystem : EntitySystem
         args.State = state;
     }
 
-    private void OnBodyPartAdded(EntityUid uid, NerveComponent nerve, ref BodyPartAddedEvent args)
+    private void OnOrganInserted(EntityUid uid, NerveComponent nerve, ref OrganGotInsertedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(uid);
-        if (!bodyPart.Body.HasValue)
+        if (!_consciousness.TryGetNerveSystem(args.Target, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
             return;
 
-        if (!_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
-            return;
-
-        UpdateNerveSystemNerves(brainUid.Value, bodyPart.Body.Value, Comp<NerveSystemComponent>(brainUid.Value));
+        UpdateNerveSystemNerves(brainUid.Value, args.Target, Comp<NerveSystemComponent>(brainUid.Value));
     }
 
-    private void OnBodyPartRemoved(EntityUid uid, NerveComponent nerve, ref BodyPartRemovedEvent args)
+    private void OnOrganRemoved(EntityUid uid, NerveComponent nerve, ref OrganGotRemovedEvent args)
     {
-        var bodyPart = Comp<BodyPartComponent>(uid);
-        if (!bodyPart.Body.HasValue)
-            return;
-
-        if (!_consciousness.TryGetNerveSystem(bodyPart.Body.Value, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
+        if (!_consciousness.TryGetNerveSystem(args.Target, out var brainUid) || TerminatingOrDeleted(brainUid.Value))
             return;
 
         foreach (var modifier in brainUid.Value.Comp.Modifiers
                      .Where(modifier => modifier.Key.Item1 == uid))
             brainUid.Value.Comp.Modifiers.Remove((modifier.Key.Item1, modifier.Key.Item2));
 
-        UpdateNerveSystemNerves(brainUid.Value, bodyPart.Body.Value, Comp<NerveSystemComponent>(brainUid.Value));
+        UpdateNerveSystemNerves(brainUid.Value, args.Target, Comp<NerveSystemComponent>(brainUid.Value));
     }
 
     private void OnMobStateChanged(EntityUid uid, NerveSystemComponent nerveSys, MobStateChangedEvent args)
@@ -186,16 +180,16 @@ public sealed partial class PainSystem : EntitySystem
     private void UpdateNerveSystemNerves(EntityUid uid, EntityUid body, NerveSystemComponent component)
     {
         component.Nerves.Clear();
-        foreach (var bodyPart in _body.GetBodyChildren(body))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<NerveComponent>(bodyPart.Id, out var nerve))
+            if (!TryComp<NerveComponent>(bodyPart.Owner, out var nerve))
                 continue;
 
-            component.Nerves.Add(bodyPart.Id, nerve);
+            component.Nerves.Add(bodyPart.Owner, nerve);
             Dirty(uid, component);
 
             nerve.ParentedNerveSystem = uid;
-            Dirty(bodyPart.Id, nerve); // ヾ(≧▽≦*)o
+            Dirty(bodyPart.Owner, nerve); // ヾ(≧▽≦*)o
         }
     }
 

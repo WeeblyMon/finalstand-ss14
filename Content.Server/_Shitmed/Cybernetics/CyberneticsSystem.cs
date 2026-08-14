@@ -7,11 +7,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Server.Emp;
-using Content.Shared._Shitmed.Body.Organ;
-using Content.Shared._Shitmed.Body.Events;
+
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Cybernetics;
-using Content.Shared.Body.Part;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -22,13 +21,14 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._Shitmed.Cybernetics;
 
-internal sealed class CyberneticsSystem : EntitySystem
+internal sealed partial class CyberneticsSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly ProtoId<DamageTypePrototype> ShockDamageType = "Shock";
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<CyberneticsComponent, EmpPulseEvent>(OnEmpPulse);
@@ -47,16 +47,16 @@ internal sealed class CyberneticsSystem : EntitySystem
                 var disableEvent = new OrganEnableChangedEvent(false);
                 RaiseLocalEvent(cyberEnt, ref disableEvent);
             }
-            else if (TryComp(cyberEnt, out BodyPartComponent? part))
+            else if (TryComp(cyberEnt, out OrganComponent? part))
             {
-                var disableEvent = new BodyPartEnableChangedEvent(false);
+                var disableEvent = new OrganEnableChangedEvent(false);
                 RaiseLocalEvent(cyberEnt, ref disableEvent);
 
                 if (TryComp(cyberEnt, out DamageableComponent? damageable)
                     && part.Body is not null)
                 {
                     var shock = new DamageSpecifier(_prototypes.Index(ShockDamageType), 30);
-                    var targetPart = _body.GetTargetBodyPart(part);
+                    var targetPart = _lookup.GetTarget((cyberEnt, part));
                     _damageable.TryChangeDamage(part.Body.Value, shock, ignoreResistances: true, targetPart: targetPart);
                     Dirty(cyberEnt, damageable);
                 }
@@ -74,9 +74,9 @@ internal sealed class CyberneticsSystem : EntitySystem
                 var enableEvent = new OrganEnableChangedEvent(true);
                 RaiseLocalEvent(cyberEnt, ref enableEvent);
             }
-            else if (HasComp<BodyPartComponent>(cyberEnt))
+            else if (HasComp<OrganComponent>(cyberEnt))
             {
-                var enableEvent = new BodyPartEnableChangedEvent(true);
+                var enableEvent = new OrganEnableChangedEvent(true);
                 RaiseLocalEvent(cyberEnt, ref enableEvent);
             }
         }

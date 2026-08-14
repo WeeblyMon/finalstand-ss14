@@ -17,56 +17,34 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Yowie
-  name: yowie
-  root: chest
-  slots:
-    head:
-      part: HeadYowie
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-    chest:
-      part: ChestYowie
-      connections:
-      - groin
-      - right arm
-      - left arm
-      organs:
-        heart: OrganYowieHeart
-        lungs: OrganYowieLungs
-    groin:
-      part: GroinYowie
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganYowieStomach
-        liver: OrganYowieLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmYowie
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmYowie
-      connections:
-      - left hand
-    right hand:
-      part: RightHandYowie
-    left hand:
-      part: LeftHandYowie
-    right leg:
-      part: RightLegYowie
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegYowie
-      connections:
-      - left foot
-    right foot:
-      part: RightFootYowie
-    left foot:
-      part: LeftFootYowie
+- type: entity
+  abstract: true
+  id: BodyOrgansYowie
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadYowie
+      Brain: OrganHumanBrain
+      Torso: ChestYowie
+      Heart: OrganYowieHeart
+      Lungs: OrganYowieLungs
+      Groin: GroinYowie
+      Stomach: OrganYowieStomach
+      Liver: OrganYowieLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmYowie
+      ArmLeft: LeftArmYowie
+      HandRight: RightHandYowie
+      HandLeft: LeftHandYowie
+      LegRight: RightLegYowie
+      LegLeft: LeftLegYowie
+      FootRight: RightFootYowie
+      FootLeft: LeftFootYowie
+    relationships:
+      Head: [ Brain ]
+      Torso: [ ArmLeft, ArmRight, Groin, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

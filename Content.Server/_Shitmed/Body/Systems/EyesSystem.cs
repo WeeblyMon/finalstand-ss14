@@ -6,10 +6,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Server.Body.Systems;
-using Content.Shared.Body.Organ;
-using Content.Shared.Body.Components;
 using Content.Shared._Shitmed.Body.Organ;
+using Content.Server.Body.Systems;
+using Content.Shared.Body;
+using Content.Shared.Body.Components;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared.Eye.Blinding.Components;
 using Content.Shared.Eye.Blinding.Systems;
@@ -17,11 +18,12 @@ using Robust.Shared.Containers;
 
 namespace Content.Server._Shitmed.Body.Systems
 {
-    public sealed class EyesSystem : EntitySystem
+    public sealed partial class EyesSystem : EntitySystem
     {
-        [Dependency] private readonly IEntityManager _entityManager = default!;
-        [Dependency] private readonly BlindableSystem _blindableSystem = default!;
-        [Dependency] private readonly BodySystem _bodySystem = default!;
+        [Dependency] private OrganLookupSystem _lookup = default!;
+        [Dependency] private IEntityManager _entityManager = default!;
+        [Dependency] private BlindableSystem _blindableSystem = default!;
+        [Dependency] private BodyAppearanceSystem _bodySystem = default!;
 
         public override void Initialize()
         {
@@ -41,7 +43,7 @@ namespace Content.Server._Shitmed.Body.Systems
             var hasOtherEyes = false;
 
             if (TryComp<BodyComponent>(body, out var bodyComp))
-                if (_bodySystem.TryGetBodyOrganEntityComps<EyesComponent>((body, bodyComp), out var eyes)
+                if (_lookup.TryGetBodyOrgans<EyesComponent>((body, bodyComp), out var eyes)
                     && eyes.Count > 1)
                     hasOtherEyes = true;
 
@@ -56,24 +58,26 @@ namespace Content.Server._Shitmed.Body.Systems
         {
             if (args.NewIntegrity <= 0
                 || !TryComp(uid, out OrganComponent? organ)
+                || !TryComp(uid, out OrganIntegrityComponent? integrity)
                 || !organ.Body.HasValue
                 || !TryComp(organ.Body.Value, out BlindableComponent? blindable)
-                || organ.OrganIntegrity <= 0)
+                || integrity.OrganIntegrity <= 0)
                 return;
 
-            _blindableSystem.SetEyeDamage((organ.Body.Value, blindable), (int) organ.OrganIntegrity);
+            _blindableSystem.SetEyeDamage((organ.Body.Value, blindable), (int) integrity.OrganIntegrity);
         }
 
         private void OnOrganEnabled(EntityUid uid, EyesComponent component, OrganEnabledEvent args)
         {
             if (TerminatingOrDeleted(uid)
             || args.Organ.Comp.Body is not { Valid: true } body
-            || !TryComp(body, out BlindableComponent? blindable))
+            || !TryComp(body, out BlindableComponent? blindable)
+            || !TryComp(uid, out OrganIntegrityComponent? integrity))
                 return;
 
             // We add the current eye damage since in any context, the organ being enabled means that it was
             // either removed or disabled, so the BlindableComponent must have some prior damage already.
-            var adjustment = (int)(args.Organ.Comp.IntegrityCap - args.Organ.Comp.OrganIntegrity);
+            var adjustment = (int)(integrity.IntegrityCap - integrity.OrganIntegrity);
             _blindableSystem.SetEyeDamage((body, blindable), adjustment);
         }
 

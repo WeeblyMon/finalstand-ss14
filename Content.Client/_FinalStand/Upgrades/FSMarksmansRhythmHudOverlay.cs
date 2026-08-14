@@ -6,10 +6,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Upgrades;
 
-public sealed class FSMarksmansRhythmHudOverlay : Overlay
+public sealed partial class FSMarksmansRhythmHudOverlay : Overlay
 {
-    [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     public int Stacks    = 0;
     public int MaxStacks = 20;

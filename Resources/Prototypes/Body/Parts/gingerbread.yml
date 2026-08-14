@@ -25,8 +25,7 @@
         sprite: _Shitmed/Mobs/Effects/burn_damage.rsi
   - type: Icon # Shitmed Change
     sprite: Mobs/Species/Gingerbread/parts.rsi
-  - type: BodyPart # Shitmed Change
-    species: Gingerbread
+  - type: Organ # Shitmed Change
   - type: Extractable
     juiceSolution:
       reagents:

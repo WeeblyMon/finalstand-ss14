@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using System.Linq;
 using Content.Server.Body.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Components;
@@ -13,7 +14,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
@@ -32,17 +33,18 @@ namespace Content.Server._Shitmed.Medical.Tourniquet;
 /// <summary>
 /// This handles tourniqueting people
 /// </summary>
-public sealed class TourniquetSystem : EntitySystem
+public sealed partial class TourniquetSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly PainSystem _pain = default!;
-    [Dependency] private readonly BloodstreamSystem _bloodstream = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private PainSystem _pain = default!;
+    [Dependency] private Content.Shared.Body.Systems.BloodstreamSystem _bloodstream = default!;
 
     private const string TourniquetContainerId = "Tourniquet";
 
@@ -67,14 +69,14 @@ public sealed class TourniquetSystem : EntitySystem
             return false;
 
 
-        var (partType, _) = _body.ConvertTargetBodyPart(targeting.Target);
-        if (tourniquet.BlockedBodyParts.Contains(partType))
+        var categories = OrganCategories.FromTarget(targeting.Target).ToList();
+        if (categories.Any(tourniquet.BlockedBodyParts.Contains))
         {
             _popup.PopupEntity(Loc.GetString("cant-put-tourniquet-here"), target, PopupType.MediumCaution);
             return false;
         }
 
-        _popup.PopupEntity(Loc.GetString("puts-on-a-tourniquet", ("user", user), ("part", partType)), target, PopupType.Medium);
+        _popup.PopupEntity(Loc.GetString("puts-on-a-tourniquet", ("user", user), ("part", categories.FirstOrDefault().Id)), target, PopupType.Medium);
         _audio.PlayPvs(tourniquet.TourniquetPutOnSound, target, AudioParams.Default.WithVariation(0.125f).WithVolume(1f));
 
         var doAfterEventArgs =
@@ -155,21 +157,23 @@ public sealed class TourniquetSystem : EntitySystem
             return;
         }
 
-        var (partType, symmetry) = _body.ConvertTargetBodyPart(targeting.Target);
+        var targetCategory = OrganCategories.FromTarget(targeting.Target).FirstOrDefault();
 
-        var targetPart = _body.GetBodyChildrenOfType(ent, partType, symmetry: symmetry).FirstOrNull();
+        var targetPart = _lookup.EnumerateOrgansOfCategory(ent, targetCategory)
+            .Cast<Entity<OrganComponent>?>()
+            .FirstOrDefault();
 
         if (targetPart == null)
         {
+            // The limb is gone, so tourniquet whatever it used to hang off instead.
             var tourniquetable = EntityUid.Invalid;
-            foreach (var bodyPart in _body.GetBodyChildren(ent, comp))
+            foreach (var bodyPart in _lookup.GetBodyOrgans((ent, comp)))
             {
-                if (!bodyPart.Component.Children
-                        .Any(bodyPartSlot =>
-                            bodyPartSlot.Value.Type == partType && bodyPartSlot.Value.Symmetry == symmetry))
+                if (!_lookup.EnumerateChildOrgans(bodyPart.Owner)
+                        .Any(child => child.Comp.Category == targetCategory))
                     continue;
 
-                tourniquetable = bodyPart.Id;
+                tourniquetable = bodyPart.Owner;
                 break;
             }
 
@@ -186,7 +190,7 @@ public sealed class TourniquetSystem : EntitySystem
                 if (!TryComp<TourniquetableComponent>(woundEnt, out var tourniquetableComp))
                     continue;
 
-                if (tourniquetableComp.SeveredSymmetry == symmetry && tourniquetableComp.SeveredPartType == partType)
+                if (tourniquetableComp.SeveredCategory == targetCategory)
                     tourniquetableWounds.Add((woundEnt.Owner, woundEnt.Comp, tourniquetableComp));
             }
 
@@ -215,16 +219,16 @@ public sealed class TourniquetSystem : EntitySystem
                 _popup.PopupEntity(Loc.GetString("cant-tourniquet"), ent, PopupType.Medium);
                 return;
             }
-            _pain.TryAddPainFeelsModifier(args.Used.Value, "Tourniquet", targetPart.Value.Id, -10f);
-            _bloodstream.TryAddBleedModifier(targetPart.Value.Id, "TourniquetPresent", 100, false, true);
+            _pain.TryAddPainFeelsModifier(args.Used.Value, "Tourniquet", targetPart.Value.Owner, -10f);
+            _bloodstream.TryAddBleedModifier(targetPart.Value.Owner, "TourniquetPresent", 100, false, true);
 
-            foreach (var woundable in _wound.GetAllWoundableChildren(targetPart.Value.Id))
+            foreach (var woundable in _wound.GetAllWoundableChildren(targetPart.Value.Owner))
             {
                 _pain.TryAddPainFeelsModifier(args.Used.Value, "Tourniquet", woundable, -10f);
                 _bloodstream.TryAddBleedModifier(woundable, "TourniquetPresent", 100, false, true, woundable);
             }
 
-            tourniquet.BodyPartTorniqueted = targetPart.Value.Id;
+            tourniquet.BodyPartTorniqueted = targetPart.Value.Owner;
         }
         args.Handled = true;
     }
@@ -244,8 +248,9 @@ public sealed class TourniquetSystem : EntitySystem
         if (tourniquetedBodyPart == null)
             return;
 
-        var bodyPartComp = Comp<BodyPartComponent>(tourniquetedBodyPart.Value);
-        if (tourniquet.BlockedBodyParts.Contains(bodyPartComp.PartType))
+        var bodyPartComp = Comp<OrganComponent>(tourniquetedBodyPart.Value);
+        if (bodyPartComp.Category is { } blockedCategory
+            && tourniquet.BlockedBodyParts.Contains(blockedCategory))
         {
             foreach (var woundEnt in _wound.GetWoundableWounds(tourniquetedBodyPart.Value))
             {

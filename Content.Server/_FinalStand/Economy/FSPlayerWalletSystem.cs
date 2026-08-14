@@ -13,11 +13,11 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Economy;
 
-public sealed class FSPlayerWalletSystem : EntitySystem
+public sealed partial class FSPlayerWalletSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly FSPlayerDataStore _store = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSPlayerDataStore _store = default!;
 
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
 

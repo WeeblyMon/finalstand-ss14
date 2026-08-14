@@ -17,11 +17,11 @@ namespace Content.Server._Shitmed.Objectives.Systems;
 [ByRefEvent]
 public readonly record struct ObjectiveAddedEvent(EntityUid Objective);
 
-public sealed class ForceHereticObjectiveSystem : EntitySystem
+public sealed partial class ForceHereticObjectiveSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly AntagSelectionSystem _antag = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private AntagSelectionSystem _antag = default!;
+    [Dependency] private IAdminLogManager _adminLogManager = default!;
 
     public override void Initialize()
     {

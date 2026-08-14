@@ -46,4 +46,16 @@ public sealed partial class BodyPartAppearanceComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public Color? EyeColor { get; set; }
+
+    /// <summary>
+    ///     Overrides the base sprite layer this organ resolves to, instead of deriving it from the body.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<HumanoidSpeciesSpriteLayer>? BaseLayerId;
+
+    /// <summary>
+    ///     The species this organ is sprited as, copied from the body it is attached to.
+    /// </summary>
+    [DataField, AutoNetworkedField]
+    public ProtoId<SpeciesPrototype>? Species;
 }

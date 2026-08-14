@@ -21,15 +21,15 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSFlamethrowerSystem : EntitySystem
+public sealed partial class FSFlamethrowerSystem : EntitySystem
 {
-    [Dependency] private readonly HTNSystem _htn = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PointLightSystem _pointLight = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly FSTargetAcquisitionSystem _targeting = default!;
+    [Dependency] private HTNSystem _htn = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private PointLightSystem _pointLight = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSTargetAcquisitionSystem _targeting = default!;
 
     private const string GlowProto = "FSFlamethrowerGlow";
 

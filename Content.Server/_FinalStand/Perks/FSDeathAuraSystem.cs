@@ -8,11 +8,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSDeathAuraSystem : EntitySystem
+public sealed partial class FSDeathAuraSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSPerkNotifySystem _notify = default!;
 
     private static readonly TimeSpan StackDecayTime = TimeSpan.FromSeconds(8);
 

@@ -1,4 +1,5 @@
-using Content.Shared.Body.Part;
+using Robust.Shared.Prototypes;
+using Content.Shared.Body;
 using Robust.Shared.Audio;
 
 namespace Content.Server._Shitmed.Medical.Tourniquet;
@@ -27,7 +28,7 @@ public sealed partial class TourniquetComponent : Component
     public float RemoveDelay = 7f;
 
     [DataField, ViewVariables(VVAccess.ReadOnly)]
-    public List<BodyPartType> BlockedBodyParts = new();
+    public List<ProtoId<OrganCategoryPrototype>> BlockedBodyParts = new();
 
     /// <summary>
     ///     Sound played on healing begin

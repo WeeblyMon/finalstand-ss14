@@ -1,4 +1,5 @@
 ﻿using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Alert;
@@ -21,25 +22,36 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 
 public sealed partial class TraumaSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly SharedStunSystem _stun = default!;
-    [Dependency] private readonly MovementModStatusSystem _movementMod = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly PainSystem _pain = default!;
-    [Dependency] private readonly ConsciousnessSystem _consciousness = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
-    [Dependency] private readonly StandingStateSystem _standing = default!;
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedVirtualItemSystem _virtual = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly AlertsSystem _alert = default!;
+    [Dependency] private OrganManipulationSystem _manipulation = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+
+    private readonly HashSet<EntityUid> PendingLegUpdates = new();
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        UpdateLegs();
+    }
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedStunSystem _stun = default!;
+    [Dependency] private MovementModStatusSystem _movementMod = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private PainSystem _pain = default!;
+    [Dependency] private ConsciousnessSystem _consciousness = default!;
+    [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private StandingStateSystem _standing = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private SharedVirtualItemSystem _virtual = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private AlertsSystem _alert = default!;
 
     private string _brokenBonesAlertId = "BrokenBones";
     public override void Initialize()

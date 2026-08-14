@@ -11,14 +11,14 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class ExplosiveShotUpgradeSystem : EntitySystem
+public sealed partial class ExplosiveShotUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly ExplosionSystem _explosion = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private ExplosionSystem _explosion = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private KnockbackUpgradeSystem _knockback = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

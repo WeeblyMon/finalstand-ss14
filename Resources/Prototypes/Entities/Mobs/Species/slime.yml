@@ -67,7 +67,7 @@
 
 - type: entity
   name: Urist McSlime
-  parent: BaseMobSpeciesOrganic
+  parent: [ BaseMobSpeciesOrganic, BodyOrgansSlime ]
   id: BaseMobSlimePerson
   abstract: true
   components:
@@ -81,7 +81,8 @@
     sprite: Mobs/Species/Slime/parts.rsi
     state: full
   - type: Body
-    prototype: Slime
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
   # they like eat it idk lol
   - type: Storage

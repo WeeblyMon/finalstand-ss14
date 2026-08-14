@@ -11,12 +11,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSAdrenalineSystem : EntitySystem
+public sealed partial class FSAdrenalineSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly StaminaSystem _stamina = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSPerkNotifySystem _notify = default!;
 
     private static readonly float[] Durations = [2.1f, 2.8f, 3.5f, 4.2f];
 

@@ -6,11 +6,11 @@ using Robust.Shared.Configuration;
 namespace Content.Server._FinalStand.GameTicking;
 
 // activates FinalStand preset and map on every round reset — no admin command needed
-public sealed class FSAutoStartSystem : EntitySystem
+public sealed partial class FSAutoStartSystem : EntitySystem
 {
-    [Dependency] private readonly GameTicker _ticker = default!;
-    [Dependency] private readonly IGameMapManager _mapManager = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private GameTicker _ticker = default!;
+    [Dependency] private IGameMapManager _mapManager = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     public override void Initialize()
     {

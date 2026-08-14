@@ -6,9 +6,9 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.NPC;
 
-public sealed class FSSlotRingSystem : EntitySystem
+public sealed partial class FSSlotRingSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly (int Count, float Radius)[] Rings =
     [

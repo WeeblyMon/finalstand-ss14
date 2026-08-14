@@ -4,10 +4,10 @@ using Content.Shared._FinalStand.Upgrades.Effects;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class PointBlankCritUpgradeSystem : EntitySystem
+public sealed partial class PointBlankCritUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly CritSystem _crit = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private CritSystem _crit = default!;
 
     private const float PointBlankRange = 2.0f;
 

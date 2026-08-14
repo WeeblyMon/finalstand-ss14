@@ -21,20 +21,20 @@ namespace Content.Server._FinalStand.Shop;
 
 public sealed partial class FSShopWeaponSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly FSPlayerUpgradesSystem _upgrades = default!;
-    [Dependency] private readonly FSItemStashSystem _stash = default!;
-    [Dependency] private readonly FSInventorySearchSystem _search = default!;
-    [Dependency] private readonly FSResearchSystem _fsResearch = default!;
-    [Dependency] private readonly FSResearchStaticGrantSystem _researchStaticGrant = default!;
-    [Dependency] private readonly FSScienceOnlySystem _science = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly MetaDataSystem _metaData = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPlayerUpgradesSystem _upgrades = default!;
+    [Dependency] private FSItemStashSystem _stash = default!;
+    [Dependency] private FSInventorySearchSystem _search = default!;
+    [Dependency] private FSResearchSystem _fsResearch = default!;
+    [Dependency] private FSResearchStaticGrantSystem _researchStaticGrant = default!;
+    [Dependency] private FSScienceOnlySystem _science = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private MetaDataSystem _metaData = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;

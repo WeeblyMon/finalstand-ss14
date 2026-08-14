@@ -9,11 +9,11 @@ using System.Numerics;
 namespace Content.Server._FinalStand.Deployables;
 
 // Domain logic (stock, Science-only gating) for the Null Field and Damage Beacon deployables - placement itself lives in FSPlacementSystem.
-public sealed class FSDeployableSystem : EntitySystem
+public sealed partial class FSDeployableSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly FSScienceOnlySystem _science = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private FSScienceOnlySystem _science = default!;
 
     public override void Initialize()
     {

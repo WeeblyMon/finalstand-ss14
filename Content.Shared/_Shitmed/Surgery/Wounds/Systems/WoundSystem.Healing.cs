@@ -5,6 +5,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Targeting;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Components;
@@ -15,7 +17,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
@@ -27,14 +29,14 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 /// </summary>
 public partial class WoundSystem
 {
-    [Dependency] private readonly PainSystem _pain = default!;
+    [Dependency] private PainSystem _pain = default!;
 
     // Updates pain state after wounds are healed and starts pain decay
     /// <param name="woundable">The entity on which to update the pain state</param>
     private void UpdatePainAfterHealing(EntityUid woundable)
     {
-        // Check if the entity has a BodyPartComponent and if it is part of a body.
-        if (!TryComp<BodyPartComponent>(woundable, out var bodyPart) || !bodyPart.Body.HasValue)
+        // Check if the entity has a OrganComponent and if it is part of a body.
+        if (!TryComp<OrganComponent>(woundable, out var bodyPart) || !bodyPart.Body.HasValue)
             return;
 
         // Get the body entity.
@@ -97,14 +99,12 @@ public partial class WoundSystem
         if (!Resolve(body, ref component) || healAmount <= 0)
             return false;
 
-        // Get the root part of the body
-        var rootPart = component.RootContainer.ContainedEntity;
-        if (!rootPart.HasValue)
+        if (!_lookup.TryGetRootOrgan((body, component), out _))
             return false;
 
         // Collect all woundables and their total bleeding amounts
         var bleedingWoundables = new List<(EntityUid Woundable, FixedPoint2 BleedAmount)>();
-        foreach (var (bodyPart, _) in _body.GetBodyChildren(body))
+        foreach (var (bodyPart, _) in _lookup.GetBodyOrgans(body))
         {
             FixedPoint2 totalBleedAmount = FixedPoint2.Zero;
             bool hasBleedingWounds = false;
@@ -328,17 +328,17 @@ public partial class WoundSystem
         var biggestDamage = FixedPoint2.Zero;
 
         woundable = null;
-        foreach (var bodyPart in _body.GetBodyChildren(body))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(body))
         {
-            if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp))
+            if (!TryComp<WoundableComponent>(bodyPart.Owner, out var woundableComp))
                 continue;
 
-            var woundableDamage = GetWoundableSeverityPoint(bodyPart.Id, woundableComp, damageGroup, healable);
+            var woundableDamage = GetWoundableSeverityPoint(bodyPart.Owner, woundableComp, damageGroup, healable);
             if (woundableDamage <= biggestDamage)
                 continue;
 
             biggestDamage = woundableDamage;
-            woundable = (bodyPart.Id, woundableComp);
+            woundable = (bodyPart.Owner, woundableComp);
         }
 
         return woundable != null;
@@ -440,10 +440,10 @@ public partial class WoundSystem
     {
         wounds = [];
 
-        if (!_body.TryGetRootPart(target, out var body))
+        if (!_lookup.TryGetRootOrgan(target, out var bodyRoot))
             return false;
 
-        wounds = GetAllWounds(body!.Value.Owner).ToList();
+        wounds = GetAllWounds(bodyRoot.Owner).ToList();
 
         return wounds.Any();
     }
@@ -458,12 +458,12 @@ public partial class WoundSystem
     {
         woundables = [];
 
-        foreach (var bodyPart in _body.GetBodyChildren(target))
+        foreach (var bodyPart in _lookup.GetBodyOrgans(target))
         {
-            if (!TryComp<WoundableComponent>(bodyPart.Id, out var woundableComp) || !woundableComp.Wounds.ContainedEntities.Any())
+            if (!TryComp<WoundableComponent>(bodyPart.Owner, out var woundableComp) || !woundableComp.Wounds.ContainedEntities.Any())
                 continue;
 
-            woundables.Add((bodyPart.Id, woundableComp));
+            woundables.Add((bodyPart.Owner, woundableComp));
         }
 
         return woundables.Any();
@@ -513,4 +513,40 @@ public partial class WoundSystem
     }
 
     #endregion
+
+    public bool TryHealBleedsOnBody(EntityUid body, float bleedStopAbility, TargetBodyPart? targeted = null)
+    {
+        var healedAny = false;
+
+        foreach (var organ in _lookup.GetBodyOrgans(body))
+        {
+            if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            if (targeted != null && _lookup.GetTarget(organ.Owner) is { } part && part != targeted)
+                continue;
+
+            if (TryHealBleedingWounds(organ.Owner, bleedStopAbility, out _, woundable))
+                healedAny = true;
+        }
+
+        return healedAny;
+    }
+
+    public bool IsAnyWoundableBleeding(EntityUid body)
+    {
+        foreach (var organ in _lookup.GetBodyOrgans(body))
+        {
+            if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            foreach (var wound in GetWoundableWounds(organ.Owner, woundable))
+            {
+                if (TryComp<BleedInflicterComponent>(wound, out var bleeds) && bleeds.IsBleeding)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 }

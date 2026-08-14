@@ -1,3 +1,4 @@
+using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.Database;
 using Content.Shared.Gibbing.Events;
@@ -19,7 +20,7 @@ namespace Content.Server.Destructible.Thresholds.Behaviors
         {
             if (system.EntityManager.TryGetComponent(owner, out BodyComponent? body))
             {
-                system.BodySystem.GibBody(owner, _recursive, body, gib: GibType, contents: GibContents);
+                system.BodyAppearanceSystem.GibBody(owner, _recursive, body, gib: GibType, contents: GibContents);
             }
             else
             {

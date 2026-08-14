@@ -8,52 +8,29 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Slime
-  name: "slime"
-  root: chest
-  slots:
-    head:
-      part: HeadSlime
-      connections:
-      - chest
-    chest:
-      part: ChestSlime
-      connections:
-      - right arm
-      - left arm
-      - groin
-      - head # Shitmed
-      organs:
-        lungs: OrganSlimeLungs
-    groin:
-      part: GroinSlime
-      organs:
-        core: SentientSlimeCore
-      connections:
-      - right leg
-      - left leg
-    right arm:
-      part: RightArmSlime
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmSlime
-      connections:
-      - left hand
-    right hand:
-      part: RightHandSlime
-    left hand:
-      part: LeftHandSlime
-    right leg:
-      part: RightLegSlime
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegSlime
-      connections:
-      - left foot
-    right foot:
-      part: RightFootSlime
-    left foot:
-      part: LeftFootSlime
+- type: entity
+  abstract: true
+  id: BodyOrgansSlime
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadSlime
+      Torso: ChestSlime
+      Lungs: OrganSlimeLungs
+      Groin: GroinSlime
+      Core: SentientSlimeCore
+      ArmRight: RightArmSlime
+      ArmLeft: LeftArmSlime
+      HandRight: RightHandSlime
+      HandLeft: LeftHandSlime
+      LegRight: RightLegSlime
+      LegLeft: LeftLegSlime
+      FootRight: RightFootSlime
+      FootLeft: LeftFootSlime
+    relationships:
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Lungs ]
+      Groin: [ Core, LegLeft, LegRight ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

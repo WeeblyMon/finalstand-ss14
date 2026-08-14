@@ -2,9 +2,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Armor;
 
-public sealed class FSArmorShopIndicatorSystem : EntitySystem
+public sealed partial class FSArmorShopIndicatorSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSArmorShopIndicatorOverlay? _overlay;
 

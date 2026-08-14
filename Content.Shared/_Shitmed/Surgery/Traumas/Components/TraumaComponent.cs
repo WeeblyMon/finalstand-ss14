@@ -1,7 +1,8 @@
 ﻿using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 
@@ -28,10 +29,10 @@ public sealed partial class TraumaComponent : Component
     public EntityUid? TraumaTarget;
 
     /// <summary>
-    /// SHITCODE ALERT!!!!! This PURELY EXISTS FOR DELIMB TRAUMAS. I hate myself.
+    /// The category of the organ that was delimbed. Only set for dismemberment traumas.
     /// </summary>
     [ViewVariables(VVAccess.ReadOnly)]
-    public (BodyPartType, BodyPartSymmetry)? TargetType;
+    public ProtoId<OrganCategoryPrototype>? TargetCategory;
 
     /// <summary>
     /// The severity the wound had when trauma got induced; Gets updated to the new one if the trauma gets worsened by the same wound
@@ -52,7 +53,7 @@ public sealed class TraumaComponentState : ComponentState
 {
     public NetEntity? HoldingWoundable;
     public NetEntity? TraumaTarget;
-    public (BodyPartType, BodyPartSymmetry)? TargetType;
+    public ProtoId<OrganCategoryPrototype>? TargetCategory;
     public FixedPoint2 TraumaSeverity;
     public TraumaType TraumaType;
 }

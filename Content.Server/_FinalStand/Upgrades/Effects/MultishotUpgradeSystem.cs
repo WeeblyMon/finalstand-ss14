@@ -5,10 +5,10 @@ using Robust.Shared.Random;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // chance per shot to fire 1-3 extra pellets fanned within the gun's spread cone (via PelletCountUpgradeSystem)
-public sealed class MultishotUpgradeSystem : EntitySystem
+public sealed partial class MultishotUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly PelletCountUpgradeSystem _pelletCount = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private PelletCountUpgradeSystem _pelletCount = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     private const float ExtraRollChance = 0.33f;
     private const int MaxExtra = 3;

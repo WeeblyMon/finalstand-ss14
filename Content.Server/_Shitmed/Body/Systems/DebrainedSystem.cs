@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Server._Shitmed.DelayedDeath;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared.Body.Systems;
@@ -18,11 +19,12 @@ namespace Content.Server._Shitmed.Body.Systems;
 ///     This system handles behavior on entities when they lose their head or their brains are removed.
 ///     MindComponent fuckery should still be mainly handled on BrainSystem as usual.
 /// </summary>
-public sealed class DebrainedSystem : EntitySystem
+public sealed partial class DebrainedSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
-    [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly StandingStateSystem _standingSystem = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _bodySystem = default!;
+    [Dependency] private PopupSystem _popupSystem = default!;
+    [Dependency] private StandingStateSystem _standingSystem = default!;
     public override void Initialize()
     {
         base.Initialize();
@@ -50,7 +52,7 @@ public sealed class DebrainedSystem : EntitySystem
 
         RemComp<DelayedDeathComponent>(uid);
         RemComp<StunnedComponent>(uid);
-        if (_bodySystem.TryGetBodyOrganEntityComps<HeartComponent>(uid, out var _))
+        if (_lookup.TryGetBodyOrgans<HeartComponent>(uid, out var _))
             RemComp<DelayedDeathComponent>(uid);
     }
 

@@ -8,58 +8,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  id: Vox
-  name: "vox"
-  root: chest
-  slots:
-    head:
-      part: HeadVox
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestVox
-      connections:
-      - right arm
-      - left arm
-      - groin
-      - head # Shitmed
-      organs:
-        heart: OrganVoxHeart
-        lungs: OrganVoxLungs
-    groin:
-      part: GroinVox
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganVoxStomach
-        liver: OrganHumanLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmVox
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmVox
-      connections:
-      - left hand
-    right hand:
-      part: RightHandVox
-    left hand:
-      part: LeftHandVox
-    right leg:
-      part: RightLegVox
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegVox
-      connections:
-      - left foot
-    right foot:
-      part: RightFootVox
-    left foot:
-      part: LeftFootVox
+- type: entity
+  abstract: true
+  id: BodyOrgansVox
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadVox
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestVox
+      Heart: OrganVoxHeart
+      Lungs: OrganVoxLungs
+      Groin: GroinVox
+      Stomach: OrganVoxStomach
+      Liver: OrganHumanLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmVox
+      ArmLeft: LeftArmVox
+      HandRight: RightHandVox
+      HandLeft: LeftHandVox
+      LegRight: RightLegVox
+      LegLeft: LeftLegVox
+      FootRight: RightFootVox
+      FootLeft: LeftFootVox
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

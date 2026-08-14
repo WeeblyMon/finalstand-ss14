@@ -8,13 +8,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Body;
 using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -42,30 +43,32 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 
 public sealed partial class WoundSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IComponentFactory _factory = default!;
+    [Dependency] private OrganManipulationSystem _manipulation = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IComponentFactory _factory = default!;
 
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
-    [Dependency] private readonly INetManager _net = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     // I'm the one.... who throws........
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly TraumaSystem _trauma = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private TraumaSystem _trauma = default!;
     private float _medicalHealingTickrate = 0.5f;
     private TimeSpan _minimumTimeBeforeHeal = TimeSpan.FromSeconds(2f);
 
@@ -119,20 +122,20 @@ public sealed partial class WoundSystem : EntitySystem
             return;
 
         // If this still causes lag, we go with the nuclear option of also checking for ConsciousnessComponent :niceportrait:
-        using var query = EntityQueryEnumerator<BodyComponent, DamageableComponent>();
-        while (query.MoveNext(out var ent, out var body, out var damageable))
+        using var query = EntityQueryEnumerator<BodyWoundHealingComponent, DamageableComponent>();
+        while (query.MoveNext(out var ent, out var healing, out var damageable))
         {
             if (TerminatingOrDeleted(ent)
                 || Paused(ent)
-                || body.BodyType == BodyType.Simple
+                || healing.BodyType == BodyType.Simple
                 || _timing.CurTime - damageable.LastModifiedTime < _minimumTimeBeforeHeal
-                || _timing.CurTime < body.HealAt
+                || _timing.CurTime < healing.HealAt
                 || _mobState.IsIncapacitated(ent)
-                || !_body.TryGetRootPart(ent, out var rootPart, body: body))
+                || !_lookup.TryGetRootOrgan(ent, out var rootPart))
                 continue;
 
-            body.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
-            foreach (var woundable in GetAllWoundableChildren(rootPart!.Value))
+            healing.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
+            foreach (var woundable in GetAllWoundableChildren(rootPart.Owner))
                 if (woundable.Comp.CanHealDamage || woundable.Comp.CanHealBleeds)
                     _woundJobQueue.EnqueueJob(new WoundJob(this, woundable, ent, WoundJobTime));
         }
@@ -176,7 +179,7 @@ public sealed partial class WoundSystem : EntitySystem
         _damageable.TryChangeDamage(bodyEnt,
             damageSpecifier,
             ignoreResistances: false,
-            targetPart: _body.GetTargetBodyPart(woundable));
+            targetPart: _lookup.GetTarget(woundable.Owner));
     }
 
     private void OnWoundComponentGet(EntityUid uid, WoundComponent comp, ref ComponentGetState args)
@@ -239,7 +242,7 @@ public sealed partial class WoundSystem : EntitySystem
                     var ev1 = new WoundAddedEvent(component, parentWoundable, woundableRoot);
                     RaiseLocalEvent(holdingWoundable, ref ev1);
 
-                    var bodyPart = Comp<BodyPartComponent>(holdingWoundable);
+                    var bodyPart = Comp<OrganComponent>(holdingWoundable);
                     if (bodyPart.Body.HasValue)
                     {
                         var ev2 = new WoundAddedOnBodyEvent((uid, component), parentWoundable, woundableRoot);
@@ -376,22 +379,20 @@ public sealed partial class WoundSystem : EntitySystem
             RaiseLocalEvent(uid, ref ev);
 
             var bodySeverity = FixedPoint2.Zero;
-            if (TryComp<BodyPartComponent>(uid, out var bodyPart) && bodyPart.Body.HasValue)
+            if (TryComp<OrganComponent>(uid, out var bodyPart) && bodyPart.Body.HasValue)
             {
-                if (!TryComp<BodyComponent>(bodyPart.Body.Value, out var bodyComp))
+                if (!_lookup.TryGetRootOrgan(bodyPart.Body.Value, out var rootPart))
                     return;
 
-                var rootPart = bodyComp.RootContainer?.ContainedEntity;
-                if (rootPart.HasValue)
                 {
-                    foreach (var woundable in GetAllWoundableChildren(rootPart.Value))
+                    foreach (var woundable in GetAllWoundableChildren(rootPart.Owner))
                     {
                         if (!MetaData(woundable).Initialized)
                             continue;
 
                         // The first check is for the root (chest) part entities, the other one is for attached entities
                         if (woundable.Comp.RootWoundable == woundable.Owner
-                            && woundable.Owner != rootPart)
+                            && woundable.Owner != rootPart.Owner)
                             continue;
 
                         bodySeverity += GetWoundableIntegrityDamage(woundable, woundable);

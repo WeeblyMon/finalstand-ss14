@@ -16,11 +16,11 @@ namespace Content.Shared._FinalStand.Weapons;
 
 // Hitscan raycast that skips non-mob entities (walls, windows, tables) and friendly players,
 // letting X-Ray shots punch through solid matter to reach the first zombie in line.
-public sealed class FSXrayRaycastSystem : EntitySystem
+public sealed partial class FSXrayRaycastSystem : EntitySystem
 {
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly FSHitscanCoordSystem _hitscanCoords = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<MobStateComponent> _mobQuery;

@@ -9,7 +9,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared._Shitmed.BodyEffects.Subsystems;
 using Robust.Shared.Map;
@@ -18,24 +19,25 @@ using System.Numerics;
 
 namespace Content.Server._Shitmed.BodyEffects.Subsystems;
 
-public sealed class GenerateChildPartSystem : EntitySystem
+public sealed partial class GenerateChildPartSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _bodySystem = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private OrganManipulationSystem _manipulation = default!;
+    [Dependency] private SharedBodyAppearanceSystem _bodySystem = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
     public override void Initialize()
     {
         base.Initialize();
 
-        SubscribeLocalEvent<GenerateChildPartComponent, BodyPartAddedEvent>(OnPartAttached);
-        SubscribeLocalEvent<GenerateChildPartComponent, BodyPartRemovedEvent>(OnPartDetached);
+        SubscribeLocalEvent<GenerateChildPartComponent, OrganGotInsertedEvent>(OnPartAttached);
+        SubscribeLocalEvent<GenerateChildPartComponent, OrganGotRemovedEvent>(OnPartDetached);
     }
 
-    private void OnPartAttached(EntityUid uid, GenerateChildPartComponent component, ref BodyPartAddedEvent args)
+    private void OnPartAttached(EntityUid uid, GenerateChildPartComponent component, ref OrganGotInsertedEvent args)
     {
         CreatePart(uid, component);
     }
 
-    private void OnPartDetached(EntityUid uid, GenerateChildPartComponent component, ref BodyPartRemovedEvent args)
+    private void OnPartDetached(EntityUid uid, GenerateChildPartComponent component, ref OrganGotRemovedEvent args)
     {
         if (component.ChildPart == null || TerminatingOrDeleted(component.ChildPart))
             return;
@@ -51,19 +53,17 @@ public sealed class GenerateChildPartSystem : EntitySystem
 
     private void CreatePart(EntityUid uid, GenerateChildPartComponent component)
     {
-        if (!TryComp(uid, out BodyPartComponent? partComp)
+        if (!TryComp(uid, out OrganComponent? partComp)
             || partComp.Body is null
             || component.Active)
             return;
 
         var childPart = Spawn(component.Id, new EntityCoordinates(partComp.Body.Value, Vector2.Zero));
 
-        if (!TryComp(childPart, out BodyPartComponent? childPartComp))
+        if (!TryComp(childPart, out OrganComponent? childPartComp))
             return;
 
-        var slotName = childPartComp.SlotId;
-        _bodySystem.TryCreatePartSlot(uid, slotName, childPartComp.PartType, childPartComp.Symmetry, out var _);
-        _bodySystem.AttachPart(uid, slotName, childPart, null, childPartComp);
+        _manipulation.InsertOrgan(partComp.Body.Value, (childPart, childPartComp), uid);
         component.ChildPart = childPart;
         component.Active = true;
         Dirty(childPart, childPartComp);

@@ -1,55 +1,32 @@
-- type: body
-  id: Scurret
-  name: "Scurret"
-  root: chest
-  slots:
-    head:
-      part: HeadScurret
-      connections:
-      - chest
-      organs:
-        brain: OrganAnimalBrain
-        eyes: OrganAnimalEyes
-    chest:
-      part: ChestScurret
-      connections:
-      - groin
-      - right arm
-      - left arm
-      - head
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganAnimalLungs
-    groin:
-      part: GroinScurret
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganAnimalStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganAnimalKidneys
-    right arm:
-      part: RightArmScurret
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmScurret
-      connections:
-      - left hand
-    right hand:
-      part: RightHandScurret
-    left hand:
-      part: LeftHandScurret
-    right leg:
-      part: RightLegScurret
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegScurret
-      connections:
-      - left foot
-    right foot:
-      part: RightFootScurret
-    left foot:
-      part: LeftFootScurret
+- type: entity
+  abstract: true
+  id: BodyOrgansScurret
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadScurret
+      Brain: OrganAnimalBrain
+      Eyes: OrganAnimalEyes
+      Torso: ChestScurret
+      Heart: OrganAnimalHeart
+      Lungs: OrganAnimalLungs
+      Groin: GroinScurret
+      Stomach: OrganAnimalStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganAnimalKidneys
+      ArmRight: RightArmScurret
+      ArmLeft: LeftArmScurret
+      HandRight: RightHandScurret
+      HandLeft: LeftHandScurret
+      LegRight: RightLegScurret
+      LegLeft: LeftLegScurret
+      FootRight: RightFootScurret
+      FootLeft: LeftFootScurret
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

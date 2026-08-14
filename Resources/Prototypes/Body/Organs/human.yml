@@ -131,6 +131,10 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
+  - type: OrganSurgeryTool
+  - type: GibbableOrgan
   # Goobstation edit start
   - type: EmitSoundOnPickup
     sound:
@@ -145,6 +149,7 @@
   - type: Sprite
     sprite: Mobs/Species/Human/organs.rsi
   - type: Organ
+  - type: OrganIntegrity
     intCap: 15
     integrity: 15
     integrityThresholds:
@@ -179,6 +184,10 @@
   parent: BaseHumanOrganUnGibbable
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
+  - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Gibbable
   - type: PhysicalComposition #Goobstation - Recycle update
     materialComposition:
@@ -201,7 +210,6 @@
   - type: Sprite
     state: brain
   - type: Organ
-    slotId: brain # Shitmed Change
   - type: Input
     context: "ghost"
   - type: Brain

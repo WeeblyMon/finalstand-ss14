@@ -27,9 +27,14 @@
   parent: BaseItem
   abstract: true
   components:
+  - type: ParentOrgan
+  - type: ChildOrgan
+  - type: OrganSurgeryTool
+  - type: GibbableOrgan
   - type: Sprite
     sprite: Mobs/Species/Arachnid/organs.rsi
   - type: Organ
+  - type: OrganIntegrity
     intCap: 28
     integrity: 28
     integrityThresholds:

@@ -20,16 +20,16 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSTeslaZombieSystem : EntitySystem
+public sealed partial class FSTeslaZombieSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly ExamineSystemShared _examine = default!;
-    [Dependency] private readonly HTNSystem _htn = default!;
-    [Dependency] private readonly PointLightSystem _pointLight = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly FSTargetAcquisitionSystem _targeting = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private ExamineSystemShared _examine = default!;
+    [Dependency] private HTNSystem _htn = default!;
+    [Dependency] private PointLightSystem _pointLight = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSTargetAcquisitionSystem _targeting = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     private readonly ObjectPool<HashSet<Entity<FSFriendlyFireComponent>>> _chainSetPool =
         new DefaultObjectPool<HashSet<Entity<FSFriendlyFireComponent>>>(

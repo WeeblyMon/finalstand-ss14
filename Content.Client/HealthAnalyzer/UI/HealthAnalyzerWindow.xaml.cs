@@ -26,7 +26,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.Reagent;
 using System.Globalization;
@@ -239,12 +239,10 @@ namespace Content.Client.HealthAnalyzer.UI
                 foreach (var trauma in traumas)
                 {
                     string locString;
-                    if (trauma.TargetType.HasValue)
+                    if (trauma.TargetCategory.HasValue)
                         locString = Loc.GetString($"condition-body-trauma-{trauma.TraumaType}",
-                            ("targetSymmetry", trauma.TargetType.Value.Item2 != BodyPartSymmetry.None
-                                ? $"{trauma.TargetType.Value.Item2.ToString().ToLower()} "
-                                : ""),
-                            ("targetType", trauma.TargetType.Value.Item1.ToString().ToLower()));
+                            ("targetSymmetry", ""),
+                            ("targetType", trauma.TargetCategory.Value.Id.ToLower()));
                     else
                         locString = trauma.SeverityString != null
                             ? Loc.GetString($"condition-body-trauma-{trauma.TraumaType}-{trauma.SeverityString}", ("woundable", woundableName))

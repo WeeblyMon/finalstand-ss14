@@ -11,12 +11,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSFireZoneSystem : EntitySystem
+public sealed partial class FSFireZoneSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly FlammableSystem _flammable = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     // Elapsed time is accumulated and passed through, so throttling does not change how fast
     // a zone builds fire stacks.
@@ -60,9 +60,9 @@ public sealed class FSFireZoneSystem : EntitySystem
     }
 }
 
-public sealed class FSFireZoneOnTriggerSystem : XOnTriggerSystem<FSFireZoneOnTriggerComponent>
+public sealed partial class FSFireZoneOnTriggerSystem : XOnTriggerSystem<FSFireZoneOnTriggerComponent>
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     protected override void OnTrigger(Entity<FSFireZoneOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {

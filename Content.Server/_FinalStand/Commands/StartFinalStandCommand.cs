@@ -9,11 +9,11 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Round)]
-public sealed class StartFinalStandCommand : LocalizedEntityCommands
+public sealed partial class StartFinalStandCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameMapManager _mapManager = default!;
-    [Dependency] private readonly GameTicker _ticker = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameMapManager _mapManager = default!;
+    [Dependency] private GameTicker _ticker = default!;
 
     public override string Command => "startfinalstand";
 

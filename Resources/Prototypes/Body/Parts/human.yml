@@ -37,8 +37,7 @@
   components:
   - type: Icon # Shitmed Change
     sprite: Mobs/Species/Human/parts.rsi
-  - type: BodyPart # Shitmed Change
-    species: Human
+  - type: Organ # Shitmed Change
   - type: Extractable
     juiceSolution:
       reagents:

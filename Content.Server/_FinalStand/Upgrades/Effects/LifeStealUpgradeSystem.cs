@@ -6,9 +6,9 @@ using Content.Shared.FixedPoint;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class LifeStealUpgradeSystem : EntitySystem
+public sealed partial class LifeStealUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
 
     public override void Initialize()
     {

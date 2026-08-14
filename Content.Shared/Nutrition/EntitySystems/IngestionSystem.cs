@@ -1,4 +1,5 @@
 ﻿using Content.Shared.Administration.Logs;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -44,24 +45,25 @@ namespace Content.Shared.Nutrition.EntitySystems;
 /// </summary>
 public sealed partial class IngestionSystem : EntitySystem
 {
-    [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly SharedForensicsSystem _forensics = default!;
-    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
-    [Dependency] private readonly FlavorProfileSystem _flavorProfile = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private SharedForensicsSystem _forensics = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
+    [Dependency] private FlavorProfileSystem _flavorProfile = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     // Body Component Dependencies
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly ReactiveSystem _reaction = default!;
-    [Dependency] private readonly StomachSystem _stomach = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private ReactiveSystem _reaction = default!;
+    [Dependency] private StomachSystem _stomach = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -252,7 +254,7 @@ public sealed partial class IngestionSystem : EntitySystem
         var food = args.Ingested;
         var forceFed = args.User != entity.Owner;
 
-        if (!_body.TryGetOrgansWithComponent<StomachComponent>(entity!, out var stomachs))
+        if (!_lookup.TryGetBodyOrgans<StomachComponent>(entity!, out var stomachs))
             return;
 
         // Can we digest the specific item we're trying to eat?
@@ -317,7 +319,7 @@ public sealed partial class IngestionSystem : EntitySystem
         if (!CanConsume(args.User, entity, food, out var solution, out _))
             return;
 
-        if (!_body.TryGetOrgansWithComponent<StomachComponent>(entity!, out var stomachs))
+        if (!_lookup.TryGetBodyOrgans<StomachComponent>(entity!, out var stomachs))
             return;
 
         var forceFed = args.User != entity.Owner;

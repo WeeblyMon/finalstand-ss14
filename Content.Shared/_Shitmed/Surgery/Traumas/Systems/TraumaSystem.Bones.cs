@@ -4,13 +4,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.DoAfter;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Weapons.Melee.Events;
 using Content.Shared._Shitmed.Weapons.Ranged.Events;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Components;
 using Content.Shared.Popups;
@@ -31,6 +32,38 @@ public partial class TraumaSystem
         SubscribeLocalEvent<BoneComponent, GetDoAfterDelayMultiplierEvent>(OnGetDoAfterDelayMultiplier);
         SubscribeLocalEvent<BoneComponent, AttemptHandsMeleeEvent>(OnAttemptHandsMelee);
         SubscribeLocalEvent<BoneComponent, AttemptHandsShootEvent>(OnAttemptHandsShoot);
+        SubscribeLocalEvent<MovementBodyPartComponent, OrganGotInsertedEvent>(OnLegInserted);
+        SubscribeLocalEvent<MovementBodyPartComponent, OrganGotRemovedEvent>(OnLegRemoved);
+    }
+
+    private void OnLegInserted(Entity<MovementBodyPartComponent> leg, ref OrganGotInsertedEvent args)
+    {
+        QueueLegUpdate(args.Target);
+    }
+
+    private void OnLegRemoved(Entity<MovementBodyPartComponent> leg, ref OrganGotRemovedEvent args)
+    {
+        QueueLegUpdate(args.Target);
+    }
+
+    private void QueueLegUpdate(EntityUid body)
+    {
+        if (_net.IsServer)
+            PendingLegUpdates.Add(body);
+    }
+
+    private void UpdateLegs()
+    {
+        if (PendingLegUpdates.Count == 0)
+            return;
+
+        foreach (var body in PendingLegUpdates)
+        {
+            if (!TerminatingOrDeleted(body) && Exists(body))
+                ProcessLegsState(body);
+        }
+
+        PendingLegUpdates.Clear();
     }
 
     #region Event Handling
@@ -41,14 +74,12 @@ public partial class TraumaSystem
             || args.NewSeverity < args.OldSeverity)
             return;
 
-        var bodyComp = Comp<BodyPartComponent>(bone.Comp.BoneWoundable.Value);
+        var bodyComp = Comp<OrganComponent>(bone.Comp.BoneWoundable.Value);
 
         if (!bodyComp.Body.HasValue)
             return;
 
-        var part = bodyComp.ParentSlot is null
-            ? bodyComp.PartType.ToString().ToLower()
-            : bodyComp.ParentSlot.Value.Id;
+        var part = bodyComp.Category?.Id.ToLower() ?? "body";
 
         _popup.PopupClient(Loc.GetString($"popup-trauma-BoneDamage-{args.NewSeverity.ToString()}", ("part", part)),
             bodyComp.Body.Value,
@@ -70,13 +101,13 @@ public partial class TraumaSystem
         if (bone.Comp.BoneWoundable == null)
             return;
 
-        var bodyComp = Comp<BodyPartComponent>(bone.Comp.BoneWoundable.Value);
+        var bodyComp = Comp<OrganComponent>(bone.Comp.BoneWoundable.Value);
         if (!bodyComp.Body.HasValue)
             return;
 
         if (args.NewIntegrity == bone.Comp.IntegrityCap)
         {
-            if (bodyComp.PartType == BodyPartType.Hand)
+            if (bodyComp.Category == OrganCategories.HandLeft || bodyComp.Category == OrganCategories.HandRight)
                 _virtual.DeleteInHandsMatching(bodyComp.Body.Value, bone);
 
             if (TryGetWoundableTrauma(bone.Comp.BoneWoundable.Value, out var traumas, TraumaType.BoneDamage))
@@ -84,13 +115,12 @@ public partial class TraumaSystem
                     RemoveTrauma(trauma);
         }
 
-        switch (bodyComp.PartType)
+        if (bodyComp.Category == OrganCategories.LegLeft
+            || bodyComp.Category == OrganCategories.LegRight
+            || bodyComp.Category == OrganCategories.FootLeft
+            || bodyComp.Category == OrganCategories.FootRight)
         {
-            case BodyPartType.Leg:
-            case BodyPartType.Foot:
-                ProcessLegsState(bodyComp.Body.Value);
-
-                break;
+            ProcessLegsState(bodyComp.Body.Value);
         }
     }
 
@@ -117,7 +147,7 @@ public partial class TraumaSystem
         if (odds == 0f
             || args.Handled
             || bone.Comp.BoneWoundable is null
-            || !TryComp(bone.Comp.BoneWoundable.Value, out BodyPartComponent? bodyPart)
+            || !TryComp(bone.Comp.BoneWoundable.Value, out OrganComponent? bodyPart)
             || bodyPart.Body is not { } body)
             return;
 
@@ -140,7 +170,7 @@ public partial class TraumaSystem
         if (odds == 0f
             || args.Handled
             || bone.Comp.BoneWoundable is null
-            || !TryComp(bone.Comp.BoneWoundable.Value, out BodyPartComponent? bodyPart)
+            || !TryComp(bone.Comp.BoneWoundable.Value, out OrganComponent? bodyPart)
             || bodyPart.Body is not { } body)
             return;
 
@@ -219,10 +249,9 @@ public partial class TraumaSystem
 
         bool hasBrokenBones = false;
 
-        var rootPart = bodyComp.RootContainer.ContainedEntity;
-        if (rootPart.HasValue)
+        if (_lookup.TryGetRootOrgan((body, bodyComp), out var rootPart))
         {
-            foreach (var (_, woundable) in _wound.GetAllWoundableChildren(rootPart.Value))
+            foreach (var (_, woundable) in _wound.GetAllWoundableChildren(rootPart.Owner))
             {
                 if (woundable.Bone == null)
                     continue;
@@ -278,7 +307,7 @@ public partial class TraumaSystem
         Dirty(bone, boneComp);
 
         if (boneComp.BoneWoundable != null
-            && TryComp<BodyPartComponent>(boneComp.BoneWoundable.Value, out var bodyPartComp)
+            && TryComp<OrganComponent>(boneComp.BoneWoundable.Value, out var bodyPartComp)
             && bodyPartComp.Body is { } body)
             UpdateBodyBoneAlert(body);
     }
@@ -294,7 +323,7 @@ public partial class TraumaSystem
         var sprintSpeed = 0f;
         var acceleration = 0f;
 
-        foreach (var legEntity in bodyComp.LegEntities)
+        foreach (var legEntity in _lookup.GetLegOrgans(body).Select(o => o.Owner).ToList())
         {
             if (!TryComp<MovementBodyPartComponent>(legEntity, out var movement))
                 continue;
@@ -303,19 +332,17 @@ public partial class TraumaSystem
             var partSprintSpeed = movement.SprintSpeed;
             var partAcceleration = movement.Acceleration;
 
-            if (!TryComp<WoundableComponent>(legEntity, out var legWoundable))
-                continue;
-
-            if (!TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.First(), out var boneComp))
-                continue;
+            if (!TryComp<WoundableComponent>(legEntity, out var legWoundable)
+                || !TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.FirstOrNull(), out var boneComp))
+                return;
 
             // Get the foot penalty
             var penalty = 1f;
-            var footEnt =
-                _body.GetBodyChildrenOfType(body,
-                        BodyPartType.Foot,
-                        symmetry: Comp<BodyPartComponent>(legEntity).Symmetry)
-                    .FirstOrNull();
+            var footEnt = _lookup.EnumerateChildOrgans(legEntity)
+                .Where(organ => organ.Comp.Category == OrganCategories.FootLeft
+                                || organ.Comp.Category == OrganCategories.FootRight)
+                .Cast<Entity<OrganComponent>?>()
+                .FirstOrDefault();
 
             if (footEnt != null)
             {
@@ -363,10 +390,10 @@ public partial class TraumaSystem
             }
         }
 
-        rawWalkSpeed /= bodyComp.RequiredLegs;
-        walkSpeed /= bodyComp.RequiredLegs;
-        sprintSpeed /= bodyComp.RequiredLegs;
-        acceleration /= bodyComp.RequiredLegs;
+        rawWalkSpeed /= _lookup.GetRequiredLegs(body);
+        walkSpeed /= _lookup.GetRequiredLegs(body);
+        sprintSpeed /= _lookup.GetRequiredLegs(body);
+        acceleration /= _lookup.GetRequiredLegs(body);
 
         _movementSpeed.ChangeBaseSpeed(body, walkSpeed, sprintSpeed, acceleration);
 

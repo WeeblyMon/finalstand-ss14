@@ -16,7 +16,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Content.Shared.Body.Part;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared.Body;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared.Humanoid
 {
@@ -106,73 +108,28 @@ namespace Content.Shared.Humanoid
             }
         }
 
-        public static HumanoidVisualLayers? ToHumanoidLayers(this BodyPartComponent part)
+        private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, HumanoidVisualLayers> CategoryLayers = new()
         {
-            switch (part.PartType)
-            {
-                case BodyPartType.Other:
-                    break;
-                case BodyPartType.Chest:
-                    return HumanoidVisualLayers.Chest;
-                case BodyPartType.Groin:
-                    return HumanoidVisualLayers.Groin;
-                case BodyPartType.Tail:
-                    return HumanoidVisualLayers.Tail;
-                case BodyPartType.Head:
-                    // use the Sublayers method to hide the rest of the parts,
-                    // if that's what you're looking for
-                    return HumanoidVisualLayers.Head;
-                case BodyPartType.Arm:
-                    switch (part.Symmetry)
-                    {
-                        case BodyPartSymmetry.None:
-                            break;
-                        case BodyPartSymmetry.Left:
-                            return HumanoidVisualLayers.LArm;
-                        case BodyPartSymmetry.Right:
-                            return HumanoidVisualLayers.RArm;
-                    }
+            // Head uses the Sublayers method to hide the rest of the face parts.
+            [OrganCategories.Torso] = HumanoidVisualLayers.Chest,
+            [OrganCategories.Groin] = HumanoidVisualLayers.Groin,
+            [OrganCategories.Tail] = HumanoidVisualLayers.Tail,
+            [OrganCategories.Head] = HumanoidVisualLayers.Head,
+            [OrganCategories.ArmLeft] = HumanoidVisualLayers.LArm,
+            [OrganCategories.ArmRight] = HumanoidVisualLayers.RArm,
+            [OrganCategories.HandLeft] = HumanoidVisualLayers.LHand,
+            [OrganCategories.HandRight] = HumanoidVisualLayers.RHand,
+            [OrganCategories.LegLeft] = HumanoidVisualLayers.LLeg,
+            [OrganCategories.LegRight] = HumanoidVisualLayers.RLeg,
+            [OrganCategories.FootLeft] = HumanoidVisualLayers.LFoot,
+            [OrganCategories.FootRight] = HumanoidVisualLayers.RFoot,
+        };
 
-                    break;
-                case BodyPartType.Hand:
-                    switch (part.Symmetry)
-                    {
-                        case BodyPartSymmetry.None:
-                            break;
-                        case BodyPartSymmetry.Left:
-                            return HumanoidVisualLayers.LHand;
-                        case BodyPartSymmetry.Right:
-                            return HumanoidVisualLayers.RHand;
-                    }
-
-                    break;
-                case BodyPartType.Leg:
-                    switch (part.Symmetry)
-                    {
-                        case BodyPartSymmetry.None:
-                            break;
-                        case BodyPartSymmetry.Left:
-                            return HumanoidVisualLayers.LLeg;
-                        case BodyPartSymmetry.Right:
-                            return HumanoidVisualLayers.RLeg;
-                    }
-
-                    break;
-                case BodyPartType.Foot:
-                    switch (part.Symmetry)
-                    {
-                        case BodyPartSymmetry.None:
-                            break;
-                        case BodyPartSymmetry.Left:
-                            return HumanoidVisualLayers.LFoot;
-                        case BodyPartSymmetry.Right:
-                            return HumanoidVisualLayers.RFoot;
-                    }
-
-                    break;
-            }
-
-            return null;
+        public static HumanoidVisualLayers? ToHumanoidLayers(this OrganComponent organ)
+        {
+            return organ.Category is { } category && CategoryLayers.TryGetValue(category, out var layer)
+                ? layer
+                : null;
         }
     }
 }

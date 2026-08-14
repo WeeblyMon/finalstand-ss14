@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
 using Robust.Shared.Prototypes;
@@ -10,11 +11,16 @@ namespace Content.Shared.EntityEffects.Effects.Body;
 
 public sealed partial class ModifyBleedAmountEntityEffectSystem : EntityEffectSystem<BloodstreamComponent, ModifyBleedAmount>
 {
-    [Dependency] private readonly SharedBloodstreamSystem _bloodstream = default!;
+    [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private BloodstreamSystem _bloodstream = default!;
 
     protected override void Effect(Entity<BloodstreamComponent> entity, ref EntityEffectEvent<ModifyBleedAmount> args)
     {
-        _bloodstream.TryModifyBleedAmount(entity.AsNullable(), args.Effect.Amount * args.Scale);
+        var amount = args.Effect.Amount * args.Scale;
+        _bloodstream.TryModifyBleedAmount(entity.AsNullable(), amount);
+
+        if (amount < 0)
+            _wounds.TryHealBleedsOnBody(entity.Owner, amount);
     }
 }
 

@@ -27,8 +27,8 @@ namespace Content.Client._FinalStand.Shop.UI;
 [GenerateTypedNameReferences]
 public sealed partial class WeaponShopWindow : DefaultWindow
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     public event Action? OnBuyPressed;
     public event Action<string>? OnUpgradePressed;

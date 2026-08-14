@@ -5,7 +5,7 @@
 
 - type: entity
   save: false
-  parent: BaseSpeciesDummy
+  parent: [ BaseSpeciesDummy, BodyOrgansMonkey ]
   id: MobMonkeyDummy
   categories: [ HideSpawnMenu ]
   description: A dummy monkey meant to be used in character setup.
@@ -17,7 +17,8 @@
   - type: HumanoidProfile
     species: Monkey
   - type: Body
-    prototype: Monkey
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
     interfaces:
@@ -26,7 +27,7 @@
 
 - type: entity
   save: false
-  parent: BaseSpeciesDummy
+  parent: [ BaseSpeciesDummy, BodyOrgansKobold ]
   id: MobKoboldDummy
   categories: [ HideSpawnMenu ]
   description: A dummy kobold meant to be used in character setup.
@@ -38,7 +39,8 @@
   - type: HumanoidProfile
     species: Kobold
   - type: Body
-    prototype: Kobold
+  - type: BodyWoundHealing
+  - type: BodyLocomotion
     requiredLegs: 2
   - type: UserInterface
     interfaces:

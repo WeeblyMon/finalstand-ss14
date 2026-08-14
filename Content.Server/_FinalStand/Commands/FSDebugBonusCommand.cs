@@ -7,9 +7,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSDebugBonusCommand : IConsoleCommand
+public sealed partial class FSDebugBonusCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "fsdebugbonus";
     public string Description => "DEBUG: dump the wave-HUD bonus-summary computation for your held item.";

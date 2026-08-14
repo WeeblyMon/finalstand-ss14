@@ -6,9 +6,9 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Station;
 
-public sealed class FinalStandCCCSystem : EntitySystem
+public sealed partial class FinalStandCCCSystem : EntitySystem
 {
-    [Dependency] private readonly RoundEndSystem _roundEnd = default!;
+    [Dependency] private RoundEndSystem _roundEnd = default!;
 
     private float _broadcastCooldown;
     private const float BroadcastInterval = 0.5f;

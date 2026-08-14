@@ -38,13 +38,13 @@
       state: brain-slime
     - type: Stomach
     - type: Organ
+    - type: OrganIntegrity
       intCap: 60 # to prevent slimes from getting oneshot
       integrity: 60
       integrityThresholds:
         Normal: 60
         Damaged: 27
         Destroyed: 0
-      slotId: core
     - type: Metabolizer
       maxPoisonsProcessable: 2 # Shitmed
       metabolizerTypes: [ Slime ]

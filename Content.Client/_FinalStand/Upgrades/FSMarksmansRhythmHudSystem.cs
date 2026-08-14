@@ -3,9 +3,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Upgrades;
 
-public sealed class FSMarksmansRhythmHudSystem : EntitySystem
+public sealed partial class FSMarksmansRhythmHudSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSMarksmansRhythmHudOverlay? _overlay;
 

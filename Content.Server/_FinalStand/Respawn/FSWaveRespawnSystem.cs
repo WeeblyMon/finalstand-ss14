@@ -8,12 +8,12 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Respawn;
 
-public sealed class FSWaveRespawnSystem : EntitySystem
+public sealed partial class FSWaveRespawnSystem : EntitySystem
 {
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly RejuvenateSystem _rejuvenate = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private RejuvenateSystem _rejuvenate = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public override void Initialize()
     {

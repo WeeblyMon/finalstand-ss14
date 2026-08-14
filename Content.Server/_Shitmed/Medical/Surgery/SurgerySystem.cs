@@ -10,10 +10,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
 using Content.Server.Atmos.Rotting;
 using Content.Server.Body.Systems;
 using Content.Server.Chat.Systems;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Server.Popups;
 using Content.Shared.Bed.Sleep;
 using Content.Shared.Damage;
@@ -36,15 +37,16 @@ using System.Linq;
 
 namespace Content.Server._Shitmed.Medical.Surgery;
 
-public sealed class SurgerySystem : SharedSurgerySystem
+public sealed partial class SurgerySystem : SharedSurgerySystem
 {
-    [Dependency] private readonly BodySystem _body = default!;
-    [Dependency] private readonly ChatSystem _chat = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly WoundSystem _wounds = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private BodyAppearanceSystem _body = default!;
+    [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
 
     private readonly Dictionary<NetEntity, List<EntProtoId>> _surgeries = new();
 
@@ -65,7 +67,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
     protected override void RefreshUI(EntityUid body)
     {
         _surgeries.Clear();
-        foreach (var part in _body.GetBodyChildren(body))
+        foreach (var part in _lookup.GetBodyOrgans(body))
         {
             var valid = new List<EntProtoId>();
             foreach (var surgery in AllSurgeries)
@@ -73,7 +75,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
                 if (GetSingleton(surgery) is not { } surgeryEnt)
                     continue;
 
-                var ev = new SurgeryValidEvent(body, part.Id);
+                var ev = new SurgeryValidEvent(body, part.Owner);
                 RaiseLocalEvent(surgeryEnt, ref ev);
 
                 if (ev.Cancelled)
@@ -81,7 +83,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
 
                 valid.Add(surgery);
             }
-            _surgeries[GetNetEntity(part.Id)] = valid;
+            _surgeries[GetNetEntity(part.Owner)] = valid;
         }
         _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(_surgeries));
         /*
@@ -104,7 +106,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
         EntityUid part,
         bool affectAll = false)
     {
-        if (!TryComp<BodyPartComponent>(part, out var partComp))
+        if (!TryComp<OrganComponent>(part, out var partComp))
             return;
 
         // kinda funky but still works
@@ -114,7 +116,7 @@ public sealed class SurgerySystem : SharedSurgerySystem
             damage,
             true,
             origin: user,
-            targetPart: affectAll ? TargetBodyPart.All : _body.GetTargetBodyPart(partComp));
+            targetPart: affectAll ? TargetBodyPart.All : _lookup.GetTarget(part) ?? TargetBodyPart.Chest);
     }
 
     private void OnSurgeryStepDamage(Entity<SurgeryTargetComponent> ent, ref SurgeryStepDamageEvent args) =>

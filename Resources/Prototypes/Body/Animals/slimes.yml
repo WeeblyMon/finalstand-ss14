@@ -1,6 +1,7 @@
 - type: entity
+  parent: BodyOrgansAnimal
   id: BaseMobSlimes
   abstract: true
   components:
   - type: Body
-    prototype: Animal
+  - type: BodyWoundHealing

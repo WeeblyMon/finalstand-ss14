@@ -14,10 +14,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.FriendlyFire;
 
-public sealed class FSFriendlyFireSystem : EntitySystem
+public sealed partial class FSFriendlyFireSystem : EntitySystem
 {
-    [Dependency] private readonly NpcFactionSystem _npcFaction = default!;
-    [Dependency] private readonly GameTicker _gameTicker = default!;
+    [Dependency] private NpcFactionSystem _npcFaction = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
 
     private const string FsPlayerFaction = "FSPlayer";
 

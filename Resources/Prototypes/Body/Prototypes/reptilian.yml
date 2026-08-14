@@ -8,58 +8,35 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-- type: body
-  name: "reptilian"
-  id: Reptilian
-  root: chest
-  slots:
-    head:
-      part: HeadReptilian
-      connections:
-      - chest
-      organs:
-        brain: OrganHumanBrain
-        eyes: OrganHumanEyes
-    chest:
-      part: ChestReptilian
-      organs:
-        heart: OrganAnimalHeart
-        lungs: OrganHumanLungs
-      connections:
-      - right arm
-      - left arm
-      - groin
-      - head # Shitmed
-    groin:
-      part: GroinReptilian
-      connections:
-      - right leg
-      - left leg
-      organs:
-        stomach: OrganReptilianStomach
-        liver: OrganAnimalLiver
-        kidneys: OrganHumanKidneys
-    right arm:
-      part: RightArmReptilian
-      connections:
-      - right hand
-    left arm:
-      part: LeftArmReptilian
-      connections:
-      - left hand
-    right hand:
-      part: RightHandReptilian
-    left hand:
-      part: LeftHandReptilian
-    right leg:
-      part: RightLegReptilian
-      connections:
-      - right foot
-    left leg:
-      part: LeftLegReptilian
-      connections:
-      - left foot
-    right foot:
-      part: RightFootReptilian
-    left foot:
-      part: LeftFootReptilian
+- type: entity
+  abstract: true
+  id: BodyOrgansReptilian
+  components:
+  - type: InitialBody
+    organs:
+      Head: HeadReptilian
+      Brain: OrganHumanBrain
+      Eyes: OrganHumanEyes
+      Torso: ChestReptilian
+      Heart: OrganAnimalHeart
+      Lungs: OrganHumanLungs
+      Groin: GroinReptilian
+      Stomach: OrganReptilianStomach
+      Liver: OrganAnimalLiver
+      Kidneys: OrganHumanKidneys
+      ArmRight: RightArmReptilian
+      ArmLeft: LeftArmReptilian
+      HandRight: RightHandReptilian
+      HandLeft: LeftHandReptilian
+      LegRight: RightLegReptilian
+      LegLeft: LeftLegReptilian
+      FootRight: RightFootReptilian
+      FootLeft: LeftFootReptilian
+    relationships:
+      Head: [ Brain, Eyes ]
+      Torso: [ ArmLeft, ArmRight, Groin, Head, Heart, Lungs ]
+      Groin: [ Kidneys, LegLeft, LegRight, Liver, Stomach ]
+      ArmRight: [ HandRight ]
+      ArmLeft: [ HandLeft ]
+      LegRight: [ FootRight ]
+      LegLeft: [ FootLeft ]

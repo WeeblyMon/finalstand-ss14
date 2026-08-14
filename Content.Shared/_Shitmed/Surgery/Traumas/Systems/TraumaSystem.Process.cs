@@ -5,6 +5,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.Medical;
+using Robust.Shared.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
@@ -13,7 +15,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared.Armor;
 using Content.Shared.Body.Components;
-using Content.Shared.Body.Part;
+using Content.Shared.Body;
 using Content.Shared.Damage.Components;
 using Content.Shared.Inventory;
 using Robust.Shared.Containers;
@@ -53,7 +55,7 @@ public partial class TraumaSystem
         {
             TraumaTarget = GetNetEntity(comp.TraumaTarget),
             HoldingWoundable = GetNetEntity(comp.HoldingWoundable),
-            TargetType = comp.TargetType,
+            TargetCategory = comp.TargetCategory,
             TraumaType = comp.TraumaType,
             TraumaSeverity = comp.TraumaSeverity,
         };
@@ -68,7 +70,7 @@ public partial class TraumaSystem
 
         component.TraumaTarget = GetEntity(state.TraumaTarget);
         component.HoldingWoundable = GetEntity(state.HoldingWoundable);
-        component.TargetType = state.TargetType;
+        component.TargetCategory = state.TargetCategory;
         component.TraumaType = state.TraumaType;
         component.TraumaSeverity = state.TraumaSeverity;
     }
@@ -242,7 +244,7 @@ public partial class TraumaSystem
         TraumaType? traumaType = null,
         BodyComponent? bodyComp = null)
     {
-        return Resolve(body, ref bodyComp, false) && _body.GetBodyChildren(body, bodyComp).Any(bodyPart => HasWoundableTrauma(bodyPart.Id, traumaType));
+        return Resolve(body, ref bodyComp, false) && _lookup.GetBodyOrgans((body, bodyComp)).Any(bodyPart => HasWoundableTrauma(bodyPart.Owner, traumaType));
     }
 
     public bool TryGetBodyTraumas(
@@ -256,9 +258,9 @@ public partial class TraumaSystem
             return false;
 
         traumas = new List<Entity<TraumaComponent>>();
-        foreach (var bodyPart in _body.GetBodyChildren(body, bodyComp))
+        foreach (var bodyPart in _lookup.GetBodyOrgans((body, bodyComp)))
         {
-            if (TryGetWoundableTrauma(bodyPart.Id, out var traumasFound, traumaType))
+            if (TryGetWoundableTrauma(bodyPart.Owner, out var traumasFound, traumaType))
                 traumas.AddRange(traumasFound);
         }
 
@@ -298,11 +300,11 @@ public partial class TraumaSystem
         return traumaList;
     }
 
-    public FixedPoint2 GetArmourChanceDeduction(EntityUid body, Entity<TraumaInflicterComponent> inflicter, TraumaType traumaType, BodyPartType coverage)
+    public FixedPoint2 GetArmourChanceDeduction(EntityUid body, Entity<TraumaInflicterComponent> inflicter, TraumaType traumaType, ProtoId<OrganCategoryPrototype> coverage)
     {
         var deduction = FixedPoint2.Zero;
 
-        var ev = new GetSecondSkinDeductionEvent((int) coverage, (int) traumaType);
+        var ev = new GetSecondSkinDeductionEvent(coverage.Id, (int) traumaType);
         RaiseLocalEvent(body, ref ev);
         deduction += ev.Deduction;
 
@@ -329,7 +331,7 @@ public partial class TraumaSystem
         Entity<WoundableComponent> traumaTarget,
         FixedPoint2 severity,
         TraumaType traumaType,
-        BodyPartType coverage)
+        ProtoId<OrganCategoryPrototype> coverage)
     {
         var deduction = traumaTarget.Comp.TraumaDeductions.GetValueOrDefault(traumaType, FixedPoint2.Zero);
         deduction += GetArmourChanceDeduction(body, inflicter, traumaType, coverage);
@@ -379,7 +381,7 @@ public partial class TraumaSystem
 
     public bool RandomBoneTraumaChance(Entity<WoundableComponent> target, Entity<TraumaInflicterComponent> woundInflicter)
     {
-        var bodyPart = Comp<BodyPartComponent>(target);
+        var bodyPart = Comp<OrganComponent>(target);
         if (!bodyPart.Body.HasValue)
             return false; // Can't sever if already severed
 
@@ -397,7 +399,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.BoneDamage,
-            bodyPart.PartType);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -420,7 +422,7 @@ public partial class TraumaSystem
         Entity<WoundableComponent> target,
         Entity<TraumaInflicterComponent> woundInflicter)
     {
-        var bodyPart = Comp<BodyPartComponent>(target);
+        var bodyPart = Comp<OrganComponent>(target);
         if (!bodyPart.Body.HasValue)
             return false; // No entity to apply pain to
 
@@ -436,7 +438,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.NerveDamage,
-            bodyPart.PartType);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -455,13 +457,13 @@ public partial class TraumaSystem
         Entity<WoundableComponent> target,
         Entity<TraumaInflicterComponent> woundInflicter)
     {
-        var bodyPart = Comp<BodyPartComponent>(target);
+        var bodyPart = Comp<OrganComponent>(target);
         if (!bodyPart.Body.HasValue)
             return false; // No entity to apply pain to
 
         var totalIntegrity =
-            _body.GetPartOrgans(target, bodyPart)
-                .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.OrganIntegrity);
+            _lookup.EnumerateChildOrgans<OrganIntegrityComponent>(target)
+                .Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Comp2.OrganIntegrity);
 
         if (totalIntegrity <= 0) // No surviving organs
             return false;
@@ -472,7 +474,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.OrganDamage,
-            bodyPart.PartType);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -494,7 +496,7 @@ public partial class TraumaSystem
         Entity<WoundableComponent> target,
         Entity<TraumaInflicterComponent> woundInflicter)
     {
-        var bodyPart = Comp<BodyPartComponent>(target);
+        var bodyPart = Comp<OrganComponent>(target);
         if (!bodyPart.Body.HasValue)
             return false; // Can't sever if already severed
 
@@ -502,8 +504,8 @@ public partial class TraumaSystem
         if (!parentWoundable.HasValue)
             return false;
 
-        if (bodyPart.PartType == BodyPartType.Chest
-            || bodyPart.PartType == BodyPartType.Groin
+        if (bodyPart.Category == OrganCategories.Torso
+            || bodyPart.Category == OrganCategories.Groin
             && Comp<WoundableComponent>(parentWoundable.Value).WoundableSeverity != WoundableSeverity.Mangled)
             return false;
 
@@ -513,7 +515,7 @@ public partial class TraumaSystem
             target,
             Comp<WoundComponent>(woundInflicter).WoundSeverityPoint,
             TraumaType.Dismemberment,
-            bodyPart.PartType);
+            bodyPart.Category ?? OrganCategories.Torso);
 
         if (deduction == 1)
             return false;
@@ -563,7 +565,7 @@ public partial class TraumaSystem
         Entity<TraumaInflicterComponent> inflicter,
         TraumaType traumaType,
         FixedPoint2 severity,
-        (BodyPartType, BodyPartSymmetry)? targetType = null)
+        ProtoId<OrganCategoryPrototype>? targetCategory = null)
     {
         if (TerminatingOrDeleted(inflicter))
             return EntityUid.Invalid;
@@ -578,8 +580,8 @@ public partial class TraumaSystem
             // Right now wounds on a specified woundable can't wound other woundables, but in case IF something happens or IF someone decides to do that
 
             //  Allows us to create multiple dismemberment traumas on the same body part.
-            if (targetType.HasValue
-                && targetType.Value != containedTraumaComp.TargetType)
+            if (targetCategory.HasValue
+                && targetCategory.Value != containedTraumaComp.TargetCategory)
                 continue;
 
             containedTraumaComp.TraumaSeverity = severity;
@@ -593,8 +595,8 @@ public partial class TraumaSystem
 
         traumaComp.TraumaTarget = target;
 
-        if (targetType.HasValue)
-            traumaComp.TargetType = targetType.Value;
+        if (targetCategory.HasValue)
+            traumaComp.TargetCategory = targetCategory.Value;
 
         traumaComp.HoldingWoundable = holdingWoundable;
 
@@ -652,7 +654,7 @@ public partial class TraumaSystem
 
     private void ApplyTraumas(Entity<WoundableComponent> target, Entity<TraumaInflicterComponent> inflicter, List<TraumaType> traumas, FixedPoint2 severity)
     {
-        var bodyPart = Comp<BodyPartComponent>(target);
+        var bodyPart = Comp<OrganComponent>(target);
         if (!bodyPart.Body.HasValue)
             return;
 
@@ -669,13 +671,13 @@ public partial class TraumaSystem
                     break;
 
                 case TraumaType.OrganDamage:
-                    var organs = _body.GetPartOrgans(target).ToList();
+                    var organs = _lookup.EnumerateChildOrgans<OrganIntegrityComponent>(target).ToList();
                     _random.Shuffle(organs);
 
                     var chosenOrgan = organs.FirstOrNull();
                     if (chosenOrgan != null)
                     {
-                        targetChosen = chosenOrgan.Value.Id;
+                        targetChosen = chosenOrgan.Value.Owner;
                     }
 
                     break;
@@ -764,7 +766,7 @@ public partial class TraumaSystem
                             (woundInduced.Value.Owner, EnsureComp<TraumaInflicterComponent>(woundInduced.Value.Owner)),
                             TraumaType.Dismemberment,
                             severity,
-                            (bodyPart.PartType, bodyPart.Symmetry));
+                            bodyPart.Category ?? OrganCategories.Torso);
 
                         _wound.AmputateWoundable(targetChosen.Value, target, target);
                         Logger.Debug($"Amputating woundable.");

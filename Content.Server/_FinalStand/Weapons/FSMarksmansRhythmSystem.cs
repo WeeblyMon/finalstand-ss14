@@ -9,11 +9,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSMarksmansRhythmSystem : EntitySystem
+public sealed partial class FSMarksmansRhythmSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     public override void Initialize()
     {

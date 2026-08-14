@@ -4,9 +4,9 @@ using Content.Shared.Weapons.Ranged.Events;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // spawns the extra flechette pellets; pierce on originals is set in FSWeaponUpgradeRuntimeSystem
-public sealed class FlechetteRoundsUpgradeSystem : EntitySystem
+public sealed partial class FlechetteRoundsUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly PelletCountUpgradeSystem _pellets = default!;
+    [Dependency] private PelletCountUpgradeSystem _pellets = default!;
 
     public void HandleAmmoShot(EntityUid uid, FSWeaponUpgradeStateComponent state, AmmoShotEvent args)
     {

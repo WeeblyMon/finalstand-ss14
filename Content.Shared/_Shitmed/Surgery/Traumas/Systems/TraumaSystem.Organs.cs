@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Pain;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
-using Content.Shared.Body.Organ;
+using Content.Shared.Body;
 using Content.Shared.FixedPoint;
 using Content.Shared.Humanoid;
 using Content.Shared.Popups;
@@ -21,7 +22,7 @@ public partial class TraumaSystem
     private void InitOrgans()
     {
         SubscribeLocalEvent<WoundableComponent, OrganIntegrityChangedEventOnWoundable>(OnOrganIntegrityOnWoundableChanged);
-        SubscribeLocalEvent<OrganComponent, OrganIntegrityChangedEvent>(OnOrganIntegrityChanged);
+        SubscribeLocalEvent<OrganIntegrityComponent, OrganIntegrityChangedEvent>(OnOrganIntegrityChanged);
         SubscribeLocalEvent<WoundableComponent, OrganDamageSeverityChangedOnWoundable>(OnOrganSeverityChanged);
     }
 
@@ -29,15 +30,18 @@ public partial class TraumaSystem
 
     private void OnOrganIntegrityOnWoundableChanged(Entity<WoundableComponent> bodyPart, ref OrganIntegrityChangedEventOnWoundable args)
     {
-        if (args.Organ.Comp.Body == null)
+        if (CompOrNull<OrganComponent>(args.Organ)?.Body is not { } organBody)
             return;
 
-        if (!_consciousness.TryGetNerveSystem(args.Organ.Comp.Body.Value, out var nerveSys))
+        if (!_consciousness.TryGetNerveSystem(organBody, out var nerveSys))
             return;
 
-        var organs = _body.GetPartOrgans(args.Organ.Comp.Body.Value).ToList();
-        var totalIntegrity = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.OrganIntegrity);
-        var totalIntegrityCap = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ.Component.IntegrityCap);
+        var organs = _lookup.GetBodyOrgans(organBody)
+            .Select(organ => CompOrNull<OrganIntegrityComponent>(organ.Owner))
+            .Where(integrity => integrity != null)
+            .ToList();
+        var totalIntegrity = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ!.OrganIntegrity);
+        var totalIntegrityCap = organs.Aggregate(FixedPoint2.Zero, (current, organ) => current + organ!.IntegrityCap);
         // Getting your organ turned into a blood mush inside you applies a LOT of internal pain, that can get you dead.
         if (!_pain.TryChangePainModifier(
                 nerveSys.Value,
@@ -56,12 +60,12 @@ public partial class TraumaSystem
         }
     }
 
-    private void OnOrganIntegrityChanged(Entity<OrganComponent> organ, ref OrganIntegrityChangedEvent args)
+    private void OnOrganIntegrityChanged(Entity<OrganIntegrityComponent> organ, ref OrganIntegrityChangedEvent args)
     {
-        if (organ.Comp.Body == null)
+        if (CompOrNull<OrganComponent>(organ)?.Body is not { } organBody)
             return;
 
-        if (args.NewIntegrity < organ.Comp.IntegrityCap || !TryGetBodyTraumas(organ.Comp.Body.Value, out var traumas, TraumaType.OrganDamage))
+        if (args.NewIntegrity < organ.Comp.IntegrityCap || !TryGetBodyTraumas(organBody, out var traumas, TraumaType.OrganDamage))
             return;
 
         foreach (var trauma in traumas.Where(trauma => trauma.Comp.TraumaTarget == organ))
@@ -72,7 +76,7 @@ public partial class TraumaSystem
 
     private void OnOrganSeverityChanged(Entity<WoundableComponent> bodyPart, ref OrganDamageSeverityChangedOnWoundable args)
     {
-        var body = args.Organ.Comp.Body;
+        var body = CompOrNull<OrganComponent>(args.Organ)?.Body;
         if (body == null
             || args.NewSeverity < args.OldSeverity)
             return;
@@ -119,7 +123,7 @@ public partial class TraumaSystem
         }
 
         _audio.PlayPvs(args.Organ.Comp.OrganDestroyedSound, body.Value);
-        _body.RemoveOrgan(args.Organ, args.Organ.Comp);
+        _manipulation.RemoveOrgan(args.Organ.Owner);
 
         if (_net.IsServer)
             QueueDel(args.Organ);
@@ -132,7 +136,7 @@ public partial class TraumaSystem
         FixedPoint2 severity,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (severity == 0
             || !Resolve(uid, ref organ))
@@ -150,7 +154,7 @@ public partial class TraumaSystem
         FixedPoint2 severity,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (severity == 0
             || !Resolve(uid, ref organ))
@@ -166,7 +170,7 @@ public partial class TraumaSystem
         FixedPoint2 change,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (change == 0
             || !Resolve(uid, ref organ))
@@ -184,7 +188,7 @@ public partial class TraumaSystem
     public bool TryRemoveOrganDamageModifier(EntityUid uid,
         EntityUid effectOwner,
         string identifier,
-        OrganComponent? organ = null)
+        OrganIntegrityComponent? organ = null)
     {
         if (!Resolve(uid, ref organ))
             return false;
@@ -203,7 +207,7 @@ public partial class TraumaSystem
 
     #region Private API
 
-    private void UpdateOrganIntegrity(EntityUid uid, OrganComponent organ)
+    private void UpdateOrganIntegrity(EntityUid uid, OrganIntegrityComponent organ)
     {
         var oldIntegrity = organ.OrganIntegrity;
 

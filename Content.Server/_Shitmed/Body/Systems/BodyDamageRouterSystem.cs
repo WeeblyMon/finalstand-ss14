@@ -1,3 +1,7 @@
+using System.Linq;
+using Content.Shared._Shitmed.Body.Organ;
+using Content.Shared.Body;
+using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
@@ -27,11 +31,12 @@ namespace Content.Server._Shitmed.Body.Systems;
 /// the analyzer can display wounds, traumas, vital damage, and the colored body
 /// doll. Healing routes symmetrically through TryHealWoundsOnWoundable.
 /// </remarks>
-public sealed class BodyDamageRouterSystem : EntitySystem
+public sealed partial class BodyDamageRouterSystem : EntitySystem
 {
-    [Dependency] private readonly SharedBodySystem _body = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public override void Initialize()
     {
@@ -48,7 +53,7 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         // Collect woundable body parts. The mob itself doesn't have WoundableComponent —
         // its anatomical sub-entities do.
         var parts = new List<EntityUid>();
-        foreach (var (partId, _) in _body.GetBodyChildren(uid, body))
+        foreach (var (partId, _) in _lookup.GetBodyOrgans((uid, body)))
         {
             if (HasComp<WoundableComponent>(partId))
                 parts.Add(partId);
@@ -60,8 +65,12 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         // For damage: pick one body part (TargetingComponent target if set, otherwise random).
         // For healing: distribute across all body parts so a Brutepack actually heals.
         EntityUid? chosen = null;
-        if (TryComp<TargetingComponent>(uid, out var targeting))
-            chosen = ResolveTargetPart(uid, body, targeting.Target, parts);
+        if (args.Origin is { } origin && TryComp<TargetingComponent>(origin, out var attackerTargeting))
+            chosen = ResolveTargetPart(parts, attackerTargeting.Target);
+
+        if (chosen is null && TryComp<TargetingComponent>(uid, out var targeting))
+            chosen = ResolveTargetPart(parts, targeting.Target);
+
         chosen ??= _random.Pick(parts);
 
         foreach (var (type, value) in args.DamageDelta.DamageDict)
@@ -71,32 +80,40 @@ public sealed class BodyDamageRouterSystem : EntitySystem
 
             if (value > 0)
             {
-                // Damage: concentrate on the chosen target body part.
                 _wound.TryInduceWound(chosen.Value, type, value, out _);
             }
             else
             {
-                // Healing: spread across every wounded part. Brutepack reduces mob brute
-                // by 30 — the player wants that to clear wounds wherever they exist, not
-                // just on a random part that may have no wounds.
-                var perPart = -value / parts.Count;
-                foreach (var part in parts)
+                var wounded = parts.Where(part => HasWoundOfType(part, type)).ToList();
+                if (wounded.Count == 0)
+                    continue;
+
+                var perPart = -value / wounded.Count;
+                foreach (var part in wounded)
                     _wound.TryHealWoundsOnWoundable(part, perPart, type, out _);
             }
         }
     }
 
-    /// <summary>
-    /// Walk the body parts and return one matching the requested TargetBodyPart,
-    /// or null if no part matches (caller falls back to random).
-    /// </summary>
-    private EntityUid? ResolveTargetPart(EntityUid bodyUid, BodyComponent body, TargetBodyPart target, List<EntityUid> candidates)
+    private bool HasWoundOfType(EntityUid woundable, string damageType)
+    {
+        foreach (var wound in _wound.GetWoundableWounds(woundable))
+        {
+            if (wound.Comp.DamageType == damageType)
+                return true;
+        }
+
+        return false;
+    }
+
+    private EntityUid? ResolveTargetPart(List<EntityUid> candidates, TargetBodyPart target)
     {
         foreach (var part in candidates)
         {
-            if (_body.GetTargetBodyPart(part) == target)
+            if (_lookup.GetTarget(part) == target)
                 return part;
         }
+
         return null;
     }
 }

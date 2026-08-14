@@ -19,14 +19,14 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.WaveHud;
 
-public sealed class WaveHudOverlay : Overlay
+public sealed partial class WaveHudOverlay : Overlay
 {
-    [Dependency] private readonly IClyde _clyde = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
-    [Dependency] private readonly IInputManager _input = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
-    [Dependency] private readonly IEntityManager _entityManager = default!;
+    [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IUserInterfaceManager _uiManager = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
 
     private Font? _labelFont;
     private Font? _valueFont;
