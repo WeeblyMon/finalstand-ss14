@@ -198,9 +198,13 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         if (xform.MapUid is null)
             return new HashSet<EntityUid>();
 
-        return base.GibBody(bodyId, gibOrgans, body, launchGibs: launchGibs, splatDirection: splatDirection,
+        var gibs = base.GibBody(bodyId, gibOrgans, body, launchGibs: launchGibs, splatDirection: splatDirection,
             splatModifier: splatModifier, splatCone: splatCone, gib: gib, contents: contents,
             allowedContainers: allowedContainers, excludedContainers: excludedContainers);
+
+        QueueDel(bodyId);
+
+        return gibs;
     }
 
     // Shitmed Change Start

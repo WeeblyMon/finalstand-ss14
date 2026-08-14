@@ -21,7 +21,11 @@ public sealed partial class OrganRelationSystem : EntitySystem
         if (ent.Comp.Parent is not { } parentUid)
             return;
 
-        var parentComp = _parent.Comp(parentUid);
+        ent.Comp.Parent = null;
+
+        if (!_parent.TryComp(parentUid, out var parentComp))
+            return;
+
         parentComp.Children.Remove(ent);
         Dirty(parentUid, parentComp);
     }
@@ -33,11 +37,14 @@ public sealed partial class OrganRelationSystem : EntitySystem
 
         foreach (var childUid in ent.Comp.Children)
         {
-            var childComp = _child.Comp(childUid);
-            childComp.Parent = null;
+            if (!_child.TryComp(childUid, out var childComp))
+                continue;
 
+            childComp.Parent = null;
             Dirty(childUid, childComp);
         }
+
+        ent.Comp.Children.Clear();
     }
 
     /// <summary>
