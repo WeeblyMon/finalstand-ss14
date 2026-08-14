@@ -87,7 +87,6 @@ using Content.Shared.Body.Events;
 using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage.Components;
-using Content.Shared.Gibbing.Events;
 using Content.Shared.Humanoid;
 using Content.Shared.Mind;
 using Content.Shared.Mobs.Systems;
@@ -114,7 +113,6 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
         base.Initialize();
 
         SubscribeLocalEvent<BodyComponent, MoveInputEvent>(OnRelayMoveInput);
-        SubscribeLocalEvent<OrganComponent, AttemptEntityGibEvent>(OnGibTorsoAttempt); // Shitmed Change
     }
 
     private void OnRelayMoveInput(Entity<BodyComponent> ent, ref MoveInputEvent args)
@@ -256,11 +254,6 @@ public sealed partial class BodyAppearanceSystem : SharedBodyAppearanceSystem //
                 _humanoidSystem.RemoveMarking(target, marking.MarkingId, sync: false, humanoid: bodyAppearance);
 
         Dirty(target, bodyAppearance);
-    }
-
-    private void OnGibTorsoAttempt(Entity<OrganComponent> ent, ref AttemptEntityGibEvent args)
-    {
-        // FS: GibType API not present; chest-gib special-casing handled elsewhere if needed.
     }
     // Shitmed Change End
 }
