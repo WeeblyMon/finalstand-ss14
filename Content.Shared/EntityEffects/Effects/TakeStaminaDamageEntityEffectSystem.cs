@@ -11,7 +11,7 @@ namespace Content.Shared.EntityEffects.Effects;
 
 public sealed partial class TakeStaminaDamageEntityEffectSystem : EntityEffectSystem<StaminaComponent, TakeStaminaDamage>
 {
-    [Dependency] private readonly SharedStaminaSystem _stamina = default!;
+    [Dependency] private SharedStaminaSystem _stamina = default!;
 
     protected override void Effect(Entity<StaminaComponent> entity, ref EntityEffectEvent<TakeStaminaDamage> args)
     {

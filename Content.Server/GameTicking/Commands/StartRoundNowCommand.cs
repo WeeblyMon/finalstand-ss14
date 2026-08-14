@@ -8,9 +8,9 @@ namespace Content.Server.GameTicking.Commands;
 /// Forces the round to start immediately, bypassing lobby timer and PreRoundLobby requirement.
 /// </summary>
 [AdminCommand(AdminFlags.Round)]
-public sealed class StartRoundNowCommand : LocalizedEntityCommands
+public sealed partial class StartRoundNowCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly GameTicker _gameTicker = default!;
+    [Dependency] private GameTicker _gameTicker = default!;
 
     public override string Command => "startroundnow";
 

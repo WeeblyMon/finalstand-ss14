@@ -8,9 +8,9 @@ using Robust.Shared.GameObjects;
 namespace Content.Server.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class DumpHumanoidServerCommand : IConsoleCommand
+public sealed partial class DumpHumanoidServerCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _ent = default!;
+    [Dependency] private IEntityManager _ent = default!;
 
     public string Command => "dumphumanoidserver";
     public string Description => "Server-side dump of a humanoid's MarkingSet + appearance fields.";

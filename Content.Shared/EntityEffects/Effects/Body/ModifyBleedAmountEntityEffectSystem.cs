@@ -10,7 +10,7 @@ namespace Content.Shared.EntityEffects.Effects.Body;
 
 public sealed partial class ModifyBleedAmountEntityEffectSystem : EntityEffectSystem<BloodstreamComponent, ModifyBleedAmount>
 {
-    [Dependency] private readonly BloodstreamSystem _bloodstream = default!;
+    [Dependency] private BloodstreamSystem _bloodstream = default!;
 
     protected override void Effect(Entity<BloodstreamComponent> entity, ref EntityEffectEvent<ModifyBleedAmount> args)
     {

@@ -9,9 +9,9 @@ namespace Content.Client.Guidebook;
 /// Requests data from the server after the player has fully joined.
 /// Can also be pushed new data when the server reloads prototypes.
 /// </summary>
-public sealed class GuidebookDataSystem : EntitySystem
+public sealed partial class GuidebookDataSystem : EntitySystem
 {
-    [Dependency] private readonly IBaseClient _client = default!;
+    [Dependency] private IBaseClient _client = default!;
 
     private GuidebookData? _data;
 

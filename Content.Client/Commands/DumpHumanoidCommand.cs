@@ -9,9 +9,9 @@ using Robust.Shared.GameObjects;
 
 namespace Content.Client.Commands;
 
-public sealed class DumpHumanoidCommand : LocalizedEntityCommands
+public sealed partial class DumpHumanoidCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly IEntityManager _ent = default!;
+    [Dependency] private IEntityManager _ent = default!;
 
     public override string Command => "dumphumanoid";
     public override string Description => "Dump sprite layers + child entities + humanoid state for the given entity (or the local player).";

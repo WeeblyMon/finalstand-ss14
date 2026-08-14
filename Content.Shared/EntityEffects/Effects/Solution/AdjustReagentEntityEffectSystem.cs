@@ -13,8 +13,8 @@ namespace Content.Shared.EntityEffects.Effects.Solution;
 /// <inheritdoc cref="EntityEffectSystem{T,TEffect}"/>
 public sealed partial class AdjustReagentEntityEffectSystem : EntityEffectSystem<SolutionComponent, AdjustReagent>
 {
-    [Dependency] private readonly SharedSolutionContainerSystem _solutionContainer = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
 
     protected override void Effect(Entity<SolutionComponent> entity, ref EntityEffectEvent<AdjustReagent> args)
     {
