@@ -13,13 +13,13 @@ using Robust.Shared.Utility;
 namespace Content.Client._FinalStand.Weapons;
 
 // Draws the Harvester's own muzzle/travel/impact flashes instead of going through the shared vanilla hitscan effect pipeline.
-public sealed class FSHarvesterBeamVisualSystem : EntitySystem
+public sealed partial class FSHarvesterBeamVisualSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly AnimationPlayerSystem _animPlayer = default!;
-    [Dependency] private readonly SharedPointLightSystem _lights = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private AnimationPlayerSystem _animPlayer = default!;
+    [Dependency] private SharedPointLightSystem _lights = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly EntProtoId HitscanProto = "HitscanEffect";
     private static readonly Color BeamColor = Color.FromHex("#AA44FF");

@@ -10,10 +10,10 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Visuals;
 
-public sealed class FSZombieVisualizerSystem : EntitySystem
+public sealed partial class FSZombieVisualizerSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
-    [Dependency] private readonly IPrototypeManager _protoManager = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _protoManager = default!;
 
     private const string TeslaGlowShader      = "FSTeslaGlow";
     private const string FlamerGlowShader     = "FSFlamerGlow";

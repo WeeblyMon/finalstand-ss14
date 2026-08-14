@@ -12,12 +12,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSGravitonCoreSystem : EntitySystem
+public sealed partial class FSGravitonCoreSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private EntityQuery<FSTeslaArcComponent> _arcQuery;
     private EntityQuery<MobStateComponent> _mobQuery;

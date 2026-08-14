@@ -3,9 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Upgrades.Effects;
 
-public sealed class FSOverclockedGlowSystem : EntitySystem
+public sealed partial class FSOverclockedGlowSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     // white → hot red as spool ramps 0→1
     private static readonly Color MaxGlow = new(1f, 0.15f, 0.05f);

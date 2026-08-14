@@ -7,10 +7,10 @@ using Content.Shared.Mobs.Components;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class MoneyGainBonusUpgradeSystem : EntitySystem
+public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {

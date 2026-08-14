@@ -7,9 +7,9 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSGivePerkPointsCommand : IConsoleCommand
+public sealed partial class FSGivePerkPointsCommand : IConsoleCommand
 {
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
+    [Dependency] private ISharedPlayerManager _playerManager = default!;
 
     public string Command => "fsgiveap";
     public string Description => "Give (or take) perk points from yourself or another player.";

@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSUnlockAllResearchCommand : IConsoleCommand
+public sealed partial class FSUnlockAllResearchCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "fsunlockalltech";
     public string Description => "DEBUG: instantly unlocks every SCI research node (station-wide), including every weapon shop.";

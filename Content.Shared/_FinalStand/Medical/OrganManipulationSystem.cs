@@ -10,10 +10,10 @@ namespace Content.Shared._FinalStand.Medical;
 
 public sealed partial class OrganManipulationSystem : EntitySystem
 {
-    [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly OrganRelationSystem _relation = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private OrganRelationSystem _relation = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     [Dependency] private EntityQuery<BodyComponent> _bodyQuery = default!;
     [Dependency] private EntityQuery<OrganComponent> _organQuery = default!;

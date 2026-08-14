@@ -22,16 +22,16 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Weapons;
 
 // Harvester-only hooks: the beam is faked out of many rapid discrete hitscan shots rather than a real continuous-damage weapon (see WeaponHarvesterFS).
-public sealed class FSHarvesterWeaponSystem : EntitySystem
+public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 {
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly FSResearchSystem _research = default!;
-    [Dependency] private readonly FSResearchBuffSystem _researchBuff = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly FSHitscanCoordSystem _hitscanCoords = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSResearchSystem _research = default!;
+    [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float BaseDamage = 2f;
     private const int RpPerHit = 10;

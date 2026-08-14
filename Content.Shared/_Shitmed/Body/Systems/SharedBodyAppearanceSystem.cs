@@ -13,9 +13,9 @@ namespace Content.Shared.Body.Systems;
 
 public abstract partial class SharedBodyAppearanceSystem : EntitySystem
 {
-    [Dependency] protected readonly GibbingSystem Gibbing = default!;
-    [Dependency] protected readonly IPrototypeManager Prototypes = default!;
-    [Dependency] protected readonly IGameTiming Timing = default!;
+    [Dependency] protected GibbingSystem Gibbing = default!;
+    [Dependency] protected IPrototypeManager Prototypes = default!;
+    [Dependency] protected IGameTiming Timing = default!;
 
     public override void Initialize()
     {

@@ -7,11 +7,11 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSStunInRadiusOnTriggerSystem : XOnTriggerSystem<FSStunInRadiusOnTriggerComponent>
+public sealed partial class FSStunInRadiusOnTriggerSystem : XOnTriggerSystem<FSStunInRadiusOnTriggerComponent>
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly FSStunOverrideSystem _fsStun = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSStunOverrideSystem _fsStun = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 

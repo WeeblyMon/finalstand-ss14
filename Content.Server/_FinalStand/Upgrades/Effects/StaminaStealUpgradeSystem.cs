@@ -5,9 +5,9 @@ using Content.Shared.Damage.Components;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class StaminaStealUpgradeSystem : EntitySystem
+public sealed partial class StaminaStealUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly StaminaSystem _stamina = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
 
     // Stamina drained from enemy per hit per level.
     private const float DrainPerLevel = 15f;

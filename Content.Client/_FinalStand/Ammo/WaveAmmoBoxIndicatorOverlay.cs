@@ -9,11 +9,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Ammo;
 
-public sealed class WaveAmmoBoxIndicatorOverlay : Overlay
+public sealed partial class WaveAmmoBoxIndicatorOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entMan    = default!;
-    [Dependency] private readonly IResourceCache _resources = default!;
-    [Dependency] private readonly IGameTiming    _timing    = default!;
+    [Dependency] private IEntityManager _entMan    = default!;
+    [Dependency] private IResourceCache _resources = default!;
+    [Dependency] private IGameTiming    _timing    = default!;
 
     private Font?                  _font;
     private SharedTransformSystem? _xformSys;

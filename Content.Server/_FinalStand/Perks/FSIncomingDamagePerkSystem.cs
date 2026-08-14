@@ -14,10 +14,10 @@ namespace Content.Server._FinalStand.Perks;
 // Cannon, Pacifist, Rampage. Driven by FSIncomingDamageModifyEvent, which the weapon-resistance
 // system raises once it has applied its own modifiers — Robust Toolbox allows only one directed
 // subscriber per (component, event) pair and that system owns (HandsComponent, DamageModifyEvent).
-public sealed class FSIncomingDamagePerkSystem : EntitySystem
+public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     public override void Initialize()
     {

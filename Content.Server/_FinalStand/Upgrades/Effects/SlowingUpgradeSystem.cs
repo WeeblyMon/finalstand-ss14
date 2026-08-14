@@ -5,10 +5,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class SlowingUpgradeSystem : EntitySystem
+public sealed partial class SlowingUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private static readonly TimeSpan SlowDuration = TimeSpan.FromSeconds(2);
 

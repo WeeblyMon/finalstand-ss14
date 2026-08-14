@@ -19,15 +19,15 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.WaveHud;
 
 // Drives the wave-HUD "current bonuses" indicator, recomputed from source data each time.
-public sealed class FSPlayerBonusSummarySystem : EntitySystem
+public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSResearchBuffSystem _researchBuff = default!;
-    [Dependency] private readonly FSResearchStaticGrantSystem _researchStatic = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private FSResearchStaticGrantSystem _researchStatic = default!;
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";

@@ -17,14 +17,14 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Leveling;
 
-public sealed class FSLevelingSystem : EntitySystem
+public sealed partial class FSLevelingSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly FSPlayerDataStore _store = default!;
-    [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IChatManager _chatManager = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPlayerDataStore _store = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IChatManager _chatManager = default!;
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 

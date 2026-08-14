@@ -12,16 +12,16 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class FSRocketUpgradeSystem : EntitySystem
+public sealed partial class FSRocketUpgradeSystem : EntitySystem
 {
     private const float IntensityPerRadiusUnit = 25f;
     private const float IntensityPerShapedChargeLevel = 20f;
     private const float BaseArmorStripRadius = 8f;
 
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private FSResearchBuffSystem _researchBuff = default!;
 
     private static readonly ProtoId<TagPrototype> ExplosiveTag = "WeaponExplosive";
 

@@ -11,14 +11,14 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSPerkSystem : EntitySystem
+public sealed partial class FSPerkSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly FSPlayerDataStore _store = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPlayerDataStore _store = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);

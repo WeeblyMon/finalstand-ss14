@@ -5,9 +5,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSBloaterClientSystem : EntitySystem
+public sealed partial class FSBloaterClientSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private readonly Dictionary<EntityUid, TimeSpan> _flashStart = new();
 

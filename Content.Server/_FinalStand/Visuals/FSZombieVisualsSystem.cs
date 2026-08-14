@@ -7,10 +7,10 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Visuals;
 
-public sealed class FSZombieVisualsSystem : EntitySystem
+public sealed partial class FSZombieVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
 
     public override void Initialize()
     {

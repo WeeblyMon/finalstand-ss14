@@ -3,9 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Visuals;
 
-public sealed class FSGiantZombieVisualizerSystem : EntitySystem
+public sealed partial class FSGiantZombieVisualizerSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public override void Initialize()
     {

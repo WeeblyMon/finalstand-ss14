@@ -9,10 +9,10 @@ using Robust.Shared.Player;
 
 namespace Content.Client._FinalStand.WaveHud;
 
-public sealed class WaveHudSystem : EntitySystem
+public sealed partial class WaveHudSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IBaseClient _client = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
+    [Dependency] private IBaseClient _client = default!;
 
     private WaveHudOverlay? _overlay;
 

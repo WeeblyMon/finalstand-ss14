@@ -7,11 +7,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class KnockbackUpgradeSystem : EntitySystem
+public sealed partial class KnockbackUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly float[] VelocityByLevel = [5.5f, 9.9f, 15.4f];
     private static readonly TimeSpan[] DurationByLevel =

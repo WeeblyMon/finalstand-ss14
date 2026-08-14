@@ -8,11 +8,11 @@ using Content.Shared.Mind;
 
 namespace Content.Server._FinalStand.Economy;
 
-public sealed class FSMoneyOnHitSystem : EntitySystem
+public sealed partial class FSMoneyOnHitSystem : EntitySystem
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;

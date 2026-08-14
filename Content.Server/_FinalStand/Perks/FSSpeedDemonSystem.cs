@@ -10,12 +10,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSSpeedDemonSystem : EntitySystem
+public sealed partial class FSSpeedDemonSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSPerkNotifySystem _notify = default!;
 
     private static readonly TimeSpan DecayDelay = TimeSpan.FromSeconds(5);
 

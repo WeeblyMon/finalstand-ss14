@@ -14,10 +14,10 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 // Bridges hitscan into the upgrade-effect pipeline. Vanilla HitscanBasicDamageSystem has already
 // applied the base damage by the time effects run, and the event carries no mutable damage, so a
 // crit or an AdditionalMultiplier is paid as a second TryChangeDamage for the difference.
-public sealed class FSHitscanEffectSystem : EntitySystem
+public sealed partial class FSHitscanEffectSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly CritSystem _crit = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private CritSystem _crit = default!;
 
     public override void Initialize()
     {

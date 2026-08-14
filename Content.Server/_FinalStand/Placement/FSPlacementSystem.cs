@@ -5,9 +5,9 @@ using Content.Shared.Interaction.Events;
 namespace Content.Server._FinalStand.Placement;
 
 // Generic "Z toggles ghost placement mode, click a spot to confirm" plumbing shared by any FS placeable item.
-public sealed class FSPlacementSystem : EntitySystem
+public sealed partial class FSPlacementSystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {

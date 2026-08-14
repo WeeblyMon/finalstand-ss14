@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSPlayerDamageNumbersCommand : IConsoleCommand
+public sealed partial class FSPlayerDamageNumbersCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "fsdmgnumbers";
     public string Description => "DEBUG: toggle damage number overlays on players.";

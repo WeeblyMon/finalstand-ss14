@@ -30,12 +30,12 @@ namespace Content.Server._Shitmed.Body.Systems;
 /// the analyzer can display wounds, traumas, vital damage, and the colored body
 /// doll. Healing routes symmetrically through TryHealWoundsOnWoundable.
 /// </remarks>
-public sealed class BodyDamageRouterSystem : EntitySystem
+public sealed partial class BodyDamageRouterSystem : EntitySystem
 {
-    [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public override void Initialize()
     {

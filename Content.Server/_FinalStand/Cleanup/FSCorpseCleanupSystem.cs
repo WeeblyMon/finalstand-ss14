@@ -6,9 +6,9 @@ using Robust.Shared.GameObjects;
 
 namespace Content.Server._FinalStand.Cleanup;
 
-public sealed class FSCorpseCleanupSystem : EntitySystem
+public sealed partial class FSCorpseCleanupSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     private const int MaxZombieCorpses = 50;
 

@@ -9,8 +9,8 @@ namespace Content.Shared._FinalStand.Medical.Effects;
 
 public sealed partial class OrganEffectSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly ISerializationManager _serManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ISerializationManager _serManager = default!;
 
     public override void Initialize()
     {

@@ -2,9 +2,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Ammo;
 
-public sealed class WaveAmmoBoxIndicatorSystem : EntitySystem
+public sealed partial class WaveAmmoBoxIndicatorSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private WaveAmmoBoxIndicatorOverlay? _overlay;
 

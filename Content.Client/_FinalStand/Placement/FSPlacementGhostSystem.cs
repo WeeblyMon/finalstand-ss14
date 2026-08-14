@@ -7,13 +7,13 @@ using Robust.Shared.Enums;
 namespace Content.Client._FinalStand.Placement;
 
 // Mirrors RCDConstructionGhostSystem - shows a placement ghost while the held item is in FSPlaceableComponent.Placing mode.
-public sealed class FSPlacementGhostSystem : EntitySystem
+public sealed partial class FSPlacementGhostSystem : EntitySystem
 {
     private const string PlacementMode = nameof(AlignFSPlacement);
 
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IPlacementManager _placementManager = default!;
-    [Dependency] private readonly HandsSystem _hands = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IPlacementManager _placementManager = default!;
+    [Dependency] private HandsSystem _hands = default!;
 
     public override void Update(float frameTime)
     {

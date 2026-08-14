@@ -6,7 +6,7 @@ namespace Content.Shared._FinalStand.Medical.Relay;
 
 public sealed partial class OrganRelaySystem : EntitySystem
 {
-    [Dependency] private readonly OrganLookupSystem _lookup = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
 
     public void RelayEvent<T>(Entity<BodyComponent?> body, T args) where T : class, IOrganRelayEvent
     {

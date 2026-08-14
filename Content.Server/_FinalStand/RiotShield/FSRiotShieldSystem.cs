@@ -10,10 +10,10 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.RiotShield;
 
-public sealed class FSRiotShieldSystem : EntitySystem
+public sealed partial class FSRiotShieldSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     public override void Initialize()
     {

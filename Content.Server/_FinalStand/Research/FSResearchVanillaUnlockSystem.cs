@@ -6,11 +6,11 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Research;
 
 // Grants a wrapper fsTechNode's linked vanilla technology via vanilla's own recipe/generic-unlock plumbing on completion.
-public sealed class FSResearchVanillaUnlockSystem : EntitySystem
+public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
 {
-    [Dependency] private readonly FSResearchSystem _fsResearch = default!;
-    [Dependency] private readonly ResearchSystem _vanillaResearch = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
+    [Dependency] private FSResearchSystem _fsResearch = default!;
+    [Dependency] private ResearchSystem _vanillaResearch = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
 
     public override void Initialize()
     {

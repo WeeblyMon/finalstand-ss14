@@ -15,13 +15,13 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 // Picks spawners, places and configures wave enemies, and selects which prototype spawns next.
-public sealed class WaveEnemySpawningSystem : EntitySystem
+public sealed partial class WaveEnemySpawningSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly WaveEnemyScalingSystem _scaling = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private WaveEnemyScalingSystem _scaling = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
     private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };

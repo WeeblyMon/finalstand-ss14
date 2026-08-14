@@ -19,9 +19,9 @@ using static Robust.Shared.Maths.Color;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSLectorExecutionOverlay : Overlay
+public sealed partial class FSLectorExecutionOverlay : Overlay
 {
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     private readonly IEntityManager _entManager;
     private readonly IPlayerManager _player;

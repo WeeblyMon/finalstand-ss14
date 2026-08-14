@@ -3,9 +3,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Upgrades;
 
-public sealed class FSBattleTranceHudSystem : EntitySystem
+public sealed partial class FSBattleTranceHudSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSBattleTranceHudOverlay? _overlay;
 

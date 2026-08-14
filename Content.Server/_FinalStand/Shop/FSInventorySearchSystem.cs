@@ -17,10 +17,10 @@ public enum CarryKind : byte
 /// <param name="Where">Hand name for <see cref="CarryKind.Hand"/>, slot id for <see cref="CarryKind.Equipped"/>.</param>
 public readonly record struct CarriedItem(EntityUid Uid, CarryKind Kind, string Where);
 
-public sealed class FSInventorySearchSystem : EntitySystem
+public sealed partial class FSInventorySearchSystem : EntitySystem
 {
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     /// <summary>Every carried item matching <paramref name="protoIds"/>, in hand then slot then backpack order.</summary>
     public void Collect(EntityUid player, IReadOnlySet<string> protoIds, List<CarriedItem> results,

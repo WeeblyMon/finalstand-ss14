@@ -13,12 +13,12 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Science;
 
 // Restricts FSScienceOnlyComponent-tagged items to Science department members, mirrors FSRCDEngineerOnlySystem.
-public sealed class FSScienceOnlySystem : EntitySystem
+public sealed partial class FSScienceOnlySystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedRoleSystem _roles = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedRoleSystem _roles = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     private static readonly ProtoId<DepartmentPrototype> ScienceDept = "Science";
 

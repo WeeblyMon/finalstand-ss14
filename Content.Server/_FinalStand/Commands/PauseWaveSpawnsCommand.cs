@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Round)]
-public sealed class PauseWaveSpawnsCommand : LocalizedEntityCommands
+public sealed partial class PauseWaveSpawnsCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
 
     public override string Command => "pausewavespawns";
 

@@ -11,11 +11,11 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Perks;
 
 // Owns (ActorComponent, DamageModifyEvent) — handles Untouchable and FieldMedic.
-public sealed class FSPlayerDamageModifySystem : EntitySystem
+public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     private static readonly TimeSpan ChargeReloadTime = TimeSpan.FromSeconds(30);
 

@@ -7,11 +7,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSWeaponRechargeAudioSystem : EntitySystem
+public sealed partial class FSWeaponRechargeAudioSystem : EntitySystem
 {
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedBatterySystem _battery = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
 
     public override void Update(float frameTime)
     {

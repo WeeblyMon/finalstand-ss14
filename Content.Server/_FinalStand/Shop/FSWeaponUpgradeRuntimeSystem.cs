@@ -9,14 +9,14 @@ using Content.Shared.Weapons.Ranged.Events;
 
 namespace Content.Server._FinalStand.Shop;
 
-public sealed class FSWeaponUpgradeRuntimeSystem : EntitySystem
+public sealed partial class FSWeaponUpgradeRuntimeSystem : EntitySystem
 {
-    [Dependency] private readonly OverchargeShotUpgradeSystem _overcharge = default!;
-    [Dependency] private readonly PelletCountUpgradeSystem _pelletCount = default!;
-    [Dependency] private readonly FlechetteRoundsUpgradeSystem _flechette = default!;
-    [Dependency] private readonly MagEfficiencyUpgradeSystem _magEfficiency = default!;
-    [Dependency] private readonly OverloadRoundUpgradeSystem _overloadRound = default!;
-    [Dependency] private readonly MultishotUpgradeSystem _multishot = default!;
+    [Dependency] private OverchargeShotUpgradeSystem _overcharge = default!;
+    [Dependency] private PelletCountUpgradeSystem _pelletCount = default!;
+    [Dependency] private FlechetteRoundsUpgradeSystem _flechette = default!;
+    [Dependency] private MagEfficiencyUpgradeSystem _magEfficiency = default!;
+    [Dependency] private OverloadRoundUpgradeSystem _overloadRound = default!;
+    [Dependency] private MultishotUpgradeSystem _multishot = default!;
 
     public override void Initialize()
     {

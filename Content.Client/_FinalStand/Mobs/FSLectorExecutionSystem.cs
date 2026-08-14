@@ -3,10 +3,10 @@ using Robust.Client.Player;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSLectorExecutionSystem : EntitySystem
+public sealed partial class FSLectorExecutionSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
+    [Dependency] private IPlayerManager _player = default!;
 
     private FSLectorExecutionOverlay? _overlay;
 

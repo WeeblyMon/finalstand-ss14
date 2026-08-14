@@ -13,10 +13,10 @@ using Robust.Shared.Maths;
 
 namespace Content.Client._FinalStand.Leveling;
 
-public sealed class FSXpHudController : UIController
+public sealed partial class FSXpHudController : UIController
 {
-    [Dependency] private readonly IResourceCache _cache = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private IResourceCache _cache = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private FSLevelingUpdatedEvent? _cached;
 

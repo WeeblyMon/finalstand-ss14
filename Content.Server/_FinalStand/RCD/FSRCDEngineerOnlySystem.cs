@@ -10,12 +10,12 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.RCD;
 
-public sealed class FSRCDEngineerOnlySystem : EntitySystem
+public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedRoleSystem _roles = default!;
-    [Dependency] private readonly SharedPopupSystem _popup = default!;
-    [Dependency] private readonly IPrototypeManager _proto = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedRoleSystem _roles = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     private static readonly ProtoId<DepartmentPrototype> EngineeringDept = "Engineering";
 

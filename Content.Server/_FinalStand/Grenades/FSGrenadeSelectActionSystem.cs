@@ -5,10 +5,10 @@ using Robust.Shared.Containers;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSGrenadeSelectActionSystem : EntitySystem
+public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
 {
-    [Dependency] private readonly SharedActionsSystem _actions = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
 
     public override void Initialize()
     {

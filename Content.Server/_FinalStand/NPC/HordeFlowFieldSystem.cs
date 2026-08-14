@@ -11,11 +11,11 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Server._FinalStand.NPC;
 
-public sealed class HordeFlowFieldSystem : EntitySystem
+public sealed partial class HordeFlowFieldSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMapSystem _mapSystem = default!;
-    [Dependency] private readonly TurfSystem _turf = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private readonly HashSet<(EntityUid, Vector2i)> _reachable = new();
     private readonly Queue<Vector2i> _frontier = new();

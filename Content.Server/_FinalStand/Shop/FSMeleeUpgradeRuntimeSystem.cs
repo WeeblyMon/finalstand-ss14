@@ -23,18 +23,18 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Shop;
 
 // melee upgrade effects; all on directed (FSWeaponUpgradeStateComponent, MeleeHitEvent) — undirected MeleeHitEvent is dead
-public sealed class FSMeleeUpgradeRuntimeSystem : EntitySystem
+public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly StaminaSystem _stamina = default!;
-    [Dependency] private readonly FlammableSystem _flammable = default!;
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly CritSystem _crit = default!;
-    [Dependency] private readonly FSStunOverrideSystem _fsStun = default!;
-    [Dependency] private readonly PopupSystem _popup = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private StaminaSystem _stamina = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private CritSystem _crit = default!;
+    [Dependency] private FSStunOverrideSystem _fsStun = default!;
+    [Dependency] private PopupSystem _popup = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 

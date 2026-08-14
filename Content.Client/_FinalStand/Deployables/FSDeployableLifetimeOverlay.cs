@@ -9,11 +9,11 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableLifetimeOverlay : Overlay
+public sealed partial class FSDeployableLifetimeOverlay : Overlay
 {
-    [Dependency] private readonly IEntityManager _entMan    = default!;
-    [Dependency] private readonly IResourceCache _resources = default!;
-    [Dependency] private readonly IGameTiming    _timing    = default!;
+    [Dependency] private IEntityManager _entMan    = default!;
+    [Dependency] private IResourceCache _resources = default!;
+    [Dependency] private IGameTiming    _timing    = default!;
 
     private Font?                  _font;
     private SharedTransformSystem? _xformSys;

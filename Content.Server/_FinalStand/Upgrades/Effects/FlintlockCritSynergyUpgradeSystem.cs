@@ -13,11 +13,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class FlintlockCritSynergyUpgradeSystem : EntitySystem
+public sealed partial class FlintlockCritSynergyUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly CritSystem _crit = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private CritSystem _crit = default!;
 
     private const float CritMultiplier = 1.5f;
     private static readonly TimeSpan ExpiryCleanupInterval = TimeSpan.FromSeconds(1);

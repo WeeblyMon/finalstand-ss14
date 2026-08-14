@@ -13,13 +13,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.SmartReload;
 
-public sealed class FSSmartReloadInputSystem : EntitySystem
+public sealed partial class FSSmartReloadInputSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _gameTiming = default!;
-    [Dependency] private readonly HandsSystem _hands = default!;
-    [Dependency] private readonly IInputManager _inputManager = default!;
-    [Dependency] private readonly IEyeManager _eyeManager = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _gameTiming = default!;
+    [Dependency] private HandsSystem _hands = default!;
+    [Dependency] private IInputManager _inputManager = default!;
+    [Dependency] private IEyeManager _eyeManager = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 

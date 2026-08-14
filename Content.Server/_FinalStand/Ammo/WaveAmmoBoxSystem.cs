@@ -12,13 +12,13 @@ using Robust.Shared.Containers;
 
 namespace Content.Server._FinalStand.Ammo;
 
-public sealed class WaveAmmoBoxSystem : EntitySystem
+public sealed partial class WaveAmmoBoxSystem : EntitySystem
 {
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly FSRiotShieldSystem _riotShield = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private FSRiotShieldSystem _riotShield = default!;
 
     public override void Initialize()
     {

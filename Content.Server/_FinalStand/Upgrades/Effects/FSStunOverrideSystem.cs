@@ -6,11 +6,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class FSStunOverrideSystem : EntitySystem
+public sealed partial class FSStunOverrideSystem : EntitySystem
 {
-    [Dependency] private readonly SharedStunSystem _stun = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedStunSystem _stun = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<TagPrototype> StunImmuneTag = "StunImmune";
 

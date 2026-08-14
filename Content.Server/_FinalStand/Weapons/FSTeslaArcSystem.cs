@@ -12,12 +12,12 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSTeslaArcSystem : EntitySystem
+public sealed partial class FSTeslaArcSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string BeamSegment = "FSTeslaGunBeamSegment";
     private const string HitEffect = "FSTeslaGunHitEffect";

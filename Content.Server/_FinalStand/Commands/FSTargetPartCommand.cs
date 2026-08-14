@@ -7,9 +7,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSTargetPartCommand : IConsoleCommand
+public sealed partial class FSTargetPartCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "targetpart";
     public string Description => "Set which body part you are aiming at, without needing the targeting doll.";

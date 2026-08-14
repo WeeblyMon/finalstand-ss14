@@ -5,10 +5,10 @@ using Content.Shared.Research.Components;
 
 namespace Content.Server._FinalStand.Research;
 
-public sealed class FSResearchDiskSystem : EntitySystem
+public sealed partial class FSResearchDiskSystem : EntitySystem
 {
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly FSResearchSystem _research = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private FSResearchSystem _research = default!;
 
     public override void Initialize()
     {

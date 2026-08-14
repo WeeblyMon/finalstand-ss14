@@ -4,9 +4,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Upgrades.Effects;
 
-public sealed class FSFlintlockCritGlowSystem : EntitySystem
+public sealed partial class FSFlintlockCritGlowSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     private static readonly Color GlowColor = new(1f, 0.35f, 0.35f);
     private static readonly Color ClearColor = Color.White;

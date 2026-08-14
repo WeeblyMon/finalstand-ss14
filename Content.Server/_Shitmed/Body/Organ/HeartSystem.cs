@@ -14,10 +14,10 @@ using Content.Server._Shitmed.DelayedDeath;
 
 namespace Content.Server._Shitmed.Body.Organ;
 
-public sealed class HeartSystem : EntitySystem
+public sealed partial class HeartSystem : EntitySystem
 {
-    [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedBodyAppearanceSystem _bodySystem = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private SharedBodyAppearanceSystem _bodySystem = default!;
     public override void Initialize()
     {
         base.Initialize();

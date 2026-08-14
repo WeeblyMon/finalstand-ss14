@@ -30,9 +30,9 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     public Action? OnClearPersonalPick;
     public Action? OnClearSharedPick;
 
-    [Dependency] private readonly IEntityManager _entity = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IEntityManager _entity = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     private readonly ResearchSystem _research;
     private readonly FSResearchClientSystem _fsResearch;

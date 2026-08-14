@@ -23,16 +23,16 @@ namespace Content.Server._FinalStand.SmartReload;
 
 public sealed partial class FSSmartReloadSystem : EntitySystem
 {
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly SharedGunSystem _gunSystem = default!;
-    [Dependency] private readonly ItemSlotsSystem _slots = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelist = default!;
-    [Dependency] private readonly SharedDoAfterSystem _doAfter = default!;
-    [Dependency] private readonly SharedStorageSystem _storage = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedGunSystem _gunSystem = default!;
+    [Dependency] private ItemSlotsSystem _slots = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private SharedStorageSystem _storage = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     // Tracks active shell-insert do-afters per gun (for cleanup bookkeeping).
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();

@@ -11,10 +11,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSRadiationMarkSystem : EntitySystem
+public sealed partial class FSRadiationMarkSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float MarkDurationSeconds = 3f;
 

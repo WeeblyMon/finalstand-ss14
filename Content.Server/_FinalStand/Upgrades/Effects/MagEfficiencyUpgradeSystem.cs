@@ -7,10 +7,10 @@ using Robust.Shared.Random;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // proc chance per shot to refund the energy cost; battery must be directly on the gun entity
-public sealed class MagEfficiencyUpgradeSystem : EntitySystem
+public sealed partial class MagEfficiencyUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly SharedBatterySystem _battery = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
 
     public override void Initialize()
     {

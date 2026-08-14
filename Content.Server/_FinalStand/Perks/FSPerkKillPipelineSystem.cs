@@ -15,9 +15,9 @@ public readonly record struct FSZombieKilledByPlayerEvent(
     EntityUid MindId,
     FSPerkLevelsComponent Perks);
 
-public sealed class FSPerkKillPipelineSystem : EntitySystem
+public sealed partial class FSPerkKillPipelineSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {

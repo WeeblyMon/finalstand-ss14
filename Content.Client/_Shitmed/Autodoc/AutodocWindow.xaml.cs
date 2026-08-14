@@ -29,10 +29,10 @@ namespace Content.Client._Shitmed.Autodoc;
 public sealed partial class AutodocWindow : FancyWindow
 {
     private IEntityManager _entMan = default!;
-    [Dependency] private readonly IFileDialogManager _dialogMan = default!;
+    [Dependency] private IFileDialogManager _dialogMan = default!;
     private IPlayerManager _player = default!;
-    [Dependency] private readonly ISerializationManager _serMan = default!;
-    [Dependency] private readonly ILogManager _logMan = default!;
+    [Dependency] private ISerializationManager _serMan = default!;
+    [Dependency] private ILogManager _logMan = default!;
     private SharedAutodocSystem _autodoc;
 
     private EntityUid _owner;

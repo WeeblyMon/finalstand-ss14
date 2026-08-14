@@ -13,10 +13,10 @@ namespace Content.Server._FinalStand.Perks;
 // FSZombieVisualsComponent, since that component already holds its own directed
 // (FSZombieVisualsComponent, MobStateChangedEvent) subscription for visual-stage tracking and
 // Robust Toolbox allows only one directed subscriber per (component, event) pair.
-public sealed class FSProfiteerKillSystem : EntitySystem
+public sealed partial class FSProfiteerKillSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
 
     public override void Initialize()
     {

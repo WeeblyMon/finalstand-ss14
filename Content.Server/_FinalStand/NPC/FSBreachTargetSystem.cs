@@ -27,15 +27,15 @@ namespace Content.Server._FinalStand.NPC;
 // the actual "which structure and how good is it" work to FSBreachEvaluator — that logic is
 // shared identically by stall and maze modes, so it doesn't split along the same lines as this
 // dispatch logic does.
-public sealed class FSBreachTargetSystem : EntitySystem
+public sealed partial class FSBreachTargetSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly HTNSystem _htn = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSBreachEvaluator _evaluator = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private HTNSystem _htn = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSBreachEvaluator _evaluator = default!;
 
     private const float TickInterval = 0.1f;
     private float _accumulator;

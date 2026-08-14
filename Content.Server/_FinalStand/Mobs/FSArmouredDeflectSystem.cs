@@ -15,14 +15,14 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSArmouredDeflectSystem : EntitySystem
+public sealed partial class FSArmouredDeflectSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PointLightSystem _pointLight = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedExplosionSystem _explosion = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private PointLightSystem _pointLight = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedExplosionSystem _explosion = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     public override void Initialize()
     {

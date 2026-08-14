@@ -20,10 +20,10 @@ public sealed partial class FSOverchargeBoltComponent : Component
 }
 
 // every 3rd shot replaces the normal spread with a big plasma bolt that bursts into a forward shard cone on hit
-public sealed class OverchargeShotUpgradeSystem : EntitySystem
+public sealed partial class OverchargeShotUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
     private const string BoltProto = "FSOverchargeBolt";
     private const string ShardProto = "FSOverchargeShard";

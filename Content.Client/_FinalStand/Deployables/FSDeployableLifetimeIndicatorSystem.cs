@@ -2,9 +2,9 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableLifetimeIndicatorSystem : EntitySystem
+public sealed partial class FSDeployableLifetimeIndicatorSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSDeployableLifetimeOverlay? _overlay;
 

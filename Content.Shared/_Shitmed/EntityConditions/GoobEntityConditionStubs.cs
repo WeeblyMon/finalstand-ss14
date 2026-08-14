@@ -103,7 +103,7 @@ public sealed partial class TypedDamageThresholdSystem : EntityConditionSystem<D
 
 public sealed partial class HasComponentOnEquipmentConditionSystem : EntityConditionSystem<BloodstreamComponent, HasComponentOnEquipmentCondition>
 {
-    [Dependency] private readonly InventorySystem _inventory = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     protected override void Condition(Entity<BloodstreamComponent> entity, ref EntityConditionEvent<HasComponentOnEquipmentCondition> args)
     {

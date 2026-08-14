@@ -7,15 +7,15 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Perks;
 
 // Owns (FSCargonianBodyComponent, RefreshMovementSpeedModifiersEvent) — counters pulling drag penalty.
-public sealed class FSCargonianSystem : EntitySystem
+public sealed partial class FSCargonianSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private static readonly float[] Counters = [1.018f, 1.034f, 1.053f, 1.053f];
     private static readonly TimeSpan SyncInterval = TimeSpan.FromSeconds(3);
 
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private TimeSpan _nextSync;
 
     public override void Initialize()

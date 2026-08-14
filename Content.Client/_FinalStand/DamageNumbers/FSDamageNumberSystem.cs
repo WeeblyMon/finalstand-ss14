@@ -6,10 +6,10 @@ using Robust.Shared.Random;
 
 namespace Content.Client._FinalStand.DamageNumbers;
 
-public sealed class FSDamageNumberSystem : EntitySystem
+public sealed partial class FSDamageNumberSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     private FSDamageNumberOverlay? _numberOverlay;
     private FSRevealedHealthBarOverlay? _hpBarOverlay;

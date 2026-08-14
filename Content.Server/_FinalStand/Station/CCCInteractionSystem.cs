@@ -15,16 +15,16 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Station;
 
-public sealed class CCCInteractionSystem : EntitySystem
+public sealed partial class CCCInteractionSystem : EntitySystem
 {
-    [Dependency] private readonly WaveGameRuleSystem _waveRule = default!;
-    [Dependency] private readonly ReadyCheckSystem _readyCheck = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
-    [Dependency] private readonly IChatManager _chatManager = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedJobSystem _jobs = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private ReadyCheckSystem _readyCheck = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const int BroadcastMaxLength = 500;
     private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);

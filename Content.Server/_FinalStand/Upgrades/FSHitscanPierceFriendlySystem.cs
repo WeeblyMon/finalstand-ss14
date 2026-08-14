@@ -15,11 +15,11 @@ namespace Content.Server._FinalStand.Upgrades;
 // Pre-pass: damages pierce targets and adds them to skip list before HitscanBasicRaycastSystem runs.
 // HitscanBasicRaycastSystem's filter then skips those targets and draws one beam to the final hit.
 // Friendly pass-through is handled entirely inside HitscanBasicRaycastSystem's filter.
-public sealed class FSHitscanPierceFriendlySystem : EntitySystem
+public sealed partial class FSHitscanPierceFriendlySystem : EntitySystem
 {
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<WaveSpawnedTagComponent> _waveQuery;

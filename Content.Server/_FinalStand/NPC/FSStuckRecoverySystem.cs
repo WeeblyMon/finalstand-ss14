@@ -14,15 +14,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-public sealed class FSStuckRecoverySystem : EntitySystem
+public sealed partial class FSStuckRecoverySystem : EntitySystem
 {
-    [Dependency] private readonly HordeFlowFieldSystem _flow = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private HordeFlowFieldSystem _flow = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince);
     private readonly Dictionary<EntityUid, StuckState> _state = new();

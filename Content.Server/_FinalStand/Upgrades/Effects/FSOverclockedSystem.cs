@@ -5,10 +5,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class FSOverclockedSystem : EntitySystem
+public sealed partial class FSOverclockedSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {

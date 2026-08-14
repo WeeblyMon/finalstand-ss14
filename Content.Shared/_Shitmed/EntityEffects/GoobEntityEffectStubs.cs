@@ -72,7 +72,7 @@ public sealed partial class NitriumMovespeedModifier : EntityEffectBase<NitriumM
 
 public sealed partial class NitriumMovespeedModifierSystem : EntityEffectSystem<MovementSpeedModifierComponent, NitriumMovespeedModifier>
 {
-    [Dependency] private readonly MovementModStatusSystem _movementMod = default!;
+    [Dependency] private MovementModStatusSystem _movementMod = default!;
 
     protected override void Effect(Entity<MovementSpeedModifierComponent> entity, ref EntityEffectEvent<NitriumMovespeedModifier> args)
     {

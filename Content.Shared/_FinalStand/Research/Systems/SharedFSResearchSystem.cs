@@ -6,9 +6,9 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Research.Systems;
 
 // Base for the server FSResearchSystem - shared logic so client and server can't drift.
-public abstract class SharedFSResearchSystem : EntitySystem
+public abstract partial class SharedFSResearchSystem : EntitySystem
 {
-    [Dependency] protected readonly IPrototypeManager PrototypeManager = default!;
+    [Dependency] protected IPrototypeManager PrototypeManager = default!;
 
     public bool ArePrerequisitesMet(FSTechNodePrototype node, Func<string, bool> isUnlocked)
     {

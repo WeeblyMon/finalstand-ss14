@@ -15,13 +15,13 @@ using Robust.Shared.Map;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // on kill, excess damage (damage dealt beyond remaining HP) transfers to the nearest enemy within range
-public sealed class OverkillUpgradeSystem : EntitySystem
+public sealed partial class OverkillUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

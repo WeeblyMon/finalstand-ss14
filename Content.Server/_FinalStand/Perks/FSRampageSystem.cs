@@ -13,13 +13,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSRampageSystem : EntitySystem
+public sealed partial class FSRampageSystem : EntitySystem
 {
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly FSPerkNotifySystem _notify = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSPerkNotifySystem _notify = default!;
 
     private static readonly TimeSpan StackDecayInterval = TimeSpan.FromSeconds(2);
 

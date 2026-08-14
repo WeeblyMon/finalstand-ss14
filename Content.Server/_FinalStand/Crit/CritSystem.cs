@@ -10,11 +10,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Crit;
 
-public sealed class CritSystem : EntitySystem
+public sealed partial class CritSystem : EntitySystem
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly FSZombieRetaliationSystem _retaliation = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private FSZombieRetaliationSystem _retaliation = default!;
+    [Dependency] private IGameTiming _timing = default!;
     private readonly HashSet<(EntityUid, EntityUid)> _pendingCrits = [];
 
     public override void Initialize()

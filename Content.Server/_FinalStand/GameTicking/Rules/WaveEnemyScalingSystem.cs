@@ -10,10 +10,10 @@ using Content.Shared.Movement.Systems;
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 // Scales a wave enemy's HP, speed, damage and fire rate by wave number (and, for damage, player count).
-public sealed class WaveEnemyScalingSystem : EntitySystem
+public sealed partial class WaveEnemyScalingSystem : EntitySystem
 {
-    [Dependency] private readonly MobThresholdSystem _mobThresholds = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movementSpeed = default!;
+    [Dependency] private MobThresholdSystem _mobThresholds = default!;
+    [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
 
     public void ScaleEnemyHp(EntityUid enemy, int wave)
     {

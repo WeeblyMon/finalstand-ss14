@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSGiveResearchPointsCommand : IConsoleCommand
+public sealed partial class FSGiveResearchPointsCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private IEntityManager _entMan = default!;
 
     public string Command => "fsgiverp";
     public string Description => "DEBUG: grant SCI research points (station-wide, feeds the active node or banks if none selected).";

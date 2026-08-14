@@ -8,9 +8,9 @@ using Robust.Shared.ContentPack;
 
 namespace Content.Server._FinalStand.Economy;
 
-public sealed class FSPlayerDataStore : EntitySystem
+public sealed partial class FSPlayerDataStore : EntitySystem
 {
-    [Dependency] private readonly IResourceManager _res = default!;
+    [Dependency] private IResourceManager _res = default!;
 
     private SqliteConnection? _db;
     private SqliteTransaction? _activeTx;

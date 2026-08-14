@@ -8,11 +8,11 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSFireProjectileSystem : EntitySystem
+public sealed partial class FSFireProjectileSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly FlammableSystem _flammable = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float HitRadius = 0.5f;
 

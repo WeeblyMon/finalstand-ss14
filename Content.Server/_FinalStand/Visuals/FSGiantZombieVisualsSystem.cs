@@ -14,12 +14,12 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Visuals;
 
-public sealed class FSGiantZombieVisualsSystem : EntitySystem
+public sealed partial class FSGiantZombieVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly FlammableSystem _flammable = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
 
     public override void Initialize()
     {

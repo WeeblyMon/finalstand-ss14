@@ -11,12 +11,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Sprint;
 
-public sealed class FSSprintHudSystem : EntitySystem
+public sealed partial class FSSprintHudSystem : EntitySystem
 {
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IBaseClient _client = default!;
-    [Dependency] private readonly IUserInterfaceManager _uiManager = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IBaseClient _client = default!;
+    [Dependency] private IUserInterfaceManager _uiManager = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     private Label? _staminaLabel;
     private Font? _font;

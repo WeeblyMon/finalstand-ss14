@@ -21,14 +21,14 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._Shitmed.Cybernetics;
 
-internal sealed class CyberneticsSystem : EntitySystem
+internal sealed partial class CyberneticsSystem : EntitySystem
 {
-    [Dependency] private readonly OrganLookupSystem _lookup = default!;
-    [Dependency] private readonly IPrototypeManager _prototypes = default!;
+    [Dependency] private OrganLookupSystem _lookup = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly ProtoId<DamageTypePrototype> ShockDamageType = "Shock";
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedBodyAppearanceSystem _body = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedBodyAppearanceSystem _body = default!;
     public override void Initialize()
     {
         SubscribeLocalEvent<CyberneticsComponent, EmpPulseEvent>(OnEmpPulse);

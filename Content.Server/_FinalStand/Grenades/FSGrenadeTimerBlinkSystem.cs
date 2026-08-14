@@ -4,10 +4,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSGrenadeTimerBlinkSystem : EntitySystem
+public sealed partial class FSGrenadeTimerBlinkSystem : EntitySystem
 {
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan BlinkInterval = TimeSpan.FromSeconds(0.35);
 

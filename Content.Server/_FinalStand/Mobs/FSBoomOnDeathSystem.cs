@@ -21,15 +21,15 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSBoomOnDeathSystem : EntitySystem
+public sealed partial class FSBoomOnDeathSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly FSDamageVulnerabilitySystem _vulnerability = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MovementSpeedModifierSystem _movement = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float ProximityInterval = 0.25f;
 

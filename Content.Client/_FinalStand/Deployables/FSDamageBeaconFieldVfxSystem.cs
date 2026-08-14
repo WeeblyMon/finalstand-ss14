@@ -7,10 +7,10 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Deployables;
 
 // Drives the Damage Beacon's floor-effect animation off Update() polling every tick, deriving state from the server-stamped SpawnedAt timestamp.
-public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
+public sealed partial class FSDamageBeaconFieldVfxSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float ActivateDuration = 0.08f * 7f;
     private const float PulseSpeed = 2f;

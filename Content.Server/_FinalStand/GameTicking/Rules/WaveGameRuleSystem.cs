@@ -28,16 +28,16 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 
 public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComponent>
 {
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly FSCorpseCleanupSystem _corpseCleaner = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedJobSystem _jobs = default!;
-    [Dependency] private readonly FSFriendlyFireSystem _friendlyFire = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
-    [Dependency] private readonly WaveEnemySpawningSystem _spawning = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSCorpseCleanupSystem _corpseCleaner = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private FSFriendlyFireSystem _friendlyFire = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private WaveEnemySpawningSystem _spawning = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 

@@ -7,9 +7,9 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.DamageNumbers;
 
-public sealed class FSDamageNumberOverlay : Overlay
+public sealed partial class FSDamageNumberOverlay : Overlay
 {
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     private Font? _fontNormal;
 

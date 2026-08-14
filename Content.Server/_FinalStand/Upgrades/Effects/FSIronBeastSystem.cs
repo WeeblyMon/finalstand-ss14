@@ -8,10 +8,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class FSIronBeastSystem : EntitySystem
+public sealed partial class FSIronBeastSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MobThresholdSystem _thresholds = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
 
     public override void Initialize()
     {

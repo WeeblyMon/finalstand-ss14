@@ -6,12 +6,12 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Grenades;
 
-public sealed class FSClusterOnTriggerSystem : XOnTriggerSystem<FSClusterOnTriggerComponent>
+public sealed partial class FSClusterOnTriggerSystem : XOnTriggerSystem<FSClusterOnTriggerComponent>
 {
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly ThrowingSystem _throwing = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
-    [Dependency] private readonly TriggerSystem _trigger = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private TriggerSystem _trigger = default!;
 
     protected override void OnTrigger(Entity<FSClusterOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {

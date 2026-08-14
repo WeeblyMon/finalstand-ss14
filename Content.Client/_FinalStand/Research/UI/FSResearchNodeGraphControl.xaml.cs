@@ -29,9 +29,9 @@ namespace Content.Client._FinalStand.Research.UI;
 [GenerateTypedNameReferences]
 public sealed partial class FSResearchNodeGraphControl : BoxContainer
 {
-    [Dependency] private readonly IEntityManager _entityManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
+    [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     private readonly FSResearchClientSystem _fsResearch;
     private readonly SpriteSystem _sprite;

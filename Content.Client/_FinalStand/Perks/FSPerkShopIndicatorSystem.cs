@@ -2,9 +2,9 @@
 
 namespace Content.Client._FinalStand.Perks;
 
-public sealed class FSPerkShopIndicatorSystem : EntitySystem
+public sealed partial class FSPerkShopIndicatorSystem : EntitySystem
 {
-    [Dependency] private readonly IOverlayManager _overlayManager = default!;
+    [Dependency] private IOverlayManager _overlayManager = default!;
 
     private FSPerkShopIndicatorOverlay? _overlay;
 

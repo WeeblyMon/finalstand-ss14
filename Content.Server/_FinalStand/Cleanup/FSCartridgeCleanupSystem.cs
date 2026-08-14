@@ -4,9 +4,9 @@ using Robust.Shared.Containers;
 
 namespace Content.Server._FinalStand.Cleanup;
 
-public sealed class FSCartridgeCleanupSystem : EntitySystem
+public sealed partial class FSCartridgeCleanupSystem : EntitySystem
 {
-    [Dependency] private readonly SharedContainerSystem _containers = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
 
     private const int MaxCasings = 200;
     private const float ScanInterval = 5f;

@@ -6,9 +6,9 @@ using Robust.Shared.Console;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSWalletCommand : LocalizedEntityCommands
+public sealed partial class FSWalletCommand : LocalizedEntityCommands
 {
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
 
     public override string Command => "fswallet";
     public override string Description => "DEBUG: dump all player wallet states (credits + prestige points)";

@@ -12,13 +12,13 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // steers bolts carrying FSHomingProjectileComponent toward the nearest enemy every tick, turning at most
 // TurnRateDegrees per second so higher HomingBolts levels curve in tighter/faster
-public sealed class FSHomingProjectileSystem : EntitySystem
+public sealed partial class FSHomingProjectileSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
-    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(

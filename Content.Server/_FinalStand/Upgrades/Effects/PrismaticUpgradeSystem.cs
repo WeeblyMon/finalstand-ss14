@@ -14,13 +14,13 @@ using Robust.Shared.Random;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // on hit, proc chance to fire 3 beams toward random nearby enemies; beams deal 40% damage, no secondaries
-public sealed class PrismaticUpgradeSystem : EntitySystem
+public sealed partial class PrismaticUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _entSetPool =

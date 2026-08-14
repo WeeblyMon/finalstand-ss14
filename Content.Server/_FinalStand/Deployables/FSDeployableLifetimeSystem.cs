@@ -3,9 +3,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSDeployableLifetimeSystem : EntitySystem
+public sealed partial class FSDeployableLifetimeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {

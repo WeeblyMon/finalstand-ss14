@@ -25,9 +25,9 @@ namespace Content.Shared.Body.Systems;
 [UsedImplicitly]
 public sealed partial class BloodstreamSystem
 {
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly WoundSystem _wound = default!;
-    [Dependency] private readonly ConsciousnessSystem _consciousness = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private WoundSystem _wound = default!;
+    [Dependency] private ConsciousnessSystem _consciousness = default!;
 
     private void InitializeWounds()
     {

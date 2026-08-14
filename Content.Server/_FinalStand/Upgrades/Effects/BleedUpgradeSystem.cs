@@ -10,11 +10,11 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // slash DOT that refreshes on each hit; ticks every 0.5s so damage numbers show real values
-public sealed class BleedUpgradeSystem : EntitySystem
+public sealed partial class BleedUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     private const string TourniquetContainerId = "Tourniquet";
 

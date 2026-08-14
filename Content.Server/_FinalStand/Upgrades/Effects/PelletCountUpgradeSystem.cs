@@ -12,10 +12,10 @@ using Robust.Shared.Random;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // spawns extra pellets each shot; also called by FlechetteRoundsUpgradeSystem for the doubled set
-public sealed class PelletCountUpgradeSystem : EntitySystem
+public sealed partial class PelletCountUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private IRobustRandom _random = default!;
 
     public void HandleAmmoShot(EntityUid uid, FSWeaponUpgradeStateComponent state, AmmoShotEvent args)
     {

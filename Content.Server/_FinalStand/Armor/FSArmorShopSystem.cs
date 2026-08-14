@@ -11,14 +11,14 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Armor;
 
-public sealed class FSArmorShopSystem : EntitySystem
+public sealed partial class FSArmorShopSystem : EntitySystem
 {
     private static readonly ProtoId<TagPrototype> ArmorTierItemTag = "FSArmorTierItem";
-    [Dependency] private readonly FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
-    [Dependency] private readonly UserInterfaceSystem _ui = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
 
     // mindId → purchased tier ID; persists across respawns
     private readonly Dictionary<EntityUid, string> _purchasedTier = new();

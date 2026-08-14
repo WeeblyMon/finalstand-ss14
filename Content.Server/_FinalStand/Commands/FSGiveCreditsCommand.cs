@@ -8,10 +8,10 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.Commands;
 
 [AdminCommand(AdminFlags.Debug)]
-public sealed class FSGiveCreditsCommand : IConsoleCommand
+public sealed partial class FSGiveCreditsCommand : IConsoleCommand
 {
-    [Dependency] private readonly IEntityManager _entMan = default!;
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
+    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private ISharedPlayerManager _playerManager = default!;
 
     public string Command => "fsgive";
     public string Description => "DEBUG: give credits to yourself or a named player.";

@@ -21,16 +21,16 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Shop;
 
-public sealed class FSShopClientSystem : EntitySystem
+public sealed partial class FSShopClientSystem : EntitySystem
 {
-    [Dependency] private readonly IBaseClient _client = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IPlayerManager _player = default!;
-    [Dependency] private readonly IResourceCache _resourceCache = default!;
-    [Dependency] private readonly SpriteSystem _sprite = default!;
-    [Dependency] private readonly SharedHandsSystem _hands = default!;
-    [Dependency] private readonly InventorySystem _inventory = default!;
-    [Dependency] private readonly TagSystem _tags = default!;
+    [Dependency] private IBaseClient _client = default!;
+    [Dependency] private IPrototypeManager _prototypeManager = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private TagSystem _tags = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
 

@@ -6,9 +6,9 @@ using Content.Shared.Atmos.Components;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-public sealed class SetOnFireUpgradeSystem : EntitySystem
+public sealed partial class SetOnFireUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly FlammableSystem _flammable = default!;
+    [Dependency] private FlammableSystem _flammable = default!;
 
     public override void Initialize()
     {

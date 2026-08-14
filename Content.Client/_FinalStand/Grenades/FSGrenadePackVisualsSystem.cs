@@ -4,9 +4,9 @@ using Robust.Shared.Analyzers;
 
 namespace Content.Client._FinalStand.Grenades;
 
-public sealed class FSGrenadePackVisualsSystem : EntitySystem
+public sealed partial class FSGrenadePackVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public override void Initialize()
     {

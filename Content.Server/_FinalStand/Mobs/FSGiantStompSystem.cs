@@ -17,16 +17,16 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSGiantStompSystem : EntitySystem
+public sealed partial class FSGiantStompSystem : EntitySystem
 {
-    [Dependency] private readonly DamageableSystem _damageable = default!;
-    [Dependency] private readonly EntityLookupSystem _lookup = default!;
-    [Dependency] private readonly ExplosionSystem _explosion = default!;
-    [Dependency] private readonly KnockbackUpgradeSystem _knockback = default!;
-    [Dependency] private readonly MobStateSystem _mobState = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedCameraRecoilSystem _recoil = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private ExplosionSystem _explosion = default!;
+    [Dependency] private KnockbackUpgradeSystem _knockback = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedCameraRecoilSystem _recoil = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string StompExplosionProto = "FSGiantStompExplosion";
 

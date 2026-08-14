@@ -6,10 +6,10 @@ using Content.Shared.Weapons.Ranged.Systems;
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // on hit, fires 3 splinters forward through the target in a cone for 40% damage each
-public sealed class SplinterImpactUpgradeSystem : EntitySystem
+public sealed partial class SplinterImpactUpgradeSystem : EntitySystem
 {
-    [Dependency] private readonly SharedGunSystem _gun = default!;
-    [Dependency] private readonly SharedTransformSystem _xform = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
 
     private const int SplinterCount = 3;
     private const float SplinterConeHalfAngle = 0.26f; // ~15 degrees each side = 30 degree cone

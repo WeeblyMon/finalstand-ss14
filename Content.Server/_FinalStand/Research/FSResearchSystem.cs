@@ -20,13 +20,13 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Research;
 
 // Owns the server-wide research singleton: node selection, RP accumulation, and completion.
-public sealed class FSResearchSystem : SharedFSResearchSystem
+public sealed partial class FSResearchSystem : SharedFSResearchSystem
 {
-    [Dependency] private readonly PopupSystem _popup = default!;
-    [Dependency] private readonly SharedMindSystem _mind = default!;
-    [Dependency] private readonly SharedJobSystem _jobs = default!;
-    [Dependency] private readonly SharedMaterialStorageSystem _materials = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private SharedMaterialStorageSystem _materials = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
 
     private const string ResearchDirectorJob = "ResearchDirector";
     private const string CaptainJob = "Captain";
