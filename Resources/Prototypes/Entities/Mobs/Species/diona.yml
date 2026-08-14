@@ -46,12 +46,14 @@
   id: BaseMobDiona
   abstract: true
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Diona
-  - type: Hunger
-    baseDecayRate: 0.0083
-  - type: Thirst
-    baseDecayRate: 0.0083
+  - type: Satiation
+    satiations:
+      Hunger:
+        prototype: DionaHunger
+      Thirst:
+        prototype: DionaThirst
   - type: Icon
     sprite: Mobs/Species/Diona/parts.rsi
     state: full
@@ -171,7 +173,7 @@
   id: MobDionaDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Diona
   - type: Inventory
     templateId: diona

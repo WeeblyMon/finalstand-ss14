@@ -32,7 +32,7 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<HandsComponent, DamageModifyEvent>(OnWielderDamageModify);
-        SubscribeLocalEvent<HandsComponent, ModifyChangedTemperatureEvent>(OnWielderTemperatureModify);
+        SubscribeLocalEvent<HandsComponent, BeforeHeatExchangeEvent>(OnWielderHeatExchange);
     }
 
     public override void Update(float frameTime)
@@ -74,21 +74,18 @@ public sealed class MeleeFireResistUpgradeSystem : EntitySystem
                 ? regulator.NormalBodyTemperature
                 : Atmospherics.T20C;
 
-            if (temp.CurrentTemperature > normalTemp)
-                _temperature.ForceChangeTemperature(tUid, normalTemp, temp);
+            if (temp.Temperature > normalTemp)
+                _temperature.ChangeHeat((tUid, temp), (normalTemp - temp.Temperature) * temp.HeatCapacity, ignoreHeatResistance: true);
         }
     }
 
-    private void OnWielderTemperatureModify(EntityUid uid, HandsComponent hands, ModifyChangedTemperatureEvent args)
+    private void OnWielderHeatExchange(Entity<HandsComponent> ent, ref BeforeHeatExchangeEvent args)
     {
-        if (args.TemperatureDelta <= 0f)
-            return;
-
-        foreach (var held in _hands.EnumerateHeld((uid, hands)))
+        foreach (var held in _hands.EnumerateHeld((ent.Owner, ent.Comp)))
         {
             if (TryComp<FSWeaponUpgradeStateComponent>(held, out var state) && state.FireDamageResist >= 1f)
             {
-                args.TemperatureDelta = 0f;
+                args.HeatTransferModifier = 0f;
                 return;
             }
         }

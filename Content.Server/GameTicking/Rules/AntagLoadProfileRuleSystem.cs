@@ -32,15 +32,15 @@ public sealed class AntagLoadProfileRuleSystem : GameRuleSystem<AntagLoadProfile
             : HumanoidCharacterProfile.RandomWithSpecies();
 
 
-        if (profile?.Species is not { } speciesId || !Proto.Resolve(speciesId, out var species))
+        if (profile?.Species is not { } speciesId || !ProtoMan.Resolve(speciesId, out var species))
         {
-            species = Proto.Index(SharedHumanoidAppearanceSystem.DefaultSpecies);
+            species = ProtoMan.Index(SharedHumanoidAppearanceSystem.DefaultSpecies);
         }
 
         if (ent.Comp.SpeciesOverride != null
             && (ent.Comp.SpeciesOverrideBlacklist?.Contains(new ProtoId<SpeciesPrototype>(species.ID)) ?? false))
         {
-            species = Proto.Index(ent.Comp.SpeciesOverride.Value);
+            species = ProtoMan.Index(ent.Comp.SpeciesOverride.Value);
         }
 
         args.Entity = Spawn(species.Prototype, args.Coords);

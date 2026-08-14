@@ -33,7 +33,7 @@
       Damaged: 12
       Destroyed: 0  
     onAdd:
-    - type: PressureImmunity
+    - type: PressureImmunityStatusEffect
 
 - type: entity
   parent: [ OrganAnimalHeart, BaseMajorContraband ]

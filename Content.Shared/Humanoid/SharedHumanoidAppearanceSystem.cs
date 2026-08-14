@@ -84,8 +84,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<HumanoidAppearanceComponent, ComponentInit>(OnInit);
-        SubscribeLocalEvent<HumanoidAppearanceComponent, ExaminedEvent>(OnExamined);
+        SubscribeLocalEvent<HumanoidProfileComponent, ComponentInit>(OnInit);
+        SubscribeLocalEvent<HumanoidProfileComponent, ExaminedEvent>(OnExamined);
     }
 
     public DataNode ToDataNode(HumanoidCharacterProfile profile)
@@ -119,7 +119,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         return profile;
     }
 
-    private void OnInit(EntityUid uid, HumanoidAppearanceComponent humanoid, ComponentInit args)
+    private void OnInit(EntityUid uid, HumanoidProfileComponent humanoid, ComponentInit args)
     {
         if (string.IsNullOrEmpty(humanoid.Species) || _netManager.IsClient && !IsClientSide(uid))
         {
@@ -142,7 +142,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
         LoadProfile(uid, startingSet.Profile, humanoid);
     }
 
-    private void OnExamined(EntityUid uid, HumanoidAppearanceComponent component, ExaminedEvent args)
+    private void OnExamined(EntityUid uid, HumanoidProfileComponent component, ExaminedEvent args)
     {
 		// Goob Station - Identity Fix
 		// Fix for incorrect pronouns PR #5999
@@ -168,8 +168,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="ent">Humanoid entity</param>
     /// <param name="layer">Layer to toggle visibility for</param>
     /// <param name="visible">Whether to hide or show the layer. If more than once piece of clothing is hiding the layer, it may remain hidden.</param>
-    /// <param name="source">Equipment slot that has the clothing that is (or was) hiding the layer. If not specified, the change is "permanent" (i.e., see <see cref="HumanoidAppearanceComponent.PermanentlyHidden"/>)</param>
-    public void SetLayerVisibility(Entity<HumanoidAppearanceComponent?> ent,
+    /// <param name="source">Equipment slot that has the clothing that is (or was) hiding the layer. If not specified, the change is "permanent" (i.e., see <see cref="HumanoidProfileComponent.PermanentlyHidden"/>)</param>
+    public void SetLayerVisibility(Entity<HumanoidProfileComponent?> ent,
         HumanoidVisualLayers layer,
         bool visible,
         SlotFlags? source = null)
@@ -190,8 +190,8 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="target">Target entity to apply the source entity's appearance to.</param>
     /// <param name="sourceHumanoid">Source entity's humanoid component.</param>
     /// <param name="targetHumanoid">Target entity's humanoid component.</param>
-    public void CloneAppearance(EntityUid source, EntityUid target, HumanoidAppearanceComponent? sourceHumanoid = null,
-        HumanoidAppearanceComponent? targetHumanoid = null)
+    public void CloneAppearance(EntityUid source, EntityUid target, HumanoidProfileComponent? sourceHumanoid = null,
+        HumanoidProfileComponent? targetHumanoid = null)
     {
         if (!Resolve(source, ref sourceHumanoid, false) || !Resolve(target, ref targetHumanoid, false))
             return;
@@ -221,7 +221,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="ent">Humanoid entity</param>
     /// <param name="layers">An enumerable of all sprite layers that are going to have their visibility set</param>
     /// <param name="visible">The visibility state of the layers given</param>
-    public void SetLayersVisibility(Entity<HumanoidAppearanceComponent?> ent,
+    public void SetLayersVisibility(Entity<HumanoidProfileComponent?> ent,
         IEnumerable<HumanoidVisualLayers> layers,
         bool visible)
     {
@@ -239,9 +239,9 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
             Dirty(ent);
     }
 
-    /// <inheritdoc cref="SetLayerVisibility(Entity{HumanoidAppearanceComponent?},HumanoidVisualLayers,bool,Nullable{SlotFlags})"/>
+    /// <inheritdoc cref="SetLayerVisibility(Entity{HumanoidProfileComponent?},HumanoidVisualLayers,bool,Nullable{SlotFlags})"/>
     public virtual void SetLayerVisibility(
-        Entity<HumanoidAppearanceComponent> ent,
+        Entity<HumanoidProfileComponent> ent,
         HumanoidVisualLayers layer,
         bool visible,
         SlotFlags? source,
@@ -298,7 +298,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="species">The species to set the mob to. Will return if the species prototype was invalid.</param>
     /// <param name="sync">Whether to immediately synchronize this to the humanoid mob, or not.</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetSpecies(EntityUid uid, string species, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetSpecies(EntityUid uid, string species, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || !_proto.TryIndex<SpeciesPrototype>(species, out var prototype))
         {
@@ -323,7 +323,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="sync">Whether to synchronize this to the humanoid mob, or not.</param>
     /// <param name="verify">Whether to verify the skin color can be set on this humanoid or not</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public virtual void SetSkinColor(EntityUid uid, Color skinColor, bool sync = true, bool verify = true, HumanoidAppearanceComponent? humanoid = null)
+    public virtual void SetSkinColor(EntityUid uid, Color skinColor, bool sync = true, bool verify = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid))
             return;
@@ -354,7 +354,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="sync">Whether to synchronize this to the humanoid mob, or not.</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
     public void SetBaseLayerId(EntityUid uid, HumanoidVisualLayers layer, string? id, bool sync = true,
-        HumanoidAppearanceComponent? humanoid = null)
+        HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid))
             return;
@@ -375,7 +375,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="uid">The humanoid mob's UID.</param>
     /// <param name="layer">The layer to target on this humanoid mob.</param>
     /// <param name="color">The color to set this base layer to.</param>
-    public void SetBaseLayerColor(EntityUid uid, HumanoidVisualLayers layer, Color? color, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetBaseLayerColor(EntityUid uid, HumanoidVisualLayers layer, Color? color, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid))
             return;
@@ -396,7 +396,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="sex">The sex to set the mob to.</param>
     /// <param name="sync">Whether to immediately synchronize this to the humanoid mob, or not.</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetSex(EntityUid uid, Sex sex, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetSex(EntityUid uid, Sex sex, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || humanoid.Sex == sex)
             return;
@@ -414,7 +414,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
 
     // goob edit - genderfluid potion.
     // thanks wizden!
-    public void SetGender(EntityUid uid, Gender gender, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetGender(EntityUid uid, Gender gender, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || humanoid.Gender == gender)
             return;
@@ -437,7 +437,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="height">The height to set the mob to</param>
     /// <param name="sync">Whether to immediately synchronize this to the humanoid mob, or not</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetHeight(EntityUid uid, float height, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetHeight(EntityUid uid, float height, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || MathHelper.CloseTo(humanoid.Height, height, 0.001f))
             return;
@@ -456,7 +456,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="width">The width to set the mob to</param>
     /// <param name="sync">Whether to immediately synchronize this to the humanoid mob, or not</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetWidth(EntityUid uid, float width, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetWidth(EntityUid uid, float width, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || MathHelper.CloseTo(humanoid.Width, width, 0.001f))
             return;
@@ -475,7 +475,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="scale">The scale to set the mob to</param>
     /// <param name="sync">Whether to immediately synchronize this to the humanoid mob, or not</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void SetScale(EntityUid uid, Vector2 scale, bool sync = true, HumanoidAppearanceComponent? humanoid = null)
+    public void SetScale(EntityUid uid, Vector2 scale, bool sync = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid))
             return;
@@ -496,7 +496,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="uid">The mob's entity UID.</param>
     /// <param name="profile">The character profile to load.</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public virtual void LoadProfile(EntityUid uid, HumanoidCharacterProfile? profile, HumanoidAppearanceComponent? humanoid = null)
+    public virtual void LoadProfile(EntityUid uid, HumanoidCharacterProfile? profile, HumanoidProfileComponent? humanoid = null)
     {
         if (profile == null)
             return;
@@ -598,7 +598,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="sync">Whether to immediately sync this marking or not</param>
     /// <param name="forced">If this marking was forced (ignores marking points)</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void AddMarking(EntityUid uid, string marking, Color? color = null, bool sync = true, bool forced = false, HumanoidAppearanceComponent? humanoid = null)
+    public void AddMarking(EntityUid uid, string marking, Color? color = null, bool sync = true, bool forced = false, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid)
             || !_markingManager.Markings.TryGetValue(marking, out var prototype))
@@ -622,7 +622,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
             Dirty(uid, humanoid);
     }
 
-    private void EnsureDefaultMarkings(EntityUid uid, HumanoidAppearanceComponent? humanoid)
+    private void EnsureDefaultMarkings(EntityUid uid, HumanoidProfileComponent? humanoid)
     {
         if (!Resolve(uid, ref humanoid))
         {
@@ -640,7 +640,7 @@ public abstract class SharedHumanoidAppearanceSystem : EntitySystem
     /// <param name="sync">Whether to immediately sync this marking or not</param>
     /// <param name="forced">If this marking was forced (ignores marking points)</param>
     /// <param name="humanoid">Humanoid component of the entity</param>
-    public void AddMarking(EntityUid uid, string marking, IReadOnlyList<Color> colors, bool sync = true, bool forced = false, HumanoidAppearanceComponent? humanoid = null)
+    public void AddMarking(EntityUid uid, string marking, IReadOnlyList<Color> colors, bool sync = true, bool forced = false, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid)
             || !_markingManager.Markings.TryGetValue(marking, out var prototype))

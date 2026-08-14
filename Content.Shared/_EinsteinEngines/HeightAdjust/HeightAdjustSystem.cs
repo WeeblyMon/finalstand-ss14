@@ -37,7 +37,7 @@ public sealed class HeightAdjustSystem : EntitySystem
         else
             succeeded = false;
 
-        if (HasComp<HumanoidAppearanceComponent>(uid))
+        if (HasComp<HumanoidProfileComponent>(uid))
             _appearance.SetScale(uid, scale);
         else
             succeeded = false;

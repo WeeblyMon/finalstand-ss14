@@ -79,15 +79,13 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-navy-officer-name
     description: ghost-role-information-navy-officer-description
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ NavyOfficerGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -107,7 +105,7 @@
     state: icon
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstHighRank
+    - NamesMilitaryFirstLeader
     - NamesMilitaryLast
     nameFormat: name-format-standard
   - type: RandomHumanoidSpawner
@@ -119,19 +117,17 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-navy-captain-name
     description: ghost-role-information-navy-captain-description
     rules: ghost-role-information-navy-captain-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ NavyCaptainGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstHighRank
+    - NamesMilitaryFirstLeader
     - NamesMilitaryLast
     nameFormat: name-format-standard
 
@@ -159,15 +155,13 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-navy-officer-undercover-name
     description: ghost-role-information-navy-officer-undercover-description
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [  NavyOfficerUndercoverGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
@@ -187,7 +181,7 @@
     state: icon
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstHighRank
+    - NamesMilitaryFirstLeader
     - NamesMilitaryLast
     nameFormat: name-format-standard
   - type: RandomHumanoidSpawner
@@ -199,19 +193,17 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-special-operations-officer-name
     description: ghost-role-information-special-operations-officer-description
     rules: ghost-role-information-special-operations-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ SpecialOperationsOfficerGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstHighRank
+    - NamesMilitaryFirstLeader
     - NamesMilitaryLast
     nameFormat: name-format-standard
 
@@ -227,7 +219,7 @@
     state: icon
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstPolitical
+    - NamesMilitaryFirst
     - NamesLast
     nameFormat: name-format-standard
   - type: RandomHumanoidSpawner
@@ -239,19 +231,17 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-diplomat-name
     description: ghost-role-information-diplomat-description
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ DiplomatGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
-    - NamesMilitaryFirstPolitical
+    - NamesMilitaryFirst
     - NamesLast
     nameFormat: name-format-standard
 
@@ -267,7 +257,7 @@
     state: icon
   - type: RandomMetadata
     nameSegments:
-    - NamesFirstInspector
+    - NamesFirst
     - NamesLast
     nameFormat: name-format-standard
   - type: RandomHumanoidSpawner
@@ -279,19 +269,17 @@
   randomizeName: false
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, BluespaceLifelineImplant, RadioImplantCentcomm, NutrimentPumpImplant, StypticStimulatorImplant]
+    implants: [ FreedomImplant, RadioImplantCentcomm]
   - type: GhostRole
     name: ghost-role-information-inspector-name
     description: ghost-role-information-inspector-description
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ InspectorGear ]
     roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
-    - NamesFirstInspector
+    - NamesFirst
     - NamesLast
     nameFormat: name-format-standard
 
@@ -315,8 +303,6 @@
   parent: EventHumanoidMindShielded
   id: ChronoLegionnaire
   components:
-  - type: Loadout
-    prototypes: [ ChronoLegionnaireGear ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -353,8 +339,6 @@
     rules: ghost-role-information-Hecu-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [HECUOperativeGear]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -379,7 +363,7 @@
   parent: EventHumanMindShielded
   components:
   - type: AutoImplant
-    implants: [ VaporizeImplant, ShiftImplant, BlinkImplant, FreedomImplant, ScramImplant, StopTimeImplant, NutrimentPumpImplant, SpaceProofImplant, StypticStimulatorImplant ]
+    implants: [ FreedomImplant, ScramImplant ]
   - type: RandomHumanoidAppearance
     randomizeName: false
   - type: GhostRole
@@ -388,10 +372,6 @@
     rules: ghost-role-information-Gman-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [GovernmentManGear]
-  - type: RandomMetadata
-    nameSegments: [ NamesGman ]
   - type: Tag
     tags:
     - InstantDoAfters
@@ -430,7 +410,7 @@
   parent: EventHumanMindShielded
   components:
   - type: AutoImplant
-    implants: [ FreedomImplant, NutrimentPumpImplant, SpaceProofImplant ]
+    implants: [ FreedomImplant ]
   - type: RandomHumanoidAppearance
     randomizeName: false
     hair: HairBald
@@ -440,10 +420,6 @@
     rules: ghost-role-information-conquest-rules
     raffle:
       settings: short
-  - type: Loadout
-    prototypes: [ConquestGear]
-  - type: RandomMetadata
-    nameSegments: [ NamesConquest ]
   - type: Puller
     needsHands: false
     throwCooldown: 0.1

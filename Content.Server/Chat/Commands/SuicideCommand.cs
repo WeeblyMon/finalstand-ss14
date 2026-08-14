@@ -1,5 +1,6 @@
 using Content.Server.GameTicking;
 using Content.Server.Popups;
+using Content.Server.Suicide;
 using Content.Shared.Administration;
 using Content.Shared.Chat;
 using Content.Shared.Mind;

@@ -570,7 +570,7 @@
     graph: Girder
     node: reinforcedWall
   - type: Damageable # FINALSTAND: removed StructuralMetallicStrong so zombies can damage reinforced walls
-    damageModifierSet: ~
+    damageModifierSet: NoResistance
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: FSPlayerDamageImmune
@@ -972,7 +972,7 @@
     delay: 8
     fx: EffectRCDDeconstruct8
   - type: Damageable # FINALSTAND: overrides StructuralMetallic inherited from BaseWall so zombies can damage solid walls
-    damageModifierSet: ~
+    damageModifierSet: NoResistance
   - type: Destructible
     thresholds:
     - trigger:

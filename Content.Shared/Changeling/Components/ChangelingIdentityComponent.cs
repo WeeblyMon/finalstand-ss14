@@ -135,21 +135,10 @@ public sealed partial class ChangelingIdentityData
 [Serializable, NetSerializable]
 public sealed partial class ChangelingNetworkedIdentityData
 {
-    [DataField]
     public NetEntity? Identity;
-
-    [DataField]
     public NetEntity? Original;
-
-    [DataField]
     public ProtoId<JobPrototype>? OriginalJob;
-
-    [DataField]
     public string OriginalName = "";
-
-    [DataField]
     public bool Starting;
-
-    [DataField]
     public bool GrantedDna;
 }

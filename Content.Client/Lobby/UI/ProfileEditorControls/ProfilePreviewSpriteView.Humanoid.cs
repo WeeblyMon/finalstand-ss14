@@ -24,7 +24,7 @@ public sealed partial class ProfilePreviewSpriteView
     private void ReloadHumanoidEntity(HumanoidCharacterProfile humanoid)
     {
         if (!EntMan.EntityExists(PreviewDummy) ||
-            !EntMan.HasComponent<HumanoidAppearanceComponent>(PreviewDummy))
+            !EntMan.HasComponent<HumanoidProfileComponent>(PreviewDummy))
             return;
 
         EntMan.System<HumanoidAppearanceSystem>().LoadProfile(PreviewDummy, humanoid);

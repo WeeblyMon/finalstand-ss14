@@ -90,7 +90,7 @@ public sealed class WoundableVisualsSystem : VisualizerSystem<WoundableVisualsCo
     private void OnWoundableConnected(Entity<WoundableVisualsComponent> ent, ref BodyPartAddedEvent args)
     {
         var bodyPart = args.Part.Comp;
-        if (bodyPart.Body is not { } bodyUid || !HasComp<HumanoidAppearanceComponent>(bodyUid))
+        if (bodyPart.Body is not { } bodyUid || !HasComp<HumanoidProfileComponent>(bodyUid))
             return;
 
         if (ent.Comp.DamageOverlayGroups != null)

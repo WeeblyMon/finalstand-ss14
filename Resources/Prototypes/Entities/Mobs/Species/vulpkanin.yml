@@ -4,8 +4,12 @@
   name: Vulpkanin
   abstract: true
   components:
-  - type: Hunger
-  - type: Thirst
+  - type: Satiation
+    satiations:
+      Hunger:
+        prototype: NormalSatiationHunger
+      Thirst:
+        prototype: NormalSatiationThirst
   - type: Icon
     sprite: Mobs/Species/Vulpkanin/parts.rsi
     state: full
@@ -21,7 +25,7 @@
     understands:
     - TauCetiBasic
     - SolCommon
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vulpkanin
     hideLayersOnEquip:
     - Hair
@@ -33,5 +37,5 @@
   id: MobVulpkaninDummy
   categories: [ HideSpawnMenu ]
   components:
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Vulpkanin

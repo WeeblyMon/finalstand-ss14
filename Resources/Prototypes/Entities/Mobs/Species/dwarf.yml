@@ -49,8 +49,12 @@
   id: BaseMobDwarf
   abstract: true
   components:
-  - type: Hunger
-  - type: Thirst
+  - type: Satiation
+    satiations:
+      Hunger:
+        prototype: NormalSatiationHunger
+      Thirst:
+        prototype: NormalSatiationThirst
   - type: Icon
     sprite: Mobs/Species/Human/parts.rsi
     state: full
@@ -105,7 +109,7 @@
     understands:
     - TauCetiBasic
     - SolCommon
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Dwarf
     hideLayersOnEquip:
     - Hair

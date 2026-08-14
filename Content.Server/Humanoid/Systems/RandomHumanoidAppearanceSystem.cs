@@ -29,7 +29,7 @@ public sealed class RandomHumanoidAppearanceSystem : EntitySystem
     private void OnMapInit(EntityUid uid, RandomHumanoidAppearanceComponent component, MapInitEvent args)
     {
         // If we have an initial profile/base layer set, do not randomize this humanoid.
-        if (!TryComp(uid, out HumanoidAppearanceComponent? humanoid) || !string.IsNullOrEmpty(humanoid.Initial))
+        if (!TryComp(uid, out HumanoidProfileComponent? humanoid) || !string.IsNullOrEmpty(humanoid.Initial))
         {
             return;
         }

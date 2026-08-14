@@ -1,4 +1,4 @@
-﻿// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
+// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
 // SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
 // SPDX-FileCopyrightText: 2025 RichardBlonski <48651647+RichardBlonski@users.noreply.github.com>
@@ -31,7 +31,6 @@ using Content.Shared.FixedPoint;
 
 namespace Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 
-[Virtual]
 public sealed partial class PainSystem : EntitySystem
 {
     [Dependency] private readonly INetManager _net = default!;
@@ -171,7 +170,7 @@ public sealed partial class PainSystem : EntitySystem
         {
             case MobState.Critical:
                 var sex = Sex.Unsexed;
-                if (TryComp<HumanoidAppearanceComponent>(args.Target, out var humanoid))
+                if (TryComp<HumanoidProfileComponent>(args.Target, out var humanoid))
                     sex = humanoid.Sex;
 
                 PlayPainSoundWithCleanup(args.Target, nerveSys, nerveSys.CritWhimpers[sex], AudioParams.Default.WithVolume(-12f));

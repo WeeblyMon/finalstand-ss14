@@ -4,7 +4,6 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Pathfinding;
-using Content.Shared.Climbing;
 using Content.Shared.CombatMode;
 using Content.Shared.Damage.Components;
 using Content.Shared.DoAfter;
@@ -13,11 +12,9 @@ using Content.Shared.NPC;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
-using Robust.Shared.Physics.Components;
 using Robust.Shared.Utility;
 using ClimbableComponent = Content.Shared.Climbing.Components.ClimbableComponent;
 using ClimbingComponent = Content.Shared.Climbing.Components.ClimbingComponent;
-using Robust.Shared.Random;
 
 namespace Content.Server.NPC.Systems;
 
@@ -45,6 +42,9 @@ public sealed partial class NPCSteeringSystem
      * Also need to make sure it picks nearest obstacle path so it starts smashing in front of it.
      */
 
+    [Dependency] private EntityQuery<DoorComponent> _doorQuery = default!;
+    [Dependency] private EntityQuery<ClimbableComponent> _climbableQuery = default!;
+    [Dependency] private EntityQuery<DestructibleComponent> _destructibleQuery = default!;
 
     private SteeringObstacleStatus TryHandleFlags(EntityUid uid, NPCSteeringComponent component, PathPoly poly)
     {
@@ -92,12 +92,10 @@ public sealed partial class NPCSteeringSystem
             // Just walk into it stupid
             if (isDoor && !isAccessRequired)
             {
-                var doorQuery = GetEntityQuery<DoorComponent>();
-
                 // ... At least if it's not a bump open.
                 foreach (var ent in obstacleEnts)
                 {
-                    if (!doorQuery.TryGetComponent(ent, out var door))
+                    if (!_doorQuery.TryGetComponent(ent, out var door))
                         continue;
 
                     if (!door.BumpOpen && (component.Flags & PathFlags.Interact) != 0x0)
@@ -115,12 +113,10 @@ public sealed partial class NPCSteeringSystem
 
             if ((component.Flags & PathFlags.Prying) != 0x0 && isDoor)
             {
-                var doorQuery = GetEntityQuery<DoorComponent>();
-
                 // Get the relevant obstacle
                 foreach (var ent in obstacleEnts)
                 {
-                    if (doorQuery.TryGetComponent(ent, out var door) && door.State != DoorState.Open)
+                    if (_doorQuery.TryGetComponent(ent, out var door) && door.State != DoorState.Open)
                     {
                         // TODO: Use the verb.
 
@@ -149,12 +145,10 @@ public sealed partial class NPCSteeringSystem
                         return SteeringObstacleStatus.Continuing;
                     }
 
-                    var climbableQuery = GetEntityQuery<ClimbableComponent>();
-
                     // Get the relevant obstacle
                     foreach (var ent in obstacleEnts)
                     {
-                        if (climbableQuery.TryGetComponent(ent, out var table) &&
+                        if (_climbableQuery.TryGetComponent(ent, out var table) &&
                             _climb.CanVault(table, uid, uid, out _) &&
                             _climb.TryClimb(uid, uid, ent, out id, table, climbing))
                         {
@@ -177,7 +171,6 @@ public sealed partial class NPCSteeringSystem
                 if (meleeWeapon.NextAttack > _timing.CurTime)
                     return SteeringObstacleStatus.Continuing;
 
-                var destructibleQuery = GetEntityQuery<DestructibleComponent>();
                 var damageableQuery = GetEntityQuery<DamageableComponent>();
                 var doorSmashQuery = GetEntityQuery<DoorComponent>();
 
@@ -199,7 +192,8 @@ public sealed partial class NPCSteeringSystem
                     _random.Shuffle(obstacleEnts);
                     foreach (var ent in obstacleEnts)
                     {
-                        if (destructibleQuery.HasComponent(ent))
+                        // TODO: Validate we can damage it
+                        if (_destructibleQuery.HasComponent(ent))
                         {
                             target = ent;
                             break;

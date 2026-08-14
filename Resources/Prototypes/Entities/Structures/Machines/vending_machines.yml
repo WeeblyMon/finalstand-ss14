@@ -1,7 +1,7 @@
 ﻿# base
 
 - type: entity
-  id: VendingMachine
+  id: BaseVendingMachine
   parent: BaseMachinePowered
   name: vending machine
   description: Just add capitalism!
@@ -106,6 +106,15 @@
     price: 100
   - type: Appearance
   - type: WiresVisuals
+  - type: VendingMachineEject
+  - type: VendingMachineDispenseOnHit
+    chance: 0.25
+    threshold: 2
+
+- type: entity
+  id: VendingMachine
+  parent: BaseVendingMachine
+  abstract: true
 
 - type: entity
   id: VendingMachineWallmount
@@ -166,6 +175,10 @@
   - type: LitOnPowered
   - type: Appearance
   - type: WiresVisuals
+  - type: VendingMachineEject
+  - type: VendingMachineDispenseOnHit
+    chance: 0.25
+    threshold: 2
   - type: Electrified
     enabled: false
     usesApcPower: true

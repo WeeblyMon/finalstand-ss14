@@ -110,7 +110,7 @@
       offset: "-0.5,0"
       map: ["enum.PaperLabelVisuals.Layer"]
   - type: Damageable
-    damageModifierSet: ~ # FINALSTAND: removed StructuralMetallic so zombies can damage secure crates
+    damageModifierSet: NoResistance # FINALSTAND: removed StructuralMetallic so zombies can damage secure crates
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
@@ -136,3 +136,43 @@
     spread: 90
   - type: Paintable
     group: CrateSecure
+
+- type: entity
+  abstract: true
+  parent: [ BaseStructureDynamic, BasePaperLabelableVisualized ]
+  id: BaseCrate
+  name: crate
+  description: A large container for items.
+  components:
+  - type: Animateable
+  - type: Transform
+    noRot: true
+  - type: Sprite
+    noRot: true
+  - type: InteractionOutline
+  - type: Physics
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.29"
+        density: 50
+        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
+        mask:
+        - CrateMask #this is so they can go under plastic flaps
+        layer:
+        - MachineLayer
+  - type: EntityStorage
+  - type: PlaceableSurface
+    isPlaceable: false # defaults to closed.
+  - type: EntityStorageVisuals
+    stateDoorOpen: open
+    stateDoorClosed: closed
+  - type: ContainerContainer
+    containers:
+      entity_storage: !type:Container
+      paper_label: !type:ContainerSlot
+  - type: StaticPrice
+    price: 75
+  - type: RequireProjectileTarget

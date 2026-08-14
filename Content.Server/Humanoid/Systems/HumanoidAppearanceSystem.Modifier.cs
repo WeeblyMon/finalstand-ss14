@@ -24,7 +24,7 @@ public sealed partial class HumanoidAppearanceSystem
     [Dependency] private readonly IAdminManager _adminManager = default!;
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
 
-    private void OnVerbsRequest(EntityUid uid, HumanoidAppearanceComponent component, GetVerbsEvent<Verb> args)
+    private void OnVerbsRequest(EntityUid uid, HumanoidProfileComponent component, GetVerbsEvent<Verb> args)
     {
         if (!TryComp<ActorComponent>(args.User, out var actor))
         {
@@ -56,7 +56,7 @@ public sealed partial class HumanoidAppearanceSystem
         });
     }
 
-    private void OnBaseLayersSet(EntityUid uid, HumanoidAppearanceComponent component,
+    private void OnBaseLayersSet(EntityUid uid, HumanoidProfileComponent component,
         HumanoidMarkingModifierBaseLayersSetMessage message)
     {
         if (!_adminManager.HasAdminFlag(message.Actor, AdminFlags.Fun))
@@ -88,7 +88,7 @@ public sealed partial class HumanoidAppearanceSystem
         }
     }
 
-    private void OnMarkingsSet(EntityUid uid, HumanoidAppearanceComponent component,
+    private void OnMarkingsSet(EntityUid uid, HumanoidProfileComponent component,
         HumanoidMarkingModifierMarkingSetMessage message)
     {
         if (!_adminManager.HasAdminFlag(message.Actor, AdminFlags.Fun))

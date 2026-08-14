@@ -76,7 +76,7 @@ public sealed partial class RevenantSystem
             return;
         }
 
-        if (!HasComp<MobStateComponent>(target) || !HasComp<HumanoidAppearanceComponent>(target) || HasComp<RevenantComponent>(target))
+        if (!HasComp<MobStateComponent>(target) || !HasComp<HumanoidProfileComponent>(target) || HasComp<RevenantComponent>(target))
             return;
 
         args.Handled = true;
@@ -271,7 +271,7 @@ public sealed partial class RevenantSystem
 
             //randomly opens some lockers and such.
             if (entityStorage.TryGetComponent(ent, out var entstorecomp))
-                _entityStorage.OpenStorage(ent, entstorecomp);
+                _entityStorage.OpenStorage((ent, entstorecomp), uid);
 
             //chucks shit
             if (items.HasComponent(ent) &&

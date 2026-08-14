@@ -36,7 +36,7 @@ public sealed class DumpHumanoidServerCommand : IConsoleCommand
         var sb = new StringBuilder();
         sb.AppendLine($"=== SERVER dumphumanoid {_ent.ToPrettyString(target)} ===");
 
-        if (_ent.TryGetComponent<HumanoidAppearanceComponent>(target, out var hum))
+        if (_ent.TryGetComponent<HumanoidProfileComponent>(target, out var hum))
         {
             sb.AppendLine($"species={hum.Species} sex={hum.Sex} gender={hum.Gender} age={hum.Age}");
             sb.AppendLine($"skinColor={hum.SkinColor} eyeColor={hum.EyeColor}");
@@ -50,7 +50,7 @@ public sealed class DumpHumanoidServerCommand : IConsoleCommand
         }
         else
         {
-            sb.AppendLine("No HumanoidAppearanceComponent on entity.");
+            sb.AppendLine("No HumanoidProfileComponent on entity.");
         }
 
         shell.WriteLine(sb.ToString());

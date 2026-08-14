@@ -24,10 +24,9 @@ public sealed class VomitSystem : EntitySystem
 {
     [Dependency] private readonly INetManager _netManager = default!;
     [Dependency] private readonly IPrototypeManager _proto = default!;
-    [Dependency] private readonly HungerSystem _hunger = default!;
+    [Dependency] private readonly SatiationSystem _satiation = default!;
     [Dependency] private readonly MobStateSystem _mobState = default!;
     [Dependency] private readonly MovementModStatusSystem _movementMod = default!;
-    [Dependency] private readonly ThirstSystem _thirst = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly SharedBloodstreamSystem _bloodstream = default!;
     [Dependency] private readonly SharedForensicsSystem _forensics = default!;
@@ -88,11 +87,12 @@ public sealed class VomitSystem : EntitySystem
             return;
 
         // Vomiting makes you hungrier and thirstier
-        if (TryComp<HungerComponent>(uid, out var hunger))
-            _hunger.ModifyHunger(uid, hungerAdded, hunger);
-
-        if (TryComp<ThirstComponent>(uid, out var thirst))
-            _thirst.ModifyThirst(uid, thirst, thirstAdded);
+        if (TryComp<SatiationComponent>(uid, out var satiation))
+        {
+            Entity<SatiationComponent> entity = (uid, satiation);
+            _satiation.ModifyValue(entity, SatiationSystem.Hunger, hungerAdded);
+            _satiation.ModifyValue(entity, SatiationSystem.Thirst, thirstAdded);
+        }
 
         // It fully empties the stomach, this amount from the chem stream is relatively small
         var solutionSize = (MathF.Abs(thirstAdded) + MathF.Abs(hungerAdded)) / 6;

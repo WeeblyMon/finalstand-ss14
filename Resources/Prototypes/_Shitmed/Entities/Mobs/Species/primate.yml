@@ -14,7 +14,7 @@
     sprite: Mobs/Animals/monkey.rsi
     state: full
   - type: Appearance
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Monkey
   - type: Body
     prototype: Monkey
@@ -35,7 +35,7 @@
     sprite: Mobs/Animals/kobold.rsi
     state: full
   - type: Appearance
-  - type: HumanoidAppearance
+  - type: HumanoidProfile
     species: Kobold
   - type: Body
     prototype: Kobold

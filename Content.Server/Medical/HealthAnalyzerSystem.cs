@@ -382,7 +382,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
         var bodyTemperature = float.NaN;
 
         if (TryComp<TemperatureComponent>(target, out var temp))
-            bodyTemperature = temp.CurrentTemperature;
+            bodyTemperature = temp.Temperature;
 
         var bloodAmount = float.NaN;
 
@@ -594,7 +594,7 @@ public sealed class HealthAnalyzerSystem : EntitySystem
 
         var bodyTemperature = float.NaN;
         if (TryComp<TemperatureComponent>(target, out var temp))
-            bodyTemperature = temp.CurrentTemperature;
+            bodyTemperature = temp.Temperature;
 
         var bloodAmount = float.NaN;
         if (TryComp<BloodstreamComponent>(target, out var bloodstream) &&

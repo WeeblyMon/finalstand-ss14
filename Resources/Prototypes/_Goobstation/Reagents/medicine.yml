@@ -178,7 +178,8 @@
         amount: 3
     Food:
       effects:
-      - !type:SatiateHunger
+      - !type:Satiate
+        satiationType: Hunger
         factor: 1.5 # 50% less
 
 - type: reagent

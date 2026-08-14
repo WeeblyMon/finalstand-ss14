@@ -406,7 +406,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
 private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent, ref SurgeryValidEvent args)
     {
-        if (!TryComp<HumanoidAppearanceComponent>(args.Body, out var appearance))
+        if (!TryComp<HumanoidProfileComponent>(args.Body, out var appearance))
             return;
 
         var found = false;

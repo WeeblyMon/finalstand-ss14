@@ -7,6 +7,7 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Destructible;
 using Content.Server.NodeContainer.EntitySystems;
 using Content.Server.NPC.Pathfinding;
+using Content.Shared.Armor;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
@@ -29,7 +30,6 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -38,39 +38,29 @@ namespace Content.Server.Explosion.EntitySystems;
 
 public sealed partial class ExplosionSystem : SharedExplosionSystem
 {
-    [Dependency] private readonly IMapManager _mapManager = default!;
-    [Dependency] private readonly IRobustRandom _robustRandom = default!;
-    [Dependency] private readonly ITileDefinitionManager _tileDefinitionManager = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly IConfigurationManager _cfg = default!;
-    [Dependency] private readonly IPlayerManager _playerManager = default!;
-    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _robustRandom = default!;
+    [Dependency] private ITileDefinitionManager _tileDefinitionManager = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
-    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
-    [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly NodeGroupSystem _nodeGroupSystem = default!;
-    [Dependency] private readonly PathfindingSystem _pathfindingSystem = default!;
-    [Dependency] private readonly SharedCameraRecoilSystem _recoilSystem = default!;
-    [Dependency] private readonly ThrowingSystem _throwingSystem = default!;
-    [Dependency] private readonly PvsOverrideSystem _pvsSys = default!;
-    [Dependency] private readonly SharedAudioSystem _audio = default!;
-    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
-    [Dependency] private readonly SharedMapSystem _map = default!;
-    [Dependency] private readonly FlammableSystem _flammableSystem = default!;
-    [Dependency] private readonly DestructibleSystem _destructibleSystem = default!;
-    [Dependency] private readonly AtmosphereSystem _atmosphere = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private DamageableSystem _damageableSystem = default!;
+    [Dependency] private NodeGroupSystem _nodeGroupSystem = default!;
+    [Dependency] private PathfindingSystem _pathfindingSystem = default!;
+    [Dependency] private SharedCameraRecoilSystem _recoilSystem = default!;
+    [Dependency] private ThrowingSystem _throwingSystem = default!;
+    [Dependency] private PvsOverrideSystem _pvsSys = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transformSystem = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private FlammableSystem _flammableSystem = default!;
+    [Dependency] private DestructibleSystem _destructibleSystem = default!;
+    [Dependency] private AtmosphereSystem _atmosphere = default!;
 
-    private EntityQuery<FlammableComponent> _flammableQuery;
-    private EntityQuery<PhysicsComponent> _physicsQuery;
-    private EntityQuery<ProjectileComponent> _projectileQuery;
-    private EntityQuery<ActorComponent> _actorQuery;
-    private EntityQuery<DestructibleComponent> _destructibleQuery;
-    private EntityQuery<DamageableComponent> _damageableQuery;
-    [Dependency] private readonly EntityQuery<InjurableComponent> _injurableQuery = default!;
-    private EntityQuery<AirtightComponent> _airtightQuery;
-    private EntityQuery<TileHistoryComponent> _tileHistoryQuery;
-    private EntityQuery<MobStateComponent> _mobStateQuery;
+    [Dependency] private EntityQuery<ProjectileComponent> _projectileQuery = default!;
+    [Dependency] private EntityQuery<MobStateComponent> _mobStateQuery = default!;
 
     // FinalStand: these explosion types only deal Cellular damage to mobs (see FSExplosionFilterSystem),
     // so don't also fling every table/light/dropped item in range around - it's pure physics-lag noise.
@@ -79,6 +69,15 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         "FSGrenadeExplosion",
         "FSRocketExplosion",
     };
+    [Dependency] private EntityQuery<FlammableComponent> _flammableQuery = default!;
+    [Dependency] private EntityQuery<PhysicsComponent> _physicsQuery = default!;
+    [Dependency] private EntityQuery<ActorComponent> _actorQuery = default!;
+    [Dependency] private EntityQuery<DestructibleComponent> _destructibleQuery = default!;
+    [Dependency] private EntityQuery<DamageableComponent> _damageableQuery = default!;
+    [Dependency] private EntityQuery<ExplosionResistanceComponent> _explosionResistanceQuery = default!;
+    [Dependency] private EntityQuery<InjurableComponent> _injurableQuery = default!;
+    [Dependency] private EntityQuery<AirtightComponent> _airtightQuery = default!;
+    [Dependency] private EntityQuery<TileHistoryComponent> _tileHistoryQuery = default!;
 
     /// <summary>
     ///     "Tile-size" for space when there are no nearby grids to use as a reference.
@@ -91,7 +90,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     {
         base.Initialize();
 
-        DebugTools.Assert(_prototypeManager.HasIndex(DefaultExplosionPrototypeId));
+        DebugTools.Assert(ProtoMan.HasIndex(DefaultExplosionPrototypeId));
 
         // handled in ExplosionSystem.GridMap.cs
         SubscribeLocalEvent<GridRemovalEvent>(OnGridRemoved);
@@ -114,17 +113,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         InitAirtightMap();
         InitVisuals();
 
-        _flammableQuery = GetEntityQuery<FlammableComponent>();
-        _physicsQuery = GetEntityQuery<PhysicsComponent>();
-        _projectileQuery = GetEntityQuery<ProjectileComponent>();
-        _actorQuery = GetEntityQuery<ActorComponent>();
-        _destructibleQuery = GetEntityQuery<DestructibleComponent>();
-        _damageableQuery = GetEntityQuery<DamageableComponent>();
-        _airtightQuery = GetEntityQuery<AirtightComponent>();
-        _tileHistoryQuery = GetEntityQuery<TileHistoryComponent>();
-        _mobStateQuery = GetEntityQuery<MobStateComponent>();
-
-        _prototypeManager.PrototypesReloaded += ReloadExplosionPrototypes;
+        ProtoMan.PrototypesReloaded += ReloadExplosionPrototypes;
     }
 
     private void OnReset(RoundRestartCleanupEvent ev)
@@ -143,7 +132,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         base.Shutdown();
         _nodeGroupSystem.PauseUpdating = false;
         _pathfindingSystem.PauseUpdating = false;
-        _prototypeManager.PrototypesReloaded -= ReloadExplosionPrototypes;
+        ProtoMan.PrototypesReloaded -= ReloadExplosionPrototypes;
     }
 
     private void RelayedResistance(EntityUid uid, ExplosionResistanceComponent component,
@@ -318,7 +307,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         if (totalIntensity <= 0 || slope <= 0)
             return;
 
-        if (!_prototypeManager.TryIndex<ExplosionPrototype>(typeId, out var type))
+        if (!ProtoMan.TryIndex<ExplosionPrototype>(typeId, out var type))
         {
             Log.Error($"Attempted to spawn unknown explosion prototype: {type}");
             return;

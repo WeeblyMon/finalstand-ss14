@@ -4,6 +4,8 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Station;
 using Content.Shared.Examine;
 using Content.Shared.Ghost;
+using Content.Shared.Ghost.Components;
+using Content.Shared.Ghost.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Microsoft.Extensions.ObjectPool;

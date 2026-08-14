@@ -67,15 +67,7 @@ public abstract partial class SharedSolutionContainerSystem
 
     protected virtual void OnSolutionOverflow(Entity<ContainedSolutionComponent> entity, ref SolutionOverflowEvent args)
     {
-        var solution = args.Solution.Comp.Solution;
-        var overflow = solution.SplitSolution(args.Overflow);
-        var relayEv = new SolutionContainerOverflowEvent(entity.Owner, solution, overflow)
-        {
-            Handled = args.Handled,
-        };
-
-        RaiseLocalEvent(entity.Comp.Container, ref relayEv);
-        args.Handled = relayEv.Handled;
+        RaiseLocalEvent(entity.Comp.Container, ref args);
     }
 
     #region Relay Event Handlers

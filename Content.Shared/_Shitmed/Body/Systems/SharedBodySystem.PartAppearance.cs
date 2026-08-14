@@ -48,7 +48,7 @@ public partial class SharedBodySystem
         }
 
         if (part.Body is not { Valid: true } body
-            || !TryComp(body, out HumanoidAppearanceComponent? bodyAppearance))
+            || !TryComp(body, out HumanoidProfileComponent? bodyAppearance))
             return;
 
         var customLayers = bodyAppearance.CustomBaseLayers;
@@ -90,7 +90,7 @@ public partial class SharedBodySystem
         Dirty(uid, component);
     }
 
-    private string? CreateIdFromPart(HumanoidAppearanceComponent bodyAppearance, HumanoidVisualLayers part)
+    private string? CreateIdFromPart(HumanoidProfileComponent bodyAppearance, HumanoidVisualLayers part)
     {
         var speciesProto = Prototypes.Index(bodyAppearance.Species);
         var baseSprites = Prototypes.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet);
@@ -102,7 +102,7 @@ public partial class SharedBodySystem
 
     public void ModifyMarkings(EntityUid uid,
         Entity<BodyPartAppearanceComponent?> partAppearance,
-        HumanoidAppearanceComponent bodyAppearance,
+        HumanoidProfileComponent bodyAppearance,
         HumanoidVisualLayers targetLayer,
         string markingId,
         bool remove = false)
@@ -142,7 +142,7 @@ public partial class SharedBodySystem
 
     private void OnPartAttachedToBody(EntityUid uid, BodyComponent component, ref BodyPartAddedEvent args)
     {
-        if (!TryComp(uid, out HumanoidAppearanceComponent? bodyAppearance)
+        if (!TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
             || _net.IsClient
             || !bodyAppearance.ProfileLoaded)
             return;
@@ -162,7 +162,7 @@ public partial class SharedBodySystem
     {
         if (TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(args.Part)
-            || !TryComp(uid, out HumanoidAppearanceComponent? bodyAppearance)
+            || !TryComp(uid, out HumanoidProfileComponent? bodyAppearance)
             || _timing.ApplyingState)
             return;
 
@@ -178,7 +178,7 @@ public partial class SharedBodySystem
     protected void UpdateAppearance(EntityUid target,
         BodyPartAppearanceComponent component)
     {
-        if (!TryComp(target, out HumanoidAppearanceComponent? bodyAppearance))
+        if (!TryComp(target, out HumanoidProfileComponent? bodyAppearance))
             return;
 
         if (component.EyeColor != null)
@@ -206,7 +206,7 @@ public partial class SharedBodySystem
 
     protected void RemoveAppearance(EntityUid entity, BodyPartAppearanceComponent component, EntityUid partEntity)
     {
-        if (!TryComp(entity, out HumanoidAppearanceComponent? bodyAppearance))
+        if (!TryComp(entity, out HumanoidProfileComponent? bodyAppearance))
             return;
 
         _humanoid.SetLayerVisibility(entity, component.Type, false);
@@ -219,5 +219,5 @@ public partial class SharedBodySystem
 
     protected abstract void ApplyPartMarkings(EntityUid target, BodyPartAppearanceComponent component);
 
-    protected abstract void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidAppearanceComponent bodyAppearance);
+    protected abstract void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidProfileComponent bodyAppearance);
 }

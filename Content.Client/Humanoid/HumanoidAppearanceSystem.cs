@@ -45,24 +45,24 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<HumanoidAppearanceComponent, AfterAutoHandleStateEvent>(OnHandleState);
+        SubscribeLocalEvent<HumanoidProfileComponent, AfterAutoHandleStateEvent>(OnHandleState);
     }
 
-    private void OnHandleState(EntityUid uid, HumanoidAppearanceComponent component, ref AfterAutoHandleStateEvent args)
+    private void OnHandleState(EntityUid uid, HumanoidProfileComponent component, ref AfterAutoHandleStateEvent args)
     {
         UpdateSprite((uid, component, Comp<SpriteComponent>(uid)));
     }
 
     private void OnCvarChanged(bool value)
     {
-        var humanoidQuery = AllEntityQuery<HumanoidAppearanceComponent, SpriteComponent>();
+        var humanoidQuery = AllEntityQuery<HumanoidProfileComponent, SpriteComponent>();
         while (humanoidQuery.MoveNext(out var uid, out var humanoidComp, out var spriteComp))
         {
             UpdateSprite((uid, humanoidComp, spriteComp));
         }
     }
 
-    public void UpdateSprite(Entity<HumanoidAppearanceComponent, SpriteComponent> entity) // Goob edit - made public
+    public void UpdateSprite(Entity<HumanoidProfileComponent, SpriteComponent> entity) // Goob edit - made public
     {
         UpdateLayers(entity);
         ApplyMarkingSet(entity);
@@ -84,10 +84,10 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         sprite[_sprite.LayerMapReserve((entity.Owner, sprite), HumanoidVisualLayers.Eyes)].Color = humanoidAppearance.EyeColor;
     }
 
-    private static bool IsHidden(HumanoidAppearanceComponent humanoid, HumanoidVisualLayers layer)
+    private static bool IsHidden(HumanoidProfileComponent humanoid, HumanoidVisualLayers layer)
         => humanoid.HiddenLayers.ContainsKey(layer) || humanoid.PermanentlyHidden.Contains(layer);
 
-    private void UpdateLayers(Entity<HumanoidAppearanceComponent, SpriteComponent> entity)
+    private void UpdateLayers(Entity<HumanoidProfileComponent, SpriteComponent> entity)
     {
         var component = entity.Comp1;
         var sprite = entity.Comp2;
@@ -122,7 +122,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     }
 
     private void SetLayerData(
-        Entity<HumanoidAppearanceComponent, SpriteComponent> entity,
+        Entity<HumanoidProfileComponent, SpriteComponent> entity,
         HumanoidVisualLayers key,
         string? protoId,
         bool sexMorph = false,
@@ -171,7 +171,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     ///     This should not be used if the entity is owned by the server. The server will otherwise
     ///     override this with the appearance data it sends over.
     /// </remarks>
-    public override void LoadProfile(EntityUid uid, HumanoidCharacterProfile? profile, HumanoidAppearanceComponent? humanoid = null)
+    public override void LoadProfile(EntityUid uid, HumanoidCharacterProfile? profile, HumanoidProfileComponent? humanoid = null)
     {
         if (profile == null)
             return;
@@ -266,7 +266,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         UpdateSprite((uid, humanoid, Comp<SpriteComponent>(uid)));
     }
 
-    private void ApplyMarkingSet(Entity<HumanoidAppearanceComponent, SpriteComponent> entity)
+    private void ApplyMarkingSet(Entity<HumanoidProfileComponent, SpriteComponent> entity)
     {
         var humanoid = entity.Comp1;
         var sprite = entity.Comp2;
@@ -289,7 +289,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         humanoid.ClientOldMarkings = new MarkingSet(humanoid.MarkingSet);
     }
 
-    private void ClearAllMarkings(Entity<HumanoidAppearanceComponent, SpriteComponent> entity)
+    private void ClearAllMarkings(Entity<HumanoidProfileComponent, SpriteComponent> entity)
     {
         var humanoid = entity.Comp1;
         var sprite = entity.Comp2;
@@ -340,7 +340,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     private void ApplyMarking(MarkingPrototype markingPrototype,
         IReadOnlyList<Color>? colors,
         bool visible,
-        Entity<HumanoidAppearanceComponent, SpriteComponent> entity)
+        Entity<HumanoidProfileComponent, SpriteComponent> entity)
     {
         var humanoid = entity.Comp1;
         var sprite = entity.Comp2;
@@ -424,7 +424,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
         }
     }
 
-    public override void SetSkinColor(EntityUid uid, Color skinColor, bool sync = true, bool verify = true, HumanoidAppearanceComponent? humanoid = null)
+    public override void SetSkinColor(EntityUid uid, Color skinColor, bool sync = true, bool verify = true, HumanoidProfileComponent? humanoid = null)
     {
         if (!Resolve(uid, ref humanoid) || humanoid.SkinColor == skinColor)
             return;
@@ -445,7 +445,7 @@ public sealed class HumanoidAppearanceSystem : SharedHumanoidAppearanceSystem
     }
 
     public override void SetLayerVisibility(
-        Entity<HumanoidAppearanceComponent> ent,
+        Entity<HumanoidProfileComponent> ent,
         HumanoidVisualLayers layer,
         bool visible,
         SlotFlags? slot,
