@@ -680,7 +680,14 @@ public abstract partial class SharedSurgerySystem
         if (GetEntity(args.Entity) is {} body &&
             GetEntity(args.Part) is {} targetPart)
         {
-            TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step);
+            // A step that silently does nothing is impossible to diagnose from in-game, so say why.
+            if (!TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step, out var reason)
+                && reason != StepInvalidReason.None)
+            {
+                Log.Info(
+                    $"Surgery step refused: {args.Step} of {args.Surgery} on {ToPrettyString(targetPart)} " +
+                    $"(body {ToPrettyString(body)}, user {ToPrettyString(user)}) - {reason}");
+            }
         }
     }
     #endregion
