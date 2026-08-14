@@ -5,6 +5,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/arm.rsi
   - type: Item

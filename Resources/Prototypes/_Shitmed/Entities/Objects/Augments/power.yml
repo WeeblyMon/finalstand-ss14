@@ -74,6 +74,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     sprite: _Shitmed/Objects/Augments/power.rsi
     state: cell

@@ -17,6 +17,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: Damageable
     damageContainer: Biological # Shitmed Change
@@ -39,6 +40,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: Woundable
     damageContainer: Biological
@@ -84,6 +86,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: Woundable
     damageContainer: Biological

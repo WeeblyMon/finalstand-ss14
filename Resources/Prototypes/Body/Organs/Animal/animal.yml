@@ -30,6 +30,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: OrganIntegrity
     intCap: 13

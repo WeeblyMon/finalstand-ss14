@@ -317,7 +317,7 @@
   components:
   - type: SurgeryStep
     tool:
-    - type: Organ
+    - type: OrganSurgeryTool
     duration: 6
   - type: Sprite
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi
@@ -589,7 +589,7 @@
   components:
   - type: SurgeryStep
     tool:
-    - type: Organ
+    - type: OrganSurgeryTool
     duration: 6
   - type: Sprite
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/manipulation.rsi

@@ -33,6 +33,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     sprite: Mobs/Species/Diona/organs.rsi
   - type: Organ

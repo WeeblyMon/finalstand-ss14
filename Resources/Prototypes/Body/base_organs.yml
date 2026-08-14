@@ -6,6 +6,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 
 - type: entity
@@ -16,6 +17,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -25,6 +27,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -34,6 +37,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -43,6 +47,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -52,6 +57,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: HandOrgan
     handID: left
@@ -65,6 +71,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
   - type: HandOrgan
     handID: right
@@ -78,6 +85,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -87,6 +95,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -96,6 +105,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -105,6 +115,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Organ
 - type: entity
   parent: OrganBase
@@ -114,6 +125,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -141,6 +153,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -155,6 +168,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -169,6 +183,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -183,6 +198,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -197,6 +213,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Lung
@@ -228,6 +245,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -245,6 +263,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Stomach
@@ -278,6 +297,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite
@@ -297,6 +317,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
   - type: Sprite

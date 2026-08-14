@@ -24,6 +24,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     sprite: Mobs/Species/Human/parts.rsi
     enableOverrideDir: true
@@ -60,6 +61,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "chest_m"
   - type: Icon
@@ -105,6 +107,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "groin_m"
   - type: Icon
@@ -150,6 +153,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Damageable
     damageContainer: Biological
   - type: Sprite
@@ -209,6 +213,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "l_arm"
   - type: Icon
@@ -242,6 +247,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "r_arm"
   - type: Icon
@@ -275,6 +281,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "l_hand"
   - type: Icon
@@ -312,6 +319,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "r_hand"
   - type: Icon
@@ -349,6 +357,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "l_leg"
   - type: Icon
@@ -383,6 +392,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "r_leg"
   - type: Icon
@@ -417,6 +427,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "l_foot"
   - type: Icon
@@ -450,6 +461,7 @@
   components:
   - type: ParentOrgan
   - type: ChildOrgan
+  - type: OrganSurgeryTool
   - type: Sprite
     state: "r_foot"
   - type: Icon
