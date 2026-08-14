@@ -27,6 +27,15 @@ public sealed partial class TraumaSystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly INetManager _net = default!;
+
+    private readonly HashSet<EntityUid> PendingLegUpdates = new();
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        UpdateLegs();
+    }
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly SharedStunSystem _stun = default!;
     [Dependency] private readonly MovementModStatusSystem _movementMod = default!;

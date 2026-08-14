@@ -38,14 +38,32 @@ public partial class TraumaSystem
 
     private void OnLegInserted(Entity<MovementBodyPartComponent> leg, ref OrganGotInsertedEvent args)
     {
-        if (_net.IsServer)
-            ProcessLegsState(args.Target);
+        QueueLegUpdate(args.Target);
     }
 
     private void OnLegRemoved(Entity<MovementBodyPartComponent> leg, ref OrganGotRemovedEvent args)
     {
+        QueueLegUpdate(args.Target);
+    }
+
+    private void QueueLegUpdate(EntityUid body)
+    {
         if (_net.IsServer)
-            ProcessLegsState(args.Target);
+            PendingLegUpdates.Add(body);
+    }
+
+    private void UpdateLegs()
+    {
+        if (PendingLegUpdates.Count == 0)
+            return;
+
+        foreach (var body in PendingLegUpdates)
+        {
+            if (!TerminatingOrDeleted(body) && Exists(body))
+                ProcessLegsState(body);
+        }
+
+        PendingLegUpdates.Clear();
     }
 
     #region Event Handling
@@ -314,11 +332,9 @@ public partial class TraumaSystem
             var partSprintSpeed = movement.SprintSpeed;
             var partAcceleration = movement.Acceleration;
 
-            if (!TryComp<WoundableComponent>(legEntity, out var legWoundable))
-                continue;
-
-            if (!TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.FirstOrNull(), out var boneComp))
-                continue;
+            if (!TryComp<WoundableComponent>(legEntity, out var legWoundable)
+                || !TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.FirstOrNull(), out var boneComp))
+                return;
 
             // Get the foot penalty
             var penalty = 1f;
