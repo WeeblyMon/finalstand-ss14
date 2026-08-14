@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared.Body;
 using Content.Shared._FinalStand.Medical;
@@ -79,19 +80,30 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
 
             if (value > 0)
             {
-                // Damage: concentrate on the chosen target body part.
                 _wound.TryInduceWound(chosen.Value, type, value, out _);
             }
             else
             {
-                // Healing: spread across every wounded part. Brutepack reduces mob brute
-                // by 30 — the player wants that to clear wounds wherever they exist, not
-                // just on a random part that may have no wounds.
-                var perPart = -value / parts.Count;
-                foreach (var part in parts)
+                var wounded = parts.Where(part => HasWoundOfType(part, type)).ToList();
+                if (wounded.Count == 0)
+                    continue;
+
+                var perPart = -value / wounded.Count;
+                foreach (var part in wounded)
                     _wound.TryHealWoundsOnWoundable(part, perPart, type, out _);
             }
         }
+    }
+
+    private bool HasWoundOfType(EntityUid woundable, string damageType)
+    {
+        foreach (var wound in _wound.GetWoundableWounds(woundable))
+        {
+            if (wound.Comp.DamageType == damageType)
+                return true;
+        }
+
+        return false;
     }
 
     private EntityUid? ResolveTargetPart(List<EntityUid> candidates, TargetBodyPart target)
