@@ -42,6 +42,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSStationResearchComponent, EntityTerminatingEvent>(OnStationTerminating);
         SubscribeLocalEvent<FSTechDatabaseComponent, ResearchRegistrationChangedEvent>(OnConsoleServerLinkChanged);
+        SubscribeLocalEvent<FSTechDatabaseComponent, GetMaterialWhitelistEvent>(OnGetMaterialWhitelist);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
@@ -119,6 +120,23 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         _station = null;
         GetOrCreateStation();
         SyncConsoles();
+    }
+
+    // Without this the console contributes nothing, UpdateMaterialWhitelist stores an empty list
+    // rather than null, and IsMaterialWhitelisted then rejects every material the silo offers.
+    private void OnGetMaterialWhitelist(EntityUid uid, FSTechDatabaseComponent comp, ref GetMaterialWhitelistEvent args)
+    {
+        if (args.Storage != uid)
+            return;
+
+        foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
+        {
+            foreach (var (material, _) in node.MaterialCost)
+            {
+                if (!args.Whitelist.Contains(material))
+                    args.Whitelist.Add(material);
+            }
+        }
     }
 
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
