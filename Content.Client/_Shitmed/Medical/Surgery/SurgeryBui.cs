@@ -136,7 +136,6 @@ public sealed class SurgeryBui : BoundUserInterface
 
         options.Sort((a, b) =>
         {
-            // Head to toe, so the surgery list reads the way a doctor would look at a patient.
             int GetScore(ProtoId<OrganCategoryPrototype>? category)
             {
                 var index = category is { } id ? Array.IndexOf(OrganCategories.Body, id) : -1;

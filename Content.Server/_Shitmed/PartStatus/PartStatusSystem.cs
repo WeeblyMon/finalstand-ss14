@@ -225,7 +225,6 @@ public sealed class PartStatusSystem : EntitySystem
         ref FormattedMessage message,
         bool styleless = false)
     {
-        // BodyPartOrder is already head-to-toe and left-before-right.
         var orderedParts = BodyPartOrder
             .SelectMany(category => partStatusSet.Where(p => p.Category == category))
             .ToList();

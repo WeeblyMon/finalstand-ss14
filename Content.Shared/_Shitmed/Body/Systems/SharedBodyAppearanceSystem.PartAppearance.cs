@@ -223,8 +223,6 @@ public partial class SharedBodyAppearanceSystem
     protected abstract void ApplyPartMarkings(EntityUid target, BodyPartAppearanceComponent component);
 
     protected abstract void RemoveBodyMarkings(EntityUid target, BodyPartAppearanceComponent partAppearance, HumanoidProfileComponent bodyAppearance);
-
-    // Layer visibility is server-authoritative.
     protected virtual void OnOrganAttached(Entity<BodyComponent> body, EntityUid organ)
     {
     }

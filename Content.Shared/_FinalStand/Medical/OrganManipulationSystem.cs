@@ -23,7 +23,6 @@ public sealed partial class OrganManipulationSystem : EntitySystem
         return _bodyQuery.Resolve(body, ref body.Comp, false) && !_lookup.HasOrganOfCategory(body, category);
     }
 
-    // The parent organ decides whether a child of this category fits, e.g. one hand per arm.
     public bool CanAttachOrgan(EntityUid parent, ProtoId<OrganCategoryPrototype> category)
     {
         foreach (var child in _lookup.EnumerateChildOrgans(parent))
@@ -59,7 +58,6 @@ public sealed partial class OrganManipulationSystem : EntitySystem
         if (!_bodyQuery.TryComp(body, out var bodyComp) || bodyComp.Organs is not { } container)
             return false;
 
-        // Detaching a limb takes everything hanging off it with it.
         foreach (var child in _lookup.EnumerateChildOrgans(organ).ToArray())
         {
             RemoveOrgan((child.Owner, child.Comp));

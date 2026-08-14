@@ -22,7 +22,6 @@ public abstract partial class SharedBodyAppearanceSystem : EntitySystem
         InitializePartAppearances();
     }
 
-    // Gibbing is server-authoritative; the shared half only declares the entry points.
     public virtual HashSet<EntityUid> GibBody(
         EntityUid bodyId,
         bool gibOrgans = false,

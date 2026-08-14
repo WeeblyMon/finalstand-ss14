@@ -20,8 +20,6 @@ public sealed partial class OrganEffectSystem : EntitySystem
         SubscribeLocalEvent<OrganEffectComponent, OrganGotRemovedEvent>(OnRemoved);
     }
 
-    // Two organs can grant the same component, and we cannot tell which one added it, so active
-    // effects are periodically reapplied rather than tracked by source.
     public override void Update(float frameTime)
     {
         base.Update(frameTime);

@@ -22,7 +22,6 @@ public static class OrganCategories
     public static readonly ProtoId<OrganCategoryPrototype> FootLeft = "FootLeft";
     public static readonly ProtoId<OrganCategoryPrototype> FootRight = "FootRight";
 
-    // The categories a surgery can target, in head-to-toe order for UI listing.
     public static readonly ProtoId<OrganCategoryPrototype>[] Body =
     [
         Head, Torso, Groin, Tail,
@@ -35,8 +34,6 @@ public static class OrganCategories
     public static readonly ProtoId<OrganCategoryPrototype>[] Legs = [LegLeft, LegRight];
     public static readonly ProtoId<OrganCategoryPrototype>[] Feet = [FootLeft, FootRight];
 
-    // Targeting stays a flags enum because damage spreads across several parts at once, which a
-    // single category id cannot express.
     private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, TargetBodyPart> ToTargetMap = new()
     {
         [Head] = TargetBodyPart.Head,
@@ -66,7 +63,6 @@ public static class OrganCategories
         }
     }
 
-    // Worn slots emptied when the organ underneath them is lost.
     private static readonly Dictionary<ProtoId<OrganCategoryPrototype>, string[]> SlotNames = new()
     {
         [Head] = ["head", "eyes", "ears", "mask"],

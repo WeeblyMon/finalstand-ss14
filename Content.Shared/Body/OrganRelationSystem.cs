@@ -125,14 +125,8 @@ public sealed partial class OrganRelationSystem : EntitySystem
     }
 }
 
-/// <summary>
-/// Raised on a child organ when it is parented to another organ.
-/// </summary>
 [ByRefEvent]
 public readonly record struct OrganRelatedEvent(EntityUid Parent, EntityUid Child);
 
-/// <summary>
-/// Raised on a child organ when it is detached from its parent.
-/// </summary>
 [ByRefEvent]
 public readonly record struct OrganOrphanedEvent(EntityUid Parent, EntityUid Child);

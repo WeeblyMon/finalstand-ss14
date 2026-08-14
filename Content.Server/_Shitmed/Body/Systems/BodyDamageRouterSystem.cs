@@ -64,8 +64,12 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         // For damage: pick one body part (TargetingComponent target if set, otherwise random).
         // For healing: distribute across all body parts so a Brutepack actually heals.
         EntityUid? chosen = null;
-        if (TryComp<TargetingComponent>(uid, out var targeting))
-            chosen = ResolveTargetPart(uid, body, targeting.Target, parts);
+        if (args.Origin is { } origin && TryComp<TargetingComponent>(origin, out var attackerTargeting))
+            chosen = ResolveTargetPart(parts, attackerTargeting.Target);
+
+        if (chosen is null && TryComp<TargetingComponent>(uid, out var targeting))
+            chosen = ResolveTargetPart(parts, targeting.Target);
+
         chosen ??= _random.Pick(parts);
 
         foreach (var (type, value) in args.DamageDelta.DamageDict)
@@ -90,17 +94,14 @@ public sealed class BodyDamageRouterSystem : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Walk the body parts and return one matching the requested TargetBodyPart,
-    /// or null if no part matches (caller falls back to random).
-    /// </summary>
-    private EntityUid? ResolveTargetPart(EntityUid bodyUid, BodyComponent body, TargetBodyPart target, List<EntityUid> candidates)
+    private EntityUid? ResolveTargetPart(List<EntityUid> candidates, TargetBodyPart target)
     {
         foreach (var part in candidates)
         {
             if (_lookup.GetTarget(part) == target)
                 return part;
         }
+
         return null;
     }
 }

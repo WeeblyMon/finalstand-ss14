@@ -78,7 +78,6 @@ public sealed class TargetingUIController : UIController, IOnStateEntered<Gamepl
 
     public void CycleTarget(TargetBodyPart bodyPart)
     {
-        // The doll is optional; targeting must still work without it on the HUD.
         if (_playerManager.LocalEntity is not { } user
             || _entManager.GetComponent<TargetingComponent>(user) is not { } targetingComponent)
             return;

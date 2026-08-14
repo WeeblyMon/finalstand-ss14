@@ -680,8 +680,7 @@ public abstract partial class SharedSurgerySystem
         if (GetEntity(args.Entity) is {} body &&
             GetEntity(args.Part) is {} targetPart)
         {
-            // A step that silently does nothing is impossible to diagnose from in-game, so say why.
-            if (!TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step, out var reason)
+                if (!TryDoSurgeryStep(body, targetPart, user, args.Surgery, args.Step, out var reason)
                 && reason != StepInvalidReason.None)
             {
                 Log.Info(
@@ -908,6 +907,12 @@ public abstract partial class SharedSurgerySystem
 
         if (!_doAfter.TryStartDoAfter(doAfter))
         {
+            var hasDoAfter = HasComp<DoAfterComponent>(user);
+            var active = CompOrNull<DoAfterComponent>(user)?.DoAfters.Values
+                .Count(d => !d.Cancelled && !d.Completed) ?? 0;
+            Log.Warning(
+                $"DoAfter refused for {ToPrettyString(user)}: hasDoAfterComp={hasDoAfter}, active={active}");
+
             error = StepInvalidReason.DoAfterFailed;
             return false;
         }
@@ -1010,7 +1015,6 @@ public abstract partial class SharedSurgerySystem
         return surgery.Comp.Steps.TakeWhile(surgeryStep => surgeryStep != step).All(surgeryStep => IsStepComplete(body, part, surgeryStep, surgery));
     }
 
-    // Which worn slots cover an organ, so surgery can tell you to take the coat off first.
     private static SlotFlags GetCoveringSlots(ProtoId<OrganCategoryPrototype>? category)
     {
         if (category is not { } id)
