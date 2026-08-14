@@ -281,12 +281,9 @@ public abstract partial class SharedSurgerySystem
         EnsureComp<BodyPartReattachedComponent>(args.Tool);
     }
 
+    // Nothing to open: the organ model has no slots, so OnAddOrganSlotCheck does the gating.
     private void OnAddOrganSlotStep(Entity<SurgeryAddOrganSlotStepComponent> ent, ref SurgeryStepEvent args)
     {
-        if (!TryComp(args.Surgery, out SurgeryOrganSlotConditionComponent? condition))
-            return;
-
-        _manipulation.CanAttachOrgan(args.Part, condition.Category);
     }
 
     private void OnAddOrganSlotCheck(Entity<SurgeryAddOrganSlotStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
