@@ -480,6 +480,7 @@
     - DoorBumpOpener
     - AnomalyHost
   - type: Targeting # Shitmed Change
+  - type: SurgeryTarget # surgery verbs only appear on entities that declare this
   - type: CanEscapeInventory # GoobStation - Escape being picked up by players
   - type: Consciousness
     cap: 190
