@@ -32,6 +32,18 @@ public partial class TraumaSystem
         SubscribeLocalEvent<BoneComponent, GetDoAfterDelayMultiplierEvent>(OnGetDoAfterDelayMultiplier);
         SubscribeLocalEvent<BoneComponent, AttemptHandsMeleeEvent>(OnAttemptHandsMelee);
         SubscribeLocalEvent<BoneComponent, AttemptHandsShootEvent>(OnAttemptHandsShoot);
+        SubscribeLocalEvent<MovementBodyPartComponent, OrganGotInsertedEvent>(OnLegInserted);
+        SubscribeLocalEvent<MovementBodyPartComponent, OrganGotRemovedEvent>(OnLegRemoved);
+    }
+
+    private void OnLegInserted(Entity<MovementBodyPartComponent> leg, ref OrganGotInsertedEvent args)
+    {
+        ProcessLegsState(args.Target);
+    }
+
+    private void OnLegRemoved(Entity<MovementBodyPartComponent> leg, ref OrganGotRemovedEvent args)
+    {
+        ProcessLegsState(args.Target);
     }
 
     #region Event Handling

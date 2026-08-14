@@ -3,6 +3,7 @@
 
 using System.Numerics;
 using Content.Shared.Body;
+using Content.Shared.Gibbing;
 using Content.Shared.Gibbing.Events;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
@@ -12,6 +13,7 @@ namespace Content.Shared.Body.Systems;
 
 public abstract partial class SharedBodyAppearanceSystem : EntitySystem
 {
+    [Dependency] protected readonly GibbingSystem Gibbing = default!;
     [Dependency] protected readonly IPrototypeManager Prototypes = default!;
     [Dependency] protected readonly IGameTiming Timing = default!;
 
@@ -36,7 +38,7 @@ public abstract partial class SharedBodyAppearanceSystem : EntitySystem
         List<string>? allowedContainers = null,
         List<string>? excludedContainers = null)
     {
-        return new HashSet<EntityUid>();
+        return Gibbing.Gib(bodyId, launchGibs);
     }
 
     public virtual HashSet<EntityUid> GibPart(
