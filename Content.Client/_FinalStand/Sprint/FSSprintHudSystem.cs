@@ -43,14 +43,11 @@ public sealed partial class FSSprintHudSystem : EntitySystem
     {
         var current = _player.LocalSession?.AttachedEntity;
 
-        if (current == null || !HasComp<FSSprintComponent>(current.Value))
+        if (current == null || !TryComp<FSSprintComponent>(current.Value, out var sprint))
         {
             RemoveLabel();
             return;
         }
-
-        if (!TryComp<FSSprintComponent>(current.Value, out var sprint))
-            return;
 
         float fraction;
         if (sprint.IsExhausted)

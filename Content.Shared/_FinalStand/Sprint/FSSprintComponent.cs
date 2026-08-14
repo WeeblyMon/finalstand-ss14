@@ -31,7 +31,4 @@ public sealed partial class FSSprintComponent : Component
     public bool IsExhausted = false;
 
     public float DustAccumulator = 0f;
-
-    [DataField]
-    public float StaminaBonusFromPerk = 0f;
 }

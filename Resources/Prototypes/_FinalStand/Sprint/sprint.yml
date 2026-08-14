@@ -56,7 +56,6 @@
     - HideContextMenu
   - type: AnimationPlayer
 
-# Note: FSSprintComponent is added to MobHuman directly in
-# Resources/Prototypes/Body/Species/human.yml (with # FINALSTAND: marker)
-# because SS14's prototype loader does not support additive component merging
-# via duplicate entity IDs in separate YAML files.
+# Note: FSSprintComponent is granted via BaseMobSpeciesOrganic in
+# Resources/Prototypes/Entities/Mobs/Species/base.yml, since all playable
+# organic species inherit from it.

@@ -3,19 +3,16 @@ using Content.Server.Damage.Systems;
 using Content.Shared.Alert;
 using Content.Shared.GameTicking;
 using Content.Shared._FinalStand.Sprint;
-using Content.Shared.Buckle.Components;
 using Content.Shared.Damage.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Movement.Systems;
-using Content.Shared.Stunnable;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
-using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Sprint;
 
-public sealed partial class FSSprintServerSystem : EntitySystem
+public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
 {
     [Dependency] private StaminaSystem _stamina = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
@@ -24,78 +21,24 @@ public sealed partial class FSSprintServerSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
 
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
+    private const float MovingVelocityThresholdSq = 0.01f;
 
     public override void Initialize()
     {
         base.Initialize();
-
-        SubscribeLocalEvent<FSSprintComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
-
-        SubscribeNetworkEvent<FSSprintStartMessage>(OnSprintStart);
-        SubscribeNetworkEvent<FSSprintStopMessage>(OnSprintStop);
-
-        SubscribeLocalEvent<FSSprintComponent, KnockedDownEvent>(OnKnockedDown);
-        SubscribeLocalEvent<FSSprintComponent, StunnedEvent>(OnStunned);
-        SubscribeLocalEvent<FSSprintComponent, BuckledEvent>(OnBuckled);
 
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        if (HasComp<FSSprintComponent>(ev.Mob))
-        {
-            Log.Debug($"[FSSprint] Player {ev.Player?.Name} spawned as {ToPrettyString(ev.Mob)} — FSSprintComponent present.");
-        }
-        else
-        {
-            Log.Warning($"[FSSprint] Player {ev.Player?.Name} spawned as {ToPrettyString(ev.Mob)} WITHOUT FSSprintComponent — adding now.");
-            EnsureComp<FSSprintComponent>(ev.Mob);
-        }
+        // Safety net — FSSprintComponent is normally granted declaratively via the species
+        // prototype (BaseMobSpeciesOrganic). Silent because this should be a no-op in practice.
+        EnsureComp<FSSprintComponent>(ev.Mob);
 
-        // Clear the vanilla stamina alert — FS sprint players use the custom HUD overlay instead.
+        // FS sprint players use their own HUD overlay — skip vanilla alert.
         if (TryComp<StaminaComponent>(ev.Mob, out var stamina))
             _alerts.ClearAlert(ev.Mob, stamina.StaminaAlert);
-    }
-
-    private void OnRefreshSpeed(EntityUid uid, FSSprintComponent comp, RefreshMovementSpeedModifiersEvent args)
-    {
-        if (comp.IsSprinting)
-            args.ModifySpeed(comp.SpeedMultiplier, comp.SpeedMultiplier);
-        else if (comp.IsExhausted)
-            args.ModifySpeed(comp.EmptySlowMultiplier, comp.EmptySlowMultiplier);
-    }
-
-    private void OnSprintStart(FSSprintStartMessage msg, EntitySessionEventArgs args)
-    {
-        if (args.SenderSession.AttachedEntity is not { } uid)
-            return;
-        if (!TryComp<FSSprintComponent>(uid, out var sprint))
-            return;
-        if (sprint.IsExhausted || sprint.IsSprinting)
-            return;
-        if (!TryComp<StaminaComponent>(uid, out var stamina))
-            return;
-        if (stamina.StaminaDamage >= stamina.CritThreshold)
-            return;
-
-        sprint.IsSprinting = true;
-        Dirty(uid, sprint);
-        _movement.RefreshMovementSpeedModifiers(uid);
-    }
-
-    private void OnSprintStop(FSSprintStopMessage msg, EntitySessionEventArgs args)
-    {
-        if (args.SenderSession.AttachedEntity is not { } uid)
-            return;
-        if (!TryComp<FSSprintComponent>(uid, out var sprint))
-            return;
-        if (!sprint.IsSprinting)
-            return;
-
-        sprint.IsSprinting = false;
-        Dirty(uid, sprint);
-        _movement.RefreshMovementSpeedModifiers(uid);
     }
 
     public override void Update(float frameTime)
@@ -114,34 +57,37 @@ public sealed partial class FSSprintServerSystem : EntitySystem
             if (sprint.IsSprinting)
             {
                 // Only drain stamina if actually moving; sprinting in place costs nothing.
-                var moving = TryComp<PhysicsComponent>(uid, out var phys) && phys.LinearVelocity.LengthSquared() > 0.01f;
-                if (moving)
-                    _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false);
+                var moving = TryComp<PhysicsComponent>(uid, out var phys) && phys.LinearVelocity.LengthSquared() > MovingVelocityThresholdSq;
+                var willExhaust = moving && stamina.StaminaDamage + sprint.StaminaDrainRate * frameTime >= stamina.CritThreshold;
 
-                if (stamina.StaminaDamage >= stamina.CritThreshold)
+                if (willExhaust)
                 {
+                    // Go straight to exhaustion instead of draining through TakeStaminaDamage -
+                    // crossing CritThreshold there triggers vanilla's stamcrit paralysis stun,
+                    // which is not what sprint exhaustion is supposed to do (see FSSprintComponent).
                     sprint.IsSprinting = false;
                     sprint.IsExhausted = true;
                     sprint.EmptySlowRemaining = sprint.EmptySlowDuration;
                     sprint.DustAccumulator = 0f;
                     Dirty(uid, sprint);
                     _movement.RefreshMovementSpeedModifiers(uid);
+                    continue;
+                }
+
+                if (moving)
+                {
+                    _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false, silent: true);
+
+                    sprint.DustAccumulator += frameTime;
+                    if (sprint.DustAccumulator >= DustInterval)
+                    {
+                        sprint.DustAccumulator = 0f;
+                        SpawnDust(uid);
+                    }
                 }
                 else
                 {
-                    if (moving)
-                    {
-                        sprint.DustAccumulator += frameTime;
-                        if (sprint.DustAccumulator >= DustInterval)
-                        {
-                            sprint.DustAccumulator = 0f;
-                            SpawnDust(uid);
-                        }
-                    }
-                    else
-                    {
-                        sprint.DustAccumulator = 0f;
-                    }
+                    sprint.DustAccumulator = 0f;
                 }
             }
             else
@@ -162,7 +108,7 @@ public sealed partial class FSSprintServerSystem : EntitySystem
                 else if (stamina.StaminaDamage > 0f)
                 {
                     var regen = stamina.CritThreshold * (sprint.RegenRate / 100f) * frameTime;
-                    _stamina.TakeStaminaDamage(uid, -regen, stamina, visual: false);
+                    _stamina.TakeStaminaDamage(uid, -regen, stamina, visual: false, silent: true);
                 }
             }
         }
@@ -173,36 +119,17 @@ public sealed partial class FSSprintServerSystem : EntitySystem
         var coords = Transform(uid).Coordinates;
         var dust = Spawn("SprintAnimation", coords);
 
-        if (TryComp<PhysicsComponent>(uid, out var physics) && physics.LinearVelocity.LengthSquared() > 0.01f)
+        if (TryComp<PhysicsComponent>(uid, out var physics) && physics.LinearVelocity.LengthSquared() > MovingVelocityThresholdSq)
         {
             var vel = physics.LinearVelocity;
             _transform.SetLocalRotation(dust, new Angle(MathF.Atan2(vel.Y, vel.X)));
         }
     }
 
-    private void OnKnockedDown(EntityUid uid, FSSprintComponent sprint, ref KnockedDownEvent args)
-        => ForceStopSprint(uid, sprint);
-
-    private void OnStunned(EntityUid uid, FSSprintComponent sprint, ref StunnedEvent args)
-        => ForceStopSprint(uid, sprint);
-
-    private void OnBuckled(EntityUid uid, FSSprintComponent sprint, ref BuckledEvent args)
-        => ForceStopSprint(uid, sprint);
-
     private bool IsPilotingMech(EntityUid uid)
     {
         return _container.TryGetContainingContainer((uid, null, null), out var container)
                && TryComp<MechComponent>(container.Owner, out var mech)
                && container.ID == mech.PilotSlotId;
-    }
-
-    private void ForceStopSprint(EntityUid uid, FSSprintComponent sprint)
-    {
-        if (!sprint.IsSprinting)
-            return;
-        sprint.IsSprinting = false;
-        sprint.DustAccumulator = 0f;
-        Dirty(uid, sprint);
-        _movement.RefreshMovementSpeedModifiers(uid);
     }
 }

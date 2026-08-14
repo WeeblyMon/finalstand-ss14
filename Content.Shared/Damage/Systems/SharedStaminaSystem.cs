@@ -1,5 +1,4 @@
 using System.Linq;
-using Content.Shared._FinalStand.Sprint;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Alert;
 using Content.Shared.CCVar;
@@ -241,8 +240,9 @@ public abstract partial class SharedStaminaSystem : EntitySystem
         if (!Resolve(uid, ref component, false) || component.Deleted)
             return;
 
-        // FINALSTAND: FS sprint players use their own HUD overlay — skip vanilla alert.
-        if (HasComp<FSSprintComponent>(uid))
+        var beforeAlert = new BeforeStaminaAlertEvent();
+        RaiseLocalEvent(uid, ref beforeAlert);
+        if (beforeAlert.Cancelled)
             return;
 
         var severity = ContentHelpers.RoundToLevels(MathF.Max(0f, component.CritThreshold - component.StaminaDamage), component.CritThreshold, 7);
@@ -268,7 +268,8 @@ public abstract partial class SharedStaminaSystem : EntitySystem
     }
 
     public void TakeStaminaDamage(EntityUid uid, float value, StaminaComponent? component = null,
-        EntityUid? source = null, EntityUid? with = null, bool visual = true, SoundSpecifier? sound = null, bool ignoreResist = false)
+        EntityUid? source = null, EntityUid? with = null, bool visual = true, SoundSpecifier? sound = null, bool ignoreResist = false,
+        bool silent = false)
     {
         if (!Resolve(uid, ref component, false))
             return;
@@ -331,7 +332,7 @@ public abstract partial class SharedStaminaSystem : EntitySystem
         EnsureComp<ActiveStaminaComponent>(uid);
         Dirty(uid, component);
 
-        if (value <= 0)
+        if (value <= 0 || silent)
             return;
         if (source != null)
         {
