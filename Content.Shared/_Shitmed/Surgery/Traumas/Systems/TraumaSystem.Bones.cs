@@ -38,12 +38,14 @@ public partial class TraumaSystem
 
     private void OnLegInserted(Entity<MovementBodyPartComponent> leg, ref OrganGotInsertedEvent args)
     {
-        ProcessLegsState(args.Target);
+        if (_net.IsServer)
+            ProcessLegsState(args.Target);
     }
 
     private void OnLegRemoved(Entity<MovementBodyPartComponent> leg, ref OrganGotRemovedEvent args)
     {
-        ProcessLegsState(args.Target);
+        if (_net.IsServer)
+            ProcessLegsState(args.Target);
     }
 
     #region Event Handling
@@ -315,7 +317,7 @@ public partial class TraumaSystem
             if (!TryComp<WoundableComponent>(legEntity, out var legWoundable))
                 continue;
 
-            if (!TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.First(), out var boneComp))
+            if (!TryComp<BoneComponent>(legWoundable.Bone.ContainedEntities.FirstOrNull(), out var boneComp))
                 continue;
 
             // Get the foot penalty
