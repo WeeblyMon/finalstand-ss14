@@ -1,9 +1,9 @@
 # MSbuild binlog files
 *.binlog
 
-# FinalStand — local only
-Docs/
-Tests/
+# FinalStand — local only. Anchored: unanchored, these swallowed Content.IntegrationTests/Tests/.
+/Docs/
+/Tests/
 *.lscache
 
 ## Ignore Visual Studio temporary files, build results, and
