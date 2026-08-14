@@ -6,6 +6,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared.Rejuvenate;
 using Content.Shared._FinalStand.Medical;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -50,6 +51,7 @@ public sealed partial class WoundSystem
         SubscribeLocalEvent<WoundableComponent, MapInitEvent>(OnWoundableMapInit);
         SubscribeLocalEvent<WoundableComponent, EntInsertedIntoContainerMessage>(OnWoundableInserted);
         SubscribeLocalEvent<WoundableComponent, EntRemovedFromContainerMessage>(OnWoundableRemoved);
+        SubscribeLocalEvent<BodyComponent, RejuvenateEvent>(OnRejuvenate);
         SubscribeLocalEvent<WoundableComponent, OrganRelatedEvent>(OnOrganRelated);
         SubscribeLocalEvent<WoundableComponent, OrganOrphanedEvent>(OnOrganOrphaned);
         SubscribeLocalEvent<WoundComponent, EntGotInsertedIntoContainerMessage>(OnWoundInserted);
@@ -130,6 +132,27 @@ public sealed partial class WoundSystem
 
         if (_net.IsServer && !IsClientSide(woundableEntity))
             QueueDel(woundableEntity);
+    }
+
+    private void OnRejuvenate(Entity<BodyComponent> body, ref RejuvenateEvent args)
+    {
+        if (!_net.IsServer)
+            return;
+
+        foreach (var organ in _lookup.GetBodyOrgans((body.Owner, body.Comp)))
+        {
+            if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            TryHealWoundsOnWoundable(organ.Owner,
+                woundable.IntegrityCap,
+                out _,
+                woundable,
+                ignoreMultipliers: true,
+                ignoreBlockers: true);
+
+            TryHealBleedingWounds(organ.Owner, float.MinValue, out _, woundable);
+        }
     }
 
     private void OnOrganRelated(Entity<WoundableComponent> child, ref OrganRelatedEvent args)

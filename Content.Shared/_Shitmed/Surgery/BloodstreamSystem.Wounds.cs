@@ -39,6 +39,8 @@ public sealed partial class BloodstreamSystem
 
     private void UpdateWounds(float frameTime)
     {
+        var totals = new Dictionary<EntityUid, FixedPoint2>();
+
         var bleedsQuery = EntityQueryEnumerator<BleedInflicterComponent>();
         while (bleedsQuery.MoveNext(out var ent, out var bleeds))
         {
@@ -47,6 +49,12 @@ public sealed partial class BloodstreamSystem
                 Dirty(ent, bleeds);
 
             bleeds.IsBleeding = canBleed;
+
+            if (TryComp<WoundComponent>(ent, out var wound) && wound.HoldingWoundable.IsValid())
+            {
+                totals.TryGetValue(wound.HoldingWoundable, out var running);
+                totals[wound.HoldingWoundable] = running + (canBleed ? bleeds.BleedingAmount : 0);
+            }
 
             if (!bleeds.IsBleeding)
                 continue;
@@ -64,6 +72,17 @@ public sealed partial class BloodstreamSystem
 
             bleeds.Scaling = newBleeds;
             Dirty(ent, bleeds);
+        }
+
+        var woundableQuery = EntityQueryEnumerator<WoundableComponent>();
+        while (woundableQuery.MoveNext(out var uid, out var woundable))
+        {
+            var total = totals.GetValueOrDefault(uid, FixedPoint2.Zero);
+            if (woundable.Bleeds == total)
+                continue;
+
+            woundable.Bleeds = total;
+            Dirty(uid, woundable);
         }
     }
 

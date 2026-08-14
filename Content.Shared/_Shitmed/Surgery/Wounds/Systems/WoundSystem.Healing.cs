@@ -6,6 +6,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Targeting;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Body.Components;
@@ -512,4 +513,40 @@ public partial class WoundSystem
     }
 
     #endregion
+
+    public bool TryHealBleedsOnBody(EntityUid body, float bleedStopAbility, TargetBodyPart? targeted = null)
+    {
+        var healedAny = false;
+
+        foreach (var organ in _lookup.GetBodyOrgans(body))
+        {
+            if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            if (targeted != null && _lookup.GetTarget(organ.Owner) is { } part && part != targeted)
+                continue;
+
+            if (TryHealBleedingWounds(organ.Owner, bleedStopAbility, out _, woundable))
+                healedAny = true;
+        }
+
+        return healedAny;
+    }
+
+    public bool IsAnyWoundableBleeding(EntityUid body)
+    {
+        foreach (var organ in _lookup.GetBodyOrgans(body))
+        {
+            if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            foreach (var wound in GetWoundableWounds(organ.Owner, woundable))
+            {
+                if (TryComp<BleedInflicterComponent>(wound, out var bleeds) && bleeds.IsBleeding)
+                    return true;
+            }
+        }
+
+        return false;
+    }
 }

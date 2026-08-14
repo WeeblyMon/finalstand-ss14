@@ -1,3 +1,7 @@
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
@@ -25,6 +29,7 @@ public sealed partial class HealingSystem : EntitySystem
     [Dependency] private ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private BloodstreamSystem _bloodstreamSystem = default!;
+    [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedStackSystem _stacks = default!;
     [Dependency] private SharedInteractionSystem _interactionSystem = default!;
@@ -65,9 +70,17 @@ public sealed partial class HealingSystem : EntitySystem
         // Heal some bloodloss damage.
         if (healing.BloodlossModifier != 0 && bloodstream != null)
         {
-            var isBleeding = bloodstream.BleedAmount > 0;
+            var isBleeding = bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner);
             _bloodstreamSystem.TryModifyBleedAmount((target.Owner, bloodstream), healing.BloodlossModifier);
-            if (isBleeding != bloodstream.BleedAmount > 0)
+
+            if (healing.BloodlossModifier < 0)
+            {
+                _wounds.TryHealBleedsOnBody(target.Owner,
+                    (float) healing.BloodlossModifier,
+                    CompOrNull<TargetingComponent>(args.User)?.Target);
+            }
+
+            if (isBleeding != (bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner)))
             {
                 var popup = (args.User == target.Owner)
                     ? Loc.GetString("medical-item-stop-bleeding-self")
