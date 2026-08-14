@@ -658,3 +658,37 @@ binds:
   type: State
   key: MouseRight
   canFocus: true
+
+- function: TargetHead
+  type: State
+  key: NumpadNum8
+- function: TargetChest
+  type: State
+  key: NumpadNum5
+- function: TargetGroin
+  type: State
+  key: NumpadNum2
+- function: TargetLeftArm
+  type: State
+  key: NumpadNum4
+- function: TargetRightArm
+  type: State
+  key: NumpadNum6
+- function: TargetLeftHand
+  type: State
+  key: NumpadNum7
+- function: TargetRightHand
+  type: State
+  key: NumpadNum9
+- function: TargetLeftLeg
+  type: State
+  key: NumpadNum1
+- function: TargetRightLeg
+  type: State
+  key: NumpadNum3
+- function: TargetLeftFoot
+  type: State
+  key: NumpadNum0
+- function: TargetRightFoot
+  type: State
+  key: NumpadDecimal
