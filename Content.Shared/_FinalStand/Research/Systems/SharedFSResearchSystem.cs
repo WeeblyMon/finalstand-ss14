@@ -34,6 +34,38 @@ public abstract partial class SharedFSResearchSystem : EntitySystem
 
     public bool IsNodeUnlocked(Entity<FSStationResearchComponent?> station, string nodeId)
     {
-        return Resolve(station, ref station.Comp, false) && station.Comp.UnlockedNodes.Any(u => u.Id == nodeId);
+        if (!Resolve(station, ref station.Comp, false))
+            return false;
+
+        return IsNodeUnlocked(station.Comp, nodeId);
+    }
+
+    public bool IsNodeUnlocked(FSStationResearchComponent station, string nodeId)
+    {
+        SyncUnlockedLookup(station);
+        return station.UnlockedLookup.Contains(nodeId);
+    }
+
+    public void MarkNodeUnlocked(FSStationResearchComponent station, string nodeId)
+    {
+        station.UnlockedNodes.Add(nodeId);
+        station.UnlockedLookup.Add(nodeId);
+    }
+
+    public void ClearUnlockedNodes(FSStationResearchComponent station)
+    {
+        station.UnlockedNodes.Clear();
+        station.UnlockedLookup.Clear();
+    }
+
+    // Self-heals if the list was replaced wholesale, which is what applying networked state does.
+    private static void SyncUnlockedLookup(FSStationResearchComponent station)
+    {
+        if (station.UnlockedLookup.Count == station.UnlockedNodes.Count)
+            return;
+
+        station.UnlockedLookup.Clear();
+        foreach (var node in station.UnlockedNodes)
+            station.UnlockedLookup.Add(node.Id);
     }
 }

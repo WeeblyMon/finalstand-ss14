@@ -96,7 +96,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSStationResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            comp.UnlockedNodes.Clear();
+            ClearUnlockedNodes(comp);
             comp.ActiveResearch = null;
             comp.NodeProgress.Clear();
             comp.Points = 0;
@@ -288,13 +288,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        if (station.Comp.UnlockedNodes.Any(u => u.Id == node.ID))
+        if (IsNodeUnlocked(station.Comp, node.ID))
         {
             _popup.PopupEntity(Loc.GetString("fs-research-already-unlocked"), uid, player);
             return;
         }
 
-        bool IsUnlocked(string id) => station.Comp.UnlockedNodes.Any(u => u.Id == id);
+        bool IsUnlocked(string id) => IsNodeUnlocked(station.Comp, id);
 
         if (!ArePrerequisitesMet(node, IsUnlocked))
         {
@@ -394,12 +394,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         ProtoId<FSTechNodePrototype>? targetId = null;
         if (contributorMindId is { } contributor &&
             station.Comp.PersonalPicks.TryGetValue(contributor, out var personalId) &&
-            !station.Comp.UnlockedNodes.Any(u => u.Id == personalId.Id))
+            !IsNodeUnlocked(station.Comp, personalId.Id))
         {
             targetId = personalId;
         }
         else if (station.Comp.ActiveResearch is { } activeId &&
-            !station.Comp.UnlockedNodes.Any(u => u.Id == activeId.Id))
+            !IsNodeUnlocked(station.Comp, activeId.Id))
         {
             targetId = activeId;
         }
@@ -440,7 +440,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void CompleteResearch(Entity<FSStationResearchComponent> station, FSTechNodePrototype node, bool wasShared, EntityUid? contributorMindId)
     {
-        station.Comp.UnlockedNodes.Add(node.ID);
+        MarkNodeUnlocked(station.Comp, node.ID);
 
         if (wasShared)
         {
@@ -498,7 +498,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             if (!alreadyUnlocked.Add(node.ID))
                 continue;
 
-            station.Comp.UnlockedNodes.Add(node.ID);
+            MarkNodeUnlocked(station.Comp, node.ID);
             RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
             count++;
         }

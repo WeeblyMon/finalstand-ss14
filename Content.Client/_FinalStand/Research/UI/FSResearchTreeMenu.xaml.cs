@@ -244,6 +244,11 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         });
     }
 
+    public void InvalidateLayout()
+    {
+        GraphControl.InvalidateLayout();
+    }
+
     public void UpdatePanels(ResearchConsoleBoundInterfaceState state)
     {
         _state = state;
@@ -463,7 +468,13 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         TechDescLabel.SetMessage(descMsg);
 
         var statsMsg = new FormattedMessage();
-        statsMsg.AddText(fsNode.BonusDescription != string.Empty ? Loc.GetString(fsNode.BonusDescription) : "—");
+        // TryGetString, so a locale key still resolves if one is ever used, without warning on the
+        // literal English the nodes actually carry.
+        var bonus = "—";
+        if (fsNode.BonusDescription != string.Empty)
+            bonus = Loc.TryGetString(fsNode.BonusDescription, out var localised) ? localised : fsNode.BonusDescription;
+
+        statsMsg.AddText(bonus);
         TechStatsLabel.SetMessage(statsMsg);
     }
 

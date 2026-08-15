@@ -1,5 +1,6 @@
 using Content.Server.Research.Systems;
 using Content.Shared._FinalStand.Research.Prototypes;
+using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
 using Robust.Shared.Prototypes;
 
@@ -24,6 +25,10 @@ public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
             return;
 
         var station = _fsResearch.GetOrCreateStation();
+
+        // The station falls back to a bare nullspace entity when no physical R&D server exists,
+        // and AddTechnology logs a resolve failure rather than creating the database itself.
+        EnsureComp<TechnologyDatabaseComponent>(station.Owner);
         _vanillaResearch.AddTechnology(station.Owner, vanillaId);
     }
 }

@@ -45,5 +45,28 @@ public sealed class FSResearchNodeView
     public TechnologyPrototype? Vanilla;
     public FSTechNodePrototype? FsNode;
 
-    public IEnumerable<string> AllPrerequisiteIds => Prerequisites.Concat(PrerequisiteGroups.SelectMany(g => g));
+    // Materialised once by the graph control instead of re-running the LINQ chain per access -
+    // layout and Draw both walk these every node, Draw every frame.
+    public List<string> AllPrerequisiteIds = new();
+
+    // The subset of AllPrerequisiteIds that came from PrerequisiteGroups, so an edge can be
+    // classified as "one of these" without scanning the groups again.
+    public HashSet<string> OrPrerequisiteIds = new();
+
+    public void BuildPrerequisiteIndex()
+    {
+        AllPrerequisiteIds.Clear();
+        OrPrerequisiteIds.Clear();
+
+        AllPrerequisiteIds.AddRange(Prerequisites);
+
+        foreach (var group in PrerequisiteGroups)
+        {
+            foreach (var id in group)
+            {
+                AllPrerequisiteIds.Add(id);
+                OrPrerequisiteIds.Add(id);
+            }
+        }
+    }
 }

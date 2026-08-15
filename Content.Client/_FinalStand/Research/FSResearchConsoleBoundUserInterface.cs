@@ -87,6 +87,7 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
         if (State is not ResearchConsoleBoundInterfaceState rState)
             return;
 
+        _consoleMenu?.InvalidateLayout();
         _consoleMenu?.UpdatePanels(rState);
         _consoleMenu?.UpdateInformationPanel(rState);
     }

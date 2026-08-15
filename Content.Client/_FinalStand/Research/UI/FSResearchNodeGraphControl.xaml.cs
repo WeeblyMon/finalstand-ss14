@@ -53,6 +53,10 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     private float _zoom = DefaultZoom;
     private int _pendingLockFrames;
 
+    // What the current layout was built for; a mismatch is what forces a real relayout.
+    private string? _layoutDiscipline;
+    private float _layoutZoom = -1f;
+
     private ScrollContainer? _scrollContainer;
     private bool _leftDown;
     private bool _dragging;
@@ -63,6 +67,12 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
     private List<FSResearchNodeView> _nodes = new();
     private Dictionary<string, Vector2> _positions = new();
+
+    // Built with the layout, not per frame. Draw used to rebuild the parent->children map on every
+    // frame and resolve each edge with a linear scan over _nodes.
+    private Dictionary<string, FSResearchNodeView> _nodeById = new();
+    private Dictionary<string, List<FSResearchNodeView>> _childrenByParent = new();
+    private List<List<FSResearchNodeView>> _exclusiveGroups = new();
 
     public event Action<FSResearchNodeView>? OnNodeSelected;
 
@@ -143,9 +153,30 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         _console = console;
         if (isNewConsole)
             _zoom = DefaultZoom;
-        Rebuild();
+
+        // Node positions depend only on which nodes are on the page and the zoom they were sized
+        // at. Points and progress arrive constantly and move nothing, so they must not pay for a
+        // font rasterisation and a full relayout.
+        if (isNewConsole || !LayoutIsCurrent())
+            Rebuild();
+        else
+            RefreshNodeStates();
+
         if (isNewConsole)
             LockToFirstNode();
+    }
+
+    // A prototype reload can change which nodes exist without touching zoom or the filter.
+    public void InvalidateLayout()
+    {
+        _layoutZoom = -1f;
+    }
+
+    private bool LayoutIsCurrent()
+    {
+        return _nodes.Count > 0
+               && _layoutDiscipline == _disciplineFilter
+               && MathHelper.CloseToPercent(_layoutZoom, _zoom);
     }
 
     public FSResearchNodeView? GetNode(string id) => _nodes.FirstOrDefault(n => n.Id == id);
@@ -218,44 +249,28 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
         _nodes = new List<FSResearchNodeView>();
         _positions = new Dictionary<string, Vector2>();
+        _nodeById = new Dictionary<string, FSResearchNodeView>();
+        _childrenByParent = new Dictionary<string, List<FSResearchNodeView>>();
+        _exclusiveGroups = new List<List<FSResearchNodeView>>();
 
         if (_console is not { } console ||
             !_entityManager.TryGetComponent<TechnologyDatabaseComponent>(console, out var database))
         {
             MinWidth = 0;
             MinHeight = 0;
+            _layoutZoom = -1f;
             return;
         }
 
         var rows = _prototype.EnumeratePrototypes<FSTechBranchPrototype>().Select(b => b.ID).ToList();
-
-        var unlockedFs = _entityManager.TryGetComponent<FSTechDatabaseComponent>(console, out var fsDatabase)
-            ? fsDatabase.UnlockedNodes.Select(u => u.Id).ToHashSet()
-            : new HashSet<string>();
-
-        bool IsUnlocked(string id) => database.UnlockedTechnologies.Any(u => u.Id == id) || unlockedFs.Contains(id);
-
         var nodes = new List<FSResearchNodeView>();
-
-        var unlockedFsList = fsDatabase?.UnlockedNodes.Select(u => u.Id).ToList() ?? new List<string>();
 
         foreach (var fsTech in _prototype.EnumeratePrototypes<FSTechNodePrototype>())
         {
             if (fsTech.Hidden)
                 continue;
 
-            var prereqsMet = fsTech.Prerequisites.All(IsUnlocked) && fsTech.PrerequisiteGroups.All(g => g.Any(IsUnlocked));
-
-            var state = IsUnlocked(fsTech.ID) ? FSResearchNodeState.Unlocked
-                : _fsResearch.IsExclusivelyBlocked(fsTech, unlockedFsList) ? FSResearchNodeState.ExclusivelyBlocked
-                : !prereqsMet ? FSResearchNodeState.Locked
-                : FSResearchNodeState.Available;
-
-            var isActive = fsDatabase?.ActiveResearch is { } active && active.Id == fsTech.ID;
-            var isMyPersonalPick = _fsResearch.MyPersonalPickId is { } mine && mine.Id == fsTech.ID;
-            var contributorSlots = fsDatabase?.PersonalContributorSlots.GetValueOrDefault(fsTech.ID) ?? new List<int>();
-
-            nodes.Add(new FSResearchNodeView
+            var view = new FSResearchNodeView
             {
                 Id = fsTech.ID,
                 Name = fsTech.Name,
@@ -265,14 +280,11 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                 Cost = fsTech.Cost,
                 Prerequisites = fsTech.Prerequisites,
                 PrerequisiteGroups = fsTech.PrerequisiteGroups,
-                State = state,
+                State = FSResearchNodeState.Locked,
                 FsNode = fsTech,
-                IsActiveResearch = isActive,
-                IsMyPersonalPick = isMyPersonalPick,
-                Progress = fsDatabase?.NodeProgress.GetValueOrDefault(fsTech.ID) ?? 0,
-                PersonalContributorCount = contributorSlots.Count,
-                ContributorSlots = contributorSlots,
-            });
+            };
+            view.BuildPrerequisiteIndex();
+            nodes.Add(view);
         }
 
         // Discipline tabs are separate pages, not a dimming filter - only one page's worth of
@@ -285,6 +297,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         {
             MinWidth = 0;
             MinHeight = 0;
+            _layoutZoom = -1f;
             return;
         }
 
@@ -467,6 +480,103 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         // groupCursorX's starting point, so there's equal drag room on the right as on the left
         MinWidth = (rightEdgeX + PlateWidth + Padding) / UIScale;
         MinHeight = (Padding * 2 + (rowCount - 1) * RowSpacing + NodeHeight) / UIScale;
+
+        _layoutDiscipline = _disciplineFilter;
+        _layoutZoom = _zoom;
+
+        BuildDrawIndexes();
+        RefreshNodeStates();
+    }
+
+    // Unlock state, progress and contributor rings change constantly; none of them move a node, so
+    // they are recomputed in place rather than through a relayout.
+    private void RefreshNodeStates()
+    {
+        if (_nodes.Count == 0 ||
+            _console is not { } console ||
+            !_entityManager.TryGetComponent<TechnologyDatabaseComponent>(console, out var database))
+            return;
+
+        _entityManager.TryGetComponent<FSTechDatabaseComponent>(console, out var fsDatabase);
+
+        var unlockedFs = new HashSet<string>();
+        var unlockedFsList = new List<string>();
+        if (fsDatabase != null)
+        {
+            foreach (var node in fsDatabase.UnlockedNodes)
+            {
+                unlockedFs.Add(node.Id);
+                unlockedFsList.Add(node.Id);
+            }
+        }
+
+        var vanillaUnlocked = new HashSet<string>();
+        foreach (var tech in database.UnlockedTechnologies)
+            vanillaUnlocked.Add(tech.Id);
+
+        bool IsUnlocked(string id) => vanillaUnlocked.Contains(id) || unlockedFs.Contains(id);
+
+        foreach (var node in _nodes)
+        {
+            if (node.FsNode is not { } fsTech)
+                continue;
+
+            var prereqsMet = fsTech.Prerequisites.All(IsUnlocked) && fsTech.PrerequisiteGroups.All(g => g.Any(IsUnlocked));
+
+            node.State = IsUnlocked(fsTech.ID) ? FSResearchNodeState.Unlocked
+                : _fsResearch.IsExclusivelyBlocked(fsTech, unlockedFsList) ? FSResearchNodeState.ExclusivelyBlocked
+                : !prereqsMet ? FSResearchNodeState.Locked
+                : FSResearchNodeState.Available;
+
+            node.IsActiveResearch = fsDatabase?.ActiveResearch is { } active && active.Id == fsTech.ID;
+            node.IsMyPersonalPick = _fsResearch.MyPersonalPickId is { } mine && mine.Id == fsTech.ID;
+            node.Progress = fsDatabase?.NodeProgress.GetValueOrDefault(fsTech.ID) ?? 0;
+            node.ContributorSlots = fsDatabase?.PersonalContributorSlots.GetValueOrDefault(fsTech.ID) ?? new List<int>();
+            node.PersonalContributorCount = node.ContributorSlots.Count;
+        }
+    }
+
+    // Everything Draw needs to walk the graph, resolved once here so the frame loop only does
+    // dictionary lookups.
+    private void BuildDrawIndexes()
+    {
+        foreach (var node in _nodes)
+            _nodeById[node.Id] = node;
+
+        foreach (var node in _nodes)
+        {
+            foreach (var prereqId in node.AllPrerequisiteIds)
+            {
+                if (!_nodeById.ContainsKey(prereqId))
+                    continue;
+
+                if (!_childrenByParent.TryGetValue(prereqId, out var children))
+                    _childrenByParent[prereqId] = children = new List<FSResearchNodeView>();
+
+                children.Add(node);
+            }
+        }
+
+        var byGroup = new Dictionary<string, List<FSResearchNodeView>>();
+        foreach (var node in _nodes)
+        {
+            if (node.FsNode?.ExclusiveGroup is not { } group)
+                continue;
+
+            if (!byGroup.TryGetValue(group, out var members))
+                byGroup[group] = members = new List<FSResearchNodeView>();
+
+            members.Add(node);
+        }
+
+        foreach (var members in byGroup.Values)
+        {
+            if (members.Count < 2)
+                continue;
+
+            members.Sort((a, b) => _positions[a.Id].X.CompareTo(_positions[b.Id].X));
+            _exclusiveGroups.Add(members);
+        }
     }
 
     // Splits a set of nodes into connected components (undirected - a prerequisite edge connects
@@ -677,21 +787,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         // of every edge drawing its own independent elbow. Independent per-edge routing put
         // multiple horizontal segments at the same midY when siblings share a row, which could
         // visually pass through/along an unrelated node and read as a connection that isn't real.
-        var childrenByParent = new Dictionary<string, List<FSResearchNodeView>>();
-        foreach (var node in _nodes)
-        {
-            foreach (var prereqId in node.AllPrerequisiteIds)
-            {
-                var prereq = _nodes.FirstOrDefault(t => t.Id == prereqId);
-                if (prereq == null)
-                    continue;
-
-                if (!childrenByParent.TryGetValue(prereq.Id, out var list))
-                    childrenByParent[prereq.Id] = list = new List<FSResearchNodeView>();
-                list.Add(node);
-            }
-        }
-
         Color EdgeStateColor(FSResearchNodeView node) => node.State == FSResearchNodeState.Unlocked
             ? UnlockedNodeColor
             : LockedNodeColor;
@@ -699,8 +794,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         // AND-of-all (Prerequisites) reads as a solid line - every parent is mandatory. AND-of-OR
         // (PrerequisiteGroups) reads as dashed for the specific edges in that group - only one of
         // them is actually needed, same convention HOI4 uses (dotted = "either of these").
-        bool IsOrEdge(FSResearchNodeView child, string parentId) =>
-            child.FsNode is { } fsNode && fsNode.PrerequisiteGroups.Any(g => g.Contains(parentId));
+        bool IsOrEdge(FSResearchNodeView child, string parentId) => child.OrPrerequisiteIds.Contains(parentId);
 
         void DrawEdgeLine(Vector2 from, Vector2 to, Color color, FSResearchNodeView child, string parentId)
         {
@@ -710,9 +804,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                 handle.DrawLine(from, to, color);
         }
 
-        foreach (var (parentId, allChildren) in childrenByParent)
+        foreach (var (parentId, allChildren) in _childrenByParent)
         {
-            var parent = _nodes.First(t => t.Id == parentId);
+            var parent = _nodeById[parentId];
             var parentCenter = GetCenter(parent);
             var parentBottom = GetBottomAnchor(parent);
             var trunkColor = EdgeStateColor(parent);
@@ -795,9 +889,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             var color = Fade(stateColor, opacity);
 
             var line = TruncateForPlate(node.Name);
-            var neededWidth = handle.GetDimensions(_font, line, 1).X;
+            var lineDims = handle.GetDimensions(_font, line, 1);
             // floor at MinPlateWidth, but never shrink below what the (already-truncated) text needs
-            var actualPlateWidth = Math.Max(neededWidth + 48 * UIScale * _zoom, MinPlateWidth);
+            var actualPlateWidth = Math.Max(lineDims.X + 48 * UIScale * _zoom, MinPlateWidth);
             var plateBox = UIBox2.FromDimensions(
                 new Vector2(center.X - actualPlateWidth / 2, center.Y + iconRadius + PlateGap),
                 new Vector2(actualPlateWidth, PlateHeight));
@@ -870,23 +964,14 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             DrawHSlicedRect(handle, _plateRingTexture, plateBox, color);
 
-            var lineDims = handle.GetDimensions(_font, line, 1);
             var linePos = new Vector2(plateBox.Center.X - lineDims.X / 2, plateBox.Center.Y - lineDims.Y / 2);
             handle.DrawString(_font, linePos, line, color);
         }
 
         // Mutually exclusive marker - same visual language as HOI4's "pick one, lock the other"
         // indicator between two sibling choices. Drawn last so it sits on top of connector lines.
-        var exclusiveGroups = _nodes
-            .Where(n => n.FsNode?.ExclusiveGroup != null)
-            .GroupBy(n => n.FsNode!.ExclusiveGroup!);
-
-        foreach (var group in exclusiveGroups)
+        foreach (var ordered in _exclusiveGroups)
         {
-            var ordered = group.OrderBy(n => _positions[n.Id].X).ToList();
-            if (ordered.Count < 2)
-                continue;
-
             // one marker between each adjacent pair - handles the common 2-choice case cleanly,
             // and still reads fine for a rare 3+-way exclusive group
             for (var i = 0; i < ordered.Count - 1; i++)
