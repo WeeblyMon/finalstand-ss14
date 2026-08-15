@@ -26,8 +26,7 @@ public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
 
         var station = _fsResearch.GetOrCreateStation();
 
-        // The station falls back to a bare nullspace entity when no physical R&D server exists,
-        // and AddTechnology logs a resolve failure rather than creating the database itself.
+        // The station can be a bare nullspace fallback, which AddTechnology only logs about.
         EnsureComp<TechnologyDatabaseComponent>(station.Owner);
         _vanillaResearch.AddTechnology(station.Owner, vanillaId);
     }

@@ -53,6 +53,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     public EntityUid Entity;
 
     private FSResearchNodeView? _selectedNode;
+    private bool _warningIsSticky;
     private ResearchConsoleBoundInterfaceState? _state;
     private readonly List<(Button Button, string? GroupId, Color? Accent)> _disciplineButtons = new();
 
@@ -113,6 +114,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         CancelButton.OnPressed += _ =>
         {
             _selectedNode = null;
+            ClearWarning();
             UpdateDetailPanel();
         };
 
@@ -121,6 +123,9 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
         GraphControl.OnNodeSelected += node =>
         {
+            if (_selectedNode?.Id != node.Id)
+                ClearWarning();
+
             _selectedNode = node;
             UpdateDetailPanel();
         };
@@ -291,14 +296,26 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         AuthorityWarningLabel.Text = reason;
         AuthorityWarningLabel.Visible = true;
+        _warningIsSticky = true;
+    }
+
+    private void ClearWarning()
+    {
+        _warningIsSticky = false;
+        AuthorityWarningLabel.Visible = false;
+        AuthorityWarningLabel.Text = "";
     }
 
     private void UpdateDetailPanel()
     {
         UpdateResearchAmountLabel();
 
-        AuthorityWarningLabel.Visible = false;
-        AuthorityWarningLabel.Text = "";
+        // Kept until the player selects elsewhere - point grants refresh this panel constantly.
+        if (!_warningIsSticky)
+        {
+            AuthorityWarningLabel.Visible = false;
+            AuthorityWarningLabel.Text = "";
+        }
         ClearPersonalPickButton.Visible = false;
         ClearSharedPickButton.Visible = false;
         ResearchStatusLabel.Visible = false;
@@ -468,8 +485,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         TechDescLabel.SetMessage(descMsg);
 
         var statsMsg = new FormattedMessage();
-        // TryGetString, so a locale key still resolves if one is ever used, without warning on the
-        // literal English the nodes actually carry.
+        // TryGetString so a real locale key still resolves, without warning on literal text.
         var bonus = "—";
         if (fsNode.BonusDescription != string.Empty)
             bonus = Loc.TryGetString(fsNode.BonusDescription, out var localised) ? localised : fsNode.BonusDescription;

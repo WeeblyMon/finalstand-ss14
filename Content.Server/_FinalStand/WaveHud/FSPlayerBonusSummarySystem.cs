@@ -34,9 +34,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
     private TimeSpan _nextSweep;
 
-    // Last summary each player was actually sent. The values change on a weapon swap, a perk
-    // level or a research completion; the sweep would otherwise resend an identical payload
-    // to every player every second.
+    // Last summary each player was sent; the sweep would otherwise resend it every second.
     private readonly Dictionary<NetUserId, FSPlayerBonusSummaryEvent> _lastSent = new();
 
     public override void Initialize()

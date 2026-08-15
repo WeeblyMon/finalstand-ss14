@@ -44,8 +44,7 @@ public sealed class WeaponClassifierTest : GameTest
                 Assert.That(xray.Xray, Is.True, "X-Ray did not classify as the X-Ray");
                 Assert.That(tesla.Tesla, Is.True, "Tesla did not classify as the Tesla");
 
-                // The Harvester carries none of the three gun tags, which is why the systems that
-                // gate on HasGunTag have to test it separately.
+                // No gun tags, which is why callers that gate on HasGunTag special-case it.
                 Assert.That(harvester.Harvester, Is.True, "Harvester did not classify as the Harvester");
                 Assert.That(harvester.HasGunTag, Is.False,
                     "Harvester now carries a gun tag - the callers that special-case it need revisiting");

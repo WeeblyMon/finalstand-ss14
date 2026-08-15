@@ -45,12 +45,10 @@ public sealed class FSResearchNodeView
     public TechnologyPrototype? Vanilla;
     public FSTechNodePrototype? FsNode;
 
-    // Materialised once by the graph control instead of re-running the LINQ chain per access -
-    // layout and Draw both walk these every node, Draw every frame.
+    // Materialised once instead of re-running the LINQ chain per access.
     public List<string> AllPrerequisiteIds = new();
 
-    // The subset of AllPrerequisiteIds that came from PrerequisiteGroups, so an edge can be
-    // classified as "one of these" without scanning the groups again.
+    // The PrerequisiteGroups subset, so an "or" edge is a single lookup.
     public HashSet<string> OrPrerequisiteIds = new();
 
     public void BuildPrerequisiteIndex()

@@ -38,8 +38,7 @@ public sealed partial class FSStationResearchComponent : Component
     // First-come slot index per mind that's personally picked a node - only the index is ever networked, never the mind/name.
     public Dictionary<EntityUid, int> ContributorColorSlots = new();
 
-    // Membership index over UnlockedNodes. Weapon effects probe this tens of times per projectile
-    // hit, which a list scan cannot absorb. Kept in sync by SharedFSResearchSystem, never serialised.
+    // Membership index - weapon effects probe this tens of times per projectile hit.
     [ViewVariables]
     public HashSet<string> UnlockedLookup = new();
 }

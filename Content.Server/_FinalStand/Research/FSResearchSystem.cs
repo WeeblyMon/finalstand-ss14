@@ -122,8 +122,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         SyncConsoles();
     }
 
-    // Without this the console contributes nothing, UpdateMaterialWhitelist stores an empty list
-    // rather than null, and IsMaterialWhitelisted then rejects every material the silo offers.
+    // Vanilla stores an empty list when nothing answers, and empty rejects every material.
     private void OnGetMaterialWhitelist(EntityUid uid, FSTechDatabaseComponent comp, ref GetMaterialWhitelistEvent args)
     {
         if (args.Storage != uid)
@@ -446,18 +445,23 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         {
             station.Comp.ActiveResearch = null;
             station.Comp.ActiveResearchSetBy = null;
+        }
 
-            var stale = station.Comp.PersonalPicks.Where(kv => kv.Value.Id == node.ID).Select(kv => kv.Key).ToList();
-            foreach (var mind in stale)
-                station.Comp.PersonalPicks.Remove(mind);
-        }
-        else if (contributorMindId is { } mind)
-        {
+        // The node is finished, so every pick aimed at it clears, not just the last contributor's.
+        var stale = station.Comp.PersonalPicks
+            .Where(kv => kv.Value.Id == node.ID)
+            .Select(kv => kv.Key)
+            .ToList();
+
+        foreach (var mind in stale)
             station.Comp.PersonalPicks.Remove(mind);
-        }
 
         Dirty(station);
         BroadcastUnlockedNodes();
+
+        foreach (var mind in stale)
+            SendPersonalResearchState(mind);
+
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
 
         Log.Info($"[FSResearch] Completed node {node.ID}");
@@ -504,7 +508,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
 
         station.Comp.ActiveResearch = null;
+        station.Comp.ActiveResearchSetBy = null;
         station.Comp.PersonalPicks.Clear();
+        station.Comp.ContributorColorSlots.Clear();
         Dirty(station);
         SyncConsoles();
         BroadcastUnlockedNodes();

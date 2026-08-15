@@ -68,8 +68,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     private List<FSResearchNodeView> _nodes = new();
     private Dictionary<string, Vector2> _positions = new();
 
-    // Built with the layout, not per frame. Draw used to rebuild the parent->children map on every
-    // frame and resolve each edge with a linear scan over _nodes.
+    // Built with the layout, not per frame.
     private Dictionary<string, FSResearchNodeView> _nodeById = new();
     private Dictionary<string, List<FSResearchNodeView>> _childrenByParent = new();
     private List<List<FSResearchNodeView>> _exclusiveGroups = new();
@@ -154,9 +153,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         if (isNewConsole)
             _zoom = DefaultZoom;
 
-        // Node positions depend only on which nodes are on the page and the zoom they were sized
-        // at. Points and progress arrive constantly and move nothing, so they must not pay for a
-        // font rasterisation and a full relayout.
+        // Positions depend only on the page and the zoom; points and progress move nothing.
         if (isNewConsole || !LayoutIsCurrent())
             Rebuild();
         else
@@ -488,8 +485,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         RefreshNodeStates();
     }
 
-    // Unlock state, progress and contributor rings change constantly; none of them move a node, so
-    // they are recomputed in place rather than through a relayout.
+    // None of these move a node, so they update in place instead of forcing a relayout.
     private void RefreshNodeStates()
     {
         if (_nodes.Count == 0 ||
@@ -536,8 +532,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Everything Draw needs to walk the graph, resolved once here so the frame loop only does
-    // dictionary lookups.
+    // Resolved once here so the frame loop only does dictionary lookups.
     private void BuildDrawIndexes()
     {
         foreach (var node in _nodes)

@@ -589,8 +589,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private static readonly Color BonusPositive = Color.FromHex("#22C55E");
     private static readonly Color BonusNegative = Color.FromHex("#EF4444");
 
-    // Rebuilt when the held item or the bonus summary changes, not per frame - the row list and
-    // every string in it were being reallocated each draw.
+    // Rebuilt on a change of held item or summary, not per frame.
     private List<BonusRow> BuildVisibleBonusRows()
     {
         _shop ??= _entityManager.System<FSShopClientSystem>();

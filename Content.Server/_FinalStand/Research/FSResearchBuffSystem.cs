@@ -235,14 +235,18 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
 
             if (Unlocked("FSOrdnanceL6QuickChangeBarrels"))
             {
-                EnsureComp<FSOverclockedComponent>(uid).ResearchRampMultiplier = 1.15f;
+                var quickChange = EnsureComp<FSOverclockedComponent>(uid);
+                quickChange.ResearchRampMultiplier = 1.15f;
+                Dirty(uid, quickChange);
                 projectileSpeedMul *= 0.94f;
             }
             if (Unlocked("FSOrdnanceL6FlutedBarrels"))
             {
                 accuracyPct += 0.06;
                 projectileSpeedMul *= 1.08f;
-                EnsureComp<FSOverclockedComponent>(uid).ResearchRampMultiplier = 0.85f;
+                var fluted = EnsureComp<FSOverclockedComponent>(uid);
+                fluted.ResearchRampMultiplier = 0.85f;
+                Dirty(uid, fluted);
             }
             if (Unlocked("FSOrdnanceL6OpenBoltFiring"))
             {
