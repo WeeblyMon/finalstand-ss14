@@ -13,6 +13,20 @@ public readonly struct FSBonusCategory
         Percent = percent;
         Sources = sources;
     }
+
+    public bool Matches(in FSBonusCategory other)
+    {
+        if (!MathHelper.CloseToPercent(Percent, other.Percent) || Sources.Length != other.Sources.Length)
+            return false;
+
+        for (var i = 0; i < Sources.Length; i++)
+        {
+            if (Sources[i] != other.Sources[i])
+                return false;
+        }
+
+        return true;
+    }
 }
 
 // Single-player-targeted snapshot of the wave-HUD "current bonuses" indicator.
@@ -36,5 +50,15 @@ public sealed class FSPlayerBonusSummaryEvent : EntityEventArgs
         ExplosiveDamage = explosiveDamage;
         ReloadSpeed = reloadSpeed;
         MagazineSize = magazineSize;
+    }
+
+    public bool Matches(FSPlayerBonusSummaryEvent other)
+    {
+        return GunDamage.Matches(other.GunDamage)
+               && FireRate.Matches(other.FireRate)
+               && MeleeDamage.Matches(other.MeleeDamage)
+               && ExplosiveDamage.Matches(other.ExplosiveDamage)
+               && ReloadSpeed.Matches(other.ReloadSpeed)
+               && MagazineSize.Matches(other.MagazineSize);
     }
 }

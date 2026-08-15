@@ -340,3 +340,4 @@ build_warnings.txt
 
 # C# Dev Kit cache file
 *.lscache
+Tools/build-quiet.ps1

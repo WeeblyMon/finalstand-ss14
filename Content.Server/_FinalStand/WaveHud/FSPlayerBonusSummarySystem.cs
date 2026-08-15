@@ -14,6 +14,7 @@ using Content.Shared.Weapons.Ranged.Components;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.WaveHud;
@@ -23,33 +24,35 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 {
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStatic = default!;
-
-    private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
-    private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
-    private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
-
-    private const string L6Proto = "FSWeaponLightMachineGunL6";
-    private const string HydraProto = "WeaponLauncherHydraFS";
-    private const string RpgProto = "FSWeaponLauncherRocket";
-    private const string XrayProto = "WeaponXrayCannonFS";
-    private const string TeslaProto = "WeaponTeslaGunFS";
+    [Dependency] private FSWeaponClassifierSystem _classifier = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
     private TimeSpan _nextSweep;
 
+    // Last summary each player was actually sent. The values change on a weapon swap, a perk
+    // level or a research completion; the sweep would otherwise resend an identical payload
+    // to every player every second.
+    private readonly Dictionary<NetUserId, FSPlayerBonusSummaryEvent> _lastSent = new();
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnResearchNodeCompleted);
+        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
     }
 
     private void OnResearchNodeCompleted(FSResearchNodeCompletedEvent ev) => RecomputeAll();
+
+    private void OnPlayerDetached(PlayerDetachedEvent ev)
+    {
+        if (ev.Player is { } session)
+            _lastSent.Remove(session.UserId);
+    }
 
     public override void Update(float frameTime)
     {
@@ -105,9 +108,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
                 explosiveDamage = ComputeGrenadeExplosiveDamage();
         }
 
-        RaiseNetworkEvent(
-            new FSPlayerBonusSummaryEvent(gunDamage, fireRate, meleeDamage, explosiveDamage, reloadSpeed, magazineSize),
-            Filter.SinglePlayer(session));
+        var summary = new FSPlayerBonusSummaryEvent(gunDamage, fireRate, meleeDamage, explosiveDamage, reloadSpeed, magazineSize);
+
+        if (_lastSent.TryGetValue(session.UserId, out var previous) && summary.Matches(previous))
+            return;
+
+        _lastSent[session.UserId] = summary;
+        RaiseNetworkEvent(summary, Filter.SinglePlayer(session));
     }
 
     private void ComputeGunCategories(EntityUid heldUid, FSPerkLevelsComponent? perks,
@@ -115,16 +122,16 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         out FSBonusCategory gunDamage, out FSBonusCategory fireRate, out FSBonusCategory explosiveDamage,
         out FSBonusCategory reloadSpeed, out FSBonusCategory magazineSize)
     {
-        var isBallistic = _tags.HasTag(heldUid, BallisticTag);
-        var isEnergy = _tags.HasTag(heldUid, EnergyTag);
-        var isLauncher = _tags.HasTag(heldUid, LauncherTag);
-        var protoId = Prototype(heldUid)?.ID;
-        var isL6 = protoId == L6Proto;
-        var isMinigun = HasComp<FSMinigunComponent>(heldUid);
-        var isHydra = protoId == HydraProto;
-        var isRpg = protoId == RpgProto;
-        var isXray = protoId == XrayProto;
-        var isTesla = protoId == TeslaProto;
+        var kind = _classifier.Classify(heldUid);
+        var isBallistic = kind.Ballistic;
+        var isEnergy = kind.Energy;
+        var isLauncher = kind.Launcher;
+        var isL6 = kind.L6;
+        var isMinigun = kind.Minigun;
+        var isHydra = kind.Hydra;
+        var isRpg = kind.Rpg;
+        var isXray = kind.Xray;
+        var isTesla = kind.Tesla;
 
         // ── Damage (Gun or Explosive, whichever this weapon actually is) ──
         var dmgMul = _researchBuff.GetDamageMultiplier(isBallistic, isEnergy, isLauncher, isL6, isMinigun, isHydra, isRpg, isXray, isTesla);
@@ -268,10 +275,11 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             return "Not holding anything.";
 
         var protoId = Prototype(heldUid)?.ID ?? "(no prototype)";
-        var isBallistic = _tags.HasTag(heldUid, BallisticTag);
-        var isEnergy = _tags.HasTag(heldUid, EnergyTag);
-        var isLauncher = _tags.HasTag(heldUid, LauncherTag);
-        var isMinigun = HasComp<FSMinigunComponent>(heldUid);
+        var kind = _classifier.Classify(heldUid);
+        var isBallistic = kind.Ballistic;
+        var isEnergy = kind.Energy;
+        var isLauncher = kind.Launcher;
+        var isMinigun = kind.Minigun;
         var hasGun = HasComp<GunComponent>(heldUid);
         var hasMelee = HasComp<MeleeWeaponComponent>(heldUid);
         var hasGrenadePack = HasComp<FSGrenadePackComponent>(heldUid);

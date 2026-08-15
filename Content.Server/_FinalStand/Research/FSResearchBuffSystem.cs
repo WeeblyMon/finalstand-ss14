@@ -14,19 +14,8 @@ namespace Content.Server._FinalStand.Research;
 public sealed partial class FSResearchBuffSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
-    [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedGunSystem _gun = default!;
-
-    private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
-    private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
-    private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
-
-    private const string L6Proto = "FSWeaponLightMachineGunL6";
-    private const string HydraProto = "WeaponLauncherHydraFS";
-    private const string RpgProto = "FSWeaponLauncherRocket";
-    private const string XrayProto = "WeaponXrayCannonFS";
-    private const string TeslaProto = "WeaponTeslaGunFS";
-    private const string HarvesterProto = "WeaponHarvesterFS";
+    [Dependency] private FSWeaponClassifierSystem _classifier = default!;
 
     public override void Initialize()
     {
@@ -50,8 +39,8 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
 
     private bool IsOrdnanceWeapon(EntityUid uid)
     {
-        return _tags.HasTag(uid, BallisticTag) || _tags.HasTag(uid, EnergyTag) || _tags.HasTag(uid, LauncherTag)
-            || Prototype(uid)?.ID == HarvesterProto;
+        var kind = _classifier.Classify(uid);
+        return kind.HasGunTag || kind.Harvester;
     }
 
     private bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
@@ -205,20 +194,20 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
 
     private void OnRefreshModifiers(EntityUid uid, TagComponent tagComp, ref GunRefreshModifiersEvent args)
     {
-        var isBallistic = _tags.HasTag(uid, BallisticTag);
-        var isEnergy = _tags.HasTag(uid, EnergyTag);
-        var isLauncher = _tags.HasTag(uid, LauncherTag);
-        var protoId = Prototype(uid)?.ID;
-        var isHarvester = protoId == HarvesterProto;
-        if (!isBallistic && !isEnergy && !isLauncher && !isHarvester)
+        var kind = _classifier.Classify(uid);
+        if (!kind.HasGunTag && !kind.Harvester)
             return;
 
-        var isL6 = protoId == L6Proto;
-        var isMinigun = HasComp<FSMinigunComponent>(uid);
-        var isHydra = protoId == HydraProto;
-        var isRpg = protoId == RpgProto;
-        var isXray = protoId == XrayProto;
-        var isTesla = protoId == TeslaProto;
+        var isBallistic = kind.Ballistic;
+        var isEnergy = kind.Energy;
+        var isLauncher = kind.Launcher;
+        var isHarvester = kind.Harvester;
+        var isL6 = kind.L6;
+        var isMinigun = kind.Minigun;
+        var isHydra = kind.Hydra;
+        var isRpg = kind.Rpg;
+        var isXray = kind.Xray;
+        var isTesla = kind.Tesla;
 
         var accuracyPct = 0.0; // blended into MinAngle/MaxAngle/AngleIncrease
         var angleIncreasePct = 0.0;
@@ -349,21 +338,12 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         if (ev.Weapon is not { } weapon)
             return;
 
-        var isBallistic = _tags.HasTag(weapon, BallisticTag);
-        var isEnergy = _tags.HasTag(weapon, EnergyTag);
-        var isLauncher = _tags.HasTag(weapon, LauncherTag);
-        if (!isBallistic && !isEnergy && !isLauncher)
+        var kind = _classifier.Classify(weapon);
+        if (!kind.HasGunTag)
             return;
 
-        var protoId = Prototype(weapon)?.ID;
-        var isL6 = protoId == L6Proto;
-        var isMinigun = HasComp<FSMinigunComponent>(weapon);
-        var isHydra = protoId == HydraProto;
-        var isRpg = protoId == RpgProto;
-        var isXray = protoId == XrayProto;
-        var isTesla = protoId == TeslaProto;
-
-        var mul = GetDamageMultiplier(isBallistic, isEnergy, isLauncher, isL6, isMinigun, isHydra, isRpg, isXray, isTesla);
+        var mul = GetDamageMultiplier(kind.Ballistic, kind.Energy, kind.Launcher, kind.L6, kind.Minigun,
+            kind.Hydra, kind.Rpg, kind.Xray, kind.Tesla);
 
         if (mul != 1f)
             ev.AdditionalMultiplier *= mul;

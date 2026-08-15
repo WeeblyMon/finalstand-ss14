@@ -16,19 +16,9 @@ namespace Content.Server._FinalStand.Research;
 public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
-    [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private SharedGunSystem _gun = default!;
-
-    private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
-    private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
-    private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
-
-    private const string L6Proto = "FSWeaponLightMachineGunL6";
-    private const string HydraProto = "WeaponLauncherHydraFS";
-    private const string RpgProto = "FSWeaponLauncherRocket";
-    private const string XrayProto = "WeaponXrayCannonFS";
-    private const string TeslaProto = "WeaponTeslaGunFS";
+    [Dependency] private FSWeaponClassifierSystem _classifier = default!;
 
     public override void Initialize()
     {
@@ -64,19 +54,18 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 
     public void Reconcile(EntityUid weapon)
     {
-        var isBallistic = _tags.HasTag(weapon, BallisticTag);
-        var isEnergy = _tags.HasTag(weapon, EnergyTag);
-        var isLauncher = _tags.HasTag(weapon, LauncherTag);
-        if (!isBallistic && !isEnergy && !isLauncher)
+        var kind = _classifier.Classify(weapon);
+        if (!kind.HasGunTag)
             return;
 
-        var protoId = Prototype(weapon)?.ID;
-        var isL6 = protoId == L6Proto;
-        var isMinigun = HasComp<FSMinigunComponent>(weapon);
-        var isHydra = protoId == HydraProto;
-        var isRpg = protoId == RpgProto;
-        var isXray = protoId == XrayProto;
-        var isTesla = protoId == TeslaProto;
+        var isBallistic = kind.Ballistic;
+        var isEnergy = kind.Energy;
+        var isL6 = kind.L6;
+        var isMinigun = kind.Minigun;
+        var isHydra = kind.Hydra;
+        var isRpg = kind.Rpg;
+        var isXray = kind.Xray;
+        var isTesla = kind.Tesla;
 
         var tracker = EnsureComp<FSResearchAppliedComponent>(weapon);
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);

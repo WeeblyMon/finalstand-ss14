@@ -28,7 +28,7 @@ public sealed class FSDamageNumberServerSystem : EntitySystem
         SubscribeLocalEvent<ActorComponent, DamageChangedEvent>(OnPlayerDamaged);
     }
 
-    private void OnPlayerDamaged(EntityUid uid, ActorComponent _, DamageChangedEvent args)
+    private void OnPlayerDamaged(EntityUid uid, ActorComponent actor, DamageChangedEvent args)
     {
         if (!PlayerDamageNumbersEnabled) return;
         if (!args.DamageIncreased || args.DamageDelta == null) return;
@@ -44,7 +44,7 @@ public sealed class FSDamageNumberServerSystem : EntitySystem
             Target = GetNetEntity(uid),
             Amount = total,
             IsCrit = false,
-        }, Filter.Broadcast());
+        }, actor.PlayerSession);
     }
 
     private void OnCritLanded(EntityUid uid, WaveSpawnedTagComponent _, CritLandedEvent args)

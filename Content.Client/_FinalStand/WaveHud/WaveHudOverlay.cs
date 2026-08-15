@@ -28,12 +28,24 @@ public sealed partial class WaveHudOverlay : Overlay
     [Dependency] private IUserInterfaceManager _uiManager = default!;
     [Dependency] private IEntityManager _entityManager = default!;
 
+    private static readonly ResPath NotoBoldPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
+
+    private FontResource? _notoRes;
     private Font? _labelFont;
     private Font? _valueFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
     private int _cachedLabelPt = -1;
     private int _cachedValuePt = -1;
+    private float _cachedLabelH;
+    private float _cachedValueH;
+
+    // The hotbar does not move, so the control tree is walked once per screen instead of per frame.
+    private Control? _hotbarControl;
+    private Control? _hotbarScreen;
+
+    private string _layoutRaw = "";
+    private bool _isSeparatedLayout;
 
     private Texture? _iconCredits;
     private Texture? _iconTimer;
@@ -41,9 +53,32 @@ public sealed partial class WaveHudOverlay : Overlay
     private Texture? _iconWave;
     private bool _hudIconsLoaded;
 
-    public int CurrentWave    = 1;
-    public int CurrentCredits = 0;
-    public int EnemiesAlive   = 0;
+    // Text is rebuilt on assignment, not per frame - these change a few times a wave at most.
+    private int _currentWave = 1;
+    private int _currentCredits;
+    private int _enemiesAlive;
+    private string _waveText = "01";
+    private string _creditsText = "$0";
+    private string _enemiesText = "0";
+
+    public int CurrentWave
+    {
+        get => _currentWave;
+        set { if (_currentWave == value) return; _currentWave = value; _waveText = value.ToString("D2"); }
+    }
+
+    public int CurrentCredits
+    {
+        get => _currentCredits;
+        set { if (_currentCredits == value) return; _currentCredits = value; _creditsText = $"${value:N0}"; }
+    }
+
+    public int EnemiesAlive
+    {
+        get => _enemiesAlive;
+        set { if (_enemiesAlive == value) return; _enemiesAlive = value; _enemiesText = value.ToString(); }
+    }
+
     public int EnemiesTotal   = 0;
     public string[] ActiveSlots  = Array.Empty<string>();
     public Dictionary<string, int> PerkLevels = new();
@@ -57,6 +92,20 @@ public sealed partial class WaveHudOverlay : Overlay
     public FSBonusCategory ExplosiveDamage;
     public FSBonusCategory ReloadSpeed;
     public FSBonusCategory MagazineSize;
+
+    // Bumped when a summary lands; the row list rebuilds on that or on a change of held item.
+    private int _bonusVersion;
+
+    public void SetBonusSummary(FSPlayerBonusSummaryEvent ev)
+    {
+        GunDamage = ev.GunDamage;
+        FireRate = ev.FireRate;
+        MeleeDamage = ev.MeleeDamage;
+        ExplosiveDamage = ev.ExplosiveDamage;
+        ReloadSpeed = ev.ReloadSpeed;
+        MagazineSize = ev.MagazineSize;
+        _bonusVersion++;
+    }
 
     // Used by WaveHudSystem to position and drive the ready-up overlay section.
     public float PanelLeft = -1f;
@@ -149,14 +198,24 @@ public sealed partial class WaveHudOverlay : Overlay
 
         EnsureHudIcons();
 
-        var notoRes = _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf"));
-        if (_cachedLabelPt != labelPt) { _labelFont = new VectorFont(notoRes, labelPt); _cachedLabelPt = labelPt; }
-        if (_cachedValuePt != valuePt) { _valueFont = new VectorFont(notoRes, valuePt); _cachedValuePt = valuePt; }
+        var notoRes = _notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath);
+        if (_cachedLabelPt != labelPt)
+        {
+            _labelFont = new VectorFont(notoRes, labelPt);
+            _cachedLabelPt = labelPt;
+            _cachedLabelH = screen.GetDimensions(_labelFont, "ENEMIES LEFT", 1f).Y;
+        }
+        if (_cachedValuePt != valuePt)
+        {
+            _valueFont = new VectorFont(notoRes, valuePt);
+            _cachedValuePt = valuePt;
+            _cachedValueH = screen.GetDimensions(_valueFont, "$888,888", 1f).Y;
+        }
         _tooltipNameFont ??= new VectorFont(notoRes, 13);
         _tooltipBodyFont ??= new VectorFont(notoRes, 11);
 
-        var labelH = screen.GetDimensions(_labelFont!, "ENEMIES LEFT", 1f).Y;
-        var valueH = screen.GetDimensions(_valueFont!, "$888,888", 1f).Y;
+        var labelH = _cachedLabelH;
+        var valueH = _cachedValueH;
         var rowContentH = Math.Max(iconSz, labelH + 4f + valueH);
         var rowH = rowContentH + rowPad * 2f;
 
@@ -175,9 +234,14 @@ public sealed partial class WaveHudOverlay : Overlay
         if (EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
-        var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
-                          && st == ScreenType.Separated;
-        var rightEdge = isSeparated ? GetViewportPixelWidth() : screenSize.X;
+        var layoutRaw = _cfg.GetCVar(CCVars.UILayout);
+        if (layoutRaw != _layoutRaw)
+        {
+            _layoutRaw = layoutRaw;
+            _isSeparatedLayout = Enum.TryParse<ScreenType>(layoutRaw, out var st) && st == ScreenType.Separated;
+        }
+
+        var rightEdge = _isSeparatedLayout ? GetViewportPixelWidth() : screenSize.X;
         var panelX = rightEdge - margin - panelW;
         float y = screenSize.Y - margin - totalH;
 
@@ -239,7 +303,7 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         _creditsRowY = y;
-        y = DrawRow(_iconCredits, "CREDITS", $"${CurrentCredits:N0}", Color.White);
+        y = DrawRow(_iconCredits, "CREDITS", _creditsText, Color.White);
 
         // ── Interest popups ───────────────────────────────────────────────────
         for (var pi = 0; pi < _interestPopups.Count; pi++)
@@ -310,9 +374,9 @@ public sealed partial class WaveHudOverlay : Overlay
         y += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
 
         if (EnemiesTotal > 0)
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", $"{EnemiesAlive}", Color.FromHex("#d1292c"));
+            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
 
-        y = DrawRow(_iconWave, "WAVE", $"{CurrentWave:D2}", Color.FromHex("#d1292c"));
+        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
 
         // ── Perk tooltip ───────────────────────────────────────────────────
@@ -444,8 +508,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (rows.Count == 0)
             return;
 
-        var notoRes = _resourceCache.GetResource<FontResource>(new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf"));
-        _tinyFont ??= new VectorFont(notoRes, 11);
+        _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
 
         const float rowGap = 4f;
         const float iconTextGap = 4f;
@@ -499,33 +562,60 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private float? FindHotbarTop()
     {
-        var hotbar = FindNamedScreenControl("Hotbar");
-        return hotbar == null ? null : (float)hotbar.GlobalPixelRect.Top;
+        var screen = _uiManager.ActiveScreen;
+        if (screen == null)
+        {
+            _hotbarScreen = null;
+            _hotbarControl = null;
+            return null;
+        }
+
+        if (!ReferenceEquals(screen, _hotbarScreen) || _hotbarControl is null || _hotbarControl.Disposed)
+        {
+            _hotbarScreen = screen;
+            _hotbarControl = FindNamedControlRecursive(screen, "Hotbar", 0);
+        }
+
+        return _hotbarControl == null ? null : _hotbarControl.GlobalPixelRect.Top;
     }
 
     private readonly record struct BonusRow(string Label, string ValueText, Color ValueColor, string[] Tooltip, string IconKey);
 
+    private FSShopClientSystem? _shop;
+    private readonly List<BonusRow> _bonusRows = new();
+    private EntityUid? _bonusRowsHeld;
+    private int _bonusRowsVersion = -1;
+
     private static readonly Color BonusPositive = Color.FromHex("#22C55E");
     private static readonly Color BonusNegative = Color.FromHex("#EF4444");
 
+    // Rebuilt when the held item or the bonus summary changes, not per frame - the row list and
+    // every string in it were being reallocated each draw.
     private List<BonusRow> BuildVisibleBonusRows()
     {
-        var rows = new List<BonusRow>();
-        var shop = _entityManager.System<Content.Client._FinalStand.Shop.FSShopClientSystem>();
+        _shop ??= _entityManager.System<FSShopClientSystem>();
+        var held = _shop.GetActiveHeldItem();
 
-        var holdingGun = shop.IsHoldingAnyGun();
-        var holdingNonLauncherGun = shop.IsHoldingNonLauncherGun();
-        var holdingExplosive = shop.IsHoldingExplosive();
-        var holdingMelee = shop.IsHoldingMelee();
+        if (_bonusRowsVersion == _bonusVersion && _bonusRowsHeld == held)
+            return _bonusRows;
 
-        if (holdingNonLauncherGun) AddPctRow(rows, "Gun", "damage", GunDamage);
-        if (holdingGun) AddPctRow(rows, "Fire Rate", "firerate", FireRate);
-        if (holdingMelee) AddPctRow(rows, "Melee", "melee", MeleeDamage);
-        if (holdingExplosive) AddPctRow(rows, "Explosive", "explosive", ExplosiveDamage);
-        if (holdingGun) AddPctRow(rows, "Reload", "reload", ReloadSpeed);
-        if (holdingGun) AddFlatRow(rows, "Mag Size", "magsize", MagazineSize);
+        _bonusRowsVersion = _bonusVersion;
+        _bonusRowsHeld = held;
+        _bonusRows.Clear();
 
-        return rows;
+        var holdingGun = _shop.IsHoldingAnyGun();
+        var holdingNonLauncherGun = _shop.IsHoldingNonLauncherGun();
+        var holdingExplosive = _shop.IsHoldingExplosive();
+        var holdingMelee = _shop.IsHoldingMelee();
+
+        if (holdingNonLauncherGun) AddPctRow(_bonusRows, "Gun", "damage", GunDamage);
+        if (holdingGun) AddPctRow(_bonusRows, "Fire Rate", "firerate", FireRate);
+        if (holdingMelee) AddPctRow(_bonusRows, "Melee", "melee", MeleeDamage);
+        if (holdingExplosive) AddPctRow(_bonusRows, "Explosive", "explosive", ExplosiveDamage);
+        if (holdingGun) AddPctRow(_bonusRows, "Reload", "reload", ReloadSpeed);
+        if (holdingGun) AddFlatRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
+
+        return _bonusRows;
     }
 
     private static void AddPctRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)

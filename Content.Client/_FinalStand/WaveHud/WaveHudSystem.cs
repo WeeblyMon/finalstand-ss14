@@ -128,12 +128,6 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private void OnBonusSummary(FSPlayerBonusSummaryEvent ev)
     {
-        var overlay = EnsureOverlay();
-        overlay.GunDamage = ev.GunDamage;
-        overlay.FireRate = ev.FireRate;
-        overlay.MeleeDamage = ev.MeleeDamage;
-        overlay.ExplosiveDamage = ev.ExplosiveDamage;
-        overlay.ReloadSpeed = ev.ReloadSpeed;
-        overlay.MagazineSize = ev.MagazineSize;
+        EnsureOverlay().SetBonusSummary(ev);
     }
 }
