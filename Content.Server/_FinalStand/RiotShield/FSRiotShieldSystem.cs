@@ -75,7 +75,7 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
             {
                 Target = GetNetEntity(uid),
                 Amount = healAmount,
-            }, Filter.Broadcast());
+            }, Filter.Entities(uid));
         }
     }
 

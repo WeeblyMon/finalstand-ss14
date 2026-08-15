@@ -58,19 +58,21 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
 
         foreach (var uid in RevealedEntities)
         {
-            if (!_entManager.TryGetComponent(uid, out MobThresholdsComponent? thresholds)) continue;
-            if (!_entManager.TryGetComponent(uid, out MobStateComponent? mobState)) continue;
-            if (!_entManager.TryGetComponent(uid, out DamageableComponent? damageable)) continue;
+            // Reveals never expire, so reject on position before summing damage.
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId) continue;
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
-
-            if (CalcProgress(uid, mobState, damageable, thresholds) is not { } progress)
-                continue;
 
             var bounds = _spriteSystem.GetLocalBounds((uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
 
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
+                continue;
+
+            if (!_entManager.TryGetComponent(uid, out MobThresholdsComponent? thresholds)) continue;
+            if (!_entManager.TryGetComponent(uid, out MobStateComponent? mobState)) continue;
+            if (!_entManager.TryGetComponent(uid, out DamageableComponent? damageable)) continue;
+
+            if (CalcProgress(uid, mobState, damageable, thresholds) is not { } progress)
                 continue;
 
             var worldMatrix  = Matrix3Helpers.CreateTranslation(worldPos);

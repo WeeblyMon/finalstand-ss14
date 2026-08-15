@@ -19,6 +19,45 @@ public sealed partial class FSDamageNumberOverlay : Overlay
 
     internal const float Lifetime = 1.6f;
     private const float RiseSpeed = 1.1f;   // world units per second
+    private const float CullMargin = 64f;
+    private const int MaxNumbers = 80;
+
+    // Oldest is overwritten at the cap; shifting the whole list on every spawn was the alternative.
+    public void Add(in DamageNumber number)
+    {
+        if (Numbers.Count < MaxNumbers)
+        {
+            Numbers.Add(number);
+            return;
+        }
+
+        var oldest = 0;
+        for (var i = 1; i < Numbers.Count; i++)
+        {
+            if (Numbers[i].Age > Numbers[oldest].Age)
+                oldest = i;
+        }
+
+        Numbers[oldest] = number;
+    }
+
+    public void Age(float frameTime)
+    {
+        for (var i = Numbers.Count - 1; i >= 0; i--)
+        {
+            var n = Numbers[i];
+            n.Age += frameTime;
+
+            var lifetime = n.Lifetime > 0f ? n.Lifetime : Lifetime;
+            if (n.Age >= lifetime)
+            {
+                Numbers.RemoveAt(i);
+                continue;
+            }
+
+            Numbers[i] = n;
+        }
+    }
 
     // Normal hits: white + black outline; crit hits: red + deep-red outline; armor: grey + dark outline; level up: gold
     private static readonly Color NormalFg       = new(1f,    1f,    1f,    1f);
@@ -48,14 +87,20 @@ public sealed partial class FSDamageNumberOverlay : Overlay
 
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
+        var bounds = args.ViewportBounds;
 
-        foreach (var num in Numbers)
+        for (var i = 0; i < Numbers.Count; i++)
         {
+            var num = Numbers[i];
             if (num.MapId != args.MapId)
                 continue;
 
             var worldPos = num.OriginWorldPos + new Vector2(0f, num.Age * RiseSpeed);
             var screenPos = Vector2.Transform(worldPos, matrix);
+
+            if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
+                screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
+                continue;
 
             var lifetime = num.Lifetime > 0f ? num.Lifetime : Lifetime;
             var fadeStart = lifetime * 0.5f;
@@ -92,13 +137,15 @@ public sealed partial class FSDamageNumberOverlay : Overlay
             }
 
             var font = _fontNormal;
-            var text = num.IsLevelUp
-                ? $"LEVEL UP +{num.LevelUpAp}PP"
-                : num.IsHeal
-                    ? $"+{(int)MathF.Round(num.Amount)}"
-                    : ((int)MathF.Round(num.Amount)).ToString();
-            var dims = handle.GetDimensions(font, text, 1f);
-            var origin = screenPos - dims / 2f;
+            var text = num.Text;
+
+            if (num.Size == Vector2.Zero)
+            {
+                num.Size = handle.GetDimensions(font, text, 1f);
+                Numbers[i] = num;
+            }
+
+            var origin = screenPos - num.Size / 2f;
 
             const float o = 1.5f;
             handle.DrawString(font, origin + new Vector2(-o, -o), text, 1f, outline);
@@ -121,5 +168,9 @@ public sealed partial class FSDamageNumberOverlay : Overlay
         public int LevelUpAp;
         public float Age;
         public float Lifetime;
+
+        // Fixed for the number's whole life; built at spawn, measured on first draw.
+        public string Text;
+        public Vector2 Size;
     }
 }

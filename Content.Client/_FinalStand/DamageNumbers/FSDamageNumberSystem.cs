@@ -15,12 +15,13 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
     private FSRevealedHealthBarOverlay? _hpBarOverlay;
     private SharedTransformSystem _transform = default!;
 
-    private const int MaxNumbers = 80;
+    private Predicate<EntityUid> _stillMissing = default!;
 
     public override void Initialize()
     {
         base.Initialize();
         _transform = EntityManager.System<SharedTransformSystem>();
+        _stillMissing = uid => !Exists(uid);
 
         _numberOverlay = new FSDamageNumberOverlay();
         _hpBarOverlay  = new FSRevealedHealthBarOverlay(EntityManager);
@@ -44,132 +45,51 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
-        if (_numberOverlay == null) return;
-
-        var numbers = _numberOverlay.Numbers;
-        for (var i = numbers.Count - 1; i >= 0; i--)
-        {
-            var n = numbers[i];
-            n.Age += frameTime;
-            var lifetime = n.Lifetime > 0f ? n.Lifetime : FSDamageNumberOverlay.Lifetime;
-            if (n.Age >= lifetime)
-                numbers.RemoveAt(i);
-            else
-                numbers[i] = n;
-        }
-
-        _hpBarOverlay?.RevealedEntities.RemoveWhere(uid => !Exists(uid));
+        _numberOverlay?.Age(frameTime);
+        _hpBarOverlay?.RevealedEntities.RemoveWhere(_stillMissing);
     }
 
-    private void OnDamageNumber(FSDamageNumberEvent ev)
+    private void Spawn(NetEntity netTarget, string text, float amount, float spreadBias,
+        bool isCrit = false, bool isArmor = false, bool isHeal = false, bool isLevelUp = false,
+        int levelUpAp = 0, float lifetime = 0f, bool reveal = true)
     {
-        var target = GetEntity(ev.Target);
-        if (!Exists(target))
-            return;
-        var xform = Transform(target);
-        var worldPos = _transform.GetWorldPosition(xform);
-        var mapId    = xform.MapID;
-
-        if (_numberOverlay != null)
-        {
-            var spread     = (_random.NextFloat() - 0.5f) * 0.5f;
-            var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
-
-            if (_numberOverlay.Numbers.Count >= MaxNumbers)
-                _numberOverlay.Numbers.RemoveAt(0);
-
-            _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
-            {
-                OriginWorldPos = worldPos + new Vector2(spread, vertOffset),
-                MapId   = mapId,
-                Amount  = ev.Amount,
-                IsCrit  = ev.IsCrit,
-                IsArmor = false,
-                Age     = 0f,
-            });
-        }
-
-        _hpBarOverlay?.RevealedEntities.Add(target);
-    }
-
-    private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev)
-    {
-        var target = GetEntity(ev.Target);
-        if (!Exists(target))
-            return;
-        var xform = Transform(target);
-        var worldPos = _transform.GetWorldPosition(xform);
-        var mapId    = xform.MapID;
-
-        if (_numberOverlay != null)
-        {
-            var spread = (_random.NextFloat() - 0.5f) * 0.5f - 0.2f;
-            var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
-
-            if (_numberOverlay.Numbers.Count >= MaxNumbers)
-                _numberOverlay.Numbers.RemoveAt(0);
-
-            _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
-            {
-                OriginWorldPos = worldPos + new Vector2(spread, vertOffset),
-                MapId   = mapId,
-                Amount  = ev.Amount,
-                IsCrit  = false,
-                IsArmor = true,
-                Age     = 0f,
-            });
-        }
-
-        _hpBarOverlay?.RevealedEntities.Add(target);
-    }
-
-    private void OnHealNumber(FSHealNumberEvent ev)
-    {
-        var target = GetEntity(ev.Target);
+        var target = GetEntity(netTarget);
         if (!Exists(target) || _numberOverlay == null)
             return;
 
         var xform = Transform(target);
-        var worldPos = _transform.GetWorldPosition(xform);
-        var spread = (_random.NextFloat() - 0.5f) * 0.5f + 0.2f;
-        var vertOffset = 0.35f + _random.NextFloat() * 0.25f;
+        var spread = (_random.NextFloat() - 0.5f) * 0.5f + spreadBias;
+        var vertOffset = isLevelUp ? 0.6f : 0.35f + _random.NextFloat() * 0.25f;
 
-        if (_numberOverlay.Numbers.Count >= MaxNumbers)
-            _numberOverlay.Numbers.RemoveAt(0);
-
-        _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
+        _numberOverlay.Add(new FSDamageNumberOverlay.DamageNumber
         {
-            OriginWorldPos = worldPos + new Vector2(spread, vertOffset),
-            MapId   = xform.MapID,
-            Amount  = ev.Amount,
-            IsHeal  = true,
-            Age     = 0f,
+            OriginWorldPos = _transform.GetWorldPosition(xform) + new Vector2(isLevelUp ? 0f : spread, vertOffset),
+            MapId = xform.MapID,
+            Amount = amount,
+            IsCrit = isCrit,
+            IsArmor = isArmor,
+            IsHeal = isHeal,
+            IsLevelUp = isLevelUp,
+            LevelUpAp = levelUpAp,
+            Lifetime = lifetime,
+            Text = text,
+            Age = 0f,
         });
+
+        if (reveal)
+            _hpBarOverlay?.RevealedEntities.Add(target);
     }
 
-    private void OnLevelUpNumber(FSLevelUpNumberEvent ev)
-    {
-        var target = GetEntity(ev.Target);
-        if (!Exists(target) || _numberOverlay == null)
-            return;
+    private void OnDamageNumber(FSDamageNumberEvent ev) =>
+        Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, 0f, isCrit: ev.IsCrit);
 
-        var xform = Transform(target);
-        var worldPos = _transform.GetWorldPosition(xform);
+    private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev) =>
+        Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, -0.2f, isArmor: true);
 
-        if (_numberOverlay.Numbers.Count >= MaxNumbers)
-            _numberOverlay.Numbers.RemoveAt(0);
+    private void OnHealNumber(FSHealNumberEvent ev) =>
+        Spawn(ev.Target, $"+{(int)MathF.Round(ev.Amount)}", ev.Amount, 0.2f, isHeal: true, reveal: false);
 
-        _numberOverlay.Numbers.Add(new FSDamageNumberOverlay.DamageNumber
-        {
-            OriginWorldPos = worldPos + new Vector2(0f, 0.6f),
-            MapId          = xform.MapID,
-            Amount         = 0f,
-            IsCrit         = false,
-            IsArmor        = false,
-            IsLevelUp      = true,
-            LevelUpAp      = ev.ApGained,
-            Age            = 0f,
-            Lifetime       = 2.0f,
-        });
-    }
+    private void OnLevelUpNumber(FSLevelUpNumberEvent ev) =>
+        Spawn(ev.Target, $"LEVEL UP +{ev.ApGained}PP", 0f, 0f, isLevelUp: true, levelUpAp: ev.ApGained,
+            lifetime: 2.0f, reveal: false);
 }
