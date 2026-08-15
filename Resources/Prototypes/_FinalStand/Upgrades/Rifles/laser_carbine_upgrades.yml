@@ -22,7 +22,7 @@
       maxLevel: 3
       baseCost: 6750
       type: MagazineSize
-      valuePerLevel: 10
+      valuePerLevel: 9.56
     - id: lcarbine-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
