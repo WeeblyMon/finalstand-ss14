@@ -32,8 +32,6 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        // Safety net — FSSprintComponent is normally granted declaratively via the species
-        // prototype (BaseMobSpeciesOrganic). Silent because this should be a no-op in practice.
         EnsureComp<FSSprintComponent>(ev.Mob);
 
         // FS sprint players use their own HUD overlay — skip vanilla alert.
@@ -62,9 +60,6 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
 
                 if (willExhaust)
                 {
-                    // Go straight to exhaustion instead of draining through TakeStaminaDamage -
-                    // crossing CritThreshold there triggers vanilla's stamcrit paralysis stun,
-                    // which is not what sprint exhaustion is supposed to do (see FSSprintComponent).
                     sprint.IsSprinting = false;
                     sprint.IsExhausted = true;
                     sprint.EmptySlowRemaining = sprint.EmptySlowDuration;

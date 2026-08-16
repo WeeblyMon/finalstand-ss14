@@ -6,7 +6,6 @@ namespace Content.Server._FinalStand.Perks;
 // FSPlayerBonusSummarySystem, which all must show/apply the exact same number.
 internal static class FSPerkBonusConstants
 {
-    // ── Outgoing damage and fire rate ──────────────────────────────────────
     public const float StoppingPowerPerLevel = 0.04f;   // ranged, non-launcher only
     public const float GlassCannonPerLevel = 0.25f;     // outgoing, ranged (incl. launcher) and melee
     public const float BulletStormPerLevel = 0.08f;     // fire rate, any gun incl. launcher
@@ -23,21 +22,17 @@ internal static class FSPerkBonusConstants
     public const float PacifistResistPerLevel = 0.20f;
     public const float RampageResistPerLevel = 0.03f;        // per stack, per level
 
-    // ── Movement speed (RefreshMovementSpeedModifiersEvent handlers) ───────
     public const float LightweightPerLevel = 0.03f;
     public const float SpeedDemonPerLevel = 0.01f;   // per stack, per level
     public const float RampageSpeedPerLevel = 0.01f; // per stack, per level
 
-    // ── Rampage regen (FSRampageSystem) ─────────────────────────────────────
     public const float RampageRegenPerLevel = 0.2f; // HP/s, per stack, per level
 
-    // ── Economy ──────────────────────────────────────────────────────────
     public const float InvestorPerLevel = 0.025f;
     public const float MutualFundPerLevel = 0.0125f;
     public const float ProfiteerFraction = 0.07f;
     public const float ProfiteerHitBase = 30f;  // per ranged hit that raises enemy damage
     public const float ProfiteerKillBase = 200f; // per zombie kill
 
-    // ── Field Medic (FSPlayerDamageModifySystem) ────────────────────────────
     public const float FieldMedicPerLevel = 0.15f;
 }

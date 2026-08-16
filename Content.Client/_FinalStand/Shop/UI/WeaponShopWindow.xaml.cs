@@ -45,7 +45,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     private const float ConfirmTimeout = 4f;
     private const int BarSegments = 12;
 
-    // ── hover-preview ──────────────────────────────────────────────────────────
 
     private sealed class StatBarRefs
     {
@@ -77,7 +76,6 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
     private RangedStatCache _rangedCache;
 
-    // ── end hover-preview ──────────────────────────────────────────────────────
 
     public WeaponShopWindow()
     {
@@ -269,6 +267,5 @@ public sealed partial class WeaponShopWindow : DefaultWindow
         UpgradeCounterLabel.Modulate = FSUiPalette.TextMuted;
     }
 
-    // ── stat bar construction ──────────────────────────────────────────────────
 
 }

@@ -97,7 +97,6 @@ public sealed partial class WeaponShopWindow
         return row;
     }
 
-    // ── upgrade rows ───────────────────────────────────────────────────────────
 
     private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits, string name, string description, string? label = null)
     {
@@ -288,7 +287,6 @@ public sealed partial class WeaponShopWindow
         BorderThickness = new Thickness(1),
     };
 
-    // ── helpers ────────────────────────────────────────────────────────────────
 
     private static string UpgradeTypeToStatLabel(WeaponUpgradeType type) => type switch
     {

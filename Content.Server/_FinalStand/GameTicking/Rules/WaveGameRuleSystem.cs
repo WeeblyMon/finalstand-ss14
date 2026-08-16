@@ -65,8 +65,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         switch (comp.Phase)
         {
             case WavePhase.Prep:
-                // The map may not be loaded when prep starts, so retry — but at 1 Hz, not
-                // every tick, or a map with no spawners scans the whole round.
                 if (comp.SpawnerEntities.Count == 0 && now >= comp.NextSpawnerRetryTime)
                 {
                     comp.NextSpawnerRetryTime = now + TimeSpan.FromSeconds(1);
@@ -226,8 +224,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var giant = _spawning.SpawnWaveEnemy(bossProto, Transform(spawnerUid).Coordinates, comp);
             comp.AliveEnemies.Add(giant);
             comp.GiantEntity = giant;
-            // The boss counts against the wave quota. Both counters move, or the batch loop
-            // spawns a full quota of regulars on top of it.
             comp.EnemyTotalThisWave++;
             comp.EnemiesSpawnedThisWave++;
             Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
@@ -248,9 +244,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseLocalEvent(new WaveCombatStartedEvent());
     }
 
-    // isForced (forcenextwave) intentionally skips WaveEndedEvent — it's a debug escape hatch,
-    // not a real wave clear, so the per-wave payouts/resets that broadcast subscribers run on a
-    // normal wave end do not fire.
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
@@ -335,8 +328,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         _corpseCleaner.TrackZombieDeath(ent.Owner);
 
-        // Clear all collision so corpses don't eat bullets (MobLayer includes BulletImpassable).
-        // Safe because FS zombies have MovementIgnoreGravity — floor collision is not needed.
         if (TryComp<FixturesComponent>(ent.Owner, out var fixtures))
         {
             foreach (var (key, fixture) in fixtures.Fixtures)

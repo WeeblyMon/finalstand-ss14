@@ -122,5 +122,4 @@ public sealed partial class WeaponShopWindow
         refs.ValueLabel.Modulate = valueColor ?? FSUiPalette.TextMuted;
     }
 
-    // ── research indicator ─────────────────────────────────────────────────────
 }

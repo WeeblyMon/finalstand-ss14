@@ -47,37 +47,38 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
     {
         if (args.Handled)
             return;
-        TryStartRefill(uid, comp, args.User);
-        args.Handled = true;
+        args.Handled = TryStartRefill(uid, comp, args.User);
     }
 
     private void OnInteractHand(EntityUid uid, WaveAmmoBoxComponent comp, InteractHandEvent args)
     {
-        TryStartRefill(uid, comp, args.User);
-        args.Handled = true;
+        if (args.Handled)
+            return;
+        args.Handled = TryStartRefill(uid, comp, args.User);
     }
 
     private void OnInteractUsing(EntityUid uid, WaveAmmoBoxComponent comp, InteractUsingEvent args)
     {
-        TryStartRefill(uid, comp, args.User);
-        args.Handled = true;
+        if (args.Handled)
+            return;
+        args.Handled = TryStartRefill(uid, comp, args.User);
     }
 
-    private void TryStartRefill(EntityUid uid, WaveAmmoBoxComponent comp, EntityUid user)
+    private bool TryStartRefill(EntityUid uid, WaveAmmoBoxComponent comp, EntityUid user)
     {
         if (!comp.Enabled)
         {
             _popup.PopupEntity(Loc.GetString("wave-ammo-box-unpowered"), uid, user);
-            return;
+            return false;
         }
 
         if (comp.UsedBy.Contains(user))
         {
             _popup.PopupEntity(Loc.GetString("wave-ammo-box-already-used"), uid, user);
-            return;
+            return false;
         }
 
-        _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, comp.RefillDuration,
+        return _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, comp.RefillDuration,
             new WaveAmmoBoxRefillDoAfterEvent(), uid, target: uid)
         {
             BreakOnMove = true,
@@ -111,38 +112,25 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
 
     private void RefillAllAmmo(EntityUid player)
     {
-        if (!TryComp<ContainerManagerComponent>(player, out var playerMgr))
+        RefillContents(player, 0);
+    }
+
+    // A magazine can sit in a gun in a bag; the old two-level walk stopped one short of that.
+    private void RefillContents(EntityUid holder, int depth)
+    {
+        const int maxDepth = 4;
+
+        if (depth > maxDepth || !TryComp<ContainerManagerComponent>(holder, out var manager))
             return;
 
-        foreach (var container in playerMgr.Containers.Values)
+        foreach (var container in manager.Containers.Values)
         {
             foreach (var item in container.ContainedEntities)
             {
                 TryRefill(item);
-                TryRefillGunMag(item);
                 TryRepairShield(item);
-
-                if (!TryComp<ContainerManagerComponent>(item, out var itemMgr))
-                    continue;
-                foreach (var inner in itemMgr.Containers.Values)
-                {
-                    foreach (var nested in inner.ContainedEntities)
-                    {
-                        TryRefill(nested);
-                        TryRefillGunMag(nested);
-                        TryRepairShield(nested);
-                    }
-                }
+                RefillContents(item, depth + 1);
             }
-        }
-    }
-
-    private void TryRefillGunMag(EntityUid gun)
-    {
-        if (_containers.TryGetContainer(gun, SharedGunSystem.MagazineSlot, out var magSlot))
-        {
-            foreach (var mag in magSlot.ContainedEntities)
-                TryRefill(mag);
         }
     }
 

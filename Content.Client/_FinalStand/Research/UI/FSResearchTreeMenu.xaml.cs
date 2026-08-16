@@ -66,10 +66,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         _fsResearch = _entity.System<FSResearchClientSystem>();
         _materialStorage = _entity.System<SharedMaterialStorageSystem>();
 
-        // FancyWindow shadows Control.Stylesheet with a `new string?` (registered-name lookup)
-        // property, so `this.Stylesheet = ...` won't accept a Stylesheet object here the way it
-        // does on WeaponShopWindow (a plain DefaultWindow) - cast to the base Control type to
-        // reach the real object-typed property and actually apply the shared menu stylesheet.
         ((Control)this).Stylesheet = new FSMenuStylesheet(
             IoCManager.Resolve<IUserInterfaceManager>(), _resourceCache).Stylesheet;
 
@@ -140,8 +136,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         RebuildDisciplineRail();
     }
 
-    // Tabs are separate pages, not a dimming filter (see FSResearchNodeGraphControl.Rebuild) - one
-    // tab per FS branch, then "ALL" last.
     private void RebuildDisciplineRail()
     {
         DisciplineRailContainer.RemoveAllChildren();
@@ -269,7 +263,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         UpdateDetailPanel();
     }
 
-    // SetConsole rebuilds every FSResearchNodeView from scratch, so the selected instance goes stale - re-point at the fresh one for the same id.
+    // Node views are rebuilt on relayout, so re-point at the fresh instance for the same id.
     private void ResyncSelectedNode()
     {
         if (_selectedNode != null)
@@ -434,9 +428,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private void UpdateDetailPanelVanilla(TechnologyPrototype tech)
     {
-        // GetTechnologyDescription indexes RecipeUnlocks with a throwing Index() call; some techs
-        // reference lathe recipes that don't exist in this build's prototype set, which would
-        // otherwise crash the whole panel (and leave the graph's click/drag state stuck).
         try
         {
             TechDescLabel.SetMessage(_research.GetTechnologyDescription(tech, includeCost: false, includeTier: false));
@@ -446,10 +437,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             TechDescLabel.SetMessage(new FormattedMessage());
         }
 
-        // RecipeUnlocks is already listed under "Unlocks:" by GetTechnologyDescription above -
-        // repeating "<name> Unlocked" for every recipe here was pure duplication when a tech's
-        // only effect is unlocking machines/recipes. Only show something here when there's an
-        // actual buff/stat description (GenericUnlocks), otherwise it's just a dash.
         var statLines = new List<string>();
         foreach (var generic in tech.GenericUnlocks)
         {
@@ -494,11 +481,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         TechStatsLabel.SetMessage(statsMsg);
     }
 
-    // Prerequisite ids can point at either an FSTechNodePrototype or a vanilla TechnologyPrototype
-    // (cross-branch joins, e.g. Tesla Cannon requiring the Experimental AnomalyCoreHarnessing) -
-    // resolve names/unlocked-state across both prototype pools. PrerequisiteGroups (AND-of-OR,
-    // e.g. a capstone needing "at least one choice per branch") render as "A OR B" lines, colored
-    // by whether any one entry in the group is unlocked rather than all of them.
     private FormattedMessage BuildRequirementsMessage(FSResearchNodeView node)
     {
         var lines = new List<string>();

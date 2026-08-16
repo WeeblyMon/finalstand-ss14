@@ -238,8 +238,6 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         return sources.Count > 0 ? new FSBonusCategory(pct, sources.ToArray()) : Empty;
     }
 
-    // Grenades explode via ExplosionSystem, not FSProjectileHitEffectEvent, so perk bonuses don't
-    // reach them today - only report the research contribution, which is what's actually applied.
     private FSBonusCategory ComputeGrenadeExplosiveDamage()
     {
         var mul = _researchBuff.GetDamageMultiplier(false, false, true, false, false, false, false, false, false);

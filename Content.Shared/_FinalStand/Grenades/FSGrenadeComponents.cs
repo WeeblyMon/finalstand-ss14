@@ -81,7 +81,6 @@ public sealed partial class FSGrenadeSelectActionComponent : Component
     [DataField] public GrenadeType GrenadeType = GrenadeType.Frag;
 }
 
-// ─── Selection action events ─────────────────────────────────────────────────
 
 public sealed partial class FSSelectFragGrenadeEvent : InstantActionEvent { }
 public sealed partial class FSSelectIncendiaryGrenadeEvent : InstantActionEvent { }

@@ -73,7 +73,6 @@ public sealed class FSPerkDef
                 ["+5% Damage / +12% Resistance", "+10% Damage / +24% Resistance",
                  "+15% Damage / +36% Resistance", "+20% Damage / +48% Resistance"]),
 
-            // ── Kill-stack perks ──────────────────────────────────────────────
             new("DeathAura", "Death Aura",
                 "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
                 PerkCategory.Red,
@@ -95,7 +94,6 @@ public sealed class FSPerkDef
                 ["+3% Resist/+0.2 Regen/+1% Speed", "+6%/+0.4/+2%",
                  "+9%/+0.6/+3%", "+12%/+0.8/+4%"]),
 
-            // ── Economy perks ────────────────────────────────────────────────
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
                 PerkCategory.Yellow,
@@ -106,7 +104,6 @@ public sealed class FSPerkDef
                 PerkCategory.Yellow,
                 ["+1.25% Team Return", "+2.5% Team Return", "+3.75% Team Return", "+5% Team Return"]),
 
-            // ── Defensive / utility perks ────────────────────────────────────
             new("Untouchable", "Untouchable",
                 "Automatically blocks one incoming hit. Charges refill after 30 seconds.",
                 PerkCategory.Blue,
@@ -137,7 +134,6 @@ public sealed class FSPerkDef
                 PerkCategory.Green,
                 ["-33% Drag Penalty", "-67% Drag Penalty", "-100% Drag Penalty", "-100% Drag Penalty"]),
 
-            // ── Weapon perks ─────────────────────────────────────────────────
             new("LegBreaker", "Leg Breaker",
                 "Critical hits stagger enemies with stamina damage.",
                 PerkCategory.Blue,

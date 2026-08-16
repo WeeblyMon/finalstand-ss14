@@ -14,7 +14,7 @@ public enum FSResearchNodeState
     ExclusivelyBlocked,
 }
 
-// Unifies vanilla TechnologyPrototype and FS-authored FSTechNodePrototype into one shape for the graph control and detail panel to render generically.
+// One shape for both vanilla and FS nodes, so the graph and detail panel render generically.
 public sealed class FSResearchNodeView
 {
     public required string Id;

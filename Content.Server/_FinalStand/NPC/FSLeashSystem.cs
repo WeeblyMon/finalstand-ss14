@@ -56,7 +56,6 @@ public sealed partial class FSLeashSystem : EntitySystem
     {
         var bb = htn.Blackboard;
 
-        // ── No target: clean up any stale leash state and stop. ──────────────
         if (!bb.TryGetValue<EntityUid>("Target", out var target, EntityManager)
             || !Exists(target)
             || _mobState.IsDead(target))
@@ -67,7 +66,6 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        // ── Record aggro origin on the first tick after Target is set. ────────
         // This covers both the LOS-detection path (utility operator) and the
         // retaliation path (FSZombieRetaliationSystem) without any cross-dependency.
         if (!bb.TryGetValue<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin, out var aggroOrigin, EntityManager))
@@ -78,16 +76,13 @@ public sealed partial class FSLeashSystem : EntitySystem
             return; // leash checks start next tick
         }
 
-        // ── Update last-seen timestamp whenever we have clear LOS. ────────────
         if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
             bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
 
-        // ── Grace period: skip leash checks for freshly shot zombies. ─────────
         if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
             && curTime < graceUntil)
             return;
 
-        // ── LOS timeout check. ────────────────────────────────────────────────
         if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
             && curTime - lastSeen > LosTimeout)
         {
@@ -95,7 +90,6 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        // ── Distance leash check. ─────────────────────────────────────────────
         var curPos = _transform.GetMapCoordinates(uid);
         if (curPos.MapId != aggroOrigin.MapId ||
             (curPos.Position - aggroOrigin.Position).Length() > LeashDistance)

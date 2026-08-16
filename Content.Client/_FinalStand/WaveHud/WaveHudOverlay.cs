@@ -305,7 +305,6 @@ public sealed partial class WaveHudOverlay : Overlay
         _creditsRowY = y;
         y = DrawRow(_iconCredits, "CREDITS", _creditsText, Color.White);
 
-        // ── Interest popups ───────────────────────────────────────────────────
         for (var pi = 0; pi < _interestPopups.Count; pi++)
         {
             var p = _interestPopups[pi];
@@ -337,7 +336,6 @@ public sealed partial class WaveHudOverlay : Overlay
             y = DrawRow(_iconTimer, "TIMER", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
         }
 
-        // ── Perks ─────────────────────────────────────────────────────────
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
         var augLabelY = y + sepH + rowPad;
         screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "PERKS", muted);
@@ -379,7 +377,6 @@ public sealed partial class WaveHudOverlay : Overlay
         y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
 
-        // ── Perk tooltip ───────────────────────────────────────────────────
         var mouse = _input.MouseScreenPosition.Position;
         foreach (var (cell, id) in _augCells)
         {
@@ -423,7 +420,6 @@ public sealed partial class WaveHudOverlay : Overlay
             break;
         }
 
-        // ── Current-bonuses tooltip ───────────────────────────────────────────
         foreach (var (cell, label, tooltip) in _bonusRowCells)
         {
             if (!cell.Contains(mouse))

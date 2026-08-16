@@ -2,8 +2,6 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.CCC;
 
-// Client-visible marker so the CCC ready-up indicator overlay can query the
-// CCC without the server-only FinalStandCCCComponent.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FinalStandCCCTagComponent : Component
 {

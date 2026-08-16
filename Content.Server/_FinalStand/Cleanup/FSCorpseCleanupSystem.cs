@@ -39,12 +39,12 @@ public sealed partial class FSCorpseCleanupSystem : EntitySystem
             if (!Exists(oldest)) continue;
             if (!TryComp<MobStateComponent>(oldest, out var ms) || ms.CurrentState != MobState.Dead) continue;
 
-            DeleteNearbyWaveItems(oldest);
+            DeleteNearbyCorpses(oldest);
             QueueDel(oldest);
         }
     }
 
-    private void DeleteNearbyWaveItems(EntityUid corpse)
+    private void DeleteNearbyCorpses(EntityUid corpse)
     {
         var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(Transform(corpse).Coordinates, 1.5f, nearby);

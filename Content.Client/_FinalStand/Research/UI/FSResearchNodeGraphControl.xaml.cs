@@ -19,13 +19,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Research.UI;
 
-// HOI4-national-focus-style layout: tier flows top-down (row = tier), siblings spread
-// horizontally, parent->child edges are orthogonal "elbow" connectors, and each node is an
-// icon tile with a name plate underneath instead of a circle. Column position within a row is
-// chosen by a single-pass barycenter of each node's prerequisite X positions (already-placed
-// parent tiers), falling back to discipline grouping for roots — enough to keep branches visually
-// coherent without a full graph-layout solver. Mouse wheel zooms (intercepted here so the parent
-// ScrollContainer doesn't also scroll on the same gesture).
 [GenerateTypedNameReferences]
 public sealed partial class FSResearchNodeGraphControl : BoxContainer
 {
@@ -77,8 +70,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
     private const float MinZoom = 0.15f;
     private const float MaxZoom = 2f;
-    // Reset View / initial open lands here, not zoom 1 - the tree is wide enough now (six weapon
-    // branches with generous gutters) that zoom 1 only ever shows a fragment of the nearest one.
     private const float DefaultZoom = 0.4f;
     private const float BaseFontSize = 16f;
     private const int PlateMaxChars = 20;
@@ -88,32 +79,13 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     // wide enough for PlateMaxChars at this font before the plate itself has to grow past it
     private float PlateWidth => 300 * UIScale * _zoom;
     private float MinPlateWidth => IconSize;
-    // Single line only (see TruncateForPlate) - a plate sized for 2 lines but showing 1 looked
-    // tall and unbalanced, which was the actual "boxes look uneven" complaint, not a padding
-    // issue. Sized from the font's real metrics, not a guessed constant, so it always exactly
-    // fits one line + real breathing room (not just enough to avoid clipping).
     private float PlateHeight => _font.GetLineHeight(1) + 17 * UIScale * _zoom;
     private float PlateGap => 7 * UIScale * _zoom;
     private float NodeHeight => IconSize + PlateGap + PlateHeight;
     private float ColumnSpacing => PlateWidth + 48 * UIScale * _zoom;
     private float RowSpacing => NodeHeight + 92 * UIScale * _zoom;
-    // Floored, not just ColumnSpacing / 2 - the font has a hard minimum size (see Rebuild's
-    // VectorFont clamp to 8px) so a plate's rendered text width stops shrinking once zoomed out
-    // past that floor, while ColumnSpacing/Padding kept shrinking with zoom regardless. Past that
-    // point a wide plate's left half could extend beyond x=0, which is also the ScrollContainer's
-    // scroll-left limit - there's no further left to drag to, so it just looked permanently cut
-    // off. The floor guarantees enough margin at every zoom level for the widest realistic plate.
-    // PanMargin is a separate, generous, zoom-independent allowance on top of the clip-prevention
-    // floor above - the floor only guarantees content isn't cut off, it doesn't leave any room to
-    // actually drag a branch away from the edge toward the center of your view. This is that room,
-    // on every side (it feeds MinHeight's existing Padding*2 top+bottom margin, and MinWidth below
-    // adds a matching trailing Padding so left/right are symmetric too).
     private const float PanMargin = 500f;
     private float Padding => Math.Max(ColumnSpacing / 2f, 180 * UIScale) + PanMargin * UIScale;
-    // extra gap between branch/discipline lanes AND between disconnected sub-trees within the same
-    // branch (e.g. the L6-SAW+Minigun cluster vs. the Hydra+RPG-7 cluster vs. the X-Ray+Tesla
-    // cluster, all technically "Ordnance" but with zero edges between them) - this is what actually
-    // reads as "separate branches" instead of one undifferentiated grid (see HOI4-style swim lanes)
     private float GroupGutter => ColumnSpacing * 2.5f;
 
     public Color LockedNodeColor { get; set; } = FSUiPalette.BorderNeutral;
@@ -145,9 +117,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
     public void SetConsole(EntityUid? console)
     {
-        // SetConsole is also called on every BUI state refresh (UpdatePanels), not just the
-        // initial open - only snap the view to content when the console actually changes, or
-        // every points/unlock update would yank the player's scroll position back to the start.
         var isNewConsole = _console != console;
         _console = console;
         if (isNewConsole)
@@ -205,13 +174,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         LockToFirstNode();
     }
 
-    // Centers the view on the first node of the first branch (the node with the smallest Y then
-    // smallest X - by construction that's always wherever layout started, i.e. the top-left-most
-    // real node, not just an arbitrary corner offset). Deferred a few frames rather than applied
-    // immediately: ScrollContainer clamps HScroll/VScroll against its OWN internal MaxValue, which
-    // is only refreshed during its next Arrange pass. Setting scroll synchronously right after
-    // Rebuild changes this control's MinWidth/MinHeight gets silently clamped back to 0 against the
-    // scrollbar's still-stale range, which is why the view looked like it was landing nowhere.
     private void LockToFirstNode()
     {
         _pendingLockFrames = 3;
@@ -284,9 +246,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             nodes.Add(view);
         }
 
-        // Discipline tabs are separate pages, not a dimming filter - only one page's worth of
-        // nodes is laid out/rendered at a time, so a page gets the whole canvas instead of
-        // sharing space with everything else.
         if (_disciplineFilter != null)
             nodes = nodes.Where(n => n.GroupId == _disciplineFilter).ToList();
 
@@ -300,8 +259,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
         _nodes = nodes;
 
-        // "strays" - nodes with no edge at all (not a prerequisite for anything, and have none
-        // themselves) - get grouped in their own block to the right instead of scattered inline
         var nodeIds = nodes.Select(t => t.Id).ToHashSet();
         var edgeNodeIds = new HashSet<string>();
         foreach (var node in nodes)
@@ -321,12 +278,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             .ThenBy(t => t.Id, StringComparer.Ordinal)
             .ToList();
 
-        // Tier -> row is global (a Tier 2 node lines up with every other branch's Tier 2 row,
-        // since tier is a meaningful cross-branch concept - wave-gating in particular), but X is
-        // NOT: each branch/discipline gets its own horizontal lane, sized to its own widest tier,
-        // with a fixed gutter between lanes (HOI4-style swim lanes). Mixing every group into one
-        // shared set of tier-wide columns was what made unrelated branches visually crisscross -
-        // a node's column index had no consistent meaning from one tier to the next.
         var allTiers = connected.Select(n => n.Tier).Distinct().OrderBy(t => t).ToList();
         var yByTier = new Dictionary<int, float>();
         for (var i = 0; i < allTiers.Count; i++)
@@ -341,12 +292,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         {
             var groupNodes = connected.Where(n => n.GroupId == group).ToList();
 
-            // A branch/discipline can itself contain multiple disconnected sub-trees (e.g.
-            // Ordnance's L6-SAW+Minigun cluster vs. Hydra+RPG-7 cluster vs. X-Ray+Tesla cluster -
-            // three real weapon families with zero edges between them, all under the same
-            // "Ordnance" GroupId). Laying the whole group out as one shared column grid is what
-            // made unrelated weapon trees visually bleed into each other. Each connected component
-            // gets its own lane with the same gutter used between branches.
             var components = GroupIntoComponents(groupNodes)
                 .OrderBy(c => c.Min(n => n.Tier))
                 .ThenBy(c => c.Select(n => n.Id).OrderBy(id => id, StringComparer.Ordinal).First())
@@ -360,13 +305,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
                 var tierGroups = component.GroupBy(t => t.Tier).OrderBy(g => g.Key).ToList();
 
-                // Pass 1 (top-down): place each node at the barycenter of its already-placed
-                // parents, then resolve left-to-right collisions so nothing sits closer than one
-                // column width. Real gaps between unrelated parent families (different barycenters,
-                // e.g. two different weapon sub-trees off a shared trunk) are preserved instead of
-                // being compressed to a uniform slot width - that compression was what made every
-                // branch look like one continuous web regardless of how unrelated the nodes
-                // actually were, and made mutually-exclusive siblings land arbitrarily far apart.
                 foreach (var tierGroup in tierGroups)
                 {
                     var idealX = new Dictionary<string, float>();
@@ -380,8 +318,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                             roots.Add(node);
                     }
 
-                    // nodes with no placed parent in this component (roots) get fresh sequential
-                    // slots to seed the rest of the tree from
                     foreach (var node in roots.OrderBy(n => n.Id, StringComparer.Ordinal))
                     {
                         idealX[node.Id] = nextFreeX;
@@ -403,10 +339,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                         componentEndX = Math.Max(componentEndX, lastX + ColumnSpacing);
                 }
 
-                // Pass 2 (bottom-up): re-center each parent over the actual midpoint of its own
-                // children, then re-resolve collisions - this is what gives the tree its classic
-                // "parent sits cleanly centered above its fan-out" look instead of wherever pass 1's
-                // barycenter-of-ITS-OWN-parent happened to place it.
                 var childrenOf = new Dictionary<string, List<string>>();
                 foreach (var node in component)
                 {
@@ -440,15 +372,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                     }
                 }
 
-                // safety clamp - recentering a root over its own children could in principle pull
-                // it left of this component's own lane boundary (e.g. a multi-root component whose
-                // first root ends up with a lighter subtree than expected); never spill into
-                // whatever component/branch was laid out just before this one
                 foreach (var id in placedX.Keys.ToList())
                     placedX[id] = Math.Max(placedX[id], groupCursorX);
 
-                // recompute the right edge from final positions - pass 2's recentering can shift
-                // the rightmost node from wherever pass 1 left it
                 componentEndX = Math.Max(componentEndX, placedX.Values.Max() + ColumnSpacing);
 
                 foreach (var (id, x) in placedX)
@@ -473,8 +399,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
         var rightEdgeX = strays.Count > 0 ? strayStartX + strayMaxCol * ColumnSpacing : groupCursorX - GroupGutter;
 
-        // trailing +Padding (not just +PlateWidth) mirrors the leading Padding baked into
-        // groupCursorX's starting point, so there's equal drag room on the right as on the left
         MinWidth = (rightEdgeX + PlateWidth + Padding) / UIScale;
         MinHeight = (Padding * 2 + (rowCount - 1) * RowSpacing + NodeHeight) / UIScale;
 
@@ -574,10 +498,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Splits a set of nodes into connected components (undirected - a prerequisite edge connects
-    // regardless of direction) via BFS. Used to find genuinely disconnected sub-trees within a
-    // single branch/discipline so they can each get their own lane instead of being packed into
-    // one shared column grid.
     private static List<List<FSResearchNodeView>> GroupIntoComponents(List<FSResearchNodeView> nodes)
     {
         var byId = nodes.ToDictionary(n => n.Id);
@@ -630,10 +550,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     private Vector2 CurrentCursor()
         => (UserInterfaceManager.MousePositionScaled.Position * UIScale) - GlobalPixelPosition;
 
-    // Logical screen-space position, independent of this control's own position. Dragging must use
-    // this (not CurrentCursor) - scrolling moves this control, which would move GlobalPixelPosition
-    // mid-drag and feed back into the delta calculation, causing the jitter/shake bug. Left unscaled
-    // (no *UIScale) since ScrollContainer's HScroll/VScroll are logical units, same as this.
     private Vector2 ScreenCursor()
         => UserInterfaceManager.MousePositionScaled.Position;
 
@@ -658,9 +574,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         if (args.Function != EngineKeyFunctions.UIClick)
             return;
 
-        // _leftDown/_dragging must always clear even if a subscriber throws (e.g. a selected
-        // tech with bad recipe data crashing the description lookup) - otherwise the drag state
-        // gets stuck and every click after looks like a drag until one more click clears it.
         try
         {
             if (!_dragging && _hoveredTech != null)
@@ -697,25 +610,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     {
         base.MouseWheel(args);
 
-        // Multiplicative step (not flat +0.1) - a flat step feels coarse and jumpy at the low end
-        // of the range (0.1 is a huge relative jump at zoom 0.15) and barely noticeable at the
-        // high end. ~8% per notch reads as smooth across the whole 0.15-2.0 range.
         var newZoom = Math.Clamp(_zoom * MathF.Pow(1.08f, args.Delta.Y), MinZoom, MaxZoom);
         if (Math.Abs(newZoom - _zoom) > 0.0001f)
         {
-            // Zoom to cursor. The layout isn't a pure affine transform of zoom (Padding/PanMargin
-            // mix in a flat, non-zoom-scaled component, and the font has a hard minimum size) -
-            // there is no single formula for "where does an arbitrary point end up after Rebuild".
-            // What IS exactly trackable is a real node's position, verified against the working
-            // drag-to-pan code: dragging maps 1:1 in logical units between ScreenCursor() deltas
-            // and HScroll/VScroll deltas, and CurrentCursor() = ScreenCursor()*UIScale offset by
-            // this control's pixel position, which is itself -HScroll*UIScale. Combining those:
-            // shifting HScroll by (nodeNewPos - nodeOldPos)/UIScale keeps that SAME node under the
-            // cursor. A single nearest-node snap (tried first) jumped discretely at the boundary
-            // between two nodes' territory; scaling the raw cursor point by the zoom ratio (tried
-            // second) assumed a uniform scale from the origin that doesn't actually hold, landing
-            // wherever. Blending the few nearest nodes' individual (verified-correct) deltas by
-            // inverse distance keeps it accurate AND smooth as the cursor moves between them.
             var cursorContent = CurrentCursor();
             var nearest = _positions
                 .OrderBy(kv => (kv.Value - cursorContent).LengthSquared())
@@ -768,27 +665,16 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
         DrawBlueprintBackground(handle, origin);
 
-        // anchors dip a few px INTO the icon ring / plate box (rather than stopping exactly
-        // flush with the edge) so the connector always visibly touches the node - the node
-        // itself is drawn on top and covers the overlap, no gap no matter the rounding
         var edgeOverlap = 6 * UIScale * _zoom;
 
         Vector2 GetCenter(FSResearchNodeView node) => origin + _positions[node.Id];
         Vector2 GetTopAnchor(FSResearchNodeView node) => GetCenter(node) - new Vector2(0, IconSize / 2 - edgeOverlap);
         Vector2 GetBottomAnchor(FSResearchNodeView node) => GetCenter(node) + new Vector2(0, IconSize / 2 + PlateGap + PlateHeight - edgeOverlap);
 
-        // Connectors are grouped by parent so a multi-child fan-out shares one trunk (a single
-        // drop from the parent, one horizontal bus, then a short stub into each child) instead
-        // of every edge drawing its own independent elbow. Independent per-edge routing put
-        // multiple horizontal segments at the same midY when siblings share a row, which could
-        // visually pass through/along an unrelated node and read as a connection that isn't real.
         Color EdgeStateColor(FSResearchNodeView node) => node.State == FSResearchNodeState.Unlocked
             ? UnlockedNodeColor
             : LockedNodeColor;
 
-        // AND-of-all (Prerequisites) reads as a solid line - every parent is mandatory. AND-of-OR
-        // (PrerequisiteGroups) reads as dashed for the specific edges in that group - only one of
-        // them is actually needed, same convention HOI4 uses (dotted = "either of these").
         bool IsOrEdge(FSResearchNodeView child, string parentId) => child.OrPrerequisiteIds.Contains(parentId);
 
         void DrawEdgeLine(Vector2 from, Vector2 to, Color color, FSResearchNodeView child, string parentId)
@@ -806,12 +692,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             var parentBottom = GetBottomAnchor(parent);
             var trunkColor = EdgeStateColor(parent);
 
-            // Tech tier doesn't strictly guarantee a prerequisite sits in a strictly-lower row
-            // (two techs can share a tier while one still requires the other) - a normal
-            // drop-then-bus elbow assumes the child is below the parent, and for a same-row
-            // (or "above") child that puts the horizontal segment mid-row, cutting right through
-            // the icons and reading as a wrong/crossed connection. Route those laterally instead:
-            // a straight line between the two icons' facing edges at icon-center height.
             var children = new List<FSResearchNodeView>();
             foreach (var child in allChildren)
             {
@@ -842,8 +722,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
                     continue;
                 }
 
-                // Anchored to the child's row so multiple long edges converging on one node bend at a consistent height.
-                var soloMidY = childTop.Y - RowSpacing * 0.4f;
+                    var soloMidY = childTop.Y - RowSpacing * 0.4f;
                 handle.DrawLine(parentBottom, new Vector2(parentBottom.X, soloMidY), trunkColor);
                 handle.DrawLine(new Vector2(parentBottom.X, soloMidY), new Vector2(childTop.X, soloMidY), trunkColor);
                 DrawEdgeLine(new Vector2(childTop.X, soloMidY), childTop, childColor, children[0], parentId);
@@ -867,8 +746,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             var center = GetCenter(node);
             var iconRadius = IconSize / 2;
 
-            // Discipline is a hard page filter now (see Rebuild) - _nodes only ever contains the
-            // current page's nodes, so opacity only needs to reflect the search box.
             var matchesSearch = _filter.Length == 0 ||
                                  node.Name.Contains(_filter, StringComparison.OrdinalIgnoreCase);
             var opacity = matchesSearch ? 1f : 0.25f;
@@ -899,18 +776,11 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             if (hovered)
             {
-                // glow radius = icon radius + an outward pad, same idea as the plate's glow -
-                // it needs to actually clear the icon's own edge, or the opaque ring/disc drawn
-                // right after this covers almost all of it and the glow reads as invisible
                 var glowPad = 16 * UIScale * _zoom;
                 var glowSize = (iconRadius + glowPad) * 2f;
                 var glowBox = UIBox2.FromDimensions(center - new Vector2(glowSize / 2, glowSize / 2), new Vector2(glowSize, glowSize));
                 handle.DrawTextureRect(_glowTexture, glowBox, HoverGlowColor.WithAlpha(0.45f));
 
-                // plate_glow.png bakes the same blur margin (16px) around the same 128x40/13px-
-                // radius core shape as plate_bg/plate_ring, at a 160x72/29px-cap canvas - a single
-                // soft-gradient draw instead of the old stepped-ring approximation, matching how
-                // the icon's own glow above is one pre-blurred texture draw, not layered rings.
                 var plateGlowMargin = 22 * UIScale * _zoom;
                 var plateGlowBox = new UIBox2(
                     plateBox.Left - plateGlowMargin, plateBox.Top - plateGlowMargin,
@@ -963,21 +833,13 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             handle.DrawString(_font, linePos, line, color);
         }
 
-        // Mutually exclusive marker - same visual language as HOI4's "pick one, lock the other"
-        // indicator between two sibling choices. Drawn last so it sits on top of connector lines.
         foreach (var ordered in _exclusiveGroups)
         {
-            // one marker between each adjacent pair - handles the common 2-choice case cleanly,
-            // and still reads fine for a rare 3+-way exclusive group
             for (var i = 0; i < ordered.Count - 1; i++)
             {
                 var centerA = GetCenter(ordered[i]);
                 var centerB = GetCenter(ordered[i + 1]);
 
-                // a line connecting the two choices themselves, same as your reference diagram -
-                // drawn first so the marker (opaque) sits on top and visually breaks it in the
-                // middle, reading as "line runs into the marker from both sides" rather than two
-                // disconnected halves
                 var delta = centerB - centerA;
                 var dist = delta.Length();
                 if (dist > 0.01f)
@@ -1098,11 +960,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Blueprint-grid canvas backdrop, tiled to cover the whole scrollable tree (not just the
-    // visible viewport). Tile size is fixed on screen (UIScale only, no _zoom) - it's a backdrop,
-    // not part of the content, so it reads as a constant wallpaper texture instead of its own
-    // grid squares growing/shrinking alongside the nodes as you zoom. DrawTextureRect always
-    // stretches src->dest with no native repeat mode, so tiling is just a manual grid of draw calls.
     private void DrawBlueprintBackground(DrawingHandleScreen handle, Vector2 origin)
     {
         var tileW = 480f * UIScale;
@@ -1121,13 +978,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Horizontal 3-slice: the plate textures are a 128x40 rounded rect with a 10px corner radius.
-    // Plate width varies per node (shrink-to-fit text), so a plain whole-texture stretch would
-    // squash the rounded corners into ellipses - slice out the two corner caps at a fixed source
-    // width and only stretch the flat middle strip, same idea as RT's own StyleBoxTexture 9-slice.
-    // texW/texH/capPx are parameterized (not just for plate_bg/plate_ring's 128x40/13) so the same
-    // slicing logic also works for plate_glow.png, which is a wider canvas (extra blur margin baked
-    // in around the same core shape) with a correspondingly wider cap.
     private void DrawHSlicedRect(DrawingHandleScreen handle, Texture texture, UIBox2 destBox, Color modulate,
         float texW = 128f, float texH = 40f, float capPx = 13f)
     {
@@ -1149,12 +999,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Single line only - a plate tall enough for 2 lines but usually showing 1 looked lopsided
-    // (that was the real "boxes look uneven" issue, not padding). Long names get ellipsis-truncated
-    // instead of wrapping; the full name is always available in the detail panel on click.
-    // Character-count truncation (like HOI4's focus names), not pixel-width - a fixed budget in
-    // characters reads consistently across names instead of cutting some names much shorter than
-    // others just because their glyphs happen to be a bit wider on average.
     private static string TruncateForPlate(string text)
     {
         if (text.Length <= PlateMaxChars)

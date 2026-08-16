@@ -30,20 +30,16 @@ public sealed partial class FSCartridgeCleanupSystem : EntitySystem
             return;
         _accumulator = 0f;
 
-        var casings = new List<EntityUid>();
+        var loose = 0;
         var query = EntityQueryEnumerator<CartridgeAmmoComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            if (!comp.Spent) continue;
-            if (_containers.IsEntityInContainer(uid)) continue;
-            casings.Add(uid);
+            if (!comp.Spent || _containers.IsEntityInContainer(uid))
+                continue;
+
+            loose++;
+            if (loose > MaxCasings)
+                QueueDel(uid);
         }
-
-        if (casings.Count <= MaxCasings)
-            return;
-
-        var toDelete = casings.Count - MaxCasings;
-        for (var i = 0; i < toDelete; i++)
-            QueueDel(casings[i]);
     }
 }

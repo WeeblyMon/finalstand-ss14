@@ -145,9 +145,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         SyncConsoles();
     }
 
-    // Rides on the real physical R&D server entity a console is linked to (vanilla's own shared
-    // research singleton) rather than a separate logical entity. Falls back to any
-    // ResearchServerComponent entity, then a nullspace entity if no physical server exists.
     public Entity<FSStationResearchComponent> GetOrCreateStation()
     {
         if (_station is { } existing && Exists(existing) && TryComp<FSStationResearchComponent>(existing, out var existingComp))
@@ -252,7 +249,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return slot;
     }
 
-    // RD/Captain picks become the shared, discounted default; any other Science member can still set their own personal pick.
+    // RD and Captain set the shared pick; other Science members set their own.
     private bool IsRdOrCaptain(EntityUid player)
     {
         return _mind.TryGetMind(player, out var mindId, out _) &&

@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mobs.Components;
@@ -49,17 +48,32 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
             args.Cancel();
     }
 
-    // strips non-mob entities so melee can't damage structures; if ALL remaining are OTHER wave players, cancels the hit
+    // Wave players can't melee structures, and a swing hitting only other players is cancelled.
     private void OnMeleeHit(EntityUid uid, MeleeWeaponComponent _, MeleeHitEvent args)
     {
-        if (args.HitEntities is List<EntityUid> mutableList)
-            mutableList.RemoveAll(e => !HasComp<MobStateComponent>(e));
-
         if (!HasComp<FSFriendlyFireComponent>(args.User))
             return;
 
-        var others = args.HitEntities.Where(e => e != args.User).ToList();
-        if (others.Count > 0 && others.All(e => HasComp<FSFriendlyFireComponent>(e)))
+        if (args.HitEntities is List<EntityUid> mutableList)
+            mutableList.RemoveAll(e => !HasComp<MobStateComponent>(e));
+
+        var others = 0;
+        var allPlayers = true;
+
+        foreach (var hit in args.HitEntities)
+        {
+            if (hit == args.User)
+                continue;
+
+            others++;
+            if (!HasComp<FSFriendlyFireComponent>(hit))
+            {
+                allPlayers = false;
+                break;
+            }
+        }
+
+        if (others > 0 && allPlayers)
             args.Handled = true;
     }
 }

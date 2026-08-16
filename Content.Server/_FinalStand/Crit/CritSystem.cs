@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
+using Content.Shared.GameTicking;
 using Content.Shared.Projectiles;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -22,15 +23,26 @@ public sealed partial class CritSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<ProjectileComponent, ProjectileHitEvent>(OnProjectileHit);
         SubscribeLocalEvent<WaveSpawnedTagComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
-    public float CalculateCritChance(EntityUid shooter, EntityUid gun)
+
+    // Armour absorbing a crit means DamageChangedEvent never fires, so unclaimed marks expire here.
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _pendingCrits.Clear();
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent _) => _pendingCrits.Clear();
+
+    public float CalculateCritChance(EntityUid gun)
     {
         var weaponCrit = TryComp<CritComponent>(gun, out var critComp) ? critComp.BaseCritChance : 0f;
         var upgradeCrit = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState) ? upgradeState.CritChance : 0f;
         return MathF.Min(1f - (1f - weaponCrit) * (1f - upgradeCrit), 1f);
     }
 
-    public float CalculateCritMultiplier(EntityUid shooter, EntityUid gun)
+    public float CalculateCritMultiplier(EntityUid gun)
     {
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState))
             return upgradeState.CritDamageMultiplier;
@@ -42,9 +54,9 @@ public sealed partial class CritSystem : EntitySystem
         multiplier = 1f;
         if (HasComp<CritImmuneComponent>(target))
             return false;
-        if (_random.NextFloat() >= CalculateCritChance(shooter, gun))
+        if (_random.NextFloat() >= CalculateCritChance(gun))
             return false;
-        multiplier = CalculateCritMultiplier(shooter, gun);
+        multiplier = CalculateCritMultiplier(gun);
         return true;
     }
 

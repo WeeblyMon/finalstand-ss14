@@ -327,7 +327,6 @@ public sealed partial class WeaponShopWindow
             Math.Min(1f, (critDamageMult - 1f) / 2f), $"{critDamageMult:F1}x"));
     }
 
-    // ── hover preview ──────────────────────────────────────────────────────────
 
     private List<string> GetResearchLines(string? weaponProtoId, string category)
     {
@@ -345,7 +344,6 @@ public sealed partial class WeaponShopWindow
         return lines;
     }
 
-    // ── bar construction ───────────────────────────────────────────────────────
 
     // Non-static: stores segment/label refs into _statBarRefs for hover preview.
 

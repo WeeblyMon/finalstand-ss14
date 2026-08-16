@@ -1,5 +1,3 @@
-// Tile-connectivity map from the CCCs. IsReachable(tile) tells consumers whether a zombie
-// can ever walk to an objective, so genuinely stranded zombies can be relocated.
 using System.Numerics;
 using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.Systems;
@@ -29,8 +27,6 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
 
     private const float RebuildInterval = 5f;
 
-    // Safety valve only. A station grid is a few thousand tiles; anything past this means the
-    // fill escaped onto something unbounded, so the result is discarded rather than trusted.
     private const int MaxTilesPerGrid = 100_000;
 
     public override void Initialize()
@@ -39,8 +35,6 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
         UpdatesBefore.Add(typeof(NPCSteeringSystem));
         Subs.CVar(_cfg, CCVars.WaveZombiePathingEnabled, v => _enabled = v, true);
 
-        // Only tile topology and the CCC set can change reachability. Walls and doors do not:
-        // wave zombies smash and pry, so a barrier is a detour, never a dead end.
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<FinalStandCCCComponent, ComponentStartup>(OnCCCStartup);
         SubscribeLocalEvent<FinalStandCCCComponent, ComponentShutdown>(OnCCCShutdown);

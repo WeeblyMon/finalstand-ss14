@@ -9,9 +9,6 @@ using Robust.Shared.Player;
 
 namespace Content.Shared._FinalStand.Sprint;
 
-// Speed-modifier and start/stop-toggle logic lives here (Shared) rather than server-only, so the
-// client predicts sprint locally off its own key input instead of waiting on a server round trip
-// for RefreshMovementSpeedModifiersEvent to recompute the speed and sync back down.
 public abstract partial class SharedFSSprintSystem : EntitySystem
 {
     [Dependency] private MovementSpeedModifierSystem _movement = default!;

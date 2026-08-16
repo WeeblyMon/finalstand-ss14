@@ -91,8 +91,6 @@ public sealed partial class CCCWindow : FancyWindow
         RebuildZombieIcons(state.NextWaveEnemyTypes);
     }
 
-    // Fixed-width left panel (340px) only fits ~5 icons per row before they'd overflow the
-    // column and get clipped - wrap into rows instead of relying on the container to grow.
     private const int IconsPerRow = 5;
 
     private void RebuildZombieIcons(List<string> types)

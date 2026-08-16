@@ -1,89 +1,12 @@
-using System.Numerics;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Armor.Shop;
-using Robust.Client.Graphics;
-using Robust.Client.ResourceManagement;
-using Robust.Shared.Enums;
-using Robust.Shared.GameObjects;
-using Robust.Shared.Timing;
-using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Armor;
 
-public sealed partial class FSArmorShopIndicatorOverlay : Overlay
+public sealed class FSArmorShopIndicatorOverlay : FSWorldLabelOverlay<FSArmorShopComponent>
 {
-    [Dependency] private IEntityManager _entMan    = default!;
-    [Dependency] private IResourceCache _resources = default!;
-    [Dependency] private IGameTiming    _timing    = default!;
-
-    private Font?                  _font;
-    private SharedTransformSystem? _xformSys;
-    private Vector2                _labelDims;
-    private Vector2                _arrowDims;
-
-    private const string Label = "ARMOR";
-    private const string Arrow = "▼";
-    private const float  CullMargin = 96f;
-
-    private static readonly Color Fg    = new(1f, 0.85f, 0f, 1f);  // gold #FFD700
-    private static readonly Color Black = new(0f, 0f, 0f, 0.9f);
-
-    public override OverlaySpace Space => OverlaySpace.ScreenSpace;
-
-    public FSArmorShopIndicatorOverlay()
-    {
-        IoCManager.InjectDependencies(this);
-    }
-
-    protected override void Draw(in OverlayDrawArgs args)
-    {
-        if (args.ViewportControl == null)
-            return;
-
-        var handle = args.ScreenHandle;
-
-        if (_font == null)
-        {
-            _font = new VectorFont(_resources.GetResource<FontResource>(
-                new ResPath("/Fonts/NotoSans/NotoSans-Bold.ttf")), 14);
-            _labelDims = handle.GetDimensions(_font, Label, 1f);
-            _arrowDims = handle.GetDimensions(_font, Arrow, 1f);
-        }
-
-        _xformSys ??= _entMan.System<SharedTransformSystem>();
-
-        var matrix = args.ViewportControl.GetWorldToScreenMatrix();
-        var bounds = args.ViewportBounds;
-        var bob    = MathF.Sin((float)_timing.CurTime.TotalSeconds * 2.5f) * 5f;
-
-        var query = _entMan.EntityQueryEnumerator<FSArmorShopComponent, TransformComponent>();
-        while (query.MoveNext(out _, out _, out var xform))
-        {
-            if (xform.MapID != args.MapId)
-                continue;
-
-            var worldPos  = _xformSys.GetWorldPosition(xform);
-            var screenPos = Vector2.Transform(worldPos, matrix);
-
-            if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
-                screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
-                continue;
-
-            const float o = 1f;
-
-            var labelOrigin = new Vector2(screenPos.X - _labelDims.X / 2f, screenPos.Y - 80f + bob);
-            var arrowOrigin = new Vector2(screenPos.X - _arrowDims.X / 2f, labelOrigin.Y + _labelDims.Y + 2f);
-
-            DrawOutlined(handle, _font, labelOrigin, Label, o);
-            DrawOutlined(handle, _font, arrowOrigin, Arrow, o);
-        }
-    }
-
-    private static void DrawOutlined(DrawingHandleScreen handle, Font font, Vector2 pos, string text, float o)
-    {
-        handle.DrawString(font, pos + new Vector2(-o, -o), text, Black);
-        handle.DrawString(font, pos + new Vector2( o, -o), text, Black);
-        handle.DrawString(font, pos + new Vector2(-o,  o), text, Black);
-        handle.DrawString(font, pos + new Vector2( o,  o), text, Black);
-        handle.DrawString(font, pos, text, Fg);
-    }
+    protected override string Label => "ARMOR";
+    protected override int FontSize => 14;
+    protected override float VerticalOffset => 80f;
+    protected override Color LabelColor => new(1f, 0.85f, 0f, 1f);
 }

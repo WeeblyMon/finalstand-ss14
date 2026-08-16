@@ -18,6 +18,7 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
 
     private float _accumulator;
     private readonly Dictionary<EntityUid, TimeSpan> _groundedSince = new();
+    private readonly HashSet<EntityUid> _seenThisScan = new();
 
     public override void Initialize()
     {
@@ -29,6 +30,7 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
     {
         _accumulator = 0f;
         _groundedSince.Clear();
+        _seenThisScan.Clear();
     }
 
     public override void Update(float frameTime)
@@ -41,6 +43,7 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
 
         var now = _timing.CurTime;
         var toDelete = new List<EntityUid>();
+        _seenThisScan.Clear();
 
         var query = EntityQueryEnumerator<GunComponent, ItemComponent>();
         while (query.MoveNext(out var uid, out _, out _))
@@ -58,19 +61,33 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         while (explosiveQuery.MoveNext(out var uid, out _, out _))
             Check(uid, now, toDelete);
 
+        // Spent casings are capped by FSCartridgeCleanupSystem; only loose live rounds age out here.
         var cartridgeQuery = EntityQueryEnumerator<CartridgeAmmoComponent, ItemComponent>();
-        while (cartridgeQuery.MoveNext(out var uid, out _, out _))
-            Check(uid, now, toDelete);
+        while (cartridgeQuery.MoveNext(out var uid, out var cartridge, out _))
+        {
+            if (!cartridge.Spent)
+                Check(uid, now, toDelete);
+        }
 
         foreach (var uid in toDelete)
-        {
-            _groundedSince.Remove(uid);
             QueueDel(uid);
+
+        // Anything tracked but no longer matched has been picked up or destroyed elsewhere.
+        foreach (var uid in _groundedSince.Keys)
+        {
+            if (!_seenThisScan.Contains(uid))
+                toDelete.Add(uid);
         }
+
+        foreach (var uid in toDelete)
+            _groundedSince.Remove(uid);
     }
 
     private void Check(EntityUid uid, TimeSpan now, List<EntityUid> toDelete)
     {
+        if (!_seenThisScan.Add(uid))
+            return;
+
         if (_containers.IsEntityInContainer(uid))
         {
             _groundedSince.Remove(uid);
