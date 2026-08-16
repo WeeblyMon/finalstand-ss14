@@ -40,8 +40,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private const float PurgeInterval = 30f;
     private const float NoPathGraceSeconds = 5f;
 
-    // Stuck detection works on a 20 s horizon, so sampling faster than 1 Hz buys nothing
-    // and costs a full horde scan every tick.
+    // Stuck detection works on a 20s horizon, so sampling faster than 1 Hz buys nothing.
     private const float TickInterval = 1f;
 
     private float _accumulator;
@@ -82,7 +81,6 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
                 _state.Remove(uid);
         }
 
-        // ActiveNPCComponent is dropped when a mob dies or sleeps, so corpses never reach here.
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var xform))
         {
@@ -94,9 +92,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
                 continue;
             }
 
-            // Fast path: pathfinder gave up. If they've been NoPath for a few seconds AND
-            // the flow field says their tile is unreachable, relocate to a reachable spawner
-            // (or delete if none exists).
+            // Pathfinder gave up: if NoPath persists and the flow field says the tile is unreachable, relocate.
             if (TryComp<NPCSteeringComponent>(uid, out var steering)
                 && steering.Status == SteeringStatus.NoPath)
             {
@@ -142,7 +138,6 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
     private void TryRelocateStranded(EntityUid uid, TransformComponent xform)
     {
-        // Collect wave spawners whose tile is reachable per the flow field.
         _spawnerBuffer.Clear();
         var spawnerQuery = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
         while (spawnerQuery.MoveNext(out _, out _, out var spXform))
@@ -260,8 +255,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         steering.PathfindToken = null;
     }
 
-    // Counts wave zombies per surrounding tile in one query, so the nudge prefers the least
-    // crowded step out. A radius of 2 covers every tile adjacent to the zombie's own.
+    // Counts wave zombies per surrounding tile so the nudge prefers the least crowded step out.
     private void BuildNeighborCrowd(EntityUid gridUid, Vector2i myTile)
     {
         _neighborCrowd.Clear();

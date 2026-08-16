@@ -107,7 +107,6 @@ public sealed partial class WaveHudOverlay : Overlay
         _bonusVersion++;
     }
 
-    // Used by WaveHudSystem to position and drive the ready-up overlay section.
     public float PanelLeft = -1f;
     public float PanelTop = -1f;
     public float PanelWidth = 205f;
@@ -398,7 +397,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tipH = tipPad * 2f + nameDims.Y + 4f + levelDims.Y + 4f + effectDims.Y;
 
-            // position above the hovered cell, right-aligned with panel
             var tipX = panelX + panelW - tipW;
             var tipY = cell.Top - tipH - 6f;
             if (tipY < 0f) tipY = cell.Bottom + 6f;

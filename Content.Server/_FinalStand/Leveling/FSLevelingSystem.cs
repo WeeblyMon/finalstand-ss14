@@ -191,8 +191,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
 
-        // Temporary instrumentation. Every XP gain writes a row, and whether that is worth
-        // batching is a question about microseconds, not a question about design taste.
         // Reported once per wave by OnWaveEnded.
         var start = Stopwatch.GetTimestamp();
         _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
@@ -228,8 +226,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         _roundStats.Clear();
 
-        // Clearing Loaded makes the next spawn re-read the row, which is what carries level and
-        // prestige into the new round.
+        // Clearing Loaded makes the next spawn re-read the row, carrying level/prestige into the new round.
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
             lvl.Loaded = false;

@@ -34,16 +34,11 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private SharedStorageSystem _storage = default!;
     [Dependency] private MobStateSystem _mobState = default!;
 
-    // Tracks active shell-insert do-afters per gun (for cleanup bookkeeping).
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
-    // Guns that fired a shot while a shell-insert chain was running.
-    // The chain aborts at the next OnShellInsertComplete rather than via Cancel()
-    // (Cancel leaves a stale BlockDuplicate entry that breaks subsequent R presses).
+    // Aborts at the next OnShellInsertComplete rather than via Cancel() - Cancel leaves a stale BlockDuplicate entry that breaks subsequent R presses.
     private readonly HashSet<EntityUid> _reloadAborted = new();
 
-    // Revolvers had no equivalent of _activeShellInserts, so a chamber-fill chain could neither
-    // be detected nor aborted.
     private readonly Dictionary<EntityUid, DoAfterId> _activeChamberFills = new();
 
     private static readonly TimeSpan MagEjectTime    = TimeSpan.FromSeconds(0.25);
@@ -113,8 +108,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return GunArchetype.None;
     }
 
-    // R Tap
-
     private void OnSmartReload(FSSmartReloadMessage msg, EntitySessionEventArgs args)
     {
         if (!TryGetValidGun(msg.Gun, args.SenderSession, out var gun, out var user))
@@ -140,8 +133,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // Hold R to eject (magazine, tube shells, revolver rounds, or battery cell depending on gun type)
-
+    // Hold R to eject - magazine, tube shells, revolver rounds, or battery cell depending on gun type.
     private void OnEject(FSEjectMessage msg, EntitySessionEventArgs args)
     {
         if (!TryGetValidGun(msg.Gun, args.SenderSession, out var gun, out var user))
@@ -164,7 +156,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
                 break;
 
             case GunArchetype.Battery:
-                // Only eject if the gun has a swappable cell slot.
                 if (_slots.TryGetSlot(gun, "gun_cell", out _))
                     _slots.TryEject(gun, "gun_cell", user, out _);
                 break;

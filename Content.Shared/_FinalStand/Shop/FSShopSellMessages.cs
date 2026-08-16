@@ -2,21 +2,15 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Shop;
 
-/// <summary>Client → server: player confirmed weapon sell (second button press).</summary>
+// Client -> server: player confirmed weapon sell (second button press).
 [Serializable, NetSerializable]
 public sealed class FSShopSellMessage : BoundUserInterfaceMessage { }
 
-/// <summary>
-/// Server → client: weapon sold successfully.
-/// Client resets confirmation state and refreshes UI on receive.
-/// </summary>
+// Server -> client: weapon sold successfully; client resets confirmation state and refreshes UI.
 [Serializable, NetSerializable]
 public sealed class FSShopSellCompletedEvent : EntityEventArgs { }
 
-/// <summary>
-/// Server → client: sell rejected.
-/// Contains a reason string for client error display / debugging.
-/// </summary>
+// Server -> client: sell rejected, with a reason string for display/debugging.
 [Serializable, NetSerializable]
 public sealed class FSShopSellFailedEvent : EntityEventArgs
 {

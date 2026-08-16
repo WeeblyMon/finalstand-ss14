@@ -131,7 +131,6 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var isXray = kind.Xray;
         var isTesla = kind.Tesla;
 
-        // ── Damage (Gun or Explosive, whichever this weapon actually is) ──
         var dmgMul = _researchBuff.GetDamageMultiplier(isBallistic, isEnergy, isLauncher, isL6, isMinigun, isHydra, isRpg, isXray, isTesla);
         var dmgPct = (dmgMul - 1f) * 100f;
         var dmgSources = new List<string>();
@@ -179,7 +178,6 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         gunDamage = isLauncher ? Empty : damageCategory;
         explosiveDamage = isLauncher ? damageCategory : Empty;
 
-        // ── Fire Rate ──
         var (fireRateMul, reloadPct) = _researchBuff.GetFireRateReloadTotals(isBallistic, isL6, isMinigun, isHydra, isEnergy, isTesla);
         var frPct = (fireRateMul - 1f) * 100f;
         var frSources = new List<string>();
@@ -195,12 +193,10 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         }
         fireRate = new FSBonusCategory(frPct, frSources.ToArray());
 
-        // ── Reload Speed ──
         reloadSpeed = reloadPct != 0f
             ? new FSBonusCategory(reloadPct * 100f, new[] { FormatPct("Ordnance research", reloadPct * 100f) })
             : Empty;
 
-        // ── Magazine Size ──
         var flatMagBonus = _researchStatic.GetMagazineFlatBonus(isBallistic, isL6, isMinigun, isHydra);
         magazineSize = flatMagBonus != 0
             ? new FSBonusCategory(flatMagBonus, new[] { $"Ordnance research {(flatMagBonus > 0 ? "+" : "")}{flatMagBonus} rounds" })

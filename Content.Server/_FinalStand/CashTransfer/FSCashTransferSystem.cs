@@ -32,10 +32,9 @@ public sealed partial class FSCashTransferSystem : EntitySystem
     {
         base.Initialize();
 
-        // InnateVerb fires at the USER entity, so uid = right-clicker who has MindContainerComponent
+        // InnateVerb fires at the USER entity, so uid = right-clicker who has MindContainerComponent.
         SubscribeLocalEvent<MindContainerComponent, GetVerbsEvent<InnateVerb>>(OnGetVerbs);
 
-        // BUI events are on the session entity (which has FSCashTransferComponent)
         Subs.BuiEvents<FSCashTransferComponent>(FSCashTransferUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnUiOpened);
@@ -46,7 +45,6 @@ public sealed partial class FSCashTransferSystem : EntitySystem
 
     private void OnGetVerbs(EntityUid uid, MindContainerComponent mindComp, GetVerbsEvent<InnateVerb> args)
     {
-        // uid = args.User = the right-clicker; args.Target = the entity being right-clicked
         var target = args.Target;
 
         if (uid == target)
@@ -58,13 +56,11 @@ public sealed partial class FSCashTransferSystem : EntitySystem
         if (_mobState.IsDead(uid))
             return;
 
-        // Target must be a player mob with a mind
         if (!_mind.TryGetMind(target, out var targetMindId, out _))
             return;
         if (!HasComp<FSPlayerWalletComponent>(targetMindId))
             return;
 
-        // Sender must have a wallet
         if (!_mind.TryGetMind(uid, out var senderMindId, out _))
             return;
         if (!HasComp<FSPlayerWalletComponent>(senderMindId))
@@ -104,7 +100,6 @@ public sealed partial class FSCashTransferSystem : EntitySystem
 
     private void OnUiClosed(EntityUid uid, FSCashTransferComponent comp, BoundUIClosedEvent args)
     {
-        // Delete the session entity when the dialog is closed for any reason
         if (!TerminatingOrDeleted(uid))
             Del(uid);
     }
@@ -130,7 +125,6 @@ public sealed partial class FSCashTransferSystem : EntitySystem
         var sender = args.Actor;
         var target = session.Target;
 
-        // Guards
         if (sender == target)
             return;
         if (args.Amount <= 0)

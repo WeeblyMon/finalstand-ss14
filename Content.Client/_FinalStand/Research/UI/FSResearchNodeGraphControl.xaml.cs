@@ -46,7 +46,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     private float _zoom = DefaultZoom;
     private int _pendingLockFrames;
 
-    // What the current layout was built for; a mismatch is what forces a real relayout.
     private string? _layoutDiscipline;
     private float _layoutZoom = -1f;
 
@@ -61,7 +60,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
     private List<FSResearchNodeView> _nodes = new();
     private Dictionary<string, Vector2> _positions = new();
 
-    // Built with the layout, not per frame.
     private Dictionary<string, FSResearchNodeView> _nodeById = new();
     private Dictionary<string, List<FSResearchNodeView>> _childrenByParent = new();
     private List<List<FSResearchNodeView>> _exclusiveGroups = new();
@@ -76,7 +74,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
     private float IconSize => 96 * UIScale * _zoom;
     private float IconBorderThickness => 6 * UIScale * _zoom;
-    // wide enough for PlateMaxChars at this font before the plate itself has to grow past it
     private float PlateWidth => 300 * UIScale * _zoom;
     private float MinPlateWidth => IconSize;
     private float PlateHeight => _font.GetLineHeight(1) + 17 * UIScale * _zoom;
@@ -122,7 +119,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         if (isNewConsole)
             _zoom = DefaultZoom;
 
-        // Positions depend only on the page and the zoom; points and progress move nothing.
         if (isNewConsole || !LayoutIsCurrent())
             Rebuild();
         else
@@ -132,7 +128,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             LockToFirstNode();
     }
 
-    // A prototype reload can change which nodes exist without touching zoom or the filter.
     public void InvalidateLayout()
     {
         _layoutZoom = -1f;
@@ -409,7 +404,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         RefreshNodeStates();
     }
 
-    // None of these move a node, so they update in place instead of forcing a relayout.
     private void RefreshNodeStates()
     {
         if (_nodes.Count == 0 ||
@@ -456,7 +450,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Resolved once here so the frame loop only does dictionary lookups.
     private void BuildDrawIndexes()
     {
         foreach (var node in _nodes)
@@ -762,7 +755,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
             var line = TruncateForPlate(node.Name);
             var lineDims = handle.GetDimensions(_font, line, 1);
-            // floor at MinPlateWidth, but never shrink below what the (already-truncated) text needs
             var actualPlateWidth = Math.Max(lineDims.X + 48 * UIScale * _zoom, MinPlateWidth);
             var plateBox = UIBox2.FromDimensions(
                 new Vector2(center.X - actualPlateWidth / 2, center.Y + iconRadius + PlateGap),

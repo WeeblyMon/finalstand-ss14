@@ -1,9 +1,5 @@
 // Boosts wave zombie speed once a wave's combat phase has run long: 1.25x after Stage1Elapsed,
-// 1.375x total after Stage2Elapsed. Restores when combat ends. Previously keyed off time
-// *remaining* until the 1800s hard fallback timer, so it only fired for a wave about to hit that
-// ceiling — which normal play never reaches, since waves end when the horde is cleared. Rebased
-// to elapsed combat time so it actually fires for any wave that runs long, not just one about to
-// time out.
+// 1.375x total after Stage2Elapsed. Restores when combat ends.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;
@@ -22,15 +18,13 @@ public sealed partial class FSWaveEnrageSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MovementSpeedModifierSystem _speedMod = default!;
 
-    // Pre-enrage base speeds plus the stage they are currently boosted to.
     private readonly Dictionary<EntityUid, (float Walk, float Sprint, int Stage)> _boosted = new();
 
     private const float Stage1Multiplier = 1.25f;
     private const float Stage2TotalMultiplier = 1.375f;
     private const float TickInterval = 1f;
 
-    // Best-guess defaults, not tuned against real playtest telemetry — easy to retune, they're
-    // the only two numbers that matter here.
+    // Best-guess defaults, not tuned against real playtest telemetry.
     private static readonly TimeSpan Stage1Elapsed = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan Stage2Elapsed = TimeSpan.FromMinutes(8);
 
@@ -49,8 +43,7 @@ public sealed partial class FSWaveEnrageSystem : EntitySystem
 
         var stage = GetRuleStage();
 
-        // Derived entirely from rule state, so every way a wave can end — kill clear, fallback
-        // timer, admin force — winds the boost back without needing its own event.
+        // Derived entirely from rule state, so any way a wave ends winds the boost back with no dedicated event.
         if (stage == 0)
         {
             if (_stage != 0)

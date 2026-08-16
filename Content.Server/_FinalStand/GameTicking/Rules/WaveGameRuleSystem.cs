@@ -159,8 +159,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return false;
     }
 
-    // prep phase, phase transitions
-
     private void StartPrepPhase(EntityUid uid, WaveGameRuleComponent comp)
     {
         comp.Phase = WavePhase.Prep;
@@ -318,8 +316,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (comp.EnemiesSpawnedThisWave >= comp.EnemyTotalThisWave && comp.AliveEnemies.Count == 0)
             EndCombatPhase(uid, comp);
     }
-
-    // event handlers
 
     private void OnWaveEnemyMobStateChanged(Entity<WaveSpawnedTagComponent> ent, ref MobStateChangedEvent args)
     {

@@ -1,5 +1,4 @@
-// The shop's 0-100 accuracy figure. Computed here because AngleIncrease is not a networked
-// field, so the client cannot see what an upgrade did to it.
+// The shop's 0-100 accuracy figure — computed here since AngleIncrease isn't networked to the client.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Prototypes;
@@ -8,7 +7,7 @@ namespace Content.Server._FinalStand.Shop;
 
 public sealed partial class FSShopWeaponSystem
 {
-    // What one level takes off each spread angle. Mirrors FSPlayerUpgradesSystem.GunStats.
+    // Mirrors FSPlayerUpgradesSystem.GunStats — keep both in sync.
     private static (double Min, double Max, double Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
     {
         WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5, def.ValuePerLevel * 0.2, def.ValuePerLevel * 0.3),
@@ -16,14 +15,10 @@ public sealed partial class FSShopWeaponSystem
         _                          => (0.0, 0.0, 0.0),
     };
 
-    // One number standing for how tightly the weapon shoots. MinAngle is the aimed shot,
-    // MaxAngle the worst case under sustained fire, AngleIncrease how fast it gets there.
+    // MinAngle = aimed shot, MaxAngle = sustained-fire worst case, AngleIncrease = how fast it gets there.
     private static double Spread(double min, double max, double inc)
         => min * 0.5 + max * 0.3 + inc * 0.2;
 
-    // A wieldable gun is always fired wielded, so its wield bonus is what the player experiences.
-    // BaseGunWieldable is 21/32 degrees with a -20/-30 bonus: measuring the unwielded gun makes an
-    // upgrade worth a degree or two look like nothing.
     private static (double Min, double Max, double Inc) Effective(GunComponent gun, GunWieldBonusComponent? wield)
     {
         var min = gun.MinAngle.Degrees;
@@ -74,7 +69,6 @@ public sealed partial class FSShopWeaponSystem
         return true;
     }
 
-    /// <summary>Current accuracy, and what each upgrade would give at one level higher.</summary>
     private (int Current, Dictionary<string, int> Next) ComputeAccuracy(EntityUid player, FSShopWeaponComponent comp)
     {
         var next = new Dictionary<string, int>();

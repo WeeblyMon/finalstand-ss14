@@ -116,10 +116,8 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
             args.Damage.DamageDict["Heat"] = heat * FixedPoint2.New(1f - bestFireResist);
         }
 
-        // Broadcast rather than calling the perk system directly: this stays the correct point
-        // in the pipeline (after weapon resists), but the upgrades module no longer has to know
-        // perks exist. Robust allows one directed subscriber per (component, event) pair and this
-        // system owns (HandsComponent, DamageModifyEvent), so a relay is the way in.
+        // Broadcast, not a direct call - this system already owns the one allowed (HandsComponent,
+        // DamageModifyEvent) subscription, so a relay is the only way perks can hook in after weapon resists.
         var perkEv = new FSIncomingDamageModifyEvent(uid, args);
         RaiseLocalEvent(ref perkEv);
     }

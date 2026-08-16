@@ -119,8 +119,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             if (available < cost)
                 return false;
 
-            // GivePerkPoints is the wallet's lobby/in-round bridge, so this one call is correct
-            // whether or not the player has a mind yet.
+            // GivePerkPoints bridges lobby/in-round, so this call is correct either way.
             _wallet.GivePerkPoints(session, -cost);
             perks.Levels[msg.PerkId] = currentLevel + 1;
             return true;
@@ -217,7 +216,6 @@ public sealed partial class FSPerkSystem : EntitySystem
         return total;
     }
 
-    // Runs a mutation on a player's FSPerkLevelsComponent, saving and notifying on success.
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
@@ -253,7 +251,6 @@ public sealed partial class FSPerkSystem : EntitySystem
         SendState(pSession, lobbyPerks, _wallet.GetStoredPerkPoints(userId));
     }
 
-    // Returns the existing FSPerkLevelsComponent on mindId, or creates one from DB if missing.
     // Returns null if the mind has no UserId (can't load data).
     private FSPerkLevelsComponent? EnsurePerkComponent(EntityUid mindId, MindComponent? mind)
     {

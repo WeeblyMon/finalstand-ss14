@@ -3,6 +3,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Visuals;
@@ -11,6 +12,7 @@ public sealed partial class FSZombieVisualsSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
 
     public override void Initialize()
     {
@@ -21,16 +23,10 @@ public sealed partial class FSZombieVisualsSystem : EntitySystem
 
     private void OnDamageChanged(EntityUid uid, FSZombieVisualsComponent comp, DamageChangedEvent args)
     {
-        if (!TryComp<MobThresholdsComponent>(uid, out var thresholds))
+        if (!_thresholds.TryGetThresholdForState(uid, MobState.Dead, out var deadAt))
             return;
 
-        var deathThreshold = 0f;
-        foreach (var (threshold, state) in thresholds.Thresholds)
-        {
-            if (state == MobState.Dead)
-                deathThreshold = threshold.Float();
-        }
-
+        var deathThreshold = deadAt.Value.Float();
         if (deathThreshold <= 0f)
             return;
 
@@ -46,18 +42,23 @@ public sealed partial class FSZombieVisualsSystem : EntitySystem
             _       => 4,
         };
 
-        // Pick the random alt once when reaching the final damage stage.
+        var changed = false;
+
         if (newStage == 4 && !comp.AltPicked)
         {
             comp.DeathAlt = _random.Next(0, 3);
             comp.AltPicked = true;
+            changed = true;
         }
 
-        if (comp.DamageStage == newStage)
-            return;
+        if (comp.DamageStage != newStage)
+        {
+            comp.DamageStage = newStage;
+            changed = true;
+        }
 
-        comp.DamageStage = newStage;
-        Dirty(uid, comp);
+        if (changed)
+            Dirty(uid, comp);
     }
 
     private void OnMobStateChanged(EntityUid uid, FSZombieVisualsComponent comp, MobStateChangedEvent args)

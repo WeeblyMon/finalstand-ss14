@@ -10,9 +10,7 @@ using static Robust.Client.UserInterface.StylesheetHelpers;
 
 namespace Content.Client._FinalStand.Stylesheets;
 
-// Shared stylesheet for every FS menu window (Weapon Shop, Research Computer, ...) - buttons,
-// scrollbars and window chrome are keyed off engine-generic style classes so one Stylesheet
-// object restyles all of them consistently, sourced from FSUiPalette's tokens.
+// Shared stylesheet for every FS menu window (Weapon Shop, Research Computer, ...), sourced from FSUiPalette's tokens.
 public sealed class FSMenuStylesheet
 {
     public Stylesheet Stylesheet { get; }
@@ -52,8 +50,6 @@ public sealed class FSMenuStylesheet
         };
 
         var winPanel   = RoundedPanel(crust);
-        // header stays a flat rectangle, not rounded - a rounded title bar at the very top edge
-        // of a window reads as a floating pill rather than window chrome
         var winHeader  = Box(mantle);
         var btnNormal  = Box(surface1, overlay0, 1);
         var btnHover   = Box(surface2, accent,   1);
@@ -71,9 +67,7 @@ public sealed class FSMenuStylesheet
 
         var custom = new List<StyleRule>
         {
-            // Window chrome - DefaultWindow (Weapon Shop) uses one set of style classes,
-            // FancyWindow (Research Computer) uses a completely different set for the same
-            // roles, so both need their own rule pointing at the same tokens/panels.
+            // DefaultWindow and FancyWindow use different style classes for the same chrome roles.
             Element<PanelContainer>().Class(DefaultWindow.StyleClassWindowPanel)
                 .Prop(PanelContainer.StylePropertyPanel, winPanel),
             Element<PanelContainer>().Class(DefaultWindow.StyleClassWindowHeader)
@@ -88,11 +82,9 @@ public sealed class FSMenuStylesheet
             Element<Label>().Class("FancyWindowTitle")
                 .Prop(Label.StylePropertyFontColor, textMain),
 
-            // Thin horizontal rule
             Element<PanelContainer>().Class("LowDivider")
                 .Prop(PanelContainer.StylePropertyPanel, divider),
 
-            // Buttons — flat dark style for all four states
             Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, btnNormal)
@@ -114,7 +106,6 @@ public sealed class FSMenuStylesheet
             Element<Label>().Class(ContainerButton.StyleClassButton)
                 .Prop(Label.StylePropertyAlignMode, Label.AlignMode.Left),
 
-            // Scrollbar grabber
             Element<ScrollBar>()
                 .Prop(ScrollBar.StylePropertyGrabber, scrollGrab),
             Element<ScrollBar>().Pseudo(ScrollBar.StylePseudoClassHover)

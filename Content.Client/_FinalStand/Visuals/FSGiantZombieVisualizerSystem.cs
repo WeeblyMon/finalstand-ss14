@@ -7,6 +7,16 @@ public sealed partial class FSGiantZombieVisualizerSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
 
+    private static readonly string[] BodyLayers =
+    [
+        "giantzombie_torso",
+        "giantzombie_head",
+        "giantzombie_left_arm",
+        "giantzombie_right_arm",
+        "giantzombie_left_leg",
+        "giantzombie_right_leg",
+    ];
+
     public override void Initialize()
     {
         base.Initialize();
@@ -27,7 +37,7 @@ public sealed partial class FSGiantZombieVisualizerSystem : EntitySystem
 
         if (comp.Dead)
         {
-            foreach (var key in new[] { "giantzombie_torso", "giantzombie_head", "giantzombie_left_arm", "giantzombie_right_arm", "giantzombie_left_leg", "giantzombie_right_leg" })
+            foreach (var key in BodyLayers)
             {
                 if (_sprite.LayerMapTryGet((uid, sprite), key, out _, false))
                     _sprite.LayerSetVisible((uid, sprite), key, false);

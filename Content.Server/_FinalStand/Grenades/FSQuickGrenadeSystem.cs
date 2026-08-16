@@ -26,8 +26,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
-    // Matches baitDuration on FSGrenadePackPipe. Upgrades add to that field, so the
-    // singularity needs the unupgraded value to recover how much was added.
+    // Matches baitDuration on FSGrenadePackPipe - the unupgraded value, to recover how much upgrades added.
     private const float PipeBaseBaitDuration = 8f;
 
     public override void Initialize()
@@ -45,7 +44,6 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         if (_mobState.IsIncapacitated(user.Value))
             return;
 
-        // Prefer grenade pack system if the player has bought any type.
         if (TryComp<FSActiveGrenadeComponent>(user.Value, out var active))
         {
             var pack = FindGrenadePack(user.Value, active.ActiveType);
@@ -69,7 +67,6 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
                         : packComp.GrenadeProtoId;
                 var grenade = Spawn(protoToSpawn, coords);
 
-                // Transfer pack-level upgrade data to the spawned grenade.
                 if (TryComp<FSFireZoneOnTriggerComponent>(grenade, out var fireZone))
                 {
                     fireZone.BurnDuration = packComp.BurnDuration;
@@ -113,7 +110,6 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
             }
         }
 
-        // Fallback: look for a physical grenade with the HandGrenade tag.
         var fallback = FindGrenadeInInventory(user.Value);
         if (fallback == null)
         {
@@ -136,7 +132,6 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         if (arm)
             RaiseLocalEvent(grenade, new UseInHandEvent(user));
 
-        // Throw toward cursor. Fall back to facing direction if cursor is on top of player.
         var playerWorldPos = _transform.GetWorldPosition(user);
         var dir = cursorWorldPos - playerWorldPos;
         if (dir.LengthSquared() < 0.01f)
@@ -175,7 +170,6 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
 
     private EntityUid? FindGrenadeInInventory(EntityUid user)
     {
-        // Check active hand first
         var active = _hands.GetActiveItem(user);
         if (active != null && _tags.HasTag(active.Value, HandGrenadeTag))
             return active.Value;

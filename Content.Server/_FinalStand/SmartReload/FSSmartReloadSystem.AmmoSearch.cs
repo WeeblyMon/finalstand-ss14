@@ -88,7 +88,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // skipInside: don't search inside this entity's containers (prevents finding rounds already loaded in the gun).
+    // skipInside prevents treating the gun being reloaded as its own ammo source.
     private EntityUid? FindBestAmmo(EntityUid user, EntityWhitelist? whitelist, EntityUid skipInside = default)
     {
         if (!TryComp<ContainerManagerComponent>(user, out var mgr))
@@ -100,7 +100,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         {
             foreach (var item in container.ContainedEntities)
             {
-                // Never treat the gun being reloaded as an ammo source.
                 if (item == skipInside)
                     continue;
 
@@ -168,7 +167,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (!TryComp<BallisticAmmoProviderComponent>(box, out var bal))
             return null;
 
-        // Take a physically spawned entity from the box's container.
         if (_containers.TryGetContainer(box, "ballistic-ammo", out var container)
             && container.ContainedEntities.Count > 0)
         {
@@ -177,7 +175,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return round;
         }
 
-        // Spawn from unspawned count.
         if (bal.UnspawnedCount > 0 && bal.Proto != null)
         {
             _gunSystem.SetBallisticUnspawned((box, bal), bal.UnspawnedCount - 1);

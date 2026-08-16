@@ -119,9 +119,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
         if (TryComp<HTNComponent>(enemy, out var htn))
         {
-            // FINALSTAND issue-2: 1000f gave zombies map-wide omniscient aggro through walls.
-            // Now that NearbyHostilesQuery applies an LOS check, a larger radius is fine —
-            // walls filter naturally so zombies see down open corridors but not into rooms.
+            // LOS-filtered by NearbyHostilesQuery, so 15f sees down corridors but not through walls into rooms.
             htn.Blackboard.SetValue("VisionRadius", 15f);
             htn.Blackboard.SetValue("AggroVisionRadius", 15f);
             htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);

@@ -30,6 +30,9 @@ public sealed class FSKnockedBackSystem : EntitySystem
 
     private void OnUpdateCanMove(Entity<FSKnockedBackComponent> ent, ref UpdateCanMoveEvent args)
     {
+        if (ent.Comp.LifeStage > ComponentLifeStage.Running)
+            return;
+
         args.Cancel();
     }
 }

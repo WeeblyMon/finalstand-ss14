@@ -105,7 +105,6 @@ public sealed partial class WeaponShopWindow
         var canAfford = !def.IsStub && !atMax && credits >= nextCost;
         var hasAny    = currentLevel > 0;
 
-        // Card colors by state - Disabled/AtMax/Selected(hasAny)/Default per the shared state engine
         Color bgColor, borderColor;
         if (def.IsStub || (!canAfford && !atMax))
         {
@@ -124,13 +123,10 @@ public sealed partial class WeaponShopWindow
             bgColor = FSUiPalette.BgSurface; borderColor = FSUiPalette.BorderNeutral;
         }
 
-        // Card visual wrapper
         var card = new PanelContainer { Margin = new Thickness(0, 2, 0, 2) };
         card.PanelOverride = MakeCardStyle(bgColor, borderColor);
-        // Card-level hover covers category label, pips, price label (Ignore areas)
         card.MouseFilter = MouseFilterMode.Pass;
 
-        // Inner horizontal layout
         var inner = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,
@@ -138,7 +134,6 @@ public sealed partial class WeaponShopWindow
             VerticalAlignment = VAlignment.Center,
         };
 
-        // Purchase button — natural sizing capped at 185px; left-aligned ClipText from stylesheet
         var btn = new Button
         {
             Text = name,
@@ -167,10 +162,7 @@ public sealed partial class WeaponShopWindow
             return card;
         }
 
-        // Hover wiring — button area (btn.OnMouseEntered) + card area (card.OnMouseEntered)
-        // cover the whole row regardless of which element is the deepest mouse focus.
-        // Both events can fire in the same frame when cursor moves between elements;
-        // the UI renders once after both, so there is no visible flicker.
+        // Button + card hover both wired so the whole row reacts regardless of deepest mouse focus.
         if (!atMax)
         {
             btn.OnMouseEntered  += _ => SetHoveredUpgrade(def);
@@ -179,7 +171,6 @@ public sealed partial class WeaponShopWindow
             card.OnMouseExited  += _ => ClearPreview();
         }
 
-        // Category label — takes remaining space between button and right section
         var catText = label ?? UpgradeTypeToStatLabel(def.Type);
         if (!string.IsNullOrEmpty(catText))
         {
@@ -204,7 +195,6 @@ public sealed partial class WeaponShopWindow
             inner.AddChild(new Control { HorizontalExpand = true });
         }
 
-        // Level display — pips for low MaxLevel, compact text for high
         if (def.MaxLevel <= 5)
         {
             var pips = new BoxContainer

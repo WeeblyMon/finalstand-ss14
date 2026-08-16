@@ -100,6 +100,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
 
         comp.IsWindingUp = true;
         comp.WindupAccumulator = 0f;
+        Dirty(uid, comp);
         _pointLight.SetEnabled(uid, true);
 
         if (TryComp<InputMoverComponent>(uid, out var mover))
@@ -137,6 +138,7 @@ public sealed partial class FSFlamethrowerSystem : EntitySystem
     {
         comp.IsWindingUp = false;
         comp.WindupAccumulator = 0f;
+        Dirty(uid, comp);
         _pointLight.SetEnabled(uid, false);
         if (TryComp<InputMoverComponent>(uid, out var mover))
         {

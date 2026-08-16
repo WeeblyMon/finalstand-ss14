@@ -61,37 +61,32 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (profLevel > 0)
             _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
-        // Death Aura: stacks → outgoing damage bonus. Re-checks the slot, like Speed Demon and
-        // Rampage below do — banked stacks must not keep paying out after the perk is unslotted.
+        // Re-checked every time, like Speed Demon and Rampage below - banked stacks must not
+        // keep paying out after the perk is unslotted.
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
 
-        // Glass Cannon: flat outgoing bonus.
         var gcLevel = augs.GetSlottedLevel("GlassCannon");
         if (gcLevel > 0)
             ev.AdditionalMultiplier *= 1f + gcLevel * FSPerkBonusConstants.GlassCannonPerLevel;
 
-        // Pacifist: outgoing penalty.
         if (augs.GetSlottedLevel("Pacifist") > 0)
             ev.AdditionalMultiplier *= 1f - FSPerkBonusConstants.PacifistPenalty;
 
-        // Officer buff: ally damage bonus.
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
 
-        // Knockback Blast: shotgun knockback on every pellet.
         var kbLevel = augs.GetSlottedLevel("KnockbackBlast");
         if (kbLevel > 0 && ev.Weapon.HasValue && _tags.HasTag(ev.Weapon.Value, ShotgunTag) && ev.Shooter.HasValue)
             _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(kbLevel, 1, 3));
 
         if (!ev.WasCrit) return;
 
-        // Back Breaker: crit knockback.
         var bbLevel = augs.GetSlottedLevel("BackBreaker");
         if (bbLevel > 0 && ev.Shooter.HasValue)
             _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(bbLevel, 1, 3));
 
-        // Leg Breaker: crit stamina drain — staggering via stamina works on NPCs unlike speed modifiers.
+        // Stamina drain, not a speed debuff - staggering via stamina works on NPCs too.
         var lbLevel = augs.GetSlottedLevel("LegBreaker");
         if (lbLevel > 0 && HasComp<StaminaComponent>(ev.Target))
             _stamina.TakeStaminaDamage(ev.Target, lbLevel * FSPerkBonusConstants.LegBreakerStaminaPerLevel, source: ev.Shooter);
@@ -121,12 +116,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (lwLevel > 0)
             mult *= 1f + lwLevel * FSPerkBonusConstants.LightweightPerLevel;
 
-        // Speed Demon: kill-stack speed bonus.
         var sdLevel = augs.GetSlottedLevel("SpeedDemon");
         if (sdLevel > 0 && TryComp<FSSpeedDemonComponent>(mindId, out var sd) && sd.Stacks > 0)
             mult *= 1f + sd.Stacks * sdLevel * FSPerkBonusConstants.SpeedDemonPerLevel;
 
-        // Rampage: melee-kill speed bonus.
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
@@ -163,11 +156,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (snsLevel > 0)
             args.Damage *= 1f + snsLevel * FSPerkBonusConstants.SwordAndShieldPerLevel;
 
-        // Pacifist: melee damage penalty.
         if (augs.GetSlottedLevel("Pacifist") > 0)
             args.Damage *= 1f - FSPerkBonusConstants.PacifistPenalty;
 
-        // Glass Cannon: melee damage bonus.
         var gcLevel = augs.GetSlottedLevel("GlassCannon");
         if (gcLevel > 0)
             args.Damage *= 1f + gcLevel * FSPerkBonusConstants.GlassCannonPerLevel;

@@ -23,6 +23,8 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
     private static readonly Color DevastatorFullHealth = Color.White;
     private static readonly Color DevastatorNearDeath  = new(1f, 0.05f, 0.05f);
 
+    private readonly Dictionary<string, ShaderInstance> _glows = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -50,43 +52,43 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
         if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
             UpdateSprite(uid, visuals);
 
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
-            return;
-
-        sprite.PostShader = (comp.IsWindingUp || comp.IsFiring)
-            ? _protoManager.Index<ShaderPrototype>(FlamerGlowShader).InstanceUnique()
-            : null;
+        SetGlow(uid, FlamerGlowShader, comp.IsWindingUp || comp.IsFiring);
     }
 
     private void OnArmouredDeflectStateHandled(EntityUid uid, FSArmouredDeflectComponent comp, AfterAutoHandleStateEvent args)
     {
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
-            return;
-
-        sprite.PostShader = comp.IsGlowing
-            ? _protoManager.Index<ShaderPrototype>(ArmourGlowShader).InstanceUnique()
-            : null;
+        SetGlow(uid, ArmourGlowShader, comp.IsGlowing);
     }
 
     private void OnTeslaStateHandled(EntityUid uid, FSTeslaZombieComponent comp, AfterAutoHandleStateEvent args)
     {
-        if (TryComp<FSZombieVisualsComponent>(uid, out var visuals))
-            UpdateSprite(uid, visuals);
-
-        if (!TryComp<SpriteComponent>(uid, out var sprite))
-            return;
-
-        sprite.PostShader = comp.IsFiring
-            ? _protoManager.Index<ShaderPrototype>(TeslaGlowShader).InstanceUnique()
-            : null;
+        SetGlow(uid, TeslaGlowShader, comp.IsFiring);
     }
 
     private void OnDevastatorStartup(EntityUid uid, FSDevastatorComponent comp, ComponentStartup args)
     {
+        SetGlow(uid, DevastatorGlowShader, true);
+
+        if (TryComp<SpriteComponent>(uid, out var sprite))
+            sprite.Color = DevastatorFullHealth;
+    }
+
+    private void SetGlow(EntityUid uid, string shaderId, bool enabled)
+    {
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
-        sprite.PostShader = _protoManager.Index<ShaderPrototype>(DevastatorGlowShader).InstanceUnique();
-        sprite.Color = DevastatorFullHealth;
+
+        ShaderInstance? desired = null;
+        if (enabled)
+        {
+            if (!_glows.TryGetValue(shaderId, out desired))
+            {
+                desired = _protoManager.Index<ShaderPrototype>(shaderId).Instance();
+                _glows[shaderId] = desired;
+            }
+        }
+
+        sprite.PostShader = desired;
     }
 
     private void OnDevastatorStateHandled(EntityUid uid, FSDevastatorComponent comp, AfterAutoHandleStateEvent args)

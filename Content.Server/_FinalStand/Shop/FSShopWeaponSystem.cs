@@ -262,8 +262,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), upAcc, upNextAcc);
     }
 
-    // Every prototype this shop considers "its" weapon: the weapon itself, its aliases, and any
-    // upgrade retarget. One search over all of them beats one search per prototype.
+    // Every prototype this shop considers "its" weapon: the weapon, its aliases, and any upgrade retarget.
     private static HashSet<string> ShopProtoIds(FSShopWeaponComponent comp, bool includeUpgradeTargets = false)
     {
         var protos = new HashSet<string>();
@@ -350,8 +349,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         totalRefund = (int)(Math.Round(totalRefund / 50.0) * 50);
         totalRefund = Math.Max(0, totalRefund);
 
-        // Record the sale before deleting. The dedup key is the net entity, because a raw
-        // EntityUid is recycled and would block an unrelated later sale inside the window.
+        // Dedup key is the net entity, not the raw EntityUid, which gets recycled.
         _lastSellTime[userId] = now;
         _recentSells[GetNetEntity(weapon)] = now;
 

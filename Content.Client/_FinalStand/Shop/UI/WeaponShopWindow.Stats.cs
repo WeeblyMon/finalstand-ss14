@@ -94,7 +94,6 @@ public sealed partial class WeaponShopWindow
             }
         }
 
-        // Cache crit values; always valid once BuildStatBars runs.
         _rangedCache.BaseCritChance = critComp?.BaseCritChance ?? critProto?.BaseCritChance ?? 0f;
         _rangedCache.CritChanceBonus = critChanceBonus;
         _rangedCache.CritDamageMult = critDamageMult;
@@ -127,8 +126,6 @@ public sealed partial class WeaponShopWindow
         var bsLevel = perkSystem.GetSlottedPerkLevel("BulletStorm");
         var augDmgMult = 1f + spLevel * 0.04f;
 
-        // The live weapon carries the server's applied upgrades. Only fall back to the prototype
-        // when the player does not hold one yet, and drop the re-derived bonus in that case.
         var hasLiveGun = gunComp != null;
         var baseFireRate = gunComp?.FireRate ?? gunProto?.FireRate ?? 2f;
 
@@ -203,7 +200,6 @@ public sealed partial class WeaponShopWindow
         var researchAcc = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.Accuracy);
         var researchCap = GetResearchLines(weaponProtoId, FSResearchStatBonusTable.Capacity);
 
-        // ── Damage ──
         var finalPerShot = damagePerShot * augDmgMult;
         var finalTotal   = finalPerShot * pellets;
         if (finalTotal - baseDmgPerShot * basePellets > 0.01f)
@@ -216,9 +212,6 @@ public sealed partial class WeaponShopWindow
             researchDmg.Count > 0 ? FSUiPalette.StateResearch : dmgLines.Count > 0 ? FSUiPalette.StatePositive : null,
             dmgLines.Count > 0 ? string.Join("\n", dmgLines) : null));
 
-        // ── Fire Rate ──
-        // A live weapon already carries every applied upgrade, including the multiplicative ones
-        // the breakdown above cannot express. Re-adding frBonus there would double-count.
         var bulletStormMult = 1f + bsLevel * 0.08f;
         var unboostedFireRate = hasLiveGun ? baseFireRate : baseFireRate + frBonus;
         var fireRate = unboostedFireRate * bulletStormMult;
@@ -230,9 +223,7 @@ public sealed partial class WeaponShopWindow
             researchFr.Count > 0 ? FSUiPalette.StateResearch : frParts.Count > 0 ? FSUiPalette.StatePositive : null,
             frParts.Count > 0 ? string.Join("\n", frParts) : null));
 
-        // ── Accuracy ──
-        // Sent by the server, which owns the real spread angles. AngleIncrease is not a
-        // networked field, so this cannot be derived here.
+        // Real spread angles come from the server — AngleIncrease isn't a networked field.
         var shopAccuracy = _entityManager.System<FSShopClientSystem>().Accuracy;
         var accValue = shopAccuracy >= 0 ? shopAccuracy : shopComp.StatAccuracy;
 
@@ -247,7 +238,6 @@ public sealed partial class WeaponShopWindow
             researchAcc.Count > 0 ? FSUiPalette.StateResearch : accParts.Count > 0 ? FSUiPalette.StatePositive : null,
             accParts.Count > 0 ? string.Join("\n", accParts) : null));
 
-        // ── Capacity ──
         var (capFill, capText, capRaw) = GetCapacityDisplay(shopComp, weapon, weaponProto, entMan);
         if (capParts.Count > 0) capParts.Add($"= {capText}");
         capParts.AddRange(researchCap);
@@ -255,7 +245,6 @@ public sealed partial class WeaponShopWindow
             researchCap.Count > 0 ? FSUiPalette.StateResearch : capParts.Count > 0 ? FSUiPalette.StatePositive : null,
             capParts.Count > 0 ? string.Join("\n", capParts) : null));
 
-        // Cache everything for hover preview.
         _rangedCache.BaseDmgPerShot    = baseDmgPerShot;
         _rangedCache.BasePellets       = basePellets;
         _rangedCache.ExtraPellets      = extraPellets;
@@ -267,7 +256,7 @@ public sealed partial class WeaponShopWindow
         _rangedCache.IsRanged          = true;
     }
 
-    // What one level takes off each spread angle. Mirrors FSPlayerUpgradesSystem.GunStats.
+    // Mirrors FSPlayerUpgradesSystem.GunStats — keep both in sync.
     private static (float Min, float Max, float Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
     {
         WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5f, def.ValuePerLevel * 0.2f, def.ValuePerLevel * 0.3f),
@@ -344,8 +333,6 @@ public sealed partial class WeaponShopWindow
         return lines;
     }
 
-
-    // Non-static: stores segment/label refs into _statBarRefs for hover preview.
 
     private (float damage, float baseDamage, int pellets) ComputeDamage(FSShopWeaponComponent shopComp, EntityUid? gun,
         EntityPrototype? weaponProto, float damageMultiplier, int extraPellets, IEntityManager entMan)

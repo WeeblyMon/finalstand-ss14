@@ -7,6 +7,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
@@ -17,6 +18,7 @@ namespace Content.Server._FinalStand.Visuals;
 public sealed partial class FSGiantZombieVisualsSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private FlammableSystem _flammable = default!;
@@ -33,16 +35,10 @@ public sealed partial class FSGiantZombieVisualsSystem : EntitySystem
         if (comp.Dead)
             return;
 
-        if (!TryComp<MobThresholdsComponent>(uid, out var thresholds))
+        if (!_thresholds.TryGetThresholdForState(uid, MobState.Dead, out var deadAt))
             return;
 
-        var deathThreshold = 0f;
-        foreach (var (threshold, state) in thresholds.Thresholds)
-        {
-            if (state == MobState.Dead)
-                deathThreshold = threshold.Float();
-        }
-
+        var deathThreshold = deadAt.Value.Float();
         if (deathThreshold <= 0f)
             return;
 

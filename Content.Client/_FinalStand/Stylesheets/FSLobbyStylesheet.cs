@@ -48,13 +48,11 @@ public sealed class FSLobbyStylesheet
 
         var custom = new List<StyleRule>
         {
-            // Cards / pill bars
             Element<PanelContainer>().Class("FSLobbyCard")
                 .Prop(PanelContainer.StylePropertyPanel, cardBox),
             Element<PanelContainer>().Class("FSStatusPill")
                 .Prop(PanelContainer.StylePropertyPanel, pillBox),
 
-            // Generic buttons — flat dark rounded style for all four states
             Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, btnNormal)
@@ -72,14 +70,12 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, btnDisabled)
                 .Prop(Control.StylePropertyModulateSelf, new Color(0.5f, 0.5f, 0.5f, 1f)),
 
-            // Active nav tab — gold fill override (declared after the generic rules above so it wins
-            // on buttons that carry both StyleClassButton and FSNavActive)
+            // Declared after the generic button rules so it wins on buttons with both StyleClassButton and FSNavActive
             Element<ContainerButton>().Class("FSNavActive")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, navActiveBox)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
-            // Leave button — red override
             Element<ContainerButton>().Class("FSLeaveButton")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
                 .Prop(ContainerButton.StylePropertyStyleBox, leaveNormal)
@@ -93,12 +89,10 @@ public sealed class FSLobbyStylesheet
                 .Prop(ContainerButton.StylePropertyStyleBox, leavePressed)
                 .Prop(Control.StylePropertyModulateSelf, Color.White),
 
-            // Button label — centered, standard button text color
             Element<Label>().Class(ContainerButton.StyleClassButton)
                 .Prop(Label.StylePropertyAlignMode, Label.AlignMode.Center)
                 .Prop(Label.StylePropertyFontColor, textMain),
 
-            // Text color helper classes for card/section labels
             Element<Label>().Class("FSHeading").Prop(Label.StylePropertyFontColor, textMain),
             Element<Label>().Class("FSTextDim").Prop(Label.StylePropertyFontColor, textDim),
             Element<Label>().Class("FSTextGold").Prop(Label.StylePropertyFontColor, gold),

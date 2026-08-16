@@ -88,14 +88,12 @@ public sealed partial class PerkShopWindow
 
             var layers = new LayoutContainer { HorizontalExpand = true, VerticalExpand = true };
 
-            // Layer 1: category bg
             var slotCatPanel = new PanelContainer();
             if (!isEmpty && FSPerkDef.All.TryGetValue(slotId!, out var slotCatDef))
                 slotCatPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = CatBg[slotCatDef.Category] };
             LayoutContainer.SetAnchorPreset(slotCatPanel, LayoutContainer.LayoutPreset.Wide);
             layers.AddChild(slotCatPanel);
 
-            // Layer 2: level bg
             var slotLevelPanel = new PanelContainer();
             if (!isEmpty && FSPerkDef.All.TryGetValue(slotId!, out var slotLvlDef))
             {
@@ -105,7 +103,6 @@ public sealed partial class PerkShopWindow
             LayoutContainer.SetAnchorPreset(slotLevelPanel, LayoutContainer.LayoutPreset.Wide);
             layers.AddChild(slotLevelPanel);
 
-            // Layer 3: icon texture
             if (!isEmpty)
             {
                 var icon = GetSlotIcon(slotId!);
@@ -173,7 +170,6 @@ public sealed partial class PerkShopWindow
         {
             if (_filterCategory.HasValue && cat != _filterCategory.Value) continue;
 
-            // Gather matching perks for this category
             var defs = FSPerkDef.All.Values
                 .Where(d => d.Category == cat)
                 .Where(d => search.Length == 0 ||
@@ -248,17 +244,15 @@ public sealed partial class PerkShopWindow
             VerticalExpand   = true,
         };
 
-        // Layer 1: dark category background (always shown)
         var catPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(catPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(catPanel);
 
-        // Layer 2: level saturation colour (transparent when locked)
         var levelPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(levelPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(levelPanel);
 
-        // Layer 3: icon texture — margin centres 64px texture inside 70px cell so it renders 1:1
+        // Margin centres the 64px texture inside the 70px cell so it renders 1:1
         var icon = GetPerkIcon(def.Id);
         if (icon != null)
         {
@@ -286,7 +280,6 @@ public sealed partial class PerkShopWindow
             layers.AddChild(q);
         }
 
-        // Layer 4: border overlay
         var borderPanel = new PanelContainer();
         LayoutContainer.SetAnchorPreset(borderPanel, LayoutContainer.LayoutPreset.Wide);
         layers.AddChild(borderPanel);
