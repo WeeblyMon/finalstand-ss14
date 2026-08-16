@@ -21,9 +21,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
 
-    // Credits change on every damaging hit (money-on-hit), every kill and every assist.
-    // Pushing a network event per change floods one client with hundreds of messages a wave,
-    // so the hot path marks the wallet dirty and a flush coalesces them.
     private readonly HashSet<EntityUid> _dirtyWallets = new();
     private float _notifyAccumulator;
     private const float NotifyInterval = 0.25f;
@@ -71,8 +68,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SaveAll();
         _dirtyWallets.Clear();
 
-        // Credits are round-scoped. Clearing Loaded makes the next spawn re-read the row, which
-        // is what carries perk points and levels into the new round.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out _, out var wallet))
         {
@@ -102,9 +97,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
 
-        // A second spawn for the same mind must not re-read the row. Everything earned since
-        // the first spawn lives on the component, and the row is only as fresh as the last
-        // write-through.
         if (wallet.Loaded)
         {
             MarkWalletDirty(mindId);
@@ -114,8 +106,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         var row = _store.GetFullRecord(ev.Player.UserId.UserId);
 
         wallet.PerkPoints = row.PerkPoints;
-        // Added, not assigned: another handler on this same event may have already paid this
-        // player (late-join catch-up), and handler order between systems is not defined.
         wallet.Credits += StartingCredits;
         wallet.Loaded = true;
         MarkWalletDirty(mindId);
@@ -131,14 +121,11 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SaveMind(mindId, mind.UserId.Value);
     }
 
-    // Writes one mind's persistent state to its user's row. Every save path goes through here,
-    // so the mind that owns the state is always the mind that gets written.
     private void SaveMind(EntityUid mindId, NetUserId userId)
     {
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
             return;
 
-        // Only the wallet's own column. Leveling writes its columns from FSLevelingSystem.
         _store.UpsertPerkPoints(userId.UserId, ResolveUsername(userId), wallet.PerkPoints);
     }
 
@@ -219,7 +206,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return true;
     }
 
-    // Flushes every connected player. Players who left were already saved on detach.
     public void SaveAll()
     {
         var count = 0;
@@ -238,12 +224,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
     }
 
-    /// <summary>
-    /// Perk points for a user. The wallet component is authoritative whenever the player has a
-    /// mind; the row is only read for a lobby user who has not spawned yet. Resolving it here
-    /// rather than at each call site means a caller cannot accidentally read a stale row for a
-    /// player who is in the round.
-    /// </summary>
     public int GetStoredPerkPoints(Guid userId)
     {
         if (_playerManager.TryGetSessionById(new NetUserId(userId), out var session)
@@ -256,9 +236,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return _store.GetPerkPoints(userId);
     }
 
-    // Works both in-round and from the lobby. A player in the lobby has no mind, so the row is
-    // the only copy of their perk points; a player in the round has a wallet that must stay in
-    // step with it. This is the single bridge between those two states.
     public void GivePerkPoints(ICommonSession session, int amount)
     {
         if (_mind.TryGetMind(session, out var mindId, out _)
@@ -278,8 +255,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     {
         var deleted = _store.DeleteAll();
 
-        // Anchored on the wallet, not on all three components — a player without a level
-        // component would otherwise keep their perk points through a wipe.
         var query = EntityQueryEnumerator<FSPlayerWalletComponent>();
         while (query.MoveNext(out var mindId, out var wallet))
         {
@@ -309,9 +284,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             shell.WriteLine("  (no wallets found)");
     }
 
-    // Client-triggered, so it must not touch the database — a client can send this in a loop.
-    // The live wallet is authoritative in-round; the row is only read for a lobby client that
-    // has no mind yet.
     private void OnWalletRequested(WalletRequestEvent req, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
@@ -329,7 +301,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             Filter.SinglePlayer(session));
     }
 
-    /// <summary>Queues a balance update. Several changes in the same tick send one message.</summary>
     private void MarkWalletDirty(EntityUid mindId)
     {
         _dirtyWallets.Add(mindId);

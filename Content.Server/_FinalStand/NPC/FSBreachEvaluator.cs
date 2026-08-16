@@ -24,8 +24,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-// Finds and scores breach-target candidates for FSBreachTargetSystem. Scoring, candidate search,
-// and blacklist bookkeeping are shared identically by the stall and maze detection modes.
+// Finds and scores breach-target candidates for FSBreachTargetSystem.
 public sealed partial class FSBreachEvaluator : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
@@ -41,12 +40,8 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
 
-    // How many peers are already breaching each candidate. Built once per evaluation from a
-    // single radius query, instead of re-scanning the whole horde for every candidate scored.
     private readonly Dictionary<EntityUid, int> _attackerTally = new();
 
-    // Candidates sit within 6 tiles and their attackers stand next to them, so this covers
-    // every zombie that can plausibly be hitting one of them.
     private const float AttackerTallyRadius = 8f;
 
     private static readonly TimeSpan SelectionWindow = TimeSpan.FromSeconds(15);
@@ -83,10 +78,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         return baseScore * PackBonus(structure);
     }
 
-    // Maze scoring: replaces GetNavValue with shortcut geometry.
-    // A structure's "shortcut value" is how well it sits on the direct zombie→target line.
-    // Structures directly in the way score 1.0; 4+ tiles off the line score 0.2 (still non-zero
-    // so even off-axis barriers are considered if they're cheap enough).
     public float ScoreCandidateMaze(EntityUid structure, float baseDamage,
         Vector2 zombiePos, Vector2 targetPos)
     {
@@ -97,8 +88,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         return baseScore * PackBonus(structure);
     }
 
-    // Re-scores nearby candidates against the current breach target while a lock is held.
-    // Switches only if something scores more than double the cached score.
     public bool TryFindBetterCandidate(MapCoordinates epicenter, EntityUid zombie, EntityUid currentTarget,
         float baseDamage, Vector2 zombieWorldPos, MapId mapId, FSBreachStateComponent? state,
         TimeSpan curTime, float cachedScore, out EntityUid better, out float betterScore)
@@ -143,9 +132,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
 
         if (mazeTargetPos.HasValue)
         {
-            // Maze mode: filter candidates toward the actual target, not the nav waypoint.
-            // Nav waypoint direction is the maze route direction — using it would filter out
-            // shortcut structures that happen to be perpendicular to the current corridor.
             var toTarget = mazeTargetPos.Value - zombieWorldPos;
             if (toTarget.LengthSquared() > 0.01f)
             {
@@ -155,7 +141,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         }
         else
         {
-            // Stuck mode: filter toward next nav waypoint (original behaviour).
             if (TryComp<NPCSteeringComponent>(zombie, out var steeringComp) &&
                 steeringComp.CurrentPath.TryPeek(out var nextPoly))
             {
@@ -212,8 +197,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         return (best, bestScore);
     }
 
-    // Full pick: attacker tally, 4-tile then 6-tile search, adaptive/fixed threshold, blacklist
-    // recording. Returns null if nothing qualifies.
     public (EntityUid Best, float Score)? EvaluateBreachTarget(EntityUid zombie, Vector2 zombieWorldPos,
         MapId mapId, float baseDamage, FSBreachStateComponent? state, bool isMazeMode, int failCount,
         Vector2? mazeTargetPos = null)
@@ -231,8 +214,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         if (best == EntityUid.Invalid)
             (best, score) = BestInRange(epicenter, 6f, zombie, baseDamage, zombieWorldPos, mapId, state, curTime, mazeTargetPos);
 
-        // Maze mode uses a fixed threshold — never relax it to avoid targeting real walls.
-        // Stuck mode uses the adaptive failCount threshold to break stall loops.
         var minScore = isMazeMode
             ? MazeMinScore
             : (failCount >= 5 ? 0.005f : 0.01f);
@@ -250,13 +231,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         return (best, score);
     }
 
-    // Minimum score in maze mode. With shortcut geometry: railing (cost≈1-10) scores ≥0.07;
-    // regular wall (cost≈50) scores 0.014. Threshold of 0.015 lets railings through and
-    // keeps structures needing 47+ zombie hits out. Intentionally NOT failCount-adaptive —
-    // maze mode must never escalate to targeting proper walls.
     public const float MazeMinScore = 0.015f;
-
-    // ── Blacklist helpers
 
     public static void PruneExpiredBlacklist(FSBreachStateComponent state, TimeSpan curTime)
     {
@@ -317,9 +292,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
 
     public bool IsBlockingMovement(EntityUid entity)
     {
-        // Unanchored entities (glass shards, ammo casings, dropped items) have Hard = true
-        // by default in Robust Toolbox but sit on SlipLayer/ItemLayer — mobs walk right
-        // through them. Only anchored/static structures are real barriers.
         if (!Transform(entity).Anchored)
             return false;
         if (!TryComp<PhysicsComponent>(entity, out var physics))
@@ -342,8 +314,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         return 1f + MathF.Min(attackers, 5) * 0.2f;
     }
 
-    // Projects the structure's position onto the direct zombie→target line and measures
-    // lateral deviation. Returns 0 for structures behind the zombie (dot ≤ 0).
     private float GetShortcutValue(EntityUid structure, Vector2 zombiePos, Vector2 targetPos)
     {
         var structPos = _transform.GetWorldPosition(structure);
@@ -353,12 +323,9 @@ public sealed partial class FSBreachEvaluator : EntitySystem
             return 0.2f;
         var targetDir = toTarget / targetDist;
         var toStruct = structPos - zombiePos;
-        // Structures behind the zombie are never a shortcut.
         if (Vector2.Dot(toStruct, targetDir) <= 0f)
             return 0f;
-        // Lateral distance from the direct zombie→target line (cross product magnitude).
         var lateral = MathF.Abs(toStruct.X * targetDir.Y - toStruct.Y * targetDir.X);
-        // Full score (1.0) on the line; decays linearly to 0.2 at 4 tiles off the line.
         var t = MathF.Max(0f, 1f - lateral / 4f);
         return 0.2f + 0.8f * t;
     }
@@ -416,8 +383,6 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         {
             if (count >= 3) break;
             var mapPos = _transform.ToMapCoordinates(poly.Coordinates);
-            // 0.6f threshold: adjacent tiles are 1.0f apart, so only entities ON the waypoint
-            // tile (path routing through them) qualify. Entities next to an open waypoint don't.
             if ((structurePos - mapPos.Position).Length() <= 0.6f)
                 return 1.0f;
             count++;

@@ -22,11 +22,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-// Orchestrates when a wave zombie needs a new breach target: door-replan events, per-tick timer
-// decay, stall/maze detection gating, and interrupt checks on an already-locked target. Delegates
-// the actual "which structure and how good is it" work to FSBreachEvaluator — that logic is
-// shared identically by stall and maze modes, so it doesn't split along the same lines as this
-// dispatch logic does.
+// Orchestrates when a wave zombie needs a new breach target; delegates scoring to FSBreachEvaluator.
 public sealed partial class FSBreachTargetSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
@@ -47,8 +43,6 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
 
     private static readonly EntProtoId ZombieNormalProto = "FSZombieNormal";
 
-    // Cached A* paths built while the door was closed detour through an adjacent door;
-    // forcing a replan within this radius picks up the now-open route.
     private const float DoorOpenReplanRadius = 6f;
 
     public override void Initialize()
@@ -111,14 +105,12 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
 
         foreach (var (npcUid, _) in nearby)
         {
-            // Drop any in-flight breach lock — the route ahead may have opened up.
             if (TryComp<HTNComponent>(npcUid, out var htn))
             {
                 if (htn.Blackboard.ContainsKey(FSAIBlackboardKeys.BreachTarget))
                     ClearBreachTarget(htn.Blackboard);
                 _htn.Replan(htn);
             }
-            // Clear cached path so the next steering tick requests a fresh one through the cleared tile.
             if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
                 steering.CurrentPath.Clear();
         }
@@ -130,8 +122,6 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         _accumulator += frameTime;
         if (_accumulator < TickInterval) return;
         _accumulator -= TickInterval;
-        // ActiveNPCComponent is dropped when a mob dies, so corpses — of which up to
-        // FSCorpseCleanupSystem.MaxZombieCorpses linger between waves — never reach here.
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
             Tick(uid, htn, TickInterval);
@@ -161,7 +151,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
 
         lockTimer -= dt;
         if (lockTimer <= 0f)
-            ClearBreachTarget(bb); // clear so zombie re-evaluates route rather than backtracking
+            ClearBreachTarget(bb);
         else
             bb.SetValue(FSAIBlackboardKeys.AttackLockTimer, lockTimer);
     }
@@ -239,14 +229,9 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private const float ProgressSampleInterval = 0.6f;
     private const float MinClearProgress = 0.4f;
     private const float MazeCheckInterval = 2.0f;
-    // Path waypoints / direct-tile distance. A straight corridor ≈ 1.0; a zig-zag railing
-    // maze of 3 railings produces ~2.0–2.2. 1.8 catches that while leaving normal L-turns
-    // (~1.3–1.5) unaffected. The scoring step (MazeMinScore) is the real filter for walls.
+    // Path length / direct-distance ratio. Straight corridor ≈ 1.0, zig-zag maze ≈ 2.0-2.2, normal L-turns ≈ 1.3-1.5.
     private const float MazePathRatio = 1.8f;
-    // Don't trigger on trivially short paths (noise / turn-rounding).
     private const int MazeMinPathCount = 5;
-    // Shorter attack lock for maze breaches — releases quickly if the front of the horde
-    // clears the route (e.g. opens an airlock) before the zombie finishes its breach.
     private const float MazeAttackLockTime = 5f;
 
     private void CheckMazeBreach(EntityUid uid, EntityUid target, HTNComponent htn, NPCBlackboard bb, float dt)
@@ -258,16 +243,12 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         var targetPos = _transform.GetWorldPosition(target);
         var directDist = Vector2.Distance(zombiePos, targetPos);
 
-        // Avoid divide-by-zero / false positives when already adjacent.
         if (directDist < 2f)
             return;
 
         if (steering.CurrentPath.Count < directDist * MazePathRatio)
             return;
 
-        // Suppress near airlocks — HTN pry/smash handles doors, and path-ratio spikes
-        // while the horde queues. 2.5f (wider than stuck detection's 1.5f) also catches
-        // zombies a step behind the group.
         var mapId = Transform(uid).MapID;
         var zombieEpicenter = new MapCoordinates(zombiePos, mapId);
         _doorBuffer.Clear();
@@ -295,10 +276,8 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             CheckMazeBreach(uid, target, htn, bb, dt);
             return;
         }
-        // If the zombie is physically moving it isn't stuck. Position sampling alone can
-        // false-positive on baseline-reset artifacts, so physics velocity is the ground truth.
         if (TryComp<PhysicsComponent>(uid, out var physComp)
-            && physComp.LinearVelocity.LengthSquared() > 0.25f) // > ~0.5 tiles/s
+            && physComp.LinearVelocity.LengthSquared() > 0.25f)
         {
             bb.SetValue(FSAIBlackboardKeys.LastPathProgress, _transform.GetWorldPosition(uid));
             bb.SetValue(FSAIBlackboardKeys.PathProgressTimer, 0f);

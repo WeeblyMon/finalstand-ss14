@@ -8,7 +8,6 @@ using System.Numerics;
 
 namespace Content.Server._FinalStand.Deployables;
 
-// Domain logic (stock, Science-only gating) for the Null Field and Damage Beacon deployables - placement itself lives in FSPlacementSystem.
 public sealed partial class FSDeployableSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -30,40 +29,45 @@ public sealed partial class FSDeployableSystem : EntitySystem
         args.Handled = TryDeploy(uid, comp, args.Coordinates, args.User);
     }
 
-    // Thrown item deploys at its landing spot, not the thrower's position; the physical item stays on the ground with Stock decremented.
     private void OnLand(EntityUid uid, FSDeployableItemComponent comp, ref LandEvent args)
     {
         var coords = Transform(uid).Coordinates;
         if (!TryDeploy(uid, comp, coords, args.User))
             return;
 
-        // Nudge the leftover item off the anchored structure's tile - otherwise it's unclickable (the structure wins click resolution).
         _transform.SetCoordinates(uid, coords.Offset(new Vector2(0.35f, 0.35f)));
     }
 
     private bool TryDeploy(EntityUid uid, FSDeployableItemComponent comp, EntityCoordinates coords, EntityUid? user)
     {
-        // Backstop for the throw path, which bypasses FSScienceOnlySystem's UseInHandEvent gate.
-        if (user != null && !_science.IsScience(user.Value))
+        if (user is not { } deployer)
+            return false;
+
+        if (!_science.IsScience(deployer))
         {
-            _popup.PopupEntity(Loc.GetString("fs-science-only-use"), user.Value, user.Value);
+            _popup.PopupEntity(Loc.GetString("fs-science-only-use"), deployer, deployer);
             return false;
         }
 
         if (comp.Stock <= 0)
         {
-            if (user != null)
-                _popup.PopupEntity(Loc.GetString("fs-deployable-no-stock"), user.Value, user.Value);
+            _popup.PopupEntity(Loc.GetString("fs-deployable-no-stock"), deployer, deployer);
             return false;
         }
 
         var deployed = Spawn(comp.DeployedProtoId, coords);
-        _transform.AnchorEntity(deployed);
+
+        if (!_transform.AnchorEntity(deployed))
+        {
+            Del(deployed);
+            _popup.PopupEntity(Loc.GetString("fs-deployable-no-anchor"), deployer, deployer);
+            return false;
+        }
 
         comp.Stock--;
         Dirty(uid, comp);
 
-        _popup.PopupEntity(Loc.GetString("fs-deployable-placed"), deployed, user ?? deployed);
+        _popup.PopupEntity(Loc.GetString("fs-deployable-placed"), deployed, deployer);
         return true;
     }
 }

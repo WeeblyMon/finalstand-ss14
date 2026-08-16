@@ -1,5 +1,3 @@
-// Bobbing label above every entity carrying TMarker. Text is fixed, so it is measured once.
-
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -24,13 +22,19 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
 
     private Font? _font;
     private SharedTransformSystem? _xform;
-    private Vector2 _labelSize;
+    private Vector2 _constantLabelSize;
     private Vector2 _arrowSize;
 
     protected abstract string Label { get; }
     protected abstract int FontSize { get; }
     protected abstract float VerticalOffset { get; }
     protected abstract Color LabelColor { get; }
+
+    protected virtual bool DynamicLabel => false;
+    protected virtual bool ShowArrow => true;
+    protected virtual bool Bob => true;
+
+    protected virtual string GetLabel(EntityUid uid, TMarker marker) => Label;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -49,7 +53,7 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
         if (_font == null)
         {
             _font = new VectorFont(_resources.GetResource<FontResource>(FontPath), FontSize);
-            _labelSize = handle.GetDimensions(_font, Label, 1f);
+            _constantLabelSize = handle.GetDimensions(_font, Label, 1f);
             _arrowSize = handle.GetDimensions(_font, Arrow, 1f);
         }
 
@@ -57,10 +61,10 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
 
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
         var bounds = args.ViewportBounds;
-        var bob = MathF.Sin((float) _timing.CurTime.TotalSeconds * 2.5f) * 5f;
+        var bob = Bob ? MathF.Sin((float) _timing.CurTime.TotalSeconds * 2.5f) * 5f : 0f;
 
         var query = _entMan.EntityQueryEnumerator<TMarker, TransformComponent>();
-        while (query.MoveNext(out _, out _, out var xform))
+        while (query.MoveNext(out var uid, out var marker, out var xform))
         {
             if (xform.MapID != args.MapId)
                 continue;
@@ -71,10 +75,16 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
                 screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
                 continue;
 
-            var labelPos = new Vector2(screenPos.X - _labelSize.X / 2f, screenPos.Y - VerticalOffset + bob);
-            var arrowPos = new Vector2(screenPos.X - _arrowSize.X / 2f, labelPos.Y + _labelSize.Y + 2f);
+            var label = DynamicLabel ? GetLabel(uid, marker) : Label;
+            var labelSize = DynamicLabel ? handle.GetDimensions(_font, label, 1f) : _constantLabelSize;
 
-            DrawOutlined(handle, _font, labelPos, Label);
+            var labelPos = new Vector2(screenPos.X - labelSize.X / 2f, screenPos.Y - VerticalOffset + bob);
+            DrawOutlined(handle, _font, labelPos, label);
+
+            if (!ShowArrow)
+                continue;
+
+            var arrowPos = new Vector2(screenPos.X - _arrowSize.X / 2f, labelPos.Y + labelSize.Y + 2f);
             DrawOutlined(handle, _font, arrowPos, Arrow);
         }
     }

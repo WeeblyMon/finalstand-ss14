@@ -10,16 +10,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
-/// <summary>
-/// Limits how far wave enemies will chase a target before giving up and returning to CCC pathing.
-/// Two independent conditions each clear the HTN Target and trigger a replan:
-///   1. Distance leash — zombie strays more than <see cref="LeashDistance"/> tiles from where it
-///      first acquired the target.
-///   2. LOS timeout — zombie has had no line-of-sight to the target for longer than
-///      <see cref="LosTimeout"/>.
-/// A grace period (set by FSZombieRetaliationSystem) delays leash activation for zombies that
-/// were shot, so they don't immediately give up on a nearby attacker.
-/// </summary>
+// Limits how far wave enemies will chase a target before giving up and returning to CCC pathing.
 public sealed partial class FSLeashSystem : EntitySystem
 {
     [Dependency] private HTNSystem _htn = default!;
@@ -46,7 +37,6 @@ public sealed partial class FSLeashSystem : EntitySystem
         _accumulator -= TickInterval;
 
         var curTime = _timing.CurTime;
-        // ActiveNPCComponent is dropped on death, so corpses are skipped.
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
             Tick(uid, htn, curTime);
@@ -66,14 +56,12 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        // This covers both the LOS-detection path (utility operator) and the
-        // retaliation path (FSZombieRetaliationSystem) without any cross-dependency.
         if (!bb.TryGetValue<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin, out var aggroOrigin, EntityManager))
         {
             aggroOrigin = _transform.GetMapCoordinates(uid);
             bb.SetValue(FSAIBlackboardKeys.AggroOrigin, aggroOrigin);
             bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
-            return; // leash checks start next tick
+            return;
         }
 
         if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))

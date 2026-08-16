@@ -1,54 +1,45 @@
 using System.Numerics;
 using Content.Server._FinalStand.Mobs;
-using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Mobs;
 using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Deployables;
 
-// Reuses FSDamageVulnerabilitySystem for the damage buff - refreshing rather than stacking keeps overlapping beacons from multiplying damage twice.
-public sealed partial class FSDamageBeaconSystem : EntitySystem
+public sealed class FSDamageBeaconSystem : FSDeployableAuraSystem<FSDamageBeaconComponent>
 {
-    [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
-
-    private const float RefreshDuration = 1f;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSDamageBeaconComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<FSDamageBeaconComponent, EntityTerminatingEvent>(OnTerminating);
     }
 
     private void OnMapInit(EntityUid uid, FSDamageBeaconComponent comp, MapInitEvent args)
     {
-        // Parented directly to the beacon so it auto-deletes with it.
         if (comp.FieldVfxProtoId is { } vfxProto)
             Spawn(vfxProto, new EntityCoordinates(uid, Vector2.Zero));
     }
 
-    public override void Update(float frameTime)
+    private void OnTerminating(EntityUid uid, FSDamageBeaconComponent comp, ref EntityTerminatingEvent args)
     {
-        base.Update(frameTime);
+        if (comp.DestroyVfxProtoId is not { } destroyProto)
+            return;
 
-        var query = EntityQueryEnumerator<FSDamageBeaconComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var beacon, out var xform))
-        {
-            var worldPos = _transform.GetWorldPosition(uid);
-            var candidates = new HashSet<Entity<WaveSpawnedTagComponent>>();
-            _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(
-                new MapCoordinates(worldPos, xform.MapID),
-                beacon.Radius,
-                candidates);
+        var xform = Transform(uid);
+        if (xform.MapUid == null)
+            return;
 
-            foreach (var (targetUid, _) in candidates)
-            {
-                _vulnerability.Apply(targetUid, RefreshDuration);
-                var vuln = EnsureComp<FSDamageVulnerabilityComponent>(targetUid);
-                vuln.DamageMultiplier = beacon.DamageMultiplier;
-            }
-        }
+        Spawn(destroyProto, xform.Coordinates.ToMap(EntityManager, XformSystem));
+    }
+
+    protected override float GetRadius(FSDamageBeaconComponent aura) => aura.Radius;
+
+    protected override void ApplyTo(EntityUid target, EntityUid source, FSDamageBeaconComponent aura)
+    {
+        _vulnerability.Apply(target, RefreshDuration);
+        EnsureComp<FSDamageVulnerabilityComponent>(target).DamageMultiplier = aura.DamageMultiplier;
     }
 }

@@ -7,6 +7,10 @@ public sealed partial class FSDeployableLifetimeSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
 
+    private const float ScanInterval = 0.5f;
+
+    private float _accumulator;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -22,6 +26,12 @@ public sealed partial class FSDeployableLifetimeSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        _accumulator += frameTime;
+        if (_accumulator < ScanInterval)
+            return;
+
+        _accumulator = 0f;
 
         var now = _timing.CurTime;
         var query = EntityQueryEnumerator<FSDeployableLifetimeComponent>();

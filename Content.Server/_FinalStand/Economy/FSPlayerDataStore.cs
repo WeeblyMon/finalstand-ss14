@@ -1,6 +1,4 @@
 // Owns the prestige database: connection, schema, migration, and typed row access.
-// This is the only class in _FinalStand that touches SQL. It holds no game state and depends on no
-// game system, so nothing can create a cycle back into it.
 using System.IO;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
@@ -28,13 +26,8 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         _db = null;
     }
 
-    /// <summary>True once the database is open. False means this session cannot persist.</summary>
     public bool IsOpen => _db != null;
 
-    /// <summary>
-    /// Runs several writes in one transaction. Without this each write is its own fsync.
-    /// Rolls back and logs if the body throws; the caller is never handed the exception.
-    /// </summary>
     public void RunBatch(string what, Action body)
     {
         if (!DbReady(what))
@@ -57,10 +50,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
     }
 
-    /// <summary>
-    /// Writes only the leveling columns. Kept separate from the perk-point upsert so the wallet
-    /// and the leveling system each own their own columns of the shared row.
-    /// </summary>
     public void UpsertLeveling(Guid userId, int level, int experience, int prestigeLevel, string prestigeBuffsJson)
     {
         if (!DbReady("leveling save")) return;
@@ -83,7 +72,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         TryExecute(cmd, $"leveling save for {userId}");
     }
 
-    /// <summary>Deletes every row. Returns rows removed, or 0 on failure.</summary>
     public int DeleteAll()
     {
         if (!DbReady("prestige wipe"))
@@ -95,13 +83,9 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         return deleted < 0 ? 0 : deleted;
     }
 
-    // Persistence must never take the round down with it. The component holds the live value, so a
-    // failed write costs at most one save and a failed read falls back to a safe default. Both are
-    // logged at Error — silence here is how progression disappears without anyone noticing.
     private bool TryExecute(SqliteCommand cmd, string what)
         => TryExecuteCounted(cmd, what) >= 0;
 
-    /// <summary>Rows affected, or -1 if the statement failed.</summary>
     private int TryExecuteCounted(SqliteCommand cmd, string what)
     {
         try
@@ -178,8 +162,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            // Without a connection the wallet still runs: credits are round-scoped anyway and perk
-            // points stay live on the component. Only persistence is lost, and loudly.
             Log.Error($"[FSWallet] Could not open the prestige database — progression will NOT be saved this session: {e}");
             _db?.Dispose();
             _db = null;
@@ -188,8 +170,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
     private void InitSchema(SqliteConnection db)
     {
-        // Every perk-point change writes through immediately. On the default rollback journal
-        // each of those is its own fsync on the game thread; WAL makes them cheap.
         foreach (var pragmaText in new[] { "PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL" })
         {
             using var pragma = db.CreateCommand();
@@ -218,9 +198,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         Log.Debug("[FSWallet] Prestige database opened.");
     }
 
-    // The perks rename left two columns named after the old "augment" wording. SQLite has
-    // supported ALTER TABLE RENAME COLUMN since 3.25, so this is a single statement per column and
-    // is skipped once the new names are present.
     private void TryRenameLegacyColumns(SqliteConnection db)
     {
         var columns = new List<string>();
@@ -246,7 +223,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
     private bool IsOldSchema()
     {
-        // Detect old schema by looking for the buff_iron_hide column
         using var pragma = _db!.CreateCommand();
         pragma.CommandText = "PRAGMA table_info(prestige)";
         using var r = pragma.ExecuteReader();
@@ -258,10 +234,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         return false;
     }
 
-    // Every step runs in one transaction. SQLite makes DDL transactional, so a crash or a throw
-    // anywhere here rolls back to the original table rather than leaving the database with the old
-    // table dropped and the new one not yet renamed — a state the detector above reads as
-    // "already migrated", silently abandoning every player's progression.
     private void TryMigrateOldSchema()
     {
         if (!IsOldSchema())
@@ -269,7 +241,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
         Log.Info("[FSWallet] Old schema detected — migrating to new schema...");
 
-        // Read all old rows in C# so we can handle null/invalid JSON safely
         var rows = new List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,
             string LevelsJson, string SlotsJson, string LoadoutsJson, int StoppingPower, int BulletStorm)>();
 
@@ -308,8 +279,6 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            // The transaction rolls back on dispose. Rethrow: an un-migrated old-schema database
-            // fails every later query anyway, so starting the round would only hide the problem.
             Log.Error($"[FSWallet] Schema migration failed and was rolled back — database untouched: {e}");
             throw;
         }

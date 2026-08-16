@@ -42,7 +42,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 
     private bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
 
-    // Returns the signed change since this weapon last had `nodeId` reconciled.
     private static int Delta(FSResearchAppliedComponent tracker, string nodeId, int target)
     {
         var applied = tracker.AppliedLevels.GetValueOrDefault(nodeId, 0);
@@ -160,7 +159,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
     {
         var dirty = false;
 
-        // X-Ray hitscan range.
         if (TryComp<FSXrayRaycastComponent>(weapon, out var xray))
         {
             var d = Delta(tracker, "FSOrdnanceWaveParticleHarnessing", isXray && Unlocked("FSOrdnanceWaveParticleHarnessing") ? 1 : 0);
@@ -171,7 +169,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
             }
         }
 
-        // Crit chance.
         var critDelta = 0f;
         critDelta += Delta(tracker, "FSOrdnanceMinigunBallisticCalculators", (isL6 || isMinigun) && Unlocked("FSOrdnanceMinigunBallisticCalculators") ? 1 : 0) * 0.025f;
         critDelta += Delta(tracker, "FSOrdnanceMinigunBallisticCalculators-kicker", isMinigun && Unlocked("FSOrdnanceMinigunBallisticCalculators") ? 1 : 0) * 0.02f;
@@ -182,7 +179,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
             dirty = true;
         }
 
-        // Armor-shred / blast-radius (RPG).
         var shredDelta = 0f;
         shredDelta += Delta(tracker, "FSOrdnanceLeadLinedEmitters", isXray && Unlocked("FSOrdnanceLeadLinedEmitters") ? 1 : 0) * 0.05f;
         shredDelta += Delta(tracker, "FSOrdnanceTandemWarheads", isRpg && Unlocked("FSOrdnanceTandemWarheads") ? 1 : 0) * 0.12f;
@@ -210,7 +206,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
             dirty = true;
         }
 
-        // Tesla chain-lightning bridging (exclusive pair, capstone-adjacent).
         var chainDelta = Delta(tracker, "FSOrdnanceChainLightningBridging", isTesla && Unlocked("FSOrdnanceChainLightningBridging") ? 1 : 0);
         if (chainDelta != 0)
         {
@@ -218,7 +213,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
             dirty = true;
         }
 
-        // X-Ray pierce (capstone flourish).
         var pierceDelta = Delta(tracker, "FSOrdnanceXrayCannon-pierce", isXray && Unlocked("FSOrdnanceXrayCannon") ? 1 : 0);
         if (pierceDelta != 0)
         {
