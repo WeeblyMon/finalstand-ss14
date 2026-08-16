@@ -17,11 +17,3 @@ public enum FinalStandDamageFlags
     ArmorPenetrating = 1 << 0,
     ArmorShred = 1 << 1,
 }
-
-// TODO(finalstand): raised as pre-damage hook by AP/Shred upgrade projectiles (pistol upgrades ticket)
-public sealed class FinalStandDamageEvent : EntityEventArgs
-{
-    public FinalStandDamageFlags Flags;
-    public EntityUid? Origin;
-    public float ArmorAbsorbed;
-}

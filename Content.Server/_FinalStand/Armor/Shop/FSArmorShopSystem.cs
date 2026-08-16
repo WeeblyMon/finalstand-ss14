@@ -9,7 +9,7 @@ using Content.Shared.Tag;
 using Robust.Server.GameObjects;
 using Robust.Shared.Prototypes;
 
-namespace Content.Server._FinalStand.Armor;
+namespace Content.Server._FinalStand.Armor.Shop;
 
 public sealed partial class FSArmorShopSystem : EntitySystem
 {
@@ -27,6 +27,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         Subs.BuiEvents<FSArmorShopComponent>(FSArmorShopUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnShopOpened);
@@ -55,20 +56,24 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         _purchasedTier.TryGetValue(mindId, out var oldId);
         if (oldId == tier.Id) return;
 
-        var oldTier = oldId != null ? FSArmorShopDefs.GetTier(oldId) : null;
-        var refund = oldTier != null ? oldTier.Price / 2 : 0;
-        var netCost = tier.Price - refund;
+        var netCost = FSArmorShopDefs.GetNetCost(oldId, tier);
 
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < netCost)
+        if (!_wallet.TryDeductCredits(mindId, netCost))
             return;
 
-        if (refund > 0) _wallet.GiveCredits(mindId, refund);
-        _wallet.TryDeductCredits(mindId, tier.Price);
+        if (!ApplyArmorToMob(player, tier))
+        {
+            _wallet.GiveCredits(mindId, netCost);
+            return;
+        }
 
         _purchasedTier[mindId] = tier.Id;
-        ApplyArmorToMob(player, tier);
-
         _ui.SetUiState(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, GetCredits(mindId)));
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _purchasedTier.Clear();
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
@@ -79,9 +84,8 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (tier != null) ApplyArmorToMob(ev.Mob, tier);
     }
 
-    private void ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)
+    private bool ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)
     {
-        // Remove existing FS armor tier item if present
         if (_inventory.TryGetSlotEntity(mob, "outerClothing", out var existing)
             && _tags.HasTag(existing.Value, ArmorTierItemTag))
         {
@@ -90,9 +94,13 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         }
 
         var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
-        _inventory.TryEquip(mob, item, "outerClothing", silent: true, force: true);
 
-        EnsureComp<FSPlayerArmorComponent>(mob).TierId = tier.Id;
+        // A hardsuit left on the floor is a paid-for item the buyer never receives.
+        if (_inventory.TryEquip(mob, item, "outerClothing", silent: true, force: true))
+            return true;
+
+        Del(item);
+        return false;
     }
 
     private int GetCredits(EntityUid mindId) =>

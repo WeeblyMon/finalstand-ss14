@@ -103,9 +103,9 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
                                   new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
             handle.DrawRect(darken, Black.WithAlpha(128));
 
-            if (_entManager.TryGetComponent(uid, out FSArmorComponent? armor) && armor.NetworkedMaxArmor > 0f)
+            if (_entManager.TryGetComponent(uid, out FSArmorComponent? armor) && armor.MaxArmor > 0f)
             {
-                var armorRatio = Math.Clamp(armor.NetworkedCurrentArmor / armor.NetworkedMaxArmor, 0f, 1f);
+                var armorRatio = Math.Clamp(armor.CurrentArmor / armor.MaxArmor, 0f, 1f);
                 var armorFill  = (endX - startX) * armorRatio + startX;
 
                 var armorBg = new Box2(new Vector2(startX,    -3f) / EyeManager.PixelsPerMeter,

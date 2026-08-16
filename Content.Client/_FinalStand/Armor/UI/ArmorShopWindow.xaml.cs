@@ -5,6 +5,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Armor.UI;
 
@@ -12,6 +13,9 @@ namespace Content.Client._FinalStand.Armor.UI;
 public sealed partial class ArmorShopWindow : DefaultWindow
 {
     public event Action<string>? OnBuyPressed;
+
+    private readonly IPrototypeManager _protos;
+    private readonly IComponentFactory _factory;
 
     private FSArmorShopState? _state;
     private string? _selectedTierId;
@@ -26,6 +30,9 @@ public sealed partial class ArmorShopWindow : DefaultWindow
     public ArmorShopWindow()
     {
         RobustXamlLoader.Load(this);
+        _protos = IoCManager.Resolve<IPrototypeManager>();
+        _factory = IoCManager.Resolve<IComponentFactory>();
+
         BuyButton.OnPressed += _ =>
         {
             if (_selectedTierId != null)
@@ -109,31 +116,28 @@ public sealed partial class ArmorShopWindow : DefaultWindow
             StatsContainer.AddChild(row);
         }
 
-        AddRow("Blunt:",     $"-{tier.Blunt     * 100:0}%", ColorGreen);
-        AddRow("Slash:",     $"-{tier.Slash     * 100:0}%", ColorGreen);
-        AddRow("Piercing:",  $"-{tier.Piercing  * 100:0}%", ColorGreen);
-        AddRow("Heat:",      $"-{tier.Heat      * 100:0}%", ColorGreen);
-        if (tier.Radiation > 0f)
-            AddRow("Radiation:", $"-{tier.Radiation * 100:0}%", ColorGreen);
-        AddRow("Caustic:",   $"-{tier.Caustic   * 100:0}%", ColorGreen);
-        AddRow("Shock:",     $"-{tier.Shock     * 100:0}%", ColorGreen);
-        AddRow("Explosion:", $"-{tier.Explosion * 100:0}%", ColorGreen);
+        var stats = FSArmorShopDefs.GetStats(tier, _protos, _factory);
 
-        var speedPct   = tier.SpeedMod * 100f;
-        var speedText  = speedPct >= 0f ? $"+{speedPct:0}%" : $"{speedPct:0}%";
-        AddRow("Speed:", speedText, tier.SpeedMod >= 0f ? ColorGreen : ColorRed);
+        foreach (var damageType in DisplayOrder)
+        {
+            if (stats.Resistances.TryGetValue(damageType, out var reduction) && reduction != 0f)
+                AddRow($"{damageType}:", $"-{reduction * 100:0}%", ColorGreen);
+        }
 
-        if (tier.StaminaReduction > 0f)
-            AddRow("Stamina resist:", $"-{tier.StaminaReduction * 100:0}%", ColorGreen);
+        var speedPct = stats.SpeedMod * 100f;
+        var speedText = speedPct >= 0f ? $"+{speedPct:0}%" : $"{speedPct:0}%";
+        AddRow("Speed:", speedText, stats.SpeedMod >= 0f ? ColorGreen : ColorRed);
 
-        StatsContainer.AddChild(new Control { MinHeight = 6 }); // spacer
+        if (stats.StaminaReduction > 0f)
+            AddRow("Stamina resist:", $"-{stats.StaminaReduction * 100:0}%", ColorGreen);
 
-        var equippedTier = _state?.EquippedTierId != null ? FSArmorShopDefs.GetTier(_state.EquippedTierId) : null;
-        var refund = equippedTier?.Price / 2 ?? 0;
+        StatsContainer.AddChild(new Control { MinHeight = 6 });
+
+        var refund = FSArmorShopDefs.GetRefund(_state?.EquippedTierId);
         if (refund > 0)
             AddRow("Refund on current:", $"${refund:N0}", ColorAffordable);
-        var netCost = tier.Price - refund;
-        AddRow("Net cost:", $"${netCost:N0}", ColorAffordable);
+
+        AddRow("Net cost:", $"${FSArmorShopDefs.GetNetCost(_state?.EquippedTierId, tier):N0}", ColorAffordable);
 
         var isEquipped = tier.Id == _state?.EquippedTierId;
         BuyButton.Disabled = isEquipped || !CanAffordTier(tier);
@@ -141,9 +145,9 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
     private bool CanAffordTier(FSArmorTierDef tier)
     {
-        if (_state == null) return false;
-        var equippedTier = _state.EquippedTierId != null ? FSArmorShopDefs.GetTier(_state.EquippedTierId) : null;
-        var refund = equippedTier?.Price / 2 ?? 0;
-        return _state.Credits >= tier.Price - refund;
+        return _state != null && _state.Credits >= FSArmorShopDefs.GetNetCost(_state.EquippedTierId, tier);
     }
+
+    private static readonly string[] DisplayOrder =
+        ["Blunt", "Slash", "Piercing", "Heat", "Radiation", "Caustic", "Shock", "Explosion"];
 }
