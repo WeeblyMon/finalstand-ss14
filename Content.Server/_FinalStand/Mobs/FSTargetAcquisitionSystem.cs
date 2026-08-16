@@ -1,7 +1,7 @@
 // Shared target selection for special-zombie abilities.
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.Station;
+using Content.Server._FinalStand.CCC;
 using Content.Shared.Examine;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;

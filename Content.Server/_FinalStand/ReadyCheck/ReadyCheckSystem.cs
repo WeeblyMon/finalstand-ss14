@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Station;
+using Content.Server._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 
@@ -6,18 +6,35 @@ namespace Content.Server._FinalStand.ReadyCheck;
 
 public sealed class ReadyCheckSystem : EntitySystem
 {
+    private Entity<ReadyCheckComponent>? _cached;
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
+        SubscribeLocalEvent<ReadyCheckComponent, ComponentShutdown>(OnReadyCheckShutdown);
+    }
+
+    private void OnReadyCheckShutdown(Entity<ReadyCheckComponent> ent, ref ComponentShutdown args)
+    {
+        if (_cached?.Owner == ent.Owner)
+            _cached = null;
     }
 
     private ReadyCheckComponent? FindCCCReadyCheck()
     {
+        if (_cached is { } cached && !TerminatingOrDeleted(cached.Owner))
+            return cached.Comp;
+
         var q = EntityQueryEnumerator<FinalStandCCCComponent, ReadyCheckComponent>();
-        while (q.MoveNext(out _, out _, out var rc))
+        while (q.MoveNext(out var uid, out _, out var rc))
+        {
+            _cached = (uid, rc);
             return rc;
+        }
+
+        _cached = null;
         return null;
     }
 

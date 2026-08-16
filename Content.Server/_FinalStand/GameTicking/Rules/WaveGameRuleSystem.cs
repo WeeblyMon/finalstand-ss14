@@ -4,7 +4,7 @@ using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.Station;
+using Content.Server._FinalStand.CCC;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Shared._FinalStand.GameTicking;

@@ -41,7 +41,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         int totalPlayerCount,
         List<string> nextWaveEnemyTypes,
         int cccCurrentDamage = 0,
-        int cccMaxHealth = 2000)
+        int cccMaxHealth = 0)
     {
         WaveNumber = waveNumber;
         EstimatedEnemyCount = estimatedEnemyCount;

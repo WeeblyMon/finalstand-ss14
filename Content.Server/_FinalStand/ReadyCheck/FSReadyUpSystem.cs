@@ -60,7 +60,6 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         if (_readyCheck.IsCombatPhase()) return;
         if (args.SenderSession.AttachedEntity is not { } player) return;
 
-        _readyCheck.SetTotalPlayers(CountActivePlayers());
         _readyCheck.SetPlayerReady(player, msg.IsReady);
 
         // Each player may only shave time once per prep phase, even if they toggle ready/unready.

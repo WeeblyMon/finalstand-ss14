@@ -2,7 +2,7 @@ using System.Numerics;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
 using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.Station;
+using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Examine;

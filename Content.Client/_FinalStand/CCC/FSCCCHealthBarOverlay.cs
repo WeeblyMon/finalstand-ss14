@@ -1,6 +1,6 @@
 using System.Numerics;
 using Content.Client.UserInterface.Systems;
-using Content.Shared._FinalStand.Station;
+using Content.Shared._FinalStand.CCC;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Robust.Client.GameObjects;
@@ -20,8 +20,6 @@ public sealed class FSCCCHealthBarOverlay : Overlay
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    private const float MaxHealth = 2000f; // must match ccc.yml Destructible threshold
-
     public FSCCCHealthBarOverlay(IEntityManager entMan)
     {
         _entMan = entMan;
@@ -40,8 +38,9 @@ public sealed class FSCCCHealthBarOverlay : Overlay
         var spriteQuery = _entMan.GetEntityQuery<SpriteComponent>();
 
         var query = _entMan.AllEntityQueryEnumerator<FinalStandCCCTagComponent, DamageableComponent>();
-        while (query.MoveNext(out var uid, out _, out var dmg))
+        while (query.MoveNext(out var uid, out var tag, out var dmg))
         {
+            if (tag.MaxHealth <= 0f) continue;
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId) continue;
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
 
@@ -55,7 +54,7 @@ public sealed class FSCCCHealthBarOverlay : Overlay
             handle.SetTransform(matty);
 
             var totalDamage = _damageable.GetTotalDamage((uid, dmg)).Float();
-            var ratio = Math.Clamp(1f - totalDamage / MaxHealth, 0f, 1f);
+            var ratio = Math.Clamp(1f - totalDamage / tag.MaxHealth, 0f, 1f);
 
             var ppm = EyeManager.PixelsPerMeter;
             var widthOfMob = bounds.Width * ppm;

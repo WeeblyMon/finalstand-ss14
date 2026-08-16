@@ -1,30 +1,41 @@
+using Content.Server.Destructible;
 using Content.Server.RoundEnd;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Destructible;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
-namespace Content.Server._FinalStand.Station;
+namespace Content.Server._FinalStand.CCC;
 
 public sealed partial class FinalStandCCCSystem : EntitySystem
 {
     [Dependency] private RoundEndSystem _roundEnd = default!;
+    [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
-    private float _broadcastCooldown;
-    private const float BroadcastInterval = 0.5f;
+    private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(0.5);
+
+    private TimeSpan _nextBroadcast;
 
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<FinalStandCCCComponent, MapInitEvent>(OnCCCMapInit);
         SubscribeLocalEvent<FinalStandCCCComponent, DestructionEventArgs>(OnCCCDestroyed);
         SubscribeLocalEvent<FinalStandCCCComponent, DamageChangedEvent>(OnCCCDamaged);
     }
 
-    public override void Update(float frameTime)
+    private void OnCCCMapInit(EntityUid uid, FinalStandCCCComponent comp, MapInitEvent args)
     {
-        base.Update(frameTime);
-        if (_broadcastCooldown > 0f)
-            _broadcastCooldown -= frameTime;
+        if (!TryComp<FinalStandCCCTagComponent>(uid, out var tag))
+            return;
+
+        tag.MaxHealth = _destructible.TryGetDestroyedAt(uid, out var destroyedAt)
+            ? destroyedAt.Value.Float()
+            : 0f;
+
+        Dirty(uid, tag);
     }
 
     private void OnCCCDestroyed(EntityUid uid, FinalStandCCCComponent comp, DestructionEventArgs args)
@@ -35,9 +46,14 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
 
     private void OnCCCDamaged(EntityUid uid, FinalStandCCCComponent comp, DamageChangedEvent args)
     {
-        if (!args.DamageIncreased) return;
-        if (_broadcastCooldown > 0f) return;
-        _broadcastCooldown = BroadcastInterval;
+        if (!args.DamageIncreased)
+            return;
+
+        var now = _timing.CurTime;
+        if (now < _nextBroadcast)
+            return;
+
+        _nextBroadcast = now + BroadcastInterval;
         RaiseNetworkEvent(new CCCUnderAttackEvent(), Filter.Broadcast());
     }
 }

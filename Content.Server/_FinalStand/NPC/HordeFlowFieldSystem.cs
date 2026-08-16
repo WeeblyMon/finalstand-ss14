@@ -1,7 +1,7 @@
 // Tile-connectivity map from the CCCs. IsReachable(tile) tells consumers whether a zombie
 // can ever walk to an objective, so genuinely stranded zombies can be relocated.
 using System.Numerics;
-using Content.Server._FinalStand.Station;
+using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.Maps;

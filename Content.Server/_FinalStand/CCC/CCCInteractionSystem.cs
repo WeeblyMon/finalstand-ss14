@@ -13,7 +13,7 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
-namespace Content.Server._FinalStand.Station;
+namespace Content.Server._FinalStand.CCC;
 
 public sealed partial class CCCInteractionSystem : EntitySystem
 {
@@ -32,10 +32,13 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private float _stateTimer;
     private readonly HashSet<EntityUid> _openActors = new();
     private readonly Dictionary<EntityUid, TimeSpan> _lastBroadcastTime = new();
+    private Predicate<EntityUid> _actorGone = default!;
 
     public override void Initialize()
     {
         base.Initialize();
+        _actorGone = actor => !Exists(actor);
+
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<ReadyCheckUpdatedEvent>(OnReadyCheckUpdated);
@@ -68,6 +71,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private void OnCCCClosed(EntityUid uid, FinalStandCCCComponent comp, BoundUIClosedEvent args)
     {
         _openActors.Remove(args.Actor);
+        _lastBroadcastTime.Remove(args.Actor);
     }
 
     private void SendCanStartWave(EntityUid actor)
@@ -82,11 +86,10 @@ public sealed partial class CCCInteractionSystem : EntitySystem
 
     private void BroadcastCanStartWave()
     {
-        foreach (var actor in _openActors.ToList())
-        {
-            if (!Exists(actor)) { _openActors.Remove(actor); continue; }
+        _openActors.RemoveWhere(_actorGone);
+
+        foreach (var actor in _openActors)
             SendCanStartWave(actor);
-        }
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
@@ -126,6 +129,9 @@ public sealed partial class CCCInteractionSystem : EntitySystem
 
     private void PushCCCState()
     {
+        if (_openActors.Count == 0)
+            return;
+
         var q = EntityQueryEnumerator<FinalStandCCCComponent>();
         while (q.MoveNext(out var uid, out _))
             PushCCCStateTo(uid);
@@ -139,6 +145,8 @@ public sealed partial class CCCInteractionSystem : EntitySystem
         var cccDmg = TryComp<DamageableComponent>(cccUid, out var dmgComp)
             ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
             : 0;
+
+        var cccMax = TryComp<FinalStandCCCTagComponent>(cccUid, out var tag) ? (int)tag.MaxHealth : 0;
 
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
@@ -154,7 +162,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             totalPlayerCount: _readyCheck.GetTotalCount(),
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
-            cccMaxHealth: 2000);
+            cccMaxHealth: cccMax);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

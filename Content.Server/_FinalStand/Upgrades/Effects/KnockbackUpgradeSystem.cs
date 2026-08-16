@@ -1,7 +1,6 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
-using Content.Shared.Movement.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
@@ -37,8 +36,6 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
             if (now < knockback.EndTime)
                 continue;
 
-            if (knockback.InputMoverRemoved)
-                EnsureComp<InputMoverComponent>(uid);
             RemComp<FSKnockedBackComponent>(uid);
         }
     }
@@ -74,14 +71,10 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
             return;
         }
 
-        var hadMover = HasComp<InputMoverComponent>(target);
-        if (hadMover)
-            RemComp<InputMoverComponent>(target);
-
         _physics.SetLinearVelocity(target, velocity);
 
         var comp = EnsureComp<FSKnockedBackComponent>(target);
         comp.EndTime = _timing.CurTime + duration;
-        comp.InputMoverRemoved = hadMover;
+        Dirty(target, comp);
     }
 }

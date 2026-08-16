@@ -1,4 +1,4 @@
-namespace Content.Server._FinalStand.Station;
+namespace Content.Server._FinalStand.CCC;
 
 // marker for central command console
 

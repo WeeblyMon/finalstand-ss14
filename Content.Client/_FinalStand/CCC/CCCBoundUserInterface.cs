@@ -10,6 +10,7 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
     private CCCWindow? _window;
 
     private bool _canStartWave;
+    private CCCBoundUserInterfaceState? _lastState;
 
     public CCCBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
@@ -35,12 +36,16 @@ public sealed class CCCBoundUserInterface : BoundUserInterface
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         if (state is not CCCBoundUserInterfaceState cccState) return;
+        _lastState = cccState;
         _window?.UpdateState(cccState, _canStartWave);
     }
 
     private void OnCapabilityChanged(bool canStart)
     {
         _canStartWave = canStart;
+
+        if (_lastState != null)
+            _window?.UpdateState(_lastState, _canStartWave);
     }
 
     protected override void Dispose(bool disposing)

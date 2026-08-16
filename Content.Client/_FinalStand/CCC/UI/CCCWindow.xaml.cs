@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
@@ -16,9 +17,15 @@ public sealed partial class CCCWindow : FancyWindow
     public event Action? OnStartWavePressed;
     public event Action<string>? OnBroadcastPressed;
 
+    private readonly IPrototypeManager _protos;
+    private readonly IResourceCache _cache;
+    private readonly List<string> _shownIconTypes = new();
+
     public CCCWindow()
     {
         RobustXamlLoader.Load(this);
+        _protos = IoCManager.Resolve<IPrototypeManager>();
+        _cache = IoCManager.Resolve<IResourceCache>();
         StartWaveButton.OnPressed += _ => OnStartWavePressed?.Invoke();
         BroadcastButton.OnPressed += _ =>
         {
@@ -90,6 +97,13 @@ public sealed partial class CCCWindow : FancyWindow
 
     private void RebuildZombieIcons(List<string> types)
     {
+        // State arrives twice a second; the enemy list changes once a wave.
+        if (_shownIconTypes.SequenceEqual(types))
+            return;
+
+        _shownIconTypes.Clear();
+        _shownIconTypes.AddRange(types);
+
         ZombieIconsContainer.RemoveAllChildren();
 
         if (types.Count == 0)
@@ -98,8 +112,8 @@ public sealed partial class CCCWindow : FancyWindow
             return;
         }
 
-        var protos = IoCManager.Resolve<IPrototypeManager>();
-        var cache = IoCManager.Resolve<IResourceCache>();
+        var protos = _protos;
+        var cache = _cache;
         var anyAdded = false;
         BoxContainer? row = null;
 
