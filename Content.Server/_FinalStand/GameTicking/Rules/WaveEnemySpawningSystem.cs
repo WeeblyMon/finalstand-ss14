@@ -40,16 +40,37 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 _spawnerBuffer.Add(spawnerUid);
         }
 
+        comp.PreviousSpawnerEntities.Clear();
+        comp.PreviousSpawnerEntities.UnionWith(comp.SpawnerEntities);
         comp.SpawnerEntities.Clear();
+
         if (_spawnerBuffer.Count == 0)
             return;
 
-        if (_spawnerBuffer.Count > 1)
-            _random.Shuffle(_spawnerBuffer);
+        // spawner set as the one before it, so single-corridor can't chain indefinitely.
+        const int maxAttempts = 20;
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            if (_spawnerBuffer.Count > 1)
+                _random.Shuffle(_spawnerBuffer);
 
-        var activeCount = _random.Next(1, _spawnerBuffer.Count + 1);
-        for (var i = 0; i < activeCount; i++)
-            comp.SpawnerEntities.Add(_spawnerBuffer[i]);
+            var activeCount = RollActiveCount(_spawnerBuffer.Count);
+            comp.SpawnerEntities.Clear();
+            for (var i = 0; i < activeCount; i++)
+                comp.SpawnerEntities.Add(_spawnerBuffer[i]);
+
+            if (!comp.PreviousSpawnerEntities.SetEquals(comp.SpawnerEntities))
+                break;
+        }
+    }
+    private int RollActiveCount(int spawnerCount)
+    {
+        if (spawnerCount <= 1)
+            return spawnerCount;
+
+        var totalWeight = spawnerCount - 1 + 0.5f;
+        var roll = _random.NextFloat() * totalWeight;
+        return roll < 0.5f ? 1 : 2 + (int) (roll - 0.5f);
     }
 
     private bool IsSpawnClear(EntityCoordinates coords)
