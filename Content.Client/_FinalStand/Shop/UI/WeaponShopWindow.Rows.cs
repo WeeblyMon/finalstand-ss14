@@ -26,6 +26,12 @@ namespace Content.Client._FinalStand.Shop.UI;
 
 public sealed partial class WeaponShopWindow
 {
+    // Row fills for the three upgrade states. Window-local: they tint a row, they do not carry
+    // meaning on their own - the palette border beside each one does that.
+    private static readonly Color RowInactive = Color.FromHex("#0F0F13");
+    private static readonly Color RowMaxed    = Color.FromHex("#0C1A0C");
+    private static readonly Color RowOwned    = Color.FromHex("#151A2E");
+
     private BoxContainer BuildStatBar(string label, float fill, string numericText,
         Color? valueColor = null, string? valueTooltip = null)
     {
@@ -65,7 +71,7 @@ public sealed partial class WeaponShopWindow
             };
             seg.PanelOverride = new StyleBoxFlat
             {
-                BackgroundColor = i < filled ? barColor : Color.FromHex("#2E3440"),
+                BackgroundColor = i < filled ? barColor : FSUiPalette.BgTrack,
             };
             segments[i] = seg;
             segBox.AddChild(seg);
@@ -108,15 +114,15 @@ public sealed partial class WeaponShopWindow
         Color bgColor, borderColor;
         if (def.IsStub || (!canAfford && !atMax))
         {
-            bgColor = Color.FromHex("#0F0F13"); borderColor = FSUiPalette.BorderNeutral;
+            bgColor = RowInactive; borderColor = FSUiPalette.BorderNeutral;
         }
         else if (atMax)
         {
-            bgColor = Color.FromHex("#0C1A0C"); borderColor = FSUiPalette.StatePositive;
+            bgColor = RowMaxed; borderColor = FSUiPalette.StatePositive;
         }
         else if (hasAny)
         {
-            bgColor = Color.FromHex("#151A2E"); borderColor = FSUiPalette.AccentBrand;
+            bgColor = RowOwned; borderColor = FSUiPalette.AccentBrand;
         }
         else
         {
@@ -210,7 +216,7 @@ public sealed partial class WeaponShopWindow
                     Text = "■",
                     Modulate = i < currentLevel
                         ? (atMax ? FSUiPalette.StatePositive : FSUiPalette.AccentBrand)
-                        : Color.FromHex("#2A3040"),
+                        : FSUiPalette.BgTrack,
                     MouseFilter = MouseFilterMode.Pass,
                 };
                 if (!atMax)
@@ -226,7 +232,7 @@ public sealed partial class WeaponShopWindow
         {
             var levelColor = atMax ? FSUiPalette.StatePositive
                 : currentLevel > 0 ? FSUiPalette.AccentBrand
-                : Color.FromHex("#555E7A");
+                : FSUiPalette.TextMuted;
             var levelText = new Label
             {
                 Text = $"{currentLevel}/{def.MaxLevel}",

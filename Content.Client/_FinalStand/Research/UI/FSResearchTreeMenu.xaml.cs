@@ -66,15 +66,10 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         _fsResearch = _entity.System<FSResearchClientSystem>();
         _materialStorage = _entity.System<SharedMaterialStorageSystem>();
 
-        ((Control)this).Stylesheet = new FSMenuStylesheet(
-            IoCManager.Resolve<IUserInterfaceManager>(), _resourceCache).Stylesheet;
+        ((Control)this).Stylesheet = FSMenuStylesheet.Get(
+            IoCManager.Resolve<IUserInterfaceManager>(), _resourceCache);
 
-        var panelBox = new StyleBoxTexture
-        {
-            Texture = _resourceCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/panel_bg.png").Texture,
-            Modulate = FSUiPalette.BgSurface,
-        };
-        panelBox.SetPatchMargin(StyleBox.Margin.All, FSUiPalette.PanelCornerRadius);
+        var panelBox = FSMenuStylesheet.CardPanel(_resourceCache, FSUiPalette.BgSurface);
         GraphPanelContainer.PanelOverride = panelBox;
         DetailPanelContainer.PanelOverride = panelBox;
 

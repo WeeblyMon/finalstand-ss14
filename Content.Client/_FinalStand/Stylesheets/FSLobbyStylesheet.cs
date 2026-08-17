@@ -52,24 +52,12 @@ public sealed class FSLobbyStylesheet
                 .Prop(PanelContainer.StylePropertyPanel, cardBox),
             Element<PanelContainer>().Class("FSStatusPill")
                 .Prop(PanelContainer.StylePropertyPanel, pillBox),
+        };
 
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassNormal)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnNormal)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassHover)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnHover)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassPressed)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnPressed)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassDisabled)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnDisabled)
-                .Prop(Control.StylePropertyModulateSelf, new Color(0.5f, 0.5f, 0.5f, 1f)),
+        custom.AddRange(FSStyleRules.Buttons(btnNormal, btnHover, btnPressed, btnDisabled));
 
+        custom.AddRange(new List<StyleRule>
+        {
             // Declared after the generic button rules so it wins on buttons with both StyleClassButton and FSNavActive
             Element<ContainerButton>().Class("FSNavActive")
                 .Pseudo(ContainerButton.StylePseudoClassNormal)
@@ -97,10 +85,8 @@ public sealed class FSLobbyStylesheet
             Element<Label>().Class("FSTextDim").Prop(Label.StylePropertyFontColor, textDim),
             Element<Label>().Class("FSTextGold").Prop(Label.StylePropertyFontColor, gold),
             Element<Label>().Class("FSTextRed").Prop(Label.StylePropertyFontColor, red),
-        };
+        });
 
-        // Global rules first (lower indices), our overrides last (higher indices = higher priority)
-        IEnumerable<StyleRule> baseRules = uiManager.Stylesheet?.Rules ?? Enumerable.Empty<StyleRule>();
-        Stylesheet = new Stylesheet(baseRules.Concat(custom).ToList());
+        Stylesheet = FSStyleRules.Compose(uiManager, custom);
     }
 }

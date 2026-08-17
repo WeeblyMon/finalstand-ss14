@@ -22,19 +22,19 @@
 
                 <!-- AP display (prominent, always visible) -->
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
-                    <Label Text="PP: " Modulate="#FFD700" StyleClasses="LabelHeading" />
-                    <Label Name="ApLabel" Text="0" Modulate="#FFD700" StyleClasses="LabelHeading" />
+                    <Label Text="PP: " StyleClasses="FSCurrency" />
+                    <Label Name="ApLabel" Text="0" StyleClasses="FSCurrency" />
                 </BoxContainer>
 
                 <!-- Name + Level + Category -->
                 <Label Name="SelectedNameLabel" Text="—" StyleClasses="LabelHeading" Margin="0 0 0 2" />
-                <Label Name="SelectedLevelLabel" Text="Level 0 / 4" Modulate="#777777" Margin="0 0 0 2" />
+                <Label Name="SelectedLevelLabel" Text="Level 0 / 4" StyleClasses="FSMuted" Margin="0 0 0 2" />
                 <Label Name="SelectedCategoryLabel" Text="" Margin="0 0 0 4" />
 
                 <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
 
                 <!-- Active slots -->
-                <Label Text="ACTIVE SLOTS" Modulate="#AAAAAA" Margin="0 0 0 4" />
+                <Label Text="ACTIVE SLOTS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
                 <BoxContainer Name="SlotsRow" Orientation="Horizontal" Margin="0 0 0 6" />
 
                 <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
@@ -43,18 +43,18 @@
                 <RichTextLabel Name="SelectedDescLabel" HorizontalExpand="True" Margin="0 0 0 4" />
                 <BoxContainer Name="LevelEffectsBox" Orientation="Vertical" Margin="0 0 0 8" />
 
-                <Label Name="SelectedCostLabel" Text="" Modulate="#FFD700" Margin="0 0 0 6" />
+                <Label Name="SelectedCostLabel" Text="" StyleClasses="FSCurrency" Margin="0 0 0 6" />
 
                 <!-- Action buttons -->
                 <Button Name="UpgradeButton" Text="Unlock / Upgrade" Disabled="True" Margin="0 0 0 3" />
                 <Button Name="EquipButton" Text="Equip to First Open Slot" Disabled="True" Margin="0 0 0 3" />
                 <Button Name="UnequipButton" Text="Unequip from Slot" Disabled="True" Margin="0 0 0 3" />
-                <Button Name="RespecButton" Text="Respec (Refund All)" Modulate="#FF8888" Margin="0 0 0 6" />
+                <Button Name="RespecButton" Text="Respec (Refund All)" StyleClasses="FSNegative" Margin="0 0 0 6" />
 
                 <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
 
                 <!-- Loadouts -->
-                <Label Text="LOADOUTS" Modulate="#AAAAAA" Margin="0 0 0 4" />
+                <Label Text="LOADOUTS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
                 <BoxContainer Orientation="Horizontal" Margin="0 0 0 3">
                     <Button Name="SaveLoadout0" Text="Save 1" HorizontalExpand="True" Margin="0 0 2 0" />
                     <Button Name="LoadLoadout0" Text="Load 1" HorizontalExpand="True" />
@@ -101,14 +101,14 @@
 
             <Label Name="PrestigeLevelLabel" Text="Prestige 0 — Level 1" StyleClasses="LabelHeading" Margin="0 0 0 8" />
             <Label Name="PrestigeXpBonusLabel" Text="Current XP Bonus: +0%" Margin="0 0 0 4" />
-            <Label Name="PrestigeRequirementLabel" Text="Reach Level 50 to Prestige" Modulate="#777777" Margin="0 0 0 16" />
+            <Label Name="PrestigeRequirementLabel" Text="Reach Level 50 to Prestige" StyleClasses="FSMuted" Margin="0 0 0 16" />
             <Button Name="PrestigeButton" Text="✦  PRESTIGE  ✦" Disabled="True" SetHeight="40" Margin="0 0 0 20" />
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 10" />
 
-            <Label Text="PRESTIGE HISTORY" Modulate="#AAAAAA" Margin="0 0 0 6" />
+            <Label Text="PRESTIGE HISTORY" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
             <!-- // TODO(finalstand): populate prestige history -->
-            <Label Name="PrestigeHistoryLabel" Text="No prestiges yet." Modulate="#555555" />
+            <Label Name="PrestigeHistoryLabel" Text="No prestiges yet." StyleClasses="FSMuted" />
 
         </BoxContainer>
 

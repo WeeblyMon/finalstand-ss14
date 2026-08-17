@@ -8,7 +8,7 @@
     <BoxContainer Orientation="Vertical" Margin="10">
 
         <Label Name="ToLabel" Margin="0 0 0 2" />
-        <Label Name="BalanceLabel" Modulate="#8FA1B3" Margin="0 0 0 10" />
+        <Label Name="BalanceLabel" StyleClasses="FSCurrency" Margin="0 0 0 10" />
 
         <LineEdit Name="AmountInput" PlaceHolder="Enter amount..." />
 

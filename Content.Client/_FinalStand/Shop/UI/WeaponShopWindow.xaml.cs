@@ -29,6 +29,8 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 {
     [Dependency] private IEntityManager _entityManager = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IUserInterfaceManager _uiManager = default!;
+    [Dependency] private IResourceCache _resourceCache = default!;
 
     public event Action? OnBuyPressed;
     public event Action<string>? OnUpgradePressed;
@@ -81,7 +83,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
     {
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
-        Stylesheet = new FSMenuStylesheet(IoCManager.Resolve<IUserInterfaceManager>(), IoCManager.Resolve<IResourceCache>()).Stylesheet;
+        Stylesheet = FSMenuStylesheet.Get(_uiManager, _resourceCache);
 
         foreach (var child in UpgradesScroll.Children)
         {
@@ -182,7 +184,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
 
         Title = "Weapon Shop";
         WeaponNameLabel.Text = Capitalize(entMan.GetComponent<MetaDataComponent>(shopEntity).EntityName);
-        WeaponNameLabel.Modulate = Color.FromHex("#F4C430");
+        WeaponNameLabel.Modulate = FSUiPalette.Currency;
         CategoryLabel.Text = comp.Category;
         CategoryLabel.Modulate = FSUiPalette.TextMuted;
         DescLabel.SetMessage(entMan.GetComponent<MetaDataComponent>(shopEntity).EntityDescription);

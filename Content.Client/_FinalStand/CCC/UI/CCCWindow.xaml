@@ -9,22 +9,23 @@
     <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True">
 
         <!-- LEFT: fixed-width CCC info panel -->
-        <BoxContainer Orientation="Vertical" Margin="10" SetWidth="340" VerticalExpand="True">
+        <PanelContainer StyleClasses="FSCard" SetWidth="356" Margin="10 10 0 10">
+        <BoxContainer Orientation="Vertical" Margin="12" VerticalExpand="True">
 
             <!-- Wave Intel -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-                <Label Text="WAVE " Modulate="#7EB8D4" />
-                <Label Name="WaveNumberLabel" Modulate="#F4C430" />
+                <Label Text="WAVE " StyleClasses="FSSectionHeader" />
+                <Label Name="WaveNumberLabel" StyleClasses="FSCurrency" />
                 <Label Text="   " />
-                <Label Name="FactionLabel" Modulate="#FF6666" />
+                <Label Name="FactionLabel" StyleClasses="FSNegative" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-                <Label Text="Modifier: " Modulate="#888888" />
-                <Label Name="ModifierLabel" Modulate="#AAAAFF" />
+                <Label Text="Modifier: " StyleClasses="FSMuted" />
+                <Label Name="ModifierLabel" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 4">
-                <Label Text="Est. enemies: " Modulate="#888888" />
-                <Label Name="EnemyEstLabel" Modulate="#FF8A65" />
+                <Label Text="Est. enemies: " StyleClasses="FSMuted" />
+                <Label Name="EnemyEstLabel" StyleClasses="FSPending" />
             </BoxContainer>
             <BoxContainer Name="ZombieIconsContainer" Orientation="Vertical" Margin="0 0 0 8" Visible="False" />
 
@@ -32,31 +33,31 @@
 
             <!-- Phase + Countdown -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 2">
-                <Label Text="Phase: " Modulate="#888888" />
+                <Label Text="Phase: " StyleClasses="FSMuted" />
                 <Label Name="PhaseLabel" />
                 <Label Text="   " />
-                <Label Name="CountdownLabel" StyleClasses="LabelMonospaceText" Modulate="#AAFFAA" />
+                <Label Name="CountdownLabel" StyleClasses="LabelMonospaceText" />
             </BoxContainer>
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-                <Label Text="Alive: " Modulate="#888888" />
+                <Label Text="Alive: " StyleClasses="FSMuted" />
                 <Label Name="AliveLabel" />
-                <Label Text=" / " Modulate="#555555" />
+                <Label Text=" / " StyleClasses="FSMuted" />
                 <Label Name="TotalLabel" />
-                <Label Text="   Spawners: " Modulate="#888888" />
+                <Label Text="   Spawners: " StyleClasses="FSMuted" />
                 <Label Name="SpawnersLabel" />
             </BoxContainer>
 
             <!-- CCC Health -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 8">
-                <Label Text="CCC: " Modulate="#888888" />
-                <Label Name="CCCHealthLabel" Modulate="#AAFFAA" />
+                <Label Text="CCC: " StyleClasses="FSMuted" />
+                <Label Name="CCCHealthLabel" StyleClasses="FSPositive" />
             </BoxContainer>
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
             <!-- Player Readiness -->
-            <Label Text="READINESS" StyleClasses="LabelHeading" Modulate="#7EB8D4" Margin="0 0 0 4" />
-            <Label Name="ReadinessLabel" Modulate="#AAFFAA" Margin="0 0 0 8" />
+            <Label Text="READINESS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
+            <Label Name="ReadinessLabel" Margin="0 0 0 8" />
 
             <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
 
@@ -68,12 +69,11 @@
             </BoxContainer>
 
         </BoxContainer>
-
-        <!-- Vertical separator -->
-        <PanelContainer StyleClasses="LowDivider" Margin="0 8" />
+        </PanelContainer>
 
         <!-- RIGHT: map panel -->
-        <BoxContainer Orientation="Vertical" Margin="8 10 10 10" HorizontalExpand="True" VerticalExpand="True">
+        <PanelContainer StyleClasses="FSCard" Margin="10" HorizontalExpand="True">
+        <BoxContainer Orientation="Vertical" Margin="12" HorizontalExpand="True" VerticalExpand="True">
 
             <!-- Toggle buttons — OpenRight/OpenLeft give a connected tab-group appearance -->
             <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
@@ -82,7 +82,6 @@
             </BoxContainer>
 
             <!-- Station map view (default) -->
-            <!-- TODO(finalstand): 1px #2A2A3A border around map — requires PanelContainer wrapper, skip to avoid restructuring -->
             <BoxContainer Name="MapPanel" Orientation="Vertical" VerticalExpand="True" HorizontalExpand="True">
                 <map:NavMapControl Name="CccNavMap" />
             </BoxContainer>
@@ -93,6 +92,7 @@
             </BoxContainer>
 
         </BoxContainer>
+        </PanelContainer>
 
     </BoxContainer>
 </controls:FancyWindow>

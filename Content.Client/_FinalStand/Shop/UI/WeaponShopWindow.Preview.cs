@@ -114,7 +114,7 @@ public sealed partial class WeaponShopWindow
         {
             refs.Segments[i].PanelOverride = new StyleBoxFlat
             {
-                BackgroundColor = i < filled ? barColor : Color.FromHex("#2E3440"),
+                BackgroundColor = i < filled ? barColor : FSUiPalette.BgTrack,
             };
         }
 

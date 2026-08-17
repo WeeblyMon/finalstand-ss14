@@ -10,23 +10,32 @@ using static Robust.Client.UserInterface.StylesheetHelpers;
 
 namespace Content.Client._FinalStand.Stylesheets;
 
-// Shared stylesheet for every FS menu window (Weapon Shop, Research Computer, ...), sourced from FSUiPalette's tokens.
+// Shared stylesheet for every FS menu window, sourced from FSUiPalette.
 public sealed class FSMenuStylesheet
 {
+    private const string PanelTexture = "/Textures/_FinalStand/Interface/Research/panel_bg.png";
+
+    private static Stylesheet? _cached;
+
     public Stylesheet Stylesheet { get; }
+
+    // Built once. The rules hold colours and textures only, so every FS window can share one instance.
+    public static Stylesheet Get(IUserInterfaceManager uiManager, IResourceCache resCache)
+        => _cached ??= new FSMenuStylesheet(uiManager, resCache).Stylesheet;
+
+    public static StyleBoxTexture CardPanel(IResourceCache resCache, Color tint)
+    {
+        var box = new StyleBoxTexture
+        {
+            Texture = resCache.GetResource<TextureResource>(PanelTexture).Texture,
+            Modulate = tint,
+        };
+        box.SetPatchMargin(StyleBox.Margin.All, FSUiPalette.PanelCornerRadius);
+        return box;
+    }
 
     public FSMenuStylesheet(IUserInterfaceManager uiManager, IResourceCache resCache)
     {
-        var crust     = FSUiPalette.BgDeep;
-        var mantle    = FSUiPalette.BgRecess;
-        var surface1  = FSUiPalette.BgSurface;
-        var surface2  = Color.FromHex("#1E2536");
-        var overlay0  = FSUiPalette.BorderNeutral;
-        var overlay1  = Color.FromHex("#647089");
-        var accent    = FSUiPalette.AccentBrand;
-        var accentDim = Color.FromHex("#6B74D6");
-        var textMain  = FSUiPalette.TextPrimary;
-
         StyleBoxFlat Box(Color bg, Color? border = null, float bw = 0, float ph = 8, float pv = 4) =>
             new StyleBoxFlat
             {
@@ -39,31 +48,24 @@ public sealed class FSMenuStylesheet
                 ContentMarginBottomOverride = pv,
             };
 
-        StyleBoxTexture RoundedPanel(Color tint) => new()
-        {
-            Texture = resCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/panel_bg.png").Texture,
-            Modulate = tint,
-            PatchMarginLeft = FSUiPalette.PanelCornerRadius,
-            PatchMarginRight = FSUiPalette.PanelCornerRadius,
-            PatchMarginTop = FSUiPalette.PanelCornerRadius,
-            PatchMarginBottom = FSUiPalette.PanelCornerRadius,
-        };
+        var winPanel   = CardPanel(resCache, FSUiPalette.BgDeep);
+        var cardPanel  = CardPanel(resCache, FSUiPalette.BgSurface);
+        var winHeader  = Box(FSUiPalette.BgRecess);
+        var btnNormal  = Box(FSUiPalette.BgSurface, FSUiPalette.BorderNeutral, 1);
+        var btnHover   = Box(FSUiPalette.BgElevated, FSUiPalette.AccentBrand, 1);
+        var btnPressed = Box(FSUiPalette.BgPressed, FSUiPalette.AccentBrandDim, 1);
+        var btnDisable = Box(FSUiPalette.BgDisabled, FSUiPalette.BorderDisabled, 1);
 
-        var winPanel   = RoundedPanel(crust);
-        var winHeader  = Box(mantle);
-        var btnNormal  = Box(surface1, overlay0, 1);
-        var btnHover   = Box(surface2, accent,   1);
-        var btnPressed = Box(Color.FromHex("#181B2B"), accentDim, 1);
-        var btnDisable = Box(Color.FromHex("#0F1018"), Color.FromHex("#1A1D28"), 1);
-        var divider    = new StyleBoxFlat
+        var divider = new StyleBoxFlat
         {
-            BackgroundColor             = overlay0,
+            BackgroundColor             = FSUiPalette.BorderNeutral,
             ContentMarginTopOverride    = 1,
             ContentMarginBottomOverride = 1,
         };
-        var scrollGrab      = Box(overlay0, null, 0, 3, 3);
-        var scrollGrabHover = Box(overlay1, null, 0, 3, 3);
-        var scrollGrabGrab  = Box(accent,   null, 0, 3, 3);
+
+        var scrollGrab      = Box(FSUiPalette.BorderNeutral, null, 0, 3, 3);
+        var scrollGrabHover = Box(FSUiPalette.BorderSubtle,  null, 0, 3, 3);
+        var scrollGrabGrab  = Box(FSUiPalette.AccentBrand,   null, 0, 3, 3);
 
         var custom = new List<StyleRule>
         {
@@ -73,36 +75,22 @@ public sealed class FSMenuStylesheet
             Element<PanelContainer>().Class(DefaultWindow.StyleClassWindowHeader)
                 .Prop(PanelContainer.StylePropertyPanel, winHeader),
             Element<Label>().Class(DefaultWindow.StyleClassWindowTitle)
-                .Prop(Label.StylePropertyFontColor, textMain),
+                .Prop(Label.StylePropertyFontColor, FSUiPalette.TextPrimary),
 
             Element<PanelContainer>().Class("BackgroundPanel")
                 .Prop(PanelContainer.StylePropertyPanel, winPanel),
             Element<PanelContainer>().Class("WindowHeadingBackground")
                 .Prop(PanelContainer.StylePropertyPanel, winHeader),
             Element<Label>().Class("FancyWindowTitle")
-                .Prop(Label.StylePropertyFontColor, textMain),
+                .Prop(Label.StylePropertyFontColor, FSUiPalette.TextPrimary),
+
+            Element<PanelContainer>().Class(FSStyleRules.Card)
+                .Prop(PanelContainer.StylePropertyPanel, cardPanel),
 
             Element<PanelContainer>().Class("LowDivider")
                 .Prop(PanelContainer.StylePropertyPanel, divider),
 
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassNormal)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnNormal)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassHover)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnHover)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassPressed)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnPressed)
-                .Prop(Control.StylePropertyModulateSelf, Color.White),
-            Element<ContainerButton>().Class(ContainerButton.StyleClassButton)
-                .Pseudo(ContainerButton.StylePseudoClassDisabled)
-                .Prop(ContainerButton.StylePropertyStyleBox, btnDisable)
-                .Prop(Control.StylePropertyModulateSelf, new Color(0.5f, 0.5f, 0.5f, 1f)),
-
-            // Button label — left-aligned so ClipText clips from the right only
+            // Button label - left-aligned so ClipText clips from the right only
             Element<Label>().Class(ContainerButton.StyleClassButton)
                 .Prop(Label.StylePropertyAlignMode, Label.AlignMode.Left),
 
@@ -114,8 +102,9 @@ public sealed class FSMenuStylesheet
                 .Prop(ScrollBar.StylePropertyGrabber, scrollGrabGrab),
         };
 
-        // Global rules first (lower indices), our overrides last (higher indices = higher priority)
-        IEnumerable<StyleRule> baseRules = uiManager.Stylesheet?.Rules ?? Enumerable.Empty<StyleRule>();
-        Stylesheet = new Stylesheet(baseRules.Concat(custom).ToList());
+        custom.AddRange(FSStyleRules.Buttons(btnNormal, btnHover, btnPressed, btnDisable));
+        custom.AddRange(FSStyleRules.SemanticText());
+
+        Stylesheet = FSStyleRules.Compose(uiManager, custom);
     }
 }
