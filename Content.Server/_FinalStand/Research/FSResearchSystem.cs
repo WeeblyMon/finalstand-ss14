@@ -152,6 +152,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         if (_station is { } existing && Exists(existing) && TryComp<FSStationResearchComponent>(existing, out var existingComp))
             return (existing, existingComp);
+        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
+        if (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
+        {
+            _station = uid;
+            return (uid, fallbackComp);
+        }
 
         if (TryFindLinkedServer(out var linkedServer))
         {
@@ -166,13 +172,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             var comp = EnsureComp<FSStationResearchComponent>(serverUid);
             _station = serverUid;
             return (serverUid, comp);
-        }
-
-        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
-        if (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
-        {
-            _station = uid;
-            return (uid, fallbackComp);
         }
 
         var station = Spawn(null, MapCoordinates.Nullspace);
