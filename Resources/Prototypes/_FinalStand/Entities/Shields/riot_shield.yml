@@ -1,12 +1,23 @@
+# Not parented to RiotShield: that inherits BaseShieldDestructible, and its 125-damage
+# FS shields break via FSRiotShield durability and repair at wave prep, so they must never be destroyed.
 - type: entity
-  parent: RiotShield
+  parent: [ BaseRepairableShield, BaseSecurityContraband ]
   id: FSRiotShield
+  name: riot shield
+  description: A large tower shield. Good for controlling crowds.
   categories: [ HideSpawnMenu ]
   components:
+  - type: Blocking
+    passiveBlockModifier:
+      flatReductions:
+        Blunt: 15
+        Slash: 15
+        Piercing: 5
+        Heat: 5
+  - type: StaticPrice
+    price: 90
   - type: FSRiotShield
     baseDurability: 200
-  - type: Destructible
-    thresholds: []
   - type: MeleeWeapon
     damage:
       types:

@@ -116,7 +116,16 @@ public abstract partial class SharedHandsSystem
         TryDrop(ent, handName, null, false);
 
         if (ContainerSystem.TryGetContainer(ent, handName, out var container))
+        {
+            // TryDrop can no-op while still returning true (e.g. if the held item's map can't be
+            // resolved at that instant), leaving the item inside. ShutdownContainer deletes
+            // whatever it still finds in a ContainerSlot, so force it out into the world first
+            // instead of silently losing it.
+            if (container.ContainedEntities.FirstOrNull() is { } stillHeld)
+                ContainerSystem.Remove(stillHeld, container, force: true);
+
             ContainerSystem.ShutdownContainer(container);
+        }
 
         if (!ent.Comp.Hands.Remove(handName))
             return;
