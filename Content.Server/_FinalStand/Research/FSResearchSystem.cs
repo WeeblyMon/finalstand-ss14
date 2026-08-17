@@ -6,6 +6,8 @@ using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Components;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Research.Systems;
+using Content.Shared.Access;
+using Content.Shared.Access.Systems;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Materials;
@@ -26,10 +28,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private SharedMaterialStorageSystem _materials = default!;
+    [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
-    private const string ResearchDirectorJob = "ResearchDirector";
-    private const string CaptainJob = "Captain";
+    private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
+    private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
     private const string ScienceDepartment = "Science";
 
     private EntityUid? _station;
@@ -249,11 +252,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return slot;
     }
 
-    // RD and Captain set the shared pick; other Science members set their own.
+    // RD and Captain set the shared pick; checked off the held ID/PDA, not spawn job, so promotion mid-round works.
     private bool IsRdOrCaptain(EntityUid player)
     {
-        return _mind.TryGetMind(player, out var mindId, out _) &&
-               (_jobs.MindHasJobWithId(mindId, ResearchDirectorJob) || _jobs.MindHasJobWithId(mindId, CaptainJob));
+        var tags = _accessReader.FindAccessTags(player);
+        return tags.Contains(ResearchDirectorAccess) || tags.Contains(CaptainAccess);
     }
 
     private bool IsScienceDepartment(EntityUid player)
