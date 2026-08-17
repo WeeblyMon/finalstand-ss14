@@ -264,7 +264,7 @@
     slots:
       gun_magazine:
         name: Magazine
-        startingItem: MagazineMagnum
+        startingItem: FSMagazineMagnumN1984
         insertSound: /Audio/_FinalStand/Weapons/N1984/reload.ogg
         ejectSound: /Audio/Weapons/Guns/MagOut/pistol_magout.ogg
         priority: 2

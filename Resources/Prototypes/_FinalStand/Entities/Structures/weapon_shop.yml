@@ -211,7 +211,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponPistolN1984
     price: 9000
-    starterAmmoProtoId: MagazineMagnum
+    starterAmmoProtoId: FSMagazineMagnumN1984
     starterAmmoCount: 2
     category: .45 Magnum Hand Cannon
     statDamage: 75

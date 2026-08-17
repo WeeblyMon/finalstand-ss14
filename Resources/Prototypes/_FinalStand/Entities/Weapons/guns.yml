@@ -21,6 +21,34 @@
       tags:
       - CartridgeLightRifle
 
+# ── N1984 ammo chain — 60 Piercing (boosted .45 magnum, N1984-only) ───────────
+- type: entity
+  parent: BulletMagnum
+  id: FSBulletMagnumN1984
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 60
+
+- type: entity
+  parent: CartridgeMagnum
+  id: FSCartridgeMagnumN1984
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletMagnumN1984
+
+- type: entity
+  parent: MagazineMagnum
+  id: FSMagazineMagnumN1984
+  name: pistol magazine (.45 magnum, N1984)
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeMagnumN1984
+
 # ── Double Barrel (no-structural ammo chain) ──────────────────────────────────
 - type: entity
   parent: BaseShellShotgun
