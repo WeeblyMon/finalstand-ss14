@@ -60,7 +60,7 @@ public sealed class FSPerkDef
             new("Lightweight", "Lightweight",
                 "Increases your movement speed.",
                 PerkCategory.Green,
-                ["+3% Speed", "+6% Speed", "+9% Speed", "+12% Speed"]),
+                ["+6% Speed", "+12% Speed", "+18% Speed", "+24% Speed"]),
 
             new("Profiteer", "Profiteer",
                 "Increases the amount of money you earn.",
@@ -86,13 +86,13 @@ public sealed class FSPerkDef
             new("SpeedDemon", "Speed Demon",
                 "Kills increase your movement speed up to 7 stacks. Lose 1 stack/s after 5s.",
                 PerkCategory.Green,
-                ["+1% Speed/Stack", "+2% Speed/Stack", "+3% Speed/Stack", "+4% Speed/Stack"]),
+                ["+2% Speed/Stack", "+4% Speed/Stack", "+6% Speed/Stack", "+8% Speed/Stack"]),
 
             new("Rampage", "Rampage",
                 "Melee kills increase resistance, health regen, and speed. 5 stacks max.",
                 PerkCategory.Purple,
-                ["+3% Resist/+0.2 Regen/+1% Speed", "+6%/+0.4/+2%",
-                 "+9%/+0.6/+3%", "+12%/+0.8/+4%"]),
+                ["+3% Resist/+0.2 Regen/+2% Speed", "+6%/+0.4/+4%",
+                 "+9%/+0.6/+6%", "+12%/+0.8/+8%"]),
 
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",

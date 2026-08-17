@@ -19,9 +19,9 @@ internal static class FSPerkBonusConstants
     public const float PacifistResistPerLevel = 0.20f;
     public const float RampageResistPerLevel = 0.03f;        // per stack, per level
 
-    public const float LightweightPerLevel = 0.03f;
-    public const float SpeedDemonPerLevel = 0.01f;   // per stack, per level
-    public const float RampageSpeedPerLevel = 0.01f; // per stack, per level
+    public const float LightweightPerLevel = 0.06f;
+    public const float SpeedDemonPerLevel = 0.02f;   // per stack, per level
+    public const float RampageSpeedPerLevel = 0.02f; // per stack, per level
 
     public const float RampageRegenPerLevel = 0.2f; // HP/s, per stack, per level
 
