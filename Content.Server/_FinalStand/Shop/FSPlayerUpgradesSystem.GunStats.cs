@@ -51,8 +51,7 @@ public sealed partial class FSPlayerUpgradesSystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
-                // WieldBonus is intentionally left unchanged: scaling it alongside the base angles
-                // drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
+                // WieldBonus is intentionally left unchanged — scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
                 _gun.RefreshModifiers(weapon);
                 {
                     state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
@@ -76,8 +75,7 @@ public sealed partial class FSPlayerUpgradesSystem
 #pragma warning restore RA0002
                     state.BatteryFireCostReduction += def.ValuePerLevel;
                     Dirty(weapon, bat);
-                    // Shots/Capacity are cached off FireCost and only recomputed on ChargeChangedEvent -
-                    // force a refresh now so the ammo counter reflects the new FireCost immediately.
+                    // Shots/Capacity are cached off FireCost and only recomputed on ChargeChangedEvent, so force it now.
                     _gun.UpdateShots((weapon, bat));
                 }
                 else if (HasComp<ChamberMagazineAmmoProviderComponent>(weapon) || HasComp<MagazineAmmoProviderComponent>(weapon))

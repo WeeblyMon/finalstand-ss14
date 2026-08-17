@@ -87,9 +87,7 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
         bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, curTime + TimeSpan.FromSeconds(RetaliationDuration));
         _htn.Replan(htn);
 
-        // This fires once per damage instance, so an automatic weapon would otherwise run a
-        // 10-tile query per bullet. The cooldown that already rate-limits each peer's alert
-        // now also gates the broadcast itself.
+        // Gates the 10-tile broadcast query itself, not just each peer's alert, so full-auto weapons don't spam it.
         if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.PackAlertCooldown, out var ownCooldown, EntityManager)
             && curTime < ownCooldown)
             return;

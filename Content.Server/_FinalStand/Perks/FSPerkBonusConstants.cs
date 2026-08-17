@@ -1,9 +1,7 @@
 namespace Content.Server._FinalStand.Perks;
 
-// Every numeric perk formula, in one place, so a formula and the catalog text that describes it
-// (Content.Shared/_FinalStand/Perks/FSPerkDef.cs) can never drift apart silently. Read by the buff
-// hubs (FSPerkBuffSystem, FSIncomingDamagePerkSystem), the single-perk systems, and
-// FSPlayerBonusSummarySystem, which all must show/apply the exact same number.
+// Every numeric perk formula, in one place, so it can never drift from the catalog text in FSPerkDef.cs.
+// Read by the buff hubs, the single-perk systems, and FSPlayerBonusSummarySystem alike.
 internal static class FSPerkBonusConstants
 {
     public const float StoppingPowerPerLevel = 0.04f;   // ranged, non-launcher only
@@ -15,7 +13,6 @@ internal static class FSPerkBonusConstants
     public const float PacifistPenalty = 0.25f;         // flat outgoing-damage penalty, ranged and melee
     public const float LegBreakerStaminaPerLevel = 25f; // stamina damage to the target on crit
 
-    // ── Incoming damage resistance (Content.Server/_FinalStand/Perks/FSIncomingDamagePerkSystem.cs) ──
     public const float JuggernaughtPerLevel = 0.15f;         // vs. wave-zombie-sourced damage only
     public const float SwordAndShieldResistPerLevel = 0.12f; // while wielding melee, not also a gun
     public const float GlassCannonIncomingMultiplier = 2.0f; // flat, any level >= 1

@@ -14,6 +14,10 @@ public sealed class FSCashTransferBoundUserInterface : BoundUserInterface
     protected override void Open()
     {
         base.Open();
+
+        if (_window != null)
+            return;
+
         _window = this.CreateWindow<CashTransferWindow>();
         _window.OnTransferConfirmed += OnTransferConfirmed;
         _window.OnClose += Close;
@@ -35,6 +39,13 @@ public sealed class FSCashTransferBoundUserInterface : BoundUserInterface
         base.Dispose(disposing);
         if (!disposing)
             return;
-        _window?.Dispose();
+
+        if (_window == null)
+            return;
+
+        _window.OnTransferConfirmed -= OnTransferConfirmed;
+        _window.OnClose -= Close;
+        _window.Dispose();
+        _window = null;
     }
 }

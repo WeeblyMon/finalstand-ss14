@@ -88,8 +88,7 @@ public sealed partial class FSXpHudController : UIController
         _root.AddChild(spacerTop);
         _root.AddChild(barContainer);
 
-        // In separated HUD mode, anchor to the viewport container so the bar
-        // doesn't extend into the chat panel on the right.
+        // In separated HUD mode, anchor to the viewport container so the bar doesn't extend into the chat panel.
         var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
                           && st == ScreenType.Separated;
         var target = isSeparated ? (FindViewportContainer(screen) ?? (Control) screen) : screen;

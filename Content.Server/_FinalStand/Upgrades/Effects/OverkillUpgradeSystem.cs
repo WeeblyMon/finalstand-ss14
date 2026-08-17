@@ -52,8 +52,7 @@ public sealed partial class OverkillUpgradeSystem : EntitySystem
 
         var currentDamage = _damageable.GetPositiveDamage((ev.Target, damageable)).GetTotal();
         var hitTotal = ev.Damage.GetTotal();
-        // A target already past its dead threshold gives a negative remainder, which a zero-damage
-        // hit clears. Without this the ratio below divides by zero and transfers NaN damage.
+        // A zero-damage hit is cleared here to avoid a divide-by-zero on the ratio below.
         if (hitTotal <= FixedPoint2.Zero)
             return;
 
@@ -77,8 +76,7 @@ public sealed partial class OverkillUpgradeSystem : EntitySystem
         var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), range, nearby);
 
-        // Nearest, not first: the set is unordered, so taking the first hit transferred the
-        // overkill to an arbitrary enemy in range.
+        // Nearest, not first — the set is unordered.
         EntityUid? nearest = null;
         var nearestDistSq = float.MaxValue;
         foreach (var candidate in nearby)

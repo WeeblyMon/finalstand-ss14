@@ -2,9 +2,8 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Stylesheets;
 
-// Shared token set from the Master UI Stylesheet Blueprint - one brand accent (selection/primary
-// action only) plus a semantic set (meaning-carrying, identical across every FS menu) plus neutrals.
-// Referenced by both the Research Computer and the Weapon Shop instead of each keeping its own hex literals.
+// Shared token set: one brand accent, a semantic set (meaning-carrying, identical across every FS menu),
+// and neutrals — referenced by both the Research Computer and the Weapon Shop instead of hex literals.
 public static class FSUiPalette
 {
     public static readonly Color BgDeep = Color.FromHex("#0F172A");

@@ -39,9 +39,8 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
-        // Nearly every upgrade writes to this component, so it is resolved once here instead of
-        // per branch. Each group owns one partial file and returns false for a type it does not
-        // handle, so the first group that claims the type wins.
+        // Resolved once here since nearly every upgrade writes to it; each partial-file group returns
+        // false for a type it doesn't handle, so the first group that claims the type wins.
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
         if (TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)) return;
@@ -84,8 +83,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _stash.Stash(player, newSword);
     }
 
-    // Copies every DataField on the component. A hand-written field list silently drops any
-    // upgrade added after it was last updated, which is how a transform used to lose state.
+    // Copies every DataField on the component — a hand-written field list would drop any upgrade added later.
     private void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
     {
         _serialization.CopyTo(from, ref to, notNullableOverride: true);

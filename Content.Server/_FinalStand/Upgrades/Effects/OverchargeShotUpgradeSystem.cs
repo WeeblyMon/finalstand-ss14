@@ -73,11 +73,9 @@ public sealed partial class OverchargeShotUpgradeSystem : EntitySystem
             speed = BoltSpeed;
         }
 
-        // Delete the normal pellets — overcharge replaces them entirely.
         foreach (var proj in args.FiredProjectiles)
             QueueDel(proj);
 
-        // Spawn the overcharge bolt.
         var bolt = Spawn(BoltProto, Transform(uid).Coordinates);
 
         var boltDamage = new DamageSpecifier();
@@ -99,7 +97,6 @@ public sealed partial class OverchargeShotUpgradeSystem : EntitySystem
 
     private void OnBoltHit(EntityUid uid, FSOverchargeBoltComponent comp, ref ProjectileHitEvent args)
     {
-        // Get bolt travel direction from velocity or world rotation.
         Vector2 boltDir;
         if (TryComp<PhysicsComponent>(uid, out var phys) && phys.LinearVelocity.LengthSquared() > 0.001f)
         {

@@ -14,7 +14,7 @@ public enum CarryKind : byte
     Backpack,
 }
 
-/// <param name="Where">Hand name for <see cref="CarryKind.Hand"/>, slot id for <see cref="CarryKind.Equipped"/>.</param>
+// Where is a hand name for CarryKind.Hand, a slot id for CarryKind.Equipped.
 public readonly record struct CarriedItem(EntityUid Uid, CarryKind Kind, string Where);
 
 public sealed partial class FSInventorySearchSystem : EntitySystem
@@ -22,14 +22,14 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private InventorySystem _inventory = default!;
 
-    /// <summary>Every carried item matching <paramref name="protoIds"/>, in hand then slot then backpack order.</summary>
+    // Every carried item matching protoIds, in hand then slot then backpack order.
     public void Collect(EntityUid player, IReadOnlySet<string> protoIds, List<CarriedItem> results,
         bool requireUpgradeState = false)
     {
         Walk(player, protoIds, requireUpgradeState, results, out _);
     }
 
-    /// <summary>The first carried item matching <paramref name="protoIds"/>. Stops at the first hit.</summary>
+    // The first carried item matching protoIds. Stops at the first hit.
     public CarriedItem? FindFirst(EntityUid player, IReadOnlySet<string> protoIds, bool requireUpgradeState = false)
     {
         Walk(player, protoIds, requireUpgradeState, null, out var first);

@@ -27,10 +27,8 @@ public sealed partial class FSCargonianSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        // Sync comp to all players with Cargonian slotted. Every-3s poll, same interval
-        // FSOfficerSystem uses for its own slot-sync loop — OnRefreshSpeed below re-checks the
-        // real slot state live regardless, so this only gates whether the event handler runs at
-        // all, not correctness. No need to run it every tick.
+        // Every-3s poll, same interval FSOfficerSystem uses. OnRefreshSpeed re-checks the real slot
+        // state live regardless, so this only gates whether the handler runs, not correctness.
         var now = _timing.CurTime;
         if (now < _nextSync) return;
         _nextSync = now + SyncInterval;

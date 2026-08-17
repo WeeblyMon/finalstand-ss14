@@ -11,9 +11,8 @@ using Content.Shared.Weapons.Hitscan.Events;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
-// Bridges hitscan into the upgrade-effect pipeline. Vanilla HitscanBasicDamageSystem has already
-// applied the base damage by the time effects run, and the event carries no mutable damage, so a
-// crit or an AdditionalMultiplier is paid as a second TryChangeDamage for the difference.
+// Bridges hitscan into the upgrade-effect pipeline. Vanilla HitscanBasicDamageSystem already applied the
+// base damage by the time effects run, so a crit/multiplier is paid as a second TryChangeDamage for the difference.
 public sealed partial class FSHitscanEffectSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;

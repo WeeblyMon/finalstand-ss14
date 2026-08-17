@@ -92,7 +92,6 @@ public sealed partial class FSArmorSystem : EntitySystem
         if (incoming <= 0f)
             return;
 
-        // AP rounds: bypass armor entirely.
         if (flags.HasFlag(FinalStandDamageFlags.ArmorPenetrating))
             return;
 

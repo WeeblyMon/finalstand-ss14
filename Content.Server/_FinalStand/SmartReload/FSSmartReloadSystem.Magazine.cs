@@ -76,18 +76,16 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private void TryStoreItemInInventory(EntityUid user, EntityUid item)
     {
-        // 1. Try backpack
         if (_inventory.TryGetSlotEntity(user, "back", out var backpack)
             && TryComp<StorageComponent>(backpack, out var storagComp)
             && _storage.Insert(backpack.Value, item, out _, storageComp: storagComp, playSound: false))
             return;
 
-        // 2. Try pockets
         if (_inventory.TryEquip(user, user, item, "pocket1", silent: true))
             return;
         if (_inventory.TryEquip(user, user, item, "pocket2", silent: true))
             return;
 
-        // 3. Item stays on floor at user's position (already dropped by TryEject with null user)
+        // Otherwise it stays on the floor — already dropped by TryEject with a null user.
     }
 }

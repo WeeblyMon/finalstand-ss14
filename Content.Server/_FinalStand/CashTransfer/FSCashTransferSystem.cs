@@ -12,11 +12,13 @@ using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Localization;
+using Content.Shared.GameTicking;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.CashTransfer;
 
-public sealed partial class FSCashTransferSystem : EntitySystem
+public sealed class FSCashTransferSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
@@ -25,15 +27,19 @@ public sealed partial class FSCashTransferSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private ISharedAdminLogManager _adminLogger = default!;
     [Dependency] private UserInterfaceSystem _uiSystem = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly EntProtoId SessionProto = "FSCashTransferSession";
+    private static readonly TimeSpan OpenGrace = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(1);
+
+    private TimeSpan _nextSweep;
 
     public override void Initialize()
     {
         base.Initialize();
-
-        // InnateVerb fires at the USER entity, so uid = right-clicker who has MindContainerComponent.
         SubscribeLocalEvent<MindContainerComponent, GetVerbsEvent<InnateVerb>>(OnGetVerbs);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         Subs.BuiEvents<FSCashTransferComponent>(FSCashTransferUiKey.Key, subs =>
         {
@@ -41,6 +47,37 @@ public sealed partial class FSCashTransferSystem : EntitySystem
             subs.Event<BoundUIClosedEvent>(OnUiClosed);
             subs.Event<FSCashTransferRequestMessage>(OnTransferRequest);
         });
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent args)
+    {
+        var query = EntityQueryEnumerator<FSCashTransferSessionComponent>();
+        while (query.MoveNext(out var uid, out _))
+            QueueDel(uid);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var now = _timing.CurTime;
+        if (now < _nextSweep)
+            return;
+
+        _nextSweep = now + SweepInterval;
+
+        var query = EntityQueryEnumerator<FSCashTransferSessionComponent>();
+        while (query.MoveNext(out var uid, out var session))
+        {
+            if (_uiSystem.IsUiOpen(uid, FSCashTransferUiKey.Key))
+            {
+                SendState(uid, session.Opener, session.Target);
+                continue;
+            }
+
+            if (now >= session.CreatedAt + OpenGrace)
+                QueueDel(uid);
+        }
     }
 
     private void OnGetVerbs(EntityUid uid, MindContainerComponent mindComp, GetVerbsEvent<InnateVerb> args)
@@ -76,11 +113,27 @@ public sealed partial class FSCashTransferSystem : EntitySystem
 
     private void OpenTransferDialog(EntityUid sender, EntityUid target)
     {
+        CloseExistingSessions(sender);
+
         var session = Spawn(SessionProto, Transform(sender).Coordinates);
         var sessionComp = EnsureComp<FSCashTransferSessionComponent>(session);
         sessionComp.Target = target;
+        sessionComp.Opener = sender;
+        sessionComp.CreatedAt = _timing.CurTime;
 
         _uiSystem.OpenUi(session, FSCashTransferUiKey.Key, sender);
+    }
+    private void CloseExistingSessions(EntityUid opener)
+    {
+        var query = EntityQueryEnumerator<FSCashTransferSessionComponent>();
+        while (query.MoveNext(out var uid, out var session))
+        {
+            if (session.Opener != opener)
+                continue;
+
+            _uiSystem.CloseUi(uid, FSCashTransferUiKey.Key, opener);
+            QueueDel(uid);
+        }
     }
 
     private void OnUiOpened(EntityUid uid, FSCashTransferComponent comp, BoundUIOpenedEvent args)
