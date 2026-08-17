@@ -1,5 +1,4 @@
-# ── Chainsaw Shop ────────────────────────────────────────────────────────────
-# Top-tier melee. Fuel upgrades track state but are inert until the Chainsaw entity gains a fuel component.
+# Chainsaw shop entry. Top-tier melee.
 
 - type: entity
   id: FSWeaponShopChainsaw
@@ -44,8 +43,6 @@
       baseCost: 22000
       type: LifeSteal
       valuePerLevel: 0.5
-    # NOTE: Fuel upgrades track state but the Chainsaw entity in this fork has no fuel mechanic yet —
-    # ChainsawFuelUpgradeSystem reads these but is currently inert until a fuel component is added to Chainsaw.
     - id: chainsaw-fuel-efficiency
       name: Fuel Efficiency
       description: Reduces fuel taken per swing by 0.25 per level.

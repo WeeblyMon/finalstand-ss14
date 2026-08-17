@@ -685,13 +685,17 @@
         Slash: 8
         Blunt: 8
     soundHit:
-      path: /Audio/Weapons/chainsaw.ogg
+      path: /Audio/Weapons/chainsaw_rev.ogg
       params:
         volume: -3
   - type: IncreaseDamageOnWield
     damage:
       types:
         Slash: 8
+  - type: FSChainsawFuel
+    currentFuel: 50
+    baseMaxFuel: 50
+    baseFuelPerSwing: 1.0
   - type: Crit
     baseCritChance: 0.05
 

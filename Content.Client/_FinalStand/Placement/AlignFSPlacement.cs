@@ -8,14 +8,15 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Client._FinalStand.Placement;
 
-// Ghost snaps to the nearest tile center; validity is range-only (no tile-blocking checks yet).
-public sealed partial class AlignFSPlacement : PlacementMode
+// Ghost snaps to the nearest tile center. Validity comes from the shared placement rule.
+public sealed class AlignFSPlacement : PlacementMode
 {
     [Dependency] private IEntityManager _entityManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     private readonly SharedMapSystem _mapSystem;
     private readonly HandsSystem _handsSystem;
     private readonly SharedTransformSystem _transformSystem;
+    private readonly FSPlacementRuleSystem _rule;
 
     private const float SearchBoxSize = 2f;
     private const float PlaceColorBaseAlpha = 0.5f;
@@ -26,6 +27,7 @@ public sealed partial class AlignFSPlacement : PlacementMode
         _mapSystem = _entityManager.System<SharedMapSystem>();
         _handsSystem = _entityManager.System<HandsSystem>();
         _transformSystem = _entityManager.System<SharedTransformSystem>();
+        _rule = _entityManager.System<FSPlacementRuleSystem>();
 
         ValidPlaceColor = ValidPlaceColor.WithAlpha(PlaceColorBaseAlpha);
     }
@@ -51,17 +53,15 @@ public sealed partial class AlignFSPlacement : PlacementMode
 
     public override bool IsValidPosition(EntityCoordinates position)
     {
-        var player = _playerManager.LocalSession?.AttachedEntity;
-
-        if (!_entityManager.TryGetComponent<TransformComponent>(player, out var xform))
+        if (_playerManager.LocalSession?.AttachedEntity is not { } player)
             return false;
 
-        if (!_handsSystem.TryGetActiveItem(player.Value, out var heldEntity))
+        if (!_handsSystem.TryGetActiveItem(player, out var heldEntity))
             return false;
 
         if (!_entityManager.TryGetComponent<FSPlaceableComponent>(heldEntity, out var placeable))
             return false;
 
-        return _transformSystem.InRange(xform.Coordinates, position, placeable.Range);
+        return _rule.CanPlaceAt(player, position, placeable);
     }
 }

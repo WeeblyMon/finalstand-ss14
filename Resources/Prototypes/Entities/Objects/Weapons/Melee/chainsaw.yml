@@ -46,9 +46,3 @@
   - type: DisarmMalus
   - type: UseDelay
     delay: 1
-  # FS: chainsaw fuel mechanic — drives the Fuel Efficiency / Fuel Capacity upgrades.
-  # Refill by clicking the chainsaw with a welding tool that has WeldingFuel.
-  - type: FSChainsawFuel
-    currentFuel: 50
-    baseMaxFuel: 50
-    baseFuelPerSwing: 1.0

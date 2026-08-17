@@ -22,8 +22,7 @@ public sealed class FSChainsawFuelStatusControl : PollingItemStatusControl<FSCha
 
     protected override Data PollData()
     {
-        var max = _parent.Comp.BaseMaxFuel * _parent.Comp.MaxFuelMultiplier;
-        return new Data(_parent.Comp.CurrentFuel, max);
+        return new Data(_parent.Comp.CurrentFuel, _parent.Comp.MaxFuel);
     }
 
     protected override void Update(in Data data)
@@ -31,7 +30,11 @@ public sealed class FSChainsawFuelStatusControl : PollingItemStatusControl<FSCha
         var color = data.Fuel <= 0f
             ? "red"
             : data.Fuel < data.MaxFuel / 4f ? "darkorange" : "orange";
-        _label.SetMarkup($"Fuel: [color={color}]{(int)data.Fuel}[/color] / {(int)data.MaxFuel}");
+
+        _label.SetMarkup(Loc.GetString("fs-chainsaw-status-fuel",
+            ("color", color),
+            ("fuel", (int) data.Fuel),
+            ("max", (int) data.MaxFuel)));
     }
 
     public record struct Data(float Fuel, float MaxFuel);

@@ -1,13 +1,13 @@
+// Generic "use item toggles ghost placement mode, click a spot to confirm" plumbing shared by any FS placeable item.
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Events;
 
 namespace Content.Server._FinalStand.Placement;
 
-// Generic "Z toggles ghost placement mode, click a spot to confirm" plumbing shared by any FS placeable item.
-public sealed partial class FSPlacementSystem : EntitySystem
+public sealed class FSPlacementSystem : EntitySystem
 {
-    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSPlacementRuleSystem _rule = default!;
 
     public override void Initialize()
     {
@@ -33,16 +33,16 @@ public sealed partial class FSPlacementSystem : EntitySystem
 
         args.Handled = true;
 
-        if (!_transform.InRange(Transform(args.User).Coordinates, args.ClickLocation, comp.Range))
+        if (!_rule.CanPlaceAt(args.User, args.ClickLocation, comp))
             return;
 
         var ev = new FSPlacementConfirmedEvent(args.User, args.ClickLocation);
         RaiseLocalEvent(uid, ev);
 
-        if (ev.Handled)
-        {
-            comp.Placing = false;
-            Dirty(uid, comp);
-        }
+        if (!ev.Handled)
+            return;
+
+        comp.Placing = false;
+        Dirty(uid, comp);
     }
 }

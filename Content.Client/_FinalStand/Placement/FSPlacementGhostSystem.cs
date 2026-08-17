@@ -7,7 +7,7 @@ using Robust.Shared.Enums;
 namespace Content.Client._FinalStand.Placement;
 
 // Mirrors RCDConstructionGhostSystem - shows a placement ghost while the held item is in FSPlaceableComponent.Placing mode.
-public sealed partial class FSPlacementGhostSystem : EntitySystem
+public sealed class FSPlacementGhostSystem : EntitySystem
 {
     private const string PlacementMode = nameof(AlignFSPlacement);
 

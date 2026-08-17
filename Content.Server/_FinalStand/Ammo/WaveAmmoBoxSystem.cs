@@ -2,6 +2,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.RiotShield;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Ammo;
+using Content.Shared._FinalStand.Chainsaw;
 using Content.Shared._FinalStand.RiotShield;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
@@ -129,6 +130,7 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
             {
                 TryRefill(item);
                 TryRepairShield(item);
+                TryRefuelChainsaw(item);
                 RefillContents(item, depth + 1);
             }
         }
@@ -149,5 +151,14 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
     {
         if (TryComp<FSRiotShieldComponent>(entity, out var shield))
             _riotShield.RepairShield(entity, shield);
+    }
+
+    private void TryRefuelChainsaw(EntityUid entity)
+    {
+        if (!TryComp<FSChainsawFuelComponent>(entity, out var fuel) || fuel.CurrentFuel >= fuel.MaxFuel)
+            return;
+
+        fuel.CurrentFuel = fuel.MaxFuel;
+        Dirty(entity, fuel);
     }
 }

@@ -11,4 +11,6 @@ public sealed partial class FSChainsawFuelComponent : Component
     [DataField, AutoNetworkedField] public float MaxFuelMultiplier = 1f;
     [DataField] public float BaseFuelPerSwing = 1.0f;
     [DataField] public float FuelPerWelderUnit = 1.0f;
+
+    public float MaxFuel => BaseMaxFuel * MaxFuelMultiplier;
 }
