@@ -1,10 +1,10 @@
 meta:
   format: 7
   category: Map
-  engineVersion: 288.0.1
+  engineVersion: 288.1.0
   forkId: ""
   forkVersion: ""
-  time: 08/15/2026 04:23:00
+  time: 08/17/2026 22:17:09
   entityCount: 10808
 maps:
 - 259
@@ -3374,7 +3374,7 @@ entities:
       pos: 30.5,6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -75048.87
+      secondsUntilStateChange: -75111.52
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3453,7 +3453,7 @@ entities:
       pos: -13.5,2.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -8778.729
+      secondsUntilStateChange: -8841.381
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3484,7 +3484,7 @@ entities:
       pos: -16.5,-12.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -32610.607
+      secondsUntilStateChange: -32673.26
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3614,7 +3614,7 @@ entities:
       pos: 6.5,-6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -14376.294
+      secondsUntilStateChange: -14438.946
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3632,7 +3632,7 @@ entities:
       pos: 13.5,-3.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -99847.98
+      secondsUntilStateChange: -99910.63
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -28042,6 +28042,11 @@ entities:
     - type: Transform
       parent: 1
       pos: -1.5,8.5
+  - uid: 71
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,8.5
   - uid: 8904
     components:
     - type: Transform
@@ -28127,13 +28132,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -19.5,-10.5
-- proto: ComputerComms
-  entities:
-  - uid: 71
-    components:
-    - type: Transform
-      parent: 1
-      pos: 1.5,8.5
 - proto: ComputerCrewMonitoring
   entities:
   - uid: 69
