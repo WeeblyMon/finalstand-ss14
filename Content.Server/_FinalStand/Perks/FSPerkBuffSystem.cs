@@ -1,5 +1,6 @@
 ﻿using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Damage.Systems;
@@ -58,7 +59,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             ev.AdditionalMultiplier *= 1f + spLevel * FSPerkBonusConstants.StoppingPowerPerLevel;
 
         var profLevel = augs.GetSlottedLevel("Profiteer");
-        if (profLevel > 0)
+        if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target))
             _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
         // Re-checked every time, like Speed Demon and Rampage below - banked stacks must not

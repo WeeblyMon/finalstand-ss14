@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
@@ -138,7 +139,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 bonus.MoneyBonus = state.MoneyGainBonusPerKill;
             }
 
-            if (state.MoneyPerHitBonus > 0 && _mind.TryGetMind(user, out var mindId, out _))
+            if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && _mind.TryGetMind(user, out var mindId, out _))
                 _wallet.GiveCredits(mindId, state.MoneyPerHitBonus);
         }
 
