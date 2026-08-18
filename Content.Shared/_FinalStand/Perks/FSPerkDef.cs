@@ -104,6 +104,11 @@ public sealed class FSPerkDef
                 PerkCategory.Yellow,
                 ["+1.25% Team Return", "+2.5% Team Return", "+3.75% Team Return", "+5% Team Return"]),
 
+            new("LifeLeech", "Life Leech",
+                "Regenerate health after every zombie you kill.",
+                PerkCategory.Blue,
+                ["+1 Health", "+2 Health", "+4 Health", "+6 Health"]),
+
             new("Untouchable", "Untouchable",
                 "Automatically blocks one incoming hit. Charges refill after 30 seconds.",
                 PerkCategory.Blue,
