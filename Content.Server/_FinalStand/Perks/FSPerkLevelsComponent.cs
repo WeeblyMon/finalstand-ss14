@@ -7,24 +7,16 @@ public sealed partial class FSPerkLevelsComponent : Component
 {
     public Dictionary<string, int> Levels { get; set; } = new();
     public string[] Slots { get; set; } = new string[FSPerkDef.SlotCount];
-    public string[][] Loadouts { get; set; } = new string[3][];
+    public FSPerkLoadout[] Loadouts { get; set; } = new FSPerkLoadout[3];
 
     public FSPerkLevelsComponent()
     {
         for (var i = 0; i < FSPerkDef.SlotCount; i++)
             Slots[i] = string.Empty;
         for (var i = 0; i < 3; i++)
-        {
-            Loadouts[i] = new string[FSPerkDef.SlotCount];
-            for (var j = 0; j < FSPerkDef.SlotCount; j++)
-                Loadouts[i][j] = string.Empty;
-        }
+            Loadouts[i] = new FSPerkLoadout();
     }
 
-    // Resolved "slotted perk -> level", rebuilt on demand. GetSlottedLevel runs 61 times across
-    // the codebase — 8 per projectile hit, 7 per hit taken, 5 per zombie killed — and the array
-    // scan it replaced compared up to six strings on every one of those.
-    // Any write to Levels, Slots or Loadouts must call Invalidate().
     private Dictionary<string, int>? _slotted;
 
     public void Invalidate() => _slotted = null;

@@ -138,9 +138,32 @@ public sealed partial class PerkShopWindow : FancyWindow
     {
         _state = ev;
         ApLabel.Text = ev.PerkPoints.ToString("N0");
+        RefreshLoadoutButtons();
         RebuildSlots();
         RebuildGrid();
         RefreshInfo();
+    }
+
+    private void RefreshLoadoutButtons()
+    {
+        RefreshLoadoutSlot(0, SaveLoadout0, LoadLoadout0);
+        RefreshLoadoutSlot(1, SaveLoadout1, LoadLoadout1);
+        RefreshLoadoutSlot(2, SaveLoadout2, LoadLoadout2);
+    }
+
+    // Glyph as well as colour so an occupied slot reads without relying on colour alone.
+    private void RefreshLoadoutSlot(int index, Button save, Button load)
+    {
+        var loadouts = _state?.Loadouts;
+        var loadout = loadouts != null && index < loadouts.Length ? loadouts[index] : null;
+        var used = loadout is { IsEmpty: false };
+
+        save.Text = used ? $"Save {index + 1} ●" : $"Save {index + 1} ○";
+        save.Label.FontColorOverride = used ? FSUiPalette.StatePositive : FSUiPalette.TextMuted;
+        save.ToolTip = used ? $"Overwrite this slot ({loadout!.Levels.Count} perks saved)" : "Save your current build here";
+
+        load.Disabled = !used;
+        load.ToolTip = used ? $"Load {loadout!.Levels.Count} saved perks" : "Nothing saved in this slot";
     }
 
     public void UpdateLeveling(int level, int prestige)

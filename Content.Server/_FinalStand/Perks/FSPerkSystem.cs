@@ -158,21 +158,39 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
-            Array.Copy(perks.Slots, perks.Loadouts[msg.LoadoutIndex], FSPerkDef.SlotCount);
+            var loadout = new FSPerkLoadout { Levels = new Dictionary<string, int>(perks.Levels) };
+            Array.Copy(perks.Slots, loadout.Slots, FSPerkDef.SlotCount);
+            perks.Loadouts[msg.LoadoutIndex] = loadout;
             return true;
         });
     }
 
+    // Loading re-buys the saved build: the current one is refunded first, so the player only pays
+    // the difference. Refuses outright rather than applying a partial build.
     private void OnLoadLoadout(FSLoadLoadoutMessage msg, EntitySessionEventArgs args)
     {
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
-        DispatchPerkMutation(args.SenderSession, perks =>
+        var session = args.SenderSession;
+        var points = GetPerkPoints(session);
+
+        DispatchPerkMutation(session, perks =>
         {
             var src = perks.Loadouts[msg.LoadoutIndex];
+            if (src.IsEmpty)
+                return false;
+
+            var refund = CalcRefund(perks);
+            var cost = CalcCost(src.Levels);
+            if (points + refund < cost)
+                return false;
+
+            _wallet.GivePerkPoints(session, refund - cost);
+
+            perks.Levels = new Dictionary<string, int>(src.Levels);
             for (var i = 0; i < FSPerkDef.SlotCount; i++)
             {
-                var id = src[i];
+                var id = src.Slots[i];
                 perks.Slots[i] = !string.IsNullOrEmpty(id) && perks.GetLevel(id) > 0 ? id : string.Empty;
             }
             return true;
@@ -191,8 +209,6 @@ public sealed partial class FSPerkSystem : EntitySystem
             _wallet.GivePerkPoints(session, CalcRefund(perks));
             perks.Levels.Clear();
             Array.Fill(perks.Slots, string.Empty);
-            foreach (var loadout in perks.Loadouts)
-                Array.Fill(loadout, string.Empty);
             return true;
         });
     }
@@ -207,10 +223,12 @@ public sealed partial class FSPerkSystem : EntitySystem
         return _wallet.GetStoredPerkPoints(session.UserId.UserId);
     }
 
-    private static int CalcRefund(FSPerkLevelsComponent perks)
+    private static int CalcRefund(FSPerkLevelsComponent perks) => CalcCost(perks.Levels);
+
+    private static int CalcCost(Dictionary<string, int> levels)
     {
         var total = 0;
-        foreach (var (_, level) in perks.Levels)
+        foreach (var (_, level) in levels)
             for (var i = 0; i < level; i++)
                 total += FSPerkDef.CostForUpgrade(i);
         return total;
@@ -300,7 +318,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             PerkPoints = perkPoints,
             Levels = new Dictionary<string, int>(perks.Levels),
             Slots = (string[])perks.Slots.Clone(),
-            Loadouts = perks.Loadouts.Select(l => (string[])l.Clone()).ToArray(),
+            Loadouts = perks.Loadouts,
         }, Filter.SinglePlayer(session));
     }
 
@@ -368,22 +386,60 @@ public sealed partial class FSPerkSystem : EntitySystem
         {
             try
             {
-                var loadouts = JsonSerializer.Deserialize<string[][]>(loadoutsJson);
+                var loadouts = JsonSerializer.Deserialize<FSPerkLoadout[]>(loadoutsJson);
                 if (loadouts?.Length == 3)
                 {
                     for (var i = 0; i < 3; i++)
                     {
-                        if (loadouts[i]?.Length == FSPerkDef.SlotCount)
-                            perks.Loadouts[i] = loadouts[i];
-                        else if (loadouts[i] != null)
-                            Log.Warning($"[FSPerk] Loadout {i} had {loadouts[i]!.Length} entries — discarding (SlotCount mismatch).");
+                        if (loadouts[i] is not { } loadout)
+                            continue;
+
+                        if (loadout.Slots.Length != FSPerkDef.SlotCount)
+                        {
+                            Log.Warning($"[FSPerk] Loadout {i} had {loadout.Slots.Length} slots — discarding (SlotCount mismatch).");
+                            continue;
+                        }
+
+                        perks.Loadouts[i] = loadout;
                     }
                 }
+            }
+            catch (JsonException)
+            {
+                // Rows saved before loadouts stored levels held string[][] (slots only). Keep the
+                // arrangement and drop the levels that format never recorded.
+                TryLoadLegacyLoadouts(loadoutsJson, perks);
             }
             catch (Exception e)
             {
                 Log.Error($"[FSPerk] Failed to deserialize perk loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
             }
+        }
+    }
+
+    private void TryLoadLegacyLoadouts(string loadoutsJson, FSPerkLevelsComponent perks)
+    {
+        try
+        {
+            var legacy = JsonSerializer.Deserialize<string[][]>(loadoutsJson);
+            if (legacy?.Length != 3)
+                return;
+
+            for (var i = 0; i < 3; i++)
+            {
+                if (legacy[i]?.Length != FSPerkDef.SlotCount)
+                    continue;
+
+                var loadout = new FSPerkLoadout();
+                Array.Copy(legacy[i], loadout.Slots, FSPerkDef.SlotCount);
+                perks.Loadouts[i] = loadout;
+            }
+
+            Log.Info("[FSPerk] Migrated legacy slot-only loadouts; levels were not stored in that format.");
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[FSPerk] Failed to deserialize legacy perk loadouts JSON: {e.Message}");
         }
     }
 }
