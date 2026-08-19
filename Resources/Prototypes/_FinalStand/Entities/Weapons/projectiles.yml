@@ -3,6 +3,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Sprite
     color: "#AA00FF"
     scale: 3, 3
@@ -20,6 +21,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Sprite
     color: "#CC44FF"
     scale: 1.5, 1.5
@@ -70,6 +72,7 @@
   parent: PelletShotgun
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -111,6 +114,7 @@
   parent: BulletMagnum
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -121,6 +125,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Sprite
     color: "#00DDFF"
     scale: 1.2, 1.2
@@ -139,6 +144,7 @@
   parent: BulletPistol
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -150,6 +156,7 @@
   parent: PelletShotgun
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -171,6 +178,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -198,6 +206,7 @@
   categories: [ HideSpawnMenu ]
   name: bullet (.20 rifle)
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -222,6 +231,7 @@
   categories: [ HideSpawnMenu ]
   name: bullet (.30 mosin)
   components:
+  - type: FSNoStructureDamage
   - type: Projectile
     damage:
       types:
@@ -265,6 +275,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
     scale: 0.2, 0.2
@@ -307,6 +318,7 @@
   id: FSTeslaGunBullet
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSNoStructureDamage
   - type: LightningArcShooter
     shootMinInterval: 9999
     shootMaxInterval: 9999
