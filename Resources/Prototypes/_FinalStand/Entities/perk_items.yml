@@ -1,14 +1,16 @@
 - type: entity
   parent: BaseAction
   id: FSWhistleAction
+  name: Officer's Whistle
+  description: Rallies nearby allies, boosting their combat effectiveness for 8 seconds.
   components:
   - type: Action
-    icon:
-      sprite: Objects/Fun/whistles.rsi
-      state: trench
     useDelay: 8
     checkCanInteract: false
-    name: Officer's Whistle
-    description: Rallies nearby allies, boosting their combat effectiveness for 8 seconds.
+  - type: Sprite
+    sprite: Objects/Fun/whistles.rsi
+    layers:
+    - state: trench
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSWhistleActionEvent {}

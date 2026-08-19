@@ -7,9 +7,11 @@
   description: Switch quick-throw to frag grenades.
   components:
   - type: Action
-    icon:
-      sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
-      state: icon
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSSelectFragGrenadeEvent {}
   - type: FSGrenadeSelectAction
@@ -22,9 +24,11 @@
   description: Switch quick-throw to incendiary grenades.
   components:
   - type: Action
-    icon:
-      sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
-      state: icon
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Incendiary.rsi
+    layers:
+    - state: icon
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSSelectIncendiaryGrenadeEvent {}
   - type: FSGrenadeSelectAction
@@ -37,9 +41,11 @@
   description: Switch quick-throw to flash grenades.
   components:
   - type: Action
-    icon:
-      sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
-      state: icon
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Stungrenade.rsi
+    layers:
+    - state: icon
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSSelectFlashGrenadeEvent {}
   - type: FSGrenadeSelectAction
@@ -52,9 +58,11 @@
   description: Switch quick-throw to pipe bombs (zombie bait).
   components:
   - type: Action
-    icon:
-      sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
-      state: icon
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
+    layers:
+    - state: icon
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSSelectPipeGrenadeEvent {}
   - type: FSGrenadeSelectAction
