@@ -4,4 +4,5 @@ namespace Content.Server._FinalStand.Upgrades;
 public sealed partial class FSPierceComponent : Component
 {
     public int RemainingPierces;
+    public readonly HashSet<EntityUid> AlreadyHit = new();
 }

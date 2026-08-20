@@ -26,12 +26,19 @@ public sealed class FSPierceSystem : EntitySystem
 
         var target = args.OtherEntity;
 
+        if (pierce.AlreadyHit.Contains(target))
+        {
+            proj.ProjectileSpent = false;
+            return;
+        }
+
         if (!HasComp<WaveSpawnedTagComponent>(target) || pierce.RemainingPierces <= 0)
         {
             QueueDel(uid);
             return;
         }
 
+        pierce.AlreadyHit.Add(target);
         pierce.RemainingPierces--;
         proj.ProjectileSpent = false;
     }
