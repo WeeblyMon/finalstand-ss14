@@ -49,6 +49,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
+        SubscribeNetworkEvent<FSLevelingRequestMessage>(OnLevelingRequest);
     }
 
     private void OnEnemyWaveTagInit(EntityUid uid, WaveSpawnedTagComponent _, ComponentInit args)
@@ -327,6 +328,28 @@ public sealed partial class FSLevelingSystem : EntitySystem
             Target   = GetNetEntity(mind.CurrentEntity.Value),
             ApGained = totalAp,
         }, actor.PlayerSession);
+    }
+
+    // In the lobby the player has no mind, so fall back to the stored record.
+    private void OnLevelingRequest(FSLevelingRequestMessage msg, EntitySessionEventArgs args)
+    {
+        var session = args.SenderSession;
+
+        if (_mind.TryGetMind(session, out var mindId, out _)
+            && TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+        {
+            SendLevelingUpdate(mindId, lvl);
+            return;
+        }
+
+        var record = _store.GetFullRecord(session.UserId.UserId);
+        RaiseNetworkEvent(new FSLevelingUpdatedEvent
+        {
+            Level = record.Level,
+            Experience = record.Experience,
+            XpToNextLevel = XpToNextLevel(record.Level),
+            PrestigeLevel = record.PrestigeLevel,
+        }, Filter.SinglePlayer(session));
     }
 
     public void SendLevelingUpdate(EntityUid mindId, FSPlayerLevelComponent lvl)

@@ -229,6 +229,7 @@ public sealed partial class LobbyUIController : UIController, IOnStateEntered<Lo
     {
         PreviewPanel?.SetLoaded(_preferencesManager.ServerDataLoaded);
         ReloadCharacterSetup();
+        RefreshFinalStandLobby(); // FS partial hook
     }
 
     public void OnStateExited(LobbyState state)

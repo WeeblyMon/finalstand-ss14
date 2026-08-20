@@ -1,4 +1,4 @@
-﻿using Content.Client._FinalStand.Perks;
+using Content.Client._FinalStand.Perks;
 using Content.Client.Lobby.UI;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
@@ -38,6 +38,17 @@ public sealed partial class LobbyUIController
     {
         HookLobbyButtons();
         PreviewPanel?.SetPerkPointsText(_FSPerkPoints);
+    }
+
+    // The wallet is only pushed on request, and the lobby panel may not exist yet when the reply
+    // lands. Re-ask on every lobby entry and re-apply what we already hold, so points earned last
+    // round show without needing a reconnect.
+    private void RefreshFinalStandLobby()
+    {
+        EntityManager.EntityNetManager?.SendSystemNetworkMessage(new WalletRequestEvent());
+        EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSLevelingRequestMessage());
+        UpdateFSPerkPoints();
+        UpdateFSLevelDisplay();
     }
 
     // new panel instance = new lobby entry, so re-wire buttons
