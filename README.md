@@ -9,13 +9,13 @@ Built on [Robust Toolbox](https://github.com/space-wizards/RobustToolbox), forke
 
 <div class="header" align="center">
 
-[Website](https://spacestation14.com/) | [Discord](https://discord.ss14.io/) | [Forum](https://forum.spacestation14.com/) | [Mastodon](https://mastodon.gamedev.place/@spacestation14) | [Patreon](https://www.patreon.com/spacestation14) | [Steam](https://store.steampowered.com/app/1255460/Space_Station_14/) | [Standalone Download](https://spacestation14.com/about/nightlies/)
+ | [Discord](https://discord.ss14.io/)  | [Patreon](https://www.patreon.com/spacestation14) |
 
 </div>
 
 ## Documentation/Wiki
 
-
+https://weeblymon.github.io/finalstand-wiki/Development/Dev%20Wiki/
 
 ## Contributing
 
