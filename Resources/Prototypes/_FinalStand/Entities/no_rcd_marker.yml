@@ -1,0 +1,14 @@
+# Invisible in game (MarkerBase), visible to mappers as a blue cross.
+# Anchor these on tiles that must stay open - the RCD can still floor them, but not wall them off.
+- type: entity
+  id: FSNoRCDBuildMarker
+  name: No-RCD-Build Marker
+  description: Blocks RCD object construction on this tile. Floor tiles are still allowed.
+  parent: MarkerBase
+  components:
+  - type: FSNoRCDBuild
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: blue
