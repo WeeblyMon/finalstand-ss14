@@ -36,6 +36,8 @@ public sealed class FSResearchNodeView
     public bool IsMyPersonalPick;
     public int Progress;
 
+    public int QueuePosition;
+
     // Includes yourself if IsMyPersonalPick.
     public int PersonalContributorCount;
 

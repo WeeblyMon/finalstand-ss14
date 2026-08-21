@@ -7,6 +7,7 @@ using Content.Client.Research;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Research.Components;
 using Content.Shared._FinalStand.Research.Prototypes;
+using Content.Shared._FinalStand.Research.Systems;
 using Content.Shared.Materials;
 using Content.Shared.Research.Components;
 using Content.Shared.Research.Prototypes;
@@ -26,6 +27,8 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 {
     public Action<string>? OnTechnologyCardPressed;
     public Action<string>? OnFsNodeSelected;
+    public Action<string>? OnFsNodeQueued;
+    public Action<string>? OnFsNodeDequeued;
     public Action? OnServerButtonPressed;
     public Action? OnClearPersonalPick;
     public Action? OnClearSharedPick;
@@ -107,6 +110,12 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             _selectedNode = null;
             ClearWarning();
             UpdateDetailPanel();
+        };
+
+        QueueResearchButton.OnPressed += _ =>
+        {
+            if (_selectedNode is { FsNode: not null } selected)
+                OnFsNodeQueued?.Invoke(selected.Id);
         };
 
         ClearPersonalPickButton.OnPressed += _ => OnClearPersonalPick?.Invoke();
@@ -295,6 +304,104 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         AuthorityWarningLabel.Text = "";
     }
 
+    private List<string> GetMyQueue()
+    {
+        if (_fsResearch.IsRdOrCaptain
+            && _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var console))
+            return console.SharedQueue.Select(n => n.Id).ToList();
+
+        return _fsResearch.MyPersonalQueue;
+    }
+
+    private void UpdateQueueButton(FSResearchNodeView node)
+    {
+        if (node.State is FSResearchNodeState.Unlocked or FSResearchNodeState.ExclusivelyBlocked)
+            return;
+
+        var isCurrentPick = _fsResearch.IsRdOrCaptain ? node.IsActiveResearch : node.IsMyPersonalPick;
+        if (isCurrentPick)
+            return;
+
+        QueueResearchButton.Visible = true;
+
+        var queue = GetMyQueue();
+        if (queue.Contains(node.Id))
+        {
+            QueueResearchButton.Text = "Queued";
+            QueueResearchButton.Disabled = true;
+        }
+        else if (queue.Count >= SharedFSResearchSystem.MaxQueueLength)
+        {
+            QueueResearchButton.Text = $"Queue Full ({SharedFSResearchSystem.MaxQueueLength})";
+            QueueResearchButton.Disabled = true;
+        }
+        else
+        {
+            QueueResearchButton.Text = "Add to Queue";
+            QueueResearchButton.Disabled = false;
+        }
+    }
+
+    private void RebuildQueueList()
+    {
+        QueueContainer.RemoveAllChildren();
+
+        var queue = GetMyQueue();
+        var isShared = _fsResearch.IsRdOrCaptain;
+
+        QueueHeaderLabel.Text = isShared
+            ? $"Shared Queue ({queue.Count}/{SharedFSResearchSystem.MaxQueueLength})"
+            : $"My Queue ({queue.Count}/{SharedFSResearchSystem.MaxQueueLength})";
+        QueueHeaderLabel.FontColorOverride = FSUiPalette.AccentBrand;
+
+        if (queue.Count == 0)
+        {
+            QueueContainer.AddChild(new Label
+            {
+                Text = "Empty",
+                FontColorOverride = FSUiPalette.TextMuted,
+            });
+            return;
+        }
+
+        for (var i = 0; i < queue.Count; i++)
+        {
+            var id = queue[i];
+            if (!_prototype.TryIndex<FSTechNodePrototype>(id, out var proto))
+                continue;
+
+            var row = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                HorizontalExpand = true,
+            };
+
+            row.AddChild(new Label
+            {
+                Text = $"{i + 1}.",
+                FontColorOverride = FSUiPalette.TextMuted,
+                MinWidth = 22,
+            });
+
+            row.AddChild(new Label
+            {
+                Text = proto.Name,
+                HorizontalExpand = true,
+                ClipText = true,
+            });
+
+            var remove = new Button
+            {
+                Text = "✕",
+                MinWidth = 28,
+            };
+            remove.OnPressed += _ => OnFsNodeDequeued?.Invoke(id);
+            row.AddChild(remove);
+
+            QueueContainer.AddChild(row);
+        }
+    }
+
     private void UpdateDetailPanel()
     {
         UpdateResearchAmountLabel();
@@ -307,7 +414,10 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         }
         ClearPersonalPickButton.Visible = false;
         ClearSharedPickButton.Visible = false;
+        QueueResearchButton.Visible = false;
         ResearchStatusLabel.Visible = false;
+
+        RebuildQueueList();
 
         EmptyStateContainer.Visible = _selectedNode == null;
 
@@ -359,6 +469,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
                 : $"{node.Progress}/{node.Cost}{contributorSuffix}";
 
             ClearPersonalPickButton.Visible = node.IsMyPersonalPick && node.State != FSResearchNodeState.Unlocked;
+            UpdateQueueButton(node);
 
             if (node.IsActiveResearch && node.State != FSResearchNodeState.Unlocked)
             {

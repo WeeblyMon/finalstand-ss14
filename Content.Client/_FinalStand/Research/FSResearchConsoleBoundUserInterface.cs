@@ -43,6 +43,16 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             SendMessage(new FSSelectResearchNodeMessage(id));
         };
 
+        _consoleMenu.OnFsNodeQueued += id =>
+        {
+            SendMessage(new FSEnqueueResearchNodeMessage(id));
+        };
+
+        _consoleMenu.OnFsNodeDequeued += id =>
+        {
+            SendMessage(new FSDequeueResearchNodeMessage(id));
+        };
+
         _consoleMenu.OnServerButtonPressed += () =>
         {
             SendMessage(new ConsoleServerSelectionMessage());

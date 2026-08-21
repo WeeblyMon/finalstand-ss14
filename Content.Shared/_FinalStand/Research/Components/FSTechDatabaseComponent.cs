@@ -22,6 +22,10 @@ public sealed partial class FSTechDatabaseComponent : Component
 
     [AutoNetworkedField]
     [DataField]
+    public List<ProtoId<FSTechNodePrototype>> SharedQueue = new();
+
+    [AutoNetworkedField]
+    [DataField]
     public int Points;
 
     // Per node, one stable color-slot index per contributor - lets the client render a ring per contributor without ever sending names.

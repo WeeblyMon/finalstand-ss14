@@ -10,6 +10,8 @@ public abstract partial class SharedFSResearchSystem : EntitySystem
 {
     [Dependency] protected IPrototypeManager PrototypeManager = default!;
 
+    public const int MaxQueueLength = 5;
+
     public bool ArePrerequisitesMet(FSTechNodePrototype node, Func<string, bool> isUnlocked)
     {
         return node.Prerequisites.All(isUnlocked) && node.PrerequisiteGroups.All(g => g.Any(isUnlocked));

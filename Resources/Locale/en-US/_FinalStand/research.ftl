@@ -9,3 +9,6 @@ shop-weapon-locked-research = This weapon hasn't been researched yet.
 shop-weapon-locked-department = Science personnel only.
 fs-science-only-use = Only Science personnel can use this.
 fs-research-disk-inserted = You insert the disk, adding {$points} research points to the station.
+fs-research-queued = Queued: {$name}
+fs-research-already-queued = Already queued.
+fs-research-queue-full = Queue is full ({$max} maximum).

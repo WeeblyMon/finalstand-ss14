@@ -430,6 +430,10 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
 
         bool IsUnlocked(string id) => vanillaUnlocked.Contains(id) || unlockedFs.Contains(id);
 
+        var myQueue = _fsResearch.IsRdOrCaptain
+            ? fsDatabase?.SharedQueue.Select(n => n.Id).ToList() ?? new List<string>()
+            : _fsResearch.MyPersonalQueue;
+
         foreach (var node in _nodes)
         {
             if (node.FsNode is not { } fsTech)
@@ -447,6 +451,7 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             node.Progress = fsDatabase?.NodeProgress.GetValueOrDefault(fsTech.ID) ?? 0;
             node.ContributorSlots = fsDatabase?.PersonalContributorSlots.GetValueOrDefault(fsTech.ID) ?? new List<int>();
             node.PersonalContributorCount = node.ContributorSlots.Count;
+            node.QueuePosition = myQueue.IndexOf(fsTech.ID) + 1;
         }
     }
 
@@ -819,6 +824,9 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             if (otherContributors > 0)
                 DrawContributorBadge(handle, center, iconRadius, otherContributors, opacity);
 
+            if (node.QueuePosition > 0)
+                DrawQueueBadge(handle, center, iconRadius, node.QueuePosition, opacity);
+
             DrawHSlicedRect(handle, _plateRingTexture, plateBox, color);
 
             var linePos = new Vector2(plateBox.Center.X - lineDims.X / 2, plateBox.Center.Y - lineDims.Y / 2);
@@ -865,6 +873,20 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         var dims = handle.GetDimensions(_font, text, 1);
         var textPos = badgeCenter - new Vector2(dims.X / 2, dims.Y / 2);
         handle.DrawString(_font, textPos, text, Fade(FSUiPalette.TextPrimary, opacity));
+    }
+
+    private void DrawQueueBadge(DrawingHandleScreen handle, Vector2 center, float iconRadius, int position, float opacity)
+    {
+        var badgeRadius = Math.Max(6f, iconRadius * 0.24f);
+        var badgeCenter = center + new Vector2(-iconRadius * 0.72f, -iconRadius * 0.72f);
+
+        handle.DrawCircle(badgeCenter, badgeRadius + 1.5f, Fade(FSUiPalette.BgDeep, opacity));
+        handle.DrawCircle(badgeCenter, badgeRadius, Fade(FSUiPalette.StatePending, opacity));
+
+        var text = position > 9 ? "9+" : position.ToString();
+        var dims = handle.GetDimensions(_font, text, 1);
+        var textPos = badgeCenter - new Vector2(dims.X / 2, dims.Y / 2);
+        handle.DrawString(_font, textPos, text, Fade(FSUiPalette.BgDeep, opacity));
     }
 
     private static readonly Color[] ContributorSlotPalette =

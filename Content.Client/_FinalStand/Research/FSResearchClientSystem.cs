@@ -16,6 +16,7 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
 
     public ProtoId<FSTechNodePrototype>? MyPersonalPickId { get; private set; }
     public int MyPersonalProgress { get; private set; }
+    public List<string> MyPersonalQueue { get; private set; } = new();
 
     public bool IsRdOrCaptain { get; private set; }
 
@@ -46,6 +47,7 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
     {
         MyPersonalPickId = ev.NodeId;
         MyPersonalProgress = ev.Progress;
+        MyPersonalQueue = ev.Queue;
         PersonalPickChanged?.Invoke();
     }
 

@@ -104,9 +104,16 @@
                            Visible="False"
                            Margin="0 6 0 0"/>
                     <Button Name="StartResearchButton" Text="Start Research" Margin="0 6 0 0"/>
+                    <Button Name="QueueResearchButton" Text="Add to Queue" Visible="False" Margin="0 6 0 0"/>
                     <Button Name="ClearPersonalPickButton" Text="Clear My Pick" Visible="False" Margin="0 6 0 0"/>
                     <Button Name="ClearSharedPickButton" Text="Clear Shared Pick" Visible="False" Margin="0 6 0 0"/>
                     <Button Name="CancelButton" Text="Cancel" Margin="0 6 0 0"/>
+                    <customControls:HSeparator StyleClasses="LowDivider" Margin="0 10 0 4"/>
+                    <Label Name="QueueHeaderLabel" Text="Research Queue"/>
+                    <BoxContainer Name="QueueContainer"
+                                  Orientation="Vertical"
+                                  HorizontalExpand="True"
+                                  Margin="0 4 0 0"/>
                 </BoxContainer>
             </PanelContainer>
         </BoxContainer>

@@ -11,6 +11,18 @@ public sealed class FSSelectResearchNodeMessage(string nodeId) : BoundUserInterf
     public readonly string NodeId = nodeId;
 }
 
+[Serializable, NetSerializable]
+public sealed class FSEnqueueResearchNodeMessage(string nodeId) : BoundUserInterfaceMessage
+{
+    public readonly string NodeId = nodeId;
+}
+
+[Serializable, NetSerializable]
+public sealed class FSDequeueResearchNodeMessage(string nodeId) : BoundUserInterfaceMessage
+{
+    public readonly string NodeId = nodeId;
+}
+
 // Sent by a console when a player backs out of their own personal research pick.
 [Serializable, NetSerializable]
 public sealed class FSClearPersonalResearchMessage : BoundUserInterfaceMessage;
@@ -40,12 +52,13 @@ public sealed class FSStationRpChangedEvent(int points) : EntityEventArgs
     public readonly int Points = points;
 }
 
-// Sent to a single player whenever their own personal research pick or its progress changes.
+// Sent to a single player whenever their own personal research pick, its progress, or their personal queue changes.
 [Serializable, NetSerializable]
-public sealed class FSPersonalResearchStateEvent(ProtoId<FSTechNodePrototype>? nodeId, int progress) : EntityEventArgs
+public sealed class FSPersonalResearchStateEvent(ProtoId<FSTechNodePrototype>? nodeId, int progress, List<string> queue) : EntityEventArgs
 {
     public readonly ProtoId<FSTechNodePrototype>? NodeId = nodeId;
     public readonly int Progress = progress;
+    public readonly List<string> Queue = queue;
 }
 
 // Sent to a player whether they currently have RD/Captain research authority (sets the shared pick).

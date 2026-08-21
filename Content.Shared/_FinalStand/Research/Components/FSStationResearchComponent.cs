@@ -24,6 +24,10 @@ public sealed partial class FSStationResearchComponent : Component
 
     [AutoNetworkedField]
     [DataField]
+    public List<ProtoId<FSTechNodePrototype>> SharedQueue = new();
+
+    [AutoNetworkedField]
+    [DataField]
     public int Points;
 
     [DataField]
@@ -31,6 +35,8 @@ public sealed partial class FSStationResearchComponent : Component
 
     // Server-only, never broadcast wholesale - each player learns only their own pick via FSPersonalResearchStateEvent.
     public Dictionary<EntityUid, ProtoId<FSTechNodePrototype>> PersonalPicks = new();
+
+    public Dictionary<EntityUid, List<ProtoId<FSTechNodePrototype>>> PersonalQueues = new();
 
     // Mind of whichever RD/Captain most recently set the shared pick - gives them a contributor ring on it too.
     public EntityUid? ActiveResearchSetBy;
