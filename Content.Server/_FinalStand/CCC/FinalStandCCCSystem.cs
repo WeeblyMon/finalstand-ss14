@@ -15,6 +15,7 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(0.5);
+    private static readonly TimeSpan RoundEndCountdown = TimeSpan.FromSeconds(30);
 
     private TimeSpan _nextBroadcast;
 
@@ -41,7 +42,7 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
     private void OnCCCDestroyed(EntityUid uid, FinalStandCCCComponent comp, DestructionEventArgs args)
     {
         Log.Info("[FinalStand] Central Command Console destroyed. Ending round.");
-        _roundEnd.EndRound();
+        _roundEnd.EndRound(RoundEndCountdown);
     }
 
     private void OnCCCDamaged(EntityUid uid, FinalStandCCCComponent comp, DamageChangedEvent args)
