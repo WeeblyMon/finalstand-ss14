@@ -434,6 +434,13 @@
     interactSuccessString: hugging-success-generic
     interactSuccessSound: /Audio/Effects/thudswoosh.ogg
     messagePerceivedByOthers: hugging-success-generic-others
+  - type: ExtinguishOnInteract
+    probability: 1
+    stackDelta: -2
+    extinguishAttemptSound:
+      path: /Audio/Items/candle_blowing.ogg
+  - type: UseDelay
+    delay: 1
   - type: CanHostGuardian
   - type: NpcFactionMember
     factions:

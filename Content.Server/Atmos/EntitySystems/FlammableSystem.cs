@@ -9,6 +9,7 @@ using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
+using Content.Shared.IdentityManagement;
 using Content.Shared.IgnitionSource;
 using Content.Shared.Interaction;
 using Content.Shared.Inventory;
@@ -27,6 +28,7 @@ using Robust.Server.Audio;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Player;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
@@ -77,6 +79,8 @@ namespace Content.Server.Atmos.EntitySystems
             SubscribeLocalEvent<IgniteOnMeleeHitComponent, MeleeHitEvent>(OnMeleeHit);
 
             SubscribeLocalEvent<ExtinguishOnInteractComponent, ActivateInWorldEvent>(OnExtinguishActivateInWorld);
+            SubscribeLocalEvent<ExtinguishOnInteractComponent, InteractHandEvent>(OnExtinguishInteractHand,
+                before: new[] { typeof(InteractionPopupSystem) });
 
             SubscribeLocalEvent<IgniteOnHeatDamageComponent, DamageChangedEvent>(OnDamageChanged);
         }
@@ -189,17 +193,45 @@ namespace Content.Server.Atmos.EntitySystems
             }
         }
 
+        private void OnExtinguishInteractHand(EntityUid uid, ExtinguishOnInteractComponent component, InteractHandEvent args)
+        {
+            if (args.Handled || args.User == uid)
+                return;
+
+            if (!TryComp(uid, out FlammableComponent? flammable) || !flammable.OnFire)
+                return;
+
+            args.Handled = true;
+
+            if (!TryComp(uid, out UseDelayComponent? useDelay) || !_useDelay.TryResetDelay((uid, useDelay), true))
+                return;
+
+            _audio.PlayPvs(component.ExtinguishAttemptSound, uid);
+            _popup.PopupEntity(
+                Loc.GetString("flammable-component-patting-fire-user", ("target", Identity.Entity(uid, EntityManager))),
+                args.User, args.User);
+            _popup.PopupEntity(
+                Loc.GetString("flammable-component-patting-fire-others",
+                    ("user", Identity.Entity(args.User, EntityManager)), ("target", Identity.Entity(uid, EntityManager))),
+                uid, Filter.PvsExcept(args.User, entityManager: EntityManager), true);
+
+            if (_random.Prob(component.Probability))
+            {
+                AdjustFireStacks(uid, component.StackDelta, flammable);
+            }
+            else
+            {
+                _popup.PopupEntity(Loc.GetString(component.ExtinguishFailed), uid);
+            }
+        }
+
         private void OnCollide(EntityUid uid, FlammableComponent flammable, ref StartCollideEvent args)
         {
             var otherUid = args.OtherEntity;
 
-            // Collisions cause events to get raised directed at both entities. We only want to handle this collision
-            // once, hence the uid check.
             if (otherUid.Id < uid.Id)
                 return;
 
-            // Normal hard collisions, though this isn't generally possible since most flammable things are mobs
-            // which don't collide with one another, shouldn't work here.
             if (args.OtherFixtureId != flammable.FlammableFixtureID && args.OurFixtureId != flammable.FlammableFixtureID)
                 return;
 
