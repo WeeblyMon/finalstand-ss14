@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Audio;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
@@ -96,6 +97,10 @@ public sealed partial class FSDevastatorSystem : EntitySystem
 
             var dirty = false;
             var newRatio = 1f - hpRatio;
+
+            if (TryComp<FSKnockbackResistComponent>(uid, out var resist))
+                resist.Multiplier = 1f - comp.MaxKnockbackResist * newRatio;
+
             if (MathF.Abs(newRatio - comp.BerserkRatio) > 0.01f)
             {
                 comp.BerserkRatio = newRatio;

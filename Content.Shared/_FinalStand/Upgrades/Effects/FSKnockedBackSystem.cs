@@ -33,6 +33,9 @@ public sealed class FSKnockedBackSystem : EntitySystem
         if (ent.Comp.LifeStage > ComponentLifeStage.Running)
             return;
 
+        if (TryComp<FSKnockbackResistComponent>(ent, out var resist) && !resist.LocksMovement)
+            return;
+
         args.Cancel();
     }
 }

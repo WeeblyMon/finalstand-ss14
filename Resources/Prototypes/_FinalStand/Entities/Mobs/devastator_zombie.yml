@@ -9,6 +9,7 @@
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/devastatorzombie.png
   - type: FSDevastator
+    maxKnockbackResist: 0.8
   - type: MobThresholds
     thresholds:
       0: Alive

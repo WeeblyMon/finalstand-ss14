@@ -70,6 +70,8 @@
     tags:
     - StunImmune
   - type: MovementIgnoreGravity
+  - type: FSKnockbackResist
+    locksMovement: false
   - type: Stamina
     baseCritThreshold: 100
     stunTime: 0.3
@@ -239,6 +241,8 @@
   components:
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
+  - type: FSKnockbackResist
+    multiplier: 0.01
   - type: MobThresholds
     thresholds:
       0: Alive

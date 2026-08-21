@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
@@ -56,22 +57,22 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
         var speed    = VelocityByLevel[idx] * forceMultiplier;
         var duration = DurationByLevel[idx];
 
+        if (TryComp<FSKnockbackResistComponent>(target, out var resist))
+            speed *= resist.Multiplier;
+
+        if (speed <= 0f || HasComp<FSKnockedBackComponent>(target))
+            return;
+
+        if (!TryComp<PhysicsComponent>(target, out var body))
+            return;
+
         var originPos = _transform.GetWorldPosition(origin);
         var targetPos = _transform.GetWorldPosition(target);
         var dir = targetPos - originPos;
         if (dir == Vector2.Zero)
             return;
 
-        var velocity = Vector2.Normalize(dir) * speed;
-
-        // Already knocked back: redirect only, don't extend the timer.
-        if (HasComp<FSKnockedBackComponent>(target))
-        {
-            _physics.SetLinearVelocity(target, velocity);
-            return;
-        }
-
-        _physics.SetLinearVelocity(target, velocity);
+        _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(dir) * speed, body: body);
 
         var comp = EnsureComp<FSKnockedBackComponent>(target);
         comp.EndTime = _timing.CurTime + duration;
