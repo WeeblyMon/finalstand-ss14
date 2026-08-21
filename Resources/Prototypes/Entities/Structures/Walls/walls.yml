@@ -9,6 +9,7 @@
     snap:
     - Wall
   components:
+  - type: Wall
   - type: Anchorable
     flags:
     - Anchorable
@@ -1489,6 +1490,7 @@
   id: WallInvisible
   name: invisible wall
   components:
+  - type: Wall
   - type: TimedDespawn
     lifetime: 15
   - type: Tag
@@ -1512,6 +1514,7 @@
   id: WallForce
   name: force wall
   components:
+  - type: Wall
   - type: TimedDespawn
     lifetime: 10
   - type: Tag
@@ -1688,6 +1691,7 @@
     snap:
     - Wall
   components:
+  - type: Wall
   - type: MeleeSound
     soundGroups:
       Brute:
