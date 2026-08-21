@@ -676,6 +676,8 @@
   - type: Gun
     minAngle: 24
     maxAngle: 45
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/L6/fire.ogg
   - type: GunWieldBonus
     minAngle: -20
     maxAngle: -25
