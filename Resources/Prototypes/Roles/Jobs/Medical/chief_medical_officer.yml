@@ -39,6 +39,7 @@
     id: CMOPDA
     ears: ClothingHeadsetCMO
     belt: ClothingBeltMedicalFilled # KS14
+    pocket1: FlashlightSeclite
   storage:
     back:
     - Flash

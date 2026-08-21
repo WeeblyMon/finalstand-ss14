@@ -21,6 +21,7 @@
   equipment:
     ears: ClothingHeadsetCargo
     pocket1: AppraisalTool
+    pocket2: FlashlightSeclite
   #storage:
     #back:
     #- Stuff

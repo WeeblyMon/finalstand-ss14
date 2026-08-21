@@ -22,6 +22,7 @@
     id: ParamedicPDA
     ears: ClothingHeadsetMedical
     belt: ClothingBeltMedicalEMTFilled # KS14
+    pocket1: FlashlightSeclite
 
 - type: chameleonOutfit
   id: ParamedicChameleonOutfit

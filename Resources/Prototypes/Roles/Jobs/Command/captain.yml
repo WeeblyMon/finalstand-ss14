@@ -41,6 +41,7 @@
     id: CaptainPDA
     ears: ClothingHeadsetAltCommand
     pocket1: WeaponEnergyMagnum
+    pocket2: FlashlightSeclite
   storage:
     back:
     - Flash

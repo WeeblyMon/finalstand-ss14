@@ -20,6 +20,7 @@
   equipment:
     id: ChemistryPDA
     ears: ClothingHeadsetMedical
+    pocket1: FlashlightSeclite
 
 - type: chameleonOutfit
   id: ChemistChameleonOutfit

@@ -32,6 +32,7 @@
   equipment:
     id: RnDPDA
     ears: ClothingHeadsetRD
+    pocket1: FlashlightSeclite
   storage:
     back:
     - Flash

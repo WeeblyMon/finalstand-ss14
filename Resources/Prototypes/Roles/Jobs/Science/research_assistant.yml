@@ -21,6 +21,7 @@
     shoes: ClothingShoesColorWhite
     id: ResearchAssistantPDA
     ears: ClothingHeadsetScience
+    pocket1: FlashlightSeclite
     pocket2: BookScientistsGuidebook
   #storage:
     #back:

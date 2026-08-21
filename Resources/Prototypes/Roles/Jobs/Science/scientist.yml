@@ -18,6 +18,7 @@
   id: ScientistGear
   equipment:
     ears: ClothingHeadsetScience
+    pocket1: FlashlightSeclite
   #storage:
     #back:
     #- Stuff

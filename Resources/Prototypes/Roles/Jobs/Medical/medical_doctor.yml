@@ -25,6 +25,7 @@
   equipment:
     ears: ClothingHeadsetMedical
     belt: ClothingBeltMedicalFilled # KS14
+    pocket1: FlashlightSeclite
 
 - type: chameleonOutfit
   id: MedicalDoctorChameleonOutfit

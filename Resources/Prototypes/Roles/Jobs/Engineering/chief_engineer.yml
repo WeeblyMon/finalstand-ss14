@@ -39,6 +39,7 @@
     eyes: ClothingEyesGlassesMeson
     ears: ClothingHeadsetCE
     belt: ClothingBeltUtilityEngineering
+    pocket1: FlashlightSeclite
   storage:
     back:
     - Flash
