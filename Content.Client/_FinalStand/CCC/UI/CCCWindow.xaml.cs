@@ -97,11 +97,9 @@ public sealed partial class CCCWindow : FancyWindow
         RebuildZombieIcons(state.NextWaveEnemyTypes);
     }
 
-    private const int IconsPerRow = 5;
-
-    private const float IconRowBudget = 332f;
+    private const int IconsPerRow = 4;
     private const float IconGap = 4f;
-    private const float MaxIconSize = 64f;
+    private const float IconSize = 64f;
 
     private void RebuildZombieIcons(List<string> types)
     {
@@ -124,9 +122,6 @@ public sealed partial class CCCWindow : FancyWindow
         var cache = _cache;
         var anyAdded = false;
         BoxContainer? row = null;
-
-        var perRow = Math.Min(types.Count, IconsPerRow);
-        var iconSize = (int) Math.Min(MaxIconSize, IconRowBudget / perRow - IconGap);
 
         foreach (var protoId in types)
         {
@@ -152,8 +147,8 @@ public sealed partial class CCCWindow : FancyWindow
             row.AddChild(new TextureRect
             {
                 Texture = texRes.Texture,
-                SetWidth = iconSize,
-                SetHeight = iconSize,
+                SetWidth = IconSize,
+                SetHeight = IconSize,
                 Stretch = TextureRect.StretchMode.KeepAspectCentered,
                 ToolTip = displayName,
                 Margin = new Thickness(0, 0, IconGap, 0),
