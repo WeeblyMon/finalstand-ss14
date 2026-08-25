@@ -70,3 +70,17 @@
     sprite: Markers/cross.rsi
     layers:
     - state: pink
+
+- type: entity
+  id: FSRevenantSpawner
+  name: Revenant Spawner
+  description: Revenant flank entry point. Unlocks wave 15.
+  parent: MarkerBase
+  components:
+  - type: FSRevenantSpawner
+    fromWave: 15
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: ai

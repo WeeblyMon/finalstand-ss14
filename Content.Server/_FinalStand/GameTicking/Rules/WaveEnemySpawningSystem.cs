@@ -4,6 +4,12 @@ using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.WaveHud;
+using Content.Shared.Ghost;
+using Content.Shared.Ghost.Components;
+using Content.Shared.Mobs;
+using Content.Shared.FixedPoint;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -22,9 +28,14 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
     private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
+    private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
+
+    private const int MaxAliveRevenants = 1;
+    private const int DarkWaveRevenantHealth = 999999999;
 
     private readonly List<EntityUid> _spawnerBuffer = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
@@ -88,6 +99,12 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
     public void SpawnNextBatch(EntityUid uid, WaveGameRuleComponent comp)
     {
+        if (comp.IsDarkWave)
+        {
+            SpawnDarkWaveBatch(comp);
+            return;
+        }
+
         if (comp.SpawnerEntities.Count == 0)
         {
             SelectSpawners(comp);
@@ -122,6 +139,13 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             }
 
             var proto = SelectEnemyProto(comp, pool);
+
+            if (proto == RevenantProto && CountAliveRevenants() >= MaxAliveRevenants)
+                proto = _random.Pick(pool);
+
+            if (TryGetRevenantSpawn(proto, comp.WaveNumber, out var flank))
+                coords = flank;
+
             var enemy = SpawnWaveEnemy(proto, coords, comp);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -130,6 +154,58 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         var intervalSec = comp.MinSpawnInterval + _random.NextFloat() * (comp.MaxSpawnInterval - comp.MinSpawnInterval);
         comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(intervalSec);
         PushEnemyCount(comp);
+    }
+
+    private int CountAliveRevenants()
+    {
+        var count = 0;
+        var query = EntityQueryEnumerator<FSRevenantComponent, MobStateComponent>();
+        while (query.MoveNext(out _, out _, out var mobState))
+        {
+            if (mobState.CurrentState != MobState.Dead)
+                count++;
+        }
+
+        return count;
+    }
+
+    private bool TryGetRevenantSpawn(EntProtoId proto, int waveNumber, out EntityCoordinates coords)
+    {
+        coords = default;
+
+        if (proto != RevenantProto)
+            return false;
+
+        _spawnerBuffer.Clear();
+        var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
+        while (query.MoveNext(out var uid, out var spawner))
+        {
+            if (waveNumber >= spawner.FromWave)
+                _spawnerBuffer.Add(uid);
+        }
+
+        if (_spawnerBuffer.Count == 0)
+            return false;
+
+        var chosen = _random.Pick(_spawnerBuffer);
+        coords = Transform(chosen).Coordinates;
+
+        if (!TryComp<FSRevenantSpawnerComponent>(chosen, out var chosenComp) || chosenComp.SpawnRadius <= 0f)
+            return true;
+
+        for (var attempt = 0; attempt < 8; attempt++)
+        {
+            var angle = _random.NextFloat() * MathF.Tau;
+            var radius = MathF.Sqrt(_random.NextFloat()) * chosenComp.SpawnRadius;
+            var candidate = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
+            if (IsSpawnClear(candidate))
+            {
+                coords = candidate;
+                break;
+            }
+        }
+
+        return true;
     }
 
     // Shared by the boss spawn and the regular batch spawn so the two paths can't drift apart.
@@ -181,6 +257,77 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 return special.EnemyId;
         }
         return _random.Pick(pool);
+    }
+
+    private const string DarkWaveEnemyProto = "FSZombieRevenant";
+    private const float DarkWaveSpawnRadiusMin = 4f;
+    private const float DarkWaveSpawnRadiusMax = 8f;
+
+    private readonly List<EntityCoordinates> _darkWavePlayerBuffer = new();
+
+    private void SpawnDarkWaveBatch(WaveGameRuleComponent comp)
+    {
+        if (comp.AliveEnemies.Count >= comp.MaxEnemyCap)
+        {
+            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
+            PushEnemyCount(comp);
+            return;
+        }
+
+        _darkWavePlayerBuffer.Clear();
+        var playerQuery = EntityQueryEnumerator<ActorComponent, MobStateComponent>();
+        while (playerQuery.MoveNext(out var playerUid, out _, out var ms))
+        {
+            if (HasComp<WaveSpawnedTagComponent>(playerUid)) continue;
+            if (HasComp<GhostComponent>(playerUid)) continue;
+            if (ms.CurrentState != MobState.Alive) continue;
+            _darkWavePlayerBuffer.Add(Transform(playerUid).Coordinates);
+        }
+
+        if (_darkWavePlayerBuffer.Count == 0)
+        {
+            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
+            return;
+        }
+
+        var cap = MaxAliveRevenants;
+        if (comp.AliveEnemies.Count >= cap)
+        {
+            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
+            PushEnemyCount(comp);
+            return;
+        }
+
+        for (var i = 0; i < comp.SpawnBatchSize; i++)
+        {
+            if (comp.AliveEnemies.Count >= cap) break;
+
+            var playerCoords = _darkWavePlayerBuffer[_random.Next(_darkWavePlayerBuffer.Count)];
+            var spawnCoords = FindSpawnNearPlayer(playerCoords);
+            if (spawnCoords == null) continue;
+
+            var enemy = SpawnWaveEnemy(DarkWaveEnemyProto, spawnCoords.Value, comp);
+            _thresholds.SetMobStateThreshold(enemy, FixedPoint2.New(DarkWaveRevenantHealth), MobState.Dead);
+            comp.AliveEnemies.Add(enemy);
+            comp.EnemiesSpawnedThisWave++;
+        }
+
+        comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
+        PushEnemyCount(comp);
+    }
+
+    private EntityCoordinates? FindSpawnNearPlayer(EntityCoordinates playerCoords)
+    {
+        for (var attempt = 0; attempt < 12; attempt++)
+        {
+            var angle = _random.NextFloat() * MathF.Tau;
+            var radius = DarkWaveSpawnRadiusMin + _random.NextFloat() * (DarkWaveSpawnRadiusMax - DarkWaveSpawnRadiusMin);
+            var offset = new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius);
+            var candidate = playerCoords.Offset(offset);
+            if (IsSpawnClear(candidate))
+                return candidate;
+        }
+        return null;
     }
 
     public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)
