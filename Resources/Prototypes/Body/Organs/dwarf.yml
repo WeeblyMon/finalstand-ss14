@@ -49,5 +49,4 @@
   - type: Stomach
   - type: Metabolizer
     # mm very yummy
-    maxPoisonsProcessable: 5
     metabolizerTypes: [Dwarf]

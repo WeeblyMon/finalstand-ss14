@@ -32,7 +32,6 @@
         - !type:OrganType # Shitmed - Cybernetic Organs
           type: Cybernetic
           shouldHave: false
-        scaleByQuantity: true
         ignoreResistances: true
         damage:
           types:
@@ -134,7 +133,6 @@
         - !type:OrganType # Shitmed - Cybernetic Organs
           type: Cybernetic
           shouldHave: false
-        scaleByQuantity: true
         ignoreResistances: true
         damage:
           types:
@@ -229,7 +227,6 @@
         - !type:ReagentThreshold
           reagent: Healium
           max: 24
-        scaleByQuantity: true
         ignoreResistances: true
         damage:
           groups:
@@ -284,7 +281,6 @@
         - !type:ReagentThreshold
           reagent: Healium
           max: 24
-        scaleByQuantity: true
         ignoreResistances: true
         damage:
           groups:
@@ -488,7 +484,6 @@
         conditions:
         - !type:OrganType
           type: Vox
-        scaleByQuantity: true
         ignoreResistances: true
         damage:
           types:

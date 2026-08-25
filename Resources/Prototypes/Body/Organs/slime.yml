@@ -46,10 +46,8 @@
         Damaged: 27
         Destroyed: 0
     - type: Metabolizer
-      maxPoisonsProcessable: 2 # Shitmed
       metabolizerTypes: [ Slime ]
       stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-      removeEmpty: true
       groups:
         - id: Food
         - id: Drink
@@ -92,17 +90,16 @@
       - state: lung-l-slime
       - state: lung-r-slime
   - type: Organ # Shitmed
+  - type: OrganIntegrity
     intCap: 21 #
     integrity: 21
     integrityThresholds:
       Normal: 21
       Damaged: 14
       Destroyed: 0
-    slotId: lungs
   - type: Lung
     alert: LowNitrogen
   - type: Metabolizer
-    removeEmpty: true
     solutionOnBody: false
     solution: "Lung"
     metabolizerTypes: [ Slime ]

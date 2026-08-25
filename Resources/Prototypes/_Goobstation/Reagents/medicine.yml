@@ -774,7 +774,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false
         ignoreBlockers: false
         damage:
@@ -839,7 +838,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false
         ignoreBlockers: false
         damage:
@@ -894,7 +892,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false
         ignoreBlockers: false
         damage: #1/4th of the brute healing of Styptic Powder and 1/4th the burn healing of Silver Sulfide, so 1/2 of the overall healing of either chem
@@ -938,7 +935,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false # theoretically allows for degenerate behaviour, in practice should be unlikely; also low healing amount
         ignoreBlockers: false
         damage:
@@ -1224,7 +1220,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false
         damage:
           types:
@@ -1281,7 +1276,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         ignoreResistances: false
         damage:
           types:

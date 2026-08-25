@@ -90,7 +90,6 @@
       Destroyed: 0
   - type: Lung
   - type: Metabolizer
-    removeEmpty: true
     solutionOnBody: false
     solution: "Lung"
     metabolizerTypes: [ Animal ]
@@ -141,7 +140,6 @@
           Quantity: 5
   - type: Stomach
   - type: Metabolizer
-    maxPoisonsProcessable: 3
     metabolizerTypes: [ Animal ]
     stages: [ Food, Drink, Digestion ]
     groups:
@@ -187,7 +185,6 @@
       Damaged: 8
       Destroyed: 0
   - type: Metabolizer
-    maxPoisonsProcessable: 1
     metabolizerTypes: [ Animal ]
     stages: [ Alcohol, Metabolites ]
     groups:
@@ -220,7 +217,6 @@
       Damaged: 6
       Destroyed: 0
   - type: Metabolizer
-    maxPoisonsProcessable: 2
     metabolizerTypes: [ Animal ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
     groups:
@@ -256,10 +252,8 @@
       Damaged: 8
       Destroyed: 0
   - type: Metabolizer
-    maxPoisonsProcessable: 5
     metabolizerTypes: [ Animal ]
     stages: [ Metabolites ]
-    removeEmpty: true
   - type: Tag # goob edit
     tags:
     - Meat

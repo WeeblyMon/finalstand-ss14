@@ -36,10 +36,8 @@
         - ReagentId: UncookedAnimalProteins
           Quantity: 5
   - type: Metabolizer
-    maxPoisonsProcessable: 3
     metabolizerTypes: [ Moth ]
     stages: [ Food, Drink, Digestion ]
-    removeEmpty: true
     groups:
       - id: Food
       - id: Drink
