@@ -1,7 +1,8 @@
 <DefaultWindow
     xmlns="https://spacestation14.io"
     Title="Armor Vendor"
-    MinWidth="760" MinHeight="540">
+    MinWidth="880" MinHeight="720"
+    SetSize="880 720">
 
     <BoxContainer Orientation="Vertical" Margin="10">
 
@@ -16,7 +17,7 @@
 
         <BoxContainer Orientation="Horizontal" VerticalExpand="True">
 
-            <PanelContainer StyleClasses="FSCard" MinWidth="286" Margin="0 0 8 0">
+            <PanelContainer StyleClasses="FSCard" MinWidth="360" Margin="0 0 8 0">
                 <BoxContainer Orientation="Vertical" Margin="10">
                     <Label Text="SELECT ARMOR" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
                     <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
