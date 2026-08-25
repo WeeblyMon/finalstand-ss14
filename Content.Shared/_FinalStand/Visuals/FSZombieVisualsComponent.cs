@@ -16,4 +16,10 @@ public sealed partial class FSZombieVisualsComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool SimpleSpriteMode;
+
+    [DataField, AutoNetworkedField]
+    public string? DamagedState = null;
+
+    [DataField, AutoNetworkedField]
+    public float SingleStageAt = -1f;
 }

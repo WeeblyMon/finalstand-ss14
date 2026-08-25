@@ -61,3 +61,19 @@
   params:
     glow_color: "#990000D9"
     glow_intensity: 2.5
+
+- type: shader
+  id: FSRevenantGlow
+  kind: source
+  path: "/Textures/Shaders/shop_glow.swsl"
+  params:
+    glow_color: "#6600CCCC"
+    glow_intensity: 0.4
+
+- type: shader
+  id: FSRevenantMarkGlow
+  kind: source
+  path: "/Textures/Shaders/shop_glow.swsl"
+  params:
+    glow_color: "#8800FF55"
+    glow_intensity: 0.18

@@ -33,14 +33,16 @@ public sealed partial class FSZombieVisualsSystem : EntitySystem
         var currentDamage = _damageable.GetTotalDamage((uid, args.Damageable)).Float();
         var healthPercent = 1f - currentDamage / deathThreshold;
 
-        var newStage = healthPercent switch
-        {
-            >= 0.8f => 0,
-            >= 0.6f => 1,
-            >= 0.4f => 2,
-            >= 0.2f => 3,
-            _       => 4,
-        };
+        var newStage = comp.SingleStageAt >= 0f
+            ? (healthPercent > comp.SingleStageAt ? 0 : 1)
+            : healthPercent switch
+            {
+                >= 0.8f => 0,
+                >= 0.6f => 1,
+                >= 0.4f => 2,
+                >= 0.2f => 3,
+                _       => 4,
+            };
 
         var changed = false;
 

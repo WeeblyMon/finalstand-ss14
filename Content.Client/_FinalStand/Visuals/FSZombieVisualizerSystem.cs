@@ -117,6 +117,10 @@ public sealed partial class FSZombieVisualizerSystem : EntitySystem
             else
                 state = "base";
         }
+        else if (comp.DamagedState != null)
+        {
+            state = isDead ? "dead" : (comp.DamageStage > 0 ? comp.DamagedState : "base");
+        }
         else if (isDead)
         {
             state = comp.DeathAlt switch
