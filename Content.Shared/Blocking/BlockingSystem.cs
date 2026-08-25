@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Content.Shared._FinalStand.RiotShield;
 using Content.Shared.Actions;
 using Content.Shared.Blocking.Components;
 using Content.Shared.Damage;
@@ -281,6 +282,10 @@ public sealed partial class BlockingSystem : EntitySystem
             return false;
 
         if (!_toggle.IsActivated(entity.Owner))
+            return false;
+
+        // FINALSTAND: a shield that spent its durability cannot be raised until it is repaired.
+        if (TryComp<FSRiotShieldComponent>(entity.Owner, out var fsShield) && fsShield.IsBroken)
             return false;
 
         return true;
