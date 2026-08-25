@@ -123,7 +123,7 @@
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/runner.png
   - type: Sprite
     drawdepth: Mobs
-    sprite: _FinalStand/Mobs/Zombies/runner.rsi/sprinter_zombie.rsi
+    sprite: _FinalStand/Mobs/Zombies/runner/sprinter_zombie.rsi
     layers:
     - map: ["enum.DamageStateVisualLayers.Base"]
       state: base
@@ -149,7 +149,7 @@
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
   - type: Sprite
     drawdepth: Mobs
-    sprite: _FinalStand/Mobs/Zombies/armoured.rsi/armored_zombie_1.rsi
+    sprite: _FinalStand/Mobs/Zombies/armoured/armored_zombie_1.rsi
     layers:
     - map: ["enum.DamageStateVisualLayers.Base"]
       state: base
