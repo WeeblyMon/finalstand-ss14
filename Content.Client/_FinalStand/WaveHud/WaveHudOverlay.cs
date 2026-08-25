@@ -86,6 +86,9 @@ public sealed partial class WaveHudOverlay : Overlay
     public float PrepSecondsRemaining = -1f;
     public bool IsPrepPhase = false;
 
+    public bool IsDarkWave = false;
+    public float DarkWaveSecondsRemaining;
+
     public FSBonusCategory GunDamage;
     public FSBonusCategory FireRate;
     public FSBonusCategory MeleeDamage;
@@ -230,7 +233,7 @@ public sealed partial class WaveHudOverlay : Overlay
         totalH += sepH + rowH;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
         totalH += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
-        if (EnemiesTotal > 0) totalH += sepH + rowH;
+        if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
         var layoutRaw = _cfg.GetCVar(CCVars.UILayout);
@@ -370,8 +373,16 @@ public sealed partial class WaveHudOverlay : Overlay
         }
         y += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
 
-        if (EnemiesTotal > 0)
+        if (IsDarkWave)
+        {
+            var secs = Math.Max(0f, DarkWaveSecondsRemaining);
+            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
+            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"));
+        }
+        else if (EnemiesTotal > 0)
+        {
             y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
+        }
 
         y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);

@@ -29,8 +29,34 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
         SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
         SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
+        SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
+        SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
+    }
+
+    private void OnDarkWaveStarted(FSDarkWaveStartedEvent ev)
+    {
+        var overlay = EnsureOverlay();
+        overlay.IsDarkWave = true;
+        overlay.DarkWaveSecondsRemaining = ev.DurationSeconds;
+    }
+
+    private void OnDarkWaveEnded(FSDarkWaveEndedEvent ev)
+    {
+        var overlay = EnsureOverlay();
+        overlay.IsDarkWave = false;
+        overlay.DarkWaveSecondsRemaining = 0f;
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        if (_overlay is not { IsDarkWave: true } overlay)
+            return;
+
+        overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
     }
 
     public override void Shutdown()
