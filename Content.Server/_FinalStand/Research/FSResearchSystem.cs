@@ -26,14 +26,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private SharedMaterialStorageSystem _materials = default!;
     [Dependency] private AccessReaderSystem _accessReader = default!;
+    [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
-    private const string ScienceDepartment = "Science";
 
     private EntityUid? _station;
 
@@ -264,13 +263,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return tags.Contains(ResearchDirectorAccess) || tags.Contains(CaptainAccess);
     }
 
-    private bool IsScienceDepartment(EntityUid player)
-    {
-        return _mind.TryGetMind(player, out var mindId, out _) &&
-               _jobs.MindTryGetJob(mindId, out var job) &&
-               _jobs.TryGetPrimaryDepartment(job.ID, out var dept) &&
-               dept.ID == ScienceDepartment;
-    }
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
@@ -284,7 +276,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var station = GetOrCreateStation();
 
         var isRdOrCaptain = IsRdOrCaptain(player);
-        if (!isRdOrCaptain && !IsScienceDepartment(player))
+        if (!isRdOrCaptain && !_scienceOnly.IsScience(player))
         {
             // Two locale keys joined with a real newline - Fluent multiline placeables don't parse here.
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
@@ -369,7 +361,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var station = GetOrCreateStation();
 
         var isRdOrCaptain = IsRdOrCaptain(player);
-        if (!isRdOrCaptain && !IsScienceDepartment(player))
+        if (!isRdOrCaptain && !_scienceOnly.IsScience(player))
         {
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
             RaiseNetworkEvent(new FSResearchAuthorityDeniedEvent(reason), Filter.Entities(player));
