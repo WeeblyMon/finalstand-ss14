@@ -86,11 +86,13 @@ public sealed partial class FSArmorShopSystem : EntitySystem
 
     private bool ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)
     {
-        if (_inventory.TryGetSlotEntity(mob, "outerClothing", out var existing)
-            && _tags.HasTag(existing.Value, ArmorTierItemTag))
+        if (_inventory.TryGetSlotEntity(mob, "outerClothing", out var existing))
         {
-            _inventory.TryUnequip(mob, "outerClothing", silent: true, force: true);
-            Del(existing.Value);
+            if (!_inventory.TryUnequip(mob, "outerClothing", silent: true, force: true))
+                return false;
+
+            if (_tags.HasTag(existing.Value, ArmorTierItemTag))
+                Del(existing.Value);
         }
 
         var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
