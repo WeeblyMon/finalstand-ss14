@@ -936,8 +936,7 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
+  # FINALSTAND: medical vendors are open to everyone; the crew has no medics.
 
 - type: entity
   parent: VendingMachine
@@ -1645,8 +1644,7 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
+  # FINALSTAND: medical vendors are open to everyone; the crew has no medics.
 
 - type: entity
   parent: VendingMachine
@@ -1939,8 +1937,7 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
+  # FINALSTAND: medical vendors are open to everyone; the crew has no medics.
   - type: AmbientMusicMarkerMedical
 
 - type: entity
@@ -1965,8 +1962,7 @@
       shader: unshaded
     - state: panel
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
+  # FINALSTAND: medical vendors are open to everyone; the crew has no medics.
   - type: AmbientMusicMarkerMedical
 
 - type: entity
@@ -2183,5 +2179,4 @@
       shader: unshaded
     - texture: Structures/Machines/VendingMachines/maintenance_panel.png
       map: ["enum.WiresVisualLayers.MaintenancePanel"]
-  - type: AccessReader
-    access: [["Medical"]]
+  # FINALSTAND: medical vendors are open to everyone; the crew has no medics.
