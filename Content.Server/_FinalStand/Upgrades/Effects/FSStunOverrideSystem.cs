@@ -27,11 +27,11 @@ public sealed partial class FSStunOverrideSystem : EntitySystem
         }
     }
 
-    public bool TryForceStun(EntityUid target, TimeSpan duration)
+    public bool TryForceStun(EntityUid target, TimeSpan duration, bool visualized = false)
     {
         var hadImmunity = _tags.RemoveTag(target, StunImmuneTag);
 
-        var stunApplied = _stun.TryUpdateStunDuration(target, duration);
+        var stunApplied = _stun.TryUpdateStunDuration(target, duration, visualized);
         var kdApplied = _stun.TryKnockdown(target, duration, refresh: true, autoStand: true, drop: false, force: true);
 
         if (hadImmunity)
