@@ -24,6 +24,9 @@
     - enemyId: FSZombieDevastator
       fromWave: 13
       spawnChance: 0.01
+    - enemyId: FSZombieRevenant
+      fromWave: 15
+      spawnChance: 0.03
     prepDuration: 300
     maxCombatDuration: 1800
     factionDisplay: "Undead detected"
