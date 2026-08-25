@@ -14,6 +14,9 @@ public sealed partial class PowerChargeComponent : SharedPowerChargeComponent
     [DataField]
     public float ChargeRate { get; set; } = 0.01f;
 
+    [DataField]
+    public float DischargeRate { get; set; } = -1f;
+
     /// <summary>
     /// Baseline power that this machine consumes.
     /// </summary>
