@@ -62,19 +62,6 @@
   vanillaTechnologyId: BluespaceChemistry
 
 - type: fsTechNode
-  id: FSMedicalAutodoc
-  name: Autodoc
-  icon:
-    sprite: _Shitmed/Structures/Machines/autodoc.rsi
-    state: idle
-  branch: Medical
-  tier: 3
-  cost: 4500
-  prerequisites:
-  - FSMedicalBasicCybernetics
-  vanillaTechnologyId: Autodoc
-
-- type: fsTechNode
   id: FSMedicalBasicAugmentation
   name: Basic Augmentation
   icon:
@@ -97,7 +84,7 @@
   tier: 4
   cost: 6000
   prerequisites:
-  - FSMedicalAutodoc
+  - FSMedicalBasicCybernetics
   vanillaTechnologyId: AdvancedCybernetics
 
 - type: fsTechNode
