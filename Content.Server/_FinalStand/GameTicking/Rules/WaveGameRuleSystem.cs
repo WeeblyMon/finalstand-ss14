@@ -3,12 +3,15 @@ using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
+using Content.Server._FinalStand.Mobs;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.CCC;
+using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.WaveHud;
+using Content.Shared.Light.Components;
 using Content.Shared.GameTicking.Components;
 using System.Linq;
 using Content.Shared.Mind;
@@ -16,6 +19,13 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
+using Content.Server.Light.EntitySystems;
+using Content.Server.Power.Components;
+using Content.Server.Power.EntitySystems;
+using Content.Shared.Doors.Components;
+using Content.Shared.Power.EntitySystems;
+using Robust.Server.GameObjects;
+using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Console;
 using Robust.Shared.Physics;
@@ -29,6 +39,7 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComponent>
 {
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private FSCorpseCleanupSystem _corpseCleaner = default!;
@@ -38,8 +49,17 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private WaveEnemySpawningSystem _spawning = default!;
+    [Dependency] private PoweredLightSystem _poweredLight = default!;
+    [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
+    [Dependency] private ApcSystem _apc = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
+
+    private const float DefaultFlickerMin = 0.7f;
+    private const float DefaultFlickerMax = 2.2f;
+    private const float FlickerFraction = 0.85f;
+    private const float FlickerOffDuration = 0.22f;
+    private const float BlackoutEnforceInterval = 1f;
 
     public override void Initialize()
     {
@@ -49,6 +69,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
         SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<FSRevenantExecutedEvent>(OnRevenantExecuted);
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
@@ -62,6 +83,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         GameRuleComponent gameRule, float frameTime)
     {
         var now = Timing.CurTime;
+        TickDarkWaveOmen(comp, frameTime);
+        TickBlackoutEnforcement(comp, frameTime);
+        TickLightFlicker(comp, frameTime);
+
         switch (comp.Phase)
         {
             case WavePhase.Prep:
@@ -166,6 +191,37 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
+        comp.IsDarkWaveUpcoming = false;
+        comp.LightFlickerAccum = 0f;
+        comp.LightFlickerIntervalMin = DefaultFlickerMin;
+        comp.LightFlickerIntervalMax = DefaultFlickerMax;
+
+        comp.DarkWaveWarningAccum = 0f;
+        comp.DarkWaveWarningFired = false;
+
+        if (comp.ForceDarkWave)
+        {
+            comp.ForceDarkWave = false;
+            comp.IsDarkWaveUpcoming = true;
+            comp.DarkWaveChance = 0f;
+            Log.Info($"[WaveGameRule] Dark Wave forced for wave {comp.WaveNumber}.");
+        }
+        else if (comp.WaveNumber == comp.GuaranteedDarkWave)
+        {
+            comp.IsDarkWaveUpcoming = true;
+            comp.DarkWaveChance = 0f;
+            Log.Info($"[WaveGameRule] Dark Wave guaranteed for wave {comp.WaveNumber}.");
+        }
+        else if (comp.WaveNumber > 5 && !IsBossWave(comp.WaveNumber))
+        {
+            comp.DarkWaveChance = Math.Min(comp.DarkWaveChance + comp.DarkWaveChanceIncrement, comp.DarkWaveMaxChance);
+            if (RobustRandom.NextFloat() < comp.DarkWaveChance)
+            {
+                comp.IsDarkWaveUpcoming = true;
+                comp.DarkWaveChance = 0f;
+                Log.Info($"[WaveGameRule] Dark Wave selected for wave {comp.WaveNumber}.");
+            }
+        }
 
         // Pre-select spawners for the upcoming wave so the CCC UI can show them during prep.
         _spawning.SelectSpawners(comp);
@@ -229,6 +285,30 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
         comp.NextSpawnTime = Timing.CurTime;
 
+        if (comp.ForceDarkWave)
+        {
+            comp.ForceDarkWave = false;
+            comp.DarkWaveChance = 0f;
+            comp.IsDarkWaveUpcoming = true;
+            Log.Info($"[WaveGameRule] Dark Wave forced directly into combat for wave {comp.WaveNumber}.");
+        }
+
+        if (comp.IsDarkWaveUpcoming)
+        {
+            comp.IsDarkWave = true;
+            comp.IsDarkWaveUpcoming = false;
+            comp.SavedMaxEnemyCap = comp.MaxEnemyCap;
+            comp.MaxEnemyCap = comp.DarkWaveEnemyCap;
+            comp.EnemyTotalThisWave = int.MaxValue;
+            comp.NextSpawnTime = Timing.CurTime + TimeSpan.FromSeconds(5);
+            comp.PhaseEndTime = Timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveDuration);
+            BlackoutStation(comp);
+            DepowerAllDoors(comp);
+            StartDarkWaveAmbience(comp);
+            RaiseNetworkEvent(new FSDarkWaveStartedEvent(comp.DarkWaveDuration), Filter.Broadcast());
+            Log.Info($"[WaveGameRule] Dark Wave started for wave {comp.WaveNumber}. Cap={comp.DarkWaveEnemyCap}, duration={comp.DarkWaveDuration}s.");
+        }
+
         var pool = WaveEnemySpawningSystem.GetDirectorPool(comp);
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
@@ -237,8 +317,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
         comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
         RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
-        if (comp.WaveStartSound != null)
-            _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
+        var startSound = comp.IsDarkWave ? comp.DarkWaveStartSound : comp.WaveStartSound;
+        if (startSound != null)
+            _audio.PlayGlobal(startSound, Filter.Broadcast(), true);
         RaiseLocalEvent(new WaveCombatStartedEvent());
     }
 
@@ -248,6 +329,16 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         foreach (var enemy in comp.AliveEnemies)
             QueueDel(enemy);
         comp.AliveEnemies.Clear();
+
+        if (comp.IsDarkWave)
+        {
+            comp.IsDarkWave = false;
+            comp.MaxEnemyCap = comp.SavedMaxEnemyCap;
+            RestoreStation(comp);
+            RepowerDoors(comp);
+            StopDarkWaveAmbience(comp);
+            RaiseNetworkEvent(new FSDarkWaveEndedEvent(), Filter.Broadcast());
+        }
 
         if (!isForced)
         {
@@ -313,6 +404,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
     {
+        if (comp.IsDarkWave)
+            return;
         if (comp.EnemiesSpawnedThisWave >= comp.EnemyTotalThisWave && comp.AliveEnemies.Count == 0)
             EndCombatPhase(uid, comp);
     }
@@ -492,6 +585,218 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         if (comp.AccumulatedSurvivalBonus > 0)
             _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
+    }
+
+    private void BlackoutStation(WaveGameRuleComponent comp)
+    {
+        comp.CutApcs.Clear();
+
+        var query = EntityQueryEnumerator<ApcComponent, PowerNetworkBatteryComponent>();
+        while (query.MoveNext(out var uid, out var apc, out var battery))
+        {
+            if (!apc.MainBreakerEnabled)
+                continue;
+
+            _apc.ApcToggleBreaker(uid, apc, battery);
+            comp.CutApcs.Add(uid);
+        }
+    }
+
+    private void RestoreStation(WaveGameRuleComponent comp)
+    {
+        foreach (var uid in comp.CutApcs)
+        {
+            if (TryComp<ApcComponent>(uid, out var apc) && !apc.MainBreakerEnabled)
+                _apc.ApcToggleBreaker(uid, apc);
+        }
+
+        comp.CutApcs.Clear();
+    }
+
+    private void DepowerAllDoors(WaveGameRuleComponent comp)
+    {
+        comp.DepoweredDoors.Clear();
+
+        var query = EntityQueryEnumerator<DoorComponent, ApcPowerReceiverComponent>();
+        while (query.MoveNext(out var uid, out _, out var receiver))
+        {
+            if (receiver.PowerDisabled)
+                continue;
+
+            _powerReceiver.SetPowerDisabled(uid, true, receiver);
+            comp.DepoweredDoors.Add(uid);
+        }
+    }
+
+    private void RepowerDoors(WaveGameRuleComponent comp)
+    {
+        foreach (var uid in comp.DepoweredDoors)
+        {
+            if (TryComp<ApcPowerReceiverComponent>(uid, out var receiver))
+                _powerReceiver.SetPowerDisabled(uid, false, receiver);
+        }
+
+        comp.DepoweredDoors.Clear();
+    }
+
+    private void StartDarkWaveAmbience(WaveGameRuleComponent comp)
+    {
+        if (comp.DarkWaveAmbienceSound == null)
+            return;
+
+        StopDarkWaveAmbience(comp);
+
+        var stream = _audio.PlayGlobal(comp.DarkWaveAmbienceSound, Filter.Broadcast(), true,
+            AudioParams.Default.WithLoop(true));
+
+        comp.DarkWaveAmbienceStream = stream?.Entity;
+    }
+
+    private void StopDarkWaveAmbience(WaveGameRuleComponent comp)
+    {
+        if (comp.DarkWaveAmbienceStream is { } stream)
+            _audio.Stop(stream);
+
+        comp.DarkWaveAmbienceStream = null;
+    }
+
+    private void AnnounceDarkWave()
+    {
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-dark-wave-warning"), Color.FromHex("#8800FF"));
+    }
+
+    private void TickDarkWaveOmen(WaveGameRuleComponent comp, float frameTime)
+    {
+        if (comp.Phase != WavePhase.Prep || !comp.IsDarkWaveUpcoming || comp.DarkWaveWarningFired)
+            return;
+
+        comp.DarkWaveWarningAccum += frameTime;
+        if (comp.DarkWaveWarningAccum < comp.DarkWaveWarningDelay)
+            return;
+
+        comp.DarkWaveWarningFired = true;
+
+        RaiseNetworkEvent(new FSDarkWaveWarningEvent(), Filter.Broadcast());
+        AnnounceDarkWave();
+
+        if (comp.DarkWaveWarningSound != null)
+            _audio.PlayGlobal(comp.DarkWaveWarningSound, Filter.Broadcast(), true);
+    }
+
+    private void TickLightFlicker(WaveGameRuleComponent comp, float frameTime)
+    {
+        if (comp.LightsFlickeredOff)
+        {
+            comp.LightFlickerRestoreAccum += frameTime;
+            if (comp.LightFlickerRestoreAccum >= FlickerOffDuration)
+            {
+                comp.LightsFlickeredOff = false;
+                RestoreFlickeredLights(comp);
+            }
+            return;
+        }
+
+        if (comp.Phase != WavePhase.Prep || !comp.IsDarkWaveUpcoming || !comp.DarkWaveWarningFired)
+            return;
+
+        comp.LightFlickerAccum += frameTime;
+        if (comp.LightFlickerAccum < comp.LightFlickerInterval)
+            return;
+
+        comp.LightFlickerAccum = 0f;
+        comp.LightFlickerInterval = comp.LightFlickerIntervalMin
+            + RobustRandom.NextFloat() * (comp.LightFlickerIntervalMax - comp.LightFlickerIntervalMin);
+        FlickerLights(comp);
+    }
+
+    private void OnRevenantExecuted(ref FSRevenantExecutedEvent args)
+    {
+        FlickerAllLightsOnce();
+    }
+
+    private void TickBlackoutEnforcement(WaveGameRuleComponent comp, float frameTime)
+    {
+        if (!comp.IsDarkWave || comp.CutApcs.Count == 0)
+            return;
+
+        comp.BlackoutEnforceAccum += frameTime;
+        if (comp.BlackoutEnforceAccum < BlackoutEnforceInterval)
+            return;
+        comp.BlackoutEnforceAccum = 0f;
+
+        foreach (var uid in comp.CutApcs)
+        {
+            if (TryComp<ApcComponent>(uid, out var apc) && apc.MainBreakerEnabled
+                && TryComp<PowerNetworkBatteryComponent>(uid, out var battery))
+                _apc.ApcToggleBreaker(uid, apc, battery);
+        }
+    }
+
+    public bool IsDarkWaveActive()
+        => TryGetActiveRule(out _, out var comp, out _) && comp.IsDarkWave;
+
+    public void FlickerAllLightsOnce()
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.LightsFlickeredOff)
+            return;
+
+        FlickerLights(comp);
+    }
+
+    private void FlickerLights(WaveGameRuleComponent comp)
+    {
+        comp.FlickeredLights.Clear();
+
+        var query = EntityQueryEnumerator<PoweredLightComponent>();
+        while (query.MoveNext(out var uid, out var light))
+        {
+            if (!light.On || RobustRandom.NextFloat() >= FlickerFraction)
+                continue;
+
+            _poweredLight.SetState(uid, false, light);
+            comp.FlickeredLights.Add(uid);
+        }
+
+        comp.LightsFlickeredOff = true;
+        comp.LightFlickerRestoreAccum = 0f;
+    }
+
+    private void RestoreFlickeredLights(WaveGameRuleComponent comp)
+    {
+        foreach (var uid in comp.FlickeredLights)
+        {
+            if (TryComp<PoweredLightComponent>(uid, out var light))
+                _poweredLight.SetState(uid, true, light);
+        }
+
+        comp.FlickeredLights.Clear();
+    }
+
+    public void ForceDarkWave(IConsoleShell shell)
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _))
+        {
+            shell.WriteError("WaveGameRule is not active.");
+            return;
+        }
+        comp.ForceDarkWave = true;
+
+        if (comp.Phase == WavePhase.Prep)
+        {
+            comp.ForceDarkWave = false;
+            comp.IsDarkWaveUpcoming = true;
+            comp.LightFlickerAccum = 0f;
+
+            comp.DarkWaveWarningAccum = comp.DarkWaveWarningDelay;
+            comp.DarkWaveWarningFired = false;
+
+            shell.WriteLine("Dark Wave armed for this prep — warning and flicker start now. " +
+                            "Prep runs its normal length; use forcenextwave to start it early.");
+            return;
+        }
+
+        shell.WriteLine("Dark Wave forced — arms at the next prep phase.");
     }
 
     // Returns the active prep-phase component so FSReadyUpSystem can read PrepDuration + TotalPlayers.
