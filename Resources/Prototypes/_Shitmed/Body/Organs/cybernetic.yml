@@ -130,7 +130,6 @@
     - type: StaminaModifier
       modifier: 1.35
   - type: Metabolizer
-    maxPoisonsProcessable: 2
     metabolizerTypes: [ Cybernetic ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
     groups:
@@ -169,7 +168,6 @@
     - type: StaminaModifier
       modifier: 1.7
   - type: Metabolizer
-    maxPoisonsProcessable: 2
     metabolizerTypes: [ Cybernetic ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
     groups:
@@ -203,7 +201,6 @@
     size: Small
     heldPrefix: liver
   - type: Metabolizer
-    maxPoisonsProcessable: 1
     metabolizerTypes: [ Cybernetic ]
     stages: [ Alcohol, Metabolites ]
     groups:
@@ -239,7 +236,6 @@
     heldPrefix: lungs
   - type: Lung
   - type: Metabolizer
-    removeEmpty: true
     solutionOnBody: false
     solution: "Lung"
     metabolizerTypes: [ Cybernetic ]

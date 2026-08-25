@@ -10,6 +10,7 @@ using Content.Shared.Mobs.Systems;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
+using Content.Shared._FinalStand.Mobs;
 using static Robust.Shared.Maths.Color;
 
 namespace Content.Client._FinalStand.DamageNumbers;
@@ -61,6 +62,7 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             // Reveals never expire, so reject on position before summing damage.
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId) continue;
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
+            if (_entManager.HasComponent<FSNoHealthBarComponent>(uid)) continue;
 
             var bounds = _spriteSystem.GetLocalBounds((uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);

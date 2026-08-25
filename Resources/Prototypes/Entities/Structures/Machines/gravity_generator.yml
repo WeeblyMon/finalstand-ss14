@@ -55,6 +55,8 @@
     windowTitle: gravity-generator-window-title
     idlePower: 50
     activePower: 2500
+    chargeRate: 1.0
+    dischargeRate: 0.01
   - type: GravityGenerator
     lightRadiusMin: 0.75
     lightRadiusMax: 2.5
@@ -128,6 +130,8 @@
   - type: PowerCharge
     idlePower: 15
     activePower: 500
+    chargeRate: 1.0
+    dischargeRate: 0.01
   - type: GravityGenerator
     lightRadiusMin: 0.75
     lightRadiusMax: 2.5

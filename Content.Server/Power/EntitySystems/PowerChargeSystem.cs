@@ -124,12 +124,12 @@ public sealed partial class PowerChargeSystem : EntitySystem
                     var receiving = powerReceiver.PowerReceived;
                     var mainSystemPower = Math.Max(0, receiving - chargingMachine.IdlePowerUse);
                     var ratio = 1 - mainSystemPower / (chargingMachine.ActivePowerUse - chargingMachine.IdlePowerUse);
-                    chargeRate = -(ratio * chargingMachine.ChargeRate);
+                    chargeRate = -(ratio * GetDischargeRate(chargingMachine));
                 }
             }
             else
             {
-                chargeRate = -chargingMachine.ChargeRate;
+                chargeRate = -GetDischargeRate(chargingMachine);
             }
 
             var active = chargingMachine.Active;
@@ -231,7 +231,6 @@ public sealed partial class PowerChargeSystem : EntitySystem
         _appearance.SetData(uid, PowerChargeVisuals.Charge, machine.Charge, appearance);
         _appearance.SetData(uid, PowerChargeVisuals.Active, machine.Active);
 
-
         if (!machine.Intact)
         {
             MakeBroken((uid, machine), appearance);
@@ -277,6 +276,9 @@ public sealed partial class PowerChargeSystem : EntitySystem
 
         _appearance.SetData(ent, PowerChargeVisuals.State, PowerChargeStatus.On, appearance);
     }
+
+    private static float GetDischargeRate(PowerChargeComponent comp)
+        => comp.DischargeRate < 0f ? comp.ChargeRate : comp.DischargeRate;
 }
 
 [ByRefEvent] public record struct ChargedMachineActivatedEvent;

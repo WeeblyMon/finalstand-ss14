@@ -24,10 +24,8 @@
         Destroyed: 0
     - type: Stomach
     - type: Metabolizer
-      maxPoisonsProcessable: 3
       metabolizerTypes: [ Slime ]
       stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-      removeEmpty: true
       groups:
         - id: Food
         - id: Drink
@@ -52,10 +50,8 @@
         stomach:
           maxVol: 50.0 # 2.5u added per sec when slime latched, 20 sec metabolize time, 2.5 * 20 = 50u
     - type: Metabolizer
-      maxPoisonsProcessable: 3
       metabolizerTypes: [ Slime, XenobioSlime ]
       stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-      removeEmpty: true
       groups:
         - id: Food
         - id: Drink
@@ -87,7 +83,6 @@
     - type: Lung
       alert: LowNitrogen
     - type: Metabolizer
-      removeEmpty: true
       solutionOnBody: false
       solution: "Lung"
       metabolizerTypes: [ Slime ]

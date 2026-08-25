@@ -1,0 +1,66 @@
+- type: entity
+  id: FSZombieRevenant
+  parent: FSZombieFootsoldierBase
+  suffix: Revenant
+  name: revenant zombie
+  components:
+  - type: FSRevenant
+  - type: FSNoHealthBar
+  - type: HTN
+    rootTask:
+      task: FSRevenantEnemyCompound
+    planCooldown: 1.0
+    blackboard:
+      NavPry: !type:Bool
+        false
+      NavSmash: !type:Bool
+        false
+      NavInteract: !type:Bool
+        false
+  # Phases: collides with nothing, but keeps MobLayer so bullets and melee still land on it.
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.25
+        density: 235
+        mask: []
+        layer:
+        - MobLayer
+  - type: FSRevenantPhasing
+  - type: MeleeWeapon
+    altDisarm: false
+    angle: 0
+    animation: WeaponArcClaw
+    soundHit:
+      path: /Audio/Weapons/slash.ogg
+    damage:
+      types: {}
+  - type: FSEnemyIcon
+    iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/revenanticon.png
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      300: Dead
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 7.5
+    baseSprintSpeed: 9.6
+  - type: Sprite
+    drawdepth: Mobs
+    sprite: _FinalStand/Mobs/Zombies/Revenant/revenant_zombie.rsi
+    layers:
+    - map: ["enum.DamageStateVisualLayers.Base"]
+      state: base
+  - type: FSZombieVisuals
+    simpleSpriteMode: false
+    damagedState: damaged
+    singleStageAt: 0.10
+  - type: FSEnemyValue
+    killCredits: 550
+  - type: FSMoneyOnHitCap
+    maxMoneyPerPlayer: 1100
+  - type: FSDeathLoot
+    drops:
+    - proto: FSResearchDisk
+      chance: 0.0008

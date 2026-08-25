@@ -38,6 +38,7 @@
     damageContainer: Biological
     damageModifierSet: Gingerbread
   - type: Temperature
+  - type: TemperatureDamage
     coldDamage:
       types:
         Cold: 0.0 #per second, scales with temperature & other constants
@@ -69,7 +70,6 @@
       methods: [ Touch ]
       effects:
       - !type:HealthChange
-        scaleByQuantity: true
         damage:
           types:
             Heat: 0.3

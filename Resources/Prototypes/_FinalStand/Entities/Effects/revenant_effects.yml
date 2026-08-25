@@ -1,0 +1,184 @@
+- type: entity
+  id: FSRevenantDeathEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_death.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: death
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 1.26
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantKillEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_kill.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: kill
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 2.46
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantMarkEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_mark.rsi
+    drawdepth: Effects
+    noRot: true
+    offset: 0, 0.7
+    scale: 0.5, 0.5
+    layers:
+    - state: mark
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 2.06
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantGrabEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_grab.rsi
+    drawdepth: Effects
+    layers:
+    - state: grab
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 1.26
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantBindEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_bind.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: bind
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 1.26
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantSliceVEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_slice_v.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: slice
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 0.86
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantSliceDEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_slice_d.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: slice
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 0.86
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantHitEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_hit.rsi
+    drawdepth: Effects
+    noRot: true
+    layers:
+    - state: hit
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 0.54
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantScytheEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_scythe.rsi
+    drawdepth: Effects
+    layers:
+    - state: scythe
+      shader: unshaded
+  - type: TimedDespawn
+    lifetime: 1.02
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  id: FSRevenantBoltProjectile
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSRevenantBolt
+    damage: 15.15
+  - type: Sprite
+    sprite: _FinalStand/Effects/Revenant/revenant_bolt.rsi
+    drawdepth: Effects
+    # 72px frame is centred on the entity; shift the art forward so the beam is drawn ahead of
+    # the spawn point instead of trailing a tile behind it.
+    offset: 1.125, 0
+    layers:
+    - state: bolt
+      shader: unshaded
+  - type: Physics
+    bodyType: Dynamic
+    canCollide: true
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape: !type:PhysShapeCircle
+          radius: 0.1
+        density: 10
+        mask:
+        - Impassable
+  - type: TimedDespawn
+    lifetime: 1.26
+  - type: Tag
+    tags:
+    - HideContextMenu

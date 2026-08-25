@@ -85,7 +85,6 @@
   description: "The central hub of a diona's pseudo-neurological activity, its root-like tendrils search for its former body."
   components:
   - type: MindContainer
-    showExamineInfo: true
   - type: Speech
     enabled: false
   - type: TypingIndicator
@@ -98,13 +97,13 @@
   - type: Sprite
     state: brain
   - type: Organ # Shitmed
+  - type: OrganIntegrity
     intCap: 28
     integrity: 28
     integrityThresholds:
       Normal: 28
       Damaged: 16
       Destroyed: 0
-    slotId: brain
   - type: Brain # Shitmed
   - type: SolutionContainerManager
     solutions:
@@ -143,13 +142,13 @@
       - state: eyeball-l
       - state: eyeball-r
   - type: Organ # Shitmed
+  - type: OrganIntegrity
     intCap: 17 # dionas will have better eyes. :fort:
     integrity: 17
     integrityThresholds:
       Normal: 17
       Damaged: 8
       Destroyed: 0
-    slotId: eyes
   - type: Tag # goob edit
     tags:
     - Meat
@@ -174,19 +173,17 @@
         - ReagentId: UncookedAnimalProteins
           Quantity: 5
   - type: Organ # Shitmed
+  - type: OrganIntegrity
     intCap: 35
     integrity: 35
     integrityThresholds:
       Normal: 35
       Damaged: 19
       Destroyed: 0
-    slotId: stomach
   - type: Stomach
   - type: Metabolizer
-    maxPoisonsProcessable: 6
     metabolizerTypes: [ Plant ]
     stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-    removeEmpty: true
     groups:
       - id: Food
       - id: Drink
@@ -213,19 +210,18 @@
   - type: Sprite
     state: lungs
   - type: Organ # Shitmed
+  - type: OrganIntegrity
     intCap: 21
     integrity: 21
     integrityThresholds:
       Normal: 21
       Damaged: 12
       Destroyed: 0
-    slotId: lungs
   - type: Item
     size: Small
     heldPrefix: lungs
   - type: Lung
   - type: Metabolizer
-    removeEmpty: true
     solutionOnBody: false
     solution: "Lung"
     metabolizerTypes: [ Plant ]

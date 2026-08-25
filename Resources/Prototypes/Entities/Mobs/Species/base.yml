@@ -427,7 +427,6 @@
   - type: Crawler
   - type: Dna
   - type: MindContainer
-    showExamineInfo: true
   - type: CanEnterCryostorage
   - type: InteractionPopup
     successChance: 1
@@ -528,10 +527,11 @@
   - type: Blindable
   # Other
   - type: Temperature
+    temperature: 310.15
+    specificHeat: 42
+  - type: TemperatureDamage
     heatDamageThreshold: 325
     coldDamageThreshold: 260
-    currentTemperature: 310.15
-    specificHeat: 42
     coldDamage:
       types:
         Cold: 0.1 #per second, scales with temperature & other constants
