@@ -13,6 +13,7 @@
     doAfterDelay: 2
   - type: Damageable
     damageModifierSet: RGlass
+  - type: FSWaveDamageOnly
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: RCDDeconstructable
@@ -68,6 +69,7 @@
       sprite: Structures/Windows/cracks_directional.rsi
   - type: Damageable
     damageModifierSet: RGlass
+  - type: FSWaveDamageOnly
   - type: RCDDeconstructable
     cost: 4
     delay: 4

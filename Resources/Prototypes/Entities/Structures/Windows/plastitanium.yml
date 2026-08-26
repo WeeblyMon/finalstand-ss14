@@ -116,6 +116,7 @@
     doAfterDelay: 3
   - type: Damageable
     damageModifierSet: RGlass
+  - type: FSWaveDamageOnly
   - type: Injurable
     damageContainer: StructuralInorganic
 
@@ -206,5 +207,6 @@
     doAfterDelay: 3
   - type: Damageable
     damageModifierSet: RGlass
+  - type: FSWaveDamageOnly
   - type: Injurable
     damageContainer: StructuralInorganic
