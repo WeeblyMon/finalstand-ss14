@@ -497,7 +497,7 @@
     thresholds:
       30: Dead
   - type: Damageable
-    damageModifierSet: Inorganic
+    damageModifierSet: Metallic
   - type: Destructible
     thresholds:
     - trigger:

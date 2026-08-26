@@ -153,8 +153,6 @@
     proto: CartridgeMagnum
     soundInsert:
       path: /Audio/Weapons/Guns/MagIn/revolver_magin.ogg
-    soundEject:
-      path: /Audio/Weapons/Guns/MagOut/revolver_magout.ogg
   - type: StaticPrice
     price: 500
   - type: Crit
