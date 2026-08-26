@@ -729,6 +729,25 @@
   - type: Crit
     baseCritChance: 0.05
 
+# Dual energy blades override — doubled active damage (12/12 → 24/24 Slash/Heat) and attack rate (1.5 → 3).
+- type: entity
+  id: FSEnergySwordDouble
+  parent: EnergySwordDouble
+  suffix: FinalStand
+  components:
+  - type: ItemToggleMeleeWeapon
+    activatedDamage:
+        types:
+            Slash: 24
+            Heat: 24
+  - type: MeleeWeapon
+    wideAnimationRotation: -135
+    attackRate: 3
+    angle: 100
+    damage:
+      types:
+        Blunt: 4.5
+
 # ── FS launcher ammo — use FS explosion types to block struct/player damage ────
 - type: entity
   parent: GrenadeFrag

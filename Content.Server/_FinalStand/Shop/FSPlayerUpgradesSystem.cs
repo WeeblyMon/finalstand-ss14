@@ -55,7 +55,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         FSWeaponUpgradeStateComponent oldState, float attackSpeedBonus)
     {
         var coords = Transform(player).Coordinates;
-        var newSword = Spawn("EnergySwordDouble", coords);
+        var newSword = Spawn("FSEnergySwordDouble", coords);
 
         var newState = EnsureComp<FSWeaponUpgradeStateComponent>(newSword);
         CopyUpgradeState(oldState, newState);

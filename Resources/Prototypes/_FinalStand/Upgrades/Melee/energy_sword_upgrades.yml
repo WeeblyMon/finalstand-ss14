@@ -1,5 +1,5 @@
 # ── Energy Sword Shop ────────────────────────────────────────────────────────
-# Endgame melee. Plasma blade. Dual-wield upgrade swaps the held EnergySword for an EnergySwordDouble in place,
+# Endgame melee. Plasma blade. Dual-wield upgrade swaps the held EnergySword for an FSEnergySwordDouble in place,
 # copying the upgrade state across (handled in FSPlayerUpgradesSystem.DualWieldEnergySword case).
 
 - type: entity
@@ -11,9 +11,11 @@
   - type: FSShopWeapon
     weaponProtoId: EnergySword
     # FS: after the Dual Wield upgrade the player's EnergySword is replaced with an
-    # EnergySwordDouble — accept it as an alias so the shop can keep upgrading the
+    # FSEnergySwordDouble — accept it (and the old vanilla EnergySwordDouble, for anyone
+    # who transformed before this alias existed) so the shop can keep upgrading the
     # post-transform weapon (the state already lives on the new entity).
     weaponProtoIdAliases:
+    - FSEnergySwordDouble
     - EnergySwordDouble
     price: 25000
     category: Melee Energy
