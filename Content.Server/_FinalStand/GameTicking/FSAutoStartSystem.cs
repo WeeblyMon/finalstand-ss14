@@ -25,6 +25,10 @@ public sealed partial class FSAutoStartSystem : EntitySystem
         if (ev.New != GameRunLevel.PreRoundLobby)
             return;
 
+        // Integration tests own the map and lobby cvars; forcing ours here fights the harness.
+        if (!_cfg.GetCVar(CCVars.FSAutoStart))
+            return;
+
         if (!_ticker.TryFindGamePreset("finalstand", out var preset))
         {
             Log.Error("[FSAutoStart] FinalStand preset not found — auto-start skipped.");
