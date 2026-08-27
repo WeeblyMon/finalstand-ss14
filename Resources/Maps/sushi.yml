@@ -18790,7 +18790,7 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: 86.5,99.5
-- proto: Bloodpack1
+- proto: Bloodpack
   entities:
   - uid: 1079
     components:
