@@ -81,3 +81,17 @@
   toolName: tool-quality-shearing-tool-name
   spawn: Wirecutter
   icon: { sprite: Objects/Tools/wirecutters.rsi, state: cutters-map }
+
+- type: tool
+  id: Hammering
+  name: tool-quality-hammering-name
+  toolName: tool-quality-hammering-tool-name
+  spawn: Wrench
+  icon: { sprite: Objects/Tools/wrench.rsi, state: icon }
+
+- type: tool
+  id: Axing
+  name: tool-quality-axing-name
+  toolName: tool-quality-axing-tool-name
+  spawn: Welder
+  icon: { sprite: Objects/Tools/welder.rsi, state: icon }
