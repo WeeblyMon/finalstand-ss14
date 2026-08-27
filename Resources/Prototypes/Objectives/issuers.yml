@@ -29,3 +29,11 @@
 - type: objectiveIssuer
   id: Thief
   name: objective-issuer-thief
+
+- type: objectiveIssuer
+  id: Voices
+  name: objective-issuer-voices
+
+- type: objectiveIssuer
+  id: Abductors
+  name: objective-issuer-abductors

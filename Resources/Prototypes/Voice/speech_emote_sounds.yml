@@ -802,10 +802,6 @@
       collection: MothDeathGasp
     Flap: # Goobstation - Add flap to moths.
       path: /Audio/_Goobstation/Voice/Moth/moth_flap.ogg
-    Gulp: # Goob
-      path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
     RobotBeep:
       collection: RobotBeeps
     Yawn:
@@ -822,8 +818,6 @@
       collection: MaleSneezes
     Cough:
       collection: MaleCoughs
-    Belch: # Frontier
-      collection: Belch # Frontier
 
 - type: emoteSounds
   id: FemaleMoth
@@ -854,10 +848,6 @@
       collection: MothDeathGasp
     Flap: # Goobstation - Add flap to moths.
       path: /Audio/_Goobstation/Voice/Moth/moth_flap.ogg
-    Gulp: # Goob
-      path: /Audio/_Goobstation/Voice/gulpexotic.ogg
-    Surprised: # Goob
-      path: /Audio/_Goobstation/Voice/surprised.ogg
     RobotBeep:
       collection: RobotBeeps
     Yawn:
@@ -874,5 +864,3 @@
       collection: FemaleSneezes
     Cough:
       collection: FemaleCoughs
-    Belch: # Frontier
-      collection: Belch # Frontier

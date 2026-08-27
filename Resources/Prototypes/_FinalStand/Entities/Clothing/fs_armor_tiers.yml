@@ -19,7 +19,6 @@
         Heat: 0.80
         Caustic: 0.70
         Shock: 0.80
-        Explosion: 0.40
   - type: ClothingSpeedModifier
     walkModifier: 0.75
     sprintModifier: 0.75
@@ -51,7 +50,6 @@
         Radiation: 0.50
         Caustic: 0.50
         Shock: 0.70
-        Explosion: 0.45
   - type: StaminaResistance
     damageCoefficient: 0.60
   - type: ClothingSpeedModifier
@@ -85,7 +83,6 @@
         Radiation: 0.35
         Caustic: 0.40
         Shock: 0.60
-        Explosion: 0.35
   - type: StaminaResistance
     damageCoefficient: 0.50
   - type: ClothingSpeedModifier
@@ -119,7 +116,6 @@
         Radiation: 0.25
         Caustic: 0.30
         Shock: 0.50
-        Explosion: 0.25
   - type: StaminaResistance
     damageCoefficient: 0.50
   - type: ClothingSpeedModifier
@@ -153,7 +149,6 @@
         Radiation: 0.25
         Caustic: 0.25
         Shock: 0.40
-        Explosion: 0.15
   - type: StaminaResistance
     damageCoefficient: 0.25
   - type: ClothingSpeedModifier
@@ -187,7 +182,6 @@
         Radiation: 0.15
         Caustic: 0.15
         Shock: 0.30
-        Explosion: 0.10
   - type: StaminaResistance
     damageCoefficient: 0.15
   - type: ClothingSpeedModifier

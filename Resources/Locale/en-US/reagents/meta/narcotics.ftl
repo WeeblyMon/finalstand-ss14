@@ -71,3 +71,6 @@ reagent-desc-nitrosyl-plasmide = A powerful stimulant that can prevent drowsines
 
 reagent-name-hydroxysomnolene = hydroxysomnolene
 reagent-desc-hydroxysomnolene = A sluggish sedative that slows the body and brings on drowsiness. Strawberry ice suppresses its effects.
+
+reagent-name-strawberry-ice = strawberry ice
+reagent-desc-strawberry-ice = A sweet pink narcotic. Counteracts the sedative effects of hydroxysomnolene.

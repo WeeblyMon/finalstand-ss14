@@ -458,9 +458,9 @@
 
 - type: reagent
   id: StrawberryIce
-  name: reagent-name-StrawberryIce
+  name: reagent-name-strawberry-ice
   group: Narcotics
-  desc: reagent-desc-StrawberryIce
+  desc: reagent-desc-strawberry-ice
   physicalDesc: reagent-physical-desc-fizzy
   flavor: fizzy
   color: "#FF36AE"

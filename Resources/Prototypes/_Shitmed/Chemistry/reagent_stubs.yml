@@ -9,7 +9,7 @@
   desc: reagent-desc-aluite
   flavor: bitter
   color: '#CCCCCC'
-  physicalDesc: reagent-physical-desc-solution
+  physicalDesc: reagent-physical-desc-cloudy
 
 - type: reagent
   id: Sarin
@@ -17,5 +17,5 @@
   desc: reagent-desc-sarin
   flavor: bitter
   color: '#99FF99'
-  physicalDesc: reagent-physical-desc-solution
+  physicalDesc: reagent-physical-desc-cloudy
   worksOnTheDead: true
