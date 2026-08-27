@@ -72,3 +72,12 @@
 
 - type: Tag
   id: Tongue
+
+- type: Tag
+  id: BotanyHoe
+
+- type: Tag
+  id: Debug
+
+- type: Tag
+  id: PlantSampleTaker

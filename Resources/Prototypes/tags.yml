@@ -1526,6 +1526,9 @@
 ## W ##
 
 - type: Tag
+  id: Wall # Marks solid walls, used by construction and entity whitelists.
+
+- type: Tag
   id: WallmountGeneratorAPUElectronics # ConstructionGraph: WallmountGenerator
 
 - type: Tag
