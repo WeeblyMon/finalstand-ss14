@@ -26,14 +26,8 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<RCDComponent, ComponentStartup>(OnRCDStartup);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, AfterInteractEvent>(OnAfterInteract,
             before: [typeof(RCDSystem)]);
-    }
-
-    private void OnRCDStartup(EntityUid uid, RCDComponent comp, ComponentStartup args)
-    {
-        EnsureComp<FSEngineerOnlyRCDComponent>(uid);
     }
 
     private void OnAfterInteract(EntityUid uid, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)
