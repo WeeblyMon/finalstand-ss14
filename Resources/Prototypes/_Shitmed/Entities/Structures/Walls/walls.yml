@@ -35,8 +35,9 @@
   - type: Icon
     sprite: _Shitmed/Structures/Walls/abductor_diagonal.rsi
     state: state0
-  - type: Damageable
+  - type: Injurable
     damageContainer: StructuralInorganic
+  - type: Damageable
     damageModifierSet: StructuralMetallic
   - type: Physics
     bodyType: Static
@@ -74,8 +75,9 @@
   suffix: Reinforced, Exterior
   description: Keeps the air in and the bloodthirsty salvagers out.
   components:
-  - type: Damageable
+  - type: Injurable
     damageContainer: StructuralInorganic
+  - type: Damageable
     damageModifierSet: StructuralMetallicStrong
   - type: StaticPrice
     price: 250

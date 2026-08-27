@@ -34,8 +34,9 @@
   - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Gingerbread
   - type: Temperature
   - type: TemperatureDamage

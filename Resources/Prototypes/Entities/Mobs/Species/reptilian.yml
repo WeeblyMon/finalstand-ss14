@@ -181,8 +181,9 @@
     - Draconic
   - type: BodyEmotes
     soundsId: ReptilianBodyEmotes
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Scale
   - type: MeleeWeapon
     soundHit:

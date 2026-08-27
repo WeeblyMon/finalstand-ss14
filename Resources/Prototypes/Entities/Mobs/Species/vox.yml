@@ -163,8 +163,9 @@
     spawned:
     - id: FoodMeatChicken
       amount: 5
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Vox
   - type: PassiveDamage
     # Augment normal health regen to be able to tank some Poison damage

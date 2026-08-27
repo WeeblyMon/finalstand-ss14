@@ -21,7 +21,7 @@
   - type: Tag
     tags:
       - RawMaterial
-  - type: Damageable
+  - type: Injurable
     damageContainer: Inorganic
 
 - type: entity

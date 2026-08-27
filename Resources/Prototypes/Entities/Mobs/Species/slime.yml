@@ -134,8 +134,9 @@
     understands:
     - TauCetiBasic
     - Bubblish
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Slime
 #  - type: PassiveDamage # Around 8 damage a minute healed
 #    allowedStates:
