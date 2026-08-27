@@ -1,0 +1,11 @@
+pill-label-bicaridine-10u = bicaridine 10u
+pill-label-charcoal-10u = charcoal 10u
+pill-label-copper-10u = copper 10u
+pill-label-dermaline-10u = dermaline 10u
+pill-label-dexalin-10u = dexalin 10u
+pill-label-dylovene-10u = dylovene 10u
+pill-label-hyronalin-10u = hyronalin 10u
+pill-label-iron-10u = iron 10u
+pill-label-kelotane-10u = kelotane 10u
+pill-label-potassium-iodide-10u = potassium iodide 10u
+pill-label-tricordrazine-10u = tricordrazine 10u
