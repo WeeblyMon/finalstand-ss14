@@ -4110,7 +4110,7 @@ entities:
       fixedRotation: False
     missingComponents:
     - Rotatable
-- proto: OrganHumanArmLeft
+- proto: LeftArmHuman
   entities:
   - uid: 327
     components:
@@ -4121,7 +4121,7 @@ entities:
       parent: 1
       rot: -1.5707963267948966 rad
       pos: 3.4338455,-3.8538203
-- proto: OrganHumanHead
+- proto: HeadHuman
   entities:
   - uid: 456
     components:
