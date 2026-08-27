@@ -68,3 +68,6 @@ reagent-desc-happiness = Fills you with ecstatic numbness and causes minor brain
 
 reagent-name-nitrosyl-plasmide = nitrosyl plasmide
 reagent-desc-nitrosyl-plasmide = A powerful stimulant that can prevent drowsiness, stuns and knock downs.
+
+reagent-name-hydroxysomnolene = hydroxysomnolene
+reagent-desc-hydroxysomnolene = A sluggish sedative that slows the body and brings on drowsiness. Strawberry ice suppresses its effects.

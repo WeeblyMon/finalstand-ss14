@@ -520,9 +520,9 @@
 
 - type: reagent
   id: Hydroxysomnolene
-  name: reagent-name-Hydroxysomnolene
+  name: reagent-name-hydroxysomnolene
   group: Toxins
-  desc: reagent-desc-Hydroxysomnolene
+  desc: reagent-desc-hydroxysomnolene
   physicalDesc: reagent-physical-desc-gloopy
   flavor: bitter
   color: "#b51472"
