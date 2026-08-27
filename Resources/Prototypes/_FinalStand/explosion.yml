@@ -23,7 +23,6 @@
   fireColor: "#FF4400"
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
-  temperature: 0
 
 - type: explosion
   id: FSGiantStompExplosion
@@ -37,7 +36,6 @@
   fireColor: "#5C3317"
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
-  temperature: 0
 
 - type: explosion
   id: FSRocketExplosion
@@ -78,7 +76,6 @@
   fireColor: "#2255FF"
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
-  temperature: 0
 
 - type: explosion
   id: FSMartyrExplosion
@@ -92,4 +89,3 @@
   fireColor: "#660000"
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
-  temperature: 0
