@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Shop;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Weapons;
@@ -5,6 +6,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Tag;
+using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Maths;
@@ -19,6 +21,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
+    [Dependency] private FSPlayerUpgradesSystem _playerUpgrades = default!;
 
     public override void Initialize()
     {
@@ -70,7 +73,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
         var shopLevels = state.Levels;
 
-        ReconcileCapacity(weapon, tracker, isBallistic, isL6, isMinigun, isHydra);
+        ReconcileCapacity(weapon, tracker, state, isBallistic, isL6, isMinigun, isHydra);
         ReconcileChargeRate(weapon, tracker, isEnergy, isXray, isTesla);
         ReconcileMisc(weapon, tracker, state, isL6, isMinigun, isXray, isRpg, isTesla);
         ReconcileAugments(weapon, tracker, state, shopLevels, isMinigun, isXray, isTesla);
@@ -93,10 +96,12 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         return total;
     }
 
-    private void ReconcileCapacity(EntityUid weapon, FSResearchAppliedComponent tracker,
+    private void ReconcileCapacity(EntityUid weapon, FSResearchAppliedComponent tracker, FSWeaponUpgradeStateComponent state,
         bool isBallistic, bool isL6, bool isMinigun, bool isHydra)
     {
-        if (!TryComp<BallisticAmmoProviderComponent>(weapon, out var bal))
+        var hasBallisticProvider = TryComp<BallisticAmmoProviderComponent>(weapon, out var bal);
+        var magazineFed = HasComp<MagazineAmmoProviderComponent>(weapon) || HasComp<ChamberMagazineAmmoProviderComponent>(weapon);
+        if (!hasBallisticProvider && !magazineFed)
             return;
 
         var total = 0;
@@ -111,8 +116,16 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         if (total == 0)
             return;
 
+        if (magazineFed)
+        {
+            state.MagazineSizeBonus += total;
+            Dirty(weapon, state);
+            _playerUpgrades.ApplyMagSizeBonusToCurrentMag(weapon, total);
+            return;
+        }
+
 #pragma warning disable RA0002
-        bal.Capacity = Math.Max(1, bal.Capacity + total);
+        bal!.Capacity = Math.Max(1, bal.Capacity + total);
         if (total > 0)
             bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + total, bal.Capacity);
 #pragma warning restore RA0002
