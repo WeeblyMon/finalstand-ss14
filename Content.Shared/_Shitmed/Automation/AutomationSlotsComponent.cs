@@ -39,6 +39,12 @@ public sealed partial class AutomatedStorage : AutomationSlot
 {
     [DataField]
     public string? Container;
+
+    [DataField]
+    public string? Input;
+
+    [DataField]
+    public string? Output;
 }
 
 [DataDefinition]
@@ -46,4 +52,13 @@ public sealed partial class AutomatedHand : AutomationSlot
 {
     [DataField]
     public string? Hand;
+
+    [DataField]
+    public string? Input;
+
+    [DataField]
+    public string? Output;
+
+    [DataField]
+    public string? HandName;
 }

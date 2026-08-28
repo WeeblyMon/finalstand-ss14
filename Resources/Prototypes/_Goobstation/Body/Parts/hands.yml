@@ -54,7 +54,7 @@
     sprite: _EinsteinEngines/Mobs/Species/Cybernetics/morpheus/morpheus_main.rsi
   - type: BodyPartAppearance
     color: White
-    iD: MobCyberneticBishopLHand
+    baseLayerId: MobCyberneticBishopLHand
     visLayers: LHand
   - type: SmartLinkArm
 
@@ -70,7 +70,7 @@
     sprite: _EinsteinEngines/Mobs/Species/Cybernetics/morpheus/morpheus_main.rsi
   - type: BodyPartAppearance
     color: White
-    iD: MobCyberneticBishopRHand
+    baseLayerId: MobCyberneticBishopRHand
     visLayers: RHand
   - type: SmartLinkArm
 
@@ -86,7 +86,7 @@
     sprite: _EinsteinEngines/Mobs/Species/Cybernetics/wardtakahashi/wardtakahashi_main.rsi
   - type: BodyPartAppearance
     color: White
-    iD: MobCyberneticBishopLHand
+    baseLayerId: MobCyberneticBishopLHand
     visLayers: LHand
   - type: RecoilAbsorberArm
 
@@ -102,6 +102,6 @@
     sprite: _EinsteinEngines/Mobs/Species/Cybernetics/wardtakahashi/wardtakahashi_main.rsi
   - type: BodyPartAppearance
     color: White
-    iD: MobCyberneticBishopRHand
+    baseLayerId: MobCyberneticBishopRHand
     visLayers: RHand
   - type: RecoilAbsorberArm

@@ -4,6 +4,7 @@
 // Stub components for Goob-Station features not yet ported to Final Stand.
 // All are empty markers or field-only — no systems process them.
 
+using Content.Shared.Whitelist;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._Shitmed;
@@ -15,6 +16,8 @@ namespace Content.Shared._Shitmed;
 public sealed partial class StaminaModifierComponent : Component
 {
     [DataField] public float StaminaModifier = 0f;
+
+    [DataField] public float Modifier = 1f;
 }
 
 /// <summary>Stub: modifies stamina regeneration rate. Needs StaminaRegenerationSystem.</summary>
@@ -22,17 +25,25 @@ public sealed partial class StaminaModifierComponent : Component
 public sealed partial class StaminaRegenerationComponent : Component
 {
     [DataField] public float StaminaRegen = 1f;
+
+    [DataField] public float RegenerationRate = 1f;
 }
 
 // ── Movement / map interaction stubs ────────────────────────────────────────
 
 /// <summary>Stub: entity can crawl through ventilation ducts. Needs VentCrawlerSystem.</summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class VentCrawlerComponent : Component;
+public sealed partial class VentCrawlerComponent : Component
+{
+    [DataField] public bool AllowInventory = true;
+}
 
 /// <summary>Stub: entity is immune to step triggers (traps, pressure plates).</summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class StepTriggerImmuneComponent : Component;
+public sealed partial class StepTriggerImmuneComponent : Component
+{
+    [DataField] public EntityWhitelist? Whitelist;
+}
 
 // ── Language / accent stubs ──────────────────────────────────────────────────
 
@@ -68,7 +79,10 @@ public sealed partial class PlasmaSeveredComponent : Component;
 
 /// <summary>Stub: entity is a xenomorph mob.</summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class XenomorphComponent : Component;
+public sealed partial class XenomorphComponent : Component
+{
+    [DataField] public string? Caste;
+}
 
 /// <summary>Stub: entity is compatible with xenomorph biology (can be implanted, etc).</summary>
 [RegisterComponent, NetworkedComponent]
@@ -114,4 +128,7 @@ public sealed partial class HitscanBatteryAmmoProviderComponent : Component
 {
     [DataField] public float EnergyPerShot = 50f;
     [DataField] public string FireSound = string.Empty;
+
+    [DataField] public string? Proto;
+    [DataField] public float FireCost = 50f;
 }
