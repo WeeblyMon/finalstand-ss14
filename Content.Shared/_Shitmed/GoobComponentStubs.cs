@@ -4,7 +4,6 @@
 // Stub components for Goob-Station features not yet ported to Final Stand.
 // All are empty markers or field-only — no systems process them.
 
-using Content.Shared.Whitelist;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._Shitmed;
@@ -40,10 +39,7 @@ public sealed partial class VentCrawlerComponent : Component
 
 /// <summary>Stub: entity is immune to step triggers (traps, pressure plates).</summary>
 [RegisterComponent, NetworkedComponent]
-public sealed partial class StepTriggerImmuneComponent : Component
-{
-    [DataField] public EntityWhitelist? Whitelist;
-}
+public sealed partial class StepTriggerImmuneComponent : Component;
 
 // ── Language / accent stubs ──────────────────────────────────────────────────
 
