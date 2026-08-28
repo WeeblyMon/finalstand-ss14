@@ -523,11 +523,12 @@
   - type: Label
     localizedLabel: pill-label-dexalin-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Dexalin
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Dexalin
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -555,11 +556,12 @@
   - type: Label
     localizedLabel: pill-label-dylovene-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Dylovene
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Dylovene
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -587,11 +589,12 @@
   - type: Label
     localizedLabel: pill-label-hyronalin-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Hyronalin
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Hyronalin
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -619,11 +622,12 @@
   - type: Label
     localizedLabel: pill-label-potassium-iodide-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: PotassiumIodide
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: PotassiumIodide
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -651,11 +655,12 @@
   - type: Label
     localizedLabel: pill-label-iron-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Iron
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Iron
+        Quantity: 10
 
 - type: entity
   name: pill
@@ -670,11 +675,12 @@
   - type: Label
     localizedLabel: pill-label-copper-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Copper
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Copper
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -715,11 +721,12 @@
   - type: Label
     localizedLabel: pill-label-kelotane-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Kelotane
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Kelotane
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -747,11 +754,12 @@
   - type: Label
     localizedLabel: pill-label-dermaline-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Dermaline
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Dermaline
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -772,11 +780,12 @@
   id: PillSpaceDrugs
   components:
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: SpaceDrugs
-      Quantity: 15
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: SpaceDrugs
+        Quantity: 15
 
 - type: entity
   name: pill
@@ -791,11 +800,12 @@
   - type: Label
     localizedLabel: pill-label-tricordrazine-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Tricordrazine
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Tricordrazine
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -823,11 +833,12 @@
   - type: Label
     localizedLabel: pill-label-bicaridine-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Bicaridine
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Bicaridine
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -855,11 +866,12 @@
   - type: Label
     localizedLabel: pill-label-charcoal-10u
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Charcoal
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Charcoal
+        Quantity: 10
 
 - type: entity
   name: pill canister
@@ -880,11 +892,12 @@
   id: PillRomerol
   components:
   - type: Solution
-    name: food
-    maxVol: 20
-    reagents:
-    - ReagentId: Romerol
-      Quantity: 10
+    id: food
+    solution:
+      maxVol: 20
+      reagents:
+      - ReagentId: Romerol
+        Quantity: 10
 
 - type: entity
   name: ambuzol pill
@@ -892,11 +905,12 @@
   id: PillAmbuzol
   components:
     - type: Solution
-      name: food
-      maxVol: 20
-      reagents:
-        - ReagentId: Ambuzol
-          Quantity: 10
+      id: food
+      solution:
+        maxVol: 20
+        reagents:
+          - ReagentId: Ambuzol
+            Quantity: 10
 
 - type: entity
   name: ambuzol plus pill
@@ -908,11 +922,12 @@
     - type: Sprite
       state: pill3
     - type: Solution
-      name: food
-      maxVol: 20
-      reagents:
-        - ReagentId: AmbuzolPlus
-          Quantity: 5
+      id: food
+      solution:
+        maxVol: 20
+        reagents:
+          - ReagentId: AmbuzolPlus
+            Quantity: 5
 
 - type: entity
   parent: PillCanister
@@ -991,11 +1006,12 @@
   - type: Label
     localizedLabel: reagent-name-ephedrine
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Ephedrine
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Ephedrine
+        Quantity: 15
 
 - type: entity
   suffix: inaprovaline
@@ -1005,11 +1021,12 @@
   - type: Label
     localizedLabel: reagent-name-inaprovaline
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Inaprovaline
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Inaprovaline
+        Quantity: 15
 
 - type: entity
   suffix: tranexamic acid
@@ -1019,11 +1036,12 @@
   - type: Label
     localizedLabel: reagent-name-tranexamic-acid
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: TranexamicAcid
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: TranexamicAcid
+        Quantity: 15
 
 - type: entity
   suffix: bicaridine
@@ -1033,11 +1051,12 @@
   - type: Label
     localizedLabel: reagent-name-bicaridine
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Bicaridine
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Bicaridine
+        Quantity: 15
 
 - type: entity
   suffix: dermaline
@@ -1047,11 +1066,12 @@
   - type: Label
     localizedLabel: reagent-name-dermaline
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Dermaline
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Dermaline
+        Quantity: 15
 
 - type: entity
   suffix: hyronalin
@@ -1061,11 +1081,12 @@
   - type: Label
     localizedLabel: reagent-name-hyronalin
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Hyronalin
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Hyronalin
+        Quantity: 15
 
 - type: entity
   suffix: ipecac
@@ -1075,11 +1096,12 @@
   - type: Label
     localizedLabel: reagent-name-ipecac
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Ipecac
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Ipecac
+        Quantity: 15
 
 - type: entity
   suffix: ambuzol
@@ -1089,11 +1111,12 @@
   - type: Label
     localizedLabel: reagent-name-ambuzol
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Ambuzol
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Ambuzol
+        Quantity: 15
 
 - type: entity
   suffix: sigynate
@@ -1103,11 +1126,12 @@
   - type: Label
     localizedLabel: reagent-name-sigynate
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Sigynate
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Sigynate
+        Quantity: 15
 
 - type: entity
   suffix: ethylredoxrazine
@@ -1117,11 +1141,12 @@
   - type: Label
     localizedLabel: reagent-name-ethylredoxrazine
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Ethylredoxrazine
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Ethylredoxrazine
+        Quantity: 15
 
 - type: entity
   suffix: phalanximine
@@ -1131,11 +1156,12 @@
   - type: Label
     localizedLabel: reagent-name-phalanximine
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Phalanximine
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Phalanximine
+        Quantity: 15
 
 - type: entity
   suffix: saline
@@ -1145,11 +1171,12 @@
   - type: Label
     localizedLabel: reagent-name-saline
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Saline
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Saline
+        Quantity: 15
 
 #this is where all the syringes are so i didn't know where to put it
 - type: entity
@@ -1160,11 +1187,12 @@
   - type: Label
     localizedLabel: reagent-name-romerol
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Romerol
-      Quantity: 15
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Romerol
+        Quantity: 15
 
 - type: entity
   suffix: hyperzine
@@ -1174,11 +1202,12 @@
   - type: Label
     localizedLabel: reagent-name-stimulants
   - type: Solution
-    name: injector
-    maxVol: 15
-    reagents:
-    - ReagentId: Stimulants
-      Quantity: 5 # Goobstation edit
+    id: injector
+    solution:
+      maxVol: 15
+      reagents:
+      - ReagentId: Stimulants
+        Quantity: 5 # Goobstation edit
 
 # Entity Tables
 - type: entityTable
