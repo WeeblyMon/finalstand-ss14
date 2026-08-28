@@ -124,12 +124,8 @@
   - type: Metabolizer
     updateInterval: 1.5
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Human ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       organ:
@@ -162,10 +158,6 @@
     updateInterval: 1.5
     metabolizerTypes: [Arachnid]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
-    groups:
-    - id: Medicine
-    - id: Poison
-    - id: Narcotic
   - type: Organ # Shitmed
   - type: OrganIntegrity
     intCap: 21

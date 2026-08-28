@@ -132,13 +132,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Cybernetic ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
-    groups:
-    - id: Medicine
-      rateModifier: 0.7
-    - id: Poison
-      rateModifier: 1.4
-    - id: Narcotic
-      rateModifier: 1.2
   - type: Tag
     tags:
     - Organ
@@ -170,13 +163,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Cybernetic ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
-    groups:
-    - id: Medicine
-      rateModifier: 0.4
-    - id: Poison
-      rateModifier: 2.8
-    - id: Narcotic
-      rateModifier: 1.6
 
 # Liver
 
@@ -203,9 +189,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Cybernetic ]
     stages: [ Alcohol, Metabolites ]
-    groups:
-    - id: Alcohol
-      rateModifier: 0.1
   - type: Tag
     tags:
     - Organ
@@ -237,12 +220,8 @@
   - type: Lung
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Cybernetic ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       Lung:
