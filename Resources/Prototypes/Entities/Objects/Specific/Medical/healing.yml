@@ -387,7 +387,7 @@
     - type: Tourniquet
       blockedBodyParts:
       - Head
-      - Chest
+      - Torso
       - Groin
       putOnSound:
         path: "/Audio/Items/Medical/brutepack_begin.ogg"
