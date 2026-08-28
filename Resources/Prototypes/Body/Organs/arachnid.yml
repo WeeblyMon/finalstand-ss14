@@ -189,9 +189,6 @@
     updateInterval: 1.5
     metabolizerTypes: [Animal]
     stages: [ Alcohol, Metabolites ]
-    groups:
-    - id: Alcohol
-      rateModifier: 0.1 # removes alcohol very slowly along with the stomach removing it as a drink
   - type: Organ # Shitmed
   - type: OrganIntegrity
     intCap: 28

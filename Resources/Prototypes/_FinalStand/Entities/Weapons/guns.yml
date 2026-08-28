@@ -195,8 +195,6 @@
     unspawnedCount: 6
     soundInsert:
       path: /Audio/Weapons/Guns/MagIn/sfrifle_magin.ogg
-    soundEject:
-      path: /Audio/Weapons/Guns/MagOut/sfrifle_magout.ogg
   - type: Crit
     baseCritChance: 0.05
 

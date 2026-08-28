@@ -28,7 +28,6 @@
       - state: eyeball-l
       - state: eyeball-r
   - type: Organ
-    slotId: eyes
   - type: Eyes
   - type: Tag
     tags:
@@ -44,7 +43,6 @@
   - type: Sprite
     state: heart-on
   - type: Organ
-    slotId: pump
   - type: Heart
   - type: Tag
     tags:
