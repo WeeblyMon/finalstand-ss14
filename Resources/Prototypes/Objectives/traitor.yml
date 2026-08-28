@@ -108,8 +108,8 @@
   - type: TargetObjective
     title: objective-condition-kill-maroon-title
   - type: PickRandomPerson
-    conditions:
-    - !type:BodyWhitelistCondition
+    filters:
+    - !type:BodyMindFilter
       whitelist:
         components:
         - CommandStaff
@@ -150,15 +150,14 @@
   - type: TargetObjective
     title: objective-condition-other-traitor-alive-title
   - type: PickRandomPerson
-    conditions:
-    - !type:RoleCondition
+    filters:
+    - !type:HasRoleMindFilter
       whitelist:
         components:
         - TraitorRole
     # Can't have multiple objectives to help/save the same person
-    - !type:ObjectiveTargetCondition
-      inverted: true
-      whitelist:
+    - !type:ObjectiveMindFilter
+      blacklist:
         components:
         - HelpProgressCondition
         - KeepAliveCondition
@@ -173,23 +172,17 @@
   - type: TargetObjective
     title: objective-condition-other-traitor-progress-title
   - type: PickRandomPerson
-    conditions:
-    - !type:RoleCondition
+    filters:
+    - !type:HasRoleMindFilter
       whitelist:
         components:
         - TraitorRole
     # Can't help anyone who is tasked with helping:
     # 1. thats boring
     # 2. no cyclic progress dependencies!!!
-    - !type:ObjectiveCondition
-      inverted: true
-      whitelist:
-        components:
-        - HelpProgressCondition
     # Can't have multiple objectives to help/save the same person
-    - !type:ObjectiveTargetCondition
-      inverted: true
-      whitelist:
+    - !type:ObjectiveMindFilter
+      blacklist:
         components:
         - HelpProgressCondition
         - KeepAliveCondition

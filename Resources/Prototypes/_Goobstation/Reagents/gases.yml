@@ -46,7 +46,6 @@
         component: SeeingRainbows
         type: Add
         time: 150
-        refresh: false
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
@@ -139,7 +138,6 @@
         component: SeeingRainbows
         type: Add
         time: 150
-        refresh: false
       - !type:Emote
         conditions:
         - !type:ReagentThreshold

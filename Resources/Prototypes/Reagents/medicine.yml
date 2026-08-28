@@ -113,7 +113,6 @@
         key: Stutter
         component: ScrambledAccent
       - !type:Drunk
-        slurSpeech: false
         boozePower: 20
 
 - type: reagent
@@ -193,7 +192,6 @@
         effectProto: StatusEffectDrowsiness
         time: 1.5
         type: Add
-        refresh: false
       - !type:HealthChange
         damage:
           types:
@@ -902,7 +900,6 @@
     Medicine:
       effects:
         - !type:CureZombieInfection
-          cureCriticalZombies: true # Goob
           conditions:
             - !type:ReagentThreshold
               min: 10
@@ -920,7 +917,6 @@
       effects:
         - !type:CureZombieInfection
           innoculate: true
-          cureCriticalZombies: true # Goob
           conditions:
             - !type:ReagentThreshold
               min: 5
@@ -1700,7 +1696,6 @@
           min: 30
         type: Add
         time: 8
-        refresh: false
       - !type:GenericStatusEffect
         key: Jitter
         time: 2.0
@@ -1738,7 +1733,6 @@
         component: RadiationProtection
         time: 2
         type: Add
-        refresh: false
       - !type:HealthChange
         conditions:
         - !type:OrganType # Goobstation - Yowie
@@ -1769,7 +1763,6 @@
         effectProto: StatusEffectDrowsiness
         time: 4
         type: Add
-        refresh: false
         conditions:
         - !type:ReagentThreshold
           min: 5

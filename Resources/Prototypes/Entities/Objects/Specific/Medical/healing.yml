@@ -139,7 +139,6 @@
   suffix: 10, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 10
 
 - type: entity
@@ -196,7 +195,6 @@
   suffix: 0, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 0
 
 - type: entity
@@ -252,7 +250,6 @@
   suffix: 10, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 10
 
 - type: entity
@@ -326,7 +323,6 @@
   suffix: 0, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 0
 
 - type: entity
@@ -372,7 +368,6 @@
   suffix: 10, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 10
 
 # Shitmed Change - yeah this thing is effectively an entirely different tool now.
@@ -455,7 +450,6 @@
   suffix: 10, Lingering
   components:
   - type: Stack
-    lingering: true
     count: 10 # Goobstation
 
 - type: entity

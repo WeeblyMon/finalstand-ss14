@@ -117,7 +117,6 @@
           shouldHave: false
         key: ForcedSleep
         component: ForcedSleeping
-        refresh: false
         type: Add
         time: 10
       - !type:TakeStaminaDamage
@@ -219,7 +218,6 @@
         - !type:ReagentThreshold
           min: 15
         probability: 0.2
-        paralyzeTime: 4
       - !type:ModifyBleedAmount
         amount: -0.25
 
@@ -1086,7 +1084,6 @@
         component: RadiationProtection
         time: 2
         type: Add
-        refresh: false
 
 - type: reagent
   id: Atropine
@@ -1137,7 +1134,6 @@
         - !type:ReagentThreshold
           min: 35
         probability: 0.1
-        paralyzeTime: 2
       - !type:Drunk
         boozePower: 5
       - !type:HealthChange

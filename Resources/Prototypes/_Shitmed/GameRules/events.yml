@@ -26,12 +26,7 @@
     weight: 3 # Goobstation - 7.5 -> 3
     minimumPlayers: 10
     duration: null # Goobstation - chud
-    chaos:
-      Hostile: 75
-      Medical: 75
-    eventType: HostilesSpawn
   - type: GameRule
-    chaosScore: 100
   - type: RuleGrids
   - type: LoadMapRule
     mapPath: /Maps/_Shitmed/Shuttles/ShuttleEvent/abductor_shuttle.yml
@@ -39,7 +34,6 @@
     objectives:
     - AbductObjective
   - type: AntagLoadProfileRule
-    speciesHardOverride: Abductor
   - type: AntagSelection
     antags:
     - !type:FixedAntagCount
@@ -70,12 +64,7 @@
     weight: 3 # Goobstation - 7.5 -> 3
     minimumPlayers: 20
     duration: null # Goobstation - chud
-    chaos:
-      Hostile: 150
-      Medical: 150
-    eventType: HostilesSpawn
   - type: GameRule
-    chaosScore: 150
   - type: RuleGrids
   - type: LoadMapRule
     mapPath: /Maps/_Shitmed/Shuttles/ShuttleEvent/duo_abductor_shuttle.yml
@@ -83,7 +72,6 @@
     objectives:
     - AbductObjective
   - type: AntagLoadProfileRule
-    speciesHardOverride: Abductor
   - type: AntagSelection
     antags:
     - !type:FixedAntagCount

@@ -54,6 +54,7 @@
   - type: PickRandomPerson
     filters:
     - !type:HasRoleMindFilter
+      inverted: true
       whitelist:
         components:
         - ChangelingRole
@@ -69,11 +70,10 @@
   - type: TargetObjective
     title: objective-condition-kill-maroon-title
   - type: PickRandomPerson
-    conditions:
+    filters:
     # Can't have multiple objectives to kill the same person.
-    - !type:ObjectiveTargetCondition
-      inverted: true
-      whitelist:
+    - !type:ObjectiveMindFilter
+      blacklist:
         components:
         - KillPersonCondition
   - type: KillPersonCondition

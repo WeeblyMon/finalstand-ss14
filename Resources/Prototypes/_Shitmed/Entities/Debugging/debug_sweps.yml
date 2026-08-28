@@ -20,7 +20,6 @@
     damage:
       types:
         Slash: 20000
-    clickPartDamageMultiplier: 10
   - type: Item
     size: Tiny
     sprite: Objects/Weapons/Melee/debug.rsi
@@ -68,7 +67,6 @@
     damage:
       types:
         Heat: 20000
-    clickPartDamageMultiplier: 10
   - type: Item
     size: Tiny
     sprite: Objects/Weapons/Melee/debug.rsi
