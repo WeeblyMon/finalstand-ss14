@@ -88,7 +88,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _serialization.CopyTo(from, ref to, notNullableOverride: true);
     }
 
-    private void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
+    public void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
     {
         if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot))
             return;
@@ -114,9 +114,13 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
         if (diff <= 0) return;
 
-        // Raise the ceiling only. Handing out rounds here paid out again on every reinsert.
+        // Fill the extra space as well as raising the ceiling, otherwise a magazine picked up after
+        // the research lands sits at its old round count inside a larger magazine. AppliedBonus is
+        // never cleared once set, so the diff check above means this pays out once per magazine per
+        // bonus level — reinserting the same magazine hits the early return.
 #pragma warning disable RA0002
         bal.Capacity += diff;
+        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
 #pragma warning restore RA0002
         upgraded.AppliedBonus = state.MagazineSizeBonus;
         Dirty(args.Entity, bal);

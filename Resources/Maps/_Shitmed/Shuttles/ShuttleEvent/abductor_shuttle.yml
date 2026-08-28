@@ -608,7 +608,7 @@ entities:
       rot: -1.5707963267948966 rad
       pos: -1.5,-3.5
       parent: 2
-- proto: CandyBowlFilledLollypopsMystery
+- proto: CandyBowl
   entities:
   - uid: 90
     components:
@@ -999,7 +999,7 @@ entities:
         actions: !type:Container
           ents:
           - 12
-- proto: PlushieAbductor
+- proto: PlushieExperiment
   entities:
   - uid: 145
     components:
