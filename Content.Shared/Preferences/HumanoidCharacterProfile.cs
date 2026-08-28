@@ -670,8 +670,13 @@ namespace Content.Shared.Preferences
                 _ => SpawnPriorityPreference.None // Invalid enum values.
             };
 
+            // FINALSTAND: a job hidden from the preferences menu still has to survive here. The
+            // overflow job is every profile's default, so stripping it leaves the player with no
+            // assignable job at all and they spawn as an observer.
             var priorities = new Dictionary<ProtoId<JobPrototype>, JobPriority>(JobPriorities
-                .Where(p => prototypeManager.TryIndex<JobPrototype>(p.Key, out var job) && job.SetPreference && p.Value switch
+                .Where(p => prototypeManager.TryIndex<JobPrototype>(p.Key, out var job)
+                            && (job.SetPreference || p.Key == SharedGameTicker.FallbackOverflowJob)
+                            && p.Value switch
                 {
                     JobPriority.Never => false, // Drop never since that's assumed default.
                     JobPriority.Low => true,

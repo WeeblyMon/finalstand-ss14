@@ -470,7 +470,7 @@
             Bloodloss: -3
       - !type:AdjustReagent
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: HeartbreakerToxin
           min: 1
         reagent: HeartbreakerToxin
@@ -528,7 +528,7 @@
         time: 10
       - !type:AdjustReagent
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Histamine
           min: 45
         reagent: Histamine
@@ -564,7 +564,7 @@
         amount: -2
       - !type:AdjustReagent
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: HeartbreakerToxin
           min: 1
         reagent: Epinephrine
@@ -572,7 +572,7 @@
       - !type:AdjustReagent
         probability: 0.1
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: HeartbreakerToxin
           min: 1
         reagent: Histamine
@@ -842,7 +842,7 @@
             Radiation: 0.2
       - !type:HealthChange
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Arithrazine
           min: 1
         damage:
@@ -1012,7 +1012,7 @@
         - !type:OrganType # Goobstation - Yowie
           type: Yowie
           shouldHave: false
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Amatoxin
           min: 1
         reagent: Amatoxin
@@ -1178,14 +1178,14 @@
             Brute: 3
       - !type:AdjustReagent
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Histamine
           min: 1
         reagent: Histamine
         amount: -1
       - !type:AdjustReagent
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Histamine
           min: 1
         reagent: Ultravasculine
@@ -1321,7 +1321,7 @@
         probability: 0.02
       - !type:Vomit
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Arithrazine
           min: 1
         - !type:OrganType # Goobstation - Yowie
@@ -1330,7 +1330,7 @@
         probability: 0.1
       - !type:PopupMessage
         conditions:
-        - !type:ReagentThreshold
+        - !type:ReagentCondition
           reagent: Arithrazine
           min: 1
         type: Local

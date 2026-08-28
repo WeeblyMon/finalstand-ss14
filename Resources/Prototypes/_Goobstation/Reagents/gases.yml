@@ -13,7 +13,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -24,7 +23,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.5
         - !type:OrganType
           type: Slime
@@ -40,7 +38,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.3
         - !type:OrganType
           type: Slime
@@ -53,7 +50,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -63,7 +59,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -73,7 +68,6 @@
       - !type:PopupMessage
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.5
         - !type:OrganType
           type: Slime
@@ -87,7 +81,6 @@
       - !type:MovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 1
         - !type:OrganType
           type: Slime
@@ -99,7 +92,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 1
         - !type:OrganType
           type: Slime
@@ -115,7 +107,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -125,7 +116,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.5
         - !type:OrganType
           type: Slime
@@ -141,7 +131,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.3
         - !type:OrganType
           type: Slime
@@ -154,7 +143,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -164,7 +152,6 @@
       - !type:Emote
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.2
         - !type:OrganType
           type: Slime
@@ -174,7 +161,6 @@
       - !type:PopupMessage
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 0.5
         - !type:OrganType
           type: Slime
@@ -188,7 +174,6 @@
       - !type:MovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 1
         - !type:OrganType
           type: Slime
@@ -200,7 +185,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: BZ
           min: 1
         - !type:OrganType
           type: Slime
@@ -225,7 +209,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           max: 24
         ignoreResistances: true
         damage:
@@ -236,7 +219,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 24
         ignoreResistances: true
         damage:
@@ -247,7 +229,6 @@
       - !type:PopupMessage
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 4
         - !type:BloodReagentThreshold
           reagent: NitrosylPlasmide
@@ -259,7 +240,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 8
         - !type:BloodReagentThreshold
           reagent: NitrosylPlasmide
@@ -272,14 +252,12 @@
         boozePower: 45
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 4
     Gas:
       effects:
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           max: 24
         ignoreResistances: true
         damage:
@@ -290,7 +268,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 24
         ignoreResistances: true
         damage:
@@ -301,7 +278,6 @@
       - !type:PopupMessage
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 4
         - !type:BloodReagentThreshold
           reagent: NitrosylPlasmide
@@ -313,7 +289,6 @@
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 8
         - !type:BloodReagentThreshold
           reagent: NitrosylPlasmide
@@ -326,7 +301,6 @@
         boozePower: 45
         conditions:
         - !type:ReagentThreshold
-          reagent: Healium
           min: 4
 
 - type: reagent
@@ -342,7 +316,6 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 1
           max: 8
         walkSpeedModifier: 1.25
@@ -350,7 +323,6 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 8
           max: 12
         walkSpeedModifier: 1.4
@@ -358,21 +330,18 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 12
         walkSpeedModifier: 1.6
         sprintSpeedModifier: 1.6
       - !type:AddReagentToBlood
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 6
         reagent: NitrosylPlasmide
         amount: 2.5
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 8
         key: Stutter
         component: StutteringAccent
@@ -380,7 +349,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 10
         ignoreResistances: true
         damage:
@@ -391,7 +359,6 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 1
           max: 8
         walkSpeedModifier: 1.25
@@ -399,7 +366,6 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 8
           max: 12
         walkSpeedModifier: 1.4
@@ -407,21 +373,18 @@
       - !type:NitriumMovespeedModifier
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 12
         walkSpeedModifier: 1.6
         sprintSpeedModifier: 1.6
       - !type:AddReagentToBlood
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 6
         reagent: NitrosylPlasmide
         amount: 2.5
       - !type:GenericStatusEffect
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 8
         key: Stutter
         component: StutteringAccent
@@ -429,7 +392,6 @@
       - !type:HealthChange
         conditions:
         - !type:ReagentThreshold
-          reagent: Nitrium
           min: 10
         ignoreResistances: true
         damage:

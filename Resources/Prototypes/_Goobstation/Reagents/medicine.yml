@@ -1413,7 +1413,6 @@
       - !type:AdjustReagent
         conditions:
         - !type:ReagentThreshold
-          reagent: Formaldehyde
           min: 30
         reagent: Histamine
         amount: 0.2

@@ -5,6 +5,7 @@
   playTimeTracker: JobPassenger
   startingGear: PassengerGear
   icon: "JobIconPassenger"
+  setPreference: false # FINALSTAND: hidden from the character editor; players never pick passenger
   supervisors: job-supervisors-everyone
   access:
   - Maintenance

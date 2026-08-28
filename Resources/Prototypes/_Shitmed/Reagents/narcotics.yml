@@ -10,7 +10,6 @@
         conditions:
         # this intentionally has no yowie condition so abductors can sleep disgruntled yowies
         - !type:ReagentThreshold
-          reagent: NocturineWonderprod
           min: 8
         effectProto: StatusEffectForcedSleeping
         time: 3
