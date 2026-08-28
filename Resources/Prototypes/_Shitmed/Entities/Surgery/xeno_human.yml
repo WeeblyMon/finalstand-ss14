@@ -59,7 +59,7 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    categories: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
 
@@ -155,7 +155,7 @@
     - SurgeryStepInsertPlasmaVessel
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    categories: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
   - type: SurgeryOrganCondition
@@ -227,7 +227,7 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    categories: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel

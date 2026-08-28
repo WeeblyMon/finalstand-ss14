@@ -240,7 +240,6 @@
       components:
       - HandLabeler
       - Stamp
-      - TapeRecorder
   - type: Construction
     node: "paperwork tools panel"
 

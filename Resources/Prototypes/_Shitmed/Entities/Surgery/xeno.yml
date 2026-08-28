@@ -221,7 +221,7 @@
     - SurgeryStepInsertPlasmaVessel
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryPartCondition
-    categories: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
   - type: SurgeryOrganCondition
@@ -356,7 +356,7 @@
     - SurgeryStepXenoNeutralizeAcid
     - SurgeryStepXenoRemoveOrgan
   - type: SurgeryPartCondition
-    categories: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel
