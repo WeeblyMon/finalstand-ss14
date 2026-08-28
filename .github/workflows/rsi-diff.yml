@@ -1,5 +1,10 @@
 name: Diff RSIs
 
+# The job posts and edits a PR comment, which the default read-only token cannot do.
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   pull_request_target:
     types: [ opened, reopened, synchronize, ready_for_review ]
