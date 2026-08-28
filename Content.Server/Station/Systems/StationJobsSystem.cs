@@ -475,9 +475,10 @@ public sealed partial class StationJobsSystem : EntitySystem
         // A profile can end up with no usable priorities at all — every preferred job full, banned,
         // or hidden from preferences. Fall back to an overflow slot the station actually offers
         // rather than dumping the player into an observer ghost.
+        // Ordered so a station offering more than one overflow slot always resolves the same way.
         if (pickOverflows)
         {
-            foreach (var job in GetOverflowJobs(station))
+            foreach (var job in GetOverflowJobs(station).Order())
             {
                 if (!disallowedJobs.Contains(job))
                     return job;
