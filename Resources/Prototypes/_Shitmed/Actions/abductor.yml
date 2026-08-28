@@ -14,9 +14,11 @@
     checkCanInteract: false
     priority: -20
     itemIconStyle: BigAction
-    icon:
+  - type: Sprite
+    layers:
+    - state: exit
       sprite: _Shitmed/Interface/Actions/actions_abductor.rsi
-      state: exit
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:ExitConsoleEvent
 
@@ -29,11 +31,13 @@
   - type: Action
     itemIconStyle: BigAction
     checkCanInteract: false
-    icon:
-      sprite: _Shitmed/Interface/Actions/actions_abductor.rsi
-      state: send-yourself
     useDelay: 10
     priority: -19
+  - type: Sprite
+    layers:
+    - state: send-yourself
+      sprite: _Shitmed/Interface/Actions/actions_abductor.rsi
+      map: ["enum.ActionVisuals.Icon"]
   - type: TargetAction
     checkCanAccess: false
     range: -1
@@ -48,9 +52,11 @@
   components:
   - type: Action
     useDelay: 30
-    icon:
-      sprite: _Shitmed/Interface/Actions/actions_abductor.rsi
-      state: take
     priority: -12
+  - type: Sprite
+    layers:
+    - state: take
+      sprite: _Shitmed/Interface/Actions/actions_abductor.rsi
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:AbductorReturnToShipEvent

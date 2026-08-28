@@ -8,9 +8,13 @@
   - type: Action
     checkCanInteract: false
     useDelay: 40
-    icon: { sprite: _Goobstation/Objects/Misc/berserker_heart.rsi, state: icon }
     itemIconStyle: NoItem
     sound: !type:SoundPathSpecifier
       path: /Audio/_Goobstation/Misc/berserker-implant-activate.ogg
+  - type: Sprite
+    layers:
+    - state: icon
+      sprite: _Goobstation/Objects/Misc/berserker_heart.rsi
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:ActivateBerserkerImplantActionEvent

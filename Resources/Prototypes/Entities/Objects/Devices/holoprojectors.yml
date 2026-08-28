@@ -136,7 +136,9 @@
         disableEject: true
         swap: false
   - type: HolosignProjector
-    signProto: XenoborgDeflectorField
+    # XenoborgDeflectorField exists in neither this fork nor upstream Goob; the generic
+    # holographic force field is the same thing and is what the module is meant to deploy.
+    signProto: HolosignForcefield
     chargeUse: 200
 
 - type: entity

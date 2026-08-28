@@ -23,9 +23,15 @@
   description: Access the tools implanted within you
   components:
   - type: Action
-    icon: { sprite: Clothing/Belt/utility.rsi, state: icon }
-    iconOn: Interface/Default/blocked.png
 
+  - type: Sprite
+    layers:
+    - state: icon
+      sprite: Clothing/Belt/utility.rsi
+      map: ["enum.ActionVisuals.Icon"]
+    - texture: Interface/Default/blocked.png
+      map: ["enum.ActionVisuals.IconToggled"]
+      visible: false
 - type: entity
   abstract: true
   parent: BaseArmAugment
@@ -300,8 +306,14 @@
   description: Increases your melee damage by 25%, consumes 30W while active.
   components:
   - type: Action
-    icon: Interface/Default/blocked.png
-    iconOn: { sprite: Objects/Tools/Toolboxes/toolbox_blue.rsi, state: icon }
+  - type: Sprite
+    layers:
+    - texture: Interface/Default/blocked.png
+      map: ["enum.ActionVisuals.Icon"]
+    - state: icon
+      sprite: Objects/Tools/Toolboxes/toolbox_blue.rsi
+      map: ["enum.ActionVisuals.IconToggled"]
+      visible: false
   - type: InstantAction
     event: !type:ToggleActionEvent
 

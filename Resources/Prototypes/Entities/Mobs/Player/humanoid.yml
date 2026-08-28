@@ -162,21 +162,15 @@
   parent: EventHumanoidMindShielded
   speciesWhitelist: Human
 
+# The translator implants these carried need the EinsteinEngines language system, which this
+# fork does not have. Kept as plain humanoids until languages are ported.
 - type: randomHumanoidSettings
   id: EventHumanoidLibrarian
   parent: EventHumanoid
-  components:
-  - type: AutoImplant
-    implants:
-    - LibrarianTranslatorImplant      #Librarians should speak most languages
 
 - type: randomHumanoidSettings
   id: EventHumanoidChef
   parent: EventHumanoid
-  components:
-  - type: AutoImplant
-    implants:
-    - SpaceItalianTranslatorImplant   #chefs should speak space italian
 # Goobstation end
 
 - type: randomHumanoidSettings

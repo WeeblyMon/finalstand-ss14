@@ -6,7 +6,6 @@
   startingGear: PassengerGear
   icon: "JobIconPassenger"
   supervisors: job-supervisors-everyone
-  setPreference: false
   access:
   - Maintenance
 
