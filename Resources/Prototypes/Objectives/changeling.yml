@@ -52,9 +52,8 @@
     title: objective-escape-identity-title
   - type: ChangelingEscapeIdentityCondition
   - type: PickRandomPerson
-    conditions:
-    - !type:ObjectiveTargetCondition
-      inverted: true
+    filters:
+    - !type:HasRoleMindFilter
       whitelist:
         components:
         - ChangelingRole
