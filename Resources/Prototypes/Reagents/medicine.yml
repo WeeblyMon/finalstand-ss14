@@ -325,10 +325,6 @@
           - !type:TemperatureCondition
             # this is a little arbitrary but they gotta be pretty cold
             max: 213.0
-          scaleByTemperature: # Shitmed Change
-            min: 100.0
-            max: 213.0
-            scale: 1.6
           damage:
             groups: # Goobstation - Cryo rebalance
               Airloss: -3
@@ -351,10 +347,6 @@
           conditions:
           - !type:TemperatureCondition
             max: 213.0
-          scaleByTemperature: # Shitmed Change
-            min: 100.0
-            max: 213.0
-            scale: 1.6
           damage:
             types:
              Cellular: -2
@@ -1631,10 +1623,6 @@
           conditions:
           - !type:TemperatureCondition
             max: 213.0
-          scaleByTemperature: # Shitmed Change
-            min: 100.0
-            max: 213.0
-            scale: 1.6
           damage: # Goobstation - Cryo rebalance
             groups:
               Airloss: -10.0
@@ -1658,10 +1646,6 @@
         conditions:
         - !type:TemperatureCondition
           max: 213.0
-        scaleByTemperature: # Shitmed Change
-          min: 100.0
-          max: 213.0
-          scale: 1.6
         damage: # Goobstation - Cryo rebalance
           types:
             Heat: -10.0
