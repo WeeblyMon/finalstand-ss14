@@ -8,11 +8,8 @@ public sealed class StrippableTest : InteractionTest
 {
     protected override string PlayerPrototype => "MobHuman";
 
-    /// <summary>
-    /// Tests that the stripping UI is opened when drag dropping from another mob onto the player.
-    /// </summary>
     [Test]
-    public async Task DragDropOpensStrip()
+    public async Task DragDropDoesNotOpenStrip()
     {
         await SpawnTarget("MobHuman");
 
@@ -21,9 +18,9 @@ public sealed class StrippableTest : InteractionTest
 
         await DragDrop(Target.Value, Player);
 
-        Assert.That(userInterface.Actors, Is.Not.Empty);
+        Assert.That(userInterface.Actors, Is.Empty);
 
-        Assert.That(CUiSys.IsUiOpen(CTarget.Value, StrippingUiKey.Key));
-        Assert.That(SUiSys.IsUiOpen(STarget.Value, StrippingUiKey.Key));
+        Assert.That(CUiSys.IsUiOpen(CTarget.Value, StrippingUiKey.Key), Is.False);
+        Assert.That(SUiSys.IsUiOpen(STarget.Value, StrippingUiKey.Key), Is.False);
     }
 }
