@@ -55,6 +55,7 @@
   - type: BodyPartAppearance
     color: White
     baseLayerId: MobCyberneticBishopLHand
+    id: MobCyberneticBishopLHand
     visLayers: LHand
   - type: SmartLinkArm
 
@@ -71,6 +72,7 @@
   - type: BodyPartAppearance
     color: White
     baseLayerId: MobCyberneticBishopRHand
+    id: MobCyberneticBishopRHand
     visLayers: RHand
   - type: SmartLinkArm
 
@@ -87,6 +89,7 @@
   - type: BodyPartAppearance
     color: White
     baseLayerId: MobCyberneticBishopLHand
+    id: MobCyberneticBishopLHand
     visLayers: LHand
   - type: RecoilAbsorberArm
 
@@ -103,5 +106,6 @@
   - type: BodyPartAppearance
     color: White
     baseLayerId: MobCyberneticBishopRHand
+    id: MobCyberneticBishopRHand
     visLayers: RHand
   - type: RecoilAbsorberArm
