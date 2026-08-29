@@ -1,0 +1,24 @@
+- type: latheRecipePack
+  id: Surgery
+  recipes:
+  - EnergyScalpel
+  - AdvancedRetractor
+  - EnergyCautery
+  - AdvancedBoneGel
+  - OmnimedTool
+
+- type: latheRecipePack
+  id: MedicalMiscRestricted
+  recipes:
+  - DefibrillatorCompact
+  - ClothingHandsGlovesSurgical
+
+- type: latheRecipePack
+  id: MedicalBoardsGoob
+  recipes:
+  - AutodocCircuitboard
+
+- type: latheRecipePack
+  id: BorgModulesGoob
+  recipes:
+  - BorgModuleAdvancedSurgery

@@ -32,6 +32,7 @@
       tags:
       - Sheet
       - RawMaterial
+      - Ingot
   - type: Lathe
     idleState: limbgrower_idleoff
     runningState: limbgrower_idleon
