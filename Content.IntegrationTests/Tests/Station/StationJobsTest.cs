@@ -3,6 +3,7 @@ using Content.IntegrationTests.Fixtures;
 using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
 using Content.Shared.CCVar;
+using Content.Shared.GameTicking;
 using Content.Shared.Maps;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
@@ -321,7 +322,9 @@ public sealed class StationJobsTest : GameTest
             var invalidJobs = new HashSet<string>();
             foreach (var job in prototypeManager.EnumeratePrototypes<JobPrototype>())
             {
-                if (!job.SetPreference)
+                // FINALSTAND: the overflow job is hidden from the preferences menu but still has to be
+                // offered roundstart, otherwise OverflowJobs infers empty and players spawn as observers.
+                if (!job.SetPreference && job.ID != SharedGameTicker.FallbackOverflowJob)
                     invalidJobs.Add(job.ID);
             }
 

@@ -58041,6 +58041,20 @@ entities:
     - type: Transform
       parent: 1
       pos: 39.5,12.5
+- proto: SpawnPointChef
+  entities:
+  - uid: 10913
+    components:
+    - type: Transform
+      parent: 1
+      pos: 39.5,11.5
+- proto: SpawnPointResearchAssistant
+  entities:
+  - uid: 10914
+    components:
+    - type: Transform
+      parent: 1
+      pos: 16.5,-9.5
 - proto: SpawnPointBotanist
   entities:
   - uid: 2193
