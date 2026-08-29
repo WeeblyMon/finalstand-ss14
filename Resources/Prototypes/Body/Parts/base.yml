@@ -34,6 +34,7 @@
     angle: 90
   - type: Icon
     sprite: Mobs/Species/Human/parts.rsi
+  - type: Damageable
   - type: Injurable
     damageContainer: Inorganic # Shitmed Change
   - type: Organ
