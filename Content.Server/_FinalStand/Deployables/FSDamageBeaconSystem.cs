@@ -29,7 +29,7 @@ public sealed class FSDamageBeaconSystem : FSDeployableAuraSystem<FSDamageBeacon
             return;
 
         var xform = Transform(uid);
-        if (xform.MapUid == null)
+        if (xform.MapUid is not { } map || TerminatingOrDeleted(map))
             return;
 
         Spawn(destroyProto, xform.Coordinates.ToMap(EntityManager, XformSystem));
