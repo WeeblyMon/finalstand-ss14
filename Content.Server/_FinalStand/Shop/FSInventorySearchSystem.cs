@@ -38,7 +38,7 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
 
     private static IEnumerable<string> ActiveHandFirst(HandsComponent hands)
     {
-        if (hands.ActiveHandId is { } active && hands.Hands.ContainsKey(active))
+        if (hands.ActiveHandId is { } active)
             yield return active;
 
         foreach (var handName in hands.SortedHands)
