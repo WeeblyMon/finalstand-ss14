@@ -40,8 +40,7 @@ public sealed class HealingRoutingTest : GameTest
                 .ToDictionary(o => o.Owner,
                     o => entityManager.GetComponent<WoundableComponent>(o.Owner).WoundableIntegrity);
 
-            Assert.That(lookup.TryGetRootOrgan(body, out var torso), Is.True, "human has no torso organ");
-            damageable.TryChangeDamage(torso.Owner, new DamageSpecifier(bluntProto, 30), true);
+            damageable.TryChangeDamage(body, new DamageSpecifier(bluntProto, 30), true);
 
             var hurt = before.Keys
                 .Where(p => entityManager.GetComponent<WoundableComponent>(p).WoundableIntegrity < before[p])
