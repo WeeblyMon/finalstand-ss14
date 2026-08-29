@@ -94,6 +94,16 @@
         AppendStyleClass="{x:Static style:StyleClass.ButtonSquare}"
         />
     <ui:MenuButton
+        Name="LeaderboardButton"
+        Access="Internal"
+        Icon="{xe:Tex '/Textures/Interface/character.svg.192dpi.png'}"
+        BoundKey = "{x:Static is:ContentKeyFunctions.OpenFinalStandLeaderboard}"
+        ToolTip="{Loc 'final-stand-leaderboard-title'}"
+        MinSize="42 64"
+        HorizontalExpand="True"
+        AppendStyleClass="{x:Static style:StyleClass.ButtonSquare}"
+        />
+    <ui:MenuButton
         Name="AHelpButton"
         Access="Internal"
         Icon="{xe:Tex '/Textures/Interface/info.svg.192dpi.png'}"
