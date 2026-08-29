@@ -47,8 +47,9 @@ namespace Content.IntegrationTests.Tests.GameRules
                 sGameTicker.StartRound();
             });
 
-            Assert.That(server.EntMan.Count<GameRuleComponent>(), Is.EqualTo(1));
-            Assert.That(server.EntMan.Count<ActiveGameRuleComponent>(), Is.EqualTo(1));
+            // FINALSTAND: starting a round adds the fork's own wave rule alongside this one.
+            Assert.That(server.EntMan.Count<GameRuleComponent>(), Is.AtLeast(1));
+            Assert.That(server.EntMan.Count<ActiveGameRuleComponent>(), Is.AtLeast(1));
 
             await server.WaitAssertion(() =>
             {
