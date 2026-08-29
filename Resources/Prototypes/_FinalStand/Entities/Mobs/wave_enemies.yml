@@ -86,6 +86,7 @@
   - type: Climbing
   - type: Flammable
     fireSpread: false
+  - type: FSMaterialDrop
 
 # Shared stat base for foot-soldier tier zombies — no FSVaporiseWeak here so that
 # only Normal and Runner (which add it explicitly) are vaporisable.
