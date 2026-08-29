@@ -36,6 +36,18 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
         return first;
     }
 
+    private static IEnumerable<string> ActiveHandFirst(HandsComponent hands)
+    {
+        if (hands.ActiveHandId is { } active && hands.Hands.ContainsKey(active))
+            yield return active;
+
+        foreach (var handName in hands.SortedHands)
+        {
+            if (handName != hands.ActiveHandId)
+                yield return handName;
+        }
+    }
+
     // Passing a null sink means "stop at the first match" — the two public entry points differ only in that.
     private void Walk(EntityUid player, IReadOnlySet<string> protoIds, bool requireUpgradeState,
         List<CarriedItem>? sink, out CarriedItem? first)
@@ -58,7 +70,7 @@ public sealed partial class FSInventorySearchSystem : EntitySystem
 
         if (TryComp<HandsComponent>(player, out var hands))
         {
-            foreach (var handName in hands.SortedHands)
+            foreach (var handName in ActiveHandFirst(hands))
             {
                 if (!_hands.TryGetHeldItem((player, hands), handName, out var held) || held == null)
                     continue;
