@@ -206,6 +206,28 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return true;
     }
 
+    // Charges what the player can afford and returns it. Unlike TryDeductCredits this never refuses,
+    // because respawn must not be blocked by a low balance.
+    public int DeductUpTo(EntityUid mindId, int amount)
+    {
+        if (amount <= 0)
+            return 0;
+
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var taken = Math.Min(wallet.Credits, amount);
+        if (taken <= 0)
+            return 0;
+
+        wallet.Credits -= taken;
+        MarkWalletDirty(mindId);
+        return taken;
+    }
+
+    public int GetCredits(EntityUid mindId)
+    {
+        return TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
+    }
+
     public void SaveAll()
     {
         var count = 0;
