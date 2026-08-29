@@ -337,12 +337,8 @@
   - type: Lung
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Human ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       organ:
@@ -383,10 +379,6 @@
   - type: Metabolizer
     metabolizerTypes: [Human]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
-    groups:
-    - id: Medicine
-    - id: Poison
-    - id: Narcotic
   - type: Tag # goob edit
     tags:
     - Meat
@@ -432,9 +424,6 @@
     # mm yummy
     metabolizerTypes: [Human]
     stages: [ Food, Drink, Digestion ]
-    groups:
-    - id: Food
-    - id: Drink
   - type: Tag # goob edit
     tags:
     - Meat
@@ -464,9 +453,6 @@
   - type: Metabolizer # The liver metabolizes certain chemicals only, like alcohol.
     metabolizerTypes: [Human]
     stages: [ Alcohol, Metabolites ]
-    groups:
-    - id: Alcohol
-      rateModifier: 0.1 # removes alcohol very slowly along with the stomach removing it as a drink
   - type: Tag # goob edit
     tags:
     - Meat

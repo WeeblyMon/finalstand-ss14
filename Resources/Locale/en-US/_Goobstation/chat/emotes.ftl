@@ -1,0 +1,17 @@
+chat-emote-msg-bagawk = bagawks!
+chat-emote-msg-bubble = bubbles.
+chat-emote-msg-fart = farts.
+chat-emote-msg-pop = pops!
+chat-emote-name-bagawk = Bagawk
+chat-emote-name-bubble = Bubble
+chat-emote-name-fart = Fart
+chat-emote-name-pop = Pop
+chat-speech-verb-name-holier-than-thou = Holier Than Thou
+chat-speech-verb-holier-than-thou-1 = commands
+chat-speech-verb-holier-than-thou-2 = lectures
+chat-speech-verb-holier-than-thou-3 = articulates
+chat-speech-verb-holier-than-thou-4 = proclaims
+chat-speech-verb-holier-than-thou-5 = announces
+chat-speech-verb-holier-than-thou-6 = recites
+chat-speech-verb-holier-than-thou-7 = declares
+chat-speech-verb-holier-than-thou-8 = pronounces

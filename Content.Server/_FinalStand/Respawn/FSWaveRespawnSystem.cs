@@ -3,6 +3,8 @@ using Content.Shared.Administration.Systems;
 using Content.Shared.Mind.Components;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Movement.Pulling.Components;
+using Content.Shared.Movement.Pulling.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Random;
 
@@ -11,6 +13,7 @@ namespace Content.Server._FinalStand.Respawn;
 public sealed partial class FSWaveRespawnSystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private PullingSystem _pulling = default!;
     [Dependency] private RejuvenateSystem _rejuvenate = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private IRobustRandom _random = default!;
@@ -37,6 +40,10 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
                 continue;
             if (!_mobState.IsIncapacitated(uid))
                 continue;
+
+            // The pull joint survives a teleport and yanks the puller across the map with the body.
+            if (TryComp<PullableComponent>(uid, out var pullable))
+                _pulling.TryStopPull(uid, pullable);
 
             _transform.SetCoordinates(uid, _random.Pick(points));
             _rejuvenate.PerformRejuvenate(uid);

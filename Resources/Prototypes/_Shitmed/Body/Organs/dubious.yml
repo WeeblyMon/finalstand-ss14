@@ -36,7 +36,6 @@
       allowedStates:
       - Alive
       - Critical
-      damageCap: 150
       damage:
         groups:
           Brute: -0.14
@@ -263,17 +262,7 @@
   - type: OrganEffect
     onAdd:
     - type: StepTriggerImmune
-      whitelist:
-        types:
-        - Shard
-        - Landmine
-        - Mousetrap
-        - Lava
-        - Chasm
-        - SlipTile
-        - SlipEntity
-        - ContrabandDetector
-          
+
 - type: entity
   id: OrganDubiousVentcrawler
   parent: OrganDubiousBase

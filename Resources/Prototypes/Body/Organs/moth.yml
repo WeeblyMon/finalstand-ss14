@@ -38,6 +38,3 @@
   - type: Metabolizer
     metabolizerTypes: [ Moth ]
     stages: [ Food, Drink, Digestion ]
-    groups:
-      - id: Food
-      - id: Drink

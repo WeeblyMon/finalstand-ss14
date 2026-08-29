@@ -48,14 +48,6 @@
     - type: Metabolizer
       metabolizerTypes: [ Slime ]
       stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-      groups:
-        - id: Food
-        - id: Drink
-        - id: Medicine
-        - id: Poison
-        - id: Narcotic
-        - id: Alcohol
-          rateModifier: 0.25
     - type: SolutionContainerManager
       solutions:
         stomach:
@@ -101,12 +93,8 @@
     alert: LowNitrogen
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Slime ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       organ:

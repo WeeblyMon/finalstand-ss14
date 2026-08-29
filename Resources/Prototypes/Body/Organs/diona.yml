@@ -184,14 +184,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Plant ]
     stages: [ Food, Drink, Digestion, Medicine, Poison, Narcotic, Alcohol, Metabolites ]
-    groups:
-      - id: Food
-      - id: Drink
-      - id: Medicine
-      - id: Poison
-      - id: Narcotic
-      - id: Alcohol
-        rateModifier: 0.1
   - type: Tag # goob edit
     tags:
     - Meat
@@ -223,12 +215,8 @@
   - type: Lung
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Plant ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       organ:

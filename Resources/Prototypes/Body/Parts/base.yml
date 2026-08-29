@@ -35,6 +35,7 @@
   - type: Icon
     sprite: Mobs/Species/Human/parts.rsi
   - type: Damageable
+  - type: Injurable
     damageContainer: Inorganic # Shitmed Change
   - type: Organ
   - type: SurgeryTool # Shitmed Change
@@ -158,7 +159,7 @@
   - type: ChildOrgan
   - type: OrganSurgeryTool
   - type: GibbableOrgan
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
   - type: Sprite
     state: "head_m"

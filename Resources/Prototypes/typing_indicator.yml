@@ -88,3 +88,15 @@
   typingState: vulpkanin0
   idleState: vulpkanin3
   offset: 0, 0.125
+
+- type: typingIndicator
+  id: empty
+  typingState: empty0
+  idleState: empty0
+
+- type: typingIndicator
+  id: skeleton
+  spritePath: /Textures/_EinsteinEngines/Effects/speech.rsi
+  typingState: skeleton0
+  idleState: skeleton1
+  offset: 0, 0.125

@@ -73,8 +73,9 @@
   - type: EmptyOnMachineDeconstruct
     containers:
       - clonepod-bodyContainer
-  - type: Damageable
+  - type: Injurable
     damageContainer: StructuralInorganic
+  - type: Damageable
     damageModifierSet: StrongMetallic
   - type: Destructible
     thresholds:

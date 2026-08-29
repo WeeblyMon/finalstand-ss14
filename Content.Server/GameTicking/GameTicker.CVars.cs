@@ -47,7 +47,16 @@ namespace Content.Server.GameTicking
                         LobbyEnabled ? PlayerGameStatus.NotReadyToPlay : PlayerGameStatus.ReadyToPlay;
                 }
             }, true);
-            Subs.CVar(_cfg, CCVars.GameDummyTicker, value => DummyTicker = value, true);
+            Subs.CVar(_cfg, CCVars.GameDummyTicker, value =>
+            {
+                DummyTicker = value;
+
+                // SetGamePreset does nothing while the dummy ticker is on, so a preset picked
+                // during that window is dropped. Re-apply it once the ticker is switched back on,
+                // otherwise the round starts with no preset and everyone spawns as an observer.
+                if (!value && _initialized && Preset == null)
+                    InitializeGamePreset();
+            }, true);
             Subs.CVar(_cfg, CCVars.GameLobbyDuration, value => LobbyDuration = TimeSpan.FromSeconds(value), true);
             Subs.CVar(_cfg, CCVars.GameDisallowLateJoins,
                 value => { DisallowLateJoin = value; UpdateLateJoinStatus(); }, true);

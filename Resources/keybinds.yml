@@ -91,6 +91,9 @@ binds:
 - function: ShowEscapeMenu
   type: State
   key: F10
+- function: OpenFinalStandLeaderboard
+  type: State
+  key: F12
 - function: ToggleFullscreen
   type: State
   key: F11

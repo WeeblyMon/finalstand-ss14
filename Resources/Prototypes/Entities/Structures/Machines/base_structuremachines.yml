@@ -34,15 +34,9 @@
       behaviors:
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
-    - trigger:
-        !type:DamageTrigger
-        damage: 100
-      behaviors:
-      - !type:DoActsBehavior
-        acts: ["Destruction"]
-      - !type:PlaySoundBehavior
-        sound:
-          collection: MetalBreak
+        - !type:PlaySoundBehavior
+          sound:
+            collection: MetalBreak
 
 - type: entity
   abstract: true

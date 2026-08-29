@@ -20,6 +20,7 @@
   - type: Icon
     sprite: _EinsteinEngines/Mobs/Species/Cybernetics/bishop/bishop_main.rsi
   - type: Damageable
+  - type: Injurable
     damageContainer: Silicon
   - type: Cybernetics
   - type: Nerve

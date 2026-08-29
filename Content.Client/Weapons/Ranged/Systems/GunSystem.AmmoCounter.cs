@@ -127,9 +127,8 @@ public sealed partial class GunSystem
             HorizontalExpand = true;
             VerticalAlignment = Control.VAlignment.Center;
 
-            AddChild(new BoxContainer
+            AddChild(new ReverseMeasureBox
             {
-                Orientation = BoxContainer.LayoutOrientation.Horizontal,
                 Children =
                 {
                     (_bullets = new BatteryBulletRenderer
@@ -195,9 +194,8 @@ public sealed partial class GunSystem
             HorizontalExpand = true;
             VerticalAlignment = Control.VAlignment.Center;
 
-            AddChild(new BoxContainer
+            AddChild(new ReverseMeasureBox
             {
-                Orientation = BoxContainer.LayoutOrientation.Horizontal,
                 HorizontalExpand = true,
                 Children =
                 {

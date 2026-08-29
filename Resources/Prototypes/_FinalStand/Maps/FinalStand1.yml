@@ -17,7 +17,6 @@
           # security (21)
           HeadOfSecurity:    [ 1,  1 ]
           SecurityOfficer:   [ 20, 20 ]
-          Detective:         [ 0,  0 ]
           # engineering (7)
           ChiefEngineer:         [ 1, 1 ]
           StationEngineer:       [ 4, 4 ]
@@ -40,5 +39,3 @@
           Chef:      [ 1, 1 ]
           Botanist:  [ 1, 1 ]
           Janitor:   [ 1, 1 ]
-          # disabled
-          Passenger: [ 0, 0 ]

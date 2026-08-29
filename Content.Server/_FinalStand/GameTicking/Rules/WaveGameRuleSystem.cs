@@ -203,22 +203,19 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             comp.ForceDarkWave = false;
             comp.IsDarkWaveUpcoming = true;
-            comp.DarkWaveChance = 0f;
             Log.Info($"[WaveGameRule] Dark Wave forced for wave {comp.WaveNumber}.");
         }
         else if (comp.WaveNumber == comp.GuaranteedDarkWave)
         {
             comp.IsDarkWaveUpcoming = true;
-            comp.DarkWaveChance = 0f;
             Log.Info($"[WaveGameRule] Dark Wave guaranteed for wave {comp.WaveNumber}.");
         }
         else if (comp.WaveNumber > 5 && !IsBossWave(comp.WaveNumber))
         {
-            comp.DarkWaveChance = Math.Min(comp.DarkWaveChance + comp.DarkWaveChanceIncrement, comp.DarkWaveMaxChance);
-            if (RobustRandom.NextFloat() < comp.DarkWaveChance)
+            comp.WavesSinceLastDarkWave++;
+            if (comp.WavesSinceLastDarkWave >= comp.DarkWaveCooldownWaves && RobustRandom.NextFloat() < comp.DarkWaveChance)
             {
                 comp.IsDarkWaveUpcoming = true;
-                comp.DarkWaveChance = 0f;
                 Log.Info($"[WaveGameRule] Dark Wave selected for wave {comp.WaveNumber}.");
             }
         }
@@ -288,7 +285,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (comp.ForceDarkWave)
         {
             comp.ForceDarkWave = false;
-            comp.DarkWaveChance = 0f;
             comp.IsDarkWaveUpcoming = true;
             Log.Info($"[WaveGameRule] Dark Wave forced directly into combat for wave {comp.WaveNumber}.");
         }
@@ -297,6 +293,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             comp.IsDarkWave = true;
             comp.IsDarkWaveUpcoming = false;
+            comp.WavesSinceLastDarkWave = 0;
             comp.SavedMaxEnemyCap = comp.MaxEnemyCap;
             comp.MaxEnemyCap = comp.DarkWaveEnemyCap;
             comp.EnemyTotalThisWave = int.MaxValue;

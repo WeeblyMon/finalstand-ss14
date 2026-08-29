@@ -20,7 +20,6 @@
   - AnomalyLocator
   - AnomalyLocatorWide
   - HoloprojectorField
-  - SignallerAdvanced
   - DeviceQuantumSpinInverter
   - DeviceDesynchronizer
   - ClothingBackpackHarmpack
@@ -50,9 +49,6 @@
   - WeaponPistolCHIMP
   - WeaponForceGun
   - WeaponProtoKineticAccelerator
-  - PKAUpgradeDamage
-  - PKAUpgradeRange
-  - PKAUpgradeFireRate
   - WeaponTetherGun
   - WeaponGauntletGorilla
 

@@ -5,6 +5,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 
 namespace Content.Server._FinalStand.Economy;
 
@@ -13,6 +14,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
@@ -36,6 +38,8 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     private void OnDamageChanged(EntityUid uid, FSMoneyOnHitCapComponent cap, DamageChangedEvent args)
     {
         if (!args.DamageIncreased || args.Origin == null)
+            return;
+        if (_mobState.IsDead(uid))
             return;
         if (_armorQuery.TryGetComponent(uid, out var armor) && armor.CurrentArmor > 0)
             return;

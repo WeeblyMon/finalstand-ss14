@@ -143,6 +143,9 @@ public sealed partial class WoundSystem : EntitySystem
 
     private void ProcessHealing(Entity<WoundableComponent> woundable, EntityUid bodyEnt)
     {
+        if (TerminatingOrDeleted(woundable) || TerminatingOrDeleted(bodyEnt))
+            return;
+
         if (woundable.Comp.CanHealBleeds)
             TryHealBleedingWounds(woundable, (float) -woundable.Comp.BleedingTreatmentAbility, out _, woundable);
 

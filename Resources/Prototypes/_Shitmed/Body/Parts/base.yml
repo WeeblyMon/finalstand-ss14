@@ -20,7 +20,7 @@
   - type: OrganSurgeryTool
   - type: GibbableOrgan
   - type: Organ
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological # Shitmed Change
   - type: Nerve
   - type: Extractable

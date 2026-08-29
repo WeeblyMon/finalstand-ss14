@@ -162,21 +162,15 @@
   parent: EventHumanoidMindShielded
   speciesWhitelist: Human
 
+# The translator implants these carried need the EinsteinEngines language system, which this
+# fork does not have. Kept as plain humanoids until languages are ported.
 - type: randomHumanoidSettings
   id: EventHumanoidLibrarian
   parent: EventHumanoid
-  components:
-  - type: AutoImplant
-    implants:
-    - LibrarianTranslatorImplant      #Librarians should speak most languages
 
 - type: randomHumanoidSettings
   id: EventHumanoidChef
   parent: EventHumanoid
-  components:
-  - type: AutoImplant
-    implants:
-    - SpaceItalianTranslatorImplant   #chefs should speak space italian
 # Goobstation end
 
 - type: randomHumanoidSettings
@@ -219,13 +213,6 @@
       rules: ghost-role-information-Death-Squad-rules
       raffle:
         settings: short
-      requirements:
-      - !type:DepartmentTimeRequirement
-        department: Security
-        time: 48000 # Goobstation
-      - !type:DepartmentTimeRequirement
-        department: Command
-        time: 18000 # Goobstation
     - type: Loadout
       prototypes: [ DeathSquadGear ]
       roleLoadout: [ RoleSurvivalEVA ]
@@ -265,13 +252,6 @@
       raffle:
         settings: short
       job: ERTLeader
-      requirements:
-      - !type:DepartmentTimeRequirement
-        department: Security
-        time: 36000 # ten hours
-      - !type:DepartmentTimeRequirement
-        department: Command
-        time: 18000 # five hours
     - type: Loadout
       prototypes: [ ERTLeaderGear ]
       roleLoadout: [ RoleSurvivalExtended ]
@@ -473,13 +453,6 @@
       raffle:
         settings: short
       job: ERTEngineer
-      requirements:
-      - !type:DepartmentTimeRequirement
-        department: Engineering
-        time: 36000 # ten hours
-      - !type:DepartmentTimeRequirement
-        department: Security
-        time: 18000 # five hours
     - type: RandomMetadata
       nameSegments:
       - NamesMilitaryFirst
@@ -673,13 +646,6 @@
       rules: ghost-role-information-nonantagonist-rules
       raffle:
         settings: short
-      requirements:
-      - !type:DepartmentTimeRequirement
-        department: Medical
-        time: 36000 # ten hours
-      - !type:DepartmentTimeRequirement
-        department: Security
-        time: 18000 # five hours
       job: ERTMedical
     - type: Loadout
       prototypes: [ ERTMedicalGearEVA ]
@@ -715,13 +681,6 @@
       rules: ghost-role-information-nonantagonist-rules
       raffle:
         settings: short
-      requirements:
-      - !type:DepartmentTimeRequirement
-        department: Security
-        time: 36000 # ten hours
-      - !type:DepartmentTimeRequirement
-        department: Command
-        time: 18000 # five hours
     - type: RandomMetadata
       nameSegments:
       - NamesMilitaryFirst

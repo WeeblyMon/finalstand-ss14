@@ -390,11 +390,10 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.4,0.4,0.29"
         density: 135
-        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask #this is so they can go under plastic flaps
         layer:
-        - LargeMobLayer
+        - TabletopMachineLayer  # FINALSTAND: off the mob layers so zombies walk through
   - type: Construction
     graph: CrateLivestock
     node: cratelivestock
@@ -454,7 +453,6 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.2,0.4,0.29"
         density: 80
-        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - TabletopMachineMask
         layer:
@@ -495,11 +493,10 @@
           !type:PhysShapeAabb
           bounds: "-0.3,-0.4,0.3,0.19"
         density: 50
-        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask #this is so they can go under plastic flaps
         layer:
-        - MachineLayer
+        - TabletopMachineLayer  # FINALSTAND: off the mob layers so zombies walk through
   - type: Paintable
     group: null
 

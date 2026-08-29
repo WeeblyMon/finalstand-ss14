@@ -201,7 +201,6 @@
     dynamicPacks:
     - AdvancedTools
     - ScienceEquipment
-    - ScienceExplosives
     - ScienceClothing
     - PowerCells
     - ScienceWeapons
@@ -214,10 +213,8 @@
     - Equipment
   - type: EmagLatheRecipes
     emagDynamicPacks:
-    - SecurityAmmo
     - SecurityExplosives
     - SecurityEquipment
-    - SecurityWeapons
 
 - type: entity
   id: ProtolatheHyperConvection
@@ -316,6 +313,12 @@
     - BorgModules
     - MechParts
     - MechEquipment
+    - BasicCybernetics
+    - MedicalCybernetics
+    - AdvancedCybernetics
+    - PowerAugments
+    - ToolAugments
+    - BorgModulesGoob
   - type: MaterialStorage
     whitelist: *StandardMaterialWhitelist
   - type: OreSiloClient
@@ -399,9 +402,6 @@
     - SecurityEquipment
     - SecurityBoards
     - SecurityExplosives
-    - SecurityAmmo
-    - SecurityWeapons
-    - SecurityDisablers
   - type: EmagLatheRecipes
     emagStaticPacks:
     - SyndicateAmmoStatic
@@ -488,6 +488,9 @@
     - SurgeryStatic
     dynamicPacks:
     - Chemistry
+    - Surgery
+    - MedicalMiscRestricted
+    - MedicalBoardsGoob
   - type: Machine
     board: MedicalTechFabCircuitboard
   - type: StealTarget

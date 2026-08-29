@@ -34,8 +34,9 @@
   - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Gingerbread
   - type: Temperature
   - type: TemperatureDamage
@@ -55,7 +56,10 @@
       - id: FoodBakedCookie #should be replaced with gingerbread sheets or something... provided you're willing to make a full spriteset of those.
         amount: 5
   - type: Bloodstream
-    bloodReagent: Sugar
+    bloodReferenceSolution:
+      reagents:
+      - ReagentId: Sugar
+        Quantity: 600
   - type: Reactive
     groups:
       Flammable: [ Touch ]

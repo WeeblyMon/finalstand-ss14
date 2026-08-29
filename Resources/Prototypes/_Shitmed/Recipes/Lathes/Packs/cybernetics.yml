@@ -1,0 +1,34 @@
+- type: latheRecipePack
+  id: BasicCybernetics
+  recipes:
+  - LeftArmCybernetic
+  - RightArmCybernetic
+  - LeftHandCybernetic
+  - RightHandCybernetic
+  - LeftLegCybernetic
+  - RightLegCybernetic
+  - LeftFootCybernetic
+  - RightFootCybernetic
+  - BasicCyberneticEyes
+  - BasicCyberneticHeart
+  - BasicCyberneticLungs
+  - BasicCyberneticLiver
+
+- type: latheRecipePack
+  id: MedicalCybernetics
+  recipes:
+  - MedicalCyberneticEyes
+  - SecurityCyberneticEyes
+
+- type: latheRecipePack
+  id: AdvancedCybernetics
+  recipes:
+  - UpgradedCyberneticHeart
+  - UpgradedCyberneticLungs
+  - JawsOfLifeLeftArm
+  - JawsOfLifeRightArm
+  - SpeedLeftLeg
+  - SpeedRightLeg
+  - DexLeftHand
+  - DexRightHand
+  - DiagnosticCyberneticEyes

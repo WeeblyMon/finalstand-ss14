@@ -42,7 +42,6 @@
   - BorgModuleAdvancedSurgery # Shitmed
   technologyPrerequisites:
   - AdvancedEntertainment
-  position: -2,4
 
 - type: technology
   id: BasicCybernetics
@@ -66,7 +65,6 @@
   - BasicCyberneticHeart
   - BasicCyberneticLungs
   - BasicCyberneticLiver
-  position: -2,5
   technologyPrerequisites:
   - AdvancedTreatment
   - BasicRobotics
@@ -82,7 +80,6 @@
   cost: 10000
   recipeUnlocks:
   - AutodocCircuitboard
-  position: -2,6
   technologyPrerequisites:
   - BasicCybernetics
 
@@ -95,7 +92,6 @@
   discipline: CivilianServices
   tier: 2
   cost: 5000
-  position: -5,6
   technologyPrerequisites:
   - BasicCybernetics
   recipeUnlocks:
@@ -111,7 +107,6 @@
   discipline: CivilianServices
   tier: 2
   cost: 10000
-  position: -5,7
   technologyPrerequisites:
   - BasicAugmentation
   recipeUnlocks:
@@ -130,7 +125,6 @@
   discipline: CivilianServices
   tier: 2
   cost: 10000
-  position: -6,7
   technologyPrerequisites:
   - BasicAugmentation
   recipeUnlocks:
@@ -160,7 +154,6 @@
   - DiagnosticCyberneticEyes
   - SecurityCyberneticEyes
   - MedicalCyberneticEyes
-  position: -2,7
   technologyPrerequisites:
   - Autodoc
 
@@ -177,4 +170,3 @@
   - ClothingHandsGlovesSurgical
   technologyPrerequisites:
   - AdvancedCybernetics
-  position: -2,9

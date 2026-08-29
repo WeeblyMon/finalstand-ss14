@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Linq;
 using Robust.Shared.Console;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -22,7 +23,8 @@ public sealed partial class MindTests
         await pair.Server.WaitPost(() => conHost.ExecuteCommand("entities delete"));
         await pair.RunTicksSync(5);
 
-        Assert.That(pair.Server.EntMan.EntityCount, Is.EqualTo(0));
+        Assert.That(pair.Server.EntMan.EntityCount, Is.EqualTo(0),
+            $"leftover: {string.Join(", ", pair.Server.EntMan.GetEntities().Select(e => pair.Server.EntMan.ToPrettyString(e)))}");
 
         foreach (var ent in pair.Client.EntMan.GetEntities())
         {

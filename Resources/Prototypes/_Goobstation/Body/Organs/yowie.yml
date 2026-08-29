@@ -53,15 +53,6 @@
   - type: Metabolizer
     metabolizerTypes: [Yowie]
     stages: [ Medicine, Poison, Narcotic, Alcohol, Bloodstream, Metabolites ]
-    groups:
-    - id: Medicine
-      rateModifier: 1
-    - id: Poison
-      rateModifier: 1
-    - id: Narcotic
-      rateModifier: 1
-    - id: Alcohol # Same as parent
-      rateModifier: 0.1
 
 - type: entity
   id: OrganYowieHeart
@@ -71,7 +62,6 @@
   - type: Metabolizer
     metabolizerTypes: [Yowie]
     stages: [] # Empty to ensure it doesn't do anything
-    groups: # Empty to ensure it doesn't do anything
 
 - type: entity
   id: OrganYowieLungs
@@ -81,21 +71,14 @@
   components:
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Yowie ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       organ:
         reagents:
         - ReagentId: Nutriment
           Quantity: 20
-      Lung:
-        maxVol: 100.0
-        canReact: false
       food:
         maxVol: 5
         reagents:

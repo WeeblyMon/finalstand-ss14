@@ -47,13 +47,6 @@
   - type: Speech
     speechVerb: HolierThanThou
   - type: GhostRole
-    requirements:
-    - !type:DepartmentTimeRequirement
-      department: Security
-      time: 36000 # Ten Hours
-    - !type:DepartmentTimeRequirement
-      department: Command
-      time: 108000 # Thirty hours. Fuck you.
 
 # Navy Officer
 
@@ -86,7 +79,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -124,7 +116,6 @@
     rules: ghost-role-information-navy-captain-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -162,7 +153,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -200,7 +190,6 @@
     rules: ghost-role-information-special-operations-officer-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirstLeader
@@ -238,7 +227,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesMilitaryFirst
@@ -276,7 +264,6 @@
     rules: ghost-role-information-navy-officer-rules
     raffle:
       settings: short
-    roleLoadout: [ RoleSurvivalEVA ]
   - type: RandomMetadata
     nameSegments:
     - NamesFirst
@@ -432,7 +419,6 @@
     chokeGrabSpeedModifier: 4
   - type: MeleeWeapon
     altDisarm: false
-    heavyStaminaCost: 1.5
     damage:
       types:
         Blunt: 15
@@ -477,13 +463,11 @@
       1000: 1.5
       1500: 2
   - type: Stamina
-    critThreshold: 100000
   - type: PassiveDamage
     allowedStates:
     - Alive
     - Critical
     - Dead
-    damageCap: 0
     damage:
       types:
         Heat: -3

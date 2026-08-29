@@ -1,0 +1,157 @@
+- type: emote
+  id: Fart
+  name: chat-emote-name-fart
+  category: Farts
+  icon: _Goobstation/Interface/Emotes/fart.png
+  whitelist:
+    components:
+    - Vocal
+  blacklist:
+    components:
+    - BorgChassis
+    - Silicon
+  chatMessages: ["chat-emote-msg-fart"]
+  chatTriggers:
+    - fart
+    - farts
+    - farting
+    - farted
+    - toot
+    - toots
+    - tooted
+    - tooting
+    - pass gas
+    - passes gas
+    - passing gas
+    - passed gas
+    - break wind
+    - breaks wind
+    - breaking wind
+    - broke wind
+    - flatulate
+    - flatulates
+    - flatulating
+    - flatulated
+    - let one rip
+    - lets one rip
+    - letting one rip
+    - cut cheese
+    - cuts cheese
+    - cutting cheese
+    - cut the cheese
+    - cuts the cheese
+    - cutting the cheese
+    - let out a stinker
+    - lets out a stinker
+    - letting out a stinker
+    - exhales anally
+    - burps from the rear
+    - burps from the butt
+    - bowel howl
+    - bowel howls
+    - bowel howling
+    - bowel howled
+    - accelerates climate change
+
+- type: emote # Mono
+  id: Bagawk
+  name: chat-emote-name-bagawk
+  category: Vocal
+  available: false
+  icon: _Goobstation/Interface/Emotes/caw.png
+  whitelist:
+    components:
+    - Vocal
+  blacklist:
+    components:
+    - BorgChassis
+  chatMessages: ["chat-emote-msg-bagawk"]
+  chatTriggers:
+  - bagawk
+  - bagawks
+  - bawk
+  - bawks
+
+- type: emote
+  id: Bubble
+  name: chat-emote-name-bubble
+  category: Vocal
+  available: false
+  icon: Interface/Emotes/squish.png
+  whitelist:
+    components:
+    - Vocal
+  blacklist:
+    components:
+    - BorgChassis
+  chatMessages: ["chat-emote-msg-bubble"]
+  chatTriggers:
+    # Frontier: emote consistency
+    - bubble
+    - bubbles
+    - bubbling
+    - bubbled
+    # End Frontier: emote consistency
+
+- type: emote
+  id: Pop
+  name: chat-emote-name-pop
+  category: Vocal
+  available: false
+  icon: Interface/Emotes/squish.png
+  whitelist:
+    components:
+    - Vocal
+  blacklist:
+    components:
+    - BorgChassis
+  chatMessages: ["chat-emote-msg-pop"]
+  chatTriggers:
+    # Frontier: emote consistency
+    - pop
+    - pops
+    - popping
+    - popped
+    # End Frontier: emote consistency
+
+# hand emotes
+
+- type: emote
+  id: Hiss
+  name: Hiss
+  category: Vocal
+  icon: _Goobstation/Interface/Emotes/hiss.png
+  whitelist:
+    tags:
+    - FelinidEmotes
+    - HarpyEmotes
+    - ReptilianEmotes
+  blacklist:
+    components:
+    - BorgChassis
+  chatMessages: [hisses.]
+  chatTriggers:
+    - hiss
+    - hisses
+    - hissing
+    - hissed
+
+- type: emote
+  id: Caw
+  name: Caw
+  category: Vocal
+  icon: _Goobstation/Interface/Emotes/caw.png
+  whitelist:
+    tags:
+    - HarpyEmotes
+  blacklist:
+    components:
+    - BorgChassis
+  chatMessages: [caws.]
+  chatTriggers:
+    - caws
+    - caw
+    - cawing
+    - cawed
+
+#Vulpkanin

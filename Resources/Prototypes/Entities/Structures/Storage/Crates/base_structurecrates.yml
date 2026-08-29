@@ -35,11 +35,10 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.4,0.4,0.29"
         density: 50
-        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask
         layer:
-        - MachineLayer
+        - TabletopMachineLayer  # FINALSTAND: off the mob layers so zombies walk through
   - type: EntityStorage
   - type: PlaceableSurface
     isPlaceable: false # defaults to closed.
@@ -158,11 +157,10 @@
           !type:PhysShapeAabb
           bounds: "-0.4,-0.4,0.4,0.29"
         density: 50
-        hard: false  # FINALSTAND: sensor-only — zombies walk through crates
         mask:
         - CrateMask #this is so they can go under plastic flaps
         layer:
-        - MachineLayer
+        - TabletopMachineLayer  # FINALSTAND: off the mob layers so zombies walk through
   - type: EntityStorage
   - type: PlaceableSurface
     isPlaceable: false # defaults to closed.

@@ -279,7 +279,6 @@
   - type: WorldTargetAction
     event: !type:ProjectileSpellEvent
       prototype: ProjectileDragonsBreath
-      projectileSpeed: 5
 
 - type: entity
   parent: Smoke

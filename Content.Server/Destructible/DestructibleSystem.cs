@@ -47,10 +47,59 @@ namespace Content.Server.Destructible
         [Dependency] public IPrototypeManager PrototypeManager = default!;
         [Dependency] public IAdminLogManager AdminLogger = default!;
 
+        private const int MinimumOverkill = 100;
+        private const double OverkillMultiplier = 2.0;
+
         public override void Initialize()
         {
             base.Initialize();
+            SubscribeLocalEvent<DestructibleComponent, MapInitEvent>(OnMapInit);
             SubscribeLocalEvent<DestructibleComponent, DamageChangedEvent>(OnDamageChanged);
+        }
+
+        private void OnMapInit(Entity<DestructibleComponent> entity, ref MapInitEvent args)
+        {
+            AddOverkillThreshold(entity);
+        }
+
+        /// <summary>
+        /// A top priority threshold that destroys the entity outright, so damage far past what it can survive
+        /// does not also run its spawn and sound behaviors.
+        /// </summary>
+        private void AddOverkillThreshold(Entity<DestructibleComponent> entity)
+        {
+            if (!entity.Comp.GenerateOverkillThreshold)
+                return;
+
+            var maxTrigger = FixedPoint2.Zero;
+
+            foreach (var threshold in entity.Comp.Thresholds)
+            {
+                if (threshold.Trigger is not DamageTrigger trigger)
+                    continue;
+
+                foreach (var behavior in threshold.Behaviors)
+                {
+                    if (behavior is not DoActsBehavior actBehavior || !actBehavior.HasAct(ThresholdActs.Destruction))
+                        continue;
+
+                    if (threshold.Behaviors.Count == 1)
+                        return;
+
+                    maxTrigger = FixedPoint2.Max(maxTrigger, trigger.Damage);
+                }
+            }
+
+            if (FixedPoint2.Zero == maxTrigger)
+                return;
+
+            var autoThreshold = new DamageThreshold
+            {
+                Trigger = new DamageTrigger { Damage = FixedPoint2.Max(MinimumOverkill, OverkillMultiplier * maxTrigger) },
+                Behaviors = { new DoActsBehavior { Acts = ThresholdActs.Destruction } },
+            };
+
+            entity.Comp.Thresholds.Insert(0, autoThreshold);
         }
 
         /// <summary>

@@ -1,30 +1,60 @@
 <DefaultWindow
     xmlns="https://spacestation14.io"
     Title="Armor Vendor"
-    MinWidth="600" MinHeight="420">
+    MinWidth="880" MinHeight="720"
+    SetSize="880 720">
 
-    <BoxContainer Orientation="Horizontal" Margin="10">
+    <BoxContainer Orientation="Vertical" Margin="10">
 
-        <!-- LEFT: tier selection list -->
-        <PanelContainer StyleClasses="FSCard" MinWidth="272" Margin="0 0 10 0">
-            <BoxContainer Orientation="Vertical" Margin="10">
-                <Label Text="SELECT ARMOR" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
-                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
-                <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
-                    <BoxContainer Name="TierListContainer" Orientation="Vertical" />
-                </ScrollContainer>
+        <PanelContainer StyleClasses="FSCard" Margin="0 0 0 8">
+            <BoxContainer Orientation="Horizontal" Margin="14 10">
+                <Label Text="ARMOR VENDOR" StyleClasses="FSSectionHeader" VerticalAlignment="Center" />
+                <Control HorizontalExpand="True" />
+                <Label Text="CREDITS  " StyleClasses="FSMuted" VerticalAlignment="Center" />
+                <Label Name="CreditsLabel" Text="$0" StyleClasses="FSCurrency" VerticalAlignment="Center" />
             </BoxContainer>
         </PanelContainer>
 
-        <!-- RIGHT: selected tier stats + buy -->
-        <PanelContainer StyleClasses="FSCard" HorizontalExpand="True">
-            <BoxContainer Orientation="Vertical" Margin="10">
-                <Label Name="SelectedTierName" Text="—" StyleClasses="LabelHeading" Margin="0 0 0 6" />
-                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
-                <BoxContainer Name="StatsContainer" Orientation="Vertical" VerticalExpand="True" />
-                <Button Name="BuyButton" Text="BUY" Disabled="True" Margin="0 10 0 0" />
-            </BoxContainer>
-        </PanelContainer>
+        <BoxContainer Orientation="Horizontal" VerticalExpand="True">
 
+            <PanelContainer StyleClasses="FSCard" MinWidth="360" Margin="0 0 8 0">
+                <BoxContainer Orientation="Vertical" Margin="10">
+                    <Label Text="SELECT ARMOR" StyleClasses="FSSectionHeader" Margin="0 0 0 6" />
+                    <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+                    <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                        <BoxContainer Name="TierListContainer" Orientation="Vertical" />
+                    </ScrollContainer>
+                </BoxContainer>
+            </PanelContainer>
+
+            <PanelContainer StyleClasses="FSCard" HorizontalExpand="True">
+                <BoxContainer Orientation="Vertical" Margin="14">
+
+                    <BoxContainer Orientation="Horizontal" Margin="0 0 0 10">
+                        <PanelContainer Name="PreviewPanel" MinSize="84 84" Margin="0 0 12 0">
+                            <BoxContainer Name="PreviewContainer" Orientation="Vertical"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </PanelContainer>
+                        <BoxContainer Orientation="Vertical" VerticalAlignment="Center" HorizontalExpand="True">
+                            <Label Name="SelectedTierRank" Text="" StyleClasses="FSMuted" />
+                            <Label Name="SelectedTierName" Text="—" StyleClasses="LabelHeading" />
+                        </BoxContainer>
+                    </BoxContainer>
+
+                    <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 8" />
+
+                    <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                        <BoxContainer Name="StatsContainer" Orientation="Vertical" />
+                    </ScrollContainer>
+
+                    <PanelContainer StyleClasses="LowDivider" Margin="0 8 0 8" />
+
+                    <BoxContainer Name="CostContainer" Orientation="Vertical" Margin="0 0 0 10" />
+
+                    <Button Name="BuyButton" Text="BUY" Disabled="True" MinHeight="38" />
+                </BoxContainer>
+            </PanelContainer>
+
+        </BoxContainer>
     </BoxContainer>
 </DefaultWindow>

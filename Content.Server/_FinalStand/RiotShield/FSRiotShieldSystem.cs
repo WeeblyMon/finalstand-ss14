@@ -1,6 +1,8 @@
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.RiotShield;
 using Content.Shared._FinalStand.WaveHud;
+using Content.Shared.Blocking;
+using Content.Shared.Blocking.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
@@ -12,6 +14,7 @@ namespace Content.Server._FinalStand.RiotShield;
 
 public sealed partial class FSRiotShieldSystem : EntitySystem
 {
+    [Dependency] private BlockingSystem _blocking = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private MobStateSystem _mobState = default!;
 
@@ -53,6 +56,9 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         {
             comp.CurrentDurability = 0f;
             comp.IsBroken = true;
+
+            if (TryComp<BlockingComponent>(uid, out var blocking) && blocking.User is { } user)
+                _blocking.LowerShield((uid, blocking), user);
         }
         Dirty(uid, comp);
     }

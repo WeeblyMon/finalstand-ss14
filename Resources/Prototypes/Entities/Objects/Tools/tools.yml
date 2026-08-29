@@ -309,6 +309,7 @@
   name: RCD
   description: The rapid construction device can be used to quickly place and remove various station structures and fixtures. Requires compressed matter to function.
   components:
+  - type: FSEngineerOnlyRCD
   - type: RCD
     availablePrototypes:
     - WallSolid

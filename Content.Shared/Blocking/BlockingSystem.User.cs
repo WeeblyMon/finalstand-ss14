@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.RiotShield;
 using Content.Shared.Blocking.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -44,6 +45,10 @@ public sealed partial class BlockingSystem
             return;
 
         if (args.Damage.GetTotal() <= 0)
+            return;
+
+        // FINALSTAND: a shield that spent its durability must stop absorbing damage.
+        if (TryComp<FSRiotShieldComponent>(item, out var fsShield) && fsShield.IsBroken)
             return;
 
         var blockFraction = blocking.IsRaised ? blocking.ActiveBlockFraction : blocking.PassiveBlockFraction;

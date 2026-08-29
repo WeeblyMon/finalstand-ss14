@@ -39,14 +39,14 @@ public abstract class BaseBulletRenderer : Control
 
     protected override Vector2 MeasureOverride(Vector2 availableSize)
     {
-        var countPerRow = Math.Min(Capacity, CountPerRow(availableSize.X));
+        var countPerRow = Math.Max(1, Math.Min(Capacity, CountPerRow(availableSize.X)));
 
-        var rows = Math.Min((int)MathF.Ceiling(Capacity / (float)countPerRow), Rows);
+        var rows = Math.Clamp((int)MathF.Ceiling(Capacity / (float)countPerRow), 1, Rows);
 
         var height = _params.ItemHeight * rows + (_params.VerticalSeparation * rows - 1);
         var width = RowWidth(countPerRow);
 
-        return new Vector2(width, height);
+        return new Vector2(Math.Max(0, width), Math.Max(0, height));
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -110,7 +110,10 @@ public abstract class BaseBulletRenderer : Control
 
     private int CountPerRow(float width)
     {
-        return (int)((width - _params.ItemWidth + _params.ItemSeparation) / _params.ItemSeparation);
+        if (!float.IsFinite(width))
+            return 1;
+
+        return Math.Max(1, (int)((width - _params.ItemWidth + _params.ItemSeparation) / _params.ItemSeparation));
     }
 
     private int RowWidth(int count)

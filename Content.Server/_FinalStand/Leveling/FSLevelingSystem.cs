@@ -6,8 +6,10 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
+using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.WaveHud;
+using Content.Shared._FinalStand.Leaderboard;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -364,6 +366,36 @@ public sealed partial class FSLevelingSystem : EntitySystem
             XpToNextLevel = lvl.XpToNextLevel,
             PrestigeLevel = lvl.PrestigeLevel,
         }, Filter.SinglePlayer(session));
+    }
+
+    public FSLeaderboardEntry[] GetLeaderboardSnapshot()
+    {
+        var query = EntityQueryEnumerator<FSPlayerLevelComponent, MindComponent>();
+        var entries = new List<FSLeaderboardEntry>();
+
+        while (query.MoveNext(out var mindId, out var lvl, out var mind))
+        {
+            if (mind.UserId == null)
+                continue;
+
+            var stats = _roundStats.TryGetValue(mindId, out var cur)
+                ? cur
+                : (Xp: 0, Kills: 0, Assists: 0);
+            var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
+            var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5 + stats.Kills * 100 + stats.Assists * 40 + walletCredits;
+
+            entries.Add(new FSLeaderboardEntry(
+                mind.CharacterName ?? "Unknown",
+                stats.Kills,
+                stats.Assists,
+                stats.Xp,
+                lvl.Level,
+                lvl.PrestigeLevel,
+                walletCredits,
+                score));
+        }
+
+        return FSLeaderboardEntry.Sort(entries);
     }
 
     public static float ComputeXpMultiplier(int prestige)

@@ -147,9 +147,8 @@ public sealed partial class WaveGameRuleComponent : Component
     public float DarkWaveWarningAccum;
     public bool DarkWaveWarningFired;
 
-    [DataField] public float DarkWaveChance = 0f;
-    [DataField] public float DarkWaveChanceIncrement = 0.05f;
-    [DataField] public float DarkWaveMaxChance = 0.60f;
+    [DataField] public float DarkWaveChance = 0.05f;
+    [DataField] public int DarkWaveCooldownWaves = 5;
     [DataField] public float DarkWaveDuration = 120f;
     [DataField] public float DarkWaveSpawnInterval = 2.0f;
     [DataField] public int DarkWaveEnemyCap = 30;
@@ -157,6 +156,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public bool IsDarkWave = false;
     public bool IsDarkWaveUpcoming = false;
     public bool ForceDarkWave = false;
+    public int WavesSinceLastDarkWave = 999;
     public int SavedMaxEnemyCap = 130;
     public float LightFlickerAccum = 0f;
     public float LightFlickerInterval = 1.2f;

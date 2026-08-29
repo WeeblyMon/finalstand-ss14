@@ -115,7 +115,7 @@ public sealed partial class CargoSystem
         {
             var aabb = _lookup.GetAABBNoContainer(pallet.Entity, pallet.Transform.LocalPosition, pallet.Transform.LocalRotation);
 
-            if (_lookup.AnyLocalEntitiesIntersecting(gridUid, aabb, LookupFlags.Dynamic))
+            if (_lookup.AnyLocalEntitiesIntersecting(gridUid, aabb, LookupFlags.Dynamic | LookupFlags.Sensors))
                 continue;
 
             outList.Add(pallet);
@@ -159,7 +159,9 @@ public sealed partial class CargoSystem
             _lookup.GetEntitiesIntersecting(
                 palletUid,
                 _setEnts,
-                LookupFlags.Dynamic | LookupFlags.Sundries);
+                // FINALSTAND: crates are sensor-only so zombies walk through them, which hides
+                // them from a lookup that skips non-hard fixtures.
+                LookupFlags.Dynamic | LookupFlags.Sundries | LookupFlags.Sensors);
 
             foreach (var ent in _setEnts)
             {

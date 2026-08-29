@@ -1,5 +1,7 @@
 using Content.Server._FinalStand.Placement;
 using Content.Shared._FinalStand.Science;
+using Content.Shared.Access.Systems;
+using Content.Shared.Access;
 using Content.Shared.GameTicking;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mind;
@@ -19,8 +21,12 @@ public sealed partial class FSScienceOnlySystem : EntitySystem
     [Dependency] private SharedRoleSystem _roles = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private AccessReaderSystem _accessReader = default!;
 
     private static readonly ProtoId<DepartmentPrototype> ScienceDept = "Science";
+
+    private static readonly ProtoId<AccessLevelPrototype>[] ScienceAccess =
+        ["Research", "ResearchDirector"];
 
     public override void Initialize()
     {
@@ -50,6 +56,24 @@ public sealed partial class FSScienceOnlySystem : EntitySystem
     }
 
     public bool IsScience(EntityUid user)
+    {
+        return HasScienceAccess(user) || HasScienceJob(user);
+    }
+
+    // Promotions hand out a science ID without changing the mind's job, so access has to count too.
+    private bool HasScienceAccess(EntityUid user)
+    {
+        var tags = _accessReader.FindAccessTags(user);
+        foreach (var access in ScienceAccess)
+        {
+            if (tags.Contains(access))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool HasScienceJob(EntityUid user)
     {
         if (!_mind.TryGetMind(user, out var mindId, out _))
             return false;

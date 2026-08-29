@@ -80,7 +80,7 @@
   - type: Surgery
     requirement: SurgeryXenoExposeEndoskeleton
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
   - type: SurgeryOrganCondition
     inverse: true
     reattaching: true
@@ -114,7 +114,7 @@
     - SurgeryStepInsertLiver
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
     category: Liver
   - type: SurgeryOrganCondition
@@ -132,7 +132,7 @@
     - SurgeryStepInsertOrgan
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
     category: Stomach
   - type: SurgeryOrganCondition
@@ -221,7 +221,7 @@
     - SurgeryStepInsertPlasmaVessel
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
   - type: SurgeryOrganCondition
@@ -240,7 +240,7 @@
     - SurgeryStepInsertEggSack
     - SurgeryStepXenoSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
     category: EggSack
   - type: SurgeryOrganCondition
@@ -261,7 +261,7 @@
     - SurgeryStepXenoNeutralizeAcid
     - SurgeryStepXenoRemoveOrgan
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
 
 ## Basic Organs
 
@@ -280,7 +280,7 @@
   name: Remove Xeno Liver
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: Liver
@@ -291,7 +291,7 @@
   name: Remove Xeno Stomach
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: Stomach
@@ -356,7 +356,7 @@
     - SurgeryStepXenoNeutralizeAcid
     - SurgeryStepXenoRemoveOrgan
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel
@@ -373,7 +373,7 @@
     - SurgeryStepXenoSeverPlasma
     - SurgeryStepXenoRemoveOrgan
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: EggSack

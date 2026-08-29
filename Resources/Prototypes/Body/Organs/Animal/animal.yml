@@ -91,12 +91,8 @@
   - type: Lung
   - type: Metabolizer
     solutionOnBody: false
-    solution: "Lung"
     metabolizerTypes: [ Animal ]
     stages: [ Respiration ]
-    groups:
-    - id: Gas
-      rateModifier: 100.0
   - type: SolutionContainerManager
     solutions:
       food:
@@ -142,9 +138,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Animal ]
     stages: [ Food, Drink, Digestion ]
-    groups:
-    - id: Food
-    - id: Drink
   - type: Tag # goob edit
     tags:
     - Meat
@@ -187,9 +180,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Animal ]
     stages: [ Alcohol, Metabolites ]
-    groups:
-    - id: Alcohol
-      rateModifier: 0.1
   - type: Liver # Shitmed
   - type: Tag # goob edit
     tags:
@@ -219,10 +209,6 @@
   - type: Metabolizer
     metabolizerTypes: [ Animal ]
     stages: [ Medicine, Poison, Narcotic, Bloodstream ]
-    groups:
-    - id: Medicine
-    - id: Poison
-    - id: Narcotic
   - type: Heart # Shitmed
   - type: Tag # goob edit
     tags:

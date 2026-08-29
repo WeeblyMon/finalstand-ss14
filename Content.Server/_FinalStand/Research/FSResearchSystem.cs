@@ -26,14 +26,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private SharedMaterialStorageSystem _materials = default!;
     [Dependency] private AccessReaderSystem _accessReader = default!;
+    [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
-    private const string ScienceDepartment = "Science";
 
     private EntityUid? _station;
 
@@ -41,7 +40,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<RoundStartingEvent>(OnRoundStarting);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSStationResearchComponent, EntityTerminatingEvent>(OnStationTerminating);
         SubscribeLocalEvent<FSTechDatabaseComponent, ResearchRegistrationChangedEvent>(OnConsoleServerLinkChanged);
@@ -89,11 +87,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         GrantResearchPoints(station.Comp.WaveTrickleAmount, "wave-trickle");
     }
 
-    private void OnRoundStarting(RoundStartingEvent args)
-    {
-        GetOrCreateStation();
-    }
-
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent args)
     {
         // Reset in place - the entity may be the real, persistent physical R&D server, not a logical-only spawn.
@@ -113,20 +106,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             Dirty(uid, comp);
         }
 
-        GetOrCreateStation();
         SyncConsoles();
         BroadcastUnlockedNodes();
     }
 
-    // The physical R&D server can be destroyed/admin-deleted mid-round - re-point consoles when that happens.
     private void OnStationTerminating(EntityUid uid, FSStationResearchComponent comp, ref EntityTerminatingEvent args)
     {
         if (_station != uid)
             return;
 
         _station = null;
-        GetOrCreateStation();
-        SyncConsoles();
     }
 
     // Vanilla stores an empty list when nothing answers, and empty rejects every material.
@@ -154,20 +143,42 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     public Entity<FSStationResearchComponent> GetOrCreateStation()
     {
+        if (TryGetStation(out var found))
+            return found;
+
+        var station = Spawn(null, MapCoordinates.Nullspace);
+        var stationComp = AddComp<FSStationResearchComponent>(station);
+        _station = station;
+        return (station, stationComp);
+    }
+
+    public bool TryGetStation(out Entity<FSStationResearchComponent> station)
+    {
+        station = default;
+
         if (_station is { } existing && Exists(existing) && TryComp<FSStationResearchComponent>(existing, out var existingComp))
-            return (existing, existingComp);
-        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
-        if (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
         {
+            station = (existing, existingComp);
+            return true;
+        }
+
+        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
+        while (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
+        {
+            if (TerminatingOrDeleted(uid))
+                continue;
+
             _station = uid;
-            return (uid, fallbackComp);
+            station = (uid, fallbackComp);
+            return true;
         }
 
         if (TryFindLinkedServer(out var linkedServer))
         {
             var linkedComp = EnsureComp<FSStationResearchComponent>(linkedServer);
             _station = linkedServer;
-            return (linkedServer, linkedComp);
+            station = (linkedServer, linkedComp);
+            return true;
         }
 
         var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
@@ -175,13 +186,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         {
             var comp = EnsureComp<FSStationResearchComponent>(serverUid);
             _station = serverUid;
-            return (serverUid, comp);
+            station = (serverUid, comp);
+            return true;
         }
 
-        var station = Spawn(null, MapCoordinates.Nullspace);
-        var stationComp = AddComp<FSStationResearchComponent>(station);
-        _station = station;
-        return (station, stationComp);
+        return false;
     }
 
     private bool TryFindLinkedServer(out EntityUid server)
@@ -202,7 +211,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     public void SyncConsoles()
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return;
 
         var contributorSlots = new Dictionary<string, List<int>>();
         foreach (var (mindId, nodeId) in station.Comp.PersonalPicks)
@@ -264,13 +274,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return tags.Contains(ResearchDirectorAccess) || tags.Contains(CaptainAccess);
     }
 
-    private bool IsScienceDepartment(EntityUid player)
-    {
-        return _mind.TryGetMind(player, out var mindId, out _) &&
-               _jobs.MindTryGetJob(mindId, out var job) &&
-               _jobs.TryGetPrimaryDepartment(job.ID, out var dept) &&
-               dept.ID == ScienceDepartment;
-    }
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
@@ -284,7 +287,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var station = GetOrCreateStation();
 
         var isRdOrCaptain = IsRdOrCaptain(player);
-        if (!isRdOrCaptain && !IsScienceDepartment(player))
+        if (!isRdOrCaptain && !_scienceOnly.IsScience(player))
         {
             // Two locale keys joined with a real newline - Fluent multiline placeables don't parse here.
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
@@ -369,7 +372,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var station = GetOrCreateStation();
 
         var isRdOrCaptain = IsRdOrCaptain(player);
-        if (!isRdOrCaptain && !IsScienceDepartment(player))
+        if (!isRdOrCaptain && !_scienceOnly.IsScience(player))
         {
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
             RaiseNetworkEvent(new FSResearchAuthorityDeniedEvent(reason), Filter.Entities(player));
@@ -705,14 +708,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void BroadcastUnlockedNodes()
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return;
+
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.Broadcast());
     }
 
     public bool IsNodeUnlocked(string nodeId)
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return false;
+
         return IsNodeUnlocked((station.Owner, station.Comp), nodeId);
     }
 

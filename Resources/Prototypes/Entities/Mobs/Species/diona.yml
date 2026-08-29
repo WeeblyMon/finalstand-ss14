@@ -61,8 +61,9 @@
   - type: BodyWoundHealing
   - type: BodyLocomotion
     requiredLegs: 2
-  - type: Damageable
+  - type: Injurable
     damageContainer: Biological
+  - type: Damageable
     damageModifierSet: Diona
 #  - type: DamageVisuals
 #    damageOverlayGroups:
@@ -77,7 +78,10 @@
       - id: FoodMeatPlant
         amount: 5
   - type: Bloodstream
-    bloodReagent: Sap
+    bloodReferenceSolution:
+      reagents:
+      - ReagentId: Sap
+        Quantity: 600
   - type: Reactive
     groups:
       Flammable: [ Touch ]
@@ -162,9 +166,6 @@
             sprite: Mobs/Species/Human/displacement.rsi
             state: jumpsuit-female
   - type: StepTriggerImmune # Goobstation
-    whitelist:
-      types:
-      - Shard
   - type: Rootable
 
 - type: entity

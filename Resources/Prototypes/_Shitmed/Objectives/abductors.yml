@@ -11,7 +11,7 @@
   components:
   - type: Objective
     difficulty: 1.5
-    issuer: objective-issuer-abductors
+    issuer: Abductors
   - type: RoleRequirement
     roles:
     - Abductor
@@ -38,7 +38,7 @@
   components:
   - type: Objective
     difficulty: 1
-    issuer: objective-issuer-voices
+    issuer: Voices
   - type: RoleplayObjective
   - type: RoleRequirement
     roles:
@@ -409,7 +409,8 @@
   description: The oxygen is killing them all and they don't even know it. Make sure no oxygen is on the station.
   components:
   - type: NotJobRequirement
-    job: AtmosphericTechnician # It would be too free for atmos techs :) CE is fair game though.
+    jobs:
+    - AtmosphericTechnician # It would be too free for atmos techs :) CE is fair game though.
   - type: Objective
     icon:
       sprite: Objects/Tanks/oxygen.rsi

@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
+using Content.Shared._FinalStand.RCD;
 using Content.Shared.Charges.Systems;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
@@ -55,6 +56,8 @@ public sealed class RCDTest : InteractionTest
         Assert.That(ProtoMan.TryIndex(RCDSettingDeconstructLattice, out var settingDeconstructLattice), $"RCDPrototype not found: {RCDSettingDeconstructLattice}.");
 
         var rcd = await PlaceInHands(RCDProtoId);
+
+        await Server.WaitPost(() => SEntMan.RemoveComponent<FSEngineerOnlyRCDComponent>(ToServer(rcd)));
 
         // Give the RCD enough charges to do everything.
         var sCharges = SEntMan.System<SharedChargesSystem>();

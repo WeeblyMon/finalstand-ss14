@@ -135204,7 +135204,7 @@ entities:
     - type: Physics
       canCollide: False
     - type: InsideEntityStorage
-- proto: OrganSkeletonPersonTorso
+- proto: ChestSkeleton
   entities:
   - uid: 4368
     components:

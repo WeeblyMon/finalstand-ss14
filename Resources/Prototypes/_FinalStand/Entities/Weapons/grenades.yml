@@ -497,7 +497,7 @@
     thresholds:
       30: Dead
   - type: Damageable
-    damageModifierSet: Inorganic
+    damageModifierSet: Metallic
   - type: Destructible
     thresholds:
     - trigger:
@@ -512,6 +512,7 @@
     lifetime: 8
   - type: Physics
     bodyType: Static
+    canCollide: false
   - type: PointLight
     enabled: true
     radius: 2

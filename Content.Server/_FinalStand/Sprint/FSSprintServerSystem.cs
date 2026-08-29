@@ -9,6 +9,7 @@ using Content.Shared.Movement.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Sprint;
 
@@ -19,6 +20,7 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
     private const float MovingVelocityThresholdSq = 0.01f;
@@ -100,7 +102,7 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
                         _movement.RefreshMovementSpeedModifiers(uid);
                     }
                 }
-                else if (stamina.StaminaDamage > 0f)
+                else if (stamina.StaminaDamage > 0f && _timing.CurTime >= stamina.NextUpdate)
                 {
                     var regen = stamina.CritThreshold * (sprint.RegenRate / 100f) * frameTime;
                     _stamina.TakeStaminaDamage(uid, -regen, stamina, visual: false, silent: true);

@@ -92,6 +92,10 @@ trait-category-quirks = Quirks
 
 # Goob / EinsteinEngines extras
 humanoid-profile-editor-voice-label = Voice:
+humanoid-profile-editor-voice-masculine = Masculine
+humanoid-profile-editor-voice-feminine = Feminine
+humanoid-profile-editor-voice-neutral = Neutral
+humanoid-profile-editor-voice-none = Unnamed Voice
 humanoid-profile-editor-voice-play = ▶
 humanoid-profile-editor-height-label = Height: {$height}cm
 humanoid-profile-editor-width-label = Width: {$width}cm

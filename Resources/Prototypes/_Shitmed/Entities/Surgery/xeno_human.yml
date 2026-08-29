@@ -14,7 +14,7 @@
     - SurgeryStepGraftXenoSample
     - SurgeryStepOpenOrganSlot
   - type: SurgeryPartCondition
-    parts: [ Head ]
+    categories: [ Head ]
   - type: SurgeryBodyComponentCondition
     components:
     - type: XenoCompatible
@@ -59,7 +59,7 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
 
@@ -69,7 +69,7 @@
   name: Open Egg Sack Cavity
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
     category: EggSack
 
@@ -155,7 +155,7 @@
     - SurgeryStepInsertPlasmaVessel
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganSlotCondition
     category: PlasmaVessel
   - type: SurgeryOrganCondition
@@ -174,7 +174,7 @@
     - SurgeryStepInsertEggSack
     - SurgeryStepSealOrganWound
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganSlotCondition
     category: EggSack
   - type: SurgeryOrganCondition
@@ -227,7 +227,7 @@
   - type: Surgery
     requirement: SurgeryOpenRibcage
   - type: SurgeryPartCondition
-    parts: [ Chest ]
+    categories: [ Torso ]
   - type: SurgeryOrganCondition
     organ:
     - type: PlasmaVessel
@@ -238,7 +238,7 @@
   name: Remove Transplanted Egg Sack
   components:
   - type: SurgeryPartCondition
-    parts: [ Groin ]
+    categories: [ Groin ]
   - type: SurgeryOrganCondition
     organ:
     - type: EggSack
