@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared.Body;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Humanoid;
 using Content.Shared.Preferences;
@@ -26,7 +27,8 @@ public sealed partial class LoadoutSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<LoadoutComponent, MapInitEvent>(OnMapInit);
+        // Hands come from organs, so the body has to be assembled before anything is put in them.
+        SubscribeLocalEvent<LoadoutComponent, MapInitEvent>(OnMapInit, after: [typeof(InitialBodySystem)]);
     }
 
     public static string GetJobPrototype(string? loadout)

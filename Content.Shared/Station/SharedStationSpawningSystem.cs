@@ -128,10 +128,14 @@ public abstract partial class SharedStationSpawningSystem : EntitySystem
             {
                 var inhandEntity = Spawn(prototype, coords);
 
-                if (_handsSystem.TryGetEmptyHand((entity, handsComponent), out var emptyHand))
+                if (!_handsSystem.TryGetEmptyHand((entity, handsComponent), out var emptyHand))
                 {
-                    _handsSystem.TryPickup(entity, inhandEntity, emptyHand, checkActionBlocker: false, handsComp: handsComponent);
+                    Log.Warning($"No free hand on {ToPrettyString(entity)} for starting gear {ToPrettyString(inhandEntity)}; leaving it on the floor.");
+                    continue;
                 }
+
+                if (!_handsSystem.TryPickup(entity, inhandEntity, emptyHand, checkActionBlocker: false, handsComp: handsComponent))
+                    Log.Warning($"{ToPrettyString(entity)} failed to pick up starting gear {ToPrettyString(inhandEntity)}; leaving it on the floor.");
             }
         }
 
