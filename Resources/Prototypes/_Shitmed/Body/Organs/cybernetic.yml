@@ -222,11 +222,6 @@
     solutionOnBody: false
     metabolizerTypes: [ Cybernetic ]
     stages: [ Respiration ]
-  - type: SolutionContainerManager
-    solutions:
-      Lung:
-        maxVol: 100.0
-        canReact: false
   - type: Tag
     tags:
     - Organ

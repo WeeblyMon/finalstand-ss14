@@ -14,6 +14,10 @@
   - type: Sprite
     sprite: _Goobstation/Mobs/Species/BananaMen/organs.rsi
     state: organ
+  - type: SolutionContainerManager
+    solutions:
+      stomach:
+        maxVol: 50
 
 - type: entity
   id: OrganBananaMenLiver
@@ -27,6 +31,12 @@
     state: organ
   - type: Metabolizer
     metabolizerTypes: [Human]
+  - type: SolutionContainerManager
+    solutions:
+      organ:
+        reagents:
+        - ReagentId: Nutriment
+          Quantity: 10
 
 - type: entity
   id: OrganBananaMenHeart
@@ -40,6 +50,12 @@
     state: organ
   - type: Metabolizer
     metabolizerTypes: [Human]
+  - type: SolutionContainerManager
+    solutions:
+      organ:
+        reagents:
+        - ReagentId: Nutriment
+          Quantity: 10
 
 - type: entity
   id: OrganBananaMenLungs
@@ -52,8 +68,13 @@
     sprite: _Goobstation/Mobs/Species/BananaMen/organs.rsi
     layers:
       - state: organ
-          
-   
+  - type: SolutionContainerManager
+    solutions:
+      organ:
+        reagents:
+        - ReagentId: Nutriment
+          Quantity: 10
+
 - type: entity
   id: OrganBananaMenKidneys
   parent: [ OrganHumanKidneys, FoodBanana ]
@@ -65,3 +86,9 @@
     sprite: _Goobstation/Mobs/Species/BananaMen/organs.rsi
     layers:
       - state: organ
+  - type: SolutionContainerManager
+    solutions:
+      organ:
+        reagents:
+        - ReagentId: Nutriment
+          Quantity: 10
