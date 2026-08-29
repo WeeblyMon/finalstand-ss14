@@ -4,42 +4,14 @@ meta:
   engineVersion: 288.1.0
   forkId: ""
   forkVersion: ""
-  time: 08/25/2026 23:19:40
-  entityCount: 10884
+  time: 08/29/2026 04:55:07
+  entityCount: 10912
 maps:
 - 259
 grids:
 - 1
 orphans: []
 nullspace:
-- 10842
-- 10843
-- 10844
-- 10845
-- 10846
-- 10847
-- 10848
-- 10849
-- 10850
-- 10851
-- 10852
-- 10853
-- 10854
-- 10855
-- 10856
-- 10857
-- 10858
-- 10859
-- 10860
-- 10861
-- 10862
-- 10863
-- 10864
-- 10865
-- 10866
-- 10867
-- 10868
-- 10869
 - 10870
 - 10871
 - 10872
@@ -55,6 +27,34 @@ nullspace:
 - 10882
 - 10883
 - 10884
+- 10885
+- 10886
+- 10887
+- 10888
+- 10889
+- 10890
+- 10891
+- 10892
+- 10893
+- 10894
+- 10895
+- 10896
+- 10897
+- 10898
+- 10899
+- 10900
+- 10901
+- 10902
+- 10903
+- 10904
+- 10905
+- 10906
+- 10907
+- 10908
+- 10909
+- 10910
+- 10911
+- 10912
 tilemap:
   6: Space
   11: FloorBar
@@ -1354,34 +1354,6 @@ entities:
     - type: NavMap
     - type: ChunkContainer
       chunkEntities:
-      - 10842
-      - 10843
-      - 10844
-      - 10845
-      - 10846
-      - 10847
-      - 10848
-      - 10849
-      - 10850
-      - 10851
-      - 10852
-      - 10853
-      - 10854
-      - 10855
-      - 10856
-      - 10857
-      - 10858
-      - 10859
-      - 10860
-      - 10861
-      - 10862
-      - 10863
-      - 10864
-      - 10865
-      - 10866
-      - 10867
-      - 10868
-      - 10869
       - 10870
       - 10871
       - 10872
@@ -1397,6 +1369,34 @@ entities:
       - 10882
       - 10883
       - 10884
+      - 10885
+      - 10886
+      - 10887
+      - 10888
+      - 10889
+      - 10890
+      - 10891
+      - 10892
+      - 10893
+      - 10894
+      - 10895
+      - 10896
+      - 10897
+      - 10898
+      - 10899
+      - 10900
+      - 10901
+      - 10902
+      - 10903
+      - 10904
+      - 10905
+      - 10906
+      - 10907
+      - 10908
+      - 10909
+      - 10910
+      - 10911
+      - 10912
   - uid: 259
     components:
     - type: MetaData
@@ -3374,7 +3374,7 @@ entities:
       pos: 30.5,6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -75713.44
+      secondsUntilStateChange: -75738.33
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3458,7 +3458,7 @@ entities:
       pos: -13.5,2.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -9443.296
+      secondsUntilStateChange: -9468.187
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3506,7 +3506,7 @@ entities:
       pos: -16.5,-12.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -33275.17
+      secondsUntilStateChange: -33300.062
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3614,7 +3614,7 @@ entities:
       pos: 6.5,-6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -15040.861
+      secondsUntilStateChange: -15065.752
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3632,7 +3632,7 @@ entities:
       pos: 13.5,-3.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -100512.55
+      secondsUntilStateChange: -100537.44
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -21732,7 +21732,7 @@ entities:
       pos: -2.4926229,-29.459406
 - proto: ChunkEntity
   entities:
-  - uid: 10842
+  - uid: 10870
     components:
     - type: ChunkEntity
       root: 1
@@ -22038,7 +22038,7 @@ entities:
             1214: 5,14
             1215: 3,14
             1216: 4,14
-  - uid: 10843
+  - uid: 10871
     components:
     - type: ChunkEntity
       root: 1
@@ -22321,7 +22321,7 @@ entities:
             cleanable: True
           decals:
             2431: 5,30
-  - uid: 10844
+  - uid: 10872
     components:
     - type: ChunkEntity
       root: 1
@@ -22544,7 +22544,7 @@ entities:
             cleanable: True
           decals:
             2522: 42,-5
-  - uid: 10845
+  - uid: 10873
     components:
     - type: ChunkEntity
       root: 1
@@ -22655,7 +22655,7 @@ entities:
             cleanable: True
           decals:
             2434: 24,26
-  - uid: 10846
+  - uid: 10874
     components:
     - type: ChunkEntity
       root: 1
@@ -23033,7 +23033,7 @@ entities:
             color: '#FFFFFFFF'
           decals:
             1728: -10,-1
-  - uid: 10847
+  - uid: 10875
     components:
     - type: ChunkEntity
       root: 1
@@ -23299,7 +23299,7 @@ entities:
             cleanable: True
           decals:
             2435: 23,-4
-  - uid: 10848
+  - uid: 10876
     components:
     - type: ChunkEntity
       root: 1
@@ -23544,7 +23544,7 @@ entities:
           decals:
             2440: -6,-22
             2444: -15,-21
-  - uid: 10849
+  - uid: 10877
     components:
     - type: ChunkEntity
       root: 1
@@ -23768,7 +23768,7 @@ entities:
             cleanable: True
           decals:
             2510: -10,27
-  - uid: 10850
+  - uid: 10878
     components:
     - type: ChunkEntity
       root: 1
@@ -24032,7 +24032,7 @@ entities:
             cleanable: True
           decals:
             2627: -10.983336,10.936013
-  - uid: 10851
+  - uid: 10879
     components:
     - type: ChunkEntity
       root: 1
@@ -24076,7 +24076,7 @@ entities:
             cleanable: True
           decals:
             2508: -27,24
-  - uid: 10852
+  - uid: 10880
     components:
     - type: ChunkEntity
       root: 1
@@ -24402,7 +24402,7 @@ entities:
             1550: 3,-10
             1551: 4,-10
             1552: 5,-10
-  - uid: 10853
+  - uid: 10881
     components:
     - type: ChunkEntity
       root: 1
@@ -24464,7 +24464,7 @@ entities:
             cleanable: True
           decals:
             2453: -33,16
-  - uid: 10854
+  - uid: 10882
     components:
     - type: ChunkEntity
       root: 1
@@ -24668,7 +24668,7 @@ entities:
             cleanable: True
           decals:
             2450: -29,-1
-  - uid: 10855
+  - uid: 10883
     components:
     - type: ChunkEntity
       root: 1
@@ -24793,7 +24793,7 @@ entities:
             cleanable: True
           decals:
             2449: -27,1
-  - uid: 10856
+  - uid: 10884
     components:
     - type: ChunkEntity
       root: 1
@@ -25100,7 +25100,7 @@ entities:
           decals:
             2520: 25,13
             2521: 26,7
-  - uid: 10857
+  - uid: 10885
     components:
     - type: ChunkEntity
       root: 1
@@ -25301,7 +25301,7 @@ entities:
           decals:
             1459: 43,0
             1460: 43,0
-  - uid: 10858
+  - uid: 10886
     components:
     - type: ChunkEntity
       root: 1
@@ -25412,7 +25412,7 @@ entities:
             cleanable: True
           decals:
             2513: -5,38
-  - uid: 10859
+  - uid: 10887
     components:
     - type: ChunkEntity
       root: 1
@@ -25578,7 +25578,7 @@ entities:
             color: '#52B4E996'
           decals:
             1905: 6,35
-  - uid: 10860
+  - uid: 10888
     components:
     - type: ChunkEntity
       root: 1
@@ -25623,7 +25623,7 @@ entities:
             cleanable: True
           decals:
             2443: -18,-22
-  - uid: 10861
+  - uid: 10889
     components:
     - type: ChunkEntity
       root: 1
@@ -25730,7 +25730,7 @@ entities:
           decals:
             849: 0,-46
             864: 0,-38
-  - uid: 10862
+  - uid: 10890
     components:
     - type: ChunkEntity
       root: 1
@@ -25892,7 +25892,7 @@ entities:
             cleanable: True
           decals:
             2439: 6,-23
-  - uid: 10863
+  - uid: 10891
     components:
     - type: ChunkEntity
       root: 1
@@ -26031,7 +26031,7 @@ entities:
             color: '#DE3A3AFF'
           decals:
             1873: -50,0
-  - uid: 10864
+  - uid: 10892
     components:
     - type: ChunkEntity
       root: 1
@@ -26235,7 +26235,7 @@ entities:
           decals:
             2451: -33,8
             2452: -33,12
-  - uid: 10865
+  - uid: 10893
     components:
     - type: ChunkEntity
       root: 1
@@ -26336,7 +26336,7 @@ entities:
             color: '#DE3A3AFF'
           decals:
             1870: -46,-3
-  - uid: 10866
+  - uid: 10894
     components:
     - type: ChunkEntity
       root: 1
@@ -26395,7 +26395,7 @@ entities:
           decals:
             2484: -62,-3
             2485: -63,-3
-  - uid: 10867
+  - uid: 10895
     components:
     - type: ChunkEntity
       root: 1
@@ -26484,7 +26484,7 @@ entities:
             3308: -9,63
             3309: -11,62
             3310: -11,63
-  - uid: 10868
+  - uid: 10896
     components:
     - type: ChunkEntity
       root: 1
@@ -26561,7 +26561,7 @@ entities:
             cleanable: True
           decals:
             1792: 9,60
-  - uid: 10869
+  - uid: 10897
     components:
     - type: ChunkEntity
       root: 1
@@ -26689,7 +26689,7 @@ entities:
             2300: 55,3
             2301: 55,4
             2302: 55,5
-  - uid: 10870
+  - uid: 10898
     components:
     - type: ChunkEntity
       root: 1
@@ -26762,7 +26762,7 @@ entities:
             angle: 1.5707963267948966 rad
           decals:
             839: -2,-39
-  - uid: 10871
+  - uid: 10899
     components:
     - type: ChunkEntity
       root: 1
@@ -26829,7 +26829,7 @@ entities:
             cleanable: True
           decals:
             2469: -1,-64
-  - uid: 10872
+  - uid: 10900
     components:
     - type: ChunkEntity
       root: 1
@@ -26901,7 +26901,7 @@ entities:
           decals:
             2471: 2,-63
             2481: 4,-61
-  - uid: 10873
+  - uid: 10901
     components:
     - type: ChunkEntity
       root: 1
@@ -26994,7 +26994,7 @@ entities:
             2147: -68,15
             2148: -69,15
             2149: -70,15
-  - uid: 10874
+  - uid: 10902
     components:
     - type: ChunkEntity
       root: 1
@@ -27075,7 +27075,7 @@ entities:
           decals:
             2492: -96,6
             2493: -95,8
-  - uid: 10875
+  - uid: 10903
     components:
     - type: ChunkEntity
       root: 1
@@ -27174,7 +27174,7 @@ entities:
             2396: 77,8
             2397: 78,8
             2398: 79,8
-  - uid: 10876
+  - uid: 10904
     components:
     - type: ChunkEntity
       root: 1
@@ -27206,7 +27206,7 @@ entities:
             2230: 69,-1
             2231: 70,-1
             2232: 71,-1
-  - uid: 10877
+  - uid: 10905
     components:
     - type: ChunkEntity
       root: 1
@@ -27263,7 +27263,7 @@ entities:
             2458: 90,8
             2459: 91,5
             2460: 88,7
-  - uid: 10878
+  - uid: 10906
     components:
     - type: ChunkEntity
       root: 1
@@ -27293,7 +27293,7 @@ entities:
             2222: 61,-1
             2223: 62,-1
             2224: 63,-1
-  - uid: 10879
+  - uid: 10907
     components:
     - type: ChunkEntity
       root: 1
@@ -27346,7 +27346,7 @@ entities:
             2490: -97,4
             2491: -100,4
             2494: -99,7
-  - uid: 10880
+  - uid: 10908
     components:
     - type: ChunkEntity
       root: 1
@@ -27362,7 +27362,7 @@ entities:
             cleanable: True
           decals:
             2437: 20,-18
-  - uid: 10881
+  - uid: 10909
     components:
     - type: ChunkEntity
       root: 1
@@ -27404,7 +27404,7 @@ entities:
             3313: -10,66
             3314: -12,68
             3315: -9,68
-  - uid: 10882
+  - uid: 10910
     components:
     - type: ChunkEntity
       root: 1
@@ -27420,7 +27420,7 @@ entities:
             cleanable: True
           decals:
             2486: -65,-1
-  - uid: 10883
+  - uid: 10911
     components:
     - type: ChunkEntity
       root: 1
@@ -27437,7 +27437,7 @@ entities:
           decals:
             2473: -2,-66
             2482: -1,-66
-  - uid: 10884
+  - uid: 10912
     components:
     - type: ChunkEntity
       root: 1
@@ -34937,6 +34937,148 @@ entities:
     - type: Transform
       parent: 1
       pos: 21.5,7.5
+- proto: FSNoRCDBuildMarker
+  entities:
+  - uid: 10842
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,3.5
+  - uid: 10843
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,2.5
+  - uid: 10844
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,2.5
+  - uid: 10845
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,3.5
+  - uid: 10846
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,4.5
+  - uid: 10847
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,5.5
+  - uid: 10848
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,5.5
+  - uid: 10849
+    components:
+    - type: Transform
+      parent: 1
+      pos: -1.5,6.5
+  - uid: 10850
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,6.5
+  - uid: 10851
+    components:
+    - type: Transform
+      parent: 1
+      pos: 0.5,6.5
+  - uid: 10852
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,6.5
+  - uid: 10853
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,6.5
+  - uid: 10854
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,6.5
+  - uid: 10855
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,5.5
+  - uid: 10856
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,5.5
+  - uid: 10857
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,4.5
+  - uid: 10858
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,3.5
+  - uid: 10859
+    components:
+    - type: Transform
+      parent: 1
+      pos: 2.5,2.5
+  - uid: 10860
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,2.5
+  - uid: 10861
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,3.5
+  - uid: 10862
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,4.5
+  - uid: 10863
+    components:
+    - type: Transform
+      parent: 1
+      pos: 1.5,5.5
+  - uid: 10864
+    components:
+    - type: Transform
+      parent: 1
+      pos: 0.5,5.5
+  - uid: 10865
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,5.5
+  - uid: 10866
+    components:
+    - type: Transform
+      parent: 1
+      pos: -0.5,4.5
+  - uid: 10867
+    components:
+    - type: Transform
+      parent: 1
+      pos: 0.5,4.5
+  - uid: 10868
+    components:
+    - type: Transform
+      parent: 1
+      pos: 0.5,3.5
+  - uid: 10869
+    components:
+    - type: Transform
+      parent: 1
+      pos: 0.5,2.5
 - proto: FSPerkShop
   entities:
   - uid: 10501
