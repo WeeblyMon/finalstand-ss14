@@ -26,7 +26,7 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
     private const float MovingVelocityThresholdSq = 0.01f;
 
-    private bool _draining;
+    private EntityUid? _draining;
 
     public override void Initialize()
     {
@@ -36,11 +36,9 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
         SubscribeLocalEvent<FSSprintComponent, BeforeStaminaDamageEvent>(OnBeforeStaminaDamage);
     }
 
-    // Only outside stamina damage suspends sprint regen; the drain from sprinting is self-inflicted
-    // and must not gate its own recovery.
     private void OnBeforeStaminaDamage(Entity<FSSprintComponent> ent, ref BeforeStaminaDamageEvent args)
     {
-        if (_draining || args.Value <= 0f)
+        if (args.Cancelled || args.Value <= 0f || _draining == ent.Owner)
             return;
 
         var cooldown = TryComp<StaminaComponent>(ent, out var stamina) ? stamina.Cooldown : 3f;
@@ -88,9 +86,9 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
 
                 if (moving)
                 {
-                    _draining = true;
+                    _draining = uid;
                     _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false, silent: true);
-                    _draining = false;
+                    _draining = null;
 
                     sprint.DustAccumulator += frameTime;
                     if (sprint.DustAccumulator >= DustInterval)
