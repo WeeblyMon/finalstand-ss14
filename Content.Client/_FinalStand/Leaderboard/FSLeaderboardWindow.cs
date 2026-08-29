@@ -77,10 +77,6 @@ public sealed class FSLeaderboardWindow : FancyWindow
         ContentsContainer.AddChild(content);
     }
 
-    /// <summary>
-    /// Entries arrive already sorted from the server. Rows are reused and hidden rather than rebuilt,
-    /// since this runs on every snapshot while the window is open.
-    /// </summary>
     public void Populate(FSLeaderboardEntry[] entries)
     {
         while (_pool.Count < entries.Length)

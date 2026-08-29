@@ -126,7 +126,7 @@
     sprite: Objects/Specific/Service/vending_machine_restock.rsi
     state: base
   product: CrateVendingMachineRestockMedicalFilled
-  cost: 2250 # the NanoMed inventories restock more than vanilla's, so the box sells for more
+  cost: 2250
   category: cargoproduct-category-name-medical
   group: market
 

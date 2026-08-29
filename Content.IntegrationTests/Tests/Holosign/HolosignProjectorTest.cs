@@ -91,13 +91,11 @@ public sealed class HolosignProjectorTest : MovementTest
         await Move(DirectionFlag.East, 0.5f);
         Assert.That(Delta(), Is.GreaterThan(0.5), "Player was able to walk through a holobarrier.");
 
-        // FINALSTAND: the barrier is deliberately not Climbable - it is a solid obstacle zombies path to and attack.
-
         // Wait until the barrier despawns.
         await RunSeconds(timeRemaining);
         AssertDeleted(Target);
 
-        // We should be able to walk past now. The barrier is gone, so compare against its coordinates.
+        // We should be able to walk past now.
         await Move(DirectionFlag.East, 0.5f);
         Assert.That(DeltaCoordinates(), Is.LessThan(-0.5), "Player was not able to walk past a deleted holobarrier.");
     }

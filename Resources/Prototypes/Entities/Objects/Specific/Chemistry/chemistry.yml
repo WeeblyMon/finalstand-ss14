@@ -635,7 +635,7 @@
       - PillCanister
   - type: Storage
     grid:
-    - 0,0,4,3 # 20 slots: the Goob fills spawn 15, the rest is headroom for map-placed pills
+    - 0,0,4,3
     quickInsert: true
     areaInsert: true
     areaInsertRadius: 1

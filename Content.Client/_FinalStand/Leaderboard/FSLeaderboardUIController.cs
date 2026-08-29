@@ -19,7 +19,6 @@ public sealed class FSLeaderboardUIController : UIController, IOnStateEntered<Ga
     private FSLeaderboardWindow? _window;
     private MenuButton? LeaderboardButton => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>()?.LeaderboardButton;
 
-    // Network subscriptions have to happen here - the event bus is already locked by OnStateEntered.
     public override void Initialize()
     {
         base.Initialize();

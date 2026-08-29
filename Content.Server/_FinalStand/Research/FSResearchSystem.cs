@@ -117,8 +117,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         BroadcastUnlockedNodes();
     }
 
-    // The physical R&D server can be destroyed/admin-deleted mid-round - drop the reference so the next
-    // lookup re-points. Re-homing here would spawn a station during round teardown and leak it.
     private void OnStationTerminating(EntityUid uid, FSStationResearchComponent comp, ref EntityTerminatingEvent args)
     {
         if (_station != uid)
@@ -161,8 +159,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return (station, stationComp);
     }
 
-    // Adopts an existing station without ever spawning one, so read-only lookups don't leave an
-    // entity behind just because they asked a question.
     public bool TryGetStation(out Entity<FSStationResearchComponent> station)
     {
         station = default;

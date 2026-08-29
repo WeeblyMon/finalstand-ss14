@@ -57,7 +57,6 @@ public sealed class RCDTest : InteractionTest
 
         var rcd = await PlaceInHands(RCDProtoId);
 
-        // FINALSTAND: the RCD is engineer-locked in this fork and the test dummy holds no job role.
         await Server.WaitPost(() => SEntMan.RemoveComponent<FSEngineerOnlyRCDComponent>(ToServer(rcd)));
 
         // Give the RCD enough charges to do everything.

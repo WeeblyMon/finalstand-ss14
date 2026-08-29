@@ -7,7 +7,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Leaderboard;
 
-// Snapshots go only to clients with the window open, and only when a number actually moved.
 public sealed class FSLeaderboardSystem : EntitySystem
 {
     [Dependency] private FSLevelingSystem _leveling = default!;
@@ -36,7 +35,6 @@ public sealed class FSLeaderboardSystem : EntitySystem
         if (!_watchers.Add(args.SenderSession))
             return;
 
-        // Answer immediately, otherwise the window sits empty until the next interval.
         _lastSent = _leveling.GetLeaderboardSnapshot();
         RaiseNetworkEvent(new FSLeaderboardUpdateEvent(_lastSent), args.SenderSession);
     }
@@ -50,7 +48,6 @@ public sealed class FSLeaderboardSystem : EntitySystem
 
         _nextBroadcast = _timing.CurTime + BroadcastInterval;
 
-        // A client that dropped or went back to the lobby never sends the closing event.
         _watchers.RemoveWhere(watcher => watcher.Status != SessionStatus.InGame);
         if (_watchers.Count == 0)
             return;

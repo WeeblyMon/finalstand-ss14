@@ -13,7 +13,6 @@ public sealed class DrainTest : InteractionTest
     private static readonly EntProtoId PizzaPrototype = "FoodPizzaMargherita";
     private static readonly EntProtoId DrainPrototype = "FloorDrain";
     private static readonly EntProtoId BucketPrototype = "Bucket";
-    // Every Blood variant inherits an evaporationSpeed in this fork, so the drain test uses Slime instead.
     private static readonly ProtoId<ReagentPrototype> BloodReagent = "Slime";
     private static readonly ProtoId<ReagentPrototype> WaterReagent = "Water";
     private static readonly FixedPoint2 WaterVolume = 50; // 50u

@@ -41,7 +41,6 @@ public sealed class WeaponTests : InteractionTest
         Assert.That(startAmmo, Is.GreaterThan(0), "Mosin was spawned with no ammo!");
         Assert.That(wieldComp.Wielded, Is.False, "Mosin was spawned wielded!");
 
-        // FINALSTAND: a shot attempt auto-wields the gun and goes through, rather than being refused.
         await AttemptShoot(urist);
         var updatedAmmo = gunSystem.GetAmmoCount(mosinEnt);
 

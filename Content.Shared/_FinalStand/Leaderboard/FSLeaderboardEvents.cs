@@ -13,7 +13,6 @@ public sealed class FSLeaderboardUpdateEvent : EntityEventArgs
     }
 }
 
-// Sent when a client opens or closes the window; the server only feeds snapshots to watchers.
 [Serializable, NetSerializable]
 public sealed class FSLeaderboardWatchEvent : EntityEventArgs
 {

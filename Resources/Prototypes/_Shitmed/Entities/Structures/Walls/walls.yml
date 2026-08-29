@@ -80,7 +80,7 @@
   - type: Damageable
     damageModifierSet: StructuralMetallicStrong
   - type: StaticPrice
-    price: 260 # must cover the shuttleWall deconstruction yield, otherwise it is cargo arbitrage
+    price: 260
   - type: RadiationBlocker
     resistance: 5
   - type: Sprite
