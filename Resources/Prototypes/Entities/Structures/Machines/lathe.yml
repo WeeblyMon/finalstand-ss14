@@ -201,7 +201,6 @@
     dynamicPacks:
     - AdvancedTools
     - ScienceEquipment
-    - ScienceExplosives
     - ScienceClothing
     - PowerCells
     - ScienceWeapons
@@ -214,10 +213,8 @@
     - Equipment
   - type: EmagLatheRecipes
     emagDynamicPacks:
-    - SecurityAmmo
     - SecurityExplosives
     - SecurityEquipment
-    - SecurityWeapons
 
 - type: entity
   id: ProtolatheHyperConvection
@@ -405,9 +402,6 @@
     - SecurityEquipment
     - SecurityBoards
     - SecurityExplosives
-    - SecurityAmmo
-    - SecurityWeapons
-    - SecurityDisablers
   - type: EmagLatheRecipes
     emagStaticPacks:
     - SyndicateAmmoStatic

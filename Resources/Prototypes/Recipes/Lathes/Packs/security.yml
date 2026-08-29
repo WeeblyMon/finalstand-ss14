@@ -71,12 +71,9 @@
   id: SecurityEquipment
   recipes:
   - ClothingBackpackElectropack
-  - HoloprojectorSecurity
-  - PortableRecharger
   - PowerCageHigh
   - PowerCageMedium
   - PowerCageSmall
-  - TelescopicShield
   - ClothingBackpackHarmpack
 
 - type: latheRecipePack
@@ -88,13 +85,8 @@
   - ShuttleGunSvalinnMachineGunCircuitboard
 
 - type: latheRecipePack
-  parent:
-  - ScienceExplosives # sec gets everything for modular grenade making that sci does
   id: SecurityExplosives
   recipes:
-  - CableDetStack1
-  - EmptyDetonator
-  - ExplosivePayload
   - GrenadeBlast
   - GrenadeEMP
   - GrenadeFlash

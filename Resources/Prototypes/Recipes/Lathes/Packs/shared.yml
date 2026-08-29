@@ -58,7 +58,6 @@
   recipes:
   - HandHeldMassScanner
   - ClothingMaskWeldingGas
-  - SignallerAdvanced
 
 - type: latheRecipePack
   id: SalvageSecurityBoards
@@ -69,6 +68,3 @@
   id: SalvageSecurityWeapons
   recipes:
   - WeaponProtoKineticAccelerator
-  - PKAUpgradeDamage
-  - PKAUpgradeRange
-  - PKAUpgradeFireRate

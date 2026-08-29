@@ -94,7 +94,6 @@
 - type: latheRecipePack
   id: Chemistry
   recipes:
-  - ChemicalPayload
   - CryostasisBeaker
   - SyringeCryostasis
   - BluespaceBeaker
