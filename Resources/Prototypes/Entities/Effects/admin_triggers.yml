@@ -22,6 +22,16 @@
 
 - type: entity
   parent: AdminInstantEffectBase
+  id: AdminInstantEffectEMP7
+  categories: [ HideSpawnMenu ]
+  suffix: EMP, 7 meters
+  components:
+  - type: EmpOnTrigger
+    range: 7
+    energyConsumption: 50000
+
+- type: entity
+  parent: AdminInstantEffectBase
   id: AdminInstantEffectBluespace
   suffix: BluespaceFlash
   components:
