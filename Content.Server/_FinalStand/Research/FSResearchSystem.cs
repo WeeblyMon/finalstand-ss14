@@ -117,15 +117,14 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         BroadcastUnlockedNodes();
     }
 
-    // The physical R&D server can be destroyed/admin-deleted mid-round - re-point consoles when that happens.
+    // The physical R&D server can be destroyed/admin-deleted mid-round - drop the reference so the next
+    // lookup re-points. Re-homing here would spawn a station during round teardown and leak it.
     private void OnStationTerminating(EntityUid uid, FSStationResearchComponent comp, ref EntityTerminatingEvent args)
     {
         if (_station != uid)
             return;
 
         _station = null;
-        GetOrCreateStation();
-        SyncConsoles();
     }
 
     // Vanilla stores an empty list when nothing answers, and empty rejects every material.
@@ -153,20 +152,44 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     public Entity<FSStationResearchComponent> GetOrCreateStation()
     {
+        if (TryGetStation(out var found))
+            return found;
+
+        var station = Spawn(null, MapCoordinates.Nullspace);
+        var stationComp = AddComp<FSStationResearchComponent>(station);
+        _station = station;
+        return (station, stationComp);
+    }
+
+    // Adopts an existing station without ever spawning one, so read-only lookups don't leave an
+    // entity behind just because they asked a question.
+    public bool TryGetStation(out Entity<FSStationResearchComponent> station)
+    {
+        station = default;
+
         if (_station is { } existing && Exists(existing) && TryComp<FSStationResearchComponent>(existing, out var existingComp))
-            return (existing, existingComp);
-        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
-        if (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
         {
+            station = (existing, existingComp);
+            return true;
+        }
+
+        var fallbackQuery = EntityQueryEnumerator<FSStationResearchComponent>();
+        while (fallbackQuery.MoveNext(out var uid, out var fallbackComp))
+        {
+            if (TerminatingOrDeleted(uid))
+                continue;
+
             _station = uid;
-            return (uid, fallbackComp);
+            station = (uid, fallbackComp);
+            return true;
         }
 
         if (TryFindLinkedServer(out var linkedServer))
         {
             var linkedComp = EnsureComp<FSStationResearchComponent>(linkedServer);
             _station = linkedServer;
-            return (linkedServer, linkedComp);
+            station = (linkedServer, linkedComp);
+            return true;
         }
 
         var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
@@ -174,13 +197,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         {
             var comp = EnsureComp<FSStationResearchComponent>(serverUid);
             _station = serverUid;
-            return (serverUid, comp);
+            station = (serverUid, comp);
+            return true;
         }
 
-        var station = Spawn(null, MapCoordinates.Nullspace);
-        var stationComp = AddComp<FSStationResearchComponent>(station);
-        _station = station;
-        return (station, stationComp);
+        return false;
     }
 
     private bool TryFindLinkedServer(out EntityUid server)
@@ -201,7 +222,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     public void SyncConsoles()
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return;
 
         var contributorSlots = new Dictionary<string, List<int>>();
         foreach (var (mindId, nodeId) in station.Comp.PersonalPicks)
@@ -697,14 +719,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void BroadcastUnlockedNodes()
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return;
+
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.Broadcast());
     }
 
     public bool IsNodeUnlocked(string nodeId)
     {
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+            return false;
+
         return IsNodeUnlocked((station.Owner, station.Comp), nodeId);
     }
 

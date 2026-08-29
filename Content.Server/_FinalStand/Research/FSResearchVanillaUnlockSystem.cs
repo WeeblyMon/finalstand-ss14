@@ -29,7 +29,8 @@ public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
 
     private void OnServerInit(Entity<ResearchServerComponent> ent, ref MapInitEvent args)
     {
-        var station = _fsResearch.GetOrCreateStation();
+        if (!_fsResearch.TryGetStation(out var station))
+            return;
 
         foreach (var nodeId in station.Comp.UnlockedNodes)
         {
