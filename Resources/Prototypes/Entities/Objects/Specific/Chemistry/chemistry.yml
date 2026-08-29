@@ -622,7 +622,7 @@
   name: pill canister
   id: PillCanister
   parent: BaseStorageItem
-  description: Holds up to 15 pills. # Goob: was 10
+  description: Holds up to 20 pills.
   components:
   - type: Item
     size: Tiny
@@ -635,7 +635,7 @@
       - PillCanister
   - type: Storage
     grid:
-    - 0,0,4,2 # Goob: was 0,0,4,1 (10 slots); expanded to 5x3=15 for Goob fill counts
+    - 0,0,4,3 # 20 slots: the Goob fills spawn 15, the rest is headroom for map-placed pills
     quickInsert: true
     areaInsert: true
     areaInsertRadius: 1
