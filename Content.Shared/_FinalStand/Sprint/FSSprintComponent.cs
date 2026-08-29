@@ -31,4 +31,6 @@ public sealed partial class FSSprintComponent : Component
     public bool IsExhausted = false;
 
     public float DustAccumulator = 0f;
+
+    public TimeSpan RegenBlockedUntil = TimeSpan.Zero;
 }

@@ -4,6 +4,7 @@ using Content.Shared.Alert;
 using Content.Shared.GameTicking;
 using Content.Shared._FinalStand.Sprint;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Events;
 using Content.Shared.Mech.Components;
 using Content.Shared.Movement.Systems;
 using Robust.Shared.Containers;
@@ -25,11 +26,25 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
     private const float DustInterval = 0.13f; // seconds between dust cloud spawns
     private const float MovingVelocityThresholdSq = 0.01f;
 
+    private bool _draining;
+
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<FSSprintComponent, BeforeStaminaDamageEvent>(OnBeforeStaminaDamage);
+    }
+
+    // Only outside stamina damage suspends sprint regen; the drain from sprinting is self-inflicted
+    // and must not gate its own recovery.
+    private void OnBeforeStaminaDamage(Entity<FSSprintComponent> ent, ref BeforeStaminaDamageEvent args)
+    {
+        if (_draining || args.Value <= 0f)
+            return;
+
+        var cooldown = TryComp<StaminaComponent>(ent, out var stamina) ? stamina.Cooldown : 3f;
+        ent.Comp.RegenBlockedUntil = _timing.CurTime + TimeSpan.FromSeconds(cooldown);
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
@@ -73,7 +88,9 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
 
                 if (moving)
                 {
+                    _draining = true;
                     _stamina.TakeStaminaDamage(uid, sprint.StaminaDrainRate * frameTime, stamina, visual: false, silent: true);
+                    _draining = false;
 
                     sprint.DustAccumulator += frameTime;
                     if (sprint.DustAccumulator >= DustInterval)
@@ -102,7 +119,7 @@ public sealed partial class FSSprintServerSystem : SharedFSSprintSystem
                         _movement.RefreshMovementSpeedModifiers(uid);
                     }
                 }
-                else if (stamina.StaminaDamage > 0f && _timing.CurTime >= stamina.NextUpdate)
+                else if (stamina.StaminaDamage > 0f && _timing.CurTime >= sprint.RegenBlockedUntil)
                 {
                     var regen = stamina.CritThreshold * (sprint.RegenRate / 100f) * frameTime;
                     _stamina.TakeStaminaDamage(uid, -regen, stamina, visual: false, silent: true);
