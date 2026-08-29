@@ -45,7 +45,7 @@
 - type: entity
   save: false
   name: Urist McHands The Dwarf
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansDwarf ]
+  parent: [ BodyOrgansDwarf, BaseMobSpeciesOrganic ]
   id: BaseMobDwarf
   abstract: true
   components:

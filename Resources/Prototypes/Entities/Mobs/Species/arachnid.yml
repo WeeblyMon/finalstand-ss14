@@ -50,7 +50,7 @@
 - type: entity
   save: false
   name: Urist McWebs
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansArachnid ]
+  parent: [ BodyOrgansArachnid, BaseMobSpeciesOrganic ]
   id: BaseMobArachnid
   abstract: true
   components:

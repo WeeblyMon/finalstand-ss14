@@ -120,7 +120,7 @@
 - type: entity
   save: false
   name: Urist McFluff
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansMoth ]
+  parent: [ BodyOrgansMoth, BaseMobSpeciesOrganic ]
   id: BaseMobMoth
   abstract: true
   components:

@@ -42,7 +42,7 @@
 - type: entity
   save: false
   name: Urist McPlants
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansDiona ]
+  parent: [ BodyOrgansDiona, BaseMobSpeciesOrganic ]
   id: BaseMobDiona
   abstract: true
   components:

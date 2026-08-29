@@ -129,7 +129,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 - type: entity
-  parent: [ MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust, BodyOrgansVox ] # Goobstation - unperishable voxes
+  parent: [ BodyOrgansVox, MobBloodstream, MobRespirator, MobAtmosStandard, MobFlammable, BaseMobSpecies, BaseMobDisgust ] # Goobstation - unperishable voxes
   id: BaseMobVox
   abstract: true
   components:
@@ -383,7 +383,7 @@
       - NewKinPidgin        # Vox language from Floofstation
 
 - type: entity
-  parent: [ BaseSpeciesDummy, BodyOrgansVox ]
+  parent: [ BodyOrgansVox, BaseSpeciesDummy ]
   id: MobVoxDummy
   categories: [ HideSpawnMenu ]
   components:

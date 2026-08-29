@@ -130,7 +130,7 @@
 - type: entity
   save: false
   name: Urisst' Mzhand
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansReptilian ]
+  parent: [ BodyOrgansReptilian, BaseMobSpeciesOrganic ]
   id: BaseMobReptilian
   abstract: true
   components:

@@ -21,7 +21,7 @@
 - type: entity
   save: false
   name: Urist McCookie
-  parent: [ BaseMobSpeciesOrganic, BodyOrgansGingerbread ]
+  parent: [ BodyOrgansGingerbread, BaseMobSpeciesOrganic ]
   id: BaseMobGingerbread
   abstract: true
   components:
