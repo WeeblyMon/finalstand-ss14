@@ -84,6 +84,8 @@ public sealed partial class ParadoxCloneRuleSystem : GameRuleSystem<ParadoxClone
             return;
         }
 
+        _transform.SetCoordinates(clone.Value, Transform(spawner).Coordinates);
+
         var targetComp = EnsureComp<TargetOverrideComponent>(clone.Value);
         targetComp.Target = ent.Comp.OriginalMind; // set the kill target
 
