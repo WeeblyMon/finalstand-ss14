@@ -40,7 +40,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<RoundStartingEvent>(OnRoundStarting);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSStationResearchComponent, EntityTerminatingEvent>(OnStationTerminating);
         SubscribeLocalEvent<FSTechDatabaseComponent, ResearchRegistrationChangedEvent>(OnConsoleServerLinkChanged);
@@ -88,11 +87,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         GrantResearchPoints(station.Comp.WaveTrickleAmount, "wave-trickle");
     }
 
-    private void OnRoundStarting(RoundStartingEvent args)
-    {
-        GetOrCreateStation();
-    }
-
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent args)
     {
         // Reset in place - the entity may be the real, persistent physical R&D server, not a logical-only spawn.
@@ -112,7 +106,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             Dirty(uid, comp);
         }
 
-        GetOrCreateStation();
         SyncConsoles();
         BroadcastUnlockedNodes();
     }
