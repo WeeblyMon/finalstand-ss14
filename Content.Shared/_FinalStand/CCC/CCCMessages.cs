@@ -27,6 +27,8 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
     public int CCCCurrentDamage;
     public int CCCMaxHealth;
 
+    public bool IsDarkWave;
+
     public CCCBoundUserInterfaceState(
         int waveNumber,
         int estimatedEnemyCount,
@@ -41,7 +43,8 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         int totalPlayerCount,
         List<string> nextWaveEnemyTypes,
         int cccCurrentDamage = 0,
-        int cccMaxHealth = 0)
+        int cccMaxHealth = 0,
+        bool isDarkWave = false)
     {
         WaveNumber = waveNumber;
         EstimatedEnemyCount = estimatedEnemyCount;
@@ -57,6 +60,7 @@ public sealed class CCCBoundUserInterfaceState : BoundUserInterfaceState
         NextWaveEnemyTypes = nextWaveEnemyTypes;
         CCCCurrentDamage = cccCurrentDamage;
         CCCMaxHealth = cccMaxHealth;
+        IsDarkWave = isDarkWave;
     }
 }
 

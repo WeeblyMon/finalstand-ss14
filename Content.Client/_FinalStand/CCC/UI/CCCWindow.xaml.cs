@@ -63,7 +63,10 @@ public sealed partial class CCCWindow : FancyWindow
         WaveNumberLabel.Text = state.WaveNumber.ToString();
         FactionLabel.Text = state.FactionDisplay;
         ModifierLabel.Text = state.WaveModifier;
-        EnemyEstLabel.Text = state.EstimatedEnemyCount.ToString();
+
+
+        var enemyEst = state.IsDarkWave ? "∞" : state.EstimatedEnemyCount.ToString();
+        EnemyEstLabel.Text = enemyEst;
 
         PhaseLabel.Text = state.CurrentPhase == WavePhase.Prep ? "PREP" : "COMBAT";
         PhaseLabel.Modulate = state.CurrentPhase == WavePhase.Prep
@@ -75,7 +78,7 @@ public sealed partial class CCCWindow : FancyWindow
         CountdownLabel.Text = $"{mins}:{secs:D2}";
 
         AliveLabel.Text = state.AliveEnemyCount.ToString();
-        TotalLabel.Text = state.EstimatedEnemyCount.ToString();
+        TotalLabel.Text = enemyEst;
         SpawnersLabel.Text = state.ActiveSpawnerDirections;
 
         var cccHp = Math.Max(0, state.CCCMaxHealth - state.CCCCurrentDamage);

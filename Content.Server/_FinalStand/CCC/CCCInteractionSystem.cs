@@ -153,7 +153,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             estimatedEnemyCount: wave.TotalEnemies,
             factionDisplay: wave.FactionDisplay,
             isBossWave: wave.IsBossWave,
-            waveModifier: wave.IsBossWave ? "BOSS WAVE" : "Normal",
+            waveModifier: wave.IsDarkWave ? "DARK WAVE" : wave.IsBossWave ? "BOSS WAVE" : "Normal",
             currentPhase: wave.Phase,
             secondsToPhaseEnd: wave.SecondsLeft,
             aliveEnemyCount: wave.AliveEnemies,
@@ -162,7 +162,8 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             totalPlayerCount: _readyCheck.GetTotalCount(),
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
-            cccMaxHealth: cccMax);
+            cccMaxHealth: cccMax,
+            isDarkWave: wave.IsDarkWave);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

@@ -497,7 +497,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         string SpawnerDirections,
         bool IsBossWave,
         string FactionDisplay,
-        List<string> NextWaveEnemyTypes);
+        List<string> NextWaveEnemyTypes,
+        bool IsDarkWave);
 
     public bool TryGetActiveState(out CCCStateData data)
     {
@@ -529,7 +530,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             directions,
             IsBossWave(comp.WaveNumber),
             comp.FactionDisplay,
-            types);
+            types,
+            comp.IsDarkWave);
         return true;
     }
 
