@@ -270,7 +270,9 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         }
 
         var current = _store.GetPerkPoints(session.UserId.UserId);
-        _store.UpsertPerkPoints(session.UserId.UserId, session.Name, Math.Max(0, current + amount));
+        var updated = Math.Max(0, current + amount);
+        _store.UpsertPerkPoints(session.UserId.UserId, session.Name, updated);
+        RaiseNetworkEvent(new WalletUpdatedEvent(0, updated), Filter.SinglePlayer(session));
     }
 
     public int WipeAllPrestige()
