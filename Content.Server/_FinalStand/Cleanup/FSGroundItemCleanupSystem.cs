@@ -53,9 +53,14 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         while (magQuery.MoveNext(out var uid, out _, out _))
             Check(uid, now, toDelete);
 
+        // Drinks, vials and other glassware carry a zero-damage MeleeWeapon purely for the splat
+        // sound, so only things that can actually hurt someone count as a dropped weapon here.
         var meleeQuery = EntityQueryEnumerator<MeleeWeaponComponent, ItemComponent>();
-        while (meleeQuery.MoveNext(out var uid, out _, out _))
-            Check(uid, now, toDelete);
+        while (meleeQuery.MoveNext(out var uid, out var melee, out _))
+        {
+            if (melee.Damage.GetTotal() > 0)
+                Check(uid, now, toDelete);
+        }
 
         var explosiveQuery = EntityQueryEnumerator<ExplosiveComponent, ItemComponent>();
         while (explosiveQuery.MoveNext(out var uid, out _, out _))
