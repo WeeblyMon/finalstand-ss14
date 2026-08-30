@@ -35,8 +35,11 @@ public sealed partial class WaveHudOverlay : Overlay
     private Font? _valueFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
+    private Font? _promptFont;
+    private Font? _promptSubFont;
     private int _cachedLabelPt = -1;
     private int _cachedValuePt = -1;
+    private int _cachedPromptPt = -1;
     private float _cachedLabelH;
     private float _cachedValueH;
 
@@ -122,6 +125,14 @@ public sealed partial class WaveHudOverlay : Overlay
     // Screen-pixel bounds of the YES and NO buttons; valid only when IsReadyUpVisible.
     public UIBox2 ReadyUpYesBounds = new(-100, -100, -99, -99);
     public UIBox2 ReadyUpNoBounds  = new(-100, -100, -99, -99);
+
+    public bool IsRespawnOfferVisible = false;
+    public int  RespawnCost = 0;
+
+    public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
+
+    public event Action? OnRespawnClicked;
+    private float _respawnClickCooldown;
 
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
@@ -216,6 +227,14 @@ public sealed partial class WaveHudOverlay : Overlay
         _tooltipNameFont ??= new VectorFont(notoRes, 13);
         _tooltipBodyFont ??= new VectorFont(notoRes, 11);
 
+        var promptPt = Math.Max(14, (int)MathF.Round(28f * s));
+        if (_cachedPromptPt != promptPt)
+        {
+            _promptFont = new VectorFont(notoRes, promptPt);
+            _promptSubFont = new VectorFont(notoRes, Math.Max(9, (int)MathF.Round(14f * s)));
+            _cachedPromptPt = promptPt;
+        }
+
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
         var rowContentH = Math.Max(iconSz, labelH + 4f + valueH);
@@ -228,6 +247,9 @@ public sealed partial class WaveHudOverlay : Overlay
         var btnH = labelH + btnPad * 2f;
 
         var totalH = sepH;
+        // Must stay in step with the RESPAWN draw block, or the panel drifts off-screen.
+        if (IsRespawnOfferVisible)
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
         if (IsReadyUpVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
         totalH += sepH + rowH;
@@ -252,6 +274,49 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelWidth = panelW;
 
         DrawBonusIndicator(screen, margin);
+
+        if (IsRespawnOfferVisible)
+        {
+            const string headline = "YOU ARE DOWN";
+            var subline = $"Wait for a medic, or revive for ${RespawnCost:N0}";
+
+            var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
+            var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
+
+            var promptY = screenSize.Y * 0.30f;
+            var gap = MathF.Round(6f * s);
+
+            screen.DrawString(_promptFont!,
+                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
+                headline, Color.FromHex("#CC4444"));
+
+            screen.DrawString(_promptSubFont!,
+                new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
+                subline, muted);
+
+            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            y += sepH + rowPad;
+
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), "RESPAWN", muted);
+            y += labelH + 2f;
+
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), $"-${RespawnCost:N0}", Color.FromHex("#e2b662"));
+            y += labelH + 3f;
+
+            RespawnButtonBounds = new UIBox2(panelX, y, panelX + panelW, y + btnH);
+            screen.DrawRect(RespawnButtonBounds, Color.FromHex("#3d1a1a"));
+
+            var respawnDim = screen.GetDimensions(_labelFont!, "RESPAWN", 1f);
+            screen.DrawString(_labelFont!,
+                new Vector2(panelX + (panelW - respawnDim.X) * 0.5f, y + (btnH - respawnDim.Y) * 0.5f),
+                "RESPAWN", Color.FromHex("#CC4444"));
+
+            y += btnH;
+        }
+        else
+        {
+            RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
+        }
 
         if (IsReadyUpVisible)
         {
@@ -478,14 +543,26 @@ public sealed partial class WaveHudOverlay : Overlay
                 _interestPopups[i] = updated;
         }
 
+        if (_respawnClickCooldown > 0f)
+            _respawnClickCooldown -= args.DeltaSeconds;
+
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
+        var mousePos = _input.MouseScreenPosition.Position;
+
         if (IsReadyUpVisible && down && !_prevClickDown)
         {
-            var pos = _input.MouseScreenPosition.Position;
-            if (ReadyUpYesBounds.Contains(pos))
+            if (ReadyUpYesBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(true);
-            else if (ReadyUpNoBounds.Contains(pos))
+            else if (ReadyUpNoBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(false);
+        }
+
+        // Separate `if`: chaining onto the ready-up test would make both depend on _prevClickDown order.
+        if (IsRespawnOfferVisible && down && !_prevClickDown && _respawnClickCooldown <= 0f
+            && RespawnButtonBounds.Contains(mousePos))
+        {
+            _respawnClickCooldown = 0.5f;
+            OnRespawnClicked?.Invoke();
         }
         _prevClickDown = down;
     }

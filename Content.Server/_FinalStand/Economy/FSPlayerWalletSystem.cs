@@ -206,8 +206,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return true;
     }
 
-    // Charges what the player can afford and returns it. Unlike TryDeductCredits this never refuses,
-    // because respawn must not be blocked by a low balance.
+    // Charges what the player can afford and returns it, rather than refusing when short.
     public int DeductUpTo(EntityUid mindId, int amount)
     {
         if (amount <= 0)

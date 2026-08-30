@@ -2,6 +2,7 @@
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.ReadyCheck;
+using Content.Shared._FinalStand.Respawn;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
@@ -31,6 +32,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
         SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
+        SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
@@ -67,6 +69,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         if (_overlay != null)
         {
             _overlay.OnReadyUpClicked -= SendReadyRequest;
+            _overlay.OnRespawnClicked -= SendRespawnRequest;
             _overlayManager.RemoveOverlay(_overlay);
             _overlay = null;
         }
@@ -89,6 +92,7 @@ public sealed partial class WaveHudSystem : EntitySystem
             return _overlay;
         _overlay = new WaveHudOverlay();
         _overlay.OnReadyUpClicked += SendReadyRequest;
+        _overlay.OnRespawnClicked += SendRespawnRequest;
         _overlayManager.AddOverlay(_overlay);
         return _overlay;
     }
@@ -96,6 +100,18 @@ public sealed partial class WaveHudSystem : EntitySystem
     private void SendReadyRequest(bool isReady)
     {
         RaiseNetworkEvent(new FSReadyUpRequestMessage(isReady));
+    }
+
+    private void SendRespawnRequest()
+    {
+        RaiseNetworkEvent(new FSRespawnRequestMessage());
+    }
+
+    private void OnRespawnOffer(FSRespawnOfferEvent ev)
+    {
+        var overlay = EnsureOverlay();
+        overlay.IsRespawnOfferVisible = ev.Available;
+        overlay.RespawnCost = ev.Cost;
     }
 
     private void OnWaveUpdate(WaveCounterUpdateEvent ev)

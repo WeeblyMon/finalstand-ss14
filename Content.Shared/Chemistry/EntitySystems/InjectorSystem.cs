@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.Components;
@@ -42,6 +43,7 @@ public sealed partial class InjectorSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private StandingStateSystem _standingState = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -645,6 +647,8 @@ public sealed partial class InjectorSystem : EntitySystem
     /// <param name="target">The entity targeted by the user.</param>
     private void AfterInject(Entity<InjectorComponent> injector, EntityUid user, EntityUid target)
     {
+        _fsAttribution.RecordTreatment(target, user); // FINALSTAND
+
         // Leave some DNA from the injectee on it
         _forensics.TransferDna(injector, target);
         // Reset the delay, if present.
