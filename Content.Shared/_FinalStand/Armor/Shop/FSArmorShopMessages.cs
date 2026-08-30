@@ -15,7 +15,7 @@ public sealed class FSArmorShopBuyMessage(string tierId) : BoundUserInterfaceMes
 }
 
 [Serializable, NetSerializable]
-public sealed class FSArmorShopState(string? equippedTierId, int credits) : BoundUserInterfaceState
+public sealed class FSArmorShopState(string? equippedTierId, int credits) : BoundUserInterfaceMessage
 {
     public readonly string? EquippedTierId = equippedTierId;
     public readonly int Credits = credits;

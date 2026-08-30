@@ -9,6 +9,8 @@ public sealed class FSArmorShopBoundUserInterface : BoundUserInterface
     [ViewVariables]
     private ArmorShopWindow? _window;
 
+    private FSArmorShopState? _lastState;
+
     public FSArmorShopBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey) { }
 
     protected override void Open()
@@ -17,12 +19,18 @@ public sealed class FSArmorShopBoundUserInterface : BoundUserInterface
         _window = this.CreateWindowCenteredLeft<ArmorShopWindow>();
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnClose += Close;
+
+        if (_lastState != null)
+            _window.Populate(_lastState);
     }
 
-    protected override void UpdateState(BoundUserInterfaceState state)
+    protected override void ReceiveMessage(BoundUserInterfaceMessage message)
     {
-        if (state is FSArmorShopState armorState)
-            _window?.Populate(armorState);
+        if (message is not FSArmorShopState armorState)
+            return;
+
+        _lastState = armorState;
+        _window?.Populate(armorState);
     }
 
     private void OnBuyPressed(string tierId)
