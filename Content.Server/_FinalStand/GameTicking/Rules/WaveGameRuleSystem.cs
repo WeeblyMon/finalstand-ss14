@@ -227,6 +227,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
+
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountActivePlayers());
+        comp.EnemiesSpawnedThisWave = 0;
+
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
         comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
@@ -235,6 +239,17 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
         RaiseLocalEvent(new WavePrepStartedEvent());
+    }
+
+    private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players)
+    {
+        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
+            ? players * comp.PlayerEnemyBonus
+            : 0;
+        var total = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
+        if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
+            total = Math.Min(total * 2, comp.MaxEnemyCap);
+        return total;
     }
 
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
@@ -256,13 +271,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
         comp.PlayersThisWave = CountActivePlayers();
 
-        var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
-            ? comp.PlayersThisWave * comp.PlayerEnemyBonus
-            : 0;
-        comp.EnemyTotalThisWave = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
-        // Single-corridor waves past wave 5 double the count — one lane is too easy to hold otherwise.
-        if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
-            comp.EnemyTotalThisWave = Math.Min(comp.EnemyTotalThisWave * 2, comp.MaxEnemyCap);
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, comp.PlayersThisWave);
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
 
