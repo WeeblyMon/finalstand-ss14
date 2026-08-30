@@ -11,6 +11,7 @@ using Content.Shared.Damage;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Hitscan.Components;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
@@ -54,6 +55,7 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private SpriteTreeSystem _spriteTree = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
+    public static readonly EntProtoId MuzzleLightProto = "FSMuzzleFlashLight";
     private GunTargetEntityComparer _comparer = default!;
 
     public bool SpreadOverlay
@@ -131,6 +133,18 @@ public sealed partial class GunSystem : SharedGunSystem
                 continue;
 
             var ent = Spawn(HitscanProto, coords);
+            if (!rsi.RsiState.StartsWith("muzzle"))
+            {
+                var beamLight = Factory.GetComponent<PointLightComponent>();
+                beamLight.NetSyncEnabled = false;
+                AddComp(ent, beamLight);
+                Lights.SetCastShadows(ent, false, beamLight);
+                Lights.SetColor(ent, GetHitscanColor(rsi.RsiState), beamLight);
+                Lights.SetRadius(ent, 3f, beamLight);
+                Lights.SetEnergy(ent, 8f, beamLight);
+                Lights.SetEnabled(ent, true, beamLight);
+            }
+
             var sprite = Comp<SpriteComponent>(ent);
 
             var xform = Transform(ent);
@@ -363,21 +377,25 @@ public sealed partial class GunSystem : SharedGunSystem
         };
 
         _animPlayer.Play(ent, anim, "muzzle-flash");
-        if (!TryComp(gunUid, out PointLightComponent? light))
-        {
-            light = Factory.GetComponent<PointLightComponent>();
-            light.NetSyncEnabled = false;
-            AddComp(gunUid, light);
-        }
+        CreateMuzzleFlashLight(gunUid, message.Angle);
+    }
 
-        Lights.SetEnabled(gunUid, true, light);
-        Lights.SetRadius(gunUid, 2f, light);
-        Lights.SetColor(gunUid, Color.FromHex("#cc8e2b"), light);
-        Lights.SetEnergy(gunUid, 5f, light);
+    // FINALSTAND: cone light per shot so firing actually lights the corridor ahead. It lives on its
+    // own entity because the cone follows transform rotation and the gun's does not track the shot.
+    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle)
+    {
+        const float lightDuration = 0.08f;
 
-        var animTwo = new Animation()
+        var xform = Transform(gunUid);
+        var ent = Spawn(MuzzleLightProto, xform.Coordinates);
+        _xform.SetWorldRotation(ent, angle + Angle.FromDegrees(90));
+
+        if (TryComp<FSMuzzleFlashColorComponent>(gunUid, out var flashColor))
+            Lights.SetColor(ent, flashColor.Color);
+
+        var anim = new Animation()
         {
-            Length = TimeSpan.FromSeconds(lifetime),
+            Length = TimeSpan.FromSeconds(lightDuration),
             AnimationTracks =
             {
                 new AnimationTrackComponentProperty
@@ -387,29 +405,24 @@ public sealed partial class GunSystem : SharedGunSystem
                     InterpolationMode = AnimationInterpolationMode.Linear,
                     KeyFrames =
                     {
-                        new AnimationTrackProperty.KeyFrame(5f, 0),
-                        new AnimationTrackProperty.KeyFrame(0f, lifetime)
-                    }
-                },
-                new AnimationTrackComponentProperty
-                {
-                    ComponentType = typeof(PointLightComponent),
-                    Property = nameof(PointLightComponent.AnimatedEnable),
-                    InterpolationMode = AnimationInterpolationMode.Linear,
-                    KeyFrames =
-                    {
-                        new AnimationTrackProperty.KeyFrame(true, 0),
-                        new AnimationTrackProperty.KeyFrame(false, lifetime)
+                        new AnimationTrackProperty.KeyFrame(13f, 0f),
+                        new AnimationTrackProperty.KeyFrame(0f, lightDuration)
                     }
                 }
             }
         };
 
-        var uidPlayer = EnsureComp<AnimationPlayerComponent>(gunUid);
-
-        _animPlayer.Stop(gunUid, uidPlayer, "muzzle-flash-light");
-        _animPlayer.Play((gunUid, uidPlayer), animTwo, "muzzle-flash-light");
+        _animPlayer.Play(ent, anim, "muzzle-flash-light");
     }
+
+    // Matches on substrings because the hitscan event carries muzzle, travel and impact states.
+    private static Color GetHitscanColor(string state) => state switch
+    {
+        _ when state.Contains("blue") => Color.FromHex("#4466FF"),
+        _ when state.Contains("xray") => Color.FromHex("#00CCAA"),
+        _ when state.Contains("xeno_fire") => Color.FromHex("#FF6600"),
+        _ => Color.FromHex("#FF3333"),
+    };
 
     /// <remarks>We use our own sorting algorithm separate from the default for smarter configurability.</remarks>
     private NetEntity? GetBestTarget(IEye eye, MapCoordinates coordinates)

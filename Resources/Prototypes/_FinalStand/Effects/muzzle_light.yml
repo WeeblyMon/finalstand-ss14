@@ -1,0 +1,18 @@
+# Cone light spawned per shot so firing lights the corridor ahead of the shooter.
+- type: entity
+  id: FSMuzzleFlashLight
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.1
+  - type: PointLight
+    castShadows: false
+    color: "#FFCC66"
+    radius: 10.0
+    energy: 13.0
+    lightMask: ConeSingle
+    autoRot: true
+  - type: AnimationPlayer
+  - type: Tag
+    tags:
+    - HideContextMenu
