@@ -17,6 +17,7 @@ public sealed class FSLeaderboardUIController : UIController, IOnStateEntered<Ga
     [Dependency] private IClientNetManager _net = default!;
 
     private FSLeaderboardWindow? _window;
+    private FSLeaderboardEntry[]? _lastEntries;
     private MenuButton? LeaderboardButton => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>()?.LeaderboardButton;
 
     public override void Initialize()
@@ -73,6 +74,9 @@ public sealed class FSLeaderboardUIController : UIController, IOnStateEntered<Ga
         if (LeaderboardButton != null)
             LeaderboardButton.Pressed = true;
 
+        if (_lastEntries != null)
+            _window?.Populate(_lastEntries);
+
         SetWatching(true);
     }
 
@@ -105,11 +109,13 @@ public sealed class FSLeaderboardUIController : UIController, IOnStateEntered<Ga
         _window.MoveToFront();
     }
 
+    // Kept even while closed: the server only broadcasts on change, so a dropped update would
+    // leave the window empty until someone's score happened to move.
     private void OnLeaderboardUpdate(FSLeaderboardUpdateEvent ev, EntitySessionEventArgs _)
     {
-        if (_window is not { IsOpen: true })
-            return;
+        _lastEntries = ev.Entries;
 
-        _window.Populate(ev.Entries);
+        if (_window is { IsOpen: true })
+            _window.Populate(ev.Entries);
     }
 }

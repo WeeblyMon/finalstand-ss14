@@ -1,4 +1,4 @@
-﻿version: 1 # Not used right now, whatever.
+version: 1 # Not used right now, whatever.
 binds:
 - function: UIClick
   type: State
@@ -93,7 +93,7 @@ binds:
   key: F10
 - function: OpenFinalStandLeaderboard
   type: State
-  key: F12
+  key: F2
 - function: ToggleFullscreen
   type: State
   key: F11

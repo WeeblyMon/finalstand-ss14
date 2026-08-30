@@ -35,8 +35,7 @@ public sealed class FSLeaderboardSystem : EntitySystem
         if (!_watchers.Add(args.SenderSession))
             return;
 
-        _lastSent = _leveling.GetLeaderboardSnapshot();
-        RaiseNetworkEvent(new FSLeaderboardUpdateEvent(_lastSent), args.SenderSession);
+        RaiseNetworkEvent(new FSLeaderboardUpdateEvent(_leveling.GetLeaderboardSnapshot()), args.SenderSession);
     }
 
     public override void Update(float frameTime)
