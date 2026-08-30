@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
@@ -7,6 +8,7 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -20,6 +22,7 @@ namespace Content.Server._FinalStand.MedicalOps;
 // Medical's answer to kills and assists: credit for the medical work you actually performed.
 public sealed partial class FSMedicalStatsSystem : EntitySystem
 {
+    [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
@@ -48,6 +51,10 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         int HealingPoints, float HpHealed, int Stabilises, int Revives, int PatientsSaved);
 
     private readonly Dictionary<EntityUid, FSMedicalRoundStats> _roundStats = new();
+
+    public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
+
+    public IReadOnlyDictionary<EntityUid, FSMedicalRoundStats> GetRoundStats() => _roundStats;
 
     public override void Initialize()
     {
@@ -83,6 +90,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     public void ResetPatient(EntityUid body)
     {
+        _attribution.ClearAttribution(body);
+
         if (!TryComp<FSMedicalPatientComponent>(body, out var comp))
             return;
 
@@ -171,6 +180,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.TryGetActiveState(out var wave) ? wave.WaveNumber : 0;
+
+            _adminLogger.Add(LogType.Healed, LogImpact.Medium,
+                $"{ToPrettyString(healerMind):healer} revived {ToPrettyString(uid):patient} for {ReviveCredits} credits");
             return;
         }
 
@@ -178,14 +190,16 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         {
             AddStats(healerMind, points: StabilisePoints, stabilises: 1);
             _wallet.GiveCredits(healerMind, StabiliseCredits);
+
+            _adminLogger.Add(LogType.Healed, LogImpact.Low,
+                $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {StabiliseCredits} credits");
         }
     }
 
+    // One save per patient per wave falls out of the query: each body is visited once and holds a
+    // single pending credit, so die-revive-die cannot mint several off one person.
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
-        // Keyed on the patient, so die-revive-die cannot mint several saves off one body.
-        var savedPatients = new HashSet<EntityUid>();
-
         var query = EntityQueryEnumerator<FSMedicalPatientComponent, MobStateComponent>();
         while (query.MoveNext(out var uid, out var comp, out _))
         {
@@ -198,11 +212,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
                 continue;
             if (_mobState.IsIncapacitated(uid))
                 continue;
-            if (!savedPatients.Add(uid))
-                continue;
 
             AddStats(reviver, patientsSaved: 1);
             _wallet.GiveCredits(reviver, PatientSavedCredits);
+            _adminLogger.Add(LogType.Healed, LogImpact.Low,
+                $"{ToPrettyString(uid):patient} survived wave {args.WaveNumber} — patient saved credited to {ToPrettyString(reviver):reviver}");
         }
     }
 

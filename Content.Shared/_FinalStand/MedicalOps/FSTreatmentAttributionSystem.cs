@@ -38,6 +38,12 @@ public sealed partial class FSTreatmentAttributionSystem : EntitySystem
         comp.RecentTreaters[userMind] = now + AttributionWindow;
     }
 
+    public void ClearAttribution(EntityUid patient)
+    {
+        if (TryComp<FSTreatmentAttributionComponent>(patient, out var comp))
+            comp.RecentTreaters.Clear();
+    }
+
     public bool TryGetAttributedMedic(EntityUid patient, out EntityUid medicMind)
     {
         medicMind = default;
