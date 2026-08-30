@@ -813,6 +813,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return TryGetActiveRule(out _, out var comp, out _) && comp.Phase == WavePhase.Prep ? comp : null;
     }
 
+    // TryGetActiveState builds enemy-pool lists to answer this; callers wanting only the number
+    // should use this instead.
+    public int GetWaveNumber()
+    {
+        return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
+    }
+
     public void ReducePrepTimeBy(double seconds)
     {
         if (!TryGetActiveRule(out _, out var comp, out _)) return;

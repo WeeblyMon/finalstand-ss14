@@ -54,8 +54,15 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<MindContainerComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeNetworkEvent<FSRespawnRequestMessage>(OnRespawnRequest);
+    }
+
+    private void OnPlayerDetached(PlayerDetachedEvent ev)
+    {
+        if (_mind.TryGetMind(ev.Entity, out _, out var mind) && mind.UserId != null)
+            _lastRequest.Remove(mind.UserId.Value);
     }
 
     private bool IsPrep() => _waveRule.GetPrepComponent() != null;

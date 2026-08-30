@@ -41,7 +41,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
 
         _purchasedTier.TryGetValue(mindId, out var tierId);
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tierId, GetCredits(mindId)), player);
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tierId, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnBuy(EntityUid uid, FSArmorShopComponent comp, FSArmorShopBuyMessage args)
@@ -68,7 +68,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         }
 
         _purchasedTier[mindId] = tier.Id;
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, GetCredits(mindId)), player);
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -104,7 +104,4 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         Del(item);
         return false;
     }
-
-    private int GetCredits(EntityUid mindId) =>
-        TryComp<FSPlayerWalletComponent>(mindId, out var w) ? w.Credits : 0;
 }

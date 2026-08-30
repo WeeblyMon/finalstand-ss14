@@ -179,7 +179,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             _wallet.GiveCredits(healerMind, ReviveCredits);
 
             comp.PendingSaveCredit = healerMind;
-            comp.PendingSaveWave = _waveRule.TryGetActiveState(out var wave) ? wave.WaveNumber : 0;
+            comp.PendingSaveWave = _waveRule.GetWaveNumber();
 
             _adminLogger.Add(LogType.Healed, LogImpact.Medium,
                 $"{ToPrettyString(healerMind):healer} revived {ToPrettyString(uid):patient} for {ReviveCredits} credits");
