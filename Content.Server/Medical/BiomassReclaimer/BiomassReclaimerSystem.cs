@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Spawners;
 using Content.Server.Fluids.EntitySystems;
 using Content.Server.Materials;
 using Content.Server.Power.Components;
@@ -228,12 +229,15 @@ namespace Content.Server.Medical.BiomassReclaimer
                 component.SpawnedEntities = new();
             }
 
-            var expectedYield = physics.FixturesMass * component.YieldPerUnitMass;
+            // FS: dead wave enemies have unreliable FixturesMass (collision zeroed on death + climb fixture swap);
+            // use a fixed mass so yield is non-zero. 46f ≈ density 235 × π × 0.25² for a normal zombie.
+            var mass = HasComp<WaveSpawnedTagComponent>(toProcess) ? 20f : physics.FixturesMass;
+            var expectedYield = mass * component.YieldPerUnitMass;
             if (HasComp<ProduceComponent>(toProcess))
                 expectedYield *= component.ProduceYieldMultiplier;
             component.CurrentExpectedYield += expectedYield;
 
-            component.ProcessingTimer = physics.FixturesMass * component.ProcessingTimePerUnitMass;
+            component.ProcessingTimer = mass * component.ProcessingTimePerUnitMass;
 
             var inventory = _inventory.GetHandOrInventoryEntities(toProcess);
             foreach (var item in inventory)
@@ -255,6 +259,10 @@ namespace Content.Server.Medical.BiomassReclaimer
 
             if (!Transform(reclaimer).Anchored)
                 return false;
+
+            // FS: dead wave enemies (zombie corpses etc.) bypass power and safety checks.
+            if (!isPlant && HasComp<WaveSpawnedTagComponent>(dragged) && _mobState.IsDead(dragged))
+                return true;
 
             if (TryComp<ApcPowerReceiverComponent>(reclaimer, out var power) && !power.Powered)
                 return false;
