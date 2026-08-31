@@ -13,11 +13,11 @@
   - type: FSMediGun
     healing:
       types:
-        Blunt: -3
-        Slash: -3
-        Piercing: -3
-        Heat: -3
-        Cold: -2
+        Blunt: -6
+        Slash: -6
+        Piercing: -6
+        Heat: -6
+        Cold: -4
     soundOnTarget:
       path: /Audio/Effects/beep1.ogg
       params:

@@ -53,10 +53,14 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public float SoftCapRatio = 0.7f;
 
-    // Higher makes the last stretch harder. The curve is asymptotic, so full health is never
-    // quite reached by beam alone - that last bit is a doctor's job.
+    // Higher makes the last stretch harder.
     [DataField]
-    public float SoftCapFalloff = 2.5f;
+    public float SoftCapFalloff = 4.5f;
+
+    // Below this the beam stops outright rather than trickling. Without a floor the curve always
+    // reaches full eventually, which is what made the cap feel like a mild delay.
+    [DataField]
+    public float MinEffectiveScale = 0.05f;
 
     [DataField, AutoNetworkedField]
     public SoundSpecifier? SoundOnTarget;

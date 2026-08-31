@@ -136,7 +136,10 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (headroom <= 0f)
             return 0f;
 
-        return MathF.Pow((1f - ratio) / headroom, comp.SoftCapFalloff);
+        var scale = MathF.Pow((1f - ratio) / headroom, comp.SoftCapFalloff);
+
+        // A hard stop rather than an ever-slower trickle, so the beam genuinely cannot finish.
+        return scale < comp.MinEffectiveScale ? 0f : scale;
     }
 
     private void OnActivate(Entity<FSMediGunComponent> ent, ref AfterInteractEvent args)
