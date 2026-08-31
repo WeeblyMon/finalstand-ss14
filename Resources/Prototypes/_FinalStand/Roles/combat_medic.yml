@@ -32,9 +32,55 @@
 - type: startingGear
   id: CombatMedicGear
   equipment:
+    id: CombatMedicPDA
     ears: ClothingHeadsetMedical
     belt: ClothingBeltMedicalEMTFilled
     pocket1: FlashlightSeclite
+
+- type: entity
+  parent: ParamedicPDA
+  id: CombatMedicPDA
+  name: combat medic PDA
+  description: Scuffed, and slightly bloodstained.
+  components:
+  - type: Appearance
+    appearanceDataInit:
+     enum.PdaVisuals.PdaType:
+       !type:String
+       pda-combatmedic
+  - type: PdaBorderColor
+    borderColor: "#d7d7d0"
+    accentVColor: "#7a2b2b"
+  - type: Icon
+    state: pda-combatmedic
+
+# Paramedic's kit, but the windbreaker is swapped for a vest so they read as frontline on sight.
+- type: loadout
+  id: CombatMedicVest
+  equipment:
+    outerClothing: ClothingOuterArmorBulletproof
+
+- type: loadoutGroup
+  id: CombatMedicOuterClothing
+  name: loadout-group-combat-medic-outerclothing
+  loadouts:
+  - CombatMedicVest
+
+- type: roleLoadout
+  id: JobCombatMedic
+  groups:
+  - GroupTankHarness
+  - ParamedicHead
+  - MedicalMask
+  - ParamedicJumpsuit
+  - MedicalBackpack
+  - CombatMedicOuterClothing
+  - ParamedicShoes
+  - Glasses
+  - AssistiveItems
+  - SurvivalMedical
+  - Trinkets
+  - GroupSpeciesBreathToolMedical
 
 - type: entity
   id: SpawnPointCombatMedic
