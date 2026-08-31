@@ -62,7 +62,7 @@ public sealed partial class FSMediGunComponent : Component
     public SoundSpecifier? SoundOnTarget;
 
     [DataField, AutoNetworkedField]
-    public Color BeamColor = Color.Aqua;
+    public Color BeamColor = Color.FromHex("#E23B3B");
 }
 
 // On the patient, so the client can draw the beam from either end.

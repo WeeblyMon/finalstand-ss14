@@ -5,14 +5,10 @@
   description: Projects a stream of medical nanites. Closes wounds fast, but the last stretch back to full health is beyond it - that still takes a doctor.
   components:
   - type: Sprite
-    sprite: _Goobstation/Objects/Specific/Medical/medigun.rsi
-    layers:
-    - state: icon
-    - state: active_gun
-      map: [ "enum.ToggleableVisuals.Layer" ]
-      visible: false
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
   - type: Item
-    sprite: _Goobstation/Objects/Specific/Medical/medigun.rsi
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
     size: Large
   - type: FSMediGun
     healing:
@@ -37,9 +33,3 @@
   - type: UseDelay
     delay: 1.0
   - type: Appearance
-  - type: GenericVisualizer
-    visuals:
-      enum.ToggleableVisuals.Enabled:
-        enum.ToggleableVisuals.Layer:
-          True: { visible: true }
-          False: { visible: false }
