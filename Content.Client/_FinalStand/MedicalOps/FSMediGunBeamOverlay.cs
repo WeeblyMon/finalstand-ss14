@@ -1,38 +1,44 @@
 using System.Numerics;
 using Content.Shared._FinalStand.MedicalOps;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// A sagging ribbon rather than a straight pointer, so the beam reads as a stream of something
-// rather than a targeting laser.
+// Goob's animated beam texture, bent along a sagging curve rather than drawn as a straight line.
 public sealed class FSMediGunBeamOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
+    private readonly SpriteSystem _sprite;
+
+    private static readonly SpriteSpecifier BeamSprite = new SpriteSpecifier.Rsi(
+        new ResPath("/Textures/_Goobstation/Objects/Specific/Medical/medigun.rsi"), "beam");
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    private const int Segments = 24;
-    private const float Width = 0.11f;
+    // One texture repeat per this many metres, so the beam reads at any range.
+    private const float TileLength = 0.5f;
+    private const int SegmentsPerTile = 4;
+    private const int MaxSegments = 64;
 
-    // Fraction of the span the middle droops by, so short links stay taut and long ones hang.
+    private const float Width = 0.32f;
     private const float Sag = 0.16f;
-
-    // Slow travelling wobble, so a held beam is never perfectly still.
     private const float WobbleAmplitude = 0.05f;
     private const float WobbleSpeed = 3.2f;
 
-    private readonly List<Vector2> _verts = new();
+    private readonly List<DrawVertexUV2D> _verts = new();
 
     public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing)
     {
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
+        _sprite = _entManager.System<SpriteSystem>();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -40,9 +46,10 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var handle = args.WorldHandle;
         var time = (float)_timing.CurTime.TotalSeconds;
 
-        // Overlays share the handle and the health bars leave a transform on it, so world
-        // coordinates are only correct once this is reset.
+        // Overlays share the handle and the health bars leave a transform on it.
         handle.SetTransform(Matrix3x2.Identity);
+
+        var texture = _sprite.GetFrame(BeamSprite, _timing.RealTime);
 
         var query = _entManager.EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
@@ -62,12 +69,13 @@ public sealed class FSMediGunBeamOverlay : Overlay
             var start = _transform.GetWorldPosition(medicXform);
             var end = _transform.GetWorldPosition(patientXform);
 
-            if (!args.WorldAABB.Enlarged(2f).Contains(start) && !args.WorldAABB.Enlarged(2f).Contains(end))
+            var bounds = args.WorldAABB.Enlarged(3f);
+            if (!bounds.Contains(start) && !bounds.Contains(end))
                 continue;
 
             BuildRibbon(start, end, time);
             if (_verts.Count >= 3)
-                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _verts, healed.BeamColor);
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, texture, _verts.ToArray(), healed.BeamColor);
         }
     }
 
@@ -80,17 +88,20 @@ public sealed class FSMediGunBeamOverlay : Overlay
         if (span <= 0.01f)
             return;
 
-        // Control point pulled downward, plus a wobble across the beam's own axis.
         var perpendicular = new Vector2(-delta.Y, delta.X) / span;
         var wobble = MathF.Sin(time * WobbleSpeed) * WobbleAmplitude * span;
         var control = start + delta * 0.5f + new Vector2(0f, -span * Sag) + perpendicular * wobble;
 
-        Vector2? previousLeft = null;
-        Vector2? previousRight = null;
+        var tiles = MathF.Max(1f, span / TileLength);
+        var segments = Math.Clamp((int)(tiles * SegmentsPerTile), 4, MaxSegments);
 
-        for (var i = 0; i <= Segments; i++)
+        Vector2 previousLeft = default, previousRight = default;
+        float previousU = 0f;
+        var first = true;
+
+        for (var i = 0; i <= segments; i++)
         {
-            var t = (float)i / Segments;
+            var t = (float)i / segments;
             var point = Bezier(start, control, end, t);
             var tangent = BezierTangent(start, control, end, t);
 
@@ -99,28 +110,35 @@ public sealed class FSMediGunBeamOverlay : Overlay
                 continue;
 
             var normal = new Vector2(-tangent.Y, tangent.X) / length;
+            var half = Width * 0.5f;
 
-            // Tapered at both ends so it looks like it is emitted rather than cut off.
-            var taper = MathF.Sin(t * MathF.PI);
-            var halfWidth = Width * (0.35f + 0.65f * taper) * 0.5f;
+            var left = point + normal * half;
+            var right = point - normal * half;
 
-            var left = point + normal * halfWidth;
-            var right = point - normal * halfWidth;
+            // Scrolls along the beam so the nanites look like they are travelling.
+            var u = t * tiles - time * 1.5f;
 
-            if (previousLeft is { } pl && previousRight is { } pr)
+            if (!first)
             {
-                _verts.Add(pl);
-                _verts.Add(pr);
-                _verts.Add(left);
+                Add(previousLeft, previousU, 0f);
+                Add(previousRight, previousU, 1f);
+                Add(left, u, 0f);
 
-                _verts.Add(pr);
-                _verts.Add(right);
-                _verts.Add(left);
+                Add(previousRight, previousU, 1f);
+                Add(right, u, 1f);
+                Add(left, u, 0f);
             }
 
             previousLeft = left;
             previousRight = right;
+            previousU = u;
+            first = false;
         }
+    }
+
+    private void Add(Vector2 position, float u, float v)
+    {
+        _verts.Add(new DrawVertexUV2D(position, new Vector2(u, v)));
     }
 
     private static Vector2 Bezier(Vector2 a, Vector2 b, Vector2 c, float t)
