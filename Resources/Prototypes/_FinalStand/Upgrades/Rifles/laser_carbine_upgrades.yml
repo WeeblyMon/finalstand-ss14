@@ -22,7 +22,7 @@
       maxLevel: 3
       baseCost: 6750
       type: MagazineSize
-      valuePerLevel: 9.56
+      valuePerLevel: 6.37
     - id: lcarbine-charge-speed
       name: Capacitor Boost
       description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
@@ -33,7 +33,7 @@
     - id: lcarbine-multishot
       name: Split Emitter
       description: Chance per shot to fire 1-3 additional bolts, fanned within the spread cone so they don't overlap. Stacks with Homing Bolts.
-      maxLevel: 4
+      maxLevel: 3
       baseCost: 9500
       type: Multishot
       valuePerLevel: 1
@@ -61,7 +61,7 @@
     - id: lcarbine-homing
       name: Homing Bolts
       description: Bolts steer toward the nearest enemy in flight. Higher levels turn faster and tighter.
-      maxLevel: 3
+      maxLevel:
       baseCost: 14000
       type: HomingBolts
       valuePerLevel: 1

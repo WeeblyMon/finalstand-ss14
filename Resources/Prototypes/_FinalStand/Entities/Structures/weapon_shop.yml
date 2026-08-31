@@ -205,7 +205,7 @@
 - type: entity
   id: FSWeaponShopN1984
   parent: FSWeaponShopBase
-  name: N1984
+  name: Desert Eagle
   description: The Lord's caliber in a 9-round package. Semi-auto .45 magnum hand cannon.
   components:
   - type: FSShopWeapon
