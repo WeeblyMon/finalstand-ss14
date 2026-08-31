@@ -1,4 +1,5 @@
 - type: entity
+  parent: BaseAction
   id: FSMedicPingAction
   name: Call Medic
   description: Shout for a medic and mark your position for the crew.
