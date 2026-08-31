@@ -1,7 +1,11 @@
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
+using Content.Shared.Mind;
+using Content.Shared.Roles;
+using Content.Shared.Roles.Jobs;
 using Robust.Server.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -9,12 +13,14 @@ namespace Content.Server._FinalStand.MedicalOps;
 // Tells each client whether it should render the medic-grade health bars.
 public sealed partial class FSMedicalStatusSystem : EntitySystem
 {
-    [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    // Access comes off the held ID, so someone picking up a medical ID mid-round should start
-    // seeing the detailed bars without a reconnect.
+    private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
+
+    // Deliberately re-checked rather than resolved once, so a mid-round job change is picked up.
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextRefresh;
 
@@ -39,7 +45,7 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
             if (session.AttachedEntity is not { } mob)
                 continue;
 
-            var isMedical = _fund.IsMedical(mob);
+            var isMedical = IsMedicalDepartment(mob);
             if (_lastSent.TryGetValue(mob, out var prior) && prior == isMedical)
                 continue;
 
@@ -50,8 +56,18 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
-        var isMedical = _fund.IsMedical(ev.Mob);
+        var isMedical = IsMedicalDepartment(ev.Mob);
         _lastSent[ev.Mob] = isMedical;
         RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), ev.Player);
+    }
+
+    // Deliberately the job's primary department, not ID access: a Captain's ID carries Medical
+    // access, and the Captain is not a medic.
+    private bool IsMedicalDepartment(EntityUid mob)
+    {
+        return _mind.TryGetMind(mob, out var mindId, out _)
+               && _jobs.MindTryGetJob(mindId, out var job)
+               && _jobs.TryGetPrimaryDepartment(job.ID, out var department)
+               && department.ID == MedicalDepartment;
     }
 }

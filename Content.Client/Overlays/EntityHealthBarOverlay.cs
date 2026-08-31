@@ -4,6 +4,7 @@ using Content.Client.UserInterface.Systems;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Mind.Components;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -121,11 +122,23 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             handle.SetTransform(matty);
 
-            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 - 3f;
+            // FINALSTAND: raised a few pixels, the old offset cut into the sprite's head.
+            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 + 2f;
             var widthOfMob = bounds.Width * EyeManager.PixelsPerMeter;
 
             var position = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2, yOffset / EyeManager.PixelsPerMeter);
-            var color = GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
+
+            // FINALSTAND: only players get a damage breakdown - an enemy's damage types are not
+            // something a medic triages, and the readout would be noise on a horde.
+            var breakdown = ShowDamageTypes
+                            && _entManager.TryGetComponent(uid, out MindContainerComponent? mindContainer)
+                            && mindContainer.HasMind;
+
+            // FINALSTAND: with a breakdown drawn beside it, a health bar that fades green -> orange
+            // reads as burn damage. Medics get a fixed green so only the breakdown carries colour.
+            var color = breakdown
+                ? _progressColor.GetProgressColor(1f)
+                : GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
 
             // Hardcoded width of the progress bar because it doesn't match the texture.
             const float startX = 8f;
@@ -147,7 +160,7 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             // FINALSTAND: fill the missing stretch with one slice per damage group, so a medic can
             // read what is actually wrong with someone without scanning them.
-            if (ShowDamageTypes)
+            if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
         }
 
@@ -235,7 +248,10 @@ public sealed class EntityHealthBarOverlay : Overlay
             return (ratio, true);
         }
 
-        return (0, true);
+        // FINALSTAND: no bar on a corpse. This used to return an empty bar, which nobody saw while
+        // health bars needed HUD glasses, but leaves dead zombies littered with them now they are on
+        // for everyone.
+        return null;
     }
 
     public Color GetProgressColor(float progress, bool crit)
