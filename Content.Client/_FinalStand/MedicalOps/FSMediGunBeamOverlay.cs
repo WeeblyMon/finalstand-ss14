@@ -36,6 +36,13 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const float WobbleAmplitude = 0.05f;
     private const float WobbleSpeed = 3.2f;
 
+    private const float ParticlesPerMetre = 1.6f;
+    private const int MaxParticles = 14;
+    private const float ParticleSize = 0.16f;
+    private const float ParticleDrift = 0.35f;
+    private const float ParticleOrbit = 0.13f;
+    private const float ParticleOrbitSpeed = 2.4f;
+
     private readonly List<DrawVertexUV2D> _verts = new();
 
     public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
@@ -99,6 +106,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
             if (_verts.Count >= 3)
                 handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam, _verts.ToArray(), healed.BeamColor);
+
+            DrawParticles(handle, start, end, time, healed.BeamColor);
         }
     }
 
@@ -141,6 +150,53 @@ public sealed class FSMediGunBeamOverlay : Overlay
             Add(r0, uMin + cell, v0);
             Add(r1, uMin + cell, v1);
             Add(l1, uMin, v1);
+        }
+    }
+
+    // Little crosses riding the beam toward the patient, so healing reads as something being
+    // delivered rather than a light being shone.
+    private void DrawParticles(DrawingHandleWorld handle, Vector2 start, Vector2 end, float time, Color tint)
+    {
+        var delta = end - start;
+        var span = delta.Length();
+        if (span <= 0.01f)
+            return;
+
+        var perpendicular = new Vector2(-delta.Y, delta.X) / span;
+        var wobble = MathF.Sin(time * WobbleSpeed) * WobbleAmplitude * span;
+        var control = start + delta * 0.5f + new Vector2(0f, -span * Sag) + perpendicular * wobble;
+
+        var count = Math.Clamp((int)(span * ParticlesPerMetre), 3, MaxParticles);
+        var colour = Color.InterpolateBetween(tint, Color.White, 0.55f);
+
+        for (var i = 0; i < count; i++)
+        {
+            var phase = (float)i / count;
+
+            // Each cross drifts from medic to patient and restarts.
+            var t = (phase + time * ParticleDrift) % 1f;
+
+            var point = Bezier(start, control, end, t);
+            var tangent = BezierTangent(start, control, end, t);
+            var length = tangent.Length();
+            if (length <= 0.0001f)
+                continue;
+
+            var normal = new Vector2(-tangent.Y, tangent.X) / length;
+            var orbit = MathF.Sin(time * ParticleOrbitSpeed + phase * MathF.Tau) * ParticleOrbit;
+            var centre = point + normal * orbit;
+
+            // Fade in and out at the ends so they do not pop into existence.
+            var fade = MathF.Sin(t * MathF.PI);
+            var size = ParticleSize * (0.6f + 0.4f * fade);
+            var arm = size * 0.5f;
+            var thickness = size * 0.34f;
+            var half = thickness * 0.5f;
+
+            var faded = colour.WithAlpha(fade * 0.9f);
+
+            handle.DrawRect(new Box2(centre.X - arm, centre.Y - half, centre.X + arm, centre.Y + half), faded);
+            handle.DrawRect(new Box2(centre.X - half, centre.Y - arm, centre.X + half, centre.Y + arm), faded);
         }
     }
 
