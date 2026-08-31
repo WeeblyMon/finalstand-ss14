@@ -31,15 +31,22 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const int SegmentsPerTile = 5;
     private const int MaxSegments = 80;
 
-    private const float Width = 0.34f;
-    private const float Sag = 0.16f;
-    private const float WobbleAmplitude = 0.05f;
+    // The beam art only occupies the middle of each frame, so the quad has to be wider than the
+    // apparent beam.
+    private const float Width = 0.62f;
+
+    // Droop and sway are capped in metres rather than scaling with distance, or a long beam bows
+    // into an arc instead of hanging slightly.
+    private const float Sag = 0.09f;
+    private const float MaxSag = 0.30f;
+    private const float WobbleAmplitude = 0.035f;
+    private const float MaxWobble = 0.09f;
     private const float WobbleSpeed = 3.2f;
 
     private const float ParticlesPerMetre = 1.6f;
     private const int MaxParticles = 14;
     private const float ParticleSize = 0.16f;
-    private const float ParticleDrift = 0.35f;
+    private const float ParticleDrift = 0.21f;
     private const float ParticleOrbit = 0.13f;
     private const float ParticleOrbitSpeed = 2.4f;
 
@@ -120,9 +127,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         if (span <= 0.01f)
             return;
 
-        var perpendicular = new Vector2(-delta.Y, delta.X) / span;
-        var wobble = MathF.Sin(time * WobbleSpeed) * WobbleAmplitude * span;
-        var control = start + delta * 0.5f + new Vector2(0f, -span * Sag) + perpendicular * wobble;
+        var control = GetControlPoint(start, delta, span, time);
 
         var tiles = Math.Max(1, (int)MathF.Round(span / TileLength));
         var segments = Math.Min(tiles * SegmentsPerTile, MaxSegments);
@@ -162,9 +167,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         if (span <= 0.01f)
             return;
 
-        var perpendicular = new Vector2(-delta.Y, delta.X) / span;
-        var wobble = MathF.Sin(time * WobbleSpeed) * WobbleAmplitude * span;
-        var control = start + delta * 0.5f + new Vector2(0f, -span * Sag) + perpendicular * wobble;
+        var control = GetControlPoint(start, delta, span, time);
 
         var count = Math.Clamp((int)(span * ParticlesPerMetre), 3, MaxParticles);
         var colour = Color.InterpolateBetween(tint, Color.White, 0.55f);
@@ -223,6 +226,16 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private void Add(Vector2 position, float u, float v)
     {
         _verts.Add(new DrawVertexUV2D(position, new Vector2(u, v)));
+    }
+
+    // Shared by the ribbon and the particles, so the crosses always ride the curve they are drawn on.
+    private static Vector2 GetControlPoint(Vector2 start, Vector2 delta, float span, float time)
+    {
+        var perpendicular = new Vector2(-delta.Y, delta.X) / span;
+        var sag = MathF.Min(span * Sag, MaxSag);
+        var wobble = MathF.Sin(time * WobbleSpeed) * MathF.Min(span * WobbleAmplitude, MaxWobble);
+
+        return start + delta * 0.5f + new Vector2(0f, -sag) + perpendicular * wobble;
     }
 
     private static Vector2 Bezier(Vector2 a, Vector2 b, Vector2 c, float t)
