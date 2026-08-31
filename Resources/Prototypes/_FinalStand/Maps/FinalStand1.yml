@@ -21,10 +21,11 @@
           ChiefEngineer:         [ 1, 1 ]
           StationEngineer:       [ 4, 4 ]
           AtmosphericTechnician: [ 2, 2 ]
-          # medical (7)
+          # medical (9)
           ChiefMedicalOfficer: [ 1, 1 ]
           MedicalDoctor:       [ 3, 3 ]
           Paramedic:           [ 2, 2 ]
+          CombatMedic:         [ 2, 2 ]
           Chemist:             [ 1, 1 ]
           # science (5)
           ResearchDirector:  [ 1, 1 ]

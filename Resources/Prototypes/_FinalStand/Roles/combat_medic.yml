@@ -1,0 +1,49 @@
+- type: playTimeTracker
+  id: JobCombatMedic
+
+- type: jobIcon
+  id: JobIconCombatMedic
+  icon:
+    sprite: /Textures/Interface/Misc/job_icons.rsi
+    state: CombatMedic
+  jobName: job-name-combat-medic
+
+- type: job
+  id: CombatMedic
+  name: job-name-combat-medic
+  description: job-description-combat-medic
+  playTimeTracker: JobCombatMedic
+  requirements:
+  - !type:DepartmentTimeRequirement
+    department: Security
+    time: 1h
+  - !type:RoleTimeRequirement
+    role: JobMedicalDoctor
+    time: 1h
+  startingGear: CombatMedicGear
+  icon: "JobIconCombatMedic"
+  supervisors: job-supervisors-cmo
+  access:
+  - Medical
+  - Maintenance
+  extendedAccess:
+  - Chemistry
+
+- type: startingGear
+  id: CombatMedicGear
+  equipment:
+    ears: ClothingHeadsetMedical
+    belt: ClothingBeltMedicalEMTFilled
+    pocket1: FlashlightSeclite
+
+- type: entity
+  id: SpawnPointCombatMedic
+  parent: SpawnPointJobBase
+  name: combat medic
+  components:
+  - type: SpawnPoint
+    job_id: CombatMedic
+  - type: Sprite
+    layers:
+      - state: green
+      - state: paramedic

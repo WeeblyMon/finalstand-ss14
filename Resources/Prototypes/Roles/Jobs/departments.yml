@@ -94,6 +94,7 @@
   roles:
   - Chemist
   - ChiefMedicalOfficer
+  - CombatMedic # FINALSTAND
   - MedicalDoctor
   - MedicalIntern
   - Psychologist
