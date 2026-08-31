@@ -146,9 +146,10 @@ public sealed class EntityHealthBarOverlay : Overlay
                 ? _progressColor.GetProgressColor(1f)
                 : GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
 
-            // Hardcoded width of the progress bar because it doesn't match the texture.
-            const float startX = 8f;
-            var endX = widthOfMob - 8f;
+            // FINALSTAND: full sprite width, so the bar's left edge lines up with the job status
+            // icon, which is drawn from the same bounds edge. Vanilla inset this by 8px.
+            const float startX = 0f;
+            var endX = widthOfMob;
 
             var xProgress = (endX - startX) * deathProgress.ratio + startX;
 

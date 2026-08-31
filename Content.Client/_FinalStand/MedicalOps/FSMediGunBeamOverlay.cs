@@ -40,6 +40,10 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var handle = args.WorldHandle;
         var time = (float)_timing.CurTime.TotalSeconds;
 
+        // Overlays share the handle and the health bars leave a transform on it, so world
+        // coordinates are only correct once this is reset.
+        handle.SetTransform(Matrix3x2.Identity);
+
         var query = _entManager.EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
         {

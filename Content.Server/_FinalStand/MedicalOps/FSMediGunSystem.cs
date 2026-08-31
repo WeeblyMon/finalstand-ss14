@@ -148,7 +148,10 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return;
 
         if (!_toggle.TryActivate(uid, args.User))
+        {
+            Log.Warning($"[FSMediGun] ItemToggle refused to activate for {ToPrettyString(args.User)} - no link made.");
             return;
+        }
 
         _audio.PlayPvs(comp.SoundOnTarget, uid);
 
@@ -165,6 +168,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         _useDelay.TryResetDelay(uid);
         args.Handled = true;
+
+        Log.Info($"[FSMediGun] {ToPrettyString(args.User)} linked the beam to {ToPrettyString(target)}.");
     }
 
     private void OnToggled(Entity<FSMediGunComponent> ent, ref ItemToggledEvent args)
