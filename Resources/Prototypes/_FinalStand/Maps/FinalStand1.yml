@@ -21,10 +21,10 @@
           ChiefEngineer:         [ 1, 1 ]
           StationEngineer:       [ 4, 4 ]
           AtmosphericTechnician: [ 2, 2 ]
-          # medical (9)
+          # medical (7) - Combat Medic replaces the Paramedic
           ChiefMedicalOfficer: [ 1, 1 ]
           MedicalDoctor:       [ 3, 3 ]
-          Paramedic:           [ 2, 2 ]
+          Paramedic:           [ 0, 0 ]
           CombatMedic:         [ 2, 2 ]
           Chemist:             [ 1, 1 ]
           # science (5)
