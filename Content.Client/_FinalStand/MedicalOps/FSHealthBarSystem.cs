@@ -1,9 +1,11 @@
 using Content.Client.Overlays;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Overlays;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
@@ -48,12 +50,12 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
         var comp = new ShowHealthBarsComponent
         {
-            DamageContainers = { "Biological" },
+            DamageContainers = new List<ProtoId<DamageContainerPrototype>> { "Biological" },
             HealthStatusIcon = null,
             NetSyncEnabled = false,
         };
 
-        AddComp(player, comp, true);
+        EntityManager.AddComponent(player, comp, true);
     }
 
     // ShowHealthBarsSystem adds and removes the overlay as the component comes and goes, so the flag

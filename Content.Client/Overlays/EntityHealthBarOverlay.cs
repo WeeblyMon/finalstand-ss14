@@ -53,6 +53,8 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     private static readonly string[] GroupOrder = { "Brute", "Burn", "Toxin", "Airloss", "Genetic" };
 
+    private readonly float[] _groupScratch = new float[GroupOrder.Length];
+
     public EntityHealthBarOverlay(IEntityManager entManager, IPrototypeManager prototype)
     {
         _entManager = entManager;
@@ -160,7 +162,8 @@ public sealed class EntityHealthBarOverlay : Overlay
         if (width <= 0f)
             return;
 
-        Span<float> perGroup = stackalloc float[GroupOrder.Length];
+        var perGroup = _groupScratch;
+        Array.Clear(perGroup);
         var total = 0f;
 
         for (var i = 0; i < GroupOrder.Length; i++)
