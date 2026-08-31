@@ -400,6 +400,13 @@
       baseCost: 12000
       type: VaporiseWeakMob
       valuePerLevel: 1
+    - id: energymagnum-extended-mag
+      name: Extended Cell
+      description: Adds 1 rounds to magazine capacity per level.
+      maxLevel: 6
+      baseCost: 4500
+      type: MagazineSize
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_magnum.rsi
     state: base
