@@ -1,4 +1,4 @@
-- type: marking
+﻿- type: marking
   id: HumanLongEars
   bodyPart: HeadTop
   markingCategory: HeadTop
@@ -67,3 +67,12 @@
   sprites:
   - sprite: Mobs/Customization/ears.rsi
     state: Uma_ears_and_tail
+  coloring:
+    default:
+      type:
+        !type:CategoryColoring
+          category: Hair
+      fallbackTypes:
+        - !type:CategoryColoring
+          category: FacialHair
+        - !type:SkinColoring
