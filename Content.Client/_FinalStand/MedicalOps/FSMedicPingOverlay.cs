@@ -20,7 +20,7 @@ public sealed class FSMedicPingOverlay : Overlay
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     private const float Lifetime = 2.5f;
-    private const float BubbleMeters = 1.1f;
+    private const float BubbleMeters = 1.0f;
 
     private readonly record struct Ping(EntityUid Target, bool IsHurt, float Life);
     private readonly List<Ping> _pings = new();

@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client.StatusIcon;
 using Content.Client.UserInterface.Systems;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
@@ -37,6 +38,20 @@ public sealed class EntityHealthBarOverlay : Overlay
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
     public HashSet<string> DamageContainers = new();
     public ProtoId<HealthIconPrototype>? StatusIcon;
+
+    // FINALSTAND: medics see the missing portion of the bar broken down by damage group.
+    public bool ShowDamageTypes;
+
+    private static readonly Color[] GroupColors =
+    {
+        Color.FromHex("#C63C3C"), // Brute
+        Color.FromHex("#E08A2E"), // Burn
+        Color.FromHex("#6FA83C"), // Toxin
+        Color.FromHex("#5CA0D0"), // Airloss
+        Color.FromHex("#B060C0"), // Genetic
+    };
+
+    private static readonly string[] GroupOrder = { "Brute", "Burn", "Toxin", "Airloss", "Genetic" };
 
     public EntityHealthBarOverlay(IEntityManager entManager, IPrototypeManager prototype)
     {
@@ -127,9 +142,65 @@ public sealed class EntityHealthBarOverlay : Overlay
             var pixelDarken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
             pixelDarken = pixelDarken.Translated(position);
             handle.DrawRect(pixelDarken, Black.WithAlpha(128));
+
+            // FINALSTAND: fill the missing stretch with one slice per damage group, so a medic can
+            // read what is actually wrong with someone without scanning them.
+            if (ShowDamageTypes)
+                DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
         }
 
         handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    // FINALSTAND
+    private void DrawDamageBreakdown(DrawingHandleWorld handle, DamageableComponent damageable,
+        Vector2 position, float startX, float endX)
+    {
+        var width = endX - startX;
+        if (width <= 0f)
+            return;
+
+        Span<float> perGroup = stackalloc float[GroupOrder.Length];
+        var total = 0f;
+
+        for (var i = 0; i < GroupOrder.Length; i++)
+        {
+            if (!_prototype.TryIndex<DamageGroupPrototype>(GroupOrder[i], out var group))
+                continue;
+
+            var sum = 0f;
+            foreach (var type in group.DamageTypes)
+            {
+                if (damageable.Damage.DamageDict.TryGetValue(type, out var amount))
+                    sum += amount.Float();
+            }
+
+            perGroup[i] = sum;
+            total += sum;
+        }
+
+        if (total <= 0f)
+            return;
+
+        var x = startX;
+        for (var i = 0; i < GroupOrder.Length; i++)
+        {
+            if (perGroup[i] <= 0f)
+                continue;
+
+            var sliceEnd = Math.Min(x + width * (perGroup[i] / total), endX);
+            var box = new Box2(
+                new Vector2(x, 0f) / EyeManager.PixelsPerMeter,
+                new Vector2(sliceEnd, 3f) / EyeManager.PixelsPerMeter).Translated(position);
+            handle.DrawRect(box, GroupColors[i]);
+
+            var darken = new Box2(
+                new Vector2(x, 2f) / EyeManager.PixelsPerMeter,
+                new Vector2(sliceEnd, 3f) / EyeManager.PixelsPerMeter).Translated(position);
+            handle.DrawRect(darken, Black.WithAlpha(128));
+
+            x = sliceEnd;
+        }
     }
 
     /// <summary>

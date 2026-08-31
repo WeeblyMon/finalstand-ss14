@@ -18,3 +18,16 @@ public sealed class FSMedicalFundUpdatedEvent : EntityEventArgs
 public sealed class FSMedicalFundRequestEvent : EntityEventArgs
 {
 }
+
+// Whether this client should get the medic-grade health readout. Resolved server-side off the held
+// ID, so the client never has to work out what counts as Medical.
+[Serializable, NetSerializable]
+public sealed class FSMedicalStatusEvent : EntityEventArgs
+{
+    public bool IsMedical;
+
+    public FSMedicalStatusEvent(bool isMedical)
+    {
+        IsMedical = isMedical;
+    }
+}
