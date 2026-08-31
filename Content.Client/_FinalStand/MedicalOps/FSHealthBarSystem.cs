@@ -68,7 +68,29 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
     private void ApplyDamageTypes()
     {
-        if (_overlayManager.TryGetOverlay<EntityHealthBarOverlay>(out var overlay))
-            overlay.ShowDamageTypes = _isMedical;
+        if (!_overlayManager.TryGetOverlay<EntityHealthBarOverlay>(out var overlay))
+            return;
+
+        overlay.ShowDamageTypes = _isMedical;
+        overlay.MedigunTarget = FindMedigunTarget();
+    }
+
+    // Resolved from the patient's end: whoever the local player currently has the beam on.
+    private EntityUid? FindMedigunTarget()
+    {
+        if (_playerManager.LocalEntity is not { } local)
+            return null;
+
+        var query = EntityQueryEnumerator<FSMediGunHealedComponent>();
+        while (query.MoveNext(out var patient, out var healed))
+        {
+            if (TryComp<FSMediGunComponent>(healed.Source, out var gun)
+                && gun.ParentEntity == local)
+            {
+                return patient;
+            }
+        }
+
+        return null;
     }
 }

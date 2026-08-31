@@ -1,0 +1,45 @@
+- type: entity
+  parent: BaseItem
+  id: FSMedicalBeamGun
+  name: medical beam gun
+  description: Projects a stream of medical nanites. Closes wounds fast, but the last stretch back to full health is beyond it - that still takes a doctor.
+  components:
+  - type: Sprite
+    sprite: _Goobstation/Objects/Specific/Medical/medigun.rsi
+    layers:
+    - state: icon
+    - state: active_gun
+      map: [ "enum.ToggleableVisuals.Layer" ]
+      visible: false
+  - type: Item
+    sprite: _Goobstation/Objects/Specific/Medical/medigun.rsi
+    size: Large
+  - type: FSMediGun
+    healing:
+      types:
+        Blunt: -3
+        Slash: -3
+        Piercing: -3
+        Heat: -3
+        Cold: -2
+    soundOnTarget:
+      path: /Audio/_Goobstation/Weapons/Effects/energy_reload.ogg
+      params:
+        volume: 4
+  - type: Battery
+    maxCharge: 30
+    startingCharge: 30
+  - type: BatterySelfRecharger
+    autoRechargeRate: 1.5
+    autoRechargePauseTime: 8
+  - type: ItemToggle
+    predictable: false
+  - type: UseDelay
+    delay: 1.0
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.ToggleableVisuals.Enabled:
+        enum.ToggleableVisuals.Layer:
+          True: { visible: true }
+          False: { visible: false }

@@ -43,6 +43,11 @@ public sealed class EntityHealthBarOverlay : Overlay
     // FINALSTAND: medics see the missing portion of the bar broken down by damage group.
     public bool ShowDamageTypes;
 
+    // FINALSTAND: set by FSHealthBarSystem to the patient the local player's medical beam gun is
+    // linked to. Marks where beam healing stops being worth waiting for.
+    public EntityUid? MedigunTarget;
+    public float MedigunSoftCap = 0.7f;
+
     private static readonly Color[] GroupColors =
     {
         Color.FromHex("#C63C3C"), // Brute
@@ -163,6 +168,16 @@ public sealed class EntityHealthBarOverlay : Overlay
             // read what is actually wrong with someone without scanning them.
             if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
+
+            // FINALSTAND: the soft-cap line, drawn only for whoever is holding the beam on them.
+            if (MedigunTarget == uid)
+            {
+                var markX = startX + (endX - startX) * MedigunSoftCap;
+                var mark = new Box2(
+                    new Vector2(markX, -1f) / EyeManager.PixelsPerMeter,
+                    new Vector2(markX + 1f, 4f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(mark, Color.FromHex("#FF3B3B"));
+            }
         }
 
         handle.SetTransform(Matrix3x2.Identity);
