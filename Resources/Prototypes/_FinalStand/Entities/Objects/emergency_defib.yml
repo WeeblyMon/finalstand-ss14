@@ -4,11 +4,17 @@
   name: emergency defibrillator
   description: A one-shot field unit. Gets someone breathing again in seconds, then needs a long while before it can do it twice.
   components:
+  # layers must be redeclared, not just the rsi path - otherwise the parent's screen and ready
+  # layers are inherited and looked up in this rsi, which only has an icon.
   - type: Sprite
     sprite: _FinalStand/Objects/Medical/emergency_defib.rsi
-    state: icon
+    layers:
+    - state: icon
+  - type: GenericVisualizer
+    visuals: {}
+  # Small so it fits a pocket; anything above that is refused by the slot.
   - type: Item
-    size: Normal
+    size: Small
   - type: Defibrillator
     # Near-instant, because it is used with a horde on top of you.
     doAfterDuration: 0.6

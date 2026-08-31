@@ -36,10 +36,10 @@
     ears: ClothingHeadsetMedical
     belt: ClothingBeltMedicalEMTFilled
     pocket1: FlashlightSeclite
+    pocket2: FSEmergencyDefibrillator
   storage:
     back:
     - FSMedicalBeamGun
-    - FSEmergencyDefibrillator
 
 - type: entity
   parent: ParamedicPDA
