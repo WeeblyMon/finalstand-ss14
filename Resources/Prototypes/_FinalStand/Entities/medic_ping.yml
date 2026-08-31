@@ -5,7 +5,7 @@
   description: Shout for a medic and mark your position for the crew.
   components:
   - type: Action
-    useDelay: 12
+    useDelay: 6
     checkCanInteract: false
   - type: Sprite
     layers:
