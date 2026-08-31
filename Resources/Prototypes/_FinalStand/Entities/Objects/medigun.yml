@@ -28,10 +28,8 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 1.5
     autoRechargePauseTime: 8
-  - type: ItemToggle
-    predictable: false
   # Two-handed on purpose: a medic should be healing or fighting, not both at once.
-  # unwieldOnUse would drop the grip the moment they clicked a patient to link.
+  # Wielding is the on switch, so there is no separate toggle competing for use-in-hand.
   - type: Wieldable
     unwieldOnUse: false
   - type: UseDelay

@@ -39,6 +39,7 @@
   storage:
     back:
     - FSMedicalBeamGun
+    - FSEmergencyDefibrillator
 
 - type: entity
   parent: ParamedicPDA

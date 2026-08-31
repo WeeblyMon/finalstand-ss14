@@ -32,7 +32,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
-    [Dependency] private ItemToggleSystem _toggle = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
 
@@ -48,7 +47,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         SubscribeLocalEvent<FSMediGunComponent, AfterInteractEvent>(OnActivate);
         SubscribeLocalEvent<FSMediGunComponent, EntParentChangedMessage>(OnParentChanged);
-        SubscribeLocalEvent<FSMediGunComponent, ItemToggledEvent>(OnToggled);
         SubscribeLocalEvent<FSMediGunComponent, ItemUnwieldedEvent>(OnUnwielded);
     }
 
@@ -162,12 +160,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
             || !_whitelist.IsWhitelistPass(comp.HealAbleWhitelist, target))
             return;
 
-        if (!_toggle.TryActivate(uid, args.User))
-        {
-            Log.Warning($"[FSMediGun] ItemToggle refused to activate for {ToPrettyString(args.User)} - no link made.");
-            return;
-        }
-
         comp.HealedEntities.Add(target);
         comp.IsActive = true;
         comp.ParentEntity = args.User;
@@ -185,12 +177,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         // Last, and deliberately: a missing sound file throws, and that must not be able to undo
         // the link that was just made.
         _audio.PlayPvs(comp.SoundOnTarget, uid);
-    }
-
-    private void OnToggled(Entity<FSMediGunComponent> ent, ref ItemToggledEvent args)
-    {
-        if (!args.Activated)
-            DisableAllConnections(ent);
     }
 
     // Letting go with one hand cuts the beam, so a medic cannot heal and shoot in the same moment.
@@ -218,8 +204,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         comp.ParentEntity = null;
         comp.NextTick = null;
         Dirty(ent.Owner, comp);
-
-        _toggle.TryDeactivate(ent.Owner);
     }
 
     private void DisableConnection(Entity<FSMediGunComponent> ent, EntityUid toRemove)

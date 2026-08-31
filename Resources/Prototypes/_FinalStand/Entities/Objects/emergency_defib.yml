@@ -1,0 +1,24 @@
+- type: entity
+  parent: DefibrillatorCompact
+  id: FSEmergencyDefibrillator
+  name: emergency defibrillator
+  description: A one-shot field unit. Gets someone breathing again in seconds, then needs a long while before it can do it twice.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/emergency_defib.rsi
+    state: icon
+  - type: Item
+    size: Normal
+  - type: Defibrillator
+    # Near-instant, because it is used with a horde on top of you.
+    doAfterDuration: 0.6
+    # The long lockout is what stops it replacing proper revival, and leaves the
+    # paramedic plenty of casualties to recover.
+    zapDelay: 120
+    zapDamage: 0
+    writheDuration: 1
+    zapHeal:
+      types:
+        Asphyxiation: -60
+  - type: UseDelay
+    delay: 120
