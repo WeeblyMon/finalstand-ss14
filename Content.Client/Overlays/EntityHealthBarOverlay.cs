@@ -122,8 +122,9 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             handle.SetTransform(matty);
 
-            // FINALSTAND: raised a few pixels, the old offset cut into the sprite's head.
-            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 + 2f;
+            // FINALSTAND: raised off the sprite's head, and kept level with the job status icons,
+            // which start at the top of the same bounds.
+            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 + 1f;
             var widthOfMob = bounds.Width * EyeManager.PixelsPerMeter;
 
             var position = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2, yOffset / EyeManager.PixelsPerMeter);

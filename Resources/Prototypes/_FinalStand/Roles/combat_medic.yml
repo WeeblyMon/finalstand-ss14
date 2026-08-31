@@ -93,3 +93,8 @@
     layers:
       - state: green
       - state: paramedic
+      # No combat medic state in the marker RSI, so the vest is layered on to tell it apart from
+      # the paramedic spawner at a glance.
+      - sprite: Clothing/OuterClothing/Armor/bulletproof.rsi
+        state: icon
+        scale: 0.6, 0.6
