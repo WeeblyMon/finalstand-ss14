@@ -14,11 +14,13 @@
     doAfterDuration: 0.6
     # The long lockout is what stops it replacing proper revival, and leaves the
     # paramedic plenty of casualties to recover.
-    zapDelay: 120
+    zapDelay: 60
     zapDamage: 0
     writheDuration: 1
     zapHeal:
       types:
         Asphyxiation: -60
+  - type: FSEmergencyDefib
+    reviveHealthFraction: 0.2
   - type: UseDelay
-    delay: 120
+    delay: 60
