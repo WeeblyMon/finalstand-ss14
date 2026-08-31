@@ -229,10 +229,10 @@
     baseCritChance: 0.05
 
 - type: entity
-  name: N1984
+  name: Desert Eagle
   parent: [BaseWeaponPistol, BaseSecurityContraband]
-  id: WeaponPistolN1984
-  description: An exceptionally powerful ‘hand cannon’ designed as part of Nanotrasen’s BFG initiative. Chambered in .45, the lord’s caliber, it is generally considered too unwieldy for standard use but has become something of a status symbol among Nanotrasen officials. Feeds from .45 pistol magazines.
+  id: Desert Eagle
+  description: An exceprtionally powerful ‘hand cannon’ designed as part of Nanotrasen’s BFG initiative. Chambered in .45, the lord’s caliber, it is generally considered too unwieldy for standard use but has become something of a status symbol among Nanotrasen officials. Feeds from .45 pistol magazines.
   components:
   - type: Tag
     tags:
