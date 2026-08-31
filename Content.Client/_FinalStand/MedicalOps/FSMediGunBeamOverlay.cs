@@ -35,22 +35,27 @@ public sealed class FSMediGunBeamOverlay : Overlay
     // apparent beam.
     private const float Width = 0.62f;
 
-    // Droop and sway are capped in metres rather than scaling with distance, or a long beam bows
-    // into an arc instead of hanging slightly.
-    private const float Sag = 0.09f;
-    private const float MaxSag = 0.30f;
-    private const float WobbleAmplitude = 0.035f;
-    private const float MaxWobble = 0.09f;
-    private const float WobbleSpeed = 3.2f;
+    // The curve comes from the middle of the beam lagging behind when either end moves, not from
+    // gravity. Standing still, the lagged midpoint catches up and the beam is straight.
+    private const float LagResponse = 7f;   // higher snaps straight faster
+    private const float LagAmplify = 1.6f;  // exaggerates the trail so the whip reads
+    private const float MaxLag = 1.1f;      // metres, so a teleport cannot fling the arc away
+    private const double LagForgetSeconds = 3d;
 
     private const float ParticlesPerMetre = 1.6f;
     private const int MaxParticles = 14;
-    private const float ParticleSize = 0.16f;
-    private const float ParticleDrift = 0.21f;
+    private const float ParticleSize = 0.096f;
+    private const float ParticleDrift = 0.35f;
     private const float ParticleOrbit = 0.13f;
     private const float ParticleOrbitSpeed = 2.4f;
 
     private readonly List<DrawVertexUV2D> _verts = new();
+
+    private readonly record struct LagState(Vector2 Mid, TimeSpan LastSeen);
+
+    // Per-patient trailing midpoint. Survives between frames, which is the whole point.
+    private readonly Dictionary<EntityUid, LagState> _lag = new();
+    private readonly List<EntityUid> _stale = new();
 
     public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
@@ -76,9 +81,12 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
         var handle = args.WorldHandle;
         var time = (float)_timing.CurTime.TotalSeconds;
+        var dt = (float)_timing.FrameTime.TotalSeconds;
 
         // Overlays share the handle and the health bars leave a transform on it.
         handle.SetTransform(Matrix3x2.Identity);
+
+        PruneLag();
 
         var frame = (int)(_timing.RealTime.TotalSeconds / FrameSeconds) % FrameCount;
         var col = frame % GridSize;
@@ -109,25 +117,24 @@ public sealed class FSMediGunBeamOverlay : Overlay
             if (!bounds.Contains(start) && !bounds.Contains(end))
                 continue;
 
-            BuildRibbon(start, end, time, uMin, vMin, cell);
+            var control = UpdateControlPoint(patient, start, end, dt);
+
+            BuildRibbon(start, control, end, uMin, vMin, cell);
 
             if (_verts.Count >= 3)
                 handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam, _verts.ToArray(), healed.BeamColor);
 
-            DrawParticles(handle, start, end, time, healed.BeamColor);
+            DrawParticles(handle, start, control, end, time, healed.BeamColor);
         }
     }
 
-    private void BuildRibbon(Vector2 start, Vector2 end, float time, float uMin, float vMin, float cell)
+    private void BuildRibbon(Vector2 start, Vector2 control, Vector2 end, float uMin, float vMin, float cell)
     {
         _verts.Clear();
 
-        var delta = end - start;
-        var span = delta.Length();
+        var span = (end - start).Length();
         if (span <= 0.01f)
             return;
-
-        var control = GetControlPoint(start, delta, span, time);
 
         var tiles = Math.Max(1, (int)MathF.Round(span / TileLength));
         var segments = Math.Min(tiles * SegmentsPerTile, MaxSegments);
@@ -160,14 +167,11 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     // Little crosses riding the beam toward the patient, so healing reads as something being
     // delivered rather than a light being shone.
-    private void DrawParticles(DrawingHandleWorld handle, Vector2 start, Vector2 end, float time, Color tint)
+    private void DrawParticles(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time, Color tint)
     {
-        var delta = end - start;
-        var span = delta.Length();
+        var span = (end - start).Length();
         if (span <= 0.01f)
             return;
-
-        var control = GetControlPoint(start, delta, span, time);
 
         var count = Math.Clamp((int)(span * ParticlesPerMetre), 3, MaxParticles);
         var colour = Color.InterpolateBetween(tint, Color.White, 0.55f);
@@ -228,14 +232,47 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _verts.Add(new DrawVertexUV2D(position, new Vector2(u, v)));
     }
 
-    // Shared by the ribbon and the particles, so the crosses always ride the curve they are drawn on.
-    private static Vector2 GetControlPoint(Vector2 start, Vector2 delta, float span, float time)
+    /// <summary>
+    /// Advances the trailing midpoint for one beam and returns the curve's control point. Called
+    /// once per beam per frame, before anything is drawn with it.
+    /// </summary>
+    private Vector2 UpdateControlPoint(EntityUid patient, Vector2 start, Vector2 end, float dt)
     {
-        var perpendicular = new Vector2(-delta.Y, delta.X) / span;
-        var sag = MathF.Min(span * Sag, MaxSag);
-        var wobble = MathF.Sin(time * WobbleSpeed) * MathF.Min(span * WobbleAmplitude, MaxWobble);
+        var trueMid = (start + end) * 0.5f;
 
-        return start + delta * 0.5f + new Vector2(0f, -sag) + perpendicular * wobble;
+        if (!_lag.TryGetValue(patient, out var state))
+            state = new LagState(trueMid, _timing.RealTime);
+
+        // Framerate-independent exponential smoothing toward the real midpoint.
+        var blend = 1f - MathF.Exp(-LagResponse * dt);
+        var mid = Vector2.Lerp(state.Mid, trueMid, blend);
+
+        _lag[patient] = new LagState(mid, _timing.RealTime);
+
+        var offset = (mid - trueMid) * LagAmplify;
+        var distance = offset.Length();
+        if (distance > MaxLag)
+            offset = offset / distance * MaxLag;
+
+        return trueMid + offset;
+    }
+
+    private void PruneLag()
+    {
+        if (_lag.Count == 0)
+            return;
+
+        var now = _timing.RealTime;
+        foreach (var (uid, state) in _lag)
+        {
+            if ((now - state.LastSeen).TotalSeconds > LagForgetSeconds)
+                _stale.Add(uid);
+        }
+
+        foreach (var uid in _stale)
+            _lag.Remove(uid);
+
+        _stale.Clear();
     }
 
     private static Vector2 Bezier(Vector2 a, Vector2 b, Vector2 c, float t)
