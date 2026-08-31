@@ -123,23 +123,24 @@ public sealed class FSMediGunBeamOverlay : Overlay
             var t0 = (float)seg / segments;
             var t1 = (float)(seg + 1) / segments;
 
-            // Restarting the U span at every tile boundary keeps the frame from smearing
-            // backwards across the seam, which is what tiling a non-wrapping texture would do.
+            // The beam is drawn vertically inside each frame, so V runs along the beam's length
+            // and U across its width. Restarting the V span at every tile boundary keeps the frame
+            // from smearing backwards across the seam.
             var k = seg % SegmentsPerTile;
-            var u0 = uMin + cell * ((float)k / SegmentsPerTile);
-            var u1 = uMin + cell * ((float)(k + 1) / SegmentsPerTile);
+            var v0 = vMin + cell * ((float)k / SegmentsPerTile);
+            var v1 = vMin + cell * ((float)(k + 1) / SegmentsPerTile);
 
             if (!TryEdge(start, control, end, t0, out var l0, out var r0)
                 || !TryEdge(start, control, end, t1, out var l1, out var r1))
                 continue;
 
-            Add(l0, u0, vMin);
-            Add(r0, u0, vMin + cell);
-            Add(l1, u1, vMin);
+            Add(l0, uMin, v0);
+            Add(r0, uMin + cell, v0);
+            Add(l1, uMin, v1);
 
-            Add(r0, u0, vMin + cell);
-            Add(r1, u1, vMin + cell);
-            Add(l1, u1, vMin);
+            Add(r0, uMin + cell, v0);
+            Add(r1, uMin + cell, v1);
+            Add(l1, uMin, v1);
         }
     }
 
