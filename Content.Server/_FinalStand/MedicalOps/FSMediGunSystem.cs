@@ -10,7 +10,10 @@ using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Power.Components;
+using Content.Shared.Popups;
 using Content.Shared.Timing;
+using Content.Shared.Wieldable;
+using Content.Shared.Wieldable.Components;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
@@ -30,6 +33,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private ItemToggleSystem _toggle = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
 
     private EntityQuery<BatteryComponent> _batteryQuery;
@@ -45,6 +49,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         SubscribeLocalEvent<FSMediGunComponent, AfterInteractEvent>(OnActivate);
         SubscribeLocalEvent<FSMediGunComponent, EntParentChangedMessage>(OnParentChanged);
         SubscribeLocalEvent<FSMediGunComponent, ItemToggledEvent>(OnToggled);
+        SubscribeLocalEvent<FSMediGunComponent, ItemUnwieldedEvent>(OnUnwielded);
     }
 
     public override void Update(float frameTime)
@@ -141,6 +146,13 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (args.Target is not { } target || target == args.User)
             return;
 
+        // Two-handed only, so healing and fighting stay mutually exclusive.
+        if (!TryComp<WieldableComponent>(uid, out var wieldable) || !wieldable.Wielded)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medigun-needs-wield"), uid, args.User);
+            return;
+        }
+
         if (_useDelay.IsDelayed(uid)
             || comp.HealedEntities.Count >= comp.MaxLinksAmount
             || comp.HealedEntities.Contains(target)
@@ -176,6 +188,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
     {
         if (!args.Activated)
             DisableAllConnections(ent);
+    }
+
+    // Letting go with one hand cuts the beam, so a medic cannot heal and shoot in the same moment.
+    private void OnUnwielded(Entity<FSMediGunComponent> ent, ref ItemUnwieldedEvent args)
+    {
+        DisableAllConnections(ent);
     }
 
     // Dropping or holstering the gun drops every link.

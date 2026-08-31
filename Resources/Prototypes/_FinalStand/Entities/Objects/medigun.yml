@@ -30,6 +30,10 @@
     autoRechargePauseTime: 8
   - type: ItemToggle
     predictable: false
+  # Two-handed on purpose: a medic should be healing or fighting, not both at once.
+  # unwieldOnUse would drop the grip the moment they clicked a patient to link.
+  - type: Wieldable
+    unwieldOnUse: false
   - type: UseDelay
     delay: 1.0
   - type: Appearance
