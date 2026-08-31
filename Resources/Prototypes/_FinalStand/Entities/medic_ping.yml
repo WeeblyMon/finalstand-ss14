@@ -1,0 +1,14 @@
+- type: entity
+  id: FSMedicPingAction
+  name: Call Medic
+  description: Shout for a medic and mark your position for the crew.
+  components:
+  - type: Action
+    useDelay: 12
+    checkCanInteract: false
+  - type: Sprite
+    layers:
+    - texture: /Textures/_FinalStand/Interface/MedicPing/normal.png
+      map: ["enum.ActionVisuals.Icon"]
+  - type: InstantAction
+    event: !type:FSMedicPingActionEvent {}

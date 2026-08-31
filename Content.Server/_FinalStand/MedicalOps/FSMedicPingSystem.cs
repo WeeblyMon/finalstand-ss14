@@ -1,0 +1,80 @@
+using Content.Server.Chat.Systems;
+using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Actions;
+using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Systems;
+using Content.Shared.GameTicking;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server._FinalStand.MedicalOps;
+
+// Calling for a medic, TF2 style: a bubble over your head and an actual shout.
+public sealed partial class FSMedicPingSystem : EntitySystem
+{
+    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private ChatSystem _chat = default!;
+
+    private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
+    private const string ScreamEmote = "Scream";
+
+    // Below this share of the way to crit, the calm bubble is used.
+    private const float HurtThreshold = 0.3f;
+
+    private readonly Dictionary<EntityUid, EntityUid> _grantedActions = new();
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSMedicPingActionEvent>(OnPingAction);
+        SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    private void OnPlayerAttached(PlayerAttachedEvent ev)
+    {
+        var mob = ev.Entity;
+        if (_grantedActions.TryGetValue(mob, out var existing) && existing.IsValid())
+            return;
+
+        var actionEnt = _actions.AddAction(mob, PingActionProto);
+        if (actionEnt != null)
+            _grantedActions[mob] = actionEnt.Value;
+    }
+
+    private void OnPingAction(FSMedicPingActionEvent args)
+    {
+        args.Handled = true;
+
+        var user = args.Performer;
+
+        _chat.TryEmoteWithChat(user, ScreamEmote, ignoreActionBlocker: true, forceEmote: true);
+        RaiseNetworkEvent(new FSMedicPingEvent(GetNetEntity(user), IsHurt(user)), Filter.Broadcast());
+    }
+
+    private bool IsHurt(EntityUid uid)
+    {
+        if (_mobState.IsIncapacitated(uid))
+            return true;
+
+        if (!TryComp<DamageableComponent>(uid, out var damageable)
+            || !_thresholds.TryGetThresholdForState(uid, MobState.Critical, out var threshold)
+            || threshold is not { } critThreshold
+            || critThreshold <= 0)
+            return false;
+
+        var total = (float)_damageable.GetTotalDamage((uid, (DamageableComponent?)damageable));
+        return total / critThreshold.Float() >= HurtThreshold;
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _grantedActions.Clear();
+    }
+}
