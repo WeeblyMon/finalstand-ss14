@@ -1,55 +1,77 @@
 using System.Numerics;
 using Content.Shared._FinalStand.MedicalOps;
-using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Goob's animated beam texture, bent along a sagging curve rather than drawn as a straight line.
+// Goob's animated beam sheet, bent along a sagging curve instead of drawn as a straight line.
+// The sheet is loaded as a plain texture rather than an RSI state: DrawPrimitives rejects atlas
+// sub-textures, and a raw PNG read from inside a .rsi does not survive packaging.
 public sealed class FSMediGunBeamOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
-    private readonly SpriteSystem _sprite;
 
-    private static readonly SpriteSpecifier BeamSprite = new SpriteSpecifier.Rsi(
-        new ResPath("/Textures/_Goobstation/Objects/Specific/Medical/medigun.rsi"), "beam");
+    private readonly Texture? _beam;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    // One texture repeat per this many metres, so the beam reads at any range.
-    private const float TileLength = 0.5f;
-    private const int SegmentsPerTile = 4;
-    private const int MaxSegments = 64;
+    // The sheet is a 4x4 grid of frames.
+    private const int GridSize = 4;
+    private const int FrameCount = GridSize * GridSize;
+    private const float FrameSeconds = 0.1f;
 
-    private const float Width = 0.32f;
+    // One full frame of the texture per this many metres.
+    private const float TileLength = 0.6f;
+    private const int SegmentsPerTile = 5;
+    private const int MaxSegments = 80;
+
+    private const float Width = 0.34f;
     private const float Sag = 0.16f;
     private const float WobbleAmplitude = 0.05f;
     private const float WobbleSpeed = 3.2f;
 
     private readonly List<DrawVertexUV2D> _verts = new();
 
-    public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing)
+    public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
-        _sprite = _entManager.System<SpriteSystem>();
+
+        try
+        {
+            _beam = cache.GetResource<TextureResource>(
+                new ResPath("/Textures/_FinalStand/Effects/medigun_beam.png")).Texture;
+        }
+        catch
+        {
+            _beam = null;
+        }
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
+        if (_beam == null)
+            return;
+
         var handle = args.WorldHandle;
         var time = (float)_timing.CurTime.TotalSeconds;
 
         // Overlays share the handle and the health bars leave a transform on it.
         handle.SetTransform(Matrix3x2.Identity);
 
-        var texture = _sprite.GetFrame(BeamSprite, _timing.RealTime);
+        var frame = (int)(_timing.RealTime.TotalSeconds / FrameSeconds) % FrameCount;
+        var col = frame % GridSize;
+        var row = frame / GridSize;
+        var cell = 1f / GridSize;
+        var uMin = col * cell;
+        var vMin = row * cell;
 
         var query = _entManager.EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
@@ -73,13 +95,14 @@ public sealed class FSMediGunBeamOverlay : Overlay
             if (!bounds.Contains(start) && !bounds.Contains(end))
                 continue;
 
-            BuildRibbon(start, end, time);
+            BuildRibbon(start, end, time, uMin, vMin, cell);
+
             if (_verts.Count >= 3)
-                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, texture, _verts.ToArray(), healed.BeamColor);
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam, _verts.ToArray(), healed.BeamColor);
         }
     }
 
-    private void BuildRibbon(Vector2 start, Vector2 end, float time)
+    private void BuildRibbon(Vector2 start, Vector2 end, float time, float uMin, float vMin, float cell)
     {
         _verts.Clear();
 
@@ -92,48 +115,52 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var wobble = MathF.Sin(time * WobbleSpeed) * WobbleAmplitude * span;
         var control = start + delta * 0.5f + new Vector2(0f, -span * Sag) + perpendicular * wobble;
 
-        var tiles = MathF.Max(1f, span / TileLength);
-        var segments = Math.Clamp((int)(tiles * SegmentsPerTile), 4, MaxSegments);
+        var tiles = Math.Max(1, (int)MathF.Round(span / TileLength));
+        var segments = Math.Min(tiles * SegmentsPerTile, MaxSegments);
 
-        Vector2 previousLeft = default, previousRight = default;
-        float previousU = 0f;
-        var first = true;
-
-        for (var i = 0; i <= segments; i++)
+        for (var seg = 0; seg < segments; seg++)
         {
-            var t = (float)i / segments;
-            var point = Bezier(start, control, end, t);
-            var tangent = BezierTangent(start, control, end, t);
+            var t0 = (float)seg / segments;
+            var t1 = (float)(seg + 1) / segments;
 
-            var length = tangent.Length();
-            if (length <= 0.0001f)
+            // Restarting the U span at every tile boundary keeps the frame from smearing
+            // backwards across the seam, which is what tiling a non-wrapping texture would do.
+            var k = seg % SegmentsPerTile;
+            var u0 = uMin + cell * ((float)k / SegmentsPerTile);
+            var u1 = uMin + cell * ((float)(k + 1) / SegmentsPerTile);
+
+            if (!TryEdge(start, control, end, t0, out var l0, out var r0)
+                || !TryEdge(start, control, end, t1, out var l1, out var r1))
                 continue;
 
-            var normal = new Vector2(-tangent.Y, tangent.X) / length;
-            var half = Width * 0.5f;
+            Add(l0, u0, vMin);
+            Add(r0, u0, vMin + cell);
+            Add(l1, u1, vMin);
 
-            var left = point + normal * half;
-            var right = point - normal * half;
-
-            // Scrolls along the beam so the nanites look like they are travelling.
-            var u = t * tiles - time * 1.5f;
-
-            if (!first)
-            {
-                Add(previousLeft, previousU, 0f);
-                Add(previousRight, previousU, 1f);
-                Add(left, u, 0f);
-
-                Add(previousRight, previousU, 1f);
-                Add(right, u, 1f);
-                Add(left, u, 0f);
-            }
-
-            previousLeft = left;
-            previousRight = right;
-            previousU = u;
-            first = false;
+            Add(r0, u0, vMin + cell);
+            Add(r1, u1, vMin + cell);
+            Add(l1, u1, vMin);
         }
+    }
+
+    private static bool TryEdge(Vector2 a, Vector2 b, Vector2 c, float t, out Vector2 left, out Vector2 right)
+    {
+        left = default;
+        right = default;
+
+        var point = Bezier(a, b, c, t);
+        var tangent = BezierTangent(a, b, c, t);
+        var length = tangent.Length();
+
+        if (length <= 0.0001f)
+            return false;
+
+        var normal = new Vector2(-tangent.Y, tangent.X) / length;
+        var half = Width * 0.5f;
+
+        left = point + normal * half;
+        right = point - normal * half;
+        return true;
     }
 
     private void Add(Vector2 position, float u, float v)
