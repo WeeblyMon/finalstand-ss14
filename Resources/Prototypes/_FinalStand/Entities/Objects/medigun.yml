@@ -19,7 +19,7 @@
         Heat: -3
         Cold: -2
     soundOnTarget:
-      path: /Audio/_Goobstation/Weapons/Effects/energy_reload.ogg
+      path: /Audio/Effects/beep1.ogg
       params:
         volume: 4
   - type: Battery

@@ -22,6 +22,10 @@ public sealed partial class StatusIconOverlay : Overlay
     private readonly StatusIconSystem _statusIcon;
     private readonly ShaderInstance _unshadedShader;
 
+    // FINALSTAND: health bars are on for everyone here and sit just above the sprite, so the icon
+    // column is lifted out of the sprite to sit beside the bar rather than over the head.
+    private const float FsIconLift = 9f;
+
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     internal StatusIconOverlay()
@@ -95,7 +99,7 @@ public sealed partial class StatusIconOverlay : Overlay
                         accOffsetL += texture.Height;
                         countL++;
                     }
-                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetL - proto.Offset) / EyeManager.PixelsPerMeter;
+                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetL - proto.Offset - FsIconLift) / EyeManager.PixelsPerMeter;
                     xOffset = sprite.Offset.X - bounds.Width / 2f + (float)proto.OffsetHorizontal / EyeManager.PixelsPerMeter;
 
                 }
@@ -108,7 +112,7 @@ public sealed partial class StatusIconOverlay : Overlay
                         accOffsetR += texture.Height;
                         countR++;
                     }
-                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetR - proto.Offset) / EyeManager.PixelsPerMeter;
+                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetR - proto.Offset - FsIconLift) / EyeManager.PixelsPerMeter;
                     xOffset = sprite.Offset.X + bounds.Width / 2f - (float)(texture.Width - proto.OffsetHorizontal) / EyeManager.PixelsPerMeter;
 
                 }

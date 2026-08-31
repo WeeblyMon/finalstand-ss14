@@ -153,8 +153,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return;
         }
 
-        _audio.PlayPvs(comp.SoundOnTarget, uid);
-
         comp.HealedEntities.Add(target);
         comp.IsActive = true;
         comp.ParentEntity = args.User;
@@ -169,7 +167,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
         _useDelay.TryResetDelay(uid);
         args.Handled = true;
 
-        Log.Info($"[FSMediGun] {ToPrettyString(args.User)} linked the beam to {ToPrettyString(target)}.");
+        // Last, and deliberately: a missing sound file throws, and that must not be able to undo
+        // the link that was just made.
+        _audio.PlayPvs(comp.SoundOnTarget, uid);
     }
 
     private void OnToggled(Entity<FSMediGunComponent> ent, ref ItemToggledEvent args)
