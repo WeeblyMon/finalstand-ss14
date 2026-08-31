@@ -3,6 +3,7 @@
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
+using Robust.Shared.Prototypes;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
@@ -227,6 +228,36 @@ public sealed class MedicalScoringTest : GameTest
                 Assert.That(selfPoints, Is.LessThan(otherPoints),
                     "treating someone else must always beat patching yourself up");
             });
+        });
+    }
+
+    [Test]
+    public async Task TreatingOthersFundsTheDepartmentButSelfCareDoesNot()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var fund = entMan.System<FSMedicalFundSystem>();
+
+            var onSelf = Setup(entMan, protos, map.GridCoords, patientIsTheMedic: true);
+            var beforeSelf = fund.GetLifetimeEarned();
+            onSelf.Hurt(400f);
+            onSelf.HealBy(onSelf.MedicBody, 60f);
+
+            Assert.That(fund.GetLifetimeEarned(), Is.EqualTo(beforeSelf),
+                "patching yourself up is not the department treating the crew");
+
+            var onOther = Setup(entMan, protos, map.GridCoords);
+            var beforeOther = fund.GetLifetimeEarned();
+            onOther.Hurt(400f);
+            onOther.HealBy(onOther.MedicBody, 60f);
+
+            Assert.That(fund.GetLifetimeEarned(), Is.GreaterThan(beforeOther),
+                "treating a patient should pay into the department budget");
         });
     }
 }

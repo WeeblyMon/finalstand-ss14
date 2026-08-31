@@ -27,6 +27,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSMedicalFundSystem _medFund = default!;
     [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
 
@@ -41,11 +42,16 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int CreditsPerHealPoint = 10;
     private const int SelfHealCreditsPerPoint = 2;
 
+    private const int FundPerHealPoint = 5;
+
     private const int StabilisePoints = 25;
     private const int StabiliseCredits = 250;
+    private const int StabiliseFund = 150;
     private const int RevivePoints = 60;
     private const int ReviveCredits = 500;
+    private const int ReviveFund = 300;
     private const int PatientSavedCredits = 1000;
+    private const int PatientSavedFund = 750;
 
     public readonly record struct FSMedicalRoundStats(
         int HealingPoints, float HpHealed, int Stabilises, int Revives, int PatientsSaved);
@@ -156,8 +162,13 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (points <= 0)
             return;
 
-        AddStats(healerMind, points: points, hpHealed: healed);
-        _wallet.GiveCredits(healerMind, points * (isSelf ? SelfHealCreditsPerPoint : CreditsPerHealPoint));
+        // Self-care is real work and scores, but it is not the department treating the crew, so it
+        // pays a lower credit rate and nothing at all into the budget.
+        Award(healerMind, isSelf ? "self-heal" : "healing",
+            points: points,
+            hpHealed: healed,
+            credits: points * (isSelf ? SelfHealCreditsPerPoint : CreditsPerHealPoint),
+            fund: isSelf ? 0 : points * FundPerHealPoint);
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)
@@ -175,8 +186,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         // A defibrillator lands the patient in Critical, never straight to Alive.
         if (args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive)
         {
-            AddStats(healerMind, points: RevivePoints, revives: 1);
-            _wallet.GiveCredits(healerMind, ReviveCredits);
+            Award(healerMind, "revive", points: RevivePoints, revives: 1,
+                credits: ReviveCredits, fund: ReviveFund);
 
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.GetWaveNumber();
@@ -188,8 +199,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         if (args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive)
         {
-            AddStats(healerMind, points: StabilisePoints, stabilises: 1);
-            _wallet.GiveCredits(healerMind, StabiliseCredits);
+            Award(healerMind, "stabilise", points: StabilisePoints, stabilises: 1,
+                credits: StabiliseCredits, fund: StabiliseFund);
 
             _adminLogger.Add(LogType.Healed, LogImpact.Low,
                 $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {StabiliseCredits} credits");
@@ -213,14 +224,17 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             if (_mobState.IsIncapacitated(uid))
                 continue;
 
-            AddStats(reviver, patientsSaved: 1);
-            _wallet.GiveCredits(reviver, PatientSavedCredits);
+            Award(reviver, "patient-saved", patientsSaved: 1,
+                credits: PatientSavedCredits, fund: PatientSavedFund);
+
             _adminLogger.Add(LogType.Healed, LogImpact.Low,
                 $"{ToPrettyString(uid):patient} survived wave {args.WaveNumber} — patient saved credited to {ToPrettyString(reviver):reviver}");
         }
     }
 
-    private void AddStats(EntityUid mindId, int points = 0, float hpHealed = 0f,
+    // Every payout goes through here, so scoreboard, wallet and department budget cannot drift apart.
+    private void Award(EntityUid mindId, string source, int points = 0, float hpHealed = 0f,
+        int credits = 0, int fund = 0,
         int stabilises = 0, int revives = 0, int patientsSaved = 0)
     {
         var cur = _roundStats.GetValueOrDefault(mindId);
@@ -230,6 +244,12 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             cur.Stabilises + stabilises,
             cur.Revives + revives,
             cur.PatientsSaved + patientsSaved);
+
+        if (credits > 0)
+            _wallet.GiveCredits(mindId, credits);
+
+        if (fund > 0)
+            _medFund.GrantMedicalFunds(fund, source, mindId);
     }
 
     private void OnRoundEnd(RoundEndTextAppendEvent args)
@@ -249,6 +269,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             var name = mind.CharacterName ?? "Unknown";
             args.AddLine($"  {name,-16} {stats.HealingPoints,7:N0} HP   {stats.Revives} revives  {stats.Stabilises} stabilised  {stats.PatientsSaved} saved");
         }
+        args.AddLine($"  Department funds earned: ${_medFund.GetLifetimeEarned():N0}");
         args.AddLine("══════════════════════════════════════════════");
     }
 }
