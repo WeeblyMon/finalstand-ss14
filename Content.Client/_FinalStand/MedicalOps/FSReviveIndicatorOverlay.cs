@@ -27,9 +27,10 @@ public sealed class FSReviveIndicatorOverlay : Overlay
     // Width in metres. Height follows the texture's own aspect, or the badge comes out squashed.
     private const float Width = 0.95f;
 
-    // Measured from the body's own origin, not from the top of its bounds, so the badge sits over
-    // the casualty rather than trailing above whatever the health bar happens to be doing.
-    private const float VerticalOffset = 0.12f;
+    // Measured from the body's own origin, not from the top of its bounds, so the badge tracks the
+    // casualty rather than whatever the health bar happens to be doing. Raised by roughly half the
+    // badge's height so the arrow point lands on the body instead of the badge covering it.
+    private const float VerticalOffset = 0.42f;
 
     private const float BobAmplitude = 0.05f;
     private const float BobSpeed = 2.6f;
