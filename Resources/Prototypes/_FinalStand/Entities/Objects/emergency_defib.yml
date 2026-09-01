@@ -31,5 +31,6 @@
         Asphyxiation: -60
   - type: FSEmergencyDefib
     reviveHealthFraction: 0.2
+  - type: FSMedicalOnly
   - type: UseDelay
     delay: 60

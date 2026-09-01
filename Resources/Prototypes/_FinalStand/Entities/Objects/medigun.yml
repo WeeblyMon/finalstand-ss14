@@ -32,6 +32,7 @@
   # Wielding is the on switch, so there is no separate toggle competing for use-in-hand.
   - type: Wieldable
     unwieldOnUse: false
+  - type: FSMedicalOnly
   - type: UseDelay
     delay: 1.0
   - type: Appearance
