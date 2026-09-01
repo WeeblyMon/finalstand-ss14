@@ -276,6 +276,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
+  - type: FSPiercesGlass
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
     scale: 0.2, 0.2
