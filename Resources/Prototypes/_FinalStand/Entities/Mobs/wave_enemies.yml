@@ -161,8 +161,8 @@
       0: Alive
       150: Dead
   - type: MovementSpeedModifier
-    baseWalkSpeed: 1.2
-    baseSprintSpeed: 1.5
+    baseWalkSpeed: 1.9
+    baseSprintSpeed: 2.4
   - type: Armor
     modifiers:
       coefficients:

@@ -6,7 +6,15 @@ namespace Content.Shared._FinalStand.Mobs;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class FSArmouredDeflectComponent : Component
 {
-    [DataField] public float DeflectChance = 0.06f;
+    [DataField] public float VulnerableDuration = 6f;
+    [DataField] public float StanceDuration = 2f;
+    [DataField] public float StartJitter = 4f;
+    [DataField] public float ShrapnelRange = 3f;
+    [DataField] public int ShrapnelCount = 6;
+
+    [DataField] public float ShrapnelDamageFraction = 0.5f;
+
+    [DataField] public string ShrapnelProto = "BulletLaser";
 
     [DataField]
     public SoundSpecifier DeflectSound =
@@ -16,6 +24,6 @@ public sealed partial class FSArmouredDeflectComponent : Component
         };
 
     [AutoNetworkedField] public bool IsGlowing = false;
-    public float GlowTimer = 0f;
-    public const float GlowDuration = 0.4f;
+
+    public float PhaseTimer = -1f;
 }
