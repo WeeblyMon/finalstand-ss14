@@ -44,7 +44,9 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
 
         // Scale their existing damage down proportionally rather than clearing types outright, so
         // the wound they were killed by is reduced, not erased.
+        // Deliberately unattributed. The revive award already pays for this press; crediting the
+        // top-up as well would score one button as both a revive and a stabilise.
         var heal = new DamageSpecifier(damageable.Damage) * -((current - target) / current);
-        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true, origin: args.User);
+        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true);
     }
 }

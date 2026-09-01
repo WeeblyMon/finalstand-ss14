@@ -51,7 +51,6 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
 
             _lastSent[mob] = isMedical;
             RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), session);
-            Log.Info($"[FSMedStatus] {session.Name} medical={isMedical} (refresh)");
         }
     }
 
@@ -60,16 +59,11 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
         var isMedical = IsMedicalDepartment(ev.Mob);
         _lastSent[ev.Mob] = isMedical;
         RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), ev.Player);
-
-        var job = _mind.TryGetMind(ev.Mob, out var mindId, out _) && _jobs.MindTryGetJob(mindId, out var j)
-            ? j.ID
-            : "none";
-        Log.Info($"[FSMedStatus] {ev.Player.Name} spawned as job '{job}' medical={isMedical}");
     }
 
     // Deliberately the job's primary department, not ID access: a Captain's ID carries Medical
     // access, and the Captain is not a medic.
-    private bool IsMedicalDepartment(EntityUid mob)
+    public bool IsMedicalDepartment(EntityUid mob)
     {
         return _mind.TryGetMind(mob, out var mindId, out _)
                && _jobs.MindTryGetJob(mindId, out var job)

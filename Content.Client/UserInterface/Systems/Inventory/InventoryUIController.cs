@@ -14,7 +14,9 @@ using Content.Shared.Hands.Components;
 using Content.Shared.Input;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Storage;
+using Content.Shared.Timing;
 using Robust.Client.GameObjects;
+using Robust.Shared.Timing;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
@@ -35,6 +37,7 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
     [UISystemDependency] private readonly ContainerSystem _container = default!;
     [UISystemDependency] private readonly SpriteSystem _sprite = default!;
+    [UISystemDependency] private readonly UseDelaySystem _useDelay = default!; // FINALSTAND
 
     private EntityUid? _playerUid;
     private InventorySlotsComponent? _playerInventory;
@@ -423,6 +426,33 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         }
 
         UpdateInventoryHotbar(null);
+    }
+
+    // FINALSTAND: hands already show a cooldown ring, but stowed items did not - so a pocketed
+    // defibrillator gave no sign of when it was ready. SlotControl has always had the graphic,
+    // nothing was driving it. Mirrors HandsUIController.FrameUpdate.
+    public override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+
+        foreach (var slotGroup in _slotGroups.Values)
+        {
+            foreach (var child in slotGroup.Children)
+            {
+                if (child is not SlotControl slot)
+                    continue;
+
+                if (slot.Entity is not { } item || !_entities.TryGetComponent(item, out UseDelayComponent? useDelay))
+                {
+                    slot.CooldownDisplay.Visible = false;
+                    continue;
+                }
+
+                var delay = _useDelay.GetLastEndingDelay((item, useDelay));
+                slot.CooldownDisplay.Visible = true;
+                slot.CooldownDisplay.FromTime(delay.StartTime, delay.EndTime);
+            }
+        }
     }
 
     private void SpriteUpdated(SlotSpriteUpdate update)
