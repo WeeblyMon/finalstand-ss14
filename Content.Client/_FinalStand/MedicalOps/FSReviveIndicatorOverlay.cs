@@ -18,14 +18,19 @@ public sealed class FSReviveIndicatorOverlay : Overlay
     private readonly IEntityManager _entManager;
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
-    private readonly SpriteSystem _spriteSystem;
     private readonly MobStateSystem _mobState;
 
     private readonly Texture? _icon;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    private const float Size = 0.55f;
+    // Width in metres. Height follows the texture's own aspect, or the badge comes out squashed.
+    private const float Width = 0.95f;
+
+    // Measured from the body's own origin, not from the top of its bounds, so the badge sits over
+    // the casualty rather than trailing above whatever the health bar happens to be doing.
+    private const float VerticalOffset = 0.12f;
+
     private const float BobAmplitude = 0.05f;
     private const float BobSpeed = 2.6f;
 
@@ -34,8 +39,11 @@ public sealed class FSReviveIndicatorOverlay : Overlay
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
-        _spriteSystem = _entManager.System<SpriteSystem>();
         _mobState = _entManager.System<MobStateSystem>();
+
+        // Overlays sharing a space draw in arbitrary order otherwise, so the badge would flicker
+        // behind the health bar it is meant to sit on top of.
+        ZIndex = 10;
 
         try
         {
@@ -72,19 +80,17 @@ public sealed class FSReviveIndicatorOverlay : Overlay
             if (!args.WorldAABB.Enlarged(1f).Contains(worldPos))
                 continue;
 
-            var height = 1f;
-            if (_entManager.TryGetComponent(uid, out SpriteComponent? sprite))
-                height = _spriteSystem.GetLocalBounds((uid, sprite)).Height;
-
             var worldMatrix = Matrix3Helpers.CreateTranslation(worldPos);
             handle.SetTransform(Matrix3x2.Multiply(rotationMatrix, worldMatrix));
 
-            // Sits above the health bar, with a slow bob so it reads as asking for something.
+            // Slow bob so it reads as asking for something rather than being scenery.
             var bob = MathF.Sin(time * BobSpeed) * BobAmplitude;
-            var half = Size * 0.5f;
-            var centre = height / 2f + half + 0.25f + bob;
+            var halfWidth = Width * 0.5f;
+            var halfHeight = Width * ((float)_icon.Height / _icon.Width) * 0.5f;
+            var centre = VerticalOffset + bob;
 
-            handle.DrawTextureRect(_icon, new Box2(-half, centre - half, half, centre + half));
+            handle.DrawTextureRect(_icon,
+                new Box2(-halfWidth, centre - halfHeight, halfWidth, centre + halfHeight));
         }
 
         handle.SetTransform(Matrix3x2.Identity);
