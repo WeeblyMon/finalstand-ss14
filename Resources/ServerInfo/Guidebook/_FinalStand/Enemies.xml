@@ -1,0 +1,60 @@
+<Document>
+# Enemies
+
+Everything the horde sends at you, roughly in the order you will meet it. Health values shown are the base figures - every wave scales them upward, so a wave 20 zombie is far tougher than a wave 1 one.
+
+Any enemy can rarely drop research materials, and the chance rises with the number of active scientists.
+
+## Footsoldiers
+
+<Box>
+<GuideEntityEmbed Entity="FSZombieNormal"/>
+<GuideEntityEmbed Entity="FSZombieRunner"/>
+</Box>
+
+[bold]Zombie[/bold] - 75 health, walks at 2.0. The baseline. Dangerous only in numbers, but it always comes in numbers.
+
+[bold]Runner[/bold] - 40 health, walks at 3.6 and sprints at 4.4. Fragile enough to drop to a single burst, fast enough to reach you before you fire it. Kill these first; they arrive well ahead of the pack and will flank a firing line that is watching one corridor.
+
+Both are vaporisable, so overkill damage removes the corpse instead of leaving it to clutter the floor.
+
+## Specialists
+
+<Box>
+<GuideEntityEmbed Entity="FSZombieBloater"/>
+<GuideEntityEmbed Entity="FSZombieFlamethrower"/>
+<GuideEntityEmbed Entity="FSZombieTesla"/>
+</Box>
+
+[bold]Bloater[/bold] - 50 health, and it explodes when it dies. Killing one in your own doorway does the horde's work for it. Shoot bloaters at range, never in melee, and never while standing next to a teammate.
+
+[bold]Flamethrower[/bold] - 190 health, sprays a cone of fire. It will set your barricade, your floor and you alight. Fire persists after the zombie dies, so a flamethrower killed in a chokepoint can deny that chokepoint to you as well.
+
+[bold]Tesla[/bold] - 175 health, throws lightning that chains between targets. Spread out. A clumped squad turns one arc into four casualties.
+
+## Heavies
+
+<Box>
+<GuideEntityEmbed Entity="FSZombieArmoured"/>
+<GuideEntityEmbed Entity="FSZombieDevastator"/>
+</Box>
+
+[bold]Armoured[/bold] - 150 health, heavy resistance to blunt, slash and piercing, and it regenerates that armour over time. It also has a [color=#FFFFFF]deflect stance[/color]: it glows white for two seconds on a repeating cycle, and every shot that lands during the glow is bounced back as shrapnel that sprays outward from the zombie. Hold your fire while it glows, and do not stand next to it when someone else does not.
+
+[bold]Devastator[/bold] - 1000 health. It gets [bold]stronger as it gets hurt[/bold]: faster, harder hitting, and it steals health from the players it strikes, punching through armour as it enrages. It also shrugs off stuns. Committing halfway to a Devastator is worse than not starting - either burst it down or disengage entirely.
+
+## Nightmares
+
+<Box>
+<GuideEntityEmbed Entity="FSZombieRevenant"/>
+<GuideEntityEmbed Entity="FSZombieGiant"/>
+</Box>
+
+[bold]Revenant[/bold] - 300 health, moves at 7.5, phases through walls, and shows no health bar. Cover does not stop it and you cannot tell how close it is to dying. It appears during dark waves. Keep moving, keep lights on what you can, and accept that you will be fighting it in the open.
+
+[bold]Giant[/bold] - 800 health and a boss. Arrives every fifth wave. Heavily armoured, and its stomp will floor anyone standing too close. Drops an artifact fragment when it dies. Fight it at range, in a room with more than one exit, and never let it corner the squad.
+
+## Dark waves
+
+Dark waves cut the station's power and keep spawning until the timer runs out rather than until a body count is reached - the CCC will show the enemy count as endless. Survive it; you cannot clear it.
+</Document>

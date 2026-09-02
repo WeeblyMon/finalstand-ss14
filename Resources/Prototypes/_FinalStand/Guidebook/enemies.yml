@@ -1,0 +1,5 @@
+- type: guideEntry
+  id: FSEnemies
+  name: guide-entry-fs-enemies
+  priority: 0
+  text: "/ServerInfo/Guidebook/_FinalStand/Enemies.xml"
