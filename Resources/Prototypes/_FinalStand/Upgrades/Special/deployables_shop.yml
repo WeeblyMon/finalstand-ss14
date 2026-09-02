@@ -85,3 +85,32 @@
     sprite: Objects/Misc/landmine.rsi
     state: landmine
     scale: 1,1
+
+- type: entity
+  id: FSDeployableShopAmmoBox
+  parent: FSWeaponShopBase
+  name: Ammo Resupply Box
+  description: A portable resupply crate with a limited pool of uses. Its owner can lock it so only they can draw from it.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSAmmoBoxItem
+    requiresScience: true
+    singlePurchase: true
+    price: 5000
+    category: Support Deployable
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 40
+    upgrades:
+    - id: ammo-box-capacity
+      name: Spare Crate
+      description: Carry one additional resupply box per level.
+      maxLevel: 2
+      baseCost: 4000
+      type: DeployableCapacity
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
+    state: base
+    scale: 1,1

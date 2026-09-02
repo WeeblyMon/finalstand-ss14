@@ -64,6 +64,12 @@ public sealed partial class FSDeployableSystem : EntitySystem
             return false;
         }
 
+        if (TryComp<FSAmmoBoxComponent>(deployed, out var ammoBox))
+        {
+            ammoBox.OwnerPlayer = deployer;
+            Dirty(deployed, ammoBox);
+        }
+
         comp.Stock--;
         Dirty(uid, comp);
 

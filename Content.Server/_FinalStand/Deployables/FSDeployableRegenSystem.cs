@@ -20,6 +20,10 @@ public sealed class FSDeployableRegenSystem : EntitySystem
             if (comp.Stock >= comp.MaxStock)
                 continue;
 
+            if (++comp.WavesSinceRegen < comp.WavesPerRegen)
+                continue;
+
+            comp.WavesSinceRegen = 0;
             comp.Stock = Math.Min(comp.MaxStock, comp.Stock + comp.RegenPerWave);
             Dirty(uid, comp);
         }
