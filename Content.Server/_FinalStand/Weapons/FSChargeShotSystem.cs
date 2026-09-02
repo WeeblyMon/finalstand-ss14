@@ -117,6 +117,7 @@ public sealed partial class FSChargeShotSystem : EntitySystem
                 EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
             }
 
+            EnsureComp<FSRicochetComponent>(projUid);
             _appearance.SetData(projUid, FSChargeShotVisuals.PelletScale, scale);
         }
     }
