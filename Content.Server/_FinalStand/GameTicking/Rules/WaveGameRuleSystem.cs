@@ -60,6 +60,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
 
+    private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
+    private const float CreditsPerSecondSkipped = 2.0f;
+
     private const float DefaultFlickerMin = 0.7f;
     private const float DefaultFlickerMax = 2.2f;
     private const float FlickerFraction = 0.85f;
@@ -399,6 +402,23 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return count;
     }
 
+    // Pays out the prep time the crew gives up, so starting early is worth something.
+    private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
+    {
+        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
+        if (skipped <= TimeSpan.Zero)
+            return;
+
+        var bonus = (int)(skipped.TotalSeconds * CreditsPerSecondSkipped);
+        if (bonus <= 0)
+            return;
+
+        _wallet.DistributeCredits(bonus);
+        comp.AccumulatedSurvivalBonus += bonus;
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-prep-skip-bonus", ("credits", bonus)), Color.FromHex("#44BB44"));
+    }
+
     // Playtime is unavailable until the DB answers; assume experienced so difficulty never silently drops.
     private bool IsNewPlayer(ICommonSession session)
     {
@@ -506,9 +526,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
 
+        AwardPrepSkipBonus(comp);
+
         comp.VoteCountdownActive = true;
         comp.VoteCountdownSoundPlayed = false;
-        comp.PhaseEndTime = Timing.CurTime + TimeSpan.FromSeconds(10);
+        comp.PhaseEndTime = Timing.CurTime + VoteCountdown;
         comp.VoteCountdownSoundTime = Timing.CurTime + TimeSpan.FromSeconds(2);
         comp.NextTimerBroadcastTime = Timing.CurTime;
     }
