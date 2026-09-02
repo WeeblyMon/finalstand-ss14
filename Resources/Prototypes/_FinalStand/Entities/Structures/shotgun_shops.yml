@@ -155,21 +155,21 @@
     - id: bulldog-fire-rate
       name: Hair Trigger
       description: Tuned action increases fire rate by 0.5/level.
-      maxLevel: 5
+      maxLevel: 3
       baseCost: 5250
       type: FireRate
       valuePerLevel: 0.5
     - id: bulldog-drum-capacity
       name: High-Cap Drum
-      description: Adds 6 shells to drum magazine capacity per level.
+      description: Adds 3 shells to drum magazine capacity per level.
       maxLevel: 3
       baseCost: 5250
       type: MagazineSize
-      valuePerLevel: 6
+      valuePerLevel: 3
     - id: bulldog-recoil-comp
       name: Recoil Compensator
       description: Reduces max spread by 0.5° per level for tighter full-auto bursts.
-      maxLevel: 3
+      maxLevel: 2
       baseCost: 5250
       type: AngleMax
       valuePerLevel: 0.5
