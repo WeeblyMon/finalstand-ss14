@@ -33,11 +33,10 @@ public sealed partial class FSDevastatorSystem : EntitySystem
 
     private void OnArmorPen(ref FSIncomingDamageModifyEvent ev)
     {
-        if (ev.Args.Origin == null || !HasComp<FSDevastatorComponent>(ev.Args.Origin.Value))
+        if (ev.Args.Origin == null || !TryComp<FSDevastatorComponent>(ev.Args.Origin.Value, out var comp))
             return;
 
-        // Restore 25% of whatever armor/resistances reduced from the original hit
-        var penetrated = (ev.Args.OriginalDamage - ev.Args.Damage) * 0.25f;
+        var penetrated = (ev.Args.OriginalDamage - ev.Args.Damage) * comp.ArmorBypassFraction;
         ev.Args.Damage += penetrated;
     }
 

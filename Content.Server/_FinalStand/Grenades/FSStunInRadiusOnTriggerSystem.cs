@@ -36,7 +36,12 @@ public sealed partial class FSStunInRadiusOnTriggerSystem : XOnTriggerSystem<FSS
         {
             if (_ffQuery.HasComponent(targetUid))
                 continue;
-            _fsStun.TryForceStun(targetUid, ent.Comp.StunDuration);
+
+            var duration = ent.Comp.StunDuration;
+            if (TryComp<FSStunResistComponent>(targetUid, out var resist))
+                duration = TimeSpan.FromSeconds(duration.TotalSeconds * resist.DurationMultiplier);
+
+            _fsStun.TryForceStun(targetUid, duration);
         }
 
         args.Handled = true;

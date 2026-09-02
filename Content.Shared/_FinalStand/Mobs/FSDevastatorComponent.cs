@@ -9,6 +9,7 @@ public sealed partial class FSDevastatorComponent : Component
     [DataField] public float MaxDamageMultiplier = 3.0f;
     [DataField] public float MaxKnockbackResist = 0.8f;
     [DataField] public float LifestealAmount = 15f;
+    [DataField] public float ArmorBypassFraction = 0.5f;
 
     // 0 = full HP, 1 = near death — networked so client can drive tint + glow
     [AutoNetworkedField] public float BerserkRatio = 0f;
