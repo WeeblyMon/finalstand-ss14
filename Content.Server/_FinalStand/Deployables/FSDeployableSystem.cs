@@ -80,6 +80,17 @@ public sealed partial class FSDeployableSystem : EntitySystem
             _appearance.SetData(deployed, FSAmmoBoxVisuals.Upgraded, ammoBox.MaxUses > 2);
         }
 
+        if (TryComp<FSSentryTurretComponent>(deployed, out var turretOut) &&
+            TryComp<FSSentryTurretComponent>(uid, out var turretIn))
+        {
+            turretOut.MaxAmmo = turretIn.MaxAmmo;
+            turretOut.Ammo = turretIn.MaxAmmo;
+            turretOut.FireInterval = turretIn.FireInterval;
+            turretOut.DamageMultiplier = turretIn.DamageMultiplier;
+            turretOut.Range = turretIn.Range;
+            Dirty(deployed, turretOut);
+        }
+
         comp.Stock--;
         Dirty(uid, comp);
 

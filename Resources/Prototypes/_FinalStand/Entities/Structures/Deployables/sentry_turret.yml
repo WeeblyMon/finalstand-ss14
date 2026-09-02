@@ -1,0 +1,75 @@
+# ── Sentry Turret - held item (planted via use-in-hand) ───────────────────────────────────────
+- type: entity
+  id: FSSentryTurretItem
+  parent: BaseItem
+  name: sentry turret
+  description: A crew-served autoturret in a carry case. Deploy it and it engages anything hostile in line of sight until the magazine runs dry.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Huge
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+    state: icon
+  - type: FSSentryTurret
+  - type: FSDeployableItem
+    deployedProtoId: FSSentryTurretDeployed
+    stock: 1
+    maxStock: 1
+    regenPerWave: 1
+    wavesPerRegen: 2
+  - type: FSPlaceable
+    previewProtoId: FSSentryTurretDeployed
+    range: 6
+
+# ── Sentry Turret - deployed ─────────────────────────────────────────────────────────────────
+- type: entity
+  id: FSSentryTurretDeployed
+  name: sentry turret
+  description: A deployed autoturret. It tracks and fires on hostiles by itself.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    drawdepth: Objects
+    noRot: true
+    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+    layers:
+    - state: base
+      map: [ "enum.FSSentryTurretLayers.Base" ]
+    - state: turret
+      map: [ "enum.FSSentryTurretLayers.Gun" ]
+  - type: Appearance
+  - type: FSSentryTurret
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.45,0.45,0.45"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Anchorable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]

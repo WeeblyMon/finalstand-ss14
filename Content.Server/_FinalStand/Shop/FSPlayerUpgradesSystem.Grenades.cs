@@ -64,6 +64,43 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     break;
                 }
+            case WeaponUpgradeType.SentryAmmo:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.MaxAmmo += (int)def.ValuePerLevel;
+                        turret.Ammo = turret.MaxAmmo;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryFireRate:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.FireInterval = MathF.Max(0.1f, turret.FireInterval - def.ValuePerLevel);
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryDamage:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.DamageMultiplier += def.ValuePerLevel;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryRange:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.Range += def.ValuePerLevel;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
             case WeaponUpgradeType.GrenadeBurnDuration:
                 {
                     if (TryComp<FSGrenadePackComponent>(weapon, out var pack))

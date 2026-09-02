@@ -121,3 +121,60 @@
     sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
     state: base
     scale: 1,1
+
+- type: entity
+  id: FSDeployableShopSentryTurret
+  parent: FSWeaponShopBase
+  name: Sentry Turret
+  description: A deployable autoturret firing .35 auto. Engages hostiles in line of sight on its own and stays up until the magazine is empty.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSSentryTurretItem
+    requiresScience: true
+    singlePurchase: true
+    price: 15000
+    category: Support Deployable
+    statDamage: 20
+    statFireRate: 150
+    statAccuracy: 100
+    statCapacity: 200
+    upgrades:
+    - id: sentry-ammo
+      name: Extended Belt
+      description: Fifty more rounds per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: SentryAmmo
+      valuePerLevel: 50
+    - id: sentry-firerate
+      name: Cycling Servos
+      description: Shortens the delay between shots.
+      maxLevel: 3
+      baseCost: 5000
+      type: SentryFireRate
+      valuePerLevel: 0.08
+    - id: sentry-damage
+      name: Hardened Rounds
+      description: Each level adds a quarter of the turret's base damage.
+      maxLevel: 3
+      baseCost: 6000
+      type: SentryDamage
+      valuePerLevel: 0.25
+    - id: sentry-range
+      name: Optics Package
+      description: One extra tile of engagement range per level.
+      maxLevel: 2
+      baseCost: 5000
+      type: SentryRange
+      valuePerLevel: 1
+    - id: sentry-capacity
+      name: Second Case
+      description: Carry one additional turret.
+      maxLevel: 1
+      baseCost: 12000
+      type: DeployableCapacity
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+    state: icon
+    scale: 1,1
