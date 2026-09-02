@@ -5,5 +5,7 @@
         <Button Name="ReturnToBodyButton" Text="{Loc ghost-gui-return-to-body-button}" />
         <Button Name="GhostWarpButton" Text="{Loc ghost-gui-ghost-warp-button}" />
         <Button Name="GhostRolesButton" />
+        <Button Name="CryosleepReturnButton" Text="{Loc fs-ghost-gui-uncryo}" />
+        <Button Name="CryoLobbyButton" Text="{Loc fs-ghost-gui-cryo-lobby}" />
     </BoxContainer>
 </widgets:GhostGui>

@@ -14,6 +14,8 @@ public sealed partial class GhostGui : UIWidget
     public event Action? RequestWarpsPressed;
     public event Action? ReturnToBodyPressed;
     public event Action? GhostRolesPressed;
+    public event Action? CryosleepReturnPressed;
+    public event Action? CryoLobbyPressed;
     private int _prevNumberRoles;
 
     public GhostGui()
@@ -27,6 +29,10 @@ public sealed partial class GhostGui : UIWidget
         GhostWarpButton.OnPressed += _ => RequestWarpsPressed?.Invoke();
         ReturnToBodyButton.OnPressed += _ => ReturnToBodyPressed?.Invoke();
         GhostRolesButton.OnPressed += _ => GhostRolesPressed?.Invoke();
+        CryosleepReturnButton.OnPressed += _ => CryosleepReturnPressed?.Invoke();
+        CryosleepReturnButton.Visible = false;
+        CryoLobbyButton.OnPressed += _ => CryoLobbyPressed?.Invoke();
+        CryoLobbyButton.Visible = false;
         GhostRolesButton.OnPressed += _ => GhostRolesButton.StyleClasses.Remove(StyleClass.Negative);
     }
 
@@ -36,9 +42,12 @@ public sealed partial class GhostGui : UIWidget
         Visible = false;
     }
 
-    public void Update(int? roles, bool? canReturnToBody)
+    public void Update(int? roles, bool? canReturnToBody, bool canUncryo = false)
     {
         ReturnToBodyButton.Disabled = !canReturnToBody ?? true;
+        // Only meaningful to someone actually in cryo, so hide it rather than showing it greyed.
+        CryosleepReturnButton.Visible = canUncryo;
+        CryoLobbyButton.Visible = canUncryo;
 
         if (roles != null)
         {
