@@ -21,6 +21,8 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
+using Content.Server.Players.PlayTimeTracking;
+using Content.Shared.Players.PlayTimeTracking;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Power.EntitySystems;
@@ -52,8 +54,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private PoweredLightSystem _poweredLight = default!;
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private ApcSystem _apc = default!;
+    [Dependency] private PlayTimeTrackingManager _playTime = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
+
+    private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
 
     private const float DefaultFlickerMin = 0.7f;
     private const float DefaultFlickerMax = 2.2f;
@@ -387,9 +392,20 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 continue;
             if (!HasComp<MobStateComponent>(mob) || _mobState.IsDead(mob))
                 continue;
+            if (IsNewPlayer(session))
+                continue;
             count++;
         }
         return count;
+    }
+
+    // Playtime is unavailable until the DB answers; assume experienced so difficulty never silently drops.
+    private bool IsNewPlayer(ICommonSession session)
+    {
+        if (!_playTime.TryGetTrackerTimes(session, out var times))
+            return false;
+
+        return times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall) < NewPlayerScalingExemption;
     }
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
