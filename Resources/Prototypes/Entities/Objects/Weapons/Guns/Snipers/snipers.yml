@@ -127,7 +127,7 @@
       tags:
       - CartridgeAntiMateriel
     capacity: 5
-    proto: CartridgeAntiMateriel
+    proto: FSCartridgeAntiMateriel
   - type: SpeedModifiedOnWield
     walkModifier: 0.25
     sprintModifier: 0.25

@@ -160,7 +160,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperHristov
     price: 90000
-    starterAmmoProtoId: MagazineBoxAntiMateriel
+    starterAmmoProtoId: FSMagazineBoxAntiMateriel
     starterAmmoCount: 1
     category: .60 Anti-Materiel Sniper
     statDamage: 95
