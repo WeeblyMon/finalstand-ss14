@@ -13,6 +13,16 @@ public sealed partial class WaveEnemySpawnerComponent : Component
 
     [DataField]
     public string DirectionLabel = string.Empty;
+
+    // Support spawners: rolled independently of the main selection and fed a smaller batch.
+    [DataField]
+    public bool Secondary;
+
+    [DataField]
+    public float ActivationChance = 0.4f;
+
+    [DataField]
+    public float BatchMultiplier = 0.5f;
 }
 
 [RegisterComponent]

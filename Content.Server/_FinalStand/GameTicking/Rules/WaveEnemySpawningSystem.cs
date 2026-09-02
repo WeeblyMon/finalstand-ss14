@@ -38,16 +38,24 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private const int DarkWaveRevenantHealth = 999999999;
 
     private readonly List<EntityUid> _spawnerBuffer = new();
+    private readonly List<EntityUid> _secondaryBuffer = new();
+    private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
     public void SelectSpawners(WaveGameRuleComponent comp)
     {
         _spawnerBuffer.Clear();
+        _secondaryBuffer.Clear();
         var query = EntityQueryEnumerator<WaveEnemySpawnerComponent>();
         while (query.MoveNext(out var spawnerUid, out var spawner))
         {
-            if (comp.WaveNumber >= spawner.FromWave)
+            if (comp.WaveNumber < spawner.FromWave)
+                continue;
+
+            if (spawner.Secondary)
+                _secondaryBuffer.Add(spawnerUid);
+            else
                 _spawnerBuffer.Add(spawnerUid);
         }
 
@@ -72,6 +80,15 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
             if (!comp.PreviousSpawnerEntities.SetEquals(comp.SpawnerEntities))
                 break;
+        }
+
+        foreach (var secondary in _secondaryBuffer)
+        {
+            if (TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner) &&
+                _random.NextFloat() < spawner.ActivationChance)
+            {
+                comp.SpawnerEntities.Add(secondary);
+            }
         }
     }
     private int RollActiveCount(int spawnerCount)
@@ -115,11 +132,12 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
         var pool = GetDirectorPool(comp);
         var remaining = comp.EnemyTotalThisWave - comp.EnemiesSpawnedThisWave;
-        var toSpawn = Math.Min(remaining, comp.SpawnerEntities.Count * comp.SpawnBatchSize);
+        BuildSpawnPlan(comp);
+        var toSpawn = Math.Min(remaining, _spawnPlan.Count);
 
         for (var i = 0; i < toSpawn; i++)
         {
-            var spawnerUid = comp.SpawnerEntities[i % comp.SpawnerEntities.Count];
+            var spawnerUid = _spawnPlan[i];
 
             var coords = Transform(spawnerUid).Coordinates;
             if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawnerComp) && spawnerComp.SpawnRadius > 0f)
@@ -154,6 +172,25 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         var intervalSec = comp.MinSpawnInterval + _random.NextFloat() * (comp.MaxSpawnInterval - comp.MinSpawnInterval);
         comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(intervalSec);
         PushEnemyCount(comp);
+    }
+
+    // Secondaries get a fraction of a full batch, so a supporting corridor trickles rather than floods.
+    private void BuildSpawnPlan(WaveGameRuleComponent comp)
+    {
+        _spawnPlan.Clear();
+
+        foreach (var spawnerUid in comp.SpawnerEntities)
+        {
+            var batch = comp.SpawnBatchSize;
+            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) && spawner.Secondary)
+                batch = Math.Max(1, (int) MathF.Round(comp.SpawnBatchSize * spawner.BatchMultiplier));
+
+            for (var i = 0; i < batch; i++)
+                _spawnPlan.Add(spawnerUid);
+        }
+
+        if (_spawnPlan.Count > 1)
+            _random.Shuffle(_spawnPlan);
     }
 
     private int CountAliveRevenants()

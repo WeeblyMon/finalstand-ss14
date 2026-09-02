@@ -84,3 +84,63 @@
     sprite: Markers/cross.rsi
     layers:
     - state: ai
+
+- type: entity
+  id: WaveEnemySpawnerSecondaryNorth
+  name: Secondary Wave Spawner (North)
+  description: Supporting north spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 1
+    secondary: true
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: pink
+
+- type: entity
+  id: WaveEnemySpawnerSecondaryEast
+  name: Secondary Wave Spawner (East)
+  description: Supporting east spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 4
+    secondary: true
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: pink
+
+- type: entity
+  id: WaveEnemySpawnerSecondarySouth
+  name: Secondary Wave Spawner (South)
+  description: Supporting south spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 7
+    secondary: true
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: pink
+
+- type: entity
+  id: WaveEnemySpawnerSecondaryWest
+  name: Secondary Wave Spawner (West)
+  description: Supporting west spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  parent: MarkerBase
+  components:
+  - type: WaveEnemySpawner
+    fromWave: 10
+    secondary: true
+  - type: Sprite
+    drawdepth: Overdoors
+    sprite: Markers/cross.rsi
+    layers:
+    - state: pink
