@@ -27,11 +27,14 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private MedicalOps.FSMedicalStatsSystem _medicalStats = default!;
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 
     private long _saveTicks;
     private int _saveCount;
+
+    private const int HealingScoreWeight = 10;
 
     private const int WaveCompletionXpPerWave = 100;
     private const int RoundEndXpPerWave = 200;
@@ -382,12 +385,19 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 ? cur
                 : (Xp: 0, Kills: 0, Assists: 0);
             var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
-            var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5 + stats.Kills * 100 + stats.Assists * 40 + walletCredits;
+
+            // A kill is worth 100, and an active medic earns a few hundred healing points a round,
+            // so this is roughly the weight that puts a dedicated medic level with a dedicated killer.
+            var healing = _medicalStats.GetStats(mindId).HealingPoints;
+
+            var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
+                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + walletCredits;
 
             entries.Add(new FSLeaderboardEntry(
                 mind.CharacterName ?? "Unknown",
                 stats.Kills,
                 stats.Assists,
+                healing,
                 stats.Xp,
                 lvl.Level,
                 lvl.PrestigeLevel,
