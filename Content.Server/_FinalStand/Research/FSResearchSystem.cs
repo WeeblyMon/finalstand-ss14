@@ -234,6 +234,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
+            // Without this the science station stamps its state onto the medical console too.
+            if (console.Track != FSResearchTrack.Science)
+                continue;
+
             console.UnlockedNodes.Clear();
             console.UnlockedNodes.AddRange(station.Comp.UnlockedNodes);
             console.ActiveResearch = station.Comp.ActiveResearch;
@@ -275,8 +279,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     }
 
 
+    // Medical consoles carry the same component and UI key, so every handler here must ignore them
+    // or a CMO's purchase would run through the research-point path.
+    private static bool IsOtherTrack(FSTechDatabaseComponent comp)
+        => comp.Track != FSResearchTrack.Science;
+
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -362,6 +374,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnEnqueueResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSEnqueueResearchNodeMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -444,6 +459,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnDequeueResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSDequeueResearchNodeMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -480,6 +498,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnClearPersonalResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearPersonalResearchMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid() || !_mind.TryGetMind(player, out var mindId, out _))
             return;
@@ -495,6 +516,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnClearSharedResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearSharedResearchMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid() || !IsRdOrCaptain(player))
             return;
@@ -540,8 +564,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
         var toConsume = node.MaterialCost.ToDictionary(kv => kv.Key, kv => -kv.Value);
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
-        while (query.MoveNext(out var consoleUid, out _))
+        while (query.MoveNext(out var consoleUid, out var console))
         {
+            // Science pays from science consoles only, or a medical console's silo would get drained.
+            if (console.Track != FSResearchTrack.Science)
+                continue;
+
             if (_materials.TryChangeMaterialAmount(consoleUid, toConsume))
                 return true;
         }

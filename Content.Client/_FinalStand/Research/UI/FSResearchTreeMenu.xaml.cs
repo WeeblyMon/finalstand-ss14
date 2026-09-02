@@ -148,9 +148,17 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         if (!_entity.TryGetComponent<TechnologyDatabaseComponent>(Entity, out _))
             return;
 
+        // A console only shows the branches it owns, so medical research stops appearing on the
+        // science console. An empty list means "everything", which is the pre-split behaviour.
+        _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var database);
+        var allowed = database?.Branches;
+
         string? defaultPage = null;
         foreach (var branch in _prototype.EnumeratePrototypes<FSTechBranchPrototype>().OrderBy(b => b.SortOrder))
         {
+            if (allowed is { Count: > 0 } && !allowed.Contains(branch.ID))
+                continue;
+
             AddDisciplineButton(branch.ID, branch.Name.ToUpperInvariant(), branch.Color);
             defaultPage ??= branch.ID;
         }
@@ -278,6 +286,57 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         _state = state;
         UpdateDetailPanel();
+    }
+
+    private bool IsMedicalTrack()
+        => _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db)
+           && db.Track == FSResearchTrack.Medical;
+
+    // Buying is atomic, so the whole research-point half of the panel is replaced by a price and a
+    // button. The server mirrors the department balance into Points, so affordability reads the same
+    // field the header does.
+    private void UpdateDetailPanelMedical(FSResearchNodeView node)
+    {
+        var balance = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db) ? db.Points : 0;
+        var owned = node.State == FSResearchNodeState.Unlocked;
+
+        MaterialsLabel.SetMessage(new FormattedMessage());
+        RpNeededLabel.Text = Loc.GetString("fs-medical-research-cost", ("cost", node.Cost));
+
+        BuildProgressBar(owned ? 1f : 0f);
+        ProgressCounterLabel.Text = owned
+            ? Loc.GetString("fs-medical-research-owned")
+            : Loc.GetString("fs-medical-research-cost", ("cost", node.Cost));
+
+        // None of these have a meaning when there is nothing to accumulate.
+        ClearPersonalPickButton.Visible = false;
+        ClearSharedPickButton.Visible = false;
+        ResearchStatusLabel.Visible = false;
+        QueueResearchButton.Visible = false;
+
+        if (owned)
+        {
+            StartResearchButton.Text = Loc.GetString("fs-medical-research-owned");
+            StartResearchButton.Disabled = true;
+            return;
+        }
+
+        if (node.State != FSResearchNodeState.Available)
+        {
+            StartResearchButton.Text = Loc.GetString("fs-medical-research-purchase");
+            StartResearchButton.Disabled = true;
+            return;
+        }
+
+        var affordable = balance >= node.Cost;
+        StartResearchButton.Text = Loc.GetString("fs-medical-research-purchase");
+        StartResearchButton.Disabled = !affordable;
+
+        if (!affordable)
+        {
+            AuthorityWarningLabel.Text = Loc.GetString("fs-medical-research-cannot-afford");
+            AuthorityWarningLabel.Visible = true;
+        }
     }
 
     // Shows FS's own banked RP, not vanilla ResearchServerComponent.Points.
@@ -448,6 +507,12 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
         MaterialsLabel.SetMessage(new FormattedMessage());
         RpNeededLabel.Text = $"RP Needed: {node.Cost}";
+
+        if (node.FsNode != null && IsMedicalTrack())
+        {
+            UpdateDetailPanelMedical(node);
+            return;
+        }
 
         if (node.FsNode != null)
         {

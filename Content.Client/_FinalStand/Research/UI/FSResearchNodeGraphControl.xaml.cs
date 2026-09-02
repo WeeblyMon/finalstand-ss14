@@ -216,12 +216,23 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             return;
         }
 
-        var rows = _prototype.EnumeratePrototypes<FSTechBranchPrototype>().Select(b => b.ID).ToList();
+        // Only this console's branches. Empty means all, which keeps the science console unchanged.
+        _entityManager.TryGetComponent<FSTechDatabaseComponent>(console, out var fsDb);
+        var allowed = fsDb?.Branches is { Count: > 0 } b ? b : null;
+
+        var rows = _prototype.EnumeratePrototypes<FSTechBranchPrototype>()
+            .Where(x => allowed == null || allowed.Contains(x.ID))
+            .Select(x => x.ID)
+            .ToList();
+
         var nodes = new List<FSResearchNodeView>();
 
         foreach (var fsTech in _prototype.EnumeratePrototypes<FSTechNodePrototype>())
         {
             if (fsTech.Hidden)
+                continue;
+
+            if (allowed != null && !allowed.Contains(fsTech.Branch))
                 continue;
 
             var view = new FSResearchNodeView

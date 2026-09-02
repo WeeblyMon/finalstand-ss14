@@ -4,9 +4,37 @@
   name: R&D computer
   description: A computer used to interface with R&D tools.
   components:
+  # Medical is deliberately absent - it has its own console and its own funding.
   - type: FSTechDatabase
+    track: Science
+    branches:
+    - Ordnance
+    - Research
+    - Logistics
+    - Engineering
   - type: MaterialStorage
   - type: OreSiloClient
+  - type: UserInterface
+    interfaces:
+      enum.ResearchConsoleUiKey.Key:
+        type: FSResearchConsoleBoundUserInterface
+      enum.ResearchClientUiKey.Key:
+        type: ResearchClientBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface
+
+- type: entity
+  parent: ComputerResearchAndDevelopment
+  id: FSMedicalResearchComputer
+  name: medical research computer
+  description: Allocates the department's funds to medical research. Only the CMO can authorise a purchase.
+  components:
+  - type: FSTechDatabase
+    track: Medical
+    branches:
+    - Medical
+  - type: AccessReader
+    access: [["Medical"]]
   - type: UserInterface
     interfaces:
       enum.ResearchConsoleUiKey.Key:

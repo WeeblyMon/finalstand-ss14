@@ -1,4 +1,4 @@
-# Wrapper nodes over the vanilla CivilianServices medical subset + Shitmed cybernetics chain - self-contained, drops the old cross-branch BasicRobotics prereq on BasicCybernetics.
+﻿# Wrapper nodes over the vanilla CivilianServices medical subset + Shitmed cybernetics chain - self-contained, drops the old cross-branch BasicRobotics prereq on BasicCybernetics.
 
 - type: fsTechNode
   id: FSMedicalBiochemicalStasis
@@ -8,7 +8,7 @@
     state: icon
   branch: Medical
   tier: 1
-  cost: 2500
+  cost: 400
   vanillaTechnologyId: BiochemicalStasis
 
 - type: fsTechNode
@@ -19,7 +19,7 @@
     state: e-scalpel-on
   branch: Medical
   tier: 1
-  cost: 2500
+  cost: 400
   vanillaTechnologyId: AdvancedTreatment
 
 - type: fsTechNode
@@ -30,7 +30,7 @@
     state: medical
   branch: Medical
   tier: 2
-  cost: 3500
+  cost: 700
   prerequisites:
   - FSMedicalBiochemicalStasis
   vanillaTechnologyId: MechanizedTreatment
@@ -43,7 +43,7 @@
     state: eyes
   branch: Medical
   tier: 2
-  cost: 3500
+  cost: 700
   prerequisites:
   - FSMedicalAdvancedTreatment
   vanillaTechnologyId: BasicCybernetics
@@ -56,7 +56,7 @@
     state: beakerbluespace
   branch: Medical
   tier: 3
-  cost: 4500
+  cost: 1100
   prerequisites:
   - FSMedicalMechanizedTreatment
   vanillaTechnologyId: BluespaceChemistry
@@ -69,7 +69,7 @@
     state: cell
   branch: Medical
   tier: 3
-  cost: 4500
+  cost: 1100
   prerequisites:
   - FSMedicalBasicCybernetics
   vanillaTechnologyId: BasicAugmentation
@@ -82,7 +82,7 @@
     state: heart-u-on
   branch: Medical
   tier: 4
-  cost: 6000
+  cost: 1600
   prerequisites:
   - FSMedicalBasicCybernetics
   vanillaTechnologyId: AdvancedCybernetics
@@ -95,7 +95,7 @@
     state: base
   branch: Medical
   tier: 4
-  cost: 6000
+  cost: 1600
   prerequisites:
   - FSMedicalBasicAugmentation
   vanillaTechnologyId: ImplantedTools
@@ -108,7 +108,7 @@
     state: strength
   branch: Medical
   tier: 4
-  cost: 6000
+  cost: 1600
   prerequisites:
   - FSMedicalBasicAugmentation
   vanillaTechnologyId: CombatAugmentation
@@ -121,7 +121,7 @@
     state: icon
   branch: Medical
   tier: 5
-  cost: 7500
+  cost: 2200
   prerequisites:
   - FSMedicalAdvancedCybernetics
   vanillaTechnologyId: HighEndSurgery
