@@ -11,6 +11,7 @@ using Content.Shared.Power.Components;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
@@ -26,6 +27,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private SharedGunSystem _gunSystem = default!;
+    [Dependency] private FSBulkLoaderSystem _bulkLoader = default!;
     [Dependency] private ItemSlotsSystem _slots = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
@@ -57,6 +59,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         SubscribeLocalEvent<MagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<ChamberMagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, FSShellInsertDoAfterEvent>(OnShellInsertComplete);
+        SubscribeLocalEvent<BallisticAmmoProviderComponent, FSBulkShellInsertDoAfterEvent>(OnBulkShellInsertComplete);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, AmmoShotEvent>(OnBallisticGunFired);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, ComponentRemove>(OnBallisticRemoved);
         SubscribeLocalEvent<RevolverAmmoProviderComponent, FSChamberFillDoAfterEvent>(OnChamberFillComplete);

@@ -276,6 +276,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSNoStructureDamage
+  - type: FSPiercesGlass
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/laser_carbine_bolt_overload.rsi
     scale: 0.2, 0.2
@@ -378,3 +379,27 @@
     maxDistance: 9
   - type: HitscanReflect
   - type: HitscanBasicEffects
+
+# ── Hristov round — punches through glass like the laser carbine bolt ──────────
+- type: entity
+  id: FSBulletAntiMateriel
+  parent: BulletAntiMateriel
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSPiercesGlass
+
+- type: entity
+  id: FSCartridgeAntiMateriel
+  parent: CartridgeAntiMateriel
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletAntiMateriel
+
+- type: entity
+  id: FSMagazineBoxAntiMateriel
+  parent: MagazineBoxAntiMateriel
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeAntiMateriel

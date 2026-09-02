@@ -141,12 +141,18 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         if (!TryAccess(uid, comp, player))
             return;
 
-        // Grenade packs are one per type — block duplicate purchases before charging.
         var owned = new List<CarriedItem>();
         _search.Collect(player, ShopProtoIds(comp), owned);
+
         if (owned.Any(c => HasComp<FSGrenadePackComponent>(c.Uid)))
         {
             _popup.PopupEntity(Loc.GetString("shop-grenade-already-owned"), uid, player);
+            return;
+        }
+
+        if (comp.SinglePurchase && owned.Count > 0)
+        {
+            _popup.PopupEntity(Loc.GetString("shop-item-already-owned"), uid, player);
             return;
         }
 

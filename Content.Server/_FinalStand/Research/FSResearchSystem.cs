@@ -763,7 +763,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
                 continue;
 
             MarkNodeUnlocked(station.Comp, node.ID);
-            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
+            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
             count++;
         }
 
@@ -776,6 +776,32 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         Dirty(station);
         SyncConsoles();
         BroadcastUnlockedNodes();
+
+        return count;
+    }
+
+    public int ResetAllNodes()
+    {
+        var station = GetOrCreateStation();
+        var count = station.Comp.UnlockedNodes.Count;
+        var pickers = station.Comp.PersonalPicks.Keys.ToList();
+
+        ClearUnlockedNodes(station.Comp);
+        station.Comp.NodeProgress.Clear();
+        station.Comp.Points = 0;
+        station.Comp.ActiveResearch = null;
+        station.Comp.ActiveResearchSetBy = null;
+        station.Comp.SharedQueue.Clear();
+        station.Comp.PersonalPicks.Clear();
+        station.Comp.PersonalQueues.Clear();
+        station.Comp.ContributorColorSlots.Clear();
+
+        Dirty(station);
+        SyncConsoles();
+        BroadcastUnlockedNodes();
+
+        foreach (var mind in pickers)
+            SendPersonalResearchState(mind);
 
         return count;
     }

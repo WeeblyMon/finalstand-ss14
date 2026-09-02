@@ -36,6 +36,11 @@ public sealed partial class FSShellInsertDoAfterEvent : SimpleDoAfterEvent
 }
 
 [Serializable, NetSerializable]
+public sealed partial class FSBulkShellInsertDoAfterEvent : SimpleDoAfterEvent
+{
+}
+
+[Serializable, NetSerializable]
 public sealed partial class FSChamberFillDoAfterEvent : SimpleDoAfterEvent
 {
     public bool IsChainReload;

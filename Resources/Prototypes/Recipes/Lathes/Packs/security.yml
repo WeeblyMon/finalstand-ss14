@@ -36,7 +36,6 @@
   recipes:
   - BoxLethalshot
   - FSBoxDoubleBarrel
-  - BoxShotgunSlug
   - MagazineBoxAntiMateriel
   - MagazineBoxLightRifle
   - MagazineBoxMagnum
@@ -56,6 +55,7 @@
   - FSCartridgeRocketFS
   - FSBoxHydraGrenade
   - FSBoxRPGRocket
+  - FSStripperClipMosin
 
 - type: latheRecipePack
   id: SecurityWeaponsStatic

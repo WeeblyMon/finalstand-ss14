@@ -8,3 +8,4 @@ shop-upgrade-locked = Locked — buy the prerequisite upgrade first.
 
 grenade-pack-empty = No {$type} grenades left. Refills at the start of next prep phase.
 shop-grenade-already-owned = You already have this grenade type.
+shop-item-already-owned = You already have one of these.

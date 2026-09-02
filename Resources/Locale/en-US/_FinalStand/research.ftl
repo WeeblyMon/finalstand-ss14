@@ -12,3 +12,4 @@ fs-research-disk-inserted = You insert the disk, adding {$points} research point
 fs-research-queued = Queued: {$name}
 fs-research-already-queued = Already queued.
 fs-research-queue-full = Queue is full ({$max} maximum).
+fs-research-payout = Research grant: +{$credits} credits for {$node}.

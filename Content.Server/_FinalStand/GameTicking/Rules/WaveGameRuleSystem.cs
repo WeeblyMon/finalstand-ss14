@@ -21,6 +21,8 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
+using Content.Server.Players.PlayTimeTracking;
+using Content.Shared.Players.PlayTimeTracking;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Power.EntitySystems;
@@ -52,8 +54,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private PoweredLightSystem _poweredLight = default!;
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private ApcSystem _apc = default!;
+    [Dependency] private PlayTimeTrackingManager _playTime = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
+
+    private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
+
+    private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
+    private const float CreditsPerSecondSkipped = 2.0f;
 
     private const float DefaultFlickerMin = 0.7f;
     private const float DefaultFlickerMax = 2.2f;
@@ -387,9 +395,37 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 continue;
             if (!HasComp<MobStateComponent>(mob) || _mobState.IsDead(mob))
                 continue;
+            if (IsNewPlayer(session))
+                continue;
             count++;
         }
         return count;
+    }
+
+    // Pays out the prep time the crew gives up, so starting early is worth something.
+    private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
+    {
+        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
+        if (skipped <= TimeSpan.Zero)
+            return;
+
+        var bonus = (int)(skipped.TotalSeconds * CreditsPerSecondSkipped);
+        if (bonus <= 0)
+            return;
+
+        _wallet.DistributeCredits(bonus);
+        comp.AccumulatedSurvivalBonus += bonus;
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-prep-skip-bonus", ("credits", bonus)), Color.FromHex("#44BB44"));
+    }
+
+    // Playtime is unavailable until the DB answers; assume experienced so difficulty never silently drops.
+    private bool IsNewPlayer(ICommonSession session)
+    {
+        if (!_playTime.TryGetTrackerTimes(session, out var times))
+            return false;
+
+        return times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall) < NewPlayerScalingExemption;
     }
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
@@ -490,9 +526,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
 
+        AwardPrepSkipBonus(comp);
+
         comp.VoteCountdownActive = true;
         comp.VoteCountdownSoundPlayed = false;
-        comp.PhaseEndTime = Timing.CurTime + TimeSpan.FromSeconds(10);
+        comp.PhaseEndTime = Timing.CurTime + VoteCountdown;
         comp.VoteCountdownSoundTime = Timing.CurTime + TimeSpan.FromSeconds(2);
         comp.NextTimerBroadcastTime = Timing.CurTime;
     }

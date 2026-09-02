@@ -4,8 +4,8 @@ meta:
   engineVersion: 288.1.0
   forkId: ""
   forkVersion: ""
-  time: 08/29/2026 04:55:07
-  entityCount: 10912
+  time: 09/01/2026 06:15:57
+  entityCount: 10914
 maps:
 - 259
 grids:
@@ -3374,7 +3374,7 @@ entities:
       pos: 30.5,6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -75738.33
+      secondsUntilStateChange: -77025.86
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3458,7 +3458,7 @@ entities:
       pos: -13.5,2.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -9468.187
+      secondsUntilStateChange: -10755.718
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3506,7 +3506,7 @@ entities:
       pos: -16.5,-12.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -33300.062
+      secondsUntilStateChange: -34587.594
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3614,7 +3614,7 @@ entities:
       pos: 6.5,-6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -15065.752
+      secondsUntilStateChange: -16353.283
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3632,7 +3632,7 @@ entities:
       pos: 13.5,-3.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -100537.44
+      secondsUntilStateChange: -101824.97
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -58041,20 +58041,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 39.5,12.5
-- proto: SpawnPointChef
-  entities:
-  - uid: 10913
-    components:
-    - type: Transform
-      parent: 1
-      pos: 39.5,11.5
-- proto: SpawnPointResearchAssistant
-  entities:
-  - uid: 10914
-    components:
-    - type: Transform
-      parent: 1
-      pos: 16.5,-9.5
 - proto: SpawnPointBotanist
   entities:
   - uid: 2193
@@ -58091,6 +58077,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 36.5,-2.5
+- proto: SpawnPointChef
+  entities:
+  - uid: 10913
+    components:
+    - type: Transform
+      parent: 1
+      pos: 39.5,11.5
 - proto: SpawnPointChemist
   entities:
   - uid: 1999
@@ -58196,6 +58189,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 3.5,5.5
+- proto: SpawnPointResearchAssistant
+  entities:
+  - uid: 10914
+    components:
+    - type: Transform
+      parent: 1
+      pos: 16.5,-9.5
 - proto: SpawnPointResearchDirector
   entities:
   - uid: 866

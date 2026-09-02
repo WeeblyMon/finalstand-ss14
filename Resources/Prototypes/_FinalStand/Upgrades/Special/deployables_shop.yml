@@ -8,6 +8,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSNullFieldItem
     requiresScience: true
+    singlePurchase: true
     price: 3000
     category: Area Denial Deployable
     statDamage: 0
@@ -19,7 +20,7 @@
       name: Extra Charge
       description: Carry one additional Null Field charge.
       maxLevel: 1
-      baseCost: 5000
+      baseCost: 3000
       type: DeployableCapacity
       valuePerLevel: 1
   - type: Sprite
@@ -36,6 +37,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSDamageBeaconItem
     requiresScience: true
+    singlePurchase: true
     price: 3500
     category: Area Denial Deployable
     statDamage: 0
@@ -47,7 +49,7 @@
       name: Extra Charge
       description: Carry one additional Damage Beacon charge.
       maxLevel: 1
-      baseCost: 5000
+      baseCost: 3000
       type: DeployableCapacity
       valuePerLevel: 1
   - type: Sprite

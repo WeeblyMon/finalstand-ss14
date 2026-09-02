@@ -3,26 +3,29 @@ using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Explosion.Components;
-using Content.Shared.Explosion.EntitySystems;
 using Content.Shared.Projectiles;
 using Content.Shared.Trigger.Components.Effects;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Random;
+using Robust.Shared.Spawners;
 
 namespace Content.Server._FinalStand.Mobs;
 
+// The zombie telegraphs its deflect: it glows for StanceDuration and reflects everything, then is
+// vulnerable for VulnerableDuration. Shots that land during the stance shatter into shrapnel that
+// sprays outward from the zombie, so crowding it is punished rather than only the shooter.
 public sealed partial class FSArmouredDeflectSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private PointLightSystem _pointLight = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private SharedExplosionSystem _explosion = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+
+    private const float ShrapnelSpeed = 18f;
 
     public override void Initialize()
     {
@@ -34,18 +37,24 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
         var query = EntityQueryEnumerator<FSArmouredDeflectComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            if (comp.GlowTimer <= 0f)
-                continue;
-            comp.GlowTimer -= frameTime;
-            if (comp.GlowTimer <= 0f)
+            if (comp.PhaseTimer < 0f)
             {
-                comp.IsGlowing = false;
-                _pointLight.SetEnabled(uid, false);
-                Dirty(uid, comp);
+                comp.PhaseTimer = _random.NextFloat(0f, comp.StartJitter);
+                continue;
             }
+
+            comp.PhaseTimer -= frameTime;
+            if (comp.PhaseTimer > 0f)
+                continue;
+
+            comp.IsGlowing = !comp.IsGlowing;
+            comp.PhaseTimer = comp.IsGlowing ? comp.StanceDuration : comp.VulnerableDuration;
+            _pointLight.SetEnabled(uid, comp.IsGlowing);
+            Dirty(uid, comp);
         }
     }
 
@@ -53,62 +62,63 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
     {
         if (!TryComp<FSArmouredDeflectComponent>(ev.Target, out var comp))
             return;
-        if (ev.Shooter == null)
-            return;
-        if (!_random.Prob(comp.DeflectChance))
+        if (!comp.IsGlowing)
             return;
 
         // Multiplied, not assigned: zero still wins, without discarding other subscribers.
         ev.AdditionalMultiplier *= 0f;
 
         _audio.PlayPvs(comp.DeflectSound, ev.Target);
-        comp.IsGlowing = true;
-        comp.GlowTimer = FSArmouredDeflectComponent.GlowDuration;
-        _pointLight.SetEnabled(ev.Target, true);
-        Dirty(ev.Target, comp);
 
-        // Physical projectile uses its own proto; hitscan falls back to a laser bolt.
-        var proto = ev.ProjectileUid != null
-            ? MetaData(ev.ProjectileUid.Value).EntityPrototype?.ID ?? "BulletLaser"
-            : "BulletLaser";
-
-        // Strip ExplodeOnTrigger from the original so it doesn't blow up on the zombie.
         if (ev.ProjectileUid != null)
             RemComp<ExplodeOnTriggerComponent>(ev.ProjectileUid.Value);
 
-        var zombieCoords = _transform.GetMapCoordinates(ev.Target);
-        var shooterPos = _transform.GetWorldPosition(ev.Shooter.Value);
-        var dir = Vector2.Normalize(shooterPos - zombieCoords.Position);
+        SprayShrapnel(ev.Target, comp, ev.Damage);
+    }
 
-        var reflected = Spawn(proto, zombieCoords);
+    private void SprayShrapnel(EntityUid zombie, FSArmouredDeflectComponent comp, DamageSpecifier damage)
+    {
+        if (comp.ShrapnelCount <= 0)
+            return;
 
-        // Reflected explosives use FSReflectedExplosion so FSExplosionFilterSystem doesn't block player damage.
-        if (TryComp<ExplosiveComponent>(reflected, out var explosive))
+        var coords = _transform.GetMapCoordinates(zombie);
+        var lifetime = comp.ShrapnelRange / ShrapnelSpeed;
+        var spin = _random.NextFloat(0f, MathF.Tau);
+
+        for (var i = 0; i < comp.ShrapnelCount; i++)
         {
-            _explosion.SetExplosionType(reflected, "FSReflectedExplosion");
-            _explosion.SetTotalIntensity(reflected, explosive.TotalIntensity * 2f, explosive);
-            _explosion.SetMaxIntensity(reflected, explosive.MaxIntensity * 2f, explosive);
-        }
+            var angle = spin + MathF.Tau * i / comp.ShrapnelCount;
+            var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
 
-        if (TryComp<ProjectileComponent>(reflected, out var projComp))
-        {
-            projComp.Damage = new DamageSpecifier();
-            foreach (var (type, amount) in ev.Damage.DamageDict)
-                projComp.Damage.DamageDict[type] = amount * 2;
-            projComp.Shooter = ev.Target;
-            projComp.IgnoreShooter = true;
-        }
+            var piece = Spawn(comp.ShrapnelProto, coords);
 
-        if (TryComp<PhysicsComponent>(reflected, out var body))
-        {
-            _physics.SetBodyStatus(reflected, body, BodyStatus.InAir);
-            _physics.SetLinearVelocity(reflected, dir * 25f, body: body);
+            if (TryComp<ProjectileComponent>(piece, out var proj))
+            {
+                proj.Damage = new DamageSpecifier();
+                foreach (var (type, amount) in damage.DamageDict)
+                    proj.Damage.DamageDict[type] = amount * comp.ShrapnelDamageFraction;
+
+                proj.Shooter = zombie;
+                proj.IgnoreShooter = true;
+            }
+
+
+            _transform.SetWorldRotation(piece, dir.ToWorldAngle() + (proj?.Angle ?? Angle.Zero));
+
+            if (TryComp<PhysicsComponent>(piece, out var body))
+            {
+                _physics.SetBodyStatus(piece, body, BodyStatus.InAir);
+                _physics.SetLinearVelocity(piece, dir * ShrapnelSpeed, body: body);
+            }
+
+            var despawn = EnsureComp<TimedDespawnComponent>(piece);
+            despawn.Lifetime = lifetime;
         }
     }
 
     private void OnShutdown(EntityUid uid, FSArmouredDeflectComponent comp, ComponentShutdown args)
     {
-        if (comp.GlowTimer > 0f)
+        if (comp.IsGlowing)
             _pointLight.SetEnabled(uid, false);
     }
 }
