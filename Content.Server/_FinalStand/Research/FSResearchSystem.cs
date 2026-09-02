@@ -30,6 +30,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
@@ -286,6 +287,14 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
+        // This system owns the only subscription for this message - Robust rejects a second one on
+        // the same component - so a medical console is handed straight over rather than ignored.
+        if (comp.Track == FSResearchTrack.Medical)
+        {
+            _medicalResearch.OnBuyNode(uid, comp, args);
+            return;
+        }
+
         if (IsOtherTrack(comp))
             return;
 

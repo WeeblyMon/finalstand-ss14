@@ -31,12 +31,10 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSMedicalResearchComponent, EntityTerminatingEvent>(OnStateTerminating);
 
-        // FSResearchSystem subscribes the same message on the same component and key; both handlers
-        // run and each ignores the other track.
-        Subs.BuiEvents<FSTechDatabaseComponent>(ResearchConsoleUiKey.Key, subs =>
-        {
-            subs.Event<FSSelectResearchNodeMessage>(OnBuyNode);
-        });
+        // No BUI subscription here on purpose. Both consoles share FSTechDatabaseComponent and the
+        // research UI key, and Robust throws "Duplicate Subscriptions" if two systems subscribe the
+        // same message on the same component. FSResearchSystem owns the subscription and hands
+        // medical-track consoles to OnBuyNode below.
     }
 
     public Entity<FSMedicalResearchComponent> GetOrCreateState()
@@ -87,7 +85,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         return state.Comp.UnlockedLookup.Contains(nodeId);
     }
 
-    private void OnBuyNode(EntityUid uid, FSTechDatabaseComponent console, FSSelectResearchNodeMessage args)
+    /// <summary>Called by FSResearchSystem when the console it was handed is medical-track.</summary>
+    public void OnBuyNode(EntityUid uid, FSTechDatabaseComponent console, FSSelectResearchNodeMessage args)
     {
         if (console.Track != FSResearchTrack.Medical)
             return;
@@ -127,21 +126,47 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        if (!_fund.TryDeductMedicalFunds(node.Cost))
+        if (!TryPurchase(node.ID))
         {
             _popup.PopupEntity(Loc.GetString("fs-medical-research-insufficient-funds", ("cost", node.Cost)), uid, player);
             return;
         }
+
+        _popup.PopupEntity(Loc.GetString("fs-medical-research-purchased", ("name", node.Name)), uid, player);
+        Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
+    }
+
+    /// <summary>
+    /// The purchase itself, with no authority check - the caller decides who is allowed to spend.
+    /// All-or-nothing: if the fund cannot cover it, nothing is unlocked and no money moves.
+    /// </summary>
+    public bool TryPurchase(string nodeId)
+    {
+        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(nodeId, out var node))
+            return false;
+
+        if (IsNodeUnlocked(node.ID))
+            return false;
+
+        if (!ArePrerequisitesMet(node, IsNodeUnlocked))
+            return false;
+
+        var state = GetOrCreateState();
+        if (IsExclusivelyBlocked(node, state.Comp.UnlockedNodes.Select(n => n.Id).ToList()))
+            return false;
+
+        if (!_fund.TryDeductMedicalFunds(node.Cost))
+            return false;
 
         state.Comp.UnlockedNodes.Add(node.ID);
         state.Comp.UnlockedLookup.Add(node.ID);
         SyncConsoles();
 
         // Same event science raises, so vanilla technology unlocks keep working unchanged.
-        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
-
-        _popup.PopupEntity(Loc.GetString("fs-medical-research-purchased", ("name", node.Name)), uid, player);
-        Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
+        // earned: false - the node was bought outright, so FSResearchPayoutSystem must not pay the
+        // science department a research bonus for it.
+        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+        return true;
     }
 
     public void SyncConsoles()
