@@ -48,3 +48,13 @@
     Steel: 4000
     Plastic: 2400
     Gold: 1200
+
+- type: latheRecipe
+  id: FSStripperClipMosin
+  result: FSStripperClipMosin
+  categories:
+  - Ammo
+  - Magazines
+  completetime: 2
+  materials:
+    Steel: 150

@@ -56,6 +56,7 @@
   - FSCartridgeRocketFS
   - FSBoxHydraGrenade
   - FSBoxRPGRocket
+  - FSStripperClipMosin
 
 - type: latheRecipePack
   id: SecurityWeaponsStatic

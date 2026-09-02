@@ -48,7 +48,62 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
 
         _reloadAborted.Remove(gun);
+
+        if (HasComp<FSBulkLoaderComponent>(shell.Value))
+        {
+            StartBulkShellInsert(gun, user, shell.Value);
+            return;
+        }
+
         StartShellInsert(gun, user, shell.Value, isChainReload);
+    }
+
+    private void StartBulkShellInsert(EntityUid gun, EntityUid user, EntityUid box)
+    {
+        var insertTime = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upg) && upg.SpeedLoaderEnabled
+            ? TimeSpan.FromSeconds(0.05)
+            : (TryComp<BallisticAmmoProviderComponent>(box, out var boxComp) ? boxComp.FillDelay : ShellInsertTime)
+              * GetReloadMultiplier(user, gun);
+
+        var doAfterArgs = new DoAfterArgs(EntityManager, user, insertTime,
+            new FSBulkShellInsertDoAfterEvent(), eventTarget: gun, used: box)
+        {
+            NeedHand      = true,
+            BreakOnMove   = false,
+            BreakOnDamage = false,
+        };
+
+        if (_doAfter.TryStartDoAfter(doAfterArgs, out var id))
+        {
+            _activeShellInserts[gun] = id.Value;
+            SetReloading(gun, true);
+        }
+        else
+        {
+            _activeShellInserts.Remove(gun);
+            SetReloading(gun, false);
+        }
+    }
+
+    private void OnBulkShellInsertComplete(EntityUid gun, BallisticAmmoProviderComponent comp, FSBulkShellInsertDoAfterEvent args)
+    {
+        _activeShellInserts.Remove(gun);
+        SetReloading(gun, false);
+
+        if (args.Cancelled || args.Used == null || !args.User.IsValid())
+            return;
+
+        if (_reloadAborted.Remove(gun))
+            return;
+
+        var prevCount = comp.Count;
+        _bulkLoader.BulkTransfer(args.Used.Value, gun, args.User);
+
+        if (comp.Count > prevCount)
+        {
+            var reloaded = new FSGunReloadedEvent(gun, args.User);
+            RaiseLocalEvent(ref reloaded);
+        }
     }
 
     private void StartShellInsert(EntityUid gun, EntityUid user, EntityUid shell, bool isChainReload = false)
@@ -133,7 +188,12 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
         var nextSource = NextChainSource(args.Used.Value, args.User, comp.Whitelist, gun);
         if (nextSource.IsValid())
-            StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
+        {
+            if (HasComp<FSBulkLoaderComponent>(nextSource))
+                StartBulkShellInsert(gun, args.User, nextSource);
+            else
+                StartShellInsert(gun, args.User, nextSource, args.IsChainReload);
+        }
         else
         {
             _activeShellInserts.Remove(gun);

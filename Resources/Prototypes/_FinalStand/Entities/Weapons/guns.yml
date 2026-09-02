@@ -21,6 +21,38 @@
       tags:
       - CartridgeLightRifle
 
+# Stripper clip — bulk-loads 5 rounds into the Mosin in one action instead of one at a time.
+- type: entity
+  parent: BaseItem
+  id: FSStripperClipMosin
+  name: stripper clip (.30 mosin)
+  description: A 5-round stripper clip for quickly reloading the Kardashev-Mosin without feeding it one round at a time.
+  components:
+  - type: FSBulkLoader
+  - type: BallisticAmmoProvider
+    mayTransfer: true
+    whitelist:
+      tags:
+      - CartridgeLightRifle
+    capacity: 5
+    proto: FSCartridgeMosin
+  - type: Sprite
+    sprite: _FinalStand/Objects/Weapons/Guns/Ammunition/StripperClipMosin.rsi
+    layers:
+    - state: mag-5
+      map: ["enum.GunVisualLayers.Mag"]
+  - type: Item
+    sprite: _FinalStand/Objects/Weapons/Guns/Ammunition/StripperClipMosin.rsi
+  - type: MagazineVisuals
+    magState: mag
+    steps: 6
+    zeroVisible: true
+  - type: Appearance
+  - type: ContainerContainer
+    containers:
+      ballistic-ammo: !type:Container
+        ents: []
+
 # ── N1984 ammo chain — 60 Piercing (boosted .45 magnum, N1984-only) ───────────
 - type: entity
   parent: BulletMagnum

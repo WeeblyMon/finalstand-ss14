@@ -9,8 +9,8 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponSniperMosin
     price: 10000
-    starterAmmoProtoId: FSMagazineBoxMosin
-    starterAmmoCount: 1
+    starterAmmoProtoId: FSStripperClipMosin
+    starterAmmoCount: 4
     category: .30 Bolt-Action Sniper
     statDamage: 80
     statFireRate: 20
@@ -73,6 +73,14 @@
       baseCost: 6000
       type: Pierce
       valuePerLevel: 1
+    - id: mosin-stripper-clip
+      name: Stripper Clip
+      description: Spawns a 5-round stripper clip per purchase per level, letting you reload multiple rounds at once instead of one at a time.
+      maxLevel: 5
+      baseCost: 500
+      type: SpawnItem
+      spawnProtoId: FSStripperClipMosin
+      spawnCountPerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Snipers/bolt_gun_wood.rsi
     layers:
