@@ -56,3 +56,32 @@
     sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
     state: icon
     scale: 1,1
+
+- type: entity
+  id: FSDeployableShopLandmine
+  parent: FSWeaponShopBase
+  name: Landmines
+  description: Proximity mines that arm a few seconds after planting and detonate once. They shred anything organic in the blast and leave the station untouched.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSLandmineItem
+    requiresScience: true
+    singlePurchase: true
+    price: 6500
+    category: Area Denial Deployable
+    statDamage: 70
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 30
+    upgrades:
+    - id: landmine-capacity
+      name: Extra Mines
+      description: Carry one additional mine per level.
+      maxLevel: 2
+      baseCost: 4000
+      type: DeployableCapacity
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: Objects/Misc/landmine.rsi
+    state: landmine
+    scale: 1,1
