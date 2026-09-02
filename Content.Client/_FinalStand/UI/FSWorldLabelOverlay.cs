@@ -36,6 +36,8 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
 
     protected virtual string GetLabel(EntityUid uid, TMarker marker) => Label;
 
+    protected virtual bool ShouldDraw(EntityUid uid, TMarker marker, TransformComponent xform) => true;
+
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     protected FSWorldLabelOverlay()
@@ -67,6 +69,9 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
         while (query.MoveNext(out var uid, out var marker, out var xform))
         {
             if (xform.MapID != args.MapId)
+                continue;
+
+            if (!ShouldDraw(uid, marker, xform))
                 continue;
 
             var screenPos = Vector2.Transform(_xform.GetWorldPosition(xform), matrix);

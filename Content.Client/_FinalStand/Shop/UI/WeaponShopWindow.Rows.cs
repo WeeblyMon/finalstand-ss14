@@ -367,6 +367,8 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.GrenadeImpactFuse  => "Impact Fuse",
         WeaponUpgradeType.GrenadeSingularity => "Singularity",
         WeaponUpgradeType.DeployableCapacity => "Capacity",
+        WeaponUpgradeType.AmmoBoxUses        => "Uses",
+        WeaponUpgradeType.AmmoBoxSpeed       => "Refill Speed",
         WeaponUpgradeType.ShieldDurability   => "Durability",
         WeaponUpgradeType.ShieldVampire      => "Lifesteal",
         WeaponUpgradeType.Thorns             => "Thorns",

@@ -29,6 +29,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private ISerializationManager _serialization = default!;
     [Dependency] private FSItemStashSystem _stash = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {

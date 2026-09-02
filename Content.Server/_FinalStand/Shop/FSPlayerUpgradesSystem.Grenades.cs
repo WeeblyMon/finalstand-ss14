@@ -43,6 +43,27 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     break;
                 }
+            case WeaponUpgradeType.AmmoBoxUses:
+                {
+                    if (TryComp<FSAmmoBoxComponent>(weapon, out var box))
+                    {
+                        box.MaxUses += (int)def.ValuePerLevel;
+                        box.UsesLeft = box.MaxUses;
+                        Dirty(weapon, box);
+                        _appearance.SetData(weapon, FSAmmoBoxVisuals.Upgraded, true);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.AmmoBoxSpeed:
+                {
+                    if (TryComp<FSAmmoBoxComponent>(weapon, out var box))
+                    {
+                        var seconds = box.RefillDuration.TotalSeconds - def.ValuePerLevel;
+                        box.RefillDuration = TimeSpan.FromSeconds(Math.Max(0.5, seconds));
+                        Dirty(weapon, box);
+                    }
+                    break;
+                }
             case WeaponUpgradeType.GrenadeBurnDuration:
                 {
                     if (TryComp<FSGrenadePackComponent>(weapon, out var pack))

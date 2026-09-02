@@ -11,6 +11,14 @@
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
     state: base
+  - type: FSAmmoBox
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSAmmoBoxVisuals.Upgraded:
+        base:
+          True: { state: upgraded }
+          False: { state: base }
   - type: FSDeployableItem
     deployedProtoId: FSAmmoBoxDeployed
     stock: 1
@@ -33,6 +41,13 @@
     sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
     state: base
   - type: FSAmmoBox
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSAmmoBoxVisuals.Upgraded:
+        base:
+          True: { state: upgraded }
+          False: { state: base }
   - type: FSDeployableLifetime
     lifetime: 600
   - type: InteractionOutline

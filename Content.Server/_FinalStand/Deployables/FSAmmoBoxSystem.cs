@@ -25,7 +25,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
 
     private void OnInteractHand(Entity<FSAmmoBoxComponent> ent, ref InteractHandEvent args)
     {
-        if (args.Handled)
+        if (args.Handled || !Transform(ent).Anchored)
             return;
 
         args.Handled = TryStartRefill(ent, args.User);
@@ -33,7 +33,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
 
     private void OnActivate(Entity<FSAmmoBoxComponent> ent, ref ActivateInWorldEvent args)
     {
-        if (args.Handled)
+        if (args.Handled || !Transform(ent).Anchored)
             return;
 
         args.Handled = TryStartRefill(ent, args.User);
@@ -83,7 +83,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
 
     private void OnGetVerbs(Entity<FSAmmoBoxComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
     {
-        if (!args.CanAccess || !args.CanInteract)
+        if (!args.CanAccess || !args.CanInteract || !Transform(ent).Anchored)
             return;
 
         if (ent.Comp.OwnerPlayer is not { } owner || owner != args.User)

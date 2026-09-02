@@ -13,6 +13,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -67,7 +68,16 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (TryComp<FSAmmoBoxComponent>(deployed, out var ammoBox))
         {
             ammoBox.OwnerPlayer = deployer;
+
+            if (TryComp<FSAmmoBoxComponent>(uid, out var itemBox))
+            {
+                ammoBox.MaxUses = itemBox.MaxUses;
+                ammoBox.RefillDuration = itemBox.RefillDuration;
+            }
+
+            ammoBox.UsesLeft = ammoBox.MaxUses;
             Dirty(deployed, ammoBox);
+            _appearance.SetData(deployed, FSAmmoBoxVisuals.Upgraded, ammoBox.MaxUses > 2);
         }
 
         comp.Stock--;

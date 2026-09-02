@@ -13,6 +13,9 @@ public sealed class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxCompone
     protected override bool ShowArrow => false;
     protected override bool Bob => false;
 
+    protected override bool ShouldDraw(EntityUid uid, FSAmmoBoxComponent box, TransformComponent xform)
+        => xform.Anchored;
+
     protected override string GetLabel(EntityUid uid, FSAmmoBoxComponent box)
     {
         var access = box.Private ? "PRIVATE" : "PUBLIC";

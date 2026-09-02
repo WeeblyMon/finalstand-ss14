@@ -103,13 +103,20 @@
     statAccuracy: 0
     statCapacity: 40
     upgrades:
-    - id: ammo-box-capacity
-      name: Spare Crate
-      description: Carry one additional resupply box per level.
+    - id: ammo-box-uses
+      name: Deeper Stock
+      description: One extra resupply use per level.
       maxLevel: 2
       baseCost: 4000
-      type: DeployableCapacity
+      type: AmmoBoxUses
       valuePerLevel: 1
+    - id: ammo-box-speed
+      name: Quick Release
+      description: Cuts the time it takes to draw a resupply.
+      maxLevel: 3
+      baseCost: 3000
+      type: AmmoBoxSpeed
+      valuePerLevel: 0.7
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
     state: base
