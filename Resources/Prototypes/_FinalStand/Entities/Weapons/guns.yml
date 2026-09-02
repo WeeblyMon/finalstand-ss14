@@ -512,6 +512,7 @@
   - type: BatterySelfRecharger
     autoRechargeRate: 25
     autoRechargePauseTime: 3
+  - type: FSChargeShot
   - type: BatteryAmmoProvider
     proto: FSBulletLaserShotgunSpread
     fireCost: 80

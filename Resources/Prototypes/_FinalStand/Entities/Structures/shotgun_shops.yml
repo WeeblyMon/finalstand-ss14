@@ -324,7 +324,7 @@
   id: FSWeaponShopEnergyShotgun
   parent: FSWeaponShopBase
   name: Energy Shotgun
-  description: A prototype energy weapon with lethal and stun fire modes. Self-powered — no ammo needed.
+  description: A prototype energy weapon. Hold the trigger to charge - a longer hold means bigger, harder-hitting bolts that punch through more targets. Self-powered, no ammo needed.
   components:
   - type: FSShopWeapon
     weaponProtoId: FSWeaponEnergyShotgun
