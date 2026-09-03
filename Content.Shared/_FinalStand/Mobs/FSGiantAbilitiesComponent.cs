@@ -56,13 +56,16 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpDamage = 55f;
 
     [DataField]
-    public float SkyJumpKnockbackSpeed = 15f;
+    public float SkyJumpKnockbackDistance = 6f;
 
     [DataField]
-    public float DashKnockbackSpeed = 12f;
+    public float SkyJumpKnockbackSpeed = 11f;
 
     [DataField]
-    public float KnockbackDuration = 0.45f;
+    public float DashKnockbackDistance = 5.5f;
+
+    [DataField]
+    public float DashKnockbackSpeed = 9f;
 
     [DataField]
     public float ShakeRadius = 40f;

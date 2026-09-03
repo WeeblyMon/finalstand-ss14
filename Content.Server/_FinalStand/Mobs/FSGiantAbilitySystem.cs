@@ -11,6 +11,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Stunnable;
+using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Audio.Systems;
@@ -37,6 +38,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedStunSystem _stun = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private IGameTiming _timing = default!;
 
     private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorPool =
@@ -219,12 +221,12 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
             if (distance <= comp.SkyJumpRadius)
             {
-                Shove(victim, away, comp.SkyJumpKnockbackSpeed, comp.KnockbackDuration);
+                Shove(victim, away, comp.SkyJumpKnockbackDistance, comp.SkyJumpKnockbackSpeed);
                 _damageable.TryChangeDamage(victim, blast, origin: ent.Owner);
             }
             else
             {
-                Shove(victim, away, comp.SkyJumpKnockbackSpeed * 0.6f, comp.KnockbackDuration);
+                Shove(victim, away, comp.SkyJumpKnockbackDistance * 0.5f, comp.SkyJumpKnockbackSpeed);
                 Slow(victim, 0.55f, 3f);
             }
         }
@@ -297,7 +299,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
                 if (!_swept.Add(victim))
                     continue;
 
-                Shove(victim, heading, comp.DashKnockbackSpeed, comp.KnockbackDuration);
+                Shove(victim, heading, comp.DashKnockbackDistance, comp.DashKnockbackSpeed);
                 _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
             }
         }
@@ -403,24 +405,31 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _actorPool.Return(candidates);
     }
 
-    private void Shove(EntityUid target, Vector2 direction, float speed, float seconds)
+    // Setting velocity directly gets eaten by tile friction within a few ticks, which reads as a
+    // jostle rather than a launch. A friction-compensated throw actually covers the distance.
+    private void Shove(EntityUid target, Vector2 direction, float distance, float speed)
     {
-        if (HasComp<FSKnockedBackComponent>(target) || !TryComp<PhysicsComponent>(target, out var body))
+        if (HasComp<FSKnockedBackComponent>(target) || !HasComp<PhysicsComponent>(target))
             return;
 
         if (TryComp<FSKnockbackResistComponent>(target, out var resist))
+        {
+            distance *= resist.Multiplier;
             speed *= resist.Multiplier;
+        }
 
-        if (speed <= 0f)
+        if (distance <= 0f || speed <= 0f)
             return;
 
         if (direction.LengthSquared() < 0.001f)
             direction = new Vector2(0f, -1f);
 
-        _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(direction) * speed, body: body);
+        var heading = Vector2.Normalize(direction);
+        _throwing.TryThrow(target, heading * distance, speed, compensateFriction: true,
+            recoil: false, animated: false, playSound: false, doSpin: false);
 
         var comp = EnsureComp<FSKnockedBackComponent>(target);
-        comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
+        comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(distance / speed);
         Dirty(target, comp);
     }
 
