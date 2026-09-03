@@ -49,7 +49,7 @@
 # ── The cache itself ─────────────────────────────────────────────────────────────────────────
 - type: entity
   id: FSGachaCache
-  parent: BaseStructureDynamic
+  parent: BaseStructure
   name: smuggler's cache
   description: A welded-shut crate wired into a jury-rigged lock. Cracking it takes time and makes noise; the previous owner left a payment slot for the impatient.
   components:

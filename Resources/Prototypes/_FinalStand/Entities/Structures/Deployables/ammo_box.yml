@@ -48,8 +48,6 @@
         base:
           True: { state: upgraded }
           False: { state: base }
-  - type: FSDeployableLifetime
-    lifetime: 600
   - type: InteractionOutline
   - type: Physics
     bodyType: Static

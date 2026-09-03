@@ -2,18 +2,20 @@ using Content.Server._FinalStand.Ammo;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
+using Content.Shared.Mind;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
 
 namespace Content.Server._FinalStand.Deployables;
 
 // deployed ammo crate: a shared pool of uses, and its owner can lock it to themselves
-public sealed partial class FSAmmoBoxSystem : EntitySystem
+public sealed class FSAmmoBoxSystem : EntitySystem
 {
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WaveAmmoBoxSystem _waveAmmo = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {
@@ -27,7 +29,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
 
     private void OnDeployed(Entity<FSAmmoBoxComponent> ent, ref FSDeployableDeployedEvent args)
     {
-        ent.Comp.OwnerPlayer = args.User;
+        ent.Comp.OwnerMind = ResolveMind(args.User);
 
         if (TryComp<FSAmmoBoxComponent>(args.Item, out var item))
         {
@@ -39,6 +41,15 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
         Dirty(ent);
         _appearance.SetData(ent, FSAmmoBoxVisuals.Upgraded, ent.Comp.MaxUses > 2);
     }
+
+    private EntityUid? ResolveMind(EntityUid user)
+        => _mind.TryGetMind(user, out var mindId, out _) ? mindId : null;
+
+    private bool IsOwner(Entity<FSAmmoBoxComponent> ent, EntityUid user)
+        => ent.Comp.OwnerMind is { } owner && owner == ResolveMind(user);
+
+    private bool IsAllowed(Entity<FSAmmoBoxComponent> ent, EntityUid user)
+        => !ent.Comp.Private || ent.Comp.OwnerMind == null || IsOwner(ent, user);
 
     private void OnInteractHand(Entity<FSAmmoBoxComponent> ent, ref InteractHandEvent args)
     {
@@ -64,7 +75,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
             return false;
         }
 
-        if (ent.Comp.Private && ent.Comp.OwnerPlayer is { } owner && owner != user)
+        if (!IsAllowed(ent, user))
         {
             _popup.PopupEntity(Loc.GetString("fs-ammo-box-private"), ent, user);
             return false;
@@ -85,7 +96,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
 
         var user = args.Args.User;
 
-        if (ent.Comp.Private && ent.Comp.OwnerPlayer is { } owner && owner != user)
+        if (!IsAllowed(ent, user))
             return;
 
         ent.Comp.UsesLeft--;
@@ -103,7 +114,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
         if (!args.CanAccess || !args.CanInteract || !Transform(ent).Anchored)
             return;
 
-        if (ent.Comp.OwnerPlayer is not { } owner || owner != args.User)
+        if (!IsOwner(ent, args.User))
             return;
 
         var comp = ent.Comp;

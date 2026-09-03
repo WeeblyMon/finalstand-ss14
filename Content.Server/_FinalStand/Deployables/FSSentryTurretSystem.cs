@@ -63,7 +63,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
             turret.NextFire = now + TimeSpan.FromSeconds(turret.FireInterval);
 
             var origin = _transform.GetWorldPosition(xform);
-            var target = FindTarget(uid, origin, xform.MapID, turret.Range);
+            var target = FindTarget(origin, xform.MapID, turret.Range);
 
             if (target is not { } victim)
             {
@@ -79,7 +79,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
         }
     }
 
-    private EntityUid? FindTarget(EntityUid uid, Vector2 origin, MapId mapId, float range)
+    private EntityUid? FindTarget(Vector2 origin, MapId mapId, float range)
     {
         var candidates = _enemyPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(origin, mapId), range, candidates);

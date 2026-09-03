@@ -45,6 +45,8 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
     private readonly List<(EntityUid Victim, float Distance)> _victims = new();
 
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -67,18 +69,21 @@ public sealed class FSGiantAbilitySystem : EntitySystem
                 continue;
             }
 
-            if (now >= comp.NextAbility)
-                TrySelect((uid, comp), xform, now);
+            if (now < comp.NextAbility)
+                continue;
+
+            if (!TrySelect((uid, comp), xform, now))
+                comp.NextAbility = now + RetryDelay;
         }
     }
 
-    private void TrySelect(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
+    private bool TrySelect(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
     {
         var comp = ent.Comp;
         var origin = _transform.GetWorldPosition(xform);
 
         if (FindTarget(origin, xform.MapID, comp.SkyJumpMaxRange) is not { } target)
-            return;
+            return false;
 
         var targetPos = _transform.GetWorldPosition(target);
         var distance = Vector2.Distance(origin, targetPos);
@@ -89,22 +94,23 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             Begin(ent, FSGiantAbility.SkyJumpWindup, comp.SkyJumpWindup, now);
             Spawn(comp.LaunchEffect, xform.Coordinates);
             _audio.PlayPvs(comp.RoarSound, ent.Owner);
-            return;
+            return true;
         }
 
         if (now >= comp.NextBoulder && distance >= comp.BoulderMinRange && distance <= comp.BoulderMaxRange)
         {
             Begin(ent, FSGiantAbility.BoulderWindup, comp.BoulderWindup, now);
             DrawLane(ent, origin, targetPos, xform.MapID);
-            return;
+            return true;
         }
 
-        if (now >= comp.NextDash && distance >= comp.DashMinRange && distance <= comp.DashMaxRange)
-        {
-            Begin(ent, FSGiantAbility.DashWindup, comp.DashWindup, now);
-            DrawLane(ent, origin, targetPos, xform.MapID);
-            SpawnFist(ent, origin, targetPos, xform.MapID);
-        }
+        if (now < comp.NextDash || distance < comp.DashMinRange || distance > comp.DashMaxRange)
+            return false;
+
+        Begin(ent, FSGiantAbility.DashWindup, comp.DashWindup, now);
+        DrawLane(ent, origin, targetPos, xform.MapID);
+        SpawnFist(ent, origin, targetPos, xform.MapID);
+        return true;
     }
 
     private void Advance(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)

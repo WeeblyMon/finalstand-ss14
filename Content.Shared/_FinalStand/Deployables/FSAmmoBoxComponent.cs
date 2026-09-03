@@ -18,6 +18,5 @@ public sealed partial class FSAmmoBoxComponent : Component
     [DataField]
     public TimeSpan RefillDuration = TimeSpan.FromSeconds(3);
 
-    [AutoNetworkedField]
-    public EntityUid? OwnerPlayer;
+    public EntityUid? OwnerMind;
 }

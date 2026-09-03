@@ -32,6 +32,9 @@ public sealed class FSLandmineSystem : EntitySystem
 
     private void OnTrigger(Entity<FSLandmineComponent> ent, ref TriggerEvent args)
     {
+        if (!Transform(ent).Anchored)
+            return;
+
         var comp = ent.Comp;
 
         var total = comp.HighExplosive ? comp.HighExplosiveTotalIntensity : comp.TotalIntensity;

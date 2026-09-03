@@ -64,15 +64,17 @@ public sealed class FSGachaCacheSystem : EntitySystem
             return false;
         }
 
-        _popup.PopupEntity(Loc.GetString("fs-gacha-hack-start"), ent, user);
+        if (!_doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, ent.Comp.HackDuration,
+                new FSGachaHackDoAfterEvent(), ent, target: ent)
+            {
+                BreakOnMove = true,
+                BreakOnDamage = true,
+                NeedHand = true,
+            }))
+            return false;
 
-        return _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, ent.Comp.HackDuration,
-            new FSGachaHackDoAfterEvent(), ent, target: ent)
-        {
-            BreakOnMove = true,
-            BreakOnDamage = true,
-            NeedHand = true,
-        });
+        _popup.PopupEntity(Loc.GetString("fs-gacha-hack-start"), ent, user);
+        return true;
     }
 
     private void OnHacked(Entity<FSGachaCacheComponent> ent, ref FSGachaHackDoAfterEvent args)
