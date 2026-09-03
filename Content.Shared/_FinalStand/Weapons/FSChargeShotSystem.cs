@@ -1,6 +1,8 @@
+using System.Numerics;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Weapons;
@@ -10,10 +12,14 @@ public sealed class FSChargeShotSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
-    // The client only sends a shoot request while NextFire has elapsed, so the cooldown is cleared
+    // The client only sends a shoot request once NextFire has elapsed, so the cooldown is cleared
     // every tick below to keep that stream running. A gap longer than this means the trigger is up.
-    private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(120);
+
+    private const float AimDistance = 10f;
 
     private EntityUid? _firing;
 
@@ -28,15 +34,21 @@ public sealed class FSChargeShotSystem : EntitySystem
         if (_firing == ent.Owner)
             return;
 
+        args.Cancelled = true;
+
         var comp = ent.Comp;
         comp.LastHeld = _timing.CurTime;
         comp.Shooter = args.User;
-
-        if (TryComp<GunComponent>(ent, out var gun))
-            comp.ShootCoordinates = gun.ShootCoordinates;
-
         comp.ChargeStart ??= _timing.CurTime;
-        args.Cancelled = true;
+
+        if (!TryComp<GunComponent>(ent, out var gun) || gun.ShootCoordinates is not { } coords)
+            return;
+
+        var from = _transform.GetMapCoordinates(args.User);
+        var to = _transform.ToMapCoordinates(coords);
+
+        if (to.MapId == from.MapId && (to.Position - from.Position).LengthSquared() > 0.01f)
+            comp.AimDirection = to.Position - from.Position;
     }
 
     public override void Update(float frameTime)
@@ -56,8 +68,8 @@ public sealed class FSChargeShotSystem : EntitySystem
                 continue;
             }
 
-            // Cancelling a shot pushes NextFire out by SafetyNextFire, which throttles the client's
-            // requests to one every half second. Undo it so held triggers report every tick.
+            // Cancelling a shot pushes NextFire out by SafetyNextFire, which throttles the client to
+            // one request every half second. Undo it so a held trigger reports every tick.
             _gun.ClearFireCooldown((uid, gun), now);
 
             var held = (float) (now - start).TotalSeconds;
@@ -75,13 +87,17 @@ public sealed class FSChargeShotSystem : EntitySystem
     {
         var comp = ent.Comp;
         var shooter = comp.Shooter;
-        var coords = comp.ShootCoordinates;
+        var aim = comp.AimDirection;
 
         comp.ChargeStart = null;
         comp.LastHeld = TimeSpan.Zero;
 
-        if (shooter is { } user && !TerminatingOrDeleted(user) && coords is { } target)
+        if (shooter is { } user && !TerminatingOrDeleted(user) && aim.LengthSquared() > 0.01f)
         {
+            var from = _transform.GetMapCoordinates(user);
+            var target = new EntityCoordinates(_map.GetMapOrInvalid(from.MapId),
+                from.Position + Vector2.Normalize(aim) * AimDistance);
+
             _gun.ClearFireCooldown((ent.Owner, gun), _timing.CurTime);
 
             _firing = ent.Owner;
@@ -91,7 +107,6 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.Charge = 0f;
         comp.Shooter = null;
-        comp.ShootCoordinates = null;
         Dirty(ent.Owner, comp);
     }
 }

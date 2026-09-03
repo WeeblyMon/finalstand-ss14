@@ -31,6 +31,10 @@ public sealed class FSGiantBoulderSystem : EntitySystem
         if (!HasComp<DamageableComponent>(other) || !Transform(other).Anchored)
             return;
 
+        // deleteOnCollide is off, so the same wall can raise several contacts before the boulder dies
+        if (!ent.Comp.Struck.Add(other))
+            return;
+
         var damage = new DamageSpecifier();
         damage.DamageDict["Structural"] = FixedPoint2.New(ent.Comp.StructuralDamage);
         _damageable.TryChangeDamage(other, damage, origin: ent.Owner);

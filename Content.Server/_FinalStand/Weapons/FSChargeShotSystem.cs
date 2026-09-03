@@ -3,13 +3,16 @@ using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Weapons.Visuals;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 
 namespace Content.Server._FinalStand.Weapons;
 
-// scales the released volley: more damage, more pierce and bigger pellets the longer it was held
+// scales the released volley: damage, speed, pierce, bounces and pellet size all follow the charge
 public sealed class FSChargeShotEffectsSystem : EntitySystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
 
     public override void Initialize()
     {
@@ -17,29 +20,34 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
         SubscribeLocalEvent<FSChargeShotComponent, AmmoShotEvent>(OnAmmoShot);
     }
 
-    private void OnAmmoShot(Entity<FSChargeShotComponent> ent, ref AmmoShotEvent args)
+    private void OnAmmoShot(EntityUid uid, FSChargeShotComponent comp, AmmoShotEvent args)
     {
-        var comp = ent.Comp;
         var charge = comp.Charge;
 
         var damageMul = MathHelper.Lerp(comp.MinDamageMultiplier, comp.MaxDamageMultiplier, charge);
-        var pierce = (int) MathF.Round(comp.MaxBonusPierce * charge);
+        var speedMul = MathHelper.Lerp(comp.MinSpeedMultiplier, comp.MaxSpeedMultiplier, charge);
         var scale = MathHelper.Lerp(comp.MinPelletScale, comp.MaxPelletScale, charge);
+        var pierce = (int) MathF.Round(comp.MaxBonusPierce * charge);
+        var bounces = comp.MinBounces + (int) MathF.Round((comp.MaxBounces - comp.MinBounces) * charge);
 
         foreach (var projUid in args.FiredProjectiles)
         {
             if (TryComp<ProjectileComponent>(projUid, out var proj))
+            {
                 proj.Damage *= damageMul;
 
-            if (pierce > 0)
-            {
-                if (TryComp<ProjectileComponent>(projUid, out var pierceProj))
-                    pierceProj.DeleteOnCollide = false;
-
-                EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
+                if (pierce > 0)
+                    proj.DeleteOnCollide = false;
             }
 
-            EnsureComp<FSRicochetComponent>(projUid);
+            if (pierce > 0)
+                EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
+
+            EnsureComp<FSRicochetComponent>(projUid).Bounces = bounces;
+
+            if (TryComp<PhysicsComponent>(projUid, out var body))
+                _physics.SetLinearVelocity(projUid, body.LinearVelocity * speedMul, body: body);
+
             _appearance.SetData(projUid, FSChargeShotVisuals.PelletScale, scale);
         }
     }

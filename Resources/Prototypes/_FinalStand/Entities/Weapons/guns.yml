@@ -515,6 +515,9 @@
   - type: FSChargeShot
   - type: Gun
     fireRate: 4
+    minAngle: 0
+    maxAngle: 0
+    angleIncrease: 0
     availableModes:
     - FullAuto
     selectedMode: FullAuto

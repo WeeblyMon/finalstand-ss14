@@ -12,7 +12,9 @@ public sealed partial class FSGiantBoulderComponent : Component
     public int StructurePierce = 4;
 
     [DataField]
-    public float StructuralDamage = 400f;
+    public float StructuralDamage = 450f;
+
+    public readonly HashSet<EntityUid> Struck = new();
 
     [DataField]
     public float SpinRate = 9f;

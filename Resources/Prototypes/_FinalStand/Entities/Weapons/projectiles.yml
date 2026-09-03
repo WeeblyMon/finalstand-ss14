@@ -178,6 +178,7 @@
   parent: BulletLaser
   categories: [ HideSpawnMenu ]
   components:
+  - type: Appearance
   - type: FSNoStructureDamage
   - type: Projectile
     damage:
