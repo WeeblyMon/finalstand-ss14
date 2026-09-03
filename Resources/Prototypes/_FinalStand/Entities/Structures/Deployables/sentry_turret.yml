@@ -37,9 +37,9 @@
     sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
     layers:
     - state: base
-      map: [ "enum.FSSentryTurretLayers.Base" ]
+      map: [ "turretBase" ]
     - state: turret
-      map: [ "enum.FSSentryTurretLayers.Gun" ]
+      map: [ "gun" ]
   - type: Appearance
   - type: FSSentryTurret
   - type: Clickable

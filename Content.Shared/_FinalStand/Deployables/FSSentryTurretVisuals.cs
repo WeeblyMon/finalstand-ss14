@@ -8,10 +8,3 @@ public enum FSSentryTurretVisuals : byte
     Angle,
     Firing,
 }
-
-[Serializable, NetSerializable]
-public enum FSSentryTurretLayers : byte
-{
-    Base,
-    Gun,
-}

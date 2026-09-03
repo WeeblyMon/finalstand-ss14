@@ -7,6 +7,8 @@ public sealed class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTu
 {
     [Dependency] private readonly SpriteSystem _sprite = default!;
 
+    private const string GunLayer = "gun";
+
     protected override void OnAppearanceChange(EntityUid uid, FSSentryTurretComponent component, ref AppearanceChangeEvent args)
     {
         if (args.Sprite == null)
@@ -15,9 +17,9 @@ public sealed class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTu
         var sprite = (uid, args.Sprite);
 
         if (AppearanceSystem.TryGetData<double>(uid, FSSentryTurretVisuals.Angle, out var theta, args.Component))
-            _sprite.LayerSetRotation(sprite, FSSentryTurretLayers.Gun, new Angle(theta));
+            _sprite.LayerSetRotation(sprite, GunLayer, new Angle(theta));
 
         if (AppearanceSystem.TryGetData<bool>(uid, FSSentryTurretVisuals.Firing, out var firing, args.Component))
-            _sprite.LayerSetRsiState(sprite, FSSentryTurretLayers.Gun, firing ? "fire" : "turret");
+            _sprite.LayerSetRsiState(sprite, GunLayer, firing ? "fire" : "turret");
     }
 }
