@@ -1,11 +1,14 @@
 using System.Numerics;
+using Content.Client.Cooldown;
 using Content.Client.Items.Systems;
 using Content.Shared.Item;
 using Content.Shared.Storage;
+using Content.Shared.Timing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Systems.Storage.Controls;
 
@@ -13,6 +16,8 @@ public sealed class ItemGridPiece : Control, IEntityControl
 {
     private readonly IEntityManager _entityManager;
     private readonly StorageUIController _storageController;
+    private readonly UseDelaySystem _useDelay;
+    private readonly CooldownGraphic _cooldown;
 
     private readonly List<(Texture, Vector2)> _texturesPositions = new();
 
@@ -63,7 +68,30 @@ public sealed class ItemGridPiece : Control, IEntityControl
 
         TooltipSupplier = SupplyTooltip;
 
+        // FINALSTAND: an item on cooldown in a bag looked identical to a ready one.
+        _useDelay = entityManager.System<UseDelaySystem>();
+        AddChild(_cooldown = new CooldownGraphic
+        {
+            Visible = false,
+            MouseFilter = MouseFilterMode.Ignore,
+        });
+
         OnThemeUpdated();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+
+        if (!_entityManager.TryGetComponent(Entity, out UseDelayComponent? useDelay))
+        {
+            _cooldown.Visible = false;
+            return;
+        }
+
+        var delay = _useDelay.GetLastEndingDelay((Entity, useDelay));
+        _cooldown.Visible = true;
+        _cooldown.FromTime(delay.StartTime, delay.EndTime);
     }
 
     private Control? SupplyTooltip(Control sender)
