@@ -81,6 +81,34 @@
       baseCost: 4000
       type: DeployableCapacity
       valuePerLevel: 1
+    - id: landmine-damage
+      name: Dense Filler
+      description: Each level adds a quarter of the mine's base blast damage.
+      maxLevel: 3
+      baseCost: 3500
+      type: LandmineDamage
+      valuePerLevel: 0.25
+    - id: landmine-detonations
+      name: Reusable Core
+      description: The mine re-arms itself after going off, one extra time per level.
+      maxLevel: 2
+      baseCost: 6000
+      type: LandmineDetonations
+      valuePerLevel: 1
+    - id: landmine-regen
+      name: Field Fabricator
+      description: Restock one more mine each wave.
+      maxLevel: 2
+      baseCost: 4500
+      type: DeployableRegen
+      valuePerLevel: 1
+    - id: landmine-he
+      name: High Explosive
+      description: Widens the blast to cover a three by three area.
+      maxLevel: 1
+      baseCost: 8000
+      type: LandmineHighExplosive
+      valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Misc/landmine.rsi
     state: landmine

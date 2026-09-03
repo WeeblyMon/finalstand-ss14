@@ -13,7 +13,6 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
-    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -65,31 +64,8 @@ public sealed partial class FSDeployableSystem : EntitySystem
             return false;
         }
 
-        if (TryComp<FSAmmoBoxComponent>(deployed, out var ammoBox))
-        {
-            ammoBox.OwnerPlayer = deployer;
-
-            if (TryComp<FSAmmoBoxComponent>(uid, out var itemBox))
-            {
-                ammoBox.MaxUses = itemBox.MaxUses;
-                ammoBox.RefillDuration = itemBox.RefillDuration;
-            }
-
-            ammoBox.UsesLeft = ammoBox.MaxUses;
-            Dirty(deployed, ammoBox);
-            _appearance.SetData(deployed, FSAmmoBoxVisuals.Upgraded, ammoBox.MaxUses > 2);
-        }
-
-        if (TryComp<FSSentryTurretComponent>(deployed, out var turretOut) &&
-            TryComp<FSSentryTurretComponent>(uid, out var turretIn))
-        {
-            turretOut.MaxAmmo = turretIn.MaxAmmo;
-            turretOut.Ammo = turretIn.MaxAmmo;
-            turretOut.FireInterval = turretIn.FireInterval;
-            turretOut.DamageMultiplier = turretIn.DamageMultiplier;
-            turretOut.Range = turretIn.Range;
-            Dirty(deployed, turretOut);
-        }
+        var ev = new FSDeployableDeployedEvent(uid, deployer);
+        RaiseLocalEvent(deployed, ref ev);
 
         comp.Stock--;
         Dirty(uid, comp);

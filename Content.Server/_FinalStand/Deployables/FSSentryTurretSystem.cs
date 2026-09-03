@@ -29,6 +29,26 @@ public sealed class FSSentryTurretSystem : EntitySystem
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
             new SetPolicy<Entity<WaveSpawnedTagComponent>>());
 
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSSentryTurretComponent, FSDeployableDeployedEvent>(OnDeployed);
+    }
+
+    private void OnDeployed(Entity<FSSentryTurretComponent> ent, ref FSDeployableDeployedEvent args)
+    {
+        if (TryComp<FSSentryTurretComponent>(args.Item, out var item))
+        {
+            ent.Comp.MaxAmmo = item.MaxAmmo;
+            ent.Comp.FireInterval = item.FireInterval;
+            ent.Comp.DamageMultiplier = item.DamageMultiplier;
+            ent.Comp.Range = item.Range;
+        }
+
+        ent.Comp.Ammo = ent.Comp.MaxAmmo;
+        Dirty(ent);
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);

@@ -101,6 +101,42 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     break;
                 }
+            case WeaponUpgradeType.DeployableRegen:
+                {
+                    if (TryComp<FSDeployableItemComponent>(weapon, out var deployable))
+                    {
+                        deployable.RegenPerWave += (int)def.ValuePerLevel;
+                        Dirty(weapon, deployable);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineDamage:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.IntensityMultiplier += def.ValuePerLevel;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineDetonations:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.Detonations += (int)def.ValuePerLevel;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineHighExplosive:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.HighExplosive = true;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
             case WeaponUpgradeType.GrenadeBurnDuration:
                 {
                     if (TryComp<FSGrenadePackComponent>(weapon, out var pack))

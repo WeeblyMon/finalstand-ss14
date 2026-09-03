@@ -13,6 +13,7 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WaveAmmoBoxSystem _waveAmmo = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -21,6 +22,22 @@ public sealed partial class FSAmmoBoxSystem : EntitySystem
         SubscribeLocalEvent<FSAmmoBoxComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<FSAmmoBoxComponent, FSAmmoBoxRefillDoAfterEvent>(OnRefillDoAfter);
         SubscribeLocalEvent<FSAmmoBoxComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
+        SubscribeLocalEvent<FSAmmoBoxComponent, FSDeployableDeployedEvent>(OnDeployed);
+    }
+
+    private void OnDeployed(Entity<FSAmmoBoxComponent> ent, ref FSDeployableDeployedEvent args)
+    {
+        ent.Comp.OwnerPlayer = args.User;
+
+        if (TryComp<FSAmmoBoxComponent>(args.Item, out var item))
+        {
+            ent.Comp.MaxUses = item.MaxUses;
+            ent.Comp.RefillDuration = item.RefillDuration;
+        }
+
+        ent.Comp.UsesLeft = ent.Comp.MaxUses;
+        Dirty(ent);
+        _appearance.SetData(ent, FSAmmoBoxVisuals.Upgraded, ent.Comp.MaxUses > 2);
     }
 
     private void OnInteractHand(Entity<FSAmmoBoxComponent> ent, ref InteractHandEvent args)
