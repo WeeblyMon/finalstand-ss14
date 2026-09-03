@@ -23,6 +23,7 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Utility;
 
@@ -41,6 +42,14 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private bool _isBody;
     private (EntityUid Ent, EntProtoId Proto)? _surgery;
     private readonly List<EntProtoId> _previousSurgeries = new();
+
+    // FINALSTAND: interaction state only. Patient condition owns hue elsewhere - the two must never
+    // share a channel or "you can't do this" and "they are dying" become the same red.
+    private static readonly Color ReadyColor = Color.FromHex("#3FA37A");
+    private static readonly Color WarningColor = Color.FromHex("#C9A227");
+    private static readonly Color DangerColor = Color.FromHex("#C0392B");
+    private static readonly Color MutedColor = Color.FromHex("#7F8891");
+
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
@@ -273,15 +282,26 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
     private void RefreshUI()
     {
-        if (_window == null
-            || !_window.IsOpen
-            || _part == null
-            || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent)
-            || !_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
-            || !surgeryComp.CanOperate)
+        if (_window == null || !_window.IsOpen)
             return;
 
+        // FINALSTAND: the guidance bar is always populated, including in the states the old code
+        // early-returned from - a stale line is worse than no line.
+        if (_part == null || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
+        {
+            SetGuidance(null, Loc.GetString("surgery-ui-guidance-select"));
+            return;
+        }
+
+        if (!_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
+            || !surgeryComp.CanOperate)
+        {
+            SetGuidance(null, Loc.GetString("surgery-ui-guidance-cannot-operate"), DangerColor);
+            return;
+        }
+
         var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, _player.LocalEntity.Value);
+        SurgeryStepButton? nextButton = null;
         var i = 0;
         foreach (var child in _window.Steps.Children)
         {
@@ -304,23 +324,120 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             stepButton.Button.Disabled = status != StepStatus.Next;
 
+            // FINALSTAND: glyph carries the status so it survives colour-blindness and the greyout,
+            // and the duration lets the surgeon judge whether there is time before committing.
             var stepName = new FormattedMessage();
+            stepName.AddText(status switch
+            {
+                StepStatus.Complete => "✓  ",
+                StepStatus.Next => "▶  ",
+                _ => "·  ",
+            });
             stepName.AddText(_entities.GetComponent<MetaDataComponent>(stepButton.Step).EntityName);
+
+            var duration = _system.GetStepDuration(stepButton.Step);
+            if (duration > 0f)
+            {
+                stepName.PushColor(MutedColor);
+                stepName.AddText($"   {duration:0.#}s");
+                stepName.Pop();
+            }
 
             if (status == StepStatus.Complete)
                 stepButton.Button.Modulate = Color.Green;
             else
             {
                 stepButton.Button.Modulate = Color.White;
-                if (status == StepStatus.Next
-                    && !_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
-                    stepButton.ToolTip = popup;
+                if (status == StepStatus.Next)
+                {
+                    // First Next wins - a negative next.Step marks a whole run of them.
+                    nextButton ??= stepButton;
+                    if (!_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
+                        stepButton.ToolTip = popup;
+                }
             }
 
             var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
             stepButton.Set(stepName, texture);
             i++;
         }
+
+        UpdateGuidance(nextButton, next != null);
+    }
+
+    // FINALSTAND: the whole point of the rewrite's first stage. CanPerformStepWithHeld already knows
+    // exactly why a step will not work; the old UI spent that on a tooltip nobody hovers.
+    private void UpdateGuidance(SurgeryStepButton? next, bool workRemains)
+    {
+        if (_window == null)
+            return;
+
+        if (next == null)
+        {
+            // No actionable step here but work remains means the next step lives in a prerequisite
+            // surgery - saying "complete" there would be a lie.
+            SetGuidance(null,
+                workRemains
+                    ? Loc.GetString("surgery-ui-guidance-prerequisite")
+                    : Loc.GetString("surgery-ui-guidance-complete"),
+                workRemains ? WarningColor : ReadyColor);
+            return;
+        }
+
+        var stepName = _entities.GetComponent<MetaDataComponent>(next.Step).EntityName;
+        var texture = _entities.GetComponentOrNull<SpriteComponent>(next.Step)?.Icon?.Default;
+
+        if (_player.LocalEntity is not { } user || _part == null)
+            return;
+
+        if (_system.CanPerformStepWithHeld(user, Owner, _part.Value, next.Step, false, out var popup, out var reason))
+        {
+            SetGuidance(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);
+            return;
+        }
+
+        var detail = ReasonText(reason, next.Step, popup);
+        SetGuidance(texture, Loc.GetString("surgery-ui-guidance-blocked", ("step", stepName), ("reason", detail)), WarningColor);
+    }
+
+    private string ReasonText(StepInvalidReason reason, EntityUid step, string? popup)
+    {
+        switch (reason)
+        {
+            case StepInvalidReason.MissingTool:
+                var tools = _system.GetStepToolNames(step);
+                if (tools.Count > 0)
+                    return Loc.GetString("surgery-ui-guidance-need-tool", ("tool", string.Join(", ", tools)));
+                break;
+            case StepInvalidReason.NeedsOperatingTable:
+                return Loc.GetString("surgery-ui-guidance-need-table");
+            case StepInvalidReason.Armor:
+                return Loc.GetString("surgery-ui-guidance-armor");
+            case StepInvalidReason.MissingSkills:
+                return Loc.GetString("surgery-ui-guidance-skills");
+            case StepInvalidReason.MissingPreviousSteps:
+                return Loc.GetString("surgery-ui-guidance-previous");
+        }
+
+        return popup ?? Loc.GetString("surgery-ui-guidance-blocked-generic");
+    }
+
+    // Built from AddText rather than markup so a bracket in an entity name cannot throw.
+    private void SetGuidance(Texture? icon, string text, Color? accent = null)
+    {
+        if (_window == null)
+            return;
+
+        var msg = new FormattedMessage();
+        if (accent is { } colour)
+            msg.PushColor(colour);
+        msg.AddText(text);
+        if (accent != null)
+            msg.Pop();
+
+        _window.GuidanceLabel.SetMessage(msg);
+        _window.GuidanceIcon.Texture = icon;
+        _window.GuidanceIcon.Visible = icon != null;
     }
 
     private void View(ViewType type)

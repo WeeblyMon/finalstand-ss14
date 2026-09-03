@@ -26,5 +26,19 @@ SPDX-License-Identifier: AGPL-3.0-or-later
             <BoxContainer Name="Surgeries" Access="Public" Orientation="Vertical" Visible="False" />
             <BoxContainer Name="Steps" Access="Public" Orientation="Vertical" Visible="False" />
         </ScrollContainer>
+        <!-- FINALSTAND: always-visible guidance. Never a popup - it must survive a glance away. -->
+        <cc:HSeparator />
+        <PanelContainer Name="GuidancePanel" Access="Public" HorizontalExpand="True" Margin="0 6 0 0">
+            <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="8 6">
+                <TextureRect Name="GuidanceIcon" Access="Public"
+                             Stretch="KeepAspectCentered"
+                             SetSize="24 24"
+                             VerticalAlignment="Center"
+                             Margin="0 0 8 0" />
+                <RichTextLabel Name="GuidanceLabel" Access="Public"
+                               HorizontalExpand="True"
+                               VerticalAlignment="Center" />
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </controls:SurgeryWindow>

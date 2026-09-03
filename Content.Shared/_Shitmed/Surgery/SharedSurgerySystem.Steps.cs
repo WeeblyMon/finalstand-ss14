@@ -1074,6 +1074,43 @@ public abstract partial class SharedSurgerySystem
         return CanPerformStep(user, body, part, step, tool, doPopup, out popup, out _, out _);
     }
 
+    // FINALSTAND: the UI needs the structured reason, not just the popup string, so it can say
+    // "put them on an operating table" instead of greying a button out.
+    public bool CanPerformStepWithHeld(EntityUid user,
+        EntityUid body,
+        EntityUid part,
+        EntityUid step,
+        bool doPopup,
+        out string? popup,
+        out StepInvalidReason reason)
+    {
+        var tool = _hands.GetActiveItemOrSelf(user);
+        return CanPerformStep(user, body, part, step, tool, doPopup, out popup, out reason, out _);
+    }
+
+    // FINALSTAND: Tool is a ComponentRegistry rather than a prototype, but the deserialised component
+    // instances carry ToolName, so the required instrument is readable without spawning anything.
+    public List<string> GetStepToolNames(EntityUid step)
+    {
+        var names = new List<string>();
+        if (!TryComp<SurgeryStepComponent>(step, out var comp) || comp.Tool == null)
+            return names;
+
+        foreach (var entry in comp.Tool.Values)
+        {
+            if (entry.Component is ISurgeryToolComponent tool)
+                names.Add(tool.ToolName);
+        }
+
+        return names;
+    }
+
+    // FINALSTAND
+    public float GetStepDuration(EntityUid step)
+    {
+        return TryComp<SurgeryStepComponent>(step, out var comp) ? comp.Duration : 0f;
+    }
+
     private bool IsStepComplete(EntityUid body, EntityUid part, EntProtoId step, EntityUid surgery)
     {
         if (GetSingleton(step) is not { } stepEnt)
