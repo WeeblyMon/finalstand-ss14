@@ -65,7 +65,7 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: FSLandmineItem
-    requiresScience: true
+    requiresScience: false
     singlePurchase: true
     price: 6500
     category: Area Denial Deployable

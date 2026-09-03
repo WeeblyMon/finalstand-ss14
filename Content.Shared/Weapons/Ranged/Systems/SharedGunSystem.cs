@@ -485,6 +485,15 @@ public abstract partial class SharedGunSystem : EntitySystem
     /// </summary>
     public virtual void UpdateAmmoCount(EntityUid uid, bool prediction = true) { } // FINALSTAND: exposed for FS ammo UI sync
 
+    // FINALSTAND: charge-up weapons cancel every attempt while held, and each cancel pushes NextFire
+    // out by SafetyNextFire. Without clearing it the shot on release is always refused.
+    public void ClearFireCooldown(Entity<GunComponent> gun, TimeSpan now)
+    {
+        gun.Comp.NextFire = now;
+        gun.Comp.ShotCounter = 0;
+        DirtyField(gun.AsNullable(), nameof(GunComponent.NextFire));
+    }
+
     protected void SetCartridgeSpent(EntityUid uid, CartridgeAmmoComponent cartridge, bool spent)
     {
         if (cartridge.Spent != spent)

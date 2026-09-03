@@ -65,12 +65,9 @@
   - type: GenericVisualizer
     visuals:
       enum.FSGachaCacheVisuals.Looted:
-        body:
-          True: { state: generic_open }
-          False: { state: generic }
         door:
-          True: { visible: false }
-          False: { visible: true }
+          True: { state: generic_open }
+          False: { state: generic_door }
   - type: FSGachaCache
   - type: InteractionOutline
   - type: Physics

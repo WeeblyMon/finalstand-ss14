@@ -78,6 +78,8 @@ public sealed class FSChargeShotSystem : EntitySystem
         if (shooter is { } user && !TerminatingOrDeleted(user) && coords is { } target &&
             TryComp<GunComponent>(ent, out var gun))
         {
+            _gun.ClearFireCooldown((ent.Owner, gun), _timing.CurTime);
+
             _firing = ent.Owner;
             _gun.AttemptShoot(user, (ent.Owner, gun), target);
             _firing = null;

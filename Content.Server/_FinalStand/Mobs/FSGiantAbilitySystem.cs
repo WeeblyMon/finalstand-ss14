@@ -192,15 +192,16 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         foreach (var (victim, distance) in _victims)
         {
             // Knockback first: a downed body has too much friction to be thrown anywhere.
+            var away = _transform.GetWorldPosition(victim) - comp.LockedTarget;
+
             if (distance <= comp.SkyJumpRadius)
             {
-                _knockback.ApplyKnockback(victim, ent.Owner, 3, comp.SkyJumpKnockbackForce);
+                _knockback.ApplyKnockback(victim, away, 3, comp.SkyJumpKnockbackForce);
                 _damageable.TryChangeDamage(victim, blast, origin: ent.Owner);
-                _stun.TryUpdateStunDuration(victim, TimeSpan.FromSeconds(2f));
             }
             else
             {
-                _knockback.ApplyKnockback(victim, ent.Owner, 3);
+                _knockback.ApplyKnockback(victim, away, 3);
                 Slow(victim, 0.55f, 3f);
             }
         }
@@ -278,7 +279,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         CollectVictims(landing + heading, mapId, comp.DashHitRadius);
         foreach (var (victim, _) in _victims)
         {
-            _knockback.ApplyKnockback(victim, ent.Owner, 3, comp.DashKnockbackForce);
+            _knockback.ApplyKnockback(victim, heading, 3, comp.DashKnockbackForce);
             _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
         }
 

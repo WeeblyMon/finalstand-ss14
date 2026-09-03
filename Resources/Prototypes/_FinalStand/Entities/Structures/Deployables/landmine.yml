@@ -13,6 +13,7 @@
     state: landmine
   - type: FSLandmine
   - type: FSDeployableItem
+    requiresScience: false
     deployedProtoId: FSLandmineDeployed
     stock: 3
     maxStock: 3
