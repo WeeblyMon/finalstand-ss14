@@ -47,6 +47,8 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
 
+    private const int DashProbeSteps = 8;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -100,7 +102,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         if (now >= comp.NextBoulder && distance >= comp.BoulderMinRange && distance <= comp.BoulderMaxRange)
         {
             Begin(ent, FSGiantAbility.BoulderWindup, comp.BoulderWindup, now);
-            DrawLane(ent, origin, targetPos, xform.MapID);
+            DrawLane(ent, origin, targetPos, xform.MapID, 1.2f);
             return true;
         }
 
@@ -108,8 +110,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             return false;
 
         Begin(ent, FSGiantAbility.DashWindup, comp.DashWindup, now);
-        DrawLane(ent, origin, targetPos, xform.MapID);
-        SpawnFist(ent, origin, targetPos, xform.MapID);
+        DrawLane(ent, origin, origin + (targetPos - origin).Normalized() * comp.DashDistance, xform.MapID, 0.9f);
         return true;
     }
 
@@ -180,20 +181,21 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         CollectVictims(comp.LockedTarget, xform.MapID, comp.SkyJumpOuterRadius);
         foreach (var (victim, distance) in _victims)
         {
+            // Knockback first: a downed body has too much friction to be thrown anywhere.
             if (distance <= comp.SkyJumpRadius)
             {
+                _knockback.ApplyKnockback(victim, ent.Owner, 3, comp.SkyJumpKnockbackForce);
                 _damageable.TryChangeDamage(victim, blast, origin: ent.Owner);
-                _stun.TryKnockdown(victim, TimeSpan.FromSeconds(2.5));
-                _knockback.ApplyKnockback(victim, ent.Owner, 3);
+                _stun.TryUpdateStunDuration(victim, TimeSpan.FromSeconds(2f));
             }
             else
             {
-                _knockback.ApplyKnockback(victim, ent.Owner, 2);
+                _knockback.ApplyKnockback(victim, ent.Owner, 3);
                 Slow(victim, 0.55f, 3f);
             }
-
-            Shake(victim, comp.LockedTarget, 1f - distance / comp.SkyJumpOuterRadius);
         }
+
+        ShakeArea(comp.LockedTarget, xform.MapID, comp.ShakeRadius);
 
         comp.NextSkyJump = now + TimeSpan.FromSeconds(comp.SkyJumpCooldown);
         Finish(ent, now);
@@ -232,18 +234,19 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
         var heading = direction.Normalized();
         var landing = origin;
+        var originCoords = new MapCoordinates(origin, mapId);
 
-        for (var step = 1; step <= 6; step++)
+        for (var step = 1; step <= DashProbeSteps; step++)
         {
-            var probe = origin + heading * (comp.DashDistance * step / 6f);
-            if (!_interaction.InRangeUnobstructed(new MapCoordinates(origin, mapId), new MapCoordinates(probe, mapId)))
+            var probe = origin + heading * (comp.DashDistance * step / DashProbeSteps);
+            if (!_interaction.InRangeUnobstructed(originCoords, new MapCoordinates(probe, mapId), comp.DashDistance + 1f))
                 break;
 
             landing = probe;
-            Spawn(comp.LaneProto, new MapCoordinates(probe, mapId));
         }
 
         _transform.SetWorldPosition(ent.Owner, landing);
+        SpawnFist(ent, landing, heading, mapId);
         _audio.PlayPvs(comp.ImpactSound, ent.Owner);
 
         var punch = new DamageSpecifier();
@@ -252,11 +255,12 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         CollectVictims(landing, mapId, comp.DashHitRadius);
         foreach (var (victim, _) in _victims)
         {
+            _knockback.ApplyKnockback(victim, ent.Owner, 3, comp.DashKnockbackForce);
             _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
-            _knockback.ApplyKnockback(victim, ent.Owner, 5);
             _stun.TryUpdateStunDuration(victim, TimeSpan.FromSeconds(1.5));
-            Shake(victim, landing, 1f);
         }
+
+        ShakeArea(landing, mapId, comp.ShakeRadius);
 
         Finish(ent, now);
     }
@@ -290,29 +294,29 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         ent.Comp.LaneEntities.Clear();
     }
 
-    private void DrawLane(Entity<FSGiantAbilitiesComponent> ent, Vector2 origin, Vector2 target, MapId mapId)
+    private void DrawLane(Entity<FSGiantAbilitiesComponent> ent, Vector2 origin, Vector2 target, MapId mapId, float width)
     {
         var direction = target - origin;
         var length = direction.Length();
         if (length < 0.5f)
             return;
 
-        var heading = direction / length;
-        var steps = Math.Min(20, (int) length);
+        var lane = Spawn(ent.Comp.LaneProto, new MapCoordinates(origin + direction * 0.5f, mapId));
+        _transform.SetWorldRotation(lane, direction.ToWorldAngle());
 
-        for (var i = 1; i <= steps; i++)
-            ent.Comp.LaneEntities.Add(Spawn(ent.Comp.LaneProto, new MapCoordinates(origin + heading * i, mapId)));
+        var comp = EnsureComp<FSGiantLaneComponent>(lane);
+        comp.Length = length;
+        comp.Width = width;
+        Dirty(lane, comp);
+
+        ent.Comp.LaneEntities.Add(lane);
     }
 
-    private void SpawnFist(Entity<FSGiantAbilitiesComponent> ent, Vector2 origin, Vector2 target, MapId mapId)
+    // Thrown at the end of the dash, so the punch lands with the giant rather than telegraphing it.
+    private void SpawnFist(Entity<FSGiantAbilitiesComponent> ent, Vector2 landing, Vector2 heading, MapId mapId)
     {
-        var direction = target - origin;
-        if (direction.LengthSquared() < 0.01f)
-            return;
-
-        var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(origin + direction.Normalized(), mapId));
-        _transform.SetWorldRotation(fist, direction.ToWorldAngle());
-        ent.Comp.LaneEntities.Add(fist);
+        var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(landing + heading * 0.8f, mapId));
+        _transform.SetWorldRotation(fist, heading.ToWorldAngle());
     }
 
     private EntityUid? FindTarget(Vector2 origin, MapId mapId, float range)
@@ -366,15 +370,24 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _movement.RefreshMovementSpeedModifiers(target);
     }
 
-    private void Shake(EntityUid target, Vector2 origin, float magnitude)
+    private void ShakeArea(Vector2 origin, MapId mapId, float radius)
     {
-        if (magnitude <= 0.01f)
-            return;
+        var watchers = _actorPool.Get();
+        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, watchers);
 
-        var direction = _transform.GetWorldPosition(target) - origin;
-        if (direction == Vector2.Zero)
-            direction = new Vector2(1f, 0f);
+        foreach (var (watcher, _) in watchers)
+        {
+            var direction = _transform.GetWorldPosition(watcher) - origin;
+            var magnitude = 1f - MathF.Min(direction.Length() / radius, 1f);
+            if (magnitude <= 0.02f)
+                continue;
 
-        _recoil.KickCamera(target, direction.Normalized() * magnitude);
+            if (direction == Vector2.Zero)
+                direction = new Vector2(1f, 0f);
+
+            _recoil.KickCamera(watcher, direction.Normalized() * magnitude);
+        }
+
+        _actorPool.Return(watchers);
     }
 }

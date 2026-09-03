@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Interaction;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
@@ -21,6 +22,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly SoundPathSpecifier FireSound = new("/Audio/Weapons/Guns/Gunshots/mk58.ogg");
@@ -37,6 +39,8 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
     private void OnDeployed(Entity<FSSentryTurretComponent> ent, ref FSDeployableDeployedEvent args)
     {
+        ent.Comp.OwnerPlayer = args.User;
+
         if (TryComp<FSSentryTurretComponent>(args.Item, out var item))
         {
             ent.Comp.MaxAmmo = item.MaxAmmo;
@@ -89,6 +93,9 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
         foreach (var (candidate, _) in candidates)
         {
+            if (!_mobState.IsAlive(candidate))
+                continue;
+
             var distance = (_transform.GetWorldPosition(candidate) - origin).LengthSquared();
             if (distance >= bestDistance)
                 continue;
@@ -111,10 +118,12 @@ public sealed class FSSentryTurretSystem : EntitySystem
         if (TryComp<ProjectileComponent>(projectile, out var proj))
             proj.Damage *= turret.DamageMultiplier;
 
-        _gun.ShootProjectile(projectile, direction, Vector2.Zero, uid, uid, turret.ProjectileSpeed);
+        var shooter = turret.OwnerPlayer is { } owner && !TerminatingOrDeleted(owner) ? owner : uid;
+        _gun.ShootProjectile(projectile, direction, Vector2.Zero, uid, shooter, turret.ProjectileSpeed);
         _audio.PlayPvs(FireSound, uid, AudioParams.Default.WithVolume(-6f));
 
-        _appearance.SetData(uid, FSSentryTurretVisuals.Angle, direction.ToWorldAngle().Theta);
+        var facing = direction.ToWorldAngle() + Angle.FromDegrees(turret.SpriteAngleOffset);
+        _appearance.SetData(uid, FSSentryTurretVisuals.Angle, facing.Theta);
         _appearance.SetData(uid, FSSentryTurretVisuals.Firing, true);
 
         turret.Ammo--;

@@ -26,17 +26,20 @@ public sealed class FSGiantBoulderSystem : EntitySystem
         if (HasComp<MobStateComponent>(other) || HasComp<ProjectileComponent>(other))
             return;
 
-        if (!TryComp<DamageableComponent>(other, out _) || !Transform(other).Anchored)
+        if (!HasComp<DamageableComponent>(other) || !Transform(other).Anchored)
             return;
 
         var damage = new DamageSpecifier();
         damage.DamageDict["Structural"] = FixedPoint2.New(ent.Comp.StructuralDamage);
-        _damageable.TryChangeDamage(other, damage, ignoreResistances: true, origin: ent.Owner);
+        _damageable.TryChangeDamage(other, damage, origin: ent.Owner);
 
         Spawn(ent.Comp.ImpactEffect, Transform(other).Coordinates);
 
+        // Anything still standing after that hit is too solid to punch through.
+        var broke = TerminatingOrDeleted(other) || EntityManager.IsQueuedForDeletion(other);
         ent.Comp.StructurePierce--;
-        if (ent.Comp.StructurePierce > 0)
+
+        if (broke && ent.Comp.StructurePierce > 0)
             return;
 
         Spawn(ent.Comp.ImpactEffect, Transform(ent).Coordinates);

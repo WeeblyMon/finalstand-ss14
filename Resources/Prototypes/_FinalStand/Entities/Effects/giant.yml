@@ -13,24 +13,27 @@
   id: FSEffectGiantLaunchSmoke
   parent: FSGiantEffectBase
   name: dust cloud
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: Effects
     noRot: true
+    scale: 2,2
     sprite: _FinalStand/Effects/GiantLaunchSmoke.rsi
     state: effect
   - type: TimedDespawn
-    lifetime: 0.78
+    lifetime: 0.65
 
 - type: entity
   id: FSEffectGiantImpact
   parent: FSGiantEffectBase
   name: impact wave
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: Effects
     noRot: true
-    scale: 1.6,1.6
+    scale: 3,3
     sprite: _FinalStand/Effects/GiantImpactSmoke.rsi
     state: effect
   - type: TimedDespawn
@@ -40,10 +43,12 @@
   id: FSEffectBoulderImpact
   parent: FSGiantEffectBase
   name: wall dust
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: Effects
     noRot: true
+    scale: 1.5,1.5
     sprite: _FinalStand/Effects/GiantBoulderImpact.rsi
     state: effect
   - type: TimedDespawn
@@ -53,6 +58,7 @@
   id: FSGiantTelegraphRing
   parent: FSGiantEffectBase
   name: impact zone
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: FloorObjects
@@ -67,12 +73,13 @@
   id: FSGiantLaneMarker
   parent: FSGiantEffectBase
   name: danger lane
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: FloorObjects
-    noRot: true
     sprite: _FinalStand/Effects/GiantLane.rsi
     state: lane
+  - type: FSGiantLane
   - type: TimedDespawn
     lifetime: 1.2
 
@@ -80,14 +87,15 @@
   id: FSGiantFist
   parent: FSGiantEffectBase
   name: cocked fist
+  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: Mobs
-    scale: 2,2
+    scale: 2.5,2.5
     sprite: _FinalStand/Effects/GiantFist.rsi
     state: fist
   - type: TimedDespawn
-    lifetime: 0.6
+    lifetime: 0.45
 
 - type: entity
   id: FSGiantBoulder

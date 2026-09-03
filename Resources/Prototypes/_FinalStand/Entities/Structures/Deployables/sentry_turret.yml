@@ -42,6 +42,7 @@
       map: [ "enum.FSSentryTurretLayers.Gun" ]
   - type: Appearance
   - type: FSSentryTurret
+  - type: Clickable
   - type: InteractionOutline
   - type: Physics
     bodyType: Static
@@ -73,3 +74,15 @@
           collection: MetalBreak
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+
+# Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
+- type: entity
+  id: FSSentryBullet
+  parent: BaseBullet
+  name: sentry round
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Cellular: 16

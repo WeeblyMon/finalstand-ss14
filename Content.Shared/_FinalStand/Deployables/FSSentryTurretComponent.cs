@@ -23,7 +23,13 @@ public sealed partial class FSSentryTurretComponent : Component
     public float DamageMultiplier = 1f;
 
     [DataField]
-    public EntProtoId ProjectileProto = "BulletPistol";
+    public EntProtoId ProjectileProto = "FSSentryBullet";
+
+    // The gun art is drawn pointing north; world angle zero is south.
+    [DataField]
+    public float SpriteAngleOffset = 180f;
+
+    public EntityUid? OwnerPlayer;
 
     [DataField]
     public float ProjectileSpeed = 25f;
