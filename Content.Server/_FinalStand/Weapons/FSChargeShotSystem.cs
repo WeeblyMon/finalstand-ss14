@@ -5,6 +5,7 @@ using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
@@ -13,6 +14,7 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
     {
@@ -43,7 +45,9 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
             if (pierce > 0)
                 EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
 
-            EnsureComp<FSRicochetComponent>(projUid).Bounces = bounces;
+            var ricochet = EnsureComp<FSRicochetComponent>(projUid);
+            ricochet.Bounces = bounces;
+            ricochet.NextBounce = _timing.CurTime + ricochet.ArmDelay;
 
             if (TryComp<PhysicsComponent>(projUid, out var body))
                 _physics.SetLinearVelocity(projUid, body.LinearVelocity * speedMul, body: body);
