@@ -199,6 +199,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
+        comp.PrepEndUnshaved = comp.PhaseEndTime;
         comp.IsDarkWaveUpcoming = false;
         comp.LightFlickerAccum = 0f;
         comp.LightFlickerIntervalMin = DefaultFlickerMin;
@@ -417,7 +418,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     // Pays out the prep time the crew gives up, so starting early is worth something.
     private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
     {
-        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
+        var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
         if (skipped <= TimeSpan.Zero)
             return;
 

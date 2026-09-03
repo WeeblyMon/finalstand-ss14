@@ -8,11 +8,14 @@
   components:
   - type: Item
     size: Huge
+    shape:
+    - 0,0,2,2
   - type: Sprite
     sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
     state: icon
   - type: FSSentryTurret
   - type: FSDeployableItem
+    requiresScience: false
     deployedProtoId: FSSentryTurretDeployed
     stock: 1
     maxStock: 1

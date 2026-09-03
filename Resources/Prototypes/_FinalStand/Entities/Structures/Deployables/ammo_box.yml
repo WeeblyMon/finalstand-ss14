@@ -20,6 +20,7 @@
           True: { state: upgraded }
           False: { state: base }
   - type: FSDeployableItem
+    requiresScience: false
     deployedProtoId: FSAmmoBoxDeployed
     stock: 1
     maxStock: 1

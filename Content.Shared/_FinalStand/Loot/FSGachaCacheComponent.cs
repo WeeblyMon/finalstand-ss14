@@ -5,18 +5,15 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Loot;
 
-// maintenance loot cache: crack it open by hacking (loud) or by paying (quiet)
+// maintenance loot cache: pay the slot, take one roll from the tiered pools
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSGachaCacheComponent : Component
 {
     [DataField, AutoNetworkedField]
     public int UsesLeft = 1;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public int Price = 3500;
-
-    [DataField]
-    public TimeSpan HackDuration = TimeSpan.FromSeconds(15);
 
     [DataField]
     public ProtoId<WeightedRandomEntityPrototype> CommonPool = "FSGachaImprovised";

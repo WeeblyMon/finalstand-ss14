@@ -43,7 +43,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (user is not { } deployer)
             return false;
 
-        if (!_science.IsScience(deployer))
+        if (comp.RequiresScience && !_science.IsScience(deployer))
         {
             _popup.PopupEntity(Loc.GetString("fs-science-only-use"), deployer, deployer);
             return false;

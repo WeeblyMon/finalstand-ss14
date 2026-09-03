@@ -66,6 +66,13 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
             if (comp.Current != FSGiantAbility.None)
             {
+                if (comp.Current == FSGiantAbility.DashTravel && now < comp.PhaseEnd)
+                {
+                    var progress = 1f - (float) (comp.PhaseEnd - now).TotalSeconds / comp.DashTravelTime;
+                    _transform.SetWorldPosition(uid, Vector2.Lerp(comp.DashOrigin, comp.DashLanding, progress));
+                    continue;
+                }
+
                 if (now >= comp.PhaseEnd)
                     Advance((uid, comp), xform, now);
                 continue;
@@ -129,6 +136,9 @@ public sealed class FSGiantAbilitySystem : EntitySystem
                 break;
             case FSGiantAbility.DashWindup:
                 Dash(ent, xform, now);
+                break;
+            case FSGiantAbility.DashTravel:
+                LandDash(ent, xform, now);
                 break;
         }
     }
@@ -245,6 +255,19 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             landing = probe;
         }
 
+        comp.DashOrigin = origin;
+        comp.DashLanding = landing;
+        Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);
+    }
+
+    private void LandDash(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
+    {
+        var comp = ent.Comp;
+        var mapId = xform.MapID;
+        var landing = comp.DashLanding;
+        var heading = comp.DashLanding - comp.DashOrigin;
+        heading = heading.LengthSquared() > 0.01f ? heading.Normalized() : new Vector2(0f, -1f);
+
         _transform.SetWorldPosition(ent.Owner, landing);
         SpawnFist(ent, landing, heading, mapId);
         _audio.PlayPvs(comp.ImpactSound, ent.Owner);
@@ -252,16 +275,14 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var punch = new DamageSpecifier();
         punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
 
-        CollectVictims(landing, mapId, comp.DashHitRadius);
+        CollectVictims(landing + heading, mapId, comp.DashHitRadius);
         foreach (var (victim, _) in _victims)
         {
             _knockback.ApplyKnockback(victim, ent.Owner, 3, comp.DashKnockbackForce);
             _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
-            _stun.TryUpdateStunDuration(victim, TimeSpan.FromSeconds(1.5));
         }
 
         ShakeArea(landing, mapId, comp.ShakeRadius);
-
         Finish(ent, now);
     }
 
@@ -315,7 +336,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     // Thrown at the end of the dash, so the punch lands with the giant rather than telegraphing it.
     private void SpawnFist(Entity<FSGiantAbilitiesComponent> ent, Vector2 landing, Vector2 heading, MapId mapId)
     {
-        var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(landing + heading * 0.8f, mapId));
+        var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(landing + heading * 1.3f, mapId));
         _transform.SetWorldRotation(fist, heading.ToWorldAngle());
     }
 

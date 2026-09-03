@@ -18,7 +18,7 @@ public sealed partial class FSLandmineComponent : Component
     public float IntensitySlope = 4f;
 
     [DataField]
-    public float TotalIntensity = 8f;
+    public float TotalIntensity = 9.6f;
 
     [DataField]
     public float MaxIntensity = 4f;
@@ -28,6 +28,8 @@ public sealed partial class FSLandmineComponent : Component
 
     [DataField]
     public bool HighExplosive;
+
+    public EntityUid? OwnerPlayer;
 
     [DataField]
     public float HighExplosiveTotalIntensity = 45f;

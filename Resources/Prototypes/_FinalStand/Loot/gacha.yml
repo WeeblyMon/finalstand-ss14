@@ -58,14 +58,19 @@
     sprite: Structures/Storage/closet.rsi
     layers:
     - state: generic
-      map: [ "base" ]
+      map: [ "body" ]
+    - state: generic_door
+      map: [ "door" ]
   - type: Appearance
   - type: GenericVisualizer
     visuals:
       enum.FSGachaCacheVisuals.Looted:
-        base:
+        body:
           True: { state: generic_open }
           False: { state: generic }
+        door:
+          True: { visible: false }
+          False: { visible: true }
   - type: FSGachaCache
   - type: InteractionOutline
   - type: Physics

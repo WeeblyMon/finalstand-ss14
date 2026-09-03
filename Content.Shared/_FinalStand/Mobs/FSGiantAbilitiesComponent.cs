@@ -59,7 +59,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpKnockbackForce = 2.2f;
 
     [DataField]
-    public float DashKnockbackForce = 2.6f;
+    public float DashKnockbackForce = 3.6f;
 
     [DataField]
     public float ShakeRadius = 40f;
@@ -72,6 +72,9 @@ public sealed partial class FSGiantAbilitiesComponent : Component
 
     [DataField]
     public float DashWindup = 0.45f;
+
+    [DataField]
+    public float DashTravelTime = 0.28f;
 
     [DataField]
     public float DashDistance = 5f;
@@ -116,6 +119,8 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public TimeSpan NextBoulder;
     public TimeSpan NextDash;
     public Vector2 LockedTarget;
+    public Vector2 DashOrigin;
+    public Vector2 DashLanding;
     public EntityUid? TelegraphEntity;
     public readonly List<EntityUid> LaneEntities = new();
 }
@@ -128,6 +133,7 @@ public enum FSGiantAbility : byte
     SkyJumpAir,
     BoulderWindup,
     DashWindup,
+    DashTravel,
 }
 
 [Serializable, NetSerializable]
