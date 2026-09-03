@@ -31,6 +31,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
@@ -102,6 +104,10 @@ public sealed partial class FSMediGunSystem : EntitySystem
         var scale = GetHealScale((healed, damageable), comp);
         if (scale <= 0f)
             return true;
+
+        // Stabilisation only pays out on someone actually going down - it is not a general damage buff.
+        if (comp.ParentEntity is { } medic && _mobState.IsCritical(healed))
+            scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
 
         _damageable.TryChangeDamage(
             healed,

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
@@ -36,6 +37,7 @@ public sealed partial class HealingSystem : EntitySystem
     [Dependency] private MobThresholdSystem _mobThresholdSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
 
     public override void Initialize()
     {
@@ -137,7 +139,9 @@ public sealed partial class HealingSystem : EntitySystem
 
         // Update our self heal delay so it shortens as we heal more damage.
         if (args.User == target.Owner)
-            args.Args.Delay = healing.Delay * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier);
+            args.Args.Delay = healing.Delay
+                * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
+                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed); // FINALSTAND
     }
 
     private bool HasDamage(Entity<HealingComponent> healing, Entity<DamageableComponent> target)
@@ -230,6 +234,9 @@ public sealed partial class HealingSystem : EntitySystem
         var delay = isNotSelf
             ? healing.Comp.Delay
             : healing.Comp.Delay * GetScaledHealingPenalty(target, healing.Comp.SelfHealPenaltyMultiplier);
+
+        // FINALSTAND: the only hook medical buffs have on treatment speed.
+        delay *= _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.TreatmentSpeed);
 
         var doAfterEventArgs =
             new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: healing)
