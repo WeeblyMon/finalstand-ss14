@@ -11,9 +11,9 @@ public sealed class FSChargeShotSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedGunSystem _gun = default!;
 
-    // The client stops sending shoot attempts the moment the trigger comes up, so a gap this long
-    // means released rather than mid-hold.
-    private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(150);
+    // The client only sends a shoot request while NextFire has elapsed, so the cooldown is cleared
+    // every tick below to keep that stream running. A gap longer than this means the trigger is up.
+    private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(200);
 
     private EntityUid? _firing;
 
@@ -44,29 +44,34 @@ public sealed class FSChargeShotSystem : EntitySystem
         base.Update(frameTime);
 
         var now = _timing.CurTime;
-        var query = EntityQueryEnumerator<FSChargeShotComponent>();
-        while (query.MoveNext(out var uid, out var comp))
+        var query = EntityQueryEnumerator<FSChargeShotComponent, GunComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var gun))
         {
             if (comp.ChargeStart is not { } start)
                 continue;
 
+            if (now - comp.LastHeld >= ReleaseGrace)
+            {
+                Release((uid, comp), gun);
+                continue;
+            }
+
+            // Cancelling a shot pushes NextFire out by SafetyNextFire, which throttles the client's
+            // requests to one every half second. Undo it so held triggers report every tick.
+            _gun.ClearFireCooldown((uid, gun), now);
+
             var held = (float) (now - start).TotalSeconds;
             var charge = Math.Clamp(held / comp.MaxChargeTime, 0f, 1f);
 
-            if (!MathHelper.CloseTo(comp.Charge, charge, 0.01f))
-            {
-                comp.Charge = charge;
-                Dirty(uid, comp);
-            }
-
-            if (now - comp.LastHeld < ReleaseGrace)
+            if (MathHelper.CloseTo(comp.Charge, charge, 0.01f))
                 continue;
 
-            Release((uid, comp));
+            comp.Charge = charge;
+            Dirty(uid, comp);
         }
     }
 
-    private void Release(Entity<FSChargeShotComponent> ent)
+    private void Release(Entity<FSChargeShotComponent> ent, GunComponent gun)
     {
         var comp = ent.Comp;
         var shooter = comp.Shooter;
@@ -75,8 +80,7 @@ public sealed class FSChargeShotSystem : EntitySystem
         comp.ChargeStart = null;
         comp.LastHeld = TimeSpan.Zero;
 
-        if (shooter is { } user && !TerminatingOrDeleted(user) && coords is { } target &&
-            TryComp<GunComponent>(ent, out var gun))
+        if (shooter is { } user && !TerminatingOrDeleted(user) && coords is { } target)
         {
             _gun.ClearFireCooldown((ent.Owner, gun), _timing.CurTime);
 

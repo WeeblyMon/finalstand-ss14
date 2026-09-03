@@ -1,8 +1,8 @@
 using System.Numerics;
-using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Robust.Shared.Physics.Components;
 using Content.Shared.Camera;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -27,7 +27,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
@@ -44,6 +43,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(new SetPolicy<Entity<ActorComponent>>());
 
     private readonly List<(EntityUid Victim, float Distance)> _victims = new();
+    private readonly HashSet<EntityUid> _swept = new();
 
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
 
@@ -109,16 +109,39 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         if (now >= comp.NextBoulder && distance >= comp.BoulderMinRange && distance <= comp.BoulderMaxRange)
         {
             Begin(ent, FSGiantAbility.BoulderWindup, comp.BoulderWindup, now);
-            DrawLane(ent, origin, targetPos, xform.MapID, 1.2f);
+            var lane = origin + (targetPos - origin).Normalized() * comp.BoulderMaxRange;
+            DrawLane(ent, origin, lane, xform.MapID, 1.2f);
             return true;
         }
 
         if (now < comp.NextDash || distance < comp.DashMinRange || distance > comp.DashMaxRange)
             return false;
 
+        comp.DashHeading = (targetPos - origin).Normalized();
+        comp.DashOrigin = origin;
+        comp.DashLanding = ProbeDash(origin, comp.DashHeading, comp.DashDistance, xform.MapID);
+
         Begin(ent, FSGiantAbility.DashWindup, comp.DashWindup, now);
-        DrawLane(ent, origin, origin + (targetPos - origin).Normalized() * comp.DashDistance, xform.MapID, 0.9f);
+        DrawLane(ent, origin, comp.DashLanding, xform.MapID, 0.9f);
         return true;
+    }
+
+    // Walks the dash line and returns the furthest point still in the clear.
+    private Vector2 ProbeDash(Vector2 origin, Vector2 heading, float distance, MapId mapId)
+    {
+        var originCoords = new MapCoordinates(origin, mapId);
+        var landing = origin;
+
+        for (var step = 1; step <= DashProbeSteps; step++)
+        {
+            var probe = origin + heading * (distance * step / DashProbeSteps);
+            if (!_interaction.InRangeUnobstructed(originCoords, new MapCoordinates(probe, mapId), distance + 1f))
+                break;
+
+            landing = probe;
+        }
+
+        return landing;
     }
 
     private void Advance(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
@@ -196,12 +219,12 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
             if (distance <= comp.SkyJumpRadius)
             {
-                _knockback.ApplyKnockback(victim, away, 3, comp.SkyJumpKnockbackForce);
+                Shove(victim, away, comp.SkyJumpKnockbackSpeed, comp.KnockbackDuration);
                 _damageable.TryChangeDamage(victim, blast, origin: ent.Owner);
             }
             else
             {
-                _knockback.ApplyKnockback(victim, away, 3);
+                Shove(victim, away, comp.SkyJumpKnockbackSpeed * 0.6f, comp.KnockbackDuration);
                 Slow(victim, 0.55f, 3f);
             }
         }
@@ -231,33 +254,17 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     private void Dash(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
     {
         var comp = ent.Comp;
-        var origin = _transform.GetWorldPosition(xform);
-        var direction = comp.LockedTarget - origin;
-        var mapId = xform.MapID;
-
         comp.NextDash = now + TimeSpan.FromSeconds(comp.DashCooldown);
 
-        if (direction.LengthSquared() < 0.01f)
+        if (comp.DashHeading.LengthSquared() < 0.01f)
         {
             Finish(ent, now);
             return;
         }
 
-        var heading = direction.Normalized();
-        var landing = origin;
-        var originCoords = new MapCoordinates(origin, mapId);
-
-        for (var step = 1; step <= DashProbeSteps; step++)
-        {
-            var probe = origin + heading * (comp.DashDistance * step / DashProbeSteps);
-            if (!_interaction.InRangeUnobstructed(originCoords, new MapCoordinates(probe, mapId), comp.DashDistance + 1f))
-                break;
-
-            landing = probe;
-        }
-
-        comp.DashOrigin = origin;
-        comp.DashLanding = landing;
+        // Re-probe from where the giant actually stands now, keeping the heading it committed to.
+        comp.DashOrigin = _transform.GetWorldPosition(xform);
+        comp.DashLanding = ProbeDash(comp.DashOrigin, comp.DashHeading, comp.DashDistance, xform.MapID);
         Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);
     }
 
@@ -266,8 +273,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var comp = ent.Comp;
         var mapId = xform.MapID;
         var landing = comp.DashLanding;
-        var heading = comp.DashLanding - comp.DashOrigin;
-        heading = heading.LengthSquared() > 0.01f ? heading.Normalized() : new Vector2(0f, -1f);
+        var heading = comp.DashHeading;
 
         _transform.SetWorldPosition(ent.Owner, landing);
         SpawnFist(ent, landing, heading, mapId);
@@ -276,11 +282,24 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var punch = new DamageSpecifier();
         punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
 
-        CollectVictims(landing + heading, mapId, comp.DashHitRadius);
-        foreach (var (victim, _) in _victims)
+        // Sweep the whole dash line: anyone run through counts, not just whoever is at the end.
+        _swept.Clear();
+        var travelled = (landing - comp.DashOrigin).Length();
+        var samples = Math.Max(1, (int) MathF.Ceiling(travelled));
+
+        for (var i = 0; i <= samples; i++)
         {
-            _knockback.ApplyKnockback(victim, heading, 3, comp.DashKnockbackForce);
-            _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
+            var point = Vector2.Lerp(comp.DashOrigin, landing + heading * 0.5f, (float) i / samples);
+            CollectVictims(point, mapId, comp.DashHitRadius);
+
+            foreach (var (victim, _) in _victims)
+            {
+                if (!_swept.Add(victim))
+                    continue;
+
+                Shove(victim, heading, comp.DashKnockbackSpeed, comp.KnockbackDuration);
+                _damageable.TryChangeDamage(victim, punch, origin: ent.Owner);
+            }
         }
 
         ShakeArea(landing, mapId, comp.ShakeRadius);
@@ -382,6 +401,27 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         }
 
         _actorPool.Return(candidates);
+    }
+
+    private void Shove(EntityUid target, Vector2 direction, float speed, float seconds)
+    {
+        if (HasComp<FSKnockedBackComponent>(target) || !TryComp<PhysicsComponent>(target, out var body))
+            return;
+
+        if (TryComp<FSKnockbackResistComponent>(target, out var resist))
+            speed *= resist.Multiplier;
+
+        if (speed <= 0f)
+            return;
+
+        if (direction.LengthSquared() < 0.001f)
+            direction = new Vector2(0f, -1f);
+
+        _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(direction) * speed, body: body);
+
+        var comp = EnsureComp<FSKnockedBackComponent>(target);
+        comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
+        Dirty(target, comp);
     }
 
     private void Slow(EntityUid target, float factor, float seconds)

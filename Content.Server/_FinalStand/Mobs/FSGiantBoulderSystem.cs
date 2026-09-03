@@ -5,6 +5,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics.Events;
 
 namespace Content.Server._FinalStand.Mobs;
@@ -12,6 +13,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed class FSGiantBoulderSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     public override void Initialize()
     {
@@ -34,6 +36,7 @@ public sealed class FSGiantBoulderSystem : EntitySystem
         _damageable.TryChangeDamage(other, damage, origin: ent.Owner);
 
         Spawn(ent.Comp.ImpactEffect, Transform(other).Coordinates);
+        _audio.PlayPvs(ent.Comp.ImpactSound, other);
 
         // Anything still standing after that hit is too solid to punch through.
         var broke = TerminatingOrDeleted(other) || EntityManager.IsQueuedForDeletion(other);

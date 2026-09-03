@@ -56,10 +56,13 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpDamage = 55f;
 
     [DataField]
-    public float SkyJumpKnockbackForce = 2.2f;
+    public float SkyJumpKnockbackSpeed = 15f;
 
     [DataField]
-    public float DashKnockbackForce = 3.6f;
+    public float DashKnockbackSpeed = 12f;
+
+    [DataField]
+    public float KnockbackDuration = 0.45f;
 
     [DataField]
     public float ShakeRadius = 40f;
@@ -74,7 +77,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float DashWindup = 0.45f;
 
     [DataField]
-    public float DashTravelTime = 0.28f;
+    public float DashTravelTime = 0.5f;
 
     [DataField]
     public float DashDistance = 5f;
@@ -121,6 +124,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public Vector2 LockedTarget;
     public Vector2 DashOrigin;
     public Vector2 DashLanding;
+    public Vector2 DashHeading;
     public EntityUid? TelegraphEntity;
     public readonly List<EntityUid> LaneEntities = new();
 }
