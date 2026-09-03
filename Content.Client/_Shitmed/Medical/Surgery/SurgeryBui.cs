@@ -14,6 +14,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Linq;
 using Content.Shared._FinalStand.Medical;
 using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
@@ -49,6 +50,13 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private static readonly Color WarningColor = Color.FromHex("#C9A227");
     private static readonly Color DangerColor = Color.FromHex("#C0392B");
     private static readonly Color MutedColor = Color.FromHex("#7F8891");
+
+    // Reconciliation keys. The steps key carries the part as well as the surgery, because step
+    // buttons capture netPart in their closures - the same operation on a different limb must
+    // rebuild or it would send the message to the old limb.
+    private string? _partsKey;
+    private string? _surgeriesKey;
+    private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
 
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
@@ -123,15 +131,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
             };
         }
 
-        _window.Surgeries.DisposeAllChildren();
-        _window.Steps.DisposeAllChildren();
-        _window.Parts.DisposeAllChildren();
-        View(ViewType.Parts);
-
         var oldSurgery = _surgery;
         var oldPart = _part;
-        _part = null;
-        _surgery = null;
 
         var options = new List<(NetEntity netEntity, EntityUid entity, string Name, ProtoId<OrganCategoryPrototype>? Category)>();
         foreach (var choice in state.Choices.Keys)
@@ -154,31 +155,67 @@ public sealed partial class SurgeryBui : BoundUserInterface
             return GetScore(a.Category) - GetScore(b.Category);
         });
 
-        foreach (var (netEntity, entity, partName, _) in options)
+        // FINALSTAND: only rebuild the parts column when the set of parts actually changed. The old
+        // code tore down all three columns on every server state update, which killed scroll
+        // position and focus and made the window flicker mid-operation.
+        // Keyed on the available operations too, not just the limbs - a completed step can make a
+        // new operation available, and the part buttons capture their surgery list in a closure.
+        var partsKey = string.Join(';',
+            options.Select(o => $"{o.netEntity.Id}:{string.Join(',', state.Choices[o.netEntity])}"));
+        if (partsKey != _partsKey)
         {
-            //var netPart = _entities.GetNetEntity(part.Owner);
-            var surgeries = state.Choices[netEntity];
-            var partButton = new ChoiceControl();
+            _partsKey = partsKey;
+            _window.Parts.DisposeAllChildren();
 
-            partButton.Set(partName, null);
-            partButton.Button.OnPressed += _ => OnPartPressed(netEntity, surgeries);
-
-            _window.Parts.AddChild(partButton);
-
-            foreach (var surgeryId in surgeries)
+            foreach (var (netEntity, _, partName, _) in options)
             {
-                if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                    !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
-                    continue;
+                var surgeries = state.Choices[netEntity];
+                var partButton = new ChoiceControl();
 
-                if (oldPart == entity && oldSurgery?.Proto == surgeryId)
-                    OnSurgeryPressed((surgery, surgeryComp), netEntity, surgeryId);
+                partButton.Set(partName, null);
+                partButton.Button.OnPressed += _ => OnPartPressed(netEntity, surgeries);
+
+                _window.Parts.AddChild(partButton);
             }
-
-            if (oldPart == entity && oldSurgery == null)
-                OnPartPressed(netEntity, surgeries);
         }
 
+        // Re-apply the previous selection rather than dropping the player back to Parts.
+        var restored = false;
+        if (oldPart != null)
+        {
+            foreach (var (netEntity, entity, _, _) in options)
+            {
+                if (entity != oldPart)
+                    continue;
+
+                var surgeries = state.Choices[netEntity];
+                if (oldSurgery is { } selected
+                    && _system.GetSingleton(selected.Proto) is { } surgery
+                    && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+                {
+                    OnSurgeryPressed((surgery, surgeryComp), netEntity, selected.Proto);
+                }
+                else
+                {
+                    OnPartPressed(netEntity, surgeries);
+                }
+
+                restored = true;
+                break;
+            }
+        }
+
+        // The part is gone - amputated, most likely. Falling through to a stale selection would let
+        // the player keep operating on something that is no longer attached.
+        if (!restored)
+        {
+            _part = null;
+            _isBody = false;
+            _surgery = null;
+            _previousSurgeries.Clear();
+            View(ViewType.Parts);
+            RefreshUI();
+        }
 
         if (!_window.IsOpen)
             _window.OpenCentered();
@@ -207,30 +244,37 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _isBody = _entities.HasComponent<BodyComponent>(_part);
         _surgery = (surgery, surgeryId);
 
-        _window.Steps.DisposeAllChildren();
-
-        // This apparently does not consider if theres multiple surgery requirements in one surgery. Maybe thats fine.
-        if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
+        // FINALSTAND: the step list is static for a given part+surgery; only status changes, and
+        // RefreshUI owns that. Rebuilding here on every tick is what caused the flicker.
+        if (_stepsKey != (netPart, surgeryId))
         {
-            var label = new ChoiceControl();
-            label.Button.OnPressed += _ =>
+            _stepsKey = (netPart, surgeryId);
+            _window.Steps.DisposeAllChildren();
+
+            // This apparently does not consider if theres multiple surgery requirements in one surgery. Maybe thats fine.
+            if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
             {
-                _previousSurgeries.Add(surgeryId);
+                var label = new ChoiceControl();
+                label.Button.OnPressed += _ =>
+                {
+                    _previousSurgeries.Add(surgeryId);
 
-                if (_entities.TryGetComponent(requirement, out SurgeryComponent? requirementComp))
-                    OnSurgeryPressed((requirement, requirementComp), netPart, requirementId);
-            };
+                    if (_entities.TryGetComponent(requirement, out SurgeryComponent? requirementComp))
+                        OnSurgeryPressed((requirement, requirementComp), netPart, requirementId);
+                };
 
-            var msg = new FormattedMessage();
-            var surgeryName = _entities.GetComponent<MetaDataComponent>(requirement).EntityName;
-            msg.AddMarkup($"[bold]{Loc.GetString("surgery-ui-window-require")}: {surgeryName}[/bold]");
-            label.Set(msg, null);
+                var msg = new FormattedMessage();
+                var surgeryName = _entities.GetComponent<MetaDataComponent>(requirement).EntityName;
+                msg.AddMarkup($"[bold]{Loc.GetString("surgery-ui-window-require")}: {surgeryName}[/bold]");
+                label.Set(msg, null);
 
-            _window.Steps.AddChild(label);
-            _window.Steps.AddChild(new HSeparator { Margin = new Thickness(0, 0, 0, 1) });
+                _window.Steps.AddChild(label);
+                _window.Steps.AddChild(new HSeparator { Margin = new Thickness(0, 0, 0, 1) });
+            }
+
+            foreach (var stepId in surgery.Comp.Steps)
+                AddStep(stepId, netPart, surgeryId);
         }
-        foreach (var stepId in surgery.Comp.Steps)
-            AddStep(stepId, netPart, surgeryId);
 
         View(ViewType.Steps);
         RefreshUI();
@@ -243,37 +287,44 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         _part = _entities.GetEntity(netPart);
         _isBody = _entities.HasComponent<BodyComponent>(_part);
-        _window.Surgeries.DisposeAllChildren();
 
-        var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name)>();
-        foreach (var surgeryId in surgeryIds)
+        // FINALSTAND: rebuild only when the part or its available operations changed.
+        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}";
+        if (_surgeriesKey != key)
         {
-            if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+            _surgeriesKey = key;
+            _window.Surgeries.DisposeAllChildren();
+
+            var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name)>();
+            foreach (var surgeryId in surgeryIds)
             {
-                continue;
+                if (_system.GetSingleton(surgeryId) is not { } surgery ||
+                    !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+                {
+                    continue;
+                }
+
+                var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
+                surgeries.Add(((surgery, surgeryComp), surgeryId, name));
             }
 
-            var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
-            surgeries.Add(((surgery, surgeryComp), surgeryId, name));
-        }
+            surgeries.Sort((a, b) =>
+            {
+                var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
+                if (priority != 0)
+                    return priority;
 
-        surgeries.Sort((a, b) =>
-        {
-            var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
-            if (priority != 0)
-                return priority;
+                return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
+            });
 
-            return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
-        });
+            foreach (var surgery in surgeries)
+            {
+                var surgeryButton = new ChoiceControl();
+                surgeryButton.Set(surgery.Name, null);
 
-        foreach (var surgery in surgeries)
-        {
-            var surgeryButton = new ChoiceControl();
-            surgeryButton.Set(surgery.Name, null);
-
-            surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
-            _window.Surgeries.AddChild(surgeryButton);
+                surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
+                _window.Surgeries.AddChild(surgeryButton);
+            }
         }
 
         RefreshUI();
