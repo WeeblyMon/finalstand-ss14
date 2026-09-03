@@ -38,7 +38,7 @@
   parent: FSMedicalDirectiveBase
   id: FSMedicalDirectiveTraumaAction
   name: Directive - Trauma
-  description: A standing order. Revival, stabilisation and defibrillator recharge improve until another directive replaces it.
+  description: A standing order. Revival, stabilisation and defibrillator recharge improve. Press again to stand it down.
   components:
   - type: Sprite
     sprite: Objects/Specific/Medical/defibsmall.rsi
@@ -51,7 +51,7 @@
   parent: FSMedicalDirectiveBase
   id: FSMedicalDirectivePharmaAction
   name: Directive - Pharmaceutical
-  description: A standing order. Treatment is faster until another directive replaces it.
+  description: A standing order. Treatment is faster. Press again to stand it down.
   components:
   - type: Sprite
     sprite: Objects/Specific/Medical/hypospray.rsi
@@ -64,7 +64,7 @@
   parent: FSMedicalDirectiveBase
   id: FSMedicalDirectiveFieldOpsAction
   name: Directive - Field Operations
-  description: A standing order. Movement, casualty dragging and resistance to interruption improve until another directive replaces it.
+  description: A standing order. Movement, casualty dragging and resistance to interruption improve. Press again to stand it down.
   components:
   - type: Sprite
     sprite: Objects/Specific/Medical/healthanalyzer.rsi

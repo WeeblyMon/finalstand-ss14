@@ -1,0 +1,13 @@
+- type: entity
+  parent: BaseAction
+  id: FSCasualtyBoardAction
+  name: Casualty Board
+  description: Show everyone who has called for a medic, and mark yourself as responding.
+  components:
+  - type: Action
+    useDelay: 1
+  - type: Sprite
+    sprite: Objects/Specific/Medical/healthanalyzer.rsi
+    state: icon
+  - type: InstantAction
+    event: !type:FSCasualtyBoardActionEvent {}

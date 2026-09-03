@@ -20,6 +20,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private FSCasualtySystem _casualty = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
     private const string ScreamEmote = "Scream";
@@ -56,6 +57,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
 
         _chat.TryEmoteWithChat(user, ScreamEmote, ignoreActionBlocker: true, forceEmote: true);
         RaiseNetworkEvent(new FSMedicPingEvent(GetNetEntity(user), IsHurt(user)), Filter.Broadcast());
+        _casualty.RegisterCall(user);
     }
 
     private bool IsHurt(EntityUid uid)
