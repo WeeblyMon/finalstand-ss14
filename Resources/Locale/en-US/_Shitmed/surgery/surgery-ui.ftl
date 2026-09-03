@@ -19,6 +19,13 @@ surgery-error-laying = They need to be laying down!
 surgery-error-self-surgery = You can't perform surgery on yourself!
 surgery-part-damage-evaded = {$user} narrowly evaded!
 
+# FINALSTAND: single-screen layout.
+surgery-ui-column-body = BODY
+surgery-ui-column-operations = OPERATIONS
+surgery-ui-column-procedure = PROCEDURE
+surgery-ui-crumb-patient = Patient
+surgery-ui-perform = Perform
+
 # FINALSTAND: the persistent guidance bar.
 surgery-ui-guidance-select = Select a body part, then an operation.
 surgery-ui-guidance-cannot-operate = You cannot operate right now.

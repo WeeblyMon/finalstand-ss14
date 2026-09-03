@@ -20,12 +20,15 @@ using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Utility;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
@@ -57,6 +60,17 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private string? _partsKey;
     private string? _surgeriesKey;
     private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
+
+    // Doll slot brightness. Selection is brightness, never hue - see the colour note above.
+    private static readonly Color DollAbsentColor = new(0.25f, 0.27f, 0.30f);
+    private static readonly Color DollAvailableColor = new(0.85f, 0.85f, 0.85f);
+
+    private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
+    private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
+
+    private SurgeryStepButton? _nextStepButton;
+    private SurgeryDollControl? _doll;
+    private readonly Dictionary<TargetBodyPart, (NetEntity Net, List<EntProtoId> Surgeries)> _dollTargets = new();
 
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
@@ -92,42 +106,11 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.OnClose += Close;
             _window.Title = Loc.GetString("surgery-ui-window-title");
 
-            _window.PartsButton.OnPressed += _ =>
+            // One action, always in the same place, so the surgeon never hunts for the live step.
+            _window.PerformButton.OnPressed += _ =>
             {
-                _part = null;
-                _isBody = false;
-                _surgery = null;
-                _previousSurgeries.Clear();
-                View(ViewType.Parts);
-            };
-
-            _window.SurgeriesButton.OnPressed += _ =>
-            {
-                _surgery = null;
-                _previousSurgeries.Clear();
-
-                if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || State is not SurgeryBuiState s
-                    || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
-                    return;
-
-                OnPartPressed(netPart.Value, surgeries);
-            };
-
-            _window.StepsButton.OnPressed += _ =>
-            {
-                if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || _previousSurgeries.Count == 0)
-                    return;
-
-                var last = _previousSurgeries[^1];
-                _previousSurgeries.RemoveAt(_previousSurgeries.Count - 1);
-
-                if (_system.GetSingleton(last) is not { } previousId
-                    || !_entities.TryGetComponent(previousId, out SurgeryComponent? previous))
-                    return;
-
-                OnSurgeryPressed((previousId, previous), netPart.Value, last);
+                if (_nextStepButton is { } next)
+                    SendPredictedMessage(new SurgeryStepChosenBuiMsg(next.NetPart, next.SurgeryId, next.StepId, _isBody));
             };
         }
 
@@ -166,10 +149,21 @@ public sealed partial class SurgeryBui : BoundUserInterface
         {
             _partsKey = partsKey;
             _window.Parts.DisposeAllChildren();
+            _dollTargets.Clear();
 
-            foreach (var (netEntity, _, partName, _) in options)
+            foreach (var (netEntity, _, partName, category) in options)
             {
                 var surgeries = state.Choices[netEntity];
+
+                // Limbs the doll can draw go on the doll. Everything else - the body itself, and any
+                // anatomy the humanoid template does not cover - falls through to the list beside it,
+                // so a non-humanoid patient is never misrepresented by a human diagram.
+                if (OrganCategories.ToTarget(category) is { } target)
+                {
+                    _dollTargets[target] = (netEntity, surgeries);
+                    continue;
+                }
+
                 var partButton = new ChoiceControl();
 
                 partButton.Set(partName, null);
@@ -229,7 +223,13 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         var stepName = new FormattedMessage();
         stepName.AddText(_entities.GetComponent<MetaDataComponent>(step).EntityName);
-        var stepButton = new SurgeryStepButton { Step = step };
+        var stepButton = new SurgeryStepButton
+        {
+            Step = step,
+            StepId = stepId,
+            NetPart = netPart,
+            SurgeryId = surgeryId,
+        };
         stepButton.Button.OnPressed += _ => SendPredictedMessage(new SurgeryStepChosenBuiMsg(netPart, surgeryId, stepId, _isBody));
 
         _window.Steps.AddChild(stepButton);
@@ -336,6 +336,10 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null || !_window.IsOpen)
             return;
 
+        // Cleared up front so every early return below leaves Perform correctly dead.
+        _nextStepButton = null;
+        _window.PerformButton.Disabled = true;
+
         // FINALSTAND: the guidance bar is always populated, including in the states the old code
         // early-returned from - a stale line is worse than no line.
         if (_part == null || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
@@ -394,18 +398,21 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 stepName.Pop();
             }
 
-            if (status == StepStatus.Complete)
-                stepButton.Button.Modulate = Color.Green;
-            else
+            // FINALSTAND: brightness carries interaction state, so it can never be confused with the
+            // patient's condition. The glyph above does the same job for colour-blind players.
+            stepButton.Button.Modulate = status switch
             {
-                stepButton.Button.Modulate = Color.White;
-                if (status == StepStatus.Next)
-                {
-                    // First Next wins - a negative next.Step marks a whole run of them.
-                    nextButton ??= stepButton;
-                    if (!_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
-                        stepButton.ToolTip = popup;
-                }
+                StepStatus.Complete => StepCompleteColor,
+                StepStatus.Next => Color.White,
+                _ => StepLockedColor,
+            };
+
+            if (status == StepStatus.Next)
+            {
+                // First Next wins - a negative next.Step marks a whole run of them.
+                nextButton ??= stepButton;
+                if (!_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
+                    stepButton.ToolTip = popup;
             }
 
             var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
@@ -422,6 +429,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
     {
         if (_window == null)
             return;
+
+        _nextStepButton = next;
 
         if (next == null)
         {
@@ -443,6 +452,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         if (_system.CanPerformStepWithHeld(user, Owner, _part.Value, next.Step, false, out var popup, out var reason))
         {
+            _window.PerformButton.Disabled = false;
             SetGuidance(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);
             return;
         }
@@ -491,21 +501,15 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.GuidanceIcon.Visible = icon != null;
     }
 
+    // FINALSTAND: nothing is hidden any more, so this only maintains the header. Kept as View() so
+    // every existing call site still reads naturally.
     private void View(ViewType type)
     {
         if (_window == null)
             return;
 
-        _window.PartsButton.Parent!.Margin = new Thickness(0, 0, 0, 10);
-
-        _window.Parts.Visible = type == ViewType.Parts;
-        _window.PartsButton.Disabled = type == ViewType.Parts;
-
-        _window.Surgeries.Visible = type == ViewType.Surgeries;
-        _window.SurgeriesButton.Disabled = type != ViewType.Steps;
-
-        _window.Steps.Visible = type == ViewType.Steps;
-        _window.StepsButton.Disabled = type != ViewType.Steps || _previousSurgeries.Count == 0;
+        BuildBreadcrumb();
+        UpdateDoll();
 
         if (_entities.TryGetComponent(_part, out MetaDataComponent? partMeta) &&
             _entities.TryGetComponent(_surgery?.Ent, out MetaDataComponent? surgeryMeta))
@@ -514,6 +518,158 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = $"Surgery - {partMeta.EntityName}";
         else
             _window.Title = "Surgery";
+    }
+
+    // Handlers are wired once at construction and read _dollTargets on click, so rebuilding the part
+    // set never has to churn event subscriptions.
+    private SurgeryDollControl EnsureDoll()
+    {
+        if (_doll != null)
+            return _doll;
+
+        _doll = new SurgeryDollControl();
+
+        foreach (var (target, button) in _doll.Slots)
+        {
+            var slot = target;
+            button.OnPressed += _ =>
+            {
+                if (_dollTargets.TryGetValue(slot, out var entry))
+                    OnPartPressed(entry.Net, entry.Surgeries);
+            };
+        }
+
+        _window!.DollSlot.AddChild(_doll);
+        return _doll;
+    }
+
+    private void UpdateDoll()
+    {
+        if (_window == null)
+            return;
+
+        // Nothing on this patient maps to the humanoid diagram - hide it rather than show a dead one.
+        if (_dollTargets.Count == 0)
+        {
+            if (_doll != null)
+                _doll.Visible = false;
+
+            _window.BodyHeader.Visible = _window.Parts.ChildCount > 0;
+            return;
+        }
+
+        var doll = EnsureDoll();
+        doll.Visible = true;
+        _window.BodyHeader.Visible = true;
+
+        NetEntity? selected = _entities.TryGetNetEntity(_part, out var netPart) ? netPart : null;
+
+        foreach (var (target, button) in doll.Slots)
+        {
+            if (!_dollTargets.TryGetValue(target, out var entry))
+            {
+                button.Disabled = true;
+                button.Modulate = DollAbsentColor;
+                continue;
+            }
+
+            button.Disabled = false;
+            button.Modulate = selected == entry.Net ? Color.White : DollAvailableColor;
+        }
+    }
+
+    // Patient ▸ Left Arm ▸ [prerequisite chain] ▸ Amputation. Every segment but the last navigates,
+    // which is what the mislabelled Steps button was trying and failing to be.
+    private void BuildBreadcrumb()
+    {
+        if (_window == null)
+            return;
+
+        _window.Breadcrumb.DisposeAllChildren();
+
+        AddCrumb(Loc.GetString("surgery-ui-crumb-patient"), _part != null, () =>
+        {
+            _part = null;
+            _isBody = false;
+            _surgery = null;
+            _previousSurgeries.Clear();
+            View(ViewType.Parts);
+            RefreshUI();
+        });
+
+        if (_part == null)
+            return;
+
+        var partName = _entities.GetComponent<MetaDataComponent>(_part.Value).EntityName;
+        AddCrumb(partName, _surgery != null, () =>
+        {
+            _surgery = null;
+            _previousSurgeries.Clear();
+
+            if (!_entities.TryGetNetEntity(_part, out var netPart)
+                || State is not SurgeryBuiState s
+                || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
+                return;
+
+            OnPartPressed(netPart.Value, surgeries);
+        });
+
+        // The prerequisite chain, oldest first. Clicking one truncates back to it.
+        for (var i = 0; i < _previousSurgeries.Count; i++)
+        {
+            var index = i;
+            var protoId = _previousSurgeries[i];
+            if (_system.GetSingleton(protoId) is not { } ent)
+                continue;
+
+            var name = _entities.GetComponent<MetaDataComponent>(ent).EntityName;
+            AddCrumb(name, true, () =>
+            {
+                if (!_entities.TryGetNetEntity(_part, out var netPart)
+                    || !_entities.TryGetComponent(ent, out SurgeryComponent? comp))
+                    return;
+
+                _previousSurgeries.RemoveRange(index, _previousSurgeries.Count - index);
+                OnSurgeryPressed((ent, comp), netPart.Value, protoId);
+            });
+        }
+
+        if (_surgery is { } current)
+            AddCrumb(_entities.GetComponent<MetaDataComponent>(current.Ent).EntityName, false, null);
+    }
+
+    private void AddCrumb(string text, bool navigable, Action? onPressed)
+    {
+        if (_window == null)
+            return;
+
+        if (_window.Breadcrumb.ChildCount > 0)
+        {
+            _window.Breadcrumb.AddChild(new Label
+            {
+                Text = " ▸ ",
+                VerticalAlignment = Control.VAlignment.Center,
+                Modulate = MutedColor,
+            });
+        }
+
+        if (!navigable || onPressed == null)
+        {
+            _window.Breadcrumb.AddChild(new Label
+            {
+                Text = text,
+                VerticalAlignment = Control.VAlignment.Center,
+            });
+            return;
+        }
+
+        var button = new Button
+        {
+            Text = text,
+            StyleClasses = { "ButtonSquare" },
+        };
+        button.OnPressed += _ => onPressed();
+        _window.Breadcrumb.AddChild(button);
     }
 
     private enum ViewType
