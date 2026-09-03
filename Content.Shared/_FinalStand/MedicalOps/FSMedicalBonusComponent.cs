@@ -18,9 +18,10 @@ public sealed partial class FSMedicalBuff
     [DataField]
     public Dictionary<FSMedicalBonusCategory, float> Bonuses = new();
 
-    // Zero means it never expires on its own.
     [DataField]
-    public TimeSpan EndTime;
+    public TimeSpan? EndTime;
+
+    public bool IsExpired(TimeSpan now) => EndTime is { } end && end <= now;
 }
 
 [Serializable, NetSerializable]

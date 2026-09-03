@@ -3,3 +3,4 @@ fs-cmo-mobilisation-announce = Medical Mobilisation. Get to the wounded and get 
 fs-cmo-directive-trauma-announce = Standing directive: Trauma. Prioritise revival and stabilisation.
 fs-cmo-directive-pharma-announce = Standing directive: Pharmaceutical. Prioritise chemical treatment.
 fs-cmo-directive-fieldops-announce = Standing directive: Field Operations. Prioritise recovery under fire.
+fs-cmo-directive-stand-down = Standing directive lifted. Resume normal procedure.

@@ -20,9 +20,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private IPlayerManager _player = default!;
 
-    public const string McpSource = "mcp";
-    public const string DirectiveSource = "directive";
-    public const string MobilisationSource = "mobilisation";
+    private const string McpSource = "mcp";
+    private const string DirectiveSource = "directive";
+    private const string MobilisationSource = "mobilisation";
 
     private const string CmoJob = "ChiefMedicalOfficer";
 
@@ -38,7 +38,46 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private static readonly TimeSpan McpDuration = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
 
-    private readonly HashSet<EntityUid> _granted = new();
+    private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
+    {
+        [FSMedicalDirective.Trauma] = new DirectiveDef("fs-cmo-directive-trauma-announce",
+            new Dictionary<FSMedicalBonusCategory, float>
+            {
+                [FSMedicalBonusCategory.RevivalSpeed] = 0.15f,
+                [FSMedicalBonusCategory.Stabilisation] = 0.15f,
+                [FSMedicalBonusCategory.DefibCooldown] = 0.15f,
+            }),
+        [FSMedicalDirective.Pharma] = new DirectiveDef("fs-cmo-directive-pharma-announce",
+            new Dictionary<FSMedicalBonusCategory, float>
+            {
+                [FSMedicalBonusCategory.TreatmentSpeed] = 0.20f,
+            }),
+        [FSMedicalDirective.FieldOps] = new DirectiveDef("fs-cmo-directive-fieldops-announce",
+            new Dictionary<FSMedicalBonusCategory, float>
+            {
+                [FSMedicalBonusCategory.Movement] = 0.10f,
+                [FSMedicalBonusCategory.DragSpeed] = 0.25f,
+                [FSMedicalBonusCategory.InterruptionResistance] = 0.20f,
+            }),
+    };
+
+    private static readonly Dictionary<FSMedicalBonusCategory, float> McpBonuses = new()
+    {
+        [FSMedicalBonusCategory.TreatmentSpeed] = 0.25f,
+        [FSMedicalBonusCategory.RevivalSpeed] = 0.25f,
+        [FSMedicalBonusCategory.Stabilisation] = 0.25f,
+        [FSMedicalBonusCategory.DefibCooldown] = 0.25f,
+    };
+
+    private static readonly Dictionary<FSMedicalBonusCategory, float> MobilisationBonuses = new()
+    {
+        [FSMedicalBonusCategory.Movement] = 0.30f,
+        [FSMedicalBonusCategory.DragSpeed] = 0.60f,
+        [FSMedicalBonusCategory.TreatmentSpeed] = 0.25f,
+        [FSMedicalBonusCategory.InterruptionResistance] = 0.50f,
+    };
+
+    private FSMedicalDirective? _activeDirective;
 
     public override void Initialize()
     {
@@ -54,30 +93,31 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
-        _granted.Clear();
+        _activeDirective = null;
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId != CmoJob || !_granted.Add(ev.Mob))
-            return;
+        if (ev.JobId == CmoJob)
+        {
+            foreach (var proto in CmoActions)
+                _actions.AddAction(ev.Mob, proto);
+        }
 
-        foreach (var proto in CmoActions)
-            _actions.AddAction(ev.Mob, proto);
+        // A directive is a standing order, so anyone arriving after it was issued still gets it.
+        if (_activeDirective is { } active
+            && Directives.TryGetValue(active, out var def)
+            && _fund.IsMedical(ev.Mob))
+        {
+            _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses);
+        }
     }
 
     private void OnMassCasualtyProtocol(FSMassCasualtyProtocolEvent args)
     {
         args.Handled = true;
 
-        ApplyToDepartment(McpSource, new Dictionary<FSMedicalBonusCategory, float>
-        {
-            [FSMedicalBonusCategory.TreatmentSpeed] = 0.25f,
-            [FSMedicalBonusCategory.RevivalSpeed] = 0.25f,
-            [FSMedicalBonusCategory.Stabilisation] = 0.25f,
-            [FSMedicalBonusCategory.DefibCooldown] = 0.25f,
-        }, McpDuration);
-
+        ApplyToDepartment(McpSource, McpBonuses, McpDuration);
         Announce(args.Performer, "fs-cmo-mcp-announce");
     }
 
@@ -85,56 +125,47 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         args.Handled = true;
 
-        ApplyToDepartment(MobilisationSource, new Dictionary<FSMedicalBonusCategory, float>
-        {
-            [FSMedicalBonusCategory.Movement] = 0.30f,
-            [FSMedicalBonusCategory.DragSpeed] = 0.60f,
-            [FSMedicalBonusCategory.TreatmentSpeed] = 0.25f,
-            [FSMedicalBonusCategory.InterruptionResistance] = 0.50f,
-        }, MobilisationDuration);
-
+        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration);
         Announce(args.Performer, "fs-cmo-mobilisation-announce");
     }
 
-    // Directives are persistent and mutually exclusive: they all share one source key, so setting one
-    // overwrites whichever was standing.
     private void OnMedicalDirective(FSMedicalDirectiveEvent args)
     {
         args.Handled = true;
 
-        var bonuses = args.Directive switch
-        {
-            FSMedicalDirective.Trauma => new Dictionary<FSMedicalBonusCategory, float>
-            {
-                [FSMedicalBonusCategory.RevivalSpeed] = 0.15f,
-                [FSMedicalBonusCategory.Stabilisation] = 0.15f,
-                [FSMedicalBonusCategory.DefibCooldown] = 0.15f,
-            },
-            FSMedicalDirective.Pharma => new Dictionary<FSMedicalBonusCategory, float>
-            {
-                [FSMedicalBonusCategory.TreatmentSpeed] = 0.20f,
-            },
-            _ => new Dictionary<FSMedicalBonusCategory, float>
-            {
-                [FSMedicalBonusCategory.Movement] = 0.10f,
-                [FSMedicalBonusCategory.DragSpeed] = 0.25f,
-                [FSMedicalBonusCategory.InterruptionResistance] = 0.20f,
-            },
-        };
+        if (!Directives.TryGetValue(args.Directive, out var def))
+            return;
 
-        ApplyToDepartment(DirectiveSource, bonuses);
-        Announce(args.Performer, $"fs-cmo-directive-{args.Directive.ToString().ToLowerInvariant()}-announce");
+        // Pressing the standing directive again stands it down.
+        if (_activeDirective == args.Directive)
+        {
+            _activeDirective = null;
+            RemoveFromDepartment(DirectiveSource);
+            Announce(args.Performer, "fs-cmo-directive-stand-down");
+            return;
+        }
+
+        // All three share one source key, so issuing one replaces whichever was standing.
+        _activeDirective = args.Directive;
+        ApplyToDepartment(DirectiveSource, def.Bonuses);
+        Announce(args.Performer, def.Announcement);
     }
 
     private void ApplyToDepartment(string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null)
     {
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is not { } mob || !_fund.IsMedical(mob))
-                continue;
+            if (session.AttachedEntity is { } mob && _fund.IsMedical(mob))
+                _bonus.ApplyBuff(mob, source, bonuses, duration);
+        }
+    }
 
-            // Each recipient needs its own dictionary - the buff outlives this call.
-            _bonus.ApplyBuff(mob, source, new Dictionary<FSMedicalBonusCategory, float>(bonuses), duration);
+    private void RemoveFromDepartment(string source)
+    {
+        foreach (var session in _player.Sessions)
+        {
+            if (session.AttachedEntity is { } mob)
+                _bonus.RemoveBuff(mob, source);
         }
     }
 
@@ -146,8 +177,10 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } mob && _fund.IsMedical(mob))
+            if (session.AttachedEntity is { } mob && mob != performer && _fund.IsMedical(mob))
                 _popup.PopupEntity(message, mob, mob, PopupType.Medium);
         }
     }
+
+    private readonly record struct DirectiveDef(string Announcement, Dictionary<FSMedicalBonusCategory, float> Bonuses);
 }

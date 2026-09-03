@@ -223,6 +223,57 @@ public sealed class MedicalBonusTest : GameTest
         });
     }
 
+    [Test]
+    public async Task ApplyBuffCopiesTheCallersDictionary()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var bonus = entMan.System<FSMedicalBonusSystem>();
+            var mob = entMan.SpawnEntity(Dummy, map.GridCoords);
+
+            // The CMO abilities hand the same template to every medic in the department.
+            var template = Single(FSMedicalBonusCategory.TreatmentSpeed, 0.25f);
+            bonus.ApplyBuff(mob, "a", template);
+
+            template[FSMedicalBonusCategory.TreatmentSpeed] = 0.90f;
+
+            Assert.That(bonus.GetBonus(mob, FSMedicalBonusCategory.TreatmentSpeed), Is.EqualTo(0.25f).Within(0.001f),
+                "the buff aliased the caller's dictionary");
+        });
+    }
+
+    [Test]
+    public async Task ABuffWithNoDurationNeverExpires()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+        EntityUid mob = default;
+
+        await server.WaitAssertion(() =>
+        {
+            var bonus = entMan.System<FSMedicalBonusSystem>();
+            mob = entMan.SpawnEntity(Dummy, map.GridCoords);
+
+            // A standing directive has no end time; the pruner must leave it alone.
+            bonus.ApplyBuff(mob, "directive", Single(FSMedicalBonusCategory.Movement, 0.10f));
+        });
+
+        await Pair.RunTicksSync(60);
+
+        await server.WaitAssertion(() =>
+        {
+            var bonus = entMan.System<FSMedicalBonusSystem>();
+
+            Assert.That(bonus.GetBonus(mob, FSMedicalBonusCategory.Movement), Is.EqualTo(0.10f).Within(0.001f),
+                "a permanent buff was pruned");
+        });
+    }
+
     private static Dictionary<FSMedicalBonusCategory, float> Single(FSMedicalBonusCategory category, float value)
     {
         return new Dictionary<FSMedicalBonusCategory, float> { [category] = value };

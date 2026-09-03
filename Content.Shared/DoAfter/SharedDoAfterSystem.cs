@@ -22,7 +22,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMoverController _mover = default!;
     [Dependency] private TagSystem _tag = default!;
-    [Dependency] private _FinalStand.MedicalOps.FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
 
     /// <summary>
     ///     We'll use an excess time so stuff like finishing effects can show.
@@ -87,13 +86,13 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
 
         var delta = args.DamageDelta.GetTotal();
 
-        // FINALSTAND: buffed medics keep working through hits that would normally break the do-after.
-        var absorb = _medicalBonus.GetInterruptionAbsorb(uid);
+        var absorbEv = new GetDoAfterDamageThresholdEvent();
+        RaiseLocalEvent(uid, ref absorbEv);
 
         var dirty = false;
         foreach (var doAfter in component.DoAfters.Values)
         {
-            if (doAfter.Args.BreakOnDamage && delta >= doAfter.Args.DamageThreshold + absorb)
+            if (doAfter.Args.BreakOnDamage && delta >= doAfter.Args.DamageThreshold + absorbEv.Extra)
             {
                 InternalCancel(doAfter, component);
                 dirty = true;

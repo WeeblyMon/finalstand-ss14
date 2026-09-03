@@ -20,12 +20,10 @@ using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
-using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
-using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -39,38 +37,28 @@ public sealed partial class SurgeryBui : BoundUserInterface
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPlayerManager _player = default!;
 
+    private static readonly Color MutedColor = Color.FromHex("#7F8891");
+    private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
+    private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
+
     private readonly SurgerySystem _system;
     [ViewVariables]
     private SurgeryWindow? _window;
+    private SurgeryGuidancePresenter? _guidance;
+    private SurgeryDollPresenter? _dollPresenter;
+
     private EntityUid? _part;
     private bool _isBody;
     private (EntityUid Ent, EntProtoId Proto)? _surgery;
     private readonly List<EntProtoId> _previousSurgeries = new();
 
-    // FINALSTAND: interaction state only. Patient condition owns hue elsewhere - the two must never
-    // share a channel or "you can't do this" and "they are dying" become the same red.
-    private static readonly Color ReadyColor = Color.FromHex("#3FA37A");
-    private static readonly Color WarningColor = Color.FromHex("#C9A227");
-    private static readonly Color DangerColor = Color.FromHex("#C0392B");
-    private static readonly Color MutedColor = Color.FromHex("#7F8891");
-
-    // Reconciliation keys. The steps key carries the part as well as the surgery, because step
-    // buttons capture netPart in their closures - the same operation on a different limb must
-    // rebuild or it would send the message to the old limb.
+    // Rebuild keys. The steps key carries the part as well as the surgery, because step buttons
+    // capture netPart in their closures - the same operation on a different limb must rebuild or it
+    // would send the message to the old limb.
     private string? _partsKey;
     private string? _surgeriesKey;
+    private string? _crumbKey;
     private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
-
-    // Doll slot brightness. Selection is brightness, never hue - see the colour note above.
-    private static readonly Color DollAbsentColor = new(0.25f, 0.27f, 0.30f);
-    private static readonly Color DollAvailableColor = new(0.85f, 0.85f, 0.85f);
-
-    private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
-    private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
-
-    private SurgeryStepButton? _nextStepButton;
-    private SurgeryDollControl? _doll;
-    private readonly Dictionary<TargetBodyPart, (NetEntity Net, List<EntProtoId> Surgeries)> _dollTargets = new();
 
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
@@ -106,13 +94,19 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.OnClose += Close;
             _window.Title = Loc.GetString("surgery-ui-window-title");
 
-            // One action, always in the same place, so the surgeon never hunts for the live step.
+            _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
+            _dollPresenter = new SurgeryDollPresenter(_window, OnPartPressed);
+
             _window.PerformButton.OnPressed += _ =>
             {
-                if (_nextStepButton is { } next)
+                if (_guidance?.NextStep is { } next)
                     SendPredictedMessage(new SurgeryStepChosenBuiMsg(next.NetPart, next.SurgeryId, next.StepId, _isBody));
             };
         }
+
+        // Opened before anything below can call RefreshUI, which no-ops on a closed window.
+        if (!_window.IsOpen)
+            _window.OpenCentered();
 
         var oldSurgery = _surgery;
         var oldPart = _part;
@@ -138,31 +132,21 @@ public sealed partial class SurgeryBui : BoundUserInterface
             return GetScore(a.Category) - GetScore(b.Category);
         });
 
-        // FINALSTAND: only rebuild the parts column when the set of parts actually changed. The old
-        // code tore down all three columns on every server state update, which killed scroll
-        // position and focus and made the window flicker mid-operation.
-        // Keyed on the available operations too, not just the limbs - a completed step can make a
-        // new operation available, and the part buttons capture their surgery list in a closure.
+        // Keyed on the available operations too, not just the limbs - a completed step can make a new
+        // operation available, and the part buttons capture their surgery list in a closure.
         var partsKey = string.Join(';',
             options.Select(o => $"{o.netEntity.Id}:{string.Join(',', state.Choices[o.netEntity])}"));
         if (partsKey != _partsKey)
         {
             _partsKey = partsKey;
             _window.Parts.DisposeAllChildren();
-            _dollTargets.Clear();
+            _dollPresenter!.Clear();
 
             foreach (var (netEntity, _, partName, category) in options)
             {
                 var surgeries = state.Choices[netEntity];
-
-                // Limbs the doll can draw go on the doll. Everything else - the body itself, and any
-                // anatomy the humanoid template does not cover - falls through to the list beside it,
-                // so a non-humanoid patient is never misrepresented by a human diagram.
-                if (OrganCategories.ToTarget(category) is { } target)
-                {
-                    _dollTargets[target] = (netEntity, surgeries);
+                if (_dollPresenter.TryAdd(category, netEntity, surgeries))
                     continue;
-                }
 
                 var partButton = new ChoiceControl();
 
@@ -173,7 +157,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
             }
         }
 
-        // Re-apply the previous selection rather than dropping the player back to Parts.
         var restored = false;
         if (oldPart != null)
         {
@@ -182,7 +165,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 if (entity != oldPart)
                     continue;
 
-                var surgeries = state.Choices[netEntity];
                 if (oldSurgery is { } selected
                     && _system.GetSingleton(selected.Proto) is { } surgery
                     && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
@@ -191,7 +173,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 }
                 else
                 {
-                    OnPartPressed(netEntity, surgeries);
+                    OnPartPressed(netEntity, state.Choices[netEntity]);
                 }
 
                 restored = true;
@@ -199,20 +181,28 @@ public sealed partial class SurgeryBui : BoundUserInterface
             }
         }
 
-        // The part is gone - amputated, most likely. Falling through to a stale selection would let
-        // the player keep operating on something that is no longer attached.
+        // The part is gone - amputated, most likely. Keeping the selection would let the player carry
+        // on operating on something no longer attached.
         if (!restored)
         {
-            _part = null;
-            _isBody = false;
-            _surgery = null;
-            _previousSurgeries.Clear();
-            View(ViewType.Parts);
+            ClearSelection();
+            UpdateHeader();
             RefreshUI();
         }
+    }
 
-        if (!_window.IsOpen)
-            _window.OpenCentered();
+    private void ClearSelection()
+    {
+        _part = null;
+        _isBody = false;
+        _surgery = null;
+        _previousSurgeries.Clear();
+
+        if (_stepsKey == null)
+            return;
+
+        _stepsKey = null;
+        _window?.Steps.DisposeAllChildren();
     }
 
     private void AddStep(EntProtoId stepId, NetEntity netPart, EntProtoId surgeryId)
@@ -244,8 +234,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _isBody = _entities.HasComponent<BodyComponent>(_part);
         _surgery = (surgery, surgeryId);
 
-        // FINALSTAND: the step list is static for a given part+surgery; only status changes, and
-        // RefreshUI owns that. Rebuilding here on every tick is what caused the flicker.
+        // The step list is static for a given part and surgery; only status changes, and RefreshUI
+        // owns that.
         if (_stepsKey != (netPart, surgeryId))
         {
             _stepsKey = (netPart, surgeryId);
@@ -276,7 +266,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 AddStep(stepId, netPart, surgeryId);
         }
 
-        View(ViewType.Steps);
+        UpdateHeader();
         RefreshUI();
     }
 
@@ -285,10 +275,25 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null)
             return;
 
-        _part = _entities.GetEntity(netPart);
-        _isBody = _entities.HasComponent<BodyComponent>(_part);
+        var part = _entities.GetEntity(netPart);
 
-        // FINALSTAND: rebuild only when the part or its available operations changed.
+        // Choosing a limb ends whatever operation was running on the previous one. Without this the
+        // Procedure column keeps describing a limb the surgeon has already moved off.
+        if (_part != part)
+        {
+            _surgery = null;
+            _previousSurgeries.Clear();
+
+            if (_stepsKey != null)
+            {
+                _stepsKey = null;
+                _window.Steps.DisposeAllChildren();
+            }
+        }
+
+        _part = part;
+        _isBody = _entities.HasComponent<BodyComponent>(part);
+
         var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}";
         if (_surgeriesKey != key)
         {
@@ -327,35 +332,32 @@ public sealed partial class SurgeryBui : BoundUserInterface
             }
         }
 
+        UpdateHeader();
         RefreshUI();
-        View(ViewType.Surgeries);
     }
 
     private void RefreshUI()
     {
-        if (_window == null || !_window.IsOpen)
+        if (_window == null || _guidance == null || !_window.IsOpen)
             return;
 
-        // Cleared up front so every early return below leaves Perform correctly dead.
-        _nextStepButton = null;
-        _window.PerformButton.Disabled = true;
+        _guidance.Reset();
 
-        // FINALSTAND: the guidance bar is always populated, including in the states the old code
-        // early-returned from - a stale line is worse than no line.
         if (_part == null || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
         {
-            SetGuidance(null, Loc.GetString("surgery-ui-guidance-select"));
+            _guidance.ShowSelectPrompt();
             return;
         }
 
         if (!_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
-            || !surgeryComp.CanOperate)
+            || !surgeryComp.CanOperate
+            || _player.LocalEntity is not { } user)
         {
-            SetGuidance(null, Loc.GetString("surgery-ui-guidance-cannot-operate"), DangerColor);
+            _guidance.ShowCannotOperate();
             return;
         }
 
-        var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, _player.LocalEntity.Value);
+        var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, user);
         SurgeryStepButton? nextButton = null;
         var i = 0;
         foreach (var child in _window.Steps.Children)
@@ -379,8 +381,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             stepButton.Button.Disabled = status != StepStatus.Next;
 
-            // FINALSTAND: glyph carries the status so it survives colour-blindness and the greyout,
-            // and the duration lets the surgeon judge whether there is time before committing.
+            // The glyph repeats what brightness says, so status survives colour-blindness.
             var stepName = new FormattedMessage();
             stepName.AddText(status switch
             {
@@ -398,8 +399,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 stepName.Pop();
             }
 
-            // FINALSTAND: brightness carries interaction state, so it can never be confused with the
-            // patient's condition. The glyph above does the same job for colour-blind players.
             stepButton.Button.Modulate = status switch
             {
                 StepStatus.Complete => StepCompleteColor,
@@ -411,8 +410,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
             {
                 // First Next wins - a negative next.Step marks a whole run of them.
                 nextButton ??= stepButton;
-                if (!_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
-                    stepButton.ToolTip = popup;
+                stepButton.ToolTip = _system.CanPerformStepWithHeld(user, Owner, _part.Value, stepButton.Step, false, out var popup)
+                    ? null
+                    : popup;
             }
 
             var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
@@ -420,96 +420,16 @@ public sealed partial class SurgeryBui : BoundUserInterface
             i++;
         }
 
-        UpdateGuidance(nextButton, next != null);
+        _guidance.Show(nextButton, next != null, user, Owner, _part.Value);
     }
 
-    // FINALSTAND: the whole point of the rewrite's first stage. CanPerformStepWithHeld already knows
-    // exactly why a step will not work; the old UI spent that on a tooltip nobody hovers.
-    private void UpdateGuidance(SurgeryStepButton? next, bool workRemains)
-    {
-        if (_window == null)
-            return;
-
-        _nextStepButton = next;
-
-        if (next == null)
-        {
-            // No actionable step here but work remains means the next step lives in a prerequisite
-            // surgery - saying "complete" there would be a lie.
-            SetGuidance(null,
-                workRemains
-                    ? Loc.GetString("surgery-ui-guidance-prerequisite")
-                    : Loc.GetString("surgery-ui-guidance-complete"),
-                workRemains ? WarningColor : ReadyColor);
-            return;
-        }
-
-        var stepName = _entities.GetComponent<MetaDataComponent>(next.Step).EntityName;
-        var texture = _entities.GetComponentOrNull<SpriteComponent>(next.Step)?.Icon?.Default;
-
-        if (_player.LocalEntity is not { } user || _part == null)
-            return;
-
-        if (_system.CanPerformStepWithHeld(user, Owner, _part.Value, next.Step, false, out var popup, out var reason))
-        {
-            _window.PerformButton.Disabled = false;
-            SetGuidance(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);
-            return;
-        }
-
-        var detail = ReasonText(reason, next.Step, popup);
-        SetGuidance(texture, Loc.GetString("surgery-ui-guidance-blocked", ("step", stepName), ("reason", detail)), WarningColor);
-    }
-
-    private string ReasonText(StepInvalidReason reason, EntityUid step, string? popup)
-    {
-        switch (reason)
-        {
-            case StepInvalidReason.MissingTool:
-                var tools = _system.GetStepToolNames(step);
-                if (tools.Count > 0)
-                    return Loc.GetString("surgery-ui-guidance-need-tool", ("tool", string.Join(", ", tools)));
-                break;
-            case StepInvalidReason.NeedsOperatingTable:
-                return Loc.GetString("surgery-ui-guidance-need-table");
-            case StepInvalidReason.Armor:
-                return Loc.GetString("surgery-ui-guidance-armor");
-            case StepInvalidReason.MissingSkills:
-                return Loc.GetString("surgery-ui-guidance-skills");
-            case StepInvalidReason.MissingPreviousSteps:
-                return Loc.GetString("surgery-ui-guidance-previous");
-        }
-
-        return popup ?? Loc.GetString("surgery-ui-guidance-blocked-generic");
-    }
-
-    // Built from AddText rather than markup so a bracket in an entity name cannot throw.
-    private void SetGuidance(Texture? icon, string text, Color? accent = null)
-    {
-        if (_window == null)
-            return;
-
-        var msg = new FormattedMessage();
-        if (accent is { } colour)
-            msg.PushColor(colour);
-        msg.AddText(text);
-        if (accent != null)
-            msg.Pop();
-
-        _window.GuidanceLabel.SetMessage(msg);
-        _window.GuidanceIcon.Texture = icon;
-        _window.GuidanceIcon.Visible = icon != null;
-    }
-
-    // FINALSTAND: nothing is hidden any more, so this only maintains the header. Kept as View() so
-    // every existing call site still reads naturally.
-    private void View(ViewType type)
+    private void UpdateHeader()
     {
         if (_window == null)
             return;
 
         BuildBreadcrumb();
-        UpdateDoll();
+        _dollPresenter?.Refresh(_entities.TryGetNetEntity(_part, out var netPart) ? netPart : null);
 
         if (_entities.TryGetComponent(_part, out MetaDataComponent? partMeta) &&
             _entities.TryGetComponent(_surgery?.Ent, out MetaDataComponent? surgeryMeta))
@@ -520,80 +440,23 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = "Surgery";
     }
 
-    // Handlers are wired once at construction and read _dollTargets on click, so rebuilding the part
-    // set never has to churn event subscriptions.
-    private SurgeryDollControl EnsureDoll()
-    {
-        if (_doll != null)
-            return _doll;
-
-        _doll = new SurgeryDollControl();
-
-        foreach (var (target, button) in _doll.Slots)
-        {
-            var slot = target;
-            button.OnPressed += _ =>
-            {
-                if (_dollTargets.TryGetValue(slot, out var entry))
-                    OnPartPressed(entry.Net, entry.Surgeries);
-            };
-        }
-
-        _window!.DollSlot.AddChild(_doll);
-        return _doll;
-    }
-
-    private void UpdateDoll()
-    {
-        if (_window == null)
-            return;
-
-        // Nothing on this patient maps to the humanoid diagram - hide it rather than show a dead one.
-        if (_dollTargets.Count == 0)
-        {
-            if (_doll != null)
-                _doll.Visible = false;
-
-            _window.BodyHeader.Visible = _window.Parts.ChildCount > 0;
-            return;
-        }
-
-        var doll = EnsureDoll();
-        doll.Visible = true;
-        _window.BodyHeader.Visible = true;
-
-        NetEntity? selected = _entities.TryGetNetEntity(_part, out var netPart) ? netPart : null;
-
-        foreach (var (target, button) in doll.Slots)
-        {
-            if (!_dollTargets.TryGetValue(target, out var entry))
-            {
-                button.Disabled = true;
-                button.Modulate = DollAbsentColor;
-                continue;
-            }
-
-            button.Disabled = false;
-            button.Modulate = selected == entry.Net ? Color.White : DollAvailableColor;
-        }
-    }
-
-    // Patient ▸ Left Arm ▸ [prerequisite chain] ▸ Amputation. Every segment but the last navigates,
-    // which is what the mislabelled Steps button was trying and failing to be.
+    // Patient > Left Arm > [prerequisite chain] > Amputation. Every segment but the last navigates.
     private void BuildBreadcrumb()
     {
         if (_window == null)
             return;
 
+        var key = $"{_part?.Id};{_surgery?.Proto.Id};{string.Join(',', _previousSurgeries)}";
+        if (key == _crumbKey)
+            return;
+
+        _crumbKey = key;
         _window.Breadcrumb.DisposeAllChildren();
 
         AddCrumb(Loc.GetString("surgery-ui-crumb-patient"), _part != null, () =>
         {
-            _part = null;
-            _isBody = false;
-            _surgery = null;
-            _previousSurgeries.Clear();
-            View(ViewType.Parts);
+            ClearSelection();
+            UpdateHeader();
             RefreshUI();
         });
 
@@ -603,18 +466,23 @@ public sealed partial class SurgeryBui : BoundUserInterface
         var partName = _entities.GetComponent<MetaDataComponent>(_part.Value).EntityName;
         AddCrumb(partName, _surgery != null, () =>
         {
-            _surgery = null;
-            _previousSurgeries.Clear();
-
             if (!_entities.TryGetNetEntity(_part, out var netPart)
                 || State is not SurgeryBuiState s
                 || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
                 return;
 
+            _surgery = null;
+            _previousSurgeries.Clear();
+
+            if (_stepsKey != null)
+            {
+                _stepsKey = null;
+                _window.Steps.DisposeAllChildren();
+            }
+
             OnPartPressed(netPart.Value, surgeries);
         });
 
-        // The prerequisite chain, oldest first. Clicking one truncates back to it.
         for (var i = 0; i < _previousSurgeries.Count; i++)
         {
             var index = i;
@@ -647,7 +515,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         {
             _window.Breadcrumb.AddChild(new Label
             {
-                Text = " ▸ ",
+                Text = " > ",
                 VerticalAlignment = Control.VAlignment.Center,
                 Modulate = MutedColor,
             });
@@ -670,13 +538,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
         };
         button.OnPressed += _ => onPressed();
         _window.Breadcrumb.AddChild(button);
-    }
-
-    private enum ViewType
-    {
-        Parts,
-        Surgeries,
-        Steps
     }
 
     private enum StepStatus

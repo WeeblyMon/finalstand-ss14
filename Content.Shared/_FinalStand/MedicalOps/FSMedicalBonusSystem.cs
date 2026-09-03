@@ -1,6 +1,7 @@
-// Diminishing returns for medical buffs. The strongest bonus in a category lands in full and each
-// further one is halved, so three sources never add up to an instant heal.
+// Diminishing returns for medical buffs: the strongest bonus in a category lands in full, each
+// further one is halved, then a per-category cap applies.
 
+using Content.Shared.DoAfter;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Systems;
 using Robust.Shared.Network;
@@ -15,13 +16,14 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     private const float StackFalloff = 0.5f;
-
-    // Damage a fully buffed medic can eat in one hit without losing the do-after.
     private const float MaxInterruptionAbsorb = 25f;
 
     private readonly List<float> _scratch = new();
     private readonly List<string> _expired = new();
-    private readonly List<(EntityUid, FSMedicalBonusComponent)> _pruning = new();
+    private readonly List<(EntityUid Uid, FSMedicalBonusComponent Comp)> _pruning = new();
+
+    private EntityQuery<FSMedicalBonusComponent> _bonusQuery;
+    private EntityQuery<PullerComponent> _pullerQuery;
 
     private static float CapFor(FSMedicalBonusCategory category) => category switch
     {
@@ -38,18 +40,28 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+
+        _bonusQuery = GetEntityQuery<FSMedicalBonusComponent>();
+        _pullerQuery = GetEntityQuery<PullerComponent>();
+
         SubscribeLocalEvent<FSMedicalBonusComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
+        SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
     }
 
     private void OnRefreshMovespeed(EntityUid uid, FSMedicalBonusComponent comp, RefreshMovementSpeedModifiersEvent args)
     {
         var speed = GetScale(uid, FSMedicalBonusCategory.Movement);
 
-        // Dragging a casualty is where the medic actually loses time, so that gets its own bonus.
-        if (TryComp<PullerComponent>(uid, out var puller) && puller.Pulling != null)
+        // Dragging a casualty is where the medic actually loses time, so it gets its own bonus.
+        if (_pullerQuery.TryComp(uid, out var puller) && puller.Pulling != null)
             speed *= GetScale(uid, FSMedicalBonusCategory.DragSpeed);
 
         args.ModifySpeed(speed);
+    }
+
+    private void OnGetDamageThreshold(EntityUid uid, FSMedicalBonusComponent comp, ref GetDoAfterDamageThresholdEvent args)
+    {
+        args.Extra += GetInterruptionAbsorb(uid);
     }
 
     public override void Update(float frameTime)
@@ -59,14 +71,14 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
         var now = _timing.CurTime;
 
-        // Collect first: RemComp below would otherwise mutate the set being enumerated.
+        // Collected first because RemComp below would mutate the set being enumerated.
         _pruning.Clear();
         var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
             foreach (var buff in comp.Active.Values)
             {
-                if (buff.EndTime == TimeSpan.Zero || buff.EndTime > now)
+                if (!buff.IsExpired(now))
                     continue;
 
                 _pruning.Add((uid, comp));
@@ -79,7 +91,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
             _expired.Clear();
             foreach (var (source, buff) in comp.Active)
             {
-                if (buff.EndTime != TimeSpan.Zero && buff.EndTime <= now)
+                if (buff.IsExpired(now))
                     _expired.Add(source);
             }
 
@@ -98,10 +110,12 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     public void ApplyBuff(EntityUid uid, string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null)
     {
         var comp = EnsureComp<FSMedicalBonusComponent>(uid);
+
+        // Copied because the buff outlives this call and callers reuse their template.
         comp.Active[source] = new FSMedicalBuff
         {
-            Bonuses = bonuses,
-            EndTime = duration is { } d ? _timing.CurTime + d : TimeSpan.Zero,
+            Bonuses = new Dictionary<FSMedicalBonusCategory, float>(bonuses),
+            EndTime = duration is { } d ? _timing.CurTime + d : null,
         };
 
         Dirty(uid, comp);
@@ -110,7 +124,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
     public void RemoveBuff(EntityUid uid, string source)
     {
-        if (!TryComp<FSMedicalBonusComponent>(uid, out var comp) || !comp.Active.Remove(source))
+        if (!_bonusQuery.TryComp(uid, out var comp) || !comp.Active.Remove(source))
             return;
 
         if (comp.Active.Count == 0)
@@ -123,14 +137,14 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
     public bool HasBuff(EntityUid uid, string source)
     {
-        return TryComp<FSMedicalBonusComponent>(uid, out var comp)
+        return _bonusQuery.TryComp(uid, out var comp)
             && comp.Active.TryGetValue(source, out var buff)
-            && (buff.EndTime == TimeSpan.Zero || buff.EndTime > _timing.CurTime);
+            && !buff.IsExpired(_timing.CurTime);
     }
 
     public float GetBonus(EntityUid uid, FSMedicalBonusCategory category)
     {
-        if (!TryComp<FSMedicalBonusComponent>(uid, out var comp) || comp.Active.Count == 0)
+        if (!_bonusQuery.TryComp(uid, out var comp) || comp.Active.Count == 0)
             return 0f;
 
         var now = _timing.CurTime;
@@ -138,7 +152,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         _scratch.Clear();
         foreach (var buff in comp.Active.Values)
         {
-            if (buff.EndTime != TimeSpan.Zero && buff.EndTime <= now)
+            if (buff.IsExpired(now))
                 continue;
 
             if (buff.Bonuses.TryGetValue(category, out var value) && value > 0f)
@@ -148,19 +162,16 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         return Combine(_scratch, CapFor(category));
     }
 
-    /// <summary>Multiplier for anything measured in time: 0.75 means it finishes a quarter sooner.</summary>
     public float GetDelayMultiplier(EntityUid uid, FSMedicalBonusCategory category)
     {
         return 1f - GetBonus(uid, category);
     }
 
-    /// <summary>Multiplier for anything measured in magnitude: 1.25 means a quarter more.</summary>
     public float GetScale(EntityUid uid, FSMedicalBonusCategory category)
     {
         return 1f + GetBonus(uid, category);
     }
 
-    /// <summary>Extra single-hit damage a do-after survives, in damage rather than as a fraction.</summary>
     public float GetInterruptionAbsorb(EntityUid uid)
     {
         return GetBonus(uid, FSMedicalBonusCategory.InterruptionResistance) * MaxInterruptionAbsorb;
