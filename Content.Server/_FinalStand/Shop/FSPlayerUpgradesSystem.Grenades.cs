@@ -78,7 +78,7 @@ public sealed partial class FSPlayerUpgradesSystem
                 {
                     if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
                     {
-                        turret.FireInterval = MathF.Max(0.1f, turret.FireInterval - def.ValuePerLevel);
+                        turret.FireInterval = MathF.Max(0.1f, turret.FireInterval * (1f - def.ValuePerLevel));
                         Dirty(weapon, turret);
                     }
                     break;

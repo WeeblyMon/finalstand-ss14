@@ -85,28 +85,28 @@
       name: Dense Filler
       description: Each level adds a quarter of the mine's base blast damage.
       maxLevel: 3
-      baseCost: 3500
+      baseCost: 5000
       type: LandmineDamage
       valuePerLevel: 0.25
     - id: landmine-detonations
       name: Reusable Core
       description: The mine re-arms itself after going off, one extra time per level.
       maxLevel: 2
-      baseCost: 6000
+      baseCost: 3000
       type: LandmineDetonations
       valuePerLevel: 1
     - id: landmine-regen
       name: Field Fabricator
       description: Restock one more mine each wave.
       maxLevel: 2
-      baseCost: 4500
+      baseCost: 4000
       type: DeployableRegen
       valuePerLevel: 1
     - id: landmine-he
       name: High Explosive
       description: Widens the blast to cover a three by three area.
       maxLevel: 1
-      baseCost: 8000
+      baseCost: 10000
       type: LandmineHighExplosive
       valuePerLevel: 1
   - type: Sprite
@@ -169,37 +169,37 @@
     upgrades:
     - id: sentry-ammo
       name: Extended Belt
-      description: Fifty more rounds per level.
-      maxLevel: 3
-      baseCost: 4000
+      description: Forty more rounds per level.
+      maxLevel: 5
+      baseCost: 3000
       type: SentryAmmo
-      valuePerLevel: 50
+      valuePerLevel: 40
     - id: sentry-firerate
       name: Cycling Servos
-      description: Shortens the delay between shots.
+      description: Each level cuts a quarter off the delay between shots.
       maxLevel: 3
-      baseCost: 5000
+      baseCost: 2500
       type: SentryFireRate
-      valuePerLevel: 0.08
+      valuePerLevel: 0.25
     - id: sentry-damage
       name: Hardened Rounds
       description: Each level adds a quarter of the turret's base damage.
       maxLevel: 3
-      baseCost: 6000
+      baseCost: 4000
       type: SentryDamage
       valuePerLevel: 0.25
     - id: sentry-range
       name: Optics Package
-      description: One extra tile of engagement range per level.
-      maxLevel: 2
-      baseCost: 5000
+      description: One extra tile of engagement range.
+      maxLevel: 1
+      baseCost: 7500
       type: SentryRange
       valuePerLevel: 1
     - id: sentry-capacity
       name: Second Case
       description: Carry one additional turret.
       maxLevel: 1
-      baseCost: 12000
+      baseCost: 10000
       type: DeployableCapacity
       valuePerLevel: 1
   - type: Sprite

@@ -295,7 +295,8 @@
         - MobMask
         layer:
         - MobLayer
-  - type: FSGiantStomp
+  - type: FSGiantAbilities
+  - type: Appearance
   - type: Tag
     tags:
     - StunImmune

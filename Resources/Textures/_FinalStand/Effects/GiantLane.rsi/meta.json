@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Free Smoke FX Pixel (CC0)",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "lane",
+      "delays": [
+        [
+          0.12,
+          0.12
+        ]
+      ]
+    }
+  ]
+}
