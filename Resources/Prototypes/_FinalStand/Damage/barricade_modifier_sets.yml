@@ -1,0 +1,48 @@
+# Barricade damage modifiers, ported from RMC-14.
+
+- type: damageModifierSet
+  id: FSBarricade
+  coefficients:
+    Heat: 1.15
+    Shock: 1.15
+    Cold: 1.15
+    Caustic: 1.15
+
+- type: damageModifierSet
+  id: FSFoldingBarricade
+  coefficients:
+    Heat: 0.85
+    Shock: 0.85
+    Cold: 0.85
+    Caustic: 0.85
+
+- type: damageModifierSet
+  id: FSBurnBarricade
+  coefficients:
+    Heat: 0.75
+    Shock: 0.75
+    Cold: 0.75
+    Caustic: 0.75
+
+- type: damageModifierSet
+  id: FSBruteBarricade
+  coefficients:
+    Blunt: 0.75
+    Slash: 0.75
+    Piercing: 0.75
+
+- type: damageModifierSet
+  id: FSSandbagBarricade
+  coefficients:
+    Heat: 1.15
+    Shock: 1.15
+    Cold: 1.15
+    Caustic: 1.15
+
+- type: damageModifierSet
+  id: FSHescoBarricade
+  coefficients:
+    Heat: 1.5
+    Shock: 1.15
+    Cold: 1.15
+    Caustic: 1.15

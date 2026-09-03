@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Taken from cmss13 at https://github.com/cmss13-devs/cmss13/blob/2f4c415e5681333e6de474f1f027087101452d31/icons/obj/structures/barricades.dmi, via RMC-14",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "metal",
+      "directions": 4
+    },
+    {
+      "name": "plasteel",
+      "directions": 4
+    },
+    {
+      "name": "sandbag",
+      "directions": 4
+    },
+    {
+      "name": "wooden",
+      "directions": 4
+    },
+    {
+      "name": "snow",
+      "directions": 4
+    },
+    {
+      "name": "hesco",
+      "directions": 4
+    },
+    {
+      "name": "folding",
+      "directions": 4
+    },
+    {
+      "name": "folding_folded"
+    },
+    {
+      "name": "folding_metal",
+      "directions": 4
+    },
+    {
+      "name": "folding_metal_closed",
+      "directions": 4
+    },
+    {
+      "name": "folding_plasteel",
+      "directions": 4
+    },
+    {
+      "name": "folding_plasteel_closed",
+      "directions": 4
+    }
+  ]
+}
