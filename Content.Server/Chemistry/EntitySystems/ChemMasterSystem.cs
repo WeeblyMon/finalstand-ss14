@@ -39,6 +39,7 @@ namespace Content.Server.Chemistry.EntitySystems
         [Dependency] private StorageSystem _storageSystem = default!;
         [Dependency] private LabelSystem _labelSystem = default!;
         [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+        [Dependency] private Shared._FinalStand.MedicalOps.FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
 
         private static readonly EntProtoId PillPrototypeId = "Pill";
 
@@ -244,6 +245,8 @@ namespace Content.Server.Chemistry.EntitySystems
                 pill.PillType = chemMaster.Comp.PillType;
                 Dirty(item, pill);
 
+                _fsAttribution.TagProducer(item, user); // FINALSTAND
+
                 // Log pill creation by a user
                 _adminLogger.Add(LogType.Action, LogImpact.Low, $"{ToPrettyString(user):user} printed {ToPrettyString(item):pill} {SharedSolutionContainerSystem.ToPrettyString(itemSolution.Comp.Solution)}");
             }
@@ -275,6 +278,8 @@ namespace Content.Server.Chemistry.EntitySystems
 
             _labelSystem.Label(container, message.Label);
             _solutionContainerSystem.TryAddSolution(soln.Value, withdrawal);
+
+            _fsAttribution.TagProducer(container, user); // FINALSTAND
 
             // Log bottle creation by a user
             _adminLogger.Add(LogType.Action, LogImpact.Low,

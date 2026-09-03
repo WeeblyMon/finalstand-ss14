@@ -6,4 +6,9 @@ public sealed partial class FSTreatmentAttributionComponent : Component
 {
     [ViewVariables]
     public Dictionary<EntityUid, TimeSpan> RecentTreaters = new();
+
+    // The chemist who made what was administered, tracked separately so they earn a smaller cut
+    // without displacing the medic who actually did the work.
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> RecentSuppliers = new();
 }

@@ -42,6 +42,12 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int CreditsPerHealPoint = 10;
     private const int SelfHealCreditsPerPoint = 2;
 
+    // The chemist who made the medicine earns a cut of what it heals, taken off the already
+    // diminished figure so supply credit can never outrun the DR budget.
+    private const float SupplierRate = 0.3f;
+    private const int SupplierCreditsPerPoint = 6;
+    private const int SupplierFundPerPoint = 3;
+
     private const int FundPerHealPoint = 5;
 
     private const int StabilisePoints = 25;
@@ -169,6 +175,30 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             hpHealed: healed,
             credits: points * (isSelf ? SelfHealCreditsPerPoint : CreditsPerHealPoint),
             fund: isSelf ? 0 : points * FundPerHealPoint);
+
+        AwardSupplier(uid, healerMind, paid);
+
+        // The chems have finished their work, so nobody keeps a claim on this patient's next injury.
+        if (_damageable.GetTotalDamage(uid) <= 0)
+            _attribution.ClearAttribution(uid);
+    }
+
+    // hpHealed is deliberately left off: the HP belongs to whoever administered it, not the supplier.
+    private void AwardSupplier(EntityUid patient, EntityUid healerMind, float paid)
+    {
+        if (!_attribution.TryGetAttributedSupplier(patient, out var supplierMind)
+            || supplierMind == healerMind
+            || !supplierMind.IsValid())
+            return;
+
+        var points = (int)MathF.Round(paid * SupplierRate);
+        if (points <= 0)
+            return;
+
+        Award(supplierMind, "chem-supply",
+            points: points,
+            credits: points * SupplierCreditsPerPoint,
+            fund: points * SupplierFundPerPoint);
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)
