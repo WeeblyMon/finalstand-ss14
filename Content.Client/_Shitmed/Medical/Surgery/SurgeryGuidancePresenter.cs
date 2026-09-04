@@ -4,6 +4,7 @@
 using Content.Shared._Shitmed.Medical.Surgery;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.UserInterface;
 using Robust.Shared.Utility;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
@@ -13,6 +14,7 @@ public sealed class SurgeryGuidancePresenter
     private static readonly Color ReadyColor = Color.FromHex("#3FA37A");
     private static readonly Color WarningColor = Color.FromHex("#C9A227");
     private static readonly Color DangerColor = Color.FromHex("#C0392B");
+    private static readonly Color NeutralColor = Color.FromHex("#9BA3AE");
 
     private readonly IEntityManager _entities;
     private readonly SurgerySystem _system;
@@ -98,17 +100,24 @@ public sealed class SurgeryGuidancePresenter
     // Built from AddText rather than markup so a bracket in an entity name cannot throw.
     private void Set(Texture? icon, string text, Color? accent = null)
     {
+        var colour = accent ?? NeutralColor;
+
         var msg = new FormattedMessage();
-        if (accent is { } colour)
-            msg.PushColor(colour);
-
+        msg.PushColor(colour);
         msg.AddText(text);
-
-        if (accent != null)
-            msg.Pop();
+        msg.Pop();
 
         _window.GuidanceLabel.SetMessage(msg);
         _window.GuidanceIcon.Texture = icon;
         _window.GuidanceIcon.Visible = icon != null;
+
+        // The bar is the only feedback surface now that the world popup is gone, so the whole panel
+        // carries the state rather than just the text.
+        _window.GuidancePanel.PanelOverride = new StyleBoxFlat
+        {
+            BackgroundColor = colour.WithAlpha(0.14f),
+            BorderColor = colour.WithAlpha(0.55f),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+        };
     }
 }

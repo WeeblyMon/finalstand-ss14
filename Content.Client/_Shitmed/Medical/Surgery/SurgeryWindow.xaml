@@ -66,20 +66,30 @@ the surgeon could never see the limb, the operation and the steps at the same ti
 
         <!-- Zone E: always-visible guidance. Never a popup - it must survive a glance away. -->
         <PanelContainer Name="GuidancePanel" Access="Public" HorizontalExpand="True" Margin="8 6 8 8">
-            <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="8 6">
-                <TextureRect Name="GuidanceIcon" Access="Public"
-                             Stretch="KeepAspectCentered"
-                             SetSize="24 24"
-                             VerticalAlignment="Center"
-                             Margin="0 0 8 0" />
-                <RichTextLabel Name="GuidanceLabel" Access="Public"
-                               HorizontalExpand="True"
-                               VerticalAlignment="Center" />
-                <Button Name="PerformButton" Access="Public"
-                        Text="{Loc 'surgery-ui-perform'}"
-                        MinWidth="120"
-                        Disabled="True"
-                        VerticalAlignment="Center" />
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="8 6">
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <TextureRect Name="GuidanceIcon" Access="Public"
+                                 Stretch="KeepAspectCentered"
+                                 SetSize="24 24"
+                                 VerticalAlignment="Center"
+                                 Margin="0 0 8 0" />
+                    <RichTextLabel Name="GuidanceLabel" Access="Public"
+                                   HorizontalExpand="True"
+                                   VerticalAlignment="Center" />
+                    <Button Name="PerformButton" Access="Public"
+                            Text="{Loc 'surgery-ui-perform'}"
+                            MinWidth="120"
+                            Disabled="True"
+                            VerticalAlignment="Center" />
+                </BoxContainer>
+                <ProgressBar Name="StepProgress" Access="Public"
+                             HorizontalExpand="True"
+                             MinHeight="6"
+                             MinValue="0"
+                             MaxValue="1"
+                             Value="0"
+                             Visible="False"
+                             Margin="0 6 0 0" />
             </BoxContainer>
         </PanelContainer>
     </BoxContainer>

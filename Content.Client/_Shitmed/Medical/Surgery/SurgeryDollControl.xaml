@@ -1,7 +1,8 @@
 <!--
 FINALSTAND: the targeting HUD doll at 3x for the surgery window. Same art, nearest-neighbour, so it
 reads as deliberate pixel art rather than a blurry upscale. Every size here is the HUD control's
-value multiplied by three.
+value multiplied by three. Textures are white masks so limb condition can be applied as a tint - the
+original art is pure red, and Modulate multiplies, so it could never be shown as green.
 -->
 
 <controls:SurgeryDollControl
@@ -25,7 +26,7 @@ value multiplied by three.
                     MinSize="54 90"
                     VerticalAlignment="Top">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/rightarm.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightarm.png"
                         Stretch="KeepAspectCentered"
                         SetSize="36 72"
                         VerticalAlignment="Center"
@@ -36,7 +37,7 @@ value multiplied by three.
                     MinSize="54 54"
                     VerticalAlignment="Bottom">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/righthand.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/righthand.png"
                         Stretch="KeepAspectCentered"
                         SetSize="36 36"
                         VerticalAlignment="Center"
@@ -56,7 +57,7 @@ value multiplied by three.
                     VerticalAlignment="Top"
                     HorizontalAlignment="Center">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/head.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/head.png"
                         Stretch="KeepAspectCentered"
                         SetSize="81 63"
                         VerticalAlignment="Center"
@@ -69,7 +70,7 @@ value multiplied by three.
                     VerticalAlignment="Top"
                     HorizontalAlignment="Center">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/torso.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/torso.png"
                         Stretch="KeepAspectCentered"
                         SetSize="81 90"
                         VerticalAlignment="Center"
@@ -85,7 +86,7 @@ value multiplied by three.
                         VerticalAlignment="Top"
                         HorizontalAlignment="Center">
                         <TextureRect
-                            TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/groin.png"
+                            TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/groin.png"
                             Stretch="KeepAspectCentered"
                             SetSize="81 36"
                             VerticalAlignment="Center"
@@ -101,7 +102,7 @@ value multiplied by three.
                             VerticalAlignment="Top"
                             HorizontalAlignment="Left">
                             <TextureRect
-                                TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/leftleg.png"
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftleg.png"
                                 Stretch="KeepAspectCentered"
                                 SetSize="36 81"
                                 VerticalAlignment="Center"
@@ -112,7 +113,7 @@ value multiplied by three.
                             MinSize="72 36"
                             VerticalAlignment="Bottom">
                             <TextureRect
-                                TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/leftfoot.png"
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftfoot.png"
                                 Stretch="KeepAspectCentered"
                                 SetSize="54 27"
                                 VerticalAlignment="Center"
@@ -129,7 +130,7 @@ value multiplied by three.
                             VerticalAlignment="Top"
                             HorizontalAlignment="Right">
                             <TextureRect
-                                TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/rightleg.png"
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightleg.png"
                                 Stretch="KeepAspectCentered"
                                 SetSize="36 81"
                                 VerticalAlignment="Center"
@@ -141,7 +142,7 @@ value multiplied by three.
                             VerticalAlignment="Bottom"
                             HorizontalAlignment="Center">
                             <TextureRect
-                                TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/rightfoot.png"
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightfoot.png"
                                 Stretch="KeepAspectCentered"
                                 SetSize="54 27"
                                 VerticalAlignment="Center"
@@ -161,7 +162,7 @@ value multiplied by three.
                     MinSize="54 90"
                     VerticalAlignment="Top">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/leftarm.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftarm.png"
                         Stretch="KeepAspectCentered"
                         SetSize="36 72"
                         VerticalAlignment="Center"
@@ -172,7 +173,7 @@ value multiplied by three.
                     MinSize="54 54"
                     VerticalAlignment="Bottom">
                     <TextureRect
-                        TexturePath="/Textures/_Shitmed/Interface/Targeting/Doll/lefthand.png"
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/lefthand.png"
                         Stretch="KeepAspectCentered"
                         SetSize="36 36"
                         VerticalAlignment="Center"

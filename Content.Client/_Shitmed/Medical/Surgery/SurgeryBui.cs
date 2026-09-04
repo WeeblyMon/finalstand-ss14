@@ -22,8 +22,11 @@ using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
+using Content.Shared.DoAfter;
+using Robust.Shared.Timing;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -36,10 +39,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly Color MutedColor = Color.FromHex("#7F8891");
     private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
     private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
+    private static readonly Color OperationBlockedColor = new(0.70f, 0.70f, 0.70f);
 
     private readonly SurgerySystem _system;
     [ViewVariables]
@@ -95,13 +100,26 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = Loc.GetString("surgery-ui-window-title");
 
             _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
-            _dollPresenter = new SurgeryDollPresenter(_window, OnPartPressed);
+            _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed);
 
             _window.PerformButton.OnPressed += _ =>
             {
                 if (_guidance?.NextStep is { } next)
                     SendPredictedMessage(new SurgeryStepChosenBuiMsg(next.NetPart, next.SurgeryId, next.StepId, _isBody));
             };
+
+            _window.OnFrameUpdate += UpdateStepProgress;
+
+            // The columns were reading as one flat sheet without a background behind each.
+            foreach (var panel in new[] { _window.BodyPanel, _window.OperationsPanel, _window.ProcedurePanel })
+            {
+                panel.PanelOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = Color.FromHex("#1B1E23"),
+                    BorderColor = Color.FromHex("#2E333B"),
+                    BorderThickness = new Thickness(1),
+                };
+            }
         }
 
         // Opened before anything below can call RefreshUI, which no-ops on a closed window.
@@ -142,10 +160,10 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Parts.DisposeAllChildren();
             _dollPresenter!.Clear();
 
-            foreach (var (netEntity, _, partName, category) in options)
+            foreach (var (netEntity, entity, partName, category) in options)
             {
                 var surgeries = state.Choices[netEntity];
-                if (_dollPresenter.TryAdd(category, netEntity, surgeries))
+                if (_dollPresenter.TryAdd(category, netEntity, entity, surgeries))
                     continue;
 
                 var partButton = new ChoiceControl();
@@ -324,7 +342,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             foreach (var surgery in surgeries)
             {
-                var surgeryButton = new ChoiceControl();
+                var surgeryButton = new SurgeryOperationButton
+                {
+                    Surgery = surgery.Ent.Owner,
+                    SurgeryId = surgery.Id,
+                    OperationName = surgery.Name,
+                };
                 surgeryButton.Set(surgery.Name, null);
 
                 surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
@@ -421,6 +444,101 @@ public sealed partial class SurgeryBui : BoundUserInterface
         }
 
         _guidance.Show(nextButton, next != null, user, Owner, _part.Value);
+        RefreshOperations(user);
+
+        // Limb condition changes while the window is open, so the diagram tracks it here rather than
+        // only when the selection changes.
+        _dollPresenter?.Refresh(_entities.TryGetNetEntity(_part, out var netPart) ? netPart : null);
+    }
+
+    // The step is performed as a do-after on the surgeon, so the bar belongs where they are looking
+    // rather than floating over the patient.
+    private void UpdateStepProgress()
+    {
+        if (_window == null)
+            return;
+
+        if (_player.LocalEntity is not { } user
+            || !_entities.TryGetComponent(user, out DoAfterComponent? doAfters))
+        {
+            _window.StepProgress.Visible = false;
+            return;
+        }
+
+        var now = _timing.CurTime;
+        foreach (var doAfter in doAfters.DoAfters.Values)
+        {
+            if (doAfter.Cancelled || doAfter.Completed || doAfter.Args.Event is not SurgeryDoAfterEvent)
+                continue;
+
+            var length = doAfter.Args.Delay.TotalSeconds;
+            if (length <= 0)
+                continue;
+
+            _window.StepProgress.Visible = true;
+            _window.StepProgress.Value = Math.Clamp((float)((now - doAfter.StartTime).TotalSeconds / length), 0f, 1f);
+            return;
+        }
+
+        _window.StepProgress.Visible = false;
+    }
+
+    // Marks which operations are finished and which one you could actually start right now, so the
+    // surgeon is not reading every procedure to find the relevant one.
+    private void RefreshOperations(EntityUid user)
+    {
+        if (_window == null || _part == null)
+            return;
+
+        foreach (var child in _window.Surgeries.Children)
+        {
+            if (child is not SurgeryOperationButton op)
+                continue;
+
+            var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
+
+            string glyph;
+            Color colour;
+
+            if (next == null)
+            {
+                glyph = "✓  ";
+                colour = StepCompleteColor;
+            }
+            else if (next.Value.Surgery.Owner != op.Surgery)
+            {
+                glyph = "·  ";
+                colour = StepLockedColor;
+            }
+            else if (_system.CanPerformStepWithHeld(user, Owner, _part.Value, GetStepEntity(next.Value), false, out _))
+            {
+                glyph = "▶  ";
+                colour = Color.White;
+            }
+            else
+            {
+                glyph = "·  ";
+                colour = OperationBlockedColor;
+            }
+
+            var msg = new FormattedMessage();
+            msg.AddText(glyph);
+            msg.AddText(op.OperationName);
+
+            op.Set(msg, null);
+            op.Button.Modulate = colour;
+        }
+    }
+
+    private EntityUid GetStepEntity((Entity<SurgeryComponent> Surgery, int Step) next)
+    {
+        var index = next.Step < 0 ? -next.Step - 1 : next.Step;
+        var steps = next.Surgery.Comp.Steps;
+
+        if (index < 0 || index >= steps.Count)
+            return EntityUid.Invalid;
+
+        return _system.GetSingleton(steps[index]) ?? EntityUid.Invalid;
     }
 
     private void UpdateHeader()

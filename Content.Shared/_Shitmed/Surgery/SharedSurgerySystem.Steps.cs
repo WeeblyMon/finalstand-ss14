@@ -867,7 +867,10 @@ public abstract partial class SharedSurgerySystem
         }
 
         var tool = _hands.GetActiveItemOrSelf(user);
-        if (!CanPerformStep(user, body, part, step, tool, true, out _, out error, out var data))
+
+        // FINALSTAND: no world popup - the surgery window's guidance bar says this, and a floating
+        // message over the patient is exactly where a surgeon is not looking.
+        if (!CanPerformStep(user, body, part, step, tool, false, out _, out error, out var data))
             return false;
 
         var toolComp = _toolQuery.CompOrNull(tool);

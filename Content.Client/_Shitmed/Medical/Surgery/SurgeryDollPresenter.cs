@@ -2,6 +2,8 @@
 // not cover falls through to the list beside it, so a non-humanoid patient is never misrepresented.
 
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body;
 using Robust.Client.Graphics;
@@ -11,17 +13,29 @@ namespace Content.Client._Shitmed.Medical.Surgery;
 
 public sealed class SurgeryDollPresenter
 {
-    private static readonly Color AbsentColor = new(0.25f, 0.27f, 0.30f);
-    private static readonly Color AvailableColor = new(0.85f, 0.85f, 0.85f);
+    // Limb condition owns hue; selection owns brightness. The textures are white masks precisely so
+    // this tint is possible - the original doll art is pure red.
+    private static readonly Color HealthyColor = Color.FromHex("#4C9A6A");
+    private static readonly Color MinorColor = Color.FromHex("#8FB03E");
+    private static readonly Color ModerateColor = Color.FromHex("#C9A227");
+    private static readonly Color SevereColor = Color.FromHex("#D07C2A");
+    private static readonly Color CriticalColor = Color.FromHex("#C0392B");
+    private static readonly Color MangledColor = Color.FromHex("#8E2B22");
+    private static readonly Color SeveredColor = Color.FromHex("#4A4F57");
+    private static readonly Color AbsentColor = Color.FromHex("#2B2E33");
 
+    private const float UnselectedDim = 0.72f;
+
+    private readonly IEntityManager _entities;
     private readonly SurgeryWindow _window;
     private readonly Action<NetEntity, List<EntProtoId>> _onPartPressed;
-    private readonly Dictionary<TargetBodyPart, (NetEntity Net, List<EntProtoId> Surgeries)> _targets = new();
+    private readonly Dictionary<TargetBodyPart, (NetEntity Net, EntityUid Part, List<EntProtoId> Surgeries)> _targets = new();
 
     private SurgeryDollControl? _doll;
 
-    public SurgeryDollPresenter(SurgeryWindow window, Action<NetEntity, List<EntProtoId>> onPartPressed)
+    public SurgeryDollPresenter(IEntityManager entities, SurgeryWindow window, Action<NetEntity, List<EntProtoId>> onPartPressed)
     {
+        _entities = entities;
         _window = window;
         _onPartPressed = onPartPressed;
     }
@@ -31,12 +45,12 @@ public sealed class SurgeryDollPresenter
         _targets.Clear();
     }
 
-    public bool TryAdd(ProtoId<OrganCategoryPrototype>? category, NetEntity net, List<EntProtoId> surgeries)
+    public bool TryAdd(ProtoId<OrganCategoryPrototype>? category, NetEntity net, EntityUid part, List<EntProtoId> surgeries)
     {
         if (OrganCategories.ToTarget(category) is not { } target)
             return false;
 
-        _targets[target] = (net, surgeries);
+        _targets[target] = (net, part, surgeries);
         return true;
     }
 
@@ -62,9 +76,35 @@ public sealed class SurgeryDollPresenter
                 continue;
             }
 
+            var colour = ConditionColor(entry.Part);
             button.Disabled = false;
-            button.Modulate = selected == entry.Net ? Color.White : AvailableColor;
+            button.Modulate = selected == entry.Net ? colour : Dim(colour, UnselectedDim);
         }
+    }
+
+    private static Color Dim(Color colour, float factor)
+    {
+        return new Color(colour.R * factor, colour.G * factor, colour.B * factor, colour.A);
+    }
+
+    // Severity is networked, so the surgeon can read the patient off the diagram instead of juggling
+    // a health analyser.
+    private Color ConditionColor(EntityUid part)
+    {
+        if (!_entities.TryGetComponent<WoundableComponent>(part, out var woundable))
+            return HealthyColor;
+
+        return woundable.WoundableSeverity switch
+        {
+            WoundableSeverity.Healthy => HealthyColor,
+            WoundableSeverity.Minor => MinorColor,
+            WoundableSeverity.Moderate => ModerateColor,
+            WoundableSeverity.Severe => SevereColor,
+            WoundableSeverity.Critical => CriticalColor,
+            WoundableSeverity.Mangled => MangledColor,
+            WoundableSeverity.Severed => SeveredColor,
+            _ => HealthyColor,
+        };
     }
 
     // Handlers are wired once, then read _targets on click, so rebuilding the part set never has to
