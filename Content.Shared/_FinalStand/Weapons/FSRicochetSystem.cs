@@ -1,7 +1,6 @@
 using System.Numerics;
+using Content.Shared.Damage.Components;
 using Content.Shared.Mobs.Components;
-using Content.Shared.Projectiles;
-using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
@@ -33,11 +32,10 @@ public sealed class FSRicochetSystem : EntitySystem
         if (args.Cancelled || ent.Comp.Bounces <= 0)
             return;
 
-        if (HasComp<ProjectileComponent>(args.OtherEntity) || HasComp<MobStateComponent>(args.OtherEntity))
-            return;
-
-        if (!TryComp<PhysicsComponent>(args.OtherEntity, out var otherBody) ||
-            otherBody.BodyType != BodyType.Static || !otherBody.Hard)
+        // Whitelist rather than blacklist. Pellets carry a fly-by fixture layered Impassable, which
+        // the projectile mask matches, so pellet-on-pellet contacts do get raised here. Nothing
+        // unanchored can be a bounce surface, which rules them out whatever their body flags say.
+        if (!IsBounceSurface(args.OtherEntity))
             return;
 
         var now = _timing.CurTime;
@@ -64,6 +62,14 @@ public sealed class FSRicochetSystem : EntitySystem
         ent.Comp.Bounces--;
         ent.Comp.NextBounce = now + BounceCooldown;
         args.Cancelled = true;
+    }
+
+    private bool IsBounceSurface(EntityUid uid)
+    {
+        if (!Transform(uid).Anchored || HasComp<MobStateComponent>(uid))
+            return false;
+
+        return HasComp<DamageableComponent>(uid);
     }
 
     // Structures are tile aligned, so the face the pellet arrived at is whichever axis dominates.
