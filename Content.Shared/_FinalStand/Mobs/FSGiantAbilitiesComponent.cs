@@ -53,7 +53,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpOuterRadius = 4.5f;
 
     [DataField]
-    public float SkyJumpDamage = 55f;
+    public float SkyJumpDamage = 90f;
 
     [DataField]
     public float SkyJumpKnockbackDistance = 6f;
@@ -86,7 +86,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float DashDistance = 5f;
 
     [DataField]
-    public float DashDamage = 45f;
+    public float DashDamage = 75f;
 
     [DataField]
     public float DashHitRadius = 1.6f;
@@ -114,6 +114,21 @@ public sealed partial class FSGiantAbilitiesComponent : Component
 
     [DataField]
     public SoundSpecifier? ImpactSound = new SoundPathSpecifier("/Audio/Effects/explosion_small1.ogg");
+
+    [DataField]
+    public SoundSpecifier? LaunchSound = new SoundPathSpecifier("/Audio/Effects/Footsteps/largethud.ogg");
+
+    [DataField]
+    public SoundSpecifier? LandSound = new SoundPathSpecifier("/Audio/Effects/Footsteps/largethud.ogg");
+
+    [DataField]
+    public SoundSpecifier? BoulderThrowSound = new SoundPathSpecifier("/Audio/Effects/thudswoosh.ogg");
+
+    [DataField]
+    public SoundSpecifier? DashSound = new SoundPathSpecifier("/Audio/Effects/thudswoosh.ogg");
+
+    [DataField]
+    public SoundSpecifier? PunchSound = new SoundPathSpecifier("/Audio/Weapons/punch1.ogg");
 
     [AutoNetworkedField]
     public bool Airborne;

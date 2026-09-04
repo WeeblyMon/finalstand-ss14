@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -35,14 +36,22 @@ public sealed class FSGiantBoulderSystem : EntitySystem
         if (!ent.Comp.Struck.Add(other))
             return;
 
+        Spawn(ent.Comp.ImpactEffect, Transform(other).Coordinates);
+        _audio.PlayPvs(ent.Comp.ImpactSound, other);
+
+        // Reinforced walls carry this marker and are what keeps the station sealed, so the rock
+        // stops dead on them rather than opening the hull.
+        if (HasComp<FSPlayerDamageImmuneComponent>(other))
+        {
+            Spawn(ent.Comp.ImpactEffect, Transform(ent).Coordinates);
+            QueueDel(ent);
+            return;
+        }
+
         var damage = new DamageSpecifier();
         damage.DamageDict["Structural"] = FixedPoint2.New(ent.Comp.StructuralDamage);
         _damageable.TryChangeDamage(other, damage, origin: ent.Owner);
 
-        Spawn(ent.Comp.ImpactEffect, Transform(other).Coordinates);
-        _audio.PlayPvs(ent.Comp.ImpactSound, other);
-
-        // Anything still standing after that hit is too solid to punch through.
         var broke = TerminatingOrDeleted(other) || EntityManager.IsQueuedForDeletion(other);
         ent.Comp.StructurePierce--;
 

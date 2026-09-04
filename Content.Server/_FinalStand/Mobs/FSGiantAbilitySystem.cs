@@ -191,6 +191,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _physics.SetCanCollide(ent.Owner, false);
         EnsureComp<FSPlayerDamageImmuneComponent>(ent);
 
+        _audio.PlayPvs(comp.LaunchSound, ent.Owner);
         comp.TelegraphEntity = Spawn(comp.TelegraphProto, new MapCoordinates(comp.LockedTarget, xform.MapID));
         Begin(ent, FSGiantAbility.SkyJumpAir, comp.SkyJumpAirTime, now);
     }
@@ -208,6 +209,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, false);
 
         Spawn(comp.ImpactEffect, landing);
+        _audio.PlayPvs(comp.LandSound, ent.Owner);
         _audio.PlayPvs(comp.ImpactSound, ent.Owner);
 
         var blast = new DamageSpecifier();
@@ -246,7 +248,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         {
             var boulder = Spawn(comp.BoulderProto, xform.Coordinates);
             _gun.ShootProjectile(boulder, direction, Vector2.Zero, ent.Owner, ent.Owner, comp.BoulderSpeed);
-            _audio.PlayPvs(comp.RoarSound, ent.Owner);
+            _audio.PlayPvs(comp.BoulderThrowSound, ent.Owner);
         }
 
         comp.NextBoulder = now + TimeSpan.FromSeconds(comp.BoulderCooldown);
@@ -267,6 +269,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         // Re-probe from where the giant actually stands now, keeping the heading it committed to.
         comp.DashOrigin = _transform.GetWorldPosition(xform);
         comp.DashLanding = ProbeDash(comp.DashOrigin, comp.DashHeading, comp.DashDistance, xform.MapID);
+        _audio.PlayPvs(comp.DashSound, ent.Owner);
         Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);
     }
 
@@ -279,7 +282,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
         _transform.SetWorldPosition(ent.Owner, landing);
         SpawnFist(ent, landing, heading, mapId);
-        _audio.PlayPvs(comp.ImpactSound, ent.Owner);
+        _audio.PlayPvs(comp.PunchSound, ent.Owner);
 
         var punch = new DamageSpecifier();
         punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
