@@ -38,16 +38,14 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
             {
                 proj.Damage *= damageMul;
 
-                if (pierce > 0)
+                if (pierce > 0 || bounces > 0)
                     proj.DeleteOnCollide = false;
             }
 
             if (pierce > 0)
                 EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
 
-            var ricochet = EnsureComp<FSRicochetComponent>(projUid);
-            ricochet.Bounces = bounces;
-            ricochet.NextBounce = _timing.CurTime + ricochet.ArmDelay;
+            EnsureComp<FSRicochetComponent>(projUid).Bounces = bounces;
 
             if (TryComp<PhysicsComponent>(projUid, out var body))
                 _physics.SetLinearVelocity(projUid, body.LinearVelocity * speedMul, body: body);
