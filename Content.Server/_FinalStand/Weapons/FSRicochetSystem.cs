@@ -1,31 +1,27 @@
-using System.Numerics;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Projectiles;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
 
-// Mirrors a projectile off whatever it just struck, using the contact manifold the physics engine
-// already produced. Runs after ProjectileSystem so the hit is resolved, and before FSPierceSystem so
-// clearing ProjectileSpent makes that system leave the round alone.
-//
-// Bouncing rounds are spawned with DeleteOnCollide off, so this system owns their lifetime: every
-// path that does not bounce has to consume the round, or it sails on through the world.
+// The projectile carries a hard "bounce" fixture with restitution, so the physics engine performs
+// the deflection itself. This system only budgets it: count the bounces, bleed damage off each one,
+// and keep the round alive through the hit that ProjectileSystem would otherwise consume.
 public sealed class FSRicochetSystem : EntitySystem
 {
+    [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private SharedPhysicsSystem _physics = default!;
-    [Dependency] private SharedTransformSystem _transform = default!;
 
-    // One contact can report several manifold points in a tick; only the first should cost a bounce.
+    public const string BounceFixture = "bounce";
+
+    // A single wall contact can report more than once in a tick; only the first should cost a bounce.
     private static readonly TimeSpan BounceCooldown = TimeSpan.FromSeconds(0.05);
 
     public override void Initialize()
@@ -37,19 +33,20 @@ public sealed class FSRicochetSystem : EntitySystem
 
     private void OnStartCollide(Entity<FSRicochetComponent> ent, ref StartCollideEvent args)
     {
-        if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture)
-            return;
-
-        // Non-hard fixtures are what pellets present to each other, so this is the check that stops
-        // a volley from ricocheting off itself.
-        if (!args.OtherFixture.Hard)
-            return;
-
         if (!TryComp<ProjectileComponent>(ent, out var projectile))
             return;
 
-        // Mobs never deflect a round. FSPierceSystem decides whether it carries on through them;
-        // without pierce left there is nothing else to end it here.
+        if (args.OurFixtureId == BounceFixture)
+        {
+            OnBounced(ent, projectile);
+            return;
+        }
+
+        if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture || !args.OtherFixture.Hard)
+            return;
+
+        // Mobs never deflect. FSPierceSystem decides whether the round carries on through them;
+        // with no pierce left there is nothing else to end it, so do it here.
         if (HasComp<MobStateComponent>(args.OtherEntity))
         {
             if (!HasComp<FSPierceComponent>(ent))
@@ -57,50 +54,36 @@ public sealed class FSRicochetSystem : EntitySystem
             return;
         }
 
+        // Struck a structure. Bounces left means the hard fixture is about to deflect it, so undo
+        // the spend that ProjectileSystem just applied; otherwise the round is finished.
+        if (ent.Comp.Bounces > 0)
+            projectile.ProjectileSpent = false;
+        else
+            QueueDel(ent);
+    }
+
+    private void OnBounced(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
+    {
         var now = _timing.CurTime;
-        if (now < ent.Comp.NextBounce)
+        if (now < ent.Comp.NextBounce || ent.Comp.Bounces <= 0)
             return;
 
-        if (ent.Comp.Bounces <= 0 || !TryComp<PhysicsComponent>(ent, out var body))
-        {
-            QueueDel(ent);
-            return;
-        }
-
-        var velocity = body.LinearVelocity;
-        if (velocity.LengthSquared() < 0.01f)
-        {
-            QueueDel(ent);
-            return;
-        }
-
-        // The manifold normal is handed to both entities unflipped, so its sign depends on which
-        // side of the contact we were. Orient it against our own travel instead of guessing from
-        // positions, which is unreliable once we are already overlapping the surface.
-        var normal = args.WorldNormal;
-        if (Vector2.Dot(velocity, normal) > 0f)
-            normal = -normal;
-
-        var reflected = (velocity - 2f * Vector2.Dot(velocity, normal) * normal) * ent.Comp.SpeedRetained;
-
-        _physics.SetLinearVelocity(ent, reflected, body: body);
-        _transform.SetWorldPosition(ent.Owner,
-            _transform.GetWorldPosition(ent) + normal * ent.Comp.Clearance);
-        _transform.SetWorldRotation(ent.Owner, reflected.ToWorldAngle());
+        ent.Comp.NextBounce = now + BounceCooldown;
+        ent.Comp.Bounces--;
 
         projectile.Damage *= ent.Comp.DamageRetained;
         projectile.ProjectileSpent = false;
-
-        ent.Comp.Bounces--;
-        ent.Comp.NextBounce = now + BounceCooldown;
-
-        // Out of bounces: let the next surface consume it the normal way.
-        if (ent.Comp.Bounces <= 0)
-            projectile.DeleteOnCollide = true;
 
         _audio.PlayPvs(ent.Comp.BounceSound, ent.Owner);
 
         if (ent.Comp.BounceEffect is { } effect)
             Spawn(effect, Transform(ent).Coordinates);
+
+        if (ent.Comp.Bounces > 0)
+            return;
+
+        // Out of bounces: drop the bouncing fixture and let the next surface stop it normally.
+        projectile.DeleteOnCollide = true;
+        _fixtures.DestroyFixture(ent.Owner, BounceFixture);
     }
 }

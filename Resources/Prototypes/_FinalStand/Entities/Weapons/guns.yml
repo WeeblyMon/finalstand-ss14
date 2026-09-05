@@ -515,7 +515,7 @@
   - type: FSChargeShot
   - type: Gun
     fireRate: 4
-    projectileSpeed: 12
+    projectileSpeed: 20
     minAngle: 0
     maxAngle: 0
     angleIncrease: 0
