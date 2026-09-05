@@ -866,11 +866,10 @@ public abstract partial class SharedSurgerySystem
             return false;
         }
 
-        var tool = _hands.GetActiveItemOrSelf(user);
-
-        // FINALSTAND: no world popup - the surgery window's guidance bar says this, and a floating
-        // message over the patient is exactly where a surgeon is not looking.
-        if (!CanPerformStep(user, body, part, step, tool, false, out _, out error, out var data))
+        // FINALSTAND: the tool no longer has to be in the active hand, and no world popup - the
+        // window's guidance bar says why, and a message over the patient is exactly where a surgeon
+        // is not looking.
+        if (!TryFindStepTool(user, body, part, step, out var tool, out _, out error, out var data))
             return false;
 
         var toolComp = _toolQuery.CompOrNull(tool);
@@ -1071,24 +1070,89 @@ public abstract partial class SharedSurgerySystem
         return CanPerformStep(user, body, part, step, tool, doPopup, out _, out _, out _);
     }
 
-    public bool CanPerformStepWithHeld(EntityUid user, EntityUid body, EntityUid part, EntityUid step, bool doPopup, out string? popup)
+    public bool CanPerformStepWithAvailable(EntityUid user, EntityUid body, EntityUid part, EntityUid step, out string? popup)
     {
-        var tool = _hands.GetActiveItemOrSelf(user);
-        return CanPerformStep(user, body, part, step, tool, doPopup, out popup, out _, out _);
+        return TryFindStepTool(user, body, part, step, out _, out popup, out _, out _);
     }
 
     // FINALSTAND: the UI needs the structured reason, not just the popup string, so it can say
     // "put them on an operating table" instead of greying a button out.
-    public bool CanPerformStepWithHeld(EntityUid user,
+    public bool CanPerformStepWithAvailable(EntityUid user,
         EntityUid body,
         EntityUid part,
         EntityUid step,
-        bool doPopup,
         out string? popup,
         out StepInvalidReason reason)
     {
-        var tool = _hands.GetActiveItemOrSelf(user);
-        return CanPerformStep(user, body, part, step, tool, doPopup, out popup, out reason, out _);
+        return TryFindStepTool(user, body, part, step, out _, out popup, out reason, out _);
+    }
+
+    /// <summary>
+    /// FINALSTAND: a surgeon should not be juggling their hands mid-operation. A step is satisfied by
+    /// anything within reach - held, worn, inside a bag, or laid out on the table beside them. The
+    /// active hand is tried first so a deliberate choice is never overridden.
+    /// </summary>
+    public bool TryFindStepTool(EntityUid user,
+        EntityUid body,
+        EntityUid part,
+        EntityUid step,
+        out EntityUid tool,
+        out string? popup,
+        out StepInvalidReason reason,
+        out ISurgeryToolComponent? data)
+    {
+        var held = _hands.GetActiveItemOrSelf(user);
+        tool = held;
+
+        if (CanPerformStep(user, body, part, step, held, false, out popup, out reason, out data))
+            return true;
+
+        // Keep the held item's failure, since that is the one worth reporting if nothing else fits.
+        var heldPopup = popup;
+        var heldReason = reason;
+
+        foreach (var candidate in EnumerateReachableTools(user))
+        {
+            if (candidate == held)
+                continue;
+
+            if (!CanPerformStep(user, body, part, step, candidate, false, out popup, out reason, out data))
+                continue;
+
+            tool = candidate;
+            return true;
+        }
+
+        popup = heldPopup;
+        reason = heldReason;
+        data = null;
+        return false;
+    }
+
+    private IEnumerable<EntityUid> EnumerateReachableTools(EntityUid user)
+    {
+        foreach (var item in _inventory.GetHandOrInventoryEntities(user))
+        {
+            yield return item;
+
+            // One level down covers a backpack, a belt, or a medkit sitting in a pocket.
+            if (TryComp<Content.Shared.Storage.StorageComponent>(item, out var storage))
+            {
+                foreach (var stored in storage.StoredItems.Keys)
+                    yield return stored;
+            }
+        }
+
+        // Tools laid out on the operating table or dropped beside it. Anything inside a container is
+        // skipped so a closed locker is not reachable.
+        var nearby = new HashSet<EntityUid>();
+        _entityLookup.GetEntitiesInRange(Transform(user).Coordinates, ToolReachRange, nearby);
+
+        foreach (var candidate in nearby)
+        {
+            if (HasComp<Content.Shared.Item.ItemComponent>(candidate) && !_containers.IsEntityInContainer(candidate))
+                yield return candidate;
+        }
     }
 
     // FINALSTAND: Tool is a ComponentRegistry rather than a prototype, but the deserialised component

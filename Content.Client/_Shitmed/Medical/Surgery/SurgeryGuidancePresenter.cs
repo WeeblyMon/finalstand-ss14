@@ -1,5 +1,5 @@
-// Owns the guidance bar. CanPerformStepWithHeld already knows exactly why a step will not work; the
-// old UI spent that on a tooltip nobody hovers.
+// Owns the guidance bar. The surgery system already knows exactly why a step will not work; the old
+// UI spent that on a tooltip nobody hovers.
 
 using Content.Shared._Shitmed.Medical.Surgery;
 using Robust.Client.GameObjects;
@@ -45,6 +45,17 @@ public sealed class SurgeryGuidancePresenter
         Set(null, Loc.GetString("surgery-ui-guidance-cannot-operate"), DangerColor);
     }
 
+    public void ShowChooseOperation(string? recommended)
+    {
+        if (recommended == null)
+        {
+            Set(null, Loc.GetString("surgery-ui-guidance-nothing-to-do"), ReadyColor);
+            return;
+        }
+
+        Set(null, Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), ReadyColor);
+    }
+
     public void Show(SurgeryStepButton? next, bool workRemains, EntityUid user, EntityUid body, EntityUid part)
     {
         NextStep = next;
@@ -64,7 +75,7 @@ public sealed class SurgeryGuidancePresenter
         var stepName = _entities.GetComponent<MetaDataComponent>(next.Step).EntityName;
         var texture = _entities.GetComponentOrNull<SpriteComponent>(next.Step)?.Icon?.Default;
 
-        if (_system.CanPerformStepWithHeld(user, body, part, next.Step, false, out var popup, out var reason))
+        if (_system.CanPerformStepWithAvailable(user, body, part, next.Step, out var popup, out var reason))
         {
             _window.PerformButton.Disabled = false;
             Set(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);

@@ -82,6 +82,11 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
     [Dependency] protected StatusEffectsSystem Status = default!;
+    [Dependency] private EntityLookupSystem _entityLookup = default!; // FINALSTAND
+    [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!; // FINALSTAND
+
+    // FINALSTAND: how far a surgeon can reach for a tool that is not in their hands.
+    private const float ToolReachRange = 1.5f;
 
     private EntityQuery<BodyComponent> _bodyQuery;
     private EntityQuery<StackComponent> _stackQuery;

@@ -44,7 +44,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private static readonly Color MutedColor = Color.FromHex("#7F8891");
     private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
     private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
-    private static readonly Color OperationBlockedColor = new(0.70f, 0.70f, 0.70f);
+    private static readonly Color OperationNextColor = Color.FromHex("#8FE0B0");
+    private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
 
     private readonly SurgerySystem _system;
     [ViewVariables]
@@ -366,7 +367,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         _guidance.Reset();
 
-        if (_part == null || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
+        if (_part == null)
         {
             _guidance.ShowSelectPrompt();
             return;
@@ -377,6 +378,18 @@ public sealed partial class SurgeryBui : BoundUserInterface
             || _player.LocalEntity is not { } user)
         {
             _guidance.ShowCannotOperate();
+            return;
+        }
+
+        var recommended = RefreshOperations(user);
+        var selectedNet = _entities.TryGetNetEntity(_part, out var part) ? part : null;
+
+        // A limb is chosen but no operation yet - name the one to start with, rather than leaving the
+        // surgeon to work out which of six entries is relevant.
+        if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
+        {
+            _guidance.ShowChooseOperation(recommended);
+            _dollPresenter?.Refresh(selectedNet);
             return;
         }
 
@@ -433,7 +446,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             {
                 // First Next wins - a negative next.Step marks a whole run of them.
                 nextButton ??= stepButton;
-                stepButton.ToolTip = _system.CanPerformStepWithHeld(user, Owner, _part.Value, stepButton.Step, false, out var popup)
+                stepButton.ToolTip = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup)
                     ? null
                     : popup;
             }
@@ -444,11 +457,10 @@ public sealed partial class SurgeryBui : BoundUserInterface
         }
 
         _guidance.Show(nextButton, next != null, user, Owner, _part.Value);
-        RefreshOperations(user);
 
         // Limb condition changes while the window is open, so the diagram tracks it here rather than
         // only when the selection changes.
-        _dollPresenter?.Refresh(_entities.TryGetNetEntity(_part, out var netPart) ? netPart : null);
+        _dollPresenter?.Refresh(selectedNet);
     }
 
     // The step is performed as a do-after on the surgeon, so the bar belongs where they are looking
@@ -483,12 +495,16 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.StepProgress.Visible = false;
     }
 
-    // Marks which operations are finished and which one you could actually start right now, so the
-    // surgeon is not reading every procedure to find the relevant one.
-    private void RefreshOperations(EntityUid user)
+    // The column is already sorted by the prototypes' Priority, so the first operation that is neither
+    // finished nor waiting on a prerequisite is the one to do next. Deliberately independent of what
+    // is in your hands: the point is to say "do this", not "you could do this right now" - you often
+    // need to go and fetch the tool.
+    private string? RefreshOperations(EntityUid user)
     {
         if (_window == null || _part == null)
-            return;
+            return null;
+
+        string? recommendedName = null;
 
         foreach (var child in _window.Surgeries.Children)
         {
@@ -510,15 +526,16 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 glyph = "·  ";
                 colour = StepLockedColor;
             }
-            else if (_system.CanPerformStepWithHeld(user, Owner, _part.Value, GetStepEntity(next.Value), false, out _))
+            else if (recommendedName == null)
             {
                 glyph = "▶  ";
-                colour = Color.White;
+                colour = OperationNextColor;
+                recommendedName = op.OperationName;
             }
             else
             {
-                glyph = "·  ";
-                colour = OperationBlockedColor;
+                glyph = "•  ";
+                colour = OperationAvailableColor;
             }
 
             var msg = new FormattedMessage();
@@ -528,17 +545,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
             op.Set(msg, null);
             op.Button.Modulate = colour;
         }
-    }
 
-    private EntityUid GetStepEntity((Entity<SurgeryComponent> Surgery, int Step) next)
-    {
-        var index = next.Step < 0 ? -next.Step - 1 : next.Step;
-        var steps = next.Surgery.Comp.Steps;
-
-        if (index < 0 || index >= steps.Count)
-            return EntityUid.Invalid;
-
-        return _system.GetSingleton(steps[index]) ?? EntityUid.Invalid;
+        return recommendedName;
     }
 
     private void UpdateHeader()
