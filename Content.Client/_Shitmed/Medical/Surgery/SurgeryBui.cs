@@ -20,6 +20,7 @@ using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
 using Content.Shared._Shitmed.Medical.Surgery;
+using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
 using Content.Shared.DoAfter;
@@ -495,16 +496,39 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.StepProgress.Visible = false;
     }
 
-    // The column is already sorted by the prototypes' Priority, so the first operation that is neither
-    // finished nor waiting on a prerequisite is the one to do next. Deliberately independent of what
-    // is in your hands: the point is to say "do this", not "you could do this right now" - you often
-    // need to go and fetch the tool.
+    // "Available" is not the same as "worth doing" - inserting an organ is always available on an
+    // empty slot, which is how a bleeding chest ended up being told to install a brain. Rank by what
+    // the surgery is gated on instead: a procedure that only exists while something is wrong is the
+    // one that needs doing.
+    private int UrgencyOf(EntityUid surgery)
+    {
+        // Closing up is by definition the last thing you do.
+        if (_entities.HasComponent<SurgeryCloseIncisionConditionComponent>(surgery))
+            return 4;
+
+        if (_entities.TryGetComponent<SurgeryBleedsPresentConditionComponent>(surgery, out var bleeds)
+            && !bleeds.Inverted)
+            return 0;
+
+        if (_entities.TryGetComponent<SurgeryTraumaPresentConditionComponent>(surgery, out var trauma)
+            && !trauma.Inverted)
+            return 1;
+
+        // Opening the patient up is a means to an end, so it outranks elective work but nothing else.
+        return _entities.HasComponent<SurgeryOperatingTableConditionComponent>(surgery) ? 2 : 3;
+    }
+
+    // Deliberately independent of what is in your hands: the point is to say "do this", not "you
+    // could do this right now" - you often need to go and fetch the tool.
     private string? RefreshOperations(EntityUid user)
     {
         if (_window == null || _part == null)
             return null;
 
-        string? recommendedName = null;
+        SurgeryOperationButton? recommended = null;
+        var bestUrgency = int.MaxValue;
+
+        var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked)>();
 
         foreach (var child in _window.Surgeries.Children)
         {
@@ -512,25 +536,41 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 continue;
 
             var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
+            var complete = next == null;
+            var blocked = !complete && next!.Value.Surgery.Owner != op.Surgery;
 
+            states.Add((op, complete, blocked));
+
+            if (complete || blocked)
+                continue;
+
+            var urgency = UrgencyOf(op.Surgery);
+            if (urgency >= bestUrgency)
+                continue;
+
+            bestUrgency = urgency;
+            recommended = op;
+        }
+
+        foreach (var (op, complete, blocked) in states)
+        {
             string glyph;
             Color colour;
 
-            if (next == null)
+            if (complete)
             {
                 glyph = "✓  ";
                 colour = StepCompleteColor;
             }
-            else if (next.Value.Surgery.Owner != op.Surgery)
+            else if (blocked)
             {
                 glyph = "·  ";
                 colour = StepLockedColor;
             }
-            else if (recommendedName == null)
+            else if (op == recommended)
             {
                 glyph = "▶  ";
                 colour = OperationNextColor;
-                recommendedName = op.OperationName;
             }
             else
             {
@@ -546,7 +586,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             op.Button.Modulate = colour;
         }
 
-        return recommendedName;
+        return recommended?.OperationName;
     }
 
     private void UpdateHeader()

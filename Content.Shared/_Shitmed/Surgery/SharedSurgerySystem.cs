@@ -188,12 +188,14 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        var tool = _hands.GetActiveItemOrSelf(args.User);
+        // FINALSTAND: resolved the same way the step was started. Re-reading the active hand here made
+        // the do-after run to completion and then silently do nothing whenever the tool was in a bag.
+        var tool = EntityUid.Invalid;
         if (args.Handled
             || args.Target is not { } target
             || !IsSurgeryValid(ent, target, args.Surgery, args.Step, args.User, out var surgery, out var part, out var step)
             || !PreviousStepsComplete(ent, part, surgery, args.Step, args.User)
-            || !CanPerformStep(args.User, ent, part, step, tool, false))
+            || !TryFindStepTool(args.User, ent, part, step, out tool, out _, out _, out _))
         {
             Log.Warning($"{ToPrettyString(args.User)} tried to start invalid surgery.");
             return;
