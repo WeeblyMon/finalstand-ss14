@@ -77,9 +77,14 @@ public sealed partial class HealingSystem : EntitySystem
 
             if (healing.BloodlossModifier < 0)
             {
-                _wounds.TryHealBleedsOnBody(target.Owner,
-                    (float) healing.BloodlossModifier,
-                    CompOrNull<TargetingComponent>(args.User)?.Target);
+                // FINALSTAND: aim decides which limb gets treated, but if that limb has nothing to
+                // treat, fall back to whatever is actually bleeding. A targeting doll left on its
+                // default Chest otherwise leaves every other limb bleeding with no way to reach it.
+                var targeted = CompOrNull<TargetingComponent>(args.User)?.Target;
+                var bleedAbility = (float) healing.BloodlossModifier;
+
+                if (!_wounds.TryHealBleedsOnBody(target.Owner, bleedAbility, targeted) && targeted != null)
+                    _wounds.TryHealBleedsOnBody(target.Owner, bleedAbility);
             }
 
             if (isBleeding != (bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner)))
@@ -171,6 +176,13 @@ public sealed partial class HealingSystem : EntitySystem
             {
                 return true;
             }
+        }
+
+        // FINALSTAND: bleeding lives on the individual limbs, and the mob-level counter is wiped by a
+        // single application, so this gate refused a second bandage while the patient was still open.
+        if (healing.Comp.BloodlossModifier < 0 && _wounds.IsAnyWoundableBleeding(target.Owner))
+        {
+            return true;
         }
 
         return false;
