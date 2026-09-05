@@ -20,6 +20,16 @@ public sealed partial class FSDeployableItemComponent : Component
     public bool RequiresScience = true;
 
     [DataField]
+    public bool RequiresEngineering;
+
+    // 0 is unlimited.
+    [DataField, AutoNetworkedField]
+    public int MaxDeployed;
+
+    [DataField]
+    public bool FaceDeployerDirection;
+
+    [DataField]
     public int RegenPerWave = 1;
 
     // Waves between refills; 1 tops up every prep, 2 every other prep.

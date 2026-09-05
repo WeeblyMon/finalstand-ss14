@@ -1,5 +1,4 @@
-# Barricades ported from RMC-14. Directional cover: the fixture only occupies the facing
-# edge of the tile, so rotating the barricade changes which approach it blocks.
+# Barricades ported from RMC-14. The fixture only occupies the facing edge, so rotation sets which approach it blocks.
 
 - type: localizedDataset
   id: FSBarricadeMessages
@@ -383,6 +382,8 @@
   - type: Door
     openSpriteState: folding_metal_closed
     closedSpriteState: folding_metal
+    openingSpriteState: folding_metal_closed
+    closingSpriteState: folding_metal
     canPry: false
     occludes: false
     changeAirtight: false
@@ -444,6 +445,8 @@
   - type: Door
     openSpriteState: folding_plasteel_closed
     closedSpriteState: folding_plasteel
+    openingSpriteState: folding_plasteel_closed
+    closingSpriteState: folding_plasteel
     canPry: false
     occludes: false
     changeAirtight: false

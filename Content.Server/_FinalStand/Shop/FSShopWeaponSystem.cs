@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Research;
+using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
@@ -28,6 +29,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private FSResearchSystem _fsResearch = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
+    [Dependency] private FSEngineeringOnlySystem _engineering = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -84,6 +86,13 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         {
             if (!silent)
                 _popup.PopupEntity(Loc.GetString("shop-weapon-locked-department"), uid, player);
+            return false;
+        }
+
+        if (comp.RequiresEngineering && !_engineering.IsEngineering(player))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("shop-weapon-locked-engineering"), uid, player);
             return false;
         }
 

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Engineering;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Science;
@@ -44,6 +45,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
 
     private HashSet<string> _unlockedResearchNodes = new();
     private bool _isScience;
+    private bool _isEngineering;
     private Texture? _lockTexture;
     private readonly Dictionary<ShopGlowState, ShaderInstance> _glowShaders = [];
 
@@ -72,6 +74,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
         SubscribeNetworkEvent<FSPlayerScienceStatusEvent>(OnScienceStatus);
+        SubscribeNetworkEvent<FSPlayerEngineeringStatusEvent>(OnEngineeringStatus);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
@@ -101,6 +104,8 @@ public sealed partial class FSShopClientSystem : EntitySystem
             if (shop.RequiresResearch is { } required && !_unlockedResearchNodes.Contains(required.Id))
                 state = ShopGlowState.Locked;
             else if (shop.RequiresScience && !_isScience)
+                state = ShopGlowState.Locked;
+            else if (shop.RequiresEngineering && !_isEngineering)
                 state = ShopGlowState.Locked;
             else if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
                 state = ShopGlowState.Owned;
@@ -190,6 +195,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         Accuracy = -1;
         NextLevelAccuracy = [];
         _isScience = false;
+        _isEngineering = false;
         _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
@@ -303,6 +309,12 @@ public sealed partial class FSShopClientSystem : EntitySystem
     private void OnScienceStatus(FSPlayerScienceStatusEvent ev)
     {
         _isScience = ev.IsScience;
+        _lastGlowState.Clear();
+    }
+
+    private void OnEngineeringStatus(FSPlayerEngineeringStatusEvent ev)
+    {
+        _isEngineering = ev.IsEngineering;
         _lastGlowState.Clear();
     }
 

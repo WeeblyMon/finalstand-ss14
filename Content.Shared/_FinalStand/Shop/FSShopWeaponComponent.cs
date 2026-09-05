@@ -16,6 +16,9 @@ public sealed partial class FSShopWeaponComponent : Component
     public bool RequiresScience;
 
     [DataField]
+    public bool RequiresEngineering;
+
+    [DataField]
     public bool SinglePurchase;
 
     [DataField]
@@ -40,4 +43,6 @@ public sealed partial class FSShopWeaponComponent : Component
     [DataField] public byte StatFireRate = 50;
     [DataField] public byte StatAccuracy = 50;
     [DataField] public byte StatCapacity = 50;
+
+    [DataField] public int StatHealth;
 }

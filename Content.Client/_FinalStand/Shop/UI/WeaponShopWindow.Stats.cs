@@ -2,6 +2,7 @@ using Content.Client._FinalStand.Perks;
 using Content.Client._FinalStand.Shop;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Shared._FinalStand.Crit;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Shop;
@@ -99,17 +100,68 @@ public sealed partial class WeaponShopWindow
         _rangedCache.CritDamageMult = critDamageMult;
         _rangedCache.Valid = true;
 
+        FSDeployableItemComponent? deployableComp = null;
+        FSDeployableItemComponent? deployableProto = null;
+        if (weapon.HasValue)
+            entMan.TryGetComponent(weapon.Value, out deployableComp);
+        weaponProto?.TryGetComponent(out deployableProto, entMan.ComponentFactory);
+
         var isRanged = gunComp != null || gunProto != null;
         var isGrenade = grenadeComp != null || grenadeProto != null;
+        var isDeployable = deployableComp != null || deployableProto != null;
 
         if (isRanged)
             BuildRangedStats(shopComp, weapon, weaponProto, gunComp, gunProto, damageMultiplier, extraPellets, entMan);
         else if (isGrenade)
             BuildGrenadeStats(grenadeComp, grenadeProto);
+        else if (isDeployable)
+            BuildDeployableStats(shopComp, deployableComp, deployableProto);
         else if (meleeComp != null || meleeProto != null)
             BuildMeleeStats(meleeComp, meleeProto, damageMultiplier, attackSpeedMult);
 
-        AppendCritStats(critComp, critProto, critChanceBonus, critDamageMult);
+        if (!isDeployable)
+            AppendCritStats(critComp, critProto, critChanceBonus, critDamageMult);
+    }
+
+    private void BuildDeployableStats(FSShopWeaponComponent shopComp,
+        FSDeployableItemComponent? live, FSDeployableItemComponent? proto)
+    {
+        var maxStock    = live?.MaxStock     ?? proto?.MaxStock     ?? 1;
+        var maxDeployed = live?.MaxDeployed  ?? proto?.MaxDeployed  ?? 0;
+        var regen       = live?.RegenPerWave ?? proto?.RegenPerWave ?? 0;
+
+        if (shopComp.StatDamage > 0)
+        {
+            StatBarsContainer.AddChild(BuildStatBar("Damage",
+                Math.Min(1f, shopComp.StatDamage / 100f), $"{shopComp.StatDamage}"));
+        }
+
+        if (shopComp.StatFireRate > 0)
+        {
+            StatBarsContainer.AddChild(BuildStatBar("Fire Rate",
+                Math.Min(1f, shopComp.StatFireRate / 200f), $"{shopComp.StatFireRate}"));
+        }
+
+        if (shopComp.StatHealth > 0)
+        {
+            StatBarsContainer.AddChild(BuildStatBar("Health",
+                Math.Min(1f, shopComp.StatHealth / 1000f), $"{shopComp.StatHealth}"));
+        }
+
+        StatBarsContainer.AddChild(BuildStatBar("Carried",
+            Math.Min(1f, maxStock / 6f), $"{maxStock}"));
+
+        if (maxDeployed > 0)
+        {
+            StatBarsContainer.AddChild(BuildStatBar("Max Deployed",
+                Math.Min(1f, maxDeployed / 10f), $"{maxDeployed}"));
+        }
+
+        if (regen > 0)
+        {
+            StatBarsContainer.AddChild(BuildStatBar("Regen",
+                Math.Min(1f, regen / 5f), $"{regen}/wave"));
+        }
     }
 
     private void BuildRangedStats(FSShopWeaponComponent shopComp, EntityUid? weapon,

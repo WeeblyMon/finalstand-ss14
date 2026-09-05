@@ -1,4 +1,5 @@
 using Content.Client.Hands.Systems;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Placement;
 using Robust.Client.Placement;
 using Robust.Client.Player;
@@ -14,6 +15,8 @@ public sealed class FSPlacementGhostSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IPlacementManager _placementManager = default!;
     [Dependency] private HandsSystem _hands = default!;
+
+    private Direction? _lastSentDirection;
 
     public override void Update(float frameTime)
     {
@@ -38,10 +41,24 @@ public sealed class FSPlacementGhostSystem : EntitySystem
             if (placerIsFsPlaceable)
                 _placementManager.Clear();
 
+            _lastSentDirection = null;
             return;
         }
 
-        if (heldEntity == placerEntity)
+        var directional = TryComp<FSDeployableItemComponent>(heldEntity, out var deployable)
+                          && deployable.FaceDeployerDirection;
+        var starting = heldEntity != placerEntity;
+
+        if (directional && starting)
+            _placementManager.Direction = Transform(player).LocalRotation.GetCardinalDir();
+
+        if (directional && _placementManager.Direction != _lastSentDirection)
+        {
+            _lastSentDirection = _placementManager.Direction;
+            RaiseNetworkEvent(new FSPlacementRotationMessage(GetNetEntity(heldEntity.Value), _placementManager.Direction));
+        }
+
+        if (!starting)
             return;
 
         var newObjInfo = new PlacementInformation

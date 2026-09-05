@@ -2,14 +2,12 @@ using Content.Server._FinalStand.Placement;
 using Content.Shared._FinalStand.Science;
 using Content.Shared.Access.Systems;
 using Content.Shared.Access;
-using Content.Shared.GameTicking;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mind;
 using Content.Shared.Popups;
 using Content.Shared.Roles;
 using Content.Shared.Roles.Components;
 using Content.Shared.Weapons.Ranged.Systems;
-using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Science;
@@ -34,7 +32,6 @@ public sealed partial class FSScienceOnlySystem : EntitySystem
         SubscribeLocalEvent<FSScienceOnlyComponent, AttemptShootEvent>(OnAttemptShoot);
         SubscribeLocalEvent<FSScienceOnlyComponent, UseInHandEvent>(OnUseInHand,
             before: [typeof(FSPlacementSystem)]);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     private void OnAttemptShoot(EntityUid uid, FSScienceOnlyComponent comp, ref AttemptShootEvent args)
@@ -85,10 +82,5 @@ public sealed partial class FSScienceOnlySystem : EntitySystem
         if (!_proto.TryIndex(ScienceDept, out var sciDept))
             return false;
         return sciDept.Roles.Contains(jobProtoId.Value);
-    }
-
-    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
-    {
-        RaiseNetworkEvent(new FSPlayerScienceStatusEvent(IsScience(ev.Mob)), Filter.SinglePlayer(ev.Player));
     }
 }
