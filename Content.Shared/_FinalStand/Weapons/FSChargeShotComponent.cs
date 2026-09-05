@@ -23,7 +23,7 @@ public sealed partial class FSChargeShotComponent : Component
     public float MinPelletScale = 0.5f;
 
     [DataField]
-    public float MaxPelletScale = 1.0f;
+    public float MaxPelletScale = 2.0f;
 
     [DataField]
     public float MinSpeedMultiplier = 0.8f;
