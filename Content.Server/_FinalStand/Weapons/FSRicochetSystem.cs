@@ -54,9 +54,9 @@ public sealed class FSRicochetSystem : EntitySystem
             return;
         }
 
-        // Struck a structure. Bounces left means the hard fixture is about to deflect it, so undo
-        // the spend that ProjectileSystem just applied; otherwise the round is finished.
-        if (ent.Comp.Bounces > 0)
+        // Struck a structure. Bounces left - or a bounce already taken this instant - means the hard
+        // fixture is deflecting it, so undo the spend ProjectileSystem just applied. Otherwise done.
+        if (ent.Comp.Bounces > 0 || _timing.CurTime < ent.Comp.NextBounce)
             projectile.ProjectileSpent = false;
         else
             QueueDel(ent);
