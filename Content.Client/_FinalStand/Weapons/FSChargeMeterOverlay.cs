@@ -1,26 +1,100 @@
-using Content.Client._FinalStand.UI;
+using System.Numerics;
 using Content.Shared._FinalStand.Weapons;
+using Robust.Client.Graphics;
+using Robust.Shared.Enums;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Weapons;
 
-public sealed class FSChargeMeterOverlay : FSWorldLabelOverlay<FSChargeShotComponent>
+// Vertical charge meter drawn beside the holder, filling from the bottom as the trigger is held.
+public sealed class FSChargeMeterOverlay : Overlay
 {
-    private const int Segments = 10;
+    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
-    protected override string Label => string.Empty;
-    protected override int FontSize => 9;
-    protected override float VerticalOffset => 46f;
-    protected override Color LabelColor => Color.FromHex("#FFAA33");
-    protected override bool DynamicLabel => true;
-    protected override bool ShowArrow => false;
-    protected override bool Bob => false;
+    private const float HorizontalOffset = 30f;
+    private const float VerticalOffset = 8f;
+    private const float BarWidth = 8f;
+    private const float BarHeight = 46f;
+    private const float BorderWidth = 1f;
+    private const float CullMargin = 96f;
+    private const int Ticks = 4;
 
-    protected override string GetLabel(EntityUid uid, FSChargeShotComponent charge)
+    private static readonly Color Border = new(0f, 0f, 0f, 0.85f);
+    private static readonly Color Backing = new(0.05f, 0.05f, 0.06f, 0.75f);
+    private static readonly Color TickLine = new(0f, 0f, 0f, 0.45f);
+    private static readonly Color LowCharge = Color.FromHex("#FF7A18");
+    private static readonly Color HighCharge = Color.FromHex("#FFE9A8");
+    private static readonly Color FullCharge = Color.FromHex("#FFFFFF");
+
+    private SharedTransformSystem? _xform;
+
+    public override OverlaySpace Space => OverlaySpace.ScreenSpace;
+
+    public FSChargeMeterOverlay()
     {
-        if (charge.Charge <= 0f)
-            return string.Empty;
+        IoCManager.InjectDependencies(this);
+    }
 
-        var filled = (int) MathF.Round(charge.Charge * Segments);
-        return $"[{new string('|', filled)}{new string('.', Segments - filled)}]";
+    protected override void Draw(in OverlayDrawArgs args)
+    {
+        if (args.ViewportControl == null)
+            return;
+
+        var handle = args.ScreenHandle;
+        _xform ??= _entMan.System<SharedTransformSystem>();
+
+        var matrix = args.ViewportControl.GetWorldToScreenMatrix();
+        var bounds = args.ViewportBounds;
+
+        var query = _entMan.EntityQueryEnumerator<FSChargeShotComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var charge, out var xform))
+        {
+            if (xform.MapID != args.MapId || charge.Charge <= 0.005f)
+                continue;
+
+            var screenPos = Vector2.Transform(_xform.GetWorldPosition(xform), matrix);
+
+            if (screenPos.X < bounds.Left - CullMargin || screenPos.X > bounds.Right + CullMargin ||
+                screenPos.Y < bounds.Top - CullMargin || screenPos.Y > bounds.Bottom + CullMargin)
+                continue;
+
+            DrawMeter(handle, screenPos, Math.Clamp(charge.Charge, 0f, 1f));
+        }
+    }
+
+    private void DrawMeter(DrawingHandleScreen handle, Vector2 screenPos, float charge)
+    {
+        var left = screenPos.X + HorizontalOffset;
+        var bottom = screenPos.Y + VerticalOffset;
+        var top = bottom - BarHeight;
+
+        handle.DrawRect(new UIBox2(
+            left - BorderWidth,
+            top - BorderWidth,
+            left + BarWidth + BorderWidth,
+            bottom + BorderWidth), Border);
+
+        handle.DrawRect(new UIBox2(left, top, left + BarWidth, bottom), Backing);
+
+        var fill = charge >= 1f
+            ? Pulse()
+            : Color.InterpolateBetween(LowCharge, HighCharge, charge);
+
+        var fillTop = bottom - BarHeight * charge;
+        handle.DrawRect(new UIBox2(left, fillTop, left + BarWidth, bottom), fill);
+
+        for (var i = 1; i < Ticks; i++)
+        {
+            var y = bottom - BarHeight * i / Ticks;
+            handle.DrawRect(new UIBox2(left, y, left + BarWidth, y + BorderWidth), TickLine);
+        }
+    }
+
+    // Full charge breathes between hot and white so the release window is unmistakable.
+    private Color Pulse()
+    {
+        var t = (MathF.Sin((float) _timing.CurTime.TotalSeconds * 12f) + 1f) * 0.5f;
+        return Color.InterpolateBetween(HighCharge, FullCharge, t);
     }
 }
