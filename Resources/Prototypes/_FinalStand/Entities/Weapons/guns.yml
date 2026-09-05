@@ -513,6 +513,15 @@
     autoRechargeRate: 25
     autoRechargePauseTime: 3
   - type: FSChargeShot
+  - type: Gun
+    fireRate: 4
+    projectileSpeed: 20
+    minAngle: 0
+    maxAngle: 0
+    angleIncrease: 0
+    availableModes:
+    - FullAuto
+    selectedMode: FullAuto
   - type: BatteryAmmoProvider
     proto: FSBulletLaserShotgunSpread
     fireCost: 80

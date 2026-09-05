@@ -1,0 +1,116 @@
+# ── Maintenance loot pools ───────────────────────────────────────────────────────────────────
+- type: weightedRandomEntity
+  id: FSGachaImprovised
+  weights:
+    WeaponImprovisedPneumaticCannonGun: 1.0
+    WeaponShotgunHandmade: 1.4
+    WeaponMakeshiftLaser: 1.2
+    WeaponPistolFlintlock: 1.0
+    Stunprod: 1.2
+    PlasmaShiv: 1.0
+    Spear: 1.4
+    WeaponPistolCHIMP: 0.4
+
+- type: weightedRandomEntity
+  id: FSGachaSurplus
+  weights:
+    WeaponRevolverInspector: 1.2
+    WeaponRevolverDeckard: 0.8
+    WeaponPistolViper: 1.2
+    WeaponPistolCobra: 1.0
+    WeaponShotgunDoubleBarreled: 1.0
+    WeaponShotgunBlunderbuss: 0.8
+
+- type: weightedRandomEntity
+  id: FSGachaJackpot
+  weights:
+    WeaponProtoKineticAccelerator: 1.0
+    WeaponAntiqueLaser: 0.6
+
+- type: weightedRandomEntity
+  id: FSGachaMisc
+  weights:
+    DrinkAbsintheBottleFull: 1.0
+    DrinkVodkaBottleFull: 1.0
+    DrinkWhiskeyBottleFull: 1.0
+    EmergencyMedipen: 1.2
+    SyringeTranexamicAcid: 0.8
+    Multitool: 0.8
+    NetworkConfigurator: 0.6
+    ToolboxMechanicalFilled: 0.6
+    PowerCellHigh: 1.0
+    Flare: 1.4
+    ClothingHandsGlovesColorYellow: 0.6
+    ClothingEyesGlassesMeson: 0.6
+    RadioHandheld: 0.8
+    CigPackGreen: 1.0
+    SpaceCash1000: 0.8
+
+# ── The cache itself ─────────────────────────────────────────────────────────────────────────
+- type: entity
+  id: FSGachaCache
+  parent: BaseStructure
+  name: smuggler's cache
+  description: A welded-shut crate wired into a jury-rigged lock. Cracking it takes time and makes noise; the previous owner left a payment slot for the impatient.
+  components:
+  - type: Sprite
+    drawdepth: Objects
+    sprite: Structures/Storage/closet.rsi
+    layers:
+    - state: generic
+      map: [ "body" ]
+    - state: generic_door
+      map: [ "door" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSGachaCacheVisuals.Looted:
+        door:
+          True: { state: generic_open }
+          False: { state: generic_door }
+  - type: FSGachaCache
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.4,0.4,0.4"
+        density: 130
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  id: FSGachaCacheSpawner
+  parent: MarkerBase
+  name: smuggler's cache spawner
+  components:
+  - type: Sprite
+    layers:
+    - state: red
+    - sprite: Structures/Storage/closet.rsi
+      state: generic
+  - type: RandomSpawner
+    prototypes:
+    - FSGachaCache
+    chance: 0.55
+    offset: 0

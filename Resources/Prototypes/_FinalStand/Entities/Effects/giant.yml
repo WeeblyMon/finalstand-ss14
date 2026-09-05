@@ -1,0 +1,132 @@
+# ── Giant boss VFX and projectile ────────────────────────────────────────────────────────────
+- type: entity
+  id: FSGiantEffectBase
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+    anchored: true
+  - type: TimedDespawn
+    lifetime: 1
+
+- type: entity
+  id: FSEffectGiantLaunchSmoke
+  parent: FSGiantEffectBase
+  name: dust cloud
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    scale: 2,2
+    sprite: _FinalStand/Effects/GiantLaunchSmoke.rsi
+    state: effect
+  - type: TimedDespawn
+    lifetime: 0.65
+
+- type: entity
+  id: FSEffectGiantImpact
+  parent: FSGiantEffectBase
+  name: impact wave
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    scale: 3,3
+    sprite: _FinalStand/Effects/GiantImpactSmoke.rsi
+    state: effect
+  - type: TimedDespawn
+    lifetime: 0.66
+
+- type: entity
+  id: FSEffectBoulderImpact
+  parent: FSGiantEffectBase
+  name: wall dust
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    scale: 1.5,1.5
+    sprite: _FinalStand/Effects/GiantBoulderImpact.rsi
+    state: effect
+  - type: TimedDespawn
+    lifetime: 0.55
+
+- type: entity
+  id: FSGiantTelegraphRing
+  parent: FSGiantEffectBase
+  name: impact zone
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: FloorObjects
+    noRot: true
+    scale: 1.8,1.8
+    sprite: _FinalStand/Effects/GiantTelegraph.rsi
+    state: ring
+  - type: TimedDespawn
+    lifetime: 2.5
+
+- type: entity
+  id: FSGiantLaneMarker
+  parent: FSGiantEffectBase
+  name: danger lane
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: FloorObjects
+    sprite: _FinalStand/Effects/GiantLane.rsi
+    state: lane
+  - type: FSGiantLane
+  - type: TimedDespawn
+    lifetime: 1.2
+
+- type: entity
+  id: FSGiantFist
+  parent: FSGiantEffectBase
+  name: cocked fist
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Mobs
+    scale: 2.5,2.5
+    sprite: _FinalStand/Effects/GiantFist.rsi
+    state: fist
+  - type: TimedDespawn
+    lifetime: 0.45
+
+- type: entity
+  id: FSGiantBoulder
+  name: hurled debris
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Mobs
+    noRot: true
+    sprite: _FinalStand/Objects/Weapons/Guns/Projectiles/GiantBoulder.rsi
+    state: boulder
+  - type: FSGiantBoulder
+  - type: Physics
+    bodyType: Dynamic
+    linearDamping: 0
+    angularDamping: 0
+  - type: Fixtures
+    fixtures:
+      projectile:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.45
+        hard: false
+        mask:
+        - Impassable
+        - BulletImpassable
+  - type: Projectile
+    deleteOnCollide: false
+    onlyCollideWhenShot: true
+    damage:
+      types:
+        Blunt: 45
+  - type: TimedDespawn
+    lifetime: 4

@@ -43,7 +43,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (user is not { } deployer)
             return false;
 
-        if (!_science.IsScience(deployer))
+        if (comp.RequiresScience && !_science.IsScience(deployer))
         {
             _popup.PopupEntity(Loc.GetString("fs-science-only-use"), deployer, deployer);
             return false;
@@ -63,6 +63,9 @@ public sealed partial class FSDeployableSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("fs-deployable-no-anchor"), deployer, deployer);
             return false;
         }
+
+        var ev = new FSDeployableDeployedEvent(uid, deployer);
+        RaiseLocalEvent(deployed, ref ev);
 
         comp.Stock--;
         Dirty(uid, comp);

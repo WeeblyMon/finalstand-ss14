@@ -1,0 +1,27 @@
+using Robust.Shared.Audio;
+using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
+
+namespace Content.Shared._FinalStand.Mobs;
+
+// hurled station debris: keeps flying through soft structures until its pierce budget runs out
+[RegisterComponent, NetworkedComponent]
+public sealed partial class FSGiantBoulderComponent : Component
+{
+    [DataField]
+    public int StructurePierce = 4;
+
+    [DataField]
+    public float StructuralDamage = 450f;
+
+    public readonly HashSet<EntityUid> Struck = new();
+
+    [DataField]
+    public float SpinRate = 9f;
+
+    [DataField]
+    public EntProtoId ImpactEffect = "FSEffectBoulderImpact";
+
+    [DataField]
+    public SoundSpecifier? ImpactSound = new SoundCollectionSpecifier("MetalBreak");
+}

@@ -199,6 +199,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
         comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
+        comp.PrepEndUnshaved = comp.PhaseEndTime;
         comp.IsDarkWaveUpcoming = false;
         comp.LightFlickerAccum = 0f;
         comp.LightFlickerIntervalMin = DefaultFlickerMin;
@@ -236,7 +237,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
-        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountActivePlayers());
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountActivePlayers(), CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
@@ -249,15 +250,27 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseLocalEvent(new WavePrepStartedEvent());
     }
 
-    private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players)
+    private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
     {
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? players * comp.PlayerEnemyBonus
             : 0;
         var total = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
-        if (comp.WaveNumber >= 5 && comp.SpawnerEntities.Count == 1)
+        if (comp.WaveNumber >= 5 && primarySpawners == 1)
             total = Math.Min(total * 2, comp.MaxEnemyCap);
         return total;
+    }
+
+    // Support spawners trickle a partial batch, so they must not count as a second corridor.
+    private int CountPrimarySpawners(WaveGameRuleComponent comp)
+    {
+        var count = 0;
+        foreach (var spawnerUid in comp.SpawnerEntities)
+        {
+            if (!TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) || !spawner.Secondary)
+                count++;
+        }
+        return count;
     }
 
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
@@ -279,7 +292,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
         comp.PlayersThisWave = CountActivePlayers();
 
-        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, comp.PlayersThisWave);
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, comp.PlayersThisWave, CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
 
@@ -405,7 +418,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     // Pays out the prep time the crew gives up, so starting early is worth something.
     private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
     {
-        var skipped = comp.PhaseEndTime - Timing.CurTime - VoteCountdown;
+        var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
         if (skipped <= TimeSpan.Zero)
             return;
 

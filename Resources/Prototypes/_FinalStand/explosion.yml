@@ -89,3 +89,16 @@
   fireColor: "#660000"
   texturePath: /Textures/Effects/fire_greyscale.rsi
   fireStates: 3
+
+- type: explosion
+  id: FSLandmineExplosion
+  damagePerIntensity:
+    types:
+      Cellular: 20
+  tileBreakChance: [0, 0, 0]
+  tileBreakIntensity: [0, 0, 0]
+  tileBreakRerollReduction: 0
+  lightColor: "#FF6622"
+  fireColor: "#FF4400"
+  texturePath: /Textures/Effects/fire_greyscale.rsi
+  fireStates: 3

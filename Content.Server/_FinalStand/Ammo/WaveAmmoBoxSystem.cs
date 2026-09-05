@@ -111,7 +111,7 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("wave-ammo-box-used"), uid, user);
     }
 
-    private void RefillAllAmmo(EntityUid player)
+    public void RefillAllAmmo(EntityUid player)
     {
         RefillContents(player, 0);
     }

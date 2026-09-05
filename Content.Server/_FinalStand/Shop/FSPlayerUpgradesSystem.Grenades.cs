@@ -43,6 +43,100 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     break;
                 }
+            case WeaponUpgradeType.AmmoBoxUses:
+                {
+                    if (TryComp<FSAmmoBoxComponent>(weapon, out var box))
+                    {
+                        box.MaxUses += (int)def.ValuePerLevel;
+                        box.UsesLeft = box.MaxUses;
+                        Dirty(weapon, box);
+                        _appearance.SetData(weapon, FSAmmoBoxVisuals.Upgraded, true);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.AmmoBoxSpeed:
+                {
+                    if (TryComp<FSAmmoBoxComponent>(weapon, out var box))
+                    {
+                        var seconds = box.RefillDuration.TotalSeconds - def.ValuePerLevel;
+                        box.RefillDuration = TimeSpan.FromSeconds(Math.Max(0.5, seconds));
+                        Dirty(weapon, box);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryAmmo:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.MaxAmmo += (int)def.ValuePerLevel;
+                        turret.Ammo = turret.MaxAmmo;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryFireRate:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.FireInterval = MathF.Max(0.1f, turret.FireInterval * (1f - def.ValuePerLevel));
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryDamage:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.DamageMultiplier += def.ValuePerLevel;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.SentryRange:
+                {
+                    if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
+                    {
+                        turret.Range += def.ValuePerLevel;
+                        Dirty(weapon, turret);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.DeployableRegen:
+                {
+                    if (TryComp<FSDeployableItemComponent>(weapon, out var deployable))
+                    {
+                        deployable.RegenPerWave += (int)def.ValuePerLevel;
+                        Dirty(weapon, deployable);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineDamage:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.IntensityMultiplier += def.ValuePerLevel;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineDetonations:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.Detonations += (int)def.ValuePerLevel;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
+            case WeaponUpgradeType.LandmineHighExplosive:
+                {
+                    if (TryComp<FSLandmineComponent>(weapon, out var mine))
+                    {
+                        mine.HighExplosive = true;
+                        Dirty(weapon, mine);
+                    }
+                    break;
+                }
             case WeaponUpgradeType.GrenadeBurnDuration:
                 {
                     if (TryComp<FSGrenadePackComponent>(weapon, out var pack))

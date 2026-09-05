@@ -1,0 +1,89 @@
+using Content.Server._FinalStand.Upgrades;
+using Content.Server.Projectiles;
+using Content.Shared._FinalStand.Weapons;
+using Content.Shared.Mobs.Components;
+using Content.Shared.Projectiles;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Physics.Events;
+using Robust.Shared.Physics.Systems;
+using Robust.Shared.Timing;
+
+namespace Content.Server._FinalStand.Weapons;
+
+// The projectile carries a hard "bounce" fixture with restitution, so the physics engine performs
+// the deflection itself. This system only budgets it: count the bounces, bleed damage off each one,
+// and keep the round alive through the hit that ProjectileSystem would otherwise consume.
+public sealed class FSRicochetSystem : EntitySystem
+{
+    [Dependency] private FixtureSystem _fixtures = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    public const string BounceFixture = "bounce";
+
+    // A single wall contact can report more than once in a tick; only the first should cost a bounce.
+    private static readonly TimeSpan BounceCooldown = TimeSpan.FromSeconds(0.05);
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSRicochetComponent, StartCollideEvent>(OnStartCollide,
+            after: [typeof(ProjectileSystem)], before: [typeof(FSPierceSystem)]);
+    }
+
+    private void OnStartCollide(Entity<FSRicochetComponent> ent, ref StartCollideEvent args)
+    {
+        if (!TryComp<ProjectileComponent>(ent, out var projectile))
+            return;
+
+        if (args.OurFixtureId == BounceFixture)
+        {
+            OnBounced(ent, projectile);
+            return;
+        }
+
+        if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture || !args.OtherFixture.Hard)
+            return;
+
+        // Mobs never deflect. FSPierceSystem decides whether the round carries on through them;
+        // with no pierce left there is nothing else to end it, so do it here.
+        if (HasComp<MobStateComponent>(args.OtherEntity))
+        {
+            if (!HasComp<FSPierceComponent>(ent))
+                QueueDel(ent);
+            return;
+        }
+
+        // Struck a structure. Bounces left - or a bounce already taken this instant - means the hard
+        // fixture is deflecting it, so undo the spend ProjectileSystem just applied. Otherwise done.
+        if (ent.Comp.Bounces > 0 || _timing.CurTime < ent.Comp.NextBounce)
+            projectile.ProjectileSpent = false;
+        else
+            QueueDel(ent);
+    }
+
+    private void OnBounced(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
+    {
+        var now = _timing.CurTime;
+        if (now < ent.Comp.NextBounce || ent.Comp.Bounces <= 0)
+            return;
+
+        ent.Comp.NextBounce = now + BounceCooldown;
+        ent.Comp.Bounces--;
+
+        projectile.Damage *= ent.Comp.DamageRetained;
+        projectile.ProjectileSpent = false;
+
+        _audio.PlayPvs(ent.Comp.BounceSound, ent.Owner);
+
+        if (ent.Comp.BounceEffect is { } effect)
+            Spawn(effect, Transform(ent).Coordinates);
+
+        if (ent.Comp.Bounces > 0)
+            return;
+
+        // Out of bounces: drop the bouncing fixture and let the next surface stop it normally.
+        projectile.DeleteOnCollide = true;
+        _fixtures.DestroyFixture(ent.Owner, BounceFixture);
+    }
+}

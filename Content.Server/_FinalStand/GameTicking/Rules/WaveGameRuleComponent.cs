@@ -129,6 +129,9 @@ public sealed partial class WaveGameRuleComponent : Component
     public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
 
     public int PlayersThisWave = 0;
+
+    // PhaseEndTime is pulled forward by every ready-up, so the payout needs the untouched deadline.
+    public TimeSpan PrepEndUnshaved;
     public readonly HashSet<EntityUid> PaidCatchUpMinds = new();
 
     [DataField]
