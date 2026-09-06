@@ -2,7 +2,6 @@
 
 using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Actions;
 using Content.Shared.GameTicking;
 using Content.Shared.Radio;
 using Content.Shared.Popups;
@@ -14,7 +13,6 @@ namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSCmoAbilitySystem : EntitySystem
 {
-    [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -30,14 +28,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private const string CmoJob = "ChiefMedicalOfficer";
 
-    private static readonly EntProtoId[] CmoActions =
-    {
-        "FSMassCasualtyProtocolAction",
-        "FSMedicalDirectiveTraumaAction",
-        "FSMedicalDirectivePharmaAction",
-        "FSMedicalDirectiveFieldOpsAction",
-        "FSMedicalMobilisationAction",
-    };
 
     private static readonly TimeSpan McpDuration = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
@@ -93,9 +83,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
-        SubscribeLocalEvent<FSMassCasualtyProtocolEvent>(OnMassCasualtyProtocol);
-        SubscribeLocalEvent<FSMedicalDirectiveEvent>(OnMedicalDirective);
-        SubscribeLocalEvent<FSMedicalMobilisationEvent>(OnMedicalMobilisation);
         SubscribeNetworkEvent<FSCmoAbilityRequestEvent>(OnPanelRequest);
     }
 
@@ -154,9 +141,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         if (ev.JobId == CmoJob)
         {
-            foreach (var proto in CmoActions)
-                _actions.AddAction(ev.Mob, proto);
-
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
             Dirty(ev.Mob, panel);
@@ -168,24 +152,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         {
             _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses);
         }
-    }
-
-    private void OnMassCasualtyProtocol(FSMassCasualtyProtocolEvent args)
-    {
-        args.Handled = true;
-        RunMassCasualtyProtocol(args.Performer);
-    }
-
-    private void OnMedicalMobilisation(FSMedicalMobilisationEvent args)
-    {
-        args.Handled = true;
-        RunMobilisation(args.Performer);
-    }
-
-    private void OnMedicalDirective(FSMedicalDirectiveEvent args)
-    {
-        args.Handled = true;
-        RunDirective(args.Performer, args.Directive);
     }
 
     private void RunMassCasualtyProtocol(EntityUid performer)
