@@ -55,5 +55,7 @@ public sealed partial class FSRicochetComponent : Component
 
     public readonly HashSet<EntityUid> Hit = new();
 
+    public bool Fractured;
+
     public TimeSpan NextBounce;
 }

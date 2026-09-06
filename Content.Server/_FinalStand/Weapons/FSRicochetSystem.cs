@@ -87,7 +87,13 @@ public sealed class FSRicochetSystem : EntitySystem
         }
 
         if (ent.Comp.Bounces > 0 || _timing.CurTime < ent.Comp.NextBounce)
+        {
             projectile.ProjectileSpent = false;
+            return;
+        }
+
+        if (ent.Comp.Fracture)
+            Fracture(ent, projectile);
         else
             QueueDel(ent);
     }
@@ -100,7 +106,12 @@ public sealed class FSRicochetSystem : EntitySystem
         if (ent.Comp.Refund)
             Refund(ent, projectile);
 
-        if (!HasComp<FSPierceComponent>(ent))
+        if (HasComp<FSPierceComponent>(ent))
+            return;
+
+        if (ent.Comp.Fracture)
+            Fracture(ent, projectile);
+        else
             QueueDel(ent);
     }
 
@@ -148,6 +159,11 @@ public sealed class FSRicochetSystem : EntitySystem
 
     private void Fracture(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
     {
+        if (ent.Comp.Fractured)
+            return;
+
+        ent.Comp.Fractured = true;
+
         var proto = ent.Comp.FragmentProto?.Id ?? MetaData(ent).EntityPrototype?.ID;
         if (proto == null)
             return;

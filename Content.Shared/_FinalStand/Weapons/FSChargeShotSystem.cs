@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
@@ -42,7 +43,9 @@ public sealed class FSChargeShotSystem : EntitySystem
         if (comp.ChargeStart == null)
         {
             comp.ChargeStart = _timing.CurTime;
-            comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, ent.Owner)?.Entity;
+            comp.ChargeStream = _audio.Stop(comp.ChargeStream);
+            comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, args.User,
+                AudioParams.Default.WithLoop(true))?.Entity;
         }
 
         if (!TryComp<GunComponent>(ent, out var gun) || gun.ShootCoordinates is not { } coords)
