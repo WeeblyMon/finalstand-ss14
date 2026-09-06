@@ -201,13 +201,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         var complete = IsStepComplete(ent, part, args.Step, surgery);
         args.Repeat = HasComp<SurgeryRepeatableStepComponent>(step) && !complete;
 
-        var debugBefore = SnapshotPatient(ent, part);
-
         var ev = new SurgeryStepEvent(args.User, ent, part, tool, surgery, step, complete);
         RaiseLocalEvent(step, ref ev);
         RaiseLocalEvent(args.User, ref ev);
-
-        LogStepOutcome(step, part, debugBefore, SnapshotPatient(ent, part));
 
         // consume the tool if it's something like using LV cable as stitches
         if (args.ToolUsed)
@@ -219,46 +215,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         }
 
         RefreshUI(ent);
-    }
-
-    private readonly record struct PatientSnapshot(
-        Content.Shared.FixedPoint.FixedPoint2 BodyDamage,
-        Content.Shared.FixedPoint.FixedPoint2 LimbIntegrity,
-        Content.Shared.FixedPoint.FixedPoint2 LimbSeverity);
-
-    private PatientSnapshot SnapshotPatient(EntityUid body, EntityUid part)
-    {
-        var bodyDamage = CompOrNull<Content.Shared.Damage.Components.DamageableComponent>(body)?.TotalDamage
-                         ?? Content.Shared.FixedPoint.FixedPoint2.Zero;
-
-        if (!TryComp<WoundableComponent>(part, out var woundable))
-            return new PatientSnapshot(bodyDamage,
-                Content.Shared.FixedPoint.FixedPoint2.Zero,
-                Content.Shared.FixedPoint.FixedPoint2.Zero);
-
-        return new PatientSnapshot(
-            bodyDamage,
-            woundable.WoundableIntegrity,
-            _wounds.GetWoundableSeverityPoint(part, woundable));
-    }
-
-    private void LogStepOutcome(EntityUid step, EntityUid part, PatientSnapshot before, PatientSnapshot after)
-    {
-        if (!_net.IsServer)
-            return;
-
-        var stepName = MetaData(step).EntityName;
-        var partName = MetaData(part).EntityName;
-
-        var bodyDelta = after.BodyDamage - before.BodyDamage;
-        var severityDelta = after.LimbSeverity - before.LimbSeverity;
-
-        Log.Info(
-            $"[SurgDbg] step='{stepName}' part='{partName}' | " +
-            $"bodyDamage {before.BodyDamage:F2}->{after.BodyDamage:F2} ({bodyDelta:+0.00;-0.00;0}) | " +
-            $"limbIntegrity {before.LimbIntegrity:F2}->{after.LimbIntegrity:F2} | " +
-            $"limbSeverity {before.LimbSeverity:F2}->{after.LimbSeverity:F2} ({severityDelta:+0.00;-0.00;0})" +
-            (bodyDelta > 0 || severityDelta > 0 ? "  <== GOT WORSE" : string.Empty));
     }
 
     private void OnCloseIncisionValid(Entity<SurgeryCloseIncisionConditionComponent> ent, ref SurgeryValidEvent args)

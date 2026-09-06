@@ -40,7 +40,19 @@ public sealed partial class FSCasualtySystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
+        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
+    }
+
+    private void OnMobStateChanged(MobStateChangedEvent ev)
+    {
+        if (ev.NewMobState is not (MobState.Critical or MobState.Dead))
+            return;
+
+        if (!HasComp<ActorComponent>(ev.Target))
+            return;
+
+        RegisterCall(ev.Target);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
@@ -140,7 +152,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
         }
     }
 
-    private FSCasualtyBoardEvent BuildBoard(bool open = false)
+    public FSCasualtyBoardEvent BuildBoard(bool open = false)
     {
         var entries = new List<FSCasualtyEntry>(_calls.Count);
 
