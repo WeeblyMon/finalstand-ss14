@@ -42,13 +42,16 @@ public sealed partial class FSRicochetComponent : Component
     public bool Fracture;
 
     [DataField]
-    public int FragmentCount = 2;
+    public int FragmentCount = 6;
 
     [DataField]
-    public float FragmentDamage = 0.5f;
+    public float FragmentDamage = 0.4f;
 
     [DataField]
-    public float FragmentLifetime = 0.6f;
+    public float FragmentLifetime = 0.5f;
+
+    [DataField]
+    public float FragmentSpeed = 16f;
 
     [DataField]
     public EntProtoId? FragmentProto;

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Projectiles;
 using Content.Shared._FinalStand.Weapons;
@@ -11,6 +12,7 @@ using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Random;
 using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
 
@@ -21,6 +23,7 @@ public sealed class FSRicochetSystem : EntitySystem
 {
     [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
@@ -29,7 +32,6 @@ public sealed class FSRicochetSystem : EntitySystem
     public const string BounceFixture = "bounce";
 
     private static readonly TimeSpan BounceCooldown = TimeSpan.FromSeconds(0.05);
-    private static readonly Angle FragmentSpread = Angle.FromDegrees(35);
 
     private readonly HashSet<EntityUid> _reorient = new();
 
@@ -165,24 +167,19 @@ public sealed class FSRicochetSystem : EntitySystem
         ent.Comp.Fractured = true;
 
         var proto = ent.Comp.FragmentProto?.Id ?? MetaData(ent).EntityPrototype?.ID;
-        if (proto == null)
+        if (proto == null || ent.Comp.FragmentCount <= 0)
             return;
 
-        var coords = Transform(ent).Coordinates;
-        var hasBody = TryComp<PhysicsComponent>(ent, out var body);
-        var speed = hasBody ? body!.LinearVelocity.Length() : 20f;
-        var heading = hasBody && body!.LinearVelocity.LengthSquared() > 0.01f
-            ? body.LinearVelocity.ToWorldAngle()
-            : Angle.Zero;
+        var coords = _transform.GetMapCoordinates(ent.Owner);
+        var damage = projectile.Damage * ent.Comp.FragmentDamage;
+        var spin = _random.NextFloat(0f, MathF.Tau);
 
         QueueDel(ent);
 
         for (var i = 0; i < ent.Comp.FragmentCount; i++)
         {
-            var fan = ent.Comp.FragmentCount == 1
-                ? 0f
-                : (i / (float) (ent.Comp.FragmentCount - 1) - 0.5f) * 2f;
-            var offset = new Angle(FragmentSpread.Theta * fan);
+            var angle = spin + MathF.Tau * i / ent.Comp.FragmentCount;
+            var direction = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
 
             var fragment = Spawn(proto, coords);
             RemComp<FSRicochetComponent>(fragment);
@@ -190,19 +187,18 @@ public sealed class FSRicochetSystem : EntitySystem
 
             if (TryComp<ProjectileComponent>(fragment, out var fragProj))
             {
-                fragProj.Damage = projectile.Damage * ent.Comp.FragmentDamage;
+                fragProj.Damage = damage;
                 fragProj.Shooter = projectile.Shooter;
                 fragProj.Weapon = projectile.Weapon;
                 fragProj.IgnoreShooter = true;
             }
 
-            var direction = (heading + offset).ToWorldVec();
-            _transform.SetWorldRotation(fragment, direction.ToWorldAngle());
+            _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + fragProj?.Angle ?? Angle.Zero);
 
             if (TryComp<PhysicsComponent>(fragment, out var fragBody))
             {
                 _physics.SetBodyStatus(fragment, fragBody, BodyStatus.InAir);
-                _physics.SetLinearVelocity(fragment, direction * speed, body: fragBody);
+                _physics.SetLinearVelocity(fragment, direction * ent.Comp.FragmentSpeed, body: fragBody);
             }
 
             EnsureComp<TimedDespawnComponent>(fragment).Lifetime = ent.Comp.FragmentLifetime;

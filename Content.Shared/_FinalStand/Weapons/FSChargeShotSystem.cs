@@ -5,6 +5,7 @@ using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Weapons;
@@ -13,6 +14,7 @@ namespace Content.Shared._FinalStand.Weapons;
 public sealed class FSChargeShotSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedMapSystem _map = default!;
@@ -43,9 +45,13 @@ public sealed class FSChargeShotSystem : EntitySystem
         if (comp.ChargeStart == null)
         {
             comp.ChargeStart = _timing.CurTime;
-            comp.ChargeStream = _audio.Stop(comp.ChargeStream);
-            comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, args.User,
-                AudioParams.Default.WithLoop(true))?.Entity;
+
+            if (_net.IsServer)
+            {
+                comp.ChargeStream = _audio.Stop(comp.ChargeStream);
+                comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, args.User,
+                    AudioParams.Default.WithLoop(true))?.Entity;
+            }
         }
 
         if (!TryComp<GunComponent>(ent, out var gun) || gun.ShootCoordinates is not { } coords)
@@ -96,7 +102,8 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.ChargeStart = null;
         comp.LastHeld = TimeSpan.Zero;
-        comp.ChargeStream = _audio.Stop(comp.ChargeStream);
+        if (_net.IsServer)
+            comp.ChargeStream = _audio.Stop(comp.ChargeStream);
 
         if (shooter is { } user && !TerminatingOrDeleted(user) && aim.LengthSquared() > 0.01f)
         {
