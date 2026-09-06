@@ -1,4 +1,5 @@
 using System.Numerics;
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
@@ -56,6 +57,10 @@ public sealed partial class FSChargeShotComponent : Component
     [DataField]
     public EntProtoId? FragmentProto = "FSBulletLaserShotgunFragment";
 
+    [DataField]
+    public SoundSpecifier? ChargeSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/Weapons/EnergyShotgun/charge.ogg");
+
     [AutoNetworkedField]
     public float Charge;
 
@@ -64,4 +69,5 @@ public sealed partial class FSChargeShotComponent : Component
     public EntityUid? Shooter;
 
     public Vector2 AimDirection;
+    public EntityUid? ChargeStream;
 }

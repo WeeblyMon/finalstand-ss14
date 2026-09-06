@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
@@ -11,6 +12,7 @@ namespace Content.Shared._FinalStand.Weapons;
 public sealed class FSChargeShotSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -37,7 +39,11 @@ public sealed class FSChargeShotSystem : EntitySystem
         var comp = ent.Comp;
         comp.LastHeld = _timing.CurTime;
         comp.Shooter = args.User;
-        comp.ChargeStart ??= _timing.CurTime;
+        if (comp.ChargeStart == null)
+        {
+            comp.ChargeStart = _timing.CurTime;
+            comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, ent.Owner)?.Entity;
+        }
 
         if (!TryComp<GunComponent>(ent, out var gun) || gun.ShootCoordinates is not { } coords)
             return;
@@ -87,6 +93,7 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.ChargeStart = null;
         comp.LastHeld = TimeSpan.Zero;
+        comp.ChargeStream = _audio.Stop(comp.ChargeStream);
 
         if (shooter is { } user && !TerminatingOrDeleted(user) && aim.LengthSquared() > 0.01f)
         {

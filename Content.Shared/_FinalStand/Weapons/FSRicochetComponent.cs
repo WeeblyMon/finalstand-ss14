@@ -21,7 +21,7 @@ public sealed partial class FSRicochetComponent : Component
     public float Clearance = 0.25f;
 
     [DataField]
-    public SoundSpecifier? BounceSound = new SoundPathSpecifier("/Audio/Weapons/Guns/Hits/energy_metal1.ogg");
+    public SoundSpecifier? BounceSound = new SoundPathSpecifier("/Audio/_FinalStand/Weapons/EnergyShotgun/bounce.ogg");
 
     [DataField]
     public EntProtoId? BounceEffect;
