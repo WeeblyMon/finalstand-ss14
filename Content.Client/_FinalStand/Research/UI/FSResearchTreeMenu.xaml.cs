@@ -163,8 +163,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         if (!_entity.TryGetComponent<TechnologyDatabaseComponent>(Entity, out _))
             return;
 
-        // A console only shows the branches it owns, so medical research stops appearing on the
-        // science console. An empty list means "everything", which is the pre-split behaviour.
         _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var database);
         var allowed = database?.Branches;
 
@@ -307,9 +305,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         => _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db)
            && db.Track == FSResearchTrack.Medical;
 
-    // Buying is atomic, so the whole research-point half of the panel is replaced by a price and a
-    // button. The server mirrors the department balance into Points, so affordability reads the same
-    // field the header does.
     private void UpdateDetailPanelMedical(FSResearchNodeView node)
     {
         var balance = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db) ? db.Points : 0;
@@ -323,7 +318,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
             ? Loc.GetString("fs-medical-research-owned")
             : Loc.GetString("fs-medical-research-cost", ("cost", node.Cost));
 
-        // None of these have a meaning when there is nothing to accumulate.
         ClearPersonalPickButton.Visible = false;
         ClearSharedPickButton.Visible = false;
         ResearchStatusLabel.Visible = false;

@@ -37,7 +37,7 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
     [UISystemDependency] private readonly ContainerSystem _container = default!;
     [UISystemDependency] private readonly SpriteSystem _sprite = default!;
-    [UISystemDependency] private readonly UseDelaySystem _useDelay = default!; // FINALSTAND
+    [UISystemDependency] private readonly UseDelaySystem _useDelay = default!;
 
     private EntityUid? _playerUid;
     private InventorySlotsComponent? _playerInventory;
@@ -428,9 +428,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         UpdateInventoryHotbar(null);
     }
 
-    // FINALSTAND: hands already show a cooldown ring, but stowed items did not - so a pocketed
-    // defibrillator gave no sign of when it was ready. SlotControl has always had the graphic,
-    // nothing was driving it. Mirrors HandsUIController.FrameUpdate.
     public override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
@@ -510,7 +507,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _handsSystem.OnPlayerItemRemoved -= OnItemRemoved;
         _handsSystem.OnPlayerSetActiveHand -= SetActiveHand;
     }
-
 
     private void OnItemAdded(string name, EntityUid entity)
     {

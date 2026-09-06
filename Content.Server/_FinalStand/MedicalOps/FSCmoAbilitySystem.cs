@@ -1,5 +1,3 @@
-// Department-wide buffs the CMO calls. Everything lands on every medic, not just the caller.
-
 using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
@@ -28,12 +26,11 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private const string CmoJob = "ChiefMedicalOfficer";
 
-
     private static readonly TimeSpan McpDuration = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan McpCooldown = TimeSpan.FromSeconds(120);
-    private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(180);
-    private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(260);
+    private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(60);
 
     private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
     {

@@ -1,5 +1,3 @@
-// Stacking medical buffs, keyed by source so a protocol, a directive and research can run at once.
-
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 

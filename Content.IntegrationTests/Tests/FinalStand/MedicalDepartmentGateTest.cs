@@ -1,5 +1,3 @@
-// The detailed health readout is gated on this, and a job silently falling out of Medical looks
-
 using Content.IntegrationTests.Fixtures;
 using Content.Shared.Roles;
 using Robust.Shared.Prototypes;

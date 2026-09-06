@@ -35,16 +35,12 @@ public sealed class EntityHealthBarOverlay : Overlay
     private readonly ProgressColorSystem _progressColor;
     private readonly DamageableSystem _damageable;
 
-
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
     public HashSet<string> DamageContainers = new();
     public ProtoId<HealthIconPrototype>? StatusIcon;
 
-    // FINALSTAND: medics see the missing portion of the bar broken down by damage group.
     public bool ShowDamageTypes;
 
-    // FINALSTAND: set by FSHealthBarSystem to the patient the local player's medical beam gun is
-    // linked to. Marks where beam healing stops being worth waiting for.
     public EntityUid? MedigunTarget;
     public float MedigunSoftCap = 0.7f;
 
@@ -127,27 +123,20 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             handle.SetTransform(matty);
 
-            // FINALSTAND: raised off the sprite's head, and kept level with the job status icons,
-            // which start at the top of the same bounds.
             var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 + 1f;
             var widthOfMob = bounds.Width * EyeManager.PixelsPerMeter;
 
             var position = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2, yOffset / EyeManager.PixelsPerMeter);
 
-            // FINALSTAND: only players get a damage breakdown - an enemy's damage types are not
-            // something a medic triages, and the readout would be noise on a horde.
             var breakdown = ShowDamageTypes
                             && _entManager.TryGetComponent(uid, out MindContainerComponent? mindContainer)
                             && mindContainer.HasMind;
 
-            // FINALSTAND: with a breakdown drawn beside it, a health bar that fades green -> orange
-            // reads as burn damage. Medics get a fixed green so only the breakdown carries colour.
             var color = breakdown
                 ? _progressColor.GetProgressColor(1f)
                 : GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
 
             // Hardcoded width of the progress bar because it doesn't match the texture.
-            // The 8px gutter on the left is where the status icons sit, beside the bar.
             const float startX = 8f;
             var endX = widthOfMob - 8f;
 
@@ -165,12 +154,9 @@ public sealed class EntityHealthBarOverlay : Overlay
             pixelDarken = pixelDarken.Translated(position);
             handle.DrawRect(pixelDarken, Black.WithAlpha(128));
 
-            // FINALSTAND: fill the missing stretch with one slice per damage group, so a medic can
-            // read what is actually wrong with someone without scanning them.
             if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
 
-            // FINALSTAND: the soft-cap line, drawn only for whoever is holding the beam on them.
             if (MedigunTarget == uid)
             {
                 var markX = startX + (endX - startX) * MedigunSoftCap;
@@ -184,7 +170,6 @@ public sealed class EntityHealthBarOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    // FINALSTAND
     private void DrawDamageBreakdown(DrawingHandleWorld handle, DamageableComponent damageable,
         Vector2 position, float startX, float endX)
     {
@@ -265,9 +250,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             return (ratio, true);
         }
 
-        // FINALSTAND: no bar on a corpse. This used to return an empty bar, which nobody saw while
-        // health bars needed HUD glasses, but leaves dead zombies littered with them now they are on
-        // for everyone.
         return null;
     }
 

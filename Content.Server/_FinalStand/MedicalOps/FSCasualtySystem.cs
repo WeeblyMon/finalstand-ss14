@@ -1,5 +1,3 @@
-// Tracks who has called for a medic and who is on the way.
-
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
 using Content.Shared.Damage.Components;

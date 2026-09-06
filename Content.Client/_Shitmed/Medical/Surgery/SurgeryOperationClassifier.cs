@@ -1,5 +1,3 @@
-// FINALSTAND: classifies an operation by the conditions it is gated on.
-
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 

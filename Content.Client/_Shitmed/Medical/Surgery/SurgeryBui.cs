@@ -195,8 +195,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 if (entity != oldPart)
                     continue;
 
-                // Completing a step can make a new operation available, so the column is rebuilt
-                // before the selection is restored rather than only when a limb is clicked.
                 RebuildOperations(netEntity, state.Choices[netEntity]);
 
                 if (oldSurgery is { } selected

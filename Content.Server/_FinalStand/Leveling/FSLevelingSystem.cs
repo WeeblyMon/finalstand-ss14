@@ -98,7 +98,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
             _saveCount = 0;
         }
 
-
         var xp = WaveCompletionXpPerWave * args.WaveNumber;
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
@@ -386,8 +385,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 : (Xp: 0, Kills: 0, Assists: 0);
             var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
 
-            // A kill is worth 100, and an active medic earns a few hundred healing points a round,
-            // so this is roughly the weight that puts a dedicated medic level with a dedicated killer.
             var healing = _medicalStats.GetStats(mindId).HealingPoints;
 
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5

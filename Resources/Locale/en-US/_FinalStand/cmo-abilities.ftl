@@ -11,3 +11,9 @@ fs-cmo-panel-pharma = Pharma
 fs-cmo-panel-fieldops = Field Ops
 fs-cmo-panel-mcp = Mass Casualty
 fs-cmo-panel-mobilisation = Mobilisation
+
+fs-cmo-panel-trauma-desc = Standing order. Revival, stabilisation and defibrillator recharge all improve for the whole department. Press again to stand it down.
+fs-cmo-panel-pharma-desc = Standing order. Treatment is faster for the whole department. Press again to stand it down.
+fs-cmo-panel-fieldops-desc = Standing order. Movement, casualty dragging and resistance to interruption all improve. Press again to stand it down.
+fs-cmo-panel-mcp-desc = For 45 seconds every medic treats, revives and stabilises a quarter faster, and defibrillators recharge sooner.
+fs-cmo-panel-mobilisation-desc = For 20 seconds medics move faster, drag casualties far faster, treat faster, and shrug off hits that would break a treatment.

@@ -174,7 +174,6 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
         var models = new List<RadialMenuOptionBase>(emotesByCategory.Count);
         foreach (var (key, list) in emotesByCategory)
         {
-            // A category with no grouping entry would otherwise take the whole emote menu down.
             if (!EmoteGroupingInfo.TryGetValue(key, out var tuple))
             {
                 Log.Warning($"No emote grouping info for category '{key}'; its emotes are hidden from the menu.");

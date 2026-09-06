@@ -1,5 +1,3 @@
-// Reproduction: "Tend Bruise Wounds" was reported to make both the limb and the mob's HP worse.
-
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;

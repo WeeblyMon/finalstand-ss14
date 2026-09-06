@@ -247,7 +247,6 @@ public sealed partial class WaveHudOverlay : Overlay
         var btnH = labelH + btnPad * 2f;
 
         var totalH = sepH;
-        // Must stay in step with the RESPAWN draw block, or the panel drifts off-screen.
         if (IsRespawnOfferVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
         if (IsReadyUpVisible)
@@ -557,7 +556,6 @@ public sealed partial class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(false);
         }
 
-        // Separate `if`: chaining onto the ready-up test would make both depend on _prevClickDown order.
         if (IsRespawnOfferVisible && down && !_prevClickDown && _respawnClickCooldown <= 0f
             && RespawnButtonBounds.Contains(mousePos))
         {

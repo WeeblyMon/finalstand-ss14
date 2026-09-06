@@ -82,10 +82,9 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
     [Dependency] protected StatusEffectsSystem Status = default!;
-    [Dependency] private EntityLookupSystem _entityLookup = default!; // FINALSTAND
-    [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!; // FINALSTAND
+    [Dependency] private EntityLookupSystem _entityLookup = default!;
+    [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!;
 
-    // FINALSTAND: how far a surgeon can reach for a tool that is not in their hands.
     private const float ToolReachRange = 1.5f;
 
     private EntityQuery<BodyComponent> _bodyQuery;
@@ -188,8 +187,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
-        // FINALSTAND: resolved the same way the step was started. Re-reading the active hand here made
-        // the do-after run to completion and then silently do nothing whenever the tool was in a bag.
         var tool = EntityUid.Invalid;
         if (args.Handled
             || args.Target is not { } target
@@ -204,13 +201,13 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         var complete = IsStepComplete(ent, part, args.Step, surgery);
         args.Repeat = HasComp<SurgeryRepeatableStepComponent>(step) && !complete;
 
-        var debugBefore = SnapshotPatient(ent, part); // TEMP DEBUG
+        var debugBefore = SnapshotPatient(ent, part);
 
         var ev = new SurgeryStepEvent(args.User, ent, part, tool, surgery, step, complete);
         RaiseLocalEvent(step, ref ev);
         RaiseLocalEvent(args.User, ref ev);
 
-        LogStepOutcome(step, part, debugBefore, SnapshotPatient(ent, part)); // TEMP DEBUG
+        LogStepOutcome(step, part, debugBefore, SnapshotPatient(ent, part));
 
         // consume the tool if it's something like using LV cable as stitches
         if (args.ToolUsed)
@@ -223,8 +220,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
 
         RefreshUI(ent);
     }
-
-    #region TEMP DEBUG — surgery outcome tracing. Delete once the tend-wounds report is settled.
 
     private readonly record struct PatientSnapshot(
         Content.Shared.FixedPoint.FixedPoint2 BodyDamage,
@@ -247,7 +242,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             _wounds.GetWoundableSeverityPoint(part, woundable));
     }
 
-    // One line per completed step - never per tick, which would flood the server.
     private void LogStepOutcome(EntityUid step, EntityUid part, PatientSnapshot before, PatientSnapshot after)
     {
         if (!_net.IsServer)
@@ -266,8 +260,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             $"limbSeverity {before.LimbSeverity:F2}->{after.LimbSeverity:F2} ({severityDelta:+0.00;-0.00;0})" +
             (bodyDelta > 0 || severityDelta > 0 ? "  <== GOT WORSE" : string.Empty));
     }
-
-    #endregion
 
     private void OnCloseIncisionValid(Entity<SurgeryCloseIncisionConditionComponent> ent, ref SurgeryValidEvent args)
     {
@@ -493,7 +485,6 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
             || !HasComp<OrganComponent>(targetPart)
             && !_bodyQuery.HasComp(targetPart))
             return false;
-
 
         var ev = new SurgeryValidEvent(body, targetPart);
         if (_timing.IsFirstTimePredicted)

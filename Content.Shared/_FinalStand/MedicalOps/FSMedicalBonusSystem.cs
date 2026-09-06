@@ -1,5 +1,3 @@
-// Diminishing returns for medical buffs: the strongest bonus in a category lands in full, each
-
 using Content.Shared.DoAfter;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Systems;

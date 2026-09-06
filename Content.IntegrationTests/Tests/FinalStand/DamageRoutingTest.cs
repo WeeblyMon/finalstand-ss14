@@ -1,5 +1,3 @@
-// Damage routing is invisible to the compiler and only shows up as "every wound is on the chest".
-
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Medical;

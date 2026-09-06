@@ -1,5 +1,3 @@
-// The stacking maths is the whole point of the framework and nothing about it is visible to the
-
 using System.Collections.Generic;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.MedicalOps;

@@ -1,5 +1,3 @@
-// The fund is a shared pot with no owner, so nothing else in the round will notice if it drifts.
-
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Robust.Shared.GameObjects;

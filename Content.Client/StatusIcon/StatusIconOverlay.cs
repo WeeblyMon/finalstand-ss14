@@ -22,9 +22,6 @@ public sealed partial class StatusIconOverlay : Overlay
     private readonly StatusIconSystem _statusIcon;
     private readonly ShaderInstance _unshadedShader;
 
-    // FINALSTAND: health bars are on for everyone here and sit just above the sprite, so the icon
-    // column is lifted out of the sprite to sit beside the bar rather than over the head.
-    // 6.5 centres an 8px icon on the 3px bar; 9 would line their bottom edges up instead.
     private const float FsIconLift = 6.5f;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;

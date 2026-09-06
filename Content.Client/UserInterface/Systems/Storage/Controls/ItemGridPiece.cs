@@ -68,7 +68,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
 
         TooltipSupplier = SupplyTooltip;
 
-        // FINALSTAND: an item on cooldown in a bag looked identical to a ready one.
         _useDelay = entityManager.System<UseDelaySystem>();
         AddChild(_cooldown = new CooldownGraphic
         {

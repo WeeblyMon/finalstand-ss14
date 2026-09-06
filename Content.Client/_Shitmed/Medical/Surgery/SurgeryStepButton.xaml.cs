@@ -16,7 +16,6 @@ public sealed partial class SurgeryStepButton : ChoiceControl
 {
     public EntityUid Step { get; set; }
 
-    // FINALSTAND: enough to re-send the step message from the guidance bar's Perform button.
     public EntProtoId StepId { get; set; }
     public NetEntity NetPart { get; set; }
     public EntProtoId SurgeryId { get; set; }

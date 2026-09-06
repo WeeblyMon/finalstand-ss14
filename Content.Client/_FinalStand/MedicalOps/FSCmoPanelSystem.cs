@@ -1,5 +1,3 @@
-// FINALSTAND: sends CMO panel presses to the server.
-
 using Content.Shared._FinalStand.MedicalOps;
 
 namespace Content.Client._FinalStand.MedicalOps;

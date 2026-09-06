@@ -261,7 +261,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return total;
     }
 
-    // Support spawners trickle a partial batch, so they must not count as a second corridor.
     private int CountPrimarySpawners(WaveGameRuleComponent comp)
     {
         var count = 0;
@@ -415,7 +414,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return count;
     }
 
-    // Pays out the prep time the crew gives up, so starting early is worth something.
     private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
     {
         var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
@@ -432,7 +430,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Loc.GetString("fs-prep-skip-bonus", ("credits", bonus)), Color.FromHex("#44BB44"));
     }
 
-    // Playtime is unavailable until the DB answers; assume experienced so difficulty never silently drops.
     private bool IsNewPlayer(ICommonSession session)
     {
         if (!_playTime.TryGetTrackerTimes(session, out var times))
@@ -864,8 +861,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return TryGetActiveRule(out _, out var comp, out _) && comp.Phase == WavePhase.Prep ? comp : null;
     }
 
-    // TryGetActiveState builds enemy-pool lists to answer this; callers wanting only the number
-    // should use this instead.
     public int GetWaveNumber()
     {
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;

@@ -1,5 +1,3 @@
-// FINALSTAND: owns the surgery body diagram.
-
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;

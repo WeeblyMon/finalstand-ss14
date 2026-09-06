@@ -24,7 +24,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Respawn;
 
-// Opt-in paid respawn during prep. Waiting for a medic stays free; nothing heals free at wave end.
 public sealed partial class FSWaveRespawnSystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mobState = default!;
@@ -105,7 +104,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         RaiseNetworkEvent(new FSRespawnOfferEvent(true, GetCost(mindId)), session);
     }
 
-    // OwnedEntity, not AttachedEntity: a ghosting player is attached to the ghost, not the corpse.
     private bool TryGetRespawnTarget(ICommonSession session, out EntityUid mindId, out EntityUid body)
     {
         mindId = default;
@@ -151,7 +149,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
             return;
         }
 
-        // Before charging — never take credits for a respawn that cannot happen.
         var points = CollectPoints();
         if (points.Count == 0)
         {
@@ -162,20 +159,16 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         var cost = GetCost(mindId);
         var charged = _wallet.DeductUpTo(mindId, cost);
 
-        // The pull joint survives a teleport and yanks the puller across the map with the body.
         if (TryComp<PullableComponent>(body, out var pullable))
             _pulling.TryStopPull(body, pullable);
 
-        // A corpse may be inside a body bag or cryo pod, or strapped to a bed.
         _container.TryRemoveFromContainer(body, force: true);
         _buckle.TryUnbuckle(body, body, popup: false);
 
         _transform.SetCoordinates(body, _random.Pick(points));
 
-        // Before the rejuvenate, or the scoreboard reads this free heal as a revive.
         _medStats.ResetPatient(body);
 
-        // Heal before reattaching, so no frame of the crit screen renders.
         _rejuvenate.PerformRejuvenate(body);
         _mind.ControlMob(session.UserId, body);
 

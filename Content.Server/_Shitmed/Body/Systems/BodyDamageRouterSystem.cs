@@ -62,10 +62,6 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
         if (parts.Count == 0)
             return;
 
-        // For damage: the attacker's aim decides where it lands, otherwise it is weighted by how big
-        // a target each part is. The victim's own TargetingComponent is deliberately NOT consulted -
-        // that is where *they* aim when *they* attack, and reading it here sent every hit from an
-        // untargeted attacker (any NPC) into the victim's chest.
         // For healing: distribute across all body parts so a Brutepack actually heals.
         EntityUid? chosen = null;
         if (args.Origin is { } origin && TryComp<TargetingComponent>(origin, out var attackerTargeting))
@@ -106,8 +102,6 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
         return false;
     }
 
-    // Roughly how much of a body each part presents to an incoming swing. A uniform pick would make a
-    // foot as likely as the torso, which spreads wounds far too thin to read on the doll.
     private static readonly Dictionary<TargetBodyPart, float> HitWeights = new()
     {
         [TargetBodyPart.Chest] = 35f,

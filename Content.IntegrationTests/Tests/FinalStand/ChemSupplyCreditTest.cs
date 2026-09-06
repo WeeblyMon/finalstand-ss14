@@ -1,5 +1,3 @@
-// The chemist is paid for medicine they never see used, so none of this shows up at the call site.
-
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;

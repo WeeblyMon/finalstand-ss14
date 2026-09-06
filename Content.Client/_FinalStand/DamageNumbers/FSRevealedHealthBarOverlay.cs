@@ -82,7 +82,6 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             var matty        = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
             handle.SetTransform(matty);
 
-            // Kept in step with EntityHealthBarOverlay, or the two bars sit at different heights.
             var yOffset    = bounds.Height * EyeManager.PixelsPerMeter / 2 + 1f;
             var widthOfMob = bounds.Width  * EyeManager.PixelsPerMeter;
 

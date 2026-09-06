@@ -18,6 +18,8 @@ public sealed partial class FSXpHudController : UIController
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
+    private const int SeparatedBottomGap = 72;
+
     private FSLevelingUpdatedEvent? _cached;
 
     // Controls — non-null only while the game screen is loaded.
@@ -91,6 +93,11 @@ public sealed partial class FSXpHudController : UIController
         // In separated HUD mode, anchor to the viewport container so the bar doesn't extend into the chat panel.
         var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
                           && st == ScreenType.Separated;
+
+        // The viewport runs to the screen bottom in separated mode, so the bar needs to clear the hotbar itself.
+        if (isSeparated)
+            _root.AddChild(new Control { SetHeight = SeparatedBottomGap, MouseFilter = Control.MouseFilterMode.Ignore });
+
         var target = isSeparated ? (FindViewportContainer(screen) ?? (Control) screen) : screen;
         target.AddChild(_root);
 

@@ -4,8 +4,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Research.Components;
 
-// Which system owns a console. Science accumulates research points from combat; Medical buys nodes
-// outright with department funds, so the two share a component but never share state.
 [Serializable]
 public enum FSResearchTrack : byte
 {
@@ -21,8 +19,6 @@ public sealed partial class FSTechDatabaseComponent : Component
     [DataField]
     public FSResearchTrack Track = FSResearchTrack.Science;
 
-    // Branches this console will show. Empty means all of them, which is how the science console
-    // behaved before medical got its own tree.
     [AutoNetworkedField]
     [DataField]
     public List<ProtoId<FSTechBranchPrototype>> Branches = new();

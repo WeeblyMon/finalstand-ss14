@@ -113,8 +113,6 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
         // TODO: Also the scar treating surgery too, fuck. I hate this system and by every second I have to spend working with THIS I want to kill myself more and more
         _wounds.TryHaltAllBleeding(part, force: true);
 
-        // TEMP DEBUG — shows the exact specifier a step applies, so a wrong sign is obvious.
-        // Delete alongside the SurgDbg block in SharedSurgerySystem.
         var applied = string.Join(", ", damage.DamageDict.Select(kv => $"{kv.Key}:{kv.Value:F2}"));
         Log.Info($"[SurgDbg] apply -> part='{MetaData(part).EntityName}' affectAll={affectAll} | {applied}");
 

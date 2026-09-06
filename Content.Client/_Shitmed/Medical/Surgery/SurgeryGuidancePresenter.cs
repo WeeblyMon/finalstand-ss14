@@ -1,5 +1,3 @@
-// FINALSTAND: owns the surgery guidance bar.
-
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Inventory;
 using Robust.Client.GameObjects;

@@ -667,7 +667,6 @@ public abstract partial class SharedSurgerySystem
             args.Cancelled = true;
     }
 
-
     private void OnSurgeryTargetStepChosen(Entity<SurgeryTargetComponent> ent, ref SurgeryStepChosenBuiMsg args)
     {
         if (!_timing.IsFirstTimePredicted)
@@ -841,10 +840,8 @@ public abstract partial class SharedSurgerySystem
     private bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId)
 => TryDoSurgeryStep(body, targetPart, user, surgeryId, stepId, out _);
 
-    /// <summary>
     /// Do a surgery step on a part, if it can be done.
     /// Returns true if it succeeded.
-    /// </summary>
     public bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId, out StepInvalidReason error)
     {
         error = StepInvalidReason.None;
@@ -866,9 +863,6 @@ public abstract partial class SharedSurgerySystem
             return false;
         }
 
-        // FINALSTAND: the tool no longer has to be in the active hand, and no world popup - the
-        // window's guidance bar says why, and a message over the patient is exactly where a surgeon
-        // is not looking.
         if (!TryFindStepTool(user, body, part, step, out var tool, out _, out error, out var data))
             return false;
 
@@ -950,7 +944,6 @@ public abstract partial class SharedSurgerySystem
 
         if (requirements.Contains(surgery))
             throw new ArgumentException($"Surgery {surgery} has a requirement loop: {string.Join(", ", requirements)}");
-
 
         var ev = new SurgeryIgnorePreviousStepsEvent();
         RaiseLocalEvent(user, ev);
@@ -1075,8 +1068,6 @@ public abstract partial class SharedSurgerySystem
         return TryFindStepTool(user, body, part, step, out _, out popup, out _, out _);
     }
 
-    // FINALSTAND: the UI needs the structured reason, not just the popup string, so it can say
-    // "put them on an operating table" instead of greying a button out.
     public bool CanPerformStepWithAvailable(EntityUid user,
         EntityUid body,
         EntityUid part,
@@ -1087,11 +1078,6 @@ public abstract partial class SharedSurgerySystem
         return TryFindStepTool(user, body, part, step, out _, out popup, out reason, out _);
     }
 
-    /// <summary>
-    /// FINALSTAND: a surgeon should not be juggling their hands mid-operation. A step is satisfied by
-    /// anything within reach - held, worn, inside a bag, or laid out on the table beside them. The
-    /// active hand is tried first so a deliberate choice is never overridden.
-    /// </summary>
     public bool TryFindStepTool(EntityUid user,
         EntityUid body,
         EntityUid part,
@@ -1107,7 +1093,6 @@ public abstract partial class SharedSurgerySystem
         if (CanPerformStep(user, body, part, step, held, false, out popup, out reason, out data))
             return true;
 
-        // Keep the held item's failure, since that is the one worth reporting if nothing else fits.
         var heldPopup = popup;
         var heldReason = reason;
 
@@ -1135,7 +1120,6 @@ public abstract partial class SharedSurgerySystem
         {
             yield return item;
 
-            // One level down covers a backpack, a belt, or a medkit sitting in a pocket.
             if (TryComp<Content.Shared.Storage.StorageComponent>(item, out var storage))
             {
                 foreach (var stored in storage.StoredItems.Keys)
@@ -1143,8 +1127,6 @@ public abstract partial class SharedSurgerySystem
             }
         }
 
-        // Tools laid out on the operating table or dropped beside it. Anything inside a container is
-        // skipped so a closed locker is not reachable.
         var nearby = new HashSet<EntityUid>();
         _entityLookup.GetEntitiesInRange(Transform(user).Coordinates, ToolReachRange, nearby);
 
@@ -1155,8 +1137,6 @@ public abstract partial class SharedSurgerySystem
         }
     }
 
-    // FINALSTAND: Tool is a ComponentRegistry rather than a prototype, but the deserialised component
-    // instances carry ToolName, so the required instrument is readable without spawning anything.
     public List<string> GetStepToolNames(EntityUid step)
     {
         var names = new List<string>();
@@ -1172,7 +1152,6 @@ public abstract partial class SharedSurgerySystem
         return names;
     }
 
-    // FINALSTAND
     public float GetStepDuration(EntityUid step)
     {
         return TryComp<SurgeryStepComponent>(step, out var comp) ? comp.Duration : 0f;

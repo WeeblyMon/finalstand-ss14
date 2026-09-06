@@ -1,10 +1,3 @@
-<!--
-FINALSTAND: the targeting HUD doll at 3x for the surgery window. Same art, nearest-neighbour, so it
-reads as deliberate pixel art rather than a blurry upscale. Every size here is the HUD control's
-value multiplied by three. Textures are white masks so limb condition can be applied as a tint - the
-original art is pure red, and Modulate multiplies, so it could never be shown as green.
--->
-
 <controls:SurgeryDollControl
     xmlns="https://spacestation14.io"
     xmlns:controls="clr-namespace:Content.Client._Shitmed.Medical.Surgery"
@@ -16,7 +9,6 @@ original art is pure red, and Modulate multiplies, so it could never be shown as
             VerticalAlignment="Bottom"
             HorizontalAlignment="Left">
 
-            <!-- right arm column -->
             <PanelContainer
                 SetSize="54 117"
                 Margin="0 21 0 0"
@@ -45,7 +37,6 @@ original art is pure red, and Modulate multiplies, so it could never be shown as
                 </TextureButton>
             </PanelContainer>
 
-            <!-- centre column -->
             <PanelContainer
                 SetSize="153 270"
                 Margin="0 192 0 0"
@@ -152,7 +143,6 @@ original art is pure red, and Modulate multiplies, so it could never be shown as
                 </PanelContainer>
             </PanelContainer>
 
-            <!-- left arm column -->
             <PanelContainer
                 SetSize="54 117"
                 Margin="0 21 0 0"

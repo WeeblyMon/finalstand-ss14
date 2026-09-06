@@ -26,7 +26,7 @@ namespace Content.Shared.Medical;
 public abstract partial class SharedDefibrillatorSystem : EntitySystem
 {
     [Dependency] private SharedChatSystem _chat = default!;
-    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedElectrocutionSystem _electrocution = default!;
@@ -133,7 +133,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
 
         _audio.PlayPredicted(ent.Comp.ChargeSound, ent.Owner, user);
 
-        // FINALSTAND: medical buffs shorten the charge-up.
         var duration = ent.Comp.DoAfterDuration
             * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.RevivalSpeed);
 
@@ -195,7 +194,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
 
         if (TryComp<UseDelayComponent>(ent, out var useDelay))
         {
-            // FINALSTAND: medical buffs cut the recharge between shocks.
             var zapDelay = ent.Comp.ZapDelay
                 * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.DefibCooldown);
 

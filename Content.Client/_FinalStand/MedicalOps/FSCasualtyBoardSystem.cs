@@ -1,5 +1,3 @@
-// Client half of the casualty board. Distance is viewer-relative, so it is resolved here.
-
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Client.Player;
 using Robust.Shared.Map;

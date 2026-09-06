@@ -216,7 +216,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             return;
         }
 
-        // Only this console's branches. Empty means all, which keeps the science console unchanged.
         _entityManager.TryGetComponent<FSTechDatabaseComponent>(console, out var fsDb);
         var allowed = fsDb?.Branches is { Count: > 0 } b ? b : null;
 

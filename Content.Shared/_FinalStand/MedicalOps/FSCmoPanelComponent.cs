@@ -1,5 +1,3 @@
-// FINALSTAND: drives the CMO command panel.
-
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 

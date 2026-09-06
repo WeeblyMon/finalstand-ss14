@@ -235,7 +235,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
-            // Without this the science station stamps its state onto the medical console too.
             if (console.Track != FSResearchTrack.Science)
                 continue;
 
@@ -279,16 +278,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return tags.Contains(ResearchDirectorAccess) || tags.Contains(CaptainAccess);
     }
 
-
-    // Medical consoles carry the same component and UI key, so every handler here must ignore them
-    // or a CMO's purchase would run through the research-point path.
     private static bool IsOtherTrack(FSTechDatabaseComponent comp)
         => comp.Track != FSResearchTrack.Science;
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
-        // This system owns the only subscription for this message - Robust rejects a second one on
-        // the same component - so a medical console is handed straight over rather than ignored.
         if (comp.Track == FSResearchTrack.Medical)
         {
             _medicalResearch.OnBuyNode(uid, comp, args);
@@ -575,7 +569,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var consoleUid, out var console))
         {
-            // Science pays from science consoles only, or a medical console's silo would get drained.
             if (console.Track != FSResearchTrack.Science)
                 continue;
 

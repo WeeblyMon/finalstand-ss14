@@ -1,5 +1,3 @@
-// None of the medical scoring rules are visible to the compiler, and every one of them is a payout.
-
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;

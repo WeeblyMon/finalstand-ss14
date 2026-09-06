@@ -43,7 +43,7 @@ public sealed partial class InjectorSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
     [Dependency] private StandingStateSystem _standingState = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
-    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!; // FINALSTAND
+    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!;
 
     public override void Initialize()
     {
@@ -647,7 +647,7 @@ public sealed partial class InjectorSystem : EntitySystem
     /// <param name="target">The entity targeted by the user.</param>
     private void AfterInject(Entity<InjectorComponent> injector, EntityUid user, EntityUid target)
     {
-        _fsAttribution.RecordTreatment(target, user, injector.Owner); // FINALSTAND
+        _fsAttribution.RecordTreatment(target, user, injector.Owner);
 
         // Leave some DNA from the injectee on it
         _forensics.TransferDna(injector, target);
@@ -683,7 +683,6 @@ public sealed partial class InjectorSystem : EntitySystem
     /// <param name="target">The entity targeted by the user.</param>
     private void AfterDraw(Entity<InjectorComponent> injector, EntityUid user, EntityUid target)
     {
-        // FINALSTAND: the chemist's claim follows the solution out of the bottle.
         _fsAttribution.PropagateProducer(target, injector.Owner);
 
         // Leave some DNA from the drawee on it

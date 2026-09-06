@@ -1,5 +1,3 @@
-// Two research trees now share a component, a UI key and a message type. Nothing about that
-
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;

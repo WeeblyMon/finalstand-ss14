@@ -1,5 +1,3 @@
-// The casualty board: outstanding calls for a medic, and who is on the way.
-
 using Content.Shared.Actions;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;

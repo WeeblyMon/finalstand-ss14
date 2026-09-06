@@ -37,7 +37,7 @@ public sealed partial class HealingSystem : EntitySystem
     [Dependency] private MobThresholdSystem _mobThresholdSystem = default!;
     [Dependency] private SharedPopupSystem _popupSystem = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainerSystem = default!;
-    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!; // FINALSTAND
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
 
     public override void Initialize()
     {
@@ -77,9 +77,6 @@ public sealed partial class HealingSystem : EntitySystem
 
             if (healing.BloodlossModifier < 0)
             {
-                // FINALSTAND: aim decides which limb gets treated, but if that limb is not bleeding,
-                // treat whatever is. Tested directly rather than off TryHealBleedsOnBody's return,
-                // which reports success even when it healed nothing.
                 var targeted = CompOrNull<TargetingComponent>(args.User)?.Target;
                 if (targeted != null && !_wounds.IsAnyWoundableBleeding(target.Owner, targeted))
                     targeted = null;
@@ -146,7 +143,7 @@ public sealed partial class HealingSystem : EntitySystem
         if (args.User == target.Owner)
             args.Args.Delay = healing.Delay
                 * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
-                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed); // FINALSTAND
+                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed);
     }
 
     private bool HasDamage(Entity<HealingComponent> healing, Entity<DamageableComponent> target)
@@ -178,8 +175,6 @@ public sealed partial class HealingSystem : EntitySystem
             }
         }
 
-        // FINALSTAND: bleeding lives on the individual limbs, and the mob-level counter is wiped by a
-        // single application, so this gate refused a second bandage while the patient was still open.
         if (healing.Comp.BloodlossModifier < 0 && _wounds.IsAnyWoundableBleeding(target.Owner))
         {
             return true;
@@ -247,7 +242,6 @@ public sealed partial class HealingSystem : EntitySystem
             ? healing.Comp.Delay
             : healing.Comp.Delay * GetScaledHealingPenalty(target, healing.Comp.SelfHealPenaltyMultiplier);
 
-        // FINALSTAND: the only hook medical buffs have on treatment speed.
         delay *= _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.TreatmentSpeed);
 
         var doAfterEventArgs =

@@ -1,12 +1,13 @@
-// FINALSTAND: CMO command panel, shown only to the Chief Medical Officer.
-
+using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
@@ -15,6 +16,7 @@ public sealed class FSCmoPanelController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private static readonly Color DirectiveIdle = Color.FromHex("#2E4A38");
     private static readonly Color DirectiveActive = Color.FromHex("#4FBF7A");
@@ -23,8 +25,8 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color PanelBg = Color.FromHex("#14171B");
     private static readonly Color PanelBorder = Color.FromHex("#2E333B");
 
-    private const int PanelLeftMargin = 230;
-    private const int PanelBottomGap = 10;
+    private const int PanelLeftMargin = 10;
+    private const int PanelBottomGap = 78;
 
     private static readonly (FSCmoAbility Ability, string Loc)[] DirectiveSlots =
     {
@@ -106,7 +108,26 @@ public sealed class FSCmoPanelController : UIController
 
         _root = column;
         LayoutContainer.SetAnchorPreset(_root, LayoutContainer.LayoutPreset.Wide);
-        screen.AddChild(_root);
+
+        var target = IsSeparatedLayout() ? FindViewportContainer(screen) ?? (Control) screen : screen;
+        target.AddChild(_root);
+    }
+
+    private bool IsSeparatedLayout()
+    {
+        return Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var layout)
+               && layout == ScreenType.Separated;
+    }
+
+    private static Control? FindViewportContainer(Control screen)
+    {
+        foreach (var child in screen.Children)
+        {
+            if (child is LayoutContainer && child.Name == "ViewportContainer")
+                return child;
+        }
+
+        return null;
     }
 
     private BoxContainer BuildRow((FSCmoAbility Ability, string Loc)[] slots, int width)
@@ -127,6 +148,7 @@ public sealed class FSCmoPanelController : UIController
                 MinWidth = width,
                 MinHeight = 30,
                 Margin = new Thickness(2, 0),
+                ToolTip = Loc.GetString($"{loc}-desc"),
             };
 
             var captured = ability;
