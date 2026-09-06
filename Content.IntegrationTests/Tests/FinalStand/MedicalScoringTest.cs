@@ -28,7 +28,6 @@ public sealed class MedicalScoringTest : GameTest
         public DamageableSystem Damageable = default!;
         public DamageSpecifier Brute = default!;
 
-        // The server instance is pooled between tests, so only deltas are meaningful.
         public int Baseline;
 
         public int Points => Stats.GetStats(MedicMind).HealingPoints - Baseline;
@@ -54,7 +53,6 @@ public sealed class MedicalScoringTest : GameTest
 
         var medicBody = entMan.SpawnEntity(HumanProto, coords);
 
-        // The scoring gate only credits minds backed by a real user, so reuse the test session's.
         if (!mindSys.TryGetMind(session, out var medicMind, out _))
             medicMind = mindSys.CreateMind(session.UserId, "Medic").Owner;
 
@@ -102,7 +100,6 @@ public sealed class MedicalScoringTest : GameTest
             f.HealBy(f.MedicBody, 60f);
             var third = f.Points - first - second;
 
-            // The ledger is now past 150, so nothing further from this healer is worth anything.
             f.HealBy(f.MedicBody, 60f);
             var fourth = f.Points - first - second - third;
 
@@ -132,14 +129,12 @@ public sealed class MedicalScoringTest : GameTest
             f.HealBy(f.MedicBody, 200f);
             var exhausted = f.Points;
 
-            // Shooting the patient yourself must not reopen the budget.
             f.HurtBy(f.MedicBody, 60f);
             f.HealBy(f.MedicBody, 40f);
 
             Assert.That(f.Points, Is.EqualTo(exhausted),
                 "player-inflicted damage must not reset diminishing returns");
 
-            // A zombie hit carries no player origin, so it should.
             f.Hurt(60f);
             f.HealBy(f.MedicBody, 40f);
 
@@ -166,7 +161,6 @@ public sealed class MedicalScoringTest : GameTest
             Assert.That(f.Points, Is.EqualTo(0),
                 "topping up a near-full patient should not score");
 
-            // Only damage actually present can be undone; the rest is overheal.
             f.Hurt(20f);
             f.HealBy(f.MedicBody, 500f);
 
@@ -190,7 +184,6 @@ public sealed class MedicalScoringTest : GameTest
 
             f.Hurt(400f);
 
-            // An origin-less heal is what reagent metabolism looks like.
             f.Heal(40f);
             Assert.That(f.Points, Is.EqualTo(0), "an unattributed heal should credit nobody");
 

@@ -31,7 +31,6 @@ public sealed class FSCasualtyBoardSystem : EntitySystem
             return;
         }
 
-        // A routine refresh only redraws a board the medic already has open.
         if (_window is { IsOpen: true })
             Refresh();
     }

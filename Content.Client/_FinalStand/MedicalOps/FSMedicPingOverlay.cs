@@ -50,7 +50,6 @@ public sealed class FSMedicPingOverlay : Overlay
 
     public void Add(EntityUid target, bool isHurt)
     {
-        // A second call replaces the first rather than stacking two bubbles on one head.
         _pings.RemoveAll(p => p.Target == target);
         _pings.Add(new Ping(target, isHurt, Lifetime));
     }
@@ -98,7 +97,6 @@ public sealed class FSMedicPingOverlay : Overlay
             if (!bounds.Intersects(args.WorldAABB))
                 continue;
 
-            // Fades out over the last third of its life so it does not simply blink away.
             var alpha = Math.Clamp(ping.Life / (Lifetime / 3f), 0f, 1f);
 
             var worldMatrix = Matrix3Helpers.CreateTranslation(worldPos);

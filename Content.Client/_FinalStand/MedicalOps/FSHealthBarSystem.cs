@@ -9,8 +9,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Health bars are on for everyone here rather than being bought with HUD glasses, and medics get the
-// damage breakdown on top.
 public sealed partial class FSHealthBarSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
@@ -41,8 +39,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         ApplyDamageTypes();
     }
 
-    // Mirrors the showhealthbars command: a purely local display preference, never networked, and
-    // with no status-icon gate so the bar shows on everything with a damage container.
     private void EnsureHealthBars(EntityUid player)
     {
         if (HasComp<ShowHealthBarsComponent>(player))
@@ -58,8 +54,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         EntityManager.AddComponent(player, comp, true);
     }
 
-    // ShowHealthBarsSystem adds and removes the overlay as the component comes and goes, so the flag
-    // is reasserted rather than set once on receipt.
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
@@ -75,7 +69,6 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         overlay.MedigunTarget = FindMedigunTarget();
     }
 
-    // Resolved from the patient's end: whoever the local player currently has the beam on.
     private EntityUid? FindMedigunTarget()
     {
         if (_playerManager.LocalEntity is not { } local)

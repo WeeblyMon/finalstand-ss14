@@ -6,8 +6,6 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-// Ported from Goob-Station's medigun, minus Uber mode, plus a soft cap that makes the last stretch
-// of a patient's health impractical to close with the beam alone.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediGunComponent : Component
 {
@@ -17,7 +15,6 @@ public sealed partial class FSMediGunComponent : Component
     [ViewVariables, AutoNetworkedField]
     public List<EntityUid> HealedEntities = new();
 
-    // The player holding the gun. Cleared when it stops being held, which drops every link.
     [ViewVariables, AutoNetworkedField]
     public EntityUid? ParentEntity;
 
@@ -49,16 +46,12 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public float BatteryWithdraw = 0.5f;
 
-    // Healing runs at full rate up to this share of the way to crit, then falls away sharply.
     [DataField]
     public float SoftCapRatio = 0.7f;
 
-    // Higher makes the last stretch harder.
     [DataField]
     public float SoftCapFalloff = 4.5f;
 
-    // Below this the beam stops outright rather than trickling. Without a floor the curve always
-    // reaches full eventually, which is what made the cap feel like a mild delay.
     [DataField]
     public float MinEffectiveScale = 0.05f;
 
@@ -69,7 +62,6 @@ public sealed partial class FSMediGunComponent : Component
     public Color BeamColor = Color.FromHex("#E23B3B");
 }
 
-// On the patient, so the client can draw the beam from either end.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediGunHealedComponent : Component
 {

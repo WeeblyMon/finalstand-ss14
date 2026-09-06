@@ -37,7 +37,6 @@ public sealed class MedicalFundTest : GameTest
             Assert.That(fund.TryDeductMedicalFunds(500), Is.True);
             Assert.That(fund.GetBalance(), Is.EqualTo(start));
 
-            // Spending is not earning; the department still did the work.
             Assert.That(fund.GetLifetimeEarned(), Is.EqualTo(earnedStart + 500),
                 "lifetime earnings must not fall when funds are spent");
         });
@@ -60,7 +59,6 @@ public sealed class MedicalFundTest : GameTest
 
             entMan.DeleteEntity(holderUid);
 
-            // Re-resolving must mint a fresh pot rather than throwing on the stale cache.
             Assert.That(fund.GetBalance(), Is.EqualTo(0));
             fund.GrantMedicalFunds(100, "test");
             Assert.That(fund.GetBalance(), Is.EqualTo(100));

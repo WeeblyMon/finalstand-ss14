@@ -1,5 +1,4 @@
 // Two research trees now share a component, a UI key and a message type. Nothing about that
-// separation is visible to the compiler.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -64,7 +63,6 @@ public sealed class MedicalResearchTest : GameTest
             var node = FirstMedicalNode(protos, research);
             Assert.That(node, Is.Not.Null);
 
-            // Drain whatever a previous test banked.
             fund.TryDeductMedicalFunds(fund.GetBalance());
             Assert.That(fund.GetBalance(), Is.Zero);
 
@@ -100,12 +98,10 @@ public sealed class MedicalResearchTest : GameTest
             fund.GrantMedicalFunds(node!.Cost, "test");
             Assert.That(medical.TryPurchase(node.ID), Is.True);
 
-            // The science station must not have learned anything.
             var station = science.GetOrCreateStation();
             Assert.That(science.IsNodeUnlocked(station.Comp, node.ID), Is.False,
                 "a medical purchase leaked into the science station");
 
-            // A science sync must not stamp its (empty) state over the medical console.
             science.SyncConsoles();
 
             var medicalDb = entMan.GetComponent<FSTechDatabaseComponent>(medicalConsole);

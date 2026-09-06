@@ -35,7 +35,6 @@ public sealed class DamageRoutingTest : GameTest
             var body = entMan.GetComponent<BodyComponent>(mob);
             var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 1);
 
-            // No origin, so nothing supplies an aim - exactly the case a zombie bite hits.
             for (var i = 0; i < 60; i++)
                 damageable.TryChangeDamage(mob, brute * 3f, ignoreResistances: true);
 

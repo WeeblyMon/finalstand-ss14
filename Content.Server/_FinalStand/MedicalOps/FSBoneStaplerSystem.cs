@@ -11,8 +11,6 @@ using Content.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Fractures are otherwise surgery-only, which needs a table and a toolkit. Blunt-heavy waves make
-// that impractical mid-fight, so the doctor gets one field mend on a cooldown.
 public sealed partial class FSBoneStaplerSystem : EntitySystem
 {
     [Dependency] private OrganLookupSystem _organs = default!;
@@ -53,7 +51,6 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used"), target, args.User);
     }
 
-    // Worst first, so a doctor with several broken limbs to deal with does not have to aim.
     private bool TryFindWorstBone(EntityUid target, BodyComponent body, out EntityUid bone, out BoneComponent boneComp)
     {
         bone = default;

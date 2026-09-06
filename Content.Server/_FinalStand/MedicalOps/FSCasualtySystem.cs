@@ -107,8 +107,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _finished.Clear();
         foreach (var (patient, call) in _calls)
         {
-            // Recovery only clears a call from someone who was actually hurt when they made it -
-            // otherwise a deliberate call from a healthy player was pruned on the very next tick.
             if (TerminatingOrDeleted(patient)
                 || call.Expires <= now
                 || (call.CalledHurt && IsRecovered(patient)))
@@ -132,7 +130,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         Broadcast();
     }
 
-    // Positions and conditions move, so the board is refreshed on a timer rather than only on change.
     private void Broadcast()
     {
         _nextBroadcast = _timing.CurTime + BroadcastInterval;

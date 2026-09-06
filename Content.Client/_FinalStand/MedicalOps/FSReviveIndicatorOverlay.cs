@@ -11,8 +11,6 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// A downed player is only worth rescuing if someone can tell they are down, so the marker is drawn
-// for everyone rather than gated to medical.
 public sealed class FSReviveIndicatorOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -24,12 +22,8 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    // Width in metres. Height follows the texture's own aspect, or the badge comes out squashed.
     private const float Width = 0.95f;
 
-    // Measured from the body's own origin, not from the top of its bounds, so the badge tracks the
-    // casualty rather than whatever the health bar happens to be doing. Raised by roughly half the
-    // badge's height so the arrow point lands on the body instead of the badge covering it.
     private const float VerticalOffset = 0.42f;
 
     private const float BobAmplitude = 0.05f;
@@ -42,8 +36,6 @@ public sealed class FSReviveIndicatorOverlay : Overlay
         _transform = _entManager.System<SharedTransformSystem>();
         _mobState = _entManager.System<MobStateSystem>();
 
-        // Overlays sharing a space draw in arbitrary order otherwise, so the badge would flicker
-        // behind the health bar it is meant to sit on top of.
         ZIndex = 10;
 
         try
@@ -70,7 +62,6 @@ public sealed class FSReviveIndicatorOverlay : Overlay
         var query = _entManager.EntityQueryEnumerator<MobStateComponent, MindContainerComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var mindContainer, out var xform))
         {
-            // Players only. A downed zombie is not a rescue.
             if (!mindContainer.HasMind || xform.MapID != args.MapId)
                 continue;
 
@@ -84,7 +75,6 @@ public sealed class FSReviveIndicatorOverlay : Overlay
             var worldMatrix = Matrix3Helpers.CreateTranslation(worldPos);
             handle.SetTransform(Matrix3x2.Multiply(rotationMatrix, worldMatrix));
 
-            // Slow bob so it reads as asking for something rather than being scenery.
             var bob = MathF.Sin(time * BobSpeed) * BobAmplitude;
             var halfWidth = Width * 0.5f;
             var halfHeight = Width * ((float)_icon.Height / _icon.Width) * 0.5f;

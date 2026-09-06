@@ -11,14 +11,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// The department's shared budget. It subscribes to no gameplay events: FSMedicalStatsSystem is the
-// only thing that pays into it, so there is exactly one place medical work turns into money.
 public sealed partial class FSMedicalFundSystem : EntitySystem
 {
     [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
-    // Checked off the held ID rather than the spawn job, so a promotion mid-round works.
     private static readonly ProtoId<AccessLevelPrototype> MedicalAccess = "Medical";
     private static readonly ProtoId<AccessLevelPrototype> ChiefMedicalOfficerAccess = "ChiefMedicalOfficer";
 
@@ -75,7 +72,6 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
             _fund = null;
     }
 
-    // The holder is deliberately not deleted - consoles will hold a reference to it.
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
         _fund = null;
@@ -135,15 +131,12 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
 
     public IReadOnlyDictionary<EntityUid, int> GetContributions() => GetOrCreateFund().Comp.ContributionByMind;
 
-    // Spending supplies is open to the whole department; a CMO-only till would be dead content in
-    // the many rounds that have no CMO.
     public bool IsMedical(EntityUid user)
     {
         var tags = _accessReader.FindAccessTags(user);
         return tags.Contains(MedicalAccess) || tags.Contains(ChiefMedicalOfficerAccess);
     }
 
-    // Reserved for decisions rather than routine spending, e.g. picking a Medical research node.
     public bool IsCmo(EntityUid user)
     {
         return _accessReader.FindAccessTags(user).Contains(ChiefMedicalOfficerAccess);

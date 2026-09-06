@@ -13,8 +13,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
-// The CMO's tree. Nodes are bought outright with department funds rather than accumulated, so this
-// shares the console component and the UI with science but none of its research-point machinery.
 public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private FSMedicalFundSystem _fund = default!;
@@ -31,10 +29,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSMedicalResearchComponent, EntityTerminatingEvent>(OnStateTerminating);
 
-        // No BUI subscription here on purpose. Both consoles share FSTechDatabaseComponent and the
-        // research UI key, and Robust throws "Duplicate Subscriptions" if two systems subscribe the
-        // same message on the same component. FSResearchSystem owns the subscription and hands
-        // medical-track consoles to OnBuyNode below.
     }
 
     public Entity<FSMedicalResearchComponent> GetOrCreateState()
@@ -85,7 +79,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         return state.Comp.UnlockedLookup.Contains(nodeId);
     }
 
-    /// <summary>Called by FSResearchSystem when the console it was handed is medical-track.</summary>
     public void OnBuyNode(EntityUid uid, FSTechDatabaseComponent console, FSSelectResearchNodeMessage args)
     {
         if (console.Track != FSResearchTrack.Medical)
@@ -95,7 +88,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         if (!player.IsValid() || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
             return;
 
-        // A console can only ever buy from the branches it displays.
         if (node.Branch != MedicalBranch)
             return;
 
@@ -136,10 +128,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
 
-    /// <summary>
-    /// The purchase itself, with no authority check - the caller decides who is allowed to spend.
-    /// All-or-nothing: if the fund cannot cover it, nothing is unlocked and no money moves.
-    /// </summary>
     public bool TryPurchase(string nodeId)
     {
         if (!PrototypeManager.TryIndex<FSTechNodePrototype>(nodeId, out var node))
@@ -162,9 +150,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         state.Comp.UnlockedLookup.Add(node.ID);
         SyncConsoles();
 
-        // Same event science raises, so vanilla technology unlocks keep working unchanged.
-        // earned: false - the node was bought outright, so FSResearchPayoutSystem must not pay the
-        // science department a research bonus for it.
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
         return true;
     }
@@ -183,12 +168,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             console.UnlockedNodes.Clear();
             console.UnlockedNodes.AddRange(state.Comp.UnlockedNodes);
 
-            // The header label renders this; on a medical console it reads as the department balance
-            // rather than research points.
             console.Points = balance;
 
-            // Deliberately left empty - these drive the progress bar, contributor rings and queue
-            // badges, none of which apply to an outright purchase.
             console.NodeProgress.Clear();
             console.SharedQueue.Clear();
             console.PersonalContributorSlots.Clear();

@@ -8,9 +8,6 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Goob's animated beam sheet, bent along a sagging curve instead of drawn as a straight line.
-// The sheet is loaded as a plain texture rather than an RSI state: DrawPrimitives rejects atlas
-// sub-textures, and a raw PNG read from inside a .rsi does not survive packaging.
 public sealed class FSMediGunBeamOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -21,22 +18,16 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
-    // The sheet is a 4x4 grid of frames.
     private const int GridSize = 4;
     private const int FrameCount = GridSize * GridSize;
     private const float FrameSeconds = 0.1f;
 
-    // One full frame of the texture per this many metres.
     private const float TileLength = 0.6f;
     private const int SegmentsPerTile = 5;
     private const int MaxSegments = 80;
 
-    // The beam art only occupies the middle of each frame, so the quad has to be wider than the
-    // apparent beam.
     private const float Width = 0.62f;
 
-    // The curve comes from the middle of the beam lagging behind when either end moves, not from
-    // gravity. Standing still, the lagged midpoint catches up and the beam is straight.
     private const float LagResponse = 7f;   // higher snaps straight faster
     private const float LagAmplify = 1.6f;  // exaggerates the trail so the whip reads
     private const float MaxLag = 1.1f;      // metres, so a teleport cannot fling the arc away
@@ -53,7 +44,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     private readonly record struct LagState(Vector2 Mid, TimeSpan LastSeen);
 
-    // Per-patient trailing midpoint. Survives between frames, which is the whole point.
     private readonly Dictionary<EntityUid, LagState> _lag = new();
     private readonly List<EntityUid> _stale = new();
 
@@ -83,7 +73,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var time = (float)_timing.CurTime.TotalSeconds;
         var dt = (float)_timing.FrameTime.TotalSeconds;
 
-        // Overlays share the handle and the health bars leave a transform on it.
         handle.SetTransform(Matrix3x2.Identity);
 
         PruneLag();
@@ -144,9 +133,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
             var t0 = (float)seg / segments;
             var t1 = (float)(seg + 1) / segments;
 
-            // The beam is drawn vertically inside each frame, so V runs along the beam's length
-            // and U across its width. Restarting the V span at every tile boundary keeps the frame
-            // from smearing backwards across the seam.
             var k = seg % SegmentsPerTile;
             var v0 = vMin + cell * ((float)k / SegmentsPerTile);
             var v1 = vMin + cell * ((float)(k + 1) / SegmentsPerTile);
@@ -165,8 +151,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         }
     }
 
-    // Little crosses riding the beam toward the patient, so healing reads as something being
-    // delivered rather than a light being shone.
     private void DrawParticles(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time, Color tint)
     {
         var span = (end - start).Length();
@@ -180,7 +164,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         {
             var phase = (float)i / count;
 
-            // Each cross drifts from medic to patient and restarts.
             var t = (phase + time * ParticleDrift) % 1f;
 
             var point = Bezier(start, control, end, t);
@@ -193,7 +176,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
             var orbit = MathF.Sin(time * ParticleOrbitSpeed + phase * MathF.Tau) * ParticleOrbit;
             var centre = point + normal * orbit;
 
-            // Fade in and out at the ends so they do not pop into existence.
             var fade = MathF.Sin(t * MathF.PI);
             var size = ParticleSize * (0.6f + 0.4f * fade);
             var arm = size * 0.5f;
@@ -232,10 +214,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _verts.Add(new DrawVertexUV2D(position, new Vector2(u, v)));
     }
 
-    /// <summary>
-    /// Advances the trailing midpoint for one beam and returns the curve's control point. Called
-    /// once per beam per frame, before anything is drawn with it.
-    /// </summary>
     private Vector2 UpdateControlPoint(EntityUid patient, Vector2 start, Vector2 end, float dt)
     {
         var trueMid = (start + end) * 0.5f;
@@ -243,7 +221,6 @@ public sealed class FSMediGunBeamOverlay : Overlay
         if (!_lag.TryGetValue(patient, out var state))
             state = new LagState(trueMid, _timing.RealTime);
 
-        // Framerate-independent exponential smoothing toward the real midpoint.
         var blend = 1f - MathF.Exp(-LagResponse * dt);
         var mid = Vector2.Lerp(state.Mid, trueMid, blend);
 

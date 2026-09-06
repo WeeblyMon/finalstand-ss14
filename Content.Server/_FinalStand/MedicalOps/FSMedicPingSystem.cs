@@ -12,7 +12,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Calling for a medic, TF2 style: a bubble over your head and an actual shout.
 public sealed partial class FSMedicPingSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
@@ -25,7 +24,6 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
     private const string ScreamEmote = "Scream";
 
-    // Below this share of the way to crit, the calm bubble is used.
     private const float HurtThreshold = 0.3f;
 
     private readonly Dictionary<EntityUid, EntityUid> _grantedActions = new();

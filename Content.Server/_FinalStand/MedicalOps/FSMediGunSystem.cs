@@ -20,8 +20,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// A sustained healing beam. Fast up to the soft cap, then asymptotically slow, so it makes people
-// fight-ready without ever replacing a doctor finishing the job.
 public sealed partial class FSMediGunSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -80,7 +78,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         }
     }
 
-    /// <summary>Returns false when the link should drop.</summary>
     private bool HealingTick(Entity<FSMediGunComponent> ent, EntityUid healed)
     {
         var comp = ent.Comp;
@@ -105,7 +102,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (scale <= 0f)
             return true;
 
-        // Stabilisation only pays out on someone actually going down - it is not a general damage buff.
         if (comp.ParentEntity is { } medic && _mobState.IsCritical(healed))
             scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
 
@@ -120,9 +116,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// 1.0 until the patient is past the soft cap, then falls off toward zero as they approach full.
-    /// </summary>
     public float GetHealScale(Entity<DamageableComponent> patient, FSMediGunComponent comp)
     {
         if (!_thresholds.TryGetThresholdForState(patient.Owner, MobState.Critical, out var threshold)
@@ -142,7 +135,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         var scale = MathF.Pow((1f - ratio) / headroom, comp.SoftCapFalloff);
 
-        // A hard stop rather than an ever-slower trickle, so the beam genuinely cannot finish.
         return scale < comp.MinEffectiveScale ? 0f : scale;
     }
 
@@ -153,7 +145,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (args.Target is not { } target || target == args.User)
             return;
 
-        // Two-handed only, so healing and fighting stay mutually exclusive.
         if (!TryComp<WieldableComponent>(uid, out var wieldable) || !wieldable.Wielded)
         {
             _popup.PopupEntity(Loc.GetString("fs-medigun-needs-wield"), uid, args.User);
@@ -180,18 +171,14 @@ public sealed partial class FSMediGunSystem : EntitySystem
         _useDelay.TryResetDelay(uid);
         args.Handled = true;
 
-        // Last, and deliberately: a missing sound file throws, and that must not be able to undo
-        // the link that was just made.
         _audio.PlayPvs(comp.SoundOnTarget, uid);
     }
 
-    // Letting go with one hand cuts the beam, so a medic cannot heal and shoot in the same moment.
     private void OnUnwielded(Entity<FSMediGunComponent> ent, ref ItemUnwieldedEvent args)
     {
         DisableAllConnections(ent);
     }
 
-    // Dropping or holstering the gun drops every link.
     private void OnParentChanged(Entity<FSMediGunComponent> ent, ref EntParentChangedMessage args)
     {
         if (args.Transform.ParentUid != ent.Comp.ParentEntity)

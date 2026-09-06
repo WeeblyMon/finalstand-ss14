@@ -1,6 +1,5 @@
 namespace Content.Shared._FinalStand.MedicalOps;
 
-// Round-scoped department budget, earned by medical work and spent on supplies and research.
 [RegisterComponent]
 public sealed partial class FSMedicalFundComponent : Component
 {

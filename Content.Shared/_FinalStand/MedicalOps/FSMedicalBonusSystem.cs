@@ -1,5 +1,4 @@
 // Diminishing returns for medical buffs: the strongest bonus in a category lands in full, each
-// further one is halved, then a per-category cap applies.
 
 using Content.Shared.DoAfter;
 using Content.Shared.Movement.Pulling.Components;
@@ -52,7 +51,6 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     {
         var speed = GetScale(uid, FSMedicalBonusCategory.Movement);
 
-        // Dragging a casualty is where the medic actually loses time, so it gets its own bonus.
         if (_pullerQuery.TryComp(uid, out var puller) && puller.Pulling != null)
             speed *= GetScale(uid, FSMedicalBonusCategory.DragSpeed);
 
@@ -71,7 +69,6 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
         var now = _timing.CurTime;
 
-        // Collected first because RemComp below would mutate the set being enumerated.
         _pruning.Clear();
         var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -111,7 +108,6 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     {
         var comp = EnsureComp<FSMedicalBonusComponent>(uid);
 
-        // Copied because the buff outlives this call and callers reuse their template.
         comp.Active[source] = new FSMedicalBuff
         {
             Bonuses = new Dictionary<FSMedicalBonusCategory, float>(bonuses),

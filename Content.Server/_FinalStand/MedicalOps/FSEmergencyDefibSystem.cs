@@ -8,8 +8,6 @@ using Content.Shared.Mobs.Systems;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Vanilla defibrillation leaves the patient in Critical. The emergency unit carries them the rest
-// of the way up, on a sliver of health, so a Combat Medic can get someone fighting again mid-wave.
 public sealed partial class FSEmergencyDefibSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
@@ -27,7 +25,6 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
         if (!TryComp<FSEmergencyDefibComponent>(args.Defibrillator.Owner, out var emergency))
             return;
 
-        // The event fires even when the zap failed, so only act once the patient is actually back.
         if (!_mobState.IsCritical(patient))
             return;
 
@@ -42,10 +39,6 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
         if (current <= target)
             return;
 
-        // Scale their existing damage down proportionally rather than clearing types outright, so
-        // the wound they were killed by is reduced, not erased.
-        // Deliberately unattributed. The revive award already pays for this press; crediting the
-        // top-up as well would score one button as both a revive and a stabilise.
         var heal = new DamageSpecifier(damageable.Damage) * -((current - target) / current);
         _damageable.TryChangeDamage(patient, heal, ignoreResistances: true);
     }

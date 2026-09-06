@@ -9,7 +9,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Mirrors FSRCDEngineerOnlySystem: medical gear refuses to work for anyone outside the department.
 public sealed partial class FSMedicalOnlySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -23,8 +22,6 @@ public sealed partial class FSMedicalOnlySystem : EntitySystem
     {
         base.Initialize();
 
-        // Explicitly ordered ahead of everything it gates - subscription order between systems is
-        // otherwise undefined, and a late refusal would arrive after the beam had already linked.
         SubscribeLocalEvent<FSMedicalOnlyComponent, AfterInteractEvent>(OnAfterInteract,
             before: [typeof(FSMediGunSystem), typeof(SharedDefibrillatorSystem)]);
     }

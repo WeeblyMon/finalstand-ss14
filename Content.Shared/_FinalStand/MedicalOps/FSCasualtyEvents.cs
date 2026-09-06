@@ -26,14 +26,11 @@ public struct FSCasualtyEntry
     public string? Responder;
 }
 
-// Pushed to medical players only. The board has to show casualties outside PVS, so it is a snapshot
-// rather than a networked component.
 [Serializable, NetSerializable]
 public sealed class FSCasualtyBoardEvent : EntityEventArgs
 {
     public List<FSCasualtyEntry> Entries;
 
-    // Set only on the reply to the action, so a routine refresh never forces the window up.
     public bool Open;
 
     public FSCasualtyBoardEvent(List<FSCasualtyEntry> entries, bool open = false)

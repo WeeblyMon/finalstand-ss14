@@ -83,7 +83,6 @@ public sealed class SurgeryGuidancePresenter
         {
             _window.PerformButton.Disabled = false;
 
-            // Operating without gloves and a mask gives the patient sepsis on every single step.
             if (!IsSterile(user))
             {
                 Set(texture, Loc.GetString("surgery-ui-guidance-unsterile", ("step", stepName)), WarningColor);

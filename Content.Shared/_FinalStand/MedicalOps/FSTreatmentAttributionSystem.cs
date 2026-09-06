@@ -5,7 +5,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-// Records who administered medicine, so chem healing can be credited once it metabolises.
 public sealed partial class FSTreatmentAttributionSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -51,7 +50,6 @@ public sealed partial class FSTreatmentAttributionSystem : EntitySystem
         EnsureComp<FSProducedByComponent>(item).ProducerMind = producerMind;
     }
 
-    // A syringe drawn from a tagged bottle carries the chemist's claim with the solution.
     public void PropagateProducer(EntityUid from, EntityUid to)
     {
         if (_net.IsClient)

@@ -10,7 +10,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Tells each client whether it should render the medic-grade health bars.
 public sealed partial class FSMedicalStatusSystem : EntitySystem
 {
     [Dependency] private SharedJobSystem _jobs = default!;
@@ -20,7 +19,6 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
 
     private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
 
-    // Deliberately re-checked rather than resolved once, so a mid-round job change is picked up.
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextRefresh;
 
@@ -61,8 +59,6 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
         RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), ev.Player);
     }
 
-    // Deliberately the job's primary department, not ID access: a Captain's ID carries Medical
-    // access, and the Captain is not a medic.
     public bool IsMedicalDepartment(EntityUid mob)
     {
         return _mind.TryGetMind(mob, out var mindId, out _)

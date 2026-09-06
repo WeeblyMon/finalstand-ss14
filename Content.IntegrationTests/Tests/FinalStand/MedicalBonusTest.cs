@@ -1,5 +1,4 @@
 // The stacking maths is the whole point of the framework and nothing about it is visible to the
-// compiler: a wrong falloff or a missing cap only shows up as a medic healing instantly.
 
 using System.Collections.Generic;
 using Content.IntegrationTests.Fixtures;
@@ -60,7 +59,6 @@ public sealed class MedicalBonusTest : GameTest
                 [FSMedicalBonusCategory.TreatmentSpeed] = 0.10f,
             });
 
-            // Strongest in full, the next at half: 0.20 + 0.05.
             Assert.That(bonus.GetBonus(mob, FSMedicalBonusCategory.TreatmentSpeed), Is.EqualTo(0.25f).Within(0.001f),
                 "stacked buffs must not simply add up");
         });
@@ -152,7 +150,6 @@ public sealed class MedicalBonusTest : GameTest
             var bonus = entMan.System<FSMedicalBonusSystem>();
             var mob = entMan.SpawnEntity(Dummy, map.GridCoords);
 
-            // This is what makes the three directives mutually exclusive.
             bonus.ApplyBuff(mob, "directive", Single(FSMedicalBonusCategory.Movement, 0.10f));
             bonus.ApplyBuff(mob, "directive", Single(FSMedicalBonusCategory.DragSpeed, 0.25f));
 
@@ -206,7 +203,6 @@ public sealed class MedicalBonusTest : GameTest
             Assert.That(bonus.GetBonus(mob, FSMedicalBonusCategory.TreatmentSpeed), Is.EqualTo(0.25f).Within(0.001f));
         });
 
-        // Comfortably past half a second at the default tick rate.
         await Pair.RunTicksSync(60);
 
         await server.WaitAssertion(() =>
@@ -235,7 +231,6 @@ public sealed class MedicalBonusTest : GameTest
             var bonus = entMan.System<FSMedicalBonusSystem>();
             var mob = entMan.SpawnEntity(Dummy, map.GridCoords);
 
-            // The CMO abilities hand the same template to every medic in the department.
             var template = Single(FSMedicalBonusCategory.TreatmentSpeed, 0.25f);
             bonus.ApplyBuff(mob, "a", template);
 
@@ -259,7 +254,6 @@ public sealed class MedicalBonusTest : GameTest
             var bonus = entMan.System<FSMedicalBonusSystem>();
             mob = entMan.SpawnEntity(Dummy, map.GridCoords);
 
-            // A standing directive has no end time; the pruner must leave it alone.
             bonus.ApplyBuff(mob, "directive", Single(FSMedicalBonusCategory.Movement, 0.10f));
         });
 

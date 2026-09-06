@@ -106,7 +106,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
                 _actions.AddAction(ev.Mob, proto);
         }
 
-        // A directive is a standing order, so anyone arriving after it was issued still gets it.
         if (_activeDirective is { } active
             && Directives.TryGetValue(active, out var def)
             && _fund.IsMedical(ev.Mob))
@@ -138,7 +137,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (!Directives.TryGetValue(args.Directive, out var def))
             return;
 
-        // Pressing the standing directive again stands it down.
         if (_activeDirective == args.Directive)
         {
             _activeDirective = null;
@@ -147,7 +145,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             return;
         }
 
-        // All three share one source key, so issuing one replaces whichever was standing.
         _activeDirective = args.Directive;
         ApplyToDepartment(DirectiveSource, def.Bonuses);
         Announce(args.Performer, def.Announcement);

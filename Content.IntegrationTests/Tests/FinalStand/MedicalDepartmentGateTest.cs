@@ -1,5 +1,4 @@
 // The detailed health readout is gated on this, and a job silently falling out of Medical looks
-// like a rendering bug rather than a roster one.
 
 using Content.IntegrationTests.Fixtures;
 using Content.Shared.Roles;
@@ -58,7 +57,6 @@ public sealed class MedicalDepartmentGateTest : GameTest
         });
     }
 
-    // Mirrors SharedJobSystem.TryGetPrimaryDepartment without needing a spawned player.
     private static bool TryGetPrimaryDepartment(IPrototypeManager protos, string job, out string? department)
     {
         foreach (var proto in protos.EnumeratePrototypes<DepartmentPrototype>())

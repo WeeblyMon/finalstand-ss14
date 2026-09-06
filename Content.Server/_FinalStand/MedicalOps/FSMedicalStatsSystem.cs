@@ -19,7 +19,6 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Medical's answer to kills and assists: credit for the medical work you actually performed.
 public sealed partial class FSMedicalStatsSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLogger = default!;
@@ -42,8 +41,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int CreditsPerHealPoint = 10;
     private const int SelfHealCreditsPerPoint = 2;
 
-    // The chemist who made the medicine earns a cut of what it heals, taken off the already
-    // diminished figure so supply credit can never outrun the DR budget.
     private const float SupplierRate = 0.3f;
     private const int SupplierCreditsPerPoint = 6;
     private const int SupplierFundPerPoint = 3;
@@ -127,7 +124,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         if (args.DamageIncreased)
         {
-            // Only hostile damage refills the budget; shoot-then-heal is the farming vector.
             if (TryGetPlayerMind(args.Origin, out _))
                 return;
 
@@ -144,7 +140,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (healed < 1f)
             return;
 
-        // Reagents metabolise long after the syringe left the medic's hand, so they carry no origin.
         if (!TryGetPlayerMind(args.Origin, out var healerMind)
             && !_attribution.TryGetAttributedMedic(uid, out healerMind))
             return;
@@ -168,8 +163,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (points <= 0)
             return;
 
-        // Self-care is real work and scores, but it is not the department treating the crew, so it
-        // pays a lower credit rate and nothing at all into the budget.
         Award(healerMind, isSelf ? "self-heal" : "healing",
             points: points,
             hpHealed: healed,
@@ -178,12 +171,10 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         AwardSupplier(uid, healerMind, paid);
 
-        // The chems have finished their work, so nobody keeps a claim on this patient's next injury.
         if (_damageable.GetTotalDamage(uid) <= 0)
             _attribution.ClearAttribution(uid);
     }
 
-    // hpHealed is deliberately left off: the HP belongs to whoever administered it, not the supplier.
     private void AwardSupplier(EntityUid patient, EntityUid healerMind, float paid)
     {
         if (!_attribution.TryGetAttributedSupplier(patient, out var supplierMind)
@@ -213,7 +204,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind))
             return;
 
-        // A defibrillator lands the patient in Critical, never straight to Alive.
         if (args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive)
         {
             Award(healerMind, "revive", points: RevivePoints, revives: 1,
@@ -237,8 +227,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         }
     }
 
-    // One save per patient per wave falls out of the query: each body is visited once and holds a
-    // single pending credit, so die-revive-die cannot mint several off one person.
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
         var query = EntityQueryEnumerator<FSMedicalPatientComponent, MobStateComponent>();
@@ -262,7 +250,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         }
     }
 
-    // Every payout goes through here, so scoreboard, wallet and department budget cannot drift apart.
     private void Award(EntityUid mindId, string source, int points = 0, float hpHealed = 0f,
         int credits = 0, int fund = 0,
         int stabilises = 0, int revives = 0, int patientsSaved = 0)

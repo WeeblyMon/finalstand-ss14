@@ -1,5 +1,4 @@
 // Reproduction: "Tend Bruise Wounds" was reported to make both the limb and the mob's HP worse.
-// Surgery heals by applying negative damage to the body, which BodyDamageRouterSystem intercepts.
 
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Medical;
@@ -43,7 +42,6 @@ public sealed class SurgicalHealingTest : GameTest
 
             Assert.That(damageBefore, Is.GreaterThan(0f), "setup failed - the mob took no damage");
 
-            // Exactly what SurgerySystem.SetDamage does for a tend-wounds step.
             damageable.TryChangeDamage(mob,
                 brute * -15f,
                 ignoreResistances: true,
