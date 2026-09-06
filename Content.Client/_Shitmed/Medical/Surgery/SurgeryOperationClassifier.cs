@@ -1,8 +1,4 @@
-// FINALSTAND: what an operation treats, and how badly it wants doing.
-//
-// Both answers come from the conditions a surgery is gated on rather than a hardcoded list of
-// prototype ids: a procedure that only exists while something is wrong is, by construction, the one
-// that needs doing. New surgeries classify themselves.
+// FINALSTAND: classifies an operation by the conditions it is gated on.
 
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
@@ -20,7 +16,6 @@ public enum SurgeryFocus : byte
 
 public sealed class SurgeryOperationClassifier
 {
-    // Lower runs first when no focus is chosen.
     public const int UrgencyBleeding = 0;
     public const int UrgencyTrauma = 1;
     public const int UrgencyAccess = 2;
@@ -34,10 +29,6 @@ public sealed class SurgeryOperationClassifier
         _entities = entities;
     }
 
-    /// <summary>
-    /// Closing ranks above elective work. Organ inserts are permanently available on an empty slot,
-    /// so ranking them first meant the surgeon was never once told to close the patient back up.
-    /// </summary>
     public int UrgencyOf(EntityUid surgery)
     {
         if (_entities.HasComponent<SurgeryCloseIncisionConditionComponent>(surgery))
@@ -57,7 +48,11 @@ public sealed class SurgeryOperationClassifier
 
     public bool Matches(EntityUid surgery, SurgeryFocus focus)
     {
-        return focus == SurgeryFocus.All || FocusOf(surgery) == focus;
+        if (focus == SurgeryFocus.All)
+            return true;
+
+        var kind = FocusOf(surgery);
+        return kind == null || kind == focus;
     }
 
     private SurgeryFocus? FocusOf(EntityUid surgery)
@@ -80,7 +75,6 @@ public sealed class SurgeryOperationClassifier
             };
         }
 
-        // Inserting and removing organs is elective, but it is still organ work.
         return _entities.HasComponent<SurgeryOrganConditionComponent>(surgery)
             ? SurgeryFocus.Organs
             : null;

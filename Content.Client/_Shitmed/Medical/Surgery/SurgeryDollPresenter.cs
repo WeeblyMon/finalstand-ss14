@@ -1,5 +1,4 @@
-// Owns the body diagram. Limbs the doll can draw go on the doll; anything the humanoid template does
-// not cover falls through to the list beside it, so a non-humanoid patient is never misrepresented.
+// FINALSTAND: owns the surgery body diagram.
 
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
@@ -13,8 +12,6 @@ namespace Content.Client._Shitmed.Medical.Surgery;
 
 public sealed class SurgeryDollPresenter
 {
-    // Limb condition owns hue; selection owns brightness. The textures are white masks precisely so
-    // this tint is possible - the original doll art is pure red.
     private static readonly Color HealthyColor = Color.FromHex("#4C9A6A");
     private static readonly Color MinorColor = Color.FromHex("#8FB03E");
     private static readonly Color ModerateColor = Color.FromHex("#C9A227");
@@ -87,8 +84,6 @@ public sealed class SurgeryDollPresenter
         return new Color(colour.R * factor, colour.G * factor, colour.B * factor, colour.A);
     }
 
-    // Severity is networked, so the surgeon can read the patient off the diagram instead of juggling
-    // a health analyser.
     private Color ConditionColor(EntityUid part)
     {
         if (!_entities.TryGetComponent<WoundableComponent>(part, out var woundable))
@@ -107,8 +102,6 @@ public sealed class SurgeryDollPresenter
         };
     }
 
-    // Handlers are wired once, then read _targets on click, so rebuilding the part set never has to
-    // churn event subscriptions.
     private SurgeryDollControl EnsureDoll()
     {
         if (_doll != null)

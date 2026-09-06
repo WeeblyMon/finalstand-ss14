@@ -1,5 +1,4 @@
-// FINALSTAND: an operation entry that remembers what it points at, so its state can be refreshed
-// without rebuilding the column.
+// FINALSTAND: an operation entry that remembers what it points at.
 
 using Content.Client._Shitmed.Choice.UI;
 using Robust.Shared.Prototypes;

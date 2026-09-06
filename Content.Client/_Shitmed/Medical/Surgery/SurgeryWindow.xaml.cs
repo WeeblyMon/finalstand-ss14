@@ -13,8 +13,6 @@ namespace Content.Client._Shitmed.Medical.Surgery;
 [GenerateTypedNameReferences]
 public sealed partial class SurgeryWindow : DefaultWindow
 {
-    // FINALSTAND: the do-after progress has to be sampled per frame, and a BoundUserInterface has no
-    // frame hook of its own.
     public event Action? OnFrameUpdate;
 
     public SurgeryWindow()

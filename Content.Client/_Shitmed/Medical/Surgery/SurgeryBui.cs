@@ -74,9 +74,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private (EntityUid Ent, EntProtoId Proto)? _surgery;
     private readonly List<EntProtoId> _previousSurgeries = new();
 
-    // Rebuild keys. The steps key carries the part as well as the surgery, because step buttons
-    // capture netPart in their closures - the same operation on a different limb must rebuild or it
-    // would send the message to the old limb.
     private string? _partsKey;
     private string? _surgeriesKey;
     private string? _crumbKey;
@@ -129,7 +126,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             _window.OnFrameUpdate += UpdateStepProgress;
 
-            // The columns were reading as one flat sheet without a background behind each.
             foreach (var panel in new[] { _window.BodyPanel, _window.OperationsPanel, _window.ProcedurePanel })
             {
                 panel.PanelOverride = new StyleBoxFlat
@@ -141,7 +137,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
             }
         }
 
-        // Opened before anything below can call RefreshUI, which no-ops on a closed window.
         if (!_window.IsOpen)
             _window.OpenCentered();
 
@@ -169,8 +164,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
             return GetScore(a.Category) - GetScore(b.Category);
         });
 
-        // Keyed on the available operations too, not just the limbs - a completed step can make a new
-        // operation available, and the part buttons capture their surgery list in a closure.
         var partsKey = string.Join(';',
             options.Select(o => $"{o.netEntity.Id}:{string.Join(',', state.Choices[o.netEntity])}"));
         if (partsKey != _partsKey)
@@ -218,8 +211,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
             }
         }
 
-        // The part is gone - amputated, most likely. Keeping the selection would let the player carry
-        // on operating on something no longer attached.
         if (!restored)
         {
             ClearSelection();
@@ -271,14 +262,11 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _isBody = _entities.HasComponent<BodyComponent>(_part);
         _surgery = (surgery, surgeryId);
 
-        // The step list is static for a given part and surgery; only status changes, and RefreshUI
-        // owns that.
         if (_stepsKey != (netPart, surgeryId))
         {
             _stepsKey = (netPart, surgeryId);
             _window.Steps.DisposeAllChildren();
 
-            // This apparently does not consider if theres multiple surgery requirements in one surgery. Maybe thats fine.
             if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
             {
                 var label = new ChoiceControl();
@@ -314,8 +302,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         var part = _entities.GetEntity(netPart);
 
-        // Choosing a limb ends whatever operation was running on the previous one. Without this the
-        // Procedure column keeps describing a limb the surgeon has already moved off.
         if (_part != part)
         {
             _surgery = null;
@@ -402,8 +388,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
         var recommended = RefreshOperations(user);
         var selectedNet = _entities.TryGetNetEntity(_part, out var part) ? part : null;
 
-        // A limb is chosen but no operation yet - name the one to start with, rather than leaving the
-        // surgeon to work out which of six entries is relevant.
         if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
         {
             _guidance.ShowChooseOperation(recommended, ActiveFocusName());
@@ -435,7 +419,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             stepButton.Button.Disabled = status != StepStatus.Next;
 
-            // The glyph repeats what brightness says, so status survives colour-blindness.
             var stepName = new FormattedMessage();
             stepName.AddText(status switch
             {
@@ -462,7 +445,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             if (status == StepStatus.Next)
             {
-                // First Next wins - a negative next.Step marks a whole run of them.
                 nextButton ??= stepButton;
                 stepButton.ToolTip = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup)
                     ? null
@@ -476,13 +458,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         _guidance.Show(nextButton, next != null, user, Owner, _part.Value);
 
-        // Limb condition changes while the window is open, so the diagram tracks it here rather than
-        // only when the selection changes.
         _dollPresenter?.Refresh(selectedNet);
     }
 
-    // The step is performed as a do-after on the surgeon, so the bar belongs where they are looking
-    // rather than floating over the patient.
     private void UpdateStepProgress()
     {
         if (_window == null)
@@ -513,7 +491,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.StepProgress.Visible = false;
     }
 
-    // A joined segmented control, matching the row this window used to have for its tabs.
     private void BuildFilters()
     {
         if (_window == null)
@@ -569,11 +546,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
         RefreshUI();
     }
 
-    // Deliberately independent of what is in your hands: the point is to say "do this", not "you
-    // could do this right now" - you often need to go and fetch the tool.
-    //
-    // A focus steers the recommendation but never hides an operation. Hiding would recreate the
-    // problem where Mend Bones silently vanished and the surgeon had no idea it existed.
     private string? RefreshOperations(EntityUid user)
     {
         if (_window == null || _part == null || _classifier == null)
@@ -661,7 +633,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = "Surgery";
     }
 
-    // Patient > Left Arm > [prerequisite chain] > Amputation. Every segment but the last navigates.
     private void BuildBreadcrumb()
     {
         if (_window == null)

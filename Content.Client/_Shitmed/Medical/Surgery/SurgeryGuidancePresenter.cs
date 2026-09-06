@@ -1,5 +1,4 @@
-// Owns the guidance bar. The surgery system already knows exactly why a step will not work; the old
-// UI spent that on a tooltip nobody hovers.
+// FINALSTAND: owns the surgery guidance bar.
 
 using Content.Shared._Shitmed.Medical.Surgery;
 using Robust.Client.GameObjects;
@@ -53,7 +52,6 @@ public sealed class SurgeryGuidancePresenter
             return;
         }
 
-        // Saying "nothing to do" while a filter is hiding the work would be a lie.
         if (focusFilter != null)
         {
             Set(null, Loc.GetString("surgery-ui-guidance-nothing-in-focus", ("focus", focusFilter)), WarningColor);
@@ -69,8 +67,6 @@ public sealed class SurgeryGuidancePresenter
 
         if (next == null)
         {
-            // No actionable step here while work remains means the next one lives in a prerequisite
-            // surgery, so calling it complete would be a lie.
             Set(null,
                 workRemains
                     ? Loc.GetString("surgery-ui-guidance-prerequisite")
@@ -115,7 +111,6 @@ public sealed class SurgeryGuidancePresenter
         return popup ?? Loc.GetString("surgery-ui-guidance-blocked-generic");
     }
 
-    // Built from AddText rather than markup so a bracket in an entity name cannot throw.
     private void Set(Texture? icon, string text, Color? accent = null)
     {
         var colour = accent ?? NeutralColor;
@@ -129,8 +124,6 @@ public sealed class SurgeryGuidancePresenter
         _window.GuidanceIcon.Texture = icon;
         _window.GuidanceIcon.Visible = icon != null;
 
-        // The bar is the only feedback surface now that the world popup is gone, so the whole panel
-        // carries the state rather than just the text.
         _window.GuidancePanel.PanelOverride = new StyleBoxFlat
         {
             BackgroundColor = colour.WithAlpha(0.14f),
