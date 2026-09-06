@@ -182,8 +182,21 @@ public sealed class FSRicochetSystem : EntitySystem
             var direction = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
 
             var fragment = Spawn(proto, coords);
-            RemComp<FSRicochetComponent>(fragment);
             RemComp<FSPierceComponent>(fragment);
+
+            if (ent.Comp.FragmentBounces > 0)
+            {
+                var fragBounce = EnsureComp<FSRicochetComponent>(fragment);
+                fragBounce.Bounces = ent.Comp.FragmentBounces;
+                fragBounce.DamageRetained = ent.Comp.DamageRetained;
+                fragBounce.SpeedRetained = ent.Comp.SpeedRetained;
+                fragBounce.BounceSound = ent.Comp.BounceSound;
+                fragBounce.Fracture = false;
+            }
+            else
+            {
+                RemComp<FSRicochetComponent>(fragment);
+            }
 
             if (TryComp<ProjectileComponent>(fragment, out var fragProj))
             {
@@ -191,6 +204,7 @@ public sealed class FSRicochetSystem : EntitySystem
                 fragProj.Shooter = projectile.Shooter;
                 fragProj.Weapon = projectile.Weapon;
                 fragProj.IgnoreShooter = true;
+                fragProj.DeleteOnCollide = ent.Comp.FragmentBounces <= 0;
             }
 
             _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + fragProj?.Angle ?? Angle.Zero);
