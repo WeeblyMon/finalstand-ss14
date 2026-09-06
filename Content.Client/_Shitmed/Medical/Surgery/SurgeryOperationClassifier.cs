@@ -16,11 +16,27 @@ public enum SurgeryFocus : byte
 
 public sealed class SurgeryOperationClassifier
 {
-    public const int UrgencyBleeding = 0;
-    public const int UrgencyTrauma = 1;
-    public const int UrgencyAccess = 2;
-    public const int UrgencyClosing = 3;
-    public const int UrgencyElective = 4;
+    public const int UrgencyBleeding = 100;
+    public const int UrgencyTrauma = 101;
+    public const int UrgencyAccess = 102;
+    public const int UrgencyClosing = 103;
+    public const int UrgencyElective = 104;
+
+    private static readonly Dictionary<string, int> ExplicitOrder = new()
+    {
+        ["SurgeryOpenIncision"] = 0,
+        ["SurgeryOpenRibcage"] = 1,
+        ["SurgeryStopBloodOutput"] = 2,
+        ["SurgeryFixDismemberment"] = 3,
+        ["SurgeryMendBones"] = 4,
+        ["SurgeryHealOrgans"] = 5,
+        ["SurgeryTendWoundsBrute"] = 6,
+        ["SurgeryTendWoundsBurn"] = 7,
+        ["SurgeryMendBrainTissue"] = 8,
+        ["SurgeryCloseIncision"] = 90,
+        ["SurgeryCloseIncisionHead"] = 90,
+        ["SurgeryCloseIncisionChest"] = 90,
+    };
 
     private readonly IEntityManager _entities;
 
@@ -29,8 +45,11 @@ public sealed class SurgeryOperationClassifier
         _entities = entities;
     }
 
-    public int UrgencyOf(EntityUid surgery)
+    public int UrgencyOf(EntityUid surgery, string? protoId = null)
     {
+        if (protoId != null && ExplicitOrder.TryGetValue(protoId, out var explicitRank))
+            return explicitRank;
+
         if (_entities.HasComponent<SurgeryCloseIncisionConditionComponent>(surgery))
             return UrgencyClosing;
 

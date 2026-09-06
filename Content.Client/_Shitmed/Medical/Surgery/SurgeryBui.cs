@@ -583,7 +583,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             if (complete || blocked || !inFocus)
                 continue;
 
-            var urgency = _classifier.UrgencyOf(op.Surgery);
+            var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
             if (urgency >= bestUrgency)
                 continue;
 

@@ -1,6 +1,6 @@
-fs-cmo-mcp-announce = Mass Casualty Protocol is in effect. All medical personnel, treat and move.
-fs-cmo-mobilisation-announce = Medical Mobilisation. Get to the wounded and get them out.
-fs-cmo-directive-trauma-announce = Standing directive: Trauma. Prioritise revival and stabilisation.
-fs-cmo-directive-pharma-announce = Standing directive: Pharmaceutical. Prioritise chemical treatment.
-fs-cmo-directive-fieldops-announce = Standing directive: Field Operations. Prioritise recovery under fire.
-fs-cmo-directive-stand-down = Standing directive lifted. Resume normal procedure.
+fs-cmo-mcp-announce = ATTENTION ALL MEDICAL — MASS CASUALTY PROTOCOL IS IN EFFECT. Treat and move.
+fs-cmo-mobilisation-announce = ATTENTION ALL MEDICAL — MEDICAL MOBILISATION. Reach the wounded and pull them out.
+fs-cmo-directive-trauma-announce = STANDING DIRECTIVE — TRAUMA. Prioritise revival and stabilisation until further notice.
+fs-cmo-directive-pharma-announce = STANDING DIRECTIVE — PHARMACEUTICAL. Prioritise chemical treatment until further notice.
+fs-cmo-directive-fieldops-announce = STANDING DIRECTIVE — FIELD OPERATIONS. Prioritise recovery under fire until further notice.
+fs-cmo-directive-stand-down = STANDING DIRECTIVE LIFTED. Resume normal procedure.

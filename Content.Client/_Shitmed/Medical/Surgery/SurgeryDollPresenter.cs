@@ -1,6 +1,8 @@
 // FINALSTAND: owns the surgery body diagram.
 
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Medical.Surgery.Traumas;
+using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Targeting;
@@ -98,6 +100,17 @@ public sealed class SurgeryDollPresenter
 
         if (woundable.Bleeds > 0)
             lines.Add(Loc.GetString("surgery-ui-limb-bleeding", ("rate", woundable.Bleeds.Float())));
+
+        var trauma = _entities.System<TraumaSystem>();
+
+        if (trauma.HasWoundableTrauma(part, TraumaType.BoneDamage, woundable))
+            lines.Add(Loc.GetString("surgery-ui-limb-bone"));
+
+        if (trauma.HasWoundableTrauma(part, TraumaType.OrganDamage, woundable))
+            lines.Add(Loc.GetString("surgery-ui-limb-organ"));
+
+        if (trauma.HasWoundableTrauma(part, TraumaType.Dismemberment, woundable))
+            lines.Add(Loc.GetString("surgery-ui-limb-dismembered"));
 
         return string.Join('\n', lines);
     }

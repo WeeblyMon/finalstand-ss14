@@ -55,6 +55,8 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     public EntityUid Entity;
 
+    private static readonly Color MedicalFundsColor = Color.FromHex("#4FA3D1");
+
     private FSResearchNodeView? _selectedNode;
     private bool _warningIsSticky;
     private ResearchConsoleBoundInterfaceState? _state;
@@ -138,6 +140,19 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         Entity = entity;
         GraphControl.SetConsole(entity);
         RebuildDisciplineRail();
+        ApplyTrackStyling();
+    }
+
+    private void ApplyTrackStyling()
+    {
+        if (!IsMedicalTrack())
+            return;
+
+        ServerButton.Visible = false;
+
+        HeaderResearchIcon.Texture = _resourceCache
+            .GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/research_icon_white.png").Texture;
+        HeaderResearchIcon.Modulate = MedicalFundsColor;
     }
 
     private void RebuildDisciplineRail()
@@ -344,8 +359,13 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         var points = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var fsDb) ? fsDb.Points : 0;
         var amountMsg = new FormattedMessage();
-        amountMsg.AddMarkupOrThrow(Loc.GetString("research-console-menu-research-points-text",
+
+        amountMsg.AddMarkupOrThrow(Loc.GetString(
+            IsMedicalTrack()
+                ? "fs-medical-research-funds-text"
+                : "research-console-menu-research-points-text",
             ("points", points)));
+
         ResearchAmountLabel.SetMessage(amountMsg);
     }
 

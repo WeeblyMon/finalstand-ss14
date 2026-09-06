@@ -6,3 +6,4 @@ fs-medical-research-purchase = Purchase
 fs-medical-research-owned = Purchased
 fs-medical-research-cannot-afford = Insufficient funds
 fs-medical-research-locked = Requires { $name }
+fs-medical-research-funds-text = [color=#4FA3D1][bold]${$points}[/bold][/color] department funds

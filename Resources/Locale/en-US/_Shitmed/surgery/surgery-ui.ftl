@@ -43,6 +43,9 @@ surgery-ui-guidance-unsterile = NEXT: {$step} — ready, but you are UNSTERILE (
 surgery-ui-limb-condition = Condition: {$condition}
 surgery-ui-limb-integrity = Integrity: {$current} / {$max}
 surgery-ui-limb-bleeding = Bleeding ({$rate})
+surgery-ui-limb-bone = Broken bone
+surgery-ui-limb-organ = Organ damage
+surgery-ui-limb-dismembered = Dismembered
 
 surgery-ui-severity-healthy = Healthy
 surgery-ui-severity-minor = Minor
