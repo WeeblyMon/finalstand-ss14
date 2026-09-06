@@ -303,7 +303,7 @@ public sealed partial class WeaponShopWindow
         WeaponUpgradeType.Slowing            => "Slow",
         WeaponUpgradeType.BeamChaining       => "Chain",
         WeaponUpgradeType.Knockback          => "Knockback",
-        WeaponUpgradeType.SelfChargeSpeed    => "Charge Speed",
+        WeaponUpgradeType.SelfChargeSpeed    => "Mag Recharge",
         WeaponUpgradeType.SetOnFire          => "Ignite",
         WeaponUpgradeType.APRounds           => "AP",
         WeaponUpgradeType.ArmorShred         => "Armor Shred",

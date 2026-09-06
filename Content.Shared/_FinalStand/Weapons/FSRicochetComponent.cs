@@ -50,6 +50,9 @@ public sealed partial class FSRicochetComponent : Component
     [DataField]
     public float FragmentLifetime = 0.6f;
 
+    [DataField]
+    public EntProtoId? FragmentProto;
+
     public readonly HashSet<EntityUid> Hit = new();
 
     public TimeSpan NextBounce;

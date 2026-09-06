@@ -224,6 +224,24 @@
     energy: 4.0
 
 - type: entity
+  id: FSBulletLaserShotgunFragment
+  parent: FSBulletLaserShotgun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Projectiles/projectiles_tg.rsi
+    layers:
+    - state: heavylaser
+      shader: unshaded
+      color: "#FFFFFF"
+    scale: 0.7,0.7
+  - type: PointLight
+    castShadows: false
+    color: "#FFFFFF"
+    radius: 1.0
+    energy: 2.0
+
+- type: entity
   id: FSBulletLaserShotgunSpread
   parent: FSBulletLaserShotgun
   categories: [ HideSpawnMenu ]

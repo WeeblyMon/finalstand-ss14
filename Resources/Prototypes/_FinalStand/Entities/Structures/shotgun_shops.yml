@@ -337,11 +337,11 @@
     upgrades:
     - id: eshottie-capacitor-coils
       name: Capacitor Coils
-      description: Reaches full charge 18% faster per level.
+      description: Reaches full charge 25% faster per level.
       maxLevel: 3
       baseCost: 8000
       type: ChargeSpeed
-      valuePerLevel: 0.18
+      valuePerLevel: 0.25
     - id: eshottie-ricochet-plating
       name: Ricochet Plating
       description: Fully charged bolts bounce one extra time per level.

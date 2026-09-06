@@ -49,6 +49,7 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
                 ricochet.Refund = comp.BounceRefund;
                 ricochet.Crit = comp.BounceCrit;
                 ricochet.Fracture = comp.Fracture;
+                ricochet.FragmentProto = comp.FragmentProto;
             }
             else
             {

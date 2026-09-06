@@ -510,7 +510,7 @@
   - type: FSMuzzleFlashColor
     color: "#FF3300"
   - type: BatterySelfRecharger
-    autoRechargeRate: 25
+    autoRechargeRate: 60
     autoRechargePauseTime: 0
   - type: FSChargeShot
   - type: Gun

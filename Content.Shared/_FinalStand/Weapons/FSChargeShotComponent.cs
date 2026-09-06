@@ -1,5 +1,6 @@
 using System.Numerics;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Weapons;
 
@@ -8,7 +9,7 @@ namespace Content.Shared._FinalStand.Weapons;
 public sealed partial class FSChargeShotComponent : Component
 {
     [DataField]
-    public float MaxChargeTime = 1.5f;
+    public float MaxChargeTime = 1.2f;
 
     [DataField]
     public float MinDamageMultiplier = 0.35f;
@@ -51,6 +52,9 @@ public sealed partial class FSChargeShotComponent : Component
 
     [DataField]
     public bool Fracture;
+
+    [DataField]
+    public EntProtoId? FragmentProto = "FSBulletLaserShotgunFragment";
 
     [AutoNetworkedField]
     public float Charge;

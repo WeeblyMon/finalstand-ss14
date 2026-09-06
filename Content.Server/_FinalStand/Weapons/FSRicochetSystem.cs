@@ -148,7 +148,8 @@ public sealed class FSRicochetSystem : EntitySystem
 
     private void Fracture(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
     {
-        if (MetaData(ent).EntityPrototype?.ID is not { } proto)
+        var proto = ent.Comp.FragmentProto?.Id ?? MetaData(ent).EntityPrototype?.ID;
+        if (proto == null)
             return;
 
         var coords = Transform(ent).Coordinates;
