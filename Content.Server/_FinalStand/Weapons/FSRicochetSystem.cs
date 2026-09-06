@@ -40,6 +40,7 @@ public sealed class FSRicochetSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSRicochetComponent, StartCollideEvent>(OnStartCollide,
             after: [typeof(ProjectileSystem)], before: [typeof(FSPierceSystem)]);
+        SubscribeLocalEvent<FSRicochetComponent, PreventCollideEvent>(OnPreventCollide);
     }
 
     public override void Update(float frameTime)
@@ -68,6 +69,12 @@ public sealed class FSRicochetSystem : EntitySystem
         _reorient.Clear();
     }
 
+    private void OnPreventCollide(Entity<FSRicochetComponent> ent, ref PreventCollideEvent args)
+    {
+        if (args.OurFixture.Hard && HasComp<MobStateComponent>(args.OtherEntity))
+            args.Cancelled = true;
+    }
+
     private void OnStartCollide(Entity<FSRicochetComponent> ent, ref StartCollideEvent args)
     {
         if (!TryComp<ProjectileComponent>(ent, out var projectile))
@@ -94,10 +101,7 @@ public sealed class FSRicochetSystem : EntitySystem
             return;
         }
 
-        if (ent.Comp.Fracture)
-            Fracture(ent, projectile);
-        else
-            QueueDel(ent);
+        QueueDel(ent);
     }
 
     private void OnHitMob(Entity<FSRicochetComponent> ent, ProjectileComponent projectile, EntityUid target)
@@ -108,12 +112,7 @@ public sealed class FSRicochetSystem : EntitySystem
         if (ent.Comp.Refund)
             Refund(ent, projectile);
 
-        if (HasComp<FSPierceComponent>(ent))
-            return;
-
-        if (ent.Comp.Fracture)
-            Fracture(ent, projectile);
-        else
+        if (!HasComp<FSPierceComponent>(ent))
             QueueDel(ent);
     }
 
@@ -146,26 +145,18 @@ public sealed class FSRicochetSystem : EntitySystem
         if (ent.Comp.BounceEffect is { } effect)
             Spawn(effect, Transform(ent).Coordinates);
 
+        if (ent.Comp.Fracture)
+            SpawnFragments(ent, projectile);
+
         if (ent.Comp.Bounces > 0)
             return;
-
-        if (ent.Comp.Fracture)
-        {
-            Fracture(ent, projectile);
-            return;
-        }
 
         projectile.DeleteOnCollide = true;
         _fixtures.DestroyFixture(ent.Owner, BounceFixture);
     }
 
-    private void Fracture(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
+    private void SpawnFragments(Entity<FSRicochetComponent> ent, ProjectileComponent projectile)
     {
-        if (ent.Comp.Fractured)
-            return;
-
-        ent.Comp.Fractured = true;
-
         var proto = ent.Comp.FragmentProto?.Id ?? MetaData(ent).EntityPrototype?.ID;
         if (proto == null || ent.Comp.FragmentCount <= 0)
             return;
@@ -173,8 +164,6 @@ public sealed class FSRicochetSystem : EntitySystem
         var coords = _transform.GetMapCoordinates(ent.Owner);
         var damage = projectile.Damage * ent.Comp.FragmentDamage;
         var spin = _random.NextFloat(0f, MathF.Tau);
-
-        QueueDel(ent);
 
         for (var i = 0; i < ent.Comp.FragmentCount; i++)
         {
