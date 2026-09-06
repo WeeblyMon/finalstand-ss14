@@ -4,3 +4,10 @@ fs-cmo-directive-trauma-announce = STANDING DIRECTIVE — TRAUMA. Prioritise rev
 fs-cmo-directive-pharma-announce = STANDING DIRECTIVE — PHARMACEUTICAL. Prioritise chemical treatment until further notice.
 fs-cmo-directive-fieldops-announce = STANDING DIRECTIVE — FIELD OPERATIONS. Prioritise recovery under fire until further notice.
 fs-cmo-directive-stand-down = STANDING DIRECTIVE LIFTED. Resume normal procedure.
+
+fs-cmo-panel-title = MEDICAL COMMAND
+fs-cmo-panel-trauma = Trauma
+fs-cmo-panel-pharma = Pharma
+fs-cmo-panel-fieldops = Field Ops
+fs-cmo-panel-mcp = Mass Casualty
+fs-cmo-panel-mobilisation = Mobilisation

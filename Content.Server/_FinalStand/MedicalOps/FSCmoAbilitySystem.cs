@@ -8,6 +8,7 @@ using Content.Shared.Radio;
 using Content.Shared.Popups;
 using Robust.Server.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -19,6 +20,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<RadioChannelPrototype> MedicalChannel = "Medical";
 
@@ -39,6 +41,8 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private static readonly TimeSpan McpDuration = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
+    private static readonly TimeSpan McpCooldown = TimeSpan.FromSeconds(120);
+    private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(180);
 
     private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
     {
@@ -91,11 +95,58 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SubscribeLocalEvent<FSMassCasualtyProtocolEvent>(OnMassCasualtyProtocol);
         SubscribeLocalEvent<FSMedicalDirectiveEvent>(OnMedicalDirective);
         SubscribeLocalEvent<FSMedicalMobilisationEvent>(OnMedicalMobilisation);
+        SubscribeNetworkEvent<FSCmoAbilityRequestEvent>(OnPanelRequest);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _activeDirective = null;
+    }
+
+    private void OnPanelRequest(FSCmoAbilityRequestEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } cmo || !HasComp<FSCmoPanelComponent>(cmo))
+            return;
+
+        switch (ev.Ability)
+        {
+            case FSCmoAbility.MassCasualtyProtocol:
+                if (Ready(cmo, mcp: true))
+                    RunMassCasualtyProtocol(cmo);
+                break;
+            case FSCmoAbility.Mobilisation:
+                if (Ready(cmo, mcp: false))
+                    RunMobilisation(cmo);
+                break;
+            case FSCmoAbility.DirectiveTrauma:
+                RunDirective(cmo, FSMedicalDirective.Trauma);
+                break;
+            case FSCmoAbility.DirectivePharma:
+                RunDirective(cmo, FSMedicalDirective.Pharma);
+                break;
+            case FSCmoAbility.DirectiveFieldOps:
+                RunDirective(cmo, FSMedicalDirective.FieldOps);
+                break;
+        }
+    }
+
+    private bool Ready(EntityUid cmo, bool mcp)
+    {
+        if (!TryComp<FSCmoPanelComponent>(cmo, out var panel))
+            return false;
+
+        var readyAt = mcp ? panel.McpReadyAt : panel.MobilisationReadyAt;
+        return readyAt <= _timing.CurTime;
+    }
+
+    private void SyncPanels()
+    {
+        var query = EntityQueryEnumerator<FSCmoPanelComponent>();
+        while (query.MoveNext(out var uid, out var panel))
+        {
+            panel.ActiveDirective = _activeDirective;
+            Dirty(uid, panel);
+        }
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
@@ -104,6 +155,10 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         {
             foreach (var proto in CmoActions)
                 _actions.AddAction(ev.Mob, proto);
+
+            var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
+            panel.ActiveDirective = _activeDirective;
+            Dirty(ev.Mob, panel);
         }
 
         if (_activeDirective is { } active
@@ -117,37 +172,63 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void OnMassCasualtyProtocol(FSMassCasualtyProtocolEvent args)
     {
         args.Handled = true;
-
-        ApplyToDepartment(McpSource, McpBonuses, McpDuration);
-        Announce(args.Performer, "fs-cmo-mcp-announce");
+        RunMassCasualtyProtocol(args.Performer);
     }
 
     private void OnMedicalMobilisation(FSMedicalMobilisationEvent args)
     {
         args.Handled = true;
-
-        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration);
-        Announce(args.Performer, "fs-cmo-mobilisation-announce");
+        RunMobilisation(args.Performer);
     }
 
     private void OnMedicalDirective(FSMedicalDirectiveEvent args)
     {
         args.Handled = true;
+        RunDirective(args.Performer, args.Directive);
+    }
 
-        if (!Directives.TryGetValue(args.Directive, out var def))
+    private void RunMassCasualtyProtocol(EntityUid performer)
+    {
+        ApplyToDepartment(McpSource, McpBonuses, McpDuration);
+        Announce(performer, "fs-cmo-mcp-announce");
+
+        if (TryComp<FSCmoPanelComponent>(performer, out var panel))
+        {
+            panel.McpReadyAt = _timing.CurTime + McpCooldown;
+            Dirty(performer, panel);
+        }
+    }
+
+    private void RunMobilisation(EntityUid performer)
+    {
+        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration);
+        Announce(performer, "fs-cmo-mobilisation-announce");
+
+        if (TryComp<FSCmoPanelComponent>(performer, out var panel))
+        {
+            panel.MobilisationReadyAt = _timing.CurTime + MobilisationCooldown;
+            Dirty(performer, panel);
+        }
+    }
+
+    private void RunDirective(EntityUid performer, FSMedicalDirective directive)
+    {
+        if (!Directives.TryGetValue(directive, out var def))
             return;
 
-        if (_activeDirective == args.Directive)
+        if (_activeDirective == directive)
         {
             _activeDirective = null;
             RemoveFromDepartment(DirectiveSource);
-            Announce(args.Performer, "fs-cmo-directive-stand-down");
+            Announce(performer, "fs-cmo-directive-stand-down");
+            SyncPanels();
             return;
         }
 
-        _activeDirective = args.Directive;
+        _activeDirective = directive;
         ApplyToDepartment(DirectiveSource, def.Bonuses);
-        Announce(args.Performer, def.Announcement);
+        Announce(performer, def.Announcement);
+        SyncPanels();
     }
 
     private void ApplyToDepartment(string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null)
