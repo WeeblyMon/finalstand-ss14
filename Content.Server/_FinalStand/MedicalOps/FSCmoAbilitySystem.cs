@@ -34,19 +34,19 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
     {
-        [FSMedicalDirective.Trauma] = new DirectiveDef("fs-cmo-directive-trauma-announce",
+        [FSMedicalDirective.Trauma] = new DirectiveDef("fs-cmo-directive-trauma",
             new Dictionary<FSMedicalBonusCategory, float>
             {
                 [FSMedicalBonusCategory.RevivalSpeed] = 0.15f,
                 [FSMedicalBonusCategory.Stabilisation] = 0.15f,
                 [FSMedicalBonusCategory.DefibCooldown] = 0.15f,
             }),
-        [FSMedicalDirective.Pharma] = new DirectiveDef("fs-cmo-directive-pharma-announce",
+        [FSMedicalDirective.Pharma] = new DirectiveDef("fs-cmo-directive-pharma",
             new Dictionary<FSMedicalBonusCategory, float>
             {
                 [FSMedicalBonusCategory.TreatmentSpeed] = 0.20f,
             }),
-        [FSMedicalDirective.FieldOps] = new DirectiveDef("fs-cmo-directive-fieldops-announce",
+        [FSMedicalDirective.FieldOps] = new DirectiveDef("fs-cmo-directive-fieldops",
             new Dictionary<FSMedicalBonusCategory, float>
             {
                 [FSMedicalBonusCategory.Movement] = 0.10f,
@@ -154,7 +154,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void RunMassCasualtyProtocol(EntityUid performer)
     {
         ApplyToDepartment(McpSource, McpBonuses, McpDuration);
-        Announce(performer, "fs-cmo-mcp-announce");
+        Announce(performer, "fs-cmo-mcp");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
@@ -166,7 +166,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void RunMobilisation(EntityUid performer)
     {
         ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration);
-        Announce(performer, "fs-cmo-mobilisation-announce");
+        Announce(performer, "fs-cmo-mobilisation");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
@@ -220,16 +220,18 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         }
     }
 
-    private void Announce(EntityUid performer, string locId)
+    private void Announce(EntityUid performer, string key)
     {
-        var message = Loc.GetString(locId);
+        var name = Loc.GetString($"{key}-name");
+        var effects = Loc.GetString($"{key}-effects");
 
-        _radio.SendRadioMessage(performer, message, MedicalChannel, performer);
+        var markup = $"[fsability name=\"{name}\" tooltip=\"{effects}\"/]";
+        _radio.SendRadioMessage(performer, markup, MedicalChannel, performer, escapeMarkup: false);
 
         foreach (var session in _player.Sessions)
         {
             if (session.AttachedEntity is { } mob && mob != performer && _fund.IsMedical(mob))
-                _popup.PopupEntity(message, mob, mob, PopupType.Medium);
+                _popup.PopupEntity(name, mob, mob, PopupType.Medium);
         }
     }
 

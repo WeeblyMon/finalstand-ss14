@@ -30,15 +30,15 @@ public sealed class FSCmoPanelController : UIController
 
     private static readonly (FSCmoAbility Ability, string Loc)[] DirectiveSlots =
     {
-        (FSCmoAbility.DirectiveTrauma, "fs-cmo-panel-trauma"),
-        (FSCmoAbility.DirectivePharma, "fs-cmo-panel-pharma"),
-        (FSCmoAbility.DirectiveFieldOps, "fs-cmo-panel-fieldops"),
+        (FSCmoAbility.DirectiveTrauma, "fs-cmo-directive-trauma"),
+        (FSCmoAbility.DirectivePharma, "fs-cmo-directive-pharma"),
+        (FSCmoAbility.DirectiveFieldOps, "fs-cmo-directive-fieldops"),
     };
 
     private static readonly (FSCmoAbility Ability, string Loc)[] AbilitySlots =
     {
-        (FSCmoAbility.MassCasualtyProtocol, "fs-cmo-panel-mcp"),
-        (FSCmoAbility.Mobilisation, "fs-cmo-panel-mobilisation"),
+        (FSCmoAbility.MassCasualtyProtocol, "fs-cmo-mcp"),
+        (FSCmoAbility.Mobilisation, "fs-cmo-mobilisation"),
     };
 
     private Control? _root;
@@ -140,7 +140,7 @@ public sealed class FSCmoPanelController : UIController
 
         foreach (var (ability, loc) in slots)
         {
-            var label = Loc.GetString(loc);
+            var label = Loc.GetString($"{loc}-short");
 
             var button = new Button
             {
@@ -148,7 +148,7 @@ public sealed class FSCmoPanelController : UIController
                 MinWidth = width,
                 MinHeight = 30,
                 Margin = new Thickness(2, 0),
-                ToolTip = Loc.GetString($"{loc}-desc"),
+                ToolTip = Loc.GetString($"{loc}-effects"),
             };
 
             var captured = ability;

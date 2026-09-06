@@ -12,7 +12,6 @@ public sealed class FSLeaderboardEntryTest
     {
         var entries = new[]
         {
-            // Named so a future column cannot silently shift these onto the wrong fields.
             new FSLeaderboardEntry("Charlie", Kills: 5, Assists: 1, Healing: 0,
                 Xp: 1200, Level: 10, Prestige: 3, Credits: 1500, Score: 1500),
             new FSLeaderboardEntry("Alice", Kills: 6, Assists: 0, Healing: 400,

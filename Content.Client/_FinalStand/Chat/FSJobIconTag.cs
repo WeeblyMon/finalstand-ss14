@@ -9,7 +9,6 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Chat;
 
-// Renders [fsicon src="<JobIconPrototype id>" tooltip="<job name>"/] inline in chat, for the radio job icon feature.
 public sealed class FSJobIconTag : IMarkupTagHandler
 {
     [Dependency] private readonly IPrototypeManager _prototype = default!;

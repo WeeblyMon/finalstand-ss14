@@ -1,19 +1,49 @@
-fs-cmo-mcp-announce = ATTENTION ALL MEDICAL — MASS CASUALTY PROTOCOL IS IN EFFECT. Treat and move.
-fs-cmo-mobilisation-announce = ATTENTION ALL MEDICAL — MEDICAL MOBILISATION. Reach the wounded and pull them out.
-fs-cmo-directive-trauma-announce = STANDING DIRECTIVE — TRAUMA. Prioritise revival and stabilisation until further notice.
-fs-cmo-directive-pharma-announce = STANDING DIRECTIVE — PHARMACEUTICAL. Prioritise chemical treatment until further notice.
-fs-cmo-directive-fieldops-announce = STANDING DIRECTIVE — FIELD OPERATIONS. Prioritise recovery under fire until further notice.
-fs-cmo-directive-stand-down = STANDING DIRECTIVE LIFTED. Resume normal procedure.
-
 fs-cmo-panel-title = MEDICAL COMMAND
-fs-cmo-panel-trauma = Trauma
-fs-cmo-panel-pharma = Pharma
-fs-cmo-panel-fieldops = Field Ops
-fs-cmo-panel-mcp = Mass Casualty
-fs-cmo-panel-mobilisation = Mobilisation
 
-fs-cmo-panel-trauma-desc = Standing order. Revival, stabilisation and defibrillator recharge all improve for the whole department. Press again to stand it down.
-fs-cmo-panel-pharma-desc = Standing order. Treatment is faster for the whole department. Press again to stand it down.
-fs-cmo-panel-fieldops-desc = Standing order. Movement, casualty dragging and resistance to interruption all improve. Press again to stand it down.
-fs-cmo-panel-mcp-desc = For 45 seconds every medic treats, revives and stabilises a quarter faster, and defibrillators recharge sooner.
-fs-cmo-panel-mobilisation-desc = For 20 seconds medics move faster, drag casualties far faster, treat faster, and shrug off hits that would break a treatment.
+fs-cmo-mcp-name = Mass Casualty Protocol
+fs-cmo-mcp-short = Mass Casualty
+fs-cmo-mcp-effects =
+    Mass Casualty Protocol — 45 seconds
+    +25% treatment speed
+    +25% revival speed
+    +25% stabilisation
+    -25% defibrillator recharge
+    Applies to every medic on shift.
+
+fs-cmo-mobilisation-name = Medical Mobilisation
+fs-cmo-mobilisation-short = Mobilisation
+fs-cmo-mobilisation-effects =
+    Medical Mobilisation — 20 seconds
+    +30% movement speed
+    +60% casualty dragging speed
+    +25% treatment speed
+    +50% resistance to interruption
+    Applies to every medic on shift.
+
+fs-cmo-directive-trauma-name = Directive: Trauma
+fs-cmo-directive-trauma-short = Trauma
+fs-cmo-directive-trauma-effects =
+    Standing order — Trauma
+    +15% revival speed
+    +15% stabilisation
+    -15% defibrillator recharge
+    Lasts until replaced. Press again to stand down.
+
+fs-cmo-directive-pharma-name = Directive: Pharmaceutical
+fs-cmo-directive-pharma-short = Pharma
+fs-cmo-directive-pharma-effects =
+    Standing order — Pharmaceutical
+    +20% treatment speed
+    Lasts until replaced. Press again to stand down.
+
+fs-cmo-directive-fieldops-name = Directive: Field Operations
+fs-cmo-directive-fieldops-short = Field Ops
+fs-cmo-directive-fieldops-effects =
+    Standing order — Field Operations
+    +10% movement speed
+    +25% casualty dragging speed
+    +20% resistance to interruption
+    Lasts until replaced. Press again to stand down.
+
+fs-cmo-directive-stand-down-name = Directive Lifted
+fs-cmo-directive-stand-down-effects = The standing order has been lifted. Resume normal procedure.
