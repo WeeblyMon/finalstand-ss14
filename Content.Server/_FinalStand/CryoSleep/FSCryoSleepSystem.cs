@@ -115,8 +115,6 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         PushStatus(session);
     }
 
-    // Taking control of the stored body - our own return, or vanilla's reconnect path - ends the
-    // stay in cryo. Anything else attaching just refreshes the ghost bar.
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
         if (_stored.TryGetValue(ev.Player.UserId, out var stored) && stored.Body == ev.Entity)

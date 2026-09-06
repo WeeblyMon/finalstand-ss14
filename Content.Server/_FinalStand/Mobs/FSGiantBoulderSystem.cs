@@ -32,15 +32,12 @@ public sealed class FSGiantBoulderSystem : EntitySystem
         if (!HasComp<DamageableComponent>(other) || !Transform(other).Anchored)
             return;
 
-        // deleteOnCollide is off, so the same wall can raise several contacts before the boulder dies
         if (!ent.Comp.Struck.Add(other))
             return;
 
         Spawn(ent.Comp.ImpactEffect, Transform(other).Coordinates);
         _audio.PlayPvs(ent.Comp.ImpactSound, other);
 
-        // Reinforced walls carry this marker and are what keeps the station sealed, so the rock
-        // stops dead on them rather than opening the hull.
         if (HasComp<FSPlayerDamageImmuneComponent>(other))
         {
             Spawn(ent.Comp.ImpactEffect, Transform(ent).Coordinates);

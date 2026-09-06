@@ -92,7 +92,6 @@ public sealed class FSChargeMeterOverlay : Overlay
         }
     }
 
-    // Full charge breathes between hot and white so the release window is unmistakable.
     private Color Pulse()
     {
         var t = (MathF.Sin((float) _timing.CurTime.TotalSeconds * 12f) + 1f) * 0.5f;

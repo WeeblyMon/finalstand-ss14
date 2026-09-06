@@ -25,7 +25,6 @@ public sealed partial class FSSentryTurretComponent : Component
     [DataField]
     public EntProtoId ProjectileProto = "FSSentryBullet";
 
-    // The gun art points south, which is also world angle zero, so no correction by default.
     [DataField]
     public float SpriteAngleOffset;
 

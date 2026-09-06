@@ -37,7 +37,6 @@ public sealed partial class FSChargeShotComponent : Component
     [DataField]
     public int MaxBounces = 4;
 
-    // 0-1, networked so the holder's charge meter can read it.
     [AutoNetworkedField]
     public float Charge;
 
@@ -45,7 +44,5 @@ public sealed partial class FSChargeShotComponent : Component
     public TimeSpan LastHeld;
     public EntityUid? Shooter;
 
-    // World-space aim, resampled every tick the trigger is held. Storing the client's
-    // player-relative coordinates instead lets the shot swing wide when the shooter turns.
     public Vector2 AimDirection;
 }

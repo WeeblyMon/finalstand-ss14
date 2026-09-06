@@ -14,9 +14,7 @@ using Robust.Shared.Spawners;
 
 namespace Content.Server._FinalStand.Mobs;
 
-// The zombie telegraphs its deflect: it glows for StanceDuration and reflects everything, then is
-// vulnerable for VulnerableDuration. Shots that land during the stance shatter into shrapnel that
-// sprays outward from the zombie, so crowding it is punished rather than only the shooter.
+// glowing stance reflects incoming fire and sprays it back as shrapnel
 public sealed partial class FSArmouredDeflectSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
@@ -65,7 +63,6 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
         if (!comp.IsGlowing)
             return;
 
-        // Multiplied, not assigned: zero still wins, without discarding other subscribers.
         ev.AdditionalMultiplier *= 0f;
 
         _audio.PlayPvs(comp.DeflectSound, ev.Target);

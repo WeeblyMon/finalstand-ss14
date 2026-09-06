@@ -17,7 +17,6 @@ public sealed partial class FSRicochetComponent : Component
     [DataField]
     public float DamageRetained = 0.8f;
 
-    // How far along the normal the projectile is placed so it leaves the surface it just struck.
     [DataField]
     public float Clearance = 0.25f;
 

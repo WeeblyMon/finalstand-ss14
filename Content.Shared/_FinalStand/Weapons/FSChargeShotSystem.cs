@@ -15,8 +15,6 @@ public sealed class FSChargeShotSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
-    // The client only sends a shoot request once NextFire has elapsed, so the cooldown is cleared
-    // every tick below to keep that stream running. A gap longer than this means the trigger is up.
     private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(120);
 
     private const float AimDistance = 10f;
@@ -68,8 +66,6 @@ public sealed class FSChargeShotSystem : EntitySystem
                 continue;
             }
 
-            // Cancelling a shot pushes NextFire out by SafetyNextFire, which throttles the client to
-            // one request every half second. Undo it so a held trigger reports every tick.
             _gun.ClearFireCooldown((uid, gun), now);
 
             var held = (float) (now - start).TotalSeconds;

@@ -32,7 +32,6 @@ public sealed partial class FSDeployableItemComponent : Component
     [DataField]
     public int RegenPerWave = 1;
 
-    // Waves between refills; 1 tops up every prep, 2 every other prep.
     [DataField]
     public int WavesPerRegen = 1;
 

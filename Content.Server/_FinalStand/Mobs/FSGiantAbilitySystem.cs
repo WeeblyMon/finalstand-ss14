@@ -128,7 +128,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         return true;
     }
 
-    // Walks the dash line and returns the furthest point still in the clear.
     private Vector2 ProbeDash(Vector2 origin, Vector2 heading, float distance, MapId mapId)
     {
         var originCoords = new MapCoordinates(origin, mapId);
@@ -218,7 +217,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         CollectVictims(comp.LockedTarget, xform.MapID, comp.SkyJumpOuterRadius);
         foreach (var (victim, distance) in _victims)
         {
-            // Knockback first: a downed body has too much friction to be thrown anywhere.
             var away = _transform.GetWorldPosition(victim) - comp.LockedTarget;
 
             if (distance <= comp.SkyJumpRadius)
@@ -266,7 +264,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             return;
         }
 
-        // Re-probe from where the giant actually stands now, keeping the heading it committed to.
         comp.DashOrigin = _transform.GetWorldPosition(xform);
         comp.DashLanding = ProbeDash(comp.DashOrigin, comp.DashHeading, comp.DashDistance, xform.MapID);
         _audio.PlayPvs(comp.DashSound, ent.Owner);
@@ -287,7 +284,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var punch = new DamageSpecifier();
         punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
 
-        // Sweep the whole dash line: anyone run through counts, not just whoever is at the end.
         _swept.Clear();
         var travelled = (landing - comp.DashOrigin).Length();
         var samples = Math.Max(1, (int) MathF.Ceiling(travelled));
@@ -358,7 +354,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         ent.Comp.LaneEntities.Add(lane);
     }
 
-    // Thrown at the end of the dash, so the punch lands with the giant rather than telegraphing it.
     private void SpawnFist(Entity<FSGiantAbilitiesComponent> ent, Vector2 landing, Vector2 heading, MapId mapId)
     {
         var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(landing + heading * 1.3f, mapId));
@@ -408,8 +403,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _actorPool.Return(candidates);
     }
 
-    // Setting velocity directly gets eaten by tile friction within a few ticks, which reads as a
-    // jostle rather than a launch. A friction-compensated throw actually covers the distance.
     private void Shove(EntityUid target, Vector2 direction, float distance, float speed)
     {
         if (HasComp<FSKnockedBackComponent>(target) || !HasComp<PhysicsComponent>(target))

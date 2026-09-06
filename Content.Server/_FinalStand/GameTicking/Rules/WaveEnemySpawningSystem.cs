@@ -174,7 +174,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         PushEnemyCount(comp);
     }
 
-    // Secondaries get a fraction of a full batch, so a supporting corridor trickles rather than floods.
     private void BuildSpawnPlan(WaveGameRuleComponent comp)
     {
         _spawnPlan.Clear();
