@@ -195,6 +195,10 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 if (entity != oldPart)
                     continue;
 
+                // Completing a step can make a new operation available, so the column is rebuilt
+                // before the selection is restored rather than only when a limb is clicked.
+                RebuildOperations(netEntity, state.Choices[netEntity]);
+
                 if (oldSurgery is { } selected
                     && _system.GetSingleton(selected.Proto) is { } surgery
                     && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
@@ -317,6 +321,17 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _part = part;
         _isBody = _entities.HasComponent<BodyComponent>(part);
 
+        RebuildOperations(netPart, surgeryIds);
+
+        UpdateHeader();
+        RefreshUI();
+    }
+
+    private void RebuildOperations(NetEntity netPart, List<EntProtoId> surgeryIds)
+    {
+        if (_window == null)
+            return;
+
         var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}";
         if (_surgeriesKey != key)
         {
@@ -359,9 +374,6 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 _window.Surgeries.AddChild(surgeryButton);
             }
         }
-
-        UpdateHeader();
-        RefreshUI();
     }
 
     private void RefreshUI()

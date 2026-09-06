@@ -37,6 +37,20 @@ surgery-ui-filter-bleeding = Bleeding
 surgery-ui-filter-wounds = Wounds
 surgery-ui-filter-bones = Bones
 surgery-ui-filter-organs = Organs
+
+surgery-ui-guidance-unsterile = NEXT: {$step} — ready, but you are UNSTERILE (gloves + mask, or they get sepsis)
+
+surgery-ui-limb-condition = Condition: {$condition}
+surgery-ui-limb-integrity = Integrity: {$current} / {$max}
+surgery-ui-limb-bleeding = Bleeding ({$rate})
+
+surgery-ui-severity-healthy = Healthy
+surgery-ui-severity-minor = Minor
+surgery-ui-severity-moderate = Moderate
+surgery-ui-severity-severe = Severe
+surgery-ui-severity-critical = Critical
+surgery-ui-severity-mangled = Mangled
+surgery-ui-severity-severed = Severed
 surgery-ui-guidance-cannot-operate = You cannot operate right now.
 surgery-ui-guidance-complete = Operation complete.
 surgery-ui-guidance-prerequisite = Finish the required operation above first.

@@ -76,7 +76,35 @@ public sealed class SurgeryDollPresenter
             var colour = ConditionColor(entry.Part);
             button.Disabled = false;
             button.Modulate = selected == entry.Net ? colour : Dim(colour, UnselectedDim);
+            button.ToolTip = DescribeLimb(entry.Part);
         }
+    }
+
+    private string DescribeLimb(EntityUid part)
+    {
+        var name = _entities.GetComponent<MetaDataComponent>(part).EntityName;
+
+        if (!_entities.TryGetComponent<WoundableComponent>(part, out var woundable))
+            return name;
+
+        var lines = new List<string>
+        {
+            name,
+            Loc.GetString("surgery-ui-limb-condition", ("condition", ConditionName(woundable.WoundableSeverity))),
+            Loc.GetString("surgery-ui-limb-integrity",
+                ("current", woundable.WoundableIntegrity.Int()),
+                ("max", woundable.IntegrityCap.Int())),
+        };
+
+        if (woundable.Bleeds > 0)
+            lines.Add(Loc.GetString("surgery-ui-limb-bleeding", ("rate", woundable.Bleeds.Float())));
+
+        return string.Join('\n', lines);
+    }
+
+    private static string ConditionName(WoundableSeverity severity)
+    {
+        return Loc.GetString($"surgery-ui-severity-{severity.ToString().ToLowerInvariant()}");
     }
 
     private static Color Dim(Color colour, float factor)

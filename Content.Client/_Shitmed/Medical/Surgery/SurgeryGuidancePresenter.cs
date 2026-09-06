@@ -1,6 +1,7 @@
 // FINALSTAND: owns the surgery guidance bar.
 
 using Content.Shared._Shitmed.Medical.Surgery;
+using Content.Shared.Inventory;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -81,12 +82,28 @@ public sealed class SurgeryGuidancePresenter
         if (_system.CanPerformStepWithAvailable(user, body, part, next.Step, out var popup, out var reason))
         {
             _window.PerformButton.Disabled = false;
+
+            // Operating without gloves and a mask gives the patient sepsis on every single step.
+            if (!IsSterile(user))
+            {
+                Set(texture, Loc.GetString("surgery-ui-guidance-unsterile", ("step", stepName)), WarningColor);
+                return;
+            }
+
             Set(texture, Loc.GetString("surgery-ui-guidance-ready", ("step", stepName)), ReadyColor);
             return;
         }
 
         var detail = ReasonText(reason, next.Step, popup);
         Set(texture, Loc.GetString("surgery-ui-guidance-blocked", ("step", stepName), ("reason", detail)), WarningColor);
+    }
+
+    private bool IsSterile(EntityUid user)
+    {
+        var inventory = _entities.System<InventorySystem>();
+
+        return inventory.TryGetSlotEntity(user, "gloves", out _)
+               && inventory.TryGetSlotEntity(user, "mask", out _);
     }
 
     private string ReasonText(StepInvalidReason reason, EntityUid step, string? popup)
