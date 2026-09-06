@@ -335,54 +335,61 @@
     statAccuracy: 50
     statCapacity: 100
     upgrades:
-    - id: eshottie-extra-pellets
-      name: Wide Beam
-      description: Adds 1 extra plasma bolt per shot per level. More coverage per trigger pull.
+    - id: eshottie-capacitor-coils
+      name: Capacitor Coils
+      description: Reaches full charge 18% faster per level.
       maxLevel: 3
-      baseCost: 7500
-      type: PelletCount
+      baseCost: 8000
+      type: ChargeSpeed
+      valuePerLevel: 0.18
+    - id: eshottie-ricochet-plating
+      name: Ricochet Plating
+      description: Fully charged bolts bounce one extra time per level.
+      maxLevel: 2
+      baseCost: 11000
+      type: BounceCount
       valuePerLevel: 1
-    - id: eshottie-tight-choke
-      name: Focusing Lens
-      description: Narrows beam spread by 1° per level for tighter plasma bursts.
-      maxLevel: 3
-      baseCost: 7500
-      type: AngleMax
-      valuePerLevel: 1.0
-    - id: eshottie-incendiary
-      name: Incendiary Beam
-      description: Plasma bolts ignite targets on hit.
-      maxLevel: 1
-      baseCost: 13150
-      type: SetOnFire
+    - id: eshottie-elastic-rounds
+      name: Elastic Rounds
+      description: Bolts keep 7% more damage and speed through every bounce, per level.
+      maxLevel: 2
+      baseCost: 10000
+      type: BounceRetention
+      valuePerLevel: 0.07
+    - id: eshottie-superconductor
+      name: Superconductor
+      description: Fully charged bolts punch through one extra target per level.
+      maxLevel: 2
+      baseCost: 10500
+      type: ChargePierce
       valuePerLevel: 1
-    - id: eshottie-extended-cell
-      name: Extended Cell
-      description: Reduces energy cost per shot, squeezing more shots per charge. Max level yields ~13 shots before reload.
-      maxLevel: 3
-      baseCost: 7500
-      type: MagazineSize
-      valuePerLevel: 15.0
-    - id: eshottie-damage
-      name: High-Energy Cell
-      description: Increases bolt damage by 10% per level.
-      maxLevel: 5
-      baseCost: 7500
-      type: Damage
-      valuePerLevel: 0.1
-    - id: eshottie-rapid-charge
-      name: Rapid Charge
-      description: Self-recharge rate ×2 per level (×8 at max). More shots between engagements.
-      maxLevel: 3
-      baseCost: 7500
+    - id: eshottie-cell-regulator
+      name: Cell Regulator
+      description: Self-recharge rate x1.8 per level.
+      maxLevel: 2
+      baseCost: 9000
       type: SelfChargeSpeed
-      valuePerLevel: 2.0
-    - id: eshottie-overcharge
-      name: Overcharge Shot
-      description: Every 3rd shot fires a single massive plasma bolt instead of the normal spread. On impact, the bolt bursts into a forward cone of shards.
+      valuePerLevel: 1.8
+    - id: eshottie-kinetic-feedback
+      name: Kinetic Feedback
+      description: Every bounced bolt that finds a target feeds a quarter of a shot back into the cell.
       maxLevel: 1
-      baseCost: 22500
-      type: OverchargeShot
+      baseCost: 17000
+      type: BounceRefund
+      valuePerLevel: 1
+    - id: eshottie-resonant-cascade
+      name: Resonant Cascade
+      description: A bolt that comes back around and strikes the same target again critically hits.
+      maxLevel: 1
+      baseCost: 20000
+      type: BounceCrit
+      valuePerLevel: 1
+    - id: eshottie-fracture-rounds
+      name: Fracture Rounds
+      description: On its final bounce a bolt shatters into two fragments instead of burning out.
+      maxLevel: 1
+      baseCost: 32000
+      type: FractureRounds
       valuePerLevel: 1
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_shotgun.rsi

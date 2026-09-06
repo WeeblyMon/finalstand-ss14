@@ -32,10 +32,25 @@ public sealed partial class FSChargeShotComponent : Component
     public float MaxSpeedMultiplier = 1.8f;
 
     [DataField]
-    public int MinBounces = 1;
+    public int MinBounces;
 
     [DataField]
-    public int MaxBounces = 4;
+    public int MaxBounces = 3;
+
+    [DataField]
+    public float BounceDamageRetained = 0.8f;
+
+    [DataField]
+    public float BounceSpeedRetained = 0.85f;
+
+    [DataField]
+    public bool BounceRefund;
+
+    [DataField]
+    public bool BounceCrit;
+
+    [DataField]
+    public bool Fracture;
 
     [AutoNetworkedField]
     public float Charge;

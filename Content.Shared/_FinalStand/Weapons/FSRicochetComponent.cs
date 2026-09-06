@@ -26,5 +26,31 @@ public sealed partial class FSRicochetComponent : Component
     [DataField]
     public EntProtoId? BounceEffect;
 
+    [DataField]
+    public bool Refund;
+
+    [DataField]
+    public float RefundFraction = 0.25f;
+
+    [DataField]
+    public bool Crit;
+
+    [DataField]
+    public float CritMultiplier = 2f;
+
+    [DataField]
+    public bool Fracture;
+
+    [DataField]
+    public int FragmentCount = 2;
+
+    [DataField]
+    public float FragmentDamage = 0.5f;
+
+    [DataField]
+    public float FragmentLifetime = 0.6f;
+
+    public readonly HashSet<EntityUid> Hit = new();
+
     public TimeSpan NextBounce;
 }

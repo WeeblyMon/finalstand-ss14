@@ -47,6 +47,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         if (TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)) return;
         if (TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)) return;
         if (TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)) return;
+        if (TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)) return;
         if (TryApplyShield(weapon, player, def, newLevel, spawnItems, state)) return;
         TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
     }
