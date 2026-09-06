@@ -43,6 +43,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan McpCooldown = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(180);
+    private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(20);
 
     private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
     {
@@ -216,18 +217,25 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (!Directives.TryGetValue(directive, out var def))
             return;
 
+        if (TryComp<FSCmoPanelComponent>(performer, out var panel) && panel.DirectiveReadyAt > _timing.CurTime)
+            return;
+
         if (_activeDirective == directive)
         {
             _activeDirective = null;
             RemoveFromDepartment(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down");
-            SyncPanels();
-            return;
+        }
+        else
+        {
+            _activeDirective = directive;
+            ApplyToDepartment(DirectiveSource, def.Bonuses);
+            Announce(performer, def.Announcement);
         }
 
-        _activeDirective = directive;
-        ApplyToDepartment(DirectiveSource, def.Bonuses);
-        Announce(performer, def.Announcement);
+        if (panel != null)
+            panel.DirectiveReadyAt = _timing.CurTime + DirectiveCooldown;
+
         SyncPanels();
     }
 

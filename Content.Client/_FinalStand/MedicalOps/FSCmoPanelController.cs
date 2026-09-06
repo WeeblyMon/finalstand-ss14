@@ -23,6 +23,9 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color PanelBg = Color.FromHex("#14171B");
     private static readonly Color PanelBorder = Color.FromHex("#2E333B");
 
+    private const int PanelLeftMargin = 230;
+    private const int PanelBottomGap = 10;
+
     private static readonly (FSCmoAbility Ability, string Loc)[] DirectiveSlots =
     {
         (FSCmoAbility.DirectiveTrauma, "fs-cmo-panel-trauma"),
@@ -39,6 +42,7 @@ public sealed class FSCmoPanelController : UIController
     private Control? _root;
     private PanelContainer? _frame;
     private readonly Dictionary<FSCmoAbility, Button> _buttons = new();
+    private readonly Dictionary<FSCmoAbility, string> _labels = new();
 
     public override void Initialize()
     {
@@ -82,8 +86,9 @@ public sealed class FSCmoPanelController : UIController
                 BorderColor = PanelBorder,
                 BorderThickness = new Thickness(1),
             },
-            HorizontalAlignment = Control.HAlignment.Center,
+            HorizontalAlignment = Control.HAlignment.Left,
             VerticalAlignment = Control.VAlignment.Bottom,
+            Margin = new Thickness(PanelLeftMargin, 0, 0, 0),
             Visible = false,
         };
         _frame.AddChild(rows);
@@ -97,7 +102,7 @@ public sealed class FSCmoPanelController : UIController
         };
         column.AddChild(spacer);
         column.AddChild(_frame);
-        column.AddChild(new Control { SetHeight = 172, MouseFilter = Control.MouseFilterMode.Ignore });
+        column.AddChild(new Control { SetHeight = PanelBottomGap, MouseFilter = Control.MouseFilterMode.Ignore });
 
         _root = column;
         LayoutContainer.SetAnchorPreset(_root, LayoutContainer.LayoutPreset.Wide);
@@ -114,9 +119,11 @@ public sealed class FSCmoPanelController : UIController
 
         foreach (var (ability, loc) in slots)
         {
+            var label = Loc.GetString(loc);
+
             var button = new Button
             {
-                Text = Loc.GetString(loc),
+                Text = label,
                 MinWidth = width,
                 MinHeight = 30,
                 Margin = new Thickness(2, 0),
@@ -125,6 +132,7 @@ public sealed class FSCmoPanelController : UIController
             var captured = ability;
             button.OnPressed += _ => EntityManager.System<FSCmoPanelSystem>().Request(captured);
 
+            _labels[ability] = label;
             _buttons[ability] = button;
             row.AddChild(button);
         }
@@ -138,6 +146,7 @@ public sealed class FSCmoPanelController : UIController
         _root = null;
         _frame = null;
         _buttons.Clear();
+        _labels.Clear();
     }
 
     public override void FrameUpdate(FrameEventArgs args)
@@ -158,35 +167,33 @@ public sealed class FSCmoPanelController : UIController
 
         foreach (var (ability, button) in _buttons)
         {
-            switch (ability)
+            var isDirective = DirectiveOf(ability) is { };
+
+            var readyAt = ability switch
             {
-                case FSCmoAbility.MassCasualtyProtocol:
-                    SetCooldown(button, panel.McpReadyAt);
-                    break;
-                case FSCmoAbility.Mobilisation:
-                    SetCooldown(button, panel.MobilisationReadyAt);
-                    break;
-                default:
-                    var active = DirectiveOf(ability) == panel.ActiveDirective;
-                    button.Modulate = active ? DirectiveActive : DirectiveIdle;
-                    button.Disabled = false;
-                    break;
+                FSCmoAbility.MassCasualtyProtocol => panel.McpReadyAt,
+                FSCmoAbility.Mobilisation => panel.MobilisationReadyAt,
+                _ => panel.DirectiveReadyAt,
+            };
+
+            var remaining = readyAt - _timing.CurTime;
+            var cooling = remaining > TimeSpan.Zero;
+
+            button.Disabled = cooling;
+            button.Text = cooling
+                ? $"{_labels[ability]}  {Math.Ceiling(remaining.TotalSeconds):0}s"
+                : _labels[ability];
+
+            if (isDirective)
+            {
+                var active = DirectiveOf(ability) == panel.ActiveDirective;
+                button.Modulate = active ? DirectiveActive : DirectiveIdle;
+            }
+            else
+            {
+                button.Modulate = cooling ? AbilityCooling : AbilityReady;
             }
         }
-    }
-
-    private void SetCooldown(Button button, TimeSpan readyAt)
-    {
-        var remaining = readyAt - _timing.CurTime;
-        if (remaining <= TimeSpan.Zero)
-        {
-            button.Modulate = AbilityReady;
-            button.Disabled = false;
-            return;
-        }
-
-        button.Modulate = AbilityCooling;
-        button.Disabled = true;
     }
 
     private static FSMedicalDirective? DirectiveOf(FSCmoAbility ability) => ability switch

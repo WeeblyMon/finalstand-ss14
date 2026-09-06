@@ -16,6 +16,9 @@ public sealed partial class FSCmoPanelComponent : Component
 
     [DataField, AutoNetworkedField]
     public TimeSpan MobilisationReadyAt;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan DirectiveReadyAt;
 }
 
 [Serializable, NetSerializable]
