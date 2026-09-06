@@ -533,11 +533,14 @@ public partial class WoundSystem
         return healedAny;
     }
 
-    public bool IsAnyWoundableBleeding(EntityUid body)
+    public bool IsAnyWoundableBleeding(EntityUid body, TargetBodyPart? targeted = null)
     {
         foreach (var organ in _lookup.GetBodyOrgans(body))
         {
             if (!TryComp<WoundableComponent>(organ.Owner, out var woundable))
+                continue;
+
+            if (targeted != null && _lookup.GetTarget(organ.Owner) is { } part && part != targeted)
                 continue;
 
             foreach (var wound in GetWoundableWounds(organ.Owner, woundable))

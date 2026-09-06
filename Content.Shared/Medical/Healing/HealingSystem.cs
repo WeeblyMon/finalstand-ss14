@@ -77,14 +77,14 @@ public sealed partial class HealingSystem : EntitySystem
 
             if (healing.BloodlossModifier < 0)
             {
-                // FINALSTAND: aim decides which limb gets treated, but if that limb has nothing to
-                // treat, fall back to whatever is actually bleeding. A targeting doll left on its
-                // default Chest otherwise leaves every other limb bleeding with no way to reach it.
+                // FINALSTAND: aim decides which limb gets treated, but if that limb is not bleeding,
+                // treat whatever is. Tested directly rather than off TryHealBleedsOnBody's return,
+                // which reports success even when it healed nothing.
                 var targeted = CompOrNull<TargetingComponent>(args.User)?.Target;
-                var bleedAbility = (float) healing.BloodlossModifier;
+                if (targeted != null && !_wounds.IsAnyWoundableBleeding(target.Owner, targeted))
+                    targeted = null;
 
-                if (!_wounds.TryHealBleedsOnBody(target.Owner, bleedAbility, targeted) && targeted != null)
-                    _wounds.TryHealBleedsOnBody(target.Owner, bleedAbility);
+                _wounds.TryHealBleedsOnBody(target.Owner, (float) healing.BloodlossModifier, targeted);
             }
 
             if (isBleeding != (bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner)))

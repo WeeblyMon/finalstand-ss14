@@ -35,7 +35,7 @@ public sealed class ClothingGrantSystem : EntitySystem
 
         foreach (var entry in comp.Component)
         {
-            var type = entry.Value.GetType();
+            var type = entry.Value.Component.GetType();
             if (HasComp(args.Wearer, type))
                 RemComp(args.Wearer, type);
         }

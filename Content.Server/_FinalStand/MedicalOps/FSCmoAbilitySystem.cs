@@ -1,10 +1,10 @@
 // Department-wide buffs the CMO calls. Everything lands on every medic, not just the caller.
 
-using Content.Server.Chat.Systems;
+using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
-using Content.Shared.Chat;
 using Content.Shared.GameTicking;
+using Content.Shared.Radio;
 using Content.Shared.Popups;
 using Robust.Server.Player;
 using Robust.Shared.Prototypes;
@@ -17,8 +17,10 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private RadioSystem _radio = default!;
     [Dependency] private IPlayerManager _player = default!;
+
+    private static readonly ProtoId<RadioChannelPrototype> MedicalChannel = "Medical";
 
     private const string McpSource = "mcp";
     private const string DirectiveSource = "directive";
@@ -173,7 +175,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         var message = Loc.GetString(locId);
 
-        _chat.TrySendInGameICMessage(performer, message, InGameICChatType.Speak, hideChat: false);
+        _radio.SendRadioMessage(performer, message, MedicalChannel, performer);
 
         foreach (var session in _player.Sessions)
         {

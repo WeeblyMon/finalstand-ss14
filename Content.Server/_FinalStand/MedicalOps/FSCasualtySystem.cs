@@ -73,7 +73,12 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return;
         }
 
-        _calls[patient] = new Call { Expires = _timing.CurTime + CallLifetime };
+        _calls[patient] = new Call
+        {
+            Expires = _timing.CurTime + CallLifetime,
+            CalledHurt = !IsRecovered(patient),
+        };
+
         Broadcast();
     }
 
@@ -102,8 +107,14 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _finished.Clear();
         foreach (var (patient, call) in _calls)
         {
-            if (TerminatingOrDeleted(patient) || call.Expires <= now || IsRecovered(patient))
+            // Recovery only clears a call from someone who was actually hurt when they made it -
+            // otherwise a deliberate call from a healthy player was pruned on the very next tick.
+            if (TerminatingOrDeleted(patient)
+                || call.Expires <= now
+                || (call.CalledHurt && IsRecovered(patient)))
+            {
                 _finished.Add(patient);
+            }
         }
 
         foreach (var patient in _finished)
@@ -179,5 +190,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
     {
         public TimeSpan Expires;
         public EntityUid? Responder;
+        public bool CalledHurt;
     }
 }
