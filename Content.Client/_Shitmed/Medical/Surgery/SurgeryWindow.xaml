@@ -45,6 +45,10 @@ the surgeon could never see the limb, the operation and the steps at the same ti
                             SizeFlagsStretchRatio="1.2" MinWidth="200" Margin="0 0 6 0">
                 <BoxContainer Orientation="Vertical" Margin="6" HorizontalExpand="True" VerticalExpand="True">
                     <Label Text="{Loc 'surgery-ui-column-operations'}" StyleClasses="LabelSubText" />
+                    <BoxContainer Name="OperationFilters" Access="Public"
+                                  Orientation="Horizontal"
+                                  HorizontalExpand="True"
+                                  Margin="0 2 0 6" />
                     <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
                         <BoxContainer Name="Surgeries" Access="Public" Orientation="Vertical" HorizontalExpand="True" />
                     </ScrollContainer>

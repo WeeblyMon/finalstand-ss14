@@ -45,15 +45,22 @@ public sealed class SurgeryGuidancePresenter
         Set(null, Loc.GetString("surgery-ui-guidance-cannot-operate"), DangerColor);
     }
 
-    public void ShowChooseOperation(string? recommended)
+    public void ShowChooseOperation(string? recommended, string? focusFilter = null)
     {
-        if (recommended == null)
+        if (recommended != null)
         {
-            Set(null, Loc.GetString("surgery-ui-guidance-nothing-to-do"), ReadyColor);
+            Set(null, Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), ReadyColor);
             return;
         }
 
-        Set(null, Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), ReadyColor);
+        // Saying "nothing to do" while a filter is hiding the work would be a lie.
+        if (focusFilter != null)
+        {
+            Set(null, Loc.GetString("surgery-ui-guidance-nothing-in-focus", ("focus", focusFilter)), WarningColor);
+            return;
+        }
+
+        Set(null, Loc.GetString("surgery-ui-guidance-nothing-to-do"), ReadyColor);
     }
 
     public void Show(SurgeryStepButton? next, bool workRemains, EntityUid user, EntityUid body, EntityUid part)

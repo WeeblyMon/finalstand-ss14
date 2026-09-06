@@ -30,6 +30,13 @@ surgery-ui-perform = Perform
 surgery-ui-guidance-select = Select a body part, then an operation.
 surgery-ui-guidance-start-with = START WITH: {$operation}
 surgery-ui-guidance-nothing-to-do = Nothing left to do on this part.
+surgery-ui-guidance-nothing-in-focus = No {$focus} work on this part.
+
+surgery-ui-filter-all = All
+surgery-ui-filter-bleeding = Bleeding
+surgery-ui-filter-wounds = Wounds
+surgery-ui-filter-bones = Bones
+surgery-ui-filter-organs = Organs
 surgery-ui-guidance-cannot-operate = You cannot operate right now.
 surgery-ui-guidance-complete = Operation complete.
 surgery-ui-guidance-prerequisite = Finish the required operation above first.

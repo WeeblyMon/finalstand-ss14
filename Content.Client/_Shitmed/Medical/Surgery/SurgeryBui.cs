@@ -19,6 +19,7 @@ using Content.Shared._FinalStand.Medical;
 using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
+using Content.Client.Stylesheets;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared.Body.Components;
@@ -47,6 +48,20 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
     private static readonly Color OperationNextColor = Color.FromHex("#8FE0B0");
     private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
+    private static readonly Color OperationOutOfFocusColor = new(0.45f, 0.45f, 0.45f);
+
+    private static readonly (SurgeryFocus Focus, string Loc)[] Filters =
+    {
+        (SurgeryFocus.All, "surgery-ui-filter-all"),
+        (SurgeryFocus.Bleeding, "surgery-ui-filter-bleeding"),
+        (SurgeryFocus.Wounds, "surgery-ui-filter-wounds"),
+        (SurgeryFocus.Bones, "surgery-ui-filter-bones"),
+        (SurgeryFocus.Organs, "surgery-ui-filter-organs"),
+    };
+
+    private readonly Dictionary<SurgeryFocus, Button> _filterButtons = new();
+    private SurgeryOperationClassifier? _classifier;
+    private SurgeryFocus _focus = SurgeryFocus.All;
 
     private readonly SurgerySystem _system;
     [ViewVariables]
@@ -103,6 +118,8 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
             _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed);
+            _classifier = new SurgeryOperationClassifier(_entities);
+            BuildFilters();
 
             _window.PerformButton.OnPressed += _ =>
             {
@@ -389,7 +406,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
         // surgeon to work out which of six entries is relevant.
         if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
         {
-            _guidance.ShowChooseOperation(recommended);
+            _guidance.ShowChooseOperation(recommended, ActiveFocusName());
             _dollPresenter?.Refresh(selectedNet);
             return;
         }
@@ -496,39 +513,76 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _window.StepProgress.Visible = false;
     }
 
-    // "Available" is not the same as "worth doing" - inserting an organ is always available on an
-    // empty slot, which is how a bleeding chest ended up being told to install a brain. Rank by what
-    // the surgery is gated on instead: a procedure that only exists while something is wrong is the
-    // one that needs doing.
-    private int UrgencyOf(EntityUid surgery)
+    // A joined segmented control, matching the row this window used to have for its tabs.
+    private void BuildFilters()
     {
-        // Closing up is by definition the last thing you do.
-        if (_entities.HasComponent<SurgeryCloseIncisionConditionComponent>(surgery))
-            return 4;
+        if (_window == null)
+            return;
 
-        if (_entities.TryGetComponent<SurgeryBleedsPresentConditionComponent>(surgery, out var bleeds)
-            && !bleeds.Inverted)
-            return 0;
+        for (var i = 0; i < Filters.Length; i++)
+        {
+            var (focus, loc) = Filters[i];
 
-        if (_entities.TryGetComponent<SurgeryTraumaPresentConditionComponent>(surgery, out var trauma)
-            && !trauma.Inverted)
-            return 1;
+            var style = i == 0
+                ? StyleClass.ButtonOpenRight
+                : i == Filters.Length - 1
+                    ? StyleClass.ButtonOpenLeft
+                    : StyleClass.ButtonOpenBoth;
 
-        // Opening the patient up is a means to an end, so it outranks elective work but nothing else.
-        return _entities.HasComponent<SurgeryOperatingTableConditionComponent>(surgery) ? 2 : 3;
+            var button = new Button
+            {
+                Text = Loc.GetString(loc),
+                StyleClasses = { style },
+                ToggleMode = true,
+                Pressed = focus == _focus,
+                HorizontalExpand = true,
+            };
+
+            button.OnPressed += _ => SetFocus(focus);
+
+            _filterButtons[focus] = button;
+            _window.OperationFilters.AddChild(button);
+        }
+    }
+
+    private string? ActiveFocusName()
+    {
+        if (_focus == SurgeryFocus.All)
+            return null;
+
+        foreach (var (focus, loc) in Filters)
+        {
+            if (focus == _focus)
+                return Loc.GetString(loc);
+        }
+
+        return null;
+    }
+
+    private void SetFocus(SurgeryFocus focus)
+    {
+        _focus = focus;
+
+        foreach (var (candidate, button) in _filterButtons)
+            button.Pressed = candidate == focus;
+
+        RefreshUI();
     }
 
     // Deliberately independent of what is in your hands: the point is to say "do this", not "you
     // could do this right now" - you often need to go and fetch the tool.
+    //
+    // A focus steers the recommendation but never hides an operation. Hiding would recreate the
+    // problem where Mend Bones silently vanished and the surgeon had no idea it existed.
     private string? RefreshOperations(EntityUid user)
     {
-        if (_window == null || _part == null)
+        if (_window == null || _part == null || _classifier == null)
             return null;
 
         SurgeryOperationButton? recommended = null;
         var bestUrgency = int.MaxValue;
 
-        var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked)>();
+        var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked, bool InFocus)>();
 
         foreach (var child in _window.Surgeries.Children)
         {
@@ -538,13 +592,14 @@ public sealed partial class SurgeryBui : BoundUserInterface
             var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
             var complete = next == null;
             var blocked = !complete && next!.Value.Surgery.Owner != op.Surgery;
+            var inFocus = _classifier.Matches(op.Surgery, _focus);
 
-            states.Add((op, complete, blocked));
+            states.Add((op, complete, blocked, inFocus));
 
-            if (complete || blocked)
+            if (complete || blocked || !inFocus)
                 continue;
 
-            var urgency = UrgencyOf(op.Surgery);
+            var urgency = _classifier.UrgencyOf(op.Surgery);
             if (urgency >= bestUrgency)
                 continue;
 
@@ -552,7 +607,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             recommended = op;
         }
 
-        foreach (var (op, complete, blocked) in states)
+        foreach (var (op, complete, blocked, inFocus) in states)
         {
             string glyph;
             Color colour;
@@ -575,7 +630,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
             else
             {
                 glyph = "•  ";
-                colour = OperationAvailableColor;
+                colour = inFocus ? OperationAvailableColor : OperationOutOfFocusColor;
             }
 
             var msg = new FormattedMessage();
