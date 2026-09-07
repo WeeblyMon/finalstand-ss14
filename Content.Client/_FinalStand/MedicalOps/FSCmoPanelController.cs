@@ -1,13 +1,13 @@
-using Content.Client.UserInterface.Screens;
+using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
+using Content.Client.UserInterface.Systems.Hotbar.Widgets;
+using Content.Client.UserInterface.Systems.Inventory.Widgets;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
-using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
@@ -16,7 +16,6 @@ public sealed class FSCmoPanelController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IConfigurationManager _cfg = default!;
 
     private static readonly Color DirectiveIdle = Color.FromHex("#2E4A38");
     private static readonly Color DirectiveActive = Color.FromHex("#4FBF7A");
@@ -25,8 +24,11 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color PanelBg = Color.FromHex("#14171B");
     private static readonly Color PanelBorder = Color.FromHex("#2E333B");
 
-    private const int PanelLeftMargin = 10;
-    private const int PanelBottomGap = 78;
+    private const int EdgePadding = 8;
+    private const int WideDirectiveWidth = 92;
+    private const int WideAbilityWidth = 140;
+    private const int NarrowWidth = 116;
+    private const int WideLayoutMinimum = 310;
 
     private static readonly (FSCmoAbility Ability, string Loc)[] DirectiveSlots =
     {
@@ -41,8 +43,13 @@ public sealed class FSCmoPanelController : UIController
         (FSCmoAbility.Mobilisation, "fs-cmo-mobilisation"),
     };
 
-    private Control? _root;
     private PanelContainer? _frame;
+    private BoxContainer? _directiveRow;
+    private BoxContainer? _abilityRow;
+    private InventoryGui? _inventory;
+    private HotbarGui? _hotbar;
+    private bool _narrow;
+
     private readonly Dictionary<FSCmoAbility, Button> _buttons = new();
     private readonly Dictionary<FSCmoAbility, string> _labels = new();
 
@@ -62,23 +69,30 @@ public sealed class FSCmoPanelController : UIController
             return;
 
         _buttons.Clear();
+        _labels.Clear();
+
+        _hotbar = FindWidget<HotbarGui>(screen);
+        _inventory = FindWidget<InventoryGui>(screen);
+
+        if (_hotbar?.Parent is not LayoutContainer container)
+            return;
+
+        _directiveRow = BuildRow(DirectiveSlots, WideDirectiveWidth);
+        _abilityRow = BuildRow(AbilitySlots, WideAbilityWidth);
 
         var rows = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
             Margin = new Thickness(6),
         };
-
-        var header = new Label
+        rows.AddChild(new Label
         {
             Text = Loc.GetString("fs-cmo-panel-title"),
             StyleClasses = { "LabelSubText" },
             HorizontalAlignment = Control.HAlignment.Center,
-        };
-        rows.AddChild(header);
-
-        rows.AddChild(BuildRow(DirectiveSlots, 92));
-        rows.AddChild(BuildRow(AbilitySlots, 140));
+        });
+        rows.AddChild(_directiveRow);
+        rows.AddChild(_abilityRow);
 
         _frame = new PanelContainer
         {
@@ -89,42 +103,24 @@ public sealed class FSCmoPanelController : UIController
                 BorderThickness = new Thickness(1),
             },
             HorizontalAlignment = Control.HAlignment.Left,
-            VerticalAlignment = Control.VAlignment.Bottom,
-            Margin = new Thickness(PanelLeftMargin, 0, 0, 0),
+            VerticalAlignment = Control.VAlignment.Top,
             Visible = false,
         };
         _frame.AddChild(rows);
 
-        var spacer = new Control { VerticalExpand = true, MouseFilter = Control.MouseFilterMode.Ignore };
-
-        var column = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            MouseFilter = Control.MouseFilterMode.Ignore,
-        };
-        column.AddChild(spacer);
-        column.AddChild(_frame);
-        column.AddChild(new Control { SetHeight = PanelBottomGap, MouseFilter = Control.MouseFilterMode.Ignore });
-
-        _root = column;
-        LayoutContainer.SetAnchorPreset(_root, LayoutContainer.LayoutPreset.Wide);
-
-        var target = IsSeparatedLayout() ? FindViewportContainer(screen) ?? (Control) screen : screen;
-        target.AddChild(_root);
+        LayoutContainer.SetAnchorPreset(_frame, LayoutContainer.LayoutPreset.TopLeft);
+        container.AddChild(_frame);
     }
 
-    private bool IsSeparatedLayout()
+    private static T? FindWidget<T>(Control root) where T : Control
     {
-        return Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var layout)
-               && layout == ScreenType.Separated;
-    }
+        if (root is T match)
+            return match;
 
-    private static Control? FindViewportContainer(Control screen)
-    {
-        foreach (var child in screen.Children)
+        foreach (var child in root.Children)
         {
-            if (child is LayoutContainer && child.Name == "ViewportContainer")
-                return child;
+            if (FindWidget<T>(child) is { } found)
+                return found;
         }
 
         return null;
@@ -164,9 +160,12 @@ public sealed class FSCmoPanelController : UIController
 
     private void OnScreenUnload()
     {
-        _root?.Orphan();
-        _root = null;
+        _frame?.Orphan();
         _frame = null;
+        _directiveRow = null;
+        _abilityRow = null;
+        _inventory = null;
+        _hotbar = null;
         _buttons.Clear();
         _labels.Clear();
     }
@@ -187,9 +186,15 @@ public sealed class FSCmoPanelController : UIController
 
         _frame.Visible = true;
 
+        UpdateButtons(panel);
+        UpdatePlacement();
+    }
+
+    private void UpdateButtons(FSCmoPanelComponent panel)
+    {
         foreach (var (ability, button) in _buttons)
         {
-            var isDirective = DirectiveOf(ability) is { };
+            var directive = DirectiveOf(ability);
 
             var readyAt = ability switch
             {
@@ -206,15 +211,56 @@ public sealed class FSCmoPanelController : UIController
                 ? $"{_labels[ability]}  {Math.Ceiling(remaining.TotalSeconds):0}s"
                 : _labels[ability];
 
-            if (isDirective)
-            {
-                var active = DirectiveOf(ability) == panel.ActiveDirective;
-                button.Modulate = active ? DirectiveActive : DirectiveIdle;
-            }
+            if (directive is { } value)
+                button.Modulate = value == panel.ActiveDirective ? DirectiveActive : DirectiveIdle;
             else
-            {
                 button.Modulate = cooling ? AbilityCooling : AbilityReady;
-            }
+        }
+    }
+
+    private void UpdatePlacement()
+    {
+        if (_frame == null || _hotbar == null || _directiveRow == null || _abilityRow == null)
+            return;
+
+        var left = _inventory is { Visible: true } inv
+            ? inv.Position.X + inv.Size.X + EdgePadding
+            : EdgePadding;
+
+        var right = _hotbar.Position.X - EdgePadding;
+        var available = right - left;
+
+        SetNarrow(available < WideLayoutMinimum);
+
+        var size = _frame.DesiredSize;
+        var x = available > size.X ? left + (available - size.X) / 2f : left;
+        var y = _hotbar.Position.Y + _hotbar.Size.Y - size.Y;
+
+        LayoutContainer.SetPosition(_frame, new Vector2(x, y));
+    }
+
+    private void SetNarrow(bool narrow)
+    {
+        if (narrow == _narrow || _directiveRow == null || _abilityRow == null)
+            return;
+
+        _narrow = narrow;
+
+        var orientation = narrow
+            ? BoxContainer.LayoutOrientation.Vertical
+            : BoxContainer.LayoutOrientation.Horizontal;
+
+        _directiveRow.Orientation = orientation;
+        _abilityRow.Orientation = orientation;
+
+        foreach (var (ability, button) in _buttons)
+        {
+            if (narrow)
+                button.MinWidth = NarrowWidth;
+            else
+                button.MinWidth = DirectiveOf(ability) is null ? WideAbilityWidth : WideDirectiveWidth;
+
+            button.Margin = narrow ? new Thickness(0, 1) : new Thickness(2, 0);
         }
     }
 
