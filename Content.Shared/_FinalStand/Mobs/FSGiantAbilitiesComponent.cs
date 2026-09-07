@@ -11,16 +11,16 @@ namespace Content.Shared._FinalStand.Mobs;
 public sealed partial class FSGiantAbilitiesComponent : Component
 {
     [DataField]
-    public float GlobalCooldown = 3f;
+    public float GlobalCooldown = 1.5f;
 
     [DataField]
-    public float SkyJumpCooldown = 18f;
+    public float SkyJumpCooldown = 9f;
 
     [DataField]
-    public float BoulderCooldown = 11f;
+    public float BoulderCooldown = 5.5f;
 
     [DataField]
-    public float DashCooldown = 9f;
+    public float DashCooldown = 4.5f;
 
     [DataField]
     public float SkyJumpMinRange = 7f;
@@ -44,7 +44,7 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public float SkyJumpWindup = 0.5f;
 
     [DataField]
-    public float SkyJumpAirTime = 1.4f;
+    public float SkyJumpAirTime = 0.7f;
 
     [DataField]
     public float SkyJumpRadius = 2.5f;
