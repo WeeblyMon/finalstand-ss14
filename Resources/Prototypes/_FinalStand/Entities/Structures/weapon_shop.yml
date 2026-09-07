@@ -400,6 +400,13 @@
       baseCost: 12000
       type: VaporiseWeakMob
       valuePerLevel: 1
+    - id: energymagnum-extended-cell
+      name: Extended Cell
+      description: Reduces energy cost per shot, squeezing more shots out of the cell.
+      maxLevel: 3
+      baseCost: 4500
+      type: MagazineSize
+      valuePerLevel: 20
   - type: Sprite
     sprite: Objects/Weapons/Guns/Battery/energy_magnum.rsi
     state: base
