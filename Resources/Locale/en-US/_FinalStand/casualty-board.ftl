@@ -9,3 +9,6 @@ fs-casualty-state-dead = DEAD
 
 fs-casualty-en-route = {$medic} is on the way.
 fs-casualty-responding = Responding to {$patient}.
+
+fs-casualty-downed-waiting = Medical has been alerted
+fs-casualty-downed-en-route = {$medic} is on the way

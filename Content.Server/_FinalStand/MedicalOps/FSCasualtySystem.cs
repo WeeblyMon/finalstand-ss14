@@ -63,7 +63,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (_fund.IsMedical(ev.Mob))
+        if (_fund.IsMedicalJob(ev.JobId))
             _actions.AddAction(ev.Mob, BoardAction);
     }
 
@@ -89,6 +89,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
             CalledHurt = !IsRecovered(patient),
         };
 
+        EnsureComp<FSCasualtyStatusComponent>(patient);
+
         Broadcast();
     }
 
@@ -97,13 +99,22 @@ public sealed partial class FSCasualtySystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { } medic || !_fund.IsMedical(medic))
             return;
 
-        var patient = GetEntity(ev.Patient);
+        Respond(medic, GetEntity(ev.Patient));
+    }
+
+    public void Respond(EntityUid medic, EntityUid patient)
+    {
         if (!_calls.TryGetValue(patient, out var call) || TerminatingOrDeleted(patient))
             return;
 
         call.Responder = medic;
 
         var medicName = Identity.Name(medic, EntityManager);
+
+        var status = EnsureComp<FSCasualtyStatusComponent>(patient);
+        status.Responder = medicName;
+        Dirty(patient, status);
+
         _popup.PopupEntity(Loc.GetString("fs-casualty-en-route", ("medic", medicName)), patient, patient, PopupType.Medium);
         _popup.PopupEntity(Loc.GetString("fs-casualty-responding", ("patient", Identity.Name(patient, EntityManager))), medic, medic);
 
@@ -126,7 +137,12 @@ public sealed partial class FSCasualtySystem : EntitySystem
         }
 
         foreach (var patient in _finished)
+        {
+            if (!TerminatingOrDeleted(patient))
+                RemComp<FSCasualtyStatusComponent>(patient);
+
             _calls.Remove(patient);
+        }
 
         if (_finished.Count > 0)
         {

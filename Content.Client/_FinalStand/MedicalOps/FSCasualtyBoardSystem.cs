@@ -1,4 +1,6 @@
+using System.Numerics;
 using Content.Shared._FinalStand.MedicalOps;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Map;
 
@@ -7,6 +9,7 @@ namespace Content.Client._FinalStand.MedicalOps;
 public sealed class FSCasualtyBoardSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IEyeManager _eye = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
 
     private FSCasualtyBoardWindow? _window;
@@ -56,26 +59,64 @@ public sealed class FSCasualtyBoardSystem : EntitySystem
         if (_window == null)
             return;
 
-        var viewer = _player.LocalEntity;
-        var origin = viewer is { } ent && !TerminatingOrDeleted(ent)
-            ? _xform.GetMapCoordinates(ent)
-            : (MapCoordinates?)null;
+        var origin = ViewerCoordinates();
 
         var rows = new List<FSCasualtyRow>(_entries.Count);
         foreach (var entry in _entries)
         {
-            float? distance = null;
-
-            if (origin is { } from && GetCoordinates(entry.Position) is var coords && coords.IsValid(EntityManager))
-            {
-                var target = _xform.ToMapCoordinates(coords);
-                if (target.MapId == from.MapId)
-                    distance = (target.Position - from.Position).Length();
-            }
-
-            rows.Add(new FSCasualtyRow(entry, distance));
+            Resolve(origin, entry.Position, out var distance, out var direction);
+            rows.Add(new FSCasualtyRow(entry, distance, direction));
         }
 
         _window.Populate(rows);
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        if (_window is not { IsOpen: true })
+            return;
+
+        var origin = ViewerCoordinates();
+
+        foreach (var entry in _entries)
+        {
+            Resolve(origin, entry.Position, out var distance, out var direction);
+            _window.UpdateBearing(entry.Patient, distance, direction);
+        }
+    }
+
+    private MapCoordinates? ViewerCoordinates()
+    {
+        return _player.LocalEntity is { } ent && !TerminatingOrDeleted(ent)
+            ? _xform.GetMapCoordinates(ent)
+            : null;
+    }
+
+    private void Resolve(MapCoordinates? origin, NetCoordinates position, out float? distance, out Vector2? direction)
+    {
+        distance = null;
+        direction = null;
+
+        if (origin is not { } from)
+            return;
+
+        var coords = GetCoordinates(position);
+        if (!coords.IsValid(EntityManager))
+            return;
+
+        var target = _xform.ToMapCoordinates(coords);
+        if (target.MapId != from.MapId)
+            return;
+
+        distance = (target.Position - from.Position).Length();
+
+        if (distance <= 0.1f)
+            return;
+
+        var screenDelta = _eye.WorldToScreen(target.Position) - _eye.WorldToScreen(from.Position);
+        if (screenDelta.LengthSquared() > 0f)
+            direction = Vector2.Normalize(screenDelta);
     }
 }

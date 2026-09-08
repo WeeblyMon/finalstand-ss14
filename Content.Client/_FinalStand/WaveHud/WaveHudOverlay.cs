@@ -129,6 +129,9 @@ public sealed partial class WaveHudOverlay : Overlay
     public bool IsRespawnOfferVisible = false;
     public int  RespawnCost = 0;
 
+    public string? CasualtyStatus;
+    public bool CasualtyResponded;
+
     public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
 
     public event Action? OnRespawnClicked;
@@ -292,6 +295,17 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawString(_promptSubFont!,
                 new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
                 subline, muted);
+
+            if (CasualtyStatus is { } casualty)
+            {
+                var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
+                var casualtyColor = CasualtyResponded ? Color.FromHex("#4FBF7A") : Color.FromHex("#8A929B");
+
+                screen.DrawString(_promptSubFont!,
+                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f,
+                        promptY + headDims.Y + gap + subDims.Y + gap * 0.5f),
+                    casualty, casualtyColor);
+            }
 
             screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
             y += sepH + rowPad;

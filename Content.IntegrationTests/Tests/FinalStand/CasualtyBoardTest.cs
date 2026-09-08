@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
@@ -160,6 +161,76 @@ public sealed class CasualtyBoardTest : GameTest
 
             Assert.That(casualty.BuildBoard().Entries, Is.Empty,
                 "NPCs going down would flood the board every wave");
+        });
+    }
+
+    [Test]
+    public async Task ACallGivesThePatientAWaitingStatus()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var casualty = entMan.System<FSCasualtySystem>();
+            var patient = entMan.SpawnEntity(HumanProto, map.GridCoords);
+
+            casualty.RegisterCall(patient);
+
+            Assert.That(entMan.TryGetComponent<FSCasualtyStatusComponent>(patient, out var status), Is.True,
+                "a called patient needs the status component or the downed HUD cannot show anything");
+            Assert.That(status!.Responder, Is.Null, "nobody has responded yet");
+        });
+    }
+
+    [Test]
+    public async Task RespondingNamesTheMedicOnThePatient()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var casualty = entMan.System<FSCasualtySystem>();
+            var patient = entMan.SpawnEntity(HumanProto, map.GridCoords);
+            var medic = entMan.SpawnEntity(HumanProto, map.GridCoords);
+
+            casualty.RegisterCall(patient);
+            casualty.Respond(medic, patient);
+
+            var status = entMan.GetComponent<FSCasualtyStatusComponent>(patient);
+            Assert.That(status.Responder, Is.Not.Null,
+                "the patient's HUD reads Responder - if this is null the en-route line never appears");
+        });
+    }
+
+    [Test]
+    public async Task OnlyMedicalJobsGetTheBoardAction()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var fund = entMan.System<FSMedicalFundSystem>();
+
+            Assert.Multiple(() =>
+            {
+                foreach (var job in new[] { "MedicalDoctor", "ChiefMedicalOfficer", "CombatMedic", "Chemist" })
+                {
+                    Assert.That(fund.IsMedicalJob(job), Is.True, $"{job} should get the casualty board");
+                }
+
+                foreach (var job in new[] { "Captain", "SecurityOfficer", "StationEngineer", "Scientist" })
+                {
+                    Assert.That(fund.IsMedicalJob(job), Is.False,
+                        $"{job} is not medical staff - all-access IDs must not hand out the casualty board");
+                }
+
+                Assert.That(fund.IsMedicalJob(null), Is.False);
+            });
         });
     }
 

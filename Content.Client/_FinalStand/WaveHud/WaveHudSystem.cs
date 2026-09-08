@@ -1,4 +1,5 @@
 ﻿using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.ReadyCheck;
@@ -6,6 +7,7 @@ using Content.Shared._FinalStand.Respawn;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
+using Robust.Client.Player;
 using Robust.Shared.Player;
 
 namespace Content.Client._FinalStand.WaveHud;
@@ -14,6 +16,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
     [Dependency] private IBaseClient _client = default!;
+    [Dependency] private IPlayerManager _player = default!;
 
     private WaveHudOverlay? _overlay;
 
@@ -55,10 +58,38 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
-        if (_overlay is not { IsDarkWave: true } overlay)
+        if (_overlay is not { } overlay)
+            return;
+
+        UpdateCasualtyStatus(overlay);
+
+        if (!overlay.IsDarkWave)
             return;
 
         overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
+    }
+
+    private void UpdateCasualtyStatus(WaveHudOverlay overlay)
+    {
+        if (!overlay.IsRespawnOfferVisible
+            || _player.LocalEntity is not { } player
+            || !TryComp<FSCasualtyStatusComponent>(player, out var status))
+        {
+            overlay.CasualtyStatus = null;
+            overlay.CasualtyResponded = false;
+            return;
+        }
+
+        if (status.Responder is { } responder)
+        {
+            overlay.CasualtyStatus = Loc.GetString("fs-casualty-downed-en-route", ("medic", responder));
+            overlay.CasualtyResponded = true;
+        }
+        else
+        {
+            overlay.CasualtyStatus = Loc.GetString("fs-casualty-downed-waiting");
+            overlay.CasualtyResponded = false;
+        }
     }
 
     public override void Shutdown()

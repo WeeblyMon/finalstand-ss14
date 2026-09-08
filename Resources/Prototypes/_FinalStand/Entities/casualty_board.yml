@@ -7,7 +7,8 @@
   - type: Action
     useDelay: 1
   - type: Sprite
-    sprite: Objects/Specific/Medical/healthanalyzer.rsi
-    state: icon
+    layers:
+    - texture: /Textures/_FinalStand/Interface/CasualtyBoard/casualty_board.png
+      map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSCasualtyBoardActionEvent {}
