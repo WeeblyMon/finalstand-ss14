@@ -36,6 +36,10 @@ namespace Content.Client.Chemistry.UI
         private bool _bottleDosageEdited;
         private bool _applyingDosageDefaults;
 
+        private readonly RowCache _bufferRows = new();
+        private readonly RowCache _inputRows = new();
+        private readonly RowCache _outputRows = new();
+
         private const string PillsRsiPath = "/Textures/Objects/Specific/Chemistry/pills.rsi";
 
         /// <summary>
@@ -263,10 +267,8 @@ namespace Content.Client.Chemistry.UI
             BufferTransferButton.Pressed = state.Mode == ChemMasterMode.Transfer;
             BufferDiscardButton.Pressed = state.Mode == ChemMasterMode.Discard;
 
-            BuildContainerUI(InputContainerInfo, state.InputContainerInfo, true);
-            BuildContainerUI(OutputContainerInfo, state.OutputContainerInfo, false);
-
-            BufferInfo.Children.Clear();
+            BuildContainerUI(InputContainerInfo, _inputRows, state.InputContainerInfo, true);
+            BuildContainerUI(OutputContainerInfo, _outputRows, state.OutputContainerInfo, false);
 
             // This has to happen here due to people possibly
             // setting sorting before putting any chemicals
@@ -283,25 +285,12 @@ namespace Content.Client.Chemistry.UI
 
             if (!state.BufferReagents.Any())
             {
+                _bufferRows.Reset();
+                BufferInfo.Children.Clear();
                 BufferInfo.Children.Add(new Label { Text = Loc.GetString("chem-master-window-buffer-empty-text") });
 
                 return;
             }
-
-            var bufferHBox = new BoxContainer
-            {
-                Orientation = LayoutOrientation.Horizontal
-            };
-            BufferInfo.AddChild(bufferHBox);
-
-            var bufferLabel = new Label { Text = $"{Loc.GetString("chem-master-window-buffer-label")} " };
-            bufferHBox.AddChild(bufferLabel);
-            var bufferVol = new Label
-            {
-                Text = $"{state.BufferCurrentVolume}u",
-                StyleClasses = { StyleClass.LabelWeak }
-            };
-            bufferHBox.AddChild(bufferVol);
 
             // This sets up the needed data for sorting later in a list
             // Its done this way to not repeat having to use same code twice (once for sorting
@@ -337,20 +326,98 @@ namespace Content.Client.Chemistry.UI
                     break;
             }
 
-            // initialises rowCount to allow for striped rows
-            var rowCount = 0;
+            var header = $"{Loc.GetString("chem-master-window-buffer-label")} {state.BufferCurrentVolume}u";
+
+            var rows = new List<RowData>(reagentList.Count);
             foreach (var reagent in reagentList)
             {
-                BufferInfo.Children.Add(BuildReagentRow(reagent.color, rowCount++, reagent.name, reagent.reagentId, reagent.quantity, true, true));
+                rows.Add(new RowData(
+                    reagent.reagentId.ToString(),
+                    reagent.name,
+                    reagent.color,
+                    reagent.quantity,
+                    reagent.reagentId));
+            }
+
+            SyncRows(BufferInfo, _bufferRows, header, rows, true, true);
+        }
+
+        private void SyncRows(
+            Control control,
+            RowCache cache,
+            string header,
+            List<RowData> rows,
+            bool isBuffer,
+            bool addReagentButtons)
+        {
+            var key = $"{rows.Count}|{string.Join('|', rows.Select(r => r.Key))}";
+
+            if (key == cache.Key)
+            {
+                cache.Header.Text = header;
+
+                foreach (var row in rows)
+                {
+                    if (cache.Quantities.TryGetValue(row.Key, out var label))
+                        label.Text = $"{row.Quantity}u";
+                }
+
+                return;
+            }
+
+            cache.Key = key;
+            cache.Quantities.Clear();
+            control.Children.Clear();
+
+            cache.Header = new Label { Text = header };
+            control.AddChild(cache.Header);
+
+            var rowCount = 0;
+            foreach (var row in rows)
+            {
+                control.AddChild(BuildReagentRow(
+                    row.Color,
+                    rowCount++,
+                    row.Name,
+                    row.Reagent,
+                    row.Quantity,
+                    isBuffer,
+                    addReagentButtons,
+                    out var quantityLabel));
+
+                cache.Quantities[row.Key] = quantityLabel;
             }
         }
 
-        private void BuildContainerUI(Control control, ContainerInfo? info, bool addReagentButtons)
-        {
-            control.Children.Clear();
+        private readonly record struct RowData(
+            string Key,
+            string Name,
+            Color Color,
+            FixedPoint2 Quantity,
+            ReagentId Reagent);
 
+        private sealed class RowCache
+        {
+            public string? Key;
+            public Label Header = new();
+            public readonly Dictionary<string, Label> Quantities = new();
+
+            public void Reset()
+            {
+                Key = null;
+                Quantities.Clear();
+            }
+        }
+
+        private void BuildContainerUI(Control control, RowCache cache, ContainerInfo? info, bool addReagentButtons)
+        {
             if (info is null)
             {
+                if (cache.Key == null)
+                    return;
+
+                cache.Reset();
+                control.Children.Clear();
                 control.Children.Add(new Label
                 {
                     Text = Loc.GetString("chem-master-window-no-container-loaded-text")
@@ -358,33 +425,14 @@ namespace Content.Client.Chemistry.UI
                 return;
             }
 
-            // Name of the container and its fill status (Ex: 44/100u)
-            control.Children.Add(new BoxContainer
-            {
-                Orientation = LayoutOrientation.Horizontal,
-                Children =
-                {
-                    new Label { Text = $"{info.DisplayName}: " },
-                    new Label
-                    {
-                        Text = $"{info.CurrentVolume}/{info.MaxVolume}",
-                        StyleClasses = { StyleClass.LabelWeak }
-                    }
-                }
-            });
-            // Initialises rowCount to allow for striped rows
-            var rowCount = 0;
+            var rows = new List<RowData>();
 
-            // Handle entities if they are not null
             if (info.Entities != null)
             {
                 foreach (var (id, quantity) in info.Entities.Select(x => (x.Id, x.Quantity)))
-                {
-                    control.Children.Add(BuildReagentRow(default(Color), rowCount++, id, default(ReagentId), quantity, false, addReagentButtons));
-                }
+                    rows.Add(new RowData($"e:{id}", id, default, quantity, default));
             }
 
-            // Handle reagents if they are not null
             if (info.Reagents != null)
             {
                 foreach (var reagent in info.Reagents)
@@ -393,14 +441,21 @@ namespace Content.Client.Chemistry.UI
                     var name = proto?.LocalizedName ?? Loc.GetString("chem-master-window-unknown-reagent-text");
                     var reagentColor = proto?.SubstanceColor ?? default(Color);
 
-                    control.Children.Add(BuildReagentRow(reagentColor, rowCount++, name, reagent.Reagent, reagent.Quantity, false, addReagentButtons));
+                    rows.Add(new RowData(
+                        reagent.Reagent.ToString(),
+                        name,
+                        reagentColor,
+                        reagent.Quantity,
+                        reagent.Reagent));
                 }
             }
+
+            SyncRows(control, cache, $"{info.DisplayName}: {info.CurrentVolume}/{info.MaxVolume}", rows, false, addReagentButtons);
         }
         /// <summary>
         /// Take reagent/entity data and present rows, labels, and buttons appropriately. todo sprites?
         /// </summary>
-        private Control BuildReagentRow(Color reagentColor, int rowCount, string name, ReagentId reagent, FixedPoint2 quantity, bool isBuffer, bool addReagentButtons)
+        private Control BuildReagentRow(Color reagentColor, int rowCount, string name, ReagentId reagent, FixedPoint2 quantity, bool isBuffer, bool addReagentButtons, out Label quantityLabel)
         {
             //Colors rows and sets fallback for reagentcolor to the same as background, this will hide colorPanel for entities hopefully
             var rowColor1 = Color.FromHex("#1B1B1E");
@@ -413,6 +468,12 @@ namespace Content.Client.Chemistry.UI
             //this calls the separated button builder, and stores the return to render after labels
             var reagentButtonConstructors = CreateReagentTransferButtons(reagent, isBuffer, addReagentButtons);
 
+            quantityLabel = new Label
+            {
+                Text = $"{quantity}u",
+                StyleClasses = { StyleClass.LabelWeak }
+            };
+
             // Create the row layout with the color panel
             var rowContainer = new BoxContainer
             {
@@ -420,11 +481,7 @@ namespace Content.Client.Chemistry.UI
                 Children =
                 {
                     new Label { Text = $"{name}: " },
-                    new Label
-                    {
-                        Text = $"{quantity}u",
-                        StyleClasses = { StyleClass.LabelWeak }
-                    },
+                    quantityLabel,
 
                     // Padding
                     new Control { HorizontalExpand = true },
