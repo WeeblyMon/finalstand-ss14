@@ -167,7 +167,7 @@ public sealed partial class CCVars
     ///     Whether or not disconnecting inside of a cryopod should remove the character or just store them until they reconnect.
     /// </summary>
     public static readonly CVarDef<bool>
-        GameCryoSleepRejoining = CVarDef.Create("game.cryo_sleep_rejoining", true, CVar.SERVER | CVar.REPLICATED);
+        GameCryoSleepRejoining = CVarDef.Create("game.cryo_sleep_rejoining", false, CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>
     ///     When enabled, guests will be assigned permanent UIDs and will have their preferences stored.

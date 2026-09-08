@@ -24,10 +24,14 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
 
     private bool _rejoinEnabled;
 
+    public bool RejoinEnabled => _rejoinEnabled;
+
     public override void Initialize()
     {
         base.Initialize();
 
+        // Vanilla ships this off; the whole FS cryo flow depends on it, so we own the default without editing theirs.
+        _cfg.OverrideDefault(CCVars.GameCryoSleepRejoining, true);
         Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _stored.Clear());
