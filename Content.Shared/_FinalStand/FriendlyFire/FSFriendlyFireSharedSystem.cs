@@ -36,6 +36,7 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
 
     private void OnPlayerPreventCollide(EntityUid uid, FSFriendlyFireComponent _, ref PreventCollideEvent args)
     {
+        if (HasComp<FSAllyProjectileComponent>(args.OtherEntity)) return;
         if (!TryComp<ProjectileComponent>(args.OtherEntity, out var proj)) return;
         if (proj.Shooter == null) return;
         if (HasComp<FSFriendlyFireComponent>(proj.Shooter.Value))
