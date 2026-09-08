@@ -56,20 +56,27 @@ public sealed class FSGachaCacheSystem : EntitySystem
             return false;
         }
 
+        // Rolled before the charge so an unresolvable pool can never take credits without paying out.
+        if (!TryRoll(ent.Comp, out var prize, out var bonus))
+        {
+            Log.Error($"{ToPrettyString(ent)} has no resolvable loot pool; refusing to charge {ToPrettyString(user)}.");
+            _popup.PopupEntity(Loc.GetString("fs-gacha-empty"), ent, user);
+            return false;
+        }
+
         if (!_mind.TryGetMind(user, out var mindId, out _) || !_wallet.TryDeductCredits(mindId, ent.Comp.Price))
         {
             _popup.PopupEntity(Loc.GetString("fs-gacha-no-funds"), ent, user);
             return false;
         }
 
-        Loot(ent, user);
+        Loot(ent, user, prize, bonus);
         return true;
     }
 
-    private void Loot(Entity<FSGachaCacheComponent> ent, EntityUid user)
+    private bool TryRoll(FSGachaCacheComponent comp, out string prize, out string? bonus)
     {
-        var comp = ent.Comp;
-        var coordinates = Transform(ent).Coordinates;
+        bonus = null;
 
         var roll = _random.NextFloat();
         var pool = roll < comp.RareChance
@@ -78,10 +85,35 @@ public sealed class FSGachaCacheSystem : EntitySystem
                 ? comp.UncommonPool
                 : comp.CommonPool;
 
-        SpawnFrom(pool, coordinates);
+        if (!TryPick(pool, out prize))
+            return false;
 
-        if (_random.Prob(comp.MiscChance))
-            SpawnFrom(comp.MiscPool, coordinates);
+        if (_random.Prob(comp.MiscChance) && TryPick(comp.MiscPool, out var extra))
+            bonus = extra;
+
+        return true;
+    }
+
+    private bool TryPick(ProtoId<WeightedRandomEntityPrototype> poolId, out string picked)
+    {
+        picked = string.Empty;
+
+        if (!_protoMan.TryIndex(poolId, out var pool) || pool.Weights.Count == 0)
+            return false;
+
+        picked = _random.Pick(pool.Weights);
+        return true;
+    }
+
+    private void Loot(Entity<FSGachaCacheComponent> ent, EntityUid user, string prize, string? bonus)
+    {
+        var comp = ent.Comp;
+        var coordinates = Transform(ent).Coordinates;
+
+        Spawn(prize, coordinates);
+
+        if (bonus != null)
+            Spawn(bonus, coordinates);
 
         comp.UsesLeft--;
         Dirty(ent);
@@ -91,13 +123,5 @@ public sealed class FSGachaCacheSystem : EntitySystem
 
         _audio.PlayPvs(OpenSound, ent);
         _popup.PopupEntity(Loc.GetString("fs-gacha-opened"), ent, user);
-    }
-
-    private void SpawnFrom(ProtoId<WeightedRandomEntityPrototype> poolId, EntityCoordinates coordinates)
-    {
-        if (!_protoMan.TryIndex(poolId, out var pool) || pool.Weights.Count == 0)
-            return;
-
-        Spawn(_random.Pick(pool.Weights), coordinates);
     }
 }
