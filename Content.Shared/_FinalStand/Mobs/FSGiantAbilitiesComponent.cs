@@ -145,6 +145,9 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public Vector2 DashHeading;
     public EntityUid? TelegraphEntity;
     public readonly List<EntityUid> LaneEntities = new();
+
+    // Set only when the jump added the immunity itself, so landing never strips one the prototype owns.
+    public bool GrantedDamageImmunity;
 }
 
 [Serializable, NetSerializable]

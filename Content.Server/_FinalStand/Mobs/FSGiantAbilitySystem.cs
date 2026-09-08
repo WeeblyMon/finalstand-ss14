@@ -188,6 +188,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         Dirty(ent);
         _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, true);
         _physics.SetCanCollide(ent.Owner, false);
+        comp.GrantedDamageImmunity = !HasComp<FSPlayerDamageImmuneComponent>(ent);
         EnsureComp<FSPlayerDamageImmuneComponent>(ent);
 
         _audio.PlayPvs(comp.LaunchSound, ent.Owner);
@@ -202,7 +203,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
         _transform.SetWorldPosition(ent.Owner, comp.LockedTarget);
         _physics.SetCanCollide(ent.Owner, true);
-        RemComp<FSPlayerDamageImmuneComponent>(ent);
+        ClearGrantedImmunity(ent);
         comp.Airborne = false;
         Dirty(ent);
         _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, false);
@@ -264,8 +265,8 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             return;
         }
 
+        // Landing stays where the lane was drawn during windup; only the start point tracks any drift.
         comp.DashOrigin = _transform.GetWorldPosition(xform);
-        comp.DashLanding = ProbeDash(comp.DashOrigin, comp.DashHeading, comp.DashDistance, xform.MapID);
         _audio.PlayPvs(comp.DashSound, ent.Owner);
         Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);
     }
@@ -315,11 +316,20 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             Dirty(ent);
             _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, false);
             _physics.SetCanCollide(ent.Owner, true);
-            RemComp<FSPlayerDamageImmuneComponent>(ent);
+            ClearGrantedImmunity(ent);
         }
 
         ent.Comp.Current = FSGiantAbility.None;
         ClearMarkers(ent);
+    }
+
+    private void ClearGrantedImmunity(Entity<FSGiantAbilitiesComponent> ent)
+    {
+        if (!ent.Comp.GrantedDamageImmunity)
+            return;
+
+        ent.Comp.GrantedDamageImmunity = false;
+        RemComp<FSPlayerDamageImmuneComponent>(ent);
     }
 
     private void ClearMarkers(Entity<FSGiantAbilitiesComponent> ent)
