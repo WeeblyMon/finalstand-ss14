@@ -1,0 +1,21 @@
+- type: entity
+  parent: MiniSyringe
+  id: FSChemistSyringe
+  name: support syringe
+  description: A reshaped syringe keyed to crew biometrics. Fired from a syringe gun to deliver chemicals to a teammate at range.
+  components:
+  - type: FSAllyProjectile
+  - type: Solution
+    solution:
+      maxVol: 15
+  - type: SolutionInjectOnEmbed
+    transferAmount: 15
+    solution: injector
+
+- type: latheRecipe
+  id: FSChemistSyringe
+  result: FSChemistSyringe
+  completetime: 2
+  materials:
+    Steel: 100
+    Plastic: 50

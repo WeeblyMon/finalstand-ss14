@@ -98,8 +98,8 @@
   - SyringeCryostasis
   - BluespaceBeaker
   - SyringeBluespace
-  # - LauncherSyringe  # Goob: disabled (syringe launcher not ported)
-  # - MiniSyringe      # Goob: disabled (syringe launcher not ported)
+  - LauncherSyringe
+  - FSChemistSyringe
   # - AdvancedJetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: latheRecipePack

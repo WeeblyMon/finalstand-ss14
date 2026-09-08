@@ -87,6 +87,50 @@ public sealed class AllyProjectileTest : GameTest
         });
     }
 
+    [Test]
+    public async Task TheChemistSyringeIsAMarkedGunRound()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var protos = server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var syringe = entMan.SpawnEntity("FSChemistSyringe", map.GridCoords);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.HasComponent<FSAllyProjectileComponent>(syringe), Is.True,
+                    "without the marker it phases through the teammate it is aimed at");
+
+                var tags = entMan.GetComponent<Content.Shared.Tag.TagComponent>(syringe);
+                Assert.That(tags.Tags, Does.Contain("SyringeGunAmmo"),
+                    "it must still load into the syringe gun");
+            });
+
+            var gun = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("LauncherSyringe");
+            Assert.That(gun.TryGetComponent<Content.Shared.Storage.StorageComponent>("Storage", out _), Is.True);
+        });
+    }
+
+    [Test]
+    public async Task TheChemistSpawnsWithTheKit()
+    {
+        var server = Pair.Server;
+        var protos = server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var gear = protos.Index<Content.Shared.Roles.StartingGearPrototype>("ChemistGear");
+
+            Assert.That(gear.Storage.TryGetValue("back", out var back), Is.True,
+                "the chemist must not have to go find their core tool");
+            Assert.That(back, Does.Contain("LauncherSyringe"));
+            Assert.That(back, Does.Contain("FSChemistSyringe"));
+        });
+    }
+
     private static bool Collides(IEntityManager entMan, EntityUid target, EntityUid projectile)
     {
         var ourBody = entMan.GetComponent<PhysicsComponent>(target);
