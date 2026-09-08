@@ -5,14 +5,12 @@ using Content.Shared.Mobs.Components;
 
 namespace Content.Server._FinalStand.Projectiles;
 
-// Blocks FS explosion damage to non-mob entities (wires, tables, windows) and friendly players.
-// FS explosion types opt in by being listed in FsExplosionTypes.
+// Blocks explosion damage to non-mob entities (wires, tables, windows) and friendly players.
 public sealed class FSExplosionFilterSystem : EntitySystem
 {
-    private static readonly HashSet<string> FsExplosionTypes = new()
+    private static readonly HashSet<string> EnemyExplosionTypes = new()
     {
-        "FSGrenadeExplosion",
-        "FSRocketExplosion",
+        "FSGiantStompExplosion",
     };
 
     private EntityQuery<MobStateComponent> _mobQuery;
@@ -28,7 +26,7 @@ public sealed class FSExplosionFilterSystem : EntitySystem
 
     private void OnGetResistance(EntityUid uid, DamageableComponent _, ref GetExplosionResistanceEvent args)
     {
-        if (!FsExplosionTypes.Contains(args.ExplosionPrototype))
+        if (EnemyExplosionTypes.Contains(args.ExplosionPrototype))
             return;
 
         if (!_mobQuery.HasComponent(uid) || _ffQuery.HasComponent(uid))

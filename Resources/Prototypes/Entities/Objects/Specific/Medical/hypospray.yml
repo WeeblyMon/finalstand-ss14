@@ -222,6 +222,8 @@
     activeModeProtoId: HyposprayInjectMode
     allowedModes:
     - HyposprayInjectMode
+  - type: Hypospray
+    transferAmount: 100
   - type: SolutionContainerVisuals
     maxFillLevels: 1
     changeColor: false
