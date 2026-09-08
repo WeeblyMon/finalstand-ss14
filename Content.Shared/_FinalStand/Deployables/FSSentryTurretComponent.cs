@@ -1,4 +1,4 @@
-using Robust.Shared.GameStates;
+﻿using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Deployables;
@@ -27,8 +27,6 @@ public sealed partial class FSSentryTurretComponent : Component
 
     [DataField]
     public float SpriteAngleOffset;
-
-    public EntityUid? OwnerPlayer;
 
     [DataField]
     public float ProjectileSpeed = 25f;

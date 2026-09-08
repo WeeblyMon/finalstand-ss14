@@ -29,8 +29,6 @@ public sealed class FSAmmoBoxSystem : EntitySystem
 
     private void OnDeployed(Entity<FSAmmoBoxComponent> ent, ref FSDeployableDeployedEvent args)
     {
-        ent.Comp.OwnerMind = ResolveMind(args.User);
-
         if (TryComp<FSAmmoBoxComponent>(args.Item, out var item))
         {
             ent.Comp.MaxUses = item.MaxUses;
@@ -45,11 +43,14 @@ public sealed class FSAmmoBoxSystem : EntitySystem
     private EntityUid? ResolveMind(EntityUid user)
         => _mind.TryGetMind(user, out var mindId, out _) ? mindId : null;
 
+    private EntityUid? OwnerOf(EntityUid box)
+        => TryComp<FSDeployedByComponent>(box, out var deployed) ? deployed.OwnerMind : null;
+
     private bool IsOwner(Entity<FSAmmoBoxComponent> ent, EntityUid user)
-        => ent.Comp.OwnerMind is { } owner && owner == ResolveMind(user);
+        => OwnerOf(ent) is { } owner && owner == ResolveMind(user);
 
     private bool IsAllowed(Entity<FSAmmoBoxComponent> ent, EntityUid user)
-        => !ent.Comp.Private || ent.Comp.OwnerMind == null || IsOwner(ent, user);
+        => !ent.Comp.Private || OwnerOf(ent) == null || IsOwner(ent, user);
 
     private void OnInteractHand(Entity<FSAmmoBoxComponent> ent, ref InteractHandEvent args)
     {

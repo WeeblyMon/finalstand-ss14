@@ -89,6 +89,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         var deployedBy = EnsureComp<FSDeployedByComponent>(deployed);
         deployedBy.OwnerMind = ownerMind;
+        deployedBy.DeployedBy = deployer;
         deployedBy.SourceProto = comp.DeployedProtoId;
 
         var ev = new FSDeployableDeployedEvent(uid, deployer);

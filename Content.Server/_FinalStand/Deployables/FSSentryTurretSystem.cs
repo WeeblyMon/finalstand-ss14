@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Interaction;
@@ -39,7 +39,6 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
     private void OnDeployed(Entity<FSSentryTurretComponent> ent, ref FSDeployableDeployedEvent args)
     {
-        ent.Comp.OwnerPlayer = args.User;
 
         if (TryComp<FSSentryTurretComponent>(args.Item, out var item))
         {
@@ -118,7 +117,11 @@ public sealed class FSSentryTurretSystem : EntitySystem
         if (TryComp<ProjectileComponent>(projectile, out var proj))
             proj.Damage *= turret.DamageMultiplier;
 
-        var shooter = turret.OwnerPlayer is { } owner && !TerminatingOrDeleted(owner) ? owner : uid;
+        var shooter = TryComp<FSDeployedByComponent>(uid, out var deployed)
+                      && deployed.DeployedBy is { } owner
+                      && !TerminatingOrDeleted(owner)
+            ? owner
+            : uid;
         _gun.ShootProjectile(projectile, direction, Vector2.Zero, uid, shooter, turret.ProjectileSpeed);
         _audio.PlayPvs(FireSound, uid, AudioParams.Default.WithVolume(-6f));
 

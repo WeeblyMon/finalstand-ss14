@@ -1,4 +1,4 @@
-using Content.Shared.Explosion;
+﻿using Content.Shared.Explosion;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
@@ -28,8 +28,6 @@ public sealed partial class FSLandmineComponent : Component
 
     [DataField]
     public bool HighExplosive;
-
-    public EntityUid? OwnerPlayer;
 
     [DataField]
     public float HighExplosiveTotalIntensity = 45f;
