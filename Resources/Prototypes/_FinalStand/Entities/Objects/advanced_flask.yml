@@ -1,0 +1,45 @@
+- type: entity
+  parent: FSSplashFlask
+  id: FSHeavyFlask
+  name: heavy splash flask
+  description: A reinforced flask with a wider charge. Throws a larger, longer-lasting cloud than a standard vessel.
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 100
+  - type: FSSplashFlask
+    solution: flask
+    duration: 18
+    spreadAmount: 12
+
+- type: latheRecipe
+  id: FSHeavyFlask
+  result: FSHeavyFlask
+  completetime: 4
+  materials:
+    Glass: 250
+    Plastic: 150
+    Silver: 50
+
+- type: entity
+  parent: FSChemistSyringe
+  id: FSHeavySyringe
+  name: heavy support syringe
+  description: A wide-bore dart. Carries a far larger dose to a teammate at range.
+  components:
+  - type: Solution
+    solution:
+      maxVol: 30
+  - type: SolutionInjectOnEmbed
+    transferAmount: 30
+    solution: injector
+
+- type: latheRecipe
+  id: FSHeavySyringe
+  result: FSHeavySyringe
+  completetime: 3
+  materials:
+    Steel: 200
+    Plastic: 100
+    Silver: 25

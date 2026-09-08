@@ -1,0 +1,47 @@
+- type: technology
+  id: FSFieldChemistry
+  name: research-technology-fs-field-chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    state: beaker
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSHeavyFlask
+
+- type: technology
+  id: FSVascularDelivery
+  name: research-technology-fs-vascular-delivery
+  icon:
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    state: syringe_base0
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSHeavySyringe
+
+- type: fsTechNode
+  id: FSMedicalFieldChemistry
+  name: Field Chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    state: beaker
+  branch: Medical
+  tier: 2
+  cost: 900
+  bonusDescription: Unlocks the heavy splash flask - a wider, longer-lasting cloud.
+  vanillaTechnologyId: FSFieldChemistry
+
+- type: fsTechNode
+  id: FSMedicalVascularDelivery
+  name: Vascular Delivery
+  icon:
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    state: syringe_base0
+  branch: Medical
+  tier: 2
+  cost: 900
+  bonusDescription: Unlocks the heavy support syringe - a far larger dose per shot.
+  vanillaTechnologyId: FSVascularDelivery
