@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
@@ -275,7 +275,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
         _scaling.ScaleEnemyHp(enemy, comp.WaveNumber);
         _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
-        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.PlayersThisWave);
+        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
         RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
         return enemy;

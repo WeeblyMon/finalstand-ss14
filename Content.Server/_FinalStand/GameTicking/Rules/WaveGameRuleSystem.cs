@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Cleanup;
+﻿using Content.Server._FinalStand.Cleanup;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Systems;
@@ -237,7 +237,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
-        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountActivePlayers(), CountPrimarySpawners(comp));
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
@@ -289,9 +289,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
 
         // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
-        comp.PlayersThisWave = CountActivePlayers();
+        comp.ScalingPlayersThisWave = CountScalingPlayers();
 
-        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, comp.PlayersThisWave, CountPrimarySpawners(comp));
+        comp.EnemyTotalThisWave = CalcEnemyTotal(comp, comp.ScalingPlayersThisWave, CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
         comp.AliveEnemies.Clear();
 
@@ -398,7 +398,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
     }
 
-    private int CountActivePlayers()
+    // Difficulty input only: newcomers are deliberately not counted, so this is not a headcount.
+    private int CountScalingPlayers()
     {
         var count = 0;
         foreach (var session in _playerManager.Sessions)

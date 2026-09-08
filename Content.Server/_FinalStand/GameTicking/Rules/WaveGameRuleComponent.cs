@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.GameTicking;
+﻿using Content.Shared._FinalStand.GameTicking;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
@@ -128,7 +128,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public TimeSpan NextEnemyCountBroadcast = TimeSpan.Zero;
     public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
 
-    public int PlayersThisWave = 0;
+    public int ScalingPlayersThisWave = 0;
 
     // PhaseEndTime is pulled forward by every ready-up, so the payout needs the untouched deadline.
     public TimeSpan PrepEndUnshaved;
