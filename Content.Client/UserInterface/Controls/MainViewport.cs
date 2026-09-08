@@ -136,7 +136,13 @@ namespace Content.Client.UserInterface.Controls
                 // One axis MAY be larger but not smaller than tolerance.
                 // Obviously if it's too small it's bad, and if it's too big on both axis we should stretch up.
                 // Additionally, if the viewport's supposed  to be vertically fit, then the horizontal scale should just be ignored where appropriate.
-                if ((Fits(dx) || cfgVerticalFit) && Fits(dy) || !cfgVerticalFit && Fits(dx) && Larger(dy) || Larger(dx) && Fits(dy))
+                // FINALSTAND: vertical fit must still satisfy the horizontal axis, otherwise a
+                // resolution with no integer scale (1080p needs 2.25x) snaps anyway and pillarboxes.
+                var snap = cfgVerticalFit
+                    ? Fits(dx) && Fits(dy)
+                    : Fits(dx) && Fits(dy) || Fits(dx) && Larger(dy) || Larger(dx) && Fits(dy);
+
+                if (snap)
                 {
                     // Found snap that fits.
                     return i;
