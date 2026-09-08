@@ -225,11 +225,15 @@ public sealed partial class GraphicsTab : Control
 
     private sealed class OptionIntegerScaling : BaseOptionCVar<int>
     {
+        // FINALSTAND: snapping defaults off, so the enabled margin is a constant rather than the
+        // CVar default - otherwise ticking the box would just write 0 back and do nothing.
+        private const int EnabledMargin = 64;
+
         private readonly CheckBox _checkBox;
 
         protected override int Value
         {
-            get => _checkBox.Pressed ? CCVars.ViewportSnapToleranceMargin.DefaultValue : 0;
+            get => _checkBox.Pressed ? EnabledMargin : 0;
             set => _checkBox.Pressed = (value != 0);
         }
 
