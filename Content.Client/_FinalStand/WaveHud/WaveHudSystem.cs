@@ -7,8 +7,10 @@ using Content.Shared._FinalStand.Respawn;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
+using Content.Client._FinalStand.MedicalOps;
 using Robust.Client.Player;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.WaveHud;
 
@@ -17,6 +19,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private IOverlayManager _overlayManager = default!;
     [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private WaveHudOverlay? _overlay;
 
@@ -62,11 +65,37 @@ public sealed partial class WaveHudSystem : EntitySystem
             return;
 
         UpdateCasualtyStatus(overlay);
+        UpdateBuffStatus(overlay);
 
         if (!overlay.IsDarkWave)
             return;
 
         overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
+    }
+
+    private void UpdateBuffStatus(WaveHudOverlay overlay)
+    {
+        overlay.BuffStatus = null;
+
+        if (_player.LocalEntity is not { } player
+            || !TryComp<FSMedicalBonusComponent>(player, out var bonus))
+        {
+            return;
+        }
+
+        var now = _timing.CurTime;
+
+        foreach (var (source, buff) in bonus.Active)
+        {
+            if (!source.StartsWith(FSBuffOverlay.ChemSourcePrefix) || buff.IsExpired(now))
+                continue;
+
+            overlay.BuffStatus = buff.EndTime is { } end
+                ? Loc.GetString("fs-buff-status-timed", ("seconds", (int) Math.Ceiling((end - now).TotalSeconds)))
+                : Loc.GetString("fs-buff-status");
+
+            return;
+        }
     }
 
     private void UpdateCasualtyStatus(WaveHudOverlay overlay)

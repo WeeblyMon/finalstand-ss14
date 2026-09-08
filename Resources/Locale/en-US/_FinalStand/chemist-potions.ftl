@@ -4,3 +4,5 @@ reagent-desc-fs-combat-stim = A cocktail keyed to crew biometrics. Sharpens refl
 reagent-name-fs-corrosive = corrosive agent
 reagent-desc-fs-corrosive = An unstable acid refined from wave-enemy tissue. Eats through anything it settles on.
 
+fs-buff-status = CHEM BOOST ACTIVE
+fs-buff-status-timed = CHEM BOOST {$seconds}s

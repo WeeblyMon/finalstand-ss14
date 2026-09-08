@@ -132,6 +132,8 @@ public sealed partial class WaveHudOverlay : Overlay
     public string? CasualtyStatus;
     public bool CasualtyResponded;
 
+    public string? BuffStatus;
+
     public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
 
     public event Action? OnRespawnClicked;
@@ -599,8 +601,12 @@ public sealed partial class WaveHudOverlay : Overlay
     {
         var rows = BuildVisibleBonusRows();
         _bonusRowCells.Clear();
+
         if (rows.Count == 0)
+        {
+            DrawBuffStatus(screen, margin, null);
             return;
+        }
 
         _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
 
@@ -616,6 +622,8 @@ public sealed partial class WaveHudOverlay : Overlay
         var x = margin;
         var y = blockBottom - blockH;
 
+        DrawBuffStatus(screen, margin, y);
+
         foreach (var row in rows)
         {
             var icon = GetStatIcon(row.IconKey);
@@ -630,6 +638,22 @@ public sealed partial class WaveHudOverlay : Overlay
             _bonusRowCells.Add((new UIBox2(x, y, x + cellW, y + iconSz), row.Label, row.Tooltip));
             y += iconSz + rowGap;
         }
+    }
+
+    private void DrawBuffStatus(DrawingHandleScreen screen, float margin, float? bonusBlockTop)
+    {
+        if (BuffStatus is not { } text)
+            return;
+
+        _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
+
+        var dims = screen.GetDimensions(_tinyFont, text, 1f);
+        var bottom = bonusBlockTop ?? (FindHotbarTop() ?? _clyde.ScreenSize.Y - margin) - 10f;
+
+        screen.DrawString(_tinyFont,
+            new Vector2(margin, bottom - 4f - dims.Y),
+            text,
+            Color.FromHex("#4FBF7A"));
     }
 
     // Recurses since Hotbar nests at different depths between the two HUD layouts.
