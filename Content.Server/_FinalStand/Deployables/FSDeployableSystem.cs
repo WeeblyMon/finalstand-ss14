@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Deployables;
@@ -16,7 +16,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
-    [Dependency] private FSEngineeringOnlySystem _engineering = default!;
+    [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()

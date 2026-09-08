@@ -1,7 +1,7 @@
-using Content.Shared._FinalStand.Economy;
-using Content.Shared._FinalStand.Engineering;
+﻿using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research;
+using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Science;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.GameTicking;
@@ -44,8 +44,6 @@ public sealed partial class FSShopClientSystem : EntitySystem
     private enum ShopGlowState { Unaffordable, Affordable, Owned, Locked }
 
     private HashSet<string> _unlockedResearchNodes = new();
-    private bool _isScience;
-    private bool _isEngineering;
     private Texture? _lockTexture;
     private readonly Dictionary<ShopGlowState, ShaderInstance> _glowShaders = [];
 
@@ -73,8 +71,6 @@ public sealed partial class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
-        SubscribeNetworkEvent<FSPlayerScienceStatusEvent>(OnScienceStatus);
-        SubscribeNetworkEvent<FSPlayerEngineeringStatusEvent>(OnEngineeringStatus);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
@@ -97,15 +93,24 @@ public sealed partial class FSShopClientSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         var player = _player.LocalSession?.AttachedEntity;
+
+        var science = false;
+        var engineering = false;
+        if (player != null && TryComp<FSDepartmentAccessComponent>(player.Value, out var departments))
+        {
+            science = departments.Science;
+            engineering = departments.Engineering;
+        }
+
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
             ShopGlowState state;
             if (shop.RequiresResearch is { } required && !_unlockedResearchNodes.Contains(required.Id))
                 state = ShopGlowState.Locked;
-            else if (shop.RequiresScience && !_isScience)
+            else if (shop.RequiresScience && !science)
                 state = ShopGlowState.Locked;
-            else if (shop.RequiresEngineering && !_isEngineering)
+            else if (shop.RequiresEngineering && !engineering)
                 state = ShopGlowState.Locked;
             else if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
                 state = ShopGlowState.Owned;
@@ -194,8 +199,6 @@ public sealed partial class FSShopClientSystem : EntitySystem
         WeaponTitle = "";
         Accuracy = -1;
         NextLevelAccuracy = [];
-        _isScience = false;
-        _isEngineering = false;
         _lastGlowState.Clear();
         CreditsChanged?.Invoke();
     }
@@ -205,7 +208,6 @@ public sealed partial class FSShopClientSystem : EntitySystem
         CurrentCredits = 0;
         UpgradeLevels = [];
         WeaponTitle = "";
-        _isScience = false;
         ClearAllShaders();
         CreditsChanged?.Invoke();
     }
@@ -305,18 +307,6 @@ public sealed partial class FSShopClientSystem : EntitySystem
     public event Action? ResearchNodesChanged;
 
     public bool IsResearchNodeUnlocked(string nodeId) => _unlockedResearchNodes.Contains(nodeId);
-
-    private void OnScienceStatus(FSPlayerScienceStatusEvent ev)
-    {
-        _isScience = ev.IsScience;
-        _lastGlowState.Clear();
-    }
-
-    private void OnEngineeringStatus(FSPlayerEngineeringStatusEvent ev)
-    {
-        _isEngineering = ev.IsEngineering;
-        _lastGlowState.Clear();
-    }
 
     private void OnSellCompleted(FSShopSellCompletedEvent _) => SellCompleted?.Invoke();
 

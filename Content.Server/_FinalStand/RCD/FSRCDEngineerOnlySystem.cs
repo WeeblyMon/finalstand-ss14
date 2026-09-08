@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Departments;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Robust.Shared.Map.Components;
@@ -12,7 +12,7 @@ namespace Content.Server._FinalStand.RCD;
 
 public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 {
-    [Dependency] private FSEngineeringOnlySystem _engineering = default!;
+    [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private SharedMapSystem _mapSystem = default!;
