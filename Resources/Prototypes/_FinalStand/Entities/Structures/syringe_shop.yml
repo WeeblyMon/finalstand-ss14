@@ -1,0 +1,35 @@
+- type: entity
+  id: FSSyringeShop
+  name: Medical Ordnance Vendor
+  description: Upgrade your syringe gun. Purchases are permanent and cannot be sold back.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Machines/VendingMachines/medical.rsi
+    state: off
+  - type: FSSyringeShop
+  - type: UserInterface
+    interfaces:
+      enum.FSSyringeShopUiKey.Key:
+        type: FSSyringeShopBoundUserInterface
+  - type: ActivatableUI
+    key: enum.FSSyringeShopUiKey.Key

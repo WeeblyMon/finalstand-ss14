@@ -10,3 +10,9 @@ reagent-name-fs-biomass = harvested tissue
 reagent-desc-fs-biomass = Raw material rendered from wave enemies. The base for every field potion.
 research-technology-fs-field-chemistry = Field Chemistry
 research-technology-fs-vascular-delivery = Vascular Delivery
+
+fs-syringe-shop-title = Medical Ordnance
+fs-syringe-shop-credits = Credits: {$credits}
+fs-syringe-shop-no-refund = Purchases are permanent. There are no refunds.
+fs-syringe-shop-buy = Buy ${$price}
+fs-syringe-shop-owned = OWNED

@@ -1,0 +1,18 @@
+<controls:SyringeShopWindow
+    xmlns="https://spacestation14.io"
+    xmlns:controls="clr-namespace:Content.Client._FinalStand.MedicalOps.UI"
+    Title="{Loc 'fs-syringe-shop-title'}"
+    MinSize="420 260"
+    SetSize="460 320">
+    <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="8">
+        <Label Name="CreditsLabel" StyleClasses="LabelSubText" HorizontalAlignment="Right" />
+        <Label Name="NoRefundLabel"
+               Text="{Loc 'fs-syringe-shop-no-refund'}"
+               StyleClasses="LabelSubText"
+               HorizontalAlignment="Center"
+               Margin="0 2 0 6" />
+        <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
+            <BoxContainer Name="Tiers" Access="Public" Orientation="Vertical" HorizontalExpand="True" />
+        </ScrollContainer>
+    </BoxContainer>
+</controls:SyringeShopWindow>
