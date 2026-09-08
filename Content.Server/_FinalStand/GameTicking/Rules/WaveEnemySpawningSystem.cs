@@ -59,8 +59,14 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 _spawnerBuffer.Add(spawnerUid);
         }
 
+        // Secondaries are rolled separately below, so only the primaries take part in the anti-repeat compare.
         comp.PreviousSpawnerEntities.Clear();
-        comp.PreviousSpawnerEntities.UnionWith(comp.SpawnerEntities);
+        foreach (var previous in comp.SpawnerEntities)
+        {
+            if (!TryComp<WaveEnemySpawnerComponent>(previous, out var previousSpawner) || !previousSpawner.Secondary)
+                comp.PreviousSpawnerEntities.Add(previous);
+        }
+
         comp.SpawnerEntities.Clear();
 
         if (_spawnerBuffer.Count == 0)
