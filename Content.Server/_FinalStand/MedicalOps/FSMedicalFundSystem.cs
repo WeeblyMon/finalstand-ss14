@@ -3,6 +3,7 @@ using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using Content.Shared.Roles;
 using Robust.Server.Player;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
@@ -15,9 +16,11 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
 {
     [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> MedicalAccess = "Medical";
     private static readonly ProtoId<AccessLevelPrototype> ChiefMedicalOfficerAccess = "ChiefMedicalOfficer";
+    private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
 
     private const float NotifyInterval = 0.25f;
 
@@ -135,6 +138,13 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
     {
         var tags = _accessReader.FindAccessTags(user);
         return tags.Contains(MedicalAccess) || tags.Contains(ChiefMedicalOfficerAccess);
+    }
+
+    public bool IsMedicalJob(string? jobId)
+    {
+        return jobId != null
+               && _prototype.TryIndex(MedicalDepartment, out var department)
+               && department.Roles.Contains(jobId);
     }
 
     public bool IsCmo(EntityUid user)
