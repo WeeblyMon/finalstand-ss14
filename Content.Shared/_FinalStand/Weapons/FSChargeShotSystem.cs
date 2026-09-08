@@ -120,6 +120,7 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.Charge = 0f;
         comp.Shooter = null;
+        comp.AimDirection = Vector2.Zero;
         Dirty(ent.Owner, comp);
     }
 }
