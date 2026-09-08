@@ -24,7 +24,7 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = entMan.SpawnEntity(SatchelProto, map.GridCoords);
+            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
 
             Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f), "starts empty");
 
@@ -32,6 +32,24 @@ public sealed class HarvestTest : GameTest
 
             Assert.That(Biomass(entMan, satchel), Is.GreaterThan(0f),
                 "no corpses, no potions - the loop starts here");
+        });
+    }
+
+    [Test]
+    public async Task ADroppedSatchelHarvestsNothing()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var satchel = entMan.SpawnEntity(SatchelProto, map.GridCoords);
+
+            KillEnemyAt(entMan, map.GridCoords, 5);
+
+            Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f),
+                "leaving a bag in the corridor must not farm the wave risk-free");
         });
     }
 
@@ -44,7 +62,7 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = entMan.SpawnEntity(SatchelProto, map.GridCoords);
+            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
             var comp = entMan.GetComponent<FSHarvestSatchelComponent>(satchel);
 
             KillEnemyAt(entMan, map.GridCoords, 200);
@@ -63,7 +81,7 @@ public sealed class HarvestTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var satchel = entMan.SpawnEntity(SatchelProto, map.GridCoords);
+            var satchel = SpawnCarriedSatchel(entMan, map.GridCoords, out _);
             var comp = entMan.GetComponent<FSHarvestSatchelComponent>(satchel);
 
             var far = map.GridCoords.Offset(new System.Numerics.Vector2(comp.Range * 4f, 0f));
@@ -72,6 +90,17 @@ public sealed class HarvestTest : GameTest
             Assert.That(Biomass(entMan, satchel), Is.EqualTo(0f),
                 "harvest must reward being where the fight is, not hiding in the lab");
         });
+    }
+
+    private static EntityUid SpawnCarriedSatchel(IEntityManager entMan, EntityCoordinates coords, out EntityUid carrier)
+    {
+        carrier = entMan.SpawnEntity("MobHuman", coords);
+        entMan.EnsureComponent<Content.Shared._FinalStand.FriendlyFire.FSFriendlyFireComponent>(carrier);
+
+        var satchel = entMan.SpawnEntity(SatchelProto, coords);
+        entMan.GetComponent<TransformComponent>(satchel).AttachParent(carrier);
+
+        return satchel;
     }
 
     private static float Biomass(IEntityManager entMan, EntityUid satchel)

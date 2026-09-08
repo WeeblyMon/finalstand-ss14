@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.GameTicking;
@@ -51,11 +52,26 @@ public sealed class FSHarvestSystem : EntitySystem
         var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
         while (query.MoveNext(out var satchel, out var comp))
         {
-            if (!InRange(satchel, corpse, comp.Range))
+            if (!IsCarried(satchel) || !InRange(satchel, corpse, comp.Range))
                 continue;
 
             Accrue((satchel, comp));
         }
+    }
+
+    private bool IsCarried(EntityUid satchel)
+    {
+        var parent = Transform(satchel).ParentUid;
+
+        for (var depth = 0; depth < 5 && parent.IsValid(); depth++)
+        {
+            if (HasComp<FSFriendlyFireComponent>(parent))
+                return true;
+
+            parent = Transform(parent).ParentUid;
+        }
+
+        return false;
     }
 
     private bool InRange(EntityUid satchel, MapCoordinates corpse, float range)
