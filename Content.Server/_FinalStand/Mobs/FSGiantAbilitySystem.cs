@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -373,26 +373,32 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     private EntityUid? FindTarget(Vector2 origin, MapId mapId, float range)
     {
         var candidates = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), range, candidates);
-
-        EntityUid? best = null;
-        var bestDistance = float.MaxValue;
-
-        foreach (var (candidate, _) in candidates)
+        try
         {
-            if (!_mobState.IsAlive(candidate))
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), range, candidates);
 
-            var distance = Vector2.DistanceSquared(origin, _transform.GetWorldPosition(candidate));
-            if (distance >= bestDistance)
-                continue;
+            EntityUid? best = null;
+            var bestDistance = float.MaxValue;
 
-            best = candidate;
-            bestDistance = distance;
+            foreach (var (candidate, _) in candidates)
+            {
+                if (!_mobState.IsAlive(candidate))
+                    continue;
+
+                var distance = Vector2.DistanceSquared(origin, _transform.GetWorldPosition(candidate));
+                if (distance >= bestDistance)
+                    continue;
+
+                best = candidate;
+                bestDistance = distance;
+            }
+
+            return best;
         }
-
-        _actorPool.Return(candidates);
-        return best;
+        finally
+        {
+            _actorPool.Return(candidates);
+        }
     }
 
     private void CollectVictims(Vector2 origin, MapId mapId, float radius)
@@ -400,17 +406,22 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _victims.Clear();
 
         var candidates = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, candidates);
-
-        foreach (var (candidate, _) in candidates)
+        try
         {
-            if (!_mobState.IsAlive(candidate))
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, candidates);
 
-            _victims.Add((candidate, Vector2.Distance(origin, _transform.GetWorldPosition(candidate))));
+            foreach (var (candidate, _) in candidates)
+            {
+                if (!_mobState.IsAlive(candidate))
+                    continue;
+
+                _victims.Add((candidate, Vector2.Distance(origin, _transform.GetWorldPosition(candidate))));
+            }
         }
-
-        _actorPool.Return(candidates);
+        finally
+        {
+            _actorPool.Return(candidates);
+        }
     }
 
     private void Shove(EntityUid target, Vector2 direction, float distance, float speed)
@@ -450,21 +461,26 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     private void ShakeArea(Vector2 origin, MapId mapId, float radius)
     {
         var watchers = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, watchers);
-
-        foreach (var (watcher, _) in watchers)
+        try
         {
-            var direction = _transform.GetWorldPosition(watcher) - origin;
-            var magnitude = 1f - MathF.Min(direction.Length() / radius, 1f);
-            if (magnitude <= 0.02f)
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, watchers);
 
-            if (direction == Vector2.Zero)
-                direction = new Vector2(1f, 0f);
+            foreach (var (watcher, _) in watchers)
+            {
+                var direction = _transform.GetWorldPosition(watcher) - origin;
+                var magnitude = 1f - MathF.Min(direction.Length() / radius, 1f);
+                if (magnitude <= 0.02f)
+                    continue;
 
-            _recoil.KickCamera(watcher, direction.Normalized() * magnitude);
+                if (direction == Vector2.Zero)
+                    direction = new Vector2(1f, 0f);
+
+                _recoil.KickCamera(watcher, direction.Normalized() * magnitude);
+            }
         }
-
-        _actorPool.Return(watchers);
+        finally
+        {
+            _actorPool.Return(watchers);
+        }
     }
 }

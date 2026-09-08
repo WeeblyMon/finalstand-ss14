@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Actions;
@@ -488,8 +488,12 @@ public abstract partial class SharedGunSystem : EntitySystem
     // FINALSTAND: lets charge-up weapons clear the cooldown their cancelled attempts accrued.
     public void ClearFireCooldown(Entity<GunComponent> gun, TimeSpan now)
     {
-        gun.Comp.NextFire = now;
         gun.Comp.ShotCounter = 0;
+
+        if (gun.Comp.NextFire <= now)
+            return;
+
+        gun.Comp.NextFire = now;
         DirtyField(gun.AsNullable(), nameof(GunComponent.NextFire));
     }
 
