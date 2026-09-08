@@ -65,7 +65,6 @@ public sealed partial class GraphicsTab : Control
 
         vpStretch.ImmediateValueChanged += _ => UpdateViewportSettingsVisibility();
         vpVertFit.ImmediateValueChanged += _ => UpdateViewportSettingsVisibility();
-        IntegerScalingCheckBox.OnToggled += _ => UpdateViewportSettingsVisibility();
 
         Control.AddOptionSlider(
             CCVars.ViewportWidth,
@@ -73,7 +72,6 @@ public sealed partial class GraphicsTab : Control
             (int)ViewportWidthSlider.Slider.MinValue,
             (int)ViewportWidthSlider.Slider.MaxValue);
 
-        Control.AddOption(new OptionIntegerScaling(Control, _cfg, IntegerScalingCheckBox));
         Control.AddOptionCheckBox(CCVars.ViewportScaleRender, ViewportLowResCheckBox, invert: true);
         Control.AddOptionCheckBox(CCVars.ParallaxLowQuality, ParallaxLowQualityCheckBox);
         Control.AddOptionCheckBox(CCVars.HudFpsCounterVisible, FpsCounterCheckBox);
@@ -90,10 +88,9 @@ public sealed partial class GraphicsTab : Control
     private void UpdateViewportSettingsVisibility()
     {
         ViewportScaleSlider.Visible = !ViewportStretchCheckBox.Pressed;
-        IntegerScalingCheckBox.Visible = ViewportStretchCheckBox.Pressed;
         ViewportVerticalFitCheckBox.Visible = ViewportStretchCheckBox.Pressed;
         ViewportWidthSlider.Visible = !ViewportStretchCheckBox.Pressed || !ViewportVerticalFitCheckBox.Pressed;
-        DropDownFilterMode.Visible = !IntegerScalingCheckBox.Pressed && ViewportStretchCheckBox.Pressed;
+        DropDownFilterMode.Visible = ViewportStretchCheckBox.Pressed;
     }
 
     private void UpdateViewportWidthRange()
@@ -214,34 +211,6 @@ public sealed partial class GraphicsTab : Control
             IConfigurationManager cfg,
             CheckBox checkBox)
             : base(controller, cfg, CVars.DisplayWindowMode)
-        {
-            _checkBox = checkBox;
-            _checkBox.OnToggled += _ =>
-            {
-                ValueChanged();
-            };
-        }
-    }
-
-    private sealed class OptionIntegerScaling : BaseOptionCVar<int>
-    {
-        // FINALSTAND: snapping defaults off, so the enabled margin is a constant rather than the
-        // CVar default - otherwise ticking the box would just write 0 back and do nothing.
-        private const int EnabledMargin = 64;
-
-        private readonly CheckBox _checkBox;
-
-        protected override int Value
-        {
-            get => _checkBox.Pressed ? EnabledMargin : 0;
-            set => _checkBox.Pressed = (value != 0);
-        }
-
-        public OptionIntegerScaling(
-            OptionsTabControlRow controller,
-            IConfigurationManager cfg,
-            CheckBox checkBox)
-            : base(controller, cfg, CCVars.ViewportSnapToleranceMargin)
         {
             _checkBox = checkBox;
             _checkBox.OnToggled += _ =>
