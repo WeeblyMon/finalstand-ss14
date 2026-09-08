@@ -1,4 +1,4 @@
-using Content.Server.GameTicking;
+﻿using Content.Server.GameTicking;
 using Content.Shared._FinalStand.CryoSleep;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
@@ -7,7 +7,7 @@ using Content.Shared.Ghost.Components;
 namespace Content.Server._FinalStand.CryoSleep;
 
 // gives up the cryosleeping body and returns the player to the lobby; wipes the mind
-public sealed partial class FSCryoAbandonSystem : EntitySystem
+public sealed class FSCryoAbandonSystem : EntitySystem
 {
     [Dependency] private ISharedAdminLogManager _adminLog = default!;
     [Dependency] private GameTicker _gameTicker = default!;

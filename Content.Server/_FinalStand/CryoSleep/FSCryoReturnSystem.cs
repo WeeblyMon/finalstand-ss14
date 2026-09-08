@@ -11,7 +11,7 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.CryoSleep;
 
 // returns a cryosleeping player to their own body without a reconnect
-public sealed partial class FSCryoReturnSystem : EntitySystem
+public sealed class FSCryoReturnSystem : EntitySystem
 {
     [Dependency] private ISharedAdminLogManager _adminLog = default!;
     [Dependency] private SharedContainerSystem _container = default!;
