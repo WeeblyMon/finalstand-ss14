@@ -1,8 +1,10 @@
 using Content.Server.Fluids.EntitySystems;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
+using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
@@ -16,12 +18,23 @@ public sealed class FSSplashFlaskSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSChemCreditSystem _credit = default!;
+
+    private readonly HashSet<Entity<FSFriendlyFireComponent>> _crewBuffer = new();
 
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<FSSplashFlaskComponent, LandEvent>(OnLand);
+        SubscribeLocalEvent<FSAllyProjectileComponent, EmbedEvent>(OnEmbed);
+    }
+
+    private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
+    {
+        if (args.Shooter is { } shooter)
+            _credit.RegisterDelivery(args.Embedded, shooter);
     }
 
     private void OnLand(Entity<FSSplashFlaskComponent> ent, ref LandEvent args)
@@ -46,6 +59,15 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         var cloud = Spawn(ent.Comp.CloudProto, coords.SnapToGrid());
 
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
+
+        if (args.User is { } thrower)
+        {
+            _crewBuffer.Clear();
+            _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
+
+            foreach (var crew in _crewBuffer)
+                _credit.RegisterDelivery(crew, thrower);
+        }
 
         QueueDel(ent);
     }
