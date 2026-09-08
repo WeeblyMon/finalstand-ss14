@@ -2,7 +2,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSHarvestSatchelComponent : Component
 {
     [DataField]
@@ -19,4 +19,10 @@ public sealed partial class FSHarvestSatchelComponent : Component
 
     [DataField]
     public float PerWaveCap = 120f;
+
+    [AutoNetworkedField]
+    public float AccruedThisWave;
+
+    [AutoNetworkedField]
+    public int TrackedWave = -1;
 }

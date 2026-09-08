@@ -134,6 +134,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public string? BuffStatus;
 
+    public string? HarvestStatus;
+    public bool HarvestCapped;
+
     public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
 
     public event Action? OnRespawnClicked;
@@ -642,18 +645,27 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private void DrawBuffStatus(DrawingHandleScreen screen, float margin, float? bonusBlockTop)
     {
-        if (BuffStatus is not { } text)
-            return;
-
         _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
 
-        var dims = screen.GetDimensions(_tinyFont, text, 1f);
         var bottom = bonusBlockTop ?? (FindHotbarTop() ?? _clyde.ScreenSize.Y - margin) - 10f;
 
-        screen.DrawString(_tinyFont,
-            new Vector2(margin, bottom - 4f - dims.Y),
-            text,
-            Color.FromHex("#4FBF7A"));
+        if (BuffStatus is { } buff)
+        {
+            var dims = screen.GetDimensions(_tinyFont, buff, 1f);
+            bottom -= 4f + dims.Y;
+            screen.DrawString(_tinyFont, new Vector2(margin, bottom), buff, Color.FromHex("#4FBF7A"));
+        }
+
+        if (HarvestStatus is { } harvest)
+        {
+            var dims = screen.GetDimensions(_tinyFont, harvest, 1f);
+            bottom -= 4f + dims.Y;
+
+            screen.DrawString(_tinyFont,
+                new Vector2(margin, bottom),
+                harvest,
+                HarvestCapped ? Color.FromHex("#C9A227") : Color.FromHex("#8A929B"));
+        }
     }
 
     // Recurses since Hotbar nests at different depths between the two HUD layouts.

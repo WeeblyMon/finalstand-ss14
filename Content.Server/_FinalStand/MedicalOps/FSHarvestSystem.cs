@@ -15,9 +15,6 @@ public sealed class FSHarvestSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private WaveGameRuleSystem _wave = default!;
 
-    private readonly Dictionary<EntityUid, float> _harvestedThisWave = new();
-    private int _trackedWave = -1;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -28,8 +25,13 @@ public sealed class FSHarvestSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
-        _harvestedThisWave.Clear();
-        _trackedWave = -1;
+        var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            comp.AccruedThisWave = 0f;
+            comp.TrackedWave = -1;
+            Dirty(uid, comp);
+        }
     }
 
     private void OnMobStateChanged(MobStateChangedEvent args)
@@ -41,17 +43,18 @@ public sealed class FSHarvestSystem : EntitySystem
             return;
 
         var wave = _wave.GetWaveNumber();
-        if (wave != _trackedWave)
-        {
-            _trackedWave = wave;
-            _harvestedThisWave.Clear();
-        }
-
         var corpse = _xform.GetMapCoordinates(args.Target);
 
         var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
         while (query.MoveNext(out var satchel, out var comp))
         {
+            if (comp.TrackedWave != wave)
+            {
+                comp.TrackedWave = wave;
+                comp.AccruedThisWave = 0f;
+                Dirty(satchel, comp);
+            }
+
             if (!IsCarried(satchel) || !InRange(satchel, corpse, comp.Range))
                 continue;
 
@@ -84,9 +87,7 @@ public sealed class FSHarvestSystem : EntitySystem
 
     private void Accrue(Entity<FSHarvestSatchelComponent> satchel)
     {
-        _harvestedThisWave.TryGetValue(satchel.Owner, out var already);
-
-        var room = satchel.Comp.PerWaveCap - already;
+        var room = satchel.Comp.PerWaveCap - satchel.Comp.AccruedThisWave;
         if (room <= 0f)
             return;
 
@@ -99,6 +100,7 @@ public sealed class FSHarvestSystem : EntitySystem
         if (!added || accepted <= 0)
             return;
 
-        _harvestedThisWave[satchel.Owner] = already + accepted.Float();
+        satchel.Comp.AccruedThisWave += accepted.Float();
+        Dirty(satchel);
     }
 }

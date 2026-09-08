@@ -20,3 +20,5 @@ reagent-name-fs-solvent = solvent
 reagent-desc-fs-solvent = Strips the regenerating plating off armoured wave enemies and keeps it from growing back.
 reagent-name-fs-weakening = weakening agent
 reagent-desc-fs-weakening = Breaks down enemy tissue so every source of damage bites harder.
+fs-harvest-status = TISSUE {$stock}u  ({$wave}/{$cap} this wave)
+fs-harvest-status-capped = TISSUE {$stock}u  (wave limit reached)

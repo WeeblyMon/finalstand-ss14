@@ -8,6 +8,7 @@ using Content.Shared._FinalStand.WaveHud;
 using Robust.Client;
 using Robust.Client.Graphics;
 using Content.Client._FinalStand.MedicalOps;
+using Content.Shared.Chemistry.EntitySystems;
 using Robust.Client.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -20,6 +21,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
 
@@ -66,11 +68,58 @@ public sealed partial class WaveHudSystem : EntitySystem
 
         UpdateCasualtyStatus(overlay);
         UpdateBuffStatus(overlay);
+        UpdateHarvestStatus(overlay);
 
         if (!overlay.IsDarkWave)
             return;
 
         overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
+    }
+
+    private void UpdateHarvestStatus(WaveHudOverlay overlay)
+    {
+        overlay.HarvestStatus = null;
+        overlay.HarvestCapped = false;
+
+        if (_player.LocalEntity is not { } player)
+            return;
+
+        var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
+        while (query.MoveNext(out var uid, out var satchel))
+        {
+            if (!IsCarriedBy(uid, player))
+                continue;
+
+            var stock = 0f;
+            if (_solutions.TryGetSolution(uid, satchel.Solution, out _, out var solution))
+                stock = solution.GetTotalPrototypeQuantity(satchel.Reagent).Float();
+
+            overlay.HarvestCapped = satchel.AccruedThisWave >= satchel.PerWaveCap;
+
+            overlay.HarvestStatus = overlay.HarvestCapped
+                ? Loc.GetString("fs-harvest-status-capped", ("stock", (int) stock))
+                : Loc.GetString("fs-harvest-status",
+                    ("stock", (int) stock),
+                    ("wave", (int) satchel.AccruedThisWave),
+                    ("cap", (int) satchel.PerWaveCap));
+
+            return;
+        }
+    }
+
+    private bool IsCarriedBy(EntityUid item, EntityUid carrier)
+    {
+        var parent = Transform(item).ParentUid;
+
+        for (var depth = 0; depth < 5 && parent.IsValid(); depth++)
+        {
+            if (parent == carrier)
+                return true;
+
+            parent = Transform(parent).ParentUid;
+        }
+
+        return false;
     }
 
     private void UpdateBuffStatus(WaveHudOverlay overlay)
