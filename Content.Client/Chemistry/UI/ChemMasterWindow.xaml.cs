@@ -31,6 +31,11 @@ namespace Content.Client.Chemistry.UI
         public event Action<BaseButton.ButtonEventArgs, ReagentButton>? OnReagentButtonPressed;
         public readonly Button[] PillTypeButtons;
 
+        private bool _pillDosageEdited;
+        private bool _pillNumberEdited;
+        private bool _bottleDosageEdited;
+        private bool _applyingDosageDefaults;
+
         private const string PillsRsiPath = "/Textures/Objects/Specific/Chemistry/pills.rsi";
 
         /// <summary>
@@ -87,6 +92,10 @@ namespace Content.Client.Chemistry.UI
             PillDosage.InitDefaultButtons();
             PillNumber.InitDefaultButtons();
             BottleDosage.InitDefaultButtons();
+
+            PillDosage.ValueChanged += _ => MarkEdited(ref _pillDosageEdited);
+            PillNumber.ValueChanged += _ => MarkEdited(ref _pillNumberEdited);
+            BottleDosage.ValueChanged += _ => MarkEdited(ref _bottleDosageEdited);
 
             // Ensure label length is within the character limit.
             LabelLineEdit.IsValid = s => s.Length <= SharedChemMaster.LabelMaxLength;
@@ -185,30 +194,41 @@ namespace Content.Client.Chemistry.UI
                 _ => 0,
             };
 
-            PillDosage.Value = (int)Math.Min(outputVolume, castState.PillDosageLimit);
-
             PillTypeButtons[castState.SelectedPillType].Pressed = true;
 
             PillNumber.IsValid = x => x >= 0 && x <= pillNumberMax;
             PillDosage.IsValid = x => x > 0 && x <= castState.PillDosageLimit;
             BottleDosage.IsValid = x => x >= 0 && x <= bottleAmountMax;
 
-            if (PillNumber.Value > pillNumberMax)
-                PillNumber.Value = pillNumberMax;
-            if (BottleDosage.Value > bottleAmountMax)
-                BottleDosage.Value = bottleAmountMax;
+            _applyingDosageDefaults = true;
 
-            // Avoid division by zero
-            if (PillDosage.Value > 0)
+            if (!_pillDosageEdited || PillDosage.Value > castState.PillDosageLimit)
+                PillDosage.Value = (int) Math.Min(outputVolume, castState.PillDosageLimit);
+
+            if (!_pillNumberEdited || PillNumber.Value > pillNumberMax)
             {
-                PillNumber.Value = Math.Min(outputVolume / PillDosage.Value, pillNumberMax);
-            }
-            else
-            {
-                PillNumber.Value = 0;
+                PillNumber.Value = PillDosage.Value > 0
+                    ? Math.Min(outputVolume / PillDosage.Value, pillNumberMax)
+                    : 0;
             }
 
-            BottleDosage.Value = Math.Min(bottleAmountMax, outputVolume);
+            if (!_bottleDosageEdited || BottleDosage.Value > bottleAmountMax)
+                BottleDosage.Value = Math.Min(bottleAmountMax, outputVolume);
+
+            _applyingDosageDefaults = false;
+        }
+
+        private void MarkEdited(ref bool flag)
+        {
+            if (!_applyingDosageDefaults)
+                flag = true;
+        }
+
+        public void ResetDosageEdits()
+        {
+            _pillDosageEdited = false;
+            _pillNumberEdited = false;
+            _bottleDosageEdited = false;
         }
         /// <summary>
         /// Generate a product label based on reagents in the buffer or beaker.
@@ -228,7 +248,7 @@ namespace Content.Client.Chemistry.UI
                     ChemMasterDrawSource.Internal => state.BufferReagents,
                     ChemMasterDrawSource.External => state.InputContainerInfo.Reagents ?? [],
                     _ => throw new($"Chemmaster {state.OutputContainerInfo} draw source is not set"),
-                }).MinBy(r => r.Quantity)
+                }).MaxBy(r => r.Quantity)
                 .Reagent;
             _prototypeManager.TryIndex(reagent.Prototype, out ReagentPrototype? proto);
             return proto?.LocalizedName ?? "";
