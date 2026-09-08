@@ -1,0 +1,6 @@
+reagent-name-fs-combat-stim = combat stimulant
+reagent-desc-fs-combat-stim = A cocktail keyed to crew biometrics. Sharpens reflexes for a short while, then wears off.
+
+reagent-name-fs-corrosive = corrosive agent
+reagent-desc-fs-corrosive = An unstable acid refined from wave-enemy tissue. Eats through anything it settles on.
+

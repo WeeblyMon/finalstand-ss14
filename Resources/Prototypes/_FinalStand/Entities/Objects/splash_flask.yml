@@ -1,0 +1,41 @@
+- type: entity
+  parent: BaseItem
+  id: FSSplashFlask
+  name: splash flask
+  description: A pressurised flask that bursts into a cloud on impact, carrying whatever was brewed into it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    layers:
+    - state: beaker
+    - state: beaker1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      visible: false
+  - type: Item
+    size: Small
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+  - type: SolutionContainerVisuals
+    maxFillLevels: 6
+    fillBaseName: beaker
+    solutionName: flask
+    changeColor: true
+  - type: RefillableSolution
+    solution: flask
+  - type: DrainableSolution
+    solution: flask
+  - type: ExaminableSolution
+    solution: flask
+  - type: FSSplashFlask
+    solution: flask
+  - type: Appearance
+
+- type: latheRecipe
+  id: FSSplashFlask
+  result: FSSplashFlask
+  completetime: 2
+  materials:
+    Glass: 100
+    Plastic: 50

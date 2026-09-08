@@ -1,0 +1,42 @@
+- type: reagent
+  id: FSCombatStim
+  name: reagent-name-fs-combat-stim
+  group: Medicine
+  desc: reagent-desc-fs-combat-stim
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#4FBF7A"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-stim
+        duration: 90
+        bonuses:
+          MeleeSpeed: 0.3
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-stim
+        duration: 90
+        bonuses:
+          MeleeSpeed: 0.3
+
+- type: reagent
+  id: FSCorrosive
+  name: reagent-name-fs-corrosive
+  group: Toxins
+  desc: reagent-desc-fs-corrosive
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#B5D33A"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:HealthChange
+        damage:
+          types:
+            Caustic: 2

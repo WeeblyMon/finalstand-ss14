@@ -1,6 +1,8 @@
 using Content.Shared.DoAfter;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Weapons.Melee;
+using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
@@ -31,6 +33,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         FSMedicalBonusCategory.Movement => 0.40f,
         FSMedicalBonusCategory.DragSpeed => 0.75f,
         FSMedicalBonusCategory.InterruptionResistance => 0.90f,
+        FSMedicalBonusCategory.MeleeSpeed => 0.50f,
         _ => 0.50f,
     };
 
@@ -43,6 +46,15 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
         SubscribeLocalEvent<FSMedicalBonusComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
+        SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
+    }
+
+    private void OnGetMeleeAttackRate(EntityUid uid, MeleeWeaponComponent comp, ref GetMeleeAttackRateEvent args)
+    {
+        if (!_bonusQuery.HasComp(args.User))
+            return;
+
+        args.Multipliers *= 1f + GetBonus(args.User, FSMedicalBonusCategory.MeleeSpeed);
     }
 
     private void OnRefreshMovespeed(EntityUid uid, FSMedicalBonusComponent comp, RefreshMovementSpeedModifiersEvent args)
