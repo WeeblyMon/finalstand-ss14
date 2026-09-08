@@ -69,3 +69,54 @@
       amount: 1
   products:
     FSCorrosive: 2
+
+- type: reagent
+  id: FSSolvent
+  name: reagent-name-fs-solvent
+  group: Toxins
+  desc: reagent-desc-fs-solvent
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#C9762E"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSSuppressArmorRegen
+        duration: 8
+
+- type: reagent
+  id: FSWeakeningAgent
+  name: reagent-name-fs-weakening
+  group: Toxins
+  desc: reagent-desc-fs-weakening
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#9B59B6"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyVulnerability
+        duration: 8
+        multiplier: 1.25
+
+- type: reaction
+  id: FSSolvent
+  reactants:
+    FSBiomass:
+      amount: 2
+    Ammonia:
+      amount: 1
+  products:
+    FSSolvent: 2
+
+- type: reaction
+  id: FSWeakeningAgent
+  reactants:
+    FSBiomass:
+      amount: 2
+    Phenol:
+      amount: 1
+  products:
+    FSWeakeningAgent: 2

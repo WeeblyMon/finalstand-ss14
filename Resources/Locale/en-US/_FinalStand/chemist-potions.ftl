@@ -16,3 +16,7 @@ fs-syringe-shop-credits = Credits: {$credits}
 fs-syringe-shop-no-refund = Purchases are permanent. There are no refunds.
 fs-syringe-shop-buy = Buy ${$price}
 fs-syringe-shop-owned = OWNED
+reagent-name-fs-solvent = solvent
+reagent-desc-fs-solvent = Strips the regenerating plating off armoured wave enemies and keeps it from growing back.
+reagent-name-fs-weakening = weakening agent
+reagent-desc-fs-weakening = Breaks down enemy tissue so every source of damage bites harder.
