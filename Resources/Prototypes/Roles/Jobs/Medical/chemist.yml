@@ -23,6 +23,7 @@
     pocket1: FlashlightSeclite
   storage:
     back:
+    - FSHarvestSatchel
     - LauncherSyringe
     - FSChemistSyringe
     - FSChemistSyringe

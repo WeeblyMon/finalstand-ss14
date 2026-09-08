@@ -1,4 +1,13 @@
 - type: reagent
+  id: FSBiomass
+  name: reagent-name-fs-biomass
+  group: Biological
+  desc: reagent-desc-fs-biomass
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#6E7B4A"
+
+- type: reagent
   id: FSCombatStim
   name: reagent-name-fs-combat-stim
   group: Medicine
@@ -40,3 +49,23 @@
         damage:
           types:
             Caustic: 2
+
+- type: reaction
+  id: FSCombatStim
+  reactants:
+    FSBiomass:
+      amount: 2
+    Ephedrine:
+      amount: 1
+  products:
+    FSCombatStim: 2
+
+- type: reaction
+  id: FSCorrosive
+  reactants:
+    FSBiomass:
+      amount: 2
+    SulfuricAcid:
+      amount: 1
+  products:
+    FSCorrosive: 2

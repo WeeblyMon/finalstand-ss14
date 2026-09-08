@@ -1,0 +1,31 @@
+- type: entity
+  parent: BaseItem
+  id: FSHarvestSatchel
+  name: harvest satchel
+  description: A sealed collection bag. Draws usable tissue from wave enemies that fall nearby, until it has taken all it can this wave.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    layers:
+    - state: beaker
+    - state: beaker1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      visible: false
+  - type: Item
+    size: Normal
+  - type: SolutionContainerManager
+    solutions:
+      satchel:
+        maxVol: 250
+  - type: SolutionContainerVisuals
+    maxFillLevels: 6
+    fillBaseName: beaker
+    solutionName: satchel
+    changeColor: true
+  - type: DrainableSolution
+    solution: satchel
+  - type: ExaminableSolution
+    solution: satchel
+  - type: FSHarvestSatchel
+    solution: satchel
+  - type: Appearance
