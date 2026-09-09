@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.Departments;
+﻿using Content.Shared._FinalStand.Departments;
 using Content.Shared.Access;
 using Content.Shared.Access.Systems;
 using Content.Shared.GameTicking;
@@ -28,7 +28,6 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
     private static readonly ProtoId<AccessLevelPrototype>[] ScienceAccess = ["Research", "ResearchDirector"];
     private static readonly ProtoId<AccessLevelPrototype>[] EngineeringAccess = ["Engineering", "ChiefEngineer"];
 
-    // An ID console can rewrite a card that never leaves the player, which fires nothing we can subscribe to.
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(5);
 
     private TimeSpan _nextSweep;

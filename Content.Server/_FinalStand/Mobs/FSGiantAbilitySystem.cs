@@ -265,7 +265,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             return;
         }
 
-        // Landing stays where the lane was drawn during windup; only the start point tracks any drift.
         comp.DashOrigin = _transform.GetWorldPosition(xform);
         _audio.PlayPvs(comp.DashSound, ent.Owner);
         Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);

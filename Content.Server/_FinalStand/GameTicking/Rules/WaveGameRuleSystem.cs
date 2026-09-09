@@ -398,7 +398,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
     }
 
-    // Difficulty input only: newcomers are deliberately not counted, so this is not a headcount.
     private int CountScalingPlayers()
     {
         var count = 0;

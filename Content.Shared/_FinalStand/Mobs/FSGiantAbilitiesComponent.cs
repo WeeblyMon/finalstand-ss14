@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -146,7 +146,6 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     public EntityUid? TelegraphEntity;
     public readonly List<EntityUid> LaneEntities = new();
 
-    // Set only when the jump added the immunity itself, so landing never strips one the prototype owns.
     public bool GrantedDamageImmunity;
 }
 

@@ -27,7 +27,6 @@ public sealed class FSCryoSleepSystem : EntitySystem
     {
         base.Initialize();
 
-        // Vanilla ships this off; the whole FS cryo flow depends on it, so we own the default without editing theirs.
         _cfg.OverrideDefault(CCVars.GameCryoSleepRejoining, true);
         Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
 
@@ -42,7 +41,6 @@ public sealed class FSCryoSleepSystem : EntitySystem
         body = default;
         pod = default;
 
-        // Must be the All- variant: vanilla parks stored bodies on a paused map, which the plain query skips.
         var query = EntityManager.AllEntityQueryEnumerator<FSCryoStoredBodyComponent>();
         while (query.MoveNext(out var uid, out var stored))
         {

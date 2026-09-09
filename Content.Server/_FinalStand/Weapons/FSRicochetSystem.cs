@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Projectiles;
 using Content.Shared._FinalStand.Weapons;
@@ -173,8 +173,6 @@ public sealed class FSRicochetSystem : EntitySystem
             var fragment = Spawn(proto, coords);
             RemComp<FSPierceComponent>(fragment);
 
-            // Ownership first: the shooter-ignore and friendly-fire vetoes both read Shooter, and a
-            // fragment spawns already overlapping whoever the parent pellet just bounced next to.
             if (TryComp<ProjectileComponent>(fragment, out var fragProj))
             {
                 fragProj.Damage = damage;

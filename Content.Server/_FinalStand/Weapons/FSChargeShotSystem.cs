@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Upgrades;
+﻿using Content.Server._FinalStand.Upgrades;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
@@ -54,8 +54,6 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
             }
             else
             {
-                // The bounce fixture is hard and masks BulletImpassable, which mobs are on. Without a
-                // ricochet component there is nothing to veto that contact, so drop the fixture instead.
                 RemComp<FSRicochetComponent>(projUid);
                 _fixtures.DestroyFixture(projUid, FSRicochetSystem.BounceFixture);
             }

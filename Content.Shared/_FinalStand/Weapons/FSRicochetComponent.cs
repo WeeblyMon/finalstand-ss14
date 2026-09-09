@@ -54,7 +54,7 @@ public sealed partial class FSRicochetComponent : Component
     public float FragmentSpeed = 16f;
 
     [DataField]
-    public int FragmentBounces = 1;
+    public int FragmentBounces;
 
     [DataField]
     public EntProtoId? FragmentProto;

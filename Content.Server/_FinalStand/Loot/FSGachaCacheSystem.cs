@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Economy;
+﻿using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Loot;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
@@ -56,7 +56,6 @@ public sealed class FSGachaCacheSystem : EntitySystem
             return false;
         }
 
-        // Rolled before the charge so an unresolvable pool can never take credits without paying out.
         if (!TryRoll(ent.Comp, out var prize, out var bonus))
         {
             Log.Error($"{ToPrettyString(ent)} has no resolvable loot pool; refusing to charge {ToPrettyString(user)}.");

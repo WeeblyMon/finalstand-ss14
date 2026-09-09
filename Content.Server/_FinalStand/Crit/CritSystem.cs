@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.NPC;
+﻿using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.FriendlyFire;
@@ -71,8 +71,6 @@ public sealed partial class CritSystem : EntitySystem
         if (comp.Shooter == null || comp.Weapon == null)
             return;
 
-        // ProjectileSystem raises the hit before it checks friendly fire, so gate here too or every
-        // on-hit upgrade - knockback, ignite, bleed, lifesteal, money gain - fires on teammates.
         if (HasComp<FSFriendlyFireComponent>(comp.Shooter.Value) && HasComp<FSFriendlyFireComponent>(args.Target))
             return;
 
