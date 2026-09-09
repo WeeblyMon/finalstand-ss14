@@ -102,6 +102,7 @@
   - FSChemistSyringe
   - FSSplashFlask
   - FSHarvestSatchel
+  - FSSyringePack
   # - AdvancedJetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: latheRecipePack

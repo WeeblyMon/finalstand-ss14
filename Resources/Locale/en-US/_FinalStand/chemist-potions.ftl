@@ -35,3 +35,6 @@ reagent-name-fs-coagulant = coagulant mist
 reagent-desc-fs-coagulant = Clots wounds on contact. Staunches bleeding on anyone standing in the cloud.
 reagent-name-fs-etchant = etchant
 reagent-desc-fs-etchant = Coats a crewmate's ammunition. Their shots cut straight through enemy plating for a while.
+fs-syringe-pack-empty = The pack is empty.
+fs-syringe-pack-full = No room in the gun.
+fs-syringe-pack-loaded = Loaded {$count} syringes.
