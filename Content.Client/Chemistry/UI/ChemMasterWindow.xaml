@@ -142,5 +142,20 @@
                 <BoxContainer Name="RecipeInfo" Orientation="Vertical" Margin="4" HorizontalExpand="True" />
             </ScrollContainer>
         </PanelContainer>
+
+        <!-- F: syringe gun upgrades -->
+        <PanelContainer>
+            <PanelContainer.PanelOverride>
+                <gfx:StyleBoxFlat BackgroundColor="#1B1B1E" />
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical" Margin="4" HorizontalExpand="True" SeparationOverride="2">
+                <BoxContainer Orientation="Horizontal">
+                    <Label Text="{Loc 'fs-syringe-shop-title'}" />
+                    <Control HorizontalExpand="True" />
+                    <Label Name="UpgradeCredits" StyleClasses="LabelSubText" />
+                </BoxContainer>
+                <BoxContainer Name="UpgradeRows" Orientation="Vertical" HorizontalExpand="True" />
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </controls:FancyWindow>

@@ -1,5 +1,7 @@
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
+using Content.Client._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.MedicalOps.Shop;
 using Content.Shared.Chemistry;
 using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
@@ -43,6 +45,10 @@ namespace Content.Client.Chemistry.UI
 
         private ChemMasterReagentAmount _selectedAmount = ChemMasterReagentAmount.U10;
         private string? _recipeKey;
+        private string? _upgradeKey;
+        private string? _pendingUpgrade;
+
+        public event Action<string>? OnUpgradePressed;
 
         private const string PillsRsiPath = "/Textures/Objects/Specific/Chemistry/pills.rsi";
 
@@ -378,6 +384,7 @@ namespace Content.Client.Chemistry.UI
 
             SyncRows(BufferInfo, _bufferRows, header, rows, true, true);
             UpdateRecipes(state);
+            UpdateUpgrades();
         }
 
         private void UpdateRecipes(ChemMasterBoundUserInterfaceState state)
@@ -464,6 +471,82 @@ namespace Content.Client.Chemistry.UI
                     Text = miss,
                     StyleClasses = { StyleClass.LabelWeak },
                 });
+            }
+        }
+
+        public void UpdateUpgrades()
+        {
+            var upgrades = _entityManager.System<FSSyringeUpgradeClientSystem>();
+            var owned = upgrades.OwnedTierId();
+            var ownedRank = FSSyringeShopDefs.RankOf(owned);
+            var credits = upgrades.Credits;
+
+            var key = $"{owned}|{credits}|{_pendingUpgrade}";
+            if (key == _upgradeKey)
+                return;
+
+            _upgradeKey = key;
+            UpgradeCredits.Text = Loc.GetString("fs-syringe-shop-credits", ("credits", credits));
+            UpgradeRows.Children.Clear();
+
+            foreach (var tier in FSSyringeShopDefs.Tiers)
+            {
+                var row = new BoxContainer
+                {
+                    Orientation = LayoutOrientation.Horizontal,
+                    HorizontalExpand = true,
+                };
+
+                row.AddChild(new Label
+                {
+                    Text = $"{tier.Name} — {tier.Description}",
+                    HorizontalExpand = true,
+                    StyleClasses = { StyleClass.LabelWeak },
+                });
+
+                if (tier.Rank <= ownedRank)
+                {
+                    row.AddChild(new Label
+                    {
+                        Text = Loc.GetString("fs-syringe-shop-owned"),
+                        Modulate = Color.FromHex("#4FBF7A"),
+                        MinWidth = 130,
+                    });
+                }
+                else
+                {
+                    var id = tier.Id;
+                    var awaiting = _pendingUpgrade == id;
+
+                    var button = new Button
+                    {
+                        Text = awaiting
+                            ? Loc.GetString("fs-syringe-shop-confirm")
+                            : Loc.GetString("fs-syringe-shop-buy", ("price", tier.Price)),
+                        MinWidth = 130,
+                        Disabled = credits < tier.Price,
+                        Modulate = awaiting ? Color.FromHex("#C9A227") : Color.White,
+                    };
+
+                    button.OnPressed += _ =>
+                    {
+                        if (_pendingUpgrade == id)
+                        {
+                            _pendingUpgrade = null;
+                            _upgradeKey = null;
+                            OnUpgradePressed?.Invoke(id);
+                            return;
+                        }
+
+                        _pendingUpgrade = id;
+                        _upgradeKey = null;
+                        UpdateUpgrades();
+                    };
+
+                    row.AddChild(button);
+                }
+
+                UpgradeRows.AddChild(row);
             }
         }
 

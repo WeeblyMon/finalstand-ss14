@@ -1,9 +1,11 @@
 using Content.Server._FinalStand.Economy;
+using Content.Server.Chemistry.Components;
 using Content.Shared._FinalStand.MedicalOps.Shop;
+using Content.Shared.Chemistry;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
-using Robust.Server.GameObjects;
+using Content.Shared.Popups;
 
 namespace Content.Server._FinalStand.MedicalOps.Shop;
 
@@ -12,7 +14,7 @@ public sealed class FSSyringeShopSystem : EntitySystem
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
-    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly Dictionary<EntityUid, string> _ownedTier = new();
 
@@ -23,9 +25,8 @@ public sealed class FSSyringeShopSystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
-        Subs.BuiEvents<FSSyringeShopComponent>(FSSyringeShopUiKey.Key, subs =>
+        Subs.BuiEvents<ChemMasterComponent>(ChemMasterUiKey.Key, subs =>
         {
-            subs.Event<BoundUIOpenedEvent>(OnShopOpened);
             subs.Event<FSSyringeShopBuyMessage>(OnBuy);
         });
     }
@@ -35,15 +36,7 @@ public sealed class FSSyringeShopSystem : EntitySystem
         _ownedTier.Clear();
     }
 
-    private void OnShopOpened(EntityUid uid, FSSyringeShopComponent comp, BoundUIOpenedEvent args)
-    {
-        if (!_mind.TryGetMind(args.Actor, out var mindId, out _))
-            return;
-
-        SendState(uid, mindId, args.Actor);
-    }
-
-    private void OnBuy(EntityUid uid, FSSyringeShopComponent comp, FSSyringeShopBuyMessage args)
+    private void OnBuy(EntityUid uid, ChemMasterComponent comp, FSSyringeShopBuyMessage args)
     {
         if (!args.Actor.IsValid() || !_mind.TryGetMind(args.Actor, out var mindId, out _))
             return;
@@ -57,7 +50,10 @@ public sealed class FSSyringeShopSystem : EntitySystem
             return;
 
         if (!_wallet.TryDeductCredits(mindId, tier.Price))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-syringe-shop-poor"), args.Actor, args.Actor);
             return;
+        }
 
         if (!Give(args.Actor, tier))
         {
@@ -66,7 +62,9 @@ public sealed class FSSyringeShopSystem : EntitySystem
         }
 
         _ownedTier[mindId] = tier.Id;
-        SendState(uid, mindId, args.Actor);
+        Sync(args.Actor, tier.Id);
+
+        _popup.PopupEntity(Loc.GetString("fs-syringe-shop-bought", ("tier", tier.Name)), args.Actor, args.Actor);
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
@@ -77,8 +75,18 @@ public sealed class FSSyringeShopSystem : EntitySystem
         if (!_ownedTier.TryGetValue(mindId, out var tierId))
             return;
 
-        if (FSSyringeShopDefs.GetTier(tierId) is { } tier)
-            Give(ev.Mob, tier);
+        if (FSSyringeShopDefs.GetTier(tierId) is not { } tier)
+            return;
+
+        Give(ev.Mob, tier);
+        Sync(ev.Mob, tier.Id);
+    }
+
+    private void Sync(EntityUid mob, string tierId)
+    {
+        var comp = EnsureComp<FSSyringeUpgradeComponent>(mob);
+        comp.TierId = tierId;
+        Dirty(mob, comp);
     }
 
     private bool Give(EntityUid mob, FSSyringeTierDef tier)
@@ -89,15 +97,5 @@ public sealed class FSSyringeShopSystem : EntitySystem
             return true;
 
         return !Deleted(item);
-    }
-
-    private void SendState(EntityUid uid, EntityUid mindId, EntityUid actor)
-    {
-        _ownedTier.TryGetValue(mindId, out var ownedId);
-
-        _ui.ServerSendUiMessage(uid,
-            FSSyringeShopUiKey.Key,
-            new FSSyringeShopState(ownedId, _wallet.GetCredits(mindId)),
-            actor);
     }
 }

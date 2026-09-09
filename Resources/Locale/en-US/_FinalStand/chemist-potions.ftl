@@ -25,3 +25,5 @@ fs-harvest-status-capped = TISSUE {$stock}u  (wave limit reached)
 fs-syringe-shop-confirm = Confirm — no refund
 fs-syringe-shop-stats = {$rounds} rounds (+{$roundsDelta}) · {$fireRate}/s
 fs-chemist-objective = Brew from harvested tissue, buff your squad, and stay near the fight to keep harvesting. Your syringe gun is re-issued if you respawn.
+fs-syringe-shop-poor = Not enough credits.
+fs-syringe-shop-bought = Upgraded to {$tier}.
