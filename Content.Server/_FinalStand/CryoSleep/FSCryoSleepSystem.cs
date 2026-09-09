@@ -42,7 +42,8 @@ public sealed class FSCryoSleepSystem : EntitySystem
         body = default;
         pod = default;
 
-        var query = EntityQueryEnumerator<FSCryoStoredBodyComponent>();
+        // Must be the All- variant: vanilla parks stored bodies on a paused map, which the plain query skips.
+        var query = EntityManager.AllEntityQueryEnumerator<FSCryoStoredBodyComponent>();
         while (query.MoveNext(out var uid, out var stored))
         {
             if (stored.User != userId || TerminatingOrDeleted(uid))
