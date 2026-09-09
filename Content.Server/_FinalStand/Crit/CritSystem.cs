@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage.Systems;
@@ -68,6 +69,11 @@ public sealed partial class CritSystem : EntitySystem
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
         if (comp.Shooter == null || comp.Weapon == null)
+            return;
+
+        // ProjectileSystem raises the hit before it checks friendly fire, so gate here too or every
+        // on-hit upgrade - knockback, ignite, bleed, lifesteal, money gain - fires on teammates.
+        if (HasComp<FSFriendlyFireComponent>(comp.Shooter.Value) && HasComp<FSFriendlyFireComponent>(args.Target))
             return;
 
         var didCrit = TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier);
