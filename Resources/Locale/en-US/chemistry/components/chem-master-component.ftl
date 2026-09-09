@@ -40,3 +40,10 @@ chem-master-window-beaker-empty-text = Beaker Empty
 chem-master-window-beaker-low-text = Not enough solution in beaker
 chem-master-output-source = Packaging source:
 chem-master-no-source = No Source
+
+chem-master-window-amount-label = Amount:
+chem-master-window-move-button = Move
+chem-master-window-recipes-empty = Load reagents into the buffer to see what they make.
+chem-master-window-recipes-none = Nothing brewable from this combination.
+chem-master-window-recipes-ready = CAN MAKE: {$recipes}
+chem-master-window-recipe-needs = {$recipe} — needs {$reagent}
