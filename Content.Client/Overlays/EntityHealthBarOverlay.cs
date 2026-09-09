@@ -44,6 +44,8 @@ public sealed class EntityHealthBarOverlay : Overlay
     public EntityUid? MedigunTarget;
     public float MedigunSoftCap = 0.7f;
 
+    public readonly HashSet<EntityUid> ChemBuffed = new();
+
     private static readonly Color[] GroupColors =
     {
         Color.FromHex("#C63C3C"), // Brute
@@ -156,6 +158,14 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             if (breakdown)
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
+
+            if (ChemBuffed.Contains(uid))
+            {
+                var underline = new Box2(
+                    new Vector2(startX, -2f) / EyeManager.PixelsPerMeter,
+                    new Vector2(endX, -1f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(underline, Color.FromHex("#4FBF7A"));
+            }
 
             if (MedigunTarget == uid)
             {

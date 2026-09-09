@@ -6,6 +6,7 @@ using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
@@ -13,8 +14,11 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private bool _isMedical;
+
+    public const string ChemSourcePrefix = "chem-";
 
     public override void Initialize()
     {
@@ -67,6 +71,28 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
         overlay.ShowDamageTypes = _isMedical;
         overlay.MedigunTarget = FindMedigunTarget();
+
+        RefreshChemBuffed(overlay);
+    }
+
+    private void RefreshChemBuffed(EntityHealthBarOverlay overlay)
+    {
+        overlay.ChemBuffed.Clear();
+
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
+
+        while (query.MoveNext(out var uid, out var bonus))
+        {
+            foreach (var (source, buff) in bonus.Active)
+            {
+                if (!source.StartsWith(ChemSourcePrefix) || buff.IsExpired(now))
+                    continue;
+
+                overlay.ChemBuffed.Add(uid);
+                break;
+            }
+        }
     }
 
     private EntityUid? FindMedigunTarget()

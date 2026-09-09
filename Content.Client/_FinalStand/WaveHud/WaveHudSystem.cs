@@ -136,7 +136,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
         foreach (var (source, buff) in bonus.Active)
         {
-            if (!source.StartsWith(FSBuffOverlay.ChemSourcePrefix) || buff.IsExpired(now))
+            if (!source.StartsWith(FSHealthBarSystem.ChemSourcePrefix) || buff.IsExpired(now))
                 continue;
 
             overlay.BuffStatus = buff.EndTime is { } end
