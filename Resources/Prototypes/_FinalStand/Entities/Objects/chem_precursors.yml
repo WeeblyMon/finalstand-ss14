@@ -1,0 +1,62 @@
+- type: entity
+  parent: BaseItem
+  id: FSEnzymeBottle
+  name: refined enzyme
+  description: A sealed vial of stabilised enzyme. The base for coagulant chemistry.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    layers:
+    - state: bottle-1
+  - type: Item
+    size: Tiny
+  - type: SolutionContainerManager
+    solutions:
+      drink:
+        maxVol: 30
+        reagents:
+        - ReagentId: FSRefinedEnzyme
+          Quantity: 30
+  - type: DrainableSolution
+    solution: drink
+  - type: ExaminableSolution
+    solution: drink
+  - type: SolutionTransfer
+    transferAmount: 30
+    maxTransferAmount: 30
+    canReceive: false
+
+- type: latheRecipe
+  id: FSEnzymeBottle
+  result: FSEnzymeBottle
+  completetime: 3
+  materials:
+    Steel: 100
+    Plastic: 100
+
+- type: entity
+  parent: FSEnzymeBottle
+  id: FSCatalystBottle
+  name: etching catalyst
+  description: A sealed vial of corrosive catalyst. The base for armour-etching chemistry.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    layers:
+    - state: bottle-2
+  - type: SolutionContainerManager
+    solutions:
+      drink:
+        maxVol: 30
+        reagents:
+        - ReagentId: FSCatalystSalt
+          Quantity: 30
+
+- type: latheRecipe
+  id: FSCatalystBottle
+  result: FSCatalystBottle
+  completetime: 3
+  materials:
+    Steel: 100
+    Plastic: 100
+    Silver: 50

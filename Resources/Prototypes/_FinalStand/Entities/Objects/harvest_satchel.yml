@@ -34,3 +34,11 @@
   - type: FSHarvestSatchel
     solution: satchel
   - type: Appearance
+
+- type: latheRecipe
+  id: FSHarvestSatchel
+  result: FSHarvestSatchel
+  completetime: 3
+  materials:
+    Steel: 150
+    Plastic: 150
