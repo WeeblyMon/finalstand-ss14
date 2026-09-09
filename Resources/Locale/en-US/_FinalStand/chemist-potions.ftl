@@ -22,3 +22,6 @@ reagent-name-fs-weakening = weakening agent
 reagent-desc-fs-weakening = Breaks down enemy tissue so every source of damage bites harder.
 fs-harvest-status = TISSUE {$stock}u  ({$wave}/{$cap} this wave)
 fs-harvest-status-capped = TISSUE {$stock}u  (wave limit reached)
+fs-syringe-shop-confirm = Confirm — no refund
+fs-syringe-shop-stats = {$rounds} rounds (+{$roundsDelta}) · {$fireRate}/s
+fs-chemist-objective = Brew from harvested tissue, buff your squad, and stay near the fight to keep harvesting. Your syringe gun is re-issued if you respawn.

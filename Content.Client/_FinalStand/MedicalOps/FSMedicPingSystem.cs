@@ -44,7 +44,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         if (!TryGetEntity(ev.Caller, out var caller))
             return;
 
-        EnsureOverlay().Add(caller.Value, ev.IsHurt);
+        EnsureOverlay().Add(caller.Value, ev.IsHurt, ev.Kind);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)

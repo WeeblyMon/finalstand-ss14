@@ -24,6 +24,11 @@
     changeColor: true
   - type: DrainableSolution
     solution: satchel
+  - type: SolutionTransfer
+    transferAmount: 50
+    maxTransferAmount: 250
+    canChangeTransferAmount: true
+    canReceive: false
   - type: ExaminableSolution
     solution: satchel
   - type: FSHarvestSatchel

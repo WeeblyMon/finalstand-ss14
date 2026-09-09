@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.MedicalOps;
 using System.Numerics;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -22,7 +23,9 @@ public sealed class FSMedicPingOverlay : Overlay
     private const float Lifetime = 2.5f;
     private const float BubbleMeters = 1.0f;
 
-    private readonly record struct Ping(EntityUid Target, bool IsHurt, float Life);
+    private static readonly Color ChemTint = Color.FromHex("#4FBF7A");
+
+    private readonly record struct Ping(EntityUid Target, bool IsHurt, float Life, FSPingKind Kind);
     private readonly List<Ping> _pings = new();
 
     public FSMedicPingOverlay(IEntityManager entManager, IResourceCache cache)
@@ -48,10 +51,10 @@ public sealed class FSMedicPingOverlay : Overlay
         }
     }
 
-    public void Add(EntityUid target, bool isHurt)
+    public void Add(EntityUid target, bool isHurt, FSPingKind kind)
     {
         _pings.RemoveAll(p => p.Target == target);
-        _pings.Add(new Ping(target, isHurt, Lifetime));
+        _pings.Add(new Ping(target, isHurt, Lifetime, kind));
     }
 
     public void Clear() => _pings.Clear();
@@ -106,7 +109,8 @@ public sealed class FSMedicPingOverlay : Overlay
             var yOffset = height / 2f + half * 0.6f;
             var box = new Box2(-half, yOffset - half, half, yOffset + half);
 
-            handle.DrawTextureRect(texture, box, Color.White.WithAlpha(alpha));
+            var tint = ping.Kind == FSPingKind.Chem ? ChemTint : Color.White;
+            handle.DrawTextureRect(texture, box, tint.WithAlpha(alpha));
         }
 
         handle.SetTransform(Matrix3x2.Identity);

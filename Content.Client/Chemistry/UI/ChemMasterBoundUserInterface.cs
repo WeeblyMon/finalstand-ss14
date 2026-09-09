@@ -15,8 +15,36 @@ namespace Content.Client.Chemistry.UI
         [ViewVariables]
         private ChemMasterWindow? _window;
 
+        private bool _lastWasPills = true;
+
         public ChemMasterBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
         {
+        }
+
+        private void MakePills()
+        {
+            if (_window == null)
+                return;
+
+            SendMessage(new ChemMasterCreatePillsMessage(
+                (uint) _window.PillDosage.Value, (uint) _window.PillNumber.Value, _window.LabelLine));
+
+            _lastWasPills = true;
+            _window.RepeatButton.Disabled = false;
+            _window.ResetDosageEdits();
+        }
+
+        private void MakeBottle()
+        {
+            if (_window == null)
+                return;
+
+            SendMessage(new ChemMasterOutputToBottleMessage(
+                (uint) _window.BottleDosage.Value, _window.LabelLine));
+
+            _lastWasPills = false;
+            _window.RepeatButton.Disabled = false;
+            _window.ResetDosageEdits();
         }
 
         /// <summary>
@@ -40,17 +68,14 @@ namespace Content.Client.Chemistry.UI
                 new ChemMasterSetModeMessage(ChemMasterMode.Transfer));
             _window.BufferDiscardButton.OnPressed += _ => SendMessage(
                 new ChemMasterSetModeMessage(ChemMasterMode.Discard));
-            _window.CreatePillButton.OnPressed += _ =>
+            _window.CreatePillButton.OnPressed += _ => MakePills();
+            _window.CreateBottleButton.OnPressed += _ => MakeBottle();
+            _window.RepeatButton.OnPressed += _ =>
             {
-                SendMessage(new ChemMasterCreatePillsMessage(
-                    (uint) _window.PillDosage.Value, (uint) _window.PillNumber.Value, _window.LabelLine));
-                _window.ResetDosageEdits();
-            };
-            _window.CreateBottleButton.OnPressed += _ =>
-            {
-                SendMessage(new ChemMasterOutputToBottleMessage(
-                    (uint) _window.BottleDosage.Value, _window.LabelLine));
-                _window.ResetDosageEdits();
+                if (_lastWasPills)
+                    MakePills();
+                else
+                    MakeBottle();
             };
             _window.BufferSortButton.OnPressed += _ => SendMessage(
                     new ChemMasterSortingTypeCycleMessage());

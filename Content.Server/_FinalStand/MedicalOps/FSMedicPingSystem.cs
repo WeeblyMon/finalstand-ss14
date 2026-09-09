@@ -22,6 +22,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private FSCasualtySystem _casualty = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
+    private static readonly EntProtoId ChemRequestActionProto = "FSChemRequestAction";
     private const string ScreamEmote = "Scream";
 
     private const float HurtThreshold = 0.3f;
@@ -32,8 +33,18 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSMedicPingActionEvent>(OnPingAction);
+        SubscribeLocalEvent<FSChemRequestActionEvent>(OnChemRequestAction);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    private void OnChemRequestAction(FSChemRequestActionEvent args)
+    {
+        args.Handled = true;
+
+        RaiseNetworkEvent(
+            new FSMedicPingEvent(GetNetEntity(args.Performer), false, FSPingKind.Chem),
+            Filter.Broadcast());
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -45,6 +56,8 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         var actionEnt = _actions.AddAction(mob, PingActionProto);
         if (actionEnt != null)
             _grantedActions[mob] = actionEnt.Value;
+
+        _actions.AddAction(mob, ChemRequestActionProto);
     }
 
     private void OnPingAction(FSMedicPingActionEvent args)

@@ -47,3 +47,4 @@ chem-master-window-recipes-empty = Load reagents into the buffer to see what the
 chem-master-window-recipes-none = Nothing brewable from this combination.
 chem-master-window-recipes-ready = CAN MAKE: {$recipes}
 chem-master-window-recipe-needs = {$recipe} — needs {$reagent}
+chem-master-window-repeat-button = Repeat last batch

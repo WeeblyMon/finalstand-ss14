@@ -26,6 +26,10 @@
     solution: flask
   - type: DrainableSolution
     solution: flask
+  - type: SolutionTransfer
+    transferAmount: 50
+    maxTransferAmount: 50
+    canChangeTransferAmount: true
   - type: ExaminableSolution
     solution: flask
   - type: FSSplashFlask
