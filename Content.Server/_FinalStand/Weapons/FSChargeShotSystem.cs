@@ -9,6 +9,7 @@ namespace Content.Server._FinalStand.Weapons;
 
 public sealed class FSChargeShotEffectsSystem : EntitySystem
 {
+    [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
 
     public override void Initialize()
@@ -53,7 +54,10 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
             }
             else
             {
+                // The bounce fixture is hard and masks BulletImpassable, which mobs are on. Without a
+                // ricochet component there is nothing to veto that contact, so drop the fixture instead.
                 RemComp<FSRicochetComponent>(projUid);
+                _fixtures.DestroyFixture(projUid, FSRicochetSystem.BounceFixture);
             }
 
             if (TryComp<PhysicsComponent>(projUid, out var body))

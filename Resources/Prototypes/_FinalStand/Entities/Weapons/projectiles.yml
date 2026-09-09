@@ -181,8 +181,10 @@
   - type: Appearance
   - type: FSNoStructureDamage
   # The stock projectile fixture is a sensor, so nothing ever deflects it. A second hard fixture
-  # masked purely to BulletImpassable lets the physics engine bounce it off walls for real, while
-  # staying invisible to mobs and to other pellets (whose fly-by layer omits BulletImpassable).
+  # masked purely to BulletImpassable lets the physics engine bounce it off walls for real, and other
+  # pellets ignore it because their fly-by layer omits BulletImpassable. Mobs do NOT: they sit on
+  # BulletImpassable too, so FSRicochetSystem vetoes that contact and pellets that will not bounce
+  # have this fixture destroyed outright.
   - type: Fixtures
     fixtures:
       projectile:

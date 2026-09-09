@@ -185,6 +185,7 @@ public sealed class FSRicochetSystem : EntitySystem
             else
             {
                 RemComp<FSRicochetComponent>(fragment);
+                _fixtures.DestroyFixture(fragment, BounceFixture);
             }
 
             if (TryComp<ProjectileComponent>(fragment, out var fragProj))
