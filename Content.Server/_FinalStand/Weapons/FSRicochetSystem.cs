@@ -173,6 +173,17 @@ public sealed class FSRicochetSystem : EntitySystem
             var fragment = Spawn(proto, coords);
             RemComp<FSPierceComponent>(fragment);
 
+            // Ownership first: the shooter-ignore and friendly-fire vetoes both read Shooter, and a
+            // fragment spawns already overlapping whoever the parent pellet just bounced next to.
+            if (TryComp<ProjectileComponent>(fragment, out var fragProj))
+            {
+                fragProj.Damage = damage;
+                fragProj.Shooter = projectile.Shooter;
+                fragProj.Weapon = projectile.Weapon;
+                fragProj.IgnoreShooter = true;
+                fragProj.DeleteOnCollide = ent.Comp.FragmentBounces <= 0;
+            }
+
             if (ent.Comp.FragmentBounces > 0)
             {
                 var fragBounce = EnsureComp<FSRicochetComponent>(fragment);
@@ -186,15 +197,6 @@ public sealed class FSRicochetSystem : EntitySystem
             {
                 RemComp<FSRicochetComponent>(fragment);
                 _fixtures.DestroyFixture(fragment, BounceFixture);
-            }
-
-            if (TryComp<ProjectileComponent>(fragment, out var fragProj))
-            {
-                fragProj.Damage = damage;
-                fragProj.Shooter = projectile.Shooter;
-                fragProj.Weapon = projectile.Weapon;
-                fragProj.IgnoreShooter = true;
-                fragProj.DeleteOnCollide = ent.Comp.FragmentBounces <= 0;
             }
 
             _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + fragProj?.Angle ?? Angle.Zero);
