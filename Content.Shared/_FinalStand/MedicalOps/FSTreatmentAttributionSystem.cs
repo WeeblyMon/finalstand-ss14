@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared.Mind;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
@@ -12,6 +11,8 @@ public sealed partial class FSTreatmentAttributionSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
 
     public static readonly TimeSpan AttributionWindow = TimeSpan.FromSeconds(30);
+
+    private readonly List<EntityUid> _expiredScratch = new();
 
     public void RecordTreatment(EntityUid patient, EntityUid user, EntityUid? used = null)
     {
@@ -105,10 +106,16 @@ public sealed partial class FSTreatmentAttributionSystem : EntitySystem
         return found;
     }
 
-    private static void PruneExpired(Dictionary<EntityUid, TimeSpan> claims, TimeSpan now)
+    private void PruneExpired(Dictionary<EntityUid, TimeSpan> claims, TimeSpan now)
     {
-        var expired = claims.Where(kv => kv.Value <= now).Select(kv => kv.Key).ToList();
-        foreach (var claimant in expired)
+        _expiredScratch.Clear();
+        foreach (var (claimant, expiry) in claims)
+        {
+            if (expiry <= now)
+                _expiredScratch.Add(claimant);
+        }
+
+        foreach (var claimant in _expiredScratch)
             claims.Remove(claimant);
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
@@ -12,7 +13,7 @@ namespace Content.Server._FinalStand.MedicalOps;
 public sealed partial class FSCmoAbilitySystem : EntitySystem
 {
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
-    [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private FSMedicalRolesSystem _roles = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private IPlayerManager _player = default!;
@@ -32,7 +33,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(260);
     private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(60);
 
-    private static readonly Dictionary<FSMedicalDirective, DirectiveDef> Directives = new()
+    private static readonly FrozenDictionary<FSMedicalDirective, DirectiveDef> Directives = new Dictionary<FSMedicalDirective, DirectiveDef>()
     {
         [FSMedicalDirective.Trauma] = new DirectiveDef("fs-cmo-directive-trauma",
             new Dictionary<FSMedicalBonusCategory, float>
@@ -53,7 +54,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
                 [FSMedicalBonusCategory.DragSpeed] = 0.25f,
                 [FSMedicalBonusCategory.InterruptionResistance] = 0.20f,
             }),
-    };
+    }.ToFrozenDictionary();
 
     private static readonly Dictionary<FSMedicalBonusCategory, float> McpBonuses = new()
     {
@@ -145,7 +146,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         if (_activeDirective is { } active
             && Directives.TryGetValue(active, out var def)
-            && _fund.IsMedical(ev.Mob))
+            && _roles.IsMedicalStaff(ev.Mob))
         {
             _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses);
         }
@@ -211,7 +212,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } mob && _fund.IsMedical(mob))
+            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
                 _bonus.ApplyBuff(mob, source, bonuses, duration);
         }
     }
@@ -235,7 +236,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } mob && mob != performer && _fund.IsMedical(mob))
+            if (session.AttachedEntity is { } mob && mob != performer && _roles.IsMedicalStaff(mob))
                 _popup.PopupEntity(name, mob, mob, PopupType.Medium);
         }
     }
