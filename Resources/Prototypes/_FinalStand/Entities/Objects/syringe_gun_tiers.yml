@@ -2,32 +2,18 @@
   parent: LauncherSyringe
   id: FSSyringeGunMk2
   name: syringe gun mk2
-  description: A rebored syringe gun. Holds more darts, cycles faster, and throws them further.
+  description: A rebored syringe gun. Cycles faster and throws darts further.
   components:
-  - type: Storage
-    maxItemSize: Normal
-    grid:
-    - 0,0,7,0
-    whitelist:
-      tags:
-      - SyringeGunAmmo
   - type: Gun
-    fireRate: 1.5
+    fireRate: 3
     projectileSpeed: 55
 
 - type: entity
   parent: LauncherSyringe
   id: FSSyringeGunMk3
   name: syringe gun mk3
-  description: A field-modified launcher with an extended rack, rapid cycling, and a high-pressure barrel for long-range dosing.
+  description: A field-modified launcher with rapid cycling and a high-pressure barrel for long-range dosing.
   components:
-  - type: Storage
-    maxItemSize: Normal
-    grid:
-    - 0,0,9,0
-    whitelist:
-      tags:
-      - SyringeGunAmmo
   - type: Gun
-    fireRate: 2
+    fireRate: 4
     projectileSpeed: 70

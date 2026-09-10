@@ -6,8 +6,8 @@ public static class FSSyringeShopDefs
 {
     public static readonly IReadOnlyList<FSSyringeTierDef> Tiers = new FSSyringeTierDef[]
     {
-        new("mk2", "Syringe Gun Mk2", "8 rounds, faster cycling, longer reach.", 6_000, "FSSyringeGunMk2", 1),
-        new("mk3", "Syringe Gun Mk3", "10 rounds, rapid cycling, longest reach.", 14_000, "FSSyringeGunMk3", 2),
+        new("mk2", "Syringe Gun Mk2", "Faster cycling and longer reach.", 6_000, "FSSyringeGunMk2", 1),
+        new("mk3", "Syringe Gun Mk3", "Rapid cycling and the longest reach.", 14_000, "FSSyringeGunMk3", 2),
     };
 
     public static FSSyringeTierDef? GetTier(string? id)
