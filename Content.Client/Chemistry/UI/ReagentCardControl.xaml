@@ -21,12 +21,16 @@
                            StyleClasses="LabelSubText"
                            Margin="0 -5 0 0" />
                 </BoxContainer>
+                <Label Name="AmountLabel"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       Margin="0 0 -2 0" />
             </BoxContainer>
         </Button>
         <Button Name="EjectButton"
-                StyleClasses="OpenLeft"
                 VerticalExpand="True"
-                SetWidth="20">
+                SetWidth="20"
+                Margin="3 0 0 0">
             <Label Name="EjectButtonIcon"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"

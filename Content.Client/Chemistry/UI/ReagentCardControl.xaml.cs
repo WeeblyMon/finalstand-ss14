@@ -10,7 +10,9 @@ namespace Content.Client.Chemistry.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ReagentCardControl : Control
 {
-    public ItemStorageLocation StorageLocation { get; }
+    public ItemStorageLocation StorageLocation { get; private set; }
+    public string? ReagentId { get; private set; }
+    public string ReagentLabel { get; private set; } = string.Empty;
     public Action<ItemStorageLocation>? OnPressed;
     public Action<ItemStorageLocation>? OnEjectButtonPressed;
 
@@ -18,16 +20,28 @@ public sealed partial class ReagentCardControl : Control
     {
         RobustXamlLoader.Load(this);
 
-        StorageLocation = item.StorageLocation;
-        ColorPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = item.ReagentColor };
-        ReagentNameLabel.Text = item.ReagentLabel;
-        FillLabel.Text = Loc.GetString("reagent-dispenser-window-quantity-label-text", ("quantity", item.Quantity));;
         EjectButtonIcon.Text = Loc.GetString("reagent-dispenser-window-eject-container-button");
-
-        if (item.Quantity == 0.0)
-            MainButton.Disabled = true;
 
         MainButton.OnPressed += args => OnPressed?.Invoke(StorageLocation);
         EjectButton.OnPressed += args => OnEjectButtonPressed?.Invoke(StorageLocation);
+
+        Update(item);
+    }
+
+    public void Update(ReagentInventoryItem item)
+    {
+        StorageLocation = item.StorageLocation;
+        ReagentId = item.ReagentId;
+        ReagentLabel = item.ReagentLabel;
+
+        ColorPanel.PanelOverride = new StyleBoxFlat { BackgroundColor = item.ReagentColor };
+        ReagentNameLabel.Text = item.ReagentLabel;
+        FillLabel.Text = Loc.GetString("reagent-dispenser-window-quantity-label-text", ("quantity", item.Quantity));
+        MainButton.Disabled = item.Quantity == 0.0;
+    }
+
+    public void SetDispenseAmount(int amount)
+    {
+        AmountLabel.Text = Loc.GetString("reagent-dispenser-window-card-amount", ("amount", amount));
     }
 }
