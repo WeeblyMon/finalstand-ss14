@@ -109,12 +109,13 @@ namespace Content.Shared.Chemistry
     }
 
     [Serializable, NetSerializable]
-    public sealed class ReagentInventoryItem(ItemStorageLocation storageLocation, string reagentLabel, FixedPoint2 quantity, Color reagentColor)
+    public sealed class ReagentInventoryItem(ItemStorageLocation storageLocation, string reagentLabel, FixedPoint2 quantity, Color reagentColor, string? reagentId = null)
     {
         public ItemStorageLocation StorageLocation = storageLocation;
         public string ReagentLabel = reagentLabel;
         public FixedPoint2 Quantity = quantity;
         public Color ReagentColor = reagentColor;
+        public string? ReagentId = reagentId;
     }
 
     [Serializable, NetSerializable]

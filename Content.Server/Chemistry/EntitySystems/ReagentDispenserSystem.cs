@@ -102,13 +102,17 @@ namespace Content.Server.Chemistry.EntitySystems
                 // Get volume remaining and color of solution
                 FixedPoint2 quantity = 0f;
                 var reagentColor = Color.White;
+                string? reagentId = null;
                 if (_solutionContainerSystem.TryGetDrainableSolution(storedContainer, out _, out var sol))
                 {
                     quantity = sol.Volume;
                     reagentColor = sol.GetColor(ProtoMan);
+
+                    if (sol.Contents.Count == 1)
+                        reagentId = sol.Contents[0].Reagent.Prototype;
                 }
 
-                inventory.Add(new ReagentInventoryItem(storageLocation, reagentLabel, quantity, reagentColor));
+                inventory.Add(new ReagentInventoryItem(storageLocation, reagentLabel, quantity, reagentColor, reagentId));
             }
 
             return inventory;
