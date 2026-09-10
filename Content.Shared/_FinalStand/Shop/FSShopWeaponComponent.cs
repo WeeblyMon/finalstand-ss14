@@ -39,10 +39,10 @@ public sealed partial class FSShopWeaponComponent : Component
     [DataField]
     public string Category = "";
 
-    [DataField] public byte StatDamage = 50;
-    [DataField] public byte StatFireRate = 50;
-    [DataField] public byte StatAccuracy = 50;
-    [DataField] public byte StatCapacity = 50;
+    [DataField] public int StatDamage = 50;
+    [DataField] public int StatFireRate = 50;
+    [DataField] public int StatAccuracy = 50;
+    [DataField] public int StatCapacity = 50;
 
     [DataField] public int StatHealth;
 }
