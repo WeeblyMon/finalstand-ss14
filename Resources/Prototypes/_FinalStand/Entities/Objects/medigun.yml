@@ -13,15 +13,13 @@
   - type: FSMediGun
     healing:
       types:
-        Blunt: -6
-        Slash: -6
-        Piercing: -6
-        Heat: -6
-        Cold: -4
+        Blunt: -12
+        Slash: -12
+        Piercing: -12
+        Heat: -12
+        Cold: -8
     soundOnTarget:
-      path: /Audio/Effects/beep1.ogg
-      params:
-        volume: 4
+      path: /Audio/_FinalStand/Effects/medigun.ogg
   - type: Battery
     maxCharge: 30
     startingCharge: 30
