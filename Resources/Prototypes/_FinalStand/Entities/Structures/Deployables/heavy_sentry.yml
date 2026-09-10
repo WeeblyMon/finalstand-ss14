@@ -1,8 +1,8 @@
-﻿# ── Heavy Station Gun - held item (engineering only, planted via use-in-hand) ─────────────────
+﻿# ── Heavy Sentry - held item (engineering only, planted via use-in-hand) ─────────────────
 - type: entity
-  id: FSHeavyStationGunItem
+  id: FSHeavySentryItem
   parent: BaseItem
-  name: heavy station gun
+  name: heavy sentry
   description: A belt-fed emplacement gun on a folding mount. Engineering issue only. Bolt it down and it holds a corridor on its own.
   categories: [ HideSpawnMenu ]
   components:
@@ -11,39 +11,39 @@
     shape:
     - 0,0,2,2
   - type: Sprite
-    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     state: icon
   - type: FSSentryTurret
     ammo: 400
     maxAmmo: 400
     range: 6
     fireInterval: 0.3
-    damageMultiplier: 1.8
+    damageMultiplier: 3.6
     spriteAngleOffset: 180
-    projectileProto: FSHeavyStationGunRound
+    projectileProto: FSHeavySentryRound
     projectileSpeed: 30
-    casingProto: FSHeavyStationGunCasing
+    casingProto: FSHeavySentryCasing
     fireSound:
-      path: /Audio/_FinalStand/Deployables/HeavyStationGun/fire.ogg
+      path: /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg
     targetAcquiredSound:
-      path: /Audio/_FinalStand/Deployables/HeavyStationGun/target_acquired.ogg
+      path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
   - type: FSDeployableItem
     requiresScience: false
     requiresEngineering: true
-    deployedProtoId: FSHeavyStationGunDeployed
+    deployedProtoId: FSHeavySentryDeployed
     stock: 1
     maxStock: 1
     maxDeployed: 1
     regenPerWave: 1
     wavesPerRegen: 3
   - type: FSPlaceable
-    previewProtoId: FSHeavyStationGunDeployed
+    previewProtoId: FSHeavySentryDeployed
     range: 6
 
-# ── Heavy Station Gun - deployed ──────────────────────────────────────────────────────────────
+# ── Heavy Sentry - deployed ──────────────────────────────────────────────────────────────
 - type: entity
-  id: FSHeavyStationGunDeployed
-  name: heavy station gun
+  id: FSHeavySentryDeployed
+  name: heavy sentry
   description: A deployed emplacement gun. It tracks and fires on hostiles by itself.
   categories: [ HideSpawnMenu ]
   placement:
@@ -52,7 +52,7 @@
   - type: Sprite
     drawdepth: Objects
     noRot: true
-    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     layers:
     - state: base
       map: [ "turretBase" ]
@@ -64,15 +64,15 @@
     maxAmmo: 400
     range: 6
     fireInterval: 0.3
-    damageMultiplier: 1.8
+    damageMultiplier: 3.6
     spriteAngleOffset: 180
-    projectileProto: FSHeavyStationGunRound
+    projectileProto: FSHeavySentryRound
     projectileSpeed: 30
-    casingProto: FSHeavyStationGunCasing
+    casingProto: FSHeavySentryCasing
     fireSound:
-      path: /Audio/_FinalStand/Deployables/HeavyStationGun/fire.ogg
+      path: /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg
     targetAcquiredSound:
-      path: /Audio/_FinalStand/Deployables/HeavyStationGun/target_acquired.ogg
+      path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
@@ -108,9 +108,9 @@
 
 # Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
 - type: entity
-  id: FSHeavyStationGunRound
+  id: FSHeavySentryRound
   parent: BaseBullet
-  name: heavy emplacement round
+  name: heavy sentry round
   categories: [ HideSpawnMenu ]
   components:
   - type: Projectile
@@ -119,13 +119,13 @@
         Cellular: 16
 
 - type: entity
-  id: FSHeavyStationGunCasing
+  id: FSHeavySentryCasing
   name: spent casing
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: SmallObjects
-    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     state: casing
   - type: TimedDespawn
     lifetime: 10

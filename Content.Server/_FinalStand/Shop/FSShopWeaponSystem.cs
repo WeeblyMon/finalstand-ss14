@@ -1,7 +1,9 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Research;
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Deployables;
+using Content.Shared._FinalStand.Deployables;
 using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
@@ -30,6 +32,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
+    [Dependency] private FSDeployableSystem _deployable = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -367,6 +370,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         // Dedup key is the net entity, not the raw EntityUid, which gets recycled.
         _lastSellTime[userId] = now;
         _recentSells[GetNetEntity(weapon)] = now;
+
+        if (TryComp<FSDeployableItemComponent>(weapon, out var deployable))
+            _deployable.ClearDeployed(mindId, deployable.DeployedProtoId);
 
         QueueDel(weapon);
         CleanupAmmoForWeapon(player, comp);

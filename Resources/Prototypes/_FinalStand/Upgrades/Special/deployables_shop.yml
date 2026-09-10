@@ -208,52 +208,45 @@
     scale: 1,1
 
 - type: entity
-  id: FSDeployableShopHeavyStationGun
+  id: FSDeployableShopHeavySentry
   parent: FSWeaponShopBase
-  name: Heavy Station Gun
+  name: Heavy Sentry
   description: An engineering-issue emplacement gun. Belt-fed and longer ranged than a sentry, it holds a corridor for as long as the belt lasts.
   components:
   - type: FSShopWeapon
-    weaponProtoId: FSHeavyStationGunItem
+    weaponProtoId: FSHeavySentryItem
     requiresScience: false
     requiresEngineering: true
     singlePurchase: true
     price: 26000
     category: Support Deployable
-    statDamage: 29
+    statDamage: 58
     statFireRate: 200
     statAccuracy: 100
     statCapacity: 400
     upgrades:
-    - id: heavy-gun-ammo
+    - id: heavy-sentry-ammo
       name: Extended Belt
       description: Forty more rounds per level.
       maxLevel: 5
       baseCost: 3000
       type: SentryAmmo
       valuePerLevel: 40
-    - id: heavy-gun-firerate
-      name: Cycling Servos
-      description: Each level cuts a quarter off the delay between shots.
-      maxLevel: 3
-      baseCost: 2500
-      type: SentryFireRate
-      valuePerLevel: 0.25
-    - id: heavy-gun-damage
+    - id: heavy-sentry-damage
       name: Hardened Rounds
       description: Each level adds a quarter of the turret's base damage.
-      maxLevel: 3
+      maxLevel: 5
       baseCost: 4000
       type: SentryDamage
       valuePerLevel: 0.25
-    - id: heavy-gun-range
+    - id: heavy-sentry-range
       name: Optics Package
       description: One extra tile of engagement range.
       maxLevel: 1
       baseCost: 7500
       type: SentryRange
       valuePerLevel: 1
-    - id: heavy-gun-capacity
+    - id: heavy-sentry-capacity
       name: Second Case
       description: Carry one additional turret.
       maxLevel: 1
@@ -261,6 +254,6 @@
       type: DeployableCapacity
       valuePerLevel: 1
   - type: Sprite
-    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     state: icon
     scale: 1,1

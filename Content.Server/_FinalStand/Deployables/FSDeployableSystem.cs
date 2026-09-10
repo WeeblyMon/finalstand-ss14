@@ -114,4 +114,14 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         return count;
     }
+
+    public void ClearDeployed(EntityUid? ownerMind, EntProtoId proto)
+    {
+        var query = EntityQueryEnumerator<FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out var deployedBy))
+        {
+            if (deployedBy.OwnerMind == ownerMind && deployedBy.SourceProto == proto && !TerminatingOrDeleted(uid))
+                QueueDel(uid);
+        }
+    }
 }
