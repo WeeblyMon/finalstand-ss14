@@ -28,7 +28,12 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSMedicalResearchComponent, EntityTerminatingEvent>(OnStateTerminating);
+        SubscribeLocalEvent<FSMedicalFundBalanceChangedEvent>(OnFundChanged);
+    }
 
+    private void OnFundChanged(ref FSMedicalFundBalanceChangedEvent args)
+    {
+        SyncConsoles();
     }
 
     public Entity<FSMedicalResearchComponent> GetOrCreateState()

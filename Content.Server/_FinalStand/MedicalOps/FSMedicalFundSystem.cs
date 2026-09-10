@@ -49,6 +49,9 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         _notifyAccumulator = 0f;
         _dirty = false;
         RaiseNetworkEvent(new FSMedicalFundUpdatedEvent(GetBalance()), Filter.Broadcast());
+
+        var changed = new FSMedicalFundBalanceChangedEvent(GetBalance());
+        RaiseLocalEvent(ref changed);
     }
 
     private Entity<FSMedicalFundComponent> GetOrCreateFund()
