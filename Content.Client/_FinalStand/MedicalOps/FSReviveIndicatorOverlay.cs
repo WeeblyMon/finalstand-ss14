@@ -38,15 +38,7 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
         ZIndex = 10;
 
-        try
-        {
-            _icon = cache.GetResource<TextureResource>(
-                new ResPath("/Textures/_FinalStand/Interface/MedicPing/revive.png")).Texture;
-        }
-        catch
-        {
-            _icon = null;
-        }
+        _icon = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Interface/MedicPing/revive.png");
     }
 
     protected override void Draw(in OverlayDrawArgs args)

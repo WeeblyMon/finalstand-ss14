@@ -40,15 +40,7 @@ public sealed class FSMedicPingOverlay : Overlay
 
     private static Texture? TryLoad(IResourceCache cache, string name)
     {
-        try
-        {
-            return cache.GetResource<TextureResource>(
-                new ResPath($"/Textures/_FinalStand/Interface/MedicPing/{name}.png")).Texture;
-        }
-        catch
-        {
-            return null;
-        }
+        return FSOverlayTextures.TryLoad(cache, $"/Textures/_FinalStand/Interface/MedicPing/{name}.png");
     }
 
     public void Add(EntityUid target, bool isHurt, FSPingKind kind)
