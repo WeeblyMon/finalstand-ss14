@@ -1,11 +1,13 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server.Chemistry.Components;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps.Shop;
 using Content.Shared.Chemistry;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
 using Content.Shared.Popups;
+using Robust.Shared.Containers;
 
 namespace Content.Server._FinalStand.MedicalOps.Shop;
 
@@ -15,8 +17,10 @@ public sealed class FSSyringeShopSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedContainerSystem _containers = default!;
 
     private readonly Dictionary<EntityUid, string> _ownedTier = new();
+    private readonly List<EntityUid> _carried = new();
 
     public override void Initialize()
     {
@@ -91,11 +95,39 @@ public sealed class FSSyringeShopSystem : EntitySystem
 
     private bool Give(EntityUid mob, FSSyringeTierDef tier)
     {
+        RemoveExistingGuns(mob, tier.SpawnId);
+
         var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
-
-        if (_hands.TryPickupAnyHand(mob, item))
-            return true;
-
+        _hands.TryPickupAnyHand(mob, item);
         return !Deleted(item);
+    }
+
+    private void RemoveExistingGuns(EntityUid mob, string keep)
+    {
+        _carried.Clear();
+        CollectGuns(mob, 0);
+
+        foreach (var gun in _carried)
+        {
+            if (MetaData(gun).EntityPrototype?.ID != keep)
+                QueueDel(gun);
+        }
+    }
+
+    private void CollectGuns(EntityUid root, int depth)
+    {
+        if (depth > 4)
+            return;
+
+        foreach (var container in _containers.GetAllContainers(root))
+        {
+            foreach (var ent in container.ContainedEntities)
+            {
+                if (HasComp<FSSyringeGunComponent>(ent))
+                    _carried.Add(ent);
+                else
+                    CollectGuns(ent, depth + 1);
+            }
+        }
     }
 }
