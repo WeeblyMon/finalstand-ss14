@@ -12,7 +12,7 @@ public enum FSResearchTrack : byte
 }
 
 // FS-authored counterpart to TechnologyDatabaseComponent, for FSTechNodePrototype content.
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true, raiseAfterAutoHandleState: true)]
 public sealed partial class FSTechDatabaseComponent : Component
 {
     [AutoNetworkedField]

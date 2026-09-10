@@ -16,6 +16,7 @@ namespace Content.Server._FinalStand.Research;
 public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private FSMedicalRolesSystem _roles = default!;
     [Dependency] private PopupSystem _popup = default!;
 
     private static readonly ProtoId<FSTechBranchPrototype> MedicalBranch = "Medical";
@@ -33,7 +34,20 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
     private void OnFundChanged(ref FSMedicalFundBalanceChangedEvent args)
     {
-        SyncConsoles();
+        SyncBalance(args.Balance);
+    }
+
+    private void SyncBalance(int balance)
+    {
+        var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
+        while (query.MoveNext(out var uid, out var console))
+        {
+            if (console.Track != FSResearchTrack.Medical || console.Points == balance)
+                continue;
+
+            console.Points = balance;
+            DirtyField(uid, console, nameof(FSTechDatabaseComponent.Points));
+        }
     }
 
     public Entity<FSMedicalResearchComponent> GetOrCreateState()
@@ -102,7 +116,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        if (!_fund.IsCmo(player))
+        if (!_roles.IsCmo(player))
         {
             RaiseNetworkEvent(new FSResearchAuthorityDeniedEvent(Loc.GetString("fs-medical-research-no-authority")),
                 Filter.Entities(player));
