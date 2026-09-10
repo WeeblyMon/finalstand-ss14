@@ -25,9 +25,7 @@
     back:
     - FSHarvestSatchel
     - LauncherSyringe
-    - FSChemistSyringe
-    - FSChemistSyringe
-    - FSChemistSyringe
+    - FSSyringePackFilled
 
 - type: chameleonOutfit
   id: ChemistChameleonOutfit

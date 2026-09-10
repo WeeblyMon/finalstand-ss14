@@ -42,9 +42,19 @@
   - type: FSSyringePack
   - type: ContainerContainer
 
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackFilled
+  suffix: Filled
+  components:
+  - type: StorageFill
+    contents:
+    - id: FSChemistSyringe
+      amount: 6
+
 - type: latheRecipe
   id: FSSyringePack
-  result: FSSyringePack
+  result: FSSyringePackFilled
   completetime: 3
   materials:
     Steel: 150
