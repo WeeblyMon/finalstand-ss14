@@ -93,6 +93,24 @@ namespace Content.Client.Chemistry.UI
             RefreshRecipes();
         }
 
+        private HashSet<string> Sourceable(FSFieldKitPrototype? kit = null)
+        {
+            var sourceable = new HashSet<string>();
+            foreach (var card in _cards.Values)
+            {
+                if (card.ReagentId != null)
+                    sourceable.Add(card.ReagentId);
+            }
+
+            if (kit != null)
+            {
+                foreach (var carried in kit.Carried)
+                    sourceable.Add(carried);
+            }
+
+            return sourceable;
+        }
+
         private void SetTarget(FSFieldKitPrototype kit)
         {
             if (_target?.ID == kit.ID)
@@ -102,7 +120,9 @@ namespace Content.Client.Chemistry.UI
             }
 
             _target = kit;
-            _targetIngredients = kit.ResolveIngredients(_prototypeManager);
+            _targetIngredients = FSFieldKitResolver
+                .Plan(_prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))
+                .Base;
             _filter = string.Empty;
             FilterEdit.Text = string.Empty;
             TargetChipButton.Text = Loc.GetString("reagent-dispenser-window-target-clear",
@@ -240,80 +260,82 @@ namespace Content.Client.Chemistry.UI
         {
             RecipeInfo.Children.Clear();
 
-            var sourceable = new HashSet<string>();
-            foreach (var card in _cards.Values)
-            {
-                if (card.ReagentId != null)
-                    sourceable.Add(card.ReagentId);
-            }
-
             var kits = _prototypeManager.EnumeratePrototypes<FSFieldKitPrototype>()
                 .OrderBy(kit => kit.Priority)
                 .ToArray();
 
             foreach (var kit in kits)
-                RecipeInfo.AddChild(BuildFieldKitRow(kit, sourceable));
+                RecipeInfo.AddChild(BuildFieldKitRow(kit));
         }
 
-        private Control BuildFieldKitRow(FSFieldKitPrototype kit, IReadOnlySet<string> sourceable)
+        private static Label Sub(string text, Color? modulate = null)
         {
-            var ingredients = kit.ResolveIngredients(_prototypeManager);
-
-            var complete = true;
-            var missingSupply = false;
-            var parts = new List<string>();
-
-            foreach (var (id, need) in ingredients)
+            return new Label
             {
-                var have = _held.GetValueOrDefault(id, FixedPoint2.Zero);
-                if (have < need)
-                    complete = false;
+                Text = text,
+                StyleClasses = { StyleClass.LabelSubText },
+                Modulate = modulate ?? Color.White,
+            };
+        }
 
-                if (!sourceable.Contains(id))
-                    missingSupply = true;
+        private string ReagentName(string id)
+        {
+            return _prototypeManager.TryIndex(id, out ReagentPrototype? proto) ? proto.LocalizedName : id;
+        }
 
-                var reagentName = _prototypeManager.TryIndex(id, out ReagentPrototype? proto)
-                    ? proto.LocalizedName
-                    : id;
+        private Control BuildFieldKitRow(FSFieldKitPrototype kit)
+        {
+            var direct = kit.ResolveIngredients(_prototypeManager);
+            var plan = FSFieldKitResolver.Plan(_prototypeManager, direct, Sourceable(kit));
 
-                parts.Add($"{reagentName} " + Loc.GetString("reagent-dispenser-window-field-kit-progress",
-                    ("have", have), ("need", need)));
-            }
-
+            var complete = direct.All(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
+            var blocked = plan.Unobtainable.Count > 0;
             var targeted = _target?.ID == kit.ID;
 
-            var heading = new BoxContainer { Orientation = LayoutOrientation.Horizontal, HorizontalExpand = true };
-            heading.AddChild(new Label
+            var progress = direct
+                .Select(kv => ReagentName(kv.Key) + " " + Loc.GetString(
+                    "reagent-dispenser-window-field-kit-progress",
+                    ("have", _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero)), ("need", kv.Value)))
+                .ToArray();
+
+            var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
+
+            body.AddChild(new Label
             {
                 Text = Loc.GetString(kit.Name),
                 Modulate = complete ? ReadyColor : Color.White,
             });
-            heading.AddChild(new Control { HorizontalExpand = true });
-            heading.AddChild(new Label
-            {
-                Text = missingSupply
-                    ? Loc.GetString("reagent-dispenser-window-field-kit-missing")
-                    : string.Join(" · ", parts),
-                StyleClasses = { StyleClass.LabelSubText },
-                Modulate = complete ? ReadyColor : Color.White,
-            });
 
-            var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
-            body.AddChild(heading);
-            body.AddChild(new Label
-            {
-                Text = Loc.GetString(kit.Purpose),
-                StyleClasses = { StyleClass.LabelSubText },
-            });
+            body.AddChild(Sub(string.Join(" · ", progress), complete ? ReadyColor : Color.White));
+            body.AddChild(Sub(Loc.GetString(kit.Purpose)));
 
             if (targeted)
             {
-                body.AddChild(new Label
+                if (plan.Base.Count > 0)
                 {
-                    Text = Loc.GetString(kit.Delivery),
-                    StyleClasses = { StyleClass.LabelSubText },
-                    Modulate = ReadyColor,
-                });
+                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-base",
+                        ("reagents", string.Join(" · ", plan.Base
+                            .OrderBy(kv => kv.Key)
+                            .Select(kv => $"{ReagentName(kv.Key)} {kv.Value}u"))))));
+                }
+
+                if (plan.Steps.Count > 0)
+                {
+                    var steps = plan.Steps
+                        .Select((reaction, i) => $"{i + 1}. {FSFieldKitResolver.NameOf(reaction, _prototypeManager)}");
+
+                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-steps",
+                        ("steps", string.Join("  ", steps)))));
+                }
+
+                if (blocked)
+                {
+                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-blocked",
+                        ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName)))),
+                        Color.FromHex("#C9A227")));
+                }
+
+                body.AddChild(Sub(Loc.GetString(kit.Delivery), ReadyColor));
             }
 
             var button = new Button
@@ -322,7 +344,7 @@ namespace Content.Client.Chemistry.UI
                 HorizontalExpand = true,
                 Pressed = targeted,
                 ToggleMode = true,
-                Modulate = missingSupply ? new Color(1f, 1f, 1f, 0.55f) : Color.White,
+                Modulate = blocked ? new Color(1f, 1f, 1f, 0.55f) : Color.White,
             };
             button.AddChild(body);
             button.OnPressed += _ => SetTarget(kit);

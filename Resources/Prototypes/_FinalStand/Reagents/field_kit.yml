@@ -14,6 +14,8 @@
   purpose: fs-field-kit-combat-stim-purpose
   delivery: fs-field-kit-delivery-either
   priority: 1
+  carried:
+  - FSBiomass
   reaction: FSCombatStim
 
 - type: fsFieldKit
@@ -22,6 +24,8 @@
   purpose: fs-field-kit-etchant-purpose
   delivery: fs-field-kit-delivery-either
   priority: 2
+  carried:
+  - FSBiomass
   reaction: FSEtchant
 
 - type: fsFieldKit
@@ -30,6 +34,8 @@
   purpose: fs-field-kit-coagulant-purpose
   delivery: fs-field-kit-delivery-either
   priority: 3
+  carried:
+  - FSBiomass
   reaction: FSCoagulantMist
 
 - type: fsFieldKit
@@ -38,6 +44,8 @@
   purpose: fs-field-kit-solvent-purpose
   delivery: fs-field-kit-delivery-flask
   priority: 4
+  carried:
+  - FSBiomass
   reaction: FSSolvent
 
 - type: fsFieldKit
@@ -46,6 +54,8 @@
   purpose: fs-field-kit-weakening-purpose
   delivery: fs-field-kit-delivery-flask
   priority: 5
+  carried:
+  - FSBiomass
   reaction: FSWeakeningAgent
 
 - type: fsFieldKit
@@ -54,4 +64,6 @@
   purpose: fs-field-kit-corrosive-purpose
   delivery: fs-field-kit-delivery-flask
   priority: 6
+  carried:
+  - FSBiomass
   reaction: FSCorrosive

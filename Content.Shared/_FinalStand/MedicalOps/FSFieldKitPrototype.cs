@@ -27,6 +27,9 @@ public sealed partial class FSFieldKitPrototype : IPrototype
     public Dictionary<ProtoId<ReagentPrototype>, FixedPoint2> Ingredients { get; private set; } = new();
 
     [DataField]
+    public List<ProtoId<ReagentPrototype>> Carried { get; private set; } = new();
+
+    [DataField]
     public int Priority { get; private set; }
 
     public Dictionary<string, FixedPoint2> ResolveIngredients(IPrototypeManager prototypes)

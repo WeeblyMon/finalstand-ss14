@@ -4,8 +4,8 @@
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       xmlns:ui="clr-namespace:Content.Client.Chemistry.UI"
                       Title="{Loc 'reagent-dispenser-bound-user-interface-title'}"
-                      MinSize="600 300"
-                      SetSize="800 500">
+                      MinSize="760 340"
+                      SetSize="1020 560">
     <BoxContainer Orientation="Horizontal">
         <BoxContainer Orientation="Vertical" MinWidth="170">
             <Label Text="{Loc 'reagent-dispenser-window-amount-to-dispense-label'}" HorizontalAlignment="Center" />
@@ -98,28 +98,41 @@
                                       HorizontalExpand="True">
                             <Label Text="{Loc 'reagent-dispenser-window-no-container-loaded-text'}" />
                         </BoxContainer>
-                        <Control MinSize="0 6" />
-                        <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
-                            <Label Text="{Loc 'reagent-dispenser-window-recipes-header'}"
-                                   StyleClasses="LabelSubText"
-                                   VerticalAlignment="Center" />
-                            <Control HorizontalExpand="True" />
-                            <Button Name="FieldKitTabButton"
-                                    Text="{Loc 'reagent-dispenser-window-recipes-field-kit'}"
-                                    StyleClasses="OpenRight"
-                                    ToggleMode="True" />
-                            <Button Name="CanMakeTabButton"
-                                    Text="{Loc 'reagent-dispenser-window-recipes-can-make'}"
-                                    StyleClasses="OpenLeft"
-                                    ToggleMode="True" />
-                        </BoxContainer>
-                        <BoxContainer Name="RecipeInfo"
-                                      Orientation="Vertical"
-                                      HorizontalExpand="True"
-                                      Margin="0 3 0 0" />
                     </BoxContainer>
                 </PanelContainer>
             </ScrollContainer>
         </SplitContainer>
+        <PanelContainer MinWidth="280" VerticalExpand="True" Margin="4 0 0 0">
+            <PanelContainer.PanelOverride>
+                <gfx:StyleBoxFlat BackgroundColor="#1b1b1e" />
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical"
+                          HorizontalExpand="True"
+                          VerticalExpand="True"
+                          Margin="6">
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Label Text="{Loc 'reagent-dispenser-window-recipes-header'}"
+                           StyleClasses="LabelSubText"
+                           VerticalAlignment="Center" />
+                    <Control HorizontalExpand="True" />
+                    <Button Name="FieldKitTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-field-kit'}"
+                            StyleClasses="OpenRight"
+                            ToggleMode="True" />
+                    <Button Name="CanMakeTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-can-make'}"
+                            StyleClasses="OpenLeft"
+                            ToggleMode="True" />
+                </BoxContainer>
+                <ScrollContainer HScrollEnabled="False"
+                                 HorizontalExpand="True"
+                                 VerticalExpand="True"
+                                 Margin="0 4 0 0">
+                    <BoxContainer Name="RecipeInfo"
+                                  Orientation="Vertical"
+                                  HorizontalExpand="True" />
+                </ScrollContainer>
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </controls:FancyWindow>
