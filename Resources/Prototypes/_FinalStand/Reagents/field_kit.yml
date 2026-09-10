@@ -1,0 +1,57 @@
+- type: fsFieldKit
+  id: FSFieldKitStabiliser
+  name: fs-field-kit-stabiliser
+  purpose: fs-field-kit-stabiliser-purpose
+  delivery: fs-field-kit-delivery-syringe
+  priority: 0
+  ingredients:
+    Epinephrine: 10
+    TranexamicAcid: 5
+
+- type: fsFieldKit
+  id: FSFieldKitCombatStim
+  name: fs-field-kit-combat-stim
+  purpose: fs-field-kit-combat-stim-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 1
+  reaction: FSCombatStim
+
+- type: fsFieldKit
+  id: FSFieldKitEtchant
+  name: fs-field-kit-etchant
+  purpose: fs-field-kit-etchant-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 2
+  reaction: FSEtchant
+
+- type: fsFieldKit
+  id: FSFieldKitCoagulantMist
+  name: fs-field-kit-coagulant
+  purpose: fs-field-kit-coagulant-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 3
+  reaction: FSCoagulantMist
+
+- type: fsFieldKit
+  id: FSFieldKitSolvent
+  name: fs-field-kit-solvent
+  purpose: fs-field-kit-solvent-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 4
+  reaction: FSSolvent
+
+- type: fsFieldKit
+  id: FSFieldKitWeakeningAgent
+  name: fs-field-kit-weakening
+  purpose: fs-field-kit-weakening-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 5
+  reaction: FSWeakeningAgent
+
+- type: fsFieldKit
+  id: FSFieldKitCorrosive
+  name: fs-field-kit-corrosive
+  purpose: fs-field-kit-corrosive-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 6
+  reaction: FSCorrosive
