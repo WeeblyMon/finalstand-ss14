@@ -1,7 +1,9 @@
 using Content.Server.Fluids.EntitySystems;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
 using Content.Shared.Popups;
@@ -9,6 +11,7 @@ using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -22,6 +25,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _crewBuffer = new();
 
@@ -63,7 +67,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
 
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
 
-        if (args.User is { } thrower)
+        if (args.User is { } thrower && AppliesCombatBuff(payload))
         {
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
@@ -73,5 +77,28 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         }
 
         QueueDel(ent);
+    }
+
+    private bool AppliesCombatBuff(Solution payload)
+    {
+        foreach (var quantity in payload.Contents)
+        {
+            if (!_prototypes.TryIndex(quantity.Reagent.Prototype, out ReagentPrototype? reagent))
+                continue;
+
+            if (reagent.ReactiveEffects == null)
+                continue;
+
+            foreach (var (_, reactive) in reagent.ReactiveEffects)
+            {
+                foreach (var effect in reactive.Effects)
+                {
+                    if (effect is FSApplyCombatBuff)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 }
