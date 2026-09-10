@@ -1,6 +1,8 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared.Weapons.Ranged;
+using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Projectiles;
@@ -104,13 +106,18 @@ public sealed class AllyProjectileTest : GameTest
                 Assert.That(entMan.HasComponent<FSAllyProjectileComponent>(syringe), Is.True,
                     "without the marker it phases through the teammate it is aimed at");
 
-                var tags = entMan.GetComponent<Content.Shared.Tag.TagComponent>(syringe);
-                Assert.That(tags.Tags, Does.Contain("SyringeGunAmmo"),
-                    "it must still load into the syringe gun");
-            });
+                var gun = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("LauncherSyringe");
 
-            var gun = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("LauncherSyringe");
-            Assert.That(gun.TryGetComponent<Content.Shared.Storage.StorageComponent>("Storage", out _), Is.True);
+                Assert.That(gun.TryGetComponent<MagazineAmmoProviderComponent>("MagazineAmmoProvider", out _), Is.True,
+                    "the gun feeds from a magazine, which is what drives the ammo counter");
+                Assert.That(gun.TryGetComponent<Content.Shared.Storage.StorageComponent>("Storage", out _), Is.False,
+                    "the gun is no longer a bag of loose syringes");
+
+                var magazine = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("FSSyringePack");
+                Assert.That(magazine.TryGetComponent<SolutionAmmoProviderComponent>("SolutionAmmoProvider", out var ammo), Is.True,
+                    "the magazine doses every dart from one solution");
+                Assert.That(ammo!.Prototype.Id, Is.EqualTo("FSChemistSyringe"));
+            });
         });
     }
 
@@ -127,7 +134,8 @@ public sealed class AllyProjectileTest : GameTest
             Assert.That(gear.Storage.TryGetValue("back", out var back), Is.True,
                 "the chemist must not have to go find their core tool");
             Assert.That(back, Does.Contain("LauncherSyringe"));
-            Assert.That(back, Does.Contain("FSChemistSyringe"));
+            Assert.That(back!.FindAll(id => id.Id.StartsWith("FSSyringePack")), Has.Count.EqualTo(3),
+                "the chemist carries three prefilled magazines");
         });
     }
 
