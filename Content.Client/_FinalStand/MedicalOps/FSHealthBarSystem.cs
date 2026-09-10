@@ -21,7 +21,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextRefresh;
 
-    public const string ChemSourcePrefix = "chem-";
+    public const string ChemSourcePrefix = FSApplyCombatBuff.SourcePrefix;
 
     public override void Initialize()
     {

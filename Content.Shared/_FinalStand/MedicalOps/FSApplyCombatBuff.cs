@@ -29,6 +29,8 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
 
 public sealed partial class FSApplyCombatBuff : EntityEffectBase<FSApplyCombatBuff>
 {
+    public const string SourcePrefix = "chem-";
+
     [DataField(required: true)]
     public Dictionary<FSMedicalBonusCategory, float> Bonuses = new();
 
@@ -36,5 +38,5 @@ public sealed partial class FSApplyCombatBuff : EntityEffectBase<FSApplyCombatBu
     public float Duration = 90f;
 
     [DataField]
-    public string Source = "chem";
+    public string Source = SourcePrefix + "generic";
 }
