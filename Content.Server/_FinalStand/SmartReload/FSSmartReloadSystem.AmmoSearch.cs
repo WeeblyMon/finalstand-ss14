@@ -76,16 +76,36 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         var parent = Transform(item).ParentUid;
         if (parent.IsValid() && HasComp<GunComponent>(parent))
             return;
-        if (!TryComp<BallisticAmmoProviderComponent>(item, out var bal))
+        if (!TryGetMagazineCount(item, out var count))
             return;
         if (_whitelist.IsWhitelistFail(whitelist, item))
             return;
 
-        if (bal.Count > bestCount)
+        if (count > bestCount)
         {
             best      = item;
-            bestCount = bal.Count;
+            bestCount = count;
         }
+    }
+
+    // Solution-fed magazines (the chemist's syringe packs) carry shots as reagent volume rather
+    // than as contained cartridges, so a ballistic-only check skips them entirely.
+    public bool TryGetMagazineCount(EntityUid item, out int count)
+    {
+        if (TryComp<BallisticAmmoProviderComponent>(item, out var ballistic))
+        {
+            count = ballistic.Count;
+            return true;
+        }
+
+        if (TryComp<SolutionAmmoProviderComponent>(item, out var solution))
+        {
+            count = solution.Shots;
+            return true;
+        }
+
+        count = 0;
+        return false;
     }
 
     // skipInside prevents treating the gun being reloaded as its own ammo source.

@@ -170,6 +170,7 @@
           tags:
           - FSSyringeMagazine
   - type: MagazineAmmoProvider
+  - type: AmmoCounter
   - type: FSSyringeGun
   - type: Item
     size: Large

@@ -19,7 +19,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        if (TryComp<BallisticAmmoProviderComponent>(newMag.Value, out var newBal) && newBal.Count == 0)
+        if (TryGetMagazineCount(newMag.Value, out var newCount) && newCount == 0)
         {
             if (!isChainReload)
                 _popup.PopupEntity("All magazines are empty.", gun, user);
