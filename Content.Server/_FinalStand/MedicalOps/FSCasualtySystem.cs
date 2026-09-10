@@ -19,7 +19,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
-    [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private FSMedicalRolesSystem _roles = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
@@ -63,7 +63,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (_fund.IsMedicalJob(ev.JobId))
+        if (_roles.IsMedicalJob(ev.JobId))
             _actions.AddAction(ev.Mob, BoardAction);
     }
 
@@ -96,7 +96,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnRespond(FSRespondToCasualtyEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } medic || !_fund.IsMedical(medic))
+        if (args.SenderSession.AttachedEntity is not { } medic || !_roles.IsMedicalStaff(medic))
             return;
 
         Respond(medic, GetEntity(ev.Patient));
@@ -163,7 +163,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
         var board = BuildBoard();
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } mob && _fund.IsMedical(mob))
+            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
                 RaiseNetworkEvent(board, session);
         }
     }

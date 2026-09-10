@@ -1,9 +1,6 @@
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Shared.Access;
-using Content.Shared.Access.Systems;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
-using Content.Shared.Roles;
 using Robust.Server.Player;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
@@ -14,13 +11,8 @@ namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSMedicalFundSystem : EntitySystem
 {
-    [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
-    [Dependency] private IPrototypeManager _prototype = default!;
 
-    private static readonly ProtoId<AccessLevelPrototype> MedicalAccess = "Medical";
-    private static readonly ProtoId<AccessLevelPrototype> ChiefMedicalOfficerAccess = "ChiefMedicalOfficer";
-    private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
 
     private const float NotifyInterval = 0.25f;
 
@@ -48,9 +40,10 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
 
         _notifyAccumulator = 0f;
         _dirty = false;
-        RaiseNetworkEvent(new FSMedicalFundUpdatedEvent(GetBalance()), Filter.Broadcast());
+        var balance = GetBalance();
+        RaiseNetworkEvent(new FSMedicalFundUpdatedEvent(balance), Filter.Broadcast());
 
-        var changed = new FSMedicalFundBalanceChangedEvent(GetBalance());
+        var changed = new FSMedicalFundBalanceChangedEvent(balance);
         RaiseLocalEvent(ref changed);
     }
 
@@ -136,24 +129,6 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
     public int GetLifetimeEarned() => GetOrCreateFund().Comp.LifetimeEarned;
 
     public IReadOnlyDictionary<EntityUid, int> GetContributions() => GetOrCreateFund().Comp.ContributionByMind;
-
-    public bool IsMedical(EntityUid user)
-    {
-        var tags = _accessReader.FindAccessTags(user);
-        return tags.Contains(MedicalAccess) || tags.Contains(ChiefMedicalOfficerAccess);
-    }
-
-    public bool IsMedicalJob(string? jobId)
-    {
-        return jobId != null
-               && _prototype.TryIndex(MedicalDepartment, out var department)
-               && department.Roles.Contains(jobId);
-    }
-
-    public bool IsCmo(EntityUid user)
-    {
-        return _accessReader.FindAccessTags(user).Contains(ChiefMedicalOfficerAccess);
-    }
 
     public void DumpFund(IConsoleShell shell)
     {

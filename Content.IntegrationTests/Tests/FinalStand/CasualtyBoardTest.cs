@@ -214,22 +214,22 @@ public sealed class CasualtyBoardTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var fund = entMan.System<FSMedicalFundSystem>();
+            var roles = entMan.System<FSMedicalRolesSystem>();
 
             Assert.Multiple(() =>
             {
                 foreach (var job in new[] { "MedicalDoctor", "ChiefMedicalOfficer", "CombatMedic", "Chemist" })
                 {
-                    Assert.That(fund.IsMedicalJob(job), Is.True, $"{job} should get the casualty board");
+                    Assert.That(roles.IsMedicalJob(job), Is.True, $"{job} should get the casualty board");
                 }
 
                 foreach (var job in new[] { "Captain", "SecurityOfficer", "StationEngineer", "Scientist" })
                 {
-                    Assert.That(fund.IsMedicalJob(job), Is.False,
+                    Assert.That(roles.IsMedicalJob(job), Is.False,
                         $"{job} is not medical staff - all-access IDs must not hand out the casualty board");
                 }
 
-                Assert.That(fund.IsMedicalJob(null), Is.False);
+                Assert.That(roles.IsMedicalJob(null), Is.False);
             });
         });
     }

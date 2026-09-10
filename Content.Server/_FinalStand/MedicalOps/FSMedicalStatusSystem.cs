@@ -12,12 +12,9 @@ namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSMedicalStatusSystem : EntitySystem
 {
-    [Dependency] private SharedJobSystem _jobs = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSMedicalRolesSystem _roles = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IGameTiming _timing = default!;
-
-    private static readonly ProtoId<DepartmentPrototype> MedicalDepartment = "Medical";
 
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextRefresh;
@@ -59,11 +56,5 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
         RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), ev.Player);
     }
 
-    public bool IsMedicalDepartment(EntityUid mob)
-    {
-        return _mind.TryGetMind(mob, out var mindId, out _)
-               && _jobs.MindTryGetJob(mindId, out var job)
-               && _jobs.TryGetPrimaryDepartment(job.ID, out var department)
-               && department.ID == MedicalDepartment;
-    }
+    public bool IsMedicalDepartment(EntityUid mob) => _roles.IsMedicalStaff(mob);
 }
