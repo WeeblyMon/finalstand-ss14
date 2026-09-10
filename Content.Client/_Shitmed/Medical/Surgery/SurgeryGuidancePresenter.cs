@@ -33,8 +33,11 @@ public sealed class SurgeryGuidancePresenter
         _window.PerformButton.Disabled = true;
     }
 
-    public void ShowSelectPrompt()
+    public void ShowSelectPrompt(EntityUid? user = null)
     {
+        if (WarnUnsterile(user))
+            return;
+
         Set(null, Loc.GetString("surgery-ui-guidance-select"));
     }
 
@@ -43,8 +46,11 @@ public sealed class SurgeryGuidancePresenter
         Set(null, Loc.GetString("surgery-ui-guidance-cannot-operate"), DangerColor);
     }
 
-    public void ShowChooseOperation(string? recommended, string? focusFilter = null)
+    public void ShowChooseOperation(string? recommended, string? focusFilter = null, EntityUid? user = null)
     {
+        if (WarnUnsterile(user))
+            return;
+
         if (recommended != null)
         {
             Set(null, Loc.GetString("surgery-ui-guidance-start-with", ("operation", recommended)), ReadyColor);
@@ -58,6 +64,15 @@ public sealed class SurgeryGuidancePresenter
         }
 
         Set(null, Loc.GetString("surgery-ui-guidance-nothing-to-do"), ReadyColor);
+    }
+
+    private bool WarnUnsterile(EntityUid? user)
+    {
+        if (user is not { } uid || IsSterile(uid))
+            return false;
+
+        Set(null, Loc.GetString("surgery-ui-guidance-unsterile-idle"), WarningColor);
+        return true;
     }
 
     public void Show(SurgeryStepButton? next, bool workRemains, EntityUid user, EntityUid body, EntityUid part)

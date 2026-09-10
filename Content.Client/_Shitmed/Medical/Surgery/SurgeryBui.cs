@@ -383,7 +383,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         if (_part == null)
         {
-            _guidance.ShowSelectPrompt();
+            _guidance.ShowSelectPrompt(_player.LocalEntity);
             return;
         }
 
@@ -400,7 +400,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
         {
-            _guidance.ShowChooseOperation(recommended, ActiveFocusName());
+            _guidance.ShowChooseOperation(recommended, ActiveFocusName(), user);
             _dollPresenter?.Refresh(selectedNet);
             return;
         }

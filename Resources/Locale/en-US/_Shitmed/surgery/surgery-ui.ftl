@@ -65,3 +65,4 @@ surgery-ui-guidance-need-table = move them onto an operating table
 surgery-ui-guidance-armor = remove their armour first
 surgery-ui-guidance-skills = you lack the surgical training
 surgery-ui-guidance-previous = finish the earlier steps first
+surgery-ui-guidance-unsterile-idle = No gloves and mask - operating like this will infect the patient.
