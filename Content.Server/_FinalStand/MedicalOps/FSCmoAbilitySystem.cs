@@ -180,24 +180,29 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (!Directives.TryGetValue(directive, out var def))
             return;
 
-        if (TryComp<FSCmoPanelComponent>(performer, out var panel) && panel.DirectiveReadyAt > _timing.CurTime)
-            return;
+        TryComp<FSCmoPanelComponent>(performer, out var panel);
 
         if (_activeDirective == directive)
         {
             _activeDirective = null;
             RemoveFromDepartment(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down");
-        }
-        else
-        {
-            _activeDirective = directive;
-            ApplyToDepartment(DirectiveSource, def.Bonuses);
-            Announce(performer, def.Announcement);
+            SyncPanels();
+            return;
         }
 
+        if (panel != null && panel.DirectiveReadyAt > _timing.CurTime)
+            return;
+
+        _activeDirective = directive;
+        ApplyToDepartment(DirectiveSource, def.Bonuses);
+        Announce(performer, def.Announcement);
+
         if (panel != null)
+        {
             panel.DirectiveReadyAt = _timing.CurTime + DirectiveCooldown;
+            Dirty(performer, panel);
+        }
 
         SyncPanels();
     }
