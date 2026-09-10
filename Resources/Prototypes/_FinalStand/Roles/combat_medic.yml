@@ -41,6 +41,17 @@
     back:
     - FSMedicalBeamGun
 
+- type: chameleonOutfit
+  id: CombatMedicChameleonOutfit
+  job: CombatMedic
+  equipment:
+    head: ClothingHeadHatParamedicsoft
+    eyes: ClothingEyesHudMedical
+    mask: ClothingMaskSterile
+    neck: ClothingNeckStethoscope
+    outerClothing: ClothingOuterCoatParamedicWB
+    gloves: ClothingHandsGlovesLatex
+
 - type: entity
   parent: ParamedicPDA
   id: CombatMedicPDA
