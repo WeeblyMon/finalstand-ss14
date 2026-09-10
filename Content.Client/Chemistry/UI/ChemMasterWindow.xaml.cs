@@ -204,6 +204,9 @@ namespace Content.Client.Chemistry.UI
             // Ensure the Panel Info is updated, including UI elements for Buffer Volume, Output Container and so on
             UpdatePanelInfo(castState);
 
+            // Not inside UpdatePanelInfo: that returns early on an empty buffer, which hid the shop.
+            UpdateUpgrades();
+
             switch (castState.DrawSource)
             {
                 case ChemMasterDrawSource.Internal:
@@ -385,7 +388,6 @@ namespace Content.Client.Chemistry.UI
             }
 
             SyncRows(BufferInfo, _bufferRows, header, rows, true, true);
-            UpdateUpgrades();
         }
 
         public void UpdateUpgrades()
@@ -442,19 +444,24 @@ namespace Content.Client.Chemistry.UI
                         Modulate = awaiting ? Color.FromHex("#C9A227") : Color.White,
                     };
 
+                    // Rebuilding the rows here would dispose this button while its own press is
+                    // still being dispatched, so the confirm state is applied in place instead.
                     button.OnPressed += _ =>
                     {
                         if (_pendingUpgrade == id)
                         {
                             _pendingUpgrade = null;
                             _upgradeKey = null;
+                            button.Text = Loc.GetString("fs-syringe-shop-buy", ("price", tier.Price));
+                            button.Modulate = Color.White;
                             OnUpgradePressed?.Invoke(id);
                             return;
                         }
 
                         _pendingUpgrade = id;
                         _upgradeKey = null;
-                        UpdateUpgrades();
+                        button.Text = Loc.GetString("fs-syringe-shop-confirm");
+                        button.Modulate = Color.FromHex("#C9A227");
                     };
 
                     row.AddChild(button);
