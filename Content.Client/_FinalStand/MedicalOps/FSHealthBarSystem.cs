@@ -18,6 +18,9 @@ public sealed partial class FSHealthBarSystem : EntitySystem
 
     private bool _isMedical;
 
+    private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _nextRefresh;
+
     public const string ChemSourcePrefix = "chem-";
 
     public override void Initialize()
@@ -61,6 +64,11 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
+
+        if (_timing.CurTime < _nextRefresh)
+            return;
+
+        _nextRefresh = _timing.CurTime + RefreshInterval;
         ApplyDamageTypes();
     }
 
