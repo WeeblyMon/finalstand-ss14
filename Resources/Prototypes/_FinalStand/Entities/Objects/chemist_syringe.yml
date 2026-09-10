@@ -7,9 +7,9 @@
   - type: FSAllyProjectile
   - type: Solution
     solution:
-      maxVol: 15
+      maxVol: 10
   - type: SolutionInjectOnEmbed
-    transferAmount: 15
+    transferAmount: 10
     solution: injector
 
 - type: latheRecipe
