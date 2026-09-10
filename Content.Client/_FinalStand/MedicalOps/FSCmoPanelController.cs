@@ -208,7 +208,10 @@ public sealed class FSCmoPanelController : UIController
             var remaining = readyAt - _timing.CurTime;
             var cooling = remaining > TimeSpan.Zero;
 
-            button.Disabled = cooling;
+            // Standing down the active directive must stay available during its own cooldown,
+            // otherwise the button that cancels it is greyed out for the whole duration.
+            var isActive = directive is { } active && active == panel.ActiveDirective;
+            button.Disabled = cooling && !isActive;
 
             // The label only changes once a second, so rebuilding it per frame would allocate a
             // string and invalidate layout for every button on every frame.
