@@ -24,7 +24,7 @@
   parent: BaseStorageItem
   id: FSSyringePack
   name: syringe pack
-  description: A pre-loaded rack of support syringes. Use it on a syringe gun to load the whole rack at once.
+  description: A pre-loaded rack of support syringes. Use it on a beaker to fill every syringe at once, or on a syringe gun to load the whole rack.
   components:
   - type: Sprite
     sprite: Objects/Specific/Chemistry/syringe.rsi

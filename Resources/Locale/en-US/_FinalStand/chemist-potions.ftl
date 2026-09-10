@@ -36,5 +36,7 @@ reagent-desc-fs-coagulant = Clots wounds on contact. Staunches bleeding on anyon
 reagent-name-fs-etchant = etchant
 reagent-desc-fs-etchant = Coats a crewmate's ammunition. Their shots cut straight through enemy plating for a while.
 fs-syringe-pack-empty = The pack is empty.
+fs-syringe-pack-refilled = Filled {$count} syringes.
+fs-syringe-pack-no-refill = Nothing to draw, or the syringes are already full.
 fs-syringe-pack-full = No room in the gun.
 fs-syringe-pack-loaded = Loaded {$count} syringes.
