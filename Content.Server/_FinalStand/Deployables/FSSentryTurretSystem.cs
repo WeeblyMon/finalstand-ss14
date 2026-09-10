@@ -39,7 +39,6 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
     private void OnDeployed(Entity<FSSentryTurretComponent> ent, ref FSDeployableDeployedEvent args)
     {
-
         if (TryComp<FSSentryTurretComponent>(args.Item, out var item))
         {
             ent.Comp.MaxAmmo = item.MaxAmmo;

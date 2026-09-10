@@ -206,3 +206,61 @@
     sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
     state: icon
     scale: 1,1
+
+- type: entity
+  id: FSDeployableShopHeavyStationGun
+  parent: FSWeaponShopBase
+  name: Heavy Station Gun
+  description: An engineering-issue emplacement gun. Belt-fed and longer ranged than a sentry, it holds a corridor for as long as the belt lasts.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSHeavyStationGunItem
+    requiresScience: false
+    requiresEngineering: true
+    singlePurchase: true
+    price: 26000
+    category: Support Deployable
+    statDamage: 29
+    statFireRate: 200
+    statAccuracy: 100
+    statCapacity: 400
+    upgrades:
+    - id: heavy-gun-ammo
+      name: Linked Belt
+      description: Eighty more rounds per level.
+      maxLevel: 5
+      baseCost: 4500
+      type: SentryAmmo
+      valuePerLevel: 80
+    - id: heavy-gun-firerate
+      name: Open Bolt
+      description: Each level cuts a fifth off the delay between shots.
+      maxLevel: 3
+      baseCost: 4000
+      type: SentryFireRate
+      valuePerLevel: 0.2
+    - id: heavy-gun-damage
+      name: Tungsten Core
+      description: Each level adds a quarter of the gun's base damage.
+      maxLevel: 3
+      baseCost: 6000
+      type: SentryDamage
+      valuePerLevel: 0.25
+    - id: heavy-gun-range
+      name: Ranging Sight
+      description: One extra tile of engagement range per level.
+      maxLevel: 2
+      baseCost: 9000
+      type: SentryRange
+      valuePerLevel: 1
+    - id: heavy-gun-capacity
+      name: Spare Mount
+      description: Carry and deploy one additional gun.
+      maxLevel: 1
+      baseCost: 16000
+      type: DeployableCapacity
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    state: icon
+    scale: 1,1

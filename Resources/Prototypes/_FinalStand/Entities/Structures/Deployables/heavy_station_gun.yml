@@ -1,0 +1,109 @@
+# ── Heavy Station Gun - held item (engineering only, planted via use-in-hand) ─────────────────
+- type: entity
+  id: FSHeavyStationGunItem
+  parent: BaseItem
+  name: heavy station gun
+  description: A belt-fed emplacement gun on a folding mount. Engineering issue only. Bolt it down and it holds a corridor on its own.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Huge
+    shape:
+    - 0,0,2,2
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    state: icon
+  - type: FSSentryTurret
+    ammo: 400
+    maxAmmo: 400
+    range: 6
+    fireInterval: 0.3
+    damageMultiplier: 1.8
+    spriteAngleOffset: 180
+    projectileProto: FSHeavyStationGunRound
+    projectileSpeed: 30
+  - type: FSDeployableItem
+    requiresScience: false
+    requiresEngineering: true
+    deployedProtoId: FSHeavyStationGunDeployed
+    stock: 1
+    maxStock: 1
+    maxDeployed: 1
+    regenPerWave: 1
+    wavesPerRegen: 3
+  - type: FSPlaceable
+    previewProtoId: FSHeavyStationGunDeployed
+    range: 6
+
+# ── Heavy Station Gun - deployed ──────────────────────────────────────────────────────────────
+- type: entity
+  id: FSHeavyStationGunDeployed
+  name: heavy station gun
+  description: A deployed emplacement gun. It tracks and fires on hostiles by itself.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    drawdepth: Objects
+    noRot: true
+    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    layers:
+    - state: base
+      map: [ "turretBase" ]
+    - state: turret
+      map: [ "gun" ]
+  - type: Appearance
+  - type: FSSentryTurret
+    ammo: 400
+    maxAmmo: 400
+    range: 6
+    fireInterval: 0.3
+    damageMultiplier: 1.8
+    spriteAngleOffset: 180
+    projectileProto: FSHeavyStationGunRound
+    projectileSpeed: 30
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.45,0.45,0.45"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Anchorable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 260
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+# Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
+- type: entity
+  id: FSHeavyStationGunRound
+  parent: BaseBullet
+  name: heavy emplacement round
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Cellular: 16
