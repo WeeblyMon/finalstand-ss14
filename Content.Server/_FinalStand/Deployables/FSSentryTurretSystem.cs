@@ -9,6 +9,7 @@ using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
@@ -24,8 +25,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private IGameTiming _timing = default!;
-
-    private static readonly SoundPathSpecifier FireSound = new("/Audio/Weapons/Guns/Gunshots/mk58.ogg");
+    [Dependency] private IRobustRandom _random = default!;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _enemyPool =
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
@@ -69,8 +69,15 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
             if (target is not { } victim)
             {
+                turret.HasTarget = false;
                 _appearance.SetData(uid, FSSentryTurretVisuals.Firing, false);
                 continue;
+            }
+
+            if (!turret.HasTarget)
+            {
+                turret.HasTarget = true;
+                _audio.PlayPvs(turret.TargetAcquiredSound, uid);
             }
 
             var direction = _transform.GetWorldPosition(victim) - origin;
@@ -122,7 +129,8 @@ public sealed class FSSentryTurretSystem : EntitySystem
             ? owner
             : uid;
         _gun.ShootProjectile(projectile, direction, Vector2.Zero, uid, shooter, turret.ProjectileSpeed);
-        _audio.PlayPvs(FireSound, uid, AudioParams.Default.WithVolume(-6f));
+        _audio.PlayPvs(turret.FireSound, uid, AudioParams.Default.WithVolume(-6f));
+        EjectCasing(turret, xform, direction);
 
         var facing = direction.ToWorldAngle() + Angle.FromDegrees(turret.SpriteAngleOffset);
         _appearance.SetData(uid, FSSentryTurretVisuals.Angle, facing.Theta);
@@ -133,5 +141,17 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
         if (turret.Ammo <= 0)
             QueueDel(uid);
+    }
+
+    private void EjectCasing(FSSentryTurretComponent turret, TransformComponent xform, Vector2 direction)
+    {
+        if (turret.CasingProto is not { } proto)
+            return;
+
+        var eject = direction.ToWorldAngle() + Angle.FromDegrees(_random.NextFloat(60f, 120f));
+        var offset = eject.ToVec() * _random.NextFloat(0.15f, 0.4f);
+
+        var casing = Spawn(proto, xform.Coordinates.Offset(offset));
+        _transform.SetWorldRotation(casing, _random.NextAngle());
     }
 }

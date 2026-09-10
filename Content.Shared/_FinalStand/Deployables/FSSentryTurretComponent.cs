@@ -1,4 +1,5 @@
-﻿using Robust.Shared.GameStates;
+﻿using Robust.Shared.Audio;
+using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Deployables;
@@ -31,5 +32,16 @@ public sealed partial class FSSentryTurretComponent : Component
     [DataField]
     public float ProjectileSpeed = 25f;
 
+    [DataField]
+    public SoundSpecifier? FireSound = new SoundPathSpecifier("/Audio/Weapons/Guns/Gunshots/mk58.ogg");
+
+    [DataField]
+    public SoundSpecifier? TargetAcquiredSound;
+
+    [DataField]
+    public EntProtoId? CasingProto;
+
     public TimeSpan NextFire;
+
+    public bool HasTarget;
 }

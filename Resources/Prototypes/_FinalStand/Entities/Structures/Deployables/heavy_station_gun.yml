@@ -1,4 +1,4 @@
-# ── Heavy Station Gun - held item (engineering only, planted via use-in-hand) ─────────────────
+﻿# ── Heavy Station Gun - held item (engineering only, planted via use-in-hand) ─────────────────
 - type: entity
   id: FSHeavyStationGunItem
   parent: BaseItem
@@ -22,6 +22,11 @@
     spriteAngleOffset: 180
     projectileProto: FSHeavyStationGunRound
     projectileSpeed: 30
+    casingProto: FSHeavyStationGunCasing
+    fireSound:
+      path: /Audio/_FinalStand/Deployables/HeavyStationGun/fire.ogg
+    targetAcquiredSound:
+      path: /Audio/_FinalStand/Deployables/HeavyStationGun/target_acquired.ogg
   - type: FSDeployableItem
     requiresScience: false
     requiresEngineering: true
@@ -63,6 +68,11 @@
     spriteAngleOffset: 180
     projectileProto: FSHeavyStationGunRound
     projectileSpeed: 30
+    casingProto: FSHeavyStationGunCasing
+    fireSound:
+      path: /Audio/_FinalStand/Deployables/HeavyStationGun/fire.ogg
+    targetAcquiredSound:
+      path: /Audio/_FinalStand/Deployables/HeavyStationGun/target_acquired.ogg
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
@@ -107,3 +117,15 @@
     damage:
       types:
         Cellular: 16
+
+- type: entity
+  id: FSHeavyStationGunCasing
+  name: spent casing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _FinalStand/Objects/Devices/HeavyStationGun.rsi
+    state: casing
+  - type: TimedDespawn
+    lifetime: 10
