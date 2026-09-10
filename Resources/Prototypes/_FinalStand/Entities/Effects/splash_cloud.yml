@@ -1,0 +1,8 @@
+- type: entity
+  parent: Smoke
+  id: FSSplashCloud
+  name: chemical cloud
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Occluder
+    enabled: false

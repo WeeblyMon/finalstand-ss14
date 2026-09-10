@@ -45,10 +45,10 @@
     Acidic:
       methods: [ Touch ]
       effects:
-      - !type:HealthChange
+      - !type:FSHarmHostiles
         damage:
           types:
-            Caustic: 2
+            Caustic: 6
 
 - type: reaction
   id: FSCombatStim

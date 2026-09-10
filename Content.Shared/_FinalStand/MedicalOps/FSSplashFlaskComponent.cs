@@ -10,7 +10,7 @@ public sealed partial class FSSplashFlaskComponent : Component
     public string Solution = "flask";
 
     [DataField]
-    public EntProtoId CloudProto = "Smoke";
+    public EntProtoId CloudProto = "FSSplashCloud";
 
     [DataField]
     public float Duration = 10f;
