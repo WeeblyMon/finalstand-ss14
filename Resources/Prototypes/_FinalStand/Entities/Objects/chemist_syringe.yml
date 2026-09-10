@@ -21,40 +21,73 @@
     Plastic: 50
 
 - type: entity
-  parent: BaseStorageItem
+  parent: BaseItem
   id: FSSyringePack
-  name: syringe pack
-  description: A pre-loaded rack of support syringes. Use it on a beaker to fill every syringe at once, or on a syringe gun to load the whole rack.
+  name: syringe magazine
+  description: A sealed reservoir of support serum. Slots into a syringe gun and doses every dart from the same batch. Refill it from a beaker.
   components:
   - type: Sprite
     sprite: Objects/Specific/Chemistry/syringe.rsi
     layers:
     - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      visible: false
   - type: Item
     size: Small
-  - type: Storage
-    maxItemSize: Normal
-    grid:
-    - 0,0,5,0
-    whitelist:
-      tags:
-      - SyringeGunAmmo
-  - type: FSSyringePack
-  - type: ContainerContainer
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 60
+  - type: SolutionAmmoProvider
+    solutionId: pack
+    fireCost: 5
+    proto: FSChemistSyringe
+  - type: RefillableSolution
+    solution: pack
+  - type: DrainableSolution
+    solution: pack
+  - type: ExaminableSolution
+    solution: pack
+  - type: SolutionContainerVisuals
+    maxFillLevels: 3
+    fillBaseName: minisyringe
+    solutionName: pack
+    changeColor: true
+  - type: Appearance
+  - type: Tag
+    tags:
+    - FSSyringeMagazine
 
 - type: entity
   parent: FSSyringePack
-  id: FSSyringePackFilled
-  suffix: Filled
+  id: FSSyringePackBicaridine
+  suffix: Bicaridine
   components:
-  - type: StorageFill
-    contents:
-    - id: FSChemistSyringe
-      amount: 6
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 60
+        reagents:
+        - ReagentId: Bicaridine
+          Quantity: 60
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackKelotane
+  suffix: Kelotane
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 60
+        reagents:
+        - ReagentId: Kelotane
+          Quantity: 60
 
 - type: latheRecipe
   id: FSSyringePack
-  result: FSSyringePackFilled
+  result: FSSyringePack
   completetime: 3
   materials:
     Steel: 150

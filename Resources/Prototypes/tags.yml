@@ -1417,6 +1417,9 @@
   id: SyringeGunAmmo # Storage whitelist: LauncherSyringe
 
 - type: Tag
+  id: FSSyringeMagazine # Magazine slot whitelist: LauncherSyringe
+
+- type: Tag
   id: Spellbook # Storage whitelist: Bookshelf
 
 ## T ##

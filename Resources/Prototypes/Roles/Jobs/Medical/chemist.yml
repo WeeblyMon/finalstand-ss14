@@ -25,7 +25,9 @@
     back:
     - FSHarvestSatchel
     - LauncherSyringe
-    - FSSyringePackFilled
+    - FSSyringePackBicaridine
+    - FSSyringePackBicaridine
+    - FSSyringePackKelotane
 
 - type: chameleonOutfit
   id: ChemistChameleonOutfit

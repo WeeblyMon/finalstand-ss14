@@ -3,11 +3,11 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.MedicalOps;
 
 [RegisterComponent, NetworkedComponent]
-public sealed partial class FSSyringePackComponent : Component
+public sealed partial class FSSyringeGunComponent : Component
 {
     [DataField]
-    public string Container = "storagebase";
+    public string MagazineSolution = "pack";
 
     [DataField]
-    public string SyringeSolution = "injector";
+    public string DartSolution = "injector";
 }

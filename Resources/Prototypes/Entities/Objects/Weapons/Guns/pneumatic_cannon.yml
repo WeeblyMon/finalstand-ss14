@@ -140,23 +140,16 @@
 
 - type: entity
   name: syringe gun
-  parent: BaseStorageItem
+  parent: BaseItem
   id: LauncherSyringe
-  description: Load full of poisoned syringes for optimal fun.
+  description: Takes a sealed syringe magazine and fires its serum a dart at a time.
   components:
   - type: Sprite
     sprite: Objects/Weapons/Guns/Cannons/syringe_gun.rsi
     layers:
     - state: syringe_gun
-  - type: Storage
-    maxItemSize: Normal
-    grid:
-    - 0,0,5,0
-    whitelist:
-      tags:
-      - SyringeGunAmmo
   - type: Gun
-    fireRate: 1
+    fireRate: 2
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -166,16 +159,26 @@
     soundEmpty:
       path: /Audio/Weapons/Guns/Empty/empty.ogg
     clumsyProof: true
-  - type: ContainerAmmoProvider
-    container: storagebase
+  - type: ItemSlots
+    slots:
+      gun_magazine:
+        name: Magazine
+        insertSound: /Audio/Weapons/Guns/MagIn/pistol_magin.ogg
+        ejectSound: /Audio/Weapons/Guns/MagOut/pistol_magout.ogg
+        priority: 2
+        whitelist:
+          tags:
+          - FSSyringeMagazine
+  - type: MagazineAmmoProvider
+  - type: FSSyringeGun
   - type: Item
     size: Large
     shape:
     - 0,0,2,1
   - type: ContainerContainer
     containers:
-      storagebase: !type:Container
-        ents: []
+      gun_magazine: !type:ContainerSlot
+  - type: Appearance
 
 # shoots bullets instead of throwing them, no other changes
 - type: entity
