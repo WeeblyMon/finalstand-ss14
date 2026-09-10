@@ -45,6 +45,7 @@
     proto: FSChemistSyringe
   - type: RefillableSolution
     solution: pack
+    refillTime: 4
   - type: DrainableSolution
     solution: pack
   - type: ExaminableSolution
