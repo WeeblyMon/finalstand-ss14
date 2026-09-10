@@ -99,6 +99,8 @@
 - type: latheRecipePack
   id: Chemistry
   recipes:
+  - FSEnzymeBottle
+  - FSCatalystBottle
   - CryostasisBeaker
   - SyringeCryostasis
   - BluespaceBeaker
