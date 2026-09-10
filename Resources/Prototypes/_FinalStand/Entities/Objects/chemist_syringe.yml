@@ -33,6 +33,7 @@
     - state: syringe1
       map: ["enum.SolutionContainerLayers.Fill"]
       visible: false
+      color: "#ffffff"
   - type: Item
     size: Small
   - type: SolutionContainerManager
@@ -51,8 +52,8 @@
   - type: ExaminableSolution
     solution: pack
   - type: SolutionContainerVisuals
-    maxFillLevels: 3
-    fillBaseName: minisyringe
+    maxFillLevels: 2
+    fillBaseName: syringe
     solutionName: pack
     changeColor: true
   - type: Appearance
@@ -63,6 +64,7 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackBicaridine
+  name: bicaridine syringe magazine
   suffix: Bicaridine
   components:
   - type: SolutionContainerManager
@@ -76,6 +78,7 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackKelotane
+  name: kelotane syringe magazine
   suffix: Kelotane
   components:
   - type: SolutionContainerManager
