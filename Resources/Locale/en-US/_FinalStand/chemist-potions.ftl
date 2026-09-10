@@ -11,7 +11,7 @@ reagent-desc-fs-biomass = Raw material rendered from wave enemies. The base for 
 research-technology-fs-coagulant-chemistry = Coagulant Chemistry
 research-technology-fs-etching-chemistry = Etching Chemistry
 
-fs-syringe-shop-title = Medical Ordnance
+fs-syringe-shop-title = Syringe Gun Upgrades
 fs-syringe-shop-credits = Credits: {$credits}
 fs-syringe-shop-no-refund = Purchases are permanent. There are no refunds.
 fs-syringe-shop-buy = Buy ${$price}
@@ -40,3 +40,4 @@ fs-syringe-pack-refilled = Filled {$count} syringes.
 fs-syringe-pack-no-refill = Nothing to draw, or the syringes are already full.
 fs-syringe-pack-full = No room in the gun.
 fs-syringe-pack-loaded = Loaded {$count} syringes.
+fs-splash-flask-empty = The flask is empty - fill it from a beaker first.

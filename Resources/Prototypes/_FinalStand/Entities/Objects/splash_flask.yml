@@ -43,3 +43,81 @@
   materials:
     Glass: 100
     Plastic: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCombatStim
+  suffix: Combat Stim
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCombatStim
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCorrosive
+  suffix: Corrosive
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCorrosive
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskSolvent
+  suffix: Solvent
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSSolvent
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskWeakening
+  suffix: Weakening Agent
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSWeakeningAgent
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCoagulant
+  suffix: Coagulant Mist
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCoagulantMist
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskEtchant
+  suffix: Etchant
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSEtchant
+          Quantity: 50

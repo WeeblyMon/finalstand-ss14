@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
+using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
 using Robust.Server.GameObjects;
@@ -20,6 +21,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _crewBuffer = new();
 
@@ -42,6 +44,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var soln, out var solution)
             || solution.Volume <= 0)
         {
+            _popup.PopupEntity(Loc.GetString("fs-splash-flask-empty"), ent);
             return;
         }
 
