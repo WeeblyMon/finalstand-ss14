@@ -84,8 +84,6 @@ public sealed class FSChemCreditSystem : EntitySystem
         claim.Remaining -= cut;
         if (claim.Remaining <= 0)
             _claims.Remove(killer);
-        else
-            _claims[killer] = claim;
     }
 
     public override void Update(float frameTime)
@@ -107,7 +105,7 @@ public sealed class FSChemCreditSystem : EntitySystem
             _claims.Remove(target);
     }
 
-    private struct Claim
+    private sealed class Claim
     {
         public EntityUid SupplierMind;
         public TimeSpan Expires;
