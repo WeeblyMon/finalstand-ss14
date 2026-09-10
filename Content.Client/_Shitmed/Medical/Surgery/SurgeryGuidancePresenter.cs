@@ -75,12 +75,35 @@ public sealed class SurgeryGuidancePresenter
         return true;
     }
 
-    public void Show(SurgeryStepButton? next, bool workRemains, EntityUid user, EntityUid body, EntityUid part)
+    public void Show(
+        SurgeryStepButton? next,
+        bool workRemains,
+        EntityUid user,
+        EntityUid body,
+        EntityUid part,
+        EntityUid? goal = null,
+        EntityUid? blockedBy = null,
+        bool unnecessaryAccess = false)
     {
         NextStep = next;
 
+        if (unnecessaryAccess && goal is { } invasive)
+        {
+            Set(null, Loc.GetString("surgery-ui-guidance-not-needed", ("operation", NameOf(invasive))), WarningColor);
+            return;
+        }
+
         if (next == null)
         {
+            if (workRemains && goal is { } blockedGoal && blockedBy is { } requirement)
+            {
+                Set(null,
+                    Loc.GetString("surgery-ui-guidance-goal-first",
+                        ("goal", NameOf(blockedGoal)), ("requirement", NameOf(requirement))),
+                    WarningColor);
+                return;
+            }
+
             Set(null,
                 workRemains
                     ? Loc.GetString("surgery-ui-guidance-prerequisite")
@@ -108,6 +131,11 @@ public sealed class SurgeryGuidancePresenter
 
         var detail = ReasonText(reason, next.Step, popup);
         Set(texture, Loc.GetString("surgery-ui-guidance-blocked", ("step", stepName), ("reason", detail)), WarningColor);
+    }
+
+    private string NameOf(EntityUid surgery)
+    {
+        return _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
     }
 
     private bool IsSterile(EntityUid user)

@@ -1,5 +1,7 @@
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
 
@@ -12,53 +14,79 @@ public enum SurgeryFocus : byte
     Organs,
 }
 
+public enum SurgeryRole : byte
+{
+    Goal,
+    Access,
+    Closing,
+    Elective,
+}
+
 public sealed class SurgeryOperationClassifier
 {
-    public const int UrgencyBleeding = 100;
-    public const int UrgencyTrauma = 101;
-    public const int UrgencyAccess = 102;
-    public const int UrgencyClosing = 103;
-    public const int UrgencyElective = 104;
-
-    private static readonly Dictionary<string, int> ExplicitOrder = new()
-    {
-        ["SurgeryOpenIncision"] = 0,
-        ["SurgeryOpenRibcage"] = 1,
-        ["SurgeryStopBloodOutput"] = 2,
-        ["SurgeryFixDismemberment"] = 3,
-        ["SurgeryMendBones"] = 4,
-        ["SurgeryHealOrgans"] = 5,
-        ["SurgeryTendWoundsBrute"] = 6,
-        ["SurgeryTendWoundsBurn"] = 7,
-        ["SurgeryMendBrainTissue"] = 8,
-        ["SurgeryCloseIncision"] = 90,
-        ["SurgeryCloseIncisionHead"] = 90,
-        ["SurgeryCloseIncisionChest"] = 90,
-    };
+    public const int UrgencyElective = 1000;
+    public const int UrgencyClosing = 2000;
+    public const int UrgencyAccess = 3000;
 
     private readonly IEntityManager _entities;
+    private readonly IPrototypeManager _prototypes;
 
-    public SurgeryOperationClassifier(IEntityManager entities)
+    private readonly Dictionary<string, int> _goalOrder = new();
+    private readonly HashSet<string> _access = new();
+    private readonly HashSet<string> _closing = new();
+
+    public SurgeryOperationClassifier(IEntityManager entities, IPrototypeManager prototypes)
     {
         _entities = entities;
+        _prototypes = prototypes;
+
+        LoadGuide();
     }
+
+    private void LoadGuide()
+    {
+        foreach (var guide in _prototypes.EnumeratePrototypes<FSSurgeryGuidePrototype>())
+        {
+            for (var i = 0; i < guide.Goals.Count; i++)
+                _goalOrder.TryAdd(guide.Goals[i].Id, i);
+
+            foreach (var id in guide.Access)
+                _access.Add(id.Id);
+
+            foreach (var id in guide.Closing)
+                _closing.Add(id.Id);
+        }
+    }
+
+    public SurgeryRole RoleOf(string? protoId)
+    {
+        if (protoId == null)
+            return SurgeryRole.Elective;
+
+        if (_goalOrder.ContainsKey(protoId))
+            return SurgeryRole.Goal;
+
+        if (_access.Contains(protoId))
+            return SurgeryRole.Access;
+
+        return _closing.Contains(protoId) ? SurgeryRole.Closing : SurgeryRole.Elective;
+    }
+
+    public bool IsAccess(string? protoId) => protoId != null && _access.Contains(protoId);
 
     public int UrgencyOf(EntityUid surgery, string? protoId = null)
     {
-        if (protoId != null && ExplicitOrder.TryGetValue(protoId, out var explicitRank))
-            return explicitRank;
+        if (protoId != null && _goalOrder.TryGetValue(protoId, out var authored))
+            return authored;
+
+        if (IsAccess(protoId))
+            return UrgencyAccess;
+
+        if (protoId != null && _closing.Contains(protoId))
+            return UrgencyClosing;
 
         if (_entities.HasComponent<SurgeryCloseIncisionConditionComponent>(surgery))
             return UrgencyClosing;
-
-        if (IsBleedingWork(surgery))
-            return UrgencyBleeding;
-
-        if (_entities.HasComponent<SurgeryWoundedConditionComponent>(surgery) || TraumaOf(surgery) != null)
-            return UrgencyTrauma;
-
-        if (_entities.HasComponent<SurgeryOperatingTableConditionComponent>(surgery))
-            return UrgencyAccess;
 
         return UrgencyElective;
     }

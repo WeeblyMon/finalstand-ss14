@@ -60,6 +60,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
     };
 
     private readonly Dictionary<SurgeryFocus, Button> _filterButtons = new();
+    private readonly HashSet<EntityUid> _neededAccess = new();
     private SurgeryOperationClassifier? _classifier;
     private SurgeryFocus _focus = SurgeryFocus.All;
 
@@ -115,7 +116,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
             _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed);
-            _classifier = new SurgeryOperationClassifier(_entities);
+            _classifier = new SurgeryOperationClassifier(_entities, IoCManager.Resolve<IPrototypeManager>());
             BuildFilters();
 
             _window.PerformButton.OnPressed += _ =>
@@ -466,7 +467,16 @@ public sealed partial class SurgeryBui : BoundUserInterface
             i++;
         }
 
-        _guidance.Show(nextButton, next != null, user, Owner, _part.Value);
+        var blockedBy = next != null && next.Value.Surgery.Owner != _surgery.Value.Ent
+            ? next.Value.Surgery.Owner
+            : (EntityUid?) null;
+
+        var unnecessaryAccess = _classifier != null
+                                && _classifier.IsAccess(_surgery.Value.Proto.Id)
+                                && !_neededAccess.Contains(_surgery.Value.Ent);
+
+        _guidance.Show(nextButton, next != null, user, Owner, _part.Value,
+            _surgery.Value.Ent, blockedBy, unnecessaryAccess);
 
         _dollPresenter?.Refresh(selectedNet);
     }
@@ -563,6 +573,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         SurgeryOperationButton? recommended = null;
         var bestUrgency = int.MaxValue;
+        _neededAccess.Clear();
 
         var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked, bool InFocus)>();
 
@@ -578,9 +589,20 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
             states.Add((op, complete, blocked, inFocus));
 
-            if (complete || blocked || !inFocus)
+            if (complete || !inFocus)
                 continue;
 
+            // Access operations exist to unblock a goal, never as a goal of their own. Recommending
+            // one directly is what told doctors to open a ribcage to stop an arm bleeding.
+            if (_classifier.IsAccess(op.SurgeryId.Id))
+                continue;
+
+            // Whatever a live goal is waiting on is legitimately needed, so it must not be warned about.
+            if (blocked)
+                _neededAccess.Add(next!.Value.Surgery.Owner);
+
+            // A blocked goal is still the right thing to recommend: GetNextStep already walked the
+            // requirement chain, so the guidance bar can name the goal and the prerequisite step.
             var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
             if (urgency >= bestUrgency)
                 continue;

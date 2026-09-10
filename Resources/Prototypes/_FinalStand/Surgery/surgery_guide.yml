@@ -1,0 +1,17 @@
+- type: fsSurgeryGuide
+  id: FSSurgeryGuideDefault
+  goals:
+  - SurgeryStopBloodOutput
+  - SurgeryFixDismemberment
+  - SurgeryMendBones
+  - SurgeryHealOrgans
+  - SurgeryMendBrainTissue
+  - SurgeryTendWoundsBrute
+  - SurgeryTendWoundsBurn
+  access:
+  - SurgeryOpenIncision
+  - SurgeryOpenRibcage
+  closing:
+  - SurgeryCloseIncision
+  - SurgeryCloseIncisionHead
+  - SurgeryCloseIncisionChest

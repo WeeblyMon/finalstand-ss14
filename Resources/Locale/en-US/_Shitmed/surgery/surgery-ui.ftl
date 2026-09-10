@@ -66,3 +66,5 @@ surgery-ui-guidance-armor = remove their armour first
 surgery-ui-guidance-skills = you lack the surgical training
 surgery-ui-guidance-previous = finish the earlier steps first
 surgery-ui-guidance-unsterile-idle = No gloves and mask - operating like this will infect the patient.
+surgery-ui-guidance-goal-first = GOAL: {$goal} — first you must finish {$requirement}
+surgery-ui-guidance-not-needed = {$operation} is not needed for anything the patient currently has. Pick a treatment instead.
