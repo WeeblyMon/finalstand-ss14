@@ -41,6 +41,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const float ParticleOrbitSpeed = 2.4f;
 
     private readonly List<DrawVertexUV2D> _verts = new();
+    private DrawVertexUV2D[] _vertBuffer = new DrawVertexUV2D[64];
 
     private readonly record struct LagState(Vector2 Mid, TimeSpan LastSeen);
 
@@ -53,15 +54,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
 
-        try
-        {
-            _beam = cache.GetResource<TextureResource>(
-                new ResPath("/Textures/_FinalStand/Effects/medigun_beam.png")).Texture;
-        }
-        catch
-        {
-            _beam = null;
-        }
+        _beam = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/medigun_beam.png");
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -111,7 +104,15 @@ public sealed class FSMediGunBeamOverlay : Overlay
             BuildRibbon(start, control, end, uMin, vMin, cell);
 
             if (_verts.Count >= 3)
-                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam, _verts.ToArray(), healed.BeamColor);
+            {
+                if (_vertBuffer.Length < _verts.Count)
+                    _vertBuffer = new DrawVertexUV2D[_verts.Count];
+
+                _verts.CopyTo(_vertBuffer);
+
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam,
+                    new ReadOnlySpan<DrawVertexUV2D>(_vertBuffer, 0, _verts.Count), healed.BeamColor);
+            }
 
             DrawParticles(handle, start, control, end, time, healed.BeamColor);
         }
