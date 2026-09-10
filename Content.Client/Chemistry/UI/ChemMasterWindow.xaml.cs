@@ -245,6 +245,10 @@ namespace Content.Client.Chemistry.UI
             PillDosage.IsValid = x => x > 0 && x <= castState.PillDosageLimit;
             BottleDosage.IsValid = x => x >= 0 && x <= bottleAmountMax;
 
+            PillNumberLabel.Text = Loc.GetString("chem-master-window-pills-number-max", ("max", pillNumberMax));
+            PillDoseLabel.Text = Loc.GetString("chem-master-window-dose-max", ("max", castState.PillDosageLimit));
+            BottleDoseLabel.Text = Loc.GetString("chem-master-window-dose-max", ("max", bottleAmountMax));
+
             _applyingDosageDefaults = true;
 
             if (!_pillDosageEdited || PillDosage.Value > castState.PillDosageLimit)

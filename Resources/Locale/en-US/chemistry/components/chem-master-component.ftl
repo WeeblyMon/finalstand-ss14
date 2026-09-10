@@ -48,3 +48,5 @@ chem-master-window-recipes-none = Nothing brewable from this combination.
 chem-master-window-recipes-ready = CAN MAKE: {$recipes}
 chem-master-window-recipe-needs = {$recipe} — needs {$reagent}
 chem-master-window-repeat-button = Repeat last batch
+chem-master-window-dose-max = Dose (max {$max})
+chem-master-window-pills-number-max = Number (max {$max})
