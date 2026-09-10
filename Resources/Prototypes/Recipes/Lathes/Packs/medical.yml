@@ -27,6 +27,11 @@
   - ChemistryEmptyBottle01
   - ClothingEyesGlassesChemical
   - BlankMediPen
+  - LauncherSyringe
+  - FSChemistSyringe
+  - FSSyringePack
+  - FSSplashFlask
+  - FSHarvestSatchel
 
 - type: latheRecipePack
   id: SurgeryStatic
@@ -98,11 +103,6 @@
   - SyringeCryostasis
   - BluespaceBeaker
   - SyringeBluespace
-  - LauncherSyringe
-  - FSChemistSyringe
-  - FSSplashFlask
-  - FSHarvestSatchel
-  - FSSyringePack
   # - AdvancedJetInjector  # Goob: disabled (syringe launcher not ported)
 
 - type: latheRecipePack
