@@ -241,7 +241,7 @@ namespace Content.Client.Gameplay
 
                 if (mapSystem.TryFindGridAt(mousePosWorld, out var uid, out _))
                     coordinates = mapSystem.MapToGrid(uid, mousePosWorld);
-                else if (mousePosWorld.MapId != MapId.Nullspace)
+                else if (mousePosWorld.MapId != MapId.Nullspace && mapSystem.MapExists(mousePosWorld.MapId))
                     coordinates = transformSystem.ToCoordinates(mousePosWorld);
             }
             else
