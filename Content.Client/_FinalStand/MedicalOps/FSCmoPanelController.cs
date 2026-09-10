@@ -43,6 +43,8 @@ public sealed class FSCmoPanelController : UIController
         (FSCmoAbility.Mobilisation, "fs-cmo-mobilisation"),
     };
 
+    private readonly Dictionary<FSCmoAbility, int> _shownSeconds = new();
+
     private PanelContainer? _frame;
     private BoxContainer? _directiveRow;
     private BoxContainer? _abilityRow;
@@ -207,9 +209,17 @@ public sealed class FSCmoPanelController : UIController
             var cooling = remaining > TimeSpan.Zero;
 
             button.Disabled = cooling;
-            button.Text = cooling
-                ? $"{_labels[ability]}  {Math.Ceiling(remaining.TotalSeconds):0}s"
-                : _labels[ability];
+
+            // The label only changes once a second, so rebuilding it per frame would allocate a
+            // string and invalidate layout for every button on every frame.
+            var seconds = cooling ? (int) Math.Ceiling(remaining.TotalSeconds) : 0;
+            if (!_shownSeconds.TryGetValue(ability, out var shown) || shown != seconds)
+            {
+                _shownSeconds[ability] = seconds;
+                button.Text = cooling
+                    ? $"{_labels[ability]}  {seconds:0}s"
+                    : _labels[ability];
+            }
 
             if (directive is { } value)
                 button.Modulate = value == panel.ActiveDirective ? DirectiveActive : DirectiveIdle;
