@@ -17,11 +17,12 @@ public sealed class FSChemCreditSystem : EntitySystem
 
     private static readonly TimeSpan ClaimLifetime = TimeSpan.FromSeconds(120);
 
-    private const float SupplierRate = 0.3f;
-    private const int ClaimBudget = 400;
+
+    private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(5);
 
     private readonly Dictionary<EntityUid, Claim> _claims = new();
     private readonly List<EntityUid> _expired = new();
+    private TimeSpan _nextSweep;
 
     public override void Initialize()
     {
@@ -49,7 +50,7 @@ public sealed class FSChemCreditSystem : EntitySystem
         {
             SupplierMind = mindId,
             Expires = _timing.CurTime + ClaimLifetime,
-            Remaining = ClaimBudget,
+            Remaining = FSMedicalPayoutRates.ChemClaimBudget,
         };
     }
 
@@ -74,7 +75,7 @@ public sealed class FSChemCreditSystem : EntitySystem
             ? value.KillCredits
             : 100;
 
-        var cut = Math.Min((int) MathF.Round(baseCredits * SupplierRate), claim.Remaining);
+        var cut = Math.Min((int) MathF.Round(baseCredits * FSMedicalPayoutRates.SupplierRate), claim.Remaining);
         if (cut <= 0)
             return;
 
@@ -90,6 +91,10 @@ public sealed class FSChemCreditSystem : EntitySystem
     public override void Update(float frameTime)
     {
         var now = _timing.CurTime;
+        if (now < _nextSweep)
+            return;
+
+        _nextSweep = now + SweepInterval;
 
         _expired.Clear();
         foreach (var (target, claim) in _claims)

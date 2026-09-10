@@ -41,9 +41,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int CreditsPerHealPoint = 10;
     private const int SelfHealCreditsPerPoint = 2;
 
-    private const float SupplierRate = 0.3f;
-    private const int SupplierCreditsPerPoint = 6;
-    private const int SupplierFundPerPoint = 3;
 
     private const int FundPerHealPoint = 5;
 
@@ -182,14 +179,14 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             || !supplierMind.IsValid())
             return;
 
-        var points = (int)MathF.Round(paid * SupplierRate);
+        var points = (int)MathF.Round(paid * FSMedicalPayoutRates.SupplierRate);
         if (points <= 0)
             return;
 
         Award(supplierMind, "chem-supply",
             points: points,
-            credits: points * SupplierCreditsPerPoint,
-            fund: points * SupplierFundPerPoint);
+            credits: points * FSMedicalPayoutRates.SupplierCreditsPerPoint,
+            fund: points * FSMedicalPayoutRates.SupplierFundPerPoint);
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)
