@@ -115,6 +115,8 @@
                             <Button MinSize="70 0" Name="CreateBottleButton" Access="Public" Text="{Loc 'chem-master-window-create-button'}" />
                         </BoxContainer>
 
+                        <Label Name="PackagingHint" StyleClasses="LabelSubText" Visible="False" />
+
                         <Button Name="RepeatButton" Access="Public" Disabled="True" Text="{Loc 'chem-master-window-repeat-button'}" />
                     </BoxContainer>
                 </PanelContainer>

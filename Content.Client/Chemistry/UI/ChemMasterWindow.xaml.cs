@@ -224,6 +224,18 @@ namespace Content.Client.Chemistry.UI
             CreateBottleButton.Disabled = castState.OutputContainerInfo?.Reagents == null;
             CreatePillButton.Disabled = castState.OutputContainerInfo?.Entities == null;
 
+            // A greyed-out Create with no stated reason is the single most confusing thing in this
+            // window: pills need a pill canister in the output slot, bottles need an empty bottle.
+            PackagingHint.Text = castState.OutputContainerInfo switch
+            {
+                null => Loc.GetString("chem-master-window-hint-no-output"),
+                { Entities: null, Reagents: not null } => Loc.GetString("chem-master-window-hint-bottle-only"),
+                { Entities: not null, Reagents: null } => Loc.GetString("chem-master-window-hint-pills-only"),
+                _ => string.Empty,
+            };
+
+            PackagingHint.Visible = PackagingHint.Text.Length > 0;
+
             UpdateDosageFields(castState);
         }
 

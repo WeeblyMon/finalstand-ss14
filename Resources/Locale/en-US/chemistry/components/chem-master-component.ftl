@@ -50,3 +50,6 @@ chem-master-window-recipe-needs = {$recipe} — needs {$reagent}
 chem-master-window-repeat-button = Repeat last batch
 chem-master-window-dose-max = Dose (max {$max})
 chem-master-window-pills-number-max = Number (max {$max})
+chem-master-window-hint-no-output = Put a pill canister in the output slot to press pills, or an empty bottle to fill one.
+chem-master-window-hint-bottle-only = Output holds a bottle - you can fill it, but pressing pills needs a pill canister.
+chem-master-window-hint-pills-only = Output holds a canister - you can press pills, but filling needs an empty bottle.
