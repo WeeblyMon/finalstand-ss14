@@ -151,7 +151,7 @@ public sealed class AllyProjectileTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            foreach (var proto in new[] { "FSSyringePackBicaridine", "FSSyringePackKelotane" })
+            foreach (var proto in new[] { "FSSyringePackTricordrazine", "FSSyringePackBicaridine", "FSSyringePackKelotane" })
             {
                 var mag = entMan.SpawnEntity(proto, map.GridCoords);
 

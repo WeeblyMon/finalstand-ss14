@@ -109,3 +109,24 @@
   materials:
     Steel: 150
     Plastic: 100
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackTricordrazine
+  name: tricordrazine syringe magazine
+  suffix: Tricordrazine
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#00e5ff"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 60
+        reagents:
+        - ReagentId: Tricordrazine
+          Quantity: 60
