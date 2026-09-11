@@ -21,7 +21,7 @@
   name: bloodloss
   components:
   - type: StutteringAccent
-  - type: DrunkStatusEffect
+  # FINALSTAND: no DrunkStatusEffect - the bloodloss screen distortion is too noisy for wave combat.
 
 - type: entity
   abstract: true
