@@ -1,4 +1,3 @@
-using Content.Shared._FinalStand.MedicalOps.Shop;
 using Content.Shared.Chemistry;
 using Content.Shared.Containers.ItemSlots;
 using JetBrains.Annotations;
@@ -92,7 +91,6 @@ namespace Content.Client.Chemistry.UI
             }
 
             _window.OnReagentButtonPressed += (args, button) => SendMessage(new ChemMasterReagentAmountButtonMessage(button.Id, button.Amount, button.IsBuffer));
-            _window.OnUpgradePressed += tierId => SendMessage(new FSSyringeShopBuyMessage(tierId));
         }
 
         /// <summary>
