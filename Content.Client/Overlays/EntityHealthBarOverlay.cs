@@ -57,6 +57,9 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     private static readonly string[] GroupOrder = { "Brute", "Burn", "Toxin", "Airloss", "Genetic" };
 
+    private static readonly Color BuffOutline = Color.FromHex("#4FBF7A");
+    private static readonly Color BuffGlow = Color.FromHex("#4FBF7A").WithAlpha(0.35f);
+
     private readonly float[] _groupScratch = new float[GroupOrder.Length];
 
     public EntityHealthBarOverlay(IEntityManager entManager, IPrototypeManager prototype)
@@ -160,12 +163,7 @@ public sealed class EntityHealthBarOverlay : Overlay
                 DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
 
             if (ChemBuffed.Contains(uid))
-            {
-                var underline = new Box2(
-                    new Vector2(startX, -2f) / EyeManager.PixelsPerMeter,
-                    new Vector2(endX, -1f) / EyeManager.PixelsPerMeter).Translated(position);
-                handle.DrawRect(underline, Color.FromHex("#4FBF7A"));
-            }
+                DrawBuffOutline(handle, position, startX, endX);
 
             if (MedigunTarget == uid)
             {
@@ -178,6 +176,23 @@ public sealed class EntityHealthBarOverlay : Overlay
         }
 
         handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    // A ring around the whole bar rather than a line under it - an underline reads as part of the
+    // bar's own chrome and is easy to miss in a fight.
+    private static void DrawBuffOutline(DrawingHandleWorld handle, Vector2 position, float startX, float endX)
+    {
+        const float ppm = EyeManager.PixelsPerMeter;
+
+        var glow = new Box2(
+            new Vector2(startX - 2f, -2f) / ppm,
+            new Vector2(endX + 2f, 5f) / ppm).Translated(position);
+        handle.DrawRect(glow, BuffGlow, false);
+
+        var outline = new Box2(
+            new Vector2(startX - 1f, -1f) / ppm,
+            new Vector2(endX + 1f, 4f) / ppm).Translated(position);
+        handle.DrawRect(outline, BuffOutline, false);
     }
 
     private void DrawDamageBreakdown(DrawingHandleWorld handle, DamageableComponent damageable,
