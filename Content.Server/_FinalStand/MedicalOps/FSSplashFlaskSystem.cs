@@ -7,7 +7,6 @@ using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Coordinates.Helpers;
 using Content.Shared.Maps;
 using Content.Shared.Popups;
-using Content.Shared.Projectiles;
 using Content.Shared.Throwing;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
@@ -34,14 +33,8 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSSplashFlaskComponent, LandEvent>(OnLand);
-        SubscribeLocalEvent<FSAllyProjectileComponent, EmbedEvent>(OnEmbed);
     }
 
-    private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
-    {
-        if (args.Shooter is { } shooter)
-            _credit.RegisterDelivery(args.Embedded, shooter);
-    }
 
     private void OnLand(Entity<FSSplashFlaskComponent> ent, ref LandEvent args)
     {
