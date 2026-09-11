@@ -20,6 +20,7 @@
       effects:
       - !type:FSApplyCombatBuff
         source: chem-stim
+        name: fs-potion-name-combat-stim
         duration: 90
         bonuses:
           MeleeSpeed: 0.3
@@ -29,6 +30,7 @@
       effects:
       - !type:FSApplyCombatBuff
         source: chem-stim
+        name: fs-potion-name-combat-stim
         duration: 90
         bonuses:
           MeleeSpeed: 0.3
@@ -82,8 +84,8 @@
     Acidic:
       methods: [ Touch ]
       effects:
-      - !type:FSSuppressArmorRegen
-        duration: 8
+      - !type:FSStripArmor
+        fraction: 1.0
 
 - type: reagent
   id: FSWeakeningAgent
@@ -168,6 +170,7 @@
       effects:
       - !type:FSApplyArmorPiercing
         duration: 45
+        name: fs-potion-name-etchant
 
 - type: reaction
   id: FSCoagulantMist
