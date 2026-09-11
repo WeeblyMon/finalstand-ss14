@@ -151,11 +151,21 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return;
         }
 
-        if (_useDelay.IsDelayed(uid)
-            || comp.HealedEntities.Count >= comp.MaxLinksAmount
-            || comp.HealedEntities.Contains(target)
-            || !_whitelist.IsWhitelistPass(comp.HealAbleWhitelist, target))
+        if (_useDelay.IsDelayed(uid) || !_whitelist.IsWhitelistPass(comp.HealAbleWhitelist, target))
             return;
+
+        // Clicking the current patient again drops the beam; clicking someone else switches to them.
+        // Previously the only way to retarget was to unwield and rewield.
+        if (comp.HealedEntities.Contains(target))
+        {
+            DisableConnection(ent, target);
+            _useDelay.TryResetDelay(uid);
+            args.Handled = true;
+            return;
+        }
+
+        while (comp.HealedEntities.Count >= comp.MaxLinksAmount && comp.HealedEntities.Count > 0)
+            DisableConnection(ent, comp.HealedEntities[0]);
 
         comp.HealedEntities.Add(target);
         comp.IsActive = true;
