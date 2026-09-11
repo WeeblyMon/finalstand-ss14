@@ -50,7 +50,7 @@
       - !type:FSHarmHostiles
         damage:
           types:
-            Caustic: 6
+            Caustic: 14
 
 - type: reaction
   id: FSCombatStim

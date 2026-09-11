@@ -1,6 +1,6 @@
 using Content.Shared._FinalStand.FriendlyFire;
-using Content.Shared.Body.Components;
-using Content.Shared.Body.Systems;
+using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.EntityEffects;
 using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
@@ -14,16 +14,29 @@ public sealed partial class FSArmorPiercingComponent : Component
     public TimeSpan Until;
 }
 
+// Bleeding in this fork lives on wounds, not on BloodstreamComponent.BleedAmount - the health
+// analyser reads BleedInflicterComponent.IsBleeding per woundable. Lowering the bloodstream figure
+// changed a number nothing reports, so the patient kept reading as bleeding.
 public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSStaunchBleeding>
 {
-    [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private WoundSystem _wounds = default!;
+    [Dependency] private OrganLookupSystem _organs = default!;
+
+    private readonly List<EntityUid> _woundables = new();
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSStaunchBleeding> args)
     {
-        if (!HasComp<BloodstreamComponent>(entity))
+        if (!_organs.TryGetRootOrgan(entity.Owner, out var root))
             return;
 
-        _bloodstream.TryModifyBleedAmount(entity.Owner, -args.Effect.Amount * args.Scale);
+        _woundables.Clear();
+        _woundables.Add(root.Owner);
+
+        foreach (var child in _wounds.GetAllWoundableChildren(root.Owner))
+            _woundables.Add(child.Owner);
+
+        foreach (var woundable in _woundables)
+            _wounds.TryHaltAllBleeding(woundable);
     }
 }
 

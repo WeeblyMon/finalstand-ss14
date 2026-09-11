@@ -15,7 +15,9 @@ public sealed partial class FSHarmHostilesSystem : EntityEffectSystem<MobStateCo
         if (HasComp<FSFriendlyFireComponent>(entity))
             return;
 
-        _damageable.TryChangeDamage(entity.Owner, args.Effect.Damage * args.Scale, true);
+        // Flat per application. Smoke splits its payload across spread tiles, so scaling by reagent
+        // quantity made the damage depend on how far the cloud happened to spread.
+        _damageable.TryChangeDamage(entity.Owner, args.Effect.Damage, true);
     }
 }
 

@@ -16,7 +16,13 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSApplyCombatBuff> args)
     {
         var effect = args.Effect;
-        var refreshed = _bonus.HasBuff(entity, effect.Source);
+
+        // Standing in a cloud re-applies once a second, which reset the timer and replayed the
+        // sound every tick. One dose runs its full duration instead.
+        if (_bonus.HasBuff(entity, effect.Source))
+            return;
+
+        var refreshed = false;
 
         _bonus.ApplyBuff(entity,
             effect.Source,
