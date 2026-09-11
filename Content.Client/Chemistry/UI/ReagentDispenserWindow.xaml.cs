@@ -268,14 +268,15 @@ namespace Content.Client.Chemistry.UI
                 RecipeInfo.AddChild(BuildFieldKitRow(kit));
         }
 
-        private static Label Sub(string text, Color? modulate = null)
+        // Label does not wrap, it clips, so long purpose lines were cut off no matter how wide the
+        // panel got. RichTextLabel reflows inside MaxWidth instead.
+        private const int RecipeTextWidth = 250;
+
+        private static RichTextLabel Sub(string text, Color? modulate = null)
         {
-            return new Label
-            {
-                Text = text,
-                StyleClasses = { StyleClass.LabelSubText },
-                Modulate = modulate ?? Color.White,
-            };
+            var label = new RichTextLabel { MaxWidth = RecipeTextWidth };
+            label.SetMessage(text, modulate ?? Color.FromHex("#9BA3AE"));
+            return label;
         }
 
         private string ReagentName(string id)
@@ -292,7 +293,7 @@ namespace Content.Client.Chemistry.UI
             var blocked = plan.Unobtainable.Count > 0;
             var targeted = _target?.ID == kit.ID;
 
-            var progress = direct
+            var parts = direct
                 .Select(kv => ReagentName(kv.Key) + " " + Loc.GetString(
                     "reagent-dispenser-window-field-kit-progress",
                     ("have", _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero)), ("need", kv.Value)))
@@ -306,7 +307,12 @@ namespace Content.Client.Chemistry.UI
                 Modulate = complete ? ReadyColor : Color.White,
             });
 
-            body.AddChild(Sub(string.Join(" · ", progress), complete ? ReadyColor : Color.White));
+            body.AddChild(Sub(
+                blocked
+                    ? Loc.GetString("reagent-dispenser-window-field-kit-missing")
+                    : string.Join(" · ", parts),
+                complete ? ReadyColor : null));
+
             body.AddChild(Sub(Loc.GetString(kit.Purpose)));
 
             if (targeted)
