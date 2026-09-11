@@ -19,6 +19,9 @@ public sealed partial class FSMedicalBuff
     [DataField]
     public TimeSpan? EndTime;
 
+    [DataField]
+    public string? Name;
+
     public bool IsExpired(TimeSpan now) => EndTime is { } end && end <= now;
 }
 

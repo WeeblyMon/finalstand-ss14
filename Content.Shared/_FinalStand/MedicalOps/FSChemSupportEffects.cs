@@ -36,19 +36,37 @@ public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleedi
 public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSApplyArmorPiercing>
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSMedicalBonusSystem _bonus = default!;
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSApplyArmorPiercing> args)
     {
-        var until = _timing.CurTime + TimeSpan.FromSeconds(args.Effect.Duration);
+        var duration = TimeSpan.FromSeconds(args.Effect.Duration);
+        var until = _timing.CurTime + duration;
         var comp = EnsureComp<FSArmorPiercingComponent>(entity);
 
         if (comp.Until < until)
             comp.Until = until;
+
+        // Piercing is its own component rather than a bonus category, so register a nameplate-only
+        // buff as well - otherwise the recipient gets no HUD readout and no health bar outline.
+        _bonus.ApplyBuff(entity.Owner,
+            args.Effect.Source,
+            EmptyBonuses,
+            duration,
+            args.Effect.Name is { } name ? Loc.GetString(name) : null);
     }
+
+    private static readonly Dictionary<FSMedicalBonusCategory, float> EmptyBonuses = new();
 }
 
 public sealed partial class FSApplyArmorPiercing : EntityEffectBase<FSApplyArmorPiercing>
 {
     [DataField]
     public float Duration = 45f;
+
+    [DataField]
+    public string Source = FSApplyCombatBuff.SourcePrefix + "etchant";
+
+    [DataField]
+    public LocId? Name;
 }

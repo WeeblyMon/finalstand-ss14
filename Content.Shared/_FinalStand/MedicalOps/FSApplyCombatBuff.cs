@@ -21,7 +21,8 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
         _bonus.ApplyBuff(entity,
             effect.Source,
             effect.Bonuses,
-            TimeSpan.FromSeconds(effect.Duration * args.Scale));
+            TimeSpan.FromSeconds(effect.Duration * args.Scale),
+            effect.Name is { } name ? Loc.GetString(name) : null);
 
         _audio.PlayPvs(refreshed ? Refreshed : Landed, entity, AudioParams.Default.WithVolume(refreshed ? -8f : -2f));
     }
@@ -39,4 +40,7 @@ public sealed partial class FSApplyCombatBuff : EntityEffectBase<FSApplyCombatBu
 
     [DataField]
     public string Source = SourcePrefix + "generic";
+
+    [DataField]
+    public LocId? Name;
 }

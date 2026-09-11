@@ -114,7 +114,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         }
     }
 
-    public void ApplyBuff(EntityUid uid, string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null)
+    public void ApplyBuff(EntityUid uid, string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null, string? name = null)
     {
         var comp = EnsureComp<FSMedicalBonusComponent>(uid);
 
@@ -122,6 +122,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         {
             Bonuses = new Dictionary<FSMedicalBonusCategory, float>(bonuses),
             EndTime = duration is { } d ? _timing.CurTime + d : null,
+            Name = name,
         };
 
         Dirty(uid, comp);

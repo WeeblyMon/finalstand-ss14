@@ -139,11 +139,16 @@ public sealed partial class WaveHudSystem : EntitySystem
             if (!source.StartsWith(FSHealthBarSystem.ChemSourcePrefix) || buff.IsExpired(now))
                 continue;
 
-            overlay.BuffStatus = buff.EndTime is { } end
-                ? Loc.GetString("fs-buff-status-timed", ("seconds", (int) Math.Ceiling((end - now).TotalSeconds)))
-                : Loc.GetString("fs-buff-status");
+            var label = buff.Name ?? Loc.GetString("fs-buff-status");
 
-            return;
+            var text = buff.EndTime is { } end
+                ? Loc.GetString("fs-buff-status-named-timed",
+                    ("name", label), ("seconds", (int) Math.Ceiling((end - now).TotalSeconds)))
+                : label;
+
+            overlay.BuffStatus = overlay.BuffStatus is { } existing
+                ? existing + "  " + text
+                : text;
         }
     }
 

@@ -41,3 +41,6 @@ fs-syringe-pack-no-refill = Nothing to draw, or the syringes are already full.
 fs-syringe-pack-full = No room in the gun.
 fs-syringe-pack-loaded = Loaded {$count} syringes.
 fs-splash-flask-empty = The flask is empty - fill it from a beaker first.
+fs-buff-status-named-timed = {$name} {$seconds}s
+fs-potion-name-combat-stim = COMBAT STIM
+fs-potion-name-etchant = ARMOUR PIERCING
