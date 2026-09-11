@@ -32,8 +32,6 @@
     - state: syringe_base0
     - state: syringe1
       map: ["enum.SolutionContainerLayers.Fill"]
-      visible: false
-      color: "#ffffff"
   - type: Item
     size: Small
   - type: SolutionContainerManager
@@ -57,6 +55,7 @@
     solutionName: pack
     changeColor: true
   - type: Appearance
+  - type: FSPrefilledMagazine
   - type: Tag
     tags:
     - FSSyringeMagazine
@@ -67,6 +66,13 @@
   name: bicaridine syringe magazine
   suffix: Bicaridine
   components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#ffaa00"
   - type: SolutionContainerManager
     solutions:
       pack:
@@ -81,6 +87,13 @@
   name: kelotane syringe magazine
   suffix: Kelotane
   components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#bf3d19"
   - type: SolutionContainerManager
     solutions:
       pack:

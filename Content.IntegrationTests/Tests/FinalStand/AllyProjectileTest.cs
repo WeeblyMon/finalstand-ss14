@@ -139,6 +139,31 @@ public sealed class AllyProjectileTest : GameTest
         });
     }
 
+    // A prefilled magazine races SharedSolutionContainerSystem on MapInit. If the gun's handler wins,
+    // Shots is computed against a solution that does not exist yet and never recomputes, leaving a
+    // full magazine reporting empty to both the reload and the ammo counter.
+    [Test]
+    public async Task APrefilledMagazineReportsItsShots()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await Pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            foreach (var proto in new[] { "FSSyringePackBicaridine", "FSSyringePackKelotane" })
+            {
+                var mag = entMan.SpawnEntity(proto, map.GridCoords);
+
+                Assert.That(entMan.TryGetComponent(mag, out SolutionAmmoProviderComponent? ammo), Is.True,
+                    $"{proto} is not a solution magazine");
+
+                Assert.That(ammo!.Shots, Is.EqualTo(12),
+                    $"{proto} spawned reporting {ammo.Shots} shots - 60u at 5u per dart should be 12");
+            }
+        });
+    }
+
     private static bool Collides(IEntityManager entMan, EntityUid target, EntityUid projectile)
     {
         var ourBody = entMan.GetComponent<PhysicsComponent>(target);

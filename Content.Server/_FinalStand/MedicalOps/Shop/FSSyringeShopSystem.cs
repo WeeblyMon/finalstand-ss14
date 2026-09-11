@@ -109,8 +109,10 @@ public sealed class FSSyringeShopSystem : EntitySystem
 
         foreach (var gun in _carried)
         {
+            // QueueDel defers to end of tick, so the old gun would still be occupying the hand when
+            // the replacement tries to go into it, and the new one would drop on the floor.
             if (MetaData(gun).EntityPrototype?.ID != keep)
-                QueueDel(gun);
+                Del(gun);
         }
     }
 
