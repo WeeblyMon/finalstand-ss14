@@ -258,6 +258,9 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             // LOS-filtered by NearbyHostilesQuery, so 15f sees down corridors but not through walls into rooms.
             htn.Blackboard.SetValue("VisionRadius", 15f);
             htn.Blackboard.SetValue("AggroVisionRadius", 15f);
+            // Matches MeleeWeapon.range. TargetInRangePrecondition plans against this, and the CCC
+            // is a 3x3 body, so leaving it at the 1.0 default makes the beeline branch unplannable.
+            htn.Blackboard.SetValue("MeleeRange", 2.0f);
             htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
             htn.Blackboard.SetValue(NPCBlackboard.NavPry, false);
             if (comp.CCCEntity.IsValid())
