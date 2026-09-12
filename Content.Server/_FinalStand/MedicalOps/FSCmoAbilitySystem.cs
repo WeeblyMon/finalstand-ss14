@@ -5,6 +5,8 @@ using Content.Shared.GameTicking;
 using Content.Shared.Radio;
 using Content.Shared.Popups;
 using Robust.Server.Player;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -18,6 +20,13 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier DirectiveSound =
+        new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
+
+    private static readonly SoundSpecifier StandDownSound =
+        new SoundPathSpecifier("/Audio/Machines/buzz-sigh.ogg");
 
     private static readonly ProtoId<RadioChannelPrototype> MedicalChannel = "Medical";
 
@@ -187,7 +196,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         {
             _activeDirective = null;
             RemoveFromDepartment(DirectiveSource);
-            Announce(performer, "fs-cmo-directive-stand-down");
+            Announce(performer, "fs-cmo-directive-stand-down", standDown: true);
             SyncPanels();
             return;
         }
@@ -226,7 +235,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         }
     }
 
-    private void Announce(EntityUid performer, string key)
+    private void Announce(EntityUid performer, string key, bool standDown = false)
     {
         var name = Loc.GetString($"{key}-name");
         var effects = Loc.GetString($"{key}-effects");
@@ -234,10 +243,17 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         var markup = $"[fsability name=\"{name}\" tooltip=\"{effects}\"/]";
         _radio.SendRadioMessage(performer, markup, MedicalChannel, performer, escapeMarkup: false);
 
+        var sound = standDown ? StandDownSound : DirectiveSound;
+
         foreach (var session in _player.Sessions)
         {
-            if (session.AttachedEntity is { } mob && mob != performer && _roles.IsMedicalStaff(mob))
+            if (session.AttachedEntity is not { } mob || !_roles.IsMedicalStaff(mob))
+                continue;
+
+            if (mob != performer)
                 _popup.PopupEntity(name, mob, mob, PopupType.Medium);
+
+            _audio.PlayGlobal(sound, session);
         }
     }
 

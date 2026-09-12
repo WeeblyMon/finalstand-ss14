@@ -8,6 +8,8 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Robust.Server.Player;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -24,6 +26,10 @@ public sealed partial class FSCasualtySystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier RespondSound =
+        new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
     private static readonly EntProtoId BoardAction = "FSCasualtyBoardAction";
     private static readonly TimeSpan CallLifetime = TimeSpan.FromSeconds(120);
@@ -117,6 +123,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("fs-casualty-en-route", ("medic", medicName)), patient, patient, PopupType.Medium);
         _popup.PopupEntity(Loc.GetString("fs-casualty-responding", ("patient", Identity.Name(patient, EntityManager))), medic, medic);
+
+        _audio.PlayEntity(RespondSound, patient, patient);
 
         Broadcast();
     }

@@ -8,6 +8,8 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Timing;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -17,6 +19,13 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
     [Dependency] private TraumaSystem _trauma = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier StapleSound =
+        new SoundPathSpecifier("/Audio/_Shitmed/Medical/Surgery/bone_setter.ogg");
+
+    private static readonly SoundSpecifier NothingToDoSound =
+        new SoundPathSpecifier("/Audio/Machines/buzz-sigh.ogg");
 
     public override void Initialize()
     {
@@ -40,6 +49,7 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
         if (!TryFindWorstBone(target, body, out var bone, out var boneComp))
         {
             _popup.PopupEntity(Loc.GetString("fs-bone-stapler-nothing-broken"), ent.Owner, args.User);
+            _audio.PlayPvs(NothingToDoSound, ent.Owner);
             return;
         }
 
@@ -49,6 +59,7 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
 
         _useDelay.TryResetDelay(ent.Owner);
         _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used"), target, args.User);
+        _audio.PlayPvs(StapleSound, target);
     }
 
     private bool TryFindWorstBone(EntityUid target, BodyComponent body, out EntityUid bone, out BoneComponent boneComp)

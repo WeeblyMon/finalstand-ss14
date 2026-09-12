@@ -7,6 +7,9 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Robust.Server.Player;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -20,10 +23,19 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private FSCasualtySystem _casualty = default!;
+    [Dependency] private FSMedicalRolesSystem _roles = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IPlayerManager _players = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
     private static readonly EntProtoId ChemRequestActionProto = "FSChemRequestAction";
     private const string ScreamEmote = "Scream";
+
+    private static readonly SoundSpecifier MedicAlertSound =
+        new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
+
+    private static readonly SoundSpecifier ChemRequestSound =
+        new SoundPathSpecifier("/Audio/Effects/beep1.ogg");
 
     private const float HurtThreshold = 0.3f;
 
@@ -45,6 +57,22 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         RaiseNetworkEvent(
             new FSMedicPingEvent(GetNetEntity(args.Performer), false, FSPingKind.Chem),
             Filter.Broadcast());
+
+        _audio.PlayEntity(ChemRequestSound, MedicalFilter(), args.Performer, true);
+    }
+
+    // Medics hear the call positionally, so the alert doubles as a bearing on the casualty.
+    private Filter MedicalFilter()
+    {
+        var filter = Filter.Empty();
+
+        foreach (var session in _players.Sessions)
+        {
+            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
+                filter.AddPlayer(session);
+        }
+
+        return filter;
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -69,6 +97,8 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         _chat.TryEmoteWithChat(user, ScreamEmote, ignoreActionBlocker: true, forceEmote: true);
         RaiseNetworkEvent(new FSMedicPingEvent(GetNetEntity(user), IsHurt(user)), Filter.Broadcast());
         _casualty.RegisterCall(user);
+
+        _audio.PlayEntity(MedicAlertSound, MedicalFilter(), user, true);
     }
 
     private bool IsHurt(EntityUid uid)

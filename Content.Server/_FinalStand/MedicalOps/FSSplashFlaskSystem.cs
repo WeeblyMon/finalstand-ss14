@@ -9,6 +9,8 @@ using Content.Shared.Maps;
 using Content.Shared.Popups;
 using Content.Shared.Throwing;
 using Robust.Server.GameObjects;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
@@ -25,6 +27,13 @@ public sealed class FSSplashFlaskSystem : EntitySystem
     [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier BurstSound =
+        new SoundPathSpecifier("/Audio/Effects/Fluids/splat.ogg");
+
+    private static readonly SoundSpecifier EmptySound =
+        new SoundPathSpecifier("/Audio/Effects/Fluids/slosh.ogg");
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _crewBuffer = new();
 
@@ -42,6 +51,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
             || solution.Volume <= 0)
         {
             _popup.PopupEntity(Loc.GetString("fs-splash-flask-empty"), ent);
+            _audio.PlayPvs(EmptySound, ent);
             return;
         }
 
@@ -59,6 +69,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         var cloud = Spawn(ent.Comp.CloudProto, coords.SnapToGrid());
 
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
+        _audio.PlayPvs(BurstSound, coords);
 
         if (args.User is { } thrower && AppliesCombatBuff(payload))
         {
