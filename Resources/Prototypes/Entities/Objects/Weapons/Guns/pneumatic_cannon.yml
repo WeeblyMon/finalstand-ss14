@@ -163,8 +163,8 @@
     slots:
       gun_magazine:
         name: Magazine
-        insertSound: /Audio/Weapons/Guns/MagIn/pistol_magin.ogg
-        ejectSound: /Audio/Weapons/Guns/MagOut/pistol_magout.ogg
+        insertSound: /Audio/_FinalStand/MedicalOps/magazine_in.ogg
+        ejectSound: /Audio/_FinalStand/MedicalOps/magazine_out.ogg
         priority: 2
         whitelist:
           tags:

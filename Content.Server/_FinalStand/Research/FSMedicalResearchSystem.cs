@@ -11,6 +11,9 @@ using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
+
 namespace Content.Server._FinalStand.Research;
 
 public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
@@ -18,6 +21,10 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private FSMedicalRolesSystem _roles = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier PurchaseSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/research_purchase.ogg");
 
     private static readonly ProtoId<FSTechBranchPrototype> MedicalBranch = "Medical";
 
@@ -144,6 +151,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         }
 
         _popup.PopupEntity(Loc.GetString("fs-medical-research-purchased", ("name", node.Name)), uid, player);
+        _audio.PlayPvs(PurchaseSound, uid);
         Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
 

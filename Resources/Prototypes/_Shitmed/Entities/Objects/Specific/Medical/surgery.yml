@@ -35,7 +35,7 @@
     state: stitches
   - type: SurgeryTool
     startSound:
-      path: /Audio/_Shitmed/Medical/Surgery/saw.ogg # TODO: SOUND
+      path: /Audio/_FinalStand/MedicalOps/stitches.ogg
   - type: Stitches
 
 - type: entity

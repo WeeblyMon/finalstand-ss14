@@ -1,11 +1,18 @@
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.EntityEffects;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.Armor;
 
 public sealed partial class FSStripArmorSystem : EntityEffectSystem<FSArmorComponent, FSStripArmor>
 {
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier SuppressSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/solvent_suppress.ogg");
+
     protected override void Effect(Entity<FSArmorComponent> entity, ref EntityEffectEvent<FSStripArmor> args)
     {
         var armor = entity.Comp;
@@ -19,5 +26,7 @@ public sealed partial class FSStripArmorSystem : EntityEffectSystem<FSArmorCompo
         armor.LastSyncedArmor = armor.CurrentArmor;
 
         Dirty(entity.Owner, armor);
+
+        _audio.PlayPvs(SuppressSound, entity.Owner);
     }
 }

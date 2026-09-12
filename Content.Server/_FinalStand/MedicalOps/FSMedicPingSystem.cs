@@ -32,10 +32,10 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     private const string ScreamEmote = "Scream";
 
     private static readonly SoundSpecifier MedicAlertSound =
-        new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/medic_alert.ogg");
 
     private static readonly SoundSpecifier ChemRequestSound =
-        new SoundPathSpecifier("/Audio/Effects/beep1.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/chem_request.ogg");
 
     private const float HurtThreshold = 0.3f;
 

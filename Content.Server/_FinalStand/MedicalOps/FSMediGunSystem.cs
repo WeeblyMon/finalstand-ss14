@@ -99,6 +99,16 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return false;
 
         var scale = GetHealScale((healed, damageable), comp);
+
+        if (TryComp<FSMediGunHealedComponent>(healed, out var link))
+        {
+            var capped = scale <= 0f;
+            if (capped && !link.SoftCapAnnounced)
+                _audio.PlayPvs(comp.SoundOnSoftCap, ent.Owner);
+
+            link.SoftCapAnnounced = capped;
+        }
+
         if (scale <= 0f)
             return true;
 
@@ -216,5 +226,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         RemComp<FSMediGunHealedComponent>(toRemove);
         Dirty(ent.Owner, ent.Comp);
+
+        _audio.PlayPvs(ent.Comp.SoundOnTargetLost, ent.Owner);
     }
 }

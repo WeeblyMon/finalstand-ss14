@@ -58,6 +58,14 @@ public sealed partial class FSMediGunComponent : Component
     [DataField, AutoNetworkedField]
     public SoundSpecifier? SoundOnTarget;
 
+    [DataField]
+    public SoundSpecifier? SoundOnTargetLost =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/medigun_target_lost.ogg");
+
+    [DataField]
+    public SoundSpecifier? SoundOnSoftCap =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/medigun_cap_reached.ogg");
+
     [DataField, AutoNetworkedField]
     public Color BeamColor = Color.FromHex("#E23B3B");
 }
@@ -70,4 +78,8 @@ public sealed partial class FSMediGunHealedComponent : Component
 
     [DataField, AutoNetworkedField]
     public Color BeamColor;
+
+    // Latches so crossing the soft cap sounds once instead of every heal tick.
+    [DataField]
+    public bool SoftCapAnnounced;
 }

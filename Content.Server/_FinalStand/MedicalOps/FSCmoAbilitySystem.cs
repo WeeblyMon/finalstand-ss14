@@ -23,10 +23,10 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
-        new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
 
     private static readonly SoundSpecifier StandDownSound =
-        new SoundPathSpecifier("/Audio/Machines/buzz-sigh.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive_standdown.ogg");
 
     private static readonly ProtoId<RadioChannelPrototype> MedicalChannel = "Medical";
 

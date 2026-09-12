@@ -15,26 +15,37 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     private static readonly TimeSpan FlashDuration = TimeSpan.FromSeconds(2);
 
     private static readonly SoundSpecifier Landed = new SoundPathSpecifier("/Audio/Items/hypospray.ogg");
-    private static readonly SoundSpecifier Refreshed = new SoundPathSpecifier("/Audio/Effects/Chemistry/bubbles.ogg");
+
+    private static readonly SoundSpecifier Refreshed =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/buff_refresh.ogg");
+
+    // Only a dose landing on a nearly-spent buff counts as a top-up.
+    private const float RefreshFraction = 0.34f;
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSApplyCombatBuff> args)
     {
         var effect = args.Effect;
+        var duration = TimeSpan.FromSeconds(effect.Duration * args.Scale);
 
-        // Standing in a cloud re-applies once a second, which reset the timer and replayed the
-        // sound every tick. One dose runs its full duration instead.
-        if (_bonus.HasBuff(entity, effect.Source))
+        // A cloud re-applies once a second and bloodstream metabolism ticks too, so re-applying
+        // freely would let one dose run forever. Holding off until the buff is nearly spent keeps a
+        // single dose to its stated duration while still letting a medic deliberately top someone up.
+        var refreshing = _bonus.TryGetBuff(entity, effect.Source, out var existing);
+
+        if (refreshing
+            && (existing?.EndTime is not { } end || end - _timing.CurTime > duration * RefreshFraction))
+        {
             return;
-
-        var refreshed = false;
+        }
 
         _bonus.ApplyBuff(entity,
             effect.Source,
             effect.Bonuses,
-            TimeSpan.FromSeconds(effect.Duration * args.Scale),
+            duration,
             effect.Name is { } name ? Loc.GetString(name) : null);
 
-        _audio.PlayPvs(refreshed ? Refreshed : Landed, entity, AudioParams.Default.WithVolume(refreshed ? -8f : -2f));
+        _audio.PlayPvs(refreshing ? Refreshed : Landed, entity,
+            AudioParams.Default.WithVolume(refreshing ? -8f : -2f));
 
         var flash = EnsureComp<FSBuffFlashComponent>(entity);
         flash.Colour = effect.Colour;

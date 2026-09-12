@@ -22,7 +22,7 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier StapleSound =
-        new SoundPathSpecifier("/Audio/_Shitmed/Medical/Surgery/bone_setter.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/bone_stapler.ogg");
 
     private static readonly SoundSpecifier NothingToDoSound =
         new SoundPathSpecifier("/Audio/Machines/buzz-sigh.ogg");

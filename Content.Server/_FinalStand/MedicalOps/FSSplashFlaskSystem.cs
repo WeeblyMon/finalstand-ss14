@@ -30,7 +30,7 @@ public sealed class FSSplashFlaskSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier BurstSound =
-        new SoundPathSpecifier("/Audio/Effects/Fluids/splat.ogg");
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/flask_burst.ogg");
 
     private static readonly SoundSpecifier EmptySound =
         new SoundPathSpecifier("/Audio/Effects/Fluids/slosh.ogg");

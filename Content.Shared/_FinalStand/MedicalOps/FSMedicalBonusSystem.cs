@@ -144,9 +144,22 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
     public bool HasBuff(EntityUid uid, string source)
     {
-        return _bonusQuery.TryComp(uid, out var comp)
-            && comp.Active.TryGetValue(source, out var buff)
-            && !buff.IsExpired(_timing.CurTime);
+        return TryGetBuff(uid, source, out _);
+    }
+
+    public bool TryGetBuff(EntityUid uid, string source, out FSMedicalBuff? buff)
+    {
+        buff = null;
+
+        if (!_bonusQuery.TryComp(uid, out var comp)
+            || !comp.Active.TryGetValue(source, out var active)
+            || active.IsExpired(_timing.CurTime))
+        {
+            return false;
+        }
+
+        buff = active;
+        return true;
     }
 
     public float GetBonus(EntityUid uid, FSMedicalBonusCategory category)

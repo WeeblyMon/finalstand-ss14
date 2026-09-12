@@ -7,6 +7,9 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Robust.Shared.Map;
 
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
+
 namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed class FSHarvestSystem : EntitySystem
@@ -14,6 +17,10 @@ public sealed class FSHarvestSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private WaveGameRuleSystem _wave = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier TickSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/harvest_tick.ogg");
 
     public override void Initialize()
     {
@@ -102,5 +109,7 @@ public sealed class FSHarvestSystem : EntitySystem
 
         satchel.Comp.AccruedThisWave += accepted.Float();
         Dirty(satchel);
+
+        _audio.PlayPvs(TickSound, satchel.Owner, AudioParams.Default.WithVolume(-10f));
     }
 }
