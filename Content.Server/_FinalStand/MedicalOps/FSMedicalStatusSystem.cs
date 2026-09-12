@@ -45,7 +45,7 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
                 continue;
 
             _lastSent[mob] = isMedical;
-            RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), session);
+            RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(mob)), session);
         }
     }
 
@@ -53,8 +53,10 @@ public sealed partial class FSMedicalStatusSystem : EntitySystem
     {
         var isMedical = IsMedicalDepartment(ev.Mob);
         _lastSent[ev.Mob] = isMedical;
-        RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical), ev.Player);
+        RaiseNetworkEvent(new FSMedicalStatusEvent(isMedical, IsChemist(ev.Mob)), ev.Player);
     }
 
     public bool IsMedicalDepartment(EntityUid mob) => _roles.IsMedicalStaff(mob);
+
+    private bool IsChemist(EntityUid mob) => _roles.IsChemist(mob);
 }

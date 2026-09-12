@@ -22,9 +22,11 @@ public sealed class FSMedicalFundRequestEvent : EntityEventArgs
 public sealed class FSMedicalStatusEvent : EntityEventArgs
 {
     public bool IsMedical;
+    public bool IsChemist;
 
-    public FSMedicalStatusEvent(bool isMedical)
+    public FSMedicalStatusEvent(bool isMedical, bool isChemist = false)
     {
         IsMedical = isMedical;
+        IsChemist = isChemist;
     }
 }

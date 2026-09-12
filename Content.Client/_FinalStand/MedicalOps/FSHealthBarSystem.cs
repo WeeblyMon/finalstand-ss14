@@ -17,6 +17,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
 
     private bool _isMedical;
+    private bool _isChemist;
 
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextRefresh;
@@ -39,6 +40,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     private void OnMedicalStatus(FSMedicalStatusEvent ev)
     {
         _isMedical = ev.IsMedical;
+        _isChemist = ev.IsChemist;
 
         if (_playerManager.LocalEntity is { } local)
             EnsureHealthBars(local);
@@ -86,20 +88,28 @@ public sealed partial class FSHealthBarSystem : EntitySystem
     private void RefreshChemBuffed(EntityHealthBarOverlay overlay)
     {
         overlay.ChemBuffed.Clear();
+        overlay.ChemUnbuffed.Clear();
 
         var now = _timing.CurTime;
         var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
 
         while (query.MoveNext(out var uid, out var bonus))
         {
+            var buffed = false;
+
             foreach (var (source, buff) in bonus.Active)
             {
                 if (!source.StartsWith(ChemSourcePrefix) || buff.IsExpired(now))
                     continue;
 
-                overlay.ChemBuffed.Add(uid);
+                buffed = true;
                 break;
             }
+
+            if (buffed)
+                overlay.ChemBuffed.Add(uid);
+            else if (_isChemist)
+                overlay.ChemUnbuffed.Add(uid);
         }
     }
 

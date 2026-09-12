@@ -45,6 +45,7 @@ public sealed class EntityHealthBarOverlay : Overlay
     public float MedigunSoftCap = 0.7f;
 
     public readonly HashSet<EntityUid> ChemBuffed = new();
+    public readonly HashSet<EntityUid> ChemUnbuffed = new();
 
     private static readonly Color[] GroupColors =
     {
@@ -59,6 +60,7 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     private static readonly Color BuffOutline = Color.FromHex("#4FBF7A");
     private static readonly Color BuffGlow = Color.FromHex("#4FBF7A").WithAlpha(0.35f);
+    private static readonly Color UnbuffedMark = Color.FromHex("#C9A227");
 
     private readonly float[] _groupScratch = new float[GroupOrder.Length];
 
@@ -164,6 +166,8 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             if (ChemBuffed.Contains(uid))
                 DrawBuffOutline(handle, position, startX, endX);
+            else if (ChemUnbuffed.Contains(uid))
+                DrawUnbuffedMark(handle, position, startX);
 
             if (MedigunTarget == uid)
             {
@@ -193,6 +197,18 @@ public sealed class EntityHealthBarOverlay : Overlay
             new Vector2(startX - 1f, -1f) / ppm,
             new Vector2(endX + 1f, 4f) / ppm).Translated(position);
         handle.DrawRect(outline, BuffOutline, false);
+    }
+
+    // The coverage gap is what the chemist can act on, so it gets a mark of its own: a short tick off
+    // the left end rather than a full ring, which would read as a weaker version of being buffed.
+    private static void DrawUnbuffedMark(DrawingHandleWorld handle, Vector2 position, float startX)
+    {
+        const float ppm = EyeManager.PixelsPerMeter;
+
+        var tick = new Box2(
+            new Vector2(startX - 4f, 0f) / ppm,
+            new Vector2(startX - 1f, 3f) / ppm).Translated(position);
+        handle.DrawRect(tick, UnbuffedMark);
     }
 
     private void DrawDamageBreakdown(DrawingHandleWorld handle, DamageableComponent damageable,
