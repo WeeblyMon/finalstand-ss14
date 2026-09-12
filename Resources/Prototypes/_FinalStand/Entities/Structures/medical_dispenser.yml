@@ -1,0 +1,15 @@
+- type: vendingMachineInventory
+  id: FSMedicalDispenserInventory
+  startingInventory:
+    FSSplashFlask: 8
+    FSSyringePack: 6
+    FSChemistSyringe: 4
+
+- type: entity
+  parent: VendingMachineMedicalBase
+  id: FSMedicalDispenser
+  name: ChemDrobe
+  description: Dispenses empty flasks and syringe magazines. Filling them is your problem.
+  components:
+  - type: VendingMachine
+    pack: FSMedicalDispenserInventory

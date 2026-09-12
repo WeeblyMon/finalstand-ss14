@@ -28,6 +28,8 @@
     - FSSyringePackBicaridine
     - FSSyringePackBicaridine
     - FSSyringePackKelotane
+    - FSSplashFlaskCombatStim
+    - FSSplashFlaskCorrosive
 
 - type: chameleonOutfit
   id: ChemistChameleonOutfit
