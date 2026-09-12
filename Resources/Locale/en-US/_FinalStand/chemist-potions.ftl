@@ -6,6 +6,7 @@ reagent-desc-fs-corrosive = An unstable acid refined from wave-enemy tissue. Eat
 
 fs-buff-status = CHEM BOOST ACTIVE
 fs-buff-status-timed = CHEM BOOST {$seconds}s
+fs-buff-source-chem = Chemist
 reagent-name-fs-biomass = harvested tissue
 reagent-desc-fs-biomass = Raw material rendered from wave enemies. The base for every field potion.
 research-technology-fs-coagulant-chemistry = Coagulant Chemistry

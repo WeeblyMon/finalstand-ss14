@@ -132,7 +132,9 @@ public sealed partial class WaveHudOverlay : Overlay
     public string? CasualtyStatus;
     public bool CasualtyResponded;
 
-    public string? BuffStatus;
+    public readonly record struct MedicalBuffRow(string Name, string IconKey, int SecondsRemaining, string Source);
+
+    public readonly List<MedicalBuffRow> MedicalBuffs = new();
 
     public string? HarvestStatus;
     public bool HarvestCapped;
@@ -649,11 +651,33 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var bottom = bonusBlockTop ?? (FindHotbarTop() ?? _clyde.ScreenSize.Y - margin) - 10f;
 
-        if (BuffStatus is { } buff)
+        if (MedicalBuffs.Count > 0)
         {
-            var dims = screen.GetDimensions(_tinyFont, buff, 1f);
-            bottom -= 4f + dims.Y;
-            screen.DrawString(_tinyFont, new Vector2(margin, bottom), buff, Color.FromHex("#4FBF7A"));
+            const float rowGap = 4f;
+            const float iconTextGap = 4f;
+            var textH = screen.GetDimensions(_tinyFont, "Ay", 1f).Y;
+            var iconSz = textH * 2f;
+
+            bottom -= 4f + MedicalBuffs.Count * iconSz + (MedicalBuffs.Count - 1) * rowGap;
+
+            var y = bottom;
+            foreach (var buff in MedicalBuffs)
+            {
+                var icon = GetStatIcon(buff.IconKey) ?? GetStatIcon(MedicalBuffFallbackIcon);
+                if (icon != null)
+                    screen.DrawTextureRect(icon, new UIBox2(margin, y, margin + iconSz, y + iconSz), Color.White);
+
+                var value = buff.SecondsRemaining >= 0 ? $"{buff.SecondsRemaining}s" : string.Empty;
+                var valueDims = screen.GetDimensions(_tinyFont, value, 1f);
+                var valuePos = new Vector2(margin + iconSz + iconTextGap, y + (iconSz - valueDims.Y) * 0.5f);
+                screen.DrawString(_tinyFont, valuePos, value, MedicalBuffColour);
+
+                var cellW = iconSz + iconTextGap + valueDims.X;
+                _bonusRowCells.Add((new UIBox2(margin, y, margin + cellW, y + iconSz),
+                    buff.Name, [buff.Source]));
+
+                y += iconSz + rowGap;
+            }
         }
 
         if (HarvestStatus is { } harvest)
@@ -718,6 +742,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private static readonly Color BonusPositive = Color.FromHex("#22C55E");
     private static readonly Color BonusNegative = Color.FromHex("#EF4444");
+
+    private const string MedicalBuffFallbackIcon = "buff";
+    private static readonly Color MedicalBuffColour = Color.FromHex("#4FBF7A");
 
     // Rebuilt on a change of held item or summary, not per frame.
     private List<BonusRow> BuildVisibleBonusRows()

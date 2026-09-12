@@ -124,7 +124,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private void UpdateBuffStatus(WaveHudOverlay overlay)
     {
-        overlay.BuffStatus = null;
+        overlay.MedicalBuffs.Clear();
 
         if (_player.LocalEntity is not { } player
             || !TryComp<FSMedicalBonusComponent>(player, out var bonus))
@@ -141,15 +141,23 @@ public sealed partial class WaveHudSystem : EntitySystem
 
             var label = buff.Name ?? Loc.GetString("fs-buff-status");
 
-            var text = buff.EndTime is { } end
-                ? Loc.GetString("fs-buff-status-named-timed",
-                    ("name", label), ("seconds", (int) Math.Ceiling((end - now).TotalSeconds)))
-                : label;
+            var seconds = buff.EndTime is { } end
+                ? (int) Math.Ceiling((end - now).TotalSeconds)
+                : -1;
 
-            overlay.BuffStatus = overlay.BuffStatus is { } existing
-                ? existing + "  " + text
-                : text;
+            overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
+                label,
+                BuffIconKey(source),
+                seconds,
+                Loc.GetString("fs-buff-source-chem")));
         }
+    }
+
+    // Icon keys resolve to /Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png and fall back when absent.
+    private static string BuffIconKey(string source)
+    {
+        var name = source[FSHealthBarSystem.ChemSourcePrefix.Length..];
+        return string.IsNullOrEmpty(name) ? "buff" : "buff_" + name.ToLowerInvariant();
     }
 
     private void UpdateCasualtyStatus(WaveHudOverlay overlay)
