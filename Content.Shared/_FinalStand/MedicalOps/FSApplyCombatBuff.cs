@@ -2,6 +2,7 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.EntityEffects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
@@ -9,6 +10,9 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
 {
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan FlashDuration = TimeSpan.FromSeconds(2);
 
     private static readonly SoundSpecifier Landed = new SoundPathSpecifier("/Audio/Items/hypospray.ogg");
     private static readonly SoundSpecifier Refreshed = new SoundPathSpecifier("/Audio/Effects/Chemistry/bubbles.ogg");
@@ -31,6 +35,11 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
             effect.Name is { } name ? Loc.GetString(name) : null);
 
         _audio.PlayPvs(refreshed ? Refreshed : Landed, entity, AudioParams.Default.WithVolume(refreshed ? -8f : -2f));
+
+        var flash = EnsureComp<FSBuffFlashComponent>(entity);
+        flash.Colour = effect.Colour;
+        flash.EndTime = _timing.CurTime + FlashDuration;
+        Dirty(entity, flash);
     }
 }
 
@@ -49,4 +58,7 @@ public sealed partial class FSApplyCombatBuff : EntityEffectBase<FSApplyCombatBu
 
     [DataField]
     public LocId? Name;
+
+    [DataField]
+    public Color Colour = Color.FromHex("#4FBF7A");
 }
