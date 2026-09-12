@@ -1,0 +1,8 @@
+- files: ["bone_stapler.ogg", "buff_refresh.ogg", "chem_request.ogg", "directive.ogg",
+          "directive_standdown.ogg", "flask_burst.ogg", "harvest_tick.ogg", "magazine_in.ogg",
+          "magazine_out.ogg", "medic_alert.ogg", "medigun_cap_reached.ogg",
+          "medigun_target_lost.ogg", "research_purchase.ogg", "solvent_suppress.ogg",
+          "stitches.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Created by Gary Chen for Final Stand"
+  source: "https://github.com/Final-Stand-14"
