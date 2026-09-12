@@ -445,6 +445,7 @@
       runningState: icon
       unlitIdleState: unlit
       unlitRunningState: unlit-building
+      timeMultiplier: 0.333 # FINALSTAND: 3x print speed, resupply has to keep up with a wave
       staticPacks:
       - SecurityAmmoStatic
     - type: EmagLatheRecipes
