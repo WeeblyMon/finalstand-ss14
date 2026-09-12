@@ -136,7 +136,11 @@ public sealed partial class WaveHudSystem : EntitySystem
 
         foreach (var (source, buff) in bonus.Active)
         {
-            if (!source.StartsWith(FSHealthBarSystem.ChemSourcePrefix) || buff.IsExpired(now))
+            if (buff.IsExpired(now))
+                continue;
+
+            var chem = source.StartsWith(FSHealthBarSystem.ChemSourcePrefix);
+            if (!chem && !CmoSources.Contains(source))
                 continue;
 
             var label = buff.Name ?? Loc.GetString("fs-buff-status");
@@ -147,11 +151,15 @@ public sealed partial class WaveHudSystem : EntitySystem
 
             overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
                 label,
-                BuffIconKey(source),
+                chem ? BuffIconKey(source) : "buff_" + source,
                 seconds,
-                Loc.GetString("fs-buff-source-chem")));
+                Loc.GetString(chem ? "fs-buff-source-chem" : "fs-buff-source-cmo")));
         }
     }
+
+    // The CMO's orders already reach every medic as buffs; they were just never shown to anyone
+    // but the CMO.
+    private static readonly string[] CmoSources = ["directive", "mcp", "mobilisation"];
 
     // Icon keys resolve to /Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png and fall back when absent.
     private static string BuffIconKey(string source)

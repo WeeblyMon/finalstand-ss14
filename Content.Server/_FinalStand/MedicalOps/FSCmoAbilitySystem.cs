@@ -157,13 +157,14 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             && Directives.TryGetValue(active, out var def)
             && _roles.IsMedicalStaff(ev.Mob))
         {
-            _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses);
+            _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses,
+                name: Loc.GetString($"{def.Announcement}-short"));
         }
     }
 
     private void RunMassCasualtyProtocol(EntityUid performer)
     {
-        ApplyToDepartment(McpSource, McpBonuses, McpDuration);
+        ApplyToDepartment(McpSource, McpBonuses, McpDuration, Loc.GetString("fs-cmo-mcp-short"));
         Announce(performer, "fs-cmo-mcp");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
@@ -175,7 +176,8 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void RunMobilisation(EntityUid performer)
     {
-        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration);
+        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration,
+            Loc.GetString("fs-cmo-mobilisation-short"));
         Announce(performer, "fs-cmo-mobilisation");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
@@ -205,7 +207,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             return;
 
         _activeDirective = directive;
-        ApplyToDepartment(DirectiveSource, def.Bonuses);
+        ApplyToDepartment(DirectiveSource, def.Bonuses, name: Loc.GetString($"{def.Announcement}-short"));
         Announce(performer, def.Announcement);
 
         if (panel != null)
@@ -217,12 +219,13 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SyncPanels();
     }
 
-    private void ApplyToDepartment(string source, Dictionary<FSMedicalBonusCategory, float> bonuses, TimeSpan? duration = null)
+    private void ApplyToDepartment(string source, Dictionary<FSMedicalBonusCategory, float> bonuses,
+        TimeSpan? duration = null, string? name = null)
     {
         foreach (var session in _player.Sessions)
         {
             if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
-                _bonus.ApplyBuff(mob, source, bonuses, duration);
+                _bonus.ApplyBuff(mob, source, bonuses, duration, name);
         }
     }
 
