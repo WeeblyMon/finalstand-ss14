@@ -25,7 +25,7 @@
     checkCanInteract: false
   - type: Sprite
     layers:
-    - texture: /Textures/_FinalStand/Interface/MedicPing/normal.png
+    - texture: /Textures/_FinalStand/Interface/MedicPing/chem.png
       map: ["enum.ActionVisuals.Icon"]
   - type: InstantAction
     event: !type:FSChemRequestActionEvent {}
