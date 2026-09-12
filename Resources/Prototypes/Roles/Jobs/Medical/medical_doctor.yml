@@ -27,6 +27,9 @@
     belt: ClothingBeltMedicalFilled # KS14
     pocket1: FlashlightSeclite
     pocket2: FSBoneStapler # FINALSTAND
+  storage:
+    back:
+    - FSFieldHospitalItem # FINALSTAND
 
 - type: chameleonOutfit
   id: MedicalDoctorChameleonOutfit

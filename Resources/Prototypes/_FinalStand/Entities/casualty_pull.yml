@@ -1,0 +1,15 @@
+- type: entity
+  parent: BaseAction
+  id: FSCasualtyPullAction
+  name: Casualty Recovery
+  description: Drag a downed crewmate to your position from anywhere on the station. Long recharge, so spend it on the one nobody else can reach.
+  components:
+  - type: Action
+    useDelay: 120
+  - type: Sprite
+    layers:
+    - texture: /Textures/_FinalStand/Interface/CasualtyBoard/casualty_board.png
+      map: ["enum.ActionVisuals.Icon"]
+  - type: TargetAction
+  - type: EntityTargetAction
+    event: !type:FSCasualtyPullActionEvent {}
