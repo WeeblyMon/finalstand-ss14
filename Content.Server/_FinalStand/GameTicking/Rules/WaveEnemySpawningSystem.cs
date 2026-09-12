@@ -298,7 +298,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return _random.Pick(pool);
     }
 
-    private const string DarkWaveEnemyProto = "FSZombieRevenant";
+    private const string DarkWaveEnemyProto = "FSZombieRevenantDark";
     private const float DarkWaveSpawnRadiusMin = 4f;
     private const float DarkWaveSpawnRadiusMax = 8f;
 
