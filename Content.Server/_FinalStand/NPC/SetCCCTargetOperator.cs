@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.NPC;
@@ -14,8 +14,8 @@ public sealed partial class SetCCCTargetOperator : HTNOperator
 
     private FSSlotRingSystem _slotRing = default!;
 
-    // Must be < MeleeRange (1.0f) so the planning-phase TargetInRangePrecondition passes.
-    private const float ApproachRadius = 0.9f;
+    // Outside the CCC's 1.5 half-extent plus a 0.35 mob radius, and inside the 2.0 melee range.
+    private const float ApproachRadius = 1.9f;
 
     public override void Initialize(IEntitySystemManager sysManager)
     {

@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   id: FSZombieRevenant
   parent: FSZombieFootsoldierBase
   suffix: Revenant
@@ -57,7 +57,7 @@
     damagedState: damaged
     singleStageAt: 0.10
   - type: FSEnemyValue
-    killCredits: 550
+    killCredits: 1500
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 1100
   - type: FSDeathLoot

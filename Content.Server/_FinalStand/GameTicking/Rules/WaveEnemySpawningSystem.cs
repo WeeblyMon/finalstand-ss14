@@ -7,7 +7,6 @@ using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;
 using Content.Shared.Mobs;
-using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
@@ -34,8 +33,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
     private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
 
-    private const int MaxAliveRevenants = 1;
-    private const int DarkWaveRevenantHealth = 999999999;
+    private const int MaxAliveRevenants = 3;
 
     private readonly List<EntityUid> _spawnerBuffer = new();
     private readonly List<EntityUid> _secondaryBuffer = new();
@@ -348,7 +346,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (spawnCoords == null) continue;
 
             var enemy = SpawnWaveEnemy(DarkWaveEnemyProto, spawnCoords.Value, comp);
-            _thresholds.SetMobStateThreshold(enemy, FixedPoint2.New(DarkWaveRevenantHealth), MobState.Dead);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
         }

@@ -1,4 +1,4 @@
-namespace Content.Server._FinalStand.Perks;
+﻿namespace Content.Server._FinalStand.Perks;
 
 // Every numeric perk formula, in one place, so it can never drift from the catalog text in FSPerkDef.cs.
 // Read by the buff hubs, the single-perk systems, and FSPlayerBonusSummarySystem alike.
@@ -25,9 +25,9 @@ internal static class FSPerkBonusConstants
 
     public const float RampageRegenPerLevel = 0.2f; // HP/s, per stack, per level
 
-    public const float InvestorPerLevel = 0.025f;
-    public const float MutualFundPerLevel = 0.0125f;
-    public const float ProfiteerFraction = 0.07f;
+    public const float InvestorPerLevel = 0.005f;
+    public const float MutualFundPerLevel = 0.0025f;
+    public const float ProfiteerFraction = 0.014f;
     public const float ProfiteerHitBase = 30f;  // per ranged hit that raises enemy damage
     public const float ProfiteerKillBase = 200f; // per zombie kill
 
