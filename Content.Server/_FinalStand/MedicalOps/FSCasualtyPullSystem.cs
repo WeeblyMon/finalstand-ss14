@@ -24,6 +24,7 @@ public sealed class FSCasualtyPullSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
 
     private static readonly EntProtoId PullActionProto = "FSCasualtyPullAction";
 
@@ -89,6 +90,10 @@ public sealed class FSCasualtyPullSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-no-room"), doctor, doctor);
             return;
         }
+
+        // Set before the action starts its own cooldown, so Recovery Uplink applies to this use.
+        _actions.SetUseDelay((args.Action.Owner, args.Action.Comp),
+            TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120));
 
         _xform.SetCoordinates(target, doctorCoords);
         _audio.PlayPvs(PullSound, doctor);

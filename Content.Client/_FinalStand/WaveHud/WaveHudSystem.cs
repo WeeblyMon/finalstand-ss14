@@ -159,7 +159,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     // The CMO's orders already reach every medic as buffs; they were just never shown to anyone
     // but the CMO.
-    private static readonly string[] CmoSources = ["directive", "mcp", "mobilisation"];
+    private static readonly string[] CmoSources = ["directive", "mcp", "mobilisation", "doctrine"];
 
     // Icon keys resolve to /Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png and fall back when absent.
     private static string BuffIconKey(string source)

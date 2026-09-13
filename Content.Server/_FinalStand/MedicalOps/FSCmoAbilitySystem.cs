@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Content.Server._FinalStand.Research;
 using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
@@ -21,6 +22,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -33,13 +35,16 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private const string McpSource = "mcp";
     private const string DirectiveSource = "directive";
     private const string MobilisationSource = "mobilisation";
+    private const string DoctrineSource = "doctrine";
+
+    private static readonly Dictionary<FSMedicalBonusCategory, float> DoctrineBonuses = new()
+    {
+        [FSMedicalBonusCategory.TreatmentSpeed] = 0.10f,
+    };
 
     private const string CmoJob = "ChiefMedicalOfficer";
 
-    private static readonly TimeSpan McpDuration = TimeSpan.FromSeconds(45);
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
-    private static readonly TimeSpan McpCooldown = TimeSpan.FromSeconds(120);
-    private static readonly TimeSpan MobilisationCooldown = TimeSpan.FromSeconds(260);
     private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(60);
 
     private static readonly FrozenDictionary<FSMedicalDirective, DirectiveDef> Directives = new Dictionary<FSMedicalDirective, DirectiveDef>()
@@ -91,11 +96,21 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         SubscribeNetworkEvent<FSCmoAbilityRequestEvent>(OnPanelRequest);
+        SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnResearchCompleted);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _activeDirective = null;
+    }
+
+    // Triage Doctrine is a standing bonus rather than an order, so it lands the moment it is bought.
+    private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
+    {
+        if (ev.NodeId != FSMedicalUpgradeSystem.TriageDoctrine)
+            return;
+
+        ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
     }
 
     private void OnPanelRequest(FSCmoAbilityRequestEvent ev, EntitySessionEventArgs args)
@@ -153,36 +168,39 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             Dirty(ev.Mob, panel);
         }
 
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roles.IsMedicalStaff(ev.Mob))
+            _bonus.ApplyBuff(ev.Mob, DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
+
         if (_activeDirective is { } active
             && Directives.TryGetValue(active, out var def)
             && _roles.IsMedicalStaff(ev.Mob))
         {
-            _bonus.ApplyBuff(ev.Mob, DirectiveSource, def.Bonuses,
+            _bonus.ApplyBuff(ev.Mob, DirectiveSource, Scaled(def.Bonuses),
                 name: Loc.GetString($"{def.Announcement}-short"));
         }
     }
 
     private void RunMassCasualtyProtocol(EntityUid performer)
     {
-        ApplyToDepartment(McpSource, McpBonuses, McpDuration, Loc.GetString("fs-cmo-mcp-short"));
+        ApplyToDepartment(McpSource, Scaled(McpBonuses), McpDuration(), Loc.GetString("fs-cmo-mcp-short"));
         Announce(performer, "fs-cmo-mcp");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
-            panel.McpReadyAt = _timing.CurTime + McpCooldown;
+            panel.McpReadyAt = _timing.CurTime + McpCooldown();
             Dirty(performer, panel);
         }
     }
 
     private void RunMobilisation(EntityUid performer)
     {
-        ApplyToDepartment(MobilisationSource, MobilisationBonuses, MobilisationDuration,
+        ApplyToDepartment(MobilisationSource, Scaled(MobilisationBonuses), MobilisationDuration,
             Loc.GetString("fs-cmo-mobilisation-short"));
         Announce(performer, "fs-cmo-mobilisation");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
-            panel.MobilisationReadyAt = _timing.CurTime + MobilisationCooldown;
+            panel.MobilisationReadyAt = _timing.CurTime + MobilisationCooldown();
             Dirty(performer, panel);
         }
     }
@@ -207,7 +225,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             return;
 
         _activeDirective = directive;
-        ApplyToDepartment(DirectiveSource, def.Bonuses, name: Loc.GetString($"{def.Announcement}-short"));
+        ApplyToDepartment(DirectiveSource, Scaled(def.Bonuses), name: Loc.GetString($"{def.Announcement}-short"));
         Announce(performer, def.Announcement);
 
         if (panel != null)
@@ -259,6 +277,28 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             _audio.PlayGlobal(sound, session);
         }
     }
+
+    // Research-bought command upgrades. Standing Orders lifts every order; the rest buy tempo.
+    private Dictionary<FSMedicalBonusCategory, float> Scaled(Dictionary<FSMedicalBonusCategory, float> bonuses)
+    {
+        if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.StandingOrders))
+            return bonuses;
+
+        var scaled = new Dictionary<FSMedicalBonusCategory, float>(bonuses.Count);
+        foreach (var (category, value) in bonuses)
+            scaled[category] = value * 1.25f;
+
+        return scaled;
+    }
+
+    private TimeSpan McpDuration() =>
+        TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.ExtendedProtocol) ? 70 : 45);
+
+    private TimeSpan McpCooldown() =>
+        TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.MassCasualtyReadiness) ? 80 : 120);
+
+    private TimeSpan MobilisationCooldown() =>
+        TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RapidMobilisation) ? 180 : 260);
 
     private readonly record struct DirectiveDef(string Announcement, Dictionary<FSMedicalBonusCategory, float> Bonuses);
 }

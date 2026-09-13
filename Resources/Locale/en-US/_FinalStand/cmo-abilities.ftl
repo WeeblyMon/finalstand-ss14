@@ -48,3 +48,4 @@ fs-cmo-directive-fieldops-effects =
 fs-cmo-directive-stand-down-name = Directive Lifted
 fs-cmo-directive-stand-down-effects = The standing order has been lifted. Resume normal procedure.
 fs-buff-source-cmo = Medical Command
+fs-cmo-doctrine-short = Triage Doctrine
