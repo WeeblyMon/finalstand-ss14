@@ -193,3 +193,105 @@
       amount: 1
   products:
     FSEtchant: 2
+
+- type: reagent
+  id: FSAdrenalExtract
+  name: reagent-name-fs-adrenal-extract
+  group: Medicine
+  desc: reagent-desc-fs-adrenal-extract
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#E8743B"
+
+- type: reagent
+  id: FSAnalgesicBase
+  name: reagent-name-fs-analgesic-base
+  group: Medicine
+  desc: reagent-desc-fs-analgesic-base
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#6EA8BF"
+
+- type: reagent
+  id: FSAdrenalSurge
+  name: reagent-name-fs-adrenal-surge
+  group: Medicine
+  desc: reagent-desc-fs-adrenal-surge
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#F0813C"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-adrenal
+        name: fs-potion-name-adrenal-surge
+        duration: 60
+        colour: "#F0813C"
+        bonuses:
+          Movement: 0.15
+          InterruptionResistance: 0.35
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-adrenal
+        name: fs-potion-name-adrenal-surge
+        duration: 60
+        colour: "#F0813C"
+        bonuses:
+          Movement: 0.15
+          InterruptionResistance: 0.35
+
+- type: reagent
+  id: FSBattleAnalgesic
+  name: reagent-name-fs-battle-analgesic
+  group: Medicine
+  desc: reagent-desc-fs-battle-analgesic
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#7FC4DE"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-analgesic
+        name: fs-potion-name-battle-analgesic
+        duration: 75
+        colour: "#7FC4DE"
+        bonuses:
+          DragSpeed: 0.40
+          TreatmentSpeed: 0.15
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-analgesic
+        name: fs-potion-name-battle-analgesic
+        duration: 75
+        colour: "#7FC4DE"
+        bonuses:
+          DragSpeed: 0.40
+          TreatmentSpeed: 0.15
+
+- type: reaction
+  id: FSAdrenalSurge
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSAdrenalExtract:
+      amount: 1
+  products:
+    FSAdrenalSurge: 2
+
+- type: reaction
+  id: FSBattleAnalgesic
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSAnalgesicBase:
+      amount: 1
+  products:
+    FSBattleAnalgesic: 2

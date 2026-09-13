@@ -101,6 +101,12 @@
   recipes:
   - FSEnzymeBottle
   - FSCatalystBottle
+  - FSAdrenalBottle
+  - FSAnalgesicBottle
+  - FSSplashFlaskLarge
+  - FSSyringePackLarge
+  - FSMedicalDispenserRestock
+  - FSFieldHospitalItem
   - CryostasisBeaker
   - SyringeCryostasis
   - BluespaceBeaker

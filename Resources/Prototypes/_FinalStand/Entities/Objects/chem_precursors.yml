@@ -60,3 +60,55 @@
     Steel: 100
     Plastic: 100
     Silver: 50
+
+- type: entity
+  parent: FSEnzymeBottle
+  id: FSAdrenalBottle
+  name: adrenal concentrate
+  description: A sealed vial of synthesised adrenal extract. The base for adrenal chemistry.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    layers:
+    - state: bottle-3
+  - type: SolutionContainerManager
+    solutions:
+      drink:
+        maxVol: 30
+        reagents:
+        - ReagentId: FSAdrenalExtract
+          Quantity: 30
+
+- type: latheRecipe
+  id: FSAdrenalBottle
+  result: FSAdrenalBottle
+  completetime: 3
+  materials:
+    Steel: 100
+    Plastic: 100
+
+- type: entity
+  parent: FSEnzymeBottle
+  id: FSAnalgesicBottle
+  name: analgesic base
+  description: A sealed vial of field analgesic. The base for battlefield pain management.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    layers:
+    - state: bottle-4
+  - type: SolutionContainerManager
+    solutions:
+      drink:
+        maxVol: 30
+        reagents:
+        - ReagentId: FSAnalgesicBase
+          Quantity: 30
+
+- type: latheRecipe
+  id: FSAnalgesicBottle
+  result: FSAnalgesicBottle
+  completetime: 3
+  materials:
+    Steel: 100
+    Plastic: 100

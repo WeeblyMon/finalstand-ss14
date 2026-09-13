@@ -45,3 +45,14 @@ fs-splash-flask-empty = The flask is empty - fill it from a beaker first.
 fs-buff-status-named-timed = {$name} {$seconds}s
 fs-potion-name-combat-stim = COMBAT STIM
 fs-potion-name-etchant = ARMOUR PIERCING
+
+reagent-name-fs-adrenal-extract = adrenal concentrate
+reagent-desc-fs-adrenal-extract = Synthesised adrenal extract. Inert until it is worked into a surge dose.
+reagent-name-fs-analgesic-base = analgesic base
+reagent-desc-fs-analgesic-base = A heavy painkilling base. Useless on its own, essential to the finished dose.
+reagent-name-fs-adrenal-surge = adrenal surge
+reagent-desc-fs-adrenal-surge = Floods the system. The dosed move quicker and are much harder to stagger.
+reagent-name-fs-battle-analgesic = battle analgesic
+reagent-desc-fs-battle-analgesic = Dulls everything. Medics under its effect haul casualties and work far faster.
+fs-potion-name-adrenal-surge = ADRENAL SURGE
+fs-potion-name-battle-analgesic = BATTLE ANALGESIC

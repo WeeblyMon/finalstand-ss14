@@ -1,0 +1,80 @@
+# Items unlocked by the medical research tree. Each is printable only once its node is bought.
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskLarge
+  name: heavy splash flask
+  description: A reinforced flask with half again the capacity. Same burst, more of it.
+  components:
+  - type: Item
+    size: Normal
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 75
+  - type: SolutionTransfer
+    transferAmount: 75
+    maxTransferAmount: 75
+    canChangeTransferAmount: true
+
+- type: latheRecipe
+  id: FSSplashFlaskLarge
+  result: FSSplashFlaskLarge
+  completetime: 4
+  materials:
+    Steel: 200
+    Plastic: 150
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackLarge
+  name: extended syringe magazine
+  description: A long-format reservoir. Half again the darts before you reload.
+  components:
+  - type: Item
+    size: Normal
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 90
+
+- type: latheRecipe
+  id: FSSyringePackLarge
+  result: FSSyringePackLarge
+  completetime: 4
+  materials:
+    Steel: 200
+    Plastic: 150
+
+- type: entity
+  parent: BaseVendingMachineRestock
+  id: FSMedicalDispenserRestock
+  name: ChemDrobe restock box
+  description: Slot into a ChemDrobe to refill its stock of empty glassware.
+  components:
+  - type: VendingMachineRestock
+    canRestock:
+    - FSMedicalDispenserInventory
+  - type: Sprite
+    layers:
+    - state: base
+    - state: green_bit
+      shader: unshaded
+    - state: refill_medical
+
+- type: latheRecipe
+  id: FSMedicalDispenserRestock
+  result: FSMedicalDispenserRestock
+  completetime: 5
+  materials:
+    Steel: 300
+    Plastic: 200
+
+- type: latheRecipe
+  id: FSFieldHospitalItem
+  result: FSFieldHospitalItem
+  completetime: 6
+  materials:
+    Steel: 400
+    Plastic: 300
+    Cloth: 200
