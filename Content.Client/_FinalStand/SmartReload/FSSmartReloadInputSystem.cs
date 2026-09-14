@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Grenades;
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Input;
@@ -24,10 +25,15 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 
     [Dependency] private FSAmmoWheel _ammoWheel = default!;
+    [Dependency] private FSThrowableWheel _throwWheel = default!;
 
     private TimeSpan _pressTime;
     private bool _isHolding;
     private bool _wheelOpened;
+
+    private TimeSpan _grenadePressTime;
+    private bool _grenadeHeld;
+    private bool _throwWheelOpened;
 
     public override void Initialize()
     {
@@ -36,7 +42,7 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
             .Bind(ContentKeyFunctions.ReloadWeapon,
                 InputCmdHandler.FromDelegate(OnReloadDown, OnReloadUp))
             .Bind(ContentKeyFunctions.QuickGrenade,
-                InputCmdHandler.FromDelegate(OnGrenadeDown, null))
+                InputCmdHandler.FromDelegate(OnGrenadeDown, OnGrenadeUp))
             .Register<FSSmartReloadInputSystem>();
     }
 
@@ -50,6 +56,8 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     // This used to eject instead; ejecting is gone.
     public override void Update(float frameTime)
     {
+        UpdateGrenadeHold();
+
         if (!_isHolding || _wheelOpened)
             return;
 
@@ -66,8 +74,37 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
             _wheelOpened = false;
     }
 
+    private void UpdateGrenadeHold()
+    {
+        if (!_grenadeHeld || _throwWheelOpened)
+            return;
+
+        if (_gameTiming.CurTime - _grenadePressTime < HoldThreshold)
+            return;
+
+        _throwWheelOpened = true;
+
+        // Only one pack type carried: nothing to pick, so the release just throws it.
+        if (!_throwWheel.TryOpen())
+            _throwWheelOpened = false;
+    }
+
+    // Tap throws, hold picks. The throw moved from press to release so the hold can mean
+    // something; a tap still costs only the release, which is imperceptible.
     private void OnGrenadeDown(ICommonSession? session)
     {
+        _grenadePressTime = _gameTiming.CurTime;
+        _grenadeHeld = true;
+        _throwWheelOpened = false;
+    }
+
+    private void OnGrenadeUp(ICommonSession? session)
+    {
+        _grenadeHeld = false;
+
+        if (_throwWheelOpened)
+            return;
+
         var screenPos = _inputManager.MouseScreenPosition;
         var mapCoords = _eyeManager.PixelToMap(screenPos);
         RaiseNetworkEvent(new FSQuickGrenadeMessage { CursorWorldPos = mapCoords.Position });

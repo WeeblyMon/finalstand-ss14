@@ -22,6 +22,8 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         SubscribeLocalEvent<FSSelectIncendiaryGrenadeEvent>(OnSelectIncendiary);
         SubscribeLocalEvent<FSSelectFlashGrenadeEvent>(OnSelectFlash);
         SubscribeLocalEvent<FSSelectPipeGrenadeEvent>(OnSelectPipe);
+
+        SubscribeNetworkEvent<FSSelectGrenadeMessage>(OnSelectFromWheel);
     }
 
     private void OnPackInserted(EntityUid uid, FSGrenadePackComponent comp, EntGotInsertedIntoContainerMessage args)
@@ -92,6 +94,33 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
             current = parent;
         }
         return null;
+    }
+
+    // The wheel is built client-side, so confirm the player actually carries that pack type
+    // before trusting the choice.
+    private void OnSelectFromWheel(FSSelectGrenadeMessage msg, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } player)
+            return;
+
+        if (!CarriesPack(player, msg.Type))
+            return;
+
+        var active = EnsureComp<FSActiveGrenadeComponent>(player);
+        active.ActiveType = msg.Type;
+        Dirty(player, active);
+    }
+
+    private bool CarriesPack(EntityUid player, GrenadeType type)
+    {
+        var query = EntityQueryEnumerator<FSGrenadePackComponent>();
+        while (query.MoveNext(out var uid, out var pack))
+        {
+            if (pack.PackType == type && FindPlayerOwner(uid) == player)
+                return true;
+        }
+
+        return false;
     }
 
     private void OnSelectFrag(FSSelectFragGrenadeEvent args)
