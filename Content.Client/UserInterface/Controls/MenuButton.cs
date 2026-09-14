@@ -20,7 +20,7 @@ public sealed partial class MenuButton : ContainerButton
     private static readonly Color ColorHovered = Color.FromHex("#acbac6"); // primary color[0] + 0.30 L
     private static readonly Color ColorPressed = Color.FromHex("#75838e"); // primary color[0] + 0.12 L
 
-    private const float VertPad = 4f;
+    private const float VertPad = 2f;
 
     private BoundKeyFunction? _function;
     private readonly BoxContainer _root;
@@ -47,7 +47,7 @@ public sealed partial class MenuButton : ContainerButton
         IoCManager.InjectDependencies(this);
         _buttonIcon = new TextureRect()
         {
-            TextureScale = new Vector2(0.5f, 0.5f),
+            TextureScale = new Vector2(0.35f, 0.35f),
             HorizontalAlignment = HAlignment.Center,
             VerticalAlignment = VAlignment.Center,
             VerticalExpand = true,

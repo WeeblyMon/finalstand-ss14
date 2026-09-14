@@ -69,7 +69,8 @@ public sealed class MenuButtonSheetlet<T> : Sheetlet<T> where T : PalettedStyles
                 .Prop(ContainerButton.StylePropertyStyleBox, StyleBoxHelpers.SquareStyleBox(sheet)),
             E<Label>()
                 .Class(MenuButton.StyleClassLabelTopButton)
-                .Prop(Label.StylePropertyFont, sheet.BaseFont.GetFont(14, FontKind.Bold)),
+                // FINALSTAND: 14 made the keybind read louder than the icon it labels.
+                .Prop(Label.StylePropertyFont, sheet.BaseFont.GetFont(10, FontKind.Bold)),
             // new StyleProperty(Label.StylePropertyFont, notoSansDisplayBold14),
         };
 
