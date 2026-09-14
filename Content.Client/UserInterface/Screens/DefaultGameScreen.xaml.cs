@@ -17,6 +17,10 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     private const int ActionColumns = 6;
 
+    // Matches the 18px XAML margin the hotbar and inventory use to clear the XP bar, plus the 5px
+    // screen margin the presets apply.
+    private const float BottomBandLift = 23f;
+
     public DefaultGameScreen()
     {
         RobustXamlLoader.Load(this);
@@ -56,8 +60,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorPreset(Actions, LayoutPreset.BottomLeft);
         SetMarginLeft(Actions, AlertsClearance);
         SetMarginRight(Actions, AlertsClearance);
-        SetMarginTop(Actions, -5f);
-        SetMarginBottom(Actions, -5f);
+        SetMarginTop(Actions, -BottomBandLift);
+        SetMarginBottom(Actions, -BottomBandLift);
         SetGrowHorizontal(Actions, GrowDirection.End);
         SetGrowVertical(Actions, GrowDirection.Begin);
 
