@@ -219,7 +219,7 @@ public sealed partial class WaveHudOverlay : Overlay
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
         var augGap = MathF.Round(3f * s);
-        var panelW = MathF.Round(205f * s);
+        var panelW = MathF.Round(150f * s);
 
         // Text is a readability floor, not a layout variable. The old floors of 6 and 10 put
         // labels near 8px on a laptop, well under what is legible at a glance mid-fight.
@@ -263,14 +263,13 @@ public sealed partial class WaveHudOverlay : Overlay
         const float btnPad = 3f;
         var btnH = labelH + btnPad * 2f;
 
+        // Credits and perks live in the top-left block now, so the panel is only the wave readout.
         var totalH = sepH;
         if (IsRespawnOfferVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
         if (IsReadyUpVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
-        totalH += sepH + rowH;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
-        totalH += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
         if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
@@ -293,7 +292,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
-        DrawWeaponModule(screen, panelX, BottomBandLift);
+        DrawWeaponModule(screen, margin, BottomBandLift);
 
         if (IsRespawnOfferVisible)
         {
@@ -400,47 +399,36 @@ public sealed partial class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
-        _creditsRowY = y;
-        y = DrawRow(_iconCredits, "CREDITS", _creditsText, Color.White);
-
-        for (var pi = 0; pi < _interestPopups.Count; pi++)
-        {
-            var p = _interestPopups[pi];
-            var t = p.Life / p.TotalLife;
-            var alpha = MathF.Min(1f, t * 3f); // fade in fast, fade out slow
-            var floatOffset = (1f - t) * 40f;  // float upward as it expires
-
-            var popupY = _creditsRowY - floatOffset;
-            var amtText = $"+${p.Amount:N0}";
-            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
-
-            var popupIconSz = augIconSz * 0.75f;
-            var totalW = popupIconSz + 4f + amtDim.X;
-            var popupX = panelX - totalW - 8f;
-
-            var tex = GetPerkIcon(p.PerkId);
-            if (tex != null)
-                screen.DrawTextureRect(tex,
-                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
-                    Color.White.WithAlpha(alpha));
-
-            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
-            screen.DrawString(_labelFont!, textPos, amtText, Color.FromHex("#FFD740").WithAlpha(alpha));
-        }
-
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "TIMER", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
+            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
         }
 
+        if (IsDarkWave)
+        {
+            var secs = Math.Max(0f, DarkWaveSecondsRemaining);
+            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
+            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"));
+        }
+        else if (EnemiesTotal > 0)
+        {
+            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
+        }
+
+        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
-        var augLabelY = y + sepH + rowPad;
-        screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "PERKS", muted);
-        var augIconsY = augLabelY + labelH + 4f;
+
+        // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
+        // which is a different question from "what is the wave doing", so they get their own corner.
+        var leftX = TopLeftX;
+        var leftY = TopLeftY;
+
+        screen.DrawString(_labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
+        var augIconsY = leftY + labelH + 4f;
 
         _augCells.Clear();
-        var ix = panelX;
+        var ix = leftX;
         foreach (var id in ActiveSlots)
         {
             var cell = new UIBox2(ix, augIconsY, ix + augIconSz, augIconsY + augIconSz);
@@ -467,21 +455,34 @@ public sealed partial class WaveHudOverlay : Overlay
             }
             ix += augIconSz + augGap;
         }
-        y += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
 
-        if (IsDarkWave)
-        {
-            var secs = Math.Max(0f, DarkWaveSecondsRemaining);
-            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"));
-        }
-        else if (EnemiesTotal > 0)
-        {
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
-        }
+        _creditsRowY = augIconsY + augIconSz + 6f;
+        screen.DrawString(_valueFont!, new Vector2(leftX, _creditsRowY), _creditsText, Color.FromHex("#e2b662"));
 
-        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
-        screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+        var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
+        for (var pi = 0; pi < _interestPopups.Count; pi++)
+        {
+            var p = _interestPopups[pi];
+            var t = p.Life / p.TotalLife;
+            var alpha = MathF.Min(1f, t * 3f); // fade in fast, fade out slow
+            var floatOffset = (1f - t) * 40f;  // float upward as it expires
+
+            var popupY = _creditsRowY - floatOffset;
+            var amtText = $"+${p.Amount:N0}";
+            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
+
+            var popupIconSz = augIconSz * 0.75f;
+            var popupX = leftX + creditsW + 10f;
+
+            var tex = GetPerkIcon(p.PerkId);
+            if (tex != null)
+                screen.DrawTextureRect(tex,
+                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
+                    Color.White.WithAlpha(alpha));
+
+            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
+            screen.DrawString(_labelFont!, textPos, amtText, Color.FromHex("#FFD740").WithAlpha(alpha));
+        }
 
         var mouse = _input.MouseScreenPosition.Position;
         foreach (var (cell, id) in _augCells)

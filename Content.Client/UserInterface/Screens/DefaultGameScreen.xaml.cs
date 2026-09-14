@@ -12,8 +12,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // Two hand slots plus a gap. HotbarGui centres the hands, so this clears them.
     private const float HandsHalfWidth = 78f;
 
-    // Wide enough to clear AlertsUI's 130px status column in the same corner.
-    private const float AlertsClearance = 150f;
+    // Clears the vitals block, which is 168px wide at a 24px margin in the same corner.
+    private const float AlertsClearance = 210f;
 
     private const int ActionColumns = 6;
 

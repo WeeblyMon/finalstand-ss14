@@ -18,6 +18,10 @@ public sealed partial class WaveHudOverlay
     /// <summary>Matches DefaultGameScreen's bottom band lift so the block sits level with the hands.</summary>
     public const float BottomBandLift = 23f;
 
+    // Aligned with the menu chips at TopLeft margin 10, clearing their 18px height and the vote slot.
+    private const float TopLeftX = 10f;
+    private const float TopLeftY = 54f;
+
     /// <summary>Height the block occupies, so the alert stack above it can be offset.</summary>
     public const float VitalsHeight = VitalsHealthH + VitalsGap + VitalsStaminaH;
 

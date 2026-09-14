@@ -21,7 +21,7 @@ public sealed partial class WaveHudOverlay
     private static readonly Color AmmoFull = Color.FromHex("#D8E0E8");
     private static readonly Color AmmoLow = Color.FromHex("#E85055");
 
-    private void DrawWeaponModule(DrawingHandleScreen screen, float panelX, float bandLift)
+    private void DrawWeaponModule(DrawingHandleScreen screen, float margin, float bandLift)
     {
         if (WeaponName is not { } name)
             return;
@@ -33,8 +33,8 @@ public sealed partial class WaveHudOverlay
         var contentH = labelH + (hasAmmo ? 4f + valueH : 0f);
         var panelH = contentH + WeaponPanelPad * 2f;
 
-        // Sits immediately left of the wave panel, level with the rest of the bottom band.
-        var x = panelX - 12f - WeaponPanelW;
+        // Far bottom right. The wave panel moved to the top, so this corner is the module's own.
+        var x = _clyde.ScreenSize.X - margin - WeaponPanelW;
         var bottom = _clyde.ScreenSize.Y - bandLift;
         var y = bottom - panelH;
 

@@ -54,7 +54,7 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Margin="0 0 241 0">
+                Margin="0 0 268 0">
                 <BoxContainer Orientation="Vertical" VerticalAlignment="Bottom">
                     <inventory:ItemSlotButtonContainer
                         Name="SecondHotbar"
