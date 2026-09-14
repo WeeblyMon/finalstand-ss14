@@ -8,9 +8,10 @@
   components:
   - type: Item
     size: Large
+  # Carried, this is a folded bundle - the 96x128 tent art only makes sense once pitched.
   - type: Sprite
-    sprite: Structures/Furniture/Tables/optable.rsi
-    state: operating_table
+    sprite: Structures/Furniture/rollerbeds.rsi
+    state: rollerbed_folded
   - type: FSMedicalOnly
   - type: FSDeployableItem
     deployedProtoId: FSFieldHospitalDeployed
@@ -28,13 +29,19 @@
   description: A pitched surgical tent. Strap a casualty in to operate.
   categories: [ HideSpawnMenu ]
   components:
+  # The tent art is 96x128 - three tiles wide, four tall - on a one-tile entity. The offset lifts
+  # the canvas so the entity's own tile sits at the open front where the patient is strapped, and
+  # BelowMobs keeps the patient drawn on top of it rather than swallowed by it.
+  # Both values are best guesses and want an eyeball in game.
   - type: Sprite
-    sprite: Structures/Furniture/Tables/optable.rsi
-    state: operating_table
+    sprite: _FinalStand/Structures/field_hospital.rsi
+    state: tent
     noRot: true
+    drawdepth: BelowMobs
+    offset: 0,1.5
   - type: Icon
-    sprite: Structures/Furniture/Tables/optable.rsi
-    state: operating_table
+    sprite: _FinalStand/Structures/field_hospital.rsi
+    state: tent
   - type: OperatingTable
   - type: FSFieldHospital
   - type: FSArmingDelay
