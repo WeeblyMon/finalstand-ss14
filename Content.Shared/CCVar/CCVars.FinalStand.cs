@@ -10,4 +10,12 @@ public sealed partial class CCVars
     /// </summary>
     public static readonly CVarDef<bool> FSAutoStart =
         CVarDef.Create("fs.autostart", true, CVar.SERVERONLY);
+
+    /// <summary>
+    ///     Whether this client has already been moved off the separated layout onto the reworked
+    ///     HUD. ui.layout is ARCHIVE, so without this flag the migration would fire every launch
+    ///     and a player could never deliberately stay on separated.
+    /// </summary>
+    public static readonly CVarDef<bool> FSHudMigrated =
+        CVarDef.Create("fs.hud_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

@@ -1,4 +1,4 @@
-using Content.Client.Administration.Managers;
+﻿using Content.Client.Administration.Managers;
 using Content.Client.Changelog;
 using Content.Client.Chat.Managers;
 using Content.Client.DebugMon;
@@ -25,6 +25,7 @@ using Content.Client.Stylesheets;
 using Content.Client.UserInterface;
 using Content.Client.Viewport;
 using Content.Client.Voting;
+using Content.Client._FinalStand.Interface;
 using Content.Shared.Ame.Components;
 using Content.Shared.FeedbackSystem;
 using Content.Shared.Gravity;
@@ -154,6 +155,8 @@ namespace Content.Client.Entry
         public override void PostInit()
         {
             base.PostInit();
+
+            FSHudLayoutMigration.Run(_configManager); // FINALSTAND
 
             _stylesheetManager.Initialize();
 
