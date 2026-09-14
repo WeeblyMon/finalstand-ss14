@@ -283,7 +283,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var rightEdge = _isSeparatedLayout ? GetViewportPixelWidth() : screenSize.X;
         var panelX = rightEdge - margin - panelW;
-        float y = screenSize.Y - margin - totalH;
+
+        // Top right. The bottom of that edge is chat now, and the bottom band owns the corner.
+        float y = margin;
 
         PanelLeft = panelX;
         PanelTop = y;

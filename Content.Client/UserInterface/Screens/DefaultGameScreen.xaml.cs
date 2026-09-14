@@ -24,6 +24,9 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // Clears the vitals block the wave overlay draws in the same corner.
     private const float AlertsLift = BottomBandLift + WaveHudOverlay.VitalsHeight + 6f;
 
+    // Clears the bottom band so chat stacks above it rather than over the weapon module.
+    private const float ChatLift = 190f;
+
     public DefaultGameScreen()
     {
         RobustXamlLoader.Load(this);
@@ -35,7 +38,15 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorAndMarginPreset(TopLeft, LayoutPreset.TopLeft, margin: 10);
         SetAnchorAndMarginPreset(Ghost, LayoutPreset.BottomWide, margin: 80);
         SetAnchorAndMarginPreset(Hotbar, LayoutPreset.BottomWide, margin: 5);
-        SetAnchorAndMarginPreset(Chat, LayoutPreset.TopRight, margin: 10);
+        // FINALSTAND: chat sits above the bottom band on the right, leaving the top right to the
+        // wave panel. Combat reads bottom-up, so the top corners stay quiet.
+        SetAnchorPreset(Chat, LayoutPreset.BottomRight);
+        SetMarginLeft(Chat, -12f);
+        SetMarginRight(Chat, -12f);
+        SetMarginTop(Chat, -ChatLift);
+        SetMarginBottom(Chat, -ChatLift);
+        SetGrowHorizontal(Chat, GrowDirection.Begin);
+        SetGrowVertical(Chat, GrowDirection.Begin);
 
         // FINALSTAND: one question per screen region. Status effects are personal condition, so
         // they join the bottom-left survivability corner instead of sharing the top-right with
@@ -84,19 +95,20 @@ public sealed partial class DefaultGameScreen : InGameScreen
         OnChatResized?.Invoke(new Vector2(marginBottom, marginLeft));
     }
 
+    // FINALSTAND: chat no longer shares a corner with the alerts, so resizing it moves only itself.
     private void ChatOnResized()
     {
-        var marginBottom = Chat.GetValue<float>(MarginBottomProperty);
-        SetMarginTop(Alerts, marginBottom);
     }
 
     public override ChatBox ChatBox => Chat;
 
-    //TODO: There's probably a better way to do this... but this is also the easiest way.
+    // Vanilla stored the box as a height/width pair of margins off the top-right anchor. Anchored
+    // bottom-right instead, the height grows upward from the band rather than down from the top.
     public override void SetChatSize(Vector2 size)
     {
-        SetMarginBottom(Chat, size.X);
         SetMarginLeft(Chat, size.Y);
-        SetMarginTop(Alerts, size.X);
+        SetMarginRight(Chat, -12f);
+        SetMarginBottom(Chat, -ChatLift);
+        SetMarginTop(Chat, -ChatLift - size.X);
     }
 }

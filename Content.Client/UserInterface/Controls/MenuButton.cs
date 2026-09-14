@@ -20,7 +20,7 @@ public sealed partial class MenuButton : ContainerButton
     private static readonly Color ColorHovered = Color.FromHex("#acbac6"); // primary color[0] + 0.30 L
     private static readonly Color ColorPressed = Color.FromHex("#75838e"); // primary color[0] + 0.12 L
 
-    private const float VertPad = 2f;
+    private const float VertPad = 0f;
 
     private BoundKeyFunction? _function;
     private readonly BoxContainer _root;
@@ -45,6 +45,7 @@ public sealed partial class MenuButton : ContainerButton
     public MenuButton()
     {
         IoCManager.InjectDependencies(this);
+        // FINALSTAND: the bar is keybind chips, not icon buttons - the icon is what forced it tall.
         _buttonIcon = new TextureRect()
         {
             TextureScale = new Vector2(0.35f, 0.35f),
@@ -53,7 +54,8 @@ public sealed partial class MenuButton : ContainerButton
             VerticalExpand = true,
             Margin = new Thickness(0, VertPad),
             ModulateSelfOverride = ColorNormal,
-            Stretch = TextureRect.StretchMode.KeepCentered
+            Stretch = TextureRect.StretchMode.KeepCentered,
+            Visible = false
         };
         _buttonLabel = new Label
         {
