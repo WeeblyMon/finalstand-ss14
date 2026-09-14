@@ -8,9 +8,8 @@ namespace Content.Client.UserInterface.Screens;
 [GenerateTypedNameReferences]
 public sealed partial class DefaultGameScreen : InGameScreen
 {
-    // Mirrors WaveHudOverlay's panel width plus its screen margin, taken at scale 1 so the gap holds
-    // on every resolution. Keep in step with panelW/margin there.
-    private const float WavePanelClearance = 205f + 24f + 12f;
+    // Two hand slots plus a gap. HotbarGui centres the hands, so this clears them.
+    private const float HandsHalfWidth = 78f;
 
     // Wide enough to clear AlertsUI's 130px status column in the same corner.
     private const float AlertsClearance = 150f;
@@ -40,15 +39,14 @@ public sealed partial class DefaultGameScreen : InGameScreen
         // reads left-to-right as vitals -> hands -> storage.
         SetAnchorAndMarginPreset(Alerts, LayoutPreset.BottomLeft, margin: 5);
 
-        // The wave panel is a screen overlay, not a control, so nothing stops a widget being drawn
-        // under it. It claims 205px plus a 24px margin against the right edge, so inventory anchors
-        // to a point clear of that and grows left and up into the gap beside the hotbar.
-        SetAnchorPreset(Inventory, LayoutPreset.BottomRight);
-        SetMarginLeft(Inventory, -WavePanelClearance);
-        SetMarginRight(Inventory, -WavePanelClearance);
-        SetMarginTop(Inventory, -5f);
-        SetMarginBottom(Inventory, -5f);
-        SetGrowHorizontal(Inventory, GrowDirection.Begin);
+        // Just right of the hands, which is where the equipment grid unfolds from when opened. The
+        // far-right corner belongs to the quick slots and weapon info, which HotbarGui positions.
+        SetAnchorPreset(Inventory, LayoutPreset.CenterBottom);
+        SetMarginLeft(Inventory, HandsHalfWidth);
+        SetMarginRight(Inventory, HandsHalfWidth);
+        SetMarginTop(Inventory, -BottomBandLift);
+        SetMarginBottom(Inventory, -BottomBandLift);
+        SetGrowHorizontal(Inventory, GrowDirection.End);
         SetGrowVertical(Inventory, GrowDirection.Begin);
 
         // Six across, wrapping upward. The XAML caps the container at 64px wide for the left-edge
