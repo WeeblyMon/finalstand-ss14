@@ -32,4 +32,10 @@ public static class FSPerkBonusConstants
     public const float ProfiteerKillBase = 200f; // per zombie kill
 
     public const float FieldMedicPerLevel = 0.15f;
+
+    public const float DeathAuraStacksPerLevel = 5f;
+
+    // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
+    public static readonly float[] AdrenalineSeconds = [2.1f, 2.8f, 3.5f, 4.2f];
+    public static readonly float[] LifeLeechHeal = [1f, 2f, 4f, 6f];
 }

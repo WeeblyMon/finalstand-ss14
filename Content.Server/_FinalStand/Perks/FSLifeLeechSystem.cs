@@ -1,3 +1,4 @@
+﻿using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 
@@ -7,7 +8,6 @@ public sealed partial class FSLifeLeechSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
 
-    private static readonly float[] HealByLevel = [0f, 1f, 2f, 4f, 6f];
 
     public override void Initialize()
     {
@@ -20,6 +20,6 @@ public sealed partial class FSLifeLeechSystem : EntitySystem
         var level = ev.Perks.GetSlottedLevel("LifeLeech");
         if (level <= 0) return;
 
-        _damageable.HealEvenly(ev.Killer, FixedPoint2.New(-HealByLevel[level]));
+        _damageable.HealEvenly(ev.Killer, FixedPoint2.New(-FSPerkBonusConstants.LifeLeechHeal[level - 1]));
     }
 }

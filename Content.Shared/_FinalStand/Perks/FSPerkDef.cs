@@ -43,6 +43,18 @@ public sealed class FSPerkDef
 
     private static string[] Flat(string format, params float[] amounts) => Rows(format, 1f, amounts);
 
+    // For perks that don't scale linearly, so the table itself is the source of truth.
+    private static string[] Table(string format, float[] perLevel)
+    {
+        if (perLevel.Length != MaxLevel)
+            throw new ArgumentException($"Perk table needs {MaxLevel} entries, got {perLevel.Length}.");
+
+        return perLevel
+            .Select(v => string.Format(CultureInfo.InvariantCulture, format,
+                v.ToString("0.##", CultureInfo.InvariantCulture)))
+            .ToArray();
+    }
+
     private static string[] Rows(string format, float scale, float[] perLevel)
     {
         var rows = new string[MaxLevel];
@@ -97,12 +109,12 @@ public sealed class FSPerkDef
             new("DeathAura", "Death Aura",
                 "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
                 PerkCategory.Red,
-                ["+5 Max Stacks", "+10 Max Stacks", "+15 Max Stacks", "+20 Max Stacks"]),
+                Flat("+{0} Max Stacks", FSPerkBonusConstants.DeathAuraStacksPerLevel)),
 
             new("Adrenaline", "Adrenaline",
                 "Killing an enemy grants unlimited stamina for a few seconds.",
                 PerkCategory.Green,
-                ["+2.1s Duration", "+2.8s Duration", "+3.5s Duration", "+4.2s Duration"]),
+                Table("+{0}s Duration", FSPerkBonusConstants.AdrenalineSeconds)),
 
             new("SpeedDemon", "Speed Demon",
                 "Kills increase your movement speed up to 7 stacks. Lose 1 stack/s after 5s.",
@@ -128,7 +140,7 @@ public sealed class FSPerkDef
             new("LifeLeech", "Life Leech",
                 "Regenerate health after every zombie you kill.",
                 PerkCategory.Blue,
-                ["+1 Health", "+2 Health", "+4 Health", "+6 Health"]),
+                Table("+{0} Health", FSPerkBonusConstants.LifeLeechHeal)),
 
             new("Untouchable", "Untouchable",
                 "Automatically blocks one incoming hit. Charges refill after 30 seconds.",

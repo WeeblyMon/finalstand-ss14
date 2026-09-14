@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.Perks;
+﻿using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -44,7 +44,7 @@ public sealed partial class FSDeathAuraSystem : EntitySystem
 
         var mindId = ev.MindId;
         var da = EnsureComp<FSDeathAuraComponent>(mindId);
-        da.Stacks = Math.Min(level * 5, da.Stacks + 1);
+        da.Stacks = Math.Min(level * (int) FSPerkBonusConstants.DeathAuraStacksPerLevel, da.Stacks + 1);
         da.LastKillTime = _timing.CurTime;
         _notify.SendStacks(mindId, "DeathAura", da.Stacks);
     }
