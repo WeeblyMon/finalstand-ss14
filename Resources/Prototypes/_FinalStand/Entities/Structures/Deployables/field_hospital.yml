@@ -4,7 +4,6 @@
   parent: BaseItem
   name: field hospital kit
   description: A folded surgical tent. Pitch it anywhere and operate where the casualties are. Press Z to aim a placement, click to deploy.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Item
     size: Large

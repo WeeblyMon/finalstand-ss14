@@ -8,6 +8,10 @@ namespace Content.Client.UserInterface.Screens;
 [GenerateTypedNameReferences]
 public sealed partial class DefaultGameScreen : InGameScreen
 {
+    // Mirrors WaveHudOverlay's panel width plus its screen margin, taken at scale 1 so the gap holds
+    // on every resolution. Keep in step with panelW/margin there.
+    private const float WavePanelClearance = 205f + 24f + 12f;
+
     public DefaultGameScreen()
     {
         RobustXamlLoader.Load(this);
@@ -26,7 +30,17 @@ public sealed partial class DefaultGameScreen : InGameScreen
         // chat and the wave panel. Inventory moves to the bottom right so the equipment strip
         // reads left-to-right as vitals -> hands -> storage.
         SetAnchorAndMarginPreset(Alerts, LayoutPreset.BottomLeft, margin: 5);
-        SetAnchorAndMarginPreset(Inventory, LayoutPreset.BottomRight, margin: 5);
+
+        // The wave panel is a screen overlay, not a control, so nothing stops a widget being drawn
+        // under it. It claims 205px plus a 24px margin against the right edge, so inventory anchors
+        // to a point clear of that and grows left and up into the gap beside the hotbar.
+        SetAnchorPreset(Inventory, LayoutPreset.BottomRight);
+        SetMarginLeft(Inventory, -WavePanelClearance);
+        SetMarginRight(Inventory, -WavePanelClearance);
+        SetMarginTop(Inventory, -5f);
+        SetMarginBottom(Inventory, -5f);
+        SetGrowHorizontal(Inventory, GrowDirection.Begin);
+        SetGrowVertical(Inventory, GrowDirection.Begin);
 
         Chat.OnResized += ChatOnResized;
         Chat.OnChatResizeFinish += ChatOnResizeFinish;
