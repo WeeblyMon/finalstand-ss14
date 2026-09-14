@@ -12,6 +12,11 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // on every resolution. Keep in step with panelW/margin there.
     private const float WavePanelClearance = 205f + 24f + 12f;
 
+    // Wide enough to clear AlertsUI's 130px status column in the same corner.
+    private const float AlertsClearance = 150f;
+
+    private const int ActionColumns = 6;
+
     public DefaultGameScreen()
     {
         RobustXamlLoader.Load(this);
@@ -42,17 +47,22 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetGrowHorizontal(Inventory, GrowDirection.Begin);
         SetGrowVertical(Inventory, GrowDirection.Begin);
 
+        // Six across, wrapping upward. The XAML caps the container at 64px wide for the left-edge
+        // column the separated layout still uses, which would squeeze this to one action per row.
+        Actions.ActionsContainer.MaxSize = new Vector2(9999, 9999);
+        Actions.ActionsContainer.Columns = ActionColumns;
+        Actions.ActionsContainer.ExpandBackwards = true;
+
+        SetAnchorPreset(Actions, LayoutPreset.BottomLeft);
+        SetMarginLeft(Actions, AlertsClearance);
+        SetMarginRight(Actions, AlertsClearance);
+        SetMarginTop(Actions, -5f);
+        SetMarginBottom(Actions, -5f);
+        SetGrowHorizontal(Actions, GrowDirection.End);
+        SetGrowVertical(Actions, GrowDirection.Begin);
+
         Chat.OnResized += ChatOnResized;
         Chat.OnChatResizeFinish += ChatOnResizeFinish;
-
-        MainViewport.OnResized += ResizeActionContainer;
-        Inventory.OnResized += ResizeActionContainer;
-    }
-
-    private void ResizeActionContainer()
-    {
-        float indent = Inventory.Size.Y + TopBar.Size.Y + 40;
-        Actions.ActionsContainer.MaxGridHeight = MainViewport.Size.Y - indent;
     }
 
     private void ChatOnResizeFinish(Vector2 _)
