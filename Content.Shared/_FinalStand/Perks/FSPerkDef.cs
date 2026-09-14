@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 namespace Content.Shared._FinalStand.Perks;
 
@@ -65,7 +65,7 @@ public sealed class FSPerkDef
             new("Profiteer", "Profiteer",
                 "Increases the amount of money you earn.",
                 PerkCategory.Yellow,
-                ["+7% Money", "+14% Money", "+21% Money", "+28% Money"]),
+                ["+1.4% Money", "+2.8% Money", "+4.2% Money", "+5.6% Money"]),
 
             new("SwordAndShield", "Sword and Shield",
                 "Increases your melee damage and damage resistance while wielding a melee weapon.",
@@ -97,12 +97,12 @@ public sealed class FSPerkDef
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
                 PerkCategory.Yellow,
-                ["+2.5% Return", "+5% Return", "+7.5% Return", "+10% Return"]),
+                ["+0.5% Return", "+1% Return", "+1.5% Return", "+2% Return"]),
 
             new("MutualFund", "Mutual Fund",
                 "At the end of each wave your team's money gains interest.",
                 PerkCategory.Yellow,
-                ["+1.25% Team Return", "+2.5% Team Return", "+3.75% Team Return", "+5% Team Return"]),
+                ["+0.25% Team Return", "+0.5% Team Return", "+0.75% Team Return", "+1% Team Return"]),
 
             new("LifeLeech", "Life Leech",
                 "Regenerate health after every zombie you kill.",
