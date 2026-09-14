@@ -1,9 +1,11 @@
 <widgets:AlertsUI xmlns="https://spacestation14.io"
                   xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Alerts.Widgets"
                   MinSize="64 64">
-    <PanelContainer HorizontalAlignment="Right" VerticalAlignment="Top">
+    <!-- FINALSTAND: bottom-anchored on the default screen, so alerts stack upward from the
+         vitals corner rather than growing down off the bottom edge. -->
+    <PanelContainer HorizontalAlignment="Left" VerticalAlignment="Bottom">
         <BoxContainer Orientation="Vertical">
-            <BoxContainer Name="AlertContainer" Access="Public" Orientation="Vertical" HorizontalAlignment="Right" />
+            <BoxContainer Name="AlertContainer" Access="Public" Orientation="Vertical" HorizontalAlignment="Left" />
             <!-- FINALSTAND: slot for custom per-player status labels (e.g. stamina %) -->
             <BoxContainer Name="FSStatusContainer" Access="Public" Orientation="Vertical" MinSize="130 0" />
         </BoxContainer>

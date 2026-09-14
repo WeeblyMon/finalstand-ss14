@@ -18,10 +18,15 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorPreset(ViewportContainer, LayoutPreset.Wide);
         SetAnchorAndMarginPreset(TopLeft, LayoutPreset.TopLeft, margin: 10);
         SetAnchorAndMarginPreset(Ghost, LayoutPreset.BottomWide, margin: 80);
-        SetAnchorAndMarginPreset(Inventory, LayoutPreset.BottomLeft, margin: 5);
         SetAnchorAndMarginPreset(Hotbar, LayoutPreset.BottomWide, margin: 5);
         SetAnchorAndMarginPreset(Chat, LayoutPreset.TopRight, margin: 10);
-        SetAnchorAndMarginPreset(Alerts, LayoutPreset.TopRight, margin: 10);
+
+        // FINALSTAND: one question per screen region. Status effects are personal condition, so
+        // they join the bottom-left survivability corner instead of sharing the top-right with
+        // chat and the wave panel. Inventory moves to the bottom right so the equipment strip
+        // reads left-to-right as vitals -> hands -> storage.
+        SetAnchorAndMarginPreset(Alerts, LayoutPreset.BottomLeft, margin: 5);
+        SetAnchorAndMarginPreset(Inventory, LayoutPreset.BottomRight, margin: 5);
 
         Chat.OnResized += ChatOnResized;
         Chat.OnChatResizeFinish += ChatOnResizeFinish;
