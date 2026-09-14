@@ -16,7 +16,9 @@ namespace Content.Client.UserInterface.Controls
 {
     public abstract class SlotControl : Control, IEntityControl
     {
-        public static int DefaultButtonSize = 64;
+        // FINALSTAND: 32 to match the HUD's grid; hands override themselves back up to a clean 2x.
+        public static int DefaultButtonSize = 32;
+        private const float SourceArtSize = 32f;
 
         public TextureRect ButtonRect { get; }
         public TextureRect BlockedRect { get; }
@@ -126,20 +128,41 @@ namespace Content.Client.UserInterface.Controls
         public bool EntityHover => HoverSpriteView.Sprite != null;
         public bool MouseIsHovering;
 
+        /// <summary>Resizes this slot. Only integer multiples of 32 stay sharp.</summary>
+        public void SetButtonSize(int size)
+        {
+            var scale = size / SourceArtSize;
+            MinSize = new Vector2(size, size);
+            ButtonRect.TextureScale = new Vector2(scale, scale);
+            HighlightRect.TextureScale = new Vector2(scale, scale);
+
+            foreach (var view in new SpriteView[] { SpriteView, ProtoView, HoverSpriteView })
+            {
+                view.Scale = new Vector2(scale, scale);
+                view.SetSize = new Vector2(size, size);
+            }
+        }
+
         public SlotControl()
         {
             IoCManager.InjectDependencies(this);
             Name = "SlotButton_null";
+
+            // FINALSTAND: art is authored at 32, so scale is the slot size over 32 rather than a
+            // hardcoded 2. That keeps every slot size an integer multiple - the engine has no
+            // mipmaps, so a fractional scale is the blur.
+            var scale = DefaultButtonSize / SourceArtSize;
+
             MinSize = new Vector2(DefaultButtonSize, DefaultButtonSize);
             AddChild(ButtonRect = new TextureRect
             {
-                TextureScale = new Vector2(2, 2),
+                TextureScale = new Vector2(scale, scale),
                 MouseFilter = MouseFilterMode.Stop
             });
             AddChild(HighlightRect = new TextureRect
             {
                 Visible = false,
-                TextureScale = new Vector2(2, 2),
+                TextureScale = new Vector2(scale, scale),
                 MouseFilter = MouseFilterMode.Ignore
             });
 
@@ -148,21 +171,21 @@ namespace Content.Client.UserInterface.Controls
 
             AddChild(SpriteView = new SpriteView
             {
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });
             AddChild(ProtoView = new EntityPrototypeView
             {
                 Visible = false,
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });
 
             AddChild(HoverSpriteView = new SpriteView
             {
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });

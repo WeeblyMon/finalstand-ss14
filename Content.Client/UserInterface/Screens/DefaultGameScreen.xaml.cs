@@ -26,6 +26,13 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     // Clears the bottom band so chat stacks above it rather than over the weapon module.
     private const float ChatLift = 190f;
+    private const float ChatEdgeMargin = 12f;
+
+    // The prototype's chat is 290x~150 on a 1600-wide screen; these are that at 1920.
+    private const float ChatDefaultWidth = 348f;
+    private const float ChatDefaultHeight = 180f;
+    private const float ChatMaxWidth = 520f;
+    private const float ChatMaxHeight = 380f;
 
     public DefaultGameScreen()
     {
@@ -41,12 +48,12 @@ public sealed partial class DefaultGameScreen : InGameScreen
         // FINALSTAND: chat sits above the bottom band on the right, leaving the top right to the
         // wave panel. Combat reads bottom-up, so the top corners stay quiet.
         SetAnchorPreset(Chat, LayoutPreset.BottomRight);
-        SetMarginLeft(Chat, -12f);
-        SetMarginRight(Chat, -12f);
-        SetMarginTop(Chat, -ChatLift);
-        SetMarginBottom(Chat, -ChatLift);
-        SetGrowHorizontal(Chat, GrowDirection.Begin);
-        SetGrowVertical(Chat, GrowDirection.Begin);
+        ApplyChatBox(ChatDefaultWidth, ChatDefaultHeight);
+
+        // Constrain, not Begin: a zero-overflow box still lets Begin grow to DesiredSize, and the
+        // chat log's desired height is the whole screen.
+        SetGrowHorizontal(Chat, GrowDirection.Constrain);
+        SetGrowVertical(Chat, GrowDirection.Constrain);
 
         // FINALSTAND: one question per screen region. Status effects are personal condition, so
         // they join the bottom-left survivability corner instead of sharing the top-right with
@@ -104,11 +111,19 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     // Vanilla stored the box as a height/width pair of margins off the top-right anchor. Anchored
     // bottom-right instead, the height grows upward from the band rather than down from the top.
+    // Sizes stored under the old layout can be most of the screen, so both axes are clamped.
     public override void SetChatSize(Vector2 size)
     {
-        SetMarginLeft(Chat, size.Y);
-        SetMarginRight(Chat, -12f);
+        var height = Math.Clamp(MathF.Abs(size.X), 90f, ChatMaxHeight);
+        var width = Math.Clamp(MathF.Abs(size.Y), 220f, ChatMaxWidth);
+        ApplyChatBox(width, height);
+    }
+
+    private void ApplyChatBox(float width, float height)
+    {
+        SetMarginLeft(Chat, -(ChatEdgeMargin + width));
+        SetMarginRight(Chat, -ChatEdgeMargin);
         SetMarginBottom(Chat, -ChatLift);
-        SetMarginTop(Chat, -ChatLift - size.X);
+        SetMarginTop(Chat, -(ChatLift + height));
     }
 }
