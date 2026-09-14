@@ -208,16 +208,23 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var s = Math.Clamp(screenSize.X / refWidth, 0.45f, 1.0f);
 
-        var iconSz = MathF.Round(32f * s);
+        // Icons are pinned, not scaled. The engine has no mipmaps - TextureSampleParameters offers
+        // only bilinear on/off - so minifying a 32px source to 23px (what s=0.71 produced on a
+        // 1366-wide screen) is the blur, whichever filter is set. Assets are authored at 32 and
+        // drawn at 32. Spacing and panel width still scale, so the HUD stays proportionate.
+        const float iconSz = 32f;
+        const float augIconSz = 32f;
+
         var iconGap = MathF.Round(9f * s);
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
-        var augIconSz = MathF.Round(32f * s);
         var augGap = MathF.Round(3f * s);
         var panelW = MathF.Round(205f * s);
 
-        var labelPt = Math.Max(6, (int)MathF.Round(8f * s));
-        var valuePt = Math.Max(10, (int)MathF.Round(20f * s));
+        // Text is a readability floor, not a layout variable. The old floors of 6 and 10 put
+        // labels near 8px on a laptop, well under what is legible at a glance mid-fight.
+        const int labelPt = 11;
+        var valuePt = Math.Max(14, (int)MathF.Round(20f * s));
 
         EnsureHudIcons();
 
