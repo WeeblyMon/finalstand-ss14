@@ -1,8 +1,8 @@
-﻿namespace Content.Server._FinalStand.Perks;
+﻿namespace Content.Shared._FinalStand.Perks;
 
-// Every numeric perk formula, in one place, so it can never drift from the catalog text in FSPerkDef.cs.
-// Read by the buff hubs, the single-perk systems, and FSPlayerBonusSummarySystem alike.
-internal static class FSPerkBonusConstants
+// Every numeric perk formula, in one place. FSPerkDef generates its catalog text from these, so the
+// shop can never advertise a rate the maths does not pay. Read by the buff hubs and the perk systems.
+public static class FSPerkBonusConstants
 {
     public const float StoppingPowerPerLevel = 0.04f;   // ranged, non-launcher only
     public const float GlassCannonPerLevel = 0.25f;     // outgoing, ranged (incl. launcher) and melee
