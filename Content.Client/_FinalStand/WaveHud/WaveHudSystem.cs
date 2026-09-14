@@ -69,6 +69,8 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateCasualtyStatus(overlay);
         UpdateBuffStatus(overlay);
         UpdateHarvestStatus(overlay);
+        UpdateVitals(overlay);
+        UpdateWeapon(overlay);
 
         if (!overlay.IsDarkWave)
             return;

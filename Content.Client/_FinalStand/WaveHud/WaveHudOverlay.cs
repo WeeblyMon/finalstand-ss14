@@ -290,6 +290,8 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelWidth = panelW;
 
         DrawBonusIndicator(screen, margin);
+        DrawVitals(screen, margin, BottomBandLift);
+        DrawWeaponModule(screen, panelX, BottomBandLift);
 
         if (IsRespawnOfferVisible)
         {

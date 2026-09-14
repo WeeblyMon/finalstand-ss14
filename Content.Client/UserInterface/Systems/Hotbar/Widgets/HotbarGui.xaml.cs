@@ -13,6 +13,8 @@ public sealed partial class HotbarGui : UIWidget
         RobustXamlLoader.Load(this);
         StatusPanelRight.SetSide(HandLocation.Right);
         StatusPanelLeft.SetSide(HandLocation.Left);
+        StatusPanelRight.Visible = false;
+        StatusPanelLeft.Visible = false;
         var hotbarController = UserInterfaceManager.GetUIController<HotbarUIController>();
 
         hotbarController.Setup(HandContainer);
@@ -36,9 +38,11 @@ public sealed partial class HotbarGui : UIWidget
         StatusPanelRight.UpdateHighlight(hand is HandLocation.Right);
     }
 
+    // FINALSTAND: the wave HUD draws a single module for the active hand, so vanilla's per-hand
+    // panels stay hidden - two of them beside the hands read as a second pair of hands.
     public void UpdateStatusVisibility(bool left, bool right)
     {
-        StatusPanelLeft.Visible = left;
-        StatusPanelRight.Visible = right;
+        StatusPanelLeft.Visible = false;
+        StatusPanelRight.Visible = false;
     }
 }
