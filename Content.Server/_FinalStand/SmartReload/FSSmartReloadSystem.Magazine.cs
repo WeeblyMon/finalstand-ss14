@@ -9,9 +9,10 @@ namespace Content.Server._FinalStand.SmartReload;
 
 public sealed partial class FSSmartReloadSystem : EntitySystem
 {
-    private void ReloadMagazine(EntityUid gun, EntityUid user, bool isChainReload = false)
+    private void ReloadMagazine(EntityUid gun, EntityUid user, bool isChainReload = false,
+        EntityUid? chosen = null)
     {
-        var newMag = FindBestMagazine(user, gun);
+        var newMag = chosen ?? FindBestMagazine(user, gun);
         if (newMag == null)
         {
             if (!isChainReload)
@@ -31,7 +32,11 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * GetReloadMultiplier(user, gun);
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
-            new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
+            new FSMagReloadDoAfterEvent
+            {
+                IsChainReload = isChainReload,
+                Chosen = chosen is { } c ? GetNetEntity(c) : null,
+            }, eventTarget: gun)
         {
             NeedHand           = true,
             BreakOnMove        = false,
@@ -63,8 +68,17 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (_slots.TryEject(gun, SharedGunSystem.MagazineSlot, null, out var oldMag) && oldMag != null)
             TryStoreItemInInventory(args.User, oldMag.Value);
 
-        // Re-evaluate best magazine (inventory may have changed during DoAfter)
-        var newMag = FindBestMagazine(args.User, gun);
+        // A wheel pick is honoured if it still exists; otherwise fall back to best, since the
+        // inventory may have changed during the DoAfter.
+        EntityUid? newMag = null;
+        if (args.Chosen is { } chosenNet)
+        {
+            var chosen = GetEntity(chosenNet);
+            if (chosen.IsValid() && !TerminatingOrDeleted(chosen))
+                newMag = chosen;
+        }
+
+        newMag ??= FindBestMagazine(args.User, gun);
         if (newMag == null)
             return;
 

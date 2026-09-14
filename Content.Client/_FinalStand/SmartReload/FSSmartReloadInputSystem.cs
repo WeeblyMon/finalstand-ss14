@@ -23,9 +23,11 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
 
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 
+    [Dependency] private FSAmmoWheel _ammoWheel = default!;
+
     private TimeSpan _pressTime;
     private bool _isHolding;
-    private bool _ejected;
+    private bool _wheelOpened;
 
     public override void Initialize()
     {
@@ -44,20 +46,24 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
         CommandBinds.Unregister<FSSmartReloadInputSystem>();
     }
 
+    // Past the threshold the hold stops being a reload and becomes a choice of magazine.
+    // This used to eject instead; ejecting is gone.
     public override void Update(float frameTime)
     {
-        if (!_isHolding || _ejected)
+        if (!_isHolding || _wheelOpened)
             return;
 
         if (_gameTiming.CurTime - _pressTime < HoldThreshold)
             return;
 
-        _ejected = true;
+        _wheelOpened = true;
 
         if (ResolveActiveGun() is not { } gun)
             return;
 
-        RaiseNetworkEvent(new FSEjectMessage { Gun = GetNetEntity(gun) });
+        // Nothing to choose from: fall through so the release still performs a normal reload.
+        if (!_ammoWheel.TryOpen(gun))
+            _wheelOpened = false;
     }
 
     private void OnGrenadeDown(ICommonSession? session)
@@ -71,14 +77,15 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     {
         _pressTime = _gameTiming.CurTime;
         _isHolding = true;
-        _ejected = false;
+        _wheelOpened = false;
     }
 
     private void OnReloadUp(ICommonSession? session)
     {
         _isHolding = false;
 
-        if (_ejected)
+        // The wheel owns the release: the player picks from it, or dismisses it.
+        if (_wheelOpened)
             return;
 
         if (ResolveActiveGun() is not { } gun)

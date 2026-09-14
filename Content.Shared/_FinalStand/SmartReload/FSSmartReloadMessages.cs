@@ -11,10 +11,13 @@ public sealed class FSSmartReloadMessage : EntityEventArgs
     public NetEntity Gun { get; init; }
 }
 
+// Hold-to-reload used to eject. It now opens the ammo wheel, and the wheel sends back the
+// magazine the player picked instead of letting the server choose the fullest one.
 [Serializable, NetSerializable]
-public sealed class FSEjectMessage : EntityEventArgs
+public sealed class FSLoadMagazineMessage : EntityEventArgs
 {
     public NetEntity Gun { get; init; }
+    public NetEntity Magazine { get; init; }
 }
 
 [Serializable, NetSerializable]
@@ -27,6 +30,10 @@ public sealed class FSQuickGrenadeMessage : EntityEventArgs
 public sealed partial class FSMagReloadDoAfterEvent : SimpleDoAfterEvent
 {
     public bool IsChainReload;
+
+    // Set when the player picked a magazine from the wheel. Null means "whatever is best",
+    // which is what a plain tap-reload wants.
+    public NetEntity? Chosen;
 }
 
 [Serializable, NetSerializable]
