@@ -464,7 +464,18 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             var cell = new UIBox2(ix, augIconsY, ix + augIconSz, augIconsY + augIconSz);
             _augCells.Add((cell, id));
-            DrawRounded(screen, cell, Color.FromHex("#1A1D23"));
+
+            // An empty slot is a socket, not a tile: outline only. Six filled blocks read as six
+            // things you have rather than six things you do not.
+            if (string.IsNullOrEmpty(id))
+            {
+                screen.DrawRect(cell, new Color(0.47f, 0.55f, 0.65f, 0.16f), filled: false);
+            }
+            else
+            {
+                DrawRounded(screen, cell, Color.FromHex("#1A1D23"));
+                screen.DrawRect(cell, new Color(0.47f, 0.55f, 0.65f, 0.30f), filled: false);
+            }
             if (!string.IsNullOrEmpty(id))
             {
                 var tex = GetPerkIcon(id);

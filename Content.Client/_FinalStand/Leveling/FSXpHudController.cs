@@ -18,7 +18,7 @@ public sealed partial class FSXpHudController : UIController
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    private const int DefaultBarHeight = 18;
+    private const int DefaultBarHeight = 16;
     private const int SeparatedBarHeight = 11;
     private const int DefaultFontSize = 12;
     private const int SeparatedFontSize = 9;
@@ -74,14 +74,22 @@ public sealed partial class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#23707e") };
-        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#212226") };
+        // FINALSTAND: palette-matched to the rest of the HUD. The old teal and grey appeared
+        // nowhere else, so the bar read as a strip borrowed from another game. The top hairline is
+        // the same edge colour every panel uses, which is what ties it to the band above it.
+        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#3d8ea3") };
+        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
+        {
+            BackgroundColor = Color.FromHex("#0d1218"),
+            BorderColor = new Color(0.47f, 0.55f, 0.65f, 0.22f),
+            BorderThickness = new Thickness(0, 1, 0, 0),
+        };
 
         _label = new Label
         {
             Text = "LVL 1",
             Align = Label.AlignMode.Center,
-            Modulate = Color.FromHex("#FFFFFF"),
+            Modulate = Color.FromHex("#cbd6e0"),
             MouseFilter = Control.MouseFilterMode.Ignore,
             FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"),
                 isSeparated ? SeparatedFontSize : DefaultFontSize),
