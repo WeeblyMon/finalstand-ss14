@@ -224,7 +224,7 @@ public sealed partial class WaveHudOverlay : Overlay
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
         var augGap = MathF.Round(3f * s);
-        var panelW = MathF.Round(150f * s);
+        var panelW = MathF.Round(166f * s);
 
         // Text is a readability floor, not a layout variable. The old floors of 6 and 10 put
         // labels near 8px on a laptop, well under what is legible at a glance mid-fight.
@@ -287,6 +287,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var rightEdge = _isSeparatedLayout ? GetViewportPixelWidth() : screenSize.X;
         var panelX = rightEdge - margin - panelW;
+        var panelInset = 8f;
 
         // Top right. The bottom of that edge is chat now, and the bottom band owns the corner.
         float y = margin;
@@ -296,6 +297,12 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelWidth = panelW;
 
         panelW0 = panelW;
+
+        // Backdrop. This block had none - it only looked dark because the map behind it happens to
+        // be unlit, and the readout vanished over anything bright.
+        var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
+        DrawRounded(screen, waveBox, VitalsBack);
+        screen.DrawRect(waveBox, VitalsEdge, filled: false);
 
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
@@ -333,7 +340,7 @@ public sealed partial class WaveHudOverlay : Overlay
                     casualty, casualtyColor);
             }
 
-            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             y += sepH + rowPad;
 
             screen.DrawString(_labelFont!, new Vector2(panelX, y), "RESPAWN", muted);
@@ -363,35 +370,37 @@ public sealed partial class WaveHudOverlay : Overlay
             if (!IsReadyUpVisible)
                 return;
 
-            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             y += sepH + rowPad;
 
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), "READY UP", muted);
+            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), "READY UP", muted);
             y += labelH + 2f;
 
             var countText  = ReadyUpTotal > 0 ? $"{ReadyUpCount} / {ReadyUpTotal} ready" : "—";
             var countColor = ReadyUpCount > 0 ? Color.FromHex("#44FF44") : Color.White;
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), countText, countColor);
+            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), countText, countColor);
             y += labelH + 3f;
 
-            var halfW = (panelW - 3f) / 2f;
+            var btnRowW = panelW - panelInset * 2f;
+            var halfW = (btnRowW - 3f) / 2f;
             var yesBg = ReadyUpPlayerIsReady ? Color.FromHex("#2a6b2a") : Color.FromHex("#1a3d1a");
             var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? Color.FromHex("#6b2a2a") : Color.FromHex("#3d1a1a");
 
-            ReadyUpYesBounds = new UIBox2(panelX,             y, panelX + halfW,      y + btnH);
-            ReadyUpNoBounds  = new UIBox2(panelX + halfW + 3f, y, panelX + panelW,    y + btnH);
+            var btnX = panelX + panelInset;
+            ReadyUpYesBounds = new UIBox2(btnX,             y, btnX + halfW,   y + btnH);
+            ReadyUpNoBounds  = new UIBox2(btnX + halfW + 3f, y, btnX + btnRowW, y + btnH);
 
-            screen.DrawRect(ReadyUpYesBounds, yesBg);
-            screen.DrawRect(ReadyUpNoBounds,  noBg);
+            DrawRounded(screen, ReadyUpYesBounds, yesBg, 2f);
+            DrawRounded(screen, ReadyUpNoBounds,  noBg,  2f);
 
             var yesDim = screen.GetDimensions(_labelFont!, "YES", 1f);
             var noDim  = screen.GetDimensions(_labelFont!, "NO",  1f);
 
             screen.DrawString(_labelFont!,
-                new Vector2(panelX             + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
+                new Vector2(btnX + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
                 "YES", Color.FromHex("#44CC44"));
             screen.DrawString(_labelFont!,
-                new Vector2(panelX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
+                new Vector2(btnX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
                 "NO", Color.FromHex("#CC4444"));
 
             y += btnH;
@@ -399,12 +408,12 @@ public sealed partial class WaveHudOverlay : Overlay
 
         float DrawRow(Texture? icon, string label, string value, Color valueColor)
         {
-            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             var innerY = y + sepH + rowPad;
             var iconY = innerY + (rowContentH - iconSz) / 2f;
-            var iconBox = new UIBox2(panelX, iconY, panelX + iconSz, iconY + iconSz);
+            var iconBox = new UIBox2(panelX + panelInset, iconY, panelX + panelInset + iconSz, iconY + iconSz);
             if (icon != null) screen.DrawTextureRect(icon, iconBox);
-            var textX = panelX + iconSz + iconGap;
+            var textX = panelX + panelInset + iconSz + iconGap;
             var textBlockH = labelH + 4f + valueH;
             var textStartY = innerY + (rowContentH - textBlockH) / 2f;
             screen.DrawString(_labelFont!, new Vector2(textX, textStartY), label, muted);
@@ -433,7 +442,7 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         DrawReadyUpBlock();
-        screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+        screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
 
         // Triage hangs under the wave panel, matching the prototype's right column.
         DrawTriage(screen, panelX, y + sepH + 10f);
