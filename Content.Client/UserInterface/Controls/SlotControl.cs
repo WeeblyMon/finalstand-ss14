@@ -130,7 +130,10 @@ namespace Content.Client.UserInterface.Controls
 
         private Label? FSLabelControl;
 
-        /// <summary>Draws a word in the slot instead of relying on its glyph. Widens to fit.</summary>
+        /// <summary>
+        /// Turns the slot into a labelled button: the word replaces the glyph, and the button
+        /// graphic stretches to whatever width the word needs rather than staying a square.
+        /// </summary>
         public string FSLabel
         {
             set
@@ -140,10 +143,27 @@ namespace Content.Client.UserInterface.Controls
 
                 FSLabelControl.Text = value;
                 FSLabelControl.Visible = !string.IsNullOrEmpty(value);
-                if (FSLabelControl.Visible)
-                    MinSize = new Vector2(Math.Max(MinSize.X, 56), MinSize.Y);
+
+                if (!FSLabelControl.Visible)
+                    return;
+
+                // Stretch, so the backing texture fills the control instead of drawing a square in
+                // the middle of it - that mismatch is what left the word hanging over the edges.
+                ButtonRect.Stretch = TextureRect.StretchMode.Scale;
+                HighlightRect.Stretch = TextureRect.StretchMode.Scale;
+                ButtonRect.SetSize = Vector2.Zero;
+                ButtonRect.HorizontalExpand = true;
+                ButtonRect.VerticalExpand = true;
+
+                SpriteView.Visible = false;
+                HoverSpriteView.Visible = false;
+
+                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f;
+                MinSize = new Vector2(MathF.Max(MinSize.X, width), MinSize.Y);
             }
         }
+
+        private const float FSLabelTextPad = 8f;
 
         /// <summary>Resizes this slot. Only integer multiples of 32 stay sharp.</summary>
         public void SetButtonSize(int size)

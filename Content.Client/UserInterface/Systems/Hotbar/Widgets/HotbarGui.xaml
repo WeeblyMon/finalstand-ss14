@@ -59,7 +59,7 @@
                 Orientation="Horizontal"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Margin="0 0 268 0">
+                Margin="0 0 577 0">
                 <PanelContainer Name="StoragePanel" Access="Public" VerticalAlignment="Bottom">
                     <BoxContainer Orientation="Vertical" VerticalAlignment="Bottom">
                         <inventory:ItemSlotButtonContainer

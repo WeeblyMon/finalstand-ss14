@@ -78,6 +78,14 @@ public sealed class ActionButton : Control, IEntityControl
         _controller = controller;
 
         MouseFilter = MouseFilterMode.Pass;
+
+        // Pinned both ways. GridContainer sizes every cell to the largest child, so one wide icon
+        // (a light toggle, say) used to stretch the whole grid.
+        MinSize = new Vector2(SlotSize, SlotSize);
+        SetSize = new Vector2(SlotSize, SlotSize);
+        MaxSize = new Vector2(SlotSize, SlotSize);
+        RectClipContent = true;
+
         Button = new TextureRect
         {
             Name = "Button",
@@ -108,12 +116,14 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
+        // FINALSTAND: bottom-left. Top-left sat over the thickest part of most action icons, which
+        // is what made the numbers hard to read.
         Label = new Label
         {
             Name = "Label",
             HorizontalAlignment = HAlignment.Left,
-            VerticalAlignment = VAlignment.Top,
-            Margin = new Thickness(5, 0, 0, 0)
+            VerticalAlignment = VAlignment.Bottom,
+            Margin = new Thickness(2, 0, 0, 0)
         };
         _chargesLabel = new Label
         {

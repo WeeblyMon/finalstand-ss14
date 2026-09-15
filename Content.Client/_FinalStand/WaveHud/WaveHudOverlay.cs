@@ -46,6 +46,8 @@ public sealed partial class WaveHudOverlay : Overlay
     // The hotbar does not move, so the control tree is walked once per screen instead of per frame.
     private Control? _hotbarControl;
     private Control? _hotbarScreen;
+    private Control? _alertsControl;
+    private Control? _alertsScreen;
 
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
@@ -643,10 +645,11 @@ public sealed partial class WaveHudOverlay : Overlay
         var iconSz = textH * 2f;
         var blockH = rows.Count * iconSz + (rows.Count - 1) * rowGap;
 
-        // Stacks above the vitals block, not above the hotbar - the hotbar's top is below the vitals
-        // now, which is what made the bonus rows and the health bar run into each other.
+        // Stacks above the alert icons, which sit above the vitals panel. Anchoring to the hotbar
+        // put these rows straight through both, since the hotbar's top is below them now.
         var vitalsTop = _clyde.ScreenSize.Y - BottomBandLift - VitalsBlockHeight();
-        var blockBottom = vitalsTop - bottomGap;
+        var ceiling = MathF.Min(FindAlertsTop() ?? vitalsTop, vitalsTop);
+        var blockBottom = ceiling - bottomGap;
         var x = margin;
         var y = blockBottom - blockH;
 
@@ -735,6 +738,27 @@ public sealed partial class WaveHudOverlay : Overlay
                 return found;
         }
         return null;
+    }
+
+    // The vanilla alert icons share this corner, so the bonus rows stack on top of whatever height
+    // that column currently has rather than on a fixed offset.
+    private float? FindAlertsTop()
+    {
+        var screen = _uiManager.ActiveScreen;
+        if (screen == null)
+        {
+            _alertsScreen = null;
+            _alertsControl = null;
+            return null;
+        }
+
+        if (!ReferenceEquals(screen, _alertsScreen) || _alertsControl is null || _alertsControl.Disposed)
+        {
+            _alertsScreen = screen;
+            _alertsControl = FindNamedControlRecursive(screen, "Alerts", 0);
+        }
+
+        return _alertsControl == null ? null : _alertsControl.GlobalPixelRect.Top;
     }
 
     private float? FindHotbarTop()

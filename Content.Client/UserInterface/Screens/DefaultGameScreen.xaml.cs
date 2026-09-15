@@ -16,7 +16,11 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // Clears the vitals block, which is 168px wide at a 24px margin in the same corner.
     private const float AlertsClearance = 210f;
 
-    private const float ActionBarAnchor = 0.25f;
+    // The bottom band is five modules with four equal gaps, and the hands must land on the screen's
+    // centre line. That only works if both flanks sum to the same width, so the weapon module is
+    // widened to match vitals+actions. These are that solution at 1920:
+    //   vitals 240 | actions 228 | hands 148 | storage 112 | weapon 356, gaps of 197.
+    private const float ActionBarAnchor = 0.2995f;
 
     private const int ActionColumns = 6;
 
@@ -37,6 +41,9 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private const float ChatDefaultHeight = 180f;
     private const float ChatMaxWidth = 520f;
     private const float ChatMaxHeight = 380f;
+    private const float ChatMinWidth = 220f;
+    private const float ChatMinHeight = 90f;
+    private bool _applyingChatBox;
     private const float ChatToggleWidth = 20f;
 
     // Three 32px slots wide, so it reads as the footer of the grid above it.
@@ -125,9 +132,25 @@ public sealed partial class DefaultGameScreen : InGameScreen
         OnChatResized?.Invoke(new Vector2(marginBottom, marginLeft));
     }
 
-    // FINALSTAND: chat no longer shares a corner with the alerts, so resizing it moves only itself.
+    // FINALSTAND: the drag handle writes margins straight onto the box, bypassing SetChatSize - so
+    // a drag could still make it full height. Re-clamp whatever the drag produced and re-place the
+    // toggle against the new edge. Guarded, because re-applying margins re-enters this.
     private void ChatOnResized()
     {
+        if (_applyingChatBox || _chatCollapsed)
+            return;
+
+        var size = Chat.Size;
+        if (size.X <= 0f || size.Y <= 0f)
+            return;
+
+        var width = Math.Clamp(size.X, ChatMinWidth, ChatMaxWidth);
+        var height = Math.Clamp(size.Y, ChatMinHeight, ChatMaxHeight);
+
+        if (MathF.Abs(width - _chatWidth) < 1f && MathF.Abs(height - _chatHeight) < 1f)
+            return;
+
+        ApplyChatBox(width, height);
     }
 
     public override ChatBox ChatBox => Chat;
@@ -137,14 +160,16 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // Sizes stored under the old layout can be most of the screen, so both axes are clamped.
     public override void SetChatSize(Vector2 size)
     {
-        var height = Math.Clamp(MathF.Abs(size.X), 90f, ChatMaxHeight);
-        var width = Math.Clamp(MathF.Abs(size.Y), 220f, ChatMaxWidth);
+        var height = Math.Clamp(MathF.Abs(size.X), ChatMinHeight, ChatMaxHeight);
+        var width = Math.Clamp(MathF.Abs(size.Y), ChatMinWidth, ChatMaxWidth);
         ApplyChatBox(width, height);
     }
 
     // Anchored CenterRight, so the box is laid out around the vertical midpoint of the right edge.
     private void ApplyChatBox(float width, float height)
     {
+        _applyingChatBox = true;
+
         _chatWidth = width;
         _chatHeight = height;
 
@@ -157,10 +182,13 @@ public sealed partial class DefaultGameScreen : InGameScreen
         Chat.Visible = !_chatCollapsed;
         if (_chatToggle != null)
         {
+            // Rides the chat's left edge in both states, so it is always the handle you reach for.
             _chatToggle.Text = _chatCollapsed ? "◀" : "▶";
             SetMarginRight(_chatToggle, -(ChatEdgeMargin + visibleWidth));
             SetMarginLeft(_chatToggle, -(ChatEdgeMargin + visibleWidth + ChatToggleWidth));
         }
+
+        _applyingChatBox = false;
     }
 
     // Reparenting keeps InventoryUIController's reference and its OnPressed wiring intact - the
