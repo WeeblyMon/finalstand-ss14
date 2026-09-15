@@ -197,8 +197,6 @@ public sealed partial class ResizableChatBox : ChatBox
             if (Parent == null)
                 return;
 
-            // var top = Rect.Top;
-            var right = Rect.Right;
             var left = desiredLeft ?? Rect.Left;
             var bottom = desiredBottom ?? Rect.Bottom;
 
@@ -226,8 +224,14 @@ public sealed partial class ResizableChatBox : ChatBox
                 left = Math.Clamp(left, MinLeft, maxLeft);
             }
 
-            LayoutContainer.SetMarginLeft(this, -((right + 10) - left));
-            LayoutContainer.SetMarginBottom(this, bottom);
+            // FINALSTAND: margins are offsets from the anchor, not absolute coordinates. The old
+            // form assumed anchorLeft/anchorBottom of 1/0, so on any other anchoring a drag threw
+            // the box across the screen. Converting through the anchors keeps it correct anywhere.
+            var anchorLeft = this.GetValue<float>(LayoutContainer.AnchorLeftProperty);
+            var anchorBottom = this.GetValue<float>(LayoutContainer.AnchorBottomProperty);
+
+            LayoutContainer.SetMarginLeft(this, left - anchorLeft * Parent.Size.X);
+            LayoutContainer.SetMarginBottom(this, bottom - anchorBottom * Parent.Size.Y);
         }
 
         protected override void MouseExited()

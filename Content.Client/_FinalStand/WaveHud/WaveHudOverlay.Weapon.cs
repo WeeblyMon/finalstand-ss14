@@ -78,27 +78,17 @@ public sealed partial class WaveHudOverlay
             ty += valueH;
         }
 
-        // Right-aligned chips, as in the prototype: faint cyan fill, cyan border, one per wheel.
+        // One chip, right-aligned, as in the prototype. The throwable hint belongs to the throwables
+        // row above rather than here - two hold-hints in one panel read as one control with two keys.
         ty += 5f;
-        var chips = new (string Text, bool Live)[]
-        {
-            ("[G] hold - throwable", HasThrowChoice),
-            ("[R] hold - ammo type", HasAmmoChoice),
-        };
+        const string hint = "[R] hold - ammo type";
+        var hintColor = HasAmmoChoice ? HintCyan : HintDim;
+        var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + HintPadX * 2f;
+        var chip = new UIBox2(innerRight - chipW, ty, innerRight, ty + hintH);
 
-        var cx = innerRight;
-        foreach (var (text, live) in chips)
-        {
-            var w = screen.GetDimensions(_labelFont!, text, 1f).X + HintPadX * 2f;
-            cx -= w;
-            var chip = new UIBox2(cx, ty, cx + w, ty + hintH);
-            var color = live ? HintCyan : HintDim;
-
-            DrawRounded(screen, chip, color.WithAlpha(live ? 0.10f : 0.05f), 2f);
-            screen.DrawRect(chip, color.WithAlpha(live ? 0.45f : 0.22f), filled: false);
-            screen.DrawString(_labelFont!, new Vector2(cx + HintPadX, ty + HintPadY), text, color);
-            cx -= 5f;
-        }
+        DrawRounded(screen, chip, hintColor.WithAlpha(HasAmmoChoice ? 0.10f : 0.05f), 2f);
+        screen.DrawRect(chip, hintColor.WithAlpha(HasAmmoChoice ? 0.45f : 0.22f), filled: false);
+        screen.DrawString(_labelFont!, new Vector2(chip.Left + HintPadX, ty + HintPadY), hint, hintColor);
 
         return y;
     }

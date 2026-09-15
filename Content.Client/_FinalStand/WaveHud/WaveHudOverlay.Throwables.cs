@@ -32,18 +32,17 @@ public sealed partial class WaveHudOverlay
     /// <summary>Right-aligned to the same edge as the weapon module. Returns the height used.</summary>
     private float DrawThrowables(DrawingHandleScreen screen, float margin, float bottom)
     {
-        if (ThrowableName is not { } name)
-        {
-            _throwPrevBounds = _throwNextBounds = new UIBox2(-100, -100, -99, -99);
-            return 0f;
-        }
+        // Always drawn, even with nothing carried. The row is how anyone learns the G key exists,
+        // and a control that only appears once you already have the item teaches nobody.
+        var name = ThrowableName ?? "none";
+        var empty = ThrowableName is null;
 
         var labelH = _cachedLabelH;
         var rowH = MathF.Max(ThrowSlot, labelH) + ThrowPad * 2f;
 
         var hint = "[G] tap throw  -  hold to pick";
         var hintW = screen.GetDimensions(_labelFont!, hint, 1f).X;
-        var nameText = $"{name.ToUpperInvariant()} x{ThrowableStock}";
+        var nameText = empty ? "NONE" : $"{name.ToUpperInvariant()} x{ThrowableStock}";
         var nameW = screen.GetDimensions(_labelFont!, nameText, 1f).X;
 
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);
@@ -74,7 +73,7 @@ public sealed partial class WaveHudOverlay
         var nameDims = screen.GetDimensions(_labelFont!, nameText, 1f);
         screen.DrawString(_labelFont!,
             new Vector2(cell.Left + (cellW - nameDims.X) * 0.5f, cell.Top + (contentH - nameDims.Y) * 0.5f),
-            nameText, ThrowableStock > 0 ? ThrowText : ThrowMuted);
+            nameText, !empty && ThrowableStock > 0 ? ThrowText : ThrowMuted);
         cx += cellW + ThrowGap;
 
         _throwNextBounds = new UIBox2(cx, innerY, cx + ThrowArrowW, innerY + contentH);

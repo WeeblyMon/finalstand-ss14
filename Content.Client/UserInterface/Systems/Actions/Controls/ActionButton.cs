@@ -116,14 +116,18 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
-        // FINALSTAND: bottom-left. Top-left sat over the thickest part of most action icons, which
-        // is what made the numbers hard to read.
+        // FINALSTAND: bottom-left, with a hard black shadow. Top-left sat over the thickest part of
+        // most action icons, and on a bright icon the bare glyph vanished entirely.
         Label = new Label
         {
             Name = "Label",
             HorizontalAlignment = HAlignment.Left,
             VerticalAlignment = VAlignment.Bottom,
-            Margin = new Thickness(2, 0, 0, 0)
+            Margin = new Thickness(2, 0, 0, 0),
+            FontColorOverride = Color.White,
+            FontColorShadowOverride = Color.Black,
+            ShadowOffsetXOverride = 1,
+            ShadowOffsetYOverride = 1,
         };
         _chargesLabel = new Label
         {

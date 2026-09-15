@@ -1,4 +1,5 @@
 // Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
+using System.Diagnostics.CodeAnalysis;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
@@ -40,8 +41,10 @@ public sealed partial class WaveHudSystem
             return;
 
         // A magazine-fed gun carries its count on the magazine in the slot, not on itself.
+        // TryGetSlot resolves ItemSlotsComponent and logs an error when it is absent, so a revolver
+        // would spam the log every frame - hence the HasComp guard rather than calling it blind.
         var source = held;
-        if (_itemSlots.TryGetSlot(held, SharedGunSystem.MagazineSlot, out var magSlot))
+        if (TryGetMagazineSlot(held, out var magSlot))
         {
             if (magSlot.Item is not { } loaded)
             {
@@ -111,10 +114,17 @@ public sealed partial class WaveHudSystem
         return false;
     }
 
+    private bool TryGetMagazineSlot(EntityUid gun, [NotNullWhen(true)] out ItemSlot? slot)
+    {
+        slot = null;
+        return TryComp<ItemSlotsComponent>(gun, out var slots)
+               && _itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out slot, slots);
+    }
+
     /// <summary>Spare magazines the player is carrying that this gun would accept.</summary>
     private int CountSpareMagazines(EntityUid player, EntityUid gun)
     {
-        if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var magSlot))
+        if (!TryGetMagazineSlot(gun, out var magSlot))
             return 0;
 
         var count = 0;

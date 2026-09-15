@@ -132,25 +132,27 @@ public sealed partial class DefaultGameScreen : InGameScreen
         OnChatResized?.Invoke(new Vector2(marginBottom, marginLeft));
     }
 
-    // FINALSTAND: the drag handle writes margins straight onto the box, bypassing SetChatSize - so
-    // a drag could still make it full height. Re-clamp whatever the drag produced and re-place the
-    // toggle against the new edge. Guarded, because re-applying margins re-enters this.
+    // FINALSTAND: ResizableChatBox owns the drag and clamps itself, so this does not re-apply the
+    // box - doing so fought the drag. It only keeps the toggle on the chat's left edge and records
+    // the size so collapsing and re-opening restores what the player dragged to.
     private void ChatOnResized()
     {
         if (_applyingChatBox || _chatCollapsed)
             return;
 
-        var size = Chat.Size;
-        if (size.X <= 0f || size.Y <= 0f)
+        _chatWidth = Math.Clamp(Chat.Size.X, ChatMinWidth, ChatMaxWidth);
+        _chatHeight = Math.Clamp(Chat.Size.Y, ChatMinHeight, ChatMaxHeight);
+        PlaceChatToggle(Chat.GetValue<float>(MarginLeftProperty));
+    }
+
+    private void PlaceChatToggle(float chatMarginLeft)
+    {
+        if (_chatToggle == null)
             return;
 
-        var width = Math.Clamp(size.X, ChatMinWidth, ChatMaxWidth);
-        var height = Math.Clamp(size.Y, ChatMinHeight, ChatMaxHeight);
-
-        if (MathF.Abs(width - _chatWidth) < 1f && MathF.Abs(height - _chatHeight) < 1f)
-            return;
-
-        ApplyChatBox(width, height);
+        _chatToggle.Text = _chatCollapsed ? "◀" : "▶";
+        SetMarginRight(_chatToggle, chatMarginLeft);
+        SetMarginLeft(_chatToggle, chatMarginLeft - ChatToggleWidth);
     }
 
     public override ChatBox ChatBox => Chat;
@@ -180,13 +182,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetMarginBottom(Chat, height * 0.5f);
 
         Chat.Visible = !_chatCollapsed;
-        if (_chatToggle != null)
-        {
-            // Rides the chat's left edge in both states, so it is always the handle you reach for.
-            _chatToggle.Text = _chatCollapsed ? "◀" : "▶";
-            SetMarginRight(_chatToggle, -(ChatEdgeMargin + visibleWidth));
-            SetMarginLeft(_chatToggle, -(ChatEdgeMargin + visibleWidth + ChatToggleWidth));
-        }
+        // Rides the chat's left edge in both states, so it is always the handle you reach for.
+        PlaceChatToggle(-(ChatEdgeMargin + visibleWidth));
 
         _applyingChatBox = false;
     }
