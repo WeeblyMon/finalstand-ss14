@@ -1,12 +1,10 @@
 <widgets:AlertsUI xmlns="https://spacestation14.io"
                   xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Alerts.Widgets">
-    <!-- FINALSTAND: a panelled strip sitting flush on top of the vitals block, rather than loose
-         icons floating in the corner. Hidden entirely when there is nothing to show. -->
-    <PanelContainer Name="AlertPanel" Access="Public"
-                    HorizontalAlignment="Left" VerticalAlignment="Bottom" Visible="False"
-                    MinSize="240 0">
-        <BoxContainer Name="AlertContainer" Access="Public"
-                      Orientation="Horizontal"
-                      HorizontalAlignment="Left" />
-    </PanelContainer>
+    <!-- FINALSTAND: a vertical column growing upward from the vitals panel. Statuses and buffs are
+         open-ended, so this must not be boxed to a fixed width - it shares the vitals panel's left
+         edge for the visual tie instead of a wrapper. -->
+    <BoxContainer Name="AlertContainer" Access="Public"
+                  Orientation="Vertical"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Bottom" />
 </widgets:AlertsUI>

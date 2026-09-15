@@ -53,8 +53,7 @@ public sealed partial class WaveHudOverlay
         var y = bottom - panelH;
 
         var box = new UIBox2(x, y, x + WeaponPanelW, y + panelH);
-        DrawRounded(screen, box, WeaponBack);
-        screen.DrawRect(box, WeaponEdge, filled: false);
+        DrawPanel(screen, box, WeaponBack, WeaponEdge);
 
         var textX = x + WeaponPanelPad;
         var innerRight = x + WeaponPanelW - WeaponPanelPad;

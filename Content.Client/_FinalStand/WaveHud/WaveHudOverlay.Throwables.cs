@@ -53,8 +53,7 @@ public sealed partial class WaveHudOverlay
         var top = bottom - rowH;
 
         var box = new UIBox2(x, top, right, bottom);
-        DrawRounded(screen, box, ThrowBack);
-        screen.DrawRect(box, ThrowEdge, filled: false);
+        DrawPanel(screen, box, ThrowBack, ThrowEdge);
 
         var innerY = top + ThrowPad;
         var contentH = rowH - ThrowPad * 2f;

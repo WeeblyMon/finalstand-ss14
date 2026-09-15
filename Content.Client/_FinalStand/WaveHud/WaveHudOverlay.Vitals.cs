@@ -59,6 +59,30 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Right - r, box.Top + r, box.Right, box.Bottom - r), color);
     }
 
+    private static readonly Color PanelShadow = new(0f, 0f, 0f, 0.38f);
+    private static readonly Color PanelSheen = new(1f, 1f, 1f, 0.05f);
+
+    /// <summary>
+    /// The house panel: a dropped shadow, the fill, a one-pixel sheen along the top edge, then the
+    /// border. Flat fill plus a hairline border reads as a wireframe; the shadow is what seats the
+    /// panel above the world and the sheen is what stops it looking like a hole cut in the screen.
+    /// </summary>
+    public static void DrawPanel(DrawingHandleScreen screen, UIBox2 box, Color fill, Color edge)
+    {
+        DrawRounded(screen, new UIBox2(box.Left + 2f, box.Top + 2f, box.Right + 2f, box.Bottom + 2f),
+            PanelShadow);
+        DrawRounded(screen, box, fill);
+        screen.DrawRect(new UIBox2(box.Left + 3f, box.Top, box.Right - 3f, box.Top + 1f), PanelSheen);
+        screen.DrawRect(box, edge, filled: false);
+    }
+
+    /// <summary>Text with a hard offset shadow, for labels that sit on the world with no panel.</summary>
+    public static void DrawShadowed(DrawingHandleScreen screen, Font font, Vector2 pos, string text, Color color)
+    {
+        screen.DrawString(font, pos + new Vector2(1f, 1f), text, new Color(0f, 0f, 0f, 0.85f));
+        screen.DrawString(font, pos, text, color);
+    }
+
     private float _pillRowH = 17f;
 
     /// <summary>
@@ -91,8 +115,7 @@ public sealed partial class WaveHudOverlay
         var lowHp = health <= 0.3f || HealthInCrit;
 
         var panelBox = new UIBox2(x, top, x + VitalsWidth, bottom);
-        DrawRounded(screen, panelBox, VitalsBack);
-        screen.DrawRect(panelBox, lowHp ? VitalsEdgeHot : VitalsEdge, filled: false);
+        DrawPanel(screen, panelBox, VitalsBack, lowHp ? VitalsEdgeHot : VitalsEdge);
 
         var innerX = x + VitalsPadX;
         var innerW = VitalsWidth - VitalsPadX * 2f;
@@ -155,7 +178,11 @@ public sealed partial class WaveHudOverlay
 
         var filled = MathF.Round(w * Math.Clamp(ratio, 0f, 1f));
         if (filled > 0f)
+        {
             screen.DrawRect(new UIBox2(x, y, x + filled, y + h), fill);
+            // Brighter top third: a flat block of colour reads as a placeholder, not a gauge.
+            screen.DrawRect(new UIBox2(x, y, x + filled, y + h * 0.35f), new Color(1f, 1f, 1f, 0.13f));
+        }
 
         screen.DrawRect(new UIBox2(x, y, x + w, y + h), VitalsEdge, filled: false);
     }

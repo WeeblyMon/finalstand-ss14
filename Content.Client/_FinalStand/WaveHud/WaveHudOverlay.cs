@@ -301,8 +301,7 @@ public sealed partial class WaveHudOverlay : Overlay
         // Backdrop. This block had none - it only looked dark because the map behind it happens to
         // be unlit, and the readout vanished over anything bright.
         var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
-        DrawRounded(screen, waveBox, VitalsBack);
-        screen.DrawRect(waveBox, VitalsEdge, filled: false);
+        DrawPanel(screen, waveBox, VitalsBack, VitalsEdge);
 
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
@@ -449,21 +448,14 @@ public sealed partial class WaveHudOverlay : Overlay
 
         // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
         // which is a different question from "what is the wave doing", so they get their own corner.
-        // Panelled like every other cluster - it was the only one sitting bare on the world.
-        var slots = Math.Max(1, ActiveSlots.Length);
-        var blockW = slots * augIconSz + (slots - 1) * augGap;
-        var blockH = TopLeftPad * 2f + labelH + 4f + augIconSz + 6f + _cachedValueH;
-
+        // No wrapper. The perk cells already carry their own backgrounds, so a box around them is
+        // redundant chrome; the text gets a shadow instead, which keeps it legible over a bright
+        // map without adding another rectangle to the corner.
         var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
-        var panelBox = new UIBox2(TopLeftX, topLeftTop,
-            TopLeftX + blockW + TopLeftPad * 2f, topLeftTop + blockH);
-        DrawRounded(screen, panelBox, VitalsBack);
-        screen.DrawRect(panelBox, VitalsEdge, filled: false);
-
         var leftX = TopLeftX + TopLeftPad;
-        var leftY = topLeftTop + TopLeftPad;
+        var leftY = topLeftTop;
 
-        screen.DrawString(_labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
+        DrawShadowed(screen, _labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
         var augIconsY = leftY + labelH + 4f;
 
         _augCells.Clear();
@@ -496,7 +488,8 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         _creditsRowY = augIconsY + augIconSz + 6f;
-        screen.DrawString(_valueFont!, new Vector2(leftX, _creditsRowY), _creditsText, Color.FromHex("#e2b662"));
+        DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
+            Color.FromHex("#e2b662"));
 
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
         for (var pi = 0; pi < _interestPopups.Count; pi++)
