@@ -33,6 +33,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private FontResource? _notoRes;
     private Font? _labelFont;
     private Font? _valueFont;
+    private Font? _midFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
     private Font? _promptFont;
@@ -218,13 +219,14 @@ public sealed partial class WaveHudOverlay : Overlay
         // 1366-wide screen) is the blur, whichever filter is set. Assets are authored at 32 and
         // drawn at 32. Spacing and panel width still scale, so the HUD stays proportionate.
         const float iconSz = 32f;
+        const float rowIconSz = 20f;
         const float augIconSz = 32f;
 
         var iconGap = MathF.Round(9f * s);
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
         var augGap = MathF.Round(3f * s);
-        var panelW = MathF.Round(166f * s);
+        var panelW = MathF.Round(RightColumnWidth * s);
 
         // Text is a readability floor, not a layout variable. The old floors of 6 and 10 put
         // labels near 8px on a laptop, well under what is legible at a glance mid-fight.
@@ -243,6 +245,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (_cachedValuePt != valuePt)
         {
             _valueFont = new VectorFont(notoRes, valuePt);
+            _midFont = new VectorFont(notoRes, Math.Max(12, (int) MathF.Round(15f * s)));
             _cachedValuePt = valuePt;
             _cachedValueH = screen.GetDimensions(_valueFont, "$888,888", 1f).Y;
         }
@@ -259,7 +262,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
-        var rowContentH = Math.Max(iconSz, labelH + 4f + valueH);
+        // Sized to what the row actually draws. This was still reserving the old 32px icon
+        // height, which padded every row well past its content.
+        var rowContentH = Math.Max(rowIconSz, labelH + 4f + valueH);
         var rowH = rowContentH + rowPad * 2f;
 
         var sepColor = new Color(0.23f, 0.26f, 0.32f, 0.8f);
@@ -412,18 +417,23 @@ public sealed partial class WaveHudOverlay : Overlay
             y += btnH;
         }
 
-        float DrawRow(Texture? icon, string label, string value, Color valueColor)
+        float DrawRow(Texture? icon, string label, string value, Color valueColor, Font? valueFont = null)
         {
             screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             var innerY = y + sepH + rowPad;
-            var iconY = innerY + (rowContentH - iconSz) / 2f;
-            var iconBox = new UIBox2(panelX + panelInset, iconY, panelX + panelInset + iconSz, iconY + iconSz);
-            if (icon != null) screen.DrawTextureRect(icon, iconBox);
-            var textX = panelX + panelInset + iconSz + iconGap;
-            var textBlockH = labelH + 4f + valueH;
+            var iconY = innerY + (rowContentH - rowIconSz) / 2f;
+            var iconBox = new UIBox2(panelX + panelInset, iconY,
+                panelX + panelInset + rowIconSz, iconY + rowIconSz);
+            if (icon != null)
+                screen.DrawTextureRect(icon, iconBox, Color.White.WithAlpha(0.55f));
+
+            var font = valueFont ?? _valueFont!;
+            var thisValueH = screen.GetDimensions(font, value, 1f).Y;
+            var textX = panelX + panelInset + rowIconSz + iconGap;
+            var textBlockH = labelH + 4f + thisValueH;
             var textStartY = innerY + (rowContentH - textBlockH) / 2f;
             screen.DrawString(_labelFont!, new Vector2(textX, textStartY), label, muted);
-            screen.DrawString(_valueFont!, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
+            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
             return y + sepH + rowH;
         }
 
@@ -434,17 +444,17 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             var secs = Math.Max(0f, DarkWaveSecondsRemaining);
             var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"));
+            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"), _midFont);
         }
         else if (EnemiesTotal > 0)
         {
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
+            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#e06a6d"), _midFont);
         }
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
+            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#c9a86a"), _midFont);
         }
 
         DrawReadyUpBlock();

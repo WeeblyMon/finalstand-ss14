@@ -11,8 +11,11 @@ public sealed partial class WaveHudOverlay
 
     public readonly List<TriageRow> TriageRows = new();
 
-    private const float TriageWidth = 262f;
-    private const float ArrowRadius = 6f;
+    /// <summary>Shared by the wave panel above it, so the right column has one left edge.</summary>
+    public const float RightColumnWidth = 206f;
+
+    private const float TriageWidth = RightColumnWidth;
+    private const float ArrowRadius = 7f;
     private const float TriagePad = 8f;
     private const float TriageRowGap = 5f;
     private const float PipSize = 17f;
@@ -63,7 +66,7 @@ public sealed partial class WaveHudOverlay
             var textY = y + (rowH - labelH) * 0.5f;
             screen.DrawString(_labelFont!, new Vector2(innerX + PipSize + 6f, textY), row.Name, TriageName);
 
-            var tail = $"{row.State} {row.Range}".Trim();
+            var tail = row.Range;
             var tailW = screen.GetDimensions(_labelFont!, tail, 1f).X;
             screen.DrawString(_labelFont!, new Vector2(innerRight - tailW, textY), tail, TriageMuted);
 
