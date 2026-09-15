@@ -41,6 +41,19 @@ public sealed partial class WaveHudOverlay
     private static readonly Color PillBack = Color.FromHex("#0d1218");
     private static readonly Color PillBad = Color.FromHex("#e85055");
     private static readonly Color PillGood = Color.FromHex("#4fbf7a");
+    private static readonly Color VitalsMuted = Color.FromHex("#7c8894");
+
+    /// <summary>
+    /// Rect with the four corner pixels dropped. DrawRect is the only primitive here, so this is
+    /// what a 2-3px radius reduces to at HUD scale - enough to read as rounded, no texture needed.
+    /// </summary>
+    public static void DrawRounded(DrawingHandleScreen screen, UIBox2 box, Color color, float radius = 3f)
+    {
+        var r = MathF.Min(radius, MathF.Min(box.Width, box.Height) * 0.5f);
+        screen.DrawRect(new UIBox2(box.Left + r, box.Top, box.Right - r, box.Bottom), color);
+        screen.DrawRect(new UIBox2(box.Left, box.Top + r, box.Left + r, box.Bottom - r), color);
+        screen.DrawRect(new UIBox2(box.Right - r, box.Top + r, box.Right, box.Bottom - r), color);
+    }
 
     private float _pillRowH;
 
@@ -50,7 +63,7 @@ public sealed partial class WaveHudOverlay
         if (HealthRatio is null)
             return 0f;
 
-        var h = VitalsPadY * 2f + MathF.Max(_cachedValueH, HpBarH);
+        var h = VitalsPadY * 2f + MathF.Max(_cachedValueH, HpBarH) + 4f + HpBarH;
         if (StaminaRatio is not null)
             h += VitalsRowGap + StaminaBarH;
         if (StatusPills.Count > 0)
@@ -87,11 +100,14 @@ public sealed partial class WaveHudOverlay
         screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText,
             lowHp ? HpFillLow : HpFill);
 
-        var barX = innerX + hpDims.X + 9f;
-        var barW = innerX + innerW - barX;
-        DrawBar(screen, barX, y + (rowH - HpBarH) * 0.5f, barW, HpBarH, health,
-            lowHp ? HpFillLow : HpFill);
-        y += rowH;
+        const string healthWord = "HEALTH";
+        var wordX = innerX + hpDims.X + 7f;
+        screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
+            healthWord, VitalsMuted);
+        y += rowH + 4f;
+
+        DrawBar(screen, innerX, y, innerW, HpBarH, health, lowHp ? HpFillLow : HpFill);
+        y += HpBarH;
 
         if (StaminaRatio is { } stamina)
         {

@@ -7,7 +7,7 @@
     Orientation="Horizontal"
     HorizontalExpand="False"
 >
-    <BoxContainer Orientation="Vertical">
+    <PanelContainer Name="ActionsPanel" Access="Public">
         <controls:ActionButtonContainer
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
@@ -15,5 +15,5 @@
             Name="ActionsContainer"
             Access="Public"
             Rows="1"/>
-    </BoxContainer>
+    </PanelContainer>
 </widgets:ActionsBar>

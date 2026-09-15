@@ -39,6 +39,9 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private const float ChatMaxHeight = 380f;
     private const float ChatToggleWidth = 20f;
 
+    // Three 32px slots wide, so it reads as the footer of the grid above it.
+    private const int WornButtonSize = 24;
+
     private Button? _chatToggle;
     private bool _chatCollapsed;
     private float _chatWidth = ChatDefaultWidth;
@@ -79,8 +82,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetGrowHorizontal(Alerts, GrowDirection.End);
         SetGrowVertical(Alerts, GrowDirection.Begin);
 
-        // Just right of the hands, which is where the equipment grid unfolds from when opened. The
-        // far-right corner belongs to the quick slots and weapon info, which HotbarGui positions.
+        // The toggle moves into the storage panel, under the pocket grid, where the prototype has a
+        // labelled WORN button. The equipment grid it opens stays in this widget.
         SetAnchorPreset(Inventory, LayoutPreset.CenterBottom);
         SetMarginLeft(Inventory, HandsHalfWidth);
         SetMarginRight(Inventory, HandsHalfWidth);
@@ -88,6 +91,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetMarginBottom(Inventory, -BottomBandLift);
         SetGrowHorizontal(Inventory, GrowDirection.End);
         SetGrowVertical(Inventory, GrowDirection.Begin);
+
+        AdoptWornButton();
 
         // Six across, wrapping upward. The XAML caps the container at 64px wide for the left-edge
         // column the separated layout still uses, which would squeeze this to one action per row.
@@ -156,6 +161,19 @@ public sealed partial class DefaultGameScreen : InGameScreen
             SetMarginRight(_chatToggle, -(ChatEdgeMargin + visibleWidth));
             SetMarginLeft(_chatToggle, -(ChatEdgeMargin + visibleWidth + ChatToggleWidth));
         }
+    }
+
+    // Reparenting keeps InventoryUIController's reference and its OnPressed wiring intact - the
+    // button is the same control, it just draws somewhere else.
+    private void AdoptWornButton()
+    {
+        var button = Inventory.InventoryButton;
+        button.Orphan();
+        button.SetButtonSize(WornButtonSize);
+        button.FSLabel = Loc.GetString("fs-hud-worn-button");
+        button.HorizontalAlignment = HAlignment.Center;
+        button.VerticalAlignment = VAlignment.Center;
+        Hotbar.FSWornSlot.AddChild(button);
     }
 
     private void SetupChatToggle()

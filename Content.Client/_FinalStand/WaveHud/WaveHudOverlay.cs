@@ -348,8 +348,12 @@ public sealed partial class WaveHudOverlay : Overlay
             RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
         }
 
-        if (IsReadyUpVisible)
+        // Declared here, called after the wave rows - ready up is prep-phase chrome, not a headline.
+        void DrawReadyUpBlock()
         {
+            if (!IsReadyUpVisible)
+                return;
+
             screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
             y += sepH + rowPad;
 
@@ -399,11 +403,8 @@ public sealed partial class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
-        if (IsPrepPhase && PrepSecondsRemaining >= 0f)
-        {
-            var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
-        }
+        // Wave first, then what is left of it, then the clock. Most urgent at the top.
+        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
 
         if (IsDarkWave)
         {
@@ -416,7 +417,13 @@ public sealed partial class WaveHudOverlay : Overlay
             y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
         }
 
-        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
+        if (IsPrepPhase && PrepSecondsRemaining >= 0f)
+        {
+            var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
+            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
+        }
+
+        DrawReadyUpBlock();
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
 
         // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
@@ -433,7 +440,7 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             var cell = new UIBox2(ix, augIconsY, ix + augIconSz, augIconsY + augIconSz);
             _augCells.Add((cell, id));
-            screen.DrawRect(cell, Color.FromHex("#1A1D23"));
+            DrawRounded(screen, cell, Color.FromHex("#1A1D23"));
             if (!string.IsNullOrEmpty(id))
             {
                 var tex = GetPerkIcon(id);
