@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -278,11 +279,15 @@ public sealed partial class ChatUIController : UIController
                  && style is StyleBoxFlat propStyleBoxFlat)
             color = propStyleBoxFlat.BackgroundColor;
         else
-            color = Color.FromHex("#25252ADD");
+            color = FSHudStyle.PanelBack;   // FINALSTAND: was #25252ADD, off the HUD palette
 
+        // FINALSTAND: same fill and edge as every other HUD panel, so chat stops reading as a
+        // window borrowed from vanilla sitting on top of the HUD.
         panel.PanelOverride = new StyleBoxFlat
         {
-            BackgroundColor = color.WithAlpha(opacity)
+            BackgroundColor = color.WithAlpha(opacity),
+            BorderColor = FSHudStyle.PanelEdge,
+            BorderThickness = new Thickness(1),
         };
     }
 

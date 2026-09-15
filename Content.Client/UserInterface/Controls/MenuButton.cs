@@ -22,6 +22,27 @@ public sealed partial class MenuButton : ContainerButton
 
     private const float VertPad = 0f;
 
+    // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette. These are flat
+    // boxes in the HUD's own colours, swapped per draw mode since ContainerButton only carries one.
+    private static readonly StyleBoxFlat ChipNormal = MakeChip(
+        new Color(0.04f, 0.055f, 0.075f, 0.82f), new Color(0.47f, 0.55f, 0.65f, 0.22f));
+    private static readonly StyleBoxFlat ChipHovered = MakeChip(
+        new Color(0.10f, 0.13f, 0.17f, 0.90f), new Color(0.47f, 0.55f, 0.65f, 0.45f));
+    private static readonly StyleBoxFlat ChipPressed = MakeChip(
+        new Color(0.17f, 0.40f, 0.47f, 0.90f), new Color(0.29f, 0.72f, 0.85f, 0.65f));
+
+    private static StyleBoxFlat MakeChip(Color fill, Color edge)
+    {
+        var box = new StyleBoxFlat
+        {
+            BackgroundColor = fill,
+            BorderColor = edge,
+            BorderThickness = new Thickness(1),
+        };
+        box.SetContentMarginOverride(StyleBox.Margin.All, 0);
+        return box;
+    }
+
     private BoundKeyFunction? _function;
     private readonly BoxContainer _root;
     private readonly TextureRect? _buttonIcon;
@@ -75,6 +96,7 @@ public sealed partial class MenuButton : ContainerButton
         };
         AddChild(_root);
         ToggleMode = true;
+        StyleBoxOverride = ChipNormal;
     }
 
     protected override void EnteredTree()
@@ -109,6 +131,14 @@ public sealed partial class MenuButton : ContainerButton
         UpdateChildColors();
     }
 
+    // Assigning StyleBoxOverride re-enters StylePropertiesChanged, which calls this again, so the
+    // box is only written when it actually changes.
+    private void SetChip(StyleBoxFlat box)
+    {
+        if (!ReferenceEquals(StyleBoxOverride, box))
+            StyleBoxOverride = box;
+    }
+
     private void UpdateChildColors()
     {
         if (_buttonIcon == null || _buttonLabel == null) return;
@@ -117,16 +147,19 @@ public sealed partial class MenuButton : ContainerButton
             case DrawModeEnum.Normal:
                 _buttonIcon.ModulateSelfOverride = ColorNormal;
                 _buttonLabel.ModulateSelfOverride = ColorNormal;
+                SetChip(ChipNormal);
                 break;
 
             case DrawModeEnum.Pressed:
-                _buttonIcon.ModulateSelfOverride = ColorPressed;
-                _buttonLabel.ModulateSelfOverride = ColorPressed;
+                _buttonIcon.ModulateSelfOverride = Color.White;
+                _buttonLabel.ModulateSelfOverride = Color.White;
+                SetChip(ChipPressed);
                 break;
 
             case DrawModeEnum.Hover:
                 _buttonIcon.ModulateSelfOverride = ColorHovered;
                 _buttonLabel.ModulateSelfOverride = ColorHovered;
+                SetChip(ChipHovered);
                 break;
 
             case DrawModeEnum.Disabled:
