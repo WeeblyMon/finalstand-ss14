@@ -24,6 +24,9 @@ public sealed class ActionButton : Control, IEntityControl
 {
     public const string StyleClassActionHighlightRect = "ActionHighlightRect";
 
+    // FINALSTAND: matches SlotControl.DefaultButtonSize so the bottom band is one consistent grid.
+    public const int SlotSize = 32;
+
     private IEntityManager _entities;
     private SharedAppearanceSystem _appearance;
     private IPlayerManager _player;
@@ -78,12 +81,13 @@ public sealed class ActionButton : Control, IEntityControl
         Button = new TextureRect
         {
             Name = "Button",
-            TextureScale = new Vector2(2, 2)
+            // FINALSTAND: 32px slots to match the HUD grid; art is authored at 32 so scale is 1.
+            TextureScale = new Vector2(1, 1)
         };
         HighlightRect = new PanelContainer
         {
             StyleClasses = { StyleClassActionHighlightRect },
-            MinSize = new Vector2(32, 32),
+            MinSize = new Vector2(SlotSize, SlotSize),
             Visible = false
         };
         _bigActionIcon = new SpriteView
@@ -91,8 +95,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Action Icon",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(2, 2),
-            SetSize = new Vector2(64, 64),
+            Scale = new Vector2(1, 1),
+            SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -124,8 +128,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Sprite",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(2, 2),
-            SetSize = new Vector2(64, 64),
+            Scale = new Vector2(1, 1),
+            SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -143,11 +147,11 @@ public sealed class ActionButton : Control, IEntityControl
             Orientation = LayoutOrientation.Horizontal,
             HorizontalExpand = true,
             VerticalExpand = true,
-            MinSize = new Vector2(64, 64)
+            MinSize = new Vector2(SlotSize, SlotSize)
         };
         paddingBoxItemIcon.AddChild(new Control()
         {
-            MinSize = new Vector2(32, 32),
+            MinSize = new Vector2(SlotSize / 2, SlotSize / 2),
         });
         paddingBoxItemIcon.AddChild(new Control
         {

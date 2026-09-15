@@ -10,6 +10,8 @@
     HorizontalAlignment="Center">
     <Control HorizontalAlignment="Center">
         <!-- Needs to default to invisible because if we attach to a non-slots entity this will never get unset -->
+        <!-- FINALSTAND: a labelled WORN button rather than a bag glyph - at 32px the glyph was
+             indistinguishable from the storage slots beside it. -->
         <controls:SlotButton
             Name="InventoryButton"
             Access="Public"
@@ -17,6 +19,7 @@
             VerticalAlignment="Bottom"
             HorizontalExpand="False"
             VerticalExpand="False"
+            FSLabel="WORN"
             ButtonTexturePath="Slots/toggle"/>
         <inventory:ItemSlotButtonContainer
             Name="InventoryHotbar"

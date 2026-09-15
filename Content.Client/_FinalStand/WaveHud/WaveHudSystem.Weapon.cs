@@ -1,4 +1,5 @@
 // Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Weapons.Ranged.Components;
@@ -20,12 +21,16 @@ public sealed partial class WaveHudSystem
         overlay.WeaponLoaded = null;
         overlay.WeaponCapacity = null;
         overlay.WeaponReserve = 0;
+        overlay.HasAmmoChoice = false;
+        overlay.HasThrowChoice = false;
 
-        if (_player.LocalEntity is not { } player
-            || !_hands.TryGetActiveItem(player, out var active))
-        {
+        if (_player.LocalEntity is not { } player)
             return;
-        }
+
+        overlay.HasThrowChoice = CountGrenadeTypes(player) > 1;
+
+        if (!_hands.TryGetActiveItem(player, out var active))
+            return;
 
         var held = active.Value;
 
@@ -56,6 +61,33 @@ public sealed partial class WaveHudSystem
         }
 
         overlay.WeaponReserve = CountSpareMagazines(player, held);
+        overlay.HasAmmoChoice = overlay.WeaponReserve > 0;
+    }
+
+    /// <summary>Distinct grenade pack types carried - one wedge each on the throw wheel.</summary>
+    private int CountGrenadeTypes(EntityUid player)
+    {
+        var seen = new HashSet<GrenadeType>();
+        Walk(player, 0);
+        return seen.Count;
+
+        void Walk(EntityUid root, int depth)
+        {
+            if (!TryComp<ContainerManagerComponent>(root, out var mgr))
+                return;
+
+            foreach (var container in mgr.Containers.Values)
+            {
+                foreach (var item in container.ContainedEntities)
+                {
+                    if (TryComp<FSGrenadePackComponent>(item, out var pack) && pack.Stock > 0)
+                        seen.Add(pack.PackType);
+
+                    if (depth < 1)
+                        Walk(item, depth + 1);
+                }
+            }
+        }
     }
 
     private bool TryGetAmmo(EntityUid uid, out int loaded, out int capacity)

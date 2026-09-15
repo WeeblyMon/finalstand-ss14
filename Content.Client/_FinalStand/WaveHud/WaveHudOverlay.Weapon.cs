@@ -10,6 +10,8 @@ public sealed partial class WaveHudOverlay
     public int? WeaponLoaded;
     public int? WeaponCapacity;
     public int WeaponReserve;
+    public bool HasAmmoChoice;
+    public bool HasThrowChoice;
 
     private const float WeaponPanelW = 232f;
     private const float WeaponPanelPad = 8f;
@@ -20,6 +22,8 @@ public sealed partial class WaveHudOverlay
     private static readonly Color WeaponMuted = Color.FromHex("#8FA1B3");
     private static readonly Color AmmoFull = Color.FromHex("#D8E0E8");
     private static readonly Color AmmoLow = Color.FromHex("#E85055");
+    private static readonly Color HintLive = Color.FromHex("#4bb8d8");
+    private static readonly Color HintDim = Color.FromHex("#5c6670");
 
     private void DrawWeaponModule(DrawingHandleScreen screen, float margin, float bandLift)
     {
@@ -60,5 +64,35 @@ public sealed partial class WaveHudOverlay
         screen.DrawString(_labelFont!,
             new Vector2(x + WeaponPanelW - WeaponPanelPad - reserveW, ammoY + valueH - labelH),
             reserve, WeaponMuted);
+
+        DrawHoldHints(screen, x, y);
+    }
+
+    // The two hold-to-choose wheels are invisible until someone tells you they exist, so the panel
+    // says so. Dimmed when there is only one thing to pick, rather than hidden - a hint that comes
+    // and goes teaches nothing.
+    private void DrawHoldHints(DrawingHandleScreen screen, float panelLeft, float panelTop)
+    {
+        var hints = new (string Key, string What, bool Live)[]
+        {
+            ("R", "AMMO", HasAmmoChoice),
+            ("G", "THROW", HasThrowChoice),
+        };
+
+        var hintH = _cachedLabelH + 6f;
+        var hy = panelTop - hintH - 5f;
+        var hx = panelLeft;
+
+        foreach (var (key, what, live) in hints)
+        {
+            var text = $"HOLD {key}  {what}";
+            var w = screen.GetDimensions(_labelFont!, text, 1f).X + 12f;
+            var color = live ? HintLive : HintDim;
+
+            screen.DrawRect(new UIBox2(hx, hy, hx + w, hy + hintH), WeaponBack);
+            screen.DrawRect(new UIBox2(hx, hy, hx + w, hy + hintH), color.WithAlpha(0.45f), filled: false);
+            screen.DrawString(_labelFont!, new Vector2(hx + 6f, hy + 3f), text, color);
+            hx += w + 4f;
+        }
     }
 }

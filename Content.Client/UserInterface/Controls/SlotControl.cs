@@ -128,6 +128,23 @@ namespace Content.Client.UserInterface.Controls
         public bool EntityHover => HoverSpriteView.Sprite != null;
         public bool MouseIsHovering;
 
+        private Label? FSLabelControl;
+
+        /// <summary>Draws a word in the slot instead of relying on its glyph. Widens to fit.</summary>
+        public string FSLabel
+        {
+            set
+            {
+                if (FSLabelControl == null)
+                    return;
+
+                FSLabelControl.Text = value;
+                FSLabelControl.Visible = !string.IsNullOrEmpty(value);
+                if (FSLabelControl.Visible)
+                    MinSize = new Vector2(Math.Max(MinSize.X, 56), MinSize.Y);
+            }
+        }
+
         /// <summary>Resizes this slot. Only integer multiples of 32 stay sharp.</summary>
         public void SetButtonSize(int size)
         {
@@ -199,6 +216,14 @@ namespace Content.Client.UserInterface.Controls
             });
 
             AddChild(AdminOverlays = new Control());
+
+            AddChild(FSLabelControl = new Label
+            {
+                Visible = false,
+                HorizontalAlignment = HAlignment.Center,
+                VerticalAlignment = VAlignment.Center,
+                ModulateSelfOverride = Color.FromHex("#8FA1B3"),
+            });
 
             StorageButton.OnKeyBindDown += args =>
             {

@@ -505,7 +505,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tipH = tipPad * 2f + nameDims.Y + 4f + levelDims.Y + 4f + effectDims.Y;
 
-            var tipX = panelX + panelW - tipW;
+            // Anchored to the perk being hovered. This used to hang off the wave panel, which was
+            // beside the perks when both lived in one block and is now the far corner.
+            var tipX = Math.Clamp(cell.Left, 0f, MathF.Max(0f, _clyde.ScreenSize.X - tipW));
             var tipY = cell.Top - tipH - 6f;
             if (tipY < 0f) tipY = cell.Bottom + 6f;
 
@@ -634,8 +636,10 @@ public sealed partial class WaveHudOverlay : Overlay
         var iconSz = textH * 2f;
         var blockH = rows.Count * iconSz + (rows.Count - 1) * rowGap;
 
-        var hotbarTop = FindHotbarTop();
-        var blockBottom = (hotbarTop ?? _clyde.ScreenSize.Y - margin) - bottomGap;
+        // Stacks above the vitals block, not above the hotbar - the hotbar's top is below the vitals
+        // now, which is what made the bonus rows and the health bar run into each other.
+        var vitalsTop = _clyde.ScreenSize.Y - BottomBandLift - VitalsBlockHeight();
+        var blockBottom = vitalsTop - bottomGap;
         var x = margin;
         var y = blockBottom - blockH;
 
