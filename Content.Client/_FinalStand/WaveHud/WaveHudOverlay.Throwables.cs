@@ -46,11 +46,10 @@ public sealed partial class WaveHudOverlay
         var nameW = screen.GetDimensions(_labelFont!, nameText, 1f).X;
 
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);
-        var panelW = ThrowPad * 2f + ThrowArrowW + ThrowGap + cellW + ThrowGap + ThrowArrowW
-                     + 8f + hintW;
 
+        // Same width as the weapon module below it, so the right stack has one left edge.
         var right = _clyde.ScreenSize.X - margin;
-        var x = right - panelW;
+        var x = right - WeaponPanelW;
         var top = bottom - rowH;
 
         var box = new UIBox2(x, top, right, bottom);

@@ -440,8 +440,18 @@ public sealed partial class WaveHudOverlay : Overlay
 
         // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
         // which is a different question from "what is the wave doing", so they get their own corner.
-        var leftX = TopLeftX;
-        var leftY = TopLeftY;
+        // Panelled like every other cluster - it was the only one sitting bare on the world.
+        var slots = Math.Max(1, ActiveSlots.Length);
+        var blockW = slots * augIconSz + (slots - 1) * augGap;
+        var blockH = TopLeftPad * 2f + labelH + 4f + augIconSz + 6f + _cachedValueH;
+
+        var panelBox = new UIBox2(TopLeftX, TopLeftY,
+            TopLeftX + blockW + TopLeftPad * 2f, TopLeftY + blockH);
+        DrawRounded(screen, panelBox, VitalsBack);
+        screen.DrawRect(panelBox, VitalsEdge, filled: false);
+
+        var leftX = TopLeftX + TopLeftPad;
+        var leftY = TopLeftY + TopLeftPad;
 
         screen.DrawString(_labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
         var augIconsY = leftY + labelH + 4f;

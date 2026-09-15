@@ -18,6 +18,7 @@ public sealed partial class WaveHudOverlay
     // the hands on the centre line. See DefaultGameScreen's band note.
     private const float WeaponPanelW = 356f;
     private const float WeaponPanelPad = 8f;
+    private const float WeaponPanelMinH = 46f;
     private const float HintPadX = 6f;
     private const float HintPadY = 3f;
 
@@ -45,7 +46,7 @@ public sealed partial class WaveHudOverlay
         var contentH = labelH
                        + (hasAmmo ? 4f + valueH : 0f)
                        + (WeaponTakesMagazines ? 5f + hintH : 0f);
-        var panelH = contentH + WeaponPanelPad * 2f;
+        var panelH = MathF.Max(contentH + WeaponPanelPad * 2f, WeaponPanelMinH);
 
         var x = _clyde.ScreenSize.X - margin - WeaponPanelW;
         var bottom = _clyde.ScreenSize.Y - bandLift;

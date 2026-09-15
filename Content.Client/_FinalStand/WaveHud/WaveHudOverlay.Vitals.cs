@@ -18,7 +18,8 @@ public sealed partial class WaveHudOverlay
 
     // Aligned with the menu chips at TopLeft margin 10, clearing their 18px height and the vote slot.
     private const float TopLeftX = 10f;
-    private const float TopLeftY = 54f;
+    private const float TopLeftY = 34f;
+    private const float TopLeftPad = 8f;
 
     private const float VitalsWidth = 240f;
     private const float VitalsPadX = 8f;
@@ -55,20 +56,21 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Right - r, box.Top + r, box.Right, box.Bottom - r), color);
     }
 
-    private float _pillRowH;
+    private float _pillRowH = 17f;
 
-    /// <summary>Total height, so anything stacking above this corner can clear it.</summary>
+    /// <summary>
+    /// Constant height, whether or not stamina and pills are present. The alert strip above is a
+    /// control anchored at build time and cannot track a changing height, so a panel that grew and
+    /// shrank would leave a gap that opened and closed as you bled.
+    /// </summary>
     public float VitalsBlockHeight()
     {
         if (HealthRatio is null)
             return 0f;
 
-        var h = VitalsPadY * 2f + MathF.Max(_cachedValueH, HpBarH) + 4f + HpBarH;
-        if (StaminaRatio is not null)
-            h += VitalsRowGap + StaminaBarH;
-        if (StatusPills.Count > 0)
-            h += VitalsRowGap + _pillRowH;
-        return h;
+        return VitalsPadY * 2f
+               + MathF.Max(_cachedValueH, _pillRowH) + 4f + HpBarH
+               + VitalsRowGap + StaminaBarH;
     }
 
     private void DrawVitals(DrawingHandleScreen screen, float margin, float bandLift)
@@ -85,9 +87,9 @@ public sealed partial class WaveHudOverlay
 
         var lowHp = health <= 0.3f || HealthInCrit;
 
-        screen.DrawRect(new UIBox2(x, top, x + VitalsWidth, bottom), VitalsBack);
-        screen.DrawRect(new UIBox2(x, top, x + VitalsWidth, bottom),
-            lowHp ? VitalsEdgeHot : VitalsEdge, filled: false);
+        var panelBox = new UIBox2(x, top, x + VitalsWidth, bottom);
+        DrawRounded(screen, panelBox, VitalsBack);
+        screen.DrawRect(panelBox, lowHp ? VitalsEdgeHot : VitalsEdge, filled: false);
 
         var innerX = x + VitalsPadX;
         var innerW = VitalsWidth - VitalsPadX * 2f;
@@ -104,6 +106,11 @@ public sealed partial class WaveHudOverlay
         var wordX = innerX + hpDims.X + 7f;
         screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
             healthWord, VitalsMuted);
+
+        // Pills ride the title row, right-aligned. Giving them their own row meant reserving it
+        // even when healthy, which left a band of dead space under the bars.
+        DrawPills(screen, innerX + innerW, y + (rowH - _pillRowH) * 0.5f, innerX + hpDims.X + 60f);
+
         y += rowH + 4f;
 
         DrawBar(screen, innerX, y, innerW, HpBarH, health, lowHp ? HpFillLow : HpFill);
@@ -117,22 +124,25 @@ public sealed partial class WaveHudOverlay
             y += StaminaBarH;
         }
 
-        if (StatusPills.Count == 0)
-            return;
+    }
 
-        y += VitalsRowGap;
-        var px = innerX;
+    /// <summary>Right-aligned run of pills, laid out backwards from <paramref name="right"/>.</summary>
+    private void DrawPills(DrawingHandleScreen screen, float right, float y, float leftLimit)
+    {
+        var px = right;
         foreach (var (text, bad) in StatusPills)
         {
             var w = screen.GetDimensions(_labelFont!, text, 1f).X + PillPadX * 2f;
-            if (px + w > innerX + innerW && px > innerX)
+            if (px - w < leftLimit)
                 break;
 
+            px -= w;
             var color = bad ? PillBad : PillGood;
-            screen.DrawRect(new UIBox2(px, y, px + w, y + _pillRowH), PillBack);
-            screen.DrawRect(new UIBox2(px, y, px + w, y + _pillRowH), color.WithAlpha(0.45f), filled: false);
+            var box = new UIBox2(px, y, px + w, y + _pillRowH);
+            DrawRounded(screen, box, PillBack, 2f);
+            screen.DrawRect(box, color.WithAlpha(0.45f), filled: false);
             screen.DrawString(_labelFont!, new Vector2(px + PillPadX, y + PillPadY), text, color);
-            px += w + PillGap;
+            px -= PillGap;
         }
     }
 

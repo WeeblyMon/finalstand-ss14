@@ -31,7 +31,10 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     // Clears the vitals panel in the same corner. Its height varies with the status pills, so this
     // is its tallest form rather than a live read - alerts shifting as you bleed would be worse.
-    private const float AlertsLift = BottomBandLift + 90f;
+    private const float AlertsLift = BottomBandLift + VitalsTallest + 6f;
+
+    // Vitals panel at its tallest (stamina bar + a row of status pills).
+    private const float VitalsTallest = 68f;
 
     // Clears the bottom band so chat stacks above it rather than over the weapon module.
     private const float ChatLift = 190f;
