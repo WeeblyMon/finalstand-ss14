@@ -1,3 +1,5 @@
+using Robust.Shared.Utility;
+using Robust.Client.ResourceManagement;
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
@@ -17,6 +19,7 @@ public sealed class FSCmoPanelController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IResourceCache _resource = default!;
 
     private static readonly Color DirectiveIdle = Color.FromHex("#2E4A38");
     private static readonly Color DirectiveActive = Color.FromHex("#4FBF7A");
@@ -124,6 +127,24 @@ public sealed class FSCmoPanelController : UIController
         container.AddChild(_frame);
     }
 
+    // 6px inset + a 16px icon + 6px of air. At 18 the label slid under the icon.
+    private const int IconGutter = 28;
+
+    private static ResPath? AbilityIcon(FSCmoAbility ability)
+    {
+        var name = ability switch
+        {
+            FSCmoAbility.MassCasualtyProtocol => "mass_casualty",
+            FSCmoAbility.Mobilisation => "mobilisation",
+            FSCmoAbility.DirectiveTrauma => "trauma",
+            FSCmoAbility.DirectivePharma => "pharma",
+            FSCmoAbility.DirectiveFieldOps => "field_ops",
+            _ => null,
+        };
+
+        return name is null ? null : new ResPath($"/Textures/_FinalStand/Interface/CmoPanel/{name}.png");
+    }
+
     private static T? FindWidget<T>(Control root) where T : Control
     {
         if (root is T match)
@@ -160,6 +181,27 @@ public sealed class FSCmoPanelController : UIController
             };
 
             FSHudStyle.StyleButton(button);
+
+            // Icon on the left, label centred. ContainerButton arranges every child to the full
+            // rect, so alignment alone places them - no extra container needed, and the whole
+            // button stays the click target.
+            if (AbilityIcon(ability) is { } iconPath
+                && _resource.TryGetResource<TextureResource>(iconPath, out var icon))
+            {
+                button.AddChild(new TextureRect
+                {
+                    Texture = icon,
+                    HorizontalAlignment = Control.HAlignment.Left,
+                    VerticalAlignment = Control.VAlignment.Center,
+                    Margin = new Thickness(6, 0, 0, 0),
+                    MouseFilter = Control.MouseFilterMode.Ignore,
+                });
+
+                // Left-aligned, not centred: a centred label on the wider entries slid back under
+                // the icon.
+                button.Label.Align = Label.AlignMode.Left;
+                button.Label.Margin = new Thickness(IconGutter, 0, 0, 0);
+            }
 
             var captured = ability;
             button.OnPressed += _ => EntityManager.System<FSCmoPanelSystem>().Request(captured);
@@ -237,9 +279,9 @@ public sealed class FSCmoPanelController : UIController
             }
 
             if (directive is { } value)
-                button.Modulate = value == panel.ActiveDirective ? DirectiveActive : DirectiveIdle;
+                button.Label.FontColorOverride = value == panel.ActiveDirective ? DirectiveActive : DirectiveIdle;
             else
-                button.Modulate = cooling ? AbilityCooling : AbilityReady;
+                button.Label.FontColorOverride = cooling ? AbilityCooling : AbilityReady;
         }
     }
 
