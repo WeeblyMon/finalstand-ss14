@@ -12,6 +12,7 @@ public sealed partial class WaveHudOverlay
     public int WeaponReserve;
     public bool HasAmmoChoice;
     public bool HasThrowChoice;
+    public bool WeaponTakesMagazines;
 
     // Balances the bottom band: this plus storage equals vitals plus actions, which is what puts
     // the hands on the centre line. See DefaultGameScreen's band note.
@@ -43,7 +44,7 @@ public sealed partial class WaveHudOverlay
         var hintH = labelH + HintPadY * 2f;
         var contentH = labelH
                        + (hasAmmo ? 4f + valueH : 0f)
-                       + 5f + hintH;
+                       + (WeaponTakesMagazines ? 5f + hintH : 0f);
         var panelH = contentH + WeaponPanelPad * 2f;
 
         var x = _clyde.ScreenSize.X - margin - WeaponPanelW;
@@ -71,15 +72,24 @@ public sealed partial class WaveHudOverlay
 
             screen.DrawString(_valueFont!, new Vector2(textX, ty), $"{loaded}/{capacity}", ammoColor);
 
-            var reserve = WeaponReserve == 1 ? "1 mag in reserve" : $"{WeaponReserve} mags in reserve";
-            var reserveW = screen.GetDimensions(_labelFont!, reserve, 1f).X;
-            screen.DrawString(_labelFont!,
-                new Vector2(innerRight - reserveW, ty + valueH - labelH), reserve, WeaponMuted);
+            // Only guns that take magazines have a reserve. A revolver or a laser cell saying
+            // "0 mags in reserve" reads as a fault rather than a fact.
+            if (WeaponTakesMagazines)
+            {
+                var reserve = WeaponReserve == 1 ? "1 mag in reserve" : $"{WeaponReserve} mags in reserve";
+                var reserveW = screen.GetDimensions(_labelFont!, reserve, 1f).X;
+                screen.DrawString(_labelFont!,
+                    new Vector2(innerRight - reserveW, ty + valueH - labelH), reserve, WeaponMuted);
+            }
+
             ty += valueH;
         }
 
         // One chip, right-aligned, as in the prototype. The throwable hint belongs to the throwables
         // row above rather than here - two hold-hints in one panel read as one control with two keys.
+        if (!WeaponTakesMagazines)
+            return y;
+
         ty += 5f;
         const string hint = "[R] hold - ammo type";
         var hintColor = HasAmmoChoice ? HintCyan : HintDim;
