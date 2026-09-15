@@ -34,9 +34,11 @@ public static class FSPalette
     // Gauges
     public static readonly Color BarTrack = Color.White.WithAlpha(0.06f);
     public static readonly Color BarSheen = Color.White.WithAlpha(0.12f);
-    public static readonly Color HealthFill = Color.FromHex("#d8cfc0");
-    public static readonly Color HealthLow = Color.FromHex("#b3402f");
-    public static readonly Color StaminaFill = Color.FromHex("#7d8b91");
+    // The bars are the one place strong colour is earned - they are the primary readout, and a
+    // bone-coloured health bar was under-reading next to everything else.
+    public static readonly Color HealthFill = Color.FromHex("#b5453a");
+    public static readonly Color HealthLow = Color.FromHex("#e4512f");
+    public static readonly Color StaminaFill = Color.FromHex("#4a7fa5");
     public static readonly Color StaminaLow = Color.FromHex("#c08a3e");
 
     // Interactive
@@ -44,6 +46,11 @@ public static class FSPalette
     public static readonly Color ButtonHoverEdge = Color.FromHex("#8b7c69").WithAlpha(0.48f);
     public static readonly Color ButtonPressBack = Color.FromHex("#4a3520").WithAlpha(0.92f);
     public static readonly Color ButtonPressEdge = Color.FromHex("#d2a44e").WithAlpha(0.65f);
+
+    // Menu chips sit on the bare world, usually over unlit black, so they need more presence than
+    // a panel that has its own backdrop. Panel colours made them vanish up there.
+    public static readonly Color ChipBack = Color.FromHex("#2a221a").WithAlpha(0.92f);
+    public static readonly Color ChipEdge = Color.FromHex("#8b7c69").WithAlpha(0.45f);
 
     // Cell backgrounds inside panels (perk sockets, throwable cell, pills).
     public static readonly Color CellBack = Color.FromHex("#1b1611").WithAlpha(0.80f);

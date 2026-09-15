@@ -17,7 +17,7 @@ public sealed partial class MenuButton : ContainerButton
     // public const string StyleClassRedTopButton = "topButtonLabel";
 
     // TODO: KIIIIIILLLLLLLLLLLLLLLLLLLLLLLLLLL --kaylie.
-    private static readonly Color ColorNormal = FSPalette.TextMuted;
+    private static readonly Color ColorNormal = FSPalette.TextBright;
     private static readonly Color ColorHovered = FSPalette.TextBright;
     private static readonly Color ColorPressed = FSPalette.TextDim;
 
@@ -25,7 +25,7 @@ public sealed partial class MenuButton : ContainerButton
 
     // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette. These are flat
     // boxes in the HUD's own colours, swapped per draw mode since ContainerButton only carries one.
-    private static readonly StyleBoxFlat ChipNormal = MakeChip(FSPalette.PanelBack, FSPalette.PanelEdge);
+    private static readonly StyleBoxFlat ChipNormal = MakeChip(FSPalette.ChipBack, FSPalette.ChipEdge);
     private static readonly StyleBoxFlat ChipHovered = MakeChip(FSPalette.ButtonHoverBack, FSPalette.ButtonHoverEdge);
     private static readonly StyleBoxFlat ChipPressed = MakeChip(FSPalette.ButtonPressBack, FSPalette.ButtonPressEdge);
 
