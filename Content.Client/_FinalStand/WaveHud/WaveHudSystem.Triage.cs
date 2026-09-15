@@ -1,5 +1,6 @@
 // Feeds the triage panel from the casualty board's pushed list. Medical-only by construction: the
 // server only sends that list to medical sessions, so a non-medic never has rows to draw.
+using System.Numerics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 
@@ -20,9 +21,12 @@ public sealed partial class WaveHudSystem
             return;
 
         // Dead first, then critical, then nearest - the order a medic would pick targets in.
-        var ordered = new List<(FSCasualtyEntry Entry, float? Range)>(board.Entries.Count);
+        var ordered = new List<(FSCasualtyEntry Entry, float? Range, Vector2? Dir)>(board.Entries.Count);
         foreach (var entry in board.Entries)
-            ordered.Add((entry, board.DistanceTo(entry.Position)));
+        {
+            board.BearingTo(entry.Position, out var range, out var dir);
+            ordered.Add((entry, range, dir));
+        }
 
         ordered.Sort((a, b) =>
         {
@@ -33,7 +37,7 @@ public sealed partial class WaveHudSystem
             return (a.Range ?? float.MaxValue).CompareTo(b.Range ?? float.MaxValue);
         });
 
-        foreach (var (entry, range) in ordered)
+        foreach (var (entry, range, dir) in ordered)
         {
             if (overlay.TriageRows.Count >= MaxTriageRows)
                 break;
@@ -50,7 +54,8 @@ public sealed partial class WaveHudSystem
                 state,
                 range is { } r ? $"{(int) r}m" : string.Empty,
                 entry.State == FSCasualtyState.Critical,
-                entry.Responder != null));
+                entry.Responder != null,
+                dir));
         }
     }
 

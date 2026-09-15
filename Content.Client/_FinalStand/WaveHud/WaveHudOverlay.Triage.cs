@@ -6,11 +6,13 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
-    public readonly record struct TriageRow(string Name, string State, string Range, bool Critical, bool Responding);
+    public readonly record struct TriageRow(string Name, string State, string Range, bool Critical,
+        bool Responding, Vector2? Direction);
 
     public readonly List<TriageRow> TriageRows = new();
 
-    private const float TriageWidth = 236f;
+    private const float TriageWidth = 262f;
+    private const float ArrowRadius = 6f;
     private const float TriagePad = 8f;
     private const float TriageRowGap = 5f;
     private const float PipSize = 17f;
@@ -65,9 +67,35 @@ public sealed partial class WaveHudOverlay
             var tailW = screen.GetDimensions(_labelFont!, tail, 1f).X;
             screen.DrawString(_labelFont!, new Vector2(innerRight - tailW, textY), tail, TriageMuted);
 
+            // Bearing arrow. Range alone says how far to run, not which way - this is the compass
+            // the old casualty board had, which the panel dropped when it replaced that window.
+            if (row.Direction is { } dir && dir.LengthSquared() > 0f)
+            {
+                DrawBearing(screen,
+                    new Vector2(innerRight - tailW - 8f - ArrowRadius, y + rowH * 0.5f),
+                    dir, pipColor);
+            }
+
             y += rowH + TriageRowGap;
         }
 
         return panelH;
+    }
+
+    /// <summary>A triangle pointed along <paramref name="dir"/>, which is already screen-space.</summary>
+    private static void DrawBearing(DrawingHandleScreen screen, Vector2 centre, Vector2 dir, Color color)
+    {
+        var d = dir.Normalized();
+        var perp = new Vector2(-d.Y, d.X);
+
+        var tip = centre + d * ArrowRadius;
+        var back = centre - d * (ArrowRadius * 0.55f);
+        var left = back + perp * (ArrowRadius * 0.8f);
+        var right = back - perp * (ArrowRadius * 0.8f);
+
+        // A plain array, not a collection expression: `Span<Vector2> t = [a, b, c]` compiles to
+        // InlineArray3<T>, which the client sandbox rejects at load.
+        var tri = new[] { tip, left, right };
+        screen.DrawPrimitives(DrawPrimitiveTopology.TriangleList, tri, color);
     }
 }

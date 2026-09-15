@@ -21,11 +21,13 @@ public sealed class FSCasualtyBoardSystem : EntitySystem
     /// </summary>
     public IReadOnlyList<FSCasualtyEntry> Entries => _entries;
 
-    /// <summary>Range from the viewer to a casualty, or null when it cannot be resolved.</summary>
-    public float? DistanceTo(NetCoordinates position)
+    /// <summary>
+    /// Range and screen-space bearing from the viewer to a casualty. The triage panel needs both -
+    /// a distance with no direction tells a medic how far to run but not where.
+    /// </summary>
+    public void BearingTo(NetCoordinates position, out float? distance, out Vector2? direction)
     {
-        Resolve(ViewerCoordinates(), position, out var distance, out _);
-        return distance;
+        Resolve(ViewerCoordinates(), position, out distance, out direction);
     }
 
     public override void Initialize()
