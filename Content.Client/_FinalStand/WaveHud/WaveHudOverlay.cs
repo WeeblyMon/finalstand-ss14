@@ -49,6 +49,9 @@ public sealed partial class WaveHudOverlay : Overlay
     private Control? _alertsControl;
     private Control? _alertsScreen;
 
+    // Wave panel width for the frame, so the side panels can align to its edge.
+    private float panelW0 = 150f;
+
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
 
@@ -292,9 +295,13 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelTop = y;
         PanelWidth = panelW;
 
+        panelW0 = panelW;
+
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
-        DrawWeaponModule(screen, margin, BottomBandLift);
+
+        var weaponTop = DrawWeaponModuleAndGetTop(screen, margin, BottomBandLift);
+        DrawThrowables(screen, margin, weaponTop - 6f);
 
         if (IsRespawnOfferVisible)
         {
@@ -427,6 +434,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
         DrawReadyUpBlock();
         screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+
+        // Triage hangs under the wave panel, matching the prototype's right column.
+        DrawTriage(screen, panelX, y + sepH + 10f);
 
         // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
         // which is a different question from "what is the wave doing", so they get their own corner.
@@ -606,6 +616,10 @@ public sealed partial class WaveHudOverlay : Overlay
             _respawnClickCooldown = 0.5f;
             OnRespawnClicked?.Invoke();
         }
+
+        if (down && !_prevClickDown)
+            HandleThrowableClick(mousePos);
+
         _prevClickDown = down;
     }
 

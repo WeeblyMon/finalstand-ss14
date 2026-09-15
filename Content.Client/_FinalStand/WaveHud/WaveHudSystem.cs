@@ -71,6 +71,8 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateHarvestStatus(overlay);
         UpdateVitals(overlay);
         UpdateWeapon(overlay);
+        UpdateThrowables(overlay);
+        UpdateTriage(overlay);
 
         if (!overlay.IsDarkWave)
             return;
@@ -225,6 +227,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         _overlay = new WaveHudOverlay();
         _overlay.OnReadyUpClicked += SendReadyRequest;
         _overlay.OnRespawnClicked += SendRespawnRequest;
+        _overlay.OnThrowableCycle += OnThrowableCycle;
         _overlayManager.AddOverlay(_overlay);
         return _overlay;
     }

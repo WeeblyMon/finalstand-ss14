@@ -29,7 +29,8 @@ public sealed partial class WaveHudOverlay
     private static readonly Color HintCyan = Color.FromHex("#4bb8d8");
     private static readonly Color HintDim = Color.FromHex("#5c6670");
 
-    private void DrawWeaponModule(DrawingHandleScreen screen, float margin, float bandLift)
+    /// <summary>Draws the module and returns its top edge, so the throwables row can sit on it.</summary>
+    private float DrawWeaponModuleAndGetTop(DrawingHandleScreen screen, float margin, float bandLift)
     {
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
@@ -98,5 +99,7 @@ public sealed partial class WaveHudOverlay
             screen.DrawString(_labelFont!, new Vector2(cx + HintPadX, ty + HintPadY), text, color);
             cx -= 5f;
         }
+
+        return y;
     }
 }

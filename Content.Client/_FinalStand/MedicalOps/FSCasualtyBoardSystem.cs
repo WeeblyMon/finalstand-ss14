@@ -15,6 +15,19 @@ public sealed class FSCasualtyBoardSystem : EntitySystem
     private FSCasualtyBoardWindow? _window;
     private List<FSCasualtyEntry> _entries = new();
 
+    /// <summary>
+    /// Live casualties, for the triage panel on the wave HUD. The server only pushes this to
+    /// medical sessions, so a non-empty list already means the viewer is medical.
+    /// </summary>
+    public IReadOnlyList<FSCasualtyEntry> Entries => _entries;
+
+    /// <summary>Range from the viewer to a casualty, or null when it cannot be resolved.</summary>
+    public float? DistanceTo(NetCoordinates position)
+    {
+        Resolve(ViewerCoordinates(), position, out var distance, out _);
+        return distance;
+    }
+
     public override void Initialize()
     {
         base.Initialize();
