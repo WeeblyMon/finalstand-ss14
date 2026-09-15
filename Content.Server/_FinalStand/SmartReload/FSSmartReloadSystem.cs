@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using System.Linq;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.SmartReload;
@@ -151,7 +152,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
 
         // The wheel is built client-side, so re-check the slot accepts this before trusting it.
-        if (!_slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var magSlot)
+        if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot)
             || _whitelist.IsWhitelistFail(magSlot.Whitelist, chosen))
         {
             return;

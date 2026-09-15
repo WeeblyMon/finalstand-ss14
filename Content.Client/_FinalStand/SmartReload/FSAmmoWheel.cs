@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
@@ -40,7 +41,7 @@ public sealed class FSAmmoWheel : EntitySystem
         if (_player.LocalSession?.AttachedEntity is not { } user)
             return false;
 
-        if (!_slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var magSlot))
+        if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot))
             return false;
 
         var loaded = magSlot.Item;

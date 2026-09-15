@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Server._FinalStand.Grenades;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
@@ -91,7 +92,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 
     public void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
     {
-        if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot))
+        if (!FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out var slot))
             return;
         var mag = slot.Item;
         if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))

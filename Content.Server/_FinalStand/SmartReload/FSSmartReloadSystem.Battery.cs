@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
 
@@ -16,7 +17,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        var currentCell = _slots.TryGetSlot(gun, "gun_cell", out var cellSlot) ? cellSlot!.Item : null;
+        var currentCell = FSItemSlots.TryGetSlot(EntityManager, _slots, gun, "gun_cell", out var cellSlot) ? cellSlot.Item : null;
 
         // Find the replacement before ejecting, otherwise a player with no spare loses the cell
         // they were using and the gun ends up empty.

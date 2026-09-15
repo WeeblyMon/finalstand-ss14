@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Client._FinalStand.Perks;
 using Content.Client._FinalStand.Shop;
 using Content.Client._FinalStand.Stylesheets;
@@ -370,7 +371,7 @@ public sealed partial class WeaponShopWindow
                 ammoProto = ballistic.Proto;
             else if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var revolver))
                 ammoProto = revolver.FillPrototype;
-            else if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+            else if (FSItemSlots.TryGetSlot(entMan, entMan.System<ItemSlotsSystem>(), gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
                      && magSlot.Item.HasValue
                      && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
                 ammoProto = magBal.Proto;
@@ -423,7 +424,7 @@ public sealed partial class WeaponShopWindow
                 }
                 return (1f, "∞", -1);
             }
-            if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+            if (FSItemSlots.TryGetSlot(entMan, entMan.System<ItemSlotsSystem>(), gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
                 && magSlot.Item.HasValue
                 && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
                 return (Math.Min(1f, magBal.Capacity / 30f), $"{magBal.Capacity}", magBal.Capacity);

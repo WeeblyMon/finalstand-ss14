@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.DoAfter;
 using Content.Shared.Storage;
@@ -27,7 +28,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        var hasMag = _slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot)
+        var hasMag = FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var slot)
                      && slot!.Item != null;
         var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * GetReloadMultiplier(user, gun);
 

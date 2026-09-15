@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
 using Content.Shared.Weapons.Ranged.Components;
@@ -34,7 +35,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private EntityUid? FindBestMagazine(EntityUid user, EntityUid gun)
     {
-        if (!_slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var magSlot))
+        if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot))
             return null;
 
         var currentMag = magSlot.Item;

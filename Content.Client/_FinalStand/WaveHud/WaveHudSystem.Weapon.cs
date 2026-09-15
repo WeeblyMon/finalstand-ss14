@@ -1,6 +1,7 @@
 // Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared._FinalStand.Grenades;
+using Content.Shared._FinalStand.Utility;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Weapons.Ranged.Components;
@@ -114,12 +115,8 @@ public sealed partial class WaveHudSystem
         return false;
     }
 
-    private bool TryGetMagazineSlot(EntityUid gun, [NotNullWhen(true)] out ItemSlot? slot)
-    {
-        slot = null;
-        return TryComp<ItemSlotsComponent>(gun, out var slots)
-               && _itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out slot, slots);
-    }
+    private bool TryGetMagazineSlot(EntityUid gun, [NotNullWhen(true)] out ItemSlot? slot) =>
+        FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out slot);
 
     /// <summary>Spare magazines the player is carrying that this gun would accept.</summary>
     private int CountSpareMagazines(EntityUid player, EntityUid gun)
