@@ -42,7 +42,7 @@
                        Visible="False"/>
         <!-- FINALSTAND: the centre of the band is hands and nothing else. Quick slots and the two
              weapon-info panels group to the right, clear of the wave panel overlay. -->
-        <Control Name="Hotbar" HorizontalExpand="True">
+        <LayoutContainer Name="Hotbar" HorizontalExpand="True">
             <!-- FINALSTAND: each cluster sits in its own bordered panel, so the band reads as a row
                  of modules rather than loose slots floating on the world. -->
             <PanelContainer Name="HandsPanel" Access="Public"
@@ -55,11 +55,9 @@
                     HorizontalExpand="False"
                     ColumnLimit="6"/>
             </PanelContainer>
-            <BoxContainer
+            <BoxContainer Name="RightGroup" Access="Public"
                 Orientation="Horizontal"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Margin="0 0 577 0">
+                VerticalAlignment="Bottom">
                 <PanelContainer Name="StoragePanel" Access="Public" VerticalAlignment="Bottom">
                     <BoxContainer Orientation="Vertical" VerticalAlignment="Bottom">
                         <inventory:ItemSlotButtonContainer
@@ -97,6 +95,6 @@
                     SetWidth="125"
                     SetHeight="60"/>
             </BoxContainer>
-        </Control>
+        </LayoutContainer>
     </BoxContainer>
 </widgets:HotbarGui>

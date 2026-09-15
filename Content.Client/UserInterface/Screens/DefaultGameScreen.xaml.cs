@@ -197,7 +197,9 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // ToggleInventoryBar is public and is what the slot's handler called anyway.
     private void AdoptWornButton()
     {
-        Inventory.InventoryButton.Visible = false;
+        // Orphaned, not hidden: InventoryUIController resets Visible on this button in three places,
+        // so hiding it leaves a stray toggle floating beside the hands as soon as you wear anything.
+        Inventory.InventoryButton.Orphan();
 
         var worn = new Button
         {
