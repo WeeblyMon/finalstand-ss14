@@ -23,6 +23,14 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color AbilityReady = Color.FromHex("#B5453A");
     private static readonly Color AbilityCooling = Color.FromHex("#4A2E2B");
     // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
+    // Mirrors the band layout in HotbarGui/DefaultGameScreen: hands at the centre line, storage at
+    // 0.6703, so the empty gap between them is centred here.
+    private const float HandsFraction = 0.5f;
+    private const float StorageFraction = 0.6703f;
+    private const float BandGapFraction = (HandsFraction + StorageFraction) / 2f;
+    private const float HandsHalfWidth = 74f;
+    private const float StorageHalfWidth = 56f;
+
     private static readonly Color PanelBg = FSHudStyle.PanelBack;
     private static readonly Color PanelBorder = FSHudStyle.PanelEdge;
 
@@ -240,17 +248,20 @@ public sealed class FSCmoPanelController : UIController
         if (_frame == null || _hotbar == null || _directiveRow == null || _abilityRow == null)
             return;
 
-        var left = _inventory is { Visible: true } inv
-            ? inv.Position.X + inv.Size.X + EdgePadding
-            : EdgePadding;
+        // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the
+        // old "gap between inventory and hotbar" arithmetic produced a negative width. The panel
+        // instead sits in the band's own gap, between the centred hands and the storage cluster.
+        var screenW = _frame.Parent?.Size.X ?? 0f;
+        if (screenW <= 0f)
+            return;
 
-        var right = _hotbar.Position.X - EdgePadding;
-        var available = right - left;
+        var gapCentre = screenW * BandGapFraction;
+        var available = screenW * (StorageFraction - HandsFraction) - HandsHalfWidth - StorageHalfWidth;
 
         SetNarrow(available < WideLayoutMinimum);
 
         var size = _frame.DesiredSize;
-        var x = available > size.X ? left + (available - size.X) / 2f : left;
+        var x = MathF.Max(EdgePadding, gapCentre - size.X * 0.5f);
         var y = _hotbar.Position.Y + _hotbar.Size.Y - size.Y;
 
         LayoutContainer.SetPosition(_frame, new Vector2(x, y));
