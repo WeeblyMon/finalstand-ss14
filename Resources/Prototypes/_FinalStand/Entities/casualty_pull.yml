@@ -8,7 +8,7 @@
     useDelay: 120
   - type: Sprite
     layers:
-    - texture: /Textures/_FinalStand/Interface/CasualtyBoard/casualty_board.png
+    - texture: /Textures/_FinalStand/Interface/CasualtyPull/casualty_pull.png
       map: ["enum.ActionVisuals.Icon"]
   - type: TargetAction
   - type: EntityTargetAction
