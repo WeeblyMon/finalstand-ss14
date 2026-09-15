@@ -32,7 +32,7 @@ public sealed partial class WaveHudOverlay
     private static readonly Color HintDim = Color.FromHex("#5c6670");
 
     /// <summary>Draws the module and returns its top edge, so the throwables row can sit on it.</summary>
-    private float DrawWeaponModuleAndGetTop(DrawingHandleScreen screen, float margin, float bandLift)
+    private float DrawWeaponModuleAndGetTop(DrawingHandleScreen screen, float rightEdge, float bandLift)
     {
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
@@ -48,7 +48,7 @@ public sealed partial class WaveHudOverlay
                        + (WeaponTakesMagazines ? 5f + hintH : 0f);
         var panelH = MathF.Max(contentH + WeaponPanelPad * 2f, WeaponPanelMinH);
 
-        var x = _clyde.ScreenSize.X - margin - WeaponPanelW;
+        var x = rightEdge - WeaponPanelW;
         var bottom = _clyde.ScreenSize.Y - bandLift;
         var y = bottom - panelH;
 

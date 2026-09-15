@@ -21,6 +21,9 @@ public sealed partial class WaveHudOverlay
     private const float TopLeftY = 34f;
     private const float TopLeftPad = 8f;
 
+    // The split layout owns the top-left corner with its own action column.
+    private const float TopLeftYSeparated = 150f;
+
     private const float VitalsWidth = 240f;
     private const float VitalsPadX = 8f;
     private const float VitalsPadY = 7f;

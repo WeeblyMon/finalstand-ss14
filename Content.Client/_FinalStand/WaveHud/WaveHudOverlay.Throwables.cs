@@ -30,7 +30,7 @@ public sealed partial class WaveHudOverlay
     private static readonly Color ThrowArrowDead = Color.FromHex("#3c444c");
 
     /// <summary>Right-aligned to the same edge as the weapon module. Returns the height used.</summary>
-    private float DrawThrowables(DrawingHandleScreen screen, float margin, float bottom)
+    private float DrawThrowables(DrawingHandleScreen screen, float rightEdge, float bottom)
     {
         // Always drawn, even with nothing carried. The row is how anyone learns the G key exists,
         // and a control that only appears once you already have the item teaches nobody.
@@ -48,7 +48,7 @@ public sealed partial class WaveHudOverlay
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);
 
         // Same width as the weapon module below it, so the right stack has one left edge.
-        var right = _clyde.ScreenSize.X - margin;
+        var right = rightEdge;
         var x = right - WeaponPanelW;
         var top = bottom - rowH;
 

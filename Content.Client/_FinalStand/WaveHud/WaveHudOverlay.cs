@@ -307,8 +307,8 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
 
-        var weaponTop = DrawWeaponModuleAndGetTop(screen, margin, BottomBandLift);
-        DrawThrowables(screen, margin, weaponTop - 6f);
+        var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, BottomBandLift);
+        DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
 
         if (IsRespawnOfferVisible)
         {
@@ -454,13 +454,14 @@ public sealed partial class WaveHudOverlay : Overlay
         var blockW = slots * augIconSz + (slots - 1) * augGap;
         var blockH = TopLeftPad * 2f + labelH + 4f + augIconSz + 6f + _cachedValueH;
 
-        var panelBox = new UIBox2(TopLeftX, TopLeftY,
-            TopLeftX + blockW + TopLeftPad * 2f, TopLeftY + blockH);
+        var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
+        var panelBox = new UIBox2(TopLeftX, topLeftTop,
+            TopLeftX + blockW + TopLeftPad * 2f, topLeftTop + blockH);
         DrawRounded(screen, panelBox, VitalsBack);
         screen.DrawRect(panelBox, VitalsEdge, filled: false);
 
         var leftX = TopLeftX + TopLeftPad;
-        var leftY = TopLeftY + TopLeftPad;
+        var leftY = topLeftTop + TopLeftPad;
 
         screen.DrawString(_labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
         var augIconsY = leftY + labelH + 4f;
