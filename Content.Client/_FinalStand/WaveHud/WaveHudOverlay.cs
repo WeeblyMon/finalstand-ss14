@@ -320,20 +320,27 @@ public sealed partial class WaveHudOverlay : Overlay
             var promptY = screenSize.Y * 0.30f;
             var gap = MathF.Round(6f * s);
 
-            screen.DrawString(_promptFont!,
-                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
-                headline, Color.FromHex("#CC4444"));
+            // Vignette first: the prototype darkens the whole screen toward the edges so the
+            // prompt is the only thing left to look at. DrawRect is the only primitive here, so
+            // the gradient is a stack of nested frames whose alpha accumulates outward.
+            DrawVignette(screen, screenSize);
 
-            screen.DrawString(_promptSubFont!,
+            // Shadowed: this text lands on the vignette's red wash, where a dark red headline has
+            // almost no separation from its own background.
+            DrawShadowed(screen, _promptFont!,
+                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
+                headline, Color.FromHex("#f26a6f"));
+
+            DrawShadowed(screen, _promptSubFont!,
                 new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
-                subline, muted);
+                subline, Color.FromHex("#c3ccd6"));
 
             if (CasualtyStatus is { } casualty)
             {
                 var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
                 var casualtyColor = CasualtyResponded ? Color.FromHex("#4FBF7A") : Color.FromHex("#8A929B");
 
-                screen.DrawString(_promptSubFont!,
+                DrawShadowed(screen, _promptSubFont!,
                     new Vector2((screenSize.X - casualtyDims.X) * 0.5f,
                         promptY + headDims.Y + gap + subDims.Y + gap * 0.5f),
                     casualty, casualtyColor);
@@ -780,6 +787,46 @@ public sealed partial class WaveHudOverlay : Overlay
 
     // The vanilla alert icons share this corner, so the bonus rows stack on top of whatever height
     // that column currently has rather than on a fixed offset.
+    private static readonly Color VignetteWash = new(0.47f, 0f, 0f, 0.16f);
+    private const float VignetteMaxDark = 0.72f;
+
+    /// <summary>
+    /// Radial falloff without a shader. Drawn as non-overlapping frames, each with its alpha
+    /// computed directly - stacking filled rects instead would compound toward the centre and put
+    /// the darkest point exactly where the player needs to read.
+    /// </summary>
+    private static void DrawVignette(DrawingHandleScreen screen, Vector2i screenSize)
+    {
+        const int rings = 24;
+
+        var w = (float) screenSize.X;
+        var h = (float) screenSize.Y;
+
+        screen.DrawRect(new UIBox2(0f, 0f, w, h), VignetteWash);
+
+        for (var i = 0; i < rings; i++)
+        {
+            var t0 = i / (float) rings;
+            var t1 = (i + 1) / (float) rings;
+
+            var a = VignetteMaxDark * MathF.Pow(1f - t0, 2.2f);
+            if (a <= 0.002f)
+                continue;
+
+            var dark = new Color(0f, 0f, 0f, a);
+
+            var ox = w * 0.5f * t0;
+            var oy = h * 0.5f * t0;
+            var ix = w * 0.5f * t1;
+            var iy = h * 0.5f * t1;
+
+            screen.DrawRect(new UIBox2(ox, oy, w - ox, iy), dark);
+            screen.DrawRect(new UIBox2(ox, h - iy, w - ox, h - oy), dark);
+            screen.DrawRect(new UIBox2(ox, iy, ix, h - iy), dark);
+            screen.DrawRect(new UIBox2(w - ix, iy, w - ox, h - iy), dark);
+        }
+    }
+
     private float? FindAlertsTop()
     {
         var screen = _uiManager.ActiveScreen;

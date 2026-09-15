@@ -1,4 +1,4 @@
-﻿using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
@@ -10,6 +10,8 @@ using Robust.Client.Graphics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Robust.Client.Player;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -21,6 +23,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
@@ -72,12 +75,69 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateVitals(overlay);
         UpdateWeapon(overlay);
         UpdateThrowables(overlay);
+        UpdateDownedDim(overlay);
+        UpdateAlertsAnchor(overlay);
         UpdateTriage(overlay);
 
         if (!overlay.IsDarkWave)
             return;
 
         overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
+    }
+
+    // Downed: everything the player can no longer act with recedes. The wave readout is an overlay
+    // rather than a control, so it stays at full strength - which is what the prototype wanted.
+    private const float DownedDim = 0.22f;
+
+    private void UpdateDownedDim(WaveHudOverlay overlay)
+    {
+        if (_ui.ActiveScreen is not { } screen)
+            return;
+
+        screen.Modulate = overlay.IsRespawnOfferVisible
+            ? Color.White.WithAlpha(DownedDim)
+            : Color.White;
+    }
+
+    // The vitals panel grows as status pills wrap onto more rows, so the alert column above it
+    // cannot sit at a margin fixed when the screen was built - it has to follow the live height.
+    private Control? _alerts;
+    private Control? _alertsScreen;
+
+    private void UpdateAlertsAnchor(WaveHudOverlay overlay)
+    {
+        if (_ui.ActiveScreen is not { } screen)
+            return;
+
+        if (!ReferenceEquals(screen, _alertsScreen) || _alerts is null || _alerts.Disposed)
+        {
+            _alertsScreen = screen;
+            _alerts = FindByName(screen, "Alerts", 0);
+        }
+
+        if (_alerts is null)
+            return;
+
+        var lift = WaveHudOverlay.BottomBandLift + overlay.VitalsBlockHeight() + 6f;
+        LayoutContainer.SetMarginTop(_alerts, -lift);
+        LayoutContainer.SetMarginBottom(_alerts, -lift);
+    }
+
+    private static Control? FindByName(Control parent, string name, int depth)
+    {
+        if (depth > 6)
+            return null;
+
+        foreach (var child in parent.Children)
+        {
+            if (child.Name == name)
+                return child;
+
+            if (FindByName(child, name, depth + 1) is { } found)
+                return found;
+        }
+
+        return null;
     }
 
     private void UpdateHarvestStatus(WaveHudOverlay overlay)
