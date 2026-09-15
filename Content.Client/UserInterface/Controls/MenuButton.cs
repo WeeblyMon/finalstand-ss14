@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -16,20 +17,17 @@ public sealed partial class MenuButton : ContainerButton
     // public const string StyleClassRedTopButton = "topButtonLabel";
 
     // TODO: KIIIIIILLLLLLLLLLLLLLLLLLLLLLLLLLL --kaylie.
-    private static readonly Color ColorNormal = Color.FromHex("#99a7b3"); // primary color[0] + 0.24 L
-    private static readonly Color ColorHovered = Color.FromHex("#acbac6"); // primary color[0] + 0.30 L
-    private static readonly Color ColorPressed = Color.FromHex("#75838e"); // primary color[0] + 0.12 L
+    private static readonly Color ColorNormal = FSPalette.TextMuted;
+    private static readonly Color ColorHovered = FSPalette.TextBright;
+    private static readonly Color ColorPressed = FSPalette.TextDim;
 
     private const float VertPad = 0f;
 
     // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette. These are flat
     // boxes in the HUD's own colours, swapped per draw mode since ContainerButton only carries one.
-    private static readonly StyleBoxFlat ChipNormal = MakeChip(
-        new Color(0.04f, 0.055f, 0.075f, 0.82f), new Color(0.47f, 0.55f, 0.65f, 0.22f));
-    private static readonly StyleBoxFlat ChipHovered = MakeChip(
-        new Color(0.10f, 0.13f, 0.17f, 0.90f), new Color(0.47f, 0.55f, 0.65f, 0.45f));
-    private static readonly StyleBoxFlat ChipPressed = MakeChip(
-        new Color(0.17f, 0.40f, 0.47f, 0.90f), new Color(0.29f, 0.72f, 0.85f, 0.65f));
+    private static readonly StyleBoxFlat ChipNormal = MakeChip(FSPalette.PanelBack, FSPalette.PanelEdge);
+    private static readonly StyleBoxFlat ChipHovered = MakeChip(FSPalette.ButtonHoverBack, FSPalette.ButtonHoverEdge);
+    private static readonly StyleBoxFlat ChipPressed = MakeChip(FSPalette.ButtonPressBack, FSPalette.ButtonPressEdge);
 
     private static StyleBoxFlat MakeChip(Color fill, Color edge)
     {

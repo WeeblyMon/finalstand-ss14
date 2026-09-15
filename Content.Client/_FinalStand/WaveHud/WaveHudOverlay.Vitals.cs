@@ -1,4 +1,5 @@
 // Draws the bottom-left vitals panel: health figure and bar, stamina bar, then status pills.
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
 
@@ -34,18 +35,18 @@ public sealed partial class WaveHudOverlay
     private const float PillPadY = 2f;
     private const float PillGap = 3f;
 
-    private static readonly Color VitalsBack = new(0.04f, 0.055f, 0.075f, 0.82f);
-    private static readonly Color VitalsEdge = new(0.47f, 0.55f, 0.65f, 0.22f);
-    private static readonly Color VitalsEdgeHot = new(0.91f, 0.31f, 0.33f, 0.45f);
-    private static readonly Color BarTrack = new(1f, 1f, 1f, 0.07f);
-    private static readonly Color HpFill = Color.FromHex("#c8d4de");
-    private static readonly Color HpFillLow = Color.FromHex("#e85055");
-    private static readonly Color StaminaFill = Color.FromHex("#4bb8d8");
-    private static readonly Color StaminaFillLow = Color.FromHex("#d9a441");
-    private static readonly Color PillBack = Color.FromHex("#0d1218");
-    private static readonly Color PillBad = Color.FromHex("#e85055");
-    private static readonly Color PillGood = Color.FromHex("#4fbf7a");
-    private static readonly Color VitalsMuted = Color.FromHex("#7c8894");
+    private static readonly Color VitalsBack = FSPalette.PanelBack;
+    private static readonly Color VitalsEdge = FSPalette.PanelEdge;
+    private static readonly Color VitalsEdgeHot = FSPalette.PanelEdgeHot;
+    private static readonly Color BarTrack = FSPalette.BarTrack;
+    private static readonly Color HpFill = FSPalette.HealthFill;
+    private static readonly Color HpFillLow = FSPalette.HealthLow;
+    private static readonly Color StaminaFill = FSPalette.StaminaFill;
+    private static readonly Color StaminaFillLow = FSPalette.StaminaLow;
+    private static readonly Color PillBack = FSPalette.CellBack;
+    private static readonly Color PillBad = FSPalette.HealthLow;
+    private static readonly Color PillGood = FSPalette.Ok;
+    private static readonly Color VitalsMuted = FSPalette.TextMuted;
 
     /// <summary>
     /// Rect with the four corner pixels dropped. DrawRect is the only primitive here, so this is
@@ -59,8 +60,8 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Right - r, box.Top + r, box.Right, box.Bottom - r), color);
     }
 
-    private static readonly Color PanelShadow = new(0f, 0f, 0f, 0.38f);
-    private static readonly Color PanelSheen = new(1f, 1f, 1f, 0.05f);
+    private static readonly Color PanelShadow = FSPalette.PanelShadow;
+    private static readonly Color PanelSheen = FSPalette.PanelSheen;
 
     /// <summary>
     /// The house panel: a dropped shadow, the fill, a one-pixel sheen along the top edge, then the
@@ -222,7 +223,7 @@ public sealed partial class WaveHudOverlay
         {
             screen.DrawRect(new UIBox2(x, y, x + filled, y + h), fill);
             // Brighter top third: a flat block of colour reads as a placeholder, not a gauge.
-            screen.DrawRect(new UIBox2(x, y, x + filled, y + h * 0.35f), new Color(1f, 1f, 1f, 0.13f));
+            screen.DrawRect(new UIBox2(x, y, x + filled, y + h * 0.35f), FSPalette.BarSheen);
         }
 
         screen.DrawRect(new UIBox2(x, y, x + w, y + h), VitalsEdge, filled: false);

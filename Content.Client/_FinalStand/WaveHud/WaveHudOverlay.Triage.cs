@@ -1,4 +1,5 @@
 // Draws the medical triage panel on the right edge. Renders nothing when nobody is in trouble.
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
 
@@ -20,13 +21,13 @@ public sealed partial class WaveHudOverlay
     private const float TriageRowGap = 5f;
     private const float PipSize = 17f;
 
-    private static readonly Color TriageBack = new(0.04f, 0.055f, 0.075f, 0.82f);
-    private static readonly Color TriageEdge = new(0.47f, 0.55f, 0.65f, 0.22f);
-    private static readonly Color TriageMuted = Color.FromHex("#7c8894");
-    private static readonly Color TriageName = Color.FromHex("#D8E0E8");
-    private static readonly Color PipDead = Color.FromHex("#e85055");
-    private static readonly Color PipCrit = Color.FromHex("#d9a441");
-    private static readonly Color PipResponding = Color.FromHex("#4fbf7a");
+    private static readonly Color TriageBack = FSPalette.PanelBack;
+    private static readonly Color TriageEdge = FSPalette.PanelEdge;
+    private static readonly Color TriageMuted = FSPalette.TextMuted;
+    private static readonly Color TriageName = FSPalette.TextBright;
+    private static readonly Color PipDead = FSPalette.Danger;
+    private static readonly Color PipCrit = FSPalette.Warn;
+    private static readonly Color PipResponding = FSPalette.Ok;
 
     /// <summary>Draws under the wave panel. Returns the height used, so nothing stacks into it.</summary>
     private float DrawTriage(DrawingHandleScreen screen, float panelX, float top)

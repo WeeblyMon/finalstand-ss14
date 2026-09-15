@@ -21,10 +21,10 @@ public sealed class FSCmoPanelController : UIController
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resource = default!;
 
-    private static readonly Color DirectiveIdle = Color.FromHex("#2E4A38");
-    private static readonly Color DirectiveActive = Color.FromHex("#4FBF7A");
-    private static readonly Color AbilityReady = Color.FromHex("#B5453A");
-    private static readonly Color AbilityCooling = Color.FromHex("#4A2E2B");
+    private static readonly Color DirectiveIdle = FSPalette.TextDim;
+    private static readonly Color DirectiveActive = FSPalette.Ok;
+    private static readonly Color AbilityReady = FSPalette.DangerSoft;
+    private static readonly Color AbilityCooling = FSPalette.TextDim;
     // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
     // Mirrors the band layout in HotbarGui/DefaultGameScreen: hands at the centre line, storage at
     // 0.6703, so the empty gap between them is centred here.

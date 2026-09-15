@@ -6,16 +6,16 @@ namespace Content.Client._FinalStand.Interface;
 
 public static class FSHudStyle
 {
-    public static readonly Color PanelBack = new(0.04f, 0.055f, 0.075f, 0.82f);
-    public static readonly Color PanelEdge = new(0.47f, 0.55f, 0.65f, 0.22f);
+    public static Color PanelBack => FSPalette.PanelBack;
+    public static Color PanelEdge => FSPalette.PanelEdge;
 
-    public static readonly Color TextMuted = Color.FromHex("#8fa1b3");
-    public static readonly Color TextBright = Color.FromHex("#d8e0e8");
+    public static Color TextMuted => FSPalette.TextMuted;
+    public static Color TextBright => FSPalette.TextBright;
 
-    private static readonly Color ButtonHoverBack = new(0.10f, 0.13f, 0.17f, 0.90f);
-    private static readonly Color ButtonHoverEdge = new(0.47f, 0.55f, 0.65f, 0.45f);
-    private static readonly Color ButtonPressBack = new(0.17f, 0.40f, 0.47f, 0.90f);
-    private static readonly Color ButtonPressEdge = new(0.29f, 0.72f, 0.85f, 0.65f);
+    private static Color ButtonHoverBack => FSPalette.ButtonHoverBack;
+    private static Color ButtonHoverEdge => FSPalette.ButtonHoverEdge;
+    private static Color ButtonPressBack => FSPalette.ButtonPressBack;
+    private static Color ButtonPressEdge => FSPalette.ButtonPressEdge;
 
     public static StyleBoxFlat ModulePanel()
     {
@@ -38,7 +38,7 @@ public static class FSHudStyle
     /// <summary>Flat field for text entry: darker than a panel so it reads as writable.</summary>
     public static StyleBoxFlat InputBox()
     {
-        var box = Box(new Color(0.02f, 0.03f, 0.04f, 0.85f), PanelEdge);
+        var box = Box(FSPalette.PanelDeep, PanelEdge);
         box.SetContentMarginOverride(StyleBox.Margin.Horizontal, 6);
         box.SetContentMarginOverride(StyleBox.Margin.Vertical, 3);
         return box;

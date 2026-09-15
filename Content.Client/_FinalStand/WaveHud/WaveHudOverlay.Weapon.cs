@@ -1,4 +1,5 @@
 // Draws the active-item module: one panel for what is in the active hand, replacing vanilla's pair.
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
 
@@ -22,14 +23,14 @@ public sealed partial class WaveHudOverlay
     private const float HintPadX = 6f;
     private const float HintPadY = 3f;
 
-    private static readonly Color WeaponBack = new(0.04f, 0.055f, 0.075f, 0.82f);
-    private static readonly Color WeaponEdge = new(0.47f, 0.55f, 0.65f, 0.22f);
-    private static readonly Color WeaponText = Color.FromHex("#8FA1B3");
-    private static readonly Color WeaponMuted = Color.FromHex("#7c8894");
-    private static readonly Color AmmoFull = Color.FromHex("#D8E0E8");
-    private static readonly Color AmmoLow = Color.FromHex("#E85055");
-    private static readonly Color HintCyan = Color.FromHex("#4bb8d8");
-    private static readonly Color HintDim = Color.FromHex("#5c6670");
+    private static readonly Color WeaponBack = FSPalette.PanelBack;
+    private static readonly Color WeaponEdge = FSPalette.PanelEdge;
+    private static readonly Color WeaponText = FSPalette.TextMuted;
+    private static readonly Color WeaponMuted = FSPalette.TextDim;
+    private static readonly Color AmmoFull = FSPalette.TextBright;
+    private static readonly Color AmmoLow = FSPalette.Danger;
+    private static readonly Color HintCyan = FSPalette.Money;
+    private static readonly Color HintDim = FSPalette.TextDim;
 
     /// <summary>Draws the module and returns its top edge, so the throwables row can sit on it.</summary>
     private float DrawWeaponModuleAndGetTop(DrawingHandleScreen screen, float rightEdge, float bandLift)

@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
@@ -267,8 +268,8 @@ public sealed partial class WaveHudOverlay : Overlay
         var rowContentH = Math.Max(rowIconSz, labelH + 4f + valueH);
         var rowH = rowContentH + rowPad * 2f;
 
-        var sepColor = new Color(0.23f, 0.26f, 0.32f, 0.8f);
-        var muted = Color.FromHex("#8FA1B3");
+        var sepColor = FSPalette.PanelEdge;
+        var muted = FSPalette.TextMuted;
 
         const float btnPad = 3f;
         var btnH = labelH + btnPad * 2f;
@@ -334,16 +335,16 @@ public sealed partial class WaveHudOverlay : Overlay
             // almost no separation from its own background.
             DrawShadowed(screen, _promptFont!,
                 new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
-                headline, Color.FromHex("#f26a6f"));
+                headline, FSPalette.DangerSoft);
 
             DrawShadowed(screen, _promptSubFont!,
                 new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
-                subline, Color.FromHex("#c3ccd6"));
+                subline, FSPalette.TextBright);
 
             if (CasualtyStatus is { } casualty)
             {
                 var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
-                var casualtyColor = CasualtyResponded ? Color.FromHex("#4FBF7A") : Color.FromHex("#8A929B");
+                var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
 
                 DrawShadowed(screen, _promptSubFont!,
                     new Vector2((screenSize.X - casualtyDims.X) * 0.5f,
@@ -357,16 +358,16 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawString(_labelFont!, new Vector2(panelX, y), "RESPAWN", muted);
             y += labelH + 2f;
 
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), $"-${RespawnCost:N0}", Color.FromHex("#e2b662"));
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), $"-${RespawnCost:N0}", FSPalette.Money);
             y += labelH + 3f;
 
             RespawnButtonBounds = new UIBox2(panelX, y, panelX + panelW, y + btnH);
-            screen.DrawRect(RespawnButtonBounds, Color.FromHex("#3d1a1a"));
+            screen.DrawRect(RespawnButtonBounds, FSPalette.CellBack);
 
             var respawnDim = screen.GetDimensions(_labelFont!, "RESPAWN", 1f);
             screen.DrawString(_labelFont!,
                 new Vector2(panelX + (panelW - respawnDim.X) * 0.5f, y + (btnH - respawnDim.Y) * 0.5f),
-                "RESPAWN", Color.FromHex("#CC4444"));
+                "RESPAWN", FSPalette.Danger);
 
             y += btnH;
         }
@@ -388,14 +389,14 @@ public sealed partial class WaveHudOverlay : Overlay
             y += labelH + 2f;
 
             var countText  = ReadyUpTotal > 0 ? $"{ReadyUpCount} / {ReadyUpTotal} ready" : "—";
-            var countColor = ReadyUpCount > 0 ? Color.FromHex("#44FF44") : Color.White;
+            var countColor = ReadyUpCount > 0 ? FSPalette.Ok : Color.White;
             screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), countText, countColor);
             y += labelH + 3f;
 
             var btnRowW = panelW - panelInset * 2f;
             var halfW = (btnRowW - 3f) / 2f;
-            var yesBg = ReadyUpPlayerIsReady ? Color.FromHex("#2a6b2a") : Color.FromHex("#1a3d1a");
-            var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? Color.FromHex("#6b2a2a") : Color.FromHex("#3d1a1a");
+            var yesBg = ReadyUpPlayerIsReady ? FSPalette.Ok.WithAlpha(0.35f) : FSPalette.CellBack;
+            var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? FSPalette.Danger.WithAlpha(0.35f) : FSPalette.CellBack;
 
             var btnX = panelX + panelInset;
             ReadyUpYesBounds = new UIBox2(btnX,             y, btnX + halfW,   y + btnH);
@@ -409,10 +410,10 @@ public sealed partial class WaveHudOverlay : Overlay
 
             screen.DrawString(_labelFont!,
                 new Vector2(btnX + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
-                "YES", Color.FromHex("#44CC44"));
+                "YES", FSPalette.Ok);
             screen.DrawString(_labelFont!,
                 new Vector2(btnX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
-                "NO", Color.FromHex("#CC4444"));
+                "NO", FSPalette.Danger);
 
             y += btnH;
         }
@@ -438,23 +439,23 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         // Wave first, then what is left of it, then the clock. Most urgent at the top.
-        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
+        y = DrawRow(_iconWave, "WAVE", _waveText, FSPalette.Danger);
 
         if (IsDarkWave)
         {
             var secs = Math.Max(0f, DarkWaveSecondsRemaining);
             var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"), _midFont);
+            y = DrawRow(_iconEnemies, "SURVIVE", survive, FSPalette.Warn, _midFont);
         }
         else if (EnemiesTotal > 0)
         {
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#e06a6d"), _midFont);
+            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
         }
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#c9a86a"), _midFont);
+            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
         }
 
         DrawReadyUpBlock();
@@ -486,12 +487,12 @@ public sealed partial class WaveHudOverlay : Overlay
             // things you have rather than six things you do not.
             if (string.IsNullOrEmpty(id))
             {
-                screen.DrawRect(cell, new Color(0.47f, 0.55f, 0.65f, 0.16f), filled: false);
+                screen.DrawRect(cell, FSPalette.CellEdge, filled: false);
             }
             else
             {
-                DrawRounded(screen, cell, Color.FromHex("#1A1D23"));
-                screen.DrawRect(cell, new Color(0.47f, 0.55f, 0.65f, 0.30f), filled: false);
+                DrawRounded(screen, cell, FSPalette.CellBack);
+                screen.DrawRect(cell, FSPalette.PanelEdge, filled: false);
             }
             if (!string.IsNullOrEmpty(id))
             {
@@ -509,7 +510,7 @@ public sealed partial class WaveHudOverlay : Overlay
                     screen.DrawString(_labelFont!, new Vector2(tx + 1, ty),     stackStr, outline);
                     screen.DrawString(_labelFont!, new Vector2(tx,     ty - 1), stackStr, outline);
                     screen.DrawString(_labelFont!, new Vector2(tx,     ty + 1), stackStr, outline);
-                    screen.DrawString(_labelFont!, new Vector2(tx,     ty),     stackStr, Color.FromHex("#FF3333"));
+                    screen.DrawString(_labelFont!, new Vector2(tx,     ty),     stackStr, FSPalette.Danger);
                 }
             }
             ix += augIconSz + augGap;
@@ -517,7 +518,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
         _creditsRowY = augIconsY + augIconSz + 6f;
         DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
-            Color.FromHex("#e2b662"));
+            FSPalette.Money);
 
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
         for (var pi = 0; pi < _interestPopups.Count; pi++)
@@ -541,7 +542,7 @@ public sealed partial class WaveHudOverlay : Overlay
                     Color.White.WithAlpha(alpha));
 
             var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
-            screen.DrawString(_labelFont!, textPos, amtText, Color.FromHex("#FFD740").WithAlpha(alpha));
+            screen.DrawString(_labelFont!, textPos, amtText, FSPalette.Money.WithAlpha(alpha));
         }
 
         var mouse = _input.MouseScreenPosition.Position;
@@ -572,7 +573,7 @@ public sealed partial class WaveHudOverlay : Overlay
             if (tipY < 0f) tipY = cell.Bottom + 6f;
 
             var tipBox = new UIBox2(tipX, tipY, tipX + tipW, tipY + tipH);
-            screen.DrawRect(tipBox, Color.FromHex("#0D0F12"));
+            screen.DrawRect(tipBox, FSPalette.PanelDeep);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Right, tipBox.Top + 1f), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Bottom - 1f, tipBox.Right, tipBox.Bottom), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Left + 1f, tipBox.Bottom), sepColor);
@@ -582,7 +583,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var ty = tipY + tipPad;
             screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), def.Name, Color.White);
             ty += nameDims.Y + 4f;
-            screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, Color.FromHex("#e2b662"));
+            screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, FSPalette.Money);
             ty += levelDims.Y + 4f;
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), effectText, muted);
             break;
@@ -606,7 +607,7 @@ public sealed partial class WaveHudOverlay : Overlay
             if (tipY < 0f) tipY = cell.Bottom + 6f;
 
             var tipBox = new UIBox2(tipX, tipY, tipX + tipW, tipY + tipH);
-            screen.DrawRect(tipBox, Color.FromHex("#0D0F12"));
+            screen.DrawRect(tipBox, FSPalette.PanelDeep);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Right, tipBox.Top + 1f), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Bottom - 1f, tipBox.Right, tipBox.Bottom), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Left + 1f, tipBox.Bottom), sepColor);
@@ -769,7 +770,7 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawString(_tinyFont,
                 new Vector2(margin, bottom),
                 harvest,
-                HarvestCapped ? Color.FromHex("#C9A227") : Color.FromHex("#8A929B"));
+                HarvestCapped ? FSPalette.Money : FSPalette.TextMuted);
         }
     }
 
@@ -882,11 +883,11 @@ public sealed partial class WaveHudOverlay : Overlay
     private EntityUid? _bonusRowsHeld;
     private int _bonusRowsVersion = -1;
 
-    private static readonly Color BonusPositive = Color.FromHex("#22C55E");
-    private static readonly Color BonusNegative = Color.FromHex("#EF4444");
+    private static readonly Color BonusPositive = FSPalette.Ok;
+    private static readonly Color BonusNegative = FSPalette.Danger;
 
     private const string MedicalBuffFallbackIcon = "buff";
-    private static readonly Color MedicalBuffColour = Color.FromHex("#4FBF7A");
+    private static readonly Color MedicalBuffColour = FSPalette.Ok;
 
     // Rebuilt on a change of held item or summary, not per frame.
     private List<BonusRow> BuildVisibleBonusRows()

@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
@@ -77,11 +78,11 @@ public sealed partial class FSXpHudController : UIController
         // FINALSTAND: palette-matched to the rest of the HUD. The old teal and grey appeared
         // nowhere else, so the bar read as a strip borrowed from another game. The top hairline is
         // the same edge colour every panel uses, which is what ties it to the band above it.
-        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#3d8ea3") };
+        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = FSPalette.Warn };
         _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
         {
-            BackgroundColor = Color.FromHex("#0d1218"),
-            BorderColor = new Color(0.47f, 0.55f, 0.65f, 0.22f),
+            BackgroundColor = FSPalette.PanelDeep,
+            BorderColor = FSPalette.PanelEdge,
             BorderThickness = new Thickness(0, 1, 0, 0),
         };
 
@@ -89,7 +90,7 @@ public sealed partial class FSXpHudController : UIController
         {
             Text = "LVL 1",
             Align = Label.AlignMode.Center,
-            Modulate = Color.FromHex("#cbd6e0"),
+            Modulate = FSPalette.TextBright,
             MouseFilter = Control.MouseFilterMode.Ignore,
             FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"),
                 isSeparated ? SeparatedFontSize : DefaultFontSize),

@@ -1,4 +1,5 @@
 // Draws the throwable selector above the weapon module: prev arrow, active pack, next arrow.
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
 
@@ -21,13 +22,13 @@ public sealed partial class WaveHudOverlay
     private const float ThrowPad = 7f;
     private const float ThrowGap = 3f;
 
-    private static readonly Color ThrowBack = new(0.04f, 0.055f, 0.075f, 0.82f);
-    private static readonly Color ThrowEdge = new(0.47f, 0.55f, 0.65f, 0.22f);
-    private static readonly Color ThrowCellBack = new(0.08f, 0.11f, 0.14f, 0.7f);
-    private static readonly Color ThrowText = Color.FromHex("#D8E0E8");
-    private static readonly Color ThrowMuted = Color.FromHex("#7c8894");
-    private static readonly Color ThrowArrowLive = Color.FromHex("#8FA1B3");
-    private static readonly Color ThrowArrowDead = Color.FromHex("#3c444c");
+    private static readonly Color ThrowBack = FSPalette.PanelBack;
+    private static readonly Color ThrowEdge = FSPalette.PanelEdge;
+    private static readonly Color ThrowCellBack = FSPalette.CellBack;
+    private static readonly Color ThrowText = FSPalette.TextBright;
+    private static readonly Color ThrowMuted = FSPalette.TextMuted;
+    private static readonly Color ThrowArrowLive = FSPalette.TextMuted;
+    private static readonly Color ThrowArrowDead = FSPalette.TextDim;
 
     /// <summary>Right-aligned to the same edge as the weapon module. Returns the height used.</summary>
     private float DrawThrowables(DrawingHandleScreen screen, float rightEdge, float bottom)
