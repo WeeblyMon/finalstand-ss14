@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
 using Content.Client.UserInterface.Systems.Inventory;
@@ -209,6 +210,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
             MinSize = new Vector2(0, WornButtonHeight),
             ToolTip = Loc.GetString("fs-hud-worn-tooltip"),
         };
+
+        FSHudStyle.StyleButton(worn, padX: 4, padY: 2);
 
         worn.OnPressed += _ =>
             UserInterfaceManager.GetUIController<InventoryUIController>().ToggleInventoryBar();

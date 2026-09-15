@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
@@ -21,8 +22,9 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color DirectiveActive = Color.FromHex("#4FBF7A");
     private static readonly Color AbilityReady = Color.FromHex("#B5453A");
     private static readonly Color AbilityCooling = Color.FromHex("#4A2E2B");
-    private static readonly Color PanelBg = Color.FromHex("#14171B");
-    private static readonly Color PanelBorder = Color.FromHex("#2E333B");
+    // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
+    private static readonly Color PanelBg = FSHudStyle.PanelBack;
+    private static readonly Color PanelBorder = FSHudStyle.PanelEdge;
 
     private const int EdgePadding = 8;
     private const int WideDirectiveWidth = 92;
@@ -148,6 +150,8 @@ public sealed class FSCmoPanelController : UIController
                 Margin = new Thickness(2, 0),
                 ToolTip = Loc.GetString($"{loc}-effects"),
             };
+
+            FSHudStyle.StyleButton(button);
 
             var captured = ability;
             button.OnPressed += _ => EntityManager.System<FSCmoPanelSystem>().Request(captured);
