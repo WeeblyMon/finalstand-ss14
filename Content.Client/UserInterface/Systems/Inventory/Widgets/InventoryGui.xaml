@@ -1,4 +1,4 @@
-﻿<widgets:InventoryGui
+<widgets:InventoryGui
     xmlns="https://spacestation14.io"
     xmlns:inventory="clr-namespace:Content.Client.UserInterface.Systems.Inventory.Controls"
     xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Inventory.Widgets"
@@ -18,15 +18,20 @@
             HorizontalExpand="False"
             VerticalExpand="False"
             ButtonTexturePath="Slots/toggle"/>
-        <inventory:ItemSlotButtonContainer
-            Name="InventoryHotbar"
-            Access="Public"
-            Visible="False"
-            MaxColumns="3"
-            SlotGroup="Default"
-            ExpandBackwards="True"
-            VerticalExpand="True"
-            HorizontalAlignment="Center"
-        />
+        <!-- FINALSTAND: the bar is a module like every other cluster in the band. Unwrapped, the
+             slots floated loose on the world with nothing holding them together. -->
+        <PanelContainer Name="FSInventoryPanel" Access="Public" Visible="False"
+                        VerticalAlignment="Bottom" HorizontalAlignment="Center">
+            <inventory:ItemSlotButtonContainer
+                Name="InventoryHotbar"
+                Access="Public"
+                Visible="False"
+                MaxColumns="3"
+                SlotGroup="Default"
+                ExpandBackwards="True"
+                VerticalExpand="True"
+                HorizontalAlignment="Center"
+            />
+        </PanelContainer>
     </Control>
 </widgets:InventoryGui>

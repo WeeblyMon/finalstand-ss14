@@ -95,31 +95,6 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Left + Chamfer, box.Bottom - 1f, box.Right - Chamfer, box.Bottom), PanelBevel);
 
         DrawChamferedEdge(screen, box, edge);
-        DrawSheen(screen, box);
-    }
-
-    /// <summary>
-    /// A soft top-down sheen across the panel body. Replaces an earlier noise tile: per-pixel
-    /// grain reads as static at native resolution and fights pixel art. A few banded steps give
-    /// the surface a lit-from-above feel with nothing for the eye to catch on.
-    /// </summary>
-    private static void DrawSheen(DrawingHandleScreen screen, UIBox2 box)
-    {
-        const int bands = 10;
-        const float peak = 0.028f;
-
-        var h = box.Height / bands;
-        for (var i = 0; i < bands; i++)
-        {
-            var t = i / (float) (bands - 1);
-            var a = peak * (1f - t) * (1f - t);
-            if (a <= 0.001f)
-                continue;
-
-            var top = box.Top + i * h;
-            screen.DrawRect(new UIBox2(box.Left + Chamfer, top, box.Right - Chamfer, top + h),
-                Color.White.WithAlpha(a));
-        }
     }
 
     /// <summary>Body of a panel with its four corners cut at 45 degrees.</summary>

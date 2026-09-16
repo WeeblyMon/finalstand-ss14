@@ -276,10 +276,12 @@ public sealed partial class WaveHudOverlay : Overlay
 
         // Credits and perks live in the top-left block now, so the panel is only the wave readout.
         var totalH = sepH;
+        // The trailing rowPad is the gap under the buttons - without it the panel edge sat flush
+        // against them, which read as the panel being cut off.
         if (IsRespawnOfferVisible)
-            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsReadyUpVisible)
-            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
         if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
@@ -313,7 +315,8 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawVitals(screen, margin, BottomBandLift);
 
         var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, BottomBandLift);
-        DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
+        var throwH = DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
+        RightStackHeight = screenSize.Y - BottomBandLift - (weaponTop - 6f - throwH);
 
         if (IsRespawnOfferVisible)
         {
@@ -369,7 +372,7 @@ public sealed partial class WaveHudOverlay : Overlay
                 new Vector2(panelX + (panelW - respawnDim.X) * 0.5f, y + (btnH - respawnDim.Y) * 0.5f),
                 "RESPAWN", FSPalette.Danger);
 
-            y += btnH;
+            y += btnH + rowPad;
         }
         else
         {
@@ -415,7 +418,7 @@ public sealed partial class WaveHudOverlay : Overlay
                 new Vector2(btnX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
                 "NO", FSPalette.Danger);
 
-            y += btnH;
+            y += btnH + rowPad;
         }
 
         float DrawRow(Texture? icon, string label, string value, Color valueColor, Font? valueFont = null)

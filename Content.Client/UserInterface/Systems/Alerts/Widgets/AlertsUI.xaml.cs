@@ -17,6 +17,9 @@ public sealed partial class AlertsUI : UIWidget
     // also known as Control.Children?
     private readonly Dictionary<AlertKey, AlertControl> _alertControls = new();
 
+    // Crit and Dead stay: those are state changes the bar alone does not announce loudly enough.
+    private static readonly HashSet<string> Suppressed = new() { "HumanHealth" };
+
     public AlertsUI()
     {
         RobustXamlLoader.Load(this);
@@ -84,6 +87,12 @@ public sealed partial class AlertsUI : UIWidget
             }
 
             var alertType = alertKey.AlertType.Value;
+
+            // FINALSTAND: the vitals panel owns health - figure, bar, panel border and status
+            // pills. The heartbeat row said the same thing again, one row up.
+            if (Suppressed.Contains(alertType.Id))
+                continue;
+
             if (!alertsSystem.TryGet(alertType, out var newAlert))
             {
                 Logger.ErrorS("alert", "Unrecognized alertType {0}", alertType);
