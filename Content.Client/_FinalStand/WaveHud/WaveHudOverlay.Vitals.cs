@@ -65,8 +65,7 @@ public sealed partial class WaveHudOverlay
     private static readonly Color PanelBevel = Color.Black.WithAlpha(0.30f);
 
     private const float Chamfer = 3f;
-    private const float GrainSize = 64f;
-    private static Texture? _grain;
+
 
     /// <summary>
     /// The house panel. Corners are chamfered rather than rounded and the edge is drawn as four
@@ -96,30 +95,30 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Left + Chamfer, box.Bottom - 1f, box.Right - Chamfer, box.Bottom), PanelBevel);
 
         DrawChamferedEdge(screen, box, edge);
-        DrawGrain(screen, box);
+        DrawSheen(screen, box);
     }
 
     /// <summary>
-    /// A tiled noise wash over the panel body. Flat fill is what reads as unfinished; a few percent
-    /// of grain gives the surface a material without adding anything the eye resolves as detail.
-    /// Tiled at native size - stretching noise is immediately obvious.
+    /// A soft top-down sheen across the panel body. Replaces an earlier noise tile: per-pixel
+    /// grain reads as static at native resolution and fights pixel art. A few banded steps give
+    /// the surface a lit-from-above feel with nothing for the eye to catch on.
     /// </summary>
-    private static void DrawGrain(DrawingHandleScreen screen, UIBox2 box)
+    private static void DrawSheen(DrawingHandleScreen screen, UIBox2 box)
     {
-        if (_grain is not { } tile)
-            return;
+        const int bands = 10;
+        const float peak = 0.028f;
 
-        var tint = Color.White.WithAlpha(0.055f);
-        for (var gy = box.Top; gy < box.Bottom; gy += GrainSize)
+        var h = box.Height / bands;
+        for (var i = 0; i < bands; i++)
         {
-            for (var gx = box.Left; gx < box.Right; gx += GrainSize)
-            {
-                var w = MathF.Min(GrainSize, box.Right - gx);
-                var h = MathF.Min(GrainSize, box.Bottom - gy);
-                screen.DrawTextureRectRegion(tile,
-                    new UIBox2(gx, gy, gx + w, gy + h),
-                    new UIBox2(0, 0, w, h), tint);
-            }
+            var t = i / (float) (bands - 1);
+            var a = peak * (1f - t) * (1f - t);
+            if (a <= 0.001f)
+                continue;
+
+            var top = box.Top + i * h;
+            screen.DrawRect(new UIBox2(box.Left + Chamfer, top, box.Right - Chamfer, top + h),
+                Color.White.WithAlpha(a));
         }
     }
 

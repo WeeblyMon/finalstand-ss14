@@ -192,7 +192,6 @@ public sealed partial class WaveHudOverlay : Overlay
         _iconTimer   = LoadHudIcon("hud_timer");
         _iconEnemies = LoadHudIcon("hud_enemies");
         _iconWave    = LoadHudIcon("hud_wave");
-        _grain       = LoadHudIcon("panel_grain");
     }
 
     private Texture? LoadHudIcon(string name)
