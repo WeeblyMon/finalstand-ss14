@@ -192,6 +192,7 @@ public sealed partial class WaveHudOverlay : Overlay
         _iconTimer   = LoadHudIcon("hud_timer");
         _iconEnemies = LoadHudIcon("hud_enemies");
         _iconWave    = LoadHudIcon("hud_wave");
+        _grain       = LoadHudIcon("panel_grain");
     }
 
     private Texture? LoadHudIcon(string name)
@@ -307,7 +308,7 @@ public sealed partial class WaveHudOverlay : Overlay
         // Backdrop. This block had none - it only looked dark because the map behind it happens to
         // be unlit, and the readout vanished over anything bright.
         var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
-        DrawPanel(screen, waveBox, VitalsBack, VitalsEdge);
+        DrawPanel(screen, waveBox, VitalsBack, VitalsEdge, FSPalette.Danger);
 
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);

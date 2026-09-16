@@ -62,19 +62,100 @@ public sealed partial class WaveHudOverlay
 
     private static readonly Color PanelShadow = FSPalette.PanelShadow;
     private static readonly Color PanelSheen = FSPalette.PanelSheen;
+    private static readonly Color PanelBevel = Color.Black.WithAlpha(0.30f);
+
+    private const float Chamfer = 3f;
+    private const float GrainSize = 64f;
+    private static Texture? _grain;
 
     /// <summary>
-    /// The house panel: a dropped shadow, the fill, a one-pixel sheen along the top edge, then the
-    /// border. Flat fill plus a hairline border reads as a wireframe; the shadow is what seats the
-    /// panel above the world and the sheen is what stops it looking like a hole cut in the screen.
+    /// The house panel. Corners are chamfered rather than rounded and the edge is drawn as four
+    /// rules plus four diagonals, so it reads as a stamped metal plate instead of a CSS rectangle.
+    /// A lit top edge and a shadowed bottom edge give it thickness; corner brackets mark it as
+    /// deliberate hardware rather than a container.
     /// </summary>
-    public static void DrawPanel(DrawingHandleScreen screen, UIBox2 box, Color fill, Color edge)
+    public static void DrawPanel(DrawingHandleScreen screen, UIBox2 box, Color fill, Color edge,
+        Color? accent = null)
     {
-        DrawRounded(screen, new UIBox2(box.Left + 2f, box.Top + 2f, box.Right + 2f, box.Bottom + 2f),
+        DrawChamfered(screen, new UIBox2(box.Left + 2f, box.Top + 2f, box.Right + 2f, box.Bottom + 2f),
             PanelShadow);
-        DrawRounded(screen, box, fill);
-        screen.DrawRect(new UIBox2(box.Left + 3f, box.Top, box.Right - 3f, box.Top + 1f), PanelSheen);
-        screen.DrawRect(box, edge, filled: false);
+        DrawChamfered(screen, box, fill);
+
+        // Thickness: light catches the top lip, the bottom sits in its own shadow. Where a panel
+        // has a role, that lip becomes a colour rule instead - which is what tells them apart at a
+        // glance without adding another element to read.
+        var lip = new UIBox2(box.Left + Chamfer, box.Top, box.Right - Chamfer, box.Top + 1f);
+        if (accent is { } a)
+        {
+            screen.DrawRect(new UIBox2(lip.Left, lip.Top, lip.Right, lip.Top + 2f), a);
+        }
+        else
+        {
+            screen.DrawRect(lip, PanelSheen);
+        }
+        screen.DrawRect(new UIBox2(box.Left + Chamfer, box.Bottom - 1f, box.Right - Chamfer, box.Bottom), PanelBevel);
+
+        DrawChamferedEdge(screen, box, edge);
+        DrawGrain(screen, box);
+    }
+
+    /// <summary>
+    /// A tiled noise wash over the panel body. Flat fill is what reads as unfinished; a few percent
+    /// of grain gives the surface a material without adding anything the eye resolves as detail.
+    /// Tiled at native size - stretching noise is immediately obvious.
+    /// </summary>
+    private static void DrawGrain(DrawingHandleScreen screen, UIBox2 box)
+    {
+        if (_grain is not { } tile)
+            return;
+
+        var tint = Color.White.WithAlpha(0.055f);
+        for (var gy = box.Top; gy < box.Bottom; gy += GrainSize)
+        {
+            for (var gx = box.Left; gx < box.Right; gx += GrainSize)
+            {
+                var w = MathF.Min(GrainSize, box.Right - gx);
+                var h = MathF.Min(GrainSize, box.Bottom - gy);
+                screen.DrawTextureRectRegion(tile,
+                    new UIBox2(gx, gy, gx + w, gy + h),
+                    new UIBox2(0, 0, w, h), tint);
+            }
+        }
+    }
+
+    /// <summary>Body of a panel with its four corners cut at 45 degrees.</summary>
+    public static void DrawChamfered(DrawingHandleScreen screen, UIBox2 box, Color color)
+    {
+        var c = MathF.Min(Chamfer, MathF.Min(box.Width, box.Height) * 0.5f);
+
+        screen.DrawRect(new UIBox2(box.Left + c, box.Top, box.Right - c, box.Bottom), color);
+        screen.DrawRect(new UIBox2(box.Left, box.Top + c, box.Left + c, box.Bottom - c), color);
+        screen.DrawRect(new UIBox2(box.Right - c, box.Top + c, box.Right, box.Bottom - c), color);
+
+        // Staircase the cut corners so the diagonal is filled rather than left as a notch.
+        for (var i = 0; i < c; i++)
+        {
+            var inset = c - i;
+            screen.DrawRect(new UIBox2(box.Left + inset, box.Top + i, box.Left + c, box.Top + i + 1f), color);
+            screen.DrawRect(new UIBox2(box.Right - c, box.Top + i, box.Right - inset, box.Top + i + 1f), color);
+            screen.DrawRect(new UIBox2(box.Left + inset, box.Bottom - i - 1f, box.Left + c, box.Bottom - i), color);
+            screen.DrawRect(new UIBox2(box.Right - c, box.Bottom - i - 1f, box.Right - inset, box.Bottom - i), color);
+        }
+    }
+
+    private static void DrawChamferedEdge(DrawingHandleScreen screen, UIBox2 box, Color edge)
+    {
+        var c = MathF.Min(Chamfer, MathF.Min(box.Width, box.Height) * 0.5f);
+
+        screen.DrawLine(new Vector2(box.Left + c, box.Top), new Vector2(box.Right - c, box.Top), edge);
+        screen.DrawLine(new Vector2(box.Left + c, box.Bottom), new Vector2(box.Right - c, box.Bottom), edge);
+        screen.DrawLine(new Vector2(box.Left, box.Top + c), new Vector2(box.Left, box.Bottom - c), edge);
+        screen.DrawLine(new Vector2(box.Right, box.Top + c), new Vector2(box.Right, box.Bottom - c), edge);
+
+        screen.DrawLine(new Vector2(box.Left, box.Top + c), new Vector2(box.Left + c, box.Top), edge);
+        screen.DrawLine(new Vector2(box.Right - c, box.Top), new Vector2(box.Right, box.Top + c), edge);
+        screen.DrawLine(new Vector2(box.Left, box.Bottom - c), new Vector2(box.Left + c, box.Bottom), edge);
+        screen.DrawLine(new Vector2(box.Right - c, box.Bottom), new Vector2(box.Right, box.Bottom - c), edge);
     }
 
     /// <summary>Text with a hard offset shadow, for labels that sit on the world with no panel.</summary>
@@ -152,7 +233,8 @@ public sealed partial class WaveHudOverlay
         var lowHp = health <= 0.3f || HealthInCrit;
 
         var panelBox = new UIBox2(x, top, x + VitalsWidth, bottom);
-        DrawPanel(screen, panelBox, VitalsBack, lowHp ? VitalsEdgeHot : VitalsEdge);
+        DrawPanel(screen, panelBox, VitalsBack, lowHp ? VitalsEdgeHot : VitalsEdge,
+            lowHp ? FSPalette.HealthLow : FSPalette.HealthFill);
 
         var innerX = x + VitalsPadX;
         var innerW = VitalsWidth - VitalsPadX * 2f;
@@ -162,8 +244,10 @@ public sealed partial class WaveHudOverlay
         var hpText = HealthCurrent.ToString();
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
+        // The bar carries "health is red"; the figure stays neutral until something is wrong, so
+        // going red actually means something rather than being the resting state.
         screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText,
-            lowHp ? HpFillLow : HpFill);
+            lowHp ? HpFillLow : FSPalette.TextBright);
 
         const string healthWord = "HEALTH";
         var wordX = innerX + hpDims.X + 7f;

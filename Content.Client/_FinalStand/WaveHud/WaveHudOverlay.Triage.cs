@@ -42,7 +42,7 @@ public sealed partial class WaveHudOverlay
 
         var x = panelX + panelW0 - TriageWidth;
         var box = new UIBox2(x, top, x + TriageWidth, top + panelH);
-        DrawPanel(screen, box, TriageBack, TriageEdge);
+        DrawPanel(screen, box, TriageBack, TriageEdge, FSPalette.Warn);
 
         var innerX = x + TriagePad;
         var innerRight = x + TriageWidth - TriagePad;
