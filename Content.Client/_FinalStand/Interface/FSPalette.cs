@@ -12,17 +12,17 @@ namespace Content.Client._FinalStand.Interface;
 public static class FSPalette
 {
     // Surfaces
-    public static readonly Color PanelBack = Color.FromHex("#14100d").WithAlpha(0.84f);
-    public static readonly Color PanelDeep = Color.FromHex("#0d0a08").WithAlpha(0.88f);
-    public static readonly Color PanelEdge = Color.FromHex("#6e6253").WithAlpha(0.24f);
+    public static readonly Color PanelBack = Color.FromHex("#121010").WithAlpha(0.84f);
+    public static readonly Color PanelDeep = Color.FromHex("#0b0a0a").WithAlpha(0.88f);
+    public static readonly Color PanelEdge = Color.FromHex("#67635e").WithAlpha(0.24f);
     public static readonly Color PanelEdgeHot = Color.FromHex("#b3402f").WithAlpha(0.50f);
     public static readonly Color PanelShadow = Color.Black.WithAlpha(0.38f);
     public static readonly Color PanelSheen = Color.White.WithAlpha(0.05f);
 
     // Type
-    public static readonly Color TextBright = Color.FromHex("#e3dccf");
-    public static readonly Color TextMuted = Color.FromHex("#9b9284");
-    public static readonly Color TextDim = Color.FromHex("#6f6659");
+    public static readonly Color TextBright = Color.FromHex("#dfdcd7");
+    public static readonly Color TextMuted = Color.FromHex("#96938d");
+    public static readonly Color TextDim = Color.FromHex("#6a6761");
 
     // Signals. Low chroma on purpose: these mark state, they do not glow.
     public static readonly Color Danger = Color.FromHex("#b3402f");
@@ -42,17 +42,17 @@ public static class FSPalette
     public static readonly Color StaminaLow = Color.FromHex("#c08a3e");
 
     // Interactive
-    public static readonly Color ButtonHoverBack = Color.FromHex("#241d17").WithAlpha(0.92f);
-    public static readonly Color ButtonHoverEdge = Color.FromHex("#8b7c69").WithAlpha(0.48f);
-    public static readonly Color ButtonPressBack = Color.FromHex("#4a3520").WithAlpha(0.92f);
+    public static readonly Color ButtonHoverBack = Color.FromHex("#201e1c").WithAlpha(0.92f);
+    public static readonly Color ButtonHoverEdge = Color.FromHex("#827d77").WithAlpha(0.48f);
+    public static readonly Color ButtonPressBack = Color.FromHex("#42362b").WithAlpha(0.92f);
     public static readonly Color ButtonPressEdge = Color.FromHex("#d2a44e").WithAlpha(0.65f);
 
     // Menu chips sit on the bare world, usually over unlit black, so they need more presence than
     // a panel that has its own backdrop. Panel colours made them vanish up there.
-    public static readonly Color ChipBack = Color.FromHex("#2a221a").WithAlpha(0.92f);
-    public static readonly Color ChipEdge = Color.FromHex("#8b7c69").WithAlpha(0.45f);
+    public static readonly Color ChipBack = Color.FromHex("#252320").WithAlpha(0.92f);
+    public static readonly Color ChipEdge = Color.FromHex("#827d77").WithAlpha(0.45f);
 
     // Cell backgrounds inside panels (perk sockets, throwable cell, pills).
-    public static readonly Color CellBack = Color.FromHex("#1b1611").WithAlpha(0.80f);
-    public static readonly Color CellEdge = Color.FromHex("#6e6253").WithAlpha(0.18f);
+    public static readonly Color CellBack = Color.FromHex("#181615").WithAlpha(0.80f);
+    public static readonly Color CellEdge = Color.FromHex("#67635e").WithAlpha(0.18f);
 }
