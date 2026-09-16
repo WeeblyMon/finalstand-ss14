@@ -9,7 +9,7 @@
     solution:
       maxVol: 10
   - type: SolutionInjectOnEmbed
-    transferAmount: 10
+    transferAmount: 1
     solution: injector
 
 - type: latheRecipe
@@ -37,10 +37,10 @@
   - type: SolutionContainerManager
     solutions:
       pack:
-        maxVol: 60
+        maxVol: 200
   - type: SolutionAmmoProvider
     solutionId: pack
-    fireCost: 5
+    fireCost: 1
     proto: FSChemistSyringe
   - type: RefillableSolution
     solution: pack
@@ -76,10 +76,10 @@
   - type: SolutionContainerManager
     solutions:
       pack:
-        maxVol: 60
+        maxVol: 200
         reagents:
         - ReagentId: Bicaridine
-          Quantity: 60
+          Quantity: 200
 
 - type: entity
   parent: FSSyringePack
@@ -97,10 +97,10 @@
   - type: SolutionContainerManager
     solutions:
       pack:
-        maxVol: 60
+        maxVol: 200
         reagents:
         - ReagentId: Kelotane
-          Quantity: 60
+          Quantity: 200
 
 - type: latheRecipe
   id: FSSyringePack
@@ -126,7 +126,49 @@
   - type: SolutionContainerManager
     solutions:
       pack:
-        maxVol: 60
+        maxVol: 200
         reagents:
         - ReagentId: Tricordrazine
-          Quantity: 60
+          Quantity: 200
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackCombatStim
+  name: combat stim syringe magazine
+  suffix: Combat Stim
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#4FBF7A"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: FSCombatStim
+          Quantity: 200
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackAdrenalSurge
+  name: adrenal surge syringe magazine
+  suffix: Adrenal Surge
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#F0813C"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: FSAdrenalSurge
+          Quantity: 200

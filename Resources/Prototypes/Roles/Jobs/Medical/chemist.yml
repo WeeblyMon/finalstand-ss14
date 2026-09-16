@@ -26,8 +26,9 @@
     - FSHarvestSatchel
     - LauncherSyringe
     - FSSyringePackBicaridine
-    - FSSyringePackBicaridine
     - FSSyringePackKelotane
+    - FSSyringePackCombatStim
+    - FSSyringePackAdrenalSurge
     - FSSplashFlaskCombatStim
     - FSSplashFlaskCorrosive
 

@@ -36,7 +36,7 @@
   - type: SolutionContainerManager
     solutions:
       pack:
-        maxVol: 90
+        maxVol: 240
 
 - type: latheRecipe
   id: FSSyringePackLarge
