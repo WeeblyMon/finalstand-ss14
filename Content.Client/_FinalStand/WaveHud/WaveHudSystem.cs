@@ -10,6 +10,7 @@ using Robust.Client.Graphics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Robust.Client.Player;
+using Content.Client.UserInterface.Screens;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Player;
@@ -77,6 +78,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateThrowables(overlay);
         UpdateDownedDim(overlay);
         UpdateAlertsAnchor(overlay);
+        UpdateChatClearance(overlay);
         UpdateTriage(overlay);
 
         if (!overlay.IsDarkWave)
@@ -121,6 +123,14 @@ public sealed partial class WaveHudSystem : EntitySystem
         var lift = WaveHudOverlay.BottomBandLift + overlay.VitalsBlockHeight() + 6f;
         LayoutContainer.SetMarginTop(_alerts, -lift);
         LayoutContainer.SetMarginBottom(_alerts, -lift);
+    }
+
+    // The weapon module grows with what is held, so the chat's default resting height cannot be a
+    // constant - it has to follow the stack the overlay actually drew.
+    private void UpdateChatClearance(WaveHudOverlay overlay)
+    {
+        if (_ui.ActiveScreen is DefaultGameScreen screen)
+            screen.SetRightStackLift(overlay.RightStackHeight);
     }
 
     private static Control? FindByName(Control parent, string name, int depth)

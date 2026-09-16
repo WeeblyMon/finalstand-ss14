@@ -20,6 +20,13 @@ public sealed partial class WaveHudOverlay
     private const float WeaponPanelW = 356f;
     private const float WeaponPanelPad = 8f;
     private const float WeaponPanelMinH = 46f;
+
+    /// <summary>Weapon module plus the throwables row above it, at their smallest. Only a starting
+    /// value - the module grows with the equipped weapon, so read <see cref="RightStackHeight"/>.</summary>
+    public const float RightStackMinHeight = WeaponPanelMinH + 6f + 46f;
+
+    /// <summary>Measured height of that stack above the band, as last drawn.</summary>
+    public float RightStackHeight = RightStackMinHeight;
     private const float HintPadX = 6f;
     private const float HintPadY = 3f;
 
