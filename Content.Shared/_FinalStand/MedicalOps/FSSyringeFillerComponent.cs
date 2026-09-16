@@ -19,4 +19,7 @@ public sealed partial class FSSyringeFillerComponent : Component
 
     [DataField, AutoNetworkedField]
     public TimeSpan? FinishAt;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan StartedAt;
 }

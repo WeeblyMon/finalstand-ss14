@@ -1,0 +1,41 @@
+<DefaultWindow
+    xmlns="https://spacestation14.io"
+    Title="Syringe Filler"
+    MinWidth="320"
+    MinHeight="260"
+    Resizable="False">
+
+    <BoxContainer Orientation="Vertical" Margin="10" SeparationOverride="4">
+
+        <Label Text="SOURCE" StyleClasses="LabelSubText" />
+        <PanelContainer Name="SourcePanel">
+            <BoxContainer Orientation="Vertical" Margin="6" SeparationOverride="2">
+                <Label Name="SourceNameLabel" />
+                <Label Name="SourceContentsLabel" StyleClasses="LabelSubText" />
+                <ProgressBar Name="SourceBar" MaxValue="1" Value="0" MinHeight="6" />
+            </BoxContainer>
+        </PanelContainer>
+        <Button Name="EjectSourceButton" Text="Eject container" Margin="0 2 0 8" />
+
+        <Label Text="MAGAZINE" StyleClasses="LabelSubText" />
+        <PanelContainer Name="MagazinePanel">
+            <BoxContainer Orientation="Vertical" Margin="6" SeparationOverride="2">
+                <Label Name="MagazineNameLabel" />
+                <Label Name="MagazineContentsLabel" StyleClasses="LabelSubText" />
+                <ProgressBar Name="MagazineBar" MaxValue="1" Value="0" MinHeight="6" />
+                <Label Name="DartsLabel" StyleClasses="LabelSubText" />
+            </BoxContainer>
+        </PanelContainer>
+        <Button Name="EjectMagazineButton" Text="Eject magazine" Margin="0 2 0 8" />
+
+        <Label Name="StatusLabel" Margin="0 0 0 4" />
+        <ProgressBar Name="WorkBar" MaxValue="1" Value="0" MinHeight="8" Visible="False" Margin="0 0 0 4" />
+
+        <BoxContainer Orientation="Horizontal" SeparationOverride="4">
+            <Button Name="PurgeButton" Text="Purge" HorizontalExpand="True" />
+            <Button Name="FillButton" Text="Fill" HorizontalExpand="True" />
+        </BoxContainer>
+
+    </BoxContainer>
+
+</DefaultWindow>

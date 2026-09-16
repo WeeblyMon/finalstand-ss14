@@ -47,6 +47,12 @@
           tags:
           - FSSyringeMagazine
         ejectOnBreak: true
+  - type: UserInterface
+    interfaces:
+      enum.FSSyringeFillerUiKey.Key:
+        type: FSSyringeFillerBoundUserInterface
+  - type: ActivatableUI
+    key: enum.FSSyringeFillerUiKey.Key
   - type: ContainerContainer
     containers:
       source: !type:ContainerSlot
