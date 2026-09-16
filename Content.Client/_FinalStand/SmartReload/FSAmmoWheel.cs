@@ -2,7 +2,7 @@ using Content.Shared._FinalStand.Utility;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Containers.ItemSlots;
-using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Content.Shared.Whitelist;
 using Robust.Client.Player;
@@ -52,13 +52,35 @@ public sealed class FSAmmoWheel : EntitySystem
         if (found.Count == 0)
             return false;
 
-        var options = new List<RadialMenuOptionBase>(found.Count);
+        // Interchangeable magazines are one choice, not several. Carrying five spare mags used to
+        // fill the wheel with five identical wedges, which is a menu that answers nothing.
+        var groups = new List<(EntityUid Best, int BestCount, int Total)>();
+        var index = new Dictionary<string, int>();
+
         foreach (var mag in found)
+        {
+            var key = MetaData(mag).EntityPrototype?.ID ?? Name(mag);
+            var count = AmmoCount(mag);
+
+            if (!index.TryGetValue(key, out var at))
+            {
+                index[key] = groups.Count;
+                groups.Add((mag, count, 1));
+                continue;
+            }
+
+            var (best, bestCount, total) = groups[at];
+            // The fullest one represents the group - it is the one you would have reached for.
+            groups[at] = count > bestCount ? (mag, count, total + 1) : (best, bestCount, total + 1);
+        }
+
+        var options = new List<RadialMenuOptionBase>(groups.Count);
+        foreach (var (mag, _, total) in groups)
         {
             options.Add(new RadialMenuActionOption<EntityUid>(Select, mag)
             {
                 IconSpecifier = RadialMenuIconSpecifier.With(mag),
-                ToolTip = Name(mag) + AmmoSuffix(mag),
+                ToolTip = Name(mag) + AmmoSuffix(mag) + (total > 1 ? $" x{total}" : string.Empty),
             });
         }
 
@@ -103,14 +125,20 @@ public sealed class FSAmmoWheel : EntitySystem
         }
     }
 
+    // The generic query every provider answers - ballistic, battery, revolver, solution - rather
+    // than a branch per component type that silently returns nothing for the ones not listed.
+    private (int Count, int Capacity) Ammo(EntityUid mag)
+    {
+        var ev = new GetAmmoCountEvent();
+        RaiseLocalEvent(mag, ref ev);
+        return (ev.Count, ev.Capacity);
+    }
+
+    private int AmmoCount(EntityUid mag) => Ammo(mag).Count;
+
     private string AmmoSuffix(EntityUid mag)
     {
-        if (TryComp<BallisticAmmoProviderComponent>(mag, out var ballistic))
-            return $" ({ballistic.UnspawnedCount + ballistic.Entities.Count}/{ballistic.Capacity})";
-
-        if (TryComp<SolutionAmmoProviderComponent>(mag, out var solution))
-            return $" ({solution.Shots}/{solution.MaxShots})";
-
-        return string.Empty;
+        var (count, capacity) = Ammo(mag);
+        return capacity > 0 ? $" ({count}/{capacity})" : string.Empty;
     }
 }
