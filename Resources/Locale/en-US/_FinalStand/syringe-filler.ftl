@@ -1,0 +1,9 @@
+fs-syringe-filler-slot-source = Beaker or jug
+fs-syringe-filler-slot-magazine = Syringe magazine
+fs-syringe-filler-unpowered = The filler has no power.
+fs-syringe-filler-source-empty = The container is empty.
+fs-syringe-filler-full = That magazine is already full.
+fs-syringe-filler-mixed = The magazine holds something else. Purge it first.
+fs-syringe-filler-done = The magazine is filled.
+fs-syringe-filler-purge-verb = Purge magazine
+fs-syringe-filler-purged = The magazine is emptied.
