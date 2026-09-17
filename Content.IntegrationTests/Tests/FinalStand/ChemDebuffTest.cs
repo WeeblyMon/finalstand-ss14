@@ -34,13 +34,18 @@ public sealed class ChemDebuffTest : GameTest
             enemy = entMan.SpawnEntity(ArmouredEnemy, map.GridCoords);
             var armor = entMan.GetComponent<FSArmorComponent>(enemy);
 
+            Assert.That(armor.MaxArmor, Is.GreaterThan(0f), "the test enemy has no armour to strip");
+
             armor.CurrentArmor = 0f;
             armor.RegenDelayAccumulator = 0f;
 
             reactive.DoEntityReaction(enemy, new Solution("FSSolvent", 20), ReactionMethod.Touch);
 
-            Assert.That(entMan.HasComponent<FSArmorSuppressedComponent>(enemy), Is.True,
-                "guns already shred armour - the chemist's job is keeping it down");
+            // Solvent removes the ceiling rather than pausing regen, so there is nothing left to
+            // grow back into. This asserted the old FSArmorSuppressedComponent and was never
+            // updated when that changed.
+            Assert.That(armor.MaxArmor, Is.EqualTo(0f).Within(0.01f),
+                "guns already shred armour - the chemist's job is making sure it stays gone");
         });
 
         await Pair.RunTicksSync(30);
