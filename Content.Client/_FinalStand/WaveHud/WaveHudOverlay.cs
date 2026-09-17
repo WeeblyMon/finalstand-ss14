@@ -143,6 +143,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public readonly List<MedicalBuffRow> MedicalBuffs = new();
 
+    public int MedicalFund;
+    public bool ShowMedicalFund;
+
     public string? HarvestStatus;
     public bool HarvestCapped;
     public float HarvestStock;
@@ -178,6 +181,15 @@ public sealed partial class WaveHudOverlay : Overlay
         const float life = 2.5f;
         _interestPopups.Add(new InterestPopup(PerkId, amount, life, life));
     }
+
+    public void AddHealPayout(int amount, bool diminished)
+    {
+        const float life = 1.6f;
+        _healPayouts.Add(new HealPayout(amount, diminished, life, life));
+    }
+
+    private readonly record struct HealPayout(int Amount, bool Diminished, float Life, float TotalLife);
+    private readonly List<HealPayout> _healPayouts = new();
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -526,6 +538,14 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
             FSPalette.Money);
 
+        if (ShowMedicalFund)
+        {
+            var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
+            DrawShadowed(screen, _labelFont!,
+                new Vector2(leftX, _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y + 2f),
+                fundText, FSPalette.Ok);
+        }
+
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
         for (var pi = 0; pi < _interestPopups.Count; pi++)
         {
@@ -549,6 +569,19 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
             screen.DrawString(_labelFont!, textPos, amtText, FSPalette.Money.WithAlpha(alpha));
+        }
+
+        for (var hi = 0; hi < _healPayouts.Count; hi++)
+        {
+            var h = _healPayouts[hi];
+            var ht = h.Life / h.TotalLife;
+            var halpha = MathF.Min(1f, ht * 4f);
+            var text = $"+${h.Amount:N0}";
+            var colour = h.Diminished ? FSPalette.TextDim : FSPalette.Ok;
+
+            screen.DrawString(_labelFont!,
+                new Vector2(leftX + creditsW + 10f, _creditsRowY - (1f - ht) * 26f),
+                text, colour.WithAlpha(halpha));
         }
 
         var mouse = _input.MouseScreenPosition.Position;
@@ -642,6 +675,16 @@ public sealed partial class WaveHudOverlay : Overlay
                 _interestPopups.RemoveAt(i);
             else
                 _interestPopups[i] = updated;
+        }
+
+        for (var i = _healPayouts.Count - 1; i >= 0; i--)
+        {
+            var h = _healPayouts[i];
+            var updated = h with { Life = h.Life - args.DeltaSeconds };
+            if (updated.Life <= 0f)
+                _healPayouts.RemoveAt(i);
+            else
+                _healPayouts[i] = updated;
         }
 
         if (_respawnClickCooldown > 0f)

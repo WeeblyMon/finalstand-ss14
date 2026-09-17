@@ -41,6 +41,9 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
         SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
+        SubscribeNetworkEvent<FSHealPayoutEvent>(OnHealPayout);
+        SubscribeNetworkEvent<FSMedicalFundUpdatedEvent>(OnMedicalFund);
+        SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
         SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
         SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
@@ -48,6 +51,15 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
+
+    private void OnHealPayout(FSHealPayoutEvent ev)
+        => EnsureOverlay().AddHealPayout(ev.Credits, ev.Diminished);
+
+    private void OnMedicalFund(FSMedicalFundUpdatedEvent ev)
+        => EnsureOverlay().MedicalFund = ev.Balance;
+
+    private void OnMedicalStatus(FSMedicalStatusEvent ev)
+        => EnsureOverlay().ShowMedicalFund = ev.IsMedical;
 
     private void OnDarkWaveStarted(FSDarkWaveStartedEvent ev)
     {

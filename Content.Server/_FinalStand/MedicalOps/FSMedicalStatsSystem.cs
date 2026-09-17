@@ -15,6 +15,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Server.GameTicking;
+using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -31,6 +32,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPlayerManager _players = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -161,11 +163,20 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (points <= 0)
             return;
 
+        var credits = points * CreditsPerHealPoint;
         Award(healerMind, "healing",
             points: points,
             hpHealed: healed,
-            credits: points * CreditsPerHealPoint,
+            credits: credits,
             fund: points * FundPerHealPoint);
+
+        // The payout tier is the whole diminishing-returns rule made visible. Grey means move on.
+        if (TryComp<MindComponent>(healerMind, out var healerMindComp)
+            && healerMindComp.UserId is { } userId
+            && _players.TryGetSessionById(userId, out var session))
+        {
+            RaiseNetworkEvent(new FSHealPayoutEvent(credits, prior >= DrFullBudget), session);
+        }
 
         AwardSupplier(uid, healerMind, paid);
 

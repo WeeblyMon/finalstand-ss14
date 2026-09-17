@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Mobs.Systems;
 using System.Numerics;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -13,6 +14,7 @@ public sealed class FSMedicPingOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
     private readonly SharedTransformSystem _transform;
+    private readonly MobStateSystem _mobState;
     private readonly SpriteSystem _sprite;
 
     private readonly Texture? _normal;
@@ -33,6 +35,7 @@ public sealed class FSMedicPingOverlay : Overlay
         _entManager = entManager;
         _transform = _entManager.System<SharedTransformSystem>();
         _sprite = _entManager.System<SpriteSystem>();
+        _mobState = _entManager.System<MobStateSystem>();
 
         _normal = TryLoad(cache, "normal");
         _hurt = TryLoad(cache, "hurt");
@@ -80,6 +83,11 @@ public sealed class FSMedicPingOverlay : Overlay
 
             if (!_entManager.TryGetComponent(ping.Target, out TransformComponent? xform)
                 || xform.MapID != args.MapId)
+                continue;
+
+            // The revive badge owns the space over a downed body; two bubbles on one head reads as
+            // a bug and neither is legible.
+            if (_mobState.IsIncapacitated(ping.Target))
                 continue;
 
             var worldPos = _transform.GetWorldPosition(xform);

@@ -18,6 +18,20 @@ public sealed class FSMedicalFundRequestEvent : EntityEventArgs
 {
 }
 
+/// <summary>What a heal just paid, and whether diminishing returns had started biting.</summary>
+[Serializable, NetSerializable]
+public sealed class FSHealPayoutEvent : EntityEventArgs
+{
+    public int Credits;
+    public bool Diminished;
+
+    public FSHealPayoutEvent(int credits, bool diminished)
+    {
+        Credits = credits;
+        Diminished = diminished;
+    }
+}
+
 [Serializable, NetSerializable]
 public sealed class FSMedicalStatusEvent : EntityEventArgs
 {
