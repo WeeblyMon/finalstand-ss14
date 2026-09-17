@@ -13,6 +13,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
+    [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
 
     public override void Initialize()
     {
@@ -46,6 +47,12 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (comp.RequiresScience && !_science.IsScience(deployer))
         {
             _popup.PopupEntity(Loc.GetString("fs-science-only-use"), deployer, deployer);
+            return false;
+        }
+
+        if (comp.RequiresMedical && !_roster.IsMedical(deployer))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medical-only"), deployer, deployer);
             return false;
         }
 

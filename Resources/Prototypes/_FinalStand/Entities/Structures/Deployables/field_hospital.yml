@@ -13,6 +13,8 @@
     state: rollerbed_folded
   - type: FSMedicalOnly
   - type: FSDeployableItem
+    requiresScience: false
+    requiresMedical: true
     deployedProtoId: FSFieldHospitalDeployed
   - type: FSPlaceable
     previewProtoId: FSFieldHospitalDeployed
