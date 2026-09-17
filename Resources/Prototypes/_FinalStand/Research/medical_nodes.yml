@@ -147,7 +147,7 @@
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Medical beam gun reaches 9 metres instead of 6.
+  bonusDescription: Medical beam gun reaches 3 metres further.
 
 - type: fsTechNode
   id: FSMedicalHaemostaticBeam
@@ -201,7 +201,7 @@
   cost: 1600
   prerequisiteGroups:
   - [ FSMedicalFocusedEmitters, FSMedicalRapidCycling ]
-  bonusDescription: Emergency defibrillators recharge in 40 seconds instead of 60.
+  bonusDescription: Emergency defibrillators recharge a third faster.
 
 # ── Line B: Trauma (field hospital, casualty recovery, bone stapler) ──────────────────────────
 
@@ -215,7 +215,7 @@
   tier: 2
   cost: 700
   exclusiveGroup: FSMedicalTentDoctrine
-  bonusDescription: The field hospital pitches in 3 seconds instead of 6. Excludes Reinforced Canvas.
+  bonusDescription: The field hospital pitches in half the time. Excludes Reinforced Canvas.
 
 - type: fsTechNode
   id: FSMedicalReinforcedCanvas
@@ -240,7 +240,7 @@
   cost: 1100
   prerequisiteGroups:
   - [ FSMedicalAutoclaveKit, FSMedicalReinforcedCanvas ]
-  bonusDescription: Bone staplers recharge in 30 seconds instead of 45. Still a partial mend.
+  bonusDescription: Bone staplers recharge a third faster. Still a partial mend.
 
 - type: fsTechNode
   id: FSMedicalRecoveryUplink
@@ -350,7 +350,7 @@
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Harvest satchels draw from 12 metres instead of 8, so the chemist can stand further back.
+  bonusDescription: Harvest satchels draw 4 metres further, so the chemist can stand further back.
 
 - type: fsTechNode
   id: FSMedicalWideSpectrumRendering
@@ -376,7 +376,7 @@
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: The per-wave harvest ceiling rises from 120u to 180u. Still capped.
+  bonusDescription: The per-wave harvest ceiling rises by half. Still capped.
 
 - type: fsTechNode
   id: FSMedicalExtendedMagazines
@@ -389,7 +389,7 @@
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: Unlocks the extended syringe magazine - 18 darts instead of 12.
+  bonusDescription: Unlocks the extended syringe magazine - 240 darts instead of 200, and a full jug fills either.
   vanillaTechnologyId: FSExtendedMagazines
 
 - type: fsTechNode
@@ -470,3 +470,55 @@
   prerequisites:
   - FSMedicalExtendedProtocol
   bonusDescription: Mass Casualty Protocol returns after 80 seconds instead of 120.
+
+- type: fsTechNode
+  id: FSMedicalCellEfficiency
+  name: Cell Efficiency
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: high
+  branch: Medical
+  tier: 2
+  cost: 700
+  prerequisites:
+  - FSMedicalExtendedOptics
+  bonusDescription: The medical beam gun draws 40% less charge, so one cell holds the line far longer.
+
+- type: fsTechNode
+  id: FSMedicalDefibrillatorOutput
+  name: Defibrillator Output
+  icon:
+    sprite: Objects/Specific/Medical/defib.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalCapacitorRecovery
+  bonusDescription: Emergency defibrillators bring a patient back at 35% health instead of 20%.
+
+- type: fsTechNode
+  id: FSMedicalSterileField
+  name: Sterile Field
+  icon:
+    sprite: _FinalStand/Structures/field_hospital.rsi
+    state: tent
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalBoneWelder
+  bonusDescription: Surgery inside the field hospital runs half again as fast. Only on the tent.
+
+- type: fsTechNode
+  id: FSMedicalHighFlowManifold
+  name: High-Flow Manifold
+  icon:
+    sprite: Objects/Specific/Chemistry/jug.rsi
+    state: icon_empty
+  branch: Medical
+  tier: 2
+  cost: 700
+  prerequisites:
+  - FSMedicalLongRangeCollectors
+  bonusDescription: The syringe filler decants more than twice as fast - a full magazine in seconds.

@@ -1,7 +1,7 @@
 - type: entity
   id: FSSyringeFiller
   name: Syringe Filler
-  description: Decants a beaker or jug into a syringe magazine. Insert both; it runs on its own.
+  description: Decants a beaker, bottle or jug into a syringe magazine. Insert both; it runs on its own.
   placement:
     mode: SnapgridCenter
   components:
@@ -40,6 +40,7 @@
           tags:
           - GlassBeaker
           - ChemDispensable
+          - Bottle
         ejectOnBreak: true
       magazine:
         name: fs-syringe-filler-slot-magazine

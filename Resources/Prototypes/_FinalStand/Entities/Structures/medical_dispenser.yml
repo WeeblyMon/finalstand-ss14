@@ -1,9 +1,9 @@
 - type: vendingMachineInventory
   id: FSMedicalDispenserInventory
   startingInventory:
-    FSSplashFlask: 8
-    FSSyringePack: 6
-    FSChemistSyringe: 4
+    FSSplashFlask: 40
+    FSSyringePack: 40
+    FSChemistSyringe: 20
 
 - type: entity
   parent: VendingMachineMedicalBase

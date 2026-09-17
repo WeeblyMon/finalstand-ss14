@@ -1,4 +1,4 @@
-fs-syringe-filler-slot-source = Beaker or jug
+fs-syringe-filler-slot-source = Beaker, bottle or jug
 fs-syringe-filler-slot-magazine = Syringe magazine
 fs-syringe-filler-slot-empty = [ empty ]
 fs-syringe-filler-empty = empty
@@ -7,7 +7,7 @@ fs-syringe-filler-mixture = { $reagent } mixture
 fs-syringe-filler-darts = { $darts } / { $max } darts  ·  { $units }u of { $maxunits }u
 fs-syringe-filler-ready = Ready to transfer { $units }u.
 fs-syringe-filler-working = Filling...
-fs-syringe-filler-needs-source = Insert a beaker or jug.
+fs-syringe-filler-needs-source = Insert a beaker, bottle or jug.
 fs-syringe-filler-needs-magazine = Insert a syringe magazine.
 fs-syringe-filler-unpowered = The filler has no power.
 fs-syringe-filler-source-empty = The container is empty.
