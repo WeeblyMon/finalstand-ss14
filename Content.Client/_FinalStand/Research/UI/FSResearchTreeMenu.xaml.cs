@@ -349,6 +349,17 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     }
 
     // Shows FS's own banked RP, not vanilla ResearchServerComponent.Points.
+    /// <summary>The viewer's own share of the pot. Negative until the server says.</summary>
+    public int ViewerContribution = -1;
+    public int DepartmentEarned;
+
+    public void SetContribution(int contributed, int earned)
+    {
+        ViewerContribution = contributed;
+        DepartmentEarned = earned;
+        UpdateResearchAmountLabel();
+    }
+
     private void UpdateResearchAmountLabel()
     {
         var points = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var fsDb) ? fsDb.Points : 0;
@@ -359,6 +370,12 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
                 ? "fs-medical-research-funds-text"
                 : "research-console-menu-research-points-text",
             ("points", points)));
+
+        if (IsMedicalTrack() && ViewerContribution >= 0)
+        {
+            amountMsg.AddMarkupOrThrow(Loc.GetString("fs-medical-research-contribution-text",
+                ("contributed", ViewerContribution), ("earned", DepartmentEarned)));
+        }
 
         ResearchAmountLabel.SetMessage(amountMsg);
     }

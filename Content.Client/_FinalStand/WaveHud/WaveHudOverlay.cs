@@ -144,6 +144,12 @@ public sealed partial class WaveHudOverlay : Overlay
     public readonly List<MedicalBuffRow> MedicalBuffs = new();
 
     public int MedicalFund;
+
+    // Set when a directive changes; decays in FrameUpdate.
+    public float DirectiveFlash;
+    public Color DirectiveFlashColour = FSPalette.Ok;
+
+    public int MedicalFundUnused;
     public bool ShowMedicalFund;
 
     public string? HarvestStatus;
@@ -571,6 +577,23 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawString(_labelFont!, textPos, amtText, FSPalette.Money.WithAlpha(alpha));
         }
 
+        if (DirectiveFlash > 0f)
+        {
+            var wash = DirectiveFlashColour.WithAlpha(MathF.Min(0.30f, DirectiveFlash * 0.30f));
+            const int frames = 22;
+
+            for (var i = 0; i < frames; i++)
+            {
+                var inset = i * 3f;
+                var a = wash.WithAlpha(wash.A * (1f - i / (float) frames));
+
+                screen.DrawRect(new UIBox2(inset, inset, screenSize.X - inset, inset + 3f), a);
+                screen.DrawRect(new UIBox2(inset, screenSize.Y - inset - 3f, screenSize.X - inset, screenSize.Y - inset), a);
+                screen.DrawRect(new UIBox2(inset, inset, inset + 3f, screenSize.Y - inset), a);
+                screen.DrawRect(new UIBox2(screenSize.X - inset - 3f, inset, screenSize.X - inset, screenSize.Y - inset), a);
+            }
+        }
+
         for (var hi = 0; hi < _healPayouts.Count; hi++)
         {
             var h = _healPayouts[hi];
@@ -686,6 +709,9 @@ public sealed partial class WaveHudOverlay : Overlay
             else
                 _healPayouts[i] = updated;
         }
+
+        if (DirectiveFlash > 0f)
+            DirectiveFlash = MathF.Max(0f, DirectiveFlash - args.DeltaSeconds * 2f);
 
         if (_respawnClickCooldown > 0f)
             _respawnClickCooldown -= args.DeltaSeconds;

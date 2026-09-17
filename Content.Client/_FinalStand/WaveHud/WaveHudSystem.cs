@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
@@ -50,6 +51,13 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
         _client.PlayerJoinedServer += OnPlayerJoinedServer;
+    }
+
+    public void FlashDirective(Color colour)
+    {
+        var overlay = EnsureOverlay();
+        overlay.DirectiveFlashColour = colour;
+        overlay.DirectiveFlash = 1f;
     }
 
     private void OnHealPayout(FSHealPayoutEvent ev)
@@ -214,6 +222,10 @@ public sealed partial class WaveHudSystem : EntitySystem
         return false;
     }
 
+    // The directive source appearing or changing is the moment the order lands on this medic, so
+    // the wash is driven off the buff list rather than a second piece of state plumbing.
+    private string? _lastDirectiveSource;
+
     private void UpdateBuffStatus(WaveHudOverlay overlay)
     {
         overlay.MedicalBuffs.Clear();
@@ -241,6 +253,12 @@ public sealed partial class WaveHudSystem : EntitySystem
                 ? (int) Math.Ceiling((end - now).TotalSeconds)
                 : -1;
 
+            if (source == DirectiveSource && _lastDirectiveSource != label)
+            {
+                _lastDirectiveSource = label;
+                FlashDirective(FSPalette.Ok);
+            }
+
             overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
                 label,
                 chem ? BuffIconKey(source) : "buff_" + source,
@@ -251,7 +269,8 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     // The CMO's orders already reach every medic as buffs; they were just never shown to anyone
     // but the CMO.
-    private static readonly string[] CmoSources = ["directive", "mcp", "mobilisation", "doctrine"];
+    private const string DirectiveSource = "directive";
+    private static readonly string[] CmoSources = [DirectiveSource, "mcp", "mobilisation", "doctrine"];
 
     // Icon keys resolve to /Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png and fall back when absent.
     private static string BuffIconKey(string source)

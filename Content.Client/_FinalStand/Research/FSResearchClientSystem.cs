@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Components;
 using Content.Shared._FinalStand.Research.Prototypes;
@@ -13,6 +14,7 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
     public event Action<string>? AuthorityDenied;
     public event Action? PersonalPickChanged;
     public event Action? SharedResearchChanged;
+    public event Action<int, int>? ContributionReceived;
 
     public ProtoId<FSTechNodePrototype>? MyPersonalPickId { get; private set; }
     public int MyPersonalProgress { get; private set; }
@@ -31,6 +33,7 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
         SubscribeNetworkEvent<FSPersonalResearchStateEvent>(OnPersonalResearchState);
         SubscribeNetworkEvent<FSPlayerResearchAuthorityEvent>(OnResearchAuthority);
         SubscribeNetworkEvent<FSSharedResearchStateEvent>(OnSharedResearchState);
+        SubscribeNetworkEvent<FSMedicalContributionEvent>(OnContribution);
     }
 
     private void OnAfterHandleState(EntityUid uid, FSTechDatabaseComponent component, ref AfterAutoHandleStateEvent args)
@@ -55,6 +58,9 @@ public sealed class FSResearchClientSystem : SharedFSResearchSystem
     {
         IsRdOrCaptain = ev.IsRdOrCaptain;
     }
+
+    private void OnContribution(FSMedicalContributionEvent ev)
+        => ContributionReceived?.Invoke(ev.Contributed, ev.LifetimeEarned);
 
     private void OnSharedResearchState(FSSharedResearchStateEvent ev)
     {

@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Components;
@@ -14,11 +15,14 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 
+using Content.Shared.Mind;
+
 namespace Content.Server._FinalStand.Research;
 
 public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -37,11 +41,26 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeLocalEvent<FSMedicalResearchComponent, EntityTerminatingEvent>(OnStateTerminating);
         SubscribeLocalEvent<FSMedicalFundBalanceChangedEvent>(OnFundChanged);
+        SubscribeLocalEvent<FSTechDatabaseComponent, BoundUIOpenedEvent>(OnConsoleOpened);
     }
 
     private void OnFundChanged(ref FSMedicalFundBalanceChangedEvent args)
     {
         SyncBalance(args.Balance);
+    }
+
+    // Contribution is tracked per mind and was only ever visible to an admin running fsmedfund.
+    // The console is the one screen where knowing your share changes what you do.
+    private void OnConsoleOpened(Entity<FSTechDatabaseComponent> ent, ref BoundUIOpenedEvent args)
+    {
+        if (ent.Comp.Track != FSResearchTrack.Medical)
+            return;
+
+        var contributed = 0;
+        if (_mind.TryGetMind(args.Actor, out var mindId, out _))
+            contributed = _fund.GetContributions().GetValueOrDefault(mindId);
+
+        RaiseNetworkEvent(new FSMedicalContributionEvent(contributed, _fund.GetLifetimeEarned()), args.Actor);
     }
 
     private void SyncBalance(int balance)

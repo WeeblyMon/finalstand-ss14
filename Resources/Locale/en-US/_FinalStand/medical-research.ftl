@@ -14,3 +14,4 @@ research-technology-fs-heavy-glassware = Heavy Glassware
 research-technology-fs-extended-magazines = Extended Magazines
 research-technology-fs-field-logistics = Field Logistics
 research-technology-fs-forward-aid-station = Forward Aid Station
+fs-medical-research-contribution-text =    [color=#7E9464]your share ${$contributed}[/color] of ${$earned} earned
