@@ -539,3 +539,16 @@
   - FSMedicalDefibrillatorOutput
   - FSMedicalSterileField
   bonusDescription: The end of the tree. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.
+
+- type: fsTechNode
+  id: FSMedicalFocusedNanites
+  name: Focused Nanites
+  icon:
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalCapacitorRecovery
+  bonusDescription: The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.

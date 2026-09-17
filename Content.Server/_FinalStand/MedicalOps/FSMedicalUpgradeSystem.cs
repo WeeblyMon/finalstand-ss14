@@ -22,6 +22,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string RapidCycling = "FSMedicalRapidCycling";
     public const string CapacitorRecovery = "FSMedicalCapacitorRecovery";
     public const string CellEfficiency = "FSMedicalCellEfficiency";
+    public const string FocusedNanites = "FSMedicalFocusedNanites";
     public const string DefibrillatorOutput = "FSMedicalDefibrillatorOutput";
 
     public const string AutoclaveKit = "FSMedicalAutoclaveKit";
@@ -50,7 +51,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public static readonly string[] AllNodes =
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
-        CellEfficiency, DefibrillatorOutput,
+        CellEfficiency, DefibrillatorOutput, FocusedNanites,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
@@ -140,6 +141,11 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
 
         c.BaseBatteryWithdraw ??= c.BatteryWithdraw;
         c.BatteryWithdraw = c.BaseBatteryWithdraw.Value * (Unlocked(CellEfficiency) ? 0.6f : 1f);
+
+        // The only node allowed near the cap, and it moves it 10 points. Surgery, gauze and chems
+        // still own everything past that - the hand-off is the point of the cap.
+        c.BaseSoftCapRatio ??= c.SoftCapRatio;
+        c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
 
         Dirty(ent);
     }

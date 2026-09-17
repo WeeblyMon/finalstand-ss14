@@ -1,5 +1,6 @@
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
+using Content.Shared.Actions.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.GameTicking;
 using Content.Shared.Maps;
@@ -10,6 +11,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -21,6 +23,7 @@ public sealed class FSCasualtyPullSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly EntProtoId ArriveEffect = "EffectFlashBluespace";
 
@@ -45,6 +48,7 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSCasualtyPullActionEvent>(OnPull);
+        SubscribeNetworkEvent<FSCasualtyPullRequestEvent>(OnPullRequest);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawn);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
@@ -59,13 +63,29 @@ public sealed class FSCasualtyPullSystem : EntitySystem
 
         if (_actions.AddAction(ev.Mob, PullActionProto) is { } action)
             _granted[ev.Mob] = action;
+
+        EnsureComp<FSCasualtyPullComponent>(ev.Mob);
+    }
+
+    private void OnPullRequest(FSCasualtyPullRequestEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } doctor
+            || !TryComp<FSCasualtyPullComponent>(doctor, out var pull)
+            || pull.ReadyAt > _timing.CurTime)
+        {
+            return;
+        }
+
+        TryPull(doctor, GetEntity(ev.Patient), null);
     }
 
     private void OnPull(FSCasualtyPullActionEvent args)
     {
-        var doctor = args.Performer;
-        var target = args.Target;
+        TryPull(args.Performer, args.Target, args.Action);
+    }
 
+    private void TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
+    {
         if (target == doctor || TerminatingOrDeleted(target))
             return;
 
@@ -96,9 +116,17 @@ public sealed class FSCasualtyPullSystem : EntitySystem
             return;
         }
 
+        var cooldown = TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120);
+
         // Set before the action starts its own cooldown, so Recovery Uplink applies to this use.
-        _actions.SetUseDelay((args.Action.Owner, args.Action.Comp),
-            TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120));
+        if (action is { } act)
+            _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
+
+        if (TryComp<FSCasualtyPullComponent>(doctor, out var pullComp))
+        {
+            pullComp.ReadyAt = _timing.CurTime + cooldown;
+            Dirty(doctor, pullComp);
+        }
 
         var origin = _xform.GetMapCoordinates(target);
         Spawn(ArriveEffect, origin);
@@ -111,7 +139,6 @@ public sealed class FSCasualtyPullSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("fs-casualty-pull-arrived"), target, target, PopupType.Medium);
 
-        args.Handled = true;
     }
 
     // DoAfters live on the user, so finding one aimed at this casualty means sweeping the runners.

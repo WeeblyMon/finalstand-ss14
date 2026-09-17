@@ -6,6 +6,8 @@ using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Verbs;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Deployables;
@@ -17,6 +19,10 @@ public sealed class FSPackableSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSMedicalOnlySystem _medical = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier PackSound =
+        new SoundPathSpecifier("/Audio/Items/zip.ogg");
     [Dependency] private IGameTiming _timing = default!;
 
     public override void Initialize()
@@ -72,7 +78,12 @@ public sealed class FSPackableSystem : EntitySystem
             NeedHand = true,
         };
 
-        return _doAfter.TryStartDoAfter(args);
+        if (!_doAfter.TryStartDoAfter(args))
+            return false;
+
+        _popup.PopupEntity(Loc.GetString("fs-packable-started"), ent, user);
+        _audio.PlayPvs(PackSound, ent);
+        return true;
     }
 
     private void OnPacked(Entity<FSPackableComponent> ent, ref FSPackDoAfterEvent args)
