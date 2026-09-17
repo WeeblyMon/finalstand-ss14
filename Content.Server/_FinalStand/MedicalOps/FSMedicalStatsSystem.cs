@@ -16,6 +16,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Server.GameTicking;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -29,20 +30,17 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private FSMedicalFundSystem _medFund = default!;
     [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
     private const float DrHalfRate = 0.35f;
-    private const float DrResetDamage = 25f;
     private const float MinPreHealDamage = 10f;
 
-    private const float SelfHealRate = 0.5f;
-
-    private const int CreditsPerHealPoint = 10;
-    private const int SelfHealCreditsPerPoint = 2;
-
-
-    private const int FundPerHealPoint = 5;
+    // Healing yourself scores nothing. Any non-zero rate is a farm: stand somewhere safe, hurt
+    // yourself, top up, repeat. The budget is still consumed so it cannot be laundered later.
+    private const int CreditsPerHealPoint = 16;
+    private const int FundPerHealPoint = 8;
 
     private const int StabilisePoints = 25;
     private const int StabiliseCredits = 250;
@@ -50,8 +48,15 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int RevivePoints = 60;
     private const int ReviveCredits = 500;
     private const int ReviveFund = 300;
-    private const int PatientSavedCredits = 1000;
-    private const int PatientSavedFund = 750;
+
+    // Was 1000/750, which paid more than a revive for doing nothing afterwards. Sustained treatment
+    // is the intended earner now, so the survival bonus is a tail, not the headline.
+    private const int PatientSavedCredits = 400;
+    private const int PatientSavedFund = 300;
+
+    // A revive seconds before the horn cost nothing and paid in full. The patient has to actually
+    // be kept alive for a while for it to read as a save.
+    private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
     public readonly record struct FSMedicalRoundStats(
         int HealingPoints, float HpHealed, int Stabilises, int Revives, int PatientsSaved);
@@ -90,7 +95,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         while (query.MoveNext(out _, out var comp))
         {
             comp.HealedSinceReset.Clear();
-            comp.DamageSinceReset = 0f;
         }
     }
 
@@ -102,7 +106,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             return;
 
         comp.HealedSinceReset.Clear();
-        comp.DamageSinceReset = 0f;
         comp.PendingSaveCredit = null;
     }
 
@@ -119,19 +122,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.DamageDelta is null || args.DamageDelta.Empty)
             return;
 
+        // Taking damage no longer refunds the diminishing-returns budget. It used to clear at 25
+        // damage, so two players could trade a scratch and farm the full-rate tier forever. The
+        // budget now only resets at prep, which is the boundary that is not player-triggerable.
         if (args.DamageIncreased)
-        {
-            if (TryGetPlayerMind(args.Origin, out _))
-                return;
-
-            comp.DamageSinceReset += (float)args.DamageDelta.GetTotal();
-            if (comp.DamageSinceReset >= DrResetDamage)
-            {
-                comp.HealedSinceReset.Clear();
-                comp.DamageSinceReset = 0f;
-            }
             return;
-        }
 
         var healed = -(float)args.DamageDelta.GetTotal();
         if (healed < 1f)
@@ -152,19 +147,18 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         comp.HealedSinceReset[healerMind] = prior + healed;
 
-        var isSelf = _mind.TryGetMind(uid, out var patientMind, out _) && patientMind == healerMind;
-        if (isSelf)
-            paid *= SelfHealRate;
+        if (_mind.TryGetMind(uid, out var patientMind, out _) && patientMind == healerMind)
+            return;
 
         var points = (int)MathF.Round(paid);
         if (points <= 0)
             return;
 
-        Award(healerMind, isSelf ? "self-heal" : "healing",
+        Award(healerMind, "healing",
             points: points,
             hpHealed: healed,
-            credits: points * (isSelf ? SelfHealCreditsPerPoint : CreditsPerHealPoint),
-            fund: isSelf ? 0 : points * FundPerHealPoint);
+            credits: points * CreditsPerHealPoint,
+            fund: points * FundPerHealPoint);
 
         AwardSupplier(uid, healerMind, paid);
 
@@ -208,6 +202,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
             comp.PendingSaveCredit = healerMind;
             comp.PendingSaveWave = _waveRule.GetWaveNumber();
+            comp.PendingSaveAt = _timing.CurTime;
 
             _adminLogger.Add(LogType.Healed, LogImpact.Medium,
                 $"{ToPrettyString(healerMind):healer} revived {ToPrettyString(uid):patient} for {ReviveCredits} credits");
@@ -237,6 +232,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             if (!reviver.IsValid() || comp.PendingSaveWave != args.WaveNumber)
                 continue;
             if (_mobState.IsIncapacitated(uid))
+                continue;
+            if (_timing.CurTime - comp.PendingSaveAt < MinSurvivalForSave)
                 continue;
 
             Award(reviver, "patient-saved", patientsSaved: 1,

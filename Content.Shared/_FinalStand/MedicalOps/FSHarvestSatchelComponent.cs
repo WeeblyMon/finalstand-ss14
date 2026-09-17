@@ -16,7 +16,7 @@ public sealed partial class FSHarvestSatchelComponent : Component
     public string Reagent = "FSBiomass";
 
     [DataField]
-    public float Range = 8f;
+    public float Range = 5f;
 
     [DataField]
     public float PerKill = 4f;

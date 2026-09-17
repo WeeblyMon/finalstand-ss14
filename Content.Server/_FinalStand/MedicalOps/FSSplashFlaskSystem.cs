@@ -76,8 +76,10 @@ public sealed class FSSplashFlaskSystem : EntitySystem
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
 
+            // A splash lands on everyone in the radius at once, so each claim is worth a fraction
+            // of an aimed dart. Otherwise one flask into a stack of eight is eight full claims.
             foreach (var crew in _crewBuffer)
-                _credit.RegisterDelivery(crew, thrower);
+                _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
         }
 
         QueueDel(ent);

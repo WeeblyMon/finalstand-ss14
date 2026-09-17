@@ -94,6 +94,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private void SetActiveDirective(FSMedicalDirective? directive)
     {
         _activeDirective = directive;
+        RefreshDoctrine();
 
         var query = EntityQueryEnumerator<FSCmoPanelComponent>();
         while (query.MoveNext(out var uid, out var panel))
@@ -122,13 +123,25 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SetActiveDirective(null);
     }
 
-    // Triage Doctrine is a standing bonus rather than an order, so it lands the moment it is bought.
+    // Triage Doctrine rides whatever order is standing rather than being a permanent freebie, so
+    // the CMO has to keep issuing directives to get value out of it.
     private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId != FSMedicalUpgradeSystem.TriageDoctrine)
             return;
 
-        ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
+        RefreshDoctrine();
+    }
+
+    private void RefreshDoctrine()
+    {
+        if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine))
+            return;
+
+        if (_activeDirective == null)
+            RemoveFromDepartment(DoctrineSource);
+        else
+            ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
     }
 
     private void OnPanelRequest(FSCmoAbilityRequestEvent ev, EntitySessionEventArgs args)
@@ -176,8 +189,12 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             Dirty(ev.Mob, panel);
         }
 
-        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roster.IsMedical(ev.Mob))
+        if (_activeDirective != null
+            && _upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine)
+            && _roster.IsMedical(ev.Mob))
+        {
             _bonus.ApplyBuff(ev.Mob, DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
+        }
 
         if (_activeDirective is { } active
             && Directives.TryGetValue(active, out var def)
@@ -231,6 +248,12 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             SetActiveDirective(null);
             RemoveFromDepartment(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down", standDown: true);
+
+            if (panel != null)
+            {
+                panel.DirectiveReadyAt = _timing.CurTime + DirectiveCooldown;
+                Dirty(performer, panel);
+            }
 
             _adminLogger.Add(LogType.Action, LogImpact.Low,
                 $"{ToPrettyString(performer):cmo} stood down directive {directive}");

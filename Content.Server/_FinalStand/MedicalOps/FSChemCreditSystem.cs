@@ -40,7 +40,7 @@ public sealed class FSChemCreditSystem : EntitySystem
         _claims.Clear();
     }
 
-    public void RegisterDelivery(EntityUid target, EntityUid deployer)
+    public void RegisterDelivery(EntityUid target, EntityUid deployer, int? budget = null)
     {
         if (target == deployer
             || !HasComp<FSFriendlyFireComponent>(target)
@@ -53,7 +53,7 @@ public sealed class FSChemCreditSystem : EntitySystem
         {
             SupplierMind = mindId,
             Expires = _timing.CurTime + ClaimLifetime,
-            Remaining = FSMedicalPayoutRates.ChemClaimBudget,
+            Remaining = budget ?? FSMedicalPayoutRates.ChemClaimBudget,
         };
     }
 

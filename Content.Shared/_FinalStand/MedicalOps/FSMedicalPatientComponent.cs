@@ -14,4 +14,7 @@ public sealed partial class FSMedicalPatientComponent : Component
 
     [ViewVariables]
     public int PendingSaveWave;
+
+    [ViewVariables]
+    public TimeSpan PendingSaveAt;
 }
