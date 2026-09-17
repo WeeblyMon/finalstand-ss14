@@ -22,15 +22,12 @@ public sealed partial class WaveHudSystem
 
         // Dead first, then critical, then nearest - the order a medic would pick targets in.
         var ordered = new List<(FSCasualtyEntry Entry, float? Range, Vector2? Dir)>(board.Entries.Count);
-        var self = _player.LocalEntity is { } local ? GetNetEntity(local) : (NetEntity?) null;
 
+        // Every casualty is listed, including the viewer's own body. Filtering it out was the one
+        // change between this panel working and not working, and a medic who is down seeing their
+        // own row is the clearest possible proof the feed is alive.
         foreach (var entry in board.Entries)
         {
-            // Your own body is not a casualty you can be dispatched to, and it is the one row that
-            // can never show a bearing.
-            if (self is { } selfNet && entry.Patient == selfNet)
-                continue;
-
             board.BearingTo(entry.Position, out var range, out var dir);
             ordered.Add((entry, range, dir));
         }

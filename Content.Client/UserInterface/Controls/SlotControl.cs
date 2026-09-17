@@ -191,15 +191,26 @@ namespace Content.Client.UserInterface.Controls
             var scale = DefaultButtonSize / SourceArtSize;
 
             MinSize = new Vector2(DefaultButtonSize, DefaultButtonSize);
+
+            // FINALSTAND: the grid stretches a slot to its cell, and a cell is only exactly the slot
+            // size when nothing else in that row or column is bigger. TextureRect defaults to Keep,
+            // which pins the art top-left, while SpriteView draws the item at the centre - so any
+            // stretch slid every item down and right of its own slot. Centre both so they share an
+            // anchor at any size, and keep the slot at its own size so it usually never stretches.
+            HorizontalAlignment = HAlignment.Center;
+            VerticalAlignment = VAlignment.Center;
+
             AddChild(ButtonRect = new TextureRect
             {
                 TextureScale = new Vector2(scale, scale),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Stop
             });
             AddChild(HighlightRect = new TextureRect
             {
                 Visible = false,
                 TextureScale = new Vector2(scale, scale),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Ignore
             });
 
@@ -275,6 +286,7 @@ namespace Content.Client.UserInterface.Controls
             AddChild(BlockedRect = new TextureRect
             {
                 TextureScale = new Vector2(2, 2),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Stop,
                 Visible = false
             });
