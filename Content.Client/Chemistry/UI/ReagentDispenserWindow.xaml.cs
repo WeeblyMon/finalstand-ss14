@@ -239,6 +239,7 @@ namespace Content.Client.Chemistry.UI
 
             UpdateContainerInfo(castState);
             UpdateReagentsList(castState.Inventory);
+            RefreshRecipes();
 
             _entityManager.TryGetEntity(castState.OutputContainerEntity, out var outputContainerEnt);
             View.SetEntity(outputContainerEnt);
@@ -254,8 +255,11 @@ namespace Content.Client.Chemistry.UI
 
         private void RefreshRecipes()
         {
-            var key = _tab + "|" 
+            // The sourceable set belongs in the key. Without it the first plan - computed before
+            // the reagent cards exist - was cached, and only a click on a kit forced a recompute.
+            var key = _tab + "|"
                       + (_target?.ID ?? string.Empty) + "|"
+                      + string.Join(',', Sourceable().OrderBy(x => x)) + "|"
                       + string.Join('|', _held.OrderBy(x => x.Key).Select(x => $"{x.Key}:{x.Value}"));
 
             if (key == _recipeKey)
@@ -403,7 +407,9 @@ namespace Content.Client.Chemistry.UI
                 // nothing they could act on.
                 if (blocked)
                 {
-                    return Loc.GetString("reagent-dispenser-window-field-kit-needs",
+                    return Loc.GetString(kit.Research
+                        ? "reagent-dispenser-window-field-kit-research"
+                        : "reagent-dispenser-window-field-kit-needs",
                         ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName))));
                 }
 
@@ -440,9 +446,11 @@ namespace Content.Client.Chemistry.UI
 
                 if (blocked)
                 {
-                    body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-blocked",
+                    body.AddChild(Sub(Loc.GetString(kit.Research
+                        ? "reagent-dispenser-window-field-kit-blocked-research"
+                        : "reagent-dispenser-window-field-kit-blocked",
                         ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName)))),
-                        Color.FromHex("#C9A227")));
+                        BlockedColor));
                 }
 
                 body.AddChild(Sub(Loc.GetString(kit.Delivery), ReadyColor));

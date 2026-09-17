@@ -1,14 +1,4 @@
 - type: fsFieldKit
-  id: FSFieldKitStabiliser
-  name: fs-field-kit-stabiliser
-  purpose: fs-field-kit-stabiliser-purpose
-  delivery: fs-field-kit-delivery-syringe
-  priority: 0
-  ingredients:
-    Epinephrine: 10
-    TranexamicAcid: 5
-
-- type: fsFieldKit
   id: FSFieldKitCombatStim
   name: fs-field-kit-combat-stim
   purpose: fs-field-kit-combat-stim-purpose
@@ -24,6 +14,7 @@
   purpose: fs-field-kit-etchant-purpose
   delivery: fs-field-kit-delivery-either
   priority: 2
+  research: true
   carried:
   - FSBiomass
   reaction: FSEtchant
@@ -34,6 +25,7 @@
   purpose: fs-field-kit-coagulant-purpose
   delivery: fs-field-kit-delivery-either
   priority: 3
+  research: true
   carried:
   - FSBiomass
   reaction: FSCoagulantMist

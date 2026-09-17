@@ -36,3 +36,5 @@ reagent-dispenser-window-field-kit-ready = ready
 reagent-dispenser-window-guide-line = {$reagents}
 reagent-dispenser-window-guide-empty = No recipes listed.
 reagent-dispenser-window-guide-heat = heat to {$temp}K on a hotplate
+reagent-dispenser-window-field-kit-research = needs to be researched
+reagent-dispenser-window-field-kit-blocked-research = Needs to be researched - the CMO unlocks {$reagents} on the medical research console.
