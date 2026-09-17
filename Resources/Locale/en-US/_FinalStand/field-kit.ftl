@@ -3,7 +3,7 @@ fs-field-kit-delivery-either = Dispense to a beaker, then load a magazine at the
 
 
 fs-field-kit-combat-stim = Combat Stim
-fs-field-kit-combat-stim-purpose = Swings 30% faster for 90 seconds, for whoever it touches.
+fs-field-kit-combat-stim-purpose = +15% damage, +30% swing speed, +20% fire rate and +15% movement for 90 seconds.
 
 fs-field-kit-etchant = Etchant
 fs-field-kit-etchant-purpose = Grants armour penetration for 45 seconds.

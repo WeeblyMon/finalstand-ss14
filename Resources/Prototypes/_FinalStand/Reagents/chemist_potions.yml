@@ -24,7 +24,10 @@
         duration: 90
         colour: "#4FBF7A"
         bonuses:
+          Damage: 0.15
           MeleeSpeed: 0.3
+          FireRate: 0.2
+          Movement: 0.15
   reactiveEffects:
     Acidic:
       methods: [ Touch ]
@@ -35,7 +38,10 @@
         duration: 90
         colour: "#4FBF7A"
         bonuses:
+          Damage: 0.15
           MeleeSpeed: 0.3
+          FireRate: 0.2
+          Movement: 0.15
 
 - type: reagent
   id: FSCorrosive

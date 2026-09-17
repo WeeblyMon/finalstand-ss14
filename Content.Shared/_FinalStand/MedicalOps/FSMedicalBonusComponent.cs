@@ -36,4 +36,6 @@ public enum FSMedicalBonusCategory : byte
     DragSpeed,
     InterruptionResistance,
     MeleeSpeed,
+    FireRate,
+    Damage,
 }

@@ -44,8 +44,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
     // The prototype's chat is 290x~150 on a 1600-wide screen; these are that at 1920.
     private const float ChatDefaultWidth = 348f;
     private const float ChatDefaultHeight = 180f;
-    private const float ChatMaxWidth = 720f;
-    private const float ChatMaxHeight = 560f;
+    private const float ChatMaxWidth = 520f;
+    private const float ChatMaxHeight = 380f;
     private const float ChatMinWidth = 240f;
     private const float ChatMinHeight = 120f;
     private const float ChatToggleWidth = 20f;

@@ -1,8 +1,13 @@
 using Content.Shared.DoAfter;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
+using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Events;
+using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
@@ -13,6 +18,8 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
 
     private const float StackFalloff = 0.5f;
     private const float MaxInterruptionAbsorb = 25f;
@@ -34,6 +41,8 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         FSMedicalBonusCategory.DragSpeed => 0.75f,
         FSMedicalBonusCategory.InterruptionResistance => 0.90f,
         FSMedicalBonusCategory.MeleeSpeed => 0.50f,
+        FSMedicalBonusCategory.FireRate => 0.50f,
+        FSMedicalBonusCategory.Damage => 0.50f,
         _ => 0.50f,
     };
 
@@ -47,6 +56,59 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         SubscribeLocalEvent<FSMedicalBonusComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
+
+        // Keyed on MetaData, not on the component each event is really about: FSPerkBuffSystem owns
+        // GunComponent and MeleeWeaponComponent for these, FSResearchBuffSystem owns TagComponent,
+        // and Robust throws Duplicate Subscriptions at startup for a repeat of the same pair.
+        // MetaData is on every entity, so nothing is silently skipped.
+        SubscribeLocalEvent<MetaDataComponent, GunRefreshModifiersEvent>(OnGunFireRate);
+        SubscribeLocalEvent<MetaDataComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
+        SubscribeLocalEvent<MetaDataComponent, AmmoShotEvent>(OnAmmoShot);
+    }
+
+    private void OnGunFireRate(EntityUid uid, MetaDataComponent meta, ref GunRefreshModifiersEvent args)
+    {
+        var holder = Transform(uid).ParentUid;
+        if (!holder.IsValid() || !_bonusQuery.HasComp(holder))
+            return;
+
+        args.FireRate *= GetScale(holder, FSMedicalBonusCategory.FireRate);
+    }
+
+    private void OnGetMeleeDamage(EntityUid uid, MetaDataComponent meta, ref GetMeleeDamageEvent args)
+    {
+        if (!_bonusQuery.HasComp(args.User))
+            return;
+
+        args.Damage *= GetScale(args.User, FSMedicalBonusCategory.Damage);
+    }
+
+    private void OnAmmoShot(EntityUid uid, MetaDataComponent meta, AmmoShotEvent args)
+    {
+        var holder = Transform(uid).ParentUid;
+        if (!holder.IsValid() || !_bonusQuery.HasComp(holder))
+            return;
+
+        var scale = GetScale(holder, FSMedicalBonusCategory.Damage);
+        if (scale <= 1f)
+            return;
+
+        foreach (var projectile in args.FiredProjectiles)
+        {
+            if (TryComp<ProjectileComponent>(projectile, out var proj))
+                proj.Damage *= scale;
+        }
+    }
+
+    // A gun caches its fire rate until something asks it to recompute, so a buff landing or expiring
+    // mid-fight would otherwise do nothing until the weapon was re-equipped.
+    private void RefreshHeldGuns(EntityUid uid)
+    {
+        foreach (var held in _hands.EnumerateHeld(uid))
+        {
+            if (HasComp<GunComponent>(held))
+                _gun.RefreshModifiers(held);
+        }
     }
 
     private void OnGetMeleeAttackRate(EntityUid uid, MeleeWeaponComponent comp, ref GetMeleeAttackRateEvent args)
@@ -111,6 +173,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
                 Dirty(uid, comp);
 
             _movement.RefreshMovementSpeedModifiers(uid);
+            RefreshHeldGuns(uid);
         }
     }
 
@@ -127,6 +190,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
         Dirty(uid, comp);
         _movement.RefreshMovementSpeedModifiers(uid);
+        RefreshHeldGuns(uid);
     }
 
     public void RemoveBuff(EntityUid uid, string source)
@@ -140,6 +204,7 @@ public sealed class FSMedicalBonusSystem : EntitySystem
             Dirty(uid, comp);
 
         _movement.RefreshMovementSpeedModifiers(uid);
+        RefreshHeldGuns(uid);
     }
 
     public bool HasBuff(EntityUid uid, string source)

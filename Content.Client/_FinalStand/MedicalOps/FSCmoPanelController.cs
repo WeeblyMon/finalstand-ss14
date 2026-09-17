@@ -26,13 +26,12 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color AbilityReady = FSPalette.DangerSoft;
     private static readonly Color AbilityCooling = FSPalette.TextDim;
     // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
-    // Mirrors the band layout in HotbarGui/DefaultGameScreen: hands at the centre line, storage at
-    // 0.6703, so the empty gap between them is centred here.
-    private const float HandsFraction = 0.5f;
-    private const float StorageFraction = 0.6703f;
-    private const float BandGapFraction = (HandsFraction + StorageFraction) / 2f;
-    private const float HandsHalfWidth = 74f;
-    private const float StorageHalfWidth = 56f;
+    // Sits in the band's left gap, between the vitals block and the action bar. Mirrors
+    // WaveHudOverlay's 24px margin plus its 240px vitals block, and DefaultGameScreen's
+    // ActionBarAnchor with the action bar's 6-column width.
+    private const float VitalsRightEdge = 24f + 240f;
+    private const float ActionBarFraction = 0.2995f;
+    private const float ActionsHalfWidth = 114f;
 
     private static readonly Color PanelBg = FSHudStyle.PanelBack;
     private static readonly Color PanelBorder = FSHudStyle.PanelEdge;
@@ -291,14 +290,14 @@ public sealed class FSCmoPanelController : UIController
             return;
 
         // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the
-        // old "gap between inventory and hotbar" arithmetic produced a negative width. The panel
-        // instead sits in the band's own gap, between the centred hands and the storage cluster.
+        // old "gap between inventory and hotbar" arithmetic produced a negative width.
         var screenW = _frame.Parent?.Size.X ?? 0f;
         if (screenW <= 0f)
             return;
 
-        var gapCentre = screenW * BandGapFraction;
-        var available = screenW * (StorageFraction - HandsFraction) - HandsHalfWidth - StorageHalfWidth;
+        var actionsLeft = screenW * ActionBarFraction - ActionsHalfWidth;
+        var gapCentre = (VitalsRightEdge + actionsLeft) * 0.5f;
+        var available = actionsLeft - VitalsRightEdge;
 
         SetNarrow(available < WideLayoutMinimum);
 
