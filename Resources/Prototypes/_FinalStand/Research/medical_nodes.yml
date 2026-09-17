@@ -522,3 +522,20 @@
   prerequisites:
   - FSMedicalLongRangeCollectors
   bonusDescription: The syringe filler decants more than twice as fast - a full magazine in seconds.
+
+- type: fsTechNode
+  id: FSMedicalDepartmentDividend
+  name: Department Dividend
+  icon:
+    sprite: Objects/Economy/cash.rsi
+    state: cash_10
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalMassCasualtyReadiness
+  - FSMedicalAnalgesicChemistry
+  - FSMedicalForwardAidStation
+  - FSMedicalDefibrillatorOutput
+  - FSMedicalSterileField
+  bonusDescription: The end of the tree. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.

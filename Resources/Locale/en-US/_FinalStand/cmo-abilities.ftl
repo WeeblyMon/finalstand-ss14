@@ -49,3 +49,8 @@ fs-cmo-directive-stand-down-name = Directive Lifted
 fs-cmo-directive-stand-down-effects = The standing order has been lifted. Resume normal procedure.
 fs-buff-source-cmo = Medical Command
 fs-cmo-doctrine-short = Triage Doctrine
+
+fs-cmo-dividend = Dividend
+fs-cmo-dividend-name = Department Dividend
+fs-cmo-dividend-effects = Converts $1,500 of department funds into $1,200 split across every medic on duty.
+fs-cmo-dividend-short = Dividend

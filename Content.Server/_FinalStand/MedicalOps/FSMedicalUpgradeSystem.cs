@@ -43,6 +43,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string ExtendedProtocol = "FSMedicalExtendedProtocol";
     public const string TriageDoctrine = "FSMedicalTriageDoctrine";
     public const string MassCasualtyReadiness = "FSMedicalMassCasualtyReadiness";
+    public const string DepartmentDividend = "FSMedicalDepartmentDividend";
 
     // Every node id this system reads. MedicalResearchContentTest asserts each resolves, because a
     // typo here is silently never true rather than an error.
@@ -54,6 +55,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
+        DepartmentDividend,
     ];
 
     private static readonly FrozenSet<string> NodeSet = AllNodes.ToFrozenSet();

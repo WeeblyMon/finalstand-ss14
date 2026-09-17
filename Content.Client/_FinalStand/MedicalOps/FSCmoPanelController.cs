@@ -53,6 +53,7 @@ public sealed class FSCmoPanelController : UIController
     {
         (FSCmoAbility.MassCasualtyProtocol, "fs-cmo-mcp"),
         (FSCmoAbility.Mobilisation, "fs-cmo-mobilisation"),
+        (FSCmoAbility.Dividend, "fs-cmo-dividend"),
     };
 
     private readonly Dictionary<FSCmoAbility, int> _shownSeconds = new();
@@ -255,8 +256,13 @@ public sealed class FSCmoPanelController : UIController
             {
                 FSCmoAbility.MassCasualtyProtocol => panel.McpReadyAt,
                 FSCmoAbility.Mobilisation => panel.MobilisationReadyAt,
+                FSCmoAbility.Dividend => panel.DividendReadyAt,
                 _ => panel.DirectiveReadyAt,
             };
+
+            // Bought with research, so it is absent rather than greyed out until then.
+            if (ability == FSCmoAbility.Dividend)
+                button.Visible = panel.DividendUnlocked;
 
             var remaining = readyAt - _timing.CurTime;
             var cooling = remaining > TimeSpan.Zero;

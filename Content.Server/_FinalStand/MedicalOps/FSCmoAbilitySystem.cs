@@ -1,5 +1,7 @@
 using System.Collections.Frozen;
 using Content.Server.Administration.Logs;
+using Content.Server._FinalStand.Economy;
+using Content.Shared.Mind;
 using Content.Server._FinalStand.Research;
 using Content.Shared.Database;
 using Content.Server.Radio.EntitySystems;
@@ -26,6 +28,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private FSMedicalFundSystem _fund = default!;
+    [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -127,6 +132,16 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     // the CMO has to keep issuing directives to get value out of it.
     private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
     {
+        if (ev.NodeId == FSMedicalUpgradeSystem.DepartmentDividend)
+        {
+            var panels = EntityQueryEnumerator<FSCmoPanelComponent>();
+            while (panels.MoveNext(out var uid, out var panel))
+            {
+                panel.DividendUnlocked = true;
+                Dirty(uid, panel);
+            }
+        }
+
         if (ev.NodeId != FSMedicalUpgradeSystem.TriageDoctrine)
             return;
 
@@ -168,6 +183,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             case FSCmoAbility.DirectiveFieldOps:
                 RunDirective(cmo, FSMedicalDirective.FieldOps);
                 break;
+            case FSCmoAbility.Dividend:
+                RunDividend(cmo);
+                break;
         }
     }
 
@@ -186,6 +204,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         {
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
+            panel.DividendUnlocked = _upgrades.Unlocked(FSMedicalUpgradeSystem.DepartmentDividend);
             Dirty(ev.Mob, panel);
         }
 
@@ -203,6 +222,43 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             _bonus.ApplyBuff(ev.Mob, DirectiveSource, Scaled(def.Bonuses),
                 name: Loc.GetString($"{def.Announcement}-short"));
         }
+    }
+
+    private const int DividendFundCost = 1500;
+    private const int DividendPayout = 1200;
+    private static readonly TimeSpan DividendCooldown = TimeSpan.FromSeconds(300);
+
+    // Deliberately a loss on conversion: this exists so a finished tree is not dead weight, not as
+    // an income stream. Split across the department so it is a department reward, not the CMO's.
+    private void RunDividend(EntityUid performer)
+    {
+        if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.DepartmentDividend))
+            return;
+
+        if (!TryComp<FSCmoPanelComponent>(performer, out var panel) || panel.DividendReadyAt > _timing.CurTime)
+            return;
+
+        var recipients = new List<EntityUid>();
+        foreach (var (_, mob) in _roster.Medics())
+        {
+            if (_mind.TryGetMind(mob, out var mindId, out _))
+                recipients.Add(mindId);
+        }
+
+        if (recipients.Count == 0 || !_fund.TryDeductMedicalFunds(DividendFundCost))
+            return;
+
+        var each = DividendPayout / recipients.Count;
+        foreach (var mindId in recipients)
+            _wallet.GiveCredits(mindId, each);
+
+        panel.DividendReadyAt = _timing.CurTime + DividendCooldown;
+        Dirty(performer, panel);
+
+        Announce(performer, "fs-cmo-dividend");
+
+        _adminLogger.Add(LogType.Action, LogImpact.Medium,
+            $"{ToPrettyString(performer):cmo} paid a department dividend of {each} to {recipients.Count} medics");
     }
 
     private void RunMassCasualtyProtocol(EntityUid performer)

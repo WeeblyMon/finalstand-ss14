@@ -17,6 +17,12 @@ public sealed partial class FSCmoPanelComponent : Component
 
     [DataField, AutoNetworkedField]
     public TimeSpan DirectiveReadyAt;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan DividendReadyAt;
+
+    [DataField, AutoNetworkedField]
+    public bool DividendUnlocked;
 }
 
 [Serializable, NetSerializable]
@@ -27,6 +33,7 @@ public enum FSCmoAbility : byte
     DirectiveTrauma,
     DirectivePharma,
     DirectiveFieldOps,
+    Dividend,
 }
 
 [Serializable, NetSerializable]
