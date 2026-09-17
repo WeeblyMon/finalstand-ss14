@@ -24,6 +24,17 @@
     changeColor: true
   - type: DrainableSolution
     solution: satchel
+  - type: RefillableSolution
+    solution: satchel
+  - type: DrawableSolution
+    solution: satchel
+  - type: MixableSolution
+    solution: satchel
+  - type: FitsInDispenser
+    solution: satchel
+  - type: Tag
+    tags:
+    - ChemDispensable
   - type: SolutionTransfer
     transferAmount: 50
     maxTransferAmount: 250

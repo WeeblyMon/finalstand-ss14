@@ -127,6 +127,22 @@ public sealed class FSCmoPanelController : UIController
         container.AddChild(_frame);
     }
 
+    private static readonly StyleBoxFlat IdleBox = new()
+    {
+        BackgroundColor = FSPalette.PanelBack,
+        BorderColor = FSPalette.PanelEdge,
+        BorderThickness = new Thickness(1),
+    };
+
+    // Lit, not merely undimmed: a filled plate plus a bright edge, so an order that is standing
+    // looks switched on rather than looking like the only button that is not on cooldown.
+    private static readonly StyleBoxFlat LitBox = new()
+    {
+        BackgroundColor = Color.FromHex("#2f4a2b"),
+        BorderColor = FSPalette.Ok,
+        BorderThickness = new Thickness(2),
+    };
+
     // 6px inset + a 16px icon + 6px of air. At 18 the label slid under the icon.
     private const int IconGutter = 28;
 
@@ -288,10 +304,20 @@ public sealed class FSCmoPanelController : UIController
                     : _labels[ability];
             }
 
-            if (directive is { } value)
-                button.Label.FontColorOverride = value == panel.ActiveDirective ? DirectiveActive : DirectiveIdle;
+            var live = isActive;
+
+            if (live)
+            {
+                button.StyleBoxOverride = LitBox;
+                button.Label.FontColorOverride = FSPalette.TextBright;
+            }
             else
-                button.Label.FontColorOverride = cooling ? AbilityCooling : AbilityReady;
+            {
+                button.StyleBoxOverride = IdleBox;
+                button.Label.FontColorOverride = directive != null
+                    ? DirectiveIdle
+                    : cooling ? AbilityCooling : AbilityReady;
+            }
         }
     }
 

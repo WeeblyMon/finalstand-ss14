@@ -41,12 +41,10 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    // Was a flat 20% of the wallet, which compounded: the players who die most paid most and fell
-    // furthest behind. The fee now tracks how far the round has got, and each player has a ceiling
-    // on what a round can take from them in total.
-    private const int BaseCost = 200;
-    private const int CostPerWave = 75;
-    private const int MaxCostPerRound = 2500;
+    // A share of the wallet rather than a flat fee: it scales with how well the round has gone, and
+    // it is free at zero balance, so a player who has nothing is never locked out. Crew can donate
+    // to cover someone who wants to pay their way back rather than wait.
+    private const float CostFraction = 0.20f;
     private const double RequestCooldownSeconds = 2.0;
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastRequest = new();
@@ -77,11 +75,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev) => PushOffer(ev.Player);
 
-    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
-    {
-        _lastRequest.Clear();
-        _spentThisRound.Clear();
-    }
+    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev) => _lastRequest.Clear();
 
     private void OnMobStateChanged(EntityUid uid, MindContainerComponent mindContainer, ref MobStateChangedEvent args)
     {
@@ -130,16 +124,8 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         return true;
     }
 
-    private readonly Dictionary<EntityUid, int> _spentThisRound = new();
-
     private int GetCost(EntityUid mindId)
-    {
-        var spent = _spentThisRound.GetValueOrDefault(mindId);
-        var wave = Math.Max(0, _waveRule.GetWaveNumber());
-        var quoted = BaseCost + wave * CostPerWave;
-
-        return Math.Max(0, Math.Min(quoted, MaxCostPerRound - spent));
-    }
+        => (int) (_wallet.GetCredits(mindId) * CostFraction);
 
     private List<EntityCoordinates> CollectPoints()
     {
@@ -174,8 +160,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
         var cost = GetCost(mindId);
         var charged = _wallet.DeductUpTo(mindId, cost);
-
-        _spentThisRound[mindId] = _spentThisRound.GetValueOrDefault(mindId) + charged;
 
         if (TryComp<PullableComponent>(body, out var pullable))
             _pulling.TryStopPull(body, pullable);

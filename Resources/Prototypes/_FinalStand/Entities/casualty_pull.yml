@@ -11,5 +11,7 @@
     - texture: /Textures/_FinalStand/Interface/CasualtyPull/casualty_pull.png
       map: ["enum.ActionVisuals.Icon"]
   - type: TargetAction
+    checkCanAccess: false
+    range: 0
   - type: EntityTargetAction
     event: !type:FSCasualtyPullActionEvent {}

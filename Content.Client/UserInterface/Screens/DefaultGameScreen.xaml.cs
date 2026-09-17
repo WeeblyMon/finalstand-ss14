@@ -191,11 +191,11 @@ public sealed partial class DefaultGameScreen : InGameScreen
         }
     }
 
-    private void ChatOnResizeFinish(Vector2 _)
+    // SetChatSize reads this back as (height, width), which is vanilla's order. Storing margins
+    // here meant the restored size was whatever the old anchoring happened to imply.
+    private void ChatOnResizeFinish(Vector2 size)
     {
-        var marginBottom = Chat.GetValue<float>(MarginBottomProperty);
-        var marginLeft = Chat.GetValue<float>(MarginLeftProperty);
-        OnChatResized?.Invoke(new Vector2(marginBottom, marginLeft));
+        OnChatResized?.Invoke(new Vector2(size.Y, size.X));
     }
 
     public override ChatBox ChatBox => Chat;

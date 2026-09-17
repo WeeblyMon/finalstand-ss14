@@ -14,7 +14,7 @@
   desc: reagent-desc-fs-combat-stim
   physicalDesc: reagent-physical-desc-cloudy
   flavor: bitter
-  color: "#4FBF7A"
+  color: "#4FBF7AA0"
   metabolisms:
     Medicine:
       effects:
@@ -50,7 +50,7 @@
   desc: reagent-desc-fs-corrosive
   physicalDesc: reagent-physical-desc-acrid
   flavor: bitter
-  color: "#B5D33A"
+  color: "#B5D33AA0"
   reactiveEffects:
     Acidic:
       methods: [ Touch ]
@@ -87,7 +87,7 @@
   desc: reagent-desc-fs-solvent
   physicalDesc: reagent-physical-desc-acrid
   flavor: bitter
-  color: "#C9762E"
+  color: "#C9762EA0"
   reactiveEffects:
     Acidic:
       methods: [ Touch ]
@@ -102,7 +102,7 @@
   desc: reagent-desc-fs-weakening
   physicalDesc: reagent-physical-desc-acrid
   flavor: bitter
-  color: "#9B59B6"
+  color: "#9B59B6A0"
   reactiveEffects:
     Acidic:
       methods: [ Touch ]
@@ -156,7 +156,7 @@
   desc: reagent-desc-fs-coagulant
   physicalDesc: reagent-physical-desc-cloudy
   flavor: bitter
-  color: "#C05A6E"
+  color: "#C05A6EA0"
   reactiveEffects:
     Acidic:
       methods: [ Touch ]
@@ -171,7 +171,7 @@
   desc: reagent-desc-fs-etchant
   physicalDesc: reagent-physical-desc-cloudy
   flavor: bitter
-  color: "#7FA9D8"
+  color: "#7FA9D8A0"
   reactiveEffects:
     Acidic:
       methods: [ Touch ]

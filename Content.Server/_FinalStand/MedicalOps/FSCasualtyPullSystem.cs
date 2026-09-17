@@ -81,25 +81,28 @@ public sealed class FSCasualtyPullSystem : EntitySystem
 
     private void OnPull(FSCasualtyPullActionEvent args)
     {
-        TryPull(args.Performer, args.Target, args.Action);
+        if (args.Handled)
+            return;
+
+        args.Handled = TryPull(args.Performer, args.Target, args.Action);
     }
 
-    private void TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
+    private bool TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
     {
         if (target == doctor || TerminatingOrDeleted(target))
-            return;
+            return false;
 
         // A conscious crewmate is not a casualty, and yanking one is a grief tool.
         if (!_mobState.IsCritical(target) && !_mobState.IsDead(target))
         {
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-not-down"), doctor, doctor);
-            return;
+            return false;
         }
 
         if (IsBeingWorkedOn(target))
         {
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-busy"), doctor, doctor);
-            return;
+            return false;
         }
 
         var doctorCoords = Transform(doctor).Coordinates;
@@ -107,13 +110,13 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         if (Transform(target).MapID != Transform(doctor).MapID)
         {
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-unreachable"), doctor, doctor);
-            return;
+            return false;
         }
 
         if (!IsSafeGround(doctorCoords))
         {
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-no-room"), doctor, doctor);
-            return;
+            return false;
         }
 
         var cooldown = TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120);
@@ -138,7 +141,7 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         _audio.PlayPvs(ArriveSound, target);
 
         _popup.PopupEntity(Loc.GetString("fs-casualty-pull-arrived"), target, target, PopupType.Medium);
-
+        return true;
     }
 
     // DoAfters live on the user, so finding one aimed at this casualty means sweeping the runners.

@@ -13,6 +13,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
     private FSMediGunBeamOverlay? _overlay;
     private FSReviveIndicatorOverlay? _reviveOverlay;
+    private FSDartTracerOverlay? _tracerOverlay;
 
     public override void Initialize()
     {
@@ -23,6 +24,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         _reviveOverlay = new FSReviveIndicatorOverlay(EntityManager, _timing, _resourceCache);
         _overlayManager.AddOverlay(_reviveOverlay);
+
+        _tracerOverlay = new FSDartTracerOverlay(EntityManager);
+        _overlayManager.AddOverlay(_tracerOverlay);
     }
 
     public override void Shutdown()
@@ -39,6 +43,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
         {
             _overlayManager.RemoveOverlay(_reviveOverlay);
             _reviveOverlay = null;
+        }
+
+        if (_tracerOverlay != null)
+        {
+            _overlayManager.RemoveOverlay(_tracerOverlay);
+            _tracerOverlay = null;
         }
     }
 }

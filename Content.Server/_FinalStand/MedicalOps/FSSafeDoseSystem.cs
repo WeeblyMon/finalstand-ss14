@@ -37,7 +37,11 @@ public sealed class FSSafeDoseSystem : EntitySystem
 
     private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
     {
-        if (args.Shooter is { } shooter)
+        // Only a crewmate who can actually receive a dose gets the confirmation cue; it used to
+        // fire on walls and zombies too.
+        var ally = HasComp<FSFriendlyFireComponent>(args.Embedded);
+
+        if (args.Shooter is { } shooter && ally)
         {
             _credit.RegisterDelivery(args.Embedded, shooter);
             _audio.PlayEntity(DartHit, shooter, args.Embedded);

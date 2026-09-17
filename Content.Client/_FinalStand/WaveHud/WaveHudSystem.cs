@@ -325,6 +325,17 @@ public sealed partial class WaveHudSystem : EntitySystem
     private void OnLocalPlayerAttached(LocalPlayerAttachedEvent _)
     {
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
+
+        // Attaching to anything else - respawn, ghost, aghost - means this client is no longer the
+        // body that was offered a revive. Nothing else cleared the flag, so the downed dim stayed
+        // on: the whole HUD kept rendering at a fifth of its opacity for the rest of the round.
+        // The server re-sends the offer if it still applies.
+        var overlay = EnsureOverlay();
+        overlay.IsRespawnOfferVisible = false;
+        overlay.RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
+
+        if (_ui.ActiveScreen is { } screen)
+            screen.Modulate = Color.White;
     }
 
     private WaveHudOverlay EnsureOverlay()

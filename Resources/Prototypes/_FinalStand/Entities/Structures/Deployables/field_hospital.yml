@@ -50,6 +50,6 @@
     lifetime: 600
   - type: FSPackable
     packedProtoId: FSFieldHospitalItem
-    packTime: 8
+    packTime: 2.7
   - type: FSPlayerDamageImmune
   - type: Anchorable

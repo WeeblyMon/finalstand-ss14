@@ -71,6 +71,10 @@ public sealed partial class FSCasualtySystem : EntitySystem
         // A 19 second rooted do-after only fits between waves. Medical staff operate fast enough
         // that surgery is something you can choose to do while the round is happening.
         EnsureComp<SurgerySpeedModifierComponent>(ev.Mob).SpeedModifier = MedicalSurgerySpeed;
+
+        // Otherwise every operation needs the patient stripped first, which is not a thing anyone
+        // is doing while a wave is on.
+        EnsureComp<SurgeryIgnoreClothingComponent>(ev.Mob);
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)

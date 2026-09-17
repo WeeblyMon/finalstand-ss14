@@ -16,8 +16,6 @@ public sealed partial class InventoryGui : UIWidget
         inventoryUIController.RegisterInventoryBarContainer(InventoryHotbar);
 
         FSInventoryPanel.PanelOverride = FSHudStyle.ModulePanel();
-        InventoryHotbar.HSeparationOverride = 2;
-        InventoryHotbar.VSeparationOverride = 2;
 
         // The controller toggles the grid, not the wrapper, so the wrapper follows it - otherwise
         // an empty panel is left sitting on the screen once the bar closes.
