@@ -154,6 +154,9 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         overlay.HarvestStatus = null;
         overlay.HarvestCapped = false;
+        overlay.HarvestStock = 0f;
+        overlay.HarvestAccrued = 0f;
+        overlay.HarvestCap = 0f;
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -169,6 +172,9 @@ public sealed partial class WaveHudSystem : EntitySystem
                 stock = solution.GetTotalPrototypeQuantity(satchel.Reagent).Float();
 
             overlay.HarvestCapped = satchel.AccruedThisWave >= satchel.PerWaveCap;
+            overlay.HarvestStock = stock;
+            overlay.HarvestAccrued = satchel.AccruedThisWave;
+            overlay.HarvestCap = satchel.PerWaveCap;
 
             overlay.HarvestStatus = overlay.HarvestCapped
                 ? Loc.GetString("fs-harvest-status-capped", ("stock", (int) stock))

@@ -145,6 +145,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public string? HarvestStatus;
     public bool HarvestCapped;
+    public float HarvestStock;
+    public float HarvestAccrued;
+    public float HarvestCap;
 
     public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
 
@@ -767,13 +770,26 @@ public sealed partial class WaveHudOverlay : Overlay
 
         if (HarvestStatus is { } harvest)
         {
-            var dims = screen.GetDimensions(_tinyFont, harvest, 1f);
-            bottom -= 4f + dims.Y;
+            const float gaugeW = 132f;
+            const float barH = 4f;
 
-            screen.DrawString(_tinyFont,
-                new Vector2(margin, bottom),
-                harvest,
-                HarvestCapped ? FSPalette.Money : FSPalette.TextMuted);
+            var dims = screen.GetDimensions(_tinyFont, harvest, 1f);
+            bottom -= 4f + dims.Y + 3f + barH;
+
+            var accent = HarvestCapped ? FSPalette.Money : FSPalette.Ok;
+            screen.DrawString(_tinyFont, new Vector2(margin, bottom), harvest, accent);
+
+            var ratio = HarvestCap > 0f ? Math.Clamp(HarvestAccrued / HarvestCap, 0f, 1f) : 0f;
+            var barY = bottom + dims.Y + 3f;
+
+            DrawRounded(screen, new UIBox2(margin, barY, margin + gaugeW, barY + barH),
+                FSPalette.BarTrack, 2f);
+
+            if (ratio > 0f)
+            {
+                DrawRounded(screen, new UIBox2(margin, barY, margin + gaugeW * ratio, barY + barH),
+                    accent, 2f);
+            }
         }
     }
 
