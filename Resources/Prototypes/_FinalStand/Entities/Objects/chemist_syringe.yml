@@ -55,6 +55,8 @@
     solutionName: pack
     changeColor: true
   - type: Appearance
+  - type: FSSolutionLabel
+    solution: pack
   - type: FSPrefilledMagazine
   - type: Tag
     tags:
@@ -63,7 +65,6 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackBicaridine
-  name: bicaridine syringe magazine
   suffix: Bicaridine
   components:
   - type: Sprite
@@ -84,7 +85,6 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackKelotane
-  name: kelotane syringe magazine
   suffix: Kelotane
   components:
   - type: Sprite
@@ -113,7 +113,6 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackTricordrazine
-  name: tricordrazine syringe magazine
   suffix: Tricordrazine
   components:
   - type: Sprite
@@ -134,7 +133,6 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackCombatStim
-  name: combat stim syringe magazine
   suffix: Combat Stim
   components:
   - type: Sprite
@@ -155,7 +153,6 @@
 - type: entity
   parent: FSSyringePack
   id: FSSyringePackAdrenalSurge
-  name: adrenal surge syringe magazine
   suffix: Adrenal Surge
   components:
   - type: Sprite
