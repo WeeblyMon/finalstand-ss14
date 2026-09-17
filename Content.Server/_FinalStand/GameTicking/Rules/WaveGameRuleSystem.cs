@@ -469,6 +469,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         _corpseCleaner.TrackZombieDeath(ent.Owner);
 
+        var died = new FSWaveEnemyDiedEvent(ent.Owner, args.Origin);
+        RaiseLocalEvent(ref died);
+
         if (TryComp<FixturesComponent>(ent.Owner, out var fixtures))
         {
             foreach (var (key, fixture) in fixtures.Fixtures)

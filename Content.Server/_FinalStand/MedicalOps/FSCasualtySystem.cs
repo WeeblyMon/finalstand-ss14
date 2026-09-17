@@ -21,7 +21,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedActionsSystem _actions = default!;
-    [Dependency] private FSMedicalRolesSystem _roles = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
@@ -46,19 +46,14 @@ public sealed partial class FSCasualtySystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
-        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<ActorComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
     }
 
-    private void OnMobStateChanged(MobStateChangedEvent ev)
+    private void OnMobStateChanged(Entity<ActorComponent> ent, ref MobStateChangedEvent ev)
     {
-        if (ev.NewMobState is not (MobState.Critical or MobState.Dead))
-            return;
-
-        if (!HasComp<ActorComponent>(ev.Target))
-            return;
-
-        RegisterCall(ev.Target);
+        if (ev.NewMobState is MobState.Critical or MobState.Dead)
+            RegisterCall(ent.Owner);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
@@ -69,7 +64,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (_roles.IsMedicalJob(ev.JobId))
+        if (_roster.IsMedicalJob(ev.JobId))
             _actions.AddAction(ev.Mob, BoardAction);
     }
 
@@ -102,7 +97,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnRespond(FSRespondToCasualtyEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } medic || !_roles.IsMedicalStaff(medic))
+        if (args.SenderSession.AttachedEntity is not { } medic || !_roster.IsMedical(medic))
             return;
 
         Respond(medic, GetEntity(ev.Patient));
@@ -131,6 +126,11 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        base.Update(frameTime);
+
+        if (_calls.Count == 0)
+            return;
+
         var now = _timing.CurTime;
 
         _finished.Clear();
@@ -158,10 +158,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return;
         }
 
-        if (now < _nextBroadcast || _calls.Count == 0)
-            return;
-
-        Broadcast();
+        if (now >= _nextBroadcast)
+            Broadcast();
     }
 
     private void Broadcast()
@@ -169,11 +167,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _nextBroadcast = _timing.CurTime + BroadcastInterval;
 
         var board = BuildBoard();
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
-                RaiseNetworkEvent(board, session);
-        }
+        foreach (var (session, _) in _roster.Medics())
+            RaiseNetworkEvent(board, session);
     }
 
     public FSCasualtyBoardEvent BuildBoard(bool open = false)

@@ -1,10 +1,8 @@
 using Content.Server._FinalStand.GameTicking.Rules;
-using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.GameTicking;
-using Content.Shared.Mobs;
 using Robust.Shared.Map;
 
 using Robust.Shared.Audio;
@@ -26,7 +24,7 @@ public sealed class FSHarvestSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnWaveEnemyDied);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
@@ -41,16 +39,13 @@ public sealed class FSHarvestSystem : EntitySystem
         }
     }
 
-    private void OnMobStateChanged(MobStateChangedEvent args)
+    private void OnWaveEnemyDied(ref FSWaveEnemyDiedEvent args)
     {
-        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
-            return;
-
-        if (!HasComp<WaveSpawnedTagComponent>(args.Target) || TerminatingOrDeleted(args.Target))
+        if (TerminatingOrDeleted(args.Enemy))
             return;
 
         var wave = _wave.GetWaveNumber();
-        var corpse = _xform.GetMapCoordinates(args.Target);
+        var corpse = _xform.GetMapCoordinates(args.Enemy);
 
         var query = EntityQueryEnumerator<FSHarvestSatchelComponent>();
         while (query.MoveNext(out var satchel, out var comp))

@@ -1,10 +1,12 @@
+using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
+using Content.Shared.Database;
 using Content.Shared.Mind;
-using Content.Shared.Mobs;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -14,6 +16,7 @@ public sealed class FSChemCreditSystem : EntitySystem
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
 
     private static readonly TimeSpan ClaimLifetime = TimeSpan.FromSeconds(120);
 
@@ -28,7 +31,7 @@ public sealed class FSChemCreditSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<MobStateChangedEvent>(OnEnemyStateChanged);
+        SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnWaveEnemyDied);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
@@ -54,15 +57,9 @@ public sealed class FSChemCreditSystem : EntitySystem
         };
     }
 
-    private void OnEnemyStateChanged(MobStateChangedEvent args)
+    private void OnWaveEnemyDied(ref FSWaveEnemyDiedEvent args)
     {
-        if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
-            return;
-
-        if (!HasComp<WaveSpawnedTagComponent>(args.Target))
-            return;
-
-        if (args.Origin is not { } killer || !_claims.TryGetValue(killer, out var claim))
+        if (args.Killer is not { } killer || !_claims.TryGetValue(killer, out var claim))
             return;
 
         if (claim.Expires <= _timing.CurTime || claim.Remaining <= 0)
@@ -71,7 +68,7 @@ public sealed class FSChemCreditSystem : EntitySystem
             return;
         }
 
-        var baseCredits = TryComp<FSEnemyValueComponent>(args.Target, out var value)
+        var baseCredits = TryComp<FSEnemyValueComponent>(args.Enemy, out var value)
             ? value.KillCredits
             : 100;
 
@@ -81,6 +78,9 @@ public sealed class FSChemCreditSystem : EntitySystem
 
         _wallet.GiveCredits(claim.SupplierMind, cut);
 
+        _adminLogger.Add(LogType.Action, LogImpact.Low,
+            $"{ToPrettyString(claim.SupplierMind):chemist} earned {cut} supply credit from a buffed kill");
+
         claim.Remaining -= cut;
         if (claim.Remaining <= 0)
             _claims.Remove(killer);
@@ -88,6 +88,8 @@ public sealed class FSChemCreditSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        base.Update(frameTime);
+
         var now = _timing.CurTime;
         if (now < _nextSweep)
             return;

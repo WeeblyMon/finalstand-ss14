@@ -40,6 +40,8 @@ public sealed class FSArmorPiercingSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
+        base.Update(frameTime);
+
         var now = _timing.CurTime;
 
         var query = EntityQueryEnumerator<FSArmorPiercingComponent>();

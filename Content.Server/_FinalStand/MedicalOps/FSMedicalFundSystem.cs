@@ -1,18 +1,18 @@
+using System.Collections.Frozen;
+using Content.Server.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
-using Robust.Server.Player;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
 public sealed partial class FSMedicalFundSystem : EntitySystem
 {
-    [Dependency] private IPlayerManager _playerManager = default!;
-
+    [Dependency] private IAdminLogManager _adminLogger = default!;
 
     private const float NotifyInterval = 0.25f;
 
@@ -47,17 +47,31 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         RaiseLocalEvent(ref changed);
     }
 
-    private Entity<FSMedicalFundComponent> GetOrCreateFund()
+    /// <summary>Resolves the fund without creating one. Reads must use this.</summary>
+    private bool TryGetFund(out Entity<FSMedicalFundComponent> fund)
     {
         if (_fund is { } cached && Exists(cached) && TryComp<FSMedicalFundComponent>(cached, out var cachedComp))
-            return (cached, cachedComp);
+        {
+            fund = (cached, cachedComp);
+            return true;
+        }
 
         var query = EntityQueryEnumerator<FSMedicalFundComponent>();
         if (query.MoveNext(out var existing, out var existingComp))
         {
             _fund = existing;
-            return (existing, existingComp);
+            fund = (existing, existingComp);
+            return true;
         }
+
+        fund = default;
+        return false;
+    }
+
+    private Entity<FSMedicalFundComponent> EnsureFund()
+    {
+        if (TryGetFund(out var fund))
+            return fund;
 
         var spawned = Spawn(null, MapCoordinates.Nullspace);
         var comp = AddComp<FSMedicalFundComponent>(spawned);
@@ -96,7 +110,7 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         if (amount <= 0)
             return;
 
-        var fund = GetOrCreateFund();
+        var fund = EnsureFund();
         fund.Comp.Balance += amount;
         fund.Comp.LifetimeEarned += amount;
 
@@ -115,24 +129,32 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         if (amount <= 0)
             return false;
 
-        var fund = GetOrCreateFund();
-        if (fund.Comp.Balance < amount)
+        if (!TryGetFund(out var fund) || fund.Comp.Balance < amount)
             return false;
 
         fund.Comp.Balance -= amount;
         _dirty = true;
+
+        _adminLogger.Add(LogType.Action, LogImpact.Medium,
+            $"Medical fund spent {amount} - balance {fund.Comp.Balance}");
         return true;
     }
 
-    public int GetBalance() => GetOrCreateFund().Comp.Balance;
+    public int GetBalance() => TryGetFund(out var fund) ? fund.Comp.Balance : 0;
 
-    public int GetLifetimeEarned() => GetOrCreateFund().Comp.LifetimeEarned;
+    public int GetLifetimeEarned() => TryGetFund(out var fund) ? fund.Comp.LifetimeEarned : 0;
 
-    public IReadOnlyDictionary<EntityUid, int> GetContributions() => GetOrCreateFund().Comp.ContributionByMind;
+    public IReadOnlyDictionary<EntityUid, int> GetContributions() =>
+        TryGetFund(out var fund) ? fund.Comp.ContributionByMind : FrozenDictionary<EntityUid, int>.Empty;
 
     public void DumpFund(IConsoleShell shell)
     {
-        var fund = GetOrCreateFund();
+        if (!TryGetFund(out var fund))
+        {
+            shell.WriteLine("  (no fund yet)");
+            return;
+        }
+
         shell.WriteLine($"  balance={fund.Comp.Balance}  lifetimeEarned={fund.Comp.LifetimeEarned}");
 
         if (fund.Comp.ContributionByMind.Count == 0)
