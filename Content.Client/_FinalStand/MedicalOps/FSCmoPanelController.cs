@@ -224,6 +224,11 @@ public sealed class FSCmoPanelController : UIController
         _hotbar = null;
         _buttons.Clear();
         _labels.Clear();
+
+        // BuildRow always produces horizontal rows at the wide width, so a rebuilt panel is wide.
+        // Leaving this set meant SetNarrow early-outed after a round restart and the narrow layout
+        // was never re-applied - the panel stayed wide and ran into the action bar.
+        _narrow = false;
     }
 
     public override void FrameUpdate(FrameEventArgs args)
