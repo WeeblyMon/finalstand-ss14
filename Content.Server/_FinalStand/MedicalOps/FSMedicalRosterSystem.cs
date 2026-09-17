@@ -52,12 +52,11 @@ public sealed class FSMedicalRosterSystem : EntitySystem
         if (_jobCache.TryGetValue(mob, out var cached))
             return cached;
 
-        string? jobId = null;
-        if (_mind.TryGetMind(mob, out var mindId, out _) && _jobs.MindTryGetJob(mindId, out var job))
-            jobId = job.ID;
+        if (!_mind.TryGetMind(mob, out var mindId, out _) || !_jobs.MindTryGetJob(mindId, out var job))
+            return null;
 
-        _jobCache[mob] = jobId;
-        return jobId;
+        _jobCache[mob] = job.ID;
+        return job.ID;
     }
 
     public bool IsMedical(EntityUid mob) => IsMedicalJob(JobOf(mob));
