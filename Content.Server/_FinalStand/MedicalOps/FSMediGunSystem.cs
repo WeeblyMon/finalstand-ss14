@@ -62,8 +62,11 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
             var gun = (uid, comp);
 
-            foreach (var healed in comp.HealedEntities.ToArray())
+            // Backwards by index: DisableConnection removes from this list, and a snapshot copy
+            // here was allocating an array every tick for every active beam.
+            for (var i = comp.HealedEntities.Count - 1; i >= 0; i--)
             {
+                var healed = comp.HealedEntities[i];
                 if (!HealingTick(gun, healed))
                     DisableConnection(gun, healed);
             }
@@ -112,7 +115,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (scale <= 0f)
             return true;
 
-        if (comp.ParentEntity is { } medic && _mobState.IsCritical(healed))
+        if (comp.ParentEntity is { } medic && !TerminatingOrDeleted(medic) && _mobState.IsCritical(healed))
             scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
 
         _damageable.TryChangeDamage(

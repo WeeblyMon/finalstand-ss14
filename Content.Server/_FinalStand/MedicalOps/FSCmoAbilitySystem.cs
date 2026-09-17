@@ -1,5 +1,7 @@
 using System.Collections.Frozen;
+using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Research;
+using Content.Shared.Database;
 using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
@@ -16,13 +18,14 @@ namespace Content.Server._FinalStand.MedicalOps;
 public sealed partial class FSCmoAbilitySystem : EntitySystem
 {
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
-    [Dependency] private FSMedicalRolesSystem _roles = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private RadioSystem _radio = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -41,8 +44,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         [FSMedicalBonusCategory.TreatmentSpeed] = 0.10f,
     };
-
-    private const string CmoJob = "ChiefMedicalOfficer";
 
     private static readonly TimeSpan MobilisationDuration = TimeSpan.FromSeconds(20);
     private static readonly TimeSpan DirectiveCooldown = TimeSpan.FromSeconds(60);
@@ -88,6 +89,23 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private FSMedicalDirective? _activeDirective;
 
+    // Every write goes through here. The panels are the only transport for this value, so a write
+    // that forgot to sync would leave every client showing a directive that is not running.
+    private void SetActiveDirective(FSMedicalDirective? directive)
+    {
+        _activeDirective = directive;
+
+        var query = EntityQueryEnumerator<FSCmoPanelComponent>();
+        while (query.MoveNext(out var uid, out var panel))
+        {
+            panel.ActiveDirective = directive;
+            Dirty(uid, panel);
+        }
+    }
+
+    // Reused rather than reallocated: ApplyBuff copies the dictionary, so one scratch is safe.
+    private readonly Dictionary<FSMedicalBonusCategory, float> _scaledScratch = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -101,7 +119,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
-        _activeDirective = null;
+        SetActiveDirective(null);
     }
 
     // Triage Doctrine is a standing bonus rather than an order, so it lands the moment it is bought.
@@ -149,31 +167,21 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         return readyAt <= _timing.CurTime;
     }
 
-    private void SyncPanels()
-    {
-        var query = EntityQueryEnumerator<FSCmoPanelComponent>();
-        while (query.MoveNext(out var uid, out var panel))
-        {
-            panel.ActiveDirective = _activeDirective;
-            Dirty(uid, panel);
-        }
-    }
-
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId == CmoJob)
+        if (ev.JobId == FSMedicalRosterSystem.CmoJob)
         {
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
             Dirty(ev.Mob, panel);
         }
 
-        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roles.IsMedicalStaff(ev.Mob))
+        if (_upgrades.Unlocked(FSMedicalUpgradeSystem.TriageDoctrine) && _roster.IsMedical(ev.Mob))
             _bonus.ApplyBuff(ev.Mob, DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
 
         if (_activeDirective is { } active
             && Directives.TryGetValue(active, out var def)
-            && _roles.IsMedicalStaff(ev.Mob))
+            && _roster.IsMedical(ev.Mob))
         {
             _bonus.ApplyBuff(ev.Mob, DirectiveSource, Scaled(def.Bonuses),
                 name: Loc.GetString($"{def.Announcement}-short"));
@@ -184,6 +192,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     {
         ApplyToDepartment(McpSource, Scaled(McpBonuses), McpDuration(), Loc.GetString("fs-cmo-mcp-short"));
         Announce(performer, "fs-cmo-mcp");
+
+        _adminLogger.Add(LogType.Action, LogImpact.Medium,
+            $"{ToPrettyString(performer):cmo} ran Mass Casualty Protocol");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
@@ -197,6 +208,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         ApplyToDepartment(MobilisationSource, Scaled(MobilisationBonuses), MobilisationDuration,
             Loc.GetString("fs-cmo-mobilisation-short"));
         Announce(performer, "fs-cmo-mobilisation");
+
+        _adminLogger.Add(LogType.Action, LogImpact.Medium,
+            $"{ToPrettyString(performer):cmo} ran Mobilisation");
 
         if (TryComp<FSCmoPanelComponent>(performer, out var panel))
         {
@@ -214,17 +228,19 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         if (_activeDirective == directive)
         {
-            _activeDirective = null;
+            SetActiveDirective(null);
             RemoveFromDepartment(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down", standDown: true);
-            SyncPanels();
+
+            _adminLogger.Add(LogType.Action, LogImpact.Low,
+                $"{ToPrettyString(performer):cmo} stood down directive {directive}");
             return;
         }
 
         if (panel != null && panel.DirectiveReadyAt > _timing.CurTime)
             return;
 
-        _activeDirective = directive;
+        SetActiveDirective(directive);
         ApplyToDepartment(DirectiveSource, Scaled(def.Bonuses), name: Loc.GetString($"{def.Announcement}-short"));
         Announce(performer, def.Announcement);
 
@@ -234,17 +250,15 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             Dirty(performer, panel);
         }
 
-        SyncPanels();
+        _adminLogger.Add(LogType.Action, LogImpact.Low,
+            $"{ToPrettyString(performer):cmo} issued directive {directive}");
     }
 
     private void ApplyToDepartment(string source, Dictionary<FSMedicalBonusCategory, float> bonuses,
         TimeSpan? duration = null, string? name = null)
     {
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
-                _bonus.ApplyBuff(mob, source, bonuses, duration, name);
-        }
+        foreach (var (_, mob) in _roster.Medics())
+            _bonus.ApplyBuff(mob, source, bonuses, duration, name);
     }
 
     private void RemoveFromDepartment(string source)
@@ -266,11 +280,8 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
         var sound = standDown ? StandDownSound : DirectiveSound;
 
-        foreach (var session in _player.Sessions)
+        foreach (var (session, mob) in _roster.Medics())
         {
-            if (session.AttachedEntity is not { } mob || !_roles.IsMedicalStaff(mob))
-                continue;
-
             if (mob != performer)
                 _popup.PopupEntity(name, mob, mob, PopupType.Medium);
 
@@ -284,11 +295,11 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.StandingOrders))
             return bonuses;
 
-        var scaled = new Dictionary<FSMedicalBonusCategory, float>(bonuses.Count);
+        _scaledScratch.Clear();
         foreach (var (category, value) in bonuses)
-            scaled[category] = value * 1.25f;
+            _scaledScratch[category] = value * 1.25f;
 
-        return scaled;
+        return _scaledScratch;
     }
 
     private TimeSpan McpDuration() =>
