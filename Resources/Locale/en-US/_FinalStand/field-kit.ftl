@@ -25,4 +25,4 @@ fs-field-kit-corrosive-purpose = Leaves caustic damage on the ground for anythin
 
 fs-chem-guide-trauma = TRAUMA
 fs-chem-guide-support = SUPPORT
-fs-chem-guide-precursors = POTION PRECURSORS
+fs-chem-guide-potions = FIELD POTIONS

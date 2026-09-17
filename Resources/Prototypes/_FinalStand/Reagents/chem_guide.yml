@@ -19,11 +19,13 @@
   - Dylovene
 
 - type: fsChemGuide
-  id: FSChemGuidePrecursors
-  category: fs-chem-guide-precursors
+  id: FSChemGuidePotions
+  category: fs-chem-guide-potions
   priority: 2
   reactions:
-  - Ephedrine
-  - Ammonia
-  - Phenol
-  - SulfuricAcid
+  - FSCombatStim
+  - FSCorrosive
+  - FSSolvent
+  - FSWeakeningAgent
+  - FSCoagulantMist
+  - FSEtchant

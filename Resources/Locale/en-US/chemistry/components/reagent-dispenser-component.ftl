@@ -35,3 +35,4 @@ reagent-dispenser-window-field-kit-needs = needs {$reagents}
 reagent-dispenser-window-field-kit-ready = ready
 reagent-dispenser-window-guide-line = {$reagents}
 reagent-dispenser-window-guide-empty = No recipes listed.
+reagent-dispenser-window-guide-heat = heat to {$temp}K on a hotplate

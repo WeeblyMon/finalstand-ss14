@@ -340,6 +340,14 @@ namespace Content.Client.Chemistry.UI
             row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-line",
                 ("reagents", string.Join(" + ", parts))), ready ? ReadyColor : null));
 
+            // A temperature gate is otherwise invisible: the reagents go in, nothing happens, and
+            // nothing anywhere says why. This is the single biggest reason a recipe "does not work".
+            if (reaction.MinimumTemperature > 0f)
+            {
+                row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-heat",
+                    ("temp", (int) reaction.MinimumTemperature)), BlockedColor));
+            }
+
             return row;
         }
 

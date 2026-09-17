@@ -59,7 +59,7 @@
   reactants:
     FSBiomass:
       amount: 2
-    Ephedrine:
+    Sugar:
       amount: 1
   products:
     FSCombatStim: 2
@@ -69,7 +69,7 @@
   reactants:
     FSBiomass:
       amount: 2
-    SulfuricAcid:
+    Sulfur:
       amount: 1
   products:
     FSCorrosive: 2
@@ -110,7 +110,7 @@
   reactants:
     FSBiomass:
       amount: 2
-    Ammonia:
+    Fluorine:
       amount: 1
   products:
     FSSolvent: 2
@@ -120,7 +120,7 @@
   reactants:
     FSBiomass:
       amount: 2
-    Phenol:
+    Mercury:
       amount: 1
   products:
     FSWeakeningAgent: 2
