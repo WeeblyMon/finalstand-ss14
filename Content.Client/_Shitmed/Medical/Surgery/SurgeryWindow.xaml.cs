@@ -15,9 +15,18 @@ public sealed partial class SurgeryWindow : DefaultWindow
 {
     public event Action? OnFrameUpdate;
 
+    /// <summary>Guidance text is advice, not the control. Hiding it never hides Perform.</summary>
+    public bool GuidanceVisible => GuidanceToggle.Pressed;
+
     public SurgeryWindow()
     {
         RobustXamlLoader.Load(this);
+
+        GuidanceToggle.OnToggled += args =>
+        {
+            GuidanceLabel.Visible = args.Pressed;
+            GuidanceIcon.Visible = args.Pressed;
+        };
     }
 
     protected override void FrameUpdate(FrameEventArgs args)

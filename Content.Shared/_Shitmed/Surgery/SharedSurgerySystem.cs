@@ -187,6 +187,8 @@ public abstract partial class SharedSurgerySystem : EntitySystem
             return;
         }
 
+        ClearStepProgress(ent, args.Step);
+
         var tool = EntityUid.Invalid;
         if (args.Handled
             || args.Target is not { } target

@@ -80,6 +80,13 @@ the surgeon could never see the limb, the operation and the steps at the same ti
                     <RichTextLabel Name="GuidanceLabel" Access="Public"
                                    HorizontalExpand="True"
                                    VerticalAlignment="Center" />
+                    <Button Name="GuidanceToggle" Access="Public"
+                            Text="{Loc 'surgery-ui-guidance-toggle'}"
+                            ToggleMode="True"
+                            Pressed="True"
+                            MinWidth="72"
+                            Margin="0 0 8 0"
+                            VerticalAlignment="Center" />
                     <Button Name="PerformButton" Access="Public"
                             Text="{Loc 'surgery-ui-perform'}"
                             MinWidth="120"

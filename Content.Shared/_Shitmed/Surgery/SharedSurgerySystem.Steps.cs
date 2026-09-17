@@ -20,6 +20,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Body.Organ;
 using Content.Shared._FinalStand.Medical.Effects;
 using Content.Shared.Humanoid;
@@ -892,6 +893,18 @@ public abstract partial class SharedSurgerySystem
         var ev = new SurgeryDoAfterEvent(surgeryId, stepId, toolUsed);
         var duration = GetSurgeryDuration(step, user, body, speed);
 
+        var stepKey = stepId.Id;
+        if (TryComp<FSSurgeryProgressComponent>(body, out var progress) && progress.Started.Contains(stepKey))
+        {
+            duration *= ResumeDiscount;
+        }
+        else
+        {
+            var started = EnsureComp<FSSurgeryProgressComponent>(body);
+            started.Started.Add(stepKey);
+            Dirty(body, started);
+        }
+
         var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(duration), ev, body, part)
         {
             BreakOnMove = true,
@@ -1117,6 +1130,17 @@ public abstract partial class SharedSurgerySystem
         reason = heldReason;
         data = null;
         return false;
+    }
+
+    /// <summary>How much of an interrupted step carries over on the next attempt.</summary>
+    private const float ResumeDiscount = 0.45f;
+
+    public void ClearStepProgress(EntityUid body, string stepKey)
+    {
+        if (!TryComp<FSSurgeryProgressComponent>(body, out var progress) || !progress.Started.Remove(stepKey))
+            return;
+
+        Dirty(body, progress);
     }
 
     private IEnumerable<EntityUid> EnumerateReachableTools(EntityUid user)
