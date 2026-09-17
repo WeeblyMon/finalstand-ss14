@@ -126,7 +126,14 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         // damage, so two players could trade a scratch and farm the full-rate tier forever. The
         // budget now only resets at prep, which is the boundary that is not player-triggerable.
         if (args.DamageIncreased)
+        {
+            // Fresh damage ends the old treatment claim. This is the event a player can see, and it
+            // replaces a flat timer nobody could reason about.
+            if (!TryGetPlayerMind(args.Origin, out _))
+                _attribution.ClearAttribution(uid);
+
             return;
+        }
 
         var healed = -(float)args.DamageDelta.GetTotal();
         if (healed < 1f)
