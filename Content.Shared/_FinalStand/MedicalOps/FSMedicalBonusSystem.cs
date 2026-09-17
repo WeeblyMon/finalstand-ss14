@@ -8,6 +8,8 @@ using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
@@ -20,6 +22,10 @@ public sealed class FSMedicalBonusSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier BuffExpired =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/buff_expired.ogg");
 
     private const float StackFalloff = 0.5f;
     private const float MaxInterruptionAbsorb = 25f;
@@ -163,6 +169,8 @@ public sealed class FSMedicalBonusSystem : EntitySystem
 
             foreach (var source in _expired)
                 comp.Active.Remove(source);
+
+            _audio.PlayEntity(BuffExpired, uid, uid);
 
             if (comp.Active.Count == 0)
                 RemComp<FSMedicalBonusComponent>(uid);

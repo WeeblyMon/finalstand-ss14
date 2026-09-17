@@ -5,6 +5,8 @@ using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Content.Shared.Projectiles;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -18,6 +20,10 @@ public sealed class FSSafeDoseSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier DartHit =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/dart_hit.ogg");
 
     private readonly Dictionary<string, FixedPoint2> _thresholdCache = new();
 
@@ -32,7 +38,10 @@ public sealed class FSSafeDoseSystem : EntitySystem
     private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
     {
         if (args.Shooter is { } shooter)
+        {
             _credit.RegisterDelivery(args.Embedded, shooter);
+            _audio.PlayEntity(DartHit, shooter, args.Embedded);
+        }
 
         if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var soln, out var dart)
             || dart.Volume <= 0)

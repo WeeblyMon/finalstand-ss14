@@ -5,6 +5,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared.Body;
 using Content.Shared.FixedPoint;
+using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.Timing;
@@ -58,7 +59,9 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
         _trauma.UpdateBodyBoneAlert(target, body);
 
         _useDelay.TryResetDelay(ent.Owner);
-        _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used"), target, args.User);
+
+        var limb = Identity.Name(Transform(bone).ParentUid, EntityManager);
+        _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used-limb", ("limb", limb)), target, args.User);
         _audio.PlayPvs(StapleSound, target);
     }
 

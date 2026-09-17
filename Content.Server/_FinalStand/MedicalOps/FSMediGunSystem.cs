@@ -118,6 +118,11 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (comp.ParentEntity is { } medic && !TerminatingOrDeleted(medic) && _mobState.IsCritical(healed))
             scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
 
+        // Splitting the beam splits the output. Without this, two links is strictly better than
+        // faster cycling and the exclusive research pair has a correct answer.
+        if (comp.HealedEntities.Count > 1)
+            scale *= comp.SplitLinkScale;
+
         _damageable.TryChangeDamage(
             healed,
             comp.Healing * scale,

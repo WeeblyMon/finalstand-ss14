@@ -48,6 +48,10 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public int MaxLinksAmount = 1;
 
+    /// <summary>Per-beam output once more than one patient is attached.</summary>
+    [DataField]
+    public float SplitLinkScale = 0.6f;
+
     [DataField]
     public float MaxRange = 6f;
 

@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Actions;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -31,7 +32,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private static readonly SoundSpecifier RespondSound =
         new SoundPathSpecifier("/Audio/Effects/Cargo/ping.ogg");
 
-    private static readonly EntProtoId BoardAction = "FSCasualtyBoardAction";
+    private const float MedicalSurgerySpeed = 4f;
     private static readonly TimeSpan CallLifetime = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(1);
 
@@ -64,8 +65,12 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (_roster.IsMedicalJob(ev.JobId))
-            _actions.AddAction(ev.Mob, BoardAction);
+        if (!_roster.IsMedicalJob(ev.JobId))
+            return;
+
+        // A 19 second rooted do-after only fits between waves. Medical staff operate fast enough
+        // that surgery is something you can choose to do while the round is happening.
+        EnsureComp<SurgerySpeedModifierComponent>(ev.Mob).SpeedModifier = MedicalSurgerySpeed;
     }
 
     private void OnBoardAction(FSCasualtyBoardActionEvent args)

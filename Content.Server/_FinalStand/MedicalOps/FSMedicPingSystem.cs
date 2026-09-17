@@ -80,7 +80,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
 
         var user = args.Performer;
 
-        _chat.TryEmoteWithChat(user, ScreamEmote, ignoreActionBlocker: true, forceEmote: true);
+        _chat.TryEmoteWithoutChat(user, ScreamEmote, ignoreActionBlocker: true);
         RaiseNetworkEvent(new FSMedicPingEvent(GetNetEntity(user), IsHurt(user)), Filter.Broadcast());
         _casualty.RegisterCall(user);
 
