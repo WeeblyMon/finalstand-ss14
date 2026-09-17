@@ -32,6 +32,8 @@
     canChangeTransferAmount: true
   - type: ExaminableSolution
     solution: flask
+  - type: FSSolutionLabel
+    solution: flask
   - type: FSSplashFlask
     solution: flask
   - type: Appearance

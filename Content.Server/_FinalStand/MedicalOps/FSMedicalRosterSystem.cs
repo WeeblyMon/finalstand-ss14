@@ -30,33 +30,15 @@ public sealed class FSMedicalRosterSystem : EntitySystem
     public const string CmoJob = "ChiefMedicalOfficer";
     public const string ChemistJob = "Chemist";
 
-    private readonly Dictionary<EntityUid, string?> _jobCache = new();
-
-    public override void Initialize()
-    {
-        base.Initialize();
-
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned);
-        SubscribeLocalEvent<PlayerAttachedEvent>(OnAttached);
-        SubscribeLocalEvent<PlayerDetachedEvent>(OnDetached);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
-    }
-
-    private void OnSpawned(PlayerSpawnCompleteEvent ev) => _jobCache[ev.Mob] = ev.JobId;
-    private void OnAttached(PlayerAttachedEvent ev) => _jobCache.Remove(ev.Entity);
-    private void OnDetached(PlayerDetachedEvent ev) => _jobCache.Remove(ev.Entity);
-    private void OnRoundRestart(RoundRestartCleanupEvent ev) => _jobCache.Clear();
-
+    // Deliberately uncached. A cache here has to be invalidated on spawn, attach, detach, ghost and
+    // round restart, and getting any one of those wrong caches "not medical" for the rest of the
+    // round - which silently kills the triage feed, the ping filter and directives for that player.
+    // This is a component lookup plus a prototype index, called at most once a second per session.
     public string? JobOf(EntityUid mob)
     {
-        if (_jobCache.TryGetValue(mob, out var cached))
-            return cached;
-
-        if (!_mind.TryGetMind(mob, out var mindId, out _) || !_jobs.MindTryGetJob(mindId, out var job))
-            return null;
-
-        _jobCache[mob] = job.ID;
-        return job.ID;
+        return _mind.TryGetMind(mob, out var mindId, out _) && _jobs.MindTryGetJob(mindId, out var job)
+            ? job.ID
+            : null;
     }
 
     public bool IsMedical(EntityUid mob) => IsMedicalJob(JobOf(mob));

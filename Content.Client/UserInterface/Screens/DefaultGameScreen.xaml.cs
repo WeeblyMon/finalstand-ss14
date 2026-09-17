@@ -108,11 +108,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         // The toggle moves into the storage panel, under the pocket grid, where the prototype has a
         // labelled WORN button. The equipment grid it opens stays in this widget.
-        SetAnchorPreset(Inventory, LayoutPreset.CenterBottom);
-        SetMarginLeft(Inventory, HandsHalfWidth);
-        SetMarginRight(Inventory, HandsHalfWidth);
-        SetMarginTop(Inventory, -BottomBandLift);
-        SetMarginBottom(Inventory, -BottomBandLift);
+        SetAnchorPreset(Inventory, LayoutPreset.TopLeft);
         SetGrowHorizontal(Inventory, GrowDirection.End);
         SetGrowVertical(Inventory, GrowDirection.Begin);
 
@@ -171,7 +167,28 @@ public sealed partial class DefaultGameScreen : InGameScreen
         // The screen has no size until it is laid out, so the first placement waits for one.
         if (!_chatPlaced && Size.X > 0f && Size.Y > 0f)
             ResetChatRect();
+
+        PlaceInventoryBar();
     }
+
+    // Sits directly above the storage cluster rather than beside it. Measured live, because the
+    // storage panel's height changes with the worn button and the quick-slot rows.
+    private void PlaceInventoryBar()
+    {
+        if (Hotbar.StoragePanel is not { } storage || storage.Size.Y <= 0f)
+            return;
+
+        var size = Inventory.DesiredSize;
+        if (size.X <= 0f || size.Y <= 0f)
+            return;
+
+        var centre = storage.GlobalPosition.X + storage.Size.X * 0.5f;
+        var bottom = storage.GlobalPosition.Y - InventoryBarGap;
+
+        SetPosition(Inventory, new Vector2(centre - size.X * 0.5f, bottom - size.Y));
+    }
+
+    private const float InventoryBarGap = 6f;
 
     private void ResetChatRect()
     {

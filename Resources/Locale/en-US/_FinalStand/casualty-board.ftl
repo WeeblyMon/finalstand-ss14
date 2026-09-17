@@ -22,3 +22,4 @@ fs-casualty-pull-arrived = You are pulled to the surgeon.
 fs-casualty-pull-panel-title = RECOVERY
 fs-casualty-pull-panel-ready = ready
 fs-casualty-pull-panel-cooldown = { $seconds }s
+fs-casualty-pull-none = Nobody is down to recover.

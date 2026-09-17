@@ -4,6 +4,8 @@ using Content.Shared.Actions.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.GameTicking;
 using Content.Shared.Maps;
+using Content.Shared.Mobs.Components;
+using Robust.Shared.Player;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Robust.Server.Player;
@@ -84,7 +86,48 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         if (args.Handled)
             return;
 
-        args.Handled = TryPull(args.Performer, args.Target, args.Action);
+        if (!TryFindNearest(args.Performer, out var target))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-casualty-pull-none"), args.Performer, args.Performer);
+            return;
+        }
+
+        args.Handled = TryPull(args.Performer, target, args.Action);
+    }
+
+    /// <summary>Nearest crit or dead crewmate on the same map, ignoring line of sight.</summary>
+    private bool TryFindNearest(EntityUid doctor, out EntityUid nearest)
+    {
+        nearest = default;
+
+        var origin = _xform.GetMapCoordinates(doctor);
+        var best = float.MaxValue;
+
+        var query = EntityQueryEnumerator<ActorComponent, MobStateComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var xform))
+        {
+            if (uid == doctor || TerminatingOrDeleted(uid))
+                continue;
+
+            if (!_mobState.IsCritical(uid) && !_mobState.IsDead(uid))
+                continue;
+
+            var pos = _xform.GetMapCoordinates((uid, xform));
+            if (pos.MapId != origin.MapId)
+                continue;
+
+            if (IsBeingWorkedOn(uid))
+                continue;
+
+            var dist = (pos.Position - origin.Position).LengthSquared();
+            if (dist >= best)
+                continue;
+
+            best = dist;
+            nearest = uid;
+        }
+
+        return nearest != default;
     }
 
     private bool TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
