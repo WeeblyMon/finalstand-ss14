@@ -17,6 +17,8 @@ public sealed partial class FSSyringeFillerComponent : Component
     [DataField]
     public float UnitsPerSecond = 40f;
 
+    [ViewVariables] public float? BaseUnitsPerSecond;
+
     [DataField, AutoNetworkedField]
     public TimeSpan? FinishAt;
 

@@ -5,6 +5,10 @@ namespace Content.Shared._FinalStand.MedicalOps;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSHarvestSatchelComponent : Component
 {
+    [ViewVariables] public float? BaseRange;
+    [ViewVariables] public float? BasePerKill;
+    [ViewVariables] public float? BasePerWaveCap;
+
     [DataField]
     public string Solution = "satchel";
 

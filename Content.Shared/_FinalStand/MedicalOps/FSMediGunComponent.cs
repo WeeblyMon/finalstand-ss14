@@ -9,6 +9,14 @@ namespace Content.Shared._FinalStand.MedicalOps;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediGunComponent : Component
 {
+    // Prototype values, captured once at MapInit. Research applies deltas over these rather than
+    // assigning absolutes, so the YAML stays the authority for the baseline.
+    [ViewVariables] public float? BaseMaxRange;
+    [ViewVariables] public FixedPoint2? BaseBleedingAmountModifier;
+    [ViewVariables] public int? BaseMaxLinksAmount;
+    [ViewVariables] public float? BaseFrequency;
+    [ViewVariables] public float? BaseBatteryWithdraw;
+
     [DataField, AutoNetworkedField]
     public TimeSpan? NextTick;
 

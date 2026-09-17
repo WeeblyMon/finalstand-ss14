@@ -1,6 +1,8 @@
+using System.Collections.Frozen;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Medical;
 using Content.Shared.Timing;
 
@@ -19,11 +21,14 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string FocusedEmitters = "FSMedicalFocusedEmitters";
     public const string RapidCycling = "FSMedicalRapidCycling";
     public const string CapacitorRecovery = "FSMedicalCapacitorRecovery";
+    public const string CellEfficiency = "FSMedicalCellEfficiency";
+    public const string DefibrillatorOutput = "FSMedicalDefibrillatorOutput";
 
     public const string AutoclaveKit = "FSMedicalAutoclaveKit";
     public const string ReinforcedCanvas = "FSMedicalReinforcedCanvas";
     public const string BoneWelder = "FSMedicalBoneWelder";
     public const string RecoveryUplink = "FSMedicalRecoveryUplink";
+    public const string SterileField = "FSMedicalSterileField";
 
     public const string VolatileSuspension = "FSMedicalVolatileSuspension";
     public const string StabilisedAerosol = "FSMedicalStabilisedAerosol";
@@ -31,6 +36,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string LongRangeCollectors = "FSMedicalLongRangeCollectors";
     public const string WideSpectrumRendering = "FSMedicalWideSpectrumRendering";
     public const string CryoStowage = "FSMedicalCryoStowage";
+    public const string HighFlowManifold = "FSMedicalHighFlowManifold";
 
     public const string StandingOrders = "FSMedicalStandingOrders";
     public const string RapidMobilisation = "FSMedicalRapidMobilisation";
@@ -43,11 +49,14 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public static readonly string[] AllNodes =
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
-        AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink,
+        CellEfficiency, DefibrillatorOutput,
+        AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
-        LongRangeCollectors, WideSpectrumRendering, CryoStowage,
+        LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
         StandingOrders, RapidMobilisation, ExtendedProtocol, TriageDoctrine, MassCasualtyReadiness,
     ];
+
+    private static readonly FrozenSet<string> NodeSet = AllNodes.ToFrozenSet();
 
     public override void Initialize()
     {
@@ -61,13 +70,14 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSBoneStaplerComponent, MapInitEvent>(OnStaplerInit);
         SubscribeLocalEvent<FSFieldHospitalComponent, MapInitEvent>(OnFieldHospitalInit);
         SubscribeLocalEvent<FSEmergencyDefibComponent, MapInitEvent>(OnDefibInit);
+        SubscribeLocalEvent<FSSyringeFillerComponent, MapInitEvent>(OnFillerInit);
     }
 
     public bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
 
     private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
     {
-        if (Array.IndexOf(AllNodes, ev.NodeId) < 0)
+        if (!NodeSet.Contains(ev.NodeId))
             return;
 
         ApplyToAll();
@@ -98,6 +108,10 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         var defibs = EntityQueryEnumerator<FSEmergencyDefibComponent>();
         while (defibs.MoveNext(out var uid, out var defib))
             ApplyDefib((uid, defib));
+
+        var fillers = EntityQueryEnumerator<FSSyringeFillerComponent>();
+        while (fillers.MoveNext(out var uid, out var filler))
+            ApplyFiller((uid, filler));
     }
 
     private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args) => ApplyMediGun(ent);
@@ -106,14 +120,24 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     private void OnStaplerInit(Entity<FSBoneStaplerComponent> ent, ref MapInitEvent args) => ApplyStapler(ent);
     private void OnFieldHospitalInit(Entity<FSFieldHospitalComponent> ent, ref MapInitEvent args) => ApplyFieldHospital(ent);
     private void OnDefibInit(Entity<FSEmergencyDefibComponent> ent, ref MapInitEvent args) => ApplyDefib(ent);
+    private void OnFillerInit(Entity<FSSyringeFillerComponent> ent, ref MapInitEvent args) => ApplyFiller(ent);
 
     // The soft cap is never touched. Range, blood restoration, link count and tick rate only.
     private void ApplyMediGun(Entity<FSMediGunComponent> ent)
     {
-        ent.Comp.MaxRange = Unlocked(ExtendedOptics) ? 9f : 6f;
-        ent.Comp.BleedingAmountModifier = Unlocked(HaemostaticBeam) ? 5 : 3;
-        ent.Comp.MaxLinksAmount = Unlocked(FocusedEmitters) ? 2 : 1;
-        ent.Comp.Frequency = Unlocked(RapidCycling) ? 0.7f : 1f;
+        var c = ent.Comp;
+        c.BaseMaxRange ??= c.MaxRange;
+        c.BaseBleedingAmountModifier ??= c.BleedingAmountModifier;
+        c.BaseMaxLinksAmount ??= c.MaxLinksAmount;
+        c.BaseFrequency ??= c.Frequency;
+
+        c.MaxRange = c.BaseMaxRange.Value + (Unlocked(ExtendedOptics) ? 3f : 0f);
+        c.BleedingAmountModifier = c.BaseBleedingAmountModifier.Value + (Unlocked(HaemostaticBeam) ? 2 : 0);
+        c.MaxLinksAmount = c.BaseMaxLinksAmount.Value + (Unlocked(FocusedEmitters) ? 1 : 0);
+        c.Frequency = c.BaseFrequency.Value * (Unlocked(RapidCycling) ? 0.7f : 1f);
+
+        c.BaseBatteryWithdraw ??= c.BatteryWithdraw;
+        c.BatteryWithdraw = c.BaseBatteryWithdraw.Value * (Unlocked(CellEfficiency) ? 0.6f : 1f);
 
         Dirty(ent);
     }
@@ -121,17 +145,26 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     // The per-wave ceiling rises but never disappears; it is what stops kills funding kills.
     private void ApplySatchel(Entity<FSHarvestSatchelComponent> ent)
     {
-        ent.Comp.Range = Unlocked(LongRangeCollectors) ? 12f : 8f;
-        ent.Comp.PerKill = Unlocked(WideSpectrumRendering) ? 6f : 4f;
-        ent.Comp.PerWaveCap = Unlocked(CryoStowage) ? 180f : 120f;
+        var c = ent.Comp;
+        c.BaseRange ??= c.Range;
+        c.BasePerKill ??= c.PerKill;
+        c.BasePerWaveCap ??= c.PerWaveCap;
+
+        c.Range = c.BaseRange.Value + (Unlocked(LongRangeCollectors) ? 4f : 0f);
+        c.PerKill = c.BasePerKill.Value + (Unlocked(WideSpectrumRendering) ? 2f : 0f);
+        c.PerWaveCap = c.BasePerWaveCap.Value * (Unlocked(CryoStowage) ? 1.5f : 1f);
 
         Dirty(ent);
     }
 
     private void ApplyFlask(Entity<FSSplashFlaskComponent> ent)
     {
-        ent.Comp.SpreadAmount = Unlocked(VolatileSuspension) ? 9 : 6;
-        ent.Comp.Duration = Unlocked(StabilisedAerosol) ? 18f : 10f;
+        var c = ent.Comp;
+        c.BaseSpreadAmount ??= c.SpreadAmount;
+        c.BaseDuration ??= c.Duration;
+
+        c.SpreadAmount = c.BaseSpreadAmount.Value + (Unlocked(VolatileSuspension) ? 3 : 0);
+        c.Duration = c.BaseDuration.Value * (Unlocked(StabilisedAerosol) ? 1.8f : 1f);
 
         Dirty(ent);
     }
@@ -139,22 +172,37 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     // Repair stays partial at 45 of 60 - research buys the cooldown, never the mend, or surgery dies.
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)
     {
-        if (TryComp<UseDelayComponent>(ent.Owner, out var delay))
-            _useDelay.SetLength((ent.Owner, delay), TimeSpan.FromSeconds(Unlocked(BoneWelder) ? 30 : 45));
+        if (!TryComp<UseDelayComponent>(ent.Owner, out var delay))
+            return;
+
+        ent.Comp.BaseUseDelay ??= delay.Delay;
+
+        var scale = Unlocked(BoneWelder) ? 30f / 45f : 1f;
+        _useDelay.SetLength((ent.Owner, delay), ent.Comp.BaseUseDelay.Value * scale);
     }
 
     private void ApplyFieldHospital(Entity<FSFieldHospitalComponent> ent)
     {
         if (TryComp<FSArmingDelayComponent>(ent.Owner, out var arming))
         {
-            arming.Delay = Unlocked(AutoclaveKit) ? 3f : 6f;
+            ent.Comp.BaseArmingDelay ??= arming.Delay;
+            arming.Delay = ent.Comp.BaseArmingDelay.Value * (Unlocked(AutoclaveKit) ? 0.5f : 1f);
             Dirty(ent.Owner, arming);
         }
 
         if (TryComp<FSDeployableLifetimeComponent>(ent.Owner, out var lifetime))
         {
-            lifetime.Lifetime = TimeSpan.FromSeconds(Unlocked(ReinforcedCanvas) ? 1200 : 600);
+            ent.Comp.BaseLifetime ??= lifetime.Lifetime;
+            lifetime.Lifetime = ent.Comp.BaseLifetime.Value * (Unlocked(ReinforcedCanvas) ? 2f : 1f);
             Dirty(ent.Owner, lifetime);
+        }
+
+        // SharedSurgerySystem.Steps reads SpeedModifier off whatever the patient is strapped to.
+        if (TryComp<OperatingTableComponent>(ent.Owner, out var table))
+        {
+            ent.Comp.BaseSurgerySpeed ??= table.SpeedModifier;
+            table.SpeedModifier = ent.Comp.BaseSurgerySpeed.Value * (Unlocked(SterileField) ? 1.5f : 1f);
+            Dirty(ent.Owner, table);
         }
     }
 
@@ -164,8 +212,23 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         if (!TryComp<DefibrillatorComponent>(ent.Owner, out var defib))
             return;
 
-        defib.ZapDelay = TimeSpan.FromSeconds(Unlocked(CapacitorRecovery) ? 40 : 60);
+        ent.Comp.BaseZapDelay ??= defib.ZapDelay;
+        defib.ZapDelay = ent.Comp.BaseZapDelay.Value * (Unlocked(CapacitorRecovery) ? 40f / 60f : 1f);
         Dirty(ent.Owner, defib);
+
+        ent.Comp.BaseReviveHealthFraction ??= ent.Comp.ReviveHealthFraction;
+        ent.Comp.ReviveHealthFraction =
+            ent.Comp.BaseReviveHealthFraction.Value + (Unlocked(DefibrillatorOutput) ? 0.15f : 0f);
+    }
+
+    // The filler is station equipment, so this is throughput for the whole department at once.
+    private void ApplyFiller(Entity<FSSyringeFillerComponent> ent)
+    {
+        ent.Comp.BaseUnitsPerSecond ??= ent.Comp.UnitsPerSecond;
+        ent.Comp.UnitsPerSecond =
+            ent.Comp.BaseUnitsPerSecond.Value * (Unlocked(HighFlowManifold) ? 2.25f : 1f);
+
+        Dirty(ent);
     }
 
 }
