@@ -22,3 +22,7 @@ fs-field-kit-weakening-purpose = Zombies caught in it take 25% more damage from 
 
 fs-field-kit-corrosive = Corrosive
 fs-field-kit-corrosive-purpose = Leaves caustic damage on the ground for anything that walks through.
+
+fs-chem-guide-trauma = TRAUMA
+fs-chem-guide-support = SUPPORT
+fs-chem-guide-precursors = POTION PRECURSORS

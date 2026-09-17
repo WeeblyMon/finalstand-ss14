@@ -3,6 +3,7 @@ using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry;
+using Content.Shared.Chemistry.Reaction;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Content.Shared.Storage;
@@ -28,6 +29,7 @@ namespace Content.Client.Chemistry.UI
         public event Action<ItemStorageLocation>? OnEjectJugButtonPressed;
 
         private static readonly Color ReadyColor = Color.FromHex("#4FBF7A");
+        private static readonly Color BlockedColor = Color.FromHex("#C9A227");
 
         private readonly Dictionary<ItemStorageLocation, ReagentCardControl> _cards = new();
         private readonly List<ItemStorageLocation> _displayed = new();
@@ -35,7 +37,7 @@ namespace Content.Client.Chemistry.UI
 
         private FSFieldKitPrototype? _target;
         private Dictionary<string, FixedPoint2> _targetIngredients = new();
-        private bool _showFieldKit = true;
+        private RecipeTab _tab = RecipeTab.FieldKit;
         private string _filter = string.Empty;
         private string? _recipeKey;
         private int _dispenseAmount;
@@ -58,22 +60,36 @@ namespace Content.Client.Chemistry.UI
 
             TargetChipButton.OnPressed += _ => ClearTarget(true);
 
-            FieldKitTabButton.OnPressed += _ => SetRecipeTab(true);
-            CanMakeTabButton.OnPressed += _ => SetRecipeTab(false);
+            FieldKitTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.FieldKit);
+            BasicsTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.Basics);
+            CanMakeTabButton.OnPressed += _ => SetRecipeTab(RecipeTab.CanMake);
         }
 
-        private void SetRecipeTab(bool fieldKit)
+        private enum RecipeTab : byte
         {
-            if (_showFieldKit == fieldKit)
+            FieldKit,
+            Basics,
+            CanMake,
+        }
+
+        private void SetRecipeTab(RecipeTab tab)
+        {
+            if (_tab == tab)
             {
-                FieldKitTabButton.Pressed = _showFieldKit;
-                CanMakeTabButton.Pressed = !_showFieldKit;
+                SyncTabButtons();
                 return;
             }
 
-            _showFieldKit = fieldKit;
+            _tab = tab;
             _recipeKey = null;
             RefreshRecipes();
+        }
+
+        private void SyncTabButtons()
+        {
+            FieldKitTabButton.Pressed = _tab == RecipeTab.FieldKit;
+            BasicsTabButton.Pressed = _tab == RecipeTab.Basics;
+            CanMakeTabButton.Pressed = _tab == RecipeTab.CanMake;
         }
 
         private void ClearTarget(bool refresh)
@@ -238,7 +254,7 @@ namespace Content.Client.Chemistry.UI
 
         private void RefreshRecipes()
         {
-            var key = (_showFieldKit ? "K|" : "C|")
+            var key = _tab + "|" 
                       + (_target?.ID ?? string.Empty) + "|"
                       + string.Join('|', _held.OrderBy(x => x.Key).Select(x => $"{x.Key}:{x.Value}"));
 
@@ -247,11 +263,12 @@ namespace Content.Client.Chemistry.UI
 
             _recipeKey = key;
 
-            FieldKitTabButton.Pressed = _showFieldKit;
-            CanMakeTabButton.Pressed = !_showFieldKit;
+            SyncTabButtons();
 
-            if (_showFieldKit)
+            if (_tab == RecipeTab.FieldKit)
                 PopulateFieldKit();
+            else if (_tab == RecipeTab.Basics)
+                PopulateBasics();
             else
                 FSRecipeHints.Populate(RecipeInfo, _prototypeManager, _held);
         }
@@ -260,12 +277,70 @@ namespace Content.Client.Chemistry.UI
         {
             RecipeInfo.Children.Clear();
 
+            // Blocked kits sink to the bottom. The panel used to list them in authored order, so a
+            // chemist read three lines of something they cannot make before reaching one they can.
             var kits = _prototypeManager.EnumeratePrototypes<FSFieldKitPrototype>()
-                .OrderBy(kit => kit.Priority)
-                .ToArray();
+                .Select(kit => (Kit: kit, Plan: FSFieldKitResolver.Plan(
+                    _prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))))
+                .OrderBy(entry => entry.Plan.Unobtainable.Count > 0)
+                .ThenBy(entry => entry.Kit.Priority);
 
-            foreach (var kit in kits)
-                RecipeInfo.AddChild(BuildFieldKitRow(kit));
+            foreach (var (kit, plan) in kits)
+                RecipeInfo.AddChild(BuildFieldKitRow(kit, plan));
+        }
+
+        private void PopulateBasics()
+        {
+            RecipeInfo.Children.Clear();
+
+            var groups = _prototypeManager.EnumeratePrototypes<FSChemGuidePrototype>()
+                .OrderBy(guide => guide.Priority);
+
+            var any = false;
+            foreach (var guide in groups)
+            {
+                RecipeInfo.AddChild(new Label
+                {
+                    Text = Loc.GetString(guide.Category),
+                    StyleClasses = { StyleClass.LabelSubText },
+                    Margin = new Thickness(0, any ? 6 : 0, 0, 2),
+                });
+
+                foreach (var id in guide.Reactions)
+                {
+                    if (!_prototypeManager.TryIndex(id, out ReactionPrototype? reaction))
+                        continue;
+
+                    any = true;
+                    RecipeInfo.AddChild(BuildGuideRow(reaction));
+                }
+            }
+
+            if (!any)
+                RecipeInfo.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-empty")));
+        }
+
+        private Control BuildGuideRow(ReactionPrototype reaction)
+        {
+            // Reactants come from the reaction itself rather than being re-authored in the guide,
+            // so a balance change to a recipe cannot leave the guide lying about it.
+            var parts = reaction.Reactants
+                .OrderBy(kv => kv.Key)
+                .Select(kv => ReagentName(kv.Key) + " " + kv.Value.Amount + "u");
+
+            var ready = reaction.Reactants.All(kv =>
+                _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value.Amount);
+
+            var row = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
+            row.AddChild(new Label
+            {
+                Text = FSFieldKitResolver.NameOf(reaction, _prototypeManager),
+                Modulate = ready ? ReadyColor : Color.White,
+            });
+            row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-line",
+                ("reagents", string.Join(" + ", parts))), ready ? ReadyColor : null));
+
+            return row;
         }
 
         // Label does not wrap, it clips, so long purpose lines were cut off no matter how wide the
@@ -284,39 +359,60 @@ namespace Content.Client.Chemistry.UI
             return _prototypeManager.TryIndex(id, out ReagentPrototype? proto) ? proto.LocalizedName : id;
         }
 
-        private Control BuildFieldKitRow(FSFieldKitPrototype kit)
+        private Control BuildFieldKitRow(FSFieldKitPrototype kit, FSFieldKitPlan plan)
         {
             var direct = kit.ResolveIngredients(_prototypeManager);
-            var plan = FSFieldKitResolver.Plan(_prototypeManager, direct, Sourceable(kit));
 
             var complete = direct.All(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
             var blocked = plan.Unobtainable.Count > 0;
             var targeted = _target?.ID == kit.ID;
 
-            var parts = direct
-                .Select(kv => ReagentName(kv.Key) + " " + Loc.GetString(
-                    "reagent-dispenser-window-field-kit-progress",
-                    ("have", _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero)), ("need", kv.Value)))
-                .ToArray();
-
             var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
 
-            body.AddChild(new Label
+            // Collapsed rows are one line: the name, and a status short enough to sit beside it.
+            // Purpose and the full plan are the reward for selecting a kit, not a standing cost.
+            var header = new BoxContainer { Orientation = LayoutOrientation.Horizontal, HorizontalExpand = true };
+            header.AddChild(new Label
             {
                 Text = Loc.GetString(kit.Name),
                 Modulate = complete ? ReadyColor : Color.White,
             });
+            header.AddChild(new Control { HorizontalExpand = true });
+            header.AddChild(new Label
+            {
+                Text = StatusText(),
+                StyleClasses = { StyleClass.LabelSubText },
+                Modulate = complete ? ReadyColor : blocked ? BlockedColor : Color.White,
+            });
+            body.AddChild(header);
 
-            body.AddChild(Sub(
-                blocked
-                    ? Loc.GetString("reagent-dispenser-window-field-kit-missing")
-                    : string.Join(" · ", parts),
-                complete ? ReadyColor : null));
+            string StatusText()
+            {
+                if (complete)
+                    return Loc.GetString("reagent-dispenser-window-field-kit-ready");
 
-            body.AddChild(Sub(Loc.GetString(kit.Purpose)));
+                // Naming the reagent is the whole point - "not brewable here" told a chemist
+                // nothing they could act on.
+                if (blocked)
+                {
+                    return Loc.GetString("reagent-dispenser-window-field-kit-needs",
+                        ("reagents", string.Join(", ", plan.Unobtainable.Select(ReagentName))));
+                }
+
+                var have = direct.Count(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
+                return Loc.GetString("reagent-dispenser-window-field-kit-progress",
+                    ("have", have), ("need", direct.Count));
+            }
 
             if (targeted)
             {
+                body.AddChild(Sub(Loc.GetString(kit.Purpose)));
+
+                body.AddChild(Sub(string.Join(" · ", direct
+                    .Select(kv => ReagentName(kv.Key) + " " + Loc.GetString(
+                        "reagent-dispenser-window-field-kit-progress",
+                        ("have", _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero)), ("need", kv.Value))))));
+
                 if (plan.Base.Count > 0)
                 {
                     body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-base",

@@ -119,6 +119,10 @@
                             Text="{Loc 'reagent-dispenser-window-recipes-field-kit'}"
                             StyleClasses="OpenRight"
                             ToggleMode="True" />
+                    <Button Name="BasicsTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-basics'}"
+                            StyleClasses="OpenBoth"
+                            ToggleMode="True" />
                     <Button Name="CanMakeTabButton"
                             Text="{Loc 'reagent-dispenser-window-recipes-can-make'}"
                             StyleClasses="OpenLeft"
