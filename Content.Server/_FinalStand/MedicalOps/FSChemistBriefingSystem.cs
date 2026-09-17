@@ -1,4 +1,5 @@
 using Content.Server.Chat.Managers;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -20,5 +21,10 @@ public sealed class FSChemistBriefingSystem : EntitySystem
             return;
 
         _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective"));
+        _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective-2"));
+        _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective-3"));
+
+        // The briefing scrolls away. The guide does not.
+        RaiseNetworkEvent(new FSOpenChemistGuideEvent(), ev.Player);
     }
 }

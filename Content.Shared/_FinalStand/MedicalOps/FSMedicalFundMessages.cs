@@ -58,3 +58,9 @@ public sealed class FSMedicalStatusEvent : EntityEventArgs
         IsChemist = isChemist;
     }
 }
+
+/// <summary>Opens the chemist's guide for the player who just spawned as one.</summary>
+[Serializable, NetSerializable]
+public sealed class FSOpenChemistGuideEvent : EntityEventArgs
+{
+}
