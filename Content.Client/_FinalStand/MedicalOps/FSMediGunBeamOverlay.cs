@@ -1,5 +1,8 @@
 using System.Numerics;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.Hands.Components;
+using Content.Shared.Hands.EntitySystems;
+using Robust.Client.Player;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
@@ -13,6 +16,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private readonly IEntityManager _entManager;
     private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
+    private readonly SharedHandsSystem _hands;
+    private readonly IPlayerManager _player;
 
     private readonly Texture? _beam;
 
@@ -53,6 +58,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _entManager = entManager;
         _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
+        _hands = _entManager.System<SharedHandsSystem>();
+        _player = IoCManager.Resolve<IPlayerManager>();
 
         _beam = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/medigun_beam.png");
     }
@@ -77,6 +84,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var uMin = col * cell;
         var vMin = row * cell;
 
+        var localGun = LocalMediGun();
         var query = _entManager.EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
         {
@@ -115,6 +123,48 @@ public sealed class FSMediGunBeamOverlay : Overlay
             }
 
             DrawParticles(handle, start, control, end, time, healed.BeamColor);
+
+            // Client-side ring so a medic can tell their own patient apart from someone else's.
+            // Drawn only for the local medigun, so the world does not fill with other people's rings.
+            if (localGun != null && healed.Source == localGun)
+                DrawTargetRing(handle, end, time, healed.BeamColor);
+        }
+    }
+
+    private const float RingRadius = 0.45f;
+    private const int RingSegments = 20;
+
+    private EntityUid? LocalMediGun()
+    {
+        if (_player.LocalEntity is not { } local
+            || !_entManager.TryGetComponent(local, out HandsComponent? hands))
+        {
+            return null;
+        }
+
+        foreach (var held in _hands.EnumerateHeld((local, hands)))
+        {
+            if (_entManager.HasComponent<FSMediGunComponent>(held))
+                return held;
+        }
+
+        return null;
+    }
+
+    private static void DrawTargetRing(DrawingHandleWorld handle, Vector2 centre, float time, Color colour)
+    {
+        var pulse = 1f + MathF.Sin(time * 4f) * 0.06f;
+        var radius = RingRadius * pulse;
+
+        for (var i = 0; i < RingSegments; i++)
+        {
+            var a0 = MathF.Tau * i / RingSegments;
+            var a1 = MathF.Tau * (i + 1) / RingSegments;
+
+            handle.DrawLine(
+                centre + new Vector2(MathF.Cos(a0), MathF.Sin(a0)) * radius,
+                centre + new Vector2(MathF.Cos(a1), MathF.Sin(a1)) * radius,
+                colour.WithAlpha(0.75f));
         }
     }
 

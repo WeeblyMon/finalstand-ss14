@@ -371,12 +371,20 @@ namespace Content.Client.Chemistry.UI
             return _prototypeManager.TryIndex(id, out ReagentPrototype? proto) ? proto.LocalizedName : id;
         }
 
+        private const string BiomassReagent = "FSBiomass";
+
         private Control BuildFieldKitRow(FSFieldKitPrototype kit, FSFieldKitPlan plan)
         {
             var direct = kit.ResolveIngredients(_prototypeManager);
 
             var complete = direct.All(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
             var blocked = plan.Unobtainable.Count > 0;
+
+            // Biomass is the one ingredient no dispenser stocks, so the row has to point at the
+            // satchel rather than just showing 0/2 next to a reagent nobody can find.
+            var needsBiomass = !complete
+                               && direct.TryGetValue(BiomassReagent, out var biomassNeed)
+                               && _held.GetValueOrDefault(BiomassReagent, FixedPoint2.Zero) < biomassNeed;
             var targeted = _target?.ID == kit.ID;
 
             var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
@@ -397,6 +405,9 @@ namespace Content.Client.Chemistry.UI
                 Modulate = complete ? ReadyColor : blocked ? BlockedColor : Color.White,
             });
             body.AddChild(header);
+
+            if (needsBiomass && !blocked)
+                body.AddChild(Sub(Loc.GetString("reagent-dispenser-window-field-kit-harvest"), BlockedColor));
 
             string StatusText()
             {
