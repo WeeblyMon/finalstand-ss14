@@ -214,7 +214,7 @@ public sealed class CasualtyBoardTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var roles = entMan.System<FSMedicalRolesSystem>();
+            var roles = entMan.System<FSMedicalRosterSystem>();
 
             Assert.Multiple(() =>
             {

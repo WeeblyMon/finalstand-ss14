@@ -23,7 +23,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private FSCasualtySystem _casualty = default!;
-    [Dependency] private FSMedicalRolesSystem _roles = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IPlayerManager _players = default!;
 
@@ -58,21 +58,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
             new FSMedicPingEvent(GetNetEntity(args.Performer), false, FSPingKind.Chem),
             Filter.Broadcast());
 
-        _audio.PlayEntity(ChemRequestSound, MedicalFilter(), args.Performer, true);
-    }
-
-    // Medics hear the call positionally, so the alert doubles as a bearing on the casualty.
-    private Filter MedicalFilter()
-    {
-        var filter = Filter.Empty();
-
-        foreach (var session in _players.Sessions)
-        {
-            if (session.AttachedEntity is { } mob && _roles.IsMedicalStaff(mob))
-                filter.AddPlayer(session);
-        }
-
-        return filter;
+        _audio.PlayEntity(ChemRequestSound, _roster.MedicalFilter(), args.Performer, true);
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -98,7 +84,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         RaiseNetworkEvent(new FSMedicPingEvent(GetNetEntity(user), IsHurt(user)), Filter.Broadcast());
         _casualty.RegisterCall(user);
 
-        _audio.PlayEntity(MedicAlertSound, MedicalFilter(), user, true);
+        _audio.PlayEntity(MedicAlertSound, _roster.MedicalFilter(), user, true);
     }
 
     private bool IsHurt(EntityUid uid)

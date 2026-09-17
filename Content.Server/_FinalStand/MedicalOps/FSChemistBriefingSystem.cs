@@ -7,8 +7,6 @@ public sealed class FSChemistBriefingSystem : EntitySystem
 {
     [Dependency] private IChatManager _chat = default!;
 
-    private const string ChemistJob = "Chemist";
-
     public override void Initialize()
     {
         base.Initialize();
@@ -18,7 +16,7 @@ public sealed class FSChemistBriefingSystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId != ChemistJob || ev.Silent)
+        if (ev.JobId != FSMedicalRosterSystem.ChemistJob || ev.Silent)
             return;
 
         _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective"));

@@ -19,7 +19,7 @@ namespace Content.Server._FinalStand.Research;
 public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private FSMedicalFundSystem _fund = default!;
-    [Dependency] private FSMedicalRolesSystem _roles = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
@@ -123,7 +123,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        if (!_roles.IsCmo(player))
+        if (!_roster.HasCmoAccess(player))
         {
             RaiseNetworkEvent(new FSResearchAuthorityDeniedEvent(Loc.GetString("fs-medical-research-no-authority")),
                 Filter.Entities(player));
