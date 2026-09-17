@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
@@ -40,7 +40,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
-        SubscribeLocalEvent<GunComponent, GunRefreshModifiersEvent>(OnBulletStorm);
         SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnDeepImpact);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
@@ -93,10 +92,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             _stamina.TakeStaminaDamage(ev.Target, lbLevel * FSPerkBonusConstants.LegBreakerStaminaPerLevel, source: ev.Shooter);
     }
 
-    private void OnBulletStorm(EntityUid uid, GunComponent gunComp, ref GunRefreshModifiersEvent args)
+    /// <summary>Called by FSWeaponStatSystem, which owns the subscription.</summary>
+    public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
     {
-        var holder = Transform(uid).ParentUid;
-        if (!holder.IsValid()) return;
         if (!_mind.TryGetMind(holder, out var mindId, out _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 

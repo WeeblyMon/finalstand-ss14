@@ -20,8 +20,6 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        // Subscribed on TagComponent since FSPerkBuffSystem already owns GunComponent+GunRefreshModifiersEvent.
-        SubscribeLocalEvent<TagComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
     }
@@ -192,7 +190,8 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         return mul;
     }
 
-    private void OnRefreshModifiers(EntityUid uid, TagComponent tagComp, ref GunRefreshModifiersEvent args)
+    /// <summary>Called by FSWeaponStatSystem, which owns the subscription.</summary>
+    public void ApplyGunModifiers(EntityUid uid, ref GunRefreshModifiersEvent args)
     {
         var kind = _classifier.Classify(uid);
         if (!kind.HasGunTag && !kind.Harvester)

@@ -57,19 +57,16 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
 
-        // Keyed on MetaData, not on the component each event is really about: FSPerkBuffSystem owns
-        // GunComponent and MeleeWeaponComponent for these, FSResearchBuffSystem owns TagComponent,
-        // and Robust throws Duplicate Subscriptions at startup for a repeat of the same pair.
-        // MetaData is on every entity, so nothing is silently skipped.
-        SubscribeLocalEvent<MetaDataComponent, GunRefreshModifiersEvent>(OnGunFireRate);
+        // Melee damage is keyed on MetaData because FSPerkBuffSystem owns MeleeWeaponComponent for
+        // this event. Gun stats go through FSWeaponStatSystem instead.
         SubscribeLocalEvent<MetaDataComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<MetaDataComponent, AmmoShotEvent>(OnAmmoShot);
     }
 
-    private void OnGunFireRate(EntityUid uid, MetaDataComponent meta, ref GunRefreshModifiersEvent args)
+    /// <summary>Called by FSWeaponStatSystem, which owns the subscription.</summary>
+    public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
     {
-        var holder = Transform(uid).ParentUid;
-        if (!holder.IsValid() || !_bonusQuery.HasComp(holder))
+        if (!_bonusQuery.HasComp(holder))
             return;
 
         args.FireRate *= GetScale(holder, FSMedicalBonusCategory.FireRate);
