@@ -160,6 +160,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
     {
         var (uid, comp) = ent;
 
+        if (args.Handled)
+            return;
+
         if (args.Target is not { } target || target == args.User)
             return;
 
