@@ -6,6 +6,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Robust.Server.Player;
@@ -47,14 +48,23 @@ public sealed partial class FSCasualtySystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
-        SubscribeLocalEvent<ActorComponent, MobStateChangedEvent>(OnMobStateChanged);
+        // Broadcast, not directed. SharedStunSystem already owns the directed
+        // (MobStateComponent, MobStateChangedEvent) pair, and that pair is a global namespace - a
+        // second subscriber is a startup throw, not a silent override. Broadcast is a separate
+        // namespace, so any number of systems can take this event that way.
+        SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
     }
 
-    private void OnMobStateChanged(Entity<ActorComponent> ent, ref MobStateChangedEvent ev)
+    private void OnMobStateChanged(MobStateChangedEvent ev)
     {
-        if (ev.NewMobState is MobState.Critical or MobState.Dead)
-            RegisterCall(ent.Owner);
+        if (ev.NewMobState is not (MobState.Critical or MobState.Dead))
+            return;
+
+        if (!HasComp<ActorComponent>(ev.Target))
+            return;
+
+        RegisterCall(ev.Target);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent args)
