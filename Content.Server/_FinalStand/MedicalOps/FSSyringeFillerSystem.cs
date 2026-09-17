@@ -2,6 +2,7 @@ using Content.Server.Popups;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Utility;
+using Content.Shared.Audio;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
@@ -23,6 +24,7 @@ public sealed class FSSyringeFillerSystem : EntitySystem
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedAmbientSoundSystem _ambient = default!;
 
     public override void Initialize()
     {
@@ -48,6 +50,7 @@ public sealed class FSSyringeFillerSystem : EntitySystem
 
             filler.FinishAt = null;
             Dirty(uid, filler);
+            _ambient.SetAmbience(uid, false);
             Complete((uid, filler));
         }
     }
@@ -70,6 +73,7 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         {
             ent.Comp.FinishAt = null;
             Dirty(ent);
+            _ambient.SetAmbience(ent.Owner, false);
         }
 
         UpdateUi(ent);
@@ -91,6 +95,9 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         _solutions.RemoveAllSolution(magSoln);
         _solutions.UpdateChemicals(magSoln);
         _popup.PopupEntity(Loc.GetString("fs-syringe-filler-purged"), ent, args.Actor);
+
+        // Purging is only ever done in order to fill, so do not make them press it twice.
+        TryBegin(ent, popup: false);
         UpdateUi(ent);
     }
 
@@ -123,6 +130,8 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         ent.Comp.StartedAt = _timing.CurTime;
         ent.Comp.FinishAt = ent.Comp.StartedAt + TimeSpan.FromSeconds(seconds);
         Dirty(ent);
+
+        _ambient.SetAmbience(ent.Owner, true);
     }
 
     /// <summary>How much can move right now, and why it cannot when the answer is zero.</summary>
@@ -239,6 +248,18 @@ public sealed class FSSyringeFillerSystem : EntitySystem
 
         var transfer = Evaluate(ent, out var status);
         state.CanFill = !state.Running && transfer > FixedPoint2.Zero;
+
+        // A 30u bottle against a 200u magazine is seven round trips. Say so on the first.
+        if (TryGetMagazineSolution(ent, out _, out var mag))
+        {
+            state.SmallSource = transfer > FixedPoint2.Zero && transfer < mag.MaxVolume - mag.Volume;
+            state.MixedBlocked = transfer <= FixedPoint2.Zero
+                                 && mag.Volume > 0
+                                 && TryGetSourceSolution(ent, out _, out var src)
+                                 && src.Volume > 0
+                                 && !SameContents(mag, src);
+        }
+
         state.Status = state.Running
             ? Loc.GetString("fs-syringe-filler-working")
             : transfer > FixedPoint2.Zero

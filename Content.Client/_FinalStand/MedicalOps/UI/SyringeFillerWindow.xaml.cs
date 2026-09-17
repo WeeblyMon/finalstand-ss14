@@ -57,10 +57,19 @@ public sealed partial class SyringeFillerWindow : DefaultWindow
                 ("units", (int) state.MagazineVolume),
                 ("maxunits", (int) state.MagazineMax));
 
-        StatusLabel.Text = state.Status;
+        StatusLabel.Text = state.SmallSource
+            ? state.Status + "  " + Loc.GetString("fs-syringe-filler-small-source")
+            : state.Status;
+
         FillButton.Disabled = !state.CanFill;
         PurgeButton.Disabled = !state.CanPurge || state.Running;
         WorkBar.Visible = state.Running;
+
+        // When the only thing standing between the player and a fill is the wrong reagent, the
+        // remedy should be the button in front of them rather than a verb they have to find.
+        PurgeButton.Text = Loc.GetString(state.MixedBlocked
+            ? "fs-syringe-filler-purge-and-fill"
+            : "fs-syringe-filler-purge");
     }
 
     protected override void FrameUpdate(FrameEventArgs args)

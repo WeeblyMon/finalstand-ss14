@@ -21,6 +21,11 @@ public sealed class FSCasualtyPullSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly EntProtoId ArriveEffect = "EffectFlashBluespace";
+
+    private static readonly SoundSpecifier ArriveSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/dart_hit.ogg");
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private IPlayerManager _players = default!;
@@ -95,8 +100,14 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         _actions.SetUseDelay((args.Action.Owner, args.Action.Comp),
             TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120));
 
+        var origin = _xform.GetMapCoordinates(target);
+        Spawn(ArriveEffect, origin);
+
         _xform.SetCoordinates(target, doctorCoords);
+
+        Spawn(ArriveEffect, _xform.GetMapCoordinates(target));
         _audio.PlayPvs(PullSound, doctor);
+        _audio.PlayPvs(ArriveSound, target);
 
         _popup.PopupEntity(Loc.GetString("fs-casualty-pull-arrived"), target, target, PopupType.Medium);
 

@@ -16,3 +16,6 @@ fs-syringe-filler-mixed = The magazine holds something else. Purge it first.
 fs-syringe-filler-done = The magazine is filled.
 fs-syringe-filler-purged = The magazine is emptied.
 fs-solution-label-mixed = mixed
+fs-syringe-filler-purge = Purge
+fs-syringe-filler-purge-and-fill = Purge & fill
+fs-syringe-filler-small-source = Use a jug to fill it in one go.

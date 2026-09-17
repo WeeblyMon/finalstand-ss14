@@ -32,7 +32,7 @@
         <ProgressBar Name="WorkBar" MaxValue="1" Value="0" MinHeight="8" Visible="False" Margin="0 0 0 4" />
 
         <BoxContainer Orientation="Horizontal" SeparationOverride="4">
-            <Button Name="PurgeButton" Text="Purge" HorizontalExpand="True" />
+            <Button Name="PurgeButton" HorizontalExpand="True" />
             <Button Name="FillButton" Text="Fill" HorizontalExpand="True" />
         </BoxContainer>
 

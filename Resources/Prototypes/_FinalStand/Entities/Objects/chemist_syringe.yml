@@ -4,6 +4,15 @@
   name: support syringe
   description: A reshaped syringe keyed to crew biometrics. Fired from a syringe gun to deliver chemicals to a teammate at range.
   components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+      - state: minisyringe1
+        map: ["enum.SolutionContainerLayers.Fill"]
+        visible: false
+      - state: syringeproj
+        shader: unshaded
+        color: "#5FE3B4"
   - type: FSAllyProjectile
   - type: Solution
     solution:

@@ -31,6 +31,12 @@
   - type: FSMedicalOnly
   - type: ApcPowerReceiver
     powerLoad: 250
+  - type: AmbientSound
+    enabled: false
+    range: 4
+    volume: -9
+    sound:
+      path: /Audio/Ambience/Objects/vending_machine_hum.ogg
   - type: ExtensionCableReceiver
   - type: ItemSlots
     slots:
