@@ -80,25 +80,49 @@ public sealed partial class WaveHudOverlay
                 glyph, Color.Black);
 
             var textY = y + (rowH - labelH) * 0.5f;
-            screen.DrawString(_labelFont!, new Vector2(innerX + PipSize + 6f, textY), row.Name, TriageName);
 
             var tail = row.Range;
             var tailW = screen.GetDimensions(_labelFont!, tail, 1f).X;
             screen.DrawString(_labelFont!, new Vector2(innerRight - tailW, textY), tail, TriageMuted);
 
+            var hasBearing = row.Direction is { } d && d.LengthSquared() > 0f;
+
             // Bearing arrow. Range alone says how far to run, not which way - this is the compass
             // the old casualty board had, which the panel dropped when it replaced that window.
-            if (row.Direction is { } dir && dir.LengthSquared() > 0f)
+            if (hasBearing)
             {
                 DrawBearing(screen,
                     new Vector2(innerRight - tailW - 8f - ArrowRadius, y + rowH * 0.5f),
-                    dir, pipColor);
+                    row.Direction!.Value, pipColor);
             }
+
+            // Names run long and the column is narrow, so the name is clipped to whatever is left
+            // after the range and arrow have taken their space rather than drawn straight over them.
+            var nameLeft = innerX + PipSize + 6f;
+            var nameRight = innerRight - tailW - (hasBearing ? 8f + ArrowRadius * 2f : 0f) - 6f;
+            screen.DrawString(_labelFont!, new Vector2(nameLeft, textY),
+                Fit(screen, _labelFont!, row.Name, nameRight - nameLeft), TriageName);
 
             y += rowH + TriageRowGap;
         }
 
         return panelH;
+    }
+
+    /// <summary>Trims text with an ellipsis until it fits, so a long name cannot overrun its row.</summary>
+    private static string Fit(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    {
+        if (maxWidth <= 0f)
+            return string.Empty;
+
+        if (screen.GetDimensions(font, text, 1f).X <= maxWidth)
+            return text;
+
+        var trimmed = text;
+        while (trimmed.Length > 0 && screen.GetDimensions(font, trimmed + "...", 1f).X > maxWidth)
+            trimmed = trimmed[..^1];
+
+        return trimmed.Length == 0 ? string.Empty : trimmed + "...";
     }
 
     /// <summary>A triangle pointed along <paramref name="dir"/>, which is already screen-space.</summary>
