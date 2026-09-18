@@ -1,4 +1,4 @@
-﻿<widgets:ActionsBar
+<widgets:ActionsBar
     xmlns="https://spacestation14.io"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Actions.Widgets"
@@ -8,12 +8,16 @@
     HorizontalExpand="False"
 >
     <PanelContainer Name="ActionsPanel" Access="Public">
-        <controls:ActionButtonContainer
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            MaxSize="64 9999"
-            Name="ActionsContainer"
-            Access="Public"
-            Rows="1"/>
+        <BoxContainer Orientation="Horizontal" SeparationOverride="4" VerticalAlignment="Center">
+            <Button Name="PrevPage" Access="Public" Text="&lt;" VerticalAlignment="Center"/>
+            <controls:ActionButtonContainer
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MaxSize="64 9999"
+                Name="ActionsContainer"
+                Access="Public"
+                Rows="1"/>
+            <Button Name="NextPage" Access="Public" Text="&gt;" VerticalAlignment="Center"/>
+        </BoxContainer>
     </PanelContainer>
 </widgets:ActionsBar>
