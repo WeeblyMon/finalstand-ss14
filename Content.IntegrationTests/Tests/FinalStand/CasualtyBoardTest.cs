@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
@@ -14,6 +14,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class CasualtyBoardTest : GameTest
 {
+    private const string BluntDamage = "Blunt";
+
     private const string HumanProto = "MobHuman";
 
     [Test]
@@ -31,7 +33,7 @@ public sealed class CasualtyBoardTest : GameTest
 
             var patient = entMan.SpawnEntity(HumanProto, map.GridCoords);
             damageable.TryChangeDamage(patient,
-                new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 20),
+                new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 20),
                 ignoreResistances: true);
 
             casualty.RegisterCall(patient);
@@ -86,7 +88,7 @@ public sealed class CasualtyBoardTest : GameTest
 
             patient = entMan.SpawnEntity(HumanProto, map.GridCoords);
             damageable.TryChangeDamage(patient,
-                new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 20),
+                new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 20),
                 ignoreResistances: true);
 
             casualty.RegisterCall(patient);
@@ -131,7 +133,7 @@ public sealed class CasualtyBoardTest : GameTest
             var casualty = entMan.System<FSCasualtySystem>();
             var damageable = entMan.System<DamageableSystem>();
 
-            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 25);
+            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 25);
             for (var i = 0; i < 20; i++)
                 damageable.TryChangeDamage(patient, brute, ignoreResistances: true);
 
@@ -156,7 +158,7 @@ public sealed class CasualtyBoardTest : GameTest
 
             var mob = entMan.SpawnEntity(HumanProto, map.GridCoords);
 
-            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 25);
+            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 25);
             for (var i = 0; i < 20; i++)
                 damageable.TryChangeDamage(mob, brute, ignoreResistances: true);
 

@@ -41,7 +41,7 @@ public sealed class FSCryoSleepSystem : EntitySystem
         body = default;
         pod = default;
 
-        var query = EntityManager.AllEntityQueryEnumerator<FSCryoStoredBodyComponent>();
+        var query = AllEntityQuery<FSCryoStoredBodyComponent>();
         while (query.MoveNext(out var uid, out var stored))
         {
             if (stored.User != userId || TerminatingOrDeleted(uid))

@@ -1,4 +1,4 @@
-using Content.IntegrationTests.Fixtures;
+﻿using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
@@ -13,6 +13,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class ChemSupplyCreditTest : GameTest
 {
+    private const string BluntDamage = "Blunt";
+
     private const string HumanProto = "MobHuman";
     private const string ItemProto = "Beaker";
 
@@ -95,7 +97,7 @@ public sealed class ChemSupplyCreditTest : GameTest
 
             attribution.RecordTreatment(patient, medicBody, syringe);
 
-            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 1);
+            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 1);
             var before = stats.GetStats(chemist).HealingPoints;
 
             damageable.TryChangeDamage(patient, brute * 400f, ignoreResistances: true);

@@ -1,4 +1,4 @@
-using Content.IntegrationTests.Fixtures;
+﻿using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Chemistry;
@@ -15,6 +15,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class ChemDebuffTest : GameTest
 {
+    private const string BluntDamage = "Blunt";
+
     private const string ArmouredEnemy = "FSZombieArmoured";
     private const string PlainEnemy = "FSZombieNormal";
 
@@ -74,7 +76,7 @@ public sealed class ChemDebuffTest : GameTest
             reactive.DoEntityReaction(weakened, new Solution("FSWeakeningAgent", 20), ReactionMethod.Touch);
             Assert.That(entMan.HasComponent<FSVulnerableComponent>(weakened), Is.True);
 
-            var damage = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 20);
+            var damage = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 20);
 
             Assert.That(Modified(entMan, weakened, damage), Is.GreaterThan(Modified(entMan, plain, damage)),
                 "a weakening cloud must multiply the whole team's damage, not just the chemist's");

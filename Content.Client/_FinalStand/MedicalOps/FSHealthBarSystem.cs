@@ -1,4 +1,4 @@
-using Content.Client.Overlays;
+﻿using Content.Client.Overlays;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Overlays;
@@ -60,7 +60,7 @@ public sealed partial class FSHealthBarSystem : EntitySystem
             NetSyncEnabled = false,
         };
 
-        EntityManager.AddComponent(player, comp, true);
+        AddComp(player, comp, true);
     }
 
     public override void FrameUpdate(float frameTime)

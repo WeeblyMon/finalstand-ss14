@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.FriendlyFire;
@@ -16,6 +17,10 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class AllyProjectileTest : GameTest
 {
+    private const string SyringeLauncherProto = "LauncherSyringe";
+    private const string SyringePackProto = "FSSyringePack";
+    private const string ChemistGearProto = "ChemistGear";
+
     private const string HumanProto = "MobHuman";
     private const string BulletProto = "BulletRifle";
 
@@ -106,14 +111,14 @@ public sealed class AllyProjectileTest : GameTest
                 Assert.That(entMan.HasComponent<FSAllyProjectileComponent>(syringe), Is.True,
                     "without the marker it phases through the teammate it is aimed at");
 
-                var gun = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("LauncherSyringe");
+                var gun = protos.Index<Robust.Shared.Prototypes.EntityPrototype>(SyringeLauncherProto);
 
                 Assert.That(gun.TryGetComponent<MagazineAmmoProviderComponent>("MagazineAmmoProvider", out _), Is.True,
                     "the gun feeds from a magazine, which is what drives the ammo counter");
                 Assert.That(gun.TryGetComponent<Content.Shared.Storage.StorageComponent>("Storage", out _), Is.False,
                     "the gun is no longer a bag of loose syringes");
 
-                var magazine = protos.Index<Robust.Shared.Prototypes.EntityPrototype>("FSSyringePack");
+                var magazine = protos.Index<Robust.Shared.Prototypes.EntityPrototype>(SyringePackProto);
                 Assert.That(magazine.TryGetComponent<SolutionAmmoProviderComponent>("SolutionAmmoProvider", out var ammo), Is.True,
                     "the magazine doses every dart from one solution");
                 Assert.That(ammo!.Prototype.Id, Is.EqualTo("FSChemistSyringe"));
@@ -129,7 +134,7 @@ public sealed class AllyProjectileTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            var gear = protos.Index<Content.Shared.Roles.StartingGearPrototype>("ChemistGear");
+            var gear = protos.Index<Content.Shared.Roles.StartingGearPrototype>(ChemistGearProto);
 
             Assert.That(gear.Storage.TryGetValue("back", out var back), Is.True,
                 "the chemist must not have to go find their core tool");

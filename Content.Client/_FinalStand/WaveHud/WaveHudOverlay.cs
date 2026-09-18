@@ -1,4 +1,4 @@
-using Content.Client._FinalStand.Interface;
+﻿using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
@@ -228,7 +228,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var s = Math.Clamp(screenSize.X / refWidth, 0.45f, 1.0f);
 
-        const float iconSz = 32f;
         const float rowIconSz = 20f;
         const float augIconSz = 32f;
 

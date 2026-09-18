@@ -1,3 +1,4 @@
+﻿#nullable enable
 using Content.IntegrationTests.Fixtures;
 using Content.Shared.Roles;
 using Robust.Shared.Prototypes;

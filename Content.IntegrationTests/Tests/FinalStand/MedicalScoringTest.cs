@@ -1,4 +1,4 @@
-using Content.IntegrationTests.Fixtures;
+﻿using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Shared.Prototypes;
@@ -8,13 +8,14 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
-using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
 [TestFixture]
 public sealed class MedicalScoringTest : GameTest
 {
+    private const string BluntDamage = "Blunt";
+
     private const string HumanProto = "MobHuman";
 
     private sealed class Fixture
@@ -68,7 +69,7 @@ public sealed class MedicalScoringTest : GameTest
             MedicMind = medicMind,
             Stats = stats,
             Damageable = entMan.System<DamageableSystem>(),
-            Brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 1),
+            Brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 1),
         };
 
         f.Baseline = stats.GetStats(medicMind).HealingPoints;

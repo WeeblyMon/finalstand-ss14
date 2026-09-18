@@ -1,4 +1,4 @@
-using Content.IntegrationTests.Fixtures;
+﻿using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Targeting;
@@ -14,6 +14,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class SurgicalHealingTest : GameTest
 {
+    private const string BluntDamage = "Blunt";
+
     private const string HumanProto = "MobHuman";
 
     [Test]
@@ -31,7 +33,7 @@ public sealed class SurgicalHealingTest : GameTest
 
             var mob = entMan.SpawnEntity(HumanProto, map.GridCoords);
             var body = entMan.GetComponent<BodyComponent>(mob);
-            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>("Blunt"), 1);
+            var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 1);
 
             damageable.TryChangeDamage(mob, brute * 60f, ignoreResistances: true);
 
