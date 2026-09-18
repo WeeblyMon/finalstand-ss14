@@ -1,0 +1,11 @@
+- type: entity
+  parent: Smoke
+  id: FSSplashCloud
+  name: chemical cloud
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Occluder
+    enabled: false
+  # Players will not walk into fog they cannot see through, however safe the code says it is.
+  - type: Sprite
+    color: "#FFFFFF80"

@@ -1,3 +1,4 @@
+// FINALSTAND: a free window - drag the grip to move, any edge or corner to resize.
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -13,19 +14,13 @@ public sealed partial class ResizableChatBox : ChatBox
         {
             IoCManager.InjectDependencies(this);
         }
-// TODO: Revisit the resizing stuff after https://github.com/space-wizards/RobustToolbox/issues/1392 is done,
-        // Probably not "supposed" to inject IClyde, but I give up.
-        // I can't find any other way to allow this control to properly resize when the
-        // window is resized. Resized() isn't reliably called when resizing the window,
-        // and layoutcontainer anchor / margin don't seem to adjust how we need
-        // them to when the window is resized. We need it to be able to resize
-        // within some bounds so that it doesn't overlap other UI elements, while still
-        // being freely resizable within those bounds.
+// TODO: Revisit the resizing stuff after https://github.com/space-wizards/RobustToolbox/issues/1392 is done, Probably not "supposed" to inject IClyde, but I give up.
         [Dependency] private IClyde _clyde = default!;
 
         private const int DragMarginSize = 7;
-        private const int MinDistanceFromBottom = 255;
-        private const int MinLeft = 500;
+
+        private const float KeepOnScreen = 48f;
+
         private DragMode _currentDrag = DragMode.None;
         private Vector2 _dragOffsetTopLeft;
         private Vector2 _dragOffsetBottomRight;
@@ -33,6 +28,7 @@ public sealed partial class ResizableChatBox : ChatBox
         private byte _clampIn;
 
         public Action<Vector2>? OnChatResizeFinish;
+        public Action<UIBox2>? OnChatRectFinish;
 
         protected override void EnteredTree()
         {
@@ -66,7 +62,6 @@ public sealed partial class ResizableChatBox : ChatBox
 
         protected override void KeyBindUp(GUIBoundKeyEventArgs args)
         {
-
             if (args.Function != EngineKeyFunctions.UIClick)
                 return;
             if (_currentDrag != DragMode.None)
@@ -74,38 +69,48 @@ public sealed partial class ResizableChatBox : ChatBox
                 _dragOffsetTopLeft = _dragOffsetBottomRight = Vector2.Zero;
                 _currentDrag = DragMode.None;
 
-                // If this is done in MouseDown, Godot won't fire MouseUp as you need focus to receive MouseUps.
                 UserInterfaceManager.KeyboardFocused?.ReleaseKeyboardFocus();
 
                 OnChatResizeFinish?.Invoke(Size);
+                OnChatRectFinish?.Invoke(Rect);
             }
 
             base.KeyBindUp(args);
         }
-
 
         // TODO: this drag and drop stuff is somewhat duplicated from Robust BaseWindow but also modified
         [Flags]
         private enum DragMode : byte
         {
             None = 0,
-            Bottom = 1 << 1,
-            Left = 1 << 2
+            Move = 1 << 0,
+            Top = 1 << 1,
+            Bottom = 1 << 2,
+            Left = 1 << 3,
+            Right = 1 << 4
+        }
+
+        private float GripBottom()
+        {
+            return FSGrip.GlobalPosition.Y - GlobalPosition.Y + FSGrip.Size.Y;
         }
 
         private DragMode GetDragModeFor(Vector2 relativeMousePos)
         {
             var mode = DragMode.None;
 
-            if (relativeMousePos.Y > Size.Y - DragMarginSize)
-            {
+            if (relativeMousePos.Y < DragMarginSize)
+                mode = DragMode.Top;
+            else if (relativeMousePos.Y > Size.Y - DragMarginSize)
                 mode = DragMode.Bottom;
-            }
 
             if (relativeMousePos.X < DragMarginSize)
-            {
                 mode |= DragMode.Left;
-            }
+            else if (relativeMousePos.X > Size.X - DragMarginSize)
+                mode |= DragMode.Right;
+
+            if (mode == DragMode.None && relativeMousePos.Y <= GripBottom())
+                mode = DragMode.Move;
 
             return mode;
         }
@@ -119,45 +124,41 @@ public sealed partial class ResizableChatBox : ChatBox
 
             if (_currentDrag == DragMode.None)
             {
-                var cursor = CursorShape.Arrow;
-                var previewDragMode = GetDragModeFor(args.RelativePosition);
-                switch (previewDragMode)
+                DefaultCursorShape = GetDragModeFor(args.RelativePosition) switch
                 {
-                    case DragMode.Bottom:
-                        cursor = CursorShape.VResize;
-                        break;
-
-                    case DragMode.Left:
-                        cursor = CursorShape.HResize;
-                        break;
-
-                    case DragMode.Bottom | DragMode.Left:
-                        cursor = CursorShape.Crosshair;
-                        break;
-                }
-
-                DefaultCursorShape = cursor;
+                    DragMode.Move => CursorShape.Hand,
+                    DragMode.Top or DragMode.Bottom => CursorShape.VResize,
+                    DragMode.Left or DragMode.Right => CursorShape.HResize,
+                    DragMode.None => CursorShape.Arrow,
+                    _ => CursorShape.Crosshair,
+                };
+                return;
             }
-            else
+
+            var rect = Rect;
+            var (minSizeX, minSizeY) = MinSize;
+
+            if (_currentDrag == DragMode.Move)
             {
-                var top = Rect.Top;
-                var bottom = Rect.Bottom;
-                var left = Rect.Left;
-                var right = Rect.Right;
-                var (minSizeX, minSizeY) = MinSize;
-                if ((_currentDrag & DragMode.Bottom) == DragMode.Bottom)
-                {
-                    bottom = Math.Max(args.GlobalPosition.Y + _dragOffsetBottomRight.Y, top + minSizeY);
-                }
-
-                if ((_currentDrag & DragMode.Left) == DragMode.Left)
-                {
-                    var maxX = right - minSizeX;
-                    left = Math.Min(args.GlobalPosition.X - _dragOffsetTopLeft.X, maxX);
-                }
-
-                ClampSize(left, bottom);
+                var left = args.GlobalPosition.X - _dragOffsetTopLeft.X;
+                var top = args.GlobalPosition.Y - _dragOffsetTopLeft.Y;
+                ApplyRect(new UIBox2(left, top, left + rect.Width, top + rect.Height));
+                return;
             }
+
+            var (t, b, l, r) = (rect.Top, rect.Bottom, rect.Left, rect.Right);
+
+            if ((_currentDrag & DragMode.Top) != 0)
+                t = Math.Min(args.GlobalPosition.Y - _dragOffsetTopLeft.Y, b - minSizeY);
+            else if ((_currentDrag & DragMode.Bottom) != 0)
+                b = Math.Max(args.GlobalPosition.Y + _dragOffsetBottomRight.Y, t + minSizeY);
+
+            if ((_currentDrag & DragMode.Left) != 0)
+                l = Math.Min(args.GlobalPosition.X - _dragOffsetTopLeft.X, r - minSizeX);
+            else if ((_currentDrag & DragMode.Right) != 0)
+                r = Math.Max(args.GlobalPosition.X + _dragOffsetBottomRight.X, l + minSizeX);
+
+            ApplyRect(new UIBox2(l, t, r, b));
         }
 
         protected override void UIScaleChanged()
@@ -180,54 +181,35 @@ public sealed partial class ResizableChatBox : ChatBox
         {
             base.FrameUpdate(args);
 
-            // we do the clamping after a delay (after UI scale / window resize)
-            // because we need to wait for our parent container to properly resize
-            // first, so we can calculate where we should go. If we do it right away,
-            // we won't have the correct values from the parent to know how to adjust our margins.
             if (_clampIn <= 0)
                 return;
 
             _clampIn -= 1;
             if (_clampIn == 0)
-                ClampSize();
+                ApplyRect(Rect);
         }
 
-        private void ClampSize(float? desiredLeft = null, float? desiredBottom = null)
+        public void ApplyRect(UIBox2 rect)
         {
             if (Parent == null)
                 return;
 
-            // var top = Rect.Top;
-            var right = Rect.Right;
-            var left = desiredLeft ?? Rect.Left;
-            var bottom = desiredBottom ?? Rect.Bottom;
+            var bounds = Parent.Size;
+            var width = MathF.Min(MathF.Max(rect.Width, MinWidth), bounds.X);
+            var height = MathF.Min(MathF.Max(rect.Height, MinHeight), bounds.Y);
 
-            // clamp so it doesn't go too high or low (leave space for alerts UI)
-            var maxBottom = Parent.Size.Y - MinDistanceFromBottom;
-            if (maxBottom <= MinHeight)
-            {
-                // we can't fit in our given space (window made awkwardly small), so give up
-                // and overlap at our min height
-                bottom = MinHeight;
-            }
-            else
-            {
-                bottom = Math.Clamp(bottom, MinHeight, maxBottom);
-            }
+            var left = Math.Clamp(rect.Left, KeepOnScreen - width, bounds.X - KeepOnScreen);
+            var top = Math.Clamp(rect.Top, 0f, bounds.Y - KeepOnScreen);
 
-            var maxLeft = Parent.Size.X - MinWidth;
-            if (maxLeft <= MinLeft)
-            {
-                // window too narrow, give up and overlap at our max left
-                left = maxLeft;
-            }
-            else
-            {
-                left = Math.Clamp(left, MinLeft, maxLeft);
-            }
+            var aLeft = this.GetValue<float>(LayoutContainer.AnchorLeftProperty);
+            var aTop = this.GetValue<float>(LayoutContainer.AnchorTopProperty);
+            var aRight = this.GetValue<float>(LayoutContainer.AnchorRightProperty);
+            var aBottom = this.GetValue<float>(LayoutContainer.AnchorBottomProperty);
 
-            LayoutContainer.SetMarginLeft(this, -((right + 10) - left));
-            LayoutContainer.SetMarginBottom(this, bottom);
+            LayoutContainer.SetMarginLeft(this, left - aLeft * bounds.X);
+            LayoutContainer.SetMarginTop(this, top - aTop * bounds.Y);
+            LayoutContainer.SetMarginRight(this, left + width - aRight * bounds.X);
+            LayoutContainer.SetMarginBottom(this, top + height - aBottom * bounds.Y);
         }
 
         protected override void MouseExited()

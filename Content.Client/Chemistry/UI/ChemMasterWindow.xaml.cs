@@ -17,9 +17,6 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client.Chemistry.UI
 {
-    /// <summary>
-    /// Client-side UI used to control a <see cref="SharedChemMasterComponent"/>
-    /// </summary>
     [GenerateTypedNameReferences]
     public sealed partial class ChemMasterWindow : FancyWindow
     {
@@ -31,12 +28,19 @@ namespace Content.Client.Chemistry.UI
         public event Action<BaseButton.ButtonEventArgs, ReagentButton>? OnReagentButtonPressed;
         public readonly Button[] PillTypeButtons;
 
+        private bool _pillDosageEdited;
+        private bool _pillNumberEdited;
+        private bool _bottleDosageEdited;
+        private bool _applyingDosageDefaults;
+
+        private readonly RowCache _bufferRows = new();
+        private readonly RowCache _inputRows = new();
+        private readonly RowCache _outputRows = new();
+
+        private ChemMasterReagentAmount _selectedAmount = ChemMasterReagentAmount.U10;
+
         private const string PillsRsiPath = "/Textures/Objects/Specific/Chemistry/pills.rsi";
 
-        /// <summary>
-        /// Create and initialize the chem master UI client-side. Creates the basic layout,
-        /// actual data isn't filled in until the server sends data about the chem master.
-        /// </summary>
         public ChemMasterWindow()
         {
             RobustXamlLoader.Load(this);
@@ -44,15 +48,11 @@ namespace Content.Client.Chemistry.UI
 
             _sprite = _entityManager.System<SpriteSystem>();
 
-            // Pill type selection buttons, in total there are 20 pills.
-            // Pill rsi file should have states named as pill1, pill2, and so on.
             var resourcePath = new ResPath(PillsRsiPath);
             var pillTypeGroup = new ButtonGroup();
             PillTypeButtons = new Button[20];
             for (uint i = 0; i < PillTypeButtons.Length; i++)
             {
-                // For every button decide which stylebase to have
-                // Every row has 10 buttons
                 String styleBase = StyleClass.ButtonOpenBoth;
                 uint modulo = i % 10;
                 if (i > 0 && modulo == 0)
@@ -62,7 +62,6 @@ namespace Content.Client.Chemistry.UI
                 else if (i == 0)
                     styleBase = StyleClass.ButtonOpenRight;
 
-                // Generate buttons
                 PillTypeButtons[i] = new Button
                 {
                     Access = AccessLevel.Public,
@@ -71,7 +70,6 @@ namespace Content.Client.Chemistry.UI
                     Group = pillTypeGroup
                 };
 
-                // Generate buttons textures
                 var specifier = new SpriteSpecifier.Rsi(resourcePath, "pill" + (i + 1));
                 TextureRect pillTypeTexture = new TextureRect
                 {
@@ -88,58 +86,90 @@ namespace Content.Client.Chemistry.UI
             PillNumber.InitDefaultButtons();
             BottleDosage.InitDefaultButtons();
 
-            // Ensure label length is within the character limit.
+            PillDosage.ValueChanged += _ => MarkEdited(ref _pillDosageEdited);
+            PillNumber.ValueChanged += _ => MarkEdited(ref _pillNumberEdited);
+            BottleDosage.ValueChanged += _ => MarkEdited(ref _bottleDosageEdited);
+
             LabelLineEdit.IsValid = s => s.Length <= SharedChemMaster.LabelMaxLength;
 
-            Tabs.SetTabTitle(0, Loc.GetString("chem-master-window-input-tab"));
-            Tabs.SetTabTitle(1, Loc.GetString("chem-master-window-output-tab"));
+            BuildAmountSelector();
         }
 
-        private ReagentButton MakeReagentButton(string text, ChemMasterReagentAmount amount, ReagentId id, bool isBuffer, string styleClass)
+        private ReagentButton MakeReagentButton(string text, ReagentId id, bool isBuffer)
         {
-            var reagentTransferButton = new ReagentButton(text, amount, id, isBuffer, styleClass);
-            reagentTransferButton.OnPressed += args
-                => OnReagentButtonPressed?.Invoke(args, reagentTransferButton);
+            var reagentTransferButton = new ReagentButton(text, _selectedAmount, id, isBuffer, StyleClass.ButtonSquare);
+            reagentTransferButton.OnPressed += args =>
+            {
+                reagentTransferButton.Amount = _selectedAmount;
+                OnReagentButtonPressed?.Invoke(args, reagentTransferButton);
+            };
             return reagentTransferButton;
         }
-        /// <summary>
-        /// Conditionally generates a set of reagent buttons based on the supplied boolean argument.
-        /// This was moved outside of BuildReagentRow to facilitate conditional logic, stops indentation depth getting out of hand as well.
-        /// </summary>
+        private static readonly (string Text, ChemMasterReagentAmount Amount)[] AmountOptions =
+        {
+            ("1", ChemMasterReagentAmount.U1),
+            ("5", ChemMasterReagentAmount.U5),
+            ("10", ChemMasterReagentAmount.U10),
+            ("15", ChemMasterReagentAmount.U15),
+            ("20", ChemMasterReagentAmount.U20),
+            ("25", ChemMasterReagentAmount.U25),
+            ("30", ChemMasterReagentAmount.U30),
+            ("50", ChemMasterReagentAmount.U50),
+            ("100", ChemMasterReagentAmount.U100),
+        };
+
+        private void BuildAmountSelector()
+        {
+            var group = new ButtonGroup();
+
+            for (var i = 0; i < AmountOptions.Length; i++)
+            {
+                var (text, amount) = AmountOptions[i];
+
+                var style = i == 0
+                    ? StyleClass.ButtonOpenRight
+                    : StyleClass.ButtonOpenBoth;
+
+                var button = new Button
+                {
+                    Text = text,
+                    ToggleMode = true,
+                    Group = group,
+                    MinWidth = 38,
+                    StyleClasses = { style },
+                    Pressed = amount == _selectedAmount,
+                };
+
+                var captured = amount;
+                button.OnPressed += _ => _selectedAmount = captured;
+
+                AmountSelector.AddChild(button);
+            }
+
+            var allButton = new Button
+            {
+                Text = Loc.GetString("chem-master-window-buffer-all-amount"),
+                ToggleMode = true,
+                Group = group,
+                MinWidth = 46,
+                StyleClasses = { StyleClass.ButtonOpenLeft },
+                Pressed = _selectedAmount == ChemMasterReagentAmount.All,
+            };
+            allButton.OnPressed += _ => _selectedAmount = ChemMasterReagentAmount.All;
+            AmountSelector.AddChild(allButton);
+        }
+
         private List<ReagentButton> CreateReagentTransferButtons(ReagentId reagent, bool isBuffer, bool addReagentButtons)
         {
             if (!addReagentButtons)
-                return new List<ReagentButton>(); // Return an empty list if reagentTransferButton creation is disabled.
+                return new List<ReagentButton>();
 
-            var buttonConfigs = new (string text, ChemMasterReagentAmount amount, string styleClass)[]
+            return new List<ReagentButton>
             {
-                ("1", ChemMasterReagentAmount.U1, StyleClass.ButtonOpenBoth),
-                ("5", ChemMasterReagentAmount.U5, StyleClass.ButtonOpenBoth),
-                ("10", ChemMasterReagentAmount.U10, StyleClass.ButtonOpenBoth),
-                ("15", ChemMasterReagentAmount.U15, StyleClass.ButtonOpenBoth),
-                ("20", ChemMasterReagentAmount.U20, StyleClass.ButtonOpenBoth),
-                ("25", ChemMasterReagentAmount.U25, StyleClass.ButtonOpenBoth),
-                ("30", ChemMasterReagentAmount.U30, StyleClass.ButtonOpenBoth),
-                ("50", ChemMasterReagentAmount.U50, StyleClass.ButtonOpenBoth),
-                ("100", ChemMasterReagentAmount.U100, StyleClass.ButtonOpenBoth),
-                (Loc.GetString("chem-master-window-buffer-all-amount"), ChemMasterReagentAmount.All, StyleClass.ButtonOpenLeft),
+                MakeReagentButton(Loc.GetString("chem-master-window-move-button"), reagent, isBuffer),
             };
-
-            var buttons = new List<ReagentButton>();
-
-            foreach (var (text, amount, styleClass) in buttonConfigs)
-            {
-                var reagentTransferButton = MakeReagentButton(text, amount, reagent, isBuffer, styleClass);
-                buttons.Add(reagentTransferButton);
-            }
-
-            return buttons;
         }
 
-        /// <summary>
-        /// Update the UI state when new state data is received from the server.
-        /// </summary>
-        /// <param name="state">State data sent by the server.</param>
         public void UpdateState(BoundUserInterfaceState state)
         {
             var castState = (ChemMasterBoundUserInterfaceState)state;
@@ -147,7 +177,6 @@ namespace Content.Client.Chemistry.UI
             if (castState.UpdateLabel)
                 LabelLine = GenerateLabel(castState);
 
-            // Ensure the Panel Info is updated, including UI elements for Buffer Volume, Output Container and so on
             UpdatePanelInfo(castState);
 
             switch (castState.DrawSource)
@@ -167,10 +196,19 @@ namespace Content.Client.Chemistry.UI
             CreateBottleButton.Disabled = castState.OutputContainerInfo?.Reagents == null;
             CreatePillButton.Disabled = castState.OutputContainerInfo?.Entities == null;
 
+            PackagingHint.Text = castState.OutputContainerInfo switch
+            {
+                null => Loc.GetString("chem-master-window-hint-no-output"),
+                { Entities: null, Reagents: not null } => Loc.GetString("chem-master-window-hint-bottle-only"),
+                { Entities: not null, Reagents: null } => Loc.GetString("chem-master-window-hint-pills-only"),
+                _ => string.Empty,
+            };
+
+            PackagingHint.Visible = PackagingHint.Text.Length > 0;
+
             UpdateDosageFields(castState);
         }
 
-        //assign default values for pill and bottle fields.
         private void UpdateDosageFields(ChemMasterBoundUserInterfaceState castState)
         {
             var output = castState.OutputContainerInfo;
@@ -185,35 +223,46 @@ namespace Content.Client.Chemistry.UI
                 _ => 0,
             };
 
-            PillDosage.Value = (int)Math.Min(outputVolume, castState.PillDosageLimit);
-
             PillTypeButtons[castState.SelectedPillType].Pressed = true;
 
             PillNumber.IsValid = x => x >= 0 && x <= pillNumberMax;
             PillDosage.IsValid = x => x > 0 && x <= castState.PillDosageLimit;
             BottleDosage.IsValid = x => x >= 0 && x <= bottleAmountMax;
 
-            if (PillNumber.Value > pillNumberMax)
-                PillNumber.Value = pillNumberMax;
-            if (BottleDosage.Value > bottleAmountMax)
-                BottleDosage.Value = bottleAmountMax;
+            PillNumberLabel.Text = Loc.GetString("chem-master-window-pills-number-max", ("max", pillNumberMax));
+            PillDoseLabel.Text = Loc.GetString("chem-master-window-dose-max", ("max", castState.PillDosageLimit));
+            BottleDoseLabel.Text = Loc.GetString("chem-master-window-dose-max", ("max", bottleAmountMax));
 
-            // Avoid division by zero
-            if (PillDosage.Value > 0)
+            _applyingDosageDefaults = true;
+
+            if (!_pillDosageEdited || PillDosage.Value > castState.PillDosageLimit)
+                PillDosage.Value = (int) Math.Min(outputVolume, castState.PillDosageLimit);
+
+            if (!_pillNumberEdited || PillNumber.Value > pillNumberMax)
             {
-                PillNumber.Value = Math.Min(outputVolume / PillDosage.Value, pillNumberMax);
-            }
-            else
-            {
-                PillNumber.Value = 0;
+                PillNumber.Value = PillDosage.Value > 0
+                    ? Math.Min(outputVolume / PillDosage.Value, pillNumberMax)
+                    : 0;
             }
 
-            BottleDosage.Value = Math.Min(bottleAmountMax, outputVolume);
+            if (!_bottleDosageEdited || BottleDosage.Value > bottleAmountMax)
+                BottleDosage.Value = Math.Min(bottleAmountMax, outputVolume);
+
+            _applyingDosageDefaults = false;
         }
-        /// <summary>
-        /// Generate a product label based on reagents in the buffer or beaker.
-        /// </summary>
-        /// <param name="state">State data sent by the server.</param>
+
+        private void MarkEdited(ref bool flag)
+        {
+            if (!_applyingDosageDefaults)
+                flag = true;
+        }
+
+        public void ResetDosageEdits()
+        {
+            _pillDosageEdited = false;
+            _pillNumberEdited = false;
+            _bottleDosageEdited = false;
+        }
         private string GenerateLabel(ChemMasterBoundUserInterfaceState state)
         {
             if (
@@ -228,28 +277,20 @@ namespace Content.Client.Chemistry.UI
                     ChemMasterDrawSource.Internal => state.BufferReagents,
                     ChemMasterDrawSource.External => state.InputContainerInfo.Reagents ?? [],
                     _ => throw new($"Chemmaster {state.OutputContainerInfo} draw source is not set"),
-                }).MinBy(r => r.Quantity)
+                }).MaxBy(r => r.Quantity)
                 .Reagent;
             _prototypeManager.TryIndex(reagent.Prototype, out ReagentPrototype? proto);
             return proto?.LocalizedName ?? "";
         }
 
-        /// <summary>
-        /// Update the container, buffer, and packaging panels.
-        /// </summary>
-        /// <param name="state">State data for the dispenser.</param>
         private void UpdatePanelInfo(ChemMasterBoundUserInterfaceState state)
         {
             BufferTransferButton.Pressed = state.Mode == ChemMasterMode.Transfer;
             BufferDiscardButton.Pressed = state.Mode == ChemMasterMode.Discard;
 
-            BuildContainerUI(InputContainerInfo, state.InputContainerInfo, true);
-            BuildContainerUI(OutputContainerInfo, state.OutputContainerInfo, false);
+            BuildContainerUI(InputContainerInfo, _inputRows, state.InputContainerInfo, true);
+            BuildContainerUI(OutputContainerInfo, _outputRows, state.OutputContainerInfo, false);
 
-            BufferInfo.Children.Clear();
-
-            // This has to happen here due to people possibly
-            // setting sorting before putting any chemicals
             BufferSortButton.Text = state.SortingType switch
             {
                 ChemMasterSortingType.Alphabetical => Loc.GetString("chem-master-window-sort-type-alphabetical"),
@@ -263,29 +304,13 @@ namespace Content.Client.Chemistry.UI
 
             if (!state.BufferReagents.Any())
             {
+                _bufferRows.Reset();
+                BufferInfo.Children.Clear();
                 BufferInfo.Children.Add(new Label { Text = Loc.GetString("chem-master-window-buffer-empty-text") });
 
                 return;
             }
 
-            var bufferHBox = new BoxContainer
-            {
-                Orientation = LayoutOrientation.Horizontal
-            };
-            BufferInfo.AddChild(bufferHBox);
-
-            var bufferLabel = new Label { Text = $"{Loc.GetString("chem-master-window-buffer-label")} " };
-            bufferHBox.AddChild(bufferLabel);
-            var bufferVol = new Label
-            {
-                Text = $"{state.BufferCurrentVolume}u",
-                StyleClasses = { StyleClass.LabelWeak }
-            };
-            bufferHBox.AddChild(bufferVol);
-
-            // This sets up the needed data for sorting later in a list
-            // Its done this way to not repeat having to use same code twice (once for sorting
-            // and once for displaying)
             var reagentList = new List<(ReagentId reagentId, string name, Color color, FixedPoint2 quantity)>();
             foreach (var (reagent, quantity) in state.BufferReagents)
             {
@@ -296,8 +321,6 @@ namespace Content.Client.Chemistry.UI
                 reagentList.Add(new (reagentId, name, reagentColor, quantity));
             }
 
-            // We sort here since we need sorted list to be filled first.
-            // You can easily add any new params you need to it.
             switch (state.SortingType)
             {
                 case ChemMasterSortingType.Alphabetical:
@@ -313,24 +336,101 @@ namespace Content.Client.Chemistry.UI
 
                 case ChemMasterSortingType.None:
                 default:
-                    // This case is pointless but it is there for readability
                     break;
             }
 
-            // initialises rowCount to allow for striped rows
-            var rowCount = 0;
+            var header = $"{Loc.GetString("chem-master-window-buffer-label")} {state.BufferCurrentVolume}u";
+
+            var rows = new List<RowData>(reagentList.Count);
             foreach (var reagent in reagentList)
             {
-                BufferInfo.Children.Add(BuildReagentRow(reagent.color, rowCount++, reagent.name, reagent.reagentId, reagent.quantity, true, true));
+                rows.Add(new RowData(
+                    reagent.reagentId.ToString(),
+                    reagent.name,
+                    reagent.color,
+                    reagent.quantity,
+                    reagent.reagentId));
+            }
+
+            SyncRows(BufferInfo, _bufferRows, header, rows, true, true);
+        }
+
+        private void SyncRows(
+            Control control,
+            RowCache cache,
+            string header,
+            List<RowData> rows,
+            bool isBuffer,
+            bool addReagentButtons)
+        {
+            var key = $"{rows.Count}|{string.Join('|', rows.Select(r => r.Key))}";
+
+            if (key == cache.Key)
+            {
+                cache.Header.Text = header;
+
+                foreach (var row in rows)
+                {
+                    if (cache.Quantities.TryGetValue(row.Key, out var label))
+                        label.Text = $"{row.Quantity}u";
+                }
+
+                return;
+            }
+
+            cache.Key = key;
+            cache.Quantities.Clear();
+            control.Children.Clear();
+
+            cache.Header = new Label { Text = header };
+            control.AddChild(cache.Header);
+
+            var rowCount = 0;
+            foreach (var row in rows)
+            {
+                control.AddChild(BuildReagentRow(
+                    row.Color,
+                    rowCount++,
+                    row.Name,
+                    row.Reagent,
+                    row.Quantity,
+                    isBuffer,
+                    addReagentButtons,
+                    out var quantityLabel));
+
+                cache.Quantities[row.Key] = quantityLabel;
             }
         }
 
-        private void BuildContainerUI(Control control, ContainerInfo? info, bool addReagentButtons)
-        {
-            control.Children.Clear();
+        private readonly record struct RowData(
+            string Key,
+            string Name,
+            Color Color,
+            FixedPoint2 Quantity,
+            ReagentId Reagent);
 
+        private sealed class RowCache
+        {
+            public string? Key;
+            public Label Header = new();
+            public readonly Dictionary<string, Label> Quantities = new();
+
+            public void Reset()
+            {
+                Key = null;
+                Quantities.Clear();
+            }
+        }
+
+        private void BuildContainerUI(Control control, RowCache cache, ContainerInfo? info, bool addReagentButtons)
+        {
             if (info is null)
             {
+                if (cache.Key == null)
+                    return;
+
+                cache.Reset();
+                control.Children.Clear();
                 control.Children.Add(new Label
                 {
                     Text = Loc.GetString("chem-master-window-no-container-loaded-text")
@@ -338,33 +438,14 @@ namespace Content.Client.Chemistry.UI
                 return;
             }
 
-            // Name of the container and its fill status (Ex: 44/100u)
-            control.Children.Add(new BoxContainer
-            {
-                Orientation = LayoutOrientation.Horizontal,
-                Children =
-                {
-                    new Label { Text = $"{info.DisplayName}: " },
-                    new Label
-                    {
-                        Text = $"{info.CurrentVolume}/{info.MaxVolume}",
-                        StyleClasses = { StyleClass.LabelWeak }
-                    }
-                }
-            });
-            // Initialises rowCount to allow for striped rows
-            var rowCount = 0;
+            var rows = new List<RowData>();
 
-            // Handle entities if they are not null
             if (info.Entities != null)
             {
                 foreach (var (id, quantity) in info.Entities.Select(x => (x.Id, x.Quantity)))
-                {
-                    control.Children.Add(BuildReagentRow(default(Color), rowCount++, id, default(ReagentId), quantity, false, addReagentButtons));
-                }
+                    rows.Add(new RowData($"e:{id}", id, default, quantity, default));
             }
 
-            // Handle reagents if they are not null
             if (info.Reagents != null)
             {
                 foreach (var reagent in info.Reagents)
@@ -373,42 +454,43 @@ namespace Content.Client.Chemistry.UI
                     var name = proto?.LocalizedName ?? Loc.GetString("chem-master-window-unknown-reagent-text");
                     var reagentColor = proto?.SubstanceColor ?? default(Color);
 
-                    control.Children.Add(BuildReagentRow(reagentColor, rowCount++, name, reagent.Reagent, reagent.Quantity, false, addReagentButtons));
+                    rows.Add(new RowData(
+                        reagent.Reagent.ToString(),
+                        name,
+                        reagentColor,
+                        reagent.Quantity,
+                        reagent.Reagent));
                 }
             }
+
+            SyncRows(control, cache, $"{info.DisplayName}: {info.CurrentVolume}/{info.MaxVolume}", rows, false, addReagentButtons);
         }
-        /// <summary>
-        /// Take reagent/entity data and present rows, labels, and buttons appropriately. todo sprites?
-        /// </summary>
-        private Control BuildReagentRow(Color reagentColor, int rowCount, string name, ReagentId reagent, FixedPoint2 quantity, bool isBuffer, bool addReagentButtons)
+        private Control BuildReagentRow(Color reagentColor, int rowCount, string name, ReagentId reagent, FixedPoint2 quantity, bool isBuffer, bool addReagentButtons, out Label quantityLabel)
         {
-            //Colors rows and sets fallback for reagentcolor to the same as background, this will hide colorPanel for entities hopefully
             var rowColor1 = Color.FromHex("#1B1B1E");
             var rowColor2 = Color.FromHex("#202025");
             var currentRowColor = (rowCount % 2 == 1) ? rowColor1 : rowColor2;
-            if ((reagentColor == default(Color))|(!addReagentButtons))
+            if (reagentColor == default(Color))
             {
                 reagentColor = currentRowColor;
             }
-            //this calls the separated button builder, and stores the return to render after labels
             var reagentButtonConstructors = CreateReagentTransferButtons(reagent, isBuffer, addReagentButtons);
 
-            // Create the row layout with the color panel
+            quantityLabel = new Label
+            {
+                Text = $"{quantity}u",
+                StyleClasses = { StyleClass.LabelWeak }
+            };
+
             var rowContainer = new BoxContainer
             {
                 Orientation = LayoutOrientation.Horizontal,
                 Children =
                 {
                     new Label { Text = $"{name}: " },
-                    new Label
-                    {
-                        Text = $"{quantity}u",
-                        StyleClasses = { StyleClass.LabelWeak }
-                    },
+                    quantityLabel,
 
-                    // Padding
                     new Control { HorizontalExpand = true },
-                    // Colored panels for reagents
                     new PanelContainer
                     {
                         Name = "colorPanel",
@@ -423,12 +505,10 @@ namespace Content.Client.Chemistry.UI
                 }
             };
 
-            // Add the reagent buttons after the color panel
             foreach (var reagentTransferButton in reagentButtonConstructors)
             {
                 rowContainer.AddChild(reagentTransferButton);
             }
-            //Apply panencontainer to allow for striped rows
             return new PanelContainer
             {
                 PanelOverride = new StyleBoxFlat(currentRowColor),

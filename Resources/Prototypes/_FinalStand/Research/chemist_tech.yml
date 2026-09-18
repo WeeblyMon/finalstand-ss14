@@ -1,0 +1,119 @@
+- type: technology
+  id: FSCoagulantChemistry
+  name: research-technology-fs-coagulant-chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-1
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSEnzymeBottle
+
+- type: technology
+  id: FSEtchingChemistry
+  name: research-technology-fs-etching-chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-2
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSCatalystBottle
+
+- type: fsTechNode
+  id: FSMedicalCoagulantChemistry
+  name: Coagulant Chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-1
+  branch: Medical
+  tier: 2
+  cost: 900
+  bonusDescription: Unlocks refined enzyme, the base for coagulant mist - a cloud that staunches bleeding on crew standing in it.
+  vanillaTechnologyId: FSCoagulantChemistry
+
+- type: fsTechNode
+  id: FSMedicalEtchingChemistry
+  name: Etching Chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-2
+  branch: Medical
+  tier: 2
+  cost: 900
+  bonusDescription: Unlocks etching catalyst, the base for etchant - coats a crewmate's ammunition so their shots pierce enemy plating.
+  vanillaTechnologyId: FSEtchingChemistry
+
+- type: technology
+  id: FSAdrenalChemistry
+  name: research-technology-fs-adrenal-chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-3
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSAdrenalBottle
+
+- type: technology
+  id: FSAnalgesicChemistry
+  name: research-technology-fs-analgesic-chemistry
+  icon:
+    sprite: Objects/Specific/Chemistry/bottle.rsi
+    state: bottle-4
+  discipline: CivilianServices
+  tier: 3
+  cost: 5000
+  recipeUnlocks:
+  - FSAnalgesicBottle
+
+- type: technology
+  id: FSHeavyGlassware
+  name: research-technology-fs-heavy-glassware
+  icon:
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    state: beaker
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSSplashFlaskLarge
+
+- type: technology
+  id: FSExtendedMagazines
+  name: research-technology-fs-extended-magazines
+  icon:
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    state: syringe_base0
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSSyringePackLarge
+
+- type: technology
+  id: FSFieldLogistics
+  name: research-technology-fs-field-logistics
+  icon:
+    sprite: Objects/Specific/Service/vending_machine_restock.rsi
+    state: base
+  discipline: CivilianServices
+  tier: 2
+  cost: 5000
+  recipeUnlocks:
+  - FSMedicalDispenserRestock
+
+- type: technology
+  id: FSForwardAidStation
+  name: research-technology-fs-forward-aid-station
+  icon:
+    sprite: Structures/Furniture/Tables/optable.rsi
+    state: operating_table
+  discipline: CivilianServices
+  tier: 3
+  cost: 5000
+  recipeUnlocks:
+  - FSFieldHospitalItem

@@ -23,9 +23,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     [Dependency] private SharedMoverController _mover = default!;
     [Dependency] private TagSystem _tag = default!;
 
-    /// <summary>
-    ///     We'll use an excess time so stuff like finishing effects can show.
-    /// </summary>
     private static readonly TimeSpan ExcessTime = TimeSpan.FromSeconds(0.5f);
 
     private static readonly ProtoId<TagPrototype> InstantDoAftersTag = "InstantDoAfters";
@@ -44,7 +41,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
 
     private void OnEffectiveMoverChanged(EntityUid uid, DoAfterComponent comp, ref EffectiveMoverChangedEvent args)
     {
-        // Effective mover changed, so move-sensitive do-afters cancel now
         var dirty = false;
         foreach (var doAfter in comp.DoAfters.Values)
         {
@@ -74,22 +70,20 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         Dirty(uid, component);
     }
 
-    /// <summary>
-    /// Cancels DoAfter if it breaks on damage and it meets the threshold
-    /// </summary>
     private void OnDamage(EntityUid uid, DoAfterComponent component, DamageChangedEvent args)
     {
-        // If we're applying state then let the server state handle the do_after prediction.
-        // This is to avoid scenarios where a do_after is erroneously cancelled on the final tick.
         if (!args.InterruptsDoAfters || !args.DamageIncreased || args.DamageDelta == null || GameTiming.ApplyingState)
             return;
 
         var delta = args.DamageDelta.GetTotal();
 
+        var absorbEv = new GetDoAfterDamageThresholdEvent();
+        RaiseLocalEvent(uid, ref absorbEv);
+
         var dirty = false;
         foreach (var doAfter in component.DoAfters.Values)
         {
-            if (doAfter.Args.BreakOnDamage && delta >= doAfter.Args.DamageThreshold)
+            if (doAfter.Args.BreakOnDamage && delta >= doAfter.Args.DamageThreshold + absorbEv.Extra)
             {
                 InternalCancel(doAfter, component);
                 dirty = true;
@@ -126,17 +120,12 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (args.Current is not DoAfterComponentState state)
             return;
 
-        // Note that the client may have correctly predicted the creation of a do-after, but that doesn't guarantee that
-        // the contents of the do-after data are correct. So this just takes the brute force approach and completely
-        // overwrites the state.
-
         comp.DoAfters.Clear();
         foreach (var (id, doAfter) in state.DoAfters)
         {
             var newDoAfter = new DoAfter(EntityManager, doAfter);
             comp.DoAfters.Add(id, newDoAfter);
 
-            // Networking yay (if you have an easier way dear god please).
             newDoAfter.UserPosition = EnsureCoordinates<DoAfterComponent>(newDoAfter.NetUserPosition, uid);
             newDoAfter.InitialItem = EnsureEntity<DoAfterComponent>(newDoAfter.NetInitialItem, uid);
             newDoAfter.MovementEntity = EnsureEntity<DoAfterComponent>(newDoAfter.NetMovementEntity, uid);
@@ -157,9 +146,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
             EnsureComp<ActiveDoAfterComponent>(uid);
     }
 
-    /// <summary>
-    /// Adds entities which have an active DoAfter matching the target.
-    /// </summary>
     private void OnGetInteractingEntities(ref GetInteractingEntitiesEvent args)
     {
         var enumerator = EntityQueryEnumerator<ActiveDoAfterComponent, DoAfterComponent>();
@@ -202,29 +188,14 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         return await tcs.Task;
     }
 
-    /// <summary>
-    ///     Attempts to start a new DoAfter. Note that even if this function returns true, an interaction may have
-    ///     occured, as starting a duplicate DoAfter may cancel currently running DoAfters.
-    /// </summary>
-    /// <param name="args">The DoAfter arguments</param>
-    /// <param name="component">The user's DoAfter component</param>
-    /// <returns></returns>
     public bool TryStartDoAfter(DoAfterArgs args, DoAfterComponent? component = null)
         => TryStartDoAfter(args, out _, component);
 
-    /// <summary>
-    ///     Attempts to start a new DoAfter. Note that even if this function returns false, an interaction may have
-    ///     occured, as starting a duplicate DoAfter may cancel currently running DoAfters.
-    /// </summary>
-    /// <param name="args">The DoAfter arguments</param>
-    /// <param name="id">The Id of the newly started DoAfter</param>
-    /// <param name="comp">The user's DoAfter component</param>
-    /// <returns></returns>
     public bool TryStartDoAfter(DoAfterArgs args, [NotNullWhen(true)] out DoAfterId? id, DoAfterComponent? comp = null)
     {
         DebugTools.Assert(args.Broadcast || Exists(args.EventTarget) || args.Event.GetType() == typeof(AwaitedDoAfterEvent));
         DebugTools.Assert(args.Event.GetType().HasCustomAttribute<NetSerializableAttribute>()
-            || args.Event.GetType().Namespace is {} ns && ns.StartsWith("Content.IntegrationTests"), // classes defined in tests cannot be marked as serializable.
+            || args.Event.GetType().Namespace is {} ns && ns.StartsWith("Content.IntegrationTests"),
             $"Do after event is not serializable. Event: {args.Event.GetType()}");
 
         if (!Resolve(args.User, ref comp))
@@ -234,7 +205,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
             return false;
         }
 
-        // Duplicate blocking & cancellation.
         if (!ProcessDuplicates(args, comp))
         {
             id = null;
@@ -244,7 +214,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         id = new DoAfterId(args.User, comp.NextId++);
         var doAfter = new DoAfter(id.Value.Index, args, GameTiming.CurTime);
 
-        // Networking yay
         args.NetTarget = GetNetEntity(args.Target);
         args.NetUsed = GetNetEntity(args.Used);
         args.NetUser = GetNetEntity(args.User);
@@ -265,9 +234,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         doAfter.NetUserPosition = GetNetCoordinates(doAfter.UserPosition);
         doAfter.NetMovementEntity = GetNetEntity(doAfter.MovementEntity);
 
-        // For this we need to stay on the same hand slot and need the same item in that hand slot
-        // (or if there is no item there we need to keep it free).
-        // The NeedFreeHand arg requires us to have our active hand empty.
         if (args.NeedHand && (args.BreakOnHandChange || args.BreakOnDropItem))
         {
             if (!TryComp(args.User, out HandsComponent? handsComponent))
@@ -282,19 +248,16 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
 
         doAfter.NetInitialItem = GetNetEntity(doAfter.InitialItem);
 
-        // Initial checks
         if (ShouldCancel(doAfter))
             return false;
 
         if (args.AttemptFrequency == AttemptFrequency.StartAndEnd && !TryAttemptEvent(doAfter))
             return false;
 
-        // TODO DO AFTER
-        // Why does this tag exist? Just make this a bool on the component?
+        // TODO DO AFTER Why does this tag exist?
         if (args.Delay <= TimeSpan.Zero || _tag.HasTag(args.User, InstantDoAftersTag))
         {
             RaiseDoAfterEvents(doAfter, comp);
-            // We don't store instant do-afters. This is just a lazy way of hiding them from client-side visuals.
             return true;
         }
 
@@ -305,9 +268,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    ///     Cancel any applicable duplicate DoAfters and return whether or not the new DoAfter should be created.
-    /// </summary>
     private bool ProcessDuplicates(DoAfterArgs args, DoAfterComponent component)
     {
         var blocked = false;
@@ -365,18 +325,12 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
     #endregion
 
     #region Cancellation
-    /// <summary>
-    ///     Cancels an active DoAfter.
-    /// </summary>
     public void Cancel(DoAfterId? id, DoAfterComponent? comp = null, bool force = false)
     {
         if (id != null)
             Cancel(id.Value.Uid, id.Value.Index, comp, force);
     }
 
-    /// <summary>
-    ///     Cancels an active DoAfter.
-    /// </summary>
     public void Cancel(EntityUid entity, ushort id, DoAfterComponent? comp = null, bool force = false)
     {
         if (!Resolve(entity, ref comp, false))
@@ -397,16 +351,12 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (doAfter.Cancelled || (doAfter.Completed && !force))
             return;
 
-        // Caller is responsible for dirtying the component.
         doAfter.CancelledTime = GameTiming.CurTime;
         RaiseDoAfterEvents(doAfter, component);
     }
     #endregion
 
     #region Query
-    /// <summary>
-    ///     Returns the current status of a DoAfter
-    /// </summary>
     public DoAfterStatus GetStatus(DoAfterId? id, DoAfterComponent? comp = null)
     {
         if (id != null)
@@ -415,9 +365,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
             return DoAfterStatus.Invalid;
     }
 
-    /// <summary>
-    ///     Returns the current status of a DoAfter
-    /// </summary>
     public DoAfterStatus GetStatus(EntityUid entity, ushort id, DoAfterComponent? comp = null)
     {
         if (!Resolve(entity, ref comp, false))
@@ -432,9 +379,6 @@ public abstract partial class SharedDoAfterSystem : EntitySystem
         if (!doAfter.Completed)
             return DoAfterStatus.Running;
 
-        // Theres the chance here that the DoAfter hasn't actually finished yet if the system's update hasn't run yet.
-        // This would also mean the post-DoAfter checks haven't run yet. But whatever, I can't be bothered tracking and
-        // networking whether a do-after has raised its events or not.
         return DoAfterStatus.Finished;
     }
 

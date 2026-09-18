@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Server._FinalStand.Grenades;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Upgrades;
@@ -39,8 +40,6 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
-        // Resolved once here since nearly every upgrade writes to it; each partial-file group returns
-        // false for a type it doesn't handle, so the first group that claims the type wins.
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
         if (TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)) return;
@@ -63,7 +62,6 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         newState.AttackSpeedMultiplier = oldState.AttackSpeedMultiplier + attackSpeedBonus;
         newState.DualWieldEnergySwordApplied = true;
 
-        // only delete old sword if we can safely drop it — avoids silently losing upgrade state
         var safeToDelete = true;
         var wasInHand = false;
         if (TryComp<HandsComponent>(player, out var hands)
@@ -84,7 +82,6 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _stash.Stash(player, newSword);
     }
 
-    // Copies every DataField on the component — a hand-written field list would drop any upgrade added later.
     private void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
     {
         _serialization.CopyTo(from, ref to, notNullableOverride: true);
@@ -92,7 +89,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 
     public void ApplyMagSizeBonusToCurrentMag(EntityUid gun, int bonus)
     {
-        if (!_itemSlots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot))
+        if (!FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out var slot))
             return;
         var mag = slot.Item;
         if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))

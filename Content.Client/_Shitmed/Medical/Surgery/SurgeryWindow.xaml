@@ -3,6 +3,9 @@ SPDX-FileCopyrightText: 2024 gluesniffler <159397573+gluesniffler@users.noreply.
 SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
 
 SPDX-License-Identifier: AGPL-3.0-or-later
+
+FINALSTAND: rebuilt as a single screen. The three columns used to be mutually exclusive panes, so
+the surgeon could never see the limb, the operation and the steps at the same time.
 -->
 
 <controls:SurgeryWindow
@@ -10,21 +13,95 @@ SPDX-License-Identifier: AGPL-3.0-or-later
     xmlns:controls="clr-namespace:Content.Client._Shitmed.Medical.Surgery"
     xmlns:cc="clr-namespace:Content.Client.Administration.UI.CustomControls"
     xmlns:graphics="clr-namespace:Robust.Client.Graphics;assembly=Robust.Client"
-    MinSize="400 400">
+    MinSize="900 600"
+    SetSize="1100 720">
     <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
-        <BoxContainer Orientation="Horizontal" HorizontalExpand="True" Margin="0 0 0 10">
-            <Button Name="PartsButton" Access="Public" Text="{Loc 'surgery-ui-window-parts'}"
-                    HorizontalExpand="True" StyleClasses="OpenBoth" />
-            <Button Name="SurgeriesButton" Access="Public" Text="{Loc 'surgery-ui-window-surgeries'}"
-                    HorizontalExpand="True" StyleClasses="OpenBoth" />
-            <Button Name="StepsButton" Access="Public" Text="{Loc 'surgery-ui-window-steps'}"
-                    HorizontalExpand="True" StyleClasses="OpenBoth" />
-        </BoxContainer>
+
+        <!-- Zone A: breadcrumb. Replaces the three tab buttons, one of which was secretly a Back button. -->
+        <BoxContainer Name="Breadcrumb" Access="Public"
+                      Orientation="Horizontal"
+                      HorizontalExpand="True"
+                      Margin="8 8 8 6" />
         <cc:HSeparator />
-        <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
-            <BoxContainer Name="Parts" Access="Public" Orientation="Vertical" Visible="False" />
-            <BoxContainer Name="Surgeries" Access="Public" Orientation="Vertical" Visible="False" />
-            <BoxContainer Name="Steps" Access="Public" Orientation="Vertical" Visible="False" />
-        </ScrollContainer>
+
+        <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True" Margin="8 8 8 0">
+
+            <!-- Zone B: the body -->
+            <PanelContainer Name="BodyPanel" Access="Public"
+                            HorizontalExpand="True" VerticalExpand="True"
+                            SizeFlagsStretchRatio="1" MinWidth="310" Margin="0 0 6 0">
+                <BoxContainer Orientation="Vertical" Margin="6" HorizontalExpand="True" VerticalExpand="True">
+                    <Label Name="BodyHeader" Access="Public" Text="{Loc 'surgery-ui-column-body'}" StyleClasses="LabelSubText" />
+                    <Control Name="DollSlot" Access="Public" HorizontalExpand="True" />
+                    <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
+                        <BoxContainer Name="Parts" Access="Public" Orientation="Vertical" HorizontalExpand="True" />
+                    </ScrollContainer>
+                </BoxContainer>
+            </PanelContainer>
+
+            <!-- Zone C: operations -->
+            <PanelContainer Name="OperationsPanel" Access="Public"
+                            HorizontalExpand="True" VerticalExpand="True"
+                            SizeFlagsStretchRatio="1.2" MinWidth="200" Margin="0 0 6 0">
+                <BoxContainer Orientation="Vertical" Margin="6" HorizontalExpand="True" VerticalExpand="True">
+                    <Label Text="{Loc 'surgery-ui-column-operations'}" StyleClasses="LabelSubText" />
+                    <BoxContainer Name="OperationFilters" Access="Public"
+                                  Orientation="Horizontal"
+                                  HorizontalExpand="True"
+                                  Margin="0 2 0 6" />
+                    <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
+                        <BoxContainer Name="Surgeries" Access="Public" Orientation="Vertical" HorizontalExpand="True" />
+                    </ScrollContainer>
+                </BoxContainer>
+            </PanelContainer>
+
+            <!-- Zone D: the procedure -->
+            <PanelContainer Name="ProcedurePanel" Access="Public"
+                            HorizontalExpand="True" VerticalExpand="True"
+                            SizeFlagsStretchRatio="1.8" MinWidth="280">
+                <BoxContainer Orientation="Vertical" Margin="6" HorizontalExpand="True" VerticalExpand="True">
+                    <Label Text="{Loc 'surgery-ui-column-procedure'}" StyleClasses="LabelSubText" />
+                    <ScrollContainer VScrollEnabled="True" HorizontalExpand="True" VerticalExpand="True">
+                        <BoxContainer Name="Steps" Access="Public" Orientation="Vertical" HorizontalExpand="True" />
+                    </ScrollContainer>
+                </BoxContainer>
+            </PanelContainer>
+        </BoxContainer>
+
+        <!-- Zone E: always-visible guidance. Never a popup - it must survive a glance away. -->
+        <PanelContainer Name="GuidancePanel" Access="Public" HorizontalExpand="True" Margin="8 6 8 8">
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" Margin="8 6">
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <TextureRect Name="GuidanceIcon" Access="Public"
+                                 Stretch="KeepAspectCentered"
+                                 SetSize="24 24"
+                                 VerticalAlignment="Center"
+                                 Margin="0 0 8 0" />
+                    <RichTextLabel Name="GuidanceLabel" Access="Public"
+                                   HorizontalExpand="True"
+                                   VerticalAlignment="Center" />
+                    <Button Name="GuidanceToggle" Access="Public"
+                            Text="{Loc 'surgery-ui-guidance-toggle'}"
+                            ToggleMode="True"
+                            Pressed="True"
+                            MinWidth="72"
+                            Margin="0 0 8 0"
+                            VerticalAlignment="Center" />
+                    <Button Name="PerformButton" Access="Public"
+                            Text="{Loc 'surgery-ui-perform'}"
+                            MinWidth="120"
+                            Disabled="True"
+                            VerticalAlignment="Center" />
+                </BoxContainer>
+                <ProgressBar Name="StepProgress" Access="Public"
+                             HorizontalExpand="True"
+                             MinHeight="6"
+                             MinValue="0"
+                             MaxValue="1"
+                             Value="0"
+                             Visible="False"
+                             Margin="0 6 0 0" />
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </controls:SurgeryWindow>

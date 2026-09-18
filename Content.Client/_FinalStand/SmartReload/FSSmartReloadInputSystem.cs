@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Grenades;
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Input;
@@ -23,9 +24,16 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
 
     private static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(400);
 
+    [Dependency] private FSAmmoWheel _ammoWheel = default!;
+    [Dependency] private FSThrowableWheel _throwWheel = default!;
+
     private TimeSpan _pressTime;
     private bool _isHolding;
-    private bool _ejected;
+    private bool _wheelOpened;
+
+    private TimeSpan _grenadePressTime;
+    private bool _grenadeHeld;
+    private bool _throwWheelOpened;
 
     public override void Initialize()
     {
@@ -34,7 +42,7 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
             .Bind(ContentKeyFunctions.ReloadWeapon,
                 InputCmdHandler.FromDelegate(OnReloadDown, OnReloadUp))
             .Bind(ContentKeyFunctions.QuickGrenade,
-                InputCmdHandler.FromDelegate(OnGrenadeDown, null))
+                InputCmdHandler.FromDelegate(OnGrenadeDown, OnGrenadeUp))
             .Register<FSSmartReloadInputSystem>();
     }
 
@@ -46,22 +54,51 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
 
     public override void Update(float frameTime)
     {
-        if (!_isHolding || _ejected)
+        UpdateGrenadeHold();
+
+        if (!_isHolding || _wheelOpened)
             return;
 
         if (_gameTiming.CurTime - _pressTime < HoldThreshold)
             return;
 
-        _ejected = true;
+        _wheelOpened = true;
 
         if (ResolveActiveGun() is not { } gun)
             return;
 
-        RaiseNetworkEvent(new FSEjectMessage { Gun = GetNetEntity(gun) });
+        if (!_ammoWheel.TryOpen(gun))
+            _wheelOpened = false;
+    }
+
+    private void UpdateGrenadeHold()
+    {
+        if (!_grenadeHeld || _throwWheelOpened)
+            return;
+
+        if (_gameTiming.CurTime - _grenadePressTime < HoldThreshold)
+            return;
+
+        _throwWheelOpened = true;
+
+        if (!_throwWheel.TryOpen())
+            _throwWheelOpened = false;
     }
 
     private void OnGrenadeDown(ICommonSession? session)
     {
+        _grenadePressTime = _gameTiming.CurTime;
+        _grenadeHeld = true;
+        _throwWheelOpened = false;
+    }
+
+    private void OnGrenadeUp(ICommonSession? session)
+    {
+        _grenadeHeld = false;
+
+        if (_throwWheelOpened)
+            return;
+
         var screenPos = _inputManager.MouseScreenPosition;
         var mapCoords = _eyeManager.PixelToMap(screenPos);
         RaiseNetworkEvent(new FSQuickGrenadeMessage { CursorWorldPos = mapCoords.Position });
@@ -71,14 +108,14 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     {
         _pressTime = _gameTiming.CurTime;
         _isHolding = true;
-        _ejected = false;
+        _wheelOpened = false;
     }
 
     private void OnReloadUp(ICommonSession? session)
     {
         _isHolding = false;
 
-        if (_ejected)
+        if (_wheelOpened)
             return;
 
         if (ResolveActiveGun() is not { } gun)
@@ -87,8 +124,6 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
         RaiseNetworkEvent(new FSSmartReloadMessage { Gun = GetNetEntity(gun) });
     }
 
-    // Returns the gun the player intends to reload/eject from the active hand.
-    // A virtual item is resolved back to the gun it mirrors, which must still be held.
     private EntityUid? ResolveActiveGun()
     {
         var active = _hands.GetActiveHandEntity();

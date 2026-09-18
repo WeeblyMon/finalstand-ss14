@@ -1,0 +1,18 @@
+- type: entity
+  parent: BaseItem
+  id: FSBoneStapler
+  name: bone stapler
+  description: Drives a brace into a fractured bone. Enough to get someone walking, not enough to spare them a proper table later.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/bone_stapler.rsi
+    state: icon
+  # No inhand states of its own yet, so it borrows the bonesetter's.
+  - type: Item
+    size: Small
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
+  - type: FSBoneStapler
+    repair: 45
+  - type: FSMedicalOnly
+  - type: UseDelay
+    delay: 45

@@ -1,4 +1,5 @@
-﻿using Content.Shared.Chat;
+using Content.Client._FinalStand.Interface;
+using Content.Shared.Chat;
 using Content.Shared.Input;
 using Robust.Client.UserInterface.Controls;
 
@@ -49,6 +50,12 @@ public class ChatInputBox : PanelContainer
         };
         Container.AddChild(FilterButton);
         AddStyleClass(StyleClassChatPanel);
+        // FINALSTAND: the bar's own controls were still on the vanilla palette while the panel around them had moved to the HUD's.
+        FSHudStyle.StyleButton(ChannelSelector);
+        FSHudStyle.StyleButton(FilterButton);
+        Input.StyleBoxOverride = FSHudStyle.InputBox();
+        Input.ModulateSelfOverride = FSHudStyle.TextBright;
+
         ChannelSelector.OnChannelSelect += UpdateActiveChannel;
     }
 

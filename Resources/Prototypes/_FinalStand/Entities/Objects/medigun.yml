@@ -1,0 +1,36 @@
+- type: entity
+  parent: BaseItem
+  id: FSMedicalBeamGun
+  name: medical beam gun
+  description: Projects a stream of medical nanites. Closes wounds fast, but the last stretch back to full health is beyond it - that still takes a doctor.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
+  - type: Item
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    size: Large
+  - type: FSMediGun
+    healing:
+      types:
+        Blunt: -12
+        Slash: -12
+        Piercing: -12
+        Heat: -12
+        Cold: -8
+    soundOnTarget:
+      path: /Audio/_FinalStand/Effects/medigun.ogg
+  - type: Battery
+    maxCharge: 30
+    startingCharge: 30
+  - type: BatterySelfRecharger
+    autoRechargeRate: 1.5
+    autoRechargePauseTime: 8
+  # Two-handed on purpose: a medic should be healing or fighting, not both at once.
+  # Wielding is the on switch, so there is no separate toggle competing for use-in-hand.
+  - type: Wieldable
+    unwieldOnUse: false
+  - type: FSMedicalOnly
+  - type: UseDelay
+    delay: 1.0
+  - type: Appearance

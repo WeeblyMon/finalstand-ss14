@@ -1,0 +1,125 @@
+- type: entity
+  parent: BaseItem
+  id: FSSplashFlask
+  name: splash flask
+  description: A pressurised flask that bursts into a cloud on impact, carrying whatever was brewed into it.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/beaker.rsi
+    layers:
+    - state: beaker
+    - state: beaker1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      visible: false
+  - type: Item
+    size: Small
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+  - type: SolutionContainerVisuals
+    maxFillLevels: 6
+    fillBaseName: beaker
+    solutionName: flask
+    changeColor: true
+  - type: RefillableSolution
+    solution: flask
+  - type: DrainableSolution
+    solution: flask
+  - type: SolutionTransfer
+    transferAmount: 50
+    maxTransferAmount: 50
+    canChangeTransferAmount: true
+  - type: ExaminableSolution
+    solution: flask
+  - type: FSSolutionLabel
+    solution: flask
+  - type: FSSplashFlask
+    solution: flask
+  - type: Appearance
+
+- type: latheRecipe
+  id: FSSplashFlask
+  result: FSSplashFlask
+  completetime: 2
+  materials:
+    Glass: 100
+    Plastic: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCombatStim
+  suffix: Combat Stim
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCombatStim
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCorrosive
+  suffix: Corrosive
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCorrosive
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskSolvent
+  suffix: Solvent
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSSolvent
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskWeakening
+  suffix: Weakening Agent
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSWeakeningAgent
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskCoagulant
+  suffix: Coagulant Mist
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSCoagulantMist
+          Quantity: 50
+
+- type: entity
+  parent: FSSplashFlask
+  id: FSSplashFlaskEtchant
+  suffix: Etchant
+  components:
+  - type: SolutionContainerManager
+    solutions:
+      flask:
+        maxVol: 50
+        reagents:
+        - ReagentId: FSEtchant
+          Quantity: 50

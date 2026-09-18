@@ -173,7 +173,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             ("killed", comp.TotalEnemiesKilled)));
     }
 
-    // Only one WaveGameRule is ever active at a time.
     private bool TryGetActiveRule(out EntityUid uid, out WaveGameRuleComponent comp, out GameRuleComponent gameRule)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
@@ -229,7 +228,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
         }
 
-        // Pre-select spawners for the upcoming wave so the CCC UI can show them during prep.
         _spawning.SelectSpawners(comp);
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
@@ -276,7 +274,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         comp.Phase = WavePhase.Combat;
 
-        // Spawners were pre-selected in StartPrepPhase; re-select only if somehow empty.
         if (comp.SpawnerEntities.Count == 0)
             _spawning.SelectSpawners(comp);
 
@@ -375,7 +372,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         _wallet.DistributeCredits(waveBonus);
         comp.AccumulatedSurvivalBonus += waveBonus;
 
-        // The boss may have survived to the fallback timer. Pay the reward either way.
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
             Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
@@ -468,6 +464,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             return;
 
         _corpseCleaner.TrackZombieDeath(ent.Owner);
+
+        var died = new FSWaveEnemyDiedEvent(ent.Owner, args.Origin);
+        RaiseLocalEvent(ref died);
 
         if (TryComp<FixturesComponent>(ent.Owner, out var fixtures))
         {
@@ -855,10 +854,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         shell.WriteLine("Dark Wave forced — arms at the next prep phase.");
     }
 
-    // Returns the active prep-phase component so FSReadyUpSystem can read PrepDuration + TotalPlayers.
     public WaveGameRuleComponent? GetPrepComponent()
     {
         return TryGetActiveRule(out _, out var comp, out _) && comp.Phase == WavePhase.Prep ? comp : null;
+    }
+
+    public int GetWaveNumber()
+    {
+        return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
     }
 
     public void ReducePrepTimeBy(double seconds)

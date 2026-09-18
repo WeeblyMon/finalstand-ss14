@@ -4,8 +4,8 @@
                       xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
                       xmlns:ui="clr-namespace:Content.Client.Chemistry.UI"
                       Title="{Loc 'reagent-dispenser-bound-user-interface-title'}"
-                      MinSize="600 300"
-                      SetSize="800 500">
+                      MinSize="760 340"
+                      SetSize="1020 560">
     <BoxContainer Orientation="Horizontal">
         <BoxContainer Orientation="Vertical" MinWidth="170">
             <Label Text="{Loc 'reagent-dispenser-window-amount-to-dispense-label'}" HorizontalAlignment="Center" />
@@ -23,6 +23,12 @@
                    Access="Public"
                    Text=""
                    HorizontalAlignment="Center" />
+            <ProgressBar Name="ContainerFillBar"
+                         MinValue="0"
+                         MaxValue="1"
+                         Value="0"
+                         SetHeight="6"
+                         Margin="12 2 12 2" />
             <Label Name="ContainerInfoFill"
                    Access="Public"
                    Text=""
@@ -45,17 +51,36 @@
         <SplitContainer Orientation="Vertical"
                         HorizontalExpand="True"
                         VerticalExpand="True">
-            <ScrollContainer HScrollEnabled="False"
-                             HorizontalExpand="True"
-                             VerticalExpand="True"
-                             MinHeight="50"
-                             SizeFlagsStretchRatio="2.5">
-                <GridContainer Name="ReagentList"
-                               HorizontalExpand="True"
-                               VerticalExpand="True"
-                               Access="Public"
-                               Columns="3" />
-            </ScrollContainer>
+            <BoxContainer Orientation="Vertical"
+                          HorizontalExpand="True"
+                          VerticalExpand="True"
+                          MinHeight="50"
+                          SizeFlagsStretchRatio="2.5">
+                <BoxContainer Orientation="Horizontal"
+                              HorizontalExpand="True"
+                              Margin="2 2 2 2">
+                    <LineEdit Name="FilterEdit"
+                              HorizontalExpand="True"
+                              PlaceHolder="{Loc 'reagent-dispenser-window-filter-placeholder'}" />
+                    <Button Name="TargetChipButton"
+                            Visible="False"
+                            Margin="3 0 0 0" />
+                </BoxContainer>
+                <ScrollContainer HScrollEnabled="False"
+                                 HorizontalExpand="True"
+                                 VerticalExpand="True">
+                    <GridContainer Name="ReagentList"
+                                   HorizontalExpand="True"
+                                   VerticalExpand="True"
+                                   Access="Public"
+                                   Columns="3" />
+                </ScrollContainer>
+                <Label Name="NoMatchLabel"
+                       Visible="False"
+                       HorizontalAlignment="Center"
+                       StyleClasses="LabelSubText"
+                       Text="{Loc 'reagent-dispenser-window-filter-no-match'}" />
+            </BoxContainer>
             <ScrollContainer HScrollEnabled="False"
                              HorizontalExpand="True"
                              VerticalExpand="True"
@@ -64,15 +89,54 @@
                     <PanelContainer.PanelOverride>
                         <gfx:StyleBoxFlat BackgroundColor="#1b1b1e" />
                     </PanelContainer.PanelOverride>
-                    <BoxContainer Name="ContainerInfo"
-                                  Orientation="Vertical"
+                    <BoxContainer Orientation="Vertical"
                                   HorizontalExpand="True"
                                   VerticalExpand="True"
                                   Margin="5">
-                        <Label Text="{Loc 'reagent-dispenser-window-no-container-loaded-text'}" />
+                        <BoxContainer Name="ContainerInfo"
+                                      Orientation="Vertical"
+                                      HorizontalExpand="True">
+                            <Label Text="{Loc 'reagent-dispenser-window-no-container-loaded-text'}" />
+                        </BoxContainer>
                     </BoxContainer>
                 </PanelContainer>
             </ScrollContainer>
         </SplitContainer>
+        <PanelContainer MinWidth="280" VerticalExpand="True" Margin="4 0 0 0">
+            <PanelContainer.PanelOverride>
+                <gfx:StyleBoxFlat BackgroundColor="#1b1b1e" />
+            </PanelContainer.PanelOverride>
+            <BoxContainer Orientation="Vertical"
+                          HorizontalExpand="True"
+                          VerticalExpand="True"
+                          Margin="6">
+                <BoxContainer Orientation="Horizontal" HorizontalExpand="True">
+                    <Label Text="{Loc 'reagent-dispenser-window-recipes-header'}"
+                           StyleClasses="LabelSubText"
+                           VerticalAlignment="Center" />
+                    <Control HorizontalExpand="True" />
+                    <Button Name="FieldKitTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-field-kit'}"
+                            StyleClasses="OpenRight"
+                            ToggleMode="True" />
+                    <Button Name="BasicsTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-basics'}"
+                            StyleClasses="OpenBoth"
+                            ToggleMode="True" />
+                    <Button Name="CanMakeTabButton"
+                            Text="{Loc 'reagent-dispenser-window-recipes-can-make'}"
+                            StyleClasses="OpenLeft"
+                            ToggleMode="True" />
+                </BoxContainer>
+                <ScrollContainer HScrollEnabled="False"
+                                 HorizontalExpand="True"
+                                 VerticalExpand="True"
+                                 Margin="0 4 0 0">
+                    <BoxContainer Name="RecipeInfo"
+                                  Orientation="Vertical"
+                                  HorizontalExpand="True" />
+                </ScrollContainer>
+            </BoxContainer>
+        </PanelContainer>
     </BoxContainer>
 </controls:FancyWindow>

@@ -27,11 +27,14 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private MedicalOps.FSMedicalStatsSystem _medicalStats = default!;
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 
     private long _saveTicks;
     private int _saveCount;
+
+    private const int HealingScoreWeight = 10;
 
     private const int WaveCompletionXpPerWave = 100;
     private const int RoundEndXpPerWave = 200;
@@ -63,7 +66,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
 
-        // wave 0 when no active rule → 1× multiplier
         _waveRule.TryGetActiveState(out var wave);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
         var waveMult = GetXpMultiplier(wave.WaveNumber);
@@ -95,14 +97,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
             _saveCount = 0;
         }
 
-
         var xp = WaveCompletionXpPerWave * args.WaveNumber;
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
         {
             if (!TryComp<MindComponent>(mindId, out var mind)) continue;
-            // Skip players who are physically dead — wave bonus only for survivors
             if (_mind.IsCharacterDeadPhysically(mind)) continue;
             GiveExperience(mindId, xp, "wave_completion", resolveBody: false);
         }
@@ -138,7 +138,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }
     }
 
-    // Leveling loads and saves its own columns of the prestige row. The wallet owns only its own.
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
@@ -194,7 +193,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
 
-        // Reported once per wave by OnWaveEnded.
         var start = Stopwatch.GetTimestamp();
         _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
             SerializePrestigeBuffs(buffs));
@@ -229,7 +227,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         _roundStats.Clear();
 
-        // Clearing Loaded makes the next spawn re-read the row, carrying level/prestige into the new round.
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
             lvl.Loaded = false;
@@ -332,7 +329,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }, actor.PlayerSession);
     }
 
-    // In the lobby the player has no mind, so fall back to the stored record.
     private void OnLevelingRequest(FSLevelingRequestMessage msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
@@ -382,12 +378,17 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 ? cur
                 : (Xp: 0, Kills: 0, Assists: 0);
             var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
-            var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5 + stats.Kills * 100 + stats.Assists * 40 + walletCredits;
+
+            var healing = _medicalStats.GetStats(mindId).HealingPoints;
+
+            var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
+                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + walletCredits;
 
             entries.Add(new FSLeaderboardEntry(
                 mind.CharacterName ?? "Unknown",
                 stats.Kills,
                 stats.Assists,
+                healing,
                 stats.Xp,
                 lvl.Level,
                 lvl.PrestigeLevel,

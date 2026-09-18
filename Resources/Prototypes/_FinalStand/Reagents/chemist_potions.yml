@@ -1,0 +1,303 @@
+- type: reagent
+  id: FSBiomass
+  name: reagent-name-fs-biomass
+  group: Biological
+  desc: reagent-desc-fs-biomass
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#6E7B4A"
+
+- type: reagent
+  id: FSCombatStim
+  name: reagent-name-fs-combat-stim
+  group: Medicine
+  desc: reagent-desc-fs-combat-stim
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#4FBF7AA0"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-stim
+        name: fs-potion-name-combat-stim
+        duration: 90
+        colour: "#4FBF7A"
+        bonuses:
+          Damage: 0.15
+          MeleeSpeed: 0.3
+          FireRate: 0.2
+          Movement: 0.15
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-stim
+        name: fs-potion-name-combat-stim
+        duration: 90
+        colour: "#4FBF7A"
+        bonuses:
+          Damage: 0.15
+          MeleeSpeed: 0.3
+          FireRate: 0.2
+          Movement: 0.15
+
+- type: reagent
+  id: FSCorrosive
+  name: reagent-name-fs-corrosive
+  group: Toxins
+  desc: reagent-desc-fs-corrosive
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#B5D33AA0"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSHarmHostiles
+        damage:
+          types:
+            Caustic: 20
+
+- type: reaction
+  id: FSCombatStim
+  reactants:
+    FSBiomass:
+      amount: 2
+    Sugar:
+      amount: 1
+  products:
+    FSCombatStim: 2
+
+- type: reaction
+  id: FSCorrosive
+  reactants:
+    FSBiomass:
+      amount: 2
+    Sulfur:
+      amount: 1
+  products:
+    FSCorrosive: 2
+
+- type: reagent
+  id: FSSolvent
+  name: reagent-name-fs-solvent
+  group: Toxins
+  desc: reagent-desc-fs-solvent
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#C9762EA0"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSStripArmor
+        fraction: 1.0
+
+- type: reagent
+  id: FSWeakeningAgent
+  name: reagent-name-fs-weakening
+  group: Toxins
+  desc: reagent-desc-fs-weakening
+  physicalDesc: reagent-physical-desc-acrid
+  flavor: bitter
+  color: "#9B59B6A0"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyVulnerability
+        duration: 8
+        multiplier: 1.25
+
+- type: reaction
+  id: FSSolvent
+  reactants:
+    FSBiomass:
+      amount: 2
+    Fluorine:
+      amount: 1
+  products:
+    FSSolvent: 2
+
+- type: reaction
+  id: FSWeakeningAgent
+  reactants:
+    FSBiomass:
+      amount: 2
+    Mercury:
+      amount: 1
+  products:
+    FSWeakeningAgent: 2
+
+- type: reagent
+  id: FSRefinedEnzyme
+  name: reagent-name-fs-enzyme
+  group: Biological
+  desc: reagent-desc-fs-enzyme
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#8FBF6E"
+
+- type: reagent
+  id: FSCatalystSalt
+  name: reagent-name-fs-catalyst
+  group: Toxins
+  desc: reagent-desc-fs-catalyst
+  physicalDesc: reagent-physical-desc-crystalline
+  flavor: bitter
+  color: "#D0D0E0"
+
+- type: reagent
+  id: FSCoagulantMist
+  name: reagent-name-fs-coagulant
+  group: Medicine
+  desc: reagent-desc-fs-coagulant
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#C05A6EA0"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSStaunchBleeding
+        amount: 3
+
+- type: reagent
+  id: FSEtchant
+  name: reagent-name-fs-etchant
+  group: Medicine
+  desc: reagent-desc-fs-etchant
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#7FA9D8A0"
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyArmorPiercing
+        duration: 45
+        name: fs-potion-name-etchant
+
+- type: reaction
+  id: FSCoagulantMist
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSRefinedEnzyme:
+      amount: 1
+  products:
+    FSCoagulantMist: 2
+
+- type: reaction
+  id: FSEtchant
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSCatalystSalt:
+      amount: 1
+  products:
+    FSEtchant: 2
+
+- type: reagent
+  id: FSAdrenalExtract
+  name: reagent-name-fs-adrenal-extract
+  group: Medicine
+  desc: reagent-desc-fs-adrenal-extract
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#E8743B"
+
+- type: reagent
+  id: FSAnalgesicBase
+  name: reagent-name-fs-analgesic-base
+  group: Medicine
+  desc: reagent-desc-fs-analgesic-base
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#6EA8BF"
+
+- type: reagent
+  id: FSAdrenalSurge
+  name: reagent-name-fs-adrenal-surge
+  group: Medicine
+  desc: reagent-desc-fs-adrenal-surge
+  physicalDesc: reagent-physical-desc-cloudy
+  flavor: bitter
+  color: "#F0813C"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-adrenal
+        name: fs-potion-name-adrenal-surge
+        duration: 60
+        colour: "#F0813C"
+        bonuses:
+          Movement: 0.15
+          InterruptionResistance: 0.35
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-adrenal
+        name: fs-potion-name-adrenal-surge
+        duration: 60
+        colour: "#F0813C"
+        bonuses:
+          Movement: 0.15
+          InterruptionResistance: 0.35
+
+- type: reagent
+  id: FSBattleAnalgesic
+  name: reagent-name-fs-battle-analgesic
+  group: Medicine
+  desc: reagent-desc-fs-battle-analgesic
+  physicalDesc: reagent-physical-desc-viscous
+  flavor: bitter
+  color: "#7FC4DE"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-analgesic
+        name: fs-potion-name-battle-analgesic
+        duration: 75
+        colour: "#7FC4DE"
+        bonuses:
+          DragSpeed: 0.40
+          TreatmentSpeed: 0.15
+  reactiveEffects:
+    Acidic:
+      methods: [ Touch ]
+      effects:
+      - !type:FSApplyCombatBuff
+        source: chem-analgesic
+        name: fs-potion-name-battle-analgesic
+        duration: 75
+        colour: "#7FC4DE"
+        bonuses:
+          DragSpeed: 0.40
+          TreatmentSpeed: 0.15
+
+- type: reaction
+  id: FSAdrenalSurge
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSAdrenalExtract:
+      amount: 1
+  products:
+    FSAdrenalSurge: 2
+
+- type: reaction
+  id: FSBattleAnalgesic
+  reactants:
+    FSBiomass:
+      amount: 2
+    FSAnalgesicBase:
+      amount: 1
+  products:
+    FSBattleAnalgesic: 2

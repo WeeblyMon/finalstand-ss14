@@ -22,6 +22,8 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         SubscribeLocalEvent<FSSelectIncendiaryGrenadeEvent>(OnSelectIncendiary);
         SubscribeLocalEvent<FSSelectFlashGrenadeEvent>(OnSelectFlash);
         SubscribeLocalEvent<FSSelectPipeGrenadeEvent>(OnSelectPipe);
+
+        SubscribeNetworkEvent<FSSelectGrenadeMessage>(OnSelectFromWheel);
     }
 
     private void OnPackInserted(EntityUid uid, FSGrenadePackComponent comp, EntGotInsertedIntoContainerMessage args)
@@ -49,8 +51,6 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         if (comp.GrantedActionId == null)
             return;
 
-        // Check if the pack is still within a player's containers (e.g., moved pocket→pocket).
-        // Only revoke the action if it has truly left the player.
         if (FindPlayerOwner(uid) != null)
             return;
 
@@ -67,7 +67,6 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         }
     }
 
-    /// <summary>Writes current/max stock onto the action entity so ActionButton can display a badge.</summary>
     public void SyncPackCounter(EntityUid packUid, FSGrenadePackComponent pack)
     {
         if (pack.GrantedActionId is not { } actionId)
@@ -92,6 +91,31 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
             current = parent;
         }
         return null;
+    }
+
+    private void OnSelectFromWheel(FSSelectGrenadeMessage msg, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } player)
+            return;
+
+        if (!CarriesPack(player, msg.Type))
+            return;
+
+        var active = EnsureComp<FSActiveGrenadeComponent>(player);
+        active.ActiveType = msg.Type;
+        Dirty(player, active);
+    }
+
+    private bool CarriesPack(EntityUid player, GrenadeType type)
+    {
+        var query = EntityQueryEnumerator<FSGrenadePackComponent>();
+        while (query.MoveNext(out var uid, out var pack))
+        {
+            if (pack.PackType == type && FindPlayerOwner(uid) == player)
+                return true;
+        }
+
+        return false;
     }
 
     private void OnSelectFrag(FSSelectFragGrenadeEvent args)

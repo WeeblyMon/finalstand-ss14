@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using System.Linq;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.SmartReload;
@@ -38,7 +39,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
-    // Aborts at the next OnShellInsertComplete rather than via Cancel() - Cancel leaves a stale BlockDuplicate entry that breaks subsequent R presses.
     private readonly HashSet<EntityUid> _reloadAborted = new();
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeChamberFills = new();
@@ -55,7 +55,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeNetworkEvent<FSSmartReloadMessage>(OnSmartReload);
-        SubscribeNetworkEvent<FSEjectMessage>(OnEject);
+        SubscribeNetworkEvent<FSLoadMagazineMessage>(OnLoadMagazine);
         SubscribeLocalEvent<MagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<ChamberMagazineAmmoProviderComponent, FSMagReloadDoAfterEvent>(OnMagReloadComplete);
         SubscribeLocalEvent<BallisticAmmoProviderComponent, FSShellInsertDoAfterEvent>(OnShellInsertComplete);
@@ -136,33 +136,25 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // Hold R to eject - magazine, tube shells, revolver rounds, or battery cell depending on gun type.
-    private void OnEject(FSEjectMessage msg, EntitySessionEventArgs args)
+    private void OnLoadMagazine(FSLoadMagazineMessage msg, EntitySessionEventArgs args)
     {
         if (!TryGetValidGun(msg.Gun, args.SenderSession, out var gun, out var user))
             return;
 
-        switch (Detect(gun))
+        if (Detect(gun) != GunArchetype.Magazine)
+            return;
+
+        var chosen = GetEntity(msg.Magazine);
+        if (!chosen.IsValid() || TerminatingOrDeleted(chosen))
+            return;
+
+        if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot)
+            || _whitelist.IsWhitelistFail(magSlot.Whitelist, chosen))
         {
-            case GunArchetype.Magazine:
-                _slots.TryEject(gun, SharedGunSystem.MagazineSlot, user, out _);
-                break;
-
-            case GunArchetype.TubeFed:
-                if (TryComp<BallisticAmmoProviderComponent>(gun, out var bal))
-                    DumpAllTubeShells(gun, bal);
-                break;
-
-            case GunArchetype.Revolver:
-                if (TryComp<RevolverAmmoProviderComponent>(gun, out var rev))
-                    _gunSystem.EmptyRevolver((gun, rev), user);
-                break;
-
-            case GunArchetype.Battery:
-                if (_slots.TryGetSlot(gun, "gun_cell", out _))
-                    _slots.TryEject(gun, "gun_cell", user, out _);
-                break;
+            return;
         }
+
+        ReloadMagazine(gun, user, chosen: chosen);
     }
 
     private float GetReloadMultiplier(EntityUid user, EntityUid gun)

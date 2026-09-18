@@ -9,6 +9,7 @@ public sealed record FSLeaderboardEntry(
     string Name,
     int Kills,
     int Assists,
+    int Healing,
     int Xp,
     int Level,
     int Prestige,

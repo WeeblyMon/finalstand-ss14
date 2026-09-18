@@ -16,7 +16,9 @@ namespace Content.Client.UserInterface.Controls
 {
     public abstract class SlotControl : Control, IEntityControl
     {
-        public static int DefaultButtonSize = 64;
+        // FINALSTAND: 32 to match the HUD's grid; hands override themselves back up to a clean 2x.
+        public static int DefaultButtonSize = 32;
+        private const float SourceArtSize = 32f;
 
         public TextureRect ButtonRect { get; }
         public TextureRect BlockedRect { get; }
@@ -42,7 +44,6 @@ namespace Content.Client.UserInterface.Controls
             get => _slotName;
             set
             {
-                //this auto registers the button with it's parent container when it's set
                 if (_slotNameSet)
                 {
                     Logger.Warning("Tried to set slotName after init for:" + Name);
@@ -95,7 +96,6 @@ namespace Content.Client.UserInterface.Controls
             }
         }
 
-
         private string? _storageTexturePath;
         public string? StorageTexturePath
         {
@@ -126,20 +126,76 @@ namespace Content.Client.UserInterface.Controls
         public bool EntityHover => HoverSpriteView.Sprite != null;
         public bool MouseIsHovering;
 
+        private Label? FSLabelControl;
+
+        public string FSLabel
+        {
+            set
+            {
+                if (FSLabelControl == null)
+                    return;
+
+                FSLabelControl.Text = value;
+                FSLabelControl.Visible = !string.IsNullOrEmpty(value);
+
+                if (!FSLabelControl.Visible)
+                    return;
+
+                ButtonRect.Stretch = TextureRect.StretchMode.Scale;
+                HighlightRect.Stretch = TextureRect.StretchMode.Scale;
+                ButtonRect.SetSize = Vector2.Zero;
+                ButtonRect.HorizontalExpand = true;
+                ButtonRect.VerticalExpand = true;
+
+                SpriteView.Visible = false;
+                HoverSpriteView.Visible = false;
+
+                var width = FSLabelControl.MinSize.X + FSLabelTextPad * 2f;
+                MinSize = new Vector2(MathF.Max(MinSize.X, width), MinSize.Y);
+            }
+        }
+
+        private const float FSLabelTextPad = 8f;
+
+        public void SetButtonSize(int size)
+        {
+            var scale = size / SourceArtSize;
+            MinSize = new Vector2(size, size);
+            ButtonRect.TextureScale = new Vector2(scale, scale);
+            HighlightRect.TextureScale = new Vector2(scale, scale);
+
+            foreach (var view in new SpriteView[] { SpriteView, ProtoView, HoverSpriteView })
+            {
+                view.Scale = new Vector2(scale, scale);
+                view.SetSize = new Vector2(size, size);
+            }
+        }
+
         public SlotControl()
         {
             IoCManager.InjectDependencies(this);
             Name = "SlotButton_null";
+
+            // FINALSTAND: art is authored at 32, so scale is the slot size over 32 rather than a hardcoded 2.
+            var scale = DefaultButtonSize / SourceArtSize;
+
             MinSize = new Vector2(DefaultButtonSize, DefaultButtonSize);
+
+            // FINALSTAND: the grid stretches a slot to its cell, and a cell is only exactly the slot size when nothing else in that row or column is bigger.
+            HorizontalAlignment = HAlignment.Center;
+            VerticalAlignment = VAlignment.Center;
+
             AddChild(ButtonRect = new TextureRect
             {
-                TextureScale = new Vector2(2, 2),
+                TextureScale = new Vector2(scale, scale),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Stop
             });
             AddChild(HighlightRect = new TextureRect
             {
                 Visible = false,
-                TextureScale = new Vector2(2, 2),
+                TextureScale = new Vector2(scale, scale),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Ignore
             });
 
@@ -148,21 +204,21 @@ namespace Content.Client.UserInterface.Controls
 
             AddChild(SpriteView = new SpriteView
             {
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });
             AddChild(ProtoView = new EntityPrototypeView
             {
                 Visible = false,
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });
 
             AddChild(HoverSpriteView = new SpriteView
             {
-                Scale = new Vector2(2, 2),
+                Scale = new Vector2(scale, scale),
                 SetSize = new Vector2(DefaultButtonSize, DefaultButtonSize),
                 OverrideDirection = Direction.South
             });
@@ -176,6 +232,14 @@ namespace Content.Client.UserInterface.Controls
             });
 
             AddChild(AdminOverlays = new Control());
+
+            AddChild(FSLabelControl = new Label
+            {
+                Visible = false,
+                HorizontalAlignment = HAlignment.Center,
+                VerticalAlignment = VAlignment.Center,
+                ModulateSelfOverride = Color.FromHex("#8FA1B3"),
+            });
 
             StorageButton.OnKeyBindDown += args =>
             {
@@ -207,6 +271,7 @@ namespace Content.Client.UserInterface.Controls
             AddChild(BlockedRect = new TextureRect
             {
                 TextureScale = new Vector2(2, 2),
+                Stretch = TextureRect.StretchMode.KeepCentered,
                 MouseFilter = MouseFilterMode.Stop,
                 Visible = false
             });
@@ -261,9 +326,6 @@ namespace Content.Client.UserInterface.Controls
             HoverSpriteView.SetEntity(null);
         }
 
-        /// <summary>
-        /// Causes the control to display a placeholder prototype, optionally faded
-        /// </summary>
         public void SetEntity(EntityUid? ent)
         {
             SpriteView.SetEntity(ent);
@@ -272,19 +334,11 @@ namespace Content.Client.UserInterface.Controls
             UpdateButtonTexture();
         }
 
-        /// <summary>
-        /// Add an overlay to in the admin overlays location
-        /// </summary>
-        /// <param name="texturePath">The texture path to overlay.</param>
-        /// <param name="color">Color to modulate the texture with - if null no modulation.</param>
         public void AddAdminOverlay(ResPath texturePath, Color? color = null)
         {
             AdminOverlays.AddChild(new SimpleSlotOverlay(texturePath.CanonPath, color));
         }
 
-        /// <summary>
-        /// Causes the control to display a placeholder prototype, optionally faded
-        /// </summary>
         public void SetPrototype(EntProtoId? proto, bool fade)
         {
             ProtoView.SetPrototype(proto);

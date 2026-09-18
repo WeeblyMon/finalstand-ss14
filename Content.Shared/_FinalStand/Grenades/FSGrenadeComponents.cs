@@ -53,5 +53,11 @@ public sealed partial class FSSelectIncendiaryGrenadeEvent : InstantActionEvent 
 public sealed partial class FSSelectFlashGrenadeEvent : InstantActionEvent { }
 public sealed partial class FSSelectPipeGrenadeEvent : InstantActionEvent { }
 
+[Serializable, NetSerializable]
+public sealed class FSSelectGrenadeMessage : EntityEventArgs
+{
+    public GrenadeType Type { get; init; }
+}
+
 [RegisterComponent]
 public sealed partial class FSBaitDecoyComponent : Component { }

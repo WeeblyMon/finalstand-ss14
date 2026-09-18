@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Client._FinalStand.Perks;
 using Content.Client._FinalStand.Shop;
 using Content.Client._FinalStand.Stylesheets;
@@ -275,7 +276,6 @@ public sealed partial class WeaponShopWindow
             researchFr.Count > 0 ? FSUiPalette.StateResearch : frParts.Count > 0 ? FSUiPalette.StatePositive : null,
             frParts.Count > 0 ? string.Join("\n", frParts) : null));
 
-        // Real spread angles come from the server — AngleIncrease isn't a networked field.
         var shopAccuracy = _entityManager.System<FSShopClientSystem>().Accuracy;
         var accValue = shopAccuracy >= 0 ? shopAccuracy : shopComp.StatAccuracy;
 
@@ -308,14 +308,12 @@ public sealed partial class WeaponShopWindow
         _rangedCache.IsRanged          = true;
     }
 
-    // Mirrors FSPlayerUpgradesSystem.GunStats — keep both in sync.
     private static (float Min, float Max, float Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
     {
         WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5f, def.ValuePerLevel * 0.2f, def.ValuePerLevel * 0.3f),
         WeaponUpgradeType.AngleMax => (0f, def.ValuePerLevel, 0f),
         _                          => (0f, 0f, 0f),
     };
-
 
     private void BuildMeleeStats(MeleeWeaponComponent? meleeComp, MeleeWeaponComponent? meleeProto,
         float damageMultiplier, float attackSpeedMult)
@@ -368,7 +366,6 @@ public sealed partial class WeaponShopWindow
             Math.Min(1f, (critDamageMult - 1f) / 2f), $"{critDamageMult:F1}x"));
     }
 
-
     private List<string> GetResearchLines(string? weaponProtoId, string category)
     {
         var lines = new List<string>();
@@ -384,7 +381,6 @@ public sealed partial class WeaponShopWindow
         }
         return lines;
     }
-
 
     private (float damage, float baseDamage, int pellets) ComputeDamage(FSShopWeaponComponent shopComp, EntityUid? gun,
         EntityPrototype? weaponProto, float damageMultiplier, int extraPellets, IEntityManager entMan)
@@ -422,7 +418,7 @@ public sealed partial class WeaponShopWindow
                 ammoProto = ballistic.Proto;
             else if (entMan.TryGetComponent<RevolverAmmoProviderComponent>(gun.Value, out var revolver))
                 ammoProto = revolver.FillPrototype;
-            else if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+            else if (FSItemSlots.TryGetSlot(entMan, entMan.System<ItemSlotsSystem>(), gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
                      && magSlot.Item.HasValue
                      && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
                 ammoProto = magBal.Proto;
@@ -475,7 +471,7 @@ public sealed partial class WeaponShopWindow
                 }
                 return (1f, "∞", -1);
             }
-            if (entMan.System<ItemSlotsSystem>().TryGetSlot(gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
+            if (FSItemSlots.TryGetSlot(entMan, entMan.System<ItemSlotsSystem>(), gun.Value, SharedGunSystem.MagazineSlot, out var magSlot)
                 && magSlot.Item.HasValue
                 && entMan.TryGetComponent<BallisticAmmoProviderComponent>(magSlot.Item.Value, out var magBal))
                 return (Math.Min(1f, magBal.Capacity / 30f), $"{magBal.Capacity}", magBal.Capacity);

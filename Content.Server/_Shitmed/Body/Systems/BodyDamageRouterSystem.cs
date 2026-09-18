@@ -46,12 +46,9 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
 
     private void OnBodyDamageChanged(EntityUid uid, BodyComponent body, ref DamageChangedEvent args)
     {
-        // Need a damage delta to act on.
         if (args.DamageDelta is null || args.DamageDelta.Empty)
             return;
 
-        // Collect woundable body parts. The mob itself doesn't have WoundableComponent —
-        // its anatomical sub-entities do.
         var parts = new List<EntityUid>();
         foreach (var (partId, _) in _lookup.GetBodyOrgans((uid, body)))
         {
@@ -62,16 +59,11 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
         if (parts.Count == 0)
             return;
 
-        // For damage: pick one body part (TargetingComponent target if set, otherwise random).
-        // For healing: distribute across all body parts so a Brutepack actually heals.
         EntityUid? chosen = null;
         if (args.Origin is { } origin && TryComp<TargetingComponent>(origin, out var attackerTargeting))
             chosen = ResolveTargetPart(parts, attackerTargeting.Target);
 
-        if (chosen is null && TryComp<TargetingComponent>(uid, out var targeting))
-            chosen = ResolveTargetPart(parts, targeting.Target);
-
-        chosen ??= _random.Pick(parts);
+        chosen ??= PickWeighted(parts);
 
         foreach (var (type, value) in args.DamageDelta.DamageDict)
         {
@@ -104,6 +96,48 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
         }
 
         return false;
+    }
+
+    private static readonly Dictionary<TargetBodyPart, float> HitWeights = new()
+    {
+        [TargetBodyPart.Chest] = 35f,
+        [TargetBodyPart.Head] = 10f,
+        [TargetBodyPart.Groin] = 10f,
+        [TargetBodyPart.LeftArm] = 8f,
+        [TargetBodyPart.RightArm] = 8f,
+        [TargetBodyPart.LeftLeg] = 10f,
+        [TargetBodyPart.RightLeg] = 10f,
+        [TargetBodyPart.LeftHand] = 4f,
+        [TargetBodyPart.RightHand] = 4f,
+        [TargetBodyPart.LeftFoot] = 4f,
+        [TargetBodyPart.RightFoot] = 4f,
+    };
+
+    private EntityUid PickWeighted(List<EntityUid> parts)
+    {
+        var total = 0f;
+        foreach (var part in parts)
+            total += WeightOf(part);
+
+        if (total <= 0f)
+            return _random.Pick(parts);
+
+        var roll = _random.NextFloat(total);
+        foreach (var part in parts)
+        {
+            roll -= WeightOf(part);
+            if (roll <= 0f)
+                return part;
+        }
+
+        return parts[^1];
+    }
+
+    private float WeightOf(EntityUid part)
+    {
+        return _lookup.GetTarget(part) is { } target && HitWeights.TryGetValue(target, out var weight)
+            ? weight
+            : 1f;
     }
 
     private EntityUid? ResolveTargetPart(List<EntityUid> candidates, TargetBodyPart target)

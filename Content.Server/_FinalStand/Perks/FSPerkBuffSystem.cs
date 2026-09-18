@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
@@ -40,7 +40,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
-        SubscribeLocalEvent<GunComponent, GunRefreshModifiersEvent>(OnBulletStorm);
         SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnDeepImpact);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
@@ -62,8 +61,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target))
             _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
-        // Re-checked every time, like Speed Demon and Rampage below - banked stacks must not
-        // keep paying out after the perk is unslotted.
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
 
@@ -87,16 +84,13 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (bbLevel > 0 && ev.Shooter.HasValue)
             _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(bbLevel, 1, 3));
 
-        // Stamina drain, not a speed debuff - staggering via stamina works on NPCs too.
         var lbLevel = augs.GetSlottedLevel("LegBreaker");
         if (lbLevel > 0 && HasComp<StaminaComponent>(ev.Target))
             _stamina.TakeStaminaDamage(ev.Target, lbLevel * FSPerkBonusConstants.LegBreakerStaminaPerLevel, source: ev.Shooter);
     }
 
-    private void OnBulletStorm(EntityUid uid, GunComponent gunComp, ref GunRefreshModifiersEvent args)
+    public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
     {
-        var holder = Transform(uid).ParentUid;
-        if (!holder.IsValid()) return;
         if (!_mind.TryGetMind(holder, out var mindId, out _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 

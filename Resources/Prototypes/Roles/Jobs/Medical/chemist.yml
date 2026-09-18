@@ -21,6 +21,16 @@
     id: ChemistryPDA
     ears: ClothingHeadsetMedical
     pocket1: FlashlightSeclite
+  storage:
+    back:
+    - FSHarvestSatchel
+    - LauncherSyringe
+    - FSSyringePackBicaridine
+    - FSSyringePackKelotane
+    - FSSyringePackCombatStim
+    - FSSyringePackAdrenalSurge
+    - FSSplashFlaskCombatStim
+    - FSSplashFlaskCorrosive
 
 - type: chameleonOutfit
   id: ChemistChameleonOutfit

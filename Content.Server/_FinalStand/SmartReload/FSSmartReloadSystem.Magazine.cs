@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Utility;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.DoAfter;
 using Content.Shared.Storage;
@@ -9,9 +10,10 @@ namespace Content.Server._FinalStand.SmartReload;
 
 public sealed partial class FSSmartReloadSystem : EntitySystem
 {
-    private void ReloadMagazine(EntityUid gun, EntityUid user, bool isChainReload = false)
+    private void ReloadMagazine(EntityUid gun, EntityUid user, bool isChainReload = false,
+        EntityUid? chosen = null)
     {
-        var newMag = FindBestMagazine(user, gun);
+        var newMag = chosen ?? FindBestMagazine(user, gun);
         if (newMag == null)
         {
             if (!isChainReload)
@@ -19,19 +21,23 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
         }
 
-        if (TryComp<BallisticAmmoProviderComponent>(newMag.Value, out var newBal) && newBal.Count == 0)
+        if (TryGetMagazineCount(newMag.Value, out var newCount) && newCount == 0)
         {
             if (!isChainReload)
                 _popup.PopupEntity("All magazines are empty.", gun, user);
             return;
         }
 
-        var hasMag = _slots.TryGetSlot(gun, SharedGunSystem.MagazineSlot, out var slot)
+        var hasMag = FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var slot)
                      && slot!.Item != null;
         var delay  = (hasMag ? MagEjectTime + MagInsertTime : MagInsertTime) * GetReloadMultiplier(user, gun);
 
         var doAfterArgs = new DoAfterArgs(EntityManager, user, delay,
-            new FSMagReloadDoAfterEvent { IsChainReload = isChainReload }, eventTarget: gun)
+            new FSMagReloadDoAfterEvent
+            {
+                IsChainReload = isChainReload,
+                Chosen = chosen is { } c ? GetNetEntity(c) : null,
+            }, eventTarget: gun)
         {
             NeedHand           = true,
             BreakOnMove        = false,
@@ -59,12 +65,18 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || !args.User.IsValid())
             return;
 
-        // Eject old mag and try to store in inventory (backpack → pockets → floor)
         if (_slots.TryEject(gun, SharedGunSystem.MagazineSlot, null, out var oldMag) && oldMag != null)
             TryStoreItemInInventory(args.User, oldMag.Value);
 
-        // Re-evaluate best magazine (inventory may have changed during DoAfter)
-        var newMag = FindBestMagazine(args.User, gun);
+        EntityUid? newMag = null;
+        if (args.Chosen is { } chosenNet)
+        {
+            var chosen = GetEntity(chosenNet);
+            if (chosen.IsValid() && !TerminatingOrDeleted(chosen))
+                newMag = chosen;
+        }
+
+        newMag ??= FindBestMagazine(args.User, gun);
         if (newMag == null)
             return;
 
@@ -86,6 +98,5 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (_inventory.TryEquip(user, user, item, "pocket2", silent: true))
             return;
 
-        // Otherwise it stays on the floor — already dropped by TryEject with a null user.
     }
 }

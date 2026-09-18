@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._FinalStand.Leveling;
@@ -18,9 +19,13 @@ public sealed partial class FSXpHudController : UIController
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
+    private const int DefaultBarHeight = 16;
+    private const int SeparatedBarHeight = 11;
+    private const int DefaultFontSize = 12;
+    private const int SeparatedFontSize = 9;
+
     private FSLevelingUpdatedEvent? _cached;
 
-    // Controls — non-null only while the game screen is loaded.
     private BoxContainer? _root;
     private ProgressBar? _bar;
     private Label? _label;
@@ -40,7 +45,6 @@ public sealed partial class FSXpHudController : UIController
         var screen = UIManager.ActiveScreen;
         if (screen == null) return;
 
-        // spacerTop pushes barContainer to absolute screen bottom, below the hotbar
         _root = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -48,13 +52,15 @@ public sealed partial class FSXpHudController : UIController
         };
         LayoutContainer.SetAnchorPreset(_root, LayoutContainer.LayoutPreset.Wide);
 
+        var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
+                          && st == ScreenType.Separated;
+
         var spacerTop = new Control { VerticalExpand = true, MouseFilter = Control.MouseFilterMode.Ignore };
 
-        // layoutcontainer lets label overlay on top of the bar
         var barContainer = new LayoutContainer
         {
             HorizontalExpand = true,
-            SetHeight = 18,
+            SetHeight = isSeparated ? SeparatedBarHeight : DefaultBarHeight,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
 
@@ -66,21 +72,28 @@ public sealed partial class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#23707e") };
-        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#212226") };
+        // FINALSTAND: palette-matched to the rest of the HUD.
+        _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = FSPalette.Warn };
+        _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
+        {
+            BackgroundColor = FSPalette.PanelDeep,
+            BorderColor = FSPalette.PanelEdge,
+            BorderThickness = new Thickness(0, 1, 0, 0),
+        };
 
         _label = new Label
         {
             Text = "LVL 1",
             Align = Label.AlignMode.Center,
-            Modulate = Color.FromHex("#FFFFFF"),
+            Modulate = FSPalette.TextBright,
             MouseFilter = Control.MouseFilterMode.Ignore,
-            FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"), 12),
+            FontOverride = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Regular.ttf"),
+                isSeparated ? SeparatedFontSize : DefaultFontSize),
         };
 
         LayoutContainer.SetAnchorPreset(_bar, LayoutContainer.LayoutPreset.Wide);
         LayoutContainer.SetAnchorPreset(_label, LayoutContainer.LayoutPreset.Wide);
-        LayoutContainer.SetMarginTop(_label, -8);
+        LayoutContainer.SetMarginTop(_label, isSeparated ? -5 : -8);
 
         barContainer.AddChild(_bar);
         barContainer.AddChild(_label);
@@ -88,9 +101,6 @@ public sealed partial class FSXpHudController : UIController
         _root.AddChild(spacerTop);
         _root.AddChild(barContainer);
 
-        // In separated HUD mode, anchor to the viewport container so the bar doesn't extend into the chat panel.
-        var isSeparated = Enum.TryParse<ScreenType>(_cfg.GetCVar(CCVars.UILayout), out var st)
-                          && st == ScreenType.Separated;
         var target = isSeparated ? (FindViewportContainer(screen) ?? (Control) screen) : screen;
         target.AddChild(_root);
 

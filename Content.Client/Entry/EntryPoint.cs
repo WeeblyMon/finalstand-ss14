@@ -25,6 +25,7 @@ using Content.Client.Stylesheets;
 using Content.Client.UserInterface;
 using Content.Client.Viewport;
 using Content.Client.Voting;
+using Content.Client._FinalStand.Interface;
 using Content.Shared.Ame.Components;
 using Content.Shared.FeedbackSystem;
 using Content.Shared.Gravity;
@@ -101,14 +102,12 @@ namespace Content.Client.Entry
             _componentFactory.DoAutoRegistrations();
             _componentFactory.IgnoreMissingComponents();
 
-            // Do not add to these, they are legacy.
             _componentFactory.RegisterClass<SharedAmeControllerComponent>();
-            // Do not add to the above, they are legacy
 
             _prototypeManager.RegisterIgnore("utilityQuery");
             _prototypeManager.RegisterIgnore("utilityCurvePreset");
             _prototypeManager.RegisterIgnore("gasReaction");
-            _prototypeManager.RegisterIgnore("seed"); // Seeds prototypes are server-only.
+            _prototypeManager.RegisterIgnore("seed");
             _prototypeManager.RegisterIgnore("objective");
             _prototypeManager.RegisterIgnore("holiday");
             _prototypeManager.RegisterIgnore("htnCompound");
@@ -143,7 +142,6 @@ namespace Content.Client.Entry
             _playbackMan.Initialize();
             _clientsidePlaytimeManager.Initialize();
 
-            //AUTOSCALING default Setup!
             _configManager.SetCVar("interface.resolutionAutoScaleUpperCutoffX", 1080);
             _configManager.SetCVar("interface.resolutionAutoScaleUpperCutoffY", 720);
             _configManager.SetCVar("interface.resolutionAutoScaleLowerCutoffX", 520);
@@ -155,9 +153,10 @@ namespace Content.Client.Entry
         {
             base.PostInit();
 
+            FSHudLayoutMigration.Run(_configManager); // FINALSTAND
+
             _stylesheetManager.Initialize();
 
-            // Setup key contexts
             ContentContexts.SetupContexts(_inputManager.Contexts);
 
             _parallaxManager.LoadDefaultParallax();
@@ -184,7 +183,6 @@ namespace Content.Client.Entry
                 }
             };
 
-            // Disable engine-default viewport since we use our own custom viewport control.
             _userInterfaceManager.MainViewport.Visible = false;
 
             SwitchToDefaultState();
@@ -192,9 +190,6 @@ namespace Content.Client.Entry
 
         private void SwitchToDefaultState(bool disconnected = false)
         {
-            // Fire off into state dependent on launcher or not.
-
-            // Check if we're loading a replay via content bundle!
             if (_configManager.GetCVar(CVars.LaunchContentBundle)
                 && _resourceManager.ContentFileExists(
                     ReplayConstants.ReplayZipFolder.ToRootedPath() / ReplayConstants.FileMeta))

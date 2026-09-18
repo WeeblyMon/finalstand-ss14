@@ -14,7 +14,9 @@ using Content.Shared.Hands.Components;
 using Content.Shared.Input;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Storage;
+using Content.Shared.Timing;
 using Robust.Client.GameObjects;
+using Robust.Shared.Timing;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
@@ -35,6 +37,7 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
     [UISystemDependency] private readonly HandsSystem _handsSystem = default!;
     [UISystemDependency] private readonly ContainerSystem _container = default!;
     [UISystemDependency] private readonly SpriteSystem _sprite = default!;
+    [UISystemDependency] private readonly UseDelaySystem _useDelay = default!;
 
     private EntityUid? _playerUid;
     private InventorySlotsComponent? _playerInventory;
@@ -69,7 +72,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _strippingWindow = UIManager.CreateWindow<StrippingWindow>();
         LayoutContainer.SetAnchorPreset(_strippingWindow, LayoutContainer.LayoutPreset.Center);
 
-        //bind open inventory key to OpenInventoryMenu;
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.OpenInventoryMenu, InputCmdHandler.FromDelegate(_ => ToggleInventoryBar()))
             .Register<ClientInventorySystem>();
@@ -251,7 +253,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
 
     }
 
-    // Neuron Activation
     public void OnSystemLoaded(ClientInventorySystem system)
     {
         _inventorySystem.OnSlotAdded += AddSlot;
@@ -261,7 +262,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _inventorySystem.OnSpriteUpdate += SpriteUpdated;
     }
 
-    // Neuron Deactivation
     public void OnSystemUnloaded(ClientInventorySystem system)
     {
         _inventorySystem.OnSlotAdded -= AddSlot;
@@ -341,7 +341,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
             return;
         }
 
-        // Set green / red overlay at 50% transparency
         var hoverEntity = _entities.SpawnEntity("hoverentity", MapCoordinates.Nullspace);
         var hoverSprite = _entities.GetComponent<SpriteComponent>(hoverEntity);
         var fits = _inventorySystem.CanEquip(player.Value, held.Value, control.SlotName, out _, slotDef) &&
@@ -425,6 +424,30 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         UpdateInventoryHotbar(null);
     }
 
+    public override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+
+        foreach (var slotGroup in _slotGroups.Values)
+        {
+            foreach (var child in slotGroup.Children)
+            {
+                if (child is not SlotControl slot)
+                    continue;
+
+                if (slot.Entity is not { } item || !_entities.TryGetComponent(item, out UseDelayComponent? useDelay))
+                {
+                    slot.CooldownDisplay.Visible = false;
+                    continue;
+                }
+
+                var delay = _useDelay.GetLastEndingDelay((item, useDelay));
+                slot.CooldownDisplay.Visible = true;
+                slot.CooldownDisplay.FromTime(delay.StartTime, delay.EndTime);
+            }
+        }
+    }
+
     private void SpriteUpdated(SlotSpriteUpdate update)
     {
         var (entity, group, name, showStorage) = update;
@@ -464,9 +487,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _slotGroups.Remove(slotGroupName);
     }
 
-    // Monkey Sees Action
-    // Neuron Activation
-    // Monkey copies code
     public void OnSystemLoaded(HandsSystem system)
     {
         _handsSystem.OnPlayerItemAdded += OnItemAdded;
@@ -480,7 +500,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _handsSystem.OnPlayerItemRemoved -= OnItemRemoved;
         _handsSystem.OnPlayerSetActiveHand -= SetActiveHand;
     }
-
 
     private void OnItemAdded(string name, EntityUid entity)
     {

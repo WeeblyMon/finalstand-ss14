@@ -1,0 +1,36 @@
+# Parented to BaseDefibrillator rather than DefibrillatorCompact on purpose: the compact one runs
+# off a consumable power cell that never recharges, and this is meant to be gated only by its
+# cooldown.
+- type: entity
+  parent: BaseDefibrillator
+  id: FSEmergencyDefibrillator
+  name: emergency defibrillator
+  description: A one-shot field unit. Gets someone breathing again in seconds, then needs a minute before it can do it twice.
+  components:
+  # layers must be redeclared, not just the rsi path, or the parent's are inherited alongside.
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/emergency_defib.rsi
+    layers:
+    - state: icon
+    - state: screen
+      map: [ "enum.ToggleableVisuals.Layer" ]
+      visible: false
+      shader: unshaded
+  # Small so it fits a pocket; anything larger is refused by the slot.
+  - type: Item
+    size: Small
+  - type: Defibrillator
+    # Near-instant, because it is used with a horde on top of you.
+    doAfterDuration: 0.6
+    # The lockout is the only thing gating this, so it carries the whole balance.
+    zapDelay: 60
+    zapDamage: 0
+    writheDuration: 1
+    zapHeal:
+      types:
+        Asphyxiation: -60
+  - type: FSEmergencyDefib
+    reviveHealthFraction: 0.2
+  - type: FSMedicalOnly
+  - type: UseDelay
+    delay: 60

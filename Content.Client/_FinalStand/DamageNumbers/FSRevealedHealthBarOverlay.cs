@@ -59,7 +59,6 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
 
         foreach (var uid in RevealedEntities)
         {
-            // Reveals never expire, so reject on position before summing damage.
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId) continue;
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
             if (_entManager.HasComponent<FSNoHealthBarComponent>(uid)) continue;
@@ -82,7 +81,7 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             var matty        = Matrix3x2.Multiply(rotationMatrix, scaledWorld);
             handle.SetTransform(matty);
 
-            var yOffset    = bounds.Height * EyeManager.PixelsPerMeter / 2 - 3f;
+            var yOffset    = bounds.Height * EyeManager.PixelsPerMeter / 2 + 1f;
             var widthOfMob = bounds.Width  * EyeManager.PixelsPerMeter;
 
             var position  = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2,
@@ -155,7 +154,6 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             return (ratio, true);
         }
 
-        // Dead
         return null;
     }
 }

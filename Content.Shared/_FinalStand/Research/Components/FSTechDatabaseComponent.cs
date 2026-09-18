@@ -4,10 +4,24 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Research.Components;
 
-// FS-authored counterpart to TechnologyDatabaseComponent, for FSTechNodePrototype content.
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
+[Serializable]
+public enum FSResearchTrack : byte
+{
+    Science,
+    Medical,
+}
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true, raiseAfterAutoHandleState: true)]
 public sealed partial class FSTechDatabaseComponent : Component
 {
+    [AutoNetworkedField]
+    [DataField]
+    public FSResearchTrack Track = FSResearchTrack.Science;
+
+    [AutoNetworkedField]
+    [DataField]
+    public List<ProtoId<FSTechBranchPrototype>> Branches = new();
+
     [AutoNetworkedField]
     [DataField]
     public List<ProtoId<FSTechNodePrototype>> UnlockedNodes = new();
@@ -28,7 +42,6 @@ public sealed partial class FSTechDatabaseComponent : Component
     [DataField]
     public int Points;
 
-    // Per node, one stable color-slot index per contributor - lets the client render a ring per contributor without ever sending names.
     [AutoNetworkedField]
     [DataField]
     public Dictionary<string, List<int>> PersonalContributorSlots = new();

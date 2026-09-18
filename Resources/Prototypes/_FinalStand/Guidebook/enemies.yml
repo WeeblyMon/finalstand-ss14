@@ -3,3 +3,9 @@
   name: guide-entry-fs-enemies
   priority: 0
   text: "/ServerInfo/Guidebook/_FinalStand/Enemies.xml"
+
+- type: guideEntry
+  id: FSChemist
+  name: guide-entry-fs-chemist
+  priority: 0
+  text: "/ServerInfo/Guidebook/_FinalStand/Chemist.xml"

@@ -36,6 +36,7 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
 
     private void OnPlayerPreventCollide(EntityUid uid, FSFriendlyFireComponent _, ref PreventCollideEvent args)
     {
+        if (HasComp<FSAllyProjectileComponent>(args.OtherEntity)) return;
         if (!TryComp<ProjectileComponent>(args.OtherEntity, out var proj)) return;
         if (proj.Shooter == null) return;
         if (HasComp<FSFriendlyFireComponent>(proj.Shooter.Value))
@@ -48,7 +49,6 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
             args.Cancel();
     }
 
-    // Wave players can't melee structures, and a swing hitting only other players is cancelled.
     private void OnMeleeHit(EntityUid uid, MeleeWeaponComponent _, MeleeHitEvent args)
     {
         if (!HasComp<FSFriendlyFireComponent>(args.User))

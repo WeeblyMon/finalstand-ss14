@@ -1,0 +1,31 @@
+- type: fsChemGuide
+  id: FSChemGuideTrauma
+  category: fs-chem-guide-trauma
+  priority: 0
+  reactions:
+  - Bicaridine
+  - Kelotane
+  - Dermaline
+  - TranexamicAcid
+
+- type: fsChemGuide
+  id: FSChemGuideSupport
+  category: fs-chem-guide-support
+  priority: 1
+  reactions:
+  - Tricordrazine
+  - Inaprovaline
+  - Epinephrine
+  - Dylovene
+
+- type: fsChemGuide
+  id: FSChemGuidePotions
+  category: fs-chem-guide-potions
+  priority: 2
+  reactions:
+  - FSCombatStim
+  - FSCorrosive
+  - FSSolvent
+  - FSWeakeningAgent
+  - FSCoagulantMist
+  - FSEtchant

@@ -10,7 +10,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
-// Mirrors FSPerkBuffSystem, but reads FSResearchSystem.IsNodeUnlocked (station-wide) instead of per-mind perk levels.
 public sealed partial class FSResearchBuffSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
@@ -20,13 +19,10 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        // Subscribed on TagComponent since FSPerkBuffSystem already owns GunComponent+GunRefreshModifiersEvent.
-        SubscribeLocalEvent<TagComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
     }
 
-    // Force every live Ordnance gun to re-evaluate the moment a node completes.
     private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
     {
         var query = EntityQueryEnumerator<GunComponent>();
@@ -47,7 +43,6 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
 
     private static Angle ScaleAngle(Angle a, double factor) => new(a.Theta * factor);
 
-    // Pure - shared with FSPlayerBonusSummarySystem.
     public (float FireRateMul, float ReloadPct) GetFireRateReloadTotals(
         bool isBallistic, bool isL6, bool isMinigun, bool isHydra, bool isEnergy, bool isTesla, bool isHarvester = false)
     {
@@ -120,7 +115,6 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         return (fireRateMul, reloadPct);
     }
 
-    // Pure - shared with FSPlayerBonusSummarySystem.
     public float GetDamageMultiplier(
         bool isBallistic, bool isEnergy, bool isLauncher,
         bool isL6, bool isMinigun, bool isHydra, bool isRpg, bool isXray, bool isTesla, bool isHarvester = false)
@@ -192,7 +186,7 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         return mul;
     }
 
-    private void OnRefreshModifiers(EntityUid uid, TagComponent tagComp, ref GunRefreshModifiersEvent args)
+    public void ApplyGunModifiers(EntityUid uid, ref GunRefreshModifiersEvent args)
     {
         var kind = _classifier.Classify(uid);
         if (!kind.HasGunTag && !kind.Harvester)
@@ -209,7 +203,7 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         var isXray = kind.Xray;
         var isTesla = kind.Tesla;
 
-        var accuracyPct = 0.0; // blended into MinAngle/MaxAngle/AngleIncrease
+        var accuracyPct = 0.0;
         var angleIncreasePct = 0.0;
         var angleDecayPct = 0.0;
         var projectileSpeedMul = 1f;

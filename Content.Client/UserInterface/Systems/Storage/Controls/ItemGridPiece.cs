@@ -1,11 +1,14 @@
 using System.Numerics;
+using Content.Client.Cooldown;
 using Content.Client.Items.Systems;
 using Content.Shared.Item;
 using Content.Shared.Storage;
+using Content.Shared.Timing;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Systems.Storage.Controls;
 
@@ -13,6 +16,8 @@ public sealed class ItemGridPiece : Control, IEntityControl
 {
     private readonly IEntityManager _entityManager;
     private readonly StorageUIController _storageController;
+    private readonly UseDelaySystem _useDelay;
+    private readonly CooldownGraphic _cooldown;
 
     private readonly List<(Texture, Vector2)> _texturesPositions = new();
 
@@ -63,7 +68,29 @@ public sealed class ItemGridPiece : Control, IEntityControl
 
         TooltipSupplier = SupplyTooltip;
 
+        _useDelay = entityManager.System<UseDelaySystem>();
+        AddChild(_cooldown = new CooldownGraphic
+        {
+            Visible = false,
+            MouseFilter = MouseFilterMode.Ignore,
+        });
+
         OnThemeUpdated();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+
+        if (!_entityManager.TryGetComponent(Entity, out UseDelayComponent? useDelay))
+        {
+            _cooldown.Visible = false;
+            return;
+        }
+
+        var delay = _useDelay.GetLastEndingDelay((Entity, useDelay));
+        _cooldown.Visible = true;
+        _cooldown.FromTime(delay.StartTime, delay.EndTime);
     }
 
     private Control? SupplyTooltip(Control sender)
@@ -98,7 +125,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
     {
         base.Draw(handle);
 
-        // really just an "oh shit" catch.
         if (!_entityManager.EntityExists(Entity) || !_entityManager.TryGetComponent<ItemComponent>(Entity, out var itemComponent))
         {
             Dispose();
@@ -116,7 +142,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
         var size = _centerTexture!.Size * 2 * UIScale;
 
         var hovering = !_storageController.IsDragging && UserInterfaceManager.CurrentlyHovered == this;
-        //yeah, this coloring is kinda hardcoded. deal with it. B)
         Color? colorModulate = hovering  ? null : Color.FromHex("#a8a8a8");
 
         var marked = Marked != null;
@@ -162,7 +187,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
             }
         }
 
-        // typically you'd divide by two, but since the textures are half a tile, this is done implicitly
         var iconOffset = Location.Rotation.RotateVec(itemComponent.StoredOffset) * 2 * UIScale;
         var iconPosition = new Vector2(
             (boundingGrid.Width + 1) * size.X + iconOffset.X,

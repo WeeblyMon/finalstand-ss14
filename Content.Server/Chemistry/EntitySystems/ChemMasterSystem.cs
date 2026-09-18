@@ -23,11 +23,6 @@ using System.Linq;
 
 namespace Content.Server.Chemistry.EntitySystems
 {
-
-    /// <summary>
-    /// Contains all the server-side logic for ChemMasters.
-    /// <seealso cref="ChemMasterComponent"/>
-    /// </summary>
     [UsedImplicitly]
     public sealed partial class ChemMasterSystem : EntitySystem
     {
@@ -39,6 +34,7 @@ namespace Content.Server.Chemistry.EntitySystems
         [Dependency] private StorageSystem _storageSystem = default!;
         [Dependency] private LabelSystem _labelSystem = default!;
         [Dependency] private ISharedAdminLogManager _adminLogger = default!;
+        [Dependency] private Shared._FinalStand.MedicalOps.FSTreatmentAttributionSystem _fsAttribution = default!;
 
         private static readonly EntProtoId PillPrototypeId = "Pill";
 
@@ -51,7 +47,6 @@ namespace Content.Server.Chemistry.EntitySystems
             SubscribeLocalEvent<ChemMasterComponent, EntInsertedIntoContainerMessage>(SubscribeUpdateUiState);
             SubscribeLocalEvent<ChemMasterComponent, EntRemovedFromContainerMessage>(SubscribeUpdateUiState);
             // Subscribing to DragDropTargetEvent is a quick fix to ensure the UI updates when fluids are dragged and dropped into the ChemMaster, since Shared.Fluids.EntitySystems.SolutionDumpingSystem.cs bypasses UpdateChemicals().
-            // TODO: Remove when proper support for infinite volume solutions is added.
             SubscribeLocalEvent<ChemMasterComponent, DragDropTargetEvent>(SubscribeUpdateUiState);
             SubscribeLocalEvent<ChemMasterComponent, BoundUIOpenedEvent>(SubscribeUpdateUiState);
 
@@ -89,7 +84,6 @@ namespace Content.Server.Chemistry.EntitySystems
 
         private void OnSetModeMessage(Entity<ChemMasterComponent> chemMaster, ref ChemMasterSetModeMessage message)
         {
-            // Ensure the mode is valid, either Transfer or Discard.
             if (!Enum.IsDefined(typeof(ChemMasterMode), message.ChemMasterMode))
                 return;
 
@@ -109,7 +103,6 @@ namespace Content.Server.Chemistry.EntitySystems
 
         private void OnSetPillTypeMessage(Entity<ChemMasterComponent> chemMaster, ref ChemMasterSetPillTypeMessage message)
         {
-            // Ensure valid pill type. There are 20 pills selectable, 0-19.
             if (message.PillType > SharedChemMaster.PillTypes - 1)
                 return;
 
@@ -120,7 +113,6 @@ namespace Content.Server.Chemistry.EntitySystems
 
         private void OnReagentButtonMessage(Entity<ChemMasterComponent> chemMaster, ref ChemMasterReagentAmountButtonMessage message)
         {
-            // Ensure the amount corresponds to one of the reagent amount buttons.
             if (!Enum.IsDefined(typeof(ChemMasterReagentAmount), message.Amount))
                 return;
 
@@ -133,7 +125,6 @@ namespace Content.Server.Chemistry.EntitySystems
                     DiscardReagents(chemMaster, message.ReagentId, message.Amount.GetFixedPoint(), message.FromBuffer);
                     break;
                 default:
-                    // Invalid mode.
                     return;
             }
 
@@ -142,7 +133,6 @@ namespace Content.Server.Chemistry.EntitySystems
 
         private void OnSetDrawSourceMessage(Entity<ChemMasterComponent> chemMaster, ref ChemMasterOutputDrawSourceMessage message)
         {
-            //Ensure draw source is valid, either from the internal buffer or the inserted beaker
             if (!Enum.IsDefined(message.DrawSource))
                 return;
 
@@ -161,13 +151,13 @@ namespace Content.Server.Chemistry.EntitySystems
                 return;
             }
 
-            if (fromBuffer) // Buffer to container
+            if (fromBuffer)
             {
                 amount = FixedPoint2.Min(amount, containerSolution.AvailableVolume);
                 amount = bufferSolution.RemoveReagent(id, amount, preserveOrder: true);
                 _solutionContainerSystem.TryAddReagent(containerSoln.Value, id, amount, out var _);
             }
-            else // Container to buffer
+            else
             {
                 amount = FixedPoint2.Min(amount, containerSolution.GetReagentQuantity(id));
                 _solutionContainerSystem.RemoveReagent(containerSoln.Value, id, amount);
@@ -208,18 +198,15 @@ namespace Content.Server.Chemistry.EntitySystems
             if (maybeContainer is not { Valid: true } container
                 || !TryComp(container, out StorageComponent? storage))
             {
-                return; // output can't fit pills
+                return;
             }
 
-            // Ensure the number is valid.
             if (message.Number == 0 || !_storageSystem.HasSpace((container, storage)))
                 return;
 
-            // Ensure the amount is valid.
             if (message.Dosage == 0 || message.Dosage > chemMaster.Comp.PillDosageLimit)
                 return;
 
-            // Ensure label length is within the character limit.
             if (message.Label.Length > SharedChemMaster.LabelMaxLength)
                 return;
 
@@ -244,7 +231,8 @@ namespace Content.Server.Chemistry.EntitySystems
                 pill.PillType = chemMaster.Comp.PillType;
                 Dirty(item, pill);
 
-                // Log pill creation by a user
+                _fsAttribution.TagProducer(item, user);
+
                 _adminLogger.Add(LogType.Action, LogImpact.Low, $"{ToPrettyString(user):user} printed {ToPrettyString(item):pill} {SharedSolutionContainerSystem.ToPrettyString(itemSolution.Comp.Solution)}");
             }
 
@@ -259,14 +247,12 @@ namespace Content.Server.Chemistry.EntitySystems
             if (maybeContainer is not { Valid: true } container
                 || !_solutionContainerSystem.TryGetSolution(container, SharedChemMaster.BottleSolutionName, out var soln, out var solution))
             {
-                return; // output can't fit reagents
+                return;
             }
 
-            // Ensure the amount is valid.
             if (message.Dosage == 0 || message.Dosage > solution.AvailableVolume)
                 return;
 
-            // Ensure label length is within the character limit.
             if (message.Label.Length > SharedChemMaster.LabelMaxLength)
                 return;
 
@@ -276,7 +262,8 @@ namespace Content.Server.Chemistry.EntitySystems
             _labelSystem.Label(container, message.Label);
             _solutionContainerSystem.TryAddSolution(soln.Value, withdrawal);
 
-            // Log bottle creation by a user
+            _fsAttribution.TagProducer(container, user);
+
             _adminLogger.Add(LogType.Action, LogImpact.Low,
                 $"{ToPrettyString(user):user} bottled {ToPrettyString(container):bottle} {SharedSolutionContainerSystem.ToPrettyString(solution)}");
 

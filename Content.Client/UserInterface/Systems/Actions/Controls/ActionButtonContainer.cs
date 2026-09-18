@@ -31,40 +31,48 @@ public partial class ActionButtonContainer : GridContainer
     public void SetActionData(ActionsSystem system, params EntityUid?[] actionTypes)
     {
         var uniqueCount = Math.Min(system.GetClientActions().Count(), actionTypes.Length + 1);
-        var keys = ContentKeyFunctions.GetHotbarBoundKeys();
+        Fill(system, actionTypes, uniqueCount);
+    }
 
-        for (var i = 0; i < uniqueCount; i++)
+    // FINALSTAND: a fixed window of slots. The bar shows one page at a time and never grows, so
+    // empty slots stay drawn rather than the bar changing width as actions come and go.
+    public void SetPageData(ActionsSystem system, EntityUid?[] page)
+    {
+        Fill(system, page, page.Length);
+    }
+
+    private void Fill(ActionsSystem system, EntityUid?[] actionTypes, int count)
+    {
+        for (var i = 0; i < count; i++)
         {
             if (i >= ChildCount)
-            {
                 AddChild(MakeButton(i));
-            }
 
             if (!actionTypes.TryGetValue(i, out var action))
                 action = null;
+
             ((ActionButton) GetChild(i)).UpdateData(action, system);
         }
 
-        for (var i = ChildCount - 1; i >= uniqueCount; i--)
+        for (var i = ChildCount - 1; i >= count; i--)
         {
             RemoveChild(GetChild(i));
         }
+    }
 
-        ActionButton MakeButton(int index)
-        {
-            var button = new ActionButton(_entity);
+    private ActionButton MakeButton(int index)
+    {
+        var button = new ActionButton(_entity);
+        var keys = ContentKeyFunctions.GetHotbarBoundKeys();
 
-            if (!keys.TryGetValue(index, out var boundKey))
-                return button;
-
-            button.KeyBind = boundKey;
-            if (_input.TryGetKeyBinding(boundKey, out var binding))
-            {
-                button.Label.Text = binding.GetKeyString();
-            }
-
+        if (!keys.TryGetValue(index, out var boundKey))
             return button;
-        }
+
+        button.KeyBind = boundKey;
+        if (_input.TryGetKeyBinding(boundKey, out var binding))
+            button.Label.Text = binding.GetKeyString();
+
+        return button;
     }
 
     public void ClearActionData()

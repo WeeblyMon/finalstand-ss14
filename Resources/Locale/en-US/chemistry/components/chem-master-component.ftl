@@ -40,3 +40,16 @@ chem-master-window-beaker-empty-text = Beaker Empty
 chem-master-window-beaker-low-text = Not enough solution in beaker
 chem-master-output-source = Packaging source:
 chem-master-no-source = No Source
+
+chem-master-window-amount-label = Amount:
+chem-master-window-move-button = Move
+chem-master-window-recipes-empty = Load reagents into the buffer to see what they make.
+chem-master-window-recipes-none = Nothing brewable from this combination.
+chem-master-window-recipes-ready = CAN MAKE: {$recipes}
+chem-master-window-recipe-needs = {$recipe} — needs {$reagent}
+chem-master-window-repeat-button = Repeat last batch
+chem-master-window-dose-max = Dose (max {$max})
+chem-master-window-pills-number-max = Number (max {$max})
+chem-master-window-hint-no-output = Put a pill canister in the output slot to press pills, or an empty bottle to fill one.
+chem-master-window-hint-bottle-only = Output holds a bottle - you can fill it, but pressing pills needs a pill canister.
+chem-master-window-hint-pills-only = Output holds a canister - you can press pills, but filling needs an empty bottle.

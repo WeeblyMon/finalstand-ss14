@@ -52,6 +52,45 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
 
     private ActionButtonContainer? _container;
     private readonly List<EntityUid?> _actions = new();
+
+    // FINALSTAND: the bar shows one page of slots at a time and the arrows move the window, so a
+    // player with more actions than slots can still reach all of them.
+    private int _page;
+
+    private static int PageSize => ActionsBar.Columns;
+
+    private int PageCount => Math.Max(1, (_actions.Count + PageSize - 1) / PageSize);
+
+    /// <summary>Index into <see cref="_actions"/> for a slot on the visible page.</summary>
+    private int SlotIndex(int position) => _page * PageSize + position;
+
+    private void RefreshHotbar()
+    {
+        if (_actionsSystem == null || _container == null)
+            return;
+
+        _page = Math.Clamp(_page, 0, PageCount - 1);
+
+        var page = new EntityUid?[PageSize];
+        for (var i = 0; i < PageSize; i++)
+        {
+            var index = SlotIndex(i);
+            page[i] = index < _actions.Count ? _actions[index] : null;
+        }
+
+        _container.SetPageData(_actionsSystem, page);
+        ActionsBar?.SetPagingEnabled(_page > 0, _page < PageCount - 1);
+    }
+
+    private void TurnPage(int delta)
+    {
+        var target = Math.Clamp(_page + delta, 0, PageCount - 1);
+        if (target == _page)
+            return;
+
+        _page = target;
+        RefreshHotbar();
+    }
     private readonly DragDropHelper<ActionButton> _menuDragHelper;
     private readonly TextureRect _dragShadow;
     private ActionsWindow? _window;
@@ -232,7 +271,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
 
     private void TriggerAction(int index)
     {
-        if (!_actions.TryGetValue(index, out var actionId) ||
+        if (!_actions.TryGetValue(SlotIndex(index), out var actionId) ||
             _actionsSystem?.GetAction(actionId) is not {} action)
         {
             return;
@@ -276,8 +315,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
     {
         QueueWindowUpdate();
 
-        if (_actionsSystem != null)
-            _container?.SetActionData(_actionsSystem, _actions.ToArray());
+        RefreshHotbar();
     }
 
     private void ActionButtonPressed(ButtonEventArgs args)
@@ -437,26 +475,28 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
             button.ClearData();
             if (_container?.TryGetButtonIndex(button, out position) ?? false)
             {
-                if (_actions.Count > position && position >= 0)
-                    _actions.RemoveAt(position);
+                var index = SlotIndex(position);
+                if (_actions.Count > index && index >= 0)
+                    _actions.RemoveAt(index);
             }
         }
         else if (button.TryReplaceWith(actionId.Value, _actionsSystem) &&
             _container != null &&
             _container.TryGetButtonIndex(button, out position))
         {
-            if (position >= _actions.Count)
+            var index = SlotIndex(position);
+            if (index >= _actions.Count)
             {
                 _actions.Add(actionId);
             }
             else
             {
-                _actions[position] = actionId;
+                _actions[index] = actionId;
             }
         }
 
         if (updateSlots)
-            _container?.SetActionData(_actionsSystem, _actions.ToArray());
+            RefreshHotbar();
     }
 
     private void DragAction()
@@ -478,8 +518,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
         if (dragged.Parent is ActionButtonContainer)
             SetAction(dragged, swapAction, false);
 
-        if (_actionsSystem != null)
-            _container?.SetActionData(_actionsSystem, _actions.ToArray());
+        RefreshHotbar();
 
         _menuDragHelper.EndDrag();
     }
@@ -688,6 +727,9 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
 
         RegisterActionContainer(ActionsBar.ActionsContainer);
 
+        ActionsBar.PrevPage.OnPressed += _ => TurnPage(-1);
+        ActionsBar.NextPage.OnPressed += _ => TurnPage(1);
+
         _actionsSystem?.LinkAllActions();
     }
 
@@ -720,7 +762,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
             _actions.Add(assign.ActionId);
         }
 
-        _container?.SetActionData(_actionsSystem, _actions.ToArray());
+        RefreshHotbar();
     }
 
     public void RemoveActionContainer()
@@ -761,7 +803,7 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
             return;
 
         LoadDefaultActions();
-        _container?.SetActionData(_actionsSystem, _actions.ToArray());
+        RefreshHotbar();
         QueueWindowUpdate();
     }
 

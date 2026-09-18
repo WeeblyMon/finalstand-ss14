@@ -1,0 +1,55 @@
+# ── Field hospital - held item (planted via use-in-hand) ──────────────────────────────────────
+- type: entity
+  id: FSFieldHospitalItem
+  parent: BaseItem
+  name: field hospital kit
+  description: A folded surgical tent. Pitch it anywhere and operate where the casualties are. Press Z to aim a placement, click to deploy.
+  components:
+  - type: Item
+    size: Large
+  # Carried, this is a folded bundle - the 96x128 tent art only makes sense once pitched.
+  - type: Sprite
+    sprite: Structures/Furniture/rollerbeds.rsi
+    state: rollerbed_folded
+  - type: FSMedicalOnly
+  - type: FSDeployableItem
+    requiresScience: false
+    requiresMedical: true
+    deployedProtoId: FSFieldHospitalDeployed
+  - type: FSPlaceable
+    previewProtoId: FSFieldHospitalDeployed
+    range: 6
+
+# ── Field hospital - pitched ──────────────────────────────────────────────────────────────────
+# The whole mechanism is OperatingTable on a bed: SharedSurgerySystem gates every step on
+# buckle.BuckledTo having OperatingTableComponent, so no surgery code changes for this to work.
+- type: entity
+  parent: Bed
+  id: FSFieldHospitalDeployed
+  name: field hospital
+  description: A pitched surgical tent. Strap a casualty in to operate.
+  categories: [ HideSpawnMenu ]
+  components:
+  # The tent art is 48x64 - one and a half tiles wide, two tall. The offset lifts the canvas so the
+  # entity's own tile sits at the open front where the patient is strapped, and BelowMobs keeps the
+  # patient drawn on top of it rather than swallowed by it.
+  - type: Sprite
+    sprite: _FinalStand/Structures/field_hospital.rsi
+    state: tent
+    noRot: true
+    drawdepth: BelowMobs
+    offset: 0,0.5
+  - type: Icon
+    sprite: _FinalStand/Structures/field_hospital.rsi
+    state: tent
+  - type: OperatingTable
+  - type: FSFieldHospital
+  - type: FSArmingDelay
+    delay: 6
+  - type: FSDeployableLifetime
+    lifetime: 600
+  - type: FSPackable
+    packedProtoId: FSFieldHospitalItem
+    packTime: 2.7
+  - type: FSPlayerDamageImmune
+  - type: Anchorable

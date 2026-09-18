@@ -453,9 +453,10 @@
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/hemostat.rsi
     state: hemostat
   - type: SurgeryTendWoundsEffect
+    healMultiplier: 0.2
     damage:
       groups:
-        Brute: -15
+        Brute: -45
   - type: SurgeryRepeatableStep
 
 - type: entity
@@ -472,9 +473,10 @@
     state: hemostat
   - type: SurgeryTendWoundsEffect
     mainGroup: Burn
+    healMultiplier: 0.2
     damage:
       groups:
-        Burn: -20
+        Burn: -60
   - type: SurgeryRepeatableStep
 
 - type: entity

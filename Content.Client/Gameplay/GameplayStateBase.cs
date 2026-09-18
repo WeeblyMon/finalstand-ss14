@@ -26,9 +26,6 @@ using YamlDotNet.Serialization.TypeInspectors;
 
 namespace Content.Client.Gameplay
 {
-    // OH GOD.
-    // Ok actually it's fine.
-    // Instantiated dynamically through the StateManager, Dependencies will be resolved.
     [Virtual]
     public partial class GameplayStateBase : State, IEntityEventSubscriber
     {
@@ -154,11 +151,9 @@ namespace Content.Client.Gameplay
             if (eye == null)
                 return Array.Empty<EntityUid>();
 
-            // Find all the entities intersecting our click
             var spriteTree = _entityManager.EntitySysManager.GetEntitySystem<SpriteTreeSystem>();
             var entities = spriteTree.QueryAabb(coordinates.MapId, Box2.CenteredAround(coordinates.Position, new Vector2(1, 1)));
 
-            // Check the entities against whether or not we can click them
             var foundEntities = new List<(EntityUid, int, uint, float)>(entities.Count);
             var clickables = _entityManager.System<ClickableSystem>();
 
@@ -173,7 +168,6 @@ namespace Content.Client.Gameplay
             if (foundEntities.Count == 0)
                 return Array.Empty<EntityUid>();
 
-            // Do drawdepth & y-sorting. First index is the top-most sprite (opposite of normal render order).
             foundEntities.Sort(_comparer);
 
             return foundEntities.Select(a => a.Item1);
@@ -208,13 +202,8 @@ namespace Content.Client.Gameplay
             }
         }
 
-        /// <summary>
-        ///     Converts a state change event from outside the simulation to inside the simulation.
-        /// </summary>
-        /// <param name="args">Event data values for a bound key state change.</param>
         protected virtual void OnKeyBindStateChanged(ViewportBoundKeyEventArgs args)
         {
-            // If there is no InputSystem, then there is nothing to forward to, and nothing to do here.
             if(!_entitySystemManager.TryGetEntitySystem(out InputSystem? inputSys))
                 return;
 
@@ -241,7 +230,7 @@ namespace Content.Client.Gameplay
 
                 if (mapSystem.TryFindGridAt(mousePosWorld, out var uid, out _))
                     coordinates = mapSystem.MapToGrid(uid, mousePosWorld);
-                else if (mousePosWorld.MapId != MapId.Nullspace)
+                else if (mousePosWorld.MapId != MapId.Nullspace && mapSystem.MapExists(mousePosWorld.MapId))
                     coordinates = transformSystem.ToCoordinates(mousePosWorld);
             }
             else
@@ -257,7 +246,6 @@ namespace Content.Client.Gameplay
                 Uid = entityToClick ?? default,
             }; // TODO make entityUid nullable
 
-            // client side command handlers will always be sent the local player session.
             var session = _playerManager.LocalSession;
             if (inputSys.HandleInputCommand(session, func, message))
             {

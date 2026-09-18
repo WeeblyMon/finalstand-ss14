@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -13,14 +14,30 @@ public sealed partial class MenuButton : ContainerButton
 {
     [Dependency] private IInputManager _inputManager = default!;
     public const string StyleClassLabelTopButton = "topButtonLabel";
-    // public const string StyleClassRedTopButton = "topButtonLabel";
 
     // TODO: KIIIIIILLLLLLLLLLLLLLLLLLLLLLLLLLL --kaylie.
-    private static readonly Color ColorNormal = Color.FromHex("#99a7b3"); // primary color[0] + 0.24 L
-    private static readonly Color ColorHovered = Color.FromHex("#acbac6"); // primary color[0] + 0.30 L
-    private static readonly Color ColorPressed = Color.FromHex("#75838e"); // primary color[0] + 0.12 L
+    private static readonly Color ColorNormal = FSPalette.TextBright;
+    private static readonly Color ColorHovered = FSPalette.TextBright;
+    private static readonly Color ColorPressed = FSPalette.TextDim;
 
-    private const float VertPad = 4f;
+    private const float VertPad = 0f;
+
+    // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette.
+    private static readonly StyleBoxFlat ChipNormal = MakeChip(FSPalette.ChipBack, FSPalette.ChipEdge);
+    private static readonly StyleBoxFlat ChipHovered = MakeChip(FSPalette.ButtonHoverBack, FSPalette.ButtonHoverEdge);
+    private static readonly StyleBoxFlat ChipPressed = MakeChip(FSPalette.ButtonPressBack, FSPalette.ButtonPressEdge);
+
+    private static StyleBoxFlat MakeChip(Color fill, Color edge)
+    {
+        var box = new StyleBoxFlat
+        {
+            BackgroundColor = fill,
+            BorderColor = edge,
+            BorderThickness = new Thickness(1),
+        };
+        box.SetContentMarginOverride(StyleBox.Margin.All, 0);
+        return box;
+    }
 
     private BoundKeyFunction? _function;
     private readonly BoxContainer _root;
@@ -45,15 +62,17 @@ public sealed partial class MenuButton : ContainerButton
     public MenuButton()
     {
         IoCManager.InjectDependencies(this);
+        // FINALSTAND: the bar is keybind chips, not icon buttons - the icon is what forced it tall.
         _buttonIcon = new TextureRect()
         {
-            TextureScale = new Vector2(0.5f, 0.5f),
+            TextureScale = new Vector2(0.35f, 0.35f),
             HorizontalAlignment = HAlignment.Center,
             VerticalAlignment = VAlignment.Center,
             VerticalExpand = true,
             Margin = new Thickness(0, VertPad),
             ModulateSelfOverride = ColorNormal,
-            Stretch = TextureRect.StretchMode.KeepCentered
+            Stretch = TextureRect.StretchMode.KeepCentered,
+            Visible = false
         };
         _buttonLabel = new Label
         {
@@ -73,6 +92,7 @@ public sealed partial class MenuButton : ContainerButton
         };
         AddChild(_root);
         ToggleMode = true;
+        StyleBoxOverride = ChipNormal;
     }
 
     protected override void EnteredTree()
@@ -89,7 +109,6 @@ public sealed partial class MenuButton : ContainerButton
         _inputManager.OnInputModeChanged -= OnKeyBindingChanged;
     }
 
-
     private void OnKeyBindingChanged(IKeyBinding obj)
     {
         _buttonLabel!.Text = _function == null ? "" : BoundKeyHelper.ShortKeyName(_function.Value);
@@ -102,9 +121,14 @@ public sealed partial class MenuButton : ContainerButton
 
     protected override void StylePropertiesChanged()
     {
-        // colors of children depend on style, so ensure we update when style is changed
         base.StylePropertiesChanged();
         UpdateChildColors();
+    }
+
+    private void SetChip(StyleBoxFlat box)
+    {
+        if (!ReferenceEquals(StyleBoxOverride, box))
+            StyleBoxOverride = box;
     }
 
     private void UpdateChildColors()
@@ -115,23 +139,25 @@ public sealed partial class MenuButton : ContainerButton
             case DrawModeEnum.Normal:
                 _buttonIcon.ModulateSelfOverride = ColorNormal;
                 _buttonLabel.ModulateSelfOverride = ColorNormal;
+                SetChip(ChipNormal);
                 break;
 
             case DrawModeEnum.Pressed:
-                _buttonIcon.ModulateSelfOverride = ColorPressed;
-                _buttonLabel.ModulateSelfOverride = ColorPressed;
+                _buttonIcon.ModulateSelfOverride = Color.White;
+                _buttonLabel.ModulateSelfOverride = Color.White;
+                SetChip(ChipPressed);
                 break;
 
             case DrawModeEnum.Hover:
                 _buttonIcon.ModulateSelfOverride = ColorHovered;
                 _buttonLabel.ModulateSelfOverride = ColorHovered;
+                SetChip(ChipHovered);
                 break;
 
             case DrawModeEnum.Disabled:
                 break;
         }
     }
-
 
     protected override void DrawModeChanged()
     {

@@ -1,0 +1,175 @@
+<controls:SurgeryDollControl
+    xmlns="https://spacestation14.io"
+    xmlns:controls="clr-namespace:Content.Client._Shitmed.Medical.Surgery"
+    HorizontalAlignment="Center">
+    <Control SetSize="288 288">
+        <PanelContainer
+            SetSize="171 288"
+            Margin="54 0 0 0"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Left">
+
+            <PanelContainer
+                SetSize="54 117"
+                Margin="0 21 0 0"
+                HorizontalAlignment="Left">
+                <TextureButton
+                    Name="RightArmButton"
+                    MinSize="54 90"
+                    VerticalAlignment="Top">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightarm.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="36 72"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+                <TextureButton
+                    Name="RightHandButton"
+                    MinSize="54 54"
+                    VerticalAlignment="Bottom">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/righthand.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="36 36"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+            </PanelContainer>
+
+            <PanelContainer
+                SetSize="153 270"
+                Margin="0 192 0 0"
+                VerticalAlignment="Bottom"
+                HorizontalAlignment="Center">
+                <TextureButton
+                    Name="HeadButton"
+                    MinSize="99 81"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/head.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="81 63"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+                <TextureButton
+                    Name="ChestButton"
+                    SetSize="99 108"
+                    Margin="0 63 0 0"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Center">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/torso.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="81 90"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+                <PanelContainer
+                    MinSize="135 126"
+                    VerticalAlignment="Bottom"
+                    HorizontalAlignment="Center">
+                    <TextureButton
+                        Name="GroinButton"
+                        MinSize="99 54"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center">
+                        <TextureRect
+                            TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/groin.png"
+                            Stretch="KeepAspectCentered"
+                            SetSize="81 36"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"/>
+                    </TextureButton>
+                    <PanelContainer
+                        MinSize="72 108"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Right">
+                        <TextureButton
+                            Name="LeftLegButton"
+                            MinSize="54 99"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left">
+                            <TextureRect
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftleg.png"
+                                Stretch="KeepAspectCentered"
+                                SetSize="36 81"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        </TextureButton>
+                        <TextureButton
+                            Name="LeftFootButton"
+                            MinSize="72 36"
+                            VerticalAlignment="Bottom">
+                            <TextureRect
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftfoot.png"
+                                Stretch="KeepAspectCentered"
+                                SetSize="54 27"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        </TextureButton>
+                    </PanelContainer>
+                    <PanelContainer
+                        MinSize="72 108"
+                        VerticalAlignment="Bottom"
+                        HorizontalAlignment="Left">
+                        <TextureButton
+                            Name="RightLegButton"
+                            MinSize="54 99"
+                            VerticalAlignment="Top"
+                            HorizontalAlignment="Right">
+                            <TextureRect
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightleg.png"
+                                Stretch="KeepAspectCentered"
+                                SetSize="36 81"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        </TextureButton>
+                        <TextureButton
+                            Name="RightFootButton"
+                            MinSize="72 36"
+                            VerticalAlignment="Bottom"
+                            HorizontalAlignment="Center">
+                            <TextureRect
+                                TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/rightfoot.png"
+                                Stretch="KeepAspectCentered"
+                                SetSize="54 27"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"/>
+                        </TextureButton>
+                    </PanelContainer>
+                </PanelContainer>
+            </PanelContainer>
+
+            <PanelContainer
+                SetSize="54 117"
+                Margin="0 21 0 0"
+                HorizontalAlignment="Right">
+                <TextureButton
+                    Name="LeftArmButton"
+                    MinSize="54 90"
+                    VerticalAlignment="Top">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/leftarm.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="36 72"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+                <TextureButton
+                    Name="LeftHandButton"
+                    MinSize="54 54"
+                    VerticalAlignment="Bottom">
+                    <TextureRect
+                        TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/lefthand.png"
+                        Stretch="KeepAspectCentered"
+                        SetSize="36 36"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"/>
+                </TextureButton>
+            </PanelContainer>
+        </PanelContainer>
+    </Control>
+</controls:SurgeryDollControl>

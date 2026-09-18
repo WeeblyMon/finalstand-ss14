@@ -22,6 +22,8 @@ public sealed partial class StatusIconOverlay : Overlay
     private readonly StatusIconSystem _statusIcon;
     private readonly ShaderInstance _unshadedShader;
 
+    private const float FsIconLift = 6.5f;
+
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     internal StatusIconOverlay()
@@ -83,8 +85,6 @@ public sealed partial class StatusIconOverlay : Overlay
                 float yOffset;
                 float xOffset;
 
-                // the icons are ordered left to right, top to bottom.
-                // extra icons that don't fit are just cut off.
                 if (proto.LocationPreference == StatusIconLocationPreference.Left ||
                     proto.LocationPreference == StatusIconLocationPreference.None && countL <= countR)
                 {
@@ -95,7 +95,7 @@ public sealed partial class StatusIconOverlay : Overlay
                         accOffsetL += texture.Height;
                         countL++;
                     }
-                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetL - proto.Offset) / EyeManager.PixelsPerMeter;
+                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetL - proto.Offset - FsIconLift) / EyeManager.PixelsPerMeter;
                     xOffset = sprite.Offset.X - bounds.Width / 2f + (float)proto.OffsetHorizontal / EyeManager.PixelsPerMeter;
 
                 }
@@ -108,7 +108,7 @@ public sealed partial class StatusIconOverlay : Overlay
                         accOffsetR += texture.Height;
                         countR++;
                     }
-                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetR - proto.Offset) / EyeManager.PixelsPerMeter;
+                    yOffset = sprite.Offset.Y + bounds.Height / 2f - (float)(accOffsetR - proto.Offset - FsIconLift) / EyeManager.PixelsPerMeter;
                     xOffset = sprite.Offset.X + bounds.Width / 2f - (float)(texture.Width - proto.OffsetHorizontal) / EyeManager.PixelsPerMeter;
 
                 }

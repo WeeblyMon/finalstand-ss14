@@ -12,9 +12,10 @@ public sealed class FSSmartReloadMessage : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
-public sealed class FSEjectMessage : EntityEventArgs
+public sealed class FSLoadMagazineMessage : EntityEventArgs
 {
     public NetEntity Gun { get; init; }
+    public NetEntity Magazine { get; init; }
 }
 
 [Serializable, NetSerializable]
@@ -27,6 +28,8 @@ public sealed class FSQuickGrenadeMessage : EntityEventArgs
 public sealed partial class FSMagReloadDoAfterEvent : SimpleDoAfterEvent
 {
     public bool IsChainReload;
+
+    public NetEntity? Chosen;
 }
 
 [Serializable, NetSerializable]

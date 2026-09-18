@@ -1,0 +1,61 @@
+- type: fsFieldKit
+  id: FSFieldKitCombatStim
+  name: fs-field-kit-combat-stim
+  purpose: fs-field-kit-combat-stim-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 1
+  carried:
+  - FSBiomass
+  reaction: FSCombatStim
+
+- type: fsFieldKit
+  id: FSFieldKitEtchant
+  name: fs-field-kit-etchant
+  purpose: fs-field-kit-etchant-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 2
+  research: true
+  carried:
+  - FSBiomass
+  reaction: FSEtchant
+
+- type: fsFieldKit
+  id: FSFieldKitCoagulantMist
+  name: fs-field-kit-coagulant
+  purpose: fs-field-kit-coagulant-purpose
+  delivery: fs-field-kit-delivery-either
+  priority: 3
+  research: true
+  carried:
+  - FSBiomass
+  reaction: FSCoagulantMist
+
+- type: fsFieldKit
+  id: FSFieldKitSolvent
+  name: fs-field-kit-solvent
+  purpose: fs-field-kit-solvent-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 4
+  carried:
+  - FSBiomass
+  reaction: FSSolvent
+
+- type: fsFieldKit
+  id: FSFieldKitWeakeningAgent
+  name: fs-field-kit-weakening
+  purpose: fs-field-kit-weakening-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 5
+  carried:
+  - FSBiomass
+  reaction: FSWeakeningAgent
+
+- type: fsFieldKit
+  id: FSFieldKitCorrosive
+  name: fs-field-kit-corrosive
+  purpose: fs-field-kit-corrosive-purpose
+  delivery: fs-field-kit-delivery-flask
+  priority: 6
+  carried:
+  - FSBiomass
+  reaction: FSCorrosive

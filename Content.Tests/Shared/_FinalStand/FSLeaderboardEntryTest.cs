@@ -12,9 +12,12 @@ public sealed class FSLeaderboardEntryTest
     {
         var entries = new[]
         {
-            new FSLeaderboardEntry("Charlie", 5, 1, 1200, 10, 3, 1500, 1500),
-            new FSLeaderboardEntry("Alice", 6, 0, 1500, 12, 2, 2200, 2200),
-            new FSLeaderboardEntry("Bob", 6, 0, 1500, 12, 2, 1800, 1800),
+            new FSLeaderboardEntry("Charlie", Kills: 5, Assists: 1, Healing: 0,
+                Xp: 1200, Level: 10, Prestige: 3, Credits: 1500, Score: 1500),
+            new FSLeaderboardEntry("Alice", Kills: 6, Assists: 0, Healing: 400,
+                Xp: 1500, Level: 12, Prestige: 2, Credits: 2200, Score: 2200),
+            new FSLeaderboardEntry("Bob", Kills: 6, Assists: 0, Healing: 0,
+                Xp: 1500, Level: 12, Prestige: 2, Credits: 1800, Score: 1800),
         };
 
         var sorted = FSLeaderboardEntry.Sort(entries).ToArray();

@@ -2,7 +2,9 @@ using System.Numerics;
 using Content.Client.StatusIcon;
 using Content.Client.UserInterface.Systems;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Mind.Components;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -17,9 +19,6 @@ using static Robust.Shared.Maths.Color;
 
 namespace Content.Client.Overlays;
 
-/// <summary>
-/// Overlay that shows a health bar on mobs.
-/// </summary>
 public sealed class EntityHealthBarOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -33,10 +32,34 @@ public sealed class EntityHealthBarOverlay : Overlay
     private readonly ProgressColorSystem _progressColor;
     private readonly DamageableSystem _damageable;
 
-
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
     public HashSet<string> DamageContainers = new();
     public ProtoId<HealthIconPrototype>? StatusIcon;
+
+    public bool ShowDamageTypes;
+
+    public EntityUid? MedigunTarget;
+    public float MedigunSoftCap = 0.7f;
+
+    public readonly HashSet<EntityUid> ChemBuffed = new();
+    public readonly HashSet<EntityUid> ChemUnbuffed = new();
+
+    private static readonly Color[] GroupColors =
+    {
+        Color.FromHex("#C63C3C"),
+        Color.FromHex("#E08A2E"),
+        Color.FromHex("#6FA83C"),
+        Color.FromHex("#5CA0D0"),
+        Color.FromHex("#B060C0"),
+    };
+
+    private static readonly string[] GroupOrder = { "Brute", "Burn", "Toxin", "Airloss", "Genetic" };
+
+    private static readonly Color BuffOutline = Color.FromHex("#4FBF7A");
+    private static readonly Color BuffGlow = Color.FromHex("#4FBF7A").WithAlpha(0.35f);
+    private static readonly Color UnbuffedMark = Color.FromHex("#C9A227");
+
+    private readonly float[] _groupScratch = new float[GroupOrder.Length];
 
     public EntityHealthBarOverlay(IEntityManager entManager, IPrototypeManager prototype)
     {
@@ -73,7 +96,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (statusIcon != null && !_statusIconSystem.IsVisible((uid, _entManager.GetComponent<MetaDataComponent>(uid)), statusIcon))
                 continue;
 
-            // We want the stealth user to still be able to see his health bar himself
             if (!xformQuery.TryGetComponent(uid, out var xform) ||
                 xform.MapID != args.MapId)
                 continue;
@@ -84,7 +106,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (!spriteQuery.TryGetComponent(uid, out var sprite))
                 continue;
 
-            // we use the status icon component bounds if specified otherwise use sprite
             var bounds = _entManager.GetComponentOrNull<StatusIconComponent>(uid)?.Bounds ?? _spriteSystem.GetLocalBounds(
                 (uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
@@ -92,7 +113,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
                 continue;
 
-            // we are all progressing towards death every day
             if (CalcProgress(uid, mobStateComponent, damageableComponent, mobThresholdsComponent) is not { } deathProgress)
                 continue;
 
@@ -104,13 +124,19 @@ public sealed class EntityHealthBarOverlay : Overlay
 
             handle.SetTransform(matty);
 
-            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 - 3f;
+            var yOffset = bounds.Height * EyeManager.PixelsPerMeter / 2 + 1f;
             var widthOfMob = bounds.Width * EyeManager.PixelsPerMeter;
 
             var position = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2, yOffset / EyeManager.PixelsPerMeter);
-            var color = GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
 
-            // Hardcoded width of the progress bar because it doesn't match the texture.
+            var breakdown = ShowDamageTypes
+                            && _entManager.TryGetComponent(uid, out MindContainerComponent? mindContainer)
+                            && mindContainer.HasMind;
+
+            var color = breakdown
+                ? _progressColor.GetProgressColor(1f)
+                : GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
+
             const float startX = 8f;
             var endX = widthOfMob - 8f;
 
@@ -127,14 +153,104 @@ public sealed class EntityHealthBarOverlay : Overlay
             var pixelDarken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter, new Vector2(xProgress, 3f) / EyeManager.PixelsPerMeter);
             pixelDarken = pixelDarken.Translated(position);
             handle.DrawRect(pixelDarken, Black.WithAlpha(128));
+
+            if (breakdown)
+                DrawDamageBreakdown(handle, damageableComponent, position, xProgress, endX);
+
+            if (ChemBuffed.Contains(uid))
+                DrawBuffOutline(handle, position, startX, endX);
+            else if (ChemUnbuffed.Contains(uid))
+                DrawUnbuffedMark(handle, position, startX);
+
+            if (MedigunTarget == uid)
+            {
+                var markX = startX + (endX - startX) * MedigunSoftCap;
+                var mark = new Box2(
+                    new Vector2(markX, -1f) / EyeManager.PixelsPerMeter,
+                    new Vector2(markX + 1f, 4f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(mark, Color.FromHex("#FF3B3B"));
+            }
         }
 
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    /// <summary>
-    /// Returns a ratio between 0 and 1, and whether the entity is in crit.
-    /// </summary>
+    private static void DrawBuffOutline(DrawingHandleWorld handle, Vector2 position, float startX, float endX)
+    {
+        const float ppm = EyeManager.PixelsPerMeter;
+
+        var glow = new Box2(
+            new Vector2(startX - 2f, -2f) / ppm,
+            new Vector2(endX + 2f, 5f) / ppm).Translated(position);
+        handle.DrawRect(glow, BuffGlow, false);
+
+        var outline = new Box2(
+            new Vector2(startX - 1f, -1f) / ppm,
+            new Vector2(endX + 1f, 4f) / ppm).Translated(position);
+        handle.DrawRect(outline, BuffOutline, false);
+    }
+
+    private static void DrawUnbuffedMark(DrawingHandleWorld handle, Vector2 position, float startX)
+    {
+        const float ppm = EyeManager.PixelsPerMeter;
+
+        var tick = new Box2(
+            new Vector2(startX - 4f, 0f) / ppm,
+            new Vector2(startX - 1f, 3f) / ppm).Translated(position);
+        handle.DrawRect(tick, UnbuffedMark);
+    }
+
+    private void DrawDamageBreakdown(DrawingHandleWorld handle, DamageableComponent damageable,
+        Vector2 position, float startX, float endX)
+    {
+        var width = endX - startX;
+        if (width <= 0f)
+            return;
+
+        var perGroup = _groupScratch;
+        Array.Clear(perGroup);
+        var total = 0f;
+
+        for (var i = 0; i < GroupOrder.Length; i++)
+        {
+            if (!_prototype.TryIndex<DamageGroupPrototype>(GroupOrder[i], out var group))
+                continue;
+
+            var sum = 0f;
+            foreach (var type in group.DamageTypes)
+            {
+                if (damageable.Damage.DamageDict.TryGetValue(type, out var amount))
+                    sum += amount.Float();
+            }
+
+            perGroup[i] = sum;
+            total += sum;
+        }
+
+        if (total <= 0f)
+            return;
+
+        var x = startX;
+        for (var i = 0; i < GroupOrder.Length; i++)
+        {
+            if (perGroup[i] <= 0f)
+                continue;
+
+            var sliceEnd = Math.Min(x + width * (perGroup[i] / total), endX);
+            var box = new Box2(
+                new Vector2(x, 0f) / EyeManager.PixelsPerMeter,
+                new Vector2(sliceEnd, 3f) / EyeManager.PixelsPerMeter).Translated(position);
+            handle.DrawRect(box, GroupColors[i]);
+
+            var darken = new Box2(
+                new Vector2(x, 2f) / EyeManager.PixelsPerMeter,
+                new Vector2(sliceEnd, 3f) / EyeManager.PixelsPerMeter).Translated(position);
+            handle.DrawRect(darken, Black.WithAlpha(128));
+
+            x = sliceEnd;
+        }
+    }
+
     private (float ratio, bool inCrit)? CalcProgress(EntityUid uid, MobStateComponent component, DamageableComponent dmg, MobThresholdsComponent thresholds)
     {
         var totalDamage = _damageable.GetTotalDamage((uid, dmg));
@@ -161,7 +277,7 @@ public sealed class EntityHealthBarOverlay : Overlay
             return (ratio, true);
         }
 
-        return (0, true);
+        return null;
     }
 
     public Color GetProgressColor(float progress, bool crit)

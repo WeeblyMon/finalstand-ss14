@@ -24,6 +24,12 @@ public sealed class ActionButton : Control, IEntityControl
 {
     public const string StyleClassActionHighlightRect = "ActionHighlightRect";
 
+    // FINALSTAND: 2x SlotControl.DefaultButtonSize. Art is authored at 32 and the engine has no
+    // mipmaps, so only integer multiples stay sharp - 64 is the next size up from the HUD grid.
+    public const int SlotSize = 64;
+    private const int SourceArtSize = 32;
+    private const float ArtScale = SlotSize / (float) SourceArtSize;
+
     private IEntityManager _entities;
     private SharedAppearanceSystem _appearance;
     private IPlayerManager _player;
@@ -67,7 +73,7 @@ public sealed class ActionButton : Control, IEntityControl
 
     public ActionButton(IEntityManager entities, ActionUIController? controller = null)
     {
-        // TODO why is this constructor so slooooow. The rest of the code is fine
+        // TODO why is this constructor so slooooow.
 
         _entities = entities;
         _appearance = entities.System<SharedAppearanceSystem>();
@@ -75,15 +81,21 @@ public sealed class ActionButton : Control, IEntityControl
         _controller = controller;
 
         MouseFilter = MouseFilterMode.Pass;
+
+        MinSize = new Vector2(SlotSize, SlotSize);
+        SetSize = new Vector2(SlotSize, SlotSize);
+        MaxSize = new Vector2(SlotSize, SlotSize);
+        RectClipContent = true;
+
         Button = new TextureRect
         {
             Name = "Button",
-            TextureScale = new Vector2(2, 2)
+            TextureScale = new Vector2(ArtScale, ArtScale)
         };
         HighlightRect = new PanelContainer
         {
             StyleClasses = { StyleClassActionHighlightRect },
-            MinSize = new Vector2(32, 32),
+            MinSize = new Vector2(SlotSize, SlotSize),
             Visible = false
         };
         _bigActionIcon = new SpriteView
@@ -91,8 +103,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Action Icon",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(2, 2),
-            SetSize = new Vector2(64, 64),
+            Scale = new Vector2(ArtScale, ArtScale),
+            SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -104,12 +116,17 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
+        // FINALSTAND: bottom-left, with a hard black shadow.
         Label = new Label
         {
             Name = "Label",
             HorizontalAlignment = HAlignment.Left,
-            VerticalAlignment = VAlignment.Top,
-            Margin = new Thickness(5, 0, 0, 0)
+            VerticalAlignment = VAlignment.Bottom,
+            Margin = new Thickness(2, 0, 0, 0),
+            FontColorOverride = Color.White,
+            FontColorShadowOverride = Color.Black,
+            ShadowOffsetXOverride = 1,
+            ShadowOffsetYOverride = 1,
         };
         _chargesLabel = new Label
         {
@@ -124,8 +141,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Sprite",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(2, 2),
-            SetSize = new Vector2(64, 64),
+            Scale = new Vector2(ArtScale, ArtScale),
+            SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -137,17 +154,16 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
-        // padding to the left of the small icon
         var paddingBoxItemIcon = new BoxContainer
         {
             Orientation = LayoutOrientation.Horizontal,
             HorizontalExpand = true,
             VerticalExpand = true,
-            MinSize = new Vector2(64, 64)
+            MinSize = new Vector2(SlotSize, SlotSize)
         };
         paddingBoxItemIcon.AddChild(new Control()
         {
-            MinSize = new Vector2(32, 32),
+            MinSize = new Vector2(SlotSize / 2, SlotSize / 2),
         });
         paddingBoxItemIcon.AddChild(new Control
         {
@@ -361,7 +377,6 @@ public sealed class ActionButton : Control, IEntityControl
             ? tint
             : Color.White;
 
-        // Stock counter badge for grenade packs
         if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
         {
             _chargesLabel.Text = counter.Current.ToString();
@@ -377,8 +392,6 @@ public sealed class ActionButton : Control, IEntityControl
             _bigActionIcon.Modulate = iconColor;
         }
 
-        // Refresh highlight every frame for grenade selector buttons so switching
-        // active type is reflected immediately without needing a hover event.
         if (_entities.HasComponent<FSGrenadeSelectActionComponent>(Action!.Value.Owner))
             DrawModeChanged();
     }
@@ -400,13 +413,8 @@ public sealed class ActionButton : Control, IEntityControl
         DrawModeChanged();
     }
 
-    /// <summary>
-    /// Press this button down. If it was depressed and now set to not depressed, will
-    /// trigger the action.
-    /// </summary>
     public void Depress(GUIBoundKeyEventArgs args, bool depress)
     {
-        // action can still be toggled if it's allowed to stay selected
         if (Action?.Comp is not {Enabled: true})
             return;
 
@@ -419,7 +427,6 @@ public sealed class ActionButton : Control, IEntityControl
         _controller ??= UserInterfaceManager.GetUIController<ActionUIController>();
         HighlightRect.Visible = _beingHovered && (Action != null || _controller.IsDragging);
 
-        // Green border for the currently active grenade type (client-side, no toggle race condition)
         if (Action is { } grenadeAction
             && _entities.TryGetComponent(grenadeAction.Owner, out FSGrenadeSelectActionComponent? selectComp)
             && _player.LocalEntity is { } localPlayer
@@ -434,21 +441,17 @@ public sealed class ActionButton : Control, IEntityControl
             HighlightRect.Modulate = Color.White;
         }
 
-        // always show the normal empty button style if no action in this slot
         if (Action?.Comp is not {} action)
         {
             SetOnlyStylePseudoClass(ContainerButton.StylePseudoClassNormal);
             return;
         }
 
-        // show a hover only if the action is usable or another action is being dragged on top of this
         if (_beingHovered && (_controller.IsDragging || action.Enabled))
         {
             SetOnlyStylePseudoClass(ContainerButton.StylePseudoClassHover);
         }
 
-        // it's only depress-able if it's usable, so if we're depressed
-        // show the depressed style
         if (_depressed && !_beingHovered)
         {
             HighlightRect.Visible = false;
@@ -456,10 +459,8 @@ public sealed class ActionButton : Control, IEntityControl
             return;
         }
 
-        // if it's toggled on, always show the toggled on style (currently same as depressed style)
         if (action.Toggled || _controller.SelectingTargetFor == Action?.Owner)
         {
-            // when there's a toggle sprite, we're showing that sprite instead of highlighting this slot
             _actionsSys ??= _entities.System<ActionsSystem>();
             SetOnlyStylePseudoClass(_actionsSys.HasToggleIcon(Action?.Owner)
                 ? ContainerButton.StylePseudoClassNormal

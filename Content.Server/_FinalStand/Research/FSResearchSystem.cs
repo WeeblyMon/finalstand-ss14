@@ -21,7 +21,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
-// Owns the server-wide research singleton: node selection, RP accumulation, and completion.
 public sealed partial class FSResearchSystem : SharedFSResearchSystem
 {
     [Dependency] private PopupSystem _popup = default!;
@@ -30,6 +29,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private AccessReaderSystem _accessReader = default!;
     [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
@@ -75,7 +75,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             SendPersonalResearchState(mindId);
     }
 
-    // PlayerAttachedEvent fires before MindAddJobRole runs, so IsRdOrCaptain sees no job yet there - re-check once the job is actually assigned.
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent args)
     {
         RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Mob)), Filter.SinglePlayer(args.Player));
@@ -89,7 +88,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent args)
     {
-        // Reset in place - the entity may be the real, persistent physical R&D server, not a logical-only spawn.
         _station = null;
         var query = EntityQueryEnumerator<FSStationResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -118,7 +116,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         _station = null;
     }
 
-    // Vanilla stores an empty list when nothing answers, and empty rejects every material.
     private void OnGetMaterialWhitelist(EntityUid uid, FSTechDatabaseComponent comp, ref GetMaterialWhitelistEvent args)
     {
         if (args.Storage != uid)
@@ -234,6 +231,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
+            if (console.Track != FSResearchTrack.Science)
+                continue;
+
             console.UnlockedNodes.Clear();
             console.UnlockedNodes.AddRange(station.Comp.UnlockedNodes);
             console.ActiveResearch = station.Comp.ActiveResearch;
@@ -267,16 +267,26 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return slot;
     }
 
-    // RD and Captain set the shared pick; checked off the held ID/PDA, not spawn job, so promotion mid-round works.
     private bool IsRdOrCaptain(EntityUid player)
     {
         var tags = _accessReader.FindAccessTags(player);
         return tags.Contains(ResearchDirectorAccess) || tags.Contains(CaptainAccess);
     }
 
+    private static bool IsOtherTrack(FSTechDatabaseComponent comp)
+        => comp.Track != FSResearchTrack.Science;
 
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
+        if (comp.Track == FSResearchTrack.Medical)
+        {
+            _medicalResearch.OnBuyNode(uid, comp, args);
+            return;
+        }
+
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -289,7 +299,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var isRdOrCaptain = IsRdOrCaptain(player);
         if (!isRdOrCaptain && !_scienceOnly.IsScience(player))
         {
-            // Two locale keys joined with a real newline - Fluent multiline placeables don't parse here.
             var reason = Loc.GetString("fs-research-no-authority") + "\n" + Loc.GetString("fs-research-no-authority-detail");
             RaiseNetworkEvent(new FSResearchAuthorityDeniedEvent(reason), Filter.Entities(player));
             return;
@@ -316,7 +325,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        // TryChangeMaterialAmount pre-checks every entry before applying any, so a shortfall never partially spends.
         var alreadyStarted = station.Comp.NodeProgress.ContainsKey(node.ID);
         if (node.MaterialCost.Count > 0 && !alreadyStarted)
         {
@@ -337,7 +345,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             if (_mind.TryGetMind(player, out var setterMindId, out _))
                 station.Comp.ActiveResearchSetBy = setterMindId;
 
-            // Banked RP (accrued with nothing selected) immediately reinvests into the newly-selected shared pick.
             var banked = station.Comp.Points;
             station.Comp.Points = 0;
             Dirty(station);
@@ -362,6 +369,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnEnqueueResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSEnqueueResearchNodeMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -444,6 +454,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnDequeueResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSDequeueResearchNodeMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid())
             return;
@@ -480,6 +493,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnClearPersonalResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearPersonalResearchMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid() || !_mind.TryGetMind(player, out var mindId, out _))
             return;
@@ -495,6 +511,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnClearSharedResearch(EntityUid uid, FSTechDatabaseComponent comp, FSClearSharedResearchMessage args)
     {
+        if (IsOtherTrack(comp))
+            return;
+
         var player = args.Actor;
         if (!player.IsValid() || !IsRdOrCaptain(player))
             return;
@@ -540,8 +559,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
         var toConsume = node.MaterialCost.ToDictionary(kv => kv.Key, kv => -kv.Value);
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
-        while (query.MoveNext(out var consoleUid, out _))
+        while (query.MoveNext(out var consoleUid, out var console))
         {
+            if (console.Track != FSResearchTrack.Science)
+                continue;
+
             if (_materials.TryChangeMaterialAmount(consoleUid, toConsume))
                 return true;
         }
@@ -632,13 +654,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             return;
         }
 
-        // Forward-only: node.Cost never changes, past progress keeps its original value (no retroactive sniping).
         var discounted = id.Id == station.Comp.ActiveResearch?.Id;
         var multiplier = discounted ? 2 : 1;
 
         var current = station.Comp.NodeProgress.GetValueOrDefault(id.Id);
         var room = Math.Max(0, node.Cost - current);
-        var maxUsableRp = (room + multiplier - 1) / multiplier; // ceiling division - floor can strand the last point of room unreachable
+        var maxUsableRp = (room + multiplier - 1) / multiplier;
         var applied = Math.Min(amount, maxUsableRp);
         var progressGain = applied * multiplier;
         var overflow = amount - applied;
@@ -668,7 +689,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             station.Comp.ActiveResearchSetBy = null;
         }
 
-        // The node is finished, so every pick aimed at it clears, not just the last contributor's.
         var stale = station.Comp.PersonalPicks
             .Where(kv => kv.Value.Id == node.ID)
             .Select(kv => kv.Key)

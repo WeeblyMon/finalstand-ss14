@@ -1,0 +1,66 @@
+- type: entity
+  id: FSSyringeFiller
+  name: Syringe Filler
+  description: Decants a beaker, bottle or jug into a syringe magazine. Insert both; it runs on its own.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  # Placeholder art, same as the armor and perk vendors. The bobbing sign is what identifies it.
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Machines/VendingMachines/vendomat.rsi
+    state: off
+  - type: FSSyringeFiller
+  - type: FSMedicalOnly
+  - type: ApcPowerReceiver
+    powerLoad: 250
+  - type: AmbientSound
+    enabled: false
+    range: 4
+    volume: -9
+    sound:
+      path: /Audio/Ambience/Objects/vending_machine_hum.ogg
+  - type: ExtensionCableReceiver
+  - type: ItemSlots
+    slots:
+      source:
+        name: fs-syringe-filler-slot-source
+        whitelist:
+          tags:
+          - GlassBeaker
+          - ChemDispensable
+          - Bottle
+        ejectOnBreak: true
+      magazine:
+        name: fs-syringe-filler-slot-magazine
+        whitelist:
+          tags:
+          - FSSyringeMagazine
+        ejectOnBreak: true
+  - type: UserInterface
+    interfaces:
+      enum.FSSyringeFillerUiKey.Key:
+        type: FSSyringeFillerBoundUserInterface
+  - type: ActivatableUI
+    key: enum.FSSyringeFillerUiKey.Key
+  - type: ContainerContainer
+    containers:
+      source: !type:ContainerSlot
+      magazine: !type:ContainerSlot

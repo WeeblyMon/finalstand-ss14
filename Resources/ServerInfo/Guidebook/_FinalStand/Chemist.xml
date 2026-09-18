@@ -1,0 +1,65 @@
+<Document>
+# Chemist
+
+You are the department's supply line. Nobody else can make what you make, and the line cannot hold without it.
+
+Your loop is three steps: [bold]harvest[/bold], [bold]brew[/bold], [bold]deliver[/bold]. All three happen during the wave, not between them.
+
+## 1. Harvest
+
+<Box>
+<GuideEntityEmbed Entity="FSHarvestSatchel"/>
+</Box>
+
+Your satchel renders tissue from wave enemies that die near you. You do not click anything - stand where the fighting is and it fills on its own.
+
+There is a ceiling per wave. The gauge on the left of your HUD shows how close you are; when it turns amber you have taken everything this wave will give you, and your time is better spent delivering than standing in the line.
+
+Tissue is the base ingredient for every field potion. No tissue, no potions - which is why the loop starts at the front and not at the bench.
+
+## 2. Brew
+
+Every field potion is [bold]2 tissue + one reagent straight from the dispenser[/bold]. No sub-recipes, no heating step.
+
+- [bold]Combat Stim[/bold] - tissue + sugar. Hits harder, swings and shoots faster, moves quicker.
+- [bold]Corrosive[/bold] - tissue + sulfur. Leaves caustic damage on the ground.
+- [bold]Solvent[/bold] - tissue + fluorine. Stops armoured and giant zombies regrowing their plating.
+- [bold]Weakening Agent[/bold] - tissue + mercury. Everything in the cloud takes 25% more damage from every source.
+
+Two more, [bold]Etchant[/bold] and [bold]Coagulant Mist[/bold], need precursors the CMO unlocks on the medical research console.
+
+The dispenser's Field Kit tab lists all of them with what you are still missing. Its Basics tab has the standard medical chems if a doctor asks for those instead.
+
+## 3. Deliver
+
+<Box>
+<GuideEntityEmbed Entity="LauncherSyringe"/>
+<GuideEntityEmbed Entity="FSSplashFlask"/>
+</Box>
+
+[bold]The syringe gun[/bold] shoots teammates, not zombies. It cannot hurt crew. Magazines hold 200 darts at 1u each, so a single magazine covers most of a wave - fill one at the syringe filler and carry spares.
+
+Darts cannot overdose anyone. The gun trims each dose to whatever the target can still safely take, so you can hold fire on a wounded ally without poisoning them.
+
+[bold]Splash flasks[/bold] are thrown and burst into a cloud. Buff clouds land on everyone inside, so throwing one into a group is worth far more than four separate darts. Anti-zombie clouds never harm crew or player structures.
+
+## Getting paid
+
+You earn when your work produces a result, not when you make something:
+
+- A teammate you buffed getting a kill pays you a cut.
+- A doctor healing someone with a chem you produced pays you a cut.
+
+Buffing yourself in a corner earns nothing. Being where the squad is earns everything.
+
+## The two machines
+
+<Box>
+<GuideEntityEmbed Entity="FSMedicalDispenser"/>
+<GuideEntityEmbed Entity="FSSyringeFiller"/>
+</Box>
+
+[bold]ChemDrobe[/bold] - empty flasks, magazines and syringes. Vessels are free; contents are your job.
+
+[bold]Syringe filler[/bold] - insert a container and a magazine and it decants one into the other on its own. A jug fills a magazine in one go; beakers and bottles take several passes.
+</Document>

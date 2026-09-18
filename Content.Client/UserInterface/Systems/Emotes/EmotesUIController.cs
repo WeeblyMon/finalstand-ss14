@@ -33,6 +33,8 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
                 new SpriteSpecifier.Rsi(new ResPath("/Textures/Clothing/Hands/Gloves/latex.rsi"), "icon")),
             [EmoteCategory.Vocal] = ("emote-menu-category-vocal",
                 new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/Emotes/vocal.png"))),
+            [EmoteCategory.Farts] = ("emote-menu-category-farts", // Goobstation - Fart Emotes
+                new SpriteSpecifier.Texture(new ResPath("/Textures/_Goobstation/Interface/Emotes/fart.png"))),
         };
 
     public void OnStateEntered(GameplayState state)
@@ -52,7 +54,6 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
     {
         if (_menu == null)
         {
-            // setup window
             var prototypes = _prototypeManager.EnumeratePrototypes<EmotePrototype>();
             var models = ConvertToButtons(prototypes);
 
@@ -143,7 +144,6 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
             if(emote.Category == EmoteCategory.Invalid)
                 continue;
 
-            // only valid emotes that have ways to be triggered by chat and player have access / no restriction on
             if (emote.Category == EmoteCategory.Invalid
                 || emote.ChatTriggers.Count == 0
                 || !(player.HasValue && whitelistSystem.IsWhitelistPassOrNull(emote.Whitelist, player.Value))
@@ -169,21 +169,23 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
             list.Add(actionOption);
         }
 
-        var models = new RadialMenuOptionBase[emotesByCategory.Count];
-        var i = 0;
+        var models = new List<RadialMenuOptionBase>(emotesByCategory.Count);
         foreach (var (key, list) in emotesByCategory)
         {
-            var tuple = EmoteGroupingInfo[key];
+            if (!EmoteGroupingInfo.TryGetValue(key, out var tuple))
+            {
+                Log.Warning($"No emote grouping info for category '{key}'; its emotes are hidden from the menu.");
+                continue;
+            }
 
-            models[i] = new RadialMenuNestedLayerOption(list)
+            models.Add(new RadialMenuNestedLayerOption(list)
             {
                 IconSpecifier = RadialMenuIconSpecifier.With(tuple.Sprite),
                 ToolTip = Loc.GetString(tuple.Tooltip)
-            };
-            i++;
+            });
         }
 
-        return models;
+        return models.ToArray();
     }
 
     private void HandleRadialButtonClick(EmotePrototype prototype)

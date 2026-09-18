@@ -52,6 +52,9 @@
           !type:PhysShapeAabb
           bounds: "-0.3,-0.3,0.3,0.3"
         density: 100
+        # Not hard: it is a radius emitter, not a barricade. A solid body let players wall off
+        # corridors with a stack of them, and zombies would just pile up against it.
+        hard: false
         mask:
         - ItemMask
         layer:

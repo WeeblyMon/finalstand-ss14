@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
@@ -33,16 +34,23 @@ public sealed partial class WaveHudOverlay : Overlay
     private FontResource? _notoRes;
     private Font? _labelFont;
     private Font? _valueFont;
+    private Font? _midFont;
     private Font? _tooltipNameFont;
     private Font? _tooltipBodyFont;
+    private Font? _promptFont;
+    private Font? _promptSubFont;
     private int _cachedLabelPt = -1;
     private int _cachedValuePt = -1;
+    private int _cachedPromptPt = -1;
     private float _cachedLabelH;
     private float _cachedValueH;
 
-    // The hotbar does not move, so the control tree is walked once per screen instead of per frame.
     private Control? _hotbarControl;
     private Control? _hotbarScreen;
+    private Control? _alertsControl;
+    private Control? _alertsScreen;
+
+    private float panelW0 = 150f;
 
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
@@ -53,7 +61,6 @@ public sealed partial class WaveHudOverlay : Overlay
     private Texture? _iconWave;
     private bool _hudIconsLoaded;
 
-    // Text is rebuilt on assignment, not per frame - these change a few times a wave at most.
     private int _currentWave = 1;
     private int _currentCredits;
     private int _enemiesAlive;
@@ -96,7 +103,6 @@ public sealed partial class WaveHudOverlay : Overlay
     public FSBonusCategory ReloadSpeed;
     public FSBonusCategory MagazineSize;
 
-    // Bumped when a summary lands; the row list rebuilds on that or on a change of held item.
     private int _bonusVersion;
 
     public void SetBonusSummary(FSPlayerBonusSummaryEvent ev)
@@ -119,9 +125,37 @@ public sealed partial class WaveHudOverlay : Overlay
     public int  ReadyUpTotal = 0;
     public bool ReadyUpPlayerIsReady = false;
 
-    // Screen-pixel bounds of the YES and NO buttons; valid only when IsReadyUpVisible.
     public UIBox2 ReadyUpYesBounds = new(-100, -100, -99, -99);
     public UIBox2 ReadyUpNoBounds  = new(-100, -100, -99, -99);
+
+    public bool IsRespawnOfferVisible = false;
+    public int  RespawnCost = 0;
+
+    public string? CasualtyStatus;
+    public bool CasualtyResponded;
+
+    public readonly record struct MedicalBuffRow(string Name, string IconKey, int SecondsRemaining, string Source);
+
+    public readonly List<MedicalBuffRow> MedicalBuffs = new();
+
+    public int MedicalFund;
+
+    public float DirectiveFlash;
+    public Color DirectiveFlashColour = FSPalette.Ok;
+
+    public int MedicalFundUnused;
+    public bool ShowMedicalFund;
+
+    public string? HarvestStatus;
+    public bool HarvestCapped;
+    public float HarvestStock;
+    public float HarvestAccrued;
+    public float HarvestCap;
+
+    public UIBox2 RespawnButtonBounds = new(-100, -100, -99, -99);
+
+    public event Action? OnRespawnClicked;
+    private float _respawnClickCooldown;
 
     public event Action<bool>? OnReadyUpClicked;
     private bool _prevClickDown;
@@ -132,10 +166,8 @@ public sealed partial class WaveHudOverlay : Overlay
     };
 
     private readonly Dictionary<string, Texture?> _augIconCache = new();
-    // rebuilt each frame: perk cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
-    // rebuilt each frame: current-bonuses row bounds + label/source tooltip lines for hover detection
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
     private readonly record struct InterestPopup(string PerkId, int Amount, float Life, float TotalLife);
@@ -147,6 +179,15 @@ public sealed partial class WaveHudOverlay : Overlay
         const float life = 2.5f;
         _interestPopups.Add(new InterestPopup(PerkId, amount, life, life));
     }
+
+    public void AddHealPayout(int amount, bool diminished)
+    {
+        const float life = 1.6f;
+        _healPayouts.Add(new HealPayout(amount, diminished, life, life));
+    }
+
+    private readonly record struct HealPayout(int Amount, bool Diminished, float Life, float TotalLife);
+    private readonly List<HealPayout> _healPayouts = new();
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -187,16 +228,18 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var s = Math.Clamp(screenSize.X / refWidth, 0.45f, 1.0f);
 
-        var iconSz = MathF.Round(32f * s);
+        const float iconSz = 32f;
+        const float rowIconSz = 20f;
+        const float augIconSz = 32f;
+
         var iconGap = MathF.Round(9f * s);
         var rowPad = MathF.Round(6f * s);
         const float sepH = 1f;
-        var augIconSz = MathF.Round(32f * s);
         var augGap = MathF.Round(3f * s);
-        var panelW = MathF.Round(205f * s);
+        var panelW = MathF.Round(RightColumnWidth * s);
 
-        var labelPt = Math.Max(6, (int)MathF.Round(8f * s));
-        var valuePt = Math.Max(10, (int)MathF.Round(20f * s));
+        const int labelPt = 11;
+        var valuePt = Math.Max(14, (int)MathF.Round(20f * s));
 
         EnsureHudIcons();
 
@@ -210,29 +253,38 @@ public sealed partial class WaveHudOverlay : Overlay
         if (_cachedValuePt != valuePt)
         {
             _valueFont = new VectorFont(notoRes, valuePt);
+            _midFont = new VectorFont(notoRes, Math.Max(12, (int) MathF.Round(15f * s)));
             _cachedValuePt = valuePt;
             _cachedValueH = screen.GetDimensions(_valueFont, "$888,888", 1f).Y;
         }
         _tooltipNameFont ??= new VectorFont(notoRes, 13);
         _tooltipBodyFont ??= new VectorFont(notoRes, 11);
 
+        var promptPt = Math.Max(14, (int)MathF.Round(28f * s));
+        if (_cachedPromptPt != promptPt)
+        {
+            _promptFont = new VectorFont(notoRes, promptPt);
+            _promptSubFont = new VectorFont(notoRes, Math.Max(9, (int)MathF.Round(14f * s)));
+            _cachedPromptPt = promptPt;
+        }
+
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
-        var rowContentH = Math.Max(iconSz, labelH + 4f + valueH);
+        var rowContentH = Math.Max(rowIconSz, labelH + 4f + valueH);
         var rowH = rowContentH + rowPad * 2f;
 
-        var sepColor = new Color(0.23f, 0.26f, 0.32f, 0.8f);
-        var muted = Color.FromHex("#8FA1B3");
+        var sepColor = FSPalette.PanelEdge;
+        var muted = FSPalette.TextMuted;
 
         const float btnPad = 3f;
         var btnH = labelH + btnPad * 2f;
 
         var totalH = sepH;
+        if (IsRespawnOfferVisible)
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsReadyUpVisible)
-            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH;
-        totalH += sepH + rowH;
+            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
-        totalH += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
         if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
@@ -245,111 +297,190 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var rightEdge = _isSeparatedLayout ? GetViewportPixelWidth() : screenSize.X;
         var panelX = rightEdge - margin - panelW;
-        float y = screenSize.Y - margin - totalH;
+        var panelInset = 8f;
+
+        float y = margin;
 
         PanelLeft = panelX;
         PanelTop = y;
         PanelWidth = panelW;
 
-        DrawBonusIndicator(screen, margin);
+        panelW0 = panelW;
 
-        if (IsReadyUpVisible)
+        var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
+        DrawPanel(screen, waveBox, VitalsBack, VitalsEdge, FSPalette.Danger);
+
+        DrawBonusIndicator(screen, margin);
+        DrawVitals(screen, margin, BottomBandLift);
+
+        var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, BottomBandLift);
+        var throwH = DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
+        RightStackHeight = screenSize.Y - BottomBandLift - (weaponTop - 6f - throwH);
+
+        if (IsRespawnOfferVisible)
         {
-            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            const string headline = "YOU ARE DOWN";
+            var subline = $"Wait for a medic, or revive for ${RespawnCost:N0}";
+
+            var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
+            var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
+
+            var promptY = screenSize.Y * 0.30f;
+            var gap = MathF.Round(6f * s);
+
+            DrawVignette(screen, screenSize);
+
+            DrawShadowed(screen, _promptFont!,
+                new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
+                headline, FSPalette.DangerSoft);
+
+            DrawShadowed(screen, _promptSubFont!,
+                new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
+                subline, FSPalette.TextBright);
+
+            if (CasualtyStatus is { } casualty)
+            {
+                var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
+                var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
+
+                DrawShadowed(screen, _promptSubFont!,
+                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f,
+                        promptY + headDims.Y + gap + subDims.Y + gap * 0.5f),
+                    casualty, casualtyColor);
+            }
+
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             y += sepH + rowPad;
 
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), "READY UP", muted);
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), "RESPAWN", muted);
+            y += labelH + 2f;
+
+            screen.DrawString(_labelFont!, new Vector2(panelX, y), $"-${RespawnCost:N0}", FSPalette.Money);
+            y += labelH + 3f;
+
+            RespawnButtonBounds = new UIBox2(panelX, y, panelX + panelW, y + btnH);
+            screen.DrawRect(RespawnButtonBounds, FSPalette.CellBack);
+
+            var respawnDim = screen.GetDimensions(_labelFont!, "RESPAWN", 1f);
+            screen.DrawString(_labelFont!,
+                new Vector2(panelX + (panelW - respawnDim.X) * 0.5f, y + (btnH - respawnDim.Y) * 0.5f),
+                "RESPAWN", FSPalette.Danger);
+
+            y += btnH + rowPad;
+        }
+        else
+        {
+            RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
+        }
+
+        void DrawReadyUpBlock()
+        {
+            if (!IsReadyUpVisible)
+                return;
+
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
+            y += sepH + rowPad;
+
+            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), "READY UP", muted);
             y += labelH + 2f;
 
             var countText  = ReadyUpTotal > 0 ? $"{ReadyUpCount} / {ReadyUpTotal} ready" : "—";
-            var countColor = ReadyUpCount > 0 ? Color.FromHex("#44FF44") : Color.White;
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), countText, countColor);
+            var countColor = ReadyUpCount > 0 ? FSPalette.Ok : Color.White;
+            screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), countText, countColor);
             y += labelH + 3f;
 
-            var halfW = (panelW - 3f) / 2f;
-            var yesBg = ReadyUpPlayerIsReady ? Color.FromHex("#2a6b2a") : Color.FromHex("#1a3d1a");
-            var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? Color.FromHex("#6b2a2a") : Color.FromHex("#3d1a1a");
+            var btnRowW = panelW - panelInset * 2f;
+            var halfW = (btnRowW - 3f) / 2f;
+            var yesBg = ReadyUpPlayerIsReady ? FSPalette.Ok.WithAlpha(0.35f) : FSPalette.CellBack;
+            var noBg  = !ReadyUpPlayerIsReady && ReadyUpTotal > 0 ? FSPalette.Danger.WithAlpha(0.35f) : FSPalette.CellBack;
 
-            ReadyUpYesBounds = new UIBox2(panelX,             y, panelX + halfW,      y + btnH);
-            ReadyUpNoBounds  = new UIBox2(panelX + halfW + 3f, y, panelX + panelW,    y + btnH);
+            var btnX = panelX + panelInset;
+            ReadyUpYesBounds = new UIBox2(btnX,             y, btnX + halfW,   y + btnH);
+            ReadyUpNoBounds  = new UIBox2(btnX + halfW + 3f, y, btnX + btnRowW, y + btnH);
 
-            screen.DrawRect(ReadyUpYesBounds, yesBg);
-            screen.DrawRect(ReadyUpNoBounds,  noBg);
+            DrawRounded(screen, ReadyUpYesBounds, yesBg, 2f);
+            DrawRounded(screen, ReadyUpNoBounds,  noBg,  2f);
 
             var yesDim = screen.GetDimensions(_labelFont!, "YES", 1f);
             var noDim  = screen.GetDimensions(_labelFont!, "NO",  1f);
 
             screen.DrawString(_labelFont!,
-                new Vector2(panelX             + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
-                "YES", Color.FromHex("#44CC44"));
+                new Vector2(btnX + (halfW - yesDim.X) * 0.5f, y + (btnH - yesDim.Y) * 0.5f),
+                "YES", FSPalette.Ok);
             screen.DrawString(_labelFont!,
-                new Vector2(panelX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
-                "NO", Color.FromHex("#CC4444"));
+                new Vector2(btnX + halfW + 3f + (halfW - noDim.X) * 0.5f, y + (btnH - noDim.Y) * 0.5f),
+                "NO", FSPalette.Danger);
 
-            y += btnH;
+            y += btnH + rowPad;
         }
 
-        float DrawRow(Texture? icon, string label, string value, Color valueColor)
+        float DrawRow(Texture? icon, string label, string value, Color valueColor, Font? valueFont = null)
         {
-            screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
             var innerY = y + sepH + rowPad;
-            var iconY = innerY + (rowContentH - iconSz) / 2f;
-            var iconBox = new UIBox2(panelX, iconY, panelX + iconSz, iconY + iconSz);
-            if (icon != null) screen.DrawTextureRect(icon, iconBox);
-            var textX = panelX + iconSz + iconGap;
-            var textBlockH = labelH + 4f + valueH;
+            var iconY = innerY + (rowContentH - rowIconSz) / 2f;
+            var iconBox = new UIBox2(panelX + panelInset, iconY,
+                panelX + panelInset + rowIconSz, iconY + rowIconSz);
+            if (icon != null)
+                screen.DrawTextureRect(icon, iconBox, Color.White.WithAlpha(0.55f));
+
+            var font = valueFont ?? _valueFont!;
+            var thisValueH = screen.GetDimensions(font, value, 1f).Y;
+            var textX = panelX + panelInset + rowIconSz + iconGap;
+            var textBlockH = labelH + 4f + thisValueH;
             var textStartY = innerY + (rowContentH - textBlockH) / 2f;
             screen.DrawString(_labelFont!, new Vector2(textX, textStartY), label, muted);
-            screen.DrawString(_valueFont!, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
+            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
             return y + sepH + rowH;
         }
 
-        _creditsRowY = y;
-        y = DrawRow(_iconCredits, "CREDITS", _creditsText, Color.White);
+        y = DrawRow(_iconWave, "WAVE", _waveText, FSPalette.Danger);
 
-        for (var pi = 0; pi < _interestPopups.Count; pi++)
+        if (IsDarkWave)
         {
-            var p = _interestPopups[pi];
-            var t = p.Life / p.TotalLife;
-            var alpha = MathF.Min(1f, t * 3f); // fade in fast, fade out slow
-            var floatOffset = (1f - t) * 40f;  // float upward as it expires
-
-            var popupY = _creditsRowY - floatOffset;
-            var amtText = $"+${p.Amount:N0}";
-            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
-
-            var popupIconSz = augIconSz * 0.75f;
-            var totalW = popupIconSz + 4f + amtDim.X;
-            var popupX = panelX - totalW - 8f;
-
-            var tex = GetPerkIcon(p.PerkId);
-            if (tex != null)
-                screen.DrawTextureRect(tex,
-                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
-                    Color.White.WithAlpha(alpha));
-
-            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
-            screen.DrawString(_labelFont!, textPos, amtText, Color.FromHex("#FFD740").WithAlpha(alpha));
+            var secs = Math.Max(0f, DarkWaveSecondsRemaining);
+            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
+            y = DrawRow(_iconEnemies, "SURVIVE", survive, FSPalette.Warn, _midFont);
+        }
+        else if (EnemiesTotal > 0)
+        {
+            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
         }
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, "TIMER", $"{secs / 60}:{secs % 60:D2}", Color.FromHex("#e2b662"));
+            y = DrawRow(_iconTimer, "NEXT", $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
         }
 
-        screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
-        var augLabelY = y + sepH + rowPad;
-        screen.DrawString(_labelFont!, new Vector2(panelX, augLabelY), "PERKS", muted);
-        var augIconsY = augLabelY + labelH + 4f;
+        DrawReadyUpBlock();
+        screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
+
+        DrawTriage(screen, panelX, y + sepH + 10f);
+
+        var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
+        var leftX = TopLeftX + TopLeftPad;
+        var leftY = topLeftTop;
+
+        DrawShadowed(screen, _labelFont!, new Vector2(leftX, leftY), "PERKS", muted);
+        var augIconsY = leftY + labelH + 4f;
 
         _augCells.Clear();
-        var ix = panelX;
+        var ix = leftX;
         foreach (var id in ActiveSlots)
         {
             var cell = new UIBox2(ix, augIconsY, ix + augIconSz, augIconsY + augIconSz);
             _augCells.Add((cell, id));
-            screen.DrawRect(cell, Color.FromHex("#1A1D23"));
+
+            if (string.IsNullOrEmpty(id))
+            {
+                screen.DrawRect(cell, FSPalette.CellEdge, filled: false);
+            }
+            else
+            {
+                DrawRounded(screen, cell, FSPalette.CellBack);
+                screen.DrawRect(cell, FSPalette.PanelEdge, filled: false);
+            }
             if (!string.IsNullOrEmpty(id))
             {
                 var tex = GetPerkIcon(id);
@@ -366,26 +497,78 @@ public sealed partial class WaveHudOverlay : Overlay
                     screen.DrawString(_labelFont!, new Vector2(tx + 1, ty),     stackStr, outline);
                     screen.DrawString(_labelFont!, new Vector2(tx,     ty - 1), stackStr, outline);
                     screen.DrawString(_labelFont!, new Vector2(tx,     ty + 1), stackStr, outline);
-                    screen.DrawString(_labelFont!, new Vector2(tx,     ty),     stackStr, Color.FromHex("#FF3333"));
+                    screen.DrawString(_labelFont!, new Vector2(tx,     ty),     stackStr, FSPalette.Danger);
                 }
             }
             ix += augIconSz + augGap;
         }
-        y += sepH + rowPad + labelH + 4f + augIconSz + rowPad;
 
-        if (IsDarkWave)
+        _creditsRowY = augIconsY + augIconSz + 6f;
+        DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
+            FSPalette.Money);
+
+        if (ShowMedicalFund)
         {
-            var secs = Math.Max(0f, DarkWaveSecondsRemaining);
-            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
-            y = DrawRow(_iconEnemies, "SURVIVE", survive, Color.FromHex("#8800FF"));
-        }
-        else if (EnemiesTotal > 0)
-        {
-            y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, Color.FromHex("#d1292c"));
+            var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
+            DrawShadowed(screen, _labelFont!,
+                new Vector2(leftX, _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y + 2f),
+                fundText, FSPalette.Ok);
         }
 
-        y = DrawRow(_iconWave, "WAVE", _waveText, Color.FromHex("#d1292c"));
-        screen.DrawRect(new UIBox2(panelX, y, panelX + panelW, y + sepH), sepColor);
+        var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
+        for (var pi = 0; pi < _interestPopups.Count; pi++)
+        {
+            var p = _interestPopups[pi];
+            var t = p.Life / p.TotalLife;
+            var alpha = MathF.Min(1f, t * 3f);
+            var floatOffset = (1f - t) * 40f;
+
+            var popupY = _creditsRowY - floatOffset;
+            var amtText = $"+${p.Amount:N0}";
+            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
+
+            var popupIconSz = augIconSz * 0.75f;
+            var popupX = leftX + creditsW + 10f;
+
+            var tex = GetPerkIcon(p.PerkId);
+            if (tex != null)
+                screen.DrawTextureRect(tex,
+                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
+                    Color.White.WithAlpha(alpha));
+
+            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
+            screen.DrawString(_labelFont!, textPos, amtText, FSPalette.Money.WithAlpha(alpha));
+        }
+
+        if (DirectiveFlash > 0f)
+        {
+            var wash = DirectiveFlashColour.WithAlpha(MathF.Min(0.30f, DirectiveFlash * 0.30f));
+            const int frames = 22;
+
+            for (var i = 0; i < frames; i++)
+            {
+                var inset = i * 3f;
+                var a = wash.WithAlpha(wash.A * (1f - i / (float) frames));
+
+                screen.DrawRect(new UIBox2(inset, inset, screenSize.X - inset, inset + 3f), a);
+                screen.DrawRect(new UIBox2(inset, screenSize.Y - inset - 3f, screenSize.X - inset, screenSize.Y - inset), a);
+                screen.DrawRect(new UIBox2(inset, inset, inset + 3f, screenSize.Y - inset), a);
+                screen.DrawRect(new UIBox2(screenSize.X - inset - 3f, inset, screenSize.X - inset, screenSize.Y - inset), a);
+            }
+        }
+
+        for (var hi = 0; hi < _healPayouts.Count; hi++)
+        {
+            var h = _healPayouts[hi];
+            var ht = h.Life / h.TotalLife;
+            var halpha = MathF.Min(1f, ht * 4f);
+            var text = $"+${h.Amount:N0}";
+            var colour = h.Diminished ? FSPalette.TextDim : FSPalette.Ok;
+
+            screen.DrawString(_labelFont!,
+                new Vector2(leftX + creditsW + 10f, _creditsRowY - (1f - ht) * 26f),
+                text, colour.WithAlpha(halpha));
+        }
 
         var mouse = _input.MouseScreenPosition.Position;
         foreach (var (cell, id) in _augCells)
@@ -408,12 +591,12 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tipH = tipPad * 2f + nameDims.Y + 4f + levelDims.Y + 4f + effectDims.Y;
 
-            var tipX = panelX + panelW - tipW;
+            var tipX = Math.Clamp(cell.Left, 0f, MathF.Max(0f, _clyde.ScreenSize.X - tipW));
             var tipY = cell.Top - tipH - 6f;
             if (tipY < 0f) tipY = cell.Bottom + 6f;
 
             var tipBox = new UIBox2(tipX, tipY, tipX + tipW, tipY + tipH);
-            screen.DrawRect(tipBox, Color.FromHex("#0D0F12"));
+            screen.DrawRect(tipBox, FSPalette.PanelDeep);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Right, tipBox.Top + 1f), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Bottom - 1f, tipBox.Right, tipBox.Bottom), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Left + 1f, tipBox.Bottom), sepColor);
@@ -423,7 +606,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var ty = tipY + tipPad;
             screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), def.Name, Color.White);
             ty += nameDims.Y + 4f;
-            screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, Color.FromHex("#e2b662"));
+            screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, FSPalette.Money);
             ty += levelDims.Y + 4f;
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), effectText, muted);
             break;
@@ -447,7 +630,7 @@ public sealed partial class WaveHudOverlay : Overlay
             if (tipY < 0f) tipY = cell.Bottom + 6f;
 
             var tipBox = new UIBox2(tipX, tipY, tipX + tipW, tipY + tipH);
-            screen.DrawRect(tipBox, Color.FromHex("#0D0F12"));
+            screen.DrawRect(tipBox, FSPalette.PanelDeep);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Right, tipBox.Top + 1f), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Bottom - 1f, tipBox.Right, tipBox.Bottom), sepColor);
             screen.DrawRect(new UIBox2(tipBox.Left, tipBox.Top, tipBox.Left + 1f, tipBox.Bottom), sepColor);
@@ -478,15 +661,43 @@ public sealed partial class WaveHudOverlay : Overlay
                 _interestPopups[i] = updated;
         }
 
+        for (var i = _healPayouts.Count - 1; i >= 0; i--)
+        {
+            var h = _healPayouts[i];
+            var updated = h with { Life = h.Life - args.DeltaSeconds };
+            if (updated.Life <= 0f)
+                _healPayouts.RemoveAt(i);
+            else
+                _healPayouts[i] = updated;
+        }
+
+        if (DirectiveFlash > 0f)
+            DirectiveFlash = MathF.Max(0f, DirectiveFlash - args.DeltaSeconds * 2f);
+
+        if (_respawnClickCooldown > 0f)
+            _respawnClickCooldown -= args.DeltaSeconds;
+
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
+        var mousePos = _input.MouseScreenPosition.Position;
+
         if (IsReadyUpVisible && down && !_prevClickDown)
         {
-            var pos = _input.MouseScreenPosition.Position;
-            if (ReadyUpYesBounds.Contains(pos))
+            if (ReadyUpYesBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(true);
-            else if (ReadyUpNoBounds.Contains(pos))
+            else if (ReadyUpNoBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(false);
         }
+
+        if (IsRespawnOfferVisible && down && !_prevClickDown && _respawnClickCooldown <= 0f
+            && RespawnButtonBounds.Contains(mousePos))
+        {
+            _respawnClickCooldown = 0.5f;
+            OnRespawnClicked?.Invoke();
+        }
+
+        if (down && !_prevClickDown)
+            HandleThrowableClick(mousePos);
+
         _prevClickDown = down;
     }
 
@@ -510,8 +721,12 @@ public sealed partial class WaveHudOverlay : Overlay
     {
         var rows = BuildVisibleBonusRows();
         _bonusRowCells.Clear();
+
         if (rows.Count == 0)
+        {
+            DrawBuffStatus(screen, margin, null);
             return;
+        }
 
         _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
 
@@ -522,10 +737,13 @@ public sealed partial class WaveHudOverlay : Overlay
         var iconSz = textH * 2f;
         var blockH = rows.Count * iconSz + (rows.Count - 1) * rowGap;
 
-        var hotbarTop = FindHotbarTop();
-        var blockBottom = (hotbarTop ?? _clyde.ScreenSize.Y - margin) - bottomGap;
+        var vitalsTop = _clyde.ScreenSize.Y - BottomBandLift - VitalsBlockHeight();
+        var ceiling = MathF.Min(FindAlertsTop() ?? vitalsTop, vitalsTop);
+        var blockBottom = ceiling - bottomGap;
         var x = margin;
         var y = blockBottom - blockH;
+
+        DrawBuffStatus(screen, margin, y);
 
         foreach (var row in rows)
         {
@@ -543,7 +761,66 @@ public sealed partial class WaveHudOverlay : Overlay
         }
     }
 
-    // Recurses since Hotbar nests at different depths between the two HUD layouts.
+    private void DrawBuffStatus(DrawingHandleScreen screen, float margin, float? bonusBlockTop)
+    {
+        _tinyFont ??= new VectorFont(_notoRes ??= _resourceCache.GetResource<FontResource>(NotoBoldPath), 11);
+
+        var bottom = bonusBlockTop ?? (FindHotbarTop() ?? _clyde.ScreenSize.Y - margin) - 10f;
+
+        if (MedicalBuffs.Count > 0)
+        {
+            const float rowGap = 4f;
+            const float iconTextGap = 4f;
+            var textH = screen.GetDimensions(_tinyFont, "Ay", 1f).Y;
+            var iconSz = textH * 2f;
+
+            bottom -= 4f + MedicalBuffs.Count * iconSz + (MedicalBuffs.Count - 1) * rowGap;
+
+            var y = bottom;
+            foreach (var buff in MedicalBuffs)
+            {
+                var icon = GetStatIcon(buff.IconKey) ?? GetStatIcon(MedicalBuffFallbackIcon);
+                if (icon != null)
+                    screen.DrawTextureRect(icon, new UIBox2(margin, y, margin + iconSz, y + iconSz), Color.White);
+
+                var value = buff.SecondsRemaining >= 0 ? $"{buff.SecondsRemaining}s" : string.Empty;
+                var valueDims = screen.GetDimensions(_tinyFont, value, 1f);
+                var valuePos = new Vector2(margin + iconSz + iconTextGap, y + (iconSz - valueDims.Y) * 0.5f);
+                screen.DrawString(_tinyFont, valuePos, value, MedicalBuffColour);
+
+                var cellW = iconSz + iconTextGap + valueDims.X;
+                _bonusRowCells.Add((new UIBox2(margin, y, margin + cellW, y + iconSz),
+                    buff.Name, [buff.Source]));
+
+                y += iconSz + rowGap;
+            }
+        }
+
+        if (HarvestStatus is { } harvest)
+        {
+            const float gaugeW = 132f;
+            const float barH = 4f;
+
+            var dims = screen.GetDimensions(_tinyFont, harvest, 1f);
+            bottom -= 4f + dims.Y + 3f + barH;
+
+            var accent = HarvestCapped ? FSPalette.Money : FSPalette.Ok;
+            screen.DrawString(_tinyFont, new Vector2(margin, bottom), harvest, accent);
+
+            var ratio = HarvestCap > 0f ? Math.Clamp(HarvestAccrued / HarvestCap, 0f, 1f) : 0f;
+            var barY = bottom + dims.Y + 3f;
+
+            DrawRounded(screen, new UIBox2(margin, barY, margin + gaugeW, barY + barH),
+                FSPalette.BarTrack, 2f);
+
+            if (ratio > 0f)
+            {
+                DrawRounded(screen, new UIBox2(margin, barY, margin + gaugeW * ratio, barY + barH),
+                    accent, 2f);
+            }
+        }
+    }
+
     private Control? FindNamedScreenControl(string name)
     {
         var screen = _uiManager.ActiveScreen;
@@ -563,6 +840,60 @@ public sealed partial class WaveHudOverlay : Overlay
                 return found;
         }
         return null;
+    }
+
+    private static readonly Color VignetteWash = new(0.47f, 0f, 0f, 0.16f);
+    private const float VignetteMaxDark = 0.72f;
+
+    private static void DrawVignette(DrawingHandleScreen screen, Vector2i screenSize)
+    {
+        const int rings = 24;
+
+        var w = (float) screenSize.X;
+        var h = (float) screenSize.Y;
+
+        screen.DrawRect(new UIBox2(0f, 0f, w, h), VignetteWash);
+
+        for (var i = 0; i < rings; i++)
+        {
+            var t0 = i / (float) rings;
+            var t1 = (i + 1) / (float) rings;
+
+            var a = VignetteMaxDark * MathF.Pow(1f - t0, 2.2f);
+            if (a <= 0.002f)
+                continue;
+
+            var dark = new Color(0f, 0f, 0f, a);
+
+            var ox = w * 0.5f * t0;
+            var oy = h * 0.5f * t0;
+            var ix = w * 0.5f * t1;
+            var iy = h * 0.5f * t1;
+
+            screen.DrawRect(new UIBox2(ox, oy, w - ox, iy), dark);
+            screen.DrawRect(new UIBox2(ox, h - iy, w - ox, h - oy), dark);
+            screen.DrawRect(new UIBox2(ox, iy, ix, h - iy), dark);
+            screen.DrawRect(new UIBox2(w - ix, iy, w - ox, h - iy), dark);
+        }
+    }
+
+    private float? FindAlertsTop()
+    {
+        var screen = _uiManager.ActiveScreen;
+        if (screen == null)
+        {
+            _alertsScreen = null;
+            _alertsControl = null;
+            return null;
+        }
+
+        if (!ReferenceEquals(screen, _alertsScreen) || _alertsControl is null || _alertsControl.Disposed)
+        {
+            _alertsScreen = screen;
+            _alertsControl = FindNamedControlRecursive(screen, "Alerts", 0);
+        }
+
+        return _alertsControl == null ? null : _alertsControl.GlobalPixelRect.Top;
     }
 
     private float? FindHotbarTop()
@@ -591,10 +922,12 @@ public sealed partial class WaveHudOverlay : Overlay
     private EntityUid? _bonusRowsHeld;
     private int _bonusRowsVersion = -1;
 
-    private static readonly Color BonusPositive = Color.FromHex("#22C55E");
-    private static readonly Color BonusNegative = Color.FromHex("#EF4444");
+    private static readonly Color BonusPositive = FSPalette.Ok;
+    private static readonly Color BonusNegative = FSPalette.Danger;
 
-    // Rebuilt on a change of held item or summary, not per frame.
+    private const string MedicalBuffFallbackIcon = "buff";
+    private static readonly Color MedicalBuffColour = FSPalette.Ok;
+
     private List<BonusRow> BuildVisibleBonusRows()
     {
         _shop ??= _entityManager.System<FSShopClientSystem>();

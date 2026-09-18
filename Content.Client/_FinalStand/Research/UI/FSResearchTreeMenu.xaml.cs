@@ -43,7 +43,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private const int ProgressSegments = 12;
 
-    // decorative only - a tier's dot color here is not the same signal as a node's state color
     private static readonly Color[] TierLegendColors =
     {
         FSUiPalette.TextMuted,
@@ -54,6 +53,8 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     };
 
     public EntityUid Entity;
+
+    private static readonly Color MedicalFundsColor = Color.FromHex("#4FA3D1");
 
     private FSResearchNodeView? _selectedNode;
     private bool _warningIsSticky;
@@ -138,6 +139,19 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         Entity = entity;
         GraphControl.SetConsole(entity);
         RebuildDisciplineRail();
+        ApplyTrackStyling();
+    }
+
+    private void ApplyTrackStyling()
+    {
+        if (!IsMedicalTrack())
+            return;
+
+        ServerButton.Visible = false;
+
+        HeaderResearchIcon.Texture = _resourceCache
+            .GetResource<TextureResource>("/Textures/_FinalStand/Interface/Research/research_icon_white.png").Texture;
+        HeaderResearchIcon.Modulate = MedicalFundsColor;
     }
 
     private void RebuildDisciplineRail()
@@ -148,9 +162,15 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         if (!_entity.TryGetComponent<TechnologyDatabaseComponent>(Entity, out _))
             return;
 
+        _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var database);
+        var allowed = database?.Branches;
+
         string? defaultPage = null;
         foreach (var branch in _prototype.EnumeratePrototypes<FSTechBranchPrototype>().OrderBy(b => b.SortOrder))
         {
+            if (allowed is { Count: > 0 } && !allowed.Contains(branch.ID))
+                continue;
+
             AddDisciplineButton(branch.ID, branch.Name.ToUpperInvariant(), branch.Color);
             defaultPage ??= branch.ID;
         }
@@ -267,7 +287,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         UpdateDetailPanel();
     }
 
-    // Node views are rebuilt on relayout, so re-point at the fresh instance for the same id.
     private void ResyncSelectedNode()
     {
         if (_selectedNode != null)
@@ -280,13 +299,80 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         UpdateDetailPanel();
     }
 
-    // Shows FS's own banked RP, not vanilla ResearchServerComponent.Points.
+    private bool IsMedicalTrack()
+        => _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db)
+           && db.Track == FSResearchTrack.Medical;
+
+    private void UpdateDetailPanelMedical(FSResearchNodeView node)
+    {
+        var balance = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var db) ? db.Points : 0;
+        var owned = node.State == FSResearchNodeState.Unlocked;
+
+        MaterialsLabel.SetMessage(new FormattedMessage());
+        RpNeededLabel.Text = Loc.GetString("fs-medical-research-cost", ("cost", node.Cost));
+
+        BuildProgressBar(owned ? 1f : 0f);
+        ProgressCounterLabel.Text = owned
+            ? Loc.GetString("fs-medical-research-owned")
+            : Loc.GetString("fs-medical-research-cost", ("cost", node.Cost));
+
+        ClearPersonalPickButton.Visible = false;
+        ClearSharedPickButton.Visible = false;
+        ResearchStatusLabel.Visible = false;
+        QueueResearchButton.Visible = false;
+
+        if (owned)
+        {
+            StartResearchButton.Text = Loc.GetString("fs-medical-research-owned");
+            StartResearchButton.Disabled = true;
+            return;
+        }
+
+        if (node.State != FSResearchNodeState.Available)
+        {
+            StartResearchButton.Text = Loc.GetString("fs-medical-research-purchase");
+            StartResearchButton.Disabled = true;
+            return;
+        }
+
+        var affordable = balance >= node.Cost;
+        StartResearchButton.Text = Loc.GetString("fs-medical-research-purchase");
+        StartResearchButton.Disabled = !affordable;
+
+        if (!affordable)
+        {
+            AuthorityWarningLabel.Text = Loc.GetString("fs-medical-research-cannot-afford");
+            AuthorityWarningLabel.Visible = true;
+        }
+    }
+
+    public int ViewerContribution = -1;
+    public int DepartmentEarned;
+
+    public void SetContribution(int contributed, int earned)
+    {
+        ViewerContribution = contributed;
+        DepartmentEarned = earned;
+        UpdateResearchAmountLabel();
+    }
+
     private void UpdateResearchAmountLabel()
     {
         var points = _entity.TryGetComponent<FSTechDatabaseComponent>(Entity, out var fsDb) ? fsDb.Points : 0;
         var amountMsg = new FormattedMessage();
-        amountMsg.AddMarkupOrThrow(Loc.GetString("research-console-menu-research-points-text",
+
+        amountMsg.AddMarkupOrThrow(Loc.GetString(
+            IsMedicalTrack()
+                ? "fs-medical-research-funds-text"
+                : "research-console-menu-research-points-text",
             ("points", points)));
+
+        if (IsMedicalTrack() && ViewerContribution >= 0)
+        {
+            amountMsg.AddMarkupOrThrow(Loc.GetString("fs-medical-research-contribution-text",
+                ("contributed", ViewerContribution), ("earned", DepartmentEarned)));
+        }
+
         ResearchAmountLabel.SetMessage(amountMsg);
     }
 
@@ -406,7 +492,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         UpdateResearchAmountLabel();
 
-        // Kept until the player selects elsewhere - point grants refresh this panel constantly.
         if (!_warningIsSticky)
         {
             AuthorityWarningLabel.Visible = false;
@@ -448,6 +533,12 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
         MaterialsLabel.SetMessage(new FormattedMessage());
         RpNeededLabel.Text = $"RP Needed: {node.Cost}";
+
+        if (node.FsNode != null && IsMedicalTrack())
+        {
+            UpdateDetailPanelMedical(node);
+            return;
+        }
 
         if (node.FsNode != null)
         {
@@ -502,7 +593,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
                 }
                 else
                 {
-                    // Locks the viewer's own contribution to this node even if the RD later switches away.
                     StartResearchButton.Text = "Also Set as My Pick (Full Cost)";
                     StartResearchButton.Disabled = false;
                 }
@@ -556,7 +646,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private void UpdateDetailPanelFsNode(FSTechNodePrototype fsNode)
     {
-        // Wrapper node - defer entirely to the vanilla tech's own unlocks-list rendering.
         if (fsNode.VanillaTechnologyId is { } vanillaId && _prototype.TryIndex(vanillaId, out var vanillaTech))
         {
             UpdateDetailPanelVanilla(vanillaTech);
@@ -578,7 +667,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         TechDescLabel.SetMessage(descMsg);
 
         var statsMsg = new FormattedMessage();
-        // TryGetString so a real locale key still resolves, without warning on literal text.
         var bonus = "—";
         if (fsNode.BonusDescription != string.Empty)
             bonus = Loc.TryGetString(fsNode.BonusDescription, out var localised) ? localised : fsNode.BonusDescription;
@@ -621,7 +709,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         return msg;
     }
 
-    // Display hint only - server re-checks materials for real at selection time.
     private FormattedMessage BuildMaterialsMessage(FSTechNodePrototype fsNode, out bool hasEnough)
     {
         hasEnough = true;

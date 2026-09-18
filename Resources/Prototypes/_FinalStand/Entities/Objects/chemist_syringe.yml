@@ -1,0 +1,180 @@
+- type: entity
+  parent: MiniSyringe
+  id: FSChemistSyringe
+  name: support syringe
+  description: A reshaped syringe keyed to crew biometrics. Fired from a syringe gun to deliver chemicals to a teammate at range.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+      - state: minisyringe1
+        map: ["enum.SolutionContainerLayers.Fill"]
+        visible: false
+      - state: syringeproj
+        shader: unshaded
+        color: "#5FE3B4"
+  - type: FSAllyProjectile
+  - type: Solution
+    solution:
+      maxVol: 10
+  - type: SolutionInjectOnEmbed
+    transferAmount: 1
+    solution: injector
+
+- type: latheRecipe
+  id: FSChemistSyringe
+  result: FSChemistSyringe
+  completetime: 2
+  materials:
+    Steel: 100
+    Plastic: 50
+
+- type: entity
+  parent: BaseItem
+  id: FSSyringePack
+  name: syringe magazine
+  description: A sealed reservoir of support serum. Slots into a syringe gun and doses every dart from the same batch. Refill it from a beaker.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+  - type: Item
+    size: Small
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+  - type: SolutionAmmoProvider
+    solutionId: pack
+    fireCost: 1
+    proto: FSChemistSyringe
+  - type: RefillableSolution
+    solution: pack
+    refillTime: 4
+  - type: DrainableSolution
+    solution: pack
+  - type: ExaminableSolution
+    solution: pack
+  - type: SolutionContainerVisuals
+    maxFillLevels: 2
+    fillBaseName: syringe
+    solutionName: pack
+    changeColor: true
+  - type: Appearance
+  - type: FSSolutionLabel
+    solution: pack
+  - type: FSPrefilledMagazine
+  - type: Tag
+    tags:
+    - FSSyringeMagazine
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackBicaridine
+  suffix: Bicaridine
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#ffaa00"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: Bicaridine
+          Quantity: 200
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackKelotane
+  suffix: Kelotane
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#bf3d19"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: Kelotane
+          Quantity: 200
+
+- type: latheRecipe
+  id: FSSyringePack
+  result: FSSyringePack
+  completetime: 3
+  materials:
+    Steel: 150
+    Plastic: 100
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackTricordrazine
+  suffix: Tricordrazine
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#00e5ff"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: Tricordrazine
+          Quantity: 200
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackCombatStim
+  suffix: Combat Stim
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#4FBF7A"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: FSCombatStim
+          Quantity: 200
+
+- type: entity
+  parent: FSSyringePack
+  id: FSSyringePackAdrenalSurge
+  suffix: Adrenal Surge
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Chemistry/syringe.rsi
+    layers:
+    - state: syringe_base0
+    - state: syringe1
+      map: ["enum.SolutionContainerLayers.Fill"]
+      color: "#F0813C"
+  - type: SolutionContainerManager
+    solutions:
+      pack:
+        maxVol: 200
+        reagents:
+        - ReagentId: FSAdrenalSurge
+          Quantity: 200

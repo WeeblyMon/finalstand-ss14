@@ -1,29 +1,23 @@
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
-// SPDX-FileCopyrightText: 2025 Kayzel <43700376+KayzelW@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Piras314 <p1r4s@proton.me>
-// SPDX-FileCopyrightText: 2025 Roudenn <romabond091@gmail.com>
-// SPDX-FileCopyrightText: 2025 Spatison <137375981+Spatison@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Trest <144359854+trest100@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <39013340+deltanedas@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <@deltanedas:kde.org>
-// SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
-// SPDX-FileCopyrightText: 2025 kurokoTurbo <92106367+kurokoTurbo@users.noreply.github.com>
-//
-// SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Linq;
 using Content.Shared._FinalStand.Medical;
 using Robust.Shared.Prototypes;
 using Content.Client._Shitmed.Choice.UI;
 using Content.Client.Administration.UI.CustomControls;
+using Content.Client.Stylesheets;
 using Content.Shared._Shitmed.Medical.Surgery;
+using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Body;
+using Content.Shared.DoAfter;
+using Robust.Shared.Timing;
 using JetBrains.Annotations;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Utility;
 
 namespace Content.Client._Shitmed.Medical.Surgery;
@@ -33,14 +27,45 @@ public sealed partial class SurgeryBui : BoundUserInterface
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly Color MutedColor = Color.FromHex("#7F8891");
+    private static readonly Color StepCompleteColor = new(0.55f, 0.55f, 0.55f);
+    private static readonly Color StepLockedColor = new(0.40f, 0.40f, 0.40f);
+    private static readonly Color OperationNextColor = Color.FromHex("#8FE0B0");
+    private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
+    private static readonly Color OperationOutOfFocusColor = new(0.45f, 0.45f, 0.45f);
+
+    private static readonly (SurgeryFocus Focus, string Loc)[] Filters =
+    {
+        (SurgeryFocus.All, "surgery-ui-filter-all"),
+        (SurgeryFocus.Bleeding, "surgery-ui-filter-bleeding"),
+        (SurgeryFocus.Wounds, "surgery-ui-filter-wounds"),
+        (SurgeryFocus.Bones, "surgery-ui-filter-bones"),
+        (SurgeryFocus.Organs, "surgery-ui-filter-organs"),
+    };
+
+    private readonly Dictionary<SurgeryFocus, Button> _filterButtons = new();
+    private readonly HashSet<EntityUid> _neededAccess = new();
+    private SurgeryOperationClassifier? _classifier;
+    private SurgeryFocus _focus = SurgeryFocus.All;
 
     private readonly SurgerySystem _system;
     [ViewVariables]
     private SurgeryWindow? _window;
+    private SurgeryGuidancePresenter? _guidance;
+    private SurgeryDollPresenter? _dollPresenter;
+
     private EntityUid? _part;
     private bool _isBody;
     private (EntityUid Ent, EntProtoId Proto)? _surgery;
     private readonly List<EntProtoId> _previousSurgeries = new();
+
+    private string? _partsKey;
+    private string? _surgeriesKey;
+    private string? _crumbKey;
+    private (NetEntity Part, EntProtoId Surgery)? _stepsKey;
+
     public SurgeryBui(EntityUid owner, Enum uiKey) : base(owner, uiKey) => _system = _entities.System<SurgerySystem>();
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
@@ -75,54 +100,35 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.OnClose += Close;
             _window.Title = Loc.GetString("surgery-ui-window-title");
 
-            _window.PartsButton.OnPressed += _ =>
+            _guidance = new SurgeryGuidancePresenter(_entities, _system, _window);
+            _dollPresenter = new SurgeryDollPresenter(_entities, _window, OnPartPressed);
+            _classifier = new SurgeryOperationClassifier(_entities, IoCManager.Resolve<IPrototypeManager>());
+            BuildFilters();
+
+            _window.PerformButton.OnPressed += _ =>
             {
-                _part = null;
-                _isBody = false;
-                _surgery = null;
-                _previousSurgeries.Clear();
-                View(ViewType.Parts);
+                if (_guidance?.NextStep is { } next)
+                    SendPredictedMessage(new SurgeryStepChosenBuiMsg(next.NetPart, next.SurgeryId, next.StepId, _isBody));
             };
 
-            _window.SurgeriesButton.OnPressed += _ =>
+            _window.OnFrameUpdate += UpdateStepProgress;
+
+            foreach (var panel in new[] { _window.BodyPanel, _window.OperationsPanel, _window.ProcedurePanel })
             {
-                _surgery = null;
-                _previousSurgeries.Clear();
-
-                if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || State is not SurgeryBuiState s
-                    || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
-                    return;
-
-                OnPartPressed(netPart.Value, surgeries);
-            };
-
-            _window.StepsButton.OnPressed += _ =>
-            {
-                if (!_entities.TryGetNetEntity(_part, out var netPart)
-                    || _previousSurgeries.Count == 0)
-                    return;
-
-                var last = _previousSurgeries[^1];
-                _previousSurgeries.RemoveAt(_previousSurgeries.Count - 1);
-
-                if (_system.GetSingleton(last) is not { } previousId
-                    || !_entities.TryGetComponent(previousId, out SurgeryComponent? previous))
-                    return;
-
-                OnSurgeryPressed((previousId, previous), netPart.Value, last);
-            };
+                panel.PanelOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = Color.FromHex("#1B1E23"),
+                    BorderColor = Color.FromHex("#2E333B"),
+                    BorderThickness = new Thickness(1),
+                };
+            }
         }
 
-        _window.Surgeries.DisposeAllChildren();
-        _window.Steps.DisposeAllChildren();
-        _window.Parts.DisposeAllChildren();
-        View(ViewType.Parts);
+        if (!_window.IsOpen)
+            _window.OpenCentered();
 
         var oldSurgery = _surgery;
         var oldPart = _part;
-        _part = null;
-        _surgery = null;
 
         var options = new List<(NetEntity netEntity, EntityUid entity, string Name, ProtoId<OrganCategoryPrototype>? Category)>();
         foreach (var choice in state.Choices.Keys)
@@ -145,34 +151,75 @@ public sealed partial class SurgeryBui : BoundUserInterface
             return GetScore(a.Category) - GetScore(b.Category);
         });
 
-        foreach (var (netEntity, entity, partName, _) in options)
+        var partsKey = string.Join(';',
+            options.Select(o => $"{o.netEntity.Id}:{string.Join(',', state.Choices[o.netEntity])}"));
+        if (partsKey != _partsKey)
         {
-            //var netPart = _entities.GetNetEntity(part.Owner);
-            var surgeries = state.Choices[netEntity];
-            var partButton = new ChoiceControl();
+            _partsKey = partsKey;
+            _window.Parts.DisposeAllChildren();
+            _dollPresenter!.Clear();
 
-            partButton.Set(partName, null);
-            partButton.Button.OnPressed += _ => OnPartPressed(netEntity, surgeries);
-
-            _window.Parts.AddChild(partButton);
-
-            foreach (var surgeryId in surgeries)
+            foreach (var (netEntity, entity, partName, category) in options)
             {
-                if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                    !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+                var surgeries = state.Choices[netEntity];
+                if (_dollPresenter.TryAdd(category, netEntity, entity, surgeries))
                     continue;
 
-                if (oldPart == entity && oldSurgery?.Proto == surgeryId)
-                    OnSurgeryPressed((surgery, surgeryComp), netEntity, surgeryId);
-            }
+                var partButton = new ChoiceControl();
 
-            if (oldPart == entity && oldSurgery == null)
-                OnPartPressed(netEntity, surgeries);
+                partButton.Set(partName, null);
+                partButton.Button.OnPressed += _ => OnPartPressed(netEntity, surgeries);
+
+                _window.Parts.AddChild(partButton);
+            }
         }
 
+        var restored = false;
+        if (oldPart != null)
+        {
+            foreach (var (netEntity, entity, _, _) in options)
+            {
+                if (entity != oldPart)
+                    continue;
 
-        if (!_window.IsOpen)
-            _window.OpenCentered();
+                RebuildOperations(netEntity, state.Choices[netEntity]);
+
+                if (oldSurgery is { } selected
+                    && _system.GetSingleton(selected.Proto) is { } surgery
+                    && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+                {
+                    OnSurgeryPressed((surgery, surgeryComp), netEntity, selected.Proto);
+                }
+                else
+                {
+                    OnPartPressed(netEntity, state.Choices[netEntity]);
+                }
+
+                restored = true;
+                break;
+            }
+        }
+
+        if (!restored)
+        {
+            ClearSelection();
+            UpdateHeader();
+            RefreshUI();
+        }
+    }
+
+    private void ClearSelection()
+    {
+        _part = null;
+        _isBody = false;
+        _surgery = null;
+        _previousSurgeries.Clear();
+
+        if (_stepsKey == null)
+            return;
+
+        _stepsKey = null;
+        _window?.Steps.DisposeAllChildren();
     }
 
     private void AddStep(EntProtoId stepId, NetEntity netPart, EntProtoId surgeryId)
@@ -183,7 +230,13 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         var stepName = new FormattedMessage();
         stepName.AddText(_entities.GetComponent<MetaDataComponent>(step).EntityName);
-        var stepButton = new SurgeryStepButton { Step = step };
+        var stepButton = new SurgeryStepButton
+        {
+            Step = step,
+            StepId = stepId,
+            NetPart = netPart,
+            SurgeryId = surgeryId,
+        };
         stepButton.Button.OnPressed += _ => SendPredictedMessage(new SurgeryStepChosenBuiMsg(netPart, surgeryId, stepId, _isBody));
 
         _window.Steps.AddChild(stepButton);
@@ -198,32 +251,36 @@ public sealed partial class SurgeryBui : BoundUserInterface
         _isBody = _entities.HasComponent<BodyComponent>(_part);
         _surgery = (surgery, surgeryId);
 
-        _window.Steps.DisposeAllChildren();
-
-        // This apparently does not consider if theres multiple surgery requirements in one surgery. Maybe thats fine.
-        if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
+        if (_stepsKey != (netPart, surgeryId))
         {
-            var label = new ChoiceControl();
-            label.Button.OnPressed += _ =>
+            _stepsKey = (netPart, surgeryId);
+            _window.Steps.DisposeAllChildren();
+
+            if (surgery.Comp.Requirement is { } requirementId && _system.GetSingleton(requirementId) is { } requirement)
             {
-                _previousSurgeries.Add(surgeryId);
+                var label = new ChoiceControl();
+                label.Button.OnPressed += _ =>
+                {
+                    _previousSurgeries.Add(surgeryId);
 
-                if (_entities.TryGetComponent(requirement, out SurgeryComponent? requirementComp))
-                    OnSurgeryPressed((requirement, requirementComp), netPart, requirementId);
-            };
+                    if (_entities.TryGetComponent(requirement, out SurgeryComponent? requirementComp))
+                        OnSurgeryPressed((requirement, requirementComp), netPart, requirementId);
+                };
 
-            var msg = new FormattedMessage();
-            var surgeryName = _entities.GetComponent<MetaDataComponent>(requirement).EntityName;
-            msg.AddMarkup($"[bold]{Loc.GetString("surgery-ui-window-require")}: {surgeryName}[/bold]");
-            label.Set(msg, null);
+                var msg = new FormattedMessage();
+                var surgeryName = _entities.GetComponent<MetaDataComponent>(requirement).EntityName;
+                msg.AddMarkup($"[bold]{Loc.GetString("surgery-ui-window-require")}: {surgeryName}[/bold]");
+                label.Set(msg, null);
 
-            _window.Steps.AddChild(label);
-            _window.Steps.AddChild(new HSeparator { Margin = new Thickness(0, 0, 0, 1) });
+                _window.Steps.AddChild(label);
+                _window.Steps.AddChild(new HSeparator { Margin = new Thickness(0, 0, 0, 1) });
+            }
+
+            foreach (var stepId in surgery.Comp.Steps)
+                AddStep(stepId, netPart, surgeryId);
         }
-        foreach (var stepId in surgery.Comp.Steps)
-            AddStep(stepId, netPart, surgeryId);
 
-        View(ViewType.Steps);
+        UpdateHeader();
         RefreshUI();
     }
 
@@ -232,56 +289,111 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null)
             return;
 
-        _part = _entities.GetEntity(netPart);
-        _isBody = _entities.HasComponent<BodyComponent>(_part);
-        _window.Surgeries.DisposeAllChildren();
+        var part = _entities.GetEntity(netPart);
 
-        var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name)>();
-        foreach (var surgeryId in surgeryIds)
+        if (_part != part)
         {
-            if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+            _surgery = null;
+            _previousSurgeries.Clear();
+
+            if (_stepsKey != null)
             {
-                continue;
+                _stepsKey = null;
+                _window.Steps.DisposeAllChildren();
+            }
+        }
+
+        _part = part;
+        _isBody = _entities.HasComponent<BodyComponent>(part);
+
+        RebuildOperations(netPart, surgeryIds);
+
+        UpdateHeader();
+        RefreshUI();
+    }
+
+    private void RebuildOperations(NetEntity netPart, List<EntProtoId> surgeryIds)
+    {
+        if (_window == null)
+            return;
+
+        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}";
+        if (_surgeriesKey != key)
+        {
+            _surgeriesKey = key;
+            _window.Surgeries.DisposeAllChildren();
+
+            var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name)>();
+            foreach (var surgeryId in surgeryIds)
+            {
+                if (_system.GetSingleton(surgeryId) is not { } surgery ||
+                    !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
+                {
+                    continue;
+                }
+
+                var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
+                surgeries.Add(((surgery, surgeryComp), surgeryId, name));
             }
 
-            var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
-            surgeries.Add(((surgery, surgeryComp), surgeryId, name));
+            surgeries.Sort((a, b) =>
+            {
+                var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
+                if (priority != 0)
+                    return priority;
+
+                return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
+            });
+
+            foreach (var surgery in surgeries)
+            {
+                var surgeryButton = new SurgeryOperationButton
+                {
+                    Surgery = surgery.Ent.Owner,
+                    SurgeryId = surgery.Id,
+                    OperationName = surgery.Name,
+                };
+                surgeryButton.Set(surgery.Name, null);
+
+                surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
+                _window.Surgeries.AddChild(surgeryButton);
+            }
         }
-
-        surgeries.Sort((a, b) =>
-        {
-            var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
-            if (priority != 0)
-                return priority;
-
-            return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
-        });
-
-        foreach (var surgery in surgeries)
-        {
-            var surgeryButton = new ChoiceControl();
-            surgeryButton.Set(surgery.Name, null);
-
-            surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
-            _window.Surgeries.AddChild(surgeryButton);
-        }
-
-        RefreshUI();
-        View(ViewType.Surgeries);
     }
 
     private void RefreshUI()
     {
-        if (_window == null
-            || !_window.IsOpen
-            || _part == null
-            || !_entities.HasComponent<SurgeryComponent>(_surgery?.Ent)
-            || !_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
-            || !surgeryComp.CanOperate)
+        if (_window == null || _guidance == null || !_window.IsOpen)
             return;
 
-        var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, _player.LocalEntity.Value);
+        _guidance.Reset();
+
+        if (_part == null)
+        {
+            _guidance.ShowSelectPrompt(_player.LocalEntity);
+            return;
+        }
+
+        if (!_entities.TryGetComponent(_player.LocalEntity, out SurgeryTargetComponent? surgeryComp)
+            || !surgeryComp.CanOperate
+            || _player.LocalEntity is not { } user)
+        {
+            _guidance.ShowCannotOperate();
+            return;
+        }
+
+        var recommended = RefreshOperations(user);
+        var selectedNet = _entities.TryGetNetEntity(_part, out var part) ? part : null;
+
+        if (!_entities.HasComponent<SurgeryComponent>(_surgery?.Ent))
+        {
+            _guidance.ShowChooseOperation(recommended, ActiveFocusName(), user);
+            _dollPresenter?.Refresh(selectedNet);
+            return;
+        }
+
+        var next = _system.GetNextStep(Owner, _part.Value, _surgery.Value.Ent, user);
+        SurgeryStepButton? nextButton = null;
         var i = 0;
         foreach (var child in _window.Steps.Children)
         {
@@ -305,39 +417,225 @@ public sealed partial class SurgeryBui : BoundUserInterface
             stepButton.Button.Disabled = status != StepStatus.Next;
 
             var stepName = new FormattedMessage();
+            stepName.AddText(status switch
+            {
+                StepStatus.Complete => "✓  ",
+                StepStatus.Next => "▶  ",
+                _ => "·  ",
+            });
             stepName.AddText(_entities.GetComponent<MetaDataComponent>(stepButton.Step).EntityName);
 
-            if (status == StepStatus.Complete)
-                stepButton.Button.Modulate = Color.Green;
-            else
+            var duration = _system.GetStepDuration(stepButton.Step);
+            if (duration > 0f)
             {
-                stepButton.Button.Modulate = Color.White;
-                if (status == StepStatus.Next
-                    && !_system.CanPerformStepWithHeld(_player.LocalEntity.Value, Owner, _part.Value, stepButton.Step, false, out var popup))
-                    stepButton.ToolTip = popup;
+                stepName.PushColor(MutedColor);
+                stepName.AddText($"   {duration:0.#}s");
+                stepName.Pop();
+            }
+
+            stepButton.Button.Modulate = status switch
+            {
+                StepStatus.Complete => StepCompleteColor,
+                StepStatus.Next => Color.White,
+                _ => StepLockedColor,
+            };
+
+            if (status == StepStatus.Next)
+            {
+                nextButton ??= stepButton;
+                stepButton.ToolTip = _system.CanPerformStepWithAvailable(user, Owner, _part.Value, stepButton.Step, out var popup)
+                    ? null
+                    : popup;
             }
 
             var texture = _entities.GetComponentOrNull<SpriteComponent>(stepButton.Step)?.Icon?.Default;
             stepButton.Set(stepName, texture);
             i++;
         }
+
+        var blockedBy = next != null && next.Value.Surgery.Owner != _surgery.Value.Ent
+            ? next.Value.Surgery.Owner
+            : (EntityUid?) null;
+
+        var unnecessaryAccess = _classifier != null
+                                && _classifier.IsAccess(_surgery.Value.Proto.Id)
+                                && !_neededAccess.Contains(_surgery.Value.Ent);
+
+        _guidance.Show(nextButton, next != null, user, Owner, _part.Value,
+            _surgery.Value.Ent, blockedBy, unnecessaryAccess);
+
+        _dollPresenter?.Refresh(selectedNet);
     }
 
-    private void View(ViewType type)
+    private void UpdateStepProgress()
     {
         if (_window == null)
             return;
 
-        _window.PartsButton.Parent!.Margin = new Thickness(0, 0, 0, 10);
+        if (_player.LocalEntity is not { } user
+            || !_entities.TryGetComponent(user, out DoAfterComponent? doAfters))
+        {
+            _window.StepProgress.Visible = false;
+            return;
+        }
 
-        _window.Parts.Visible = type == ViewType.Parts;
-        _window.PartsButton.Disabled = type == ViewType.Parts;
+        var now = _timing.CurTime;
+        foreach (var doAfter in doAfters.DoAfters.Values)
+        {
+            if (doAfter.Cancelled || doAfter.Completed || doAfter.Args.Event is not SurgeryDoAfterEvent)
+                continue;
 
-        _window.Surgeries.Visible = type == ViewType.Surgeries;
-        _window.SurgeriesButton.Disabled = type != ViewType.Steps;
+            var length = doAfter.Args.Delay.TotalSeconds;
+            if (length <= 0)
+                continue;
 
-        _window.Steps.Visible = type == ViewType.Steps;
-        _window.StepsButton.Disabled = type != ViewType.Steps || _previousSurgeries.Count == 0;
+            _window.StepProgress.Visible = true;
+            _window.StepProgress.Value = Math.Clamp((float)((now - doAfter.StartTime).TotalSeconds / length), 0f, 1f);
+            return;
+        }
+
+        _window.StepProgress.Visible = false;
+    }
+
+    private void BuildFilters()
+    {
+        if (_window == null)
+            return;
+
+        for (var i = 0; i < Filters.Length; i++)
+        {
+            var (focus, loc) = Filters[i];
+
+            var style = i == 0
+                ? StyleClass.ButtonOpenRight
+                : i == Filters.Length - 1
+                    ? StyleClass.ButtonOpenLeft
+                    : StyleClass.ButtonOpenBoth;
+
+            var button = new Button
+            {
+                Text = Loc.GetString(loc),
+                StyleClasses = { style },
+                ToggleMode = true,
+                Pressed = focus == _focus,
+                HorizontalExpand = true,
+            };
+
+            button.OnPressed += _ => SetFocus(focus);
+
+            _filterButtons[focus] = button;
+            _window.OperationFilters.AddChild(button);
+        }
+    }
+
+    private string? ActiveFocusName()
+    {
+        if (_focus == SurgeryFocus.All)
+            return null;
+
+        foreach (var (focus, loc) in Filters)
+        {
+            if (focus == _focus)
+                return Loc.GetString(loc);
+        }
+
+        return null;
+    }
+
+    private void SetFocus(SurgeryFocus focus)
+    {
+        _focus = focus;
+
+        foreach (var (candidate, button) in _filterButtons)
+            button.Pressed = candidate == focus;
+
+        RefreshUI();
+    }
+
+    private string? RefreshOperations(EntityUid user)
+    {
+        if (_window == null || _part == null || _classifier == null)
+            return null;
+
+        SurgeryOperationButton? recommended = null;
+        var bestUrgency = int.MaxValue;
+        _neededAccess.Clear();
+
+        var states = new List<(SurgeryOperationButton Op, bool Complete, bool Blocked, bool InFocus)>();
+
+        foreach (var child in _window.Surgeries.Children)
+        {
+            if (child is not SurgeryOperationButton op)
+                continue;
+
+            var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
+            var complete = next == null;
+            var blocked = !complete && next!.Value.Surgery.Owner != op.Surgery;
+            var inFocus = _classifier.Matches(op.Surgery, _focus);
+
+            states.Add((op, complete, blocked, inFocus));
+
+            if (complete || !inFocus)
+                continue;
+
+            if (_classifier.IsAccess(op.SurgeryId.Id))
+                continue;
+
+            if (blocked)
+                _neededAccess.Add(next!.Value.Surgery.Owner);
+
+            var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
+            if (urgency >= bestUrgency)
+                continue;
+
+            bestUrgency = urgency;
+            recommended = op;
+        }
+
+        foreach (var (op, complete, blocked, inFocus) in states)
+        {
+            string glyph;
+            Color colour;
+
+            if (complete)
+            {
+                glyph = "✓  ";
+                colour = StepCompleteColor;
+            }
+            else if (blocked)
+            {
+                glyph = "·  ";
+                colour = StepLockedColor;
+            }
+            else if (op == recommended)
+            {
+                glyph = "▶  ";
+                colour = OperationNextColor;
+            }
+            else
+            {
+                glyph = "•  ";
+                colour = inFocus ? OperationAvailableColor : OperationOutOfFocusColor;
+            }
+
+            var msg = new FormattedMessage();
+            msg.AddText(glyph);
+            msg.AddText(op.OperationName);
+
+            op.Set(msg, null);
+            op.Button.Modulate = colour;
+        }
+
+        return recommended?.OperationName;
+    }
+
+    private void UpdateHeader()
+    {
+        if (_window == null)
+            return;
+
+        BuildBreadcrumb();
+        _dollPresenter?.Refresh(_entities.TryGetNetEntity(_part, out var netPart) ? netPart : null);
 
         if (_entities.TryGetComponent(_part, out MetaDataComponent? partMeta) &&
             _entities.TryGetComponent(_surgery?.Ent, out MetaDataComponent? surgeryMeta))
@@ -348,11 +646,103 @@ public sealed partial class SurgeryBui : BoundUserInterface
             _window.Title = "Surgery";
     }
 
-    private enum ViewType
+    private void BuildBreadcrumb()
     {
-        Parts,
-        Surgeries,
-        Steps
+        if (_window == null)
+            return;
+
+        var key = $"{_part?.Id};{_surgery?.Proto.Id};{string.Join(',', _previousSurgeries)}";
+        if (key == _crumbKey)
+            return;
+
+        _crumbKey = key;
+        _window.Breadcrumb.DisposeAllChildren();
+
+        AddCrumb(Loc.GetString("surgery-ui-crumb-patient"), _part != null, () =>
+        {
+            ClearSelection();
+            UpdateHeader();
+            RefreshUI();
+        });
+
+        if (_part == null)
+            return;
+
+        var partName = _entities.GetComponent<MetaDataComponent>(_part.Value).EntityName;
+        AddCrumb(partName, _surgery != null, () =>
+        {
+            if (!_entities.TryGetNetEntity(_part, out var netPart)
+                || State is not SurgeryBuiState s
+                || !s.Choices.TryGetValue(netPart.Value, out var surgeries))
+                return;
+
+            _surgery = null;
+            _previousSurgeries.Clear();
+
+            if (_stepsKey != null)
+            {
+                _stepsKey = null;
+                _window.Steps.DisposeAllChildren();
+            }
+
+            OnPartPressed(netPart.Value, surgeries);
+        });
+
+        for (var i = 0; i < _previousSurgeries.Count; i++)
+        {
+            var index = i;
+            var protoId = _previousSurgeries[i];
+            if (_system.GetSingleton(protoId) is not { } ent)
+                continue;
+
+            var name = _entities.GetComponent<MetaDataComponent>(ent).EntityName;
+            AddCrumb(name, true, () =>
+            {
+                if (!_entities.TryGetNetEntity(_part, out var netPart)
+                    || !_entities.TryGetComponent(ent, out SurgeryComponent? comp))
+                    return;
+
+                _previousSurgeries.RemoveRange(index, _previousSurgeries.Count - index);
+                OnSurgeryPressed((ent, comp), netPart.Value, protoId);
+            });
+        }
+
+        if (_surgery is { } current)
+            AddCrumb(_entities.GetComponent<MetaDataComponent>(current.Ent).EntityName, false, null);
+    }
+
+    private void AddCrumb(string text, bool navigable, Action? onPressed)
+    {
+        if (_window == null)
+            return;
+
+        if (_window.Breadcrumb.ChildCount > 0)
+        {
+            _window.Breadcrumb.AddChild(new Label
+            {
+                Text = " > ",
+                VerticalAlignment = Control.VAlignment.Center,
+                Modulate = MutedColor,
+            });
+        }
+
+        if (!navigable || onPressed == null)
+        {
+            _window.Breadcrumb.AddChild(new Label
+            {
+                Text = text,
+                VerticalAlignment = Control.VAlignment.Center,
+            });
+            return;
+        }
+
+        var button = new Button
+        {
+            Text = text,
+            StyleClasses = { "ButtonSquare" },
+        };
+        button.OnPressed += _ => onPressed();
+        _window.Breadcrumb.AddChild(button);
     }
 
     private enum StepStatus

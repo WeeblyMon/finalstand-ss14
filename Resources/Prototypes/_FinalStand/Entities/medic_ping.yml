@@ -1,0 +1,31 @@
+- type: entity
+  parent: BaseAction
+  id: FSMedicPingAction
+  name: Call Medic
+  description: Shout for a medic and mark your position for the crew.
+  components:
+  - type: Action
+    useDelay: 20
+    checkCanInteract: false
+  - type: Sprite
+    layers:
+    - texture: /Textures/_FinalStand/Interface/MedicPing/normal.png
+      map: ["enum.ActionVisuals.Icon"]
+  - type: InstantAction
+    event: !type:FSMedicPingActionEvent {}
+
+- type: entity
+  parent: BaseAction
+  id: FSChemRequestAction
+  name: Request Chems
+  description: Signal the chemists that you want a dose.
+  components:
+  - type: Action
+    useDelay: 10
+    checkCanInteract: false
+  - type: Sprite
+    layers:
+    - texture: /Textures/_FinalStand/Interface/MedicPing/chem.png
+      map: ["enum.ActionVisuals.Icon"]
+  - type: InstantAction
+    event: !type:FSChemRequestActionEvent {}

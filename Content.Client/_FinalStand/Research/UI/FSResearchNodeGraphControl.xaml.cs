@@ -216,12 +216,22 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
             return;
         }
 
-        var rows = _prototype.EnumeratePrototypes<FSTechBranchPrototype>().Select(b => b.ID).ToList();
+        _entityManager.TryGetComponent<FSTechDatabaseComponent>(console, out var fsDb);
+        var allowed = fsDb?.Branches is { Count: > 0 } b ? b : null;
+
+        var rows = _prototype.EnumeratePrototypes<FSTechBranchPrototype>()
+            .Where(x => allowed == null || allowed.Contains(x.ID))
+            .Select(x => x.ID)
+            .ToList();
+
         var nodes = new List<FSResearchNodeView>();
 
         foreach (var fsTech in _prototype.EnumeratePrototypes<FSTechNodePrototype>())
         {
             if (fsTech.Hidden)
+                continue;
+
+            if (allowed != null && !allowed.Contains(fsTech.Branch))
                 continue;
 
             var view = new FSResearchNodeView
@@ -901,7 +911,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         Color.FromHex("#A3E635"),
     };
 
-    // Tootsie-pop layering: draws outermost-in so each smaller circle overpaints the previous one's center, leaving only a thin ring per contributor.
     private void DrawContributorRings(DrawingHandleScreen handle, Vector2 center, float iconRadius, List<int> slots, float opacity)
     {
         var thickness = Math.Max(2.5f, iconRadius * 0.09f);
@@ -951,7 +960,6 @@ public sealed partial class FSResearchNodeGraphControl : BoxContainer
         }
     }
 
-    // Dotted = OR-group prerequisite edges ("either of these"); solid DrawLine is used for mandatory AND edges.
     private void DrawDashedLine(DrawingHandleScreen handle, Vector2 from, Vector2 to, Color color)
     {
         var dashLength = 8f * UIScale * _zoom;

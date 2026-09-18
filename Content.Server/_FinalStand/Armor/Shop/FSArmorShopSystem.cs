@@ -20,7 +20,6 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
 
-    // mindId → purchased tier ID; persists across respawns
     private readonly Dictionary<EntityUid, string> _purchasedTier = new();
 
     public override void Initialize()
@@ -41,7 +40,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
 
         _purchasedTier.TryGetValue(mindId, out var tierId);
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tierId, GetCredits(mindId)), player);
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tierId, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnBuy(EntityUid uid, FSArmorShopComponent comp, FSArmorShopBuyMessage args)
@@ -68,7 +67,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         }
 
         _purchasedTier[mindId] = tier.Id;
-        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, GetCredits(mindId)), player);
+        _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, _wallet.GetCredits(mindId)), player);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -97,14 +96,10 @@ public sealed partial class FSArmorShopSystem : EntitySystem
 
         var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
 
-        // A hardsuit left on the floor is a paid-for item the buyer never receives.
         if (_inventory.TryEquip(mob, item, "outerClothing", silent: true, force: true))
             return true;
 
         Del(item);
         return false;
     }
-
-    private int GetCredits(EntityUid mindId) =>
-        TryComp<FSPlayerWalletComponent>(mindId, out var w) ? w.Credits : 0;
 }

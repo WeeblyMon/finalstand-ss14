@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Atmos.Rotting;
 using Content.Shared.Chat;
 using Content.Shared.Damage.Components;
@@ -19,12 +20,10 @@ using Robust.Shared.Player;
 
 namespace Content.Shared.Medical;
 
-/// <summary>
-/// This handles interactions and logic relating to <see cref="DefibrillatorComponent"/>
-/// </summary>
 public abstract partial class SharedDefibrillatorSystem : EntitySystem
 {
     [Dependency] private SharedChatSystem _chat = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedElectrocutionSystem _electrocution = default!;
@@ -71,18 +70,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
         Zap(ent.AsNullable(), target, args.User);
     }
 
-    /// <summary>
-    /// Checks if you can actually defib a target.
-    /// </summary>
-    /// <param name="ent">The defbrillator being used.</param>
-    /// <param name="target">Uid of the target getting defibbed.</param>
-    /// <param name="user">Uid of the entity using the defibrillator.</param>
-    /// <param name="targetCanBeAlive">
-    /// If true, the target can be alive. If false, the function will check if the target is alive and will return false if they are.
-    /// </param>
-    /// <returns>
-    /// Returns true if the target is valid to be defibed, false otherwise.
-    /// </returns>
     public bool CanZap(Entity<DefibrillatorComponent?> ent, EntityUid target, EntityUid? user = null, bool targetCanBeAlive = false)
     {
         if (!Resolve(ent, ref ent.Comp))
@@ -112,15 +99,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Tries to start defibrillating the target. If the target is valid, will start the defib do-after.
-    /// </summary>
-    /// <param name="ent">The defbrillator being used.</param>
-    /// <param name="target">Uid of the target getting defibbed.</param>
-    /// <param name="user">Uid of the entity using the defibrillator.</param>
-    /// <returns>
-    /// Returns true if the defibrillation do-after started, otherwise false.
-    /// </returns>
     public bool TryStartZap(Entity<DefibrillatorComponent?> ent, EntityUid target, EntityUid user)
     {
         if (!Resolve(ent, ref ent.Comp))
@@ -130,8 +108,12 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
             return false;
 
         _audio.PlayPredicted(ent.Comp.ChargeSound, ent.Owner, user);
+
+        var duration = ent.Comp.DoAfterDuration
+            * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.RevivalSpeed);
+
         return _doAfter.TryStartDoAfter(
-            new DoAfterArgs(EntityManager, user, ent.Comp.DoAfterDuration, new DefibrillatorZapDoAfterEvent(),
+            new DoAfterArgs(EntityManager, user, duration, new DefibrillatorZapDoAfterEvent(),
             ent.Owner, target, ent.Owner)
             {
                 NeedHand = true,
@@ -139,12 +121,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
             });
     }
 
-    /// <summary>
-    /// Tries to defibrillate the target with the given defibrillator.
-    /// </summary>
-    /// <param name="ent">The defbrillator being used.</param>
-    /// <param name="target">Uid of the target getting defibbed.</param>
-    /// <param name="user">Uid of the entity using the defibrillator.</param>
     public void Zap(Entity<DefibrillatorComponent?> ent, EntityUid target, EntityUid user)
     {
         if (!Resolve(ent, ref ent.Comp))
@@ -158,7 +134,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
 
         target = selfEvent.DefibTarget;
 
-        // Ensure thet new target is still valid.
         if (selfEvent.Cancelled || !CanZap(ent, target, user, true))
             return;
 
@@ -182,13 +157,15 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
             if (other == user)
                 continue;
 
-            // Anyone else still operating on the target gets zapped too
             _electrocution.TryDoElectrocution(other, null, ent.Comp.ZapDamage, ent.Comp.WritheDuration, true);
         }
 
         if (TryComp<UseDelayComponent>(ent, out var useDelay))
         {
-            _useDelay.SetLength((ent.Owner, useDelay), ent.Comp.ZapDelay, id: ent.Comp.DelayId);
+            var zapDelay = ent.Comp.ZapDelay
+                * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.DefibCooldown);
+
+            _useDelay.SetLength((ent.Owner, useDelay), zapDelay, id: ent.Comp.DelayId);
             _useDelay.TryResetDelay((ent.Owner, useDelay), id: ent.Comp.DelayId);
         }
 
@@ -219,7 +196,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
             if (_mind.TryGetMind(target, out var mindUid, out var mindComp) &&
                 _player.TryGetSessionById(mindComp.UserId, out var playerSession))
             {
-                // notify them they're being revived.
                 if (mindComp.CurrentEntity != target)
                     OpenReturnToBodyEui((mindUid, mindComp), playerSession);
             }
@@ -235,7 +211,6 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
             : ent.Comp.SuccessSound;
         _audio.PlayPredicted(sound, ent.Owner, user);
 
-        // if we don't have enough power left for another shot, turn it off
         if (!_powerCell.HasActivatableCharge(ent.Owner))
             _toggle.TryDeactivate(ent.Owner);
 

@@ -1,11 +1,10 @@
 <widgets:AlertsUI xmlns="https://spacestation14.io"
-                  xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Alerts.Widgets"
-                  MinSize="64 64">
-    <PanelContainer HorizontalAlignment="Right" VerticalAlignment="Top">
-        <BoxContainer Orientation="Vertical">
-            <BoxContainer Name="AlertContainer" Access="Public" Orientation="Vertical" HorizontalAlignment="Right" />
-            <!-- FINALSTAND: slot for custom per-player status labels (e.g. stamina %) -->
-            <BoxContainer Name="FSStatusContainer" Access="Public" Orientation="Vertical" MinSize="130 0" />
-        </BoxContainer>
-    </PanelContainer>
+                  xmlns:widgets="clr-namespace:Content.Client.UserInterface.Systems.Alerts.Widgets">
+    <!-- FINALSTAND: a vertical column growing upward from the vitals panel. Statuses and buffs are
+         open-ended, so this must not be boxed to a fixed width - it shares the vitals panel's left
+         edge for the visual tie instead of a wrapper. -->
+    <BoxContainer Name="AlertContainer" Access="Public"
+                  Orientation="Vertical"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Bottom" />
 </widgets:AlertsUI>

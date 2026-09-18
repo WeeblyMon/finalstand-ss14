@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -16,7 +17,6 @@ public sealed partial class FSArmorSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
-    // Set in ProjectileHitEvent, consumed in DamageModifyEvent same frame. Cleared each Update.
     private readonly Dictionary<EntityUid, FinalStandDamageFlags> _pendingFlags = [];
     private readonly Dictionary<EntityUid, float> _pendingShredMagnitude = [];
 
@@ -40,6 +40,9 @@ public sealed partial class FSArmorSystem : EntitySystem
             if (armor.CurrentArmor >= armor.MaxArmor)
                 continue;
 
+            if (HasComp<FSArmorSuppressedComponent>(uid))
+                continue;
+
             if (armor.RegenDelayAccumulator > 0f)
             {
                 armor.RegenDelayAccumulator -= frameTime;
@@ -48,7 +51,6 @@ public sealed partial class FSArmorSystem : EntitySystem
 
             armor.CurrentArmor = MathF.Min(armor.CurrentArmor + armor.RegenRate * frameTime, armor.MaxArmor);
 
-            // threshold to avoid flooding the network
             if (MathF.Abs(armor.CurrentArmor - armor.LastSyncedArmor) > 0.5f)
                 SyncArmor(uid, armor);
         }
@@ -81,7 +83,6 @@ public sealed partial class FSArmorSystem : EntitySystem
 
     private void OnDamageModify(EntityUid uid, FSArmorComponent armor, DamageModifyEvent args)
     {
-        // Consume unconditionally - a target with no armour left would otherwise strand the entry.
         _pendingFlags.Remove(uid, out var flags);
         _pendingShredMagnitude.Remove(uid, out var shredMag);
 
@@ -111,7 +112,6 @@ public sealed partial class FSArmorSystem : EntitySystem
             RaiseLocalEvent(uid, new ArmorDepletedEvent());
         }
 
-        // Armor shred: drain extra armor proportional to the shooter's upgrade level (0.1–0.5 per hit).
         if (flags.HasFlag(FinalStandDamageFlags.ArmorShred) && shredMag > 0f)
             armor.CurrentArmor = MathF.Max(0f, armor.CurrentArmor - absorbed * shredMag);
 
@@ -134,7 +134,6 @@ public sealed partial class FSArmorSystem : EntitySystem
         if (!_mobThresholds.TryGetThresholdForState(uid, MobState.Dead, out var maxHp, thresholds))
             return;
 
-        // don't refill CurrentArmor - only raise the ceiling
         armor.MaxArmor = maxHp!.Value.Float() * armor.MaxHPRatio;
         SyncArmor(uid, armor);
     }
