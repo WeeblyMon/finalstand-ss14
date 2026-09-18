@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   name: explosive grenade
   description: Grenade that creates a small but devastating explosion.
   parent: [VolatileGrenadeBase, TimerGrenadeBase, BaseSyndicateContraband]
@@ -323,6 +323,9 @@
     tags:
     - HandGrenade
   - type: PayloadCase
+  # FINALSTAND: FS zeroes explosion damage to non-mobs, so the casing is never destroyed by its own
+  # blast the way vanilla expects. Consume it on trigger instead of leaving spent casings around.
+  - type: DeleteOnTrigger
   - type: Construction
     graph: ModularGrenadeGraph
     node: emptyCase
