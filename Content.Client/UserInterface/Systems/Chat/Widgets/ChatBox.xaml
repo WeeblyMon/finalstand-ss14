@@ -13,6 +13,7 @@
             <BoxContainer Name="FSGrip" Access="Public" Orientation="Horizontal" MouseFilter="Ignore"
                           MinSize="0 16" Margin="6 3 4 0">
                 <Label Name="FSGripLabel" Access="Public" Text="CHAT" />
+                <Label Name="FSGripHint" Access="Public" Text="draggable" Margin="6 0 0 0" />
                 <Control HorizontalExpand="True" />
                 <Button Name="FSToggle" Access="Public" Text="▶" MinSize="20 16" />
             </BoxContainer>

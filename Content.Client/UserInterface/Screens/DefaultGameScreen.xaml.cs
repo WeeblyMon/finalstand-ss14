@@ -362,6 +362,10 @@ public sealed partial class DefaultGameScreen : InGameScreen
         Chat.FSToggle.OnPressed += _ => SetChatCollapsed(true);
 
         Chat.FSGripLabel.ModulateSelfOverride = FSPalette.TextDim;
+
+        // The grip bar looks like a title, so nothing about it says the window can be moved.
+        Chat.FSGripHint.StyleClasses.Add("LabelSubText");
+        Chat.FSGripHint.ModulateSelfOverride = FSPalette.TextMuted;
     }
 
     private void SetChatCollapsed(bool collapsed)
