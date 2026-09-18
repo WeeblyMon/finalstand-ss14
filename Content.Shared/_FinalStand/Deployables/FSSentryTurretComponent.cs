@@ -1,3 +1,4 @@
+﻿using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
@@ -25,14 +26,22 @@ public sealed partial class FSSentryTurretComponent : Component
     [DataField]
     public EntProtoId ProjectileProto = "FSSentryBullet";
 
-    // The gun art points south, which is also world angle zero, so no correction by default.
     [DataField]
     public float SpriteAngleOffset;
-
-    public EntityUid? OwnerPlayer;
 
     [DataField]
     public float ProjectileSpeed = 25f;
 
+    [DataField]
+    public SoundSpecifier? FireSound = new SoundPathSpecifier("/Audio/Weapons/Guns/Gunshots/mk58.ogg");
+
+    [DataField]
+    public SoundSpecifier? TargetAcquiredSound;
+
+    [DataField]
+    public EntProtoId? CasingProto;
+
     public TimeSpan NextFire;
+
+    public bool HasTarget;
 }

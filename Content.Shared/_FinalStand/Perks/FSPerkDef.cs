@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using System.Linq;
 
 namespace Content.Shared._FinalStand.Perks;
@@ -36,6 +37,39 @@ public sealed class FSPerkDef
         Category = category; LevelEffects = levelEffects;
     }
 
+    // Level text is generated from FSPerkBonusConstants so the shop can never advertise a rate the
+    // maths does not pay. Pct scales by 100, Flat does not.
+    private static string[] Pct(string format, params float[] rates) => Rows(format, 100f, rates);
+
+    private static string[] Flat(string format, params float[] amounts) => Rows(format, 1f, amounts);
+
+    // For perks that don't scale linearly, so the table itself is the source of truth.
+    private static string[] Table(string format, float[] perLevel)
+    {
+        if (perLevel.Length != MaxLevel)
+            throw new ArgumentException($"Perk table needs {MaxLevel} entries, got {perLevel.Length}.");
+
+        return perLevel
+            .Select(v => string.Format(CultureInfo.InvariantCulture, format,
+                v.ToString("0.##", CultureInfo.InvariantCulture)))
+            .ToArray();
+    }
+
+    private static string[] Rows(string format, float scale, float[] perLevel)
+    {
+        var rows = new string[MaxLevel];
+        for (var level = 1; level <= MaxLevel; level++)
+        {
+            var args = new object[perLevel.Length];
+            for (var i = 0; i < perLevel.Length; i++)
+                args[i] = (perLevel[i] * level * scale).ToString("0.##", CultureInfo.InvariantCulture);
+
+            rows[level - 1] = string.Format(CultureInfo.InvariantCulture, format, args);
+        }
+
+        return rows;
+    }
+
     public static readonly IReadOnlyDictionary<string, FSPerkDef> All;
 
     static FSPerkDef()
@@ -45,48 +79,47 @@ public sealed class FSPerkDef
             new("StoppingPower", "Stopping Power",
                 "Deal increased projectile damage. Does not apply to launchers.",
                 PerkCategory.Red,
-                ["+4% Damage", "+8% Damage", "+12% Damage", "+16% Damage"]),
+                Pct("+{0}% Damage", FSPerkBonusConstants.StoppingPowerPerLevel)),
 
             new("BulletStorm", "Bullet Storm",
                 "Increase fire rate on all firearms.",
                 PerkCategory.Red,
-                ["+8% Fire Rate", "+16% Fire Rate", "+24% Fire Rate", "+32% Fire Rate"]),
+                Pct("+{0}% Fire Rate", FSPerkBonusConstants.BulletStormPerLevel)),
 
             new("Juggernaught", "Juggernaught",
                 "Take less damage from zombies.",
                 PerkCategory.Blue,
-                ["+15% Resistance", "+30% Resistance", "+45% Resistance", "+60% Resistance"]),
+                Pct("+{0}% Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
 
             new("Lightweight", "Lightweight",
                 "Increases your movement speed.",
                 PerkCategory.Green,
-                ["+6% Speed", "+12% Speed", "+18% Speed", "+24% Speed"]),
+                Pct("+{0}% Speed", FSPerkBonusConstants.LightweightPerLevel)),
 
             new("Profiteer", "Profiteer",
                 "Increases the amount of money you earn.",
                 PerkCategory.Yellow,
-                ["+7% Money", "+14% Money", "+21% Money", "+28% Money"]),
+                Pct("+{0}% Money", FSPerkBonusConstants.ProfiteerFraction)),
 
             new("SwordAndShield", "Sword and Shield",
                 "Increases your melee damage and damage resistance while wielding a melee weapon.",
                 PerkCategory.Purple,
-                ["+5% Damage / +12% Resistance", "+10% Damage / +24% Resistance",
-                 "+15% Damage / +36% Resistance", "+20% Damage / +48% Resistance"]),
+                Pct("+{0}% Damage / +{1}% Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
 
             new("DeathAura", "Death Aura",
                 "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
                 PerkCategory.Red,
-                ["+5 Max Stacks", "+10 Max Stacks", "+15 Max Stacks", "+20 Max Stacks"]),
+                Flat("+{0} Max Stacks", FSPerkBonusConstants.DeathAuraStacksPerLevel)),
 
             new("Adrenaline", "Adrenaline",
                 "Killing an enemy grants unlimited stamina for a few seconds.",
                 PerkCategory.Green,
-                ["+2.1s Duration", "+2.8s Duration", "+3.5s Duration", "+4.2s Duration"]),
+                Table("+{0}s Duration", FSPerkBonusConstants.AdrenalineSeconds)),
 
             new("SpeedDemon", "Speed Demon",
                 "Kills increase your movement speed up to 7 stacks. Lose 1 stack/s after 5s.",
                 PerkCategory.Green,
-                ["+2% Speed/Stack", "+4% Speed/Stack", "+6% Speed/Stack", "+8% Speed/Stack"]),
+                Pct("+{0}% Speed/Stack", FSPerkBonusConstants.SpeedDemonPerLevel)),
 
             new("Rampage", "Rampage",
                 "Melee kills increase resistance, health regen, and speed. 5 stacks max.",
@@ -97,17 +130,17 @@ public sealed class FSPerkDef
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
                 PerkCategory.Yellow,
-                ["+2.5% Return", "+5% Return", "+7.5% Return", "+10% Return"]),
+                Pct("+{0}% Return", FSPerkBonusConstants.InvestorPerLevel)),
 
             new("MutualFund", "Mutual Fund",
                 "At the end of each wave your team's money gains interest.",
                 PerkCategory.Yellow,
-                ["+1.25% Team Return", "+2.5% Team Return", "+3.75% Team Return", "+5% Team Return"]),
+                Pct("+{0}% Team Return", FSPerkBonusConstants.MutualFundPerLevel)),
 
             new("LifeLeech", "Life Leech",
                 "Regenerate health after every zombie you kill.",
                 PerkCategory.Blue,
-                ["+1 Health", "+2 Health", "+4 Health", "+6 Health"]),
+                Table("+{0} Health", FSPerkBonusConstants.LifeLeechHeal)),
 
             new("Untouchable", "Untouchable",
                 "Automatically blocks one incoming hit. Charges refill after 30 seconds.",
@@ -122,17 +155,17 @@ public sealed class FSPerkDef
             new("GlassCannon", "Glass Cannon",
                 "Take 100% more damage, but deal more damage.",
                 PerkCategory.Red,
-                ["+25% Damage", "+50% Damage", "+75% Damage", "+100% Damage"]),
+                Pct("+{0}% Damage", FSPerkBonusConstants.GlassCannonPerLevel)),
 
             new("Pacifist", "Pacifist",
                 "Deal 25% less damage, but gain significant damage resistance.",
                 PerkCategory.Blue,
-                ["+20% Resistance", "+40% Resistance", "+60% Resistance", "+80% Resistance"]),
+                Pct("+{0}% Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
 
             new("FieldMedic", "Field Medic",
                 "Increases the potency of your healing.",
                 PerkCategory.Blue,
-                ["+15% Healing", "+30% Healing", "+45% Healing", "+60% Healing"]),
+                Pct("+{0}% Healing", FSPerkBonusConstants.FieldMedicPerLevel)),
 
             new("Cargonian", "Cargonian",
                 "Reduces the movement speed penalty from dragging bodies.",
@@ -142,7 +175,7 @@ public sealed class FSPerkDef
             new("LegBreaker", "Leg Breaker",
                 "Critical hits stagger enemies with stamina damage.",
                 PerkCategory.Blue,
-                ["25 Stamina Damage on Crit", "50 Stamina Damage on Crit", "75 Stamina Damage on Crit", "100 Stamina Damage on Crit"]),
+                Flat("{0} Stamina Damage on Crit", FSPerkBonusConstants.LegBreakerStaminaPerLevel)),
 
             new("BackBreaker", "Back Breaker",
                 "Critical shots knock enemies back.",
@@ -162,7 +195,7 @@ public sealed class FSPerkDef
             new("Officer", "Officer",
                 "Using a whistle near allies increases their damage for 8 seconds.",
                 PerkCategory.Green,
-                ["+15% Ally Damage", "+30% Ally Damage", "+45% Ally Damage", "+60% Ally Damage"]),
+                Pct("+{0}% Ally Damage", FSPerkBonusConstants.OfficerBuffPerLevel)),
 
             new("HarvesterTuning", "Harvester Tuning",
                 "Increases research points gained per Harvester hit.",

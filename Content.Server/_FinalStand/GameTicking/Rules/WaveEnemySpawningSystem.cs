@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
@@ -7,7 +7,6 @@ using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;
 using Content.Shared.Mobs;
-using Content.Shared.FixedPoint;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
@@ -34,8 +33,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
     private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
 
-    private const int MaxAliveRevenants = 1;
-    private const int DarkWaveRevenantHealth = 999999999;
+    private const int MaxAliveRevenants = 3;
 
     private readonly List<EntityUid> _spawnerBuffer = new();
     private readonly List<EntityUid> _secondaryBuffer = new();
@@ -60,7 +58,12 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         comp.PreviousSpawnerEntities.Clear();
-        comp.PreviousSpawnerEntities.UnionWith(comp.SpawnerEntities);
+        foreach (var previous in comp.SpawnerEntities)
+        {
+            if (!TryComp<WaveEnemySpawnerComponent>(previous, out var previousSpawner) || !previousSpawner.Secondary)
+                comp.PreviousSpawnerEntities.Add(previous);
+        }
+
         comp.SpawnerEntities.Clear();
 
         if (_spawnerBuffer.Count == 0)
@@ -174,7 +177,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         PushEnemyCount(comp);
     }
 
-    // Secondaries get a fraction of a full batch, so a supporting corridor trickles rather than floods.
     private void BuildSpawnPlan(WaveGameRuleComponent comp)
     {
         _spawnPlan.Clear();
@@ -256,6 +258,9 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             // LOS-filtered by NearbyHostilesQuery, so 15f sees down corridors but not through walls into rooms.
             htn.Blackboard.SetValue("VisionRadius", 15f);
             htn.Blackboard.SetValue("AggroVisionRadius", 15f);
+            // Matches MeleeWeapon.range. TargetInRangePrecondition plans against this, and the CCC
+            // is a 3x3 body, so leaving it at the 1.0 default makes the beeline branch unplannable.
+            htn.Blackboard.SetValue("MeleeRange", 2.0f);
             htn.Blackboard.SetValue(NPCBlackboard.NavSmash, true);
             htn.Blackboard.SetValue(NPCBlackboard.NavPry, false);
             if (comp.CCCEntity.IsValid())
@@ -270,7 +275,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
         _scaling.ScaleEnemyHp(enemy, comp.WaveNumber);
         _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
-        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.PlayersThisWave);
+        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
         RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
         return enemy;
@@ -296,7 +301,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return _random.Pick(pool);
     }
 
-    private const string DarkWaveEnemyProto = "FSZombieRevenant";
+    private const string DarkWaveEnemyProto = "FSZombieRevenantDark";
     private const float DarkWaveSpawnRadiusMin = 4f;
     private const float DarkWaveSpawnRadiusMax = 8f;
 
@@ -344,7 +349,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (spawnCoords == null) continue;
 
             var enemy = SpawnWaveEnemy(DarkWaveEnemyProto, spawnCoords.Value, comp);
-            _thresholds.SetMobStateThreshold(enemy, FixedPoint2.New(DarkWaveRevenantHealth), MobState.Dead);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
         }

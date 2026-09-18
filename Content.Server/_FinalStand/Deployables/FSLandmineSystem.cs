@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.Deployables;
+﻿using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.StepTrigger.Systems;
 using Content.Shared.Explosion.EntitySystems;
@@ -22,7 +22,6 @@ public sealed class FSLandmineSystem : EntitySystem
         SubscribeLocalEvent<FSLandmineComponent, StepTriggerAttemptEvent>(OnStepAttempt);
     }
 
-    // Crew walk over their own mines; only wave enemies set them off.
     private void OnStepAttempt(Entity<FSLandmineComponent> ent, ref StepTriggerAttemptEvent args)
     {
         if (HasComp<FSFriendlyFireComponent>(args.Tripper))
@@ -31,8 +30,6 @@ public sealed class FSLandmineSystem : EntitySystem
 
     private void OnDeployed(Entity<FSLandmineComponent> ent, ref FSDeployableDeployedEvent args)
     {
-        ent.Comp.OwnerPlayer = args.User;
-
         if (!TryComp<FSLandmineComponent>(args.Item, out var item))
             return;
 
@@ -40,6 +37,14 @@ public sealed class FSLandmineSystem : EntitySystem
         ent.Comp.IntensityMultiplier = item.IntensityMultiplier;
         ent.Comp.HighExplosive = item.HighExplosive;
         Dirty(ent);
+    }
+
+    private EntityUid? DeployerOf(EntityUid mine)
+    {
+        if (!TryComp<FSDeployedByComponent>(mine, out var deployed) || deployed.DeployedBy is not { } body)
+            return null;
+
+        return TerminatingOrDeleted(body) ? null : body;
     }
 
     private void OnTrigger(Entity<FSLandmineComponent> ent, ref TriggerEvent args)
@@ -52,8 +57,7 @@ public sealed class FSLandmineSystem : EntitySystem
         var total = comp.HighExplosive ? comp.HighExplosiveTotalIntensity : comp.TotalIntensity;
         var max = comp.HighExplosive ? comp.HighExplosiveMaxIntensity : comp.MaxIntensity;
 
-        // Credit the blast to whoever planted it so FS friendly fire spares the crew.
-        var cause = comp.OwnerPlayer is { } owner && !TerminatingOrDeleted(owner) ? owner : args.User;
+        var cause = DeployerOf(ent) ?? args.User;
         _explosion.QueueExplosion(ent.Owner, comp.ExplosionType, total * comp.IntensityMultiplier,
             comp.IntensitySlope, max, canCreateVacuum: false, user: cause);
 

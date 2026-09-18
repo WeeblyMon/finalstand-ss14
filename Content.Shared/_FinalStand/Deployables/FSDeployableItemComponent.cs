@@ -22,6 +22,16 @@ public sealed partial class FSDeployableItemComponent : Component
     public bool RequiresMedical;
 
     [DataField]
+    public bool RequiresEngineering;
+
+    // 0 is unlimited.
+    [DataField, AutoNetworkedField]
+    public int MaxDeployed;
+
+    [DataField]
+    public bool FaceDeployerDirection;
+
+    [DataField]
     public int RegenPerWave = 1;
 
     [DataField]

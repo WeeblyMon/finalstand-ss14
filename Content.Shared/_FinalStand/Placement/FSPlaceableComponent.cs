@@ -15,4 +15,6 @@ public sealed partial class FSPlaceableComponent : Component
 
     [DataField, AutoNetworkedField]
     public bool Placing;
+
+    public Direction PlacementDirection = Direction.South;
 }

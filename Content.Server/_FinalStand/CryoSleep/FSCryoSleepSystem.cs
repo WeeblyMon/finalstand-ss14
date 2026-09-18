@@ -1,8 +1,7 @@
-using Content.Server.Ghost;
+﻿using Content.Server.Ghost;
 using Content.Shared._FinalStand.CryoSleep;
 using Content.Shared.Bed.Cryostorage;
 using Content.Shared.CCVar;
-using Content.Shared.GameTicking;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
 using Robust.Shared.Configuration;
@@ -13,24 +12,24 @@ using Robust.Shared.Player;
 namespace Content.Server._FinalStand.CryoSleep;
 
 // entering cryosleep, and the record of who has a body waiting
-public sealed partial class FSCryoSleepSystem : EntitySystem
+public sealed class FSCryoSleepSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private GhostSystem _ghost = default!;
 
-    private readonly Dictionary<NetUserId, StoredBody> _stored = new();
-
     private bool _rejoinEnabled;
+
+    public bool RejoinEnabled => _rejoinEnabled;
 
     public override void Initialize()
     {
         base.Initialize();
 
+        _cfg.OverrideDefault(CCVars.GameCryoSleepRejoining, true);
         Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
 
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _stored.Clear());
         SubscribeLocalEvent<CryostorageComponent, InteractHandEvent>(OnPodInteractHand);
         SubscribeLocalEvent<CryostorageComponent, ActivateInWorldEvent>(OnPodActivate);
         SubscribeLocalEvent<CanEnterCryostorageComponent, EntGotInsertedIntoContainerMessage>(OnInsertedIntoPod);
@@ -42,23 +41,24 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         body = default;
         pod = default;
 
-        if (!_stored.TryGetValue(userId, out var stored))
-            return false;
-
-        if (TerminatingOrDeleted(stored.Body))
+        var query = EntityManager.AllEntityQueryEnumerator<FSCryoStoredBodyComponent>();
+        while (query.MoveNext(out var uid, out var stored))
         {
-            _stored.Remove(userId);
-            return false;
+            if (stored.User != userId || TerminatingOrDeleted(uid))
+                continue;
+
+            body = uid;
+            pod = stored.Pod;
+            return true;
         }
 
-        body = stored.Body;
-        pod = stored.Pod;
-        return true;
+        return false;
     }
 
     public void Forget(NetUserId userId)
     {
-        _stored.Remove(userId);
+        if (TryGetStoredBody(userId, out var body, out _))
+            RemComp<FSCryoStoredBodyComponent>(body);
     }
 
     public void PushStatus(ICommonSession session)
@@ -111,19 +111,18 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         var session = actor.PlayerSession;
         _ghost.OnGhostAttempt(mindId, canReturnGlobal: false, forced: true);
 
-        _stored[session.UserId] = new StoredBody(ent.Owner, pod);
+        var stored = EnsureComp<FSCryoStoredBodyComponent>(ent);
+        stored.User = session.UserId;
+        stored.Pod = pod;
+
         PushStatus(session);
     }
 
-    // Taking control of the stored body - our own return, or vanilla's reconnect path - ends the
-    // stay in cryo. Anything else attaching just refreshes the ghost bar.
     private void OnPlayerAttached(PlayerAttachedEvent ev)
     {
-        if (_stored.TryGetValue(ev.Player.UserId, out var stored) && stored.Body == ev.Entity)
-            _stored.Remove(ev.Player.UserId);
+        if (TryComp<FSCryoStoredBodyComponent>(ev.Entity, out var stored) && stored.User == ev.Player.UserId)
+            RemComp<FSCryoStoredBodyComponent>(ev.Entity);
 
         PushStatus(ev.Player);
     }
-
-    private readonly record struct StoredBody(EntityUid Body, EntityUid Pod);
 }

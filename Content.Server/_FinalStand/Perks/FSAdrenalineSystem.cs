@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Perks;
+﻿using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Damage.Components;
@@ -18,7 +18,6 @@ public sealed partial class FSAdrenalineSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSPerkNotifySystem _notify = default!;
 
-    private static readonly float[] Durations = [2.1f, 2.8f, 3.5f, 4.2f];
 
     public override void Initialize()
     {
@@ -62,7 +61,7 @@ public sealed partial class FSAdrenalineSystem : EntitySystem
         var level = ev.Perks.GetSlottedLevel("Adrenaline");
         if (level <= 0) return;
 
-        var duration = TimeSpan.FromSeconds(Durations[level - 1]);
+        var duration = TimeSpan.FromSeconds(FSPerkBonusConstants.AdrenalineSeconds[level - 1]);
         var newEnd = _timing.CurTime + duration;
 
         var adr = EnsureComp<FSAdrenalineComponent>(ev.Killer);

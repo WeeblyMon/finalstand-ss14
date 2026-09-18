@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
@@ -46,7 +46,8 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
 
     public void ScaleEnemyDamage(EntityUid enemy, int wave, int playerCount)
     {
-        var multiplier = MathF.Min(1f + wave * (0.035f + (playerCount - 1) * 0.007f), 3.5f);
+        var scalingPlayers = Math.Max(1, playerCount);
+        var multiplier = MathF.Min(1f + wave * (0.035f + (scalingPlayers - 1) * 0.007f), 3.5f);
         if (multiplier <= 1f)
             return;
 

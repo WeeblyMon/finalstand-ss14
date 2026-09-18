@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   id: FSZombieRevenant
   parent: FSZombieFootsoldierBase
   suffix: Revenant
@@ -57,10 +57,22 @@
     damagedState: damaged
     singleStageAt: 0.10
   - type: FSEnemyValue
-    killCredits: 550
+    killCredits: 1500
   - type: FSMoneyOnHitCap
     maxMoneyPerPlayer: 1100
   - type: FSDeathLoot
     drops:
     - proto: FSResearchDisk
       chance: 0.0008
+
+# Dark wave variant: several of these are alive at once and they respawn for the whole wave,
+# so they trade the normal revenant's fragility for twice a giant's 800 HP.
+- type: entity
+  id: FSZombieRevenantDark
+  parent: FSZombieRevenant
+  suffix: Revenant, Dark Wave
+  components:
+  - type: MobThresholds
+    thresholds:
+      0: Alive
+      1600: Dead

@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -128,7 +128,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         return true;
     }
 
-    // Walks the dash line and returns the furthest point still in the clear.
     private Vector2 ProbeDash(Vector2 origin, Vector2 heading, float distance, MapId mapId)
     {
         var originCoords = new MapCoordinates(origin, mapId);
@@ -189,6 +188,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         Dirty(ent);
         _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, true);
         _physics.SetCanCollide(ent.Owner, false);
+        comp.GrantedDamageImmunity = !HasComp<FSPlayerDamageImmuneComponent>(ent);
         EnsureComp<FSPlayerDamageImmuneComponent>(ent);
 
         _audio.PlayPvs(comp.LaunchSound, ent.Owner);
@@ -203,7 +203,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
         _transform.SetWorldPosition(ent.Owner, comp.LockedTarget);
         _physics.SetCanCollide(ent.Owner, true);
-        RemComp<FSPlayerDamageImmuneComponent>(ent);
+        ClearGrantedImmunity(ent);
         comp.Airborne = false;
         Dirty(ent);
         _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, false);
@@ -218,7 +218,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         CollectVictims(comp.LockedTarget, xform.MapID, comp.SkyJumpOuterRadius);
         foreach (var (victim, distance) in _victims)
         {
-            // Knockback first: a downed body has too much friction to be thrown anywhere.
             var away = _transform.GetWorldPosition(victim) - comp.LockedTarget;
 
             if (distance <= comp.SkyJumpRadius)
@@ -266,9 +265,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             return;
         }
 
-        // Re-probe from where the giant actually stands now, keeping the heading it committed to.
         comp.DashOrigin = _transform.GetWorldPosition(xform);
-        comp.DashLanding = ProbeDash(comp.DashOrigin, comp.DashHeading, comp.DashDistance, xform.MapID);
         _audio.PlayPvs(comp.DashSound, ent.Owner);
         Begin(ent, FSGiantAbility.DashTravel, comp.DashTravelTime, now);
     }
@@ -287,7 +284,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var punch = new DamageSpecifier();
         punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
 
-        // Sweep the whole dash line: anyone run through counts, not just whoever is at the end.
         _swept.Clear();
         var travelled = (landing - comp.DashOrigin).Length();
         var samples = Math.Max(1, (int) MathF.Ceiling(travelled));
@@ -319,11 +315,20 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             Dirty(ent);
             _appearance.SetData(ent.Owner, FSGiantAbilityVisuals.Airborne, false);
             _physics.SetCanCollide(ent.Owner, true);
-            RemComp<FSPlayerDamageImmuneComponent>(ent);
+            ClearGrantedImmunity(ent);
         }
 
         ent.Comp.Current = FSGiantAbility.None;
         ClearMarkers(ent);
+    }
+
+    private void ClearGrantedImmunity(Entity<FSGiantAbilitiesComponent> ent)
+    {
+        if (!ent.Comp.GrantedDamageImmunity)
+            return;
+
+        ent.Comp.GrantedDamageImmunity = false;
+        RemComp<FSPlayerDamageImmuneComponent>(ent);
     }
 
     private void ClearMarkers(Entity<FSGiantAbilitiesComponent> ent)
@@ -358,7 +363,6 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         ent.Comp.LaneEntities.Add(lane);
     }
 
-    // Thrown at the end of the dash, so the punch lands with the giant rather than telegraphing it.
     private void SpawnFist(Entity<FSGiantAbilitiesComponent> ent, Vector2 landing, Vector2 heading, MapId mapId)
     {
         var fist = Spawn(ent.Comp.FistProto, new MapCoordinates(landing + heading * 1.3f, mapId));
@@ -368,26 +372,32 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     private EntityUid? FindTarget(Vector2 origin, MapId mapId, float range)
     {
         var candidates = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), range, candidates);
-
-        EntityUid? best = null;
-        var bestDistance = float.MaxValue;
-
-        foreach (var (candidate, _) in candidates)
+        try
         {
-            if (!_mobState.IsAlive(candidate))
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), range, candidates);
 
-            var distance = Vector2.DistanceSquared(origin, _transform.GetWorldPosition(candidate));
-            if (distance >= bestDistance)
-                continue;
+            EntityUid? best = null;
+            var bestDistance = float.MaxValue;
 
-            best = candidate;
-            bestDistance = distance;
+            foreach (var (candidate, _) in candidates)
+            {
+                if (!_mobState.IsAlive(candidate))
+                    continue;
+
+                var distance = Vector2.DistanceSquared(origin, _transform.GetWorldPosition(candidate));
+                if (distance >= bestDistance)
+                    continue;
+
+                best = candidate;
+                bestDistance = distance;
+            }
+
+            return best;
         }
-
-        _actorPool.Return(candidates);
-        return best;
+        finally
+        {
+            _actorPool.Return(candidates);
+        }
     }
 
     private void CollectVictims(Vector2 origin, MapId mapId, float radius)
@@ -395,21 +405,24 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _victims.Clear();
 
         var candidates = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, candidates);
-
-        foreach (var (candidate, _) in candidates)
+        try
         {
-            if (!_mobState.IsAlive(candidate))
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, candidates);
 
-            _victims.Add((candidate, Vector2.Distance(origin, _transform.GetWorldPosition(candidate))));
+            foreach (var (candidate, _) in candidates)
+            {
+                if (!_mobState.IsAlive(candidate))
+                    continue;
+
+                _victims.Add((candidate, Vector2.Distance(origin, _transform.GetWorldPosition(candidate))));
+            }
         }
-
-        _actorPool.Return(candidates);
+        finally
+        {
+            _actorPool.Return(candidates);
+        }
     }
 
-    // Setting velocity directly gets eaten by tile friction within a few ticks, which reads as a
-    // jostle rather than a launch. A friction-compensated throw actually covers the distance.
     private void Shove(EntityUid target, Vector2 direction, float distance, float speed)
     {
         if (HasComp<FSKnockedBackComponent>(target) || !HasComp<PhysicsComponent>(target))
@@ -447,21 +460,26 @@ public sealed class FSGiantAbilitySystem : EntitySystem
     private void ShakeArea(Vector2 origin, MapId mapId, float radius)
     {
         var watchers = _actorPool.Get();
-        _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, watchers);
-
-        foreach (var (watcher, _) in watchers)
+        try
         {
-            var direction = _transform.GetWorldPosition(watcher) - origin;
-            var magnitude = 1f - MathF.Min(direction.Length() / radius, 1f);
-            if (magnitude <= 0.02f)
-                continue;
+            _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), radius, watchers);
 
-            if (direction == Vector2.Zero)
-                direction = new Vector2(1f, 0f);
+            foreach (var (watcher, _) in watchers)
+            {
+                var direction = _transform.GetWorldPosition(watcher) - origin;
+                var magnitude = 1f - MathF.Min(direction.Length() / radius, 1f);
+                if (magnitude <= 0.02f)
+                    continue;
 
-            _recoil.KickCamera(watcher, direction.Normalized() * magnitude);
+                if (direction == Vector2.Zero)
+                    direction = new Vector2(1f, 0f);
+
+                _recoil.KickCamera(watcher, direction.Normalized() * magnitude);
+            }
         }
-
-        _actorPool.Return(watchers);
+        finally
+        {
+            _actorPool.Return(watchers);
+        }
     }
 }

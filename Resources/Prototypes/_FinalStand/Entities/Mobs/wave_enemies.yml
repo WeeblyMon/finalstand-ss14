@@ -1,4 +1,4 @@
-# ── FSZombie types ──────────────────────────────────────────────────────────
+﻿# ── FSZombie types ──────────────────────────────────────────────────────────
 
 - type: entity
   id: FSZombieBase
@@ -33,6 +33,8 @@
   - type: MeleeWeapon
     altDisarm: false
     angle: 0
+    # Range is centre to centre, and the CCC is a 3x3 body, so 1.5 cannot reach its face.
+    range: 2.0
     animation: WeaponArcClaw
     soundHit:
       path: /Audio/Weapons/Xeno/alien_claw_flesh3.ogg

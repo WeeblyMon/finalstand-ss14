@@ -1,0 +1,131 @@
+﻿# ── Heavy Sentry - held item (engineering only, planted via use-in-hand) ─────────────────
+- type: entity
+  id: FSHeavySentryItem
+  parent: BaseItem
+  name: heavy sentry
+  description: A belt-fed emplacement gun on a folding mount. Engineering issue only. Bolt it down and it holds a corridor on its own.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Huge
+    shape:
+    - 0,0,2,2
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
+    state: icon
+  - type: FSSentryTurret
+    ammo: 400
+    maxAmmo: 400
+    range: 6
+    fireInterval: 0.3
+    damageMultiplier: 3.6
+    spriteAngleOffset: 180
+    projectileProto: FSHeavySentryRound
+    projectileSpeed: 30
+    casingProto: FSHeavySentryCasing
+    fireSound:
+      path: /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg
+    targetAcquiredSound:
+      path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
+  - type: FSDeployableItem
+    requiresScience: false
+    requiresEngineering: true
+    deployedProtoId: FSHeavySentryDeployed
+    stock: 1
+    maxStock: 1
+    maxDeployed: 1
+    regenPerWave: 1
+    wavesPerRegen: 3
+  - type: FSPlaceable
+    previewProtoId: FSHeavySentryDeployed
+    range: 6
+
+# ── Heavy Sentry - deployed ──────────────────────────────────────────────────────────────
+- type: entity
+  id: FSHeavySentryDeployed
+  name: heavy sentry
+  description: A deployed emplacement gun. It tracks and fires on hostiles by itself.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    drawdepth: Objects
+    noRot: true
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
+    layers:
+    - state: base
+      map: [ "turretBase" ]
+    - state: turret
+      map: [ "gun" ]
+  - type: Appearance
+  - type: FSSentryTurret
+    ammo: 400
+    maxAmmo: 400
+    range: 6
+    fireInterval: 0.3
+    damageMultiplier: 3.6
+    spriteAngleOffset: 180
+    projectileProto: FSHeavySentryRound
+    projectileSpeed: 30
+    casingProto: FSHeavySentryCasing
+    fireSound:
+      path: /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg
+    targetAcquiredSound:
+      path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.45,0.45,0.45"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Anchorable
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 260
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+# Cellular spares structures the way FS explosions do, so a turret cannot chew up the station.
+- type: entity
+  id: FSHeavySentryRound
+  parent: BaseBullet
+  name: heavy sentry round
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Cellular: 16
+
+- type: entity
+  id: FSHeavySentryCasing
+  name: spent casing
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
+    state: casing
+  - type: TimedDespawn
+    lifetime: 10

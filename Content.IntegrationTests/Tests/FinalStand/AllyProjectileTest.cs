@@ -155,8 +155,8 @@ public sealed class AllyProjectileTest : GameTest
                 Assert.That(entMan.TryGetComponent(mag, out SolutionAmmoProviderComponent? ammo), Is.True,
                     $"{proto} is not a solution magazine");
 
-                Assert.That(ammo!.Shots, Is.EqualTo(12),
-                    $"{proto} spawned reporting {ammo.Shots} shots - 60u at 5u per dart should be 12");
+                Assert.That(ammo!.Shots, Is.EqualTo(200),
+                    $"{proto} spawned reporting {ammo.Shots} shots - 200u at 1u per dart should be 200");
             }
         });
     }

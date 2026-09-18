@@ -2,7 +2,10 @@ using System.Numerics;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Weapons;
@@ -11,12 +14,12 @@ namespace Content.Shared._FinalStand.Weapons;
 public sealed class FSChargeShotSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
-    // The client only sends a shoot request once NextFire has elapsed, so the cooldown is cleared
-    // every tick below to keep that stream running. A gap longer than this means the trigger is up.
     private static readonly TimeSpan ReleaseGrace = TimeSpan.FromMilliseconds(120);
 
     private const float AimDistance = 10f;
@@ -39,7 +42,17 @@ public sealed class FSChargeShotSystem : EntitySystem
         var comp = ent.Comp;
         comp.LastHeld = _timing.CurTime;
         comp.Shooter = args.User;
-        comp.ChargeStart ??= _timing.CurTime;
+        if (comp.ChargeStart == null)
+        {
+            comp.ChargeStart = _timing.CurTime;
+
+            if (_net.IsServer)
+            {
+                comp.ChargeStream = _audio.Stop(comp.ChargeStream);
+                comp.ChargeStream = _audio.PlayPvs(comp.ChargeSound, args.User,
+                    AudioParams.Default.WithLoop(true))?.Entity;
+            }
+        }
 
         if (!TryComp<GunComponent>(ent, out var gun) || gun.ShootCoordinates is not { } coords)
             return;
@@ -68,8 +81,6 @@ public sealed class FSChargeShotSystem : EntitySystem
                 continue;
             }
 
-            // Cancelling a shot pushes NextFire out by SafetyNextFire, which throttles the client to
-            // one request every half second. Undo it so a held trigger reports every tick.
             _gun.ClearFireCooldown((uid, gun), now);
 
             var held = (float) (now - start).TotalSeconds;
@@ -91,6 +102,8 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.ChargeStart = null;
         comp.LastHeld = TimeSpan.Zero;
+        if (_net.IsServer)
+            comp.ChargeStream = _audio.Stop(comp.ChargeStream);
 
         if (shooter is { } user && !TerminatingOrDeleted(user) && aim.LengthSquared() > 0.01f)
         {
@@ -107,6 +120,7 @@ public sealed class FSChargeShotSystem : EntitySystem
 
         comp.Charge = 0f;
         comp.Shooter = null;
+        comp.AimDirection = Vector2.Zero;
         Dirty(ent.Owner, comp);
     }
 }

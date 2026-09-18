@@ -50,7 +50,10 @@ public sealed partial class ViewportUIController : UIController
 
         if (verticalfit)
         {
-            width = max;
+            var size = Viewport.PixelSize;
+            width = size.Y > 0
+                ? Math.Clamp((int) MathF.Ceiling(ViewportHeight * (size.X / (float) size.Y)), min, max)
+                : max;
         }
         else if (width < min || width > max)
         {
@@ -67,6 +70,9 @@ public sealed partial class ViewportUIController : UIController
         {
             return;
         }
+
+        Viewport.OnResized -= UpdateViewportRatio;
+        Viewport.OnResized += UpdateViewportRatio;
 
         UpdateViewportRatio();
         Viewport.Viewport.HorizontalExpand = true;

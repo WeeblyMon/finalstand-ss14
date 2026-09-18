@@ -13,7 +13,7 @@ public sealed class FSChargeMeterOverlay : Overlay
     [Dependency] private IGameTiming _timing = default!;
 
     private const float HorizontalOffset = 30f;
-    private const float VerticalOffset = 8f;
+    private const float VerticalOffset = 0f;
     private const float BarWidth = 8f;
     private const float BarHeight = 46f;
     private const float BorderWidth = 1f;
@@ -21,10 +21,10 @@ public sealed class FSChargeMeterOverlay : Overlay
     private const int Ticks = 4;
 
     private static readonly Color Border = new(0f, 0f, 0f, 0.85f);
-    private static readonly Color Backing = new(0.05f, 0.05f, 0.06f, 0.75f);
+    private static readonly Color Backing = new(0.05f, 0.05f, 0.06f, 0.5f);
     private static readonly Color TickLine = new(0f, 0f, 0f, 0.45f);
-    private static readonly Color LowCharge = Color.FromHex("#FF7A18");
-    private static readonly Color HighCharge = Color.FromHex("#FFE9A8");
+    private static readonly Color LowCharge = Color.FromHex("#3FDD52");
+    private static readonly Color HighCharge = Color.FromHex("#E01F1F");
     private static readonly Color FullCharge = Color.FromHex("#FFFFFF");
 
     private SharedTransformSystem? _xform;
@@ -66,8 +66,9 @@ public sealed class FSChargeMeterOverlay : Overlay
     private void DrawMeter(DrawingHandleScreen handle, Vector2 screenPos, float charge)
     {
         var left = screenPos.X + HorizontalOffset;
-        var bottom = screenPos.Y + VerticalOffset;
-        var top = bottom - BarHeight;
+        var centre = screenPos.Y + VerticalOffset;
+        var top = centre - BarHeight / 2f;
+        var bottom = centre + BarHeight / 2f;
 
         handle.DrawRect(new UIBox2(
             left - BorderWidth,
@@ -91,7 +92,6 @@ public sealed class FSChargeMeterOverlay : Overlay
         }
     }
 
-    // Full charge breathes between hot and white so the release window is unmistakable.
     private Color Pulse()
     {
         var t = (MathF.Sin((float) _timing.CurTime.TotalSeconds * 12f) + 1f) * 0.5f;

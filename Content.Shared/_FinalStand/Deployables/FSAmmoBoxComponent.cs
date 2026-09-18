@@ -1,4 +1,4 @@
-using Robust.Shared.GameStates;
+﻿using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Deployables;
 
@@ -18,5 +18,4 @@ public sealed partial class FSAmmoBoxComponent : Component
     [DataField]
     public TimeSpan RefillDuration = TimeSpan.FromSeconds(3);
 
-    public EntityUid? OwnerMind;
 }

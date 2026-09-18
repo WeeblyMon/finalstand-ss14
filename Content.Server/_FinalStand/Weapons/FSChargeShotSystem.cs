@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Upgrades;
+﻿using Content.Server._FinalStand.Upgrades;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
@@ -7,9 +7,9 @@ using Robust.Shared.Physics.Systems;
 
 namespace Content.Server._FinalStand.Weapons;
 
-// scales the released volley: damage, speed, pierce, bounces and pellet size all follow the charge
 public sealed class FSChargeShotEffectsSystem : EntitySystem
 {
+    [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
 
     public override void Initialize()
@@ -41,7 +41,22 @@ public sealed class FSChargeShotEffectsSystem : EntitySystem
             if (pierce > 0)
                 EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
 
-            EnsureComp<FSRicochetComponent>(projUid).Bounces = bounces;
+            if (bounces > 0)
+            {
+                var ricochet = EnsureComp<FSRicochetComponent>(projUid);
+                ricochet.Bounces = bounces;
+                ricochet.DamageRetained = comp.BounceDamageRetained;
+                ricochet.SpeedRetained = comp.BounceSpeedRetained;
+                ricochet.Refund = comp.BounceRefund;
+                ricochet.Crit = comp.BounceCrit;
+                ricochet.Fracture = comp.Fracture;
+                ricochet.FragmentProto = comp.FragmentProto;
+            }
+            else
+            {
+                RemComp<FSRicochetComponent>(projUid);
+                _fixtures.DestroyFixture(projUid, FSRicochetSystem.BounceFixture);
+            }
 
             if (TryComp<PhysicsComponent>(projUid, out var body))
                 _physics.SetLinearVelocity(projUid, body.LinearVelocity * speedMul, body: body);

@@ -17,15 +17,49 @@ public sealed partial class FSRicochetComponent : Component
     [DataField]
     public float DamageRetained = 0.8f;
 
-    // How far along the normal the projectile is placed so it leaves the surface it just struck.
     [DataField]
     public float Clearance = 0.25f;
 
     [DataField]
-    public SoundSpecifier? BounceSound = new SoundPathSpecifier("/Audio/Weapons/Guns/Hits/energy_metal1.ogg");
+    public SoundSpecifier? BounceSound = new SoundPathSpecifier("/Audio/_FinalStand/Weapons/EnergyShotgun/bounce.ogg");
 
     [DataField]
     public EntProtoId? BounceEffect;
+
+    [DataField]
+    public bool Refund;
+
+    [DataField]
+    public float RefundFraction = 0.25f;
+
+    [DataField]
+    public bool Crit;
+
+    [DataField]
+    public float CritMultiplier = 2f;
+
+    [DataField]
+    public bool Fracture;
+
+    [DataField]
+    public int FragmentCount = 3;
+
+    [DataField]
+    public float FragmentDamage = 0.25f;
+
+    [DataField]
+    public float FragmentLifetime = 0.6f;
+
+    [DataField]
+    public float FragmentSpeed = 16f;
+
+    [DataField]
+    public int FragmentBounces;
+
+    [DataField]
+    public EntProtoId? FragmentProto;
+
+    public readonly HashSet<EntityUid> Hit = new();
 
     public TimeSpan NextBounce;
 }

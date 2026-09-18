@@ -1,21 +1,18 @@
-using Content.Shared._FinalStand.CryoSleep;
+﻿using Content.Shared._FinalStand.CryoSleep;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Bed.Cryostorage;
-using Content.Shared.CCVar;
 using Content.Shared.Climbing.Systems;
 using Content.Shared.Database;
 using Content.Shared.Ghost.Components;
 using Content.Shared.Mind;
-using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.CryoSleep;
 
 // returns a cryosleeping player to their own body without a reconnect
-public sealed partial class FSCryoReturnSystem : EntitySystem
+public sealed class FSCryoReturnSystem : EntitySystem
 {
-    [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private ISharedAdminLogManager _adminLog = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -23,13 +20,10 @@ public sealed partial class FSCryoReturnSystem : EntitySystem
     [Dependency] private ClimbSystem _climb = default!;
     [Dependency] private FSCryoSleepSystem _cryo = default!;
 
-    private bool _rejoinEnabled;
-
     public override void Initialize()
     {
         base.Initialize();
 
-        Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
         SubscribeNetworkEvent<FSCryoWakeupRequestEvent>(OnWakeupRequest);
     }
 
@@ -41,7 +35,7 @@ public sealed partial class FSCryoReturnSystem : EntitySystem
 
     private FSReturnToBodyStatus TryReturnToBody(ICommonSession session)
     {
-        if (!_rejoinEnabled)
+        if (!_cryo.RejoinEnabled)
             return FSReturnToBodyStatus.Disabled;
 
         if (session.AttachedEntity is not { } ghost || !HasComp<GhostComponent>(ghost))

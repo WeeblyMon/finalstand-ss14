@@ -1,5 +1,7 @@
 using System.Numerics;
+using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Weapons;
 
@@ -8,7 +10,7 @@ namespace Content.Shared._FinalStand.Weapons;
 public sealed partial class FSChargeShotComponent : Component
 {
     [DataField]
-    public float MaxChargeTime = 1.5f;
+    public float MaxChargeTime = 1.2f;
 
     [DataField]
     public float MinDamageMultiplier = 0.35f;
@@ -23,7 +25,7 @@ public sealed partial class FSChargeShotComponent : Component
     public float MinPelletScale = 0.5f;
 
     [DataField]
-    public float MaxPelletScale = 1.0f;
+    public float MaxPelletScale = 2.0f;
 
     [DataField]
     public float MinSpeedMultiplier = 0.8f;
@@ -32,12 +34,33 @@ public sealed partial class FSChargeShotComponent : Component
     public float MaxSpeedMultiplier = 1.8f;
 
     [DataField]
-    public int MinBounces = 1;
+    public int MinBounces;
 
     [DataField]
-    public int MaxBounces = 4;
+    public int MaxBounces = 3;
 
-    // 0-1, networked so the holder's charge meter can read it.
+    [DataField]
+    public float BounceDamageRetained = 0.8f;
+
+    [DataField]
+    public float BounceSpeedRetained = 0.85f;
+
+    [DataField]
+    public bool BounceRefund;
+
+    [DataField]
+    public bool BounceCrit;
+
+    [DataField]
+    public bool Fracture;
+
+    [DataField]
+    public EntProtoId? FragmentProto = "FSBulletLaserShotgunFragment";
+
+    [DataField]
+    public SoundSpecifier? ChargeSound =
+        new SoundPathSpecifier("/Audio/_FinalStand/Weapons/EnergyShotgun/charge.ogg");
+
     [AutoNetworkedField]
     public float Charge;
 
@@ -45,7 +68,6 @@ public sealed partial class FSChargeShotComponent : Component
     public TimeSpan LastHeld;
     public EntityUid? Shooter;
 
-    // World-space aim, resampled every tick the trigger is held. Storing the client's
-    // player-relative coordinates instead lets the shot swing wide when the shooter turns.
     public Vector2 AimDirection;
+    public EntityUid? ChargeStream;
 }

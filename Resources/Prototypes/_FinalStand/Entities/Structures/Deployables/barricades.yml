@@ -1,0 +1,90 @@
+# Carried barricade packs. Deploying plants the matching structure at the ghost's rotation.
+
+- type: entity
+  id: FSBarricadeMetalItem
+  parent: BaseItem
+  name: metal barricade
+  description: A packed metal barricade. Press Z to aim a placement, middle-click to turn it, click to deploy - or throw it (Ctrl+Q) to deploy where it lands.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Large
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: metal
+  - type: FSDeployableItem
+    deployedProtoId: FSBarricadeMetal
+    requiresScience: false
+    stock: 3
+    maxStock: 3
+    maxDeployed: 6
+    regenPerWave: 1
+    faceDeployerDirection: true
+  - type: FSPlaceable
+    previewProtoId: FSBarricadeMetal
+    range: 10
+
+- type: entity
+  id: FSBarricadeMetalDoorItem
+  parent: FSBarricadeMetalItem
+  name: folding metal barricade
+  description: A packed folding metal barricade. Press Z to aim a placement, middle-click to turn it, click to deploy. Click the deployed barricade to open or close it.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_metal
+  - type: FSDeployableItem
+    deployedProtoId: FSBarricadeMetalDoor
+    requiresScience: false
+    stock: 2
+    maxStock: 2
+    maxDeployed: 4
+    regenPerWave: 1
+    faceDeployerDirection: true
+  - type: FSPlaceable
+    previewProtoId: FSBarricadeMetalDoor
+    range: 10
+
+- type: entity
+  id: FSBarricadePlasteelItem
+  parent: FSBarricadeMetalItem
+  name: plasteel barricade
+  description: A packed plasteel barricade, far tougher than the metal pattern. Engineering issue only. Press Z to aim a placement, middle-click to turn it, click to deploy.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: plasteel
+  - type: FSDeployableItem
+    deployedProtoId: FSBarricadePlasteel
+    requiresScience: false
+    requiresEngineering: true
+    stock: 3
+    maxStock: 3
+    maxDeployed: 6
+    regenPerWave: 1
+    faceDeployerDirection: true
+  - type: FSPlaceable
+    previewProtoId: FSBarricadePlasteel
+    range: 10
+
+- type: entity
+  id: FSBarricadePlasteelDoorItem
+  parent: FSBarricadeMetalItem
+  name: folding plasteel barricade
+  description: A packed folding plasteel barricade. Engineering issue only. Press Z to aim a placement, middle-click to turn it, click to deploy. Click it to open or close it.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_plasteel
+  - type: FSDeployableItem
+    deployedProtoId: FSBarricadePlasteelDoor
+    requiresScience: false
+    requiresEngineering: true
+    stock: 2
+    maxStock: 2
+    maxDeployed: 4
+    regenPerWave: 1
+    faceDeployerDirection: true
+  - type: FSPlaceable
+    previewProtoId: FSBarricadePlasteelDoor
+    range: 10

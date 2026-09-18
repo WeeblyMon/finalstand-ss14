@@ -3,7 +3,6 @@ using Content.Server.Chat.Managers;
 using Content.Server.Chat.Systems;
 using Content.Server.Ghost;
 using Content.Server.Power.Components;
-using Content.Shared._FinalStand.Chat;
 using Content.Shared.Chat;
 using Content.Shared.Database;
 using Content.Shared.Radio;
@@ -31,7 +30,6 @@ public sealed partial class RadioSystem : EntitySystem
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private GhostSystem _ghost = default!;
-    [Dependency] private FSRadioJobIconSystem _jobIcon = default!;
     [Dependency] private EntityQuery<TelecomExemptComponent> _exemptQuery = default!;
 
     // set used to prevent radio feedback loops.
@@ -101,9 +99,7 @@ public sealed partial class RadioSystem : EntitySystem
         var name = evt.VoiceName;
         name = FormattedMessage.EscapeText(name);
 
-        // FS: show the speaker's job icon next to their name in radio chat.
-        if (_jobIcon.TryGetJobIcon(messageSource, out var jobIcon, out var jobName))
-            name = Loc.GetString("chat-radio-message-name-with-icon", ("jobIcon", jobIcon), ("jobName", jobName ?? ""), ("name", name));
+        name = FinalStandDecorateSpeakerName(messageSource, name); // FINALSTAND: prefixes the speaker's job icon
 
         SpeechVerbPrototype speech;
         if (evt.SpeechVerb != null && ProtoMan.Resolve(evt.SpeechVerb, out var evntProto))

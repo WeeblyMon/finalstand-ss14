@@ -1,0 +1,87 @@
+# ── Barricade Shops ───────────────────────────────────────────────────────────
+
+- type: entity
+  id: FSBarricadeShopMetal
+  parent: FSWeaponShopBase
+  name: Metal Barricade
+  description: A packed metal barricade. Blocks the side it faces while you shoot over the top. Tougher than the folding pattern, but it cannot be opened.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSBarricadeMetalItem
+    singlePurchase: true
+    price: 4000
+    category: Fortification
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+    statHealth: 450
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: metal
+    scale: 1,1
+
+- type: entity
+  id: FSBarricadeShopMetalDoor
+  parent: FSWeaponShopBase
+  name: Folding Metal Barricade
+  description: A packed folding metal barricade. Opens and closes on click so your team can push through, at the cost of some durability.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSBarricadeMetalDoorItem
+    singlePurchase: true
+    price: 5500
+    category: Fortification
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+    statHealth: 400
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_metal
+    scale: 1,1
+
+- type: entity
+  id: FSBarricadeShopPlasteel
+  parent: FSWeaponShopBase
+  name: Plasteel Barricade
+  description: A packed plasteel barricade, twice as tough as the metal pattern. Engineering issue only.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSBarricadePlasteelItem
+    requiresEngineering: true
+    singlePurchase: true
+    price: 9000
+    category: Fortification
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+    statHealth: 900
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: plasteel
+    scale: 1,1
+
+- type: entity
+  id: FSBarricadeShopPlasteelDoor
+  parent: FSWeaponShopBase
+  name: Folding Plasteel Barricade
+  description: A packed folding plasteel barricade. The strongest line you can open and close at will. Engineering issue only.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSBarricadePlasteelDoorItem
+    requiresEngineering: true
+    singlePurchase: true
+    price: 11000
+    category: Fortification
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+    statHealth: 800
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_plasteel
+    scale: 1,1
