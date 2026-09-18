@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Systems.Gameplay;
+using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Client.Graphics;
@@ -212,7 +213,7 @@ public sealed class FSCasualtyPullController : UIController
 
     private const float VitalsRightEdge = 24f + 240f;
     private const float ActionBarFraction = 0.2995f;
-    private const float ActionsHalfWidth = 114f;
+    private const float ActionsHalfWidth = ActionsBar.BarWidth * 0.5f;
 
     private void UpdatePlacement()
     {

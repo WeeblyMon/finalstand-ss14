@@ -24,8 +24,11 @@ public sealed class ActionButton : Control, IEntityControl
 {
     public const string StyleClassActionHighlightRect = "ActionHighlightRect";
 
-    // FINALSTAND: matches SlotControl.DefaultButtonSize so the bottom band is one consistent grid.
-    public const int SlotSize = 32;
+    // FINALSTAND: 2x SlotControl.DefaultButtonSize. Art is authored at 32 and the engine has no
+    // mipmaps, so only integer multiples stay sharp - 64 is the next size up from the HUD grid.
+    public const int SlotSize = 64;
+    private const int SourceArtSize = 32;
+    private const float ArtScale = SlotSize / (float) SourceArtSize;
 
     private IEntityManager _entities;
     private SharedAppearanceSystem _appearance;
@@ -87,8 +90,7 @@ public sealed class ActionButton : Control, IEntityControl
         Button = new TextureRect
         {
             Name = "Button",
-            // FINALSTAND: 32px slots to match the HUD grid; art is authored at 32 so scale is 1.
-            TextureScale = new Vector2(1, 1)
+            TextureScale = new Vector2(ArtScale, ArtScale)
         };
         HighlightRect = new PanelContainer
         {
@@ -101,7 +103,7 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Action Icon",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(1, 1),
+            Scale = new Vector2(ArtScale, ArtScale),
             SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
@@ -139,7 +141,7 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Sprite",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(1, 1),
+            Scale = new Vector2(ArtScale, ArtScale),
             SetSize = new Vector2(SlotSize, SlotSize),
             Visible = false,
             OverrideDirection = Direction.South,
