@@ -63,6 +63,9 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private bool _chatPlaced;
     private bool _chatMoved;
 
+    /// <summary>Screen size the current <see cref="_chatRect"/> was computed against.</summary>
+    private Vector2 _chatScreenSize;
+
     // Height of the weapon module plus the throwables row above it. Measured by the overlay each
     // frame - the module grows with the equipped weapon, so a constant here overlapped the row.
     private float _rightStackLift = WaveHudOverlay.RightStackMinHeight;
@@ -165,8 +168,16 @@ public sealed partial class DefaultGameScreen : InGameScreen
         base.FrameUpdate(args);
 
         // The screen has no size until it is laid out, so the first placement waits for one.
-        if (!_chatPlaced && Size.X > 0f && Size.Y > 0f)
-            ResetChatRect();
+        if (Size.X > 0f && Size.Y > 0f)
+        {
+            if (!_chatPlaced)
+                ResetChatRect();
+            else if (MathF.Abs(Size.X - _chatScreenSize.X) > 0.5f
+                     || MathF.Abs(Size.Y - _chatScreenSize.Y) > 0.5f)
+            {
+                ReflowChatForScreen();
+            }
+        }
 
         PlaceInventoryBar();
     }
@@ -190,6 +201,36 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     private const float InventoryBarGap = 6f;
 
+    // The rect is absolute, so nothing about it survives the window changing size on its own.
+    // Going fullscreen used to leave the chat wherever it had been in the smaller window, which
+    // reads as it floating loose in the middle of the screen.
+    private void ReflowChatForScreen()
+    {
+        // An untouched window belongs to the layout, so it re-docks to the default corner.
+        if (!_chatMoved)
+        {
+            ResetChatRect();
+            return;
+        }
+
+        // One the player placed keeps its offset from the bottom-right corner it was docked against,
+        // then is clamped so a shrinking window cannot push it off screen.
+        _chatRect = _chatRect.Translated(Size - _chatScreenSize);
+        ClampChatRect();
+        _chatScreenSize = Size;
+        ApplyChatState();
+    }
+
+    private void ClampChatRect()
+    {
+        var width = MathF.Min(_chatRect.Width, Size.X);
+        var height = MathF.Min(_chatRect.Height, Size.Y);
+        var left = Math.Clamp(_chatRect.Left, 0f, MathF.Max(0f, Size.X - width));
+        var top = Math.Clamp(_chatRect.Top, 0f, MathF.Max(0f, Size.Y - height));
+
+        _chatRect = new UIBox2(left, top, left + width, top + height);
+    }
+
     private void ResetChatRect()
     {
         if (Size.X <= 0f || Size.Y <= 0f)
@@ -199,6 +240,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         var bottom = Size.Y - (BottomBandLift + _rightStackLift + 8f);
         _chatRect = new UIBox2(right - ChatDefaultWidth, bottom - ChatDefaultHeight, right, bottom);
         _chatPlaced = true;
+        _chatScreenSize = Size;
+        ClampChatRect();
         ApplyChatState();
 
         if (_pendingChatSize is { } pending)
