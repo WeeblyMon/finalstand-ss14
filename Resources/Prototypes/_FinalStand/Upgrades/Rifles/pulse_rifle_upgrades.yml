@@ -1,4 +1,4 @@
-# ── Pulse Rifle Shop ─────────────────────────────────────────────────────────
+﻿# ── Pulse Rifle Shop ─────────────────────────────────────────────────────────
 # The Crowd Clearer. Everything hits multiple enemies. Sustained fire overwhelms groups.
 
 - type: entity
@@ -53,7 +53,7 @@
       valuePerLevel: 1
     - id: pulse-penetrator
       name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      description: Shots pierce enemies. Each level adds a target, max 4; damage halves per hit.
       maxLevel: 4
       baseCost: 9750
       type: Pierce

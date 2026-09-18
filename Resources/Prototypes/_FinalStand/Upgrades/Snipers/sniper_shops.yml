@@ -1,4 +1,4 @@
-# ── Sniper Shops ──────────────────────────────────────────────────────────────
+﻿# ── Sniper Shops ──────────────────────────────────────────────────────────────
 
 - type: entity
   id: FSWeaponShopMosin
@@ -68,7 +68,7 @@
       valuePerLevel: 0.25
     - id: mosin-pierce
       name: Piercing Rounds
-      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
       maxLevel: 3
       baseCost: 6000
       type: Pierce
@@ -148,7 +148,7 @@
       valuePerLevel: 0.05
     - id: estoc-pierce
       name: Piercing Rounds
-      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
       maxLevel: 2
       baseCost: 7000
       type: Pierce
@@ -199,7 +199,7 @@
       valuePerLevel: 1
     - id: hristov-pierce
       name: Piercing Rounds
-      description: Your shots pierce through enemies. Each level adds one additional target.
+      description: Your shots pierce enemies. Each level adds a target; damage halves per hit.
       maxLevel: 10
       baseCost: 10000
       type: Pierce

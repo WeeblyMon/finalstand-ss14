@@ -1,4 +1,4 @@
-# ── AKMS Shop ────────────────────────────────────────────────────────────────
+﻿# ── AKMS Shop ────────────────────────────────────────────────────────────────
 # The Aggressor. Gets scarier the more enemies it kills. Rewards aggressive play.
 
 - type: entity
@@ -62,7 +62,7 @@
       valuePerLevel: 1
     - id: akms-pierce
       name: Steel Tip
-      description: Armor-piercing rounds pierce through enemies. Each level adds one additional target.
+      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
       maxLevel: 4
       baseCost: 6000
       type: Pierce

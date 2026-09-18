@@ -1,4 +1,4 @@
-# ── Lector Shop ──────────────────────────────────────────────────────────────
+﻿# ── Lector Shop ──────────────────────────────────────────────────────────────
 # The Punisher. Every shot is heavy and impactful. Rewards sustained fire on single targets.
 # TODO(finalstand): add Lector burst fire upgrade when designed
 
@@ -63,7 +63,7 @@
       valuePerLevel: 1
     - id: lecter-penetrator
       name: Penetrator
-      description: Shots pierce through enemies. Each level adds another target pierced (max 4 bonus).
+      description: Shots pierce enemies. Each level adds a target, max 4; damage halves per hit.
       maxLevel: 4
       baseCost: 5250
       type: Pierce

@@ -1,4 +1,4 @@
-using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.Spawners;
 using Content.Server.Projectiles;
 using Content.Shared.Projectiles;
 using Robust.Shared.Physics.Events;
@@ -40,6 +40,9 @@ public sealed class FSPierceSystem : EntitySystem
 
         pierce.AlreadyHit.Add(target);
         pierce.RemainingPierces--;
+
+        // Runs after ProjectileSystem, so this target kept full damage and the next one is halved.
+        proj.Damage *= pierce.DamageRetained;
         proj.ProjectileSpent = false;
     }
 }

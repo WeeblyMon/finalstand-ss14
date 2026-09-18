@@ -188,7 +188,7 @@ public sealed class FSPerkDef
                 ["+3 Knockback", "+6 Knockback", "+9 Knockback", "+12 Knockback"]),
 
             new("DeepImpact", "Deep Impact",
-                "Your shots pierce through enemies.",
+                "Your shots pierce through enemies, halving damage with each one.",
                 PerkCategory.Red,
                 ["+1 Pierce", "+2 Pierce", "+3 Pierce", "+4 Pierce"]),
 
