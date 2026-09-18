@@ -1,0 +1,53 @@
+- type: entity
+  id: FSBagShop
+  name: Bag Vendor
+  description: Dispenses storage bags. Magnetising bags pull nearby stock in on their own.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  # Placeholder art until the vendor gets its own sprite.
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Machines/VendingMachines/engivend.rsi
+    state: off
+  - type: FSBagShop
+    catalog:
+    - proto: OreBag
+      name: Ore Bag
+      description: Magnetises nearby ore into the bag.
+      price: 3000
+    - proto: FSConstructionBag
+      name: Construction Bag
+      description: Magnetises nearby sheets and cable.
+      price: 3000
+    - proto: OreBagOfHolding
+      name: Bluespace Ore Bag
+      description: Twice the reach, far more room.
+      price: 150000
+    - proto: FSConstructionBagOfHolding
+      name: Bluespace Construction Bag
+      description: Twice the reach, far more room.
+      price: 150000
+  - type: UserInterface
+    interfaces:
+      enum.FSBagShopUiKey.Key:
+        type: FSBagShopBoundUserInterface
+  - type: ActivatableUI
+    key: enum.FSBagShopUiKey.Key

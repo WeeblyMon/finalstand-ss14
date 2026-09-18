@@ -1,0 +1,50 @@
+# Construction counterpart to the vanilla ore bag: MagnetPickup vacuums anything the Storage
+# whitelist accepts, so this one takes sheets and cable instead of ore.
+- type: entity
+  name: construction bag
+  id: FSConstructionBag
+  parent: BaseStorageItem
+  description: A reinforced bag for hauling building stock. Magnetises nearby materials when attached to a belt.
+  components:
+  - type: MagnetPickup
+  - type: Sprite
+    sprite: Objects/Specific/Mining/ore_bag.rsi
+    state: icon
+    color: "#8AA5C0"
+  - type: Clothing
+    sprite: Objects/Specific/Mining/ore_bag.rsi
+    quickEquip: false
+    slots:
+    - belt
+  - type: Item
+    size: Ginormous
+  - type: Storage
+    maxItemSize: Normal
+    grid:
+    - 0,0,9,3
+    quickInsert: true
+    areaInsert: true
+    whitelist:
+      components:
+      - Material
+      tags:
+      - CableCoil
+  - type: Dumpable
+
+- type: entity
+  name: construction bag of holding
+  id: FSConstructionBagOfHolding
+  parent: FSConstructionBag
+  description: A bluespace bag for hauling building stock. Reaches further and holds far more.
+  components:
+  - type: MagnetPickup
+    range: 2
+  - type: Sprite
+    sprite: Objects/Specific/Mining/ore_bag_holding.rsi
+    state: icon
+    color: "#8AA5C0"
+  - type: Clothing
+    sprite: Objects/Specific/Mining/ore_bag_holding.rsi
+  - type: Storage
+    grid:
+    - 0,0,19,9
