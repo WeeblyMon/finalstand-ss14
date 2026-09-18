@@ -50,7 +50,6 @@ public sealed partial class HealingSystem : EntitySystem
 
     private void OnDoAfter(Entity<DamageableComponent> target, ref HealingDoAfterEvent args)
     {
-
         if (args.Handled || args.Cancelled)
             return;
 
@@ -69,7 +68,6 @@ public sealed partial class HealingSystem : EntitySystem
 
         TryComp<BloodstreamComponent>(target, out var bloodstream);
 
-        // Heal some bloodloss damage.
         if (healing.BloodlossModifier != 0 && bloodstream != null)
         {
             var isBleeding = bloodstream.BleedAmount > 0 || _wounds.IsAnyWoundableBleeding(target.Owner);
@@ -93,7 +91,6 @@ public sealed partial class HealingSystem : EntitySystem
             }
         }
 
-        // Restores missing blood
         if (healing.ModifyBloodLevel != 0 && bloodstream != null)
             _bloodstreamSystem.TryModifyBloodLevel((target.Owner, bloodstream), healing.ModifyBloodLevel);
 
@@ -102,7 +99,6 @@ public sealed partial class HealingSystem : EntitySystem
 
         var total = healed.GetTotal();
 
-        // Re-verify that we can heal the damage.
         var dontRepeat = false;
         if (TryComp<StackComponent>(args.Used.Value, out var stackComp))
         {
@@ -129,7 +125,6 @@ public sealed partial class HealingSystem : EntitySystem
 
         _audio.PlayPredicted(healing.HealingEndSound, target.Owner, args.User);
 
-        // Logic to determine the whether or not to repeat the healing action
         args.Repeat = HasDamage((args.Used.Value, healing), target) && !dontRepeat;
         args.Handled = true;
 
@@ -139,7 +134,6 @@ public sealed partial class HealingSystem : EntitySystem
             return;
         }
 
-        // Update our self heal delay so it shortens as we heal more damage.
         if (args.User == target.Owner)
             args.Args.Delay = healing.Delay
                 * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
@@ -160,7 +154,6 @@ public sealed partial class HealingSystem : EntitySystem
 
         if (TryComp<BloodstreamComponent>(target, out var bloodstream))
         {
-            // Is ent missing blood that we can restore?
             if (healing.Comp.ModifyBloodLevel > 0
                 && _solutionContainerSystem.ResolveSolution(target.Owner, bloodstream.BloodSolutionName, ref bloodstream.BloodSolution, out var bloodSolution)
                 && _bloodstreamSystem.GetBloodLevel((target, bloodstream)) < 1)
@@ -168,7 +161,6 @@ public sealed partial class HealingSystem : EntitySystem
                 return true;
             }
 
-            // Is ent bleeding and can we stop it?
             if (healing.Comp.BloodlossModifier < 0 && bloodstream.BleedAmount > 0)
             {
                 return true;
@@ -247,8 +239,6 @@ public sealed partial class HealingSystem : EntitySystem
         var doAfterEventArgs =
             new DoAfterArgs(EntityManager, user, delay, new HealingDoAfterEvent(), target, target: target, used: healing)
             {
-                // Didn't break on damage as they may be trying to prevent it and
-                // not being able to heal your own ticking damage would be frustrating.
                 NeedHand = true,
                 BreakOnMove = true,
                 BreakOnWeightlessMove = false,
@@ -258,12 +248,6 @@ public sealed partial class HealingSystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Scales the self-heal penalty based on the amount of damage taken
-    /// </summary>
-    /// <param name="ent">Entity we're healing</param>
-    /// <param name="mod">Maximum modifier we can have.</param>
-    /// <returns>Modifier we multiply our healing time by</returns>
     public float GetScaledHealingPenalty(Entity<DamageableComponent?, MobThresholdsComponent?> ent, float mod)
     {
         if (!Resolve(ent, ref ent.Comp1, ref ent.Comp2, false))
@@ -273,7 +257,6 @@ public sealed partial class HealingSystem : EntitySystem
             return 1;
 
         var percentDamage = (float)(_damageable.GetTotalDamage(ent) / amount);
-        //basically make it scale from 1 to the multiplier.
 
         var output = percentDamage * (mod - 1) + 1;
         return Math.Max(output, 1);

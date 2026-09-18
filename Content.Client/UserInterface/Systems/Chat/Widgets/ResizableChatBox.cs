@@ -14,19 +14,11 @@ public sealed partial class ResizableChatBox : ChatBox
         {
             IoCManager.InjectDependencies(this);
         }
-// TODO: Revisit the resizing stuff after https://github.com/space-wizards/RobustToolbox/issues/1392 is done,
-        // Probably not "supposed" to inject IClyde, but I give up.
-        // I can't find any other way to allow this control to properly resize when the
-        // window is resized. Resized() isn't reliably called when resizing the window,
-        // and layoutcontainer anchor / margin don't seem to adjust how we need
-        // them to when the window is resized. We need it to be able to resize
-        // within some bounds so that it doesn't overlap other UI elements, while still
-        // being freely resizable within those bounds.
+// TODO: Revisit the resizing stuff after https://github.com/space-wizards/RobustToolbox/issues/1392 is done, Probably not "supposed" to inject IClyde, but I give up.
         [Dependency] private IClyde _clyde = default!;
 
         private const int DragMarginSize = 7;
 
-        // However far off-screen a drag may push the window, the grip stays reachable.
         private const float KeepOnScreen = 48f;
 
         private DragMode _currentDrag = DragMode.None;
@@ -70,7 +62,6 @@ public sealed partial class ResizableChatBox : ChatBox
 
         protected override void KeyBindUp(GUIBoundKeyEventArgs args)
         {
-
             if (args.Function != EngineKeyFunctions.UIClick)
                 return;
             if (_currentDrag != DragMode.None)
@@ -78,7 +69,6 @@ public sealed partial class ResizableChatBox : ChatBox
                 _dragOffsetTopLeft = _dragOffsetBottomRight = Vector2.Zero;
                 _currentDrag = DragMode.None;
 
-                // If this is done in MouseDown, Godot won't fire MouseUp as you need focus to receive MouseUps.
                 UserInterfaceManager.KeyboardFocused?.ReleaseKeyboardFocus();
 
                 OnChatResizeFinish?.Invoke(Size);
@@ -87,7 +77,6 @@ public sealed partial class ResizableChatBox : ChatBox
 
             base.KeyBindUp(args);
         }
-
 
         // TODO: this drag and drop stuff is somewhat duplicated from Robust BaseWindow but also modified
         [Flags]
@@ -120,8 +109,6 @@ public sealed partial class ResizableChatBox : ChatBox
             else if (relativeMousePos.X > Size.X - DragMarginSize)
                 mode |= DragMode.Right;
 
-            // The grip is the only place a press means "move" - anywhere else in the body belongs
-            // to the chat log, which has to stay selectable and scrollable.
             if (mode == DragMode.None && relativeMousePos.Y <= GripBottom())
                 mode = DragMode.Move;
 
@@ -194,10 +181,6 @@ public sealed partial class ResizableChatBox : ChatBox
         {
             base.FrameUpdate(args);
 
-            // we do the clamping after a delay (after UI scale / window resize)
-            // because we need to wait for our parent container to properly resize
-            // first, so we can calculate where we should go. If we do it right away,
-            // we won't have the correct values from the parent to know how to adjust our margins.
             if (_clampIn <= 0)
                 return;
 
@@ -206,7 +189,6 @@ public sealed partial class ResizableChatBox : ChatBox
                 ApplyRect(Rect);
         }
 
-        /// <summary>Writes an absolute screen rect onto the four margins, clamped into the parent.</summary>
         public void ApplyRect(UIBox2 rect)
         {
             if (Parent == null)
@@ -219,9 +201,6 @@ public sealed partial class ResizableChatBox : ChatBox
             var left = Math.Clamp(rect.Left, KeepOnScreen - width, bounds.X - KeepOnScreen);
             var top = Math.Clamp(rect.Top, 0f, bounds.Y - KeepOnScreen);
 
-            // Margins are offsets from the anchor, not absolute coordinates. The old form assumed
-            // anchorLeft/anchorBottom of 1/0, so on any other anchoring a drag threw the box across
-            // the screen. Converting through the anchors keeps it correct anywhere.
             var aLeft = this.GetValue<float>(LayoutContainer.AnchorLeftProperty);
             var aTop = this.GetValue<float>(LayoutContainer.AnchorTopProperty);
             var aRight = this.GetValue<float>(LayoutContainer.AnchorRightProperty);

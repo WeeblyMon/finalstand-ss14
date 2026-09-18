@@ -42,9 +42,6 @@ public sealed partial class WaveHudSystem
         if (!HasComp<GunComponent>(held))
             return;
 
-        // Every ammo provider answers this - ballistic, battery, revolver, solution - and the
-        // magazine provider re-raises it on the loaded magazine. So one event covers laser cells
-        // and revolvers as well as mag-fed guns, with no per-type branching to keep in step.
         var ammoEv = new GetAmmoCountEvent();
         RaiseLocalEvent(held, ref ammoEv);
 
@@ -54,13 +51,11 @@ public sealed partial class WaveHudSystem
             overlay.WeaponCapacity = ammoEv.Capacity;
         }
 
-        // Reserve only means anything for guns that take a magazine; a laser has no spares to count.
         overlay.WeaponReserve = CountSpareMagazines(player, held);
         overlay.HasAmmoChoice = overlay.WeaponReserve > 0;
         overlay.WeaponTakesMagazines = TryGetMagazineSlot(held, out _);
     }
 
-    /// <summary>Distinct grenade pack types carried - one wedge each on the throw wheel.</summary>
     private int CountGrenadeTypes(EntityUid player)
     {
         var seen = new HashSet<GrenadeType>();
@@ -86,11 +81,9 @@ public sealed partial class WaveHudSystem
         }
     }
 
-
     private bool TryGetMagazineSlot(EntityUid gun, [NotNullWhen(true)] out ItemSlot? slot) =>
         FSItemSlots.TryGetSlot(EntityManager, _itemSlots, gun, SharedGunSystem.MagazineSlot, out slot);
 
-    /// <summary>Spare magazines the player is carrying that this gun would accept.</summary>
     private int CountSpareMagazines(EntityUid player, EntityUid gun)
     {
         if (!TryGetMagazineSlot(gun, out var magSlot))

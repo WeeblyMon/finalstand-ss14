@@ -6,10 +6,6 @@ namespace Content.Shared._FinalStand.Utility;
 
 public static class FSItemSlots
 {
-    /// <summary>
-    /// ItemSlotsSystem.TryGetSlot resolves ItemSlotsComponent and logs an error when it is missing,
-    /// so asking a revolver for its magazine slot floods the log every frame. This answers false.
-    /// </summary>
     public static bool TryGetSlot(
         IEntityManager entMan,
         ItemSlotsSystem slots,

@@ -10,7 +10,6 @@ namespace Content.Server._FinalStand.SmartReload;
 
 public sealed partial class FSSmartReloadSystem : EntitySystem
 {
-    // A box stays the source until it runs dry; anything else is consumed by the insert.
     private EntityUid NextChainSource(EntityUid used, EntityUid user, EntityWhitelist? whitelist, EntityUid gun)
     {
         if (TryComp<BallisticAmmoProviderComponent>(used, out var box) && box.Count > 0)
@@ -19,7 +18,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return FindBestAmmo(user, whitelist, gun) ?? EntityUid.Invalid;
     }
 
-    // Boxes hand out one round at a time; loose rounds insert directly.
     private bool TryResolveRound(EntityUid used, out EntityUid round)
     {
         round = used;
@@ -53,7 +51,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             {
                 CheckMag(item, currentMag, whitelist, ref best, ref bestCount);
 
-                // One level deep (backpack contents, etc.)
                 if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
                     continue;
 
@@ -73,7 +70,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     {
         if (item == currentMag)
             return;
-        // Skip mags that are currently loaded inside another gun.
         var parent = Transform(item).ParentUid;
         if (parent.IsValid() && HasComp<GunComponent>(parent))
             return;
@@ -89,8 +85,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // Solution-fed magazines (the chemist's syringe packs) carry shots as reagent volume rather
-    // than as contained cartridges, so a ballistic-only check skips them entirely.
     public bool TryGetMagazineCount(EntityUid item, out int count)
     {
         if (TryComp<BallisticAmmoProviderComponent>(item, out var ballistic))
@@ -109,7 +103,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return false;
     }
 
-    // skipInside prevents treating the gun being reloaded as its own ammo source.
     private EntityUid? FindBestAmmo(EntityUid user, EntityWhitelist? whitelist, EntityUid skipInside = default)
     {
         if (!TryComp<ContainerManagerComponent>(user, out var mgr))
@@ -287,7 +280,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return protos.Count > 1;
     }
 
-    // Truly empty slots TryRevolverInsert can fill (Chambers == null).
     private static int CountNullChambers(RevolverAmmoProviderComponent comp)
     {
         var count = 0;
@@ -299,7 +291,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return count;
     }
 
-    // Fired cases (Chambers == false) — need ejecting before a new round can be seated.
     private static int CountSpentChambers(RevolverAmmoProviderComponent comp)
     {
         var count = 0;
@@ -311,7 +302,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         return count;
     }
 
-    // All reloadable slots (null + spent) — used to detect a fully loaded cylinder.
     private static int CountEmptyChambers(RevolverAmmoProviderComponent comp)
     {
         return CountNullChambers(comp) + CountSpentChambers(comp);

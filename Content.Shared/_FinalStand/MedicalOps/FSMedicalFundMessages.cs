@@ -18,7 +18,6 @@ public sealed class FSMedicalFundRequestEvent : EntityEventArgs
 {
 }
 
-/// <summary>The viewer's own share of the pot, sent when they open the medical console.</summary>
 [Serializable, NetSerializable]
 public sealed class FSMedicalContributionEvent : EntityEventArgs
 {
@@ -32,7 +31,6 @@ public sealed class FSMedicalContributionEvent : EntityEventArgs
     }
 }
 
-/// <summary>What a heal just paid, and whether diminishing returns had started biting.</summary>
 [Serializable, NetSerializable]
 public sealed class FSHealPayoutEvent : EntityEventArgs
 {
@@ -59,7 +57,6 @@ public sealed class FSMedicalStatusEvent : EntityEventArgs
     }
 }
 
-/// <summary>Opens the chemist's guide for the player who just spawned as one.</summary>
 [Serializable, NetSerializable]
 public sealed class FSOpenChemistGuideEvent : EntityEventArgs
 {

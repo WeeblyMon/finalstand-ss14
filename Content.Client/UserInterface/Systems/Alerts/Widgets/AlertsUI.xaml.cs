@@ -8,16 +8,11 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client.UserInterface.Systems.Alerts.Widgets;
 
-/// <summary>
-///     The status effects display on the right side of the screen.
-/// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class AlertsUI : UIWidget
 {
-    // also known as Control.Children?
     private readonly Dictionary<AlertKey, AlertControl> _alertControls = new();
 
-    // Crit and Dead stay: those are state changes the bar alone does not announce loudly enough.
     private static readonly HashSet<string> Suppressed = new() { "HumanHealth" };
 
     public AlertsUI()
@@ -30,14 +25,9 @@ public sealed partial class AlertsUI : UIWidget
         IReadOnlyDictionary<AlertKey,
         AlertState> alertStates)
     {
-        // remove any controls with keys no longer present
         if (SyncRemoveControls(alertStates))
             return;
 
-        // now we know that alertControls contains alerts that should still exist but
-        // may need to updated,
-        // also there may be some new alerts we need to show.
-        // further, we need to ensure they are ordered w.r.t their configured order
         SyncUpdateControls(alertsSystem, alertOrderPrototype, alertStates);
     }
 
@@ -88,8 +78,7 @@ public sealed partial class AlertsUI : UIWidget
 
             var alertType = alertKey.AlertType.Value;
 
-            // FINALSTAND: the vitals panel owns health - figure, bar, panel border and status
-            // pills. The heartbeat row said the same thing again, one row up.
+            // FINALSTAND: the vitals panel owns health - figure, bar, panel border and status pills.
             if (Suppressed.Contains(alertType.Id))
                 continue;
 
@@ -102,7 +91,6 @@ public sealed partial class AlertsUI : UIWidget
             if (_alertControls.TryGetValue(newAlert.AlertKey, out var existingAlertControl) &&
                 existingAlertControl.Alert.ID == newAlert.ID)
             {
-                // key is the same, simply update the existing control severity / cooldown
                 existingAlertControl.SetSeverity(alertState.Severity);
                 if (alertState.ShowCooldown)
                     existingAlertControl.Cooldown = alertState.Cooldown;
@@ -112,11 +100,9 @@ public sealed partial class AlertsUI : UIWidget
                 if (existingAlertControl != null)
                     AlertContainer.Children.Remove(existingAlertControl);
 
-                // this is a new alert + alert key or just a different alert with the same
-                // key, create the control and add it in the appropriate order
                 var newAlertControl = CreateAlertControl(newAlert, alertState);
 
-                //TODO: Can the presenter sort the states before giving it to us?
+                // TODO: Can the presenter sort the states before giving it to us?
                 if (alertOrderPrototype != null)
                 {
                     var added = false;

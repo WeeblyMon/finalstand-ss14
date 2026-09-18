@@ -14,8 +14,6 @@ public sealed class MedicalResearchContentTest : GameTest
 {
     private const string MedicalBranch = "Medical";
 
-    // A node whose technology unlocks a recipe that sits in no lathe pack spends the department's
-    // money and hands back nothing. That has already shipped once.
     [Test]
     public async Task EveryUnlockedRecipeReachesALathe()
     {
@@ -57,7 +55,6 @@ public sealed class MedicalResearchContentTest : GameTest
         });
     }
 
-    // Unlocked("...") on a string that matches no prototype is silently false forever.
     [Test]
     public async Task EveryNodeIdReadByCodeExists()
     {
@@ -87,7 +84,6 @@ public sealed class MedicalResearchContentTest : GameTest
 
             foreach (var node in nodes)
             {
-                // The description is the only thing the buyer reads before spending the fund.
                 Assert.That(node.BonusDescription, Is.Not.Empty,
                     $"Medical node '{node.ID}' has no bonusDescription, so the console shows an unexplained price.");
 
@@ -109,7 +105,6 @@ public sealed class MedicalResearchContentTest : GameTest
         });
     }
 
-    // An exclusive group with only one member silently locks nothing.
     [Test]
     public async Task ExclusiveGroupsHaveTwoSides()
     {

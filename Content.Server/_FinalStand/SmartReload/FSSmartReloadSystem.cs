@@ -39,7 +39,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
-    // Aborts at the next OnShellInsertComplete rather than via Cancel() - Cancel leaves a stale BlockDuplicate entry that breaks subsequent R presses.
     private readonly HashSet<EntityUid> _reloadAborted = new();
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeChamberFills = new();
@@ -137,8 +136,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         }
     }
 
-    // Hold-to-reload opens the ammo wheel client-side; this is the magazine it came back with.
-    // Only magazine guns offer a choice - the other archetypes have nothing to pick between.
     private void OnLoadMagazine(FSLoadMagazineMessage msg, EntitySessionEventArgs args)
     {
         if (!TryGetValidGun(msg.Gun, args.SenderSession, out var gun, out var user))
@@ -151,7 +148,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (!chosen.IsValid() || TerminatingOrDeleted(chosen))
             return;
 
-        // The wheel is built client-side, so re-check the slot accepts this before trusting it.
         if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot)
             || _whitelist.IsWhitelistFail(magSlot.Whitelist, chosen))
         {

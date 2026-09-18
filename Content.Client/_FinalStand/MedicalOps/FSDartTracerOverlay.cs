@@ -6,9 +6,6 @@ using Robust.Shared.Physics.Components;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Support darts have to be readable at a glance: you are shooting a moving teammate, and a 1px
-// syringe crossing a lit room is not. The streak is drawn from the dart back along its own
-// velocity, so it needs no position history.
 public sealed class FSDartTracerOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -47,7 +44,6 @@ public sealed class FSDartTracerOverlay : Overlay
 
             var tail = head - velocity * TrailSeconds;
 
-            // Tapered: brightest at the dart, fading to nothing behind it.
             for (var i = 0; i < Segments; i++)
             {
                 var t0 = i / (float) Segments;

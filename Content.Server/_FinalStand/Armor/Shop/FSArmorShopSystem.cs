@@ -20,7 +20,6 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
 
-    // mindId → purchased tier ID; persists across respawns
     private readonly Dictionary<EntityUid, string> _purchasedTier = new();
 
     public override void Initialize()
@@ -97,7 +96,6 @@ public sealed partial class FSArmorShopSystem : EntitySystem
 
         var item = Spawn(tier.SpawnId, Transform(mob).Coordinates);
 
-        // A hardsuit left on the floor is a paid-for item the buyer never receives.
         if (_inventory.TryEquip(mob, item, "outerClothing", silent: true, force: true))
             return true;
 

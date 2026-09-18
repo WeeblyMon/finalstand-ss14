@@ -10,8 +10,6 @@ public sealed partial class FSTreatmentAttributionSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    // A hard ceiling so a claim cannot outlive the round; the real end is being hurt again or
-    // reaching full health, both of which FSMedicalStatsSystem already detects.
     public static readonly TimeSpan AttributionWindow = TimeSpan.FromSeconds(180);
 
     private readonly List<EntityUid> _expiredScratch = new();

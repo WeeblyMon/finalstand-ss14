@@ -96,7 +96,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         _solutions.UpdateChemicals(magSoln);
         _popup.PopupEntity(Loc.GetString("fs-syringe-filler-purged"), ent, args.Actor);
 
-        // Purging is only ever done in order to fill, so do not make them press it twice.
         TryBegin(ent, popup: false);
         UpdateUi(ent);
     }
@@ -134,7 +133,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         _ambient.SetAmbience(ent.Owner, true);
     }
 
-    /// <summary>How much can move right now, and why it cannot when the answer is zero.</summary>
     private FixedPoint2 Evaluate(Entity<FSSyringeFillerComponent> ent, out string status)
     {
         status = string.Empty;
@@ -169,8 +167,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
             return FixedPoint2.Zero;
         }
 
-        // A half-and-half magazine is undiagnosable in a fight: the fill tint reads as one reagent
-        // and the darts deliver two. Refuse rather than let it be built.
         if (magazine.Volume > 0 && !SameContents(magazine, source))
         {
             status = Loc.GetString("fs-syringe-filler-mixed");
@@ -182,7 +178,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
 
     private void Complete(Entity<FSSyringeFillerComponent> ent)
     {
-        // Both slots are re-resolved: either can be pulled while the machine is running.
         var transfer = Evaluate(ent, out _);
         if (transfer <= FixedPoint2.Zero
             || !TryGetSourceSolution(ent, out var sourceSoln, out _)
@@ -195,8 +190,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         var drawn = _solutions.SplitSolution(sourceSoln, transfer);
         _solutions.TryAddSolution(magSoln, drawn);
 
-        // SolutionAmmoProvider only recounts on a solution change event. Without this the magazine
-        // holds reagent and still reads as empty.
         _solutions.UpdateChemicals(magSoln);
 
         _popup.PopupEntity(Loc.GetString("fs-syringe-filler-done"), ent);
@@ -249,7 +242,6 @@ public sealed class FSSyringeFillerSystem : EntitySystem
         var transfer = Evaluate(ent, out var status);
         state.CanFill = !state.Running && transfer > FixedPoint2.Zero;
 
-        // A 30u bottle against a 200u magazine is seven round trips. Say so on the first.
         if (TryGetMagazineSolution(ent, out _, out var mag))
         {
             state.SmallSource = transfer > FixedPoint2.Zero && transfer < mag.MaxVolume - mag.Volume;

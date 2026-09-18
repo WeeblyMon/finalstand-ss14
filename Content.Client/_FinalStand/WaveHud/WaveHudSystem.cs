@@ -111,8 +111,6 @@ public sealed partial class WaveHudSystem : EntitySystem
         overlay.DarkWaveSecondsRemaining = Math.Max(0f, overlay.DarkWaveSecondsRemaining - frameTime);
     }
 
-    // Downed: everything the player can no longer act with recedes. The wave readout is an overlay
-    // rather than a control, so it stays at full strength - which is what the prototype wanted.
     private const float DownedDim = 0.22f;
 
     private void UpdateDownedDim(WaveHudOverlay overlay)
@@ -125,8 +123,6 @@ public sealed partial class WaveHudSystem : EntitySystem
             : Color.White;
     }
 
-    // The vitals panel grows as status pills wrap onto more rows, so the alert column above it
-    // cannot sit at a margin fixed when the screen was built - it has to follow the live height.
     private Control? _alerts;
     private Control? _alertsScreen;
 
@@ -149,8 +145,6 @@ public sealed partial class WaveHudSystem : EntitySystem
         LayoutContainer.SetMarginBottom(_alerts, -lift);
     }
 
-    // The weapon module grows with what is held, so the chat's default resting height cannot be a
-    // constant - it has to follow the stack the overlay actually drew.
     private void UpdateChatClearance(WaveHudOverlay overlay)
     {
         if (_ui.ActiveScreen is DefaultGameScreen screen)
@@ -226,8 +220,6 @@ public sealed partial class WaveHudSystem : EntitySystem
         return false;
     }
 
-    // The directive source appearing or changing is the moment the order lands on this medic, so
-    // the wash is driven off the buff list rather than a second piece of state plumbing.
     private string? _lastDirectiveSource;
 
     private void UpdateBuffStatus(WaveHudOverlay overlay)
@@ -271,12 +263,9 @@ public sealed partial class WaveHudSystem : EntitySystem
         }
     }
 
-    // The CMO's orders already reach every medic as buffs; they were just never shown to anyone
-    // but the CMO.
     private const string DirectiveSource = "directive";
     private static readonly string[] CmoSources = [DirectiveSource, "mcp", "mobilisation", "doctrine"];
 
-    // Icon keys resolve to /Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png and fall back when absent.
     private static string BuffIconKey(string source)
     {
         var name = source[FSHealthBarSystem.ChemSourcePrefix.Length..];
@@ -330,10 +319,6 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
 
-        // Attaching to anything else - respawn, ghost, aghost - means this client is no longer the
-        // body that was offered a revive. Nothing else cleared the flag, so the downed dim stayed
-        // on: the whole HUD kept rendering at a fifth of its opacity for the rest of the round.
-        // The server re-sends the offer if it still applies.
         var overlay = EnsureOverlay();
         overlay.IsRespawnOfferVisible = false;
         overlay.RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);

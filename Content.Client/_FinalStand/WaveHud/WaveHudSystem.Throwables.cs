@@ -46,7 +46,6 @@ public sealed partial class WaveHudSystem
         RaiseNetworkEvent(new FSSelectGrenadeMessage { Type = _carriedPacks[next].Type });
     }
 
-    // Ordered, so the arrows cycle the same way every frame rather than following dictionary order.
     private void CollectPacks(EntityUid player)
     {
         _carriedPacks.Clear();

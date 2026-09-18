@@ -32,7 +32,6 @@ public sealed partial class FSFieldKitPrototype : IPrototype
     [DataField]
     public int Priority { get; private set; }
 
-    /// <summary>Its missing ingredients come from research, not from a dispenser.</summary>
     [DataField]
     public bool Research { get; private set; }
 

@@ -125,7 +125,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
     {
         base.Draw(handle);
 
-        // really just an "oh shit" catch.
         if (!_entityManager.EntityExists(Entity) || !_entityManager.TryGetComponent<ItemComponent>(Entity, out var itemComponent))
         {
             Dispose();
@@ -143,7 +142,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
         var size = _centerTexture!.Size * 2 * UIScale;
 
         var hovering = !_storageController.IsDragging && UserInterfaceManager.CurrentlyHovered == this;
-        //yeah, this coloring is kinda hardcoded. deal with it. B)
         Color? colorModulate = hovering  ? null : Color.FromHex("#a8a8a8");
 
         var marked = Marked != null;
@@ -189,7 +187,6 @@ public sealed class ItemGridPiece : Control, IEntityControl
             }
         }
 
-        // typically you'd divide by two, but since the textures are half a tile, this is done implicitly
         var iconOffset = Location.Rotation.RotateVec(itemComponent.StoredOffset) * 2 * UIScale;
         var iconPosition = new Vector2(
             (boundingGrid.Width + 1) * size.X + iconOffset.X,

@@ -49,8 +49,6 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SyncBalance(args.Balance);
     }
 
-    // Contribution is tracked per mind and was only ever visible to an admin running fsmedfund.
-    // The console is the one screen where knowing your share changes what you do.
     private void OnConsoleOpened(Entity<FSTechDatabaseComponent> ent, ref BoundUIOpenedEvent args)
     {
         if (ent.Comp.Track != FSResearchTrack.Medical)

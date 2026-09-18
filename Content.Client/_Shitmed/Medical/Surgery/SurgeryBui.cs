@@ -1,17 +1,3 @@
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
-// SPDX-FileCopyrightText: 2025 Kayzel <43700376+KayzelW@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Piras314 <p1r4s@proton.me>
-// SPDX-FileCopyrightText: 2025 Roudenn <romabond091@gmail.com>
-// SPDX-FileCopyrightText: 2025 Spatison <137375981+Spatison@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Trest <144359854+trest100@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <39013340+deltanedas@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <@deltanedas:kde.org>
-// SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
-// SPDX-FileCopyrightText: 2025 kurokoTurbo <92106367+kurokoTurbo@users.noreply.github.com>
-//
-// SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
 using System.Linq;
@@ -592,17 +578,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
             if (complete || !inFocus)
                 continue;
 
-            // Access operations exist to unblock a goal, never as a goal of their own. Recommending
-            // one directly is what told doctors to open a ribcage to stop an arm bleeding.
             if (_classifier.IsAccess(op.SurgeryId.Id))
                 continue;
 
-            // Whatever a live goal is waiting on is legitimately needed, so it must not be warned about.
             if (blocked)
                 _neededAccess.Add(next!.Value.Surgery.Owner);
 
-            // A blocked goal is still the right thing to recommend: GetNextStep already walked the
-            // requirement chain, so the guidance bar can name the goal and the prerequisite step.
             var urgency = _classifier.UrgencyOf(op.Surgery, op.SurgeryId.Id);
             if (urgency >= bestUrgency)
                 continue;

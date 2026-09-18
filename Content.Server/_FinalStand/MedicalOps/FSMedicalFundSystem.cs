@@ -47,7 +47,6 @@ public sealed partial class FSMedicalFundSystem : EntitySystem
         RaiseLocalEvent(ref changed);
     }
 
-    /// <summary>Resolves the fund without creating one. Reads must use this.</summary>
     private bool TryGetFund(out Entity<FSMedicalFundComponent> fund)
     {
         if (_fund is { } cached && Exists(cached) && TryComp<FSMedicalFundComponent>(cached, out var cachedComp))

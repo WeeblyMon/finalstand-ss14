@@ -45,13 +45,11 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _cachedLabelH;
     private float _cachedValueH;
 
-    // The hotbar does not move, so the control tree is walked once per screen instead of per frame.
     private Control? _hotbarControl;
     private Control? _hotbarScreen;
     private Control? _alertsControl;
     private Control? _alertsScreen;
 
-    // Wave panel width for the frame, so the side panels can align to its edge.
     private float panelW0 = 150f;
 
     private string _layoutRaw = "";
@@ -63,7 +61,6 @@ public sealed partial class WaveHudOverlay : Overlay
     private Texture? _iconWave;
     private bool _hudIconsLoaded;
 
-    // Text is rebuilt on assignment, not per frame - these change a few times a wave at most.
     private int _currentWave = 1;
     private int _currentCredits;
     private int _enemiesAlive;
@@ -106,7 +103,6 @@ public sealed partial class WaveHudOverlay : Overlay
     public FSBonusCategory ReloadSpeed;
     public FSBonusCategory MagazineSize;
 
-    // Bumped when a summary lands; the row list rebuilds on that or on a change of held item.
     private int _bonusVersion;
 
     public void SetBonusSummary(FSPlayerBonusSummaryEvent ev)
@@ -129,7 +125,6 @@ public sealed partial class WaveHudOverlay : Overlay
     public int  ReadyUpTotal = 0;
     public bool ReadyUpPlayerIsReady = false;
 
-    // Screen-pixel bounds of the YES and NO buttons; valid only when IsReadyUpVisible.
     public UIBox2 ReadyUpYesBounds = new(-100, -100, -99, -99);
     public UIBox2 ReadyUpNoBounds  = new(-100, -100, -99, -99);
 
@@ -145,7 +140,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public int MedicalFund;
 
-    // Set when a directive changes; decays in FrameUpdate.
     public float DirectiveFlash;
     public Color DirectiveFlashColour = FSPalette.Ok;
 
@@ -172,10 +166,8 @@ public sealed partial class WaveHudOverlay : Overlay
     };
 
     private readonly Dictionary<string, Texture?> _augIconCache = new();
-    // rebuilt each frame: perk cell bounds + id for hover detection
     private readonly List<(UIBox2 Cell, string Id)> _augCells = new();
 
-    // rebuilt each frame: current-bonuses row bounds + label/source tooltip lines for hover detection
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
     private readonly record struct InterestPopup(string PerkId, int Amount, float Life, float TotalLife);
@@ -236,10 +228,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var s = Math.Clamp(screenSize.X / refWidth, 0.45f, 1.0f);
 
-        // Icons are pinned, not scaled. The engine has no mipmaps - TextureSampleParameters offers
-        // only bilinear on/off - so minifying a 32px source to 23px (what s=0.71 produced on a
-        // 1366-wide screen) is the blur, whichever filter is set. Assets are authored at 32 and
-        // drawn at 32. Spacing and panel width still scale, so the HUD stays proportionate.
         const float iconSz = 32f;
         const float rowIconSz = 20f;
         const float augIconSz = 32f;
@@ -250,8 +238,6 @@ public sealed partial class WaveHudOverlay : Overlay
         var augGap = MathF.Round(3f * s);
         var panelW = MathF.Round(RightColumnWidth * s);
 
-        // Text is a readability floor, not a layout variable. The old floors of 6 and 10 put
-        // labels near 8px on a laptop, well under what is legible at a glance mid-fight.
         const int labelPt = 11;
         var valuePt = Math.Max(14, (int)MathF.Round(20f * s));
 
@@ -284,8 +270,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
-        // Sized to what the row actually draws. This was still reserving the old 32px icon
-        // height, which padded every row well past its content.
         var rowContentH = Math.Max(rowIconSz, labelH + 4f + valueH);
         var rowH = rowContentH + rowPad * 2f;
 
@@ -295,10 +279,7 @@ public sealed partial class WaveHudOverlay : Overlay
         const float btnPad = 3f;
         var btnH = labelH + btnPad * 2f;
 
-        // Credits and perks live in the top-left block now, so the panel is only the wave readout.
         var totalH = sepH;
-        // The trailing rowPad is the gap under the buttons - without it the panel edge sat flush
-        // against them, which read as the panel being cut off.
         if (IsRespawnOfferVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsReadyUpVisible)
@@ -318,7 +299,6 @@ public sealed partial class WaveHudOverlay : Overlay
         var panelX = rightEdge - margin - panelW;
         var panelInset = 8f;
 
-        // Top right. The bottom of that edge is chat now, and the bottom band owns the corner.
         float y = margin;
 
         PanelLeft = panelX;
@@ -327,8 +307,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
         panelW0 = panelW;
 
-        // Backdrop. This block had none - it only looked dark because the map behind it happens to
-        // be unlit, and the readout vanished over anything bright.
         var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
         DrawPanel(screen, waveBox, VitalsBack, VitalsEdge, FSPalette.Danger);
 
@@ -350,13 +328,8 @@ public sealed partial class WaveHudOverlay : Overlay
             var promptY = screenSize.Y * 0.30f;
             var gap = MathF.Round(6f * s);
 
-            // Vignette first: the prototype darkens the whole screen toward the edges so the
-            // prompt is the only thing left to look at. DrawRect is the only primitive here, so
-            // the gradient is a stack of nested frames whose alpha accumulates outward.
             DrawVignette(screen, screenSize);
 
-            // Shadowed: this text lands on the vignette's red wash, where a dark red headline has
-            // almost no separation from its own background.
             DrawShadowed(screen, _promptFont!,
                 new Vector2((screenSize.X - headDims.X) * 0.5f, promptY),
                 headline, FSPalette.DangerSoft);
@@ -400,7 +373,6 @@ public sealed partial class WaveHudOverlay : Overlay
             RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
         }
 
-        // Declared here, called after the wave rows - ready up is prep-phase chrome, not a headline.
         void DrawReadyUpBlock()
         {
             if (!IsReadyUpVisible)
@@ -462,7 +434,6 @@ public sealed partial class WaveHudOverlay : Overlay
             return y + sepH + rowH;
         }
 
-        // Wave first, then what is left of it, then the clock. Most urgent at the top.
         y = DrawRow(_iconWave, "WAVE", _waveText, FSPalette.Danger);
 
         if (IsDarkWave)
@@ -485,14 +456,8 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawReadyUpBlock();
         screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
 
-        // Triage hangs under the wave panel, matching the prototype's right column.
         DrawTriage(screen, panelX, y + sepH + 10f);
 
-        // Top left, under the menu chips: perks then money. Both belong to "what have I built up",
-        // which is a different question from "what is the wave doing", so they get their own corner.
-        // No wrapper. The perk cells already carry their own backgrounds, so a box around them is
-        // redundant chrome; the text gets a shadow instead, which keeps it legible over a bright
-        // map without adding another rectangle to the corner.
         var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
         var leftX = TopLeftX + TopLeftPad;
         var leftY = topLeftTop;
@@ -507,8 +472,6 @@ public sealed partial class WaveHudOverlay : Overlay
             var cell = new UIBox2(ix, augIconsY, ix + augIconSz, augIconsY + augIconSz);
             _augCells.Add((cell, id));
 
-            // An empty slot is a socket, not a tile: outline only. Six filled blocks read as six
-            // things you have rather than six things you do not.
             if (string.IsNullOrEmpty(id))
             {
                 screen.DrawRect(cell, FSPalette.CellEdge, filled: false);
@@ -557,8 +520,8 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             var p = _interestPopups[pi];
             var t = p.Life / p.TotalLife;
-            var alpha = MathF.Min(1f, t * 3f); // fade in fast, fade out slow
-            var floatOffset = (1f - t) * 40f;  // float upward as it expires
+            var alpha = MathF.Min(1f, t * 3f);
+            var floatOffset = (1f - t) * 40f;
 
             var popupY = _creditsRowY - floatOffset;
             var amtText = $"+${p.Amount:N0}";
@@ -628,8 +591,6 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tipH = tipPad * 2f + nameDims.Y + 4f + levelDims.Y + 4f + effectDims.Y;
 
-            // Anchored to the perk being hovered. This used to hang off the wave panel, which was
-            // beside the perks when both lived in one block and is now the far corner.
             var tipX = Math.Clamp(cell.Left, 0f, MathF.Max(0f, _clyde.ScreenSize.X - tipW));
             var tipY = cell.Top - tipH - 6f;
             if (tipY < 0f) tipY = cell.Bottom + 6f;
@@ -776,8 +737,6 @@ public sealed partial class WaveHudOverlay : Overlay
         var iconSz = textH * 2f;
         var blockH = rows.Count * iconSz + (rows.Count - 1) * rowGap;
 
-        // Stacks above the alert icons, which sit above the vitals panel. Anchoring to the hotbar
-        // put these rows straight through both, since the hotbar's top is below them now.
         var vitalsTop = _clyde.ScreenSize.Y - BottomBandLift - VitalsBlockHeight();
         var ceiling = MathF.Min(FindAlertsTop() ?? vitalsTop, vitalsTop);
         var blockBottom = ceiling - bottomGap;
@@ -862,7 +821,6 @@ public sealed partial class WaveHudOverlay : Overlay
         }
     }
 
-    // Recurses since Hotbar nests at different depths between the two HUD layouts.
     private Control? FindNamedScreenControl(string name)
     {
         var screen = _uiManager.ActiveScreen;
@@ -884,16 +842,9 @@ public sealed partial class WaveHudOverlay : Overlay
         return null;
     }
 
-    // The vanilla alert icons share this corner, so the bonus rows stack on top of whatever height
-    // that column currently has rather than on a fixed offset.
     private static readonly Color VignetteWash = new(0.47f, 0f, 0f, 0.16f);
     private const float VignetteMaxDark = 0.72f;
 
-    /// <summary>
-    /// Radial falloff without a shader. Drawn as non-overlapping frames, each with its alpha
-    /// computed directly - stacking filled rects instead would compound toward the centre and put
-    /// the darkest point exactly where the player needs to read.
-    /// </summary>
     private static void DrawVignette(DrawingHandleScreen screen, Vector2i screenSize)
     {
         const int rings = 24;
@@ -977,7 +928,6 @@ public sealed partial class WaveHudOverlay : Overlay
     private const string MedicalBuffFallbackIcon = "buff";
     private static readonly Color MedicalBuffColour = FSPalette.Ok;
 
-    // Rebuilt on a change of held item or summary, not per frame.
     private List<BonusRow> BuildVisibleBonusRows()
     {
         _shop ??= _entityManager.System<FSShopClientSystem>();

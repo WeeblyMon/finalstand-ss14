@@ -26,7 +26,6 @@ public sealed partial class FSXpHudController : UIController
 
     private FSLevelingUpdatedEvent? _cached;
 
-    // Controls — non-null only while the game screen is loaded.
     private BoxContainer? _root;
     private ProgressBar? _bar;
     private Label? _label;
@@ -46,7 +45,6 @@ public sealed partial class FSXpHudController : UIController
         var screen = UIManager.ActiveScreen;
         if (screen == null) return;
 
-        // spacerTop pushes barContainer to absolute screen bottom, below the hotbar
         _root = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
@@ -59,7 +57,6 @@ public sealed partial class FSXpHudController : UIController
 
         var spacerTop = new Control { VerticalExpand = true, MouseFilter = Control.MouseFilterMode.Ignore };
 
-        // layoutcontainer lets label overlay on top of the bar
         var barContainer = new LayoutContainer
         {
             HorizontalExpand = true,
@@ -75,9 +72,7 @@ public sealed partial class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        // FINALSTAND: palette-matched to the rest of the HUD. The old teal and grey appeared
-        // nowhere else, so the bar read as a strip borrowed from another game. The top hairline is
-        // the same edge colour every panel uses, which is what ties it to the band above it.
+        // FINALSTAND: palette-matched to the rest of the HUD.
         _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = FSPalette.Warn };
         _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
         {
@@ -106,7 +101,6 @@ public sealed partial class FSXpHudController : UIController
         _root.AddChild(spacerTop);
         _root.AddChild(barContainer);
 
-        // In separated HUD mode, anchor to the viewport container so the bar doesn't extend into the chat panel.
         var target = isSeparated ? (FindViewportContainer(screen) ?? (Control) screen) : screen;
         target.AddChild(_root);
 

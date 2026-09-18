@@ -1,23 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Skubman <ba.fallaria@gmail.com>
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
-// SPDX-FileCopyrightText: 2025 Janet Blackquill <uhhadd@gmail.com>
-// SPDX-FileCopyrightText: 2025 Kayzel <43700376+KayzelW@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Piras314 <p1r4s@proton.me>
-// SPDX-FileCopyrightText: 2025 Roudenn <romabond091@gmail.com>
-// SPDX-FileCopyrightText: 2025 Spatison <137375981+Spatison@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Trest <144359854+trest100@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <39013340+deltanedas@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <@deltanedas:kde.org>
-// SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
-// SPDX-FileCopyrightText: 2025 gus <august.eymann@gmail.com>
-// SPDX-FileCopyrightText: 2025 kurokoTurbo <92106367+kurokoTurbo@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 pacable <77161122+pxc1984@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 pacable <igor.mamaev1@gmail.com>
-// SPDX-FileCopyrightText: 2025 pheenty <fedorlukin2006@gmail.com>
-//
-// SPDX-License-Identifier: AGPL-3.0-or-later
 
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._FinalStand.MedicalOps;
@@ -128,7 +108,7 @@ public abstract partial class SharedSurgerySystem
     private void HandleOrganModifications(SurgeryStepEvent args, SurgeryStepComponent comp)
     {
         HandleOrganModification(args.Part, args.Body, comp.AddOrganOnAdd);
-        HandleOrganModification(args.Part, args.Body, comp.RemoveOrganOnAdd, true); // oh my goida code
+        HandleOrganModification(args.Part, args.Body, comp.RemoveOrganOnAdd, true);
     }
 
     private void OnToolCheck(Entity<SurgeryStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
@@ -179,7 +159,7 @@ public abstract partial class SharedSurgerySystem
             if (GetSurgeryComp(args.Tool, reg.Component) is {} data)
             {
                 args.ValidTool = data;
-                return; // multiple required tools isn't supported so just return
+                return;
             }
 
             args.Invalid = StepInvalidReason.MissingTool;
@@ -198,7 +178,6 @@ public abstract partial class SharedSurgerySystem
         if (args.IsInvalid)
             return;
 
-        // mobs that can't be buckled can never be operated because of this check
         if (!TryComp(args.Body, out BuckleComponent? buckle) ||
             !HasComp<OperatingTableComponent>(buckle.BuckledTo))
         {
@@ -219,7 +198,6 @@ public abstract partial class SharedSurgerySystem
                 healable: true) <= 0)
             return;
 
-        // Right now the bonus is based off the body's total damage, maybe we could make it based off each part in the future.
         var bonus = ent.Comp.HealMultiplier * _wounds.GetWoundableSeverityPoint(args.Part, damageGroup: ent.Comp.MainGroup);
 
         if (_mobState.IsDead(args.Body))
@@ -265,8 +243,6 @@ public abstract partial class SharedSurgerySystem
 
     private void OnCavityCheck(Entity<SurgeryStepCavityEffectComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
-        // Normally this check would simply be partComp.ItemInsertionSlot.HasItem, but as mentioned before,
-        // For whatever reason it's not instantiating the field on the clientside after the wizmerge.
         if (!TryComp<OrganCavityComponent>(args.Part, out var cavity)
             || !TryComp(args.Part, out ItemSlotsComponent? itemComp)
             || ent.Comp.Action == "Insert"
@@ -287,7 +263,6 @@ public abstract partial class SharedSurgerySystem
         EnsureComp<BodyPartReattachedComponent>(args.Tool);
     }
 
-    // Nothing to open: the organ model has no slots, so OnAddOrganSlotCheck does the gating.
     private void OnAddOrganSlotStep(Entity<SurgeryAddOrganSlotStepComponent> ent, ref SurgeryStepEvent args)
     {
     }
@@ -309,7 +284,6 @@ public abstract partial class SharedSurgerySystem
 
         if (targetPart != default)
         {
-            // We reward players for properly affixing the parts by healing a little bit of damage, and enabling the part temporarily.
             _wounds.TryHealWoundsOnWoundable(targetPart.Owner, 12f, out _, damageGroup: _prototypes.Index(new ProtoId<DamageGroupPrototype>("Brute")));
             RemComp<BodyPartReattachedComponent>(targetPart.Owner);
         }
@@ -360,7 +334,6 @@ public abstract partial class SharedSurgerySystem
             || organComp.Organ == null)
             return;
 
-        // Adding organs is generally done for a single one at a time, so we only need to check for the first.
         var firstOrgan = organComp.Organ.Values.FirstOrDefault();
         if (firstOrgan.Component is null)
             return;
@@ -388,9 +361,6 @@ public abstract partial class SharedSurgerySystem
             || partComp.Body != args.Body)
             return;
 
-        // For now we naively assume that every entity will only have one of each organ type.
-        // that we do surgery on, but in the future we'll need to reference their prototype somehow
-        // to know if they need 2 hearts, 2 lungs, etc.
         foreach (var reg in organComp.Organ.Values)
         {
             if (!_lookup.TryGetChildOrgans(args.Part, reg.Component.GetType(), out var _))
@@ -504,7 +474,7 @@ public abstract partial class SharedSurgerySystem
                 AddComp(args.Body, _compFactory.GetComponent(compType));
         }
 
-        QueueDel(args.Tool); // Again since this isnt actually being inserted we just delete it lol.
+        QueueDel(args.Tool);
 
     }
 
@@ -520,12 +490,10 @@ public abstract partial class SharedSurgerySystem
 
     private void OnRemoveMarkingStep(Entity<SurgeryRemoveMarkingStepComponent> ent, ref SurgeryStepEvent args)
     {
-
     }
 
     private void OnRemoveMarkingCheck(Entity<SurgeryRemoveMarkingStepComponent> ent, ref SurgeryStepCompleteCheckEvent args)
     {
-
     }
 
     private void OnTraumaTreatmentStep(Entity<SurgeryTraumaTreatmentStepComponent> ent, ref SurgeryStepEvent args)
@@ -609,7 +577,7 @@ public abstract partial class SharedSurgerySystem
                 bleeds.BleedingAmountRaw = 0;
                 bleeds.Scaling = 0;
 
-                bleeds.IsBleeding = false; // Won't bleed as long as it's not reopened
+                bleeds.IsBleeding = false;
 
                 healAmount -= bleeds.Scaling;
             }
@@ -727,7 +695,7 @@ public abstract partial class SharedSurgerySystem
             if (_toolQuery.CompOrNull(args.Tool)?.EndSound is not { } sound)
                 continue;
             _audio.PlayPredicted(sound, args.Tool, args.User);
-            break; // no overlaying sounds
+            break;
         }
 
         return true;
@@ -804,7 +772,7 @@ public abstract partial class SharedSurgerySystem
         {
             var hasComponent = HasComp(target, entry.Component.GetType());
             if (checkMissing != hasComponent)
-                return true; // Early exit if condition fails
+                return true;
         }
 
         return false;
@@ -846,8 +814,6 @@ public abstract partial class SharedSurgerySystem
     private bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId)
 => TryDoSurgeryStep(body, targetPart, user, surgeryId, stepId, out _);
 
-    /// Do a surgery step on a part, if it can be done.
-    /// Returns true if it succeeded.
     public bool TryDoSurgeryStep(EntityUid body, EntityUid targetPart, EntityUid user, EntProtoId surgeryId, EntProtoId stepId, out StepInvalidReason error)
     {
         error = StepInvalidReason.None;
@@ -887,9 +853,8 @@ public abstract partial class SharedSurgerySystem
 
         _rotateToFace.TryFaceCoordinates(user, _transform.GetMapCoordinates(body).Position);
 
-        // We need to check for nullability because of surgeries that dont require a tool, like Cavity Implants
         var speed = data?.Speed ?? 1f;
-        var toolUsed = data?.Used ?? false; // if no tool is being used you can't consume it
+        var toolUsed = data?.Used ?? false;
         var ev = new SurgeryDoAfterEvent(surgeryId, stepId, toolUsed);
         var duration = GetSurgeryDuration(step, user, body, speed);
 
@@ -908,7 +873,6 @@ public abstract partial class SharedSurgerySystem
         var doAfter = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(duration), ev, body, part)
         {
             BreakOnMove = true,
-            //BreakOnTargetMove = true, I fucking hate wizden dude.
             CancelDuplicate = true,
             DuplicateCondition = DuplicateConditions.SameEvent,
             NeedHand = true,
@@ -944,12 +908,12 @@ public abstract partial class SharedSurgerySystem
     private float GetSurgeryDuration(EntityUid surgeryStep, EntityUid user, EntityUid target, float toolSpeed)
     {
         if (!_stepQuery.TryComp(surgeryStep, out var stepComp))
-            return 2f; // Shouldnt really happen but just a failsafe.
+            return 2f;
 
         var speed = toolSpeed;
-        if(TryComp<BuckleComponent>(target, out var buckleComp)) // Get buckle component from target.
-            if(TryComp<OperatingTableComponent>(buckleComp.BuckledTo, out var operatingTableComponent))  // If they are buckled to entity with operating table component
-                speed *= operatingTableComponent.SpeedModifier; // apply surgery speed modifier
+        if(TryComp<BuckleComponent>(target, out var buckleComp))
+            if(TryComp<OperatingTableComponent>(buckleComp.BuckledTo, out var operatingTableComponent))
+                speed *= operatingTableComponent.SpeedModifier;
         if (TryComp(user, out SurgerySpeedModifierComponent? surgerySpeedMod))
             speed *= surgerySpeedMod.SpeedModifier;
 
@@ -1060,7 +1024,7 @@ public abstract partial class SharedSurgerySystem
 
         var check = new SurgeryCanPerformStepEvent(user, body, tool, slot);
         RaiseLocalEvent(step, ref check);
-        if (check.IsValid) // if the step doesn't stop it check the body after
+        if (check.IsValid)
             RaiseLocalEvent(body, ref check);
 
         popup = check.Popup;
@@ -1132,7 +1096,6 @@ public abstract partial class SharedSurgerySystem
         return false;
     }
 
-    /// <summary>How much of an interrupted step carries over on the next attempt.</summary>
     private const float ResumeDiscount = 0.45f;
 
     public void ClearStepProgress(EntityUid body, string stepKey)

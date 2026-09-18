@@ -11,7 +11,6 @@ public sealed partial class WaveHudOverlay
     public int ThrowableStock;
     public bool ThrowableHasChoice;
 
-    /// <summary>Fired with -1 or +1 when an arrow is clicked.</summary>
     public event Action<int>? OnThrowableCycle;
 
     private UIBox2 _throwPrevBounds = new(-100, -100, -99, -99);
@@ -30,11 +29,8 @@ public sealed partial class WaveHudOverlay
     private static readonly Color ThrowArrowLive = FSPalette.TextMuted;
     private static readonly Color ThrowArrowDead = FSPalette.TextDim;
 
-    /// <summary>Right-aligned to the same edge as the weapon module. Returns the height used.</summary>
     private float DrawThrowables(DrawingHandleScreen screen, float rightEdge, float bottom)
     {
-        // Always drawn, even with nothing carried. The row is how anyone learns the G key exists,
-        // and a control that only appears once you already have the item teaches nobody.
         var name = ThrowableName ?? "none";
         var empty = ThrowableName is null;
 
@@ -48,7 +44,6 @@ public sealed partial class WaveHudOverlay
 
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);
 
-        // Same width as the weapon module below it, so the right stack has one left edge.
         var right = rightEdge;
         var x = right - WeaponPanelW;
         var top = bottom - rowH;

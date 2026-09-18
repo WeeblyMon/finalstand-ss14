@@ -41,9 +41,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    // A share of the wallet rather than a flat fee: it scales with how well the round has gone, and
-    // it is free at zero balance, so a player who has nothing is never locked out. Crew can donate
-    // to cover someone who wants to pay their way back rather than wait.
     private const float CostFraction = 0.20f;
     private const double RequestCooldownSeconds = 2.0;
 

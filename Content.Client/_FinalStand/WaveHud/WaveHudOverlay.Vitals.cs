@@ -14,15 +14,12 @@ public sealed partial class WaveHudOverlay
     public int HealthMax;
     public readonly List<(string Text, bool Bad)> StatusPills = new();
 
-    /// <summary>Matches DefaultGameScreen's bottom band lift so the block sits level with the hands.</summary>
     public const float BottomBandLift = 23f;
 
-    // Aligned with the menu chips at TopLeft margin 10, clearing their 18px height and the vote slot.
     private const float TopLeftX = 10f;
     private const float TopLeftY = 34f;
     private const float TopLeftPad = 8f;
 
-    // The split layout owns the top-left corner with its own action column.
     private const float TopLeftYSeparated = 150f;
 
     private const float VitalsWidth = 240f;
@@ -48,10 +45,6 @@ public sealed partial class WaveHudOverlay
     private static readonly Color PillGood = FSPalette.Ok;
     private static readonly Color VitalsMuted = FSPalette.TextMuted;
 
-    /// <summary>
-    /// Rect with the four corner pixels dropped. DrawRect is the only primitive here, so this is
-    /// what a 2-3px radius reduces to at HUD scale - enough to read as rounded, no texture needed.
-    /// </summary>
     public static void DrawRounded(DrawingHandleScreen screen, UIBox2 box, Color color, float radius = 3f)
     {
         var r = MathF.Min(radius, MathF.Min(box.Width, box.Height) * 0.5f);
@@ -66,13 +59,6 @@ public sealed partial class WaveHudOverlay
 
     private const float Chamfer = 3f;
 
-
-    /// <summary>
-    /// The house panel. Corners are chamfered rather than rounded and the edge is drawn as four
-    /// rules plus four diagonals, so it reads as a stamped metal plate instead of a CSS rectangle.
-    /// A lit top edge and a shadowed bottom edge give it thickness; corner brackets mark it as
-    /// deliberate hardware rather than a container.
-    /// </summary>
     public static void DrawPanel(DrawingHandleScreen screen, UIBox2 box, Color fill, Color edge,
         Color? accent = null)
     {
@@ -80,9 +66,6 @@ public sealed partial class WaveHudOverlay
             PanelShadow);
         DrawChamfered(screen, box, fill);
 
-        // Thickness: light catches the top lip, the bottom sits in its own shadow. Where a panel
-        // has a role, that lip becomes a colour rule instead - which is what tells them apart at a
-        // glance without adding another element to read.
         var lip = new UIBox2(box.Left + Chamfer, box.Top, box.Right - Chamfer, box.Top + 1f);
         if (accent is { } a)
         {
@@ -97,7 +80,6 @@ public sealed partial class WaveHudOverlay
         DrawChamferedEdge(screen, box, edge);
     }
 
-    /// <summary>Body of a panel with its four corners cut at 45 degrees.</summary>
     public static void DrawChamfered(DrawingHandleScreen screen, UIBox2 box, Color color)
     {
         var c = MathF.Min(Chamfer, MathF.Min(box.Width, box.Height) * 0.5f);
@@ -106,7 +88,6 @@ public sealed partial class WaveHudOverlay
         screen.DrawRect(new UIBox2(box.Left, box.Top + c, box.Left + c, box.Bottom - c), color);
         screen.DrawRect(new UIBox2(box.Right - c, box.Top + c, box.Right, box.Bottom - c), color);
 
-        // Staircase the cut corners so the diagonal is filled rather than left as a notch.
         for (var i = 0; i < c; i++)
         {
             var inset = c - i;
@@ -132,7 +113,6 @@ public sealed partial class WaveHudOverlay
         screen.DrawLine(new Vector2(box.Right - c, box.Bottom), new Vector2(box.Right, box.Bottom - c), edge);
     }
 
-    /// <summary>Text with a hard offset shadow, for labels that sit on the world with no panel.</summary>
     public static void DrawShadowed(DrawingHandleScreen screen, Font font, Vector2 pos, string text, Color color)
     {
         screen.DrawString(font, pos + new Vector2(1f, 1f), text, new Color(0f, 0f, 0f, 0.85f));
@@ -142,11 +122,6 @@ public sealed partial class WaveHudOverlay
     private float _pillRowH = 17f;
     private int _pillRows;
 
-    /// <summary>
-    /// Constant height, whether or not stamina and pills are present. The alert strip above is a
-    /// control anchored at build time and cannot track a changing height, so a panel that grew and
-    /// shrank would leave a gap that opened and closed as you bled.
-    /// </summary>
     public float VitalsBlockHeight()
     {
         if (HealthRatio is null)
@@ -162,10 +137,6 @@ public sealed partial class WaveHudOverlay
         return h;
     }
 
-    /// <summary>
-    /// How many wrapped rows the pills need. Measured before the panel is sized, so the panel and
-    /// the alert column above it agree within the same frame.
-    /// </summary>
     private int MeasurePillRows(DrawingHandleScreen screen, float innerW)
     {
         if (StatusPills.Count == 0)
@@ -214,12 +185,9 @@ public sealed partial class WaveHudOverlay
         var innerW = VitalsWidth - VitalsPadX * 2f;
         var y = top + VitalsPadY;
 
-        // Figure then bar on one baseline, so the number is what the eye lands on first.
         var hpText = HealthCurrent.ToString();
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
-        // The bar carries "health is red"; the figure stays neutral until something is wrong, so
-        // going red actually means something rather than being the resting state.
         screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText,
             lowHp ? HpFillLow : FSPalette.TextBright);
 
@@ -245,8 +213,6 @@ public sealed partial class WaveHudOverlay
             DrawPills(screen, innerX, y + VitalsRowGap, innerW);
     }
 
-    /// <summary>Pills below the bars, wrapping onto further rows. Bleeding and broken bones are
-    /// open-ended, so this must wrap rather than truncate.</summary>
     private void DrawPills(DrawingHandleScreen screen, float left, float top, float innerW)
     {
         var px = left;
@@ -280,7 +246,6 @@ public sealed partial class WaveHudOverlay
         if (filled > 0f)
         {
             screen.DrawRect(new UIBox2(x, y, x + filled, y + h), fill);
-            // Brighter top third: a flat block of colour reads as a placeholder, not a gauge.
             screen.DrawRect(new UIBox2(x, y, x + filled, y + h * 0.35f), FSPalette.BarSheen);
         }
 

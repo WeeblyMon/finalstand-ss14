@@ -66,7 +66,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
 
-        // wave 0 when no active rule → 1× multiplier
         _waveRule.TryGetActiveState(out var wave);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
         var waveMult = GetXpMultiplier(wave.WaveNumber);
@@ -104,7 +103,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
         while (query.MoveNext(out var mindId, out _))
         {
             if (!TryComp<MindComponent>(mindId, out var mind)) continue;
-            // Skip players who are physically dead — wave bonus only for survivors
             if (_mind.IsCharacterDeadPhysically(mind)) continue;
             GiveExperience(mindId, xp, "wave_completion", resolveBody: false);
         }
@@ -140,7 +138,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }
     }
 
-    // Leveling loads and saves its own columns of the prestige row. The wallet owns only its own.
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _))
@@ -196,7 +193,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
 
-        // Reported once per wave by OnWaveEnded.
         var start = Stopwatch.GetTimestamp();
         _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
             SerializePrestigeBuffs(buffs));
@@ -231,7 +227,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         _roundStats.Clear();
 
-        // Clearing Loaded makes the next spawn re-read the row, carrying level/prestige into the new round.
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
             lvl.Loaded = false;
@@ -334,7 +329,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }, actor.PlayerSession);
     }
 
-    // In the lobby the player has no mind, so fall back to the stored record.
     private void OnLevelingRequest(FSLevelingRequestMessage msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;

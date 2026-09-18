@@ -43,7 +43,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private const int ProgressSegments = 12;
 
-    // decorative only - a tier's dot color here is not the same signal as a node's state color
     private static readonly Color[] TierLegendColors =
     {
         FSUiPalette.TextMuted,
@@ -288,7 +287,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         UpdateDetailPanel();
     }
 
-    // Node views are rebuilt on relayout, so re-point at the fresh instance for the same id.
     private void ResyncSelectedNode()
     {
         if (_selectedNode != null)
@@ -348,8 +346,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         }
     }
 
-    // Shows FS's own banked RP, not vanilla ResearchServerComponent.Points.
-    /// <summary>The viewer's own share of the pot. Negative until the server says.</summary>
     public int ViewerContribution = -1;
     public int DepartmentEarned;
 
@@ -496,7 +492,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
     {
         UpdateResearchAmountLabel();
 
-        // Kept until the player selects elsewhere - point grants refresh this panel constantly.
         if (!_warningIsSticky)
         {
             AuthorityWarningLabel.Visible = false;
@@ -598,7 +593,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
                 }
                 else
                 {
-                    // Locks the viewer's own contribution to this node even if the RD later switches away.
                     StartResearchButton.Text = "Also Set as My Pick (Full Cost)";
                     StartResearchButton.Disabled = false;
                 }
@@ -652,7 +646,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
 
     private void UpdateDetailPanelFsNode(FSTechNodePrototype fsNode)
     {
-        // Wrapper node - defer entirely to the vanilla tech's own unlocks-list rendering.
         if (fsNode.VanillaTechnologyId is { } vanillaId && _prototype.TryIndex(vanillaId, out var vanillaTech))
         {
             UpdateDetailPanelVanilla(vanillaTech);
@@ -674,7 +667,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         TechDescLabel.SetMessage(descMsg);
 
         var statsMsg = new FormattedMessage();
-        // TryGetString so a real locale key still resolves, without warning on literal text.
         var bonus = "—";
         if (fsNode.BonusDescription != string.Empty)
             bonus = Loc.TryGetString(fsNode.BonusDescription, out var localised) ? localised : fsNode.BonusDescription;
@@ -717,7 +709,6 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         return msg;
     }
 
-    // Display hint only - server re-checks materials for real at selection time.
     private FormattedMessage BuildMaterialsMessage(FSTechNodePrototype fsNode, out bool hasEnough)
     {
         hasEnough = true;

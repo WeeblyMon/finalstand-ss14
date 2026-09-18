@@ -28,8 +28,6 @@ public sealed partial class InventoryGui : UIWidget
             ContentMarginBottomOverride = 4,
         };
 
-        // The controller toggles the grid, not the wrapper, so the wrapper follows it - otherwise
-        // an empty panel is left sitting on the screen once the bar closes.
         InventoryHotbar.OnVisibilityChanged += _ => FSInventoryPanel.Visible = InventoryHotbar.Visible;
         FSInventoryPanel.Visible = InventoryHotbar.Visible;
 

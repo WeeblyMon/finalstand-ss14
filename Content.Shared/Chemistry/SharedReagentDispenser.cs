@@ -5,9 +5,6 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared.Chemistry
 {
-    /// <summary>
-    /// This class holds constants that are shared between client and server.
-    /// </summary>
     public sealed class SharedReagentDispenser
     {
         public const string OutputSlotName = "beakerSlot";
@@ -23,10 +20,6 @@ namespace Content.Shared.Chemistry
             ReagentDispenserDispenseAmount = amount;
         }
 
-        /// <summary>
-        ///     Create a new instance from interpreting a String as an integer,
-        ///     throwing an exception if it is unable to parse.
-        /// </summary>
         public ReagentDispenserSetDispenseAmountMessage(String s)
         {
             switch (s)
@@ -75,9 +68,6 @@ namespace Content.Shared.Chemistry
         }
     }
 
-    /// <summary>
-    ///     Message sent by the user interface to ask the reagent dispenser to eject a container
-    /// </summary>
     [Serializable, NetSerializable]
     public sealed class ReagentDispenserEjectContainerMessage : BoundUserInterfaceMessage
     {
@@ -92,7 +82,6 @@ namespace Content.Shared.Chemistry
     [Serializable, NetSerializable]
     public sealed class ReagentDispenserClearContainerSolutionMessage : BoundUserInterfaceMessage
     {
-
     }
 
     public enum ReagentDispenserDispenseAmount
@@ -125,9 +114,6 @@ namespace Content.Shared.Chemistry
 
         public readonly NetEntity? OutputContainerEntity;
 
-        /// <summary>
-        /// A list of the reagents which this dispenser can dispense.
-        /// </summary>
         public readonly List<ReagentInventoryItem> Inventory;
 
         public readonly ReagentDispenserDispenseAmount SelectedDispenseAmount;

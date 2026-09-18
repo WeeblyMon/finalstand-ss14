@@ -44,7 +44,6 @@ namespace Content.Client.UserInterface.Controls
             get => _slotName;
             set
             {
-                //this auto registers the button with it's parent container when it's set
                 if (_slotNameSet)
                 {
                     Logger.Warning("Tried to set slotName after init for:" + Name);
@@ -97,7 +96,6 @@ namespace Content.Client.UserInterface.Controls
             }
         }
 
-
         private string? _storageTexturePath;
         public string? StorageTexturePath
         {
@@ -130,10 +128,6 @@ namespace Content.Client.UserInterface.Controls
 
         private Label? FSLabelControl;
 
-        /// <summary>
-        /// Turns the slot into a labelled button: the word replaces the glyph, and the button
-        /// graphic stretches to whatever width the word needs rather than staying a square.
-        /// </summary>
         public string FSLabel
         {
             set
@@ -147,8 +141,6 @@ namespace Content.Client.UserInterface.Controls
                 if (!FSLabelControl.Visible)
                     return;
 
-                // Stretch, so the backing texture fills the control instead of drawing a square in
-                // the middle of it - that mismatch is what left the word hanging over the edges.
                 ButtonRect.Stretch = TextureRect.StretchMode.Scale;
                 HighlightRect.Stretch = TextureRect.StretchMode.Scale;
                 ButtonRect.SetSize = Vector2.Zero;
@@ -165,7 +157,6 @@ namespace Content.Client.UserInterface.Controls
 
         private const float FSLabelTextPad = 8f;
 
-        /// <summary>Resizes this slot. Only integer multiples of 32 stay sharp.</summary>
         public void SetButtonSize(int size)
         {
             var scale = size / SourceArtSize;
@@ -185,18 +176,12 @@ namespace Content.Client.UserInterface.Controls
             IoCManager.InjectDependencies(this);
             Name = "SlotButton_null";
 
-            // FINALSTAND: art is authored at 32, so scale is the slot size over 32 rather than a
-            // hardcoded 2. That keeps every slot size an integer multiple - the engine has no
-            // mipmaps, so a fractional scale is the blur.
+            // FINALSTAND: art is authored at 32, so scale is the slot size over 32 rather than a hardcoded 2.
             var scale = DefaultButtonSize / SourceArtSize;
 
             MinSize = new Vector2(DefaultButtonSize, DefaultButtonSize);
 
-            // FINALSTAND: the grid stretches a slot to its cell, and a cell is only exactly the slot
-            // size when nothing else in that row or column is bigger. TextureRect defaults to Keep,
-            // which pins the art top-left, while SpriteView draws the item at the centre - so any
-            // stretch slid every item down and right of its own slot. Centre both so they share an
-            // anchor at any size, and keep the slot at its own size so it usually never stretches.
+            // FINALSTAND: the grid stretches a slot to its cell, and a cell is only exactly the slot size when nothing else in that row or column is bigger.
             HorizontalAlignment = HAlignment.Center;
             VerticalAlignment = VAlignment.Center;
 
@@ -341,9 +326,6 @@ namespace Content.Client.UserInterface.Controls
             HoverSpriteView.SetEntity(null);
         }
 
-        /// <summary>
-        /// Causes the control to display a placeholder prototype, optionally faded
-        /// </summary>
         public void SetEntity(EntityUid? ent)
         {
             SpriteView.SetEntity(ent);
@@ -352,19 +334,11 @@ namespace Content.Client.UserInterface.Controls
             UpdateButtonTexture();
         }
 
-        /// <summary>
-        /// Add an overlay to in the admin overlays location
-        /// </summary>
-        /// <param name="texturePath">The texture path to overlay.</param>
-        /// <param name="color">Color to modulate the texture with - if null no modulation.</param>
         public void AddAdminOverlay(ResPath texturePath, Color? color = null)
         {
             AdminOverlays.AddChild(new SimpleSlotOverlay(texturePath.CanonPath, color));
         }
 
-        /// <summary>
-        /// Causes the control to display a placeholder prototype, optionally faded
-        /// </summary>
         public void SetPrototype(EntProtoId? proto, bool fade)
         {
             ProtoView.SetPrototype(proto);

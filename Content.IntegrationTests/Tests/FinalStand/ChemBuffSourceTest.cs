@@ -9,8 +9,6 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class ChemBuffSourceTest : GameTest
 {
-    // The client draws the buff underline by prefix-matching this string. A source that does not
-    // carry the prefix applies its bonuses but is invisible, with nothing reporting the mismatch.
     [Test]
     public async Task EveryCombatBuffSourceCarriesThePrefix()
     {

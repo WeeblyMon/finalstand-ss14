@@ -44,7 +44,6 @@ public sealed class FSSplashFlaskSystem : EntitySystem
         SubscribeLocalEvent<FSSplashFlaskComponent, LandEvent>(OnLand);
     }
 
-
     private void OnLand(Entity<FSSplashFlaskComponent> ent, ref LandEvent args)
     {
         if (!_solutions.TryGetSolution(ent.Owner, ent.Comp.Solution, out var soln, out var solution)
@@ -76,8 +75,6 @@ public sealed class FSSplashFlaskSystem : EntitySystem
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
 
-            // A splash lands on everyone in the radius at once, so each claim is worth a fraction
-            // of an aimed dart. Otherwise one flask into a stack of eight is eight full claims.
             foreach (var crew in _crewBuffer)
                 _credit.RegisterDelivery(crew, thrower, FSMedicalPayoutRates.SplashClaimBudget);
         }

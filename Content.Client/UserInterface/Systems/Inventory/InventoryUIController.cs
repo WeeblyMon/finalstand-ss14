@@ -72,7 +72,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _strippingWindow = UIManager.CreateWindow<StrippingWindow>();
         LayoutContainer.SetAnchorPreset(_strippingWindow, LayoutContainer.LayoutPreset.Center);
 
-        //bind open inventory key to OpenInventoryMenu;
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.OpenInventoryMenu, InputCmdHandler.FromDelegate(_ => ToggleInventoryBar()))
             .Register<ClientInventorySystem>();
@@ -254,7 +253,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
 
     }
 
-    // Neuron Activation
     public void OnSystemLoaded(ClientInventorySystem system)
     {
         _inventorySystem.OnSlotAdded += AddSlot;
@@ -264,7 +262,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _inventorySystem.OnSpriteUpdate += SpriteUpdated;
     }
 
-    // Neuron Deactivation
     public void OnSystemUnloaded(ClientInventorySystem system)
     {
         _inventorySystem.OnSlotAdded -= AddSlot;
@@ -344,7 +341,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
             return;
         }
 
-        // Set green / red overlay at 50% transparency
         var hoverEntity = _entities.SpawnEntity("hoverentity", MapCoordinates.Nullspace);
         var hoverSprite = _entities.GetComponent<SpriteComponent>(hoverEntity);
         var fits = _inventorySystem.CanEquip(player.Value, held.Value, control.SlotName, out _, slotDef) &&
@@ -491,9 +487,6 @@ public sealed partial class InventoryUIController : UIController, IOnStateEntere
         _slotGroups.Remove(slotGroupName);
     }
 
-    // Monkey Sees Action
-    // Neuron Activation
-    // Monkey copies code
     public void OnSystemLoaded(HandsSystem system)
     {
         _handsSystem.OnPlayerItemAdded += OnItemAdded;

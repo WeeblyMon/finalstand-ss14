@@ -94,8 +94,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private FSMedicalDirective? _activeDirective;
 
-    // Every write goes through here. The panels are the only transport for this value, so a write
-    // that forgot to sync would leave every client showing a directive that is not running.
     private void SetActiveDirective(FSMedicalDirective? directive)
     {
         _activeDirective = directive;
@@ -109,7 +107,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         }
     }
 
-    // Reused rather than reallocated: ApplyBuff copies the dictionary, so one scratch is safe.
     private readonly Dictionary<FSMedicalBonusCategory, float> _scaledScratch = new();
 
     public override void Initialize()
@@ -128,8 +125,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SetActiveDirective(null);
     }
 
-    // Triage Doctrine rides whatever order is standing rather than being a permanent freebie, so
-    // the CMO has to keep issuing directives to get value out of it.
     private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId == FSMedicalUpgradeSystem.DepartmentDividend)
@@ -228,8 +223,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     private const int DividendPayout = 1200;
     private static readonly TimeSpan DividendCooldown = TimeSpan.FromSeconds(300);
 
-    // Deliberately a loss on conversion: this exists so a finished tree is not dead weight, not as
-    // an income stream. Split across the department so it is a department reward, not the CMO's.
     private void RunDividend(EntityUid performer)
     {
         if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.DepartmentDividend))
@@ -368,7 +361,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         }
     }
 
-    // Research-bought command upgrades. Standing Orders lifts every order; the rest buy tempo.
     private Dictionary<FSMedicalBonusCategory, float> Scaled(Dictionary<FSMedicalBonusCategory, float> bonuses)
     {
         if (!_upgrades.Unlocked(FSMedicalUpgradeSystem.StandingOrders))

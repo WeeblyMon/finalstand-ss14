@@ -7,8 +7,6 @@ using Robust.Shared.Utility;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
-// A missing .ogg is silent with no warning and a missing .png is an ERROR sprite for players only,
-// so neither shows up in a dev client. These paths are string literals no compiler checks.
 [TestFixture]
 public sealed class MedicalAssetPathTest : GameTest
 {
@@ -47,11 +45,9 @@ public sealed class MedicalAssetPathTest : GameTest
                     {
                         var path = match.Groups[1].Value;
 
-                        // Interpolated segments are built at runtime, so there is no literal to check.
                         if (path.Contains('{'))
                             continue;
 
-                        // An .rsi is a directory; its meta.json is what proves it resolves.
                         var probe = path.EndsWith(".rsi") ? path + "/meta.json" : path;
 
                         if (resources.ContentFileExists(new ResPath(probe)))

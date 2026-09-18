@@ -12,9 +12,6 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.SmartReload;
 
-// Hold-to-reload opens this instead of ejecting. The list is built from the player's own
-// containers rather than asked for over the network, so the wheel appears the instant the hold
-// threshold passes. The server re-checks the slot whitelist before loading whatever comes back.
 public sealed class FSAmmoWheel : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
@@ -33,7 +30,6 @@ public sealed class FSAmmoWheel : EntitySystem
         _menu = null;
     }
 
-    /// <summary>Opens the wheel for a gun. Returns false when there is nothing to choose between.</summary>
     public bool TryOpen(EntityUid gun)
     {
         Close();
@@ -48,12 +44,9 @@ public sealed class FSAmmoWheel : EntitySystem
         var found = new List<EntityUid>();
         Collect(user, magSlot.Whitelist, loaded, found, depth: 0);
 
-        // One option that is already in the gun is not a choice worth a menu.
         if (found.Count == 0)
             return false;
 
-        // Interchangeable magazines are one choice, not several. Carrying five spare mags used to
-        // fill the wheel with five identical wedges, which is a menu that answers nothing.
         var groups = new List<(EntityUid Best, int BestCount, int Total)>();
         var index = new Dictionary<string, int>();
 
@@ -70,7 +63,6 @@ public sealed class FSAmmoWheel : EntitySystem
             }
 
             var (best, bestCount, total) = groups[at];
-            // The fullest one represents the group - it is the one you would have reached for.
             groups[at] = count > bestCount ? (mag, count, total + 1) : (best, bestCount, total + 1);
         }
 
@@ -101,7 +93,6 @@ public sealed class FSAmmoWheel : EntitySystem
         }
     }
 
-    // Two levels deep, matching FindBestMagazine on the server: held/worn, then inside those.
     private void Collect(EntityUid root, EntityWhitelist? whitelist, EntityUid? loaded,
         List<EntityUid> into, int depth)
     {
@@ -125,8 +116,6 @@ public sealed class FSAmmoWheel : EntitySystem
         }
     }
 
-    // The generic query every provider answers - ballistic, battery, revolver, solution - rather
-    // than a branch per component type that silently returns nothing for the ones not listed.
     private (int Count, int Capacity) Ammo(EntityUid mag)
     {
         var ev = new GetAmmoCountEvent();

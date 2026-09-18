@@ -1,21 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Piras314 <p1r4s@proton.me>
-// SPDX-FileCopyrightText: 2025 Aiden <28298836+Aidenkrz@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 AstroDogeDX <48888500+AstroDogeDX@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 GoobBot <uristmchands@proton.me>
-// SPDX-FileCopyrightText: 2025 Janet Blackquill <uhhadd@gmail.com>
-// SPDX-FileCopyrightText: 2025 Kayzel <43700376+KayzelW@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Roudenn <romabond091@gmail.com>
-// SPDX-FileCopyrightText: 2025 Spatison <137375981+Spatison@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Ted Lukin <66275205+pheenty@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 Trest <144359854+trest100@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <39013340+deltanedas@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 deltanedas <@deltanedas:kde.org>
-// SPDX-FileCopyrightText: 2025 gluesniffler <159397573+gluesniffler@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 gluesniffler <linebarrelerenthusiast@gmail.com>
-// SPDX-FileCopyrightText: 2025 kurokoTurbo <92106367+kurokoTurbo@users.noreply.github.com>
-// SPDX-FileCopyrightText: 2025 pheenty <fedorlukin2006@gmail.com>
-//
-// SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Linq;
 using Content.Shared._FinalStand.Medical;
@@ -90,18 +72,10 @@ public abstract partial class SharedSurgerySystem : EntitySystem
     private EntityQuery<BodyComponent> _bodyQuery;
     private EntityQuery<StackComponent> _stackQuery;
 
-    /// <summary>
-    /// Cache of all surgery prototypes' singleton entities.
-    /// Cleared after a prototype reload.
-    /// </summary>
     private readonly Dictionary<EntProtoId, EntityUid> _surgeries = new();
 
     private readonly List<EntProtoId> _allSurgeries = new();
 
-    /// <summary>
-    /// Every surgery entity prototype id.
-    /// Kept in sync with prototype reloads.
-    /// </summary>
     public IReadOnlyList<EntProtoId> AllSurgeries => _allSurgeries;
 
     public override void Initialize()
@@ -166,7 +140,7 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         ref DoAfterAttemptEvent<SurgeryDoAfterEvent> args)
     {
         if (_net.IsClient
-            || !args.Event.Repeat) // We only wanna do this laggy shit on repeatables. One-time stuff idc.
+            || !args.Event.Repeat)
             return;
 
         if (args.Event.Target is not { } target
@@ -207,7 +181,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         RaiseLocalEvent(step, ref ev);
         RaiseLocalEvent(args.User, ref ev);
 
-        // consume the tool if it's something like using LV cable as stitches
         if (args.ToolUsed)
         {
             if (_stackQuery.TryComp(tool, out var stack))
@@ -269,7 +242,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         args.Cancelled |= present == ent.Comp.Inverse;
     }
 
-    // This is literally a duplicate of the checks in OnToolCheck for SurgeryStepComponent.AddOrganOnAdd
     private void OnOrganOnAddConditionValid(Entity<SurgeryOrganOnAddConditionComponent> ent, ref SurgeryValidEvent args)
     {
         if (!TryComp<OrganComponent>(args.Organ, out var organ)
@@ -383,8 +355,6 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         if (args.Cancelled)
             return;
 
-        // not inverted = cancel if no trauma present
-        // inverted = cancel if trauma present
         if (_trauma.HasWoundableTrauma(args.Organ, ent.Comp.TraumaType) == ent.Comp.Inverted)
             args.Cancelled = true;
     }
@@ -466,9 +436,6 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
         if (!_prototypes.HasIndex(surgeryOrStep))
             return null;
 
-        // This (for now) assumes that surgery entity data remains unchanged between client
-        // and server
-        // if it does not you get the bullet
         if (!_surgeries.TryGetValue(surgeryOrStep, out var ent) || TerminatingOrDeleted(ent))
         {
             ent = Spawn(surgeryOrStep, MapCoordinates.Nullspace);
@@ -478,17 +445,11 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
         return ent;
     }
 
-    /// <summary>
-    /// Checks if someone is lying down (and is able to)
-    /// Shows a popup if this is run on the user's client.
-    /// </summary>
     public bool IsLyingDown(EntityUid entity, EntityUid user)
     {
         if (_standing.IsDown(entity))
             return true;
 
-        // you can't otherwise operate on something with no buckle
-        // just let people do surgery on goliaths and shit
         if (!TryComp<BuckleComponent>(entity, out var buckle))
             return true;
 
@@ -517,7 +478,6 @@ private void OnMarkingPresentValid(Entity<SurgeryMarkingConditionComponent> ent,
 
     private void LoadPrototypes()
     {
-        // Cache is probably invalid so delete it
         foreach (var uid in _surgeries.Values)
         {
             Del(uid);

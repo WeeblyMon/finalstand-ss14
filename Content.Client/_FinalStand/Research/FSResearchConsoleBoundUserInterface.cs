@@ -69,7 +69,6 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
             SendMessage(new FSClearSharedResearchMessage());
         };
 
-        // FSTechDatabaseComponent changes don't push a BUI state, so wire this manually.
         var researchClient = EntMan.System<FSResearchClientSystem>();
         _onDatabaseUpdated = uid =>
         {

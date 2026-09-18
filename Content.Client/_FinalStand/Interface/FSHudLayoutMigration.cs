@@ -4,9 +4,6 @@ using Robust.Shared.Configuration;
 
 namespace Content.Client._FinalStand.Interface;
 
-// The reworked HUD is built for the default screen. Anyone still on the separated layout is moved
-// across once, then left alone - ui.layout is ARCHIVE, so re-applying this every launch would stop
-// a player ever choosing separated on purpose.
 public static class FSHudLayoutMigration
 {
     public static void Run(IConfigurationManager cfg)

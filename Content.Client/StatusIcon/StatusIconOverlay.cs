@@ -85,8 +85,6 @@ public sealed partial class StatusIconOverlay : Overlay
                 float yOffset;
                 float xOffset;
 
-                // the icons are ordered left to right, top to bottom.
-                // extra icons that don't fit are just cut off.
                 if (proto.LocationPreference == StatusIconLocationPreference.Left ||
                     proto.LocationPreference == StatusIconLocationPreference.None && countL <= countR)
                 {

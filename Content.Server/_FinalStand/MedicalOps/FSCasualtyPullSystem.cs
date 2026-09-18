@@ -17,7 +17,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Surgery is where the Doctor is; this is how the one casualty nobody can reach gets to them.
 public sealed class FSCasualtyPullSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
@@ -95,7 +94,6 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         args.Handled = TryPull(args.Performer, target, args.Action);
     }
 
-    /// <summary>Nearest crit or dead crewmate on the same map, ignoring line of sight.</summary>
     private bool TryFindNearest(EntityUid doctor, out EntityUid nearest)
     {
         nearest = default;
@@ -135,7 +133,6 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         if (target == doctor || TerminatingOrDeleted(target))
             return false;
 
-        // A conscious crewmate is not a casualty, and yanking one is a grief tool.
         if (!_mobState.IsCritical(target) && !_mobState.IsDead(target))
         {
             _popup.PopupEntity(Loc.GetString("fs-casualty-pull-not-down"), doctor, doctor);
@@ -164,7 +161,6 @@ public sealed class FSCasualtyPullSystem : EntitySystem
 
         var cooldown = TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120);
 
-        // Set before the action starts its own cooldown, so Recovery Uplink applies to this use.
         if (action is { } act)
             _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
 
@@ -187,8 +183,6 @@ public sealed class FSCasualtyPullSystem : EntitySystem
         return true;
     }
 
-    // DoAfters live on the user, so finding one aimed at this casualty means sweeping the runners.
-    // Only ever called behind a two-minute cooldown, never per tick.
     private bool IsBeingWorkedOn(EntityUid target)
     {
         foreach (var session in _players.Sessions)

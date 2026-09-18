@@ -19,7 +19,6 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     private static readonly SoundSpecifier Refreshed =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/buff_refresh.ogg");
 
-    // Only a dose landing on a nearly-spent buff counts as a top-up.
     private const float RefreshFraction = 0.34f;
 
     protected override void Effect(Entity<FSFriendlyFireComponent> entity, ref EntityEffectEvent<FSApplyCombatBuff> args)
@@ -27,9 +26,6 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
         var effect = args.Effect;
         var duration = TimeSpan.FromSeconds(effect.Duration * args.Scale);
 
-        // A cloud re-applies once a second and bloodstream metabolism ticks too, so re-applying
-        // freely would let one dose run forever. Holding off until the buff is nearly spent keeps a
-        // single dose to its stated duration while still letting a medic deliberately top someone up.
         var refreshing = _bonus.TryGetBuff(entity, effect.Source, out var existing);
 
         if (refreshing

@@ -65,8 +65,6 @@ public sealed partial class SyringeFillerWindow : DefaultWindow
         PurgeButton.Disabled = !state.CanPurge || state.Running;
         WorkBar.Visible = state.Running;
 
-        // When the only thing standing between the player and a fill is the wrong reagent, the
-        // remedy should be the button in front of them rather than a verb they have to find.
         PurgeButton.Text = Loc.GetString(state.MixedBlocked
             ? "fs-syringe-filler-purge-and-fill"
             : "fs-syringe-filler-purge");

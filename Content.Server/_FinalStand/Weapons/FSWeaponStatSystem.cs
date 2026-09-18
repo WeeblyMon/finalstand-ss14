@@ -6,11 +6,6 @@ using Content.Shared.Weapons.Ranged.Events;
 
 namespace Content.Server._FinalStand.Weapons;
 
-// Sole owner of GunComponent + GunRefreshModifiersEvent. Perks, research and medical buffs all
-// modify the same fields, and Robust throws on a repeated component+event pair, so each had taken
-// an arbitrary different component key (GunComponent, TagComponent, MetaDataComponent) purely to
-// get a second and third subscription. They are contributors now, called in a fixed order from one
-// place, with the holder resolved once instead of three times.
 public sealed class FSWeaponStatSystem : EntitySystem
 {
     [Dependency] private FSPerkBuffSystem _perks = default!;

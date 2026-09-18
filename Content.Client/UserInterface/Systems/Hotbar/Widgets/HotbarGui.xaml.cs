@@ -21,9 +21,7 @@ public sealed partial class HotbarGui : UIWidget
         HandsPanel.PanelOverride = FSHudStyle.ModulePanel();
         StoragePanel.PanelOverride = FSHudStyle.ModulePanel();
 
-        // FINALSTAND: both clusters anchor to a fraction of the band's width, not a fixed pixel
-        // margin. A fixed margin was tuned at 1920 and put the storage grid on top of the hands at
-        // 1600, because the gaps shrink with the screen while the modules do not.
+        // FINALSTAND: both clusters anchor to a fraction of the band's width, not a fixed pixel margin.
         Anchor(HandsPanel, HandsFraction);
         Anchor(RightGroup, StorageFraction);
 
@@ -65,8 +63,7 @@ public sealed partial class HotbarGui : UIWidget
         StatusPanelRight.UpdateHighlight(hand is HandLocation.Right);
     }
 
-    // FINALSTAND: the wave HUD draws a single module for the active hand, so vanilla's per-hand
-    // panels stay hidden - two of them beside the hands read as a second pair of hands.
+    // FINALSTAND: the wave HUD draws a single module for the active hand, so vanilla's per-hand panels stay hidden - two of them beside the hands read as a second pair of hands.
     public void UpdateStatusVisibility(bool left, bool right)
     {
         StatusPanelLeft.Visible = false;

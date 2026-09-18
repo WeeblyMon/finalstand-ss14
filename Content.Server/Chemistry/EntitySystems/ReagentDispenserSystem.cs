@@ -17,10 +17,6 @@ using Content.Server.Hands.Systems;
 
 namespace Content.Server.Chemistry.EntitySystems
 {
-    /// <summary>
-    /// Contains all the server-side logic for reagent dispensers.
-    /// <seealso cref="ReagentDispenserComponent"/>
-    /// </summary>
     [UsedImplicitly]
     public sealed partial class ReagentDispenserSystem : EntitySystem
     {
@@ -99,7 +95,6 @@ namespace Content.Server.Chemistry.EntitySystems
                 else
                     reagentLabel = Name(storedContainer);
 
-                // Get volume remaining and color of solution
                 FixedPoint2 quantity = 0f;
                 var reagentColor = Color.White;
                 string? reagentId = null;
@@ -132,7 +127,6 @@ namespace Content.Server.Chemistry.EntitySystems
                 return;
             }
 
-            // Ensure that the reagent is something this reagent dispenser can dispense.
             var storageLocation = message.StorageLocation;
             var storedContainer = storage.StoredItems.FirstOrDefault(kvp => kvp.Value == storageLocation).Key;
             if (storedContainer == EntityUid.Invalid)
@@ -145,7 +139,6 @@ namespace Content.Server.Chemistry.EntitySystems
             if (_solutionContainerSystem.TryGetDrainableSolution(storedContainer, out var src, out _) &&
                 _solutionContainerSystem.TryGetRefillableSolution(outputContainer.Value, out var dst, out _))
             {
-                // force open container, if applicable, to avoid confusing people on why it doesn't dispense
                 _openable.SetOpen(storedContainer, true);
                 _solutionTransferSystem.Transfer(new SolutionTransferData(reagentDispenser,
                         storedContainer, src.Value,
@@ -190,9 +183,6 @@ namespace Content.Server.Chemistry.EntitySystems
             _audioSystem.PlayPvs(reagentDispenser.Comp.ClickSound, reagentDispenser, audioParams);
         }
 
-        /// <summary>
-        /// Initializes the beaker slot
-        /// </summary>
         private void OnMapInit(Entity<ReagentDispenserComponent> ent, ref MapInitEvent args)
         {
             _itemSlotsSystem.AddItemSlot(ent.Owner, SharedReagentDispenser.OutputSlotName, ent.Comp.BeakerSlot);

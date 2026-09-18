@@ -62,8 +62,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
             var gun = (uid, comp);
 
-            // Backwards by index: DisableConnection removes from this list, and a snapshot copy
-            // here was allocating an array every tick for every active beam.
             for (var i = comp.HealedEntities.Count - 1; i >= 0; i--)
             {
                 var healed = comp.HealedEntities[i];
@@ -118,8 +116,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (comp.ParentEntity is { } medic && !TerminatingOrDeleted(medic) && _mobState.IsCritical(healed))
             scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
 
-        // Splitting the beam splits the output. Without this, two links is strictly better than
-        // faster cycling and the exclusive research pair has a correct answer.
         if (comp.HealedEntities.Count > 1)
             scale *= comp.SplitLinkScale;
 
@@ -175,8 +171,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (_useDelay.IsDelayed(uid) || !_whitelist.IsWhitelistPass(comp.HealAbleWhitelist, target))
             return;
 
-        // Clicking the current patient again drops the beam; clicking someone else switches to them.
-        // Previously the only way to retarget was to unwield and rewield.
         if (comp.HealedEntities.Contains(target))
         {
             DisableConnection(ent, target);

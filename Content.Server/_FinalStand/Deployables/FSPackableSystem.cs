@@ -48,7 +48,6 @@ public sealed class FSPackableSystem : EntitySystem
         });
     }
 
-    // Alt-verb alone is not discoverable mid-wave, so an empty hand does it too.
     private void OnInteractHand(Entity<FSPackableComponent> ent, ref InteractHandEvent args)
     {
         if (args.Handled)
@@ -115,7 +114,6 @@ public sealed class FSPackableSystem : EntitySystem
         Del(ent.Owner);
     }
 
-    // Raised on the freshly planted entity, after MapInit has already stamped a full lifetime.
     private void OnDeployed(Entity<FSDeployableLifetimeComponent> ent, ref FSDeployableDeployedEvent args)
     {
         if (!TryComp<FSBankedLifetimeComponent>(args.Item, out var banked))

@@ -85,8 +85,6 @@ public sealed class FSMedicPingOverlay : Overlay
                 || xform.MapID != args.MapId)
                 continue;
 
-            // The revive badge owns the space over a downed body; two bubbles on one head reads as
-            // a bug and neither is legible.
             if (_mobState.IsIncapacitated(ping.Target))
                 continue;
 

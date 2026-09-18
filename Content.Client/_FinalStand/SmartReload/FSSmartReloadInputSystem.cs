@@ -52,8 +52,6 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
         CommandBinds.Unregister<FSSmartReloadInputSystem>();
     }
 
-    // Past the threshold the hold stops being a reload and becomes a choice of magazine.
-    // This used to eject instead; ejecting is gone.
     public override void Update(float frameTime)
     {
         UpdateGrenadeHold();
@@ -69,7 +67,6 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
         if (ResolveActiveGun() is not { } gun)
             return;
 
-        // Nothing to choose from: fall through so the release still performs a normal reload.
         if (!_ammoWheel.TryOpen(gun))
             _wheelOpened = false;
     }
@@ -84,13 +81,10 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
 
         _throwWheelOpened = true;
 
-        // Only one pack type carried: nothing to pick, so the release just throws it.
         if (!_throwWheel.TryOpen())
             _throwWheelOpened = false;
     }
 
-    // Tap throws, hold picks. The throw moved from press to release so the hold can mean
-    // something; a tap still costs only the release, which is imperceptible.
     private void OnGrenadeDown(ICommonSession? session)
     {
         _grenadePressTime = _gameTiming.CurTime;
@@ -121,7 +115,6 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     {
         _isHolding = false;
 
-        // The wheel owns the release: the player picks from it, or dismisses it.
         if (_wheelOpened)
             return;
 
@@ -131,8 +124,6 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
         RaiseNetworkEvent(new FSSmartReloadMessage { Gun = GetNetEntity(gun) });
     }
 
-    // Returns the gun the player intends to reload/eject from the active hand.
-    // A virtual item is resolved back to the gun it mirrors, which must still be held.
     private EntityUid? ResolveActiveGun()
     {
         var active = _hands.GetActiveHandEntity();

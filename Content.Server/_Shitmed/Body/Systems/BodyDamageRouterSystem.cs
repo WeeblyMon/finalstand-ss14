@@ -46,12 +46,9 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
 
     private void OnBodyDamageChanged(EntityUid uid, BodyComponent body, ref DamageChangedEvent args)
     {
-        // Need a damage delta to act on.
         if (args.DamageDelta is null || args.DamageDelta.Empty)
             return;
 
-        // Collect woundable body parts. The mob itself doesn't have WoundableComponent —
-        // its anatomical sub-entities do.
         var parts = new List<EntityUid>();
         foreach (var (partId, _) in _lookup.GetBodyOrgans((uid, body)))
         {
@@ -62,7 +59,6 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
         if (parts.Count == 0)
             return;
 
-        // For healing: distribute across all body parts so a Brutepack actually heals.
         EntityUid? chosen = null;
         if (args.Origin is { } origin && TryComp<TargetingComponent>(origin, out var attackerTargeting))
             chosen = ResolveTargetPart(parts, attackerTargeting.Target);

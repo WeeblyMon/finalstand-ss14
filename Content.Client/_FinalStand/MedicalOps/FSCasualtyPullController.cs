@@ -13,9 +13,6 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Recovery went through an entity-target action: press, then find a body on screen and click it.
-// The casualties are already known from the triage feed, so this lists them and pulls by name.
-// Sits in the same band gap as Medical Command, stacked above it when a CMO has both.
 public sealed class FSCasualtyPullController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
@@ -168,7 +165,6 @@ public sealed class FSCasualtyPullController : UIController
             _targets.Add(entry.Patient);
         }
 
-        // Nothing to recover is not an error state, so the panel steps out of the way entirely.
         if (_targets.Count == 0)
         {
             _frame.Visible = false;
@@ -214,8 +210,6 @@ public sealed class FSCasualtyPullController : UIController
         return null;
     }
 
-    // Same gap as Medical Command. A CMO carries both panels, so this one stacks above it rather
-    // than drawing straight through it.
     private const float VitalsRightEdge = 24f + 240f;
     private const float ActionBarFraction = 0.2995f;
     private const float ActionsHalfWidth = 114f;

@@ -64,8 +64,6 @@ public sealed class SurgeryGuideTest : GameTest
         });
     }
 
-    // The reported bug was an access operation being recommended as if it were a treatment. That can
-    // only happen when something a goal depends on is not declared as access, so this is the guard.
     [Test]
     public async Task EveryPrerequisiteOfAGoalIsDeclaredAccess()
     {

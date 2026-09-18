@@ -26,9 +26,6 @@ public sealed class FSCmoPanelController : UIController
     private static readonly Color AbilityReady = FSPalette.DangerSoft;
     private static readonly Color AbilityCooling = FSPalette.TextDim;
     // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
-    // Sits in the band's left gap, between the vitals block and the action bar. Mirrors
-    // WaveHudOverlay's 24px margin plus its 240px vitals block, and DefaultGameScreen's
-    // ActionBarAnchor with the action bar's 6-column width.
     private const float VitalsRightEdge = 24f + 240f;
     private const float ActionBarFraction = 0.2995f;
     private const float ActionsHalfWidth = 114f;
@@ -134,8 +131,6 @@ public sealed class FSCmoPanelController : UIController
         BorderThickness = new Thickness(1),
     };
 
-    // Lit, not merely undimmed: a filled plate plus a bright edge, so an order that is standing
-    // looks switched on rather than looking like the only button that is not on cooldown.
     private static readonly StyleBoxFlat LitBox = new()
     {
         BackgroundColor = Color.FromHex("#2f4a2b"),
@@ -143,7 +138,6 @@ public sealed class FSCmoPanelController : UIController
         BorderThickness = new Thickness(2),
     };
 
-    // 6px inset + a 16px icon + 6px of air. At 18 the label slid under the icon.
     private const int IconGutter = 28;
 
     private static ResPath? AbilityIcon(FSCmoAbility ability)
@@ -198,9 +192,6 @@ public sealed class FSCmoPanelController : UIController
 
             FSHudStyle.StyleButton(button);
 
-            // Icon on the left, label centred. ContainerButton arranges every child to the full
-            // rect, so alignment alone places them - no extra container needed, and the whole
-            // button stays the click target.
             if (AbilityIcon(ability) is { } iconPath
                 && _resource.TryGetResource<TextureResource>(iconPath, out var icon))
             {
@@ -213,8 +204,6 @@ public sealed class FSCmoPanelController : UIController
                     MouseFilter = Control.MouseFilterMode.Ignore,
                 });
 
-                // Left-aligned, not centred: a centred label on the wider entries slid back under
-                // the icon.
                 button.Label.Align = Label.AlignMode.Left;
                 button.Label.Margin = new Thickness(IconGutter, 0, 0, 0);
             }
@@ -241,9 +230,6 @@ public sealed class FSCmoPanelController : UIController
         _buttons.Clear();
         _labels.Clear();
 
-        // BuildRow always produces horizontal rows at the wide width, so a rebuilt panel is wide.
-        // Leaving this set meant SetNarrow early-outed after a round restart and the narrow layout
-        // was never re-applied - the panel stayed wide and ran into the action bar.
         _narrow = false;
     }
 
@@ -281,20 +267,15 @@ public sealed class FSCmoPanelController : UIController
                 _ => panel.DirectiveReadyAt,
             };
 
-            // Bought with research, so it is absent rather than greyed out until then.
             if (ability == FSCmoAbility.Dividend)
                 button.Visible = panel.DividendUnlocked;
 
             var remaining = readyAt - _timing.CurTime;
             var cooling = remaining > TimeSpan.Zero;
 
-            // Standing down the active directive must stay available during its own cooldown,
-            // otherwise the button that cancels it is greyed out for the whole duration.
             var isActive = directive is { } active && active == panel.ActiveDirective;
             button.Disabled = cooling && !isActive;
 
-            // The label only changes once a second, so rebuilding it per frame would allocate a
-            // string and invalidate layout for every button on every frame.
             var seconds = cooling ? (int) Math.Ceiling(remaining.TotalSeconds) : 0;
             if (!_shownSeconds.TryGetValue(ability, out var shown) || shown != seconds)
             {
@@ -326,8 +307,7 @@ public sealed class FSCmoPanelController : UIController
         if (_frame == null || _hotbar == null || _directiveRow == null || _abilityRow == null)
             return;
 
-        // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the
-        // old "gap between inventory and hotbar" arithmetic produced a negative width.
+        // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the old "gap between inventory and hotbar" arithmetic produced a negative width.
         var screenW = _frame.Parent?.Size.X ?? 0f;
         if (screenW <= 0f)
             return;

@@ -48,10 +48,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<FSCasualtyBoardActionEvent>(OnBoardAction);
-        // Broadcast, not directed. SharedStunSystem already owns the directed
-        // (MobStateComponent, MobStateChangedEvent) pair, and that pair is a global namespace - a
-        // second subscriber is a startup throw, not a silent override. Broadcast is a separate
-        // namespace, so any number of systems can take this event that way.
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeNetworkEvent<FSRespondToCasualtyEvent>(OnRespond);
     }
@@ -78,12 +74,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
         if (!_roster.IsMedicalJob(ev.JobId))
             return;
 
-        // A 19 second rooted do-after only fits between waves. Medical staff operate fast enough
-        // that surgery is something you can choose to do while the round is happening.
         EnsureComp<SurgerySpeedModifierComponent>(ev.Mob).SpeedModifier = MedicalSurgerySpeed;
 
-        // Otherwise every operation needs the patient stripped first, which is not a thing anyone
-        // is doing while a wave is on.
         EnsureComp<SurgeryIgnoreClothingComponent>(ev.Mob);
     }
 
@@ -143,9 +135,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
         Broadcast();
     }
 
-    // The state-change event is an edge: miss it once - because the mob had no session attached at
-    // that instant, or another handler threw first - and that casualty is off the board for the rest
-    // of the round. This sweep reconciles from what the mobs actually are, so it cannot miss.
     private void SweepCasualties()
     {
         foreach (var session in _player.Sessions)

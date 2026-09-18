@@ -65,12 +65,9 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (args.Cancelled || !args.User.IsValid())
             return;
 
-        // Eject old mag and try to store in inventory (backpack → pockets → floor)
         if (_slots.TryEject(gun, SharedGunSystem.MagazineSlot, null, out var oldMag) && oldMag != null)
             TryStoreItemInInventory(args.User, oldMag.Value);
 
-        // A wheel pick is honoured if it still exists; otherwise fall back to best, since the
-        // inventory may have changed during the DoAfter.
         EntityUid? newMag = null;
         if (args.Chosen is { } chosenNet)
         {
@@ -101,6 +98,5 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (_inventory.TryEquip(user, user, item, "pocket2", silent: true))
             return;
 
-        // Otherwise it stays on the floor — already dropped by TryEject with a null user.
     }
 }

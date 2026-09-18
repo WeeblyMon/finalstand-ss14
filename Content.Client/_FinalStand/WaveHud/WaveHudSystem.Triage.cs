@@ -1,5 +1,4 @@
-// Feeds the triage panel from the casualty board's pushed list. Medical-only by construction: the
-// server only sends that list to medical sessions, so a non-medic never has rows to draw.
+// Feeds the triage panel from the casualty board's pushed list.
 using System.Numerics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
@@ -20,12 +19,8 @@ public sealed partial class WaveHudSystem
         if (board.Entries.Count == 0)
             return;
 
-        // Dead first, then critical, then nearest - the order a medic would pick targets in.
         var ordered = new List<(FSCasualtyEntry Entry, float? Range, Vector2? Dir)>(board.Entries.Count);
 
-        // Every casualty is listed, including the viewer's own body. Filtering it out was the one
-        // change between this panel working and not working, and a medic who is down seeing their
-        // own row is the clearest possible proof the feed is alive.
         foreach (var entry in board.Entries)
         {
             board.BearingTo(entry.Position, out var range, out var dir);

@@ -7,7 +7,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Research;
 
-// Notifies the open research window when FSTechDatabaseComponent changes server-side, or the viewer's own personal pick changes.
 public sealed class FSResearchClientSystem : SharedFSResearchSystem
 {
     public event Action<EntityUid>? DatabaseUpdated;

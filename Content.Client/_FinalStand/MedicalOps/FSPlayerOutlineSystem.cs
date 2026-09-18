@@ -63,8 +63,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
         ApplyBuffFlashes();
         ApplyMediGunTargets();
 
-        // Anything still carrying our shader that no longer wants one has to be released, or the
-        // outline sticks to the sprite for the rest of the round.
         foreach (var uid in _shaders.Keys)
         {
             if (!_wanted.Contains(uid))
@@ -87,7 +85,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
             if (now >= flash.EndTime)
                 continue;
 
-            // Fading the alpha rather than removing the shader keeps the tell from popping off.
             var remaining = (float) (flash.EndTime - now).TotalSeconds;
             var alpha = Math.Clamp(remaining / 0.5f, 0f, 1f);
 
@@ -95,8 +92,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
         }
     }
 
-    // The medic's own patients glow so they can be told apart from someone else's at a glance.
-    // Only the local medigun's links are drawn, so the world does not light up with other people's.
     private void ApplyMediGunTargets()
     {
         if (LocalMediGun() is not { } gun)
@@ -110,7 +105,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
             if (healed.Source != gun)
                 continue;
 
-            // A buff flash on the same body already owns the outline and says something more urgent.
             if (_wanted.Contains(uid))
                 continue;
 

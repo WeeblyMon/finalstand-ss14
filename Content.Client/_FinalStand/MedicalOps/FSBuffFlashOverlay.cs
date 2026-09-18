@@ -6,8 +6,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Rising chevrons over a freshly buffed crewmate. Mirrors the medigun beam's drifting crosses so the
-// two read as the same visual language, pointing up because a buff is a gain.
 public sealed class FSBuffFlashOverlay : Overlay
 {
     private const int Chevrons = 3;
@@ -80,7 +78,6 @@ public sealed class FSBuffFlashOverlay : Overlay
         handle.DrawLine(left, apex, colour);
         handle.DrawLine(apex, right, colour);
 
-        // DrawLine is a hairline, so a second offset pass gives the stroke some weight.
         var lift = new Vector2(0f, Thickness);
         handle.DrawLine(left + lift, apex + lift, colour);
         handle.DrawLine(apex + lift, right + lift, colour);

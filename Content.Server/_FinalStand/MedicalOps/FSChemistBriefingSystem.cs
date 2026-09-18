@@ -24,7 +24,6 @@ public sealed class FSChemistBriefingSystem : EntitySystem
         _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective-2"));
         _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective-3"));
 
-        // The briefing scrolls away. The guide does not.
         RaiseNetworkEvent(new FSOpenChemistGuideEvent(), ev.Player);
     }
 }

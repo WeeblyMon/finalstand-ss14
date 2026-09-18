@@ -1,4 +1,4 @@
-// Draws the medical triage panel on the right edge. Always on for medical staff, hidden for everyone else.
+// Draws the medical triage panel on the right edge.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -12,11 +12,8 @@ public sealed partial class WaveHudOverlay
 
     public readonly List<TriageRow> TriageRows = new();
 
-    /// <summary>Medical staff keep the panel on screen with nobody down, so it reads as a standing
-    /// instrument rather than something that appears from nowhere mid-fight.</summary>
     public bool IsMedicalStaff;
 
-    /// <summary>Shared by the wave panel above it, so the right column has one left edge.</summary>
     public const float RightColumnWidth = 206f;
 
     private const float TriageWidth = RightColumnWidth;
@@ -33,7 +30,6 @@ public sealed partial class WaveHudOverlay
     private static readonly Color PipCrit = FSPalette.Warn;
     private static readonly Color PipResponding = FSPalette.Ok;
 
-    /// <summary>Draws under the wave panel. Returns the height used, so nothing stacks into it.</summary>
     private float DrawTriage(DrawingHandleScreen screen, float panelX, float top)
     {
         if (!IsMedicalStaff)
@@ -42,8 +38,6 @@ public sealed partial class WaveHudOverlay
         var labelH = _cachedLabelH;
         var rowH = MathF.Max(PipSize, labelH);
 
-        // An empty board still reserves one row, so the panel holds its shape instead of snapping
-        // to a different size the moment the first casualty lands.
         var rowCount = Math.Max(1, TriageRows.Count);
         var panelH = TriagePad * 2f + labelH + 4f + rowCount * rowH
                      + (rowCount - 1) * TriageRowGap;
@@ -87,8 +81,6 @@ public sealed partial class WaveHudOverlay
 
             var hasBearing = row.Direction is { } d && d.LengthSquared() > 0f;
 
-            // Bearing arrow. Range alone says how far to run, not which way - this is the compass
-            // the old casualty board had, which the panel dropped when it replaced that window.
             if (hasBearing)
             {
                 DrawBearing(screen,
@@ -96,8 +88,6 @@ public sealed partial class WaveHudOverlay
                     row.Direction!.Value, pipColor);
             }
 
-            // Names run long and the column is narrow, so the name is clipped to whatever is left
-            // after the range and arrow have taken their space rather than drawn straight over them.
             var nameLeft = innerX + PipSize + 6f;
             var nameRight = innerRight - tailW - (hasBearing ? 8f + ArrowRadius * 2f : 0f) - 6f;
             screen.DrawString(_labelFont!, new Vector2(nameLeft, textY),
@@ -109,7 +99,6 @@ public sealed partial class WaveHudOverlay
         return panelH;
     }
 
-    /// <summary>Trims text with an ellipsis until it fits, so a long name cannot overrun its row.</summary>
     private static string Fit(DrawingHandleScreen screen, Font font, string text, float maxWidth)
     {
         if (maxWidth <= 0f)
@@ -125,7 +114,6 @@ public sealed partial class WaveHudOverlay
         return trimmed.Length == 0 ? string.Empty : trimmed + "...";
     }
 
-    /// <summary>A triangle pointed along <paramref name="dir"/>, which is already screen-space.</summary>
     private static void DrawBearing(DrawingHandleScreen screen, Vector2 centre, Vector2 dir, Color color)
     {
         var d = dir.Normalized();
@@ -136,8 +124,6 @@ public sealed partial class WaveHudOverlay
         var left = back + perp * (ArrowRadius * 0.8f);
         var right = back - perp * (ArrowRadius * 0.8f);
 
-        // A plain array, not a collection expression: `Span<Vector2> t = [a, b, c]` compiles to
-        // InlineArray3<T>, which the client sandbox rejects at load.
         var tri = new[] { tip, left, right };
         screen.DrawPrimitives(DrawPrimitiveTopology.TriangleList, tri, color);
     }

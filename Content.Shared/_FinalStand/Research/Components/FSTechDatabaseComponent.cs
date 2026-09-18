@@ -11,7 +11,6 @@ public enum FSResearchTrack : byte
     Medical,
 }
 
-// FS-authored counterpart to TechnologyDatabaseComponent, for FSTechNodePrototype content.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true, raiseAfterAutoHandleState: true)]
 public sealed partial class FSTechDatabaseComponent : Component
 {
@@ -43,7 +42,6 @@ public sealed partial class FSTechDatabaseComponent : Component
     [DataField]
     public int Points;
 
-    // Per node, one stable color-slot index per contributor - lets the client render a ring per contributor without ever sending names.
     [AutoNetworkedField]
     [DataField]
     public Dictionary<string, List<int>> PersonalContributorSlots = new();

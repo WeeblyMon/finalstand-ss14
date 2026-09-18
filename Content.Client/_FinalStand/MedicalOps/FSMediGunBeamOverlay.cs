@@ -28,9 +28,9 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     private const float Width = 0.62f;
 
-    private const float LagResponse = 7f;   // higher snaps straight faster
-    private const float LagAmplify = 1.6f;  // exaggerates the trail so the whip reads
-    private const float MaxLag = 1.1f;      // metres, so a teleport cannot fling the arc away
+    private const float LagResponse = 7f;
+    private const float LagAmplify = 1.6f;
+    private const float MaxLag = 1.1f;
     private const double LagForgetSeconds = 3d;
 
     private const float ParticlesPerMetre = 1.6f;

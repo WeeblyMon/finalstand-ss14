@@ -15,16 +15,8 @@ public sealed class FSCasualtyBoardSystem : EntitySystem
     private FSCasualtyBoardWindow? _window;
     private List<FSCasualtyEntry> _entries = new();
 
-    /// <summary>
-    /// Live casualties, for the triage panel on the wave HUD. The server only pushes this to
-    /// medical sessions, so a non-empty list already means the viewer is medical.
-    /// </summary>
     public IReadOnlyList<FSCasualtyEntry> Entries => _entries;
 
-    /// <summary>
-    /// Range and screen-space bearing from the viewer to a casualty. The triage panel needs both -
-    /// a distance with no direction tells a medic how far to run but not where.
-    /// </summary>
     public void BearingTo(NetCoordinates position, out float? distance, out Vector2? direction)
     {
         Resolve(ViewerCoordinates(), position, out distance, out direction);

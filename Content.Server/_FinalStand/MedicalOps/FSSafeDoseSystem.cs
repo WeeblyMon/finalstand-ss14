@@ -11,10 +11,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// A support dart is meant to help. Emptying a magazine of bicaridine into a teammate used to poison
-// them, because most medicines turn harmful past a threshold expressed as a ReagentThreshold
-// condition on their metabolism effects. This trims each dart to whatever the target can still take
-// safely, so the gun can never overdose a crewmate no matter how many darts land.
 public sealed class FSSafeDoseSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
@@ -37,8 +33,6 @@ public sealed class FSSafeDoseSystem : EntitySystem
 
     private void OnEmbed(Entity<FSAllyProjectileComponent> ent, ref EmbedEvent args)
     {
-        // Only a crewmate who can actually receive a dose gets the confirmation cue; it used to
-        // fire on walls and zombies too.
         var ally = HasComp<FSFriendlyFireComponent>(args.Embedded);
 
         if (args.Shooter is { } shooter && ally)
@@ -77,8 +71,6 @@ public sealed class FSSafeDoseSystem : EntitySystem
         }
     }
 
-    // The level a reagent starts doing harm at is not a field; it is the lowest Min on any
-    // ReagentThreshold condition attached to that reagent's metabolism effects.
     private FixedPoint2? HarmfulAt(string reagentId)
     {
         if (_thresholdCache.TryGetValue(reagentId, out var cached))

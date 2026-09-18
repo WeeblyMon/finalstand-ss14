@@ -63,13 +63,10 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
 
-        // Melee damage is keyed on MetaData because FSPerkBuffSystem owns MeleeWeaponComponent for
-        // this event. Gun stats go through FSWeaponStatSystem instead.
         SubscribeLocalEvent<MetaDataComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<MetaDataComponent, AmmoShotEvent>(OnAmmoShot);
     }
 
-    /// <summary>Called by FSWeaponStatSystem, which owns the subscription.</summary>
     public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
     {
         if (!_bonusQuery.HasComp(holder))
@@ -103,8 +100,6 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         }
     }
 
-    // A gun caches its fire rate until something asks it to recompute, so a buff landing or expiring
-    // mid-fight would otherwise do nothing until the weapon was re-equipped.
     private void RefreshHeldGuns(EntityUid uid)
     {
         foreach (var held in _hands.EnumerateHeld(uid))

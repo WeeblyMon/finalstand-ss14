@@ -20,7 +20,6 @@ public sealed class FSChemCreditSystem : EntitySystem
 
     private static readonly TimeSpan ClaimLifetime = TimeSpan.FromSeconds(120);
 
-
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(5);
 
     private readonly Dictionary<EntityUid, Claim> _claims = new();

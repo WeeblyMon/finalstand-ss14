@@ -47,7 +47,6 @@ public sealed partial class WaveHudSystem
                 }
                 else if (_thresholds.TryGetThresholdForState(player, MobState.Dead, out var dead, thresholds))
                 {
-                    // Past crit the bar re-spans crit -> dead, so it keeps draining instead of pinning at empty.
                     var span = (dead.Value - crit.Value).Float();
                     var into = (total - crit.Value).Float();
                     overlay.HealthRatio = span <= 0f ? 0f : Math.Clamp(1f - into / span, 0f, 1f);
@@ -60,19 +59,15 @@ public sealed partial class WaveHudSystem
             }
         }
 
-        // Stamina counts up to its crit threshold, so the bar is what is left before collapsing.
         if (TryComp<StaminaComponent>(player, out var stamina) && stamina.CritThreshold > 0f)
             overlay.StaminaRatio = Math.Clamp(1f - stamina.StaminaDamage / stamina.CritThreshold, 0f, 1f);
     }
 
-    // Conditions that need a decision from the player, in the corner they already watch for health.
     private void UpdateStatusPills(EntityUid player, WaveHudOverlay overlay)
     {
         if (TryComp<BloodstreamComponent>(player, out var blood) && blood.BleedAmount > 0f)
             overlay.StatusPills.Add(("BLEEDING", true));
 
-        // Bones sit on body parts nested a few containers deep, so the body is walked rather than
-        // asked - this tree has no GetBodyChildren to call.
         var broken = 0;
         CountBrokenBones(player, ref broken, 0);
         if (broken > 0)

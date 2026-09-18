@@ -19,9 +19,6 @@ using static Robust.Shared.Maths.Color;
 
 namespace Content.Client.Overlays;
 
-/// <summary>
-/// Overlay that shows a health bar on mobs.
-/// </summary>
 public sealed class EntityHealthBarOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
@@ -49,11 +46,11 @@ public sealed class EntityHealthBarOverlay : Overlay
 
     private static readonly Color[] GroupColors =
     {
-        Color.FromHex("#C63C3C"), // Brute
-        Color.FromHex("#E08A2E"), // Burn
-        Color.FromHex("#6FA83C"), // Toxin
-        Color.FromHex("#5CA0D0"), // Airloss
-        Color.FromHex("#B060C0"), // Genetic
+        Color.FromHex("#C63C3C"),
+        Color.FromHex("#E08A2E"),
+        Color.FromHex("#6FA83C"),
+        Color.FromHex("#5CA0D0"),
+        Color.FromHex("#B060C0"),
     };
 
     private static readonly string[] GroupOrder = { "Brute", "Burn", "Toxin", "Airloss", "Genetic" };
@@ -99,7 +96,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (statusIcon != null && !_statusIconSystem.IsVisible((uid, _entManager.GetComponent<MetaDataComponent>(uid)), statusIcon))
                 continue;
 
-            // We want the stealth user to still be able to see his health bar himself
             if (!xformQuery.TryGetComponent(uid, out var xform) ||
                 xform.MapID != args.MapId)
                 continue;
@@ -110,7 +106,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (!spriteQuery.TryGetComponent(uid, out var sprite))
                 continue;
 
-            // we use the status icon component bounds if specified otherwise use sprite
             var bounds = _entManager.GetComponentOrNull<StatusIconComponent>(uid)?.Bounds ?? _spriteSystem.GetLocalBounds(
                 (uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
@@ -118,7 +113,6 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
                 continue;
 
-            // we are all progressing towards death every day
             if (CalcProgress(uid, mobStateComponent, damageableComponent, mobThresholdsComponent) is not { } deathProgress)
                 continue;
 
@@ -143,7 +137,6 @@ public sealed class EntityHealthBarOverlay : Overlay
                 ? _progressColor.GetProgressColor(1f)
                 : GetProgressColor(deathProgress.ratio, deathProgress.inCrit);
 
-            // Hardcoded width of the progress bar because it doesn't match the texture.
             const float startX = 8f;
             var endX = widthOfMob - 8f;
 
@@ -182,8 +175,6 @@ public sealed class EntityHealthBarOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    // A ring around the whole bar rather than a line under it - an underline reads as part of the
-    // bar's own chrome and is easy to miss in a fight.
     private static void DrawBuffOutline(DrawingHandleWorld handle, Vector2 position, float startX, float endX)
     {
         const float ppm = EyeManager.PixelsPerMeter;
@@ -199,8 +190,6 @@ public sealed class EntityHealthBarOverlay : Overlay
         handle.DrawRect(outline, BuffOutline, false);
     }
 
-    // The coverage gap is what the chemist can act on, so it gets a mark of its own: a short tick off
-    // the left end rather than a full ring, which would read as a weaker version of being buffed.
     private static void DrawUnbuffedMark(DrawingHandleWorld handle, Vector2 position, float startX)
     {
         const float ppm = EyeManager.PixelsPerMeter;
@@ -262,9 +251,6 @@ public sealed class EntityHealthBarOverlay : Overlay
         }
     }
 
-    /// <summary>
-    /// Returns a ratio between 0 and 1, and whether the entity is in crit.
-    /// </summary>
     private (float ratio, bool inCrit)? CalcProgress(EntityUid uid, MobStateComponent component, DamageableComponent dmg, MobThresholdsComponent thresholds)
     {
         var totalDamage = _damageable.GetTotalDamage((uid, dmg));

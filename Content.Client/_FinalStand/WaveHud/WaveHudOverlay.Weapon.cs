@@ -15,17 +15,12 @@ public sealed partial class WaveHudOverlay
     public bool HasThrowChoice;
     public bool WeaponTakesMagazines;
 
-    // Balances the bottom band: this plus storage equals vitals plus actions, which is what puts
-    // the hands on the centre line. See DefaultGameScreen's band note.
     private const float WeaponPanelW = 356f;
     private const float WeaponPanelPad = 8f;
     private const float WeaponPanelMinH = 46f;
 
-    /// <summary>Weapon module plus the throwables row above it, at their smallest. Only a starting
-    /// value - the module grows with the equipped weapon, so read <see cref="RightStackHeight"/>.</summary>
     public const float RightStackMinHeight = WeaponPanelMinH + 6f + 46f;
 
-    /// <summary>Measured height of that stack above the band, as last drawn.</summary>
     public float RightStackHeight = RightStackMinHeight;
     private const float HintPadX = 6f;
     private const float HintPadY = 3f;
@@ -39,15 +34,12 @@ public sealed partial class WaveHudOverlay
     private static readonly Color HintCyan = FSPalette.Money;
     private static readonly Color HintDim = FSPalette.TextDim;
 
-    /// <summary>Draws the module and returns its top edge, so the throwables row can sit on it.</summary>
     private float DrawWeaponModuleAndGetTop(DrawingHandleScreen screen, float rightEdge, float bandLift)
     {
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
         var hasAmmo = WeaponLoaded is not null && WeaponCapacity is > 0;
 
-        // An empty hand still gets the panel. A module that vanishes takes the band's balance with
-        // it, and leaves the player wondering whether the HUD broke.
         var name = (WeaponName ?? "no weapon").ToUpperInvariant();
 
         var hintH = labelH + HintPadY * 2f;
@@ -80,8 +72,6 @@ public sealed partial class WaveHudOverlay
 
             screen.DrawString(_valueFont!, new Vector2(textX, ty), $"{loaded}/{capacity}", ammoColor);
 
-            // Only guns that take magazines have a reserve. A revolver or a laser cell saying
-            // "0 mags in reserve" reads as a fault rather than a fact.
             if (WeaponTakesMagazines)
             {
                 var reserve = WeaponReserve == 1 ? "1 mag in reserve" : $"{WeaponReserve} mags in reserve";
@@ -93,8 +83,6 @@ public sealed partial class WaveHudOverlay
             ty += valueH;
         }
 
-        // One chip, right-aligned, as in the prototype. The throwable hint belongs to the throwables
-        // row above rather than here - two hold-hints in one panel read as one control with two keys.
         if (!WeaponTakesMagazines)
             return y;
 

@@ -5,7 +5,6 @@ using Content.Shared.Mobs.Components;
 
 namespace Content.Server._FinalStand.Projectiles;
 
-// Blocks explosion damage to non-mob entities (wires, tables, windows) and friendly players.
 public sealed class FSExplosionFilterSystem : EntitySystem
 {
     private static readonly HashSet<string> EnemyExplosionTypes = new()

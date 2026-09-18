@@ -42,7 +42,6 @@ using Robust.Shared.Replays;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
-
 namespace Content.Client.UserInterface.Systems.Chat;
 
 public sealed partial class ChatUIController : UIController
@@ -101,68 +100,32 @@ public sealed partial class ChatUIController : UIController
         {ChatSelectChannel.Dead, SharedChatSystem.DeadPrefix}
     };
 
-    /// <summary>
-    ///     The max amount of chars allowed to fit in a single speech bubble.
-    /// </summary>
     private const int SingleBubbleCharLimit = 100;
 
-    /// <summary>
-    ///     Base queue delay each speech bubble has.
-    /// </summary>
     private const float BubbleDelayBase = 0.2f;
 
-    /// <summary>
-    ///     Factor multiplied by speech bubble char length to add to delay.
-    /// </summary>
     private const float BubbleDelayFactor = 0.8f / SingleBubbleCharLimit;
 
-    /// <summary>
-    ///     The max amount of speech bubbles over a single entity at once.
-    /// </summary>
     private const int SpeechBubbleCap = 4;
 
     private LayoutContainer _speechBubbleRoot = default!;
 
-    /// <summary>
-    ///     Speech bubbles that are currently visible on screen.
-    ///     We track them to push them up when new ones get added.
-    /// </summary>
     private readonly Dictionary<EntityUid, List<SpeechBubble>> _activeSpeechBubbles =
         new();
 
-    /// <summary>
-    ///     Speech bubbles that are to-be-sent because of the "rate limit" they have.
-    /// </summary>
     private readonly Dictionary<EntityUid, SpeechBubbleQueueData> _queuedSpeechBubbles
         = new();
 
     private readonly HashSet<ChatBox> _chats = new();
     public IReadOnlySet<ChatBox> Chats => _chats;
 
-    /// <summary>
-    ///     The max amount of characters an entity can send in one message
-    /// </summary>
     public int MaxMessageLength => _config.GetCVar(CCVars.ChatMaxMessageLength);
 
-    /// <summary>
-    /// For currently disabled chat filters,
-    /// unread messages (messages received since the channel has been filtered out).
-    /// </summary>
     private readonly Dictionary<ChatChannel, int> _unreadMessages = new();
 
     // TODO add a cap for this for non-replays
     public readonly List<(GameTick Tick, ChatMessage Msg)> History = new();
 
-    // Maintains which channels a client should be able to filter (for showing in the chatbox)
-    // and select (for attempting to send on).
-    // This may not always actually match with what the server will actually allow them to
-    // send / receive on, it is only what the user can select in the UI. For example,
-    // if a user is silenced from speaking for some reason this may still contain ChatChannel.Local, it is left up
-    // to the server to handle invalid attempts to use particular channels and not send messages for
-    // channels the user shouldn't be able to hear.
-    //
-    // Note that Command is an available selection in the chatbox channel selector,
-    // which is not actually a chat channel but is always available.
     public ChatSelectChannel CanSendChannels { get; private set; }
     public ChatChannel FilterableChannels { get; private set; }
     public ChatSelectChannel SelectableChannels { get; private set; }
@@ -281,8 +244,7 @@ public sealed partial class ChatUIController : UIController
         else
             color = FSHudStyle.PanelBack;   // FINALSTAND: was #25252ADD, off the HUD palette
 
-        // FINALSTAND: same fill and edge as every other HUD panel, so chat stops reading as a
-        // window borrowed from vanilla sitting on top of the HUD.
+        // FINALSTAND: same fill and edge as every other HUD panel, so chat stops reading as a window borrowed from vanilla sitting on top of the HUD.
         panel.PanelOverride = new StyleBoxFlat
         {
             BackgroundColor = color.WithAlpha(opacity),
@@ -314,7 +276,6 @@ public sealed partial class ChatUIController : UIController
                 SetChatSizing(chatSizeRaw, separatedScreen, setting);
                 break;
             default:
-                // this could be better?
                 var maybeChat = UIManager.ActiveScreen.GetWidget<ChatBox>();
 
                 chatBox = maybeChat ?? throw new Exception("Cannot get chat box in screen!");
@@ -346,7 +307,6 @@ public sealed partial class ChatUIController : UIController
             float.Parse(split[0], CultureInfo.InvariantCulture),
             float.Parse(split[1], CultureInfo.InvariantCulture));
 
-
         screen.SetChatSize(chatSize);
     }
 
@@ -368,7 +328,6 @@ public sealed partial class ChatUIController : UIController
                 _config.SetCVar(CCVars.SeparatedScreenChatSize, stringSize);
                 break;
             default:
-                // do nothing
                 return;
         }
 
@@ -458,7 +417,6 @@ public sealed partial class ChatUIController : UIController
 
         if (_activeSpeechBubbles.TryGetValue(entity, out var existing))
         {
-            // Push up existing bubbles above the mob's head.
             foreach (var existingBubble in existing)
             {
                 existingBubble.VerticalOffset += bubble.ContentSize.Y;
@@ -475,8 +433,6 @@ public sealed partial class ChatUIController : UIController
 
         if (existing.Count > SpeechBubbleCap)
         {
-            // Get the next speech bubble to fade
-            // Any speech bubbles before it are already fading
             var last = existing[^(SpeechBubbleCap + 1)];
             last.FadeNow();
         }
@@ -489,7 +445,7 @@ public sealed partial class ChatUIController : UIController
 
     private void EnqueueSpeechBubble(EntityUid entity, ChatMessage message, SpeechBubble.SpeechType speechType)
     {
-        // Don't enqueue speech bubbles for other maps. TODO: Support multiple viewports/maps?
+        // Don't enqueue speech bubbles for other maps.
         if (EntityManager.GetComponent<TransformComponent>(entity).MapID != _eye.CurrentEye.Position.MapId)
             return;
 
@@ -520,21 +476,17 @@ public sealed partial class ChatUIController : UIController
         CanSendChannels = default;
         FilterableChannels = default;
 
-        // Can always send console stuff.
         CanSendChannels |= ChatSelectChannel.Console;
 
-        // can always send/recieve OOC
         CanSendChannels |= ChatSelectChannel.OOC;
         CanSendChannels |= ChatSelectChannel.LOOC;
         FilterableChannels |= ChatChannel.OOC;
         FilterableChannels |= ChatChannel.LOOC;
 
-        // can always hear server (nobody can actually send server messages).
         FilterableChannels |= ChatChannel.Server;
 
         if (_state.CurrentState is GameplayStateBase)
         {
-            // can always hear local / radio / emote / notifications when in the game
             FilterableChannels |= ChatChannel.Local;
             FilterableChannels |= ChatChannel.Whisper;
             FilterableChannels |= ChatChannel.Radio;
@@ -542,7 +494,6 @@ public sealed partial class ChatUIController : UIController
             FilterableChannels |= ChatChannel.Notifications;
 
             // Can only send local / radio / emote when attached to a non-ghost entity.
-            // TODO: this logic is iffy (checking if controlling something that's NOT a ghost), is there a better way to check this?
             if (_ghost is not {IsGhost: true})
             {
                 CanSendChannels |= ChatSelectChannel.Local;
@@ -552,14 +503,12 @@ public sealed partial class ChatUIController : UIController
             }
         }
 
-        // Only ghosts and admins can send / see deadchat.
         if (_admin.HasFlag(AdminFlags.Admin) || _ghost is {IsGhost: true})
         {
             FilterableChannels |= ChatChannel.Dead;
             CanSendChannels |= ChatSelectChannel.Dead;
         }
 
-        // only admins can see / filter asay
         if (_admin.HasFlag(AdminFlags.Adminchat))
         {
             FilterableChannels |= ChatChannel.Admin;
@@ -570,12 +519,10 @@ public sealed partial class ChatUIController : UIController
 
         SelectableChannels = CanSendChannels;
 
-        // Necessary so that we always have a channel to fall back to.
         DebugTools.Assert((CanSendChannels & ChatSelectChannel.OOC) != 0, "OOC must always be available");
         DebugTools.Assert((FilterableChannels & ChatChannel.OOC) != 0, "OOC must always be available");
         DebugTools.Assert((SelectableChannels & ChatSelectChannel.OOC) != 0, "OOC must always be available");
 
-        // let our chatbox know all the new settings
         CanSendChannelsChanged?.Invoke(CanSendChannels);
         FilterableChannelsChanged?.Invoke(FilterableChannels);
         SelectableChannelsChanged?.Invoke(SelectableChannels);
@@ -600,7 +547,6 @@ public sealed partial class ChatUIController : UIController
 
     private void UpdateQueuedSpeechBubbles(FrameEventArgs delta)
     {
-        // Update queued speech bubbles.
         if (_queuedSpeechBubbles.Count == 0 || _examine == null)
         {
             return;
@@ -630,8 +576,6 @@ public sealed partial class ChatUIController : UIController
 
             queueData.TimeLeft += BubbleDelayBase + msg.Message.Message.Length * BubbleDelayFactor;
 
-            // We keep the queue around while it has 0 items. This allows us to keep the timer.
-            // When the timer hits 0 and there's no messages left, THEN we can clear it up.
             CreateSpeechBubble(entity, msg);
         }
 
@@ -713,9 +657,6 @@ public sealed partial class ChatUIController : UIController
         if (text.Length == 0)
             return (ChatSelectChannel.None, text, null);
 
-        // We only cut off prefix only if it is not a radio or local channel, which both map to the same /say command
-        // because ????????
-
         ChatSelectChannel chatChannel;
         if (TryGetRadioChannel(text, out var radioChannel))
             chatChannel = ChatSelectChannel.Radio;
@@ -753,7 +694,6 @@ public sealed partial class ChatUIController : UIController
 
         (var prefixChannel, text, var _) = SplitInputContents(text);
 
-        // Check if message is longer than the character limit
         if (text.Length > MaxMessageLength)
         {
             var locWarning = Loc.GetString("chat-manager-max-message-length",
@@ -766,7 +706,6 @@ public sealed partial class ChatUIController : UIController
             channel = prefixChannel;
         else if (channel == ChatSelectChannel.Radio)
         {
-            // radio must have prefix as it goes through the say command.
             text = $";{text}";
         }
 
@@ -780,16 +719,11 @@ public sealed partial class ChatUIController : UIController
             return;
 
         var msg = chatBox.ChatInput.Input.Text.TrimEnd();
-        // Don't send on OOC/LOOC obviously!
 
-        // we need to handle selected channel
-        // and prefix-channel separately..
         var allowedChannels = ChatSelectChannel.Local | ChatSelectChannel.Whisper;
         if ((chatBox.SelectedChannel & allowedChannels) == ChatSelectChannel.None)
             return;
 
-        // none can be returned from this if theres no prefix,
-        // so we allow it in that case (assuming the previous check will have exited already if its an invalid channel)
         var prefixChannel = SplitInputContents(msg).chatChannel;
         if (prefixChannel != ChatSelectChannel.None && (prefixChannel & allowedChannels) == ChatSelectChannel.None)
             return;
@@ -825,7 +759,6 @@ public sealed partial class ChatUIController : UIController
 
     public void ProcessChatMessage(ChatMessage msg, bool speechBubble = true)
     {
-        // color the name unless it's something like "the old man"
         if ((msg.Channel == ChatChannel.Local || msg.Channel == ChatChannel.Whisper) && _chatNameColorsEnabled)
         {
             var grammar = _ent.GetComponentOrNull<GrammarComponent>(_ent.GetEntity(msg.SenderEntity));
@@ -833,13 +766,11 @@ public sealed partial class ChatUIController : UIController
                 msg.WrappedMessage = SharedChatSystem.InjectTagInsideTag(msg, "Name", "color", GetNameColor(SharedChatSystem.GetStringInsideTag(msg, "Name")));
         }
 
-        // Color any words chosen by the client.
         foreach (var highlight in _highlights)
         {
             msg.WrappedMessage = SharedChatSystem.InjectTagAroundString(msg, highlight, "color", _highlightsColor);
         }
 
-        // Color any codewords for minds that have roles that use them
         if (_player.LocalUser != null && _mindSystem != null && _roleCodewordSystem != null)
         {
             if (_mindSystem.TryGetMind(_player.LocalUser.Value, out var mindId) && _ent.TryGetComponent(mindId, out RoleCodewordComponent? codewordComp))
@@ -852,7 +783,6 @@ public sealed partial class ChatUIController : UIController
             }
         }
 
-        // Log all incoming chat to repopulate when filter is un-toggled
         if (!msg.HideChat)
         {
             History.Add((_timing.CurTick, msg));
@@ -870,7 +800,6 @@ public sealed partial class ChatUIController : UIController
             }
         }
 
-        // Local messages that have an entity attached get a speech bubble.
         if (!speechBubble || msg.SenderEntity == default)
             return;
 
@@ -905,10 +834,6 @@ public sealed partial class ChatUIController : UIController
 
     public void OnDeleteChatMessagesBy(MsgDeleteChatMessagesBy msg)
     {
-        // This will delete messages from an entity even if different players were the author.
-        // Usages of the erase admin verb should be rare enough that this does not matter.
-        // Otherwise the client would need to know that one entity has multiple author players,
-        // or the server would need to track when and which entities a player sent messages as.
         History.RemoveAll(h => h.Msg.SenderKey == msg.Key || msg.Entities.Contains(h.Msg.SenderEntity));
         Repopulate();
     }
@@ -946,11 +871,6 @@ public sealed partial class ChatUIController : UIController
         }
     }
 
-    /// <summary>
-    /// Returns the chat name color for a mob
-    /// </summary>
-    /// <param name="name">Name of the mob</param>
-    /// <returns>Hex value of the color</returns>
     public string GetNameColor(string name)
     {
         var colorIdx = Math.Abs(name.GetHashCode() % _chatNameColors.Length);
@@ -961,9 +881,6 @@ public sealed partial class ChatUIController : UIController
 
     private sealed class SpeechBubbleQueueData
     {
-        /// <summary>
-        ///     Time left until the next speech bubble can appear.
-        /// </summary>
         public float TimeLeft { get; set; }
 
         public Queue<SpeechBubbleData> MessageQueue { get; } = new();

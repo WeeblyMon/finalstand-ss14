@@ -7,7 +7,6 @@ public sealed partial class FSCasualtyPullActionEvent : InstantActionEvent
 {
 }
 
-/// <summary>Picked from the recovery panel instead of the click-a-target action.</summary>
 [Serializable, NetSerializable]
 public sealed class FSCasualtyPullRequestEvent : EntityEventArgs
 {

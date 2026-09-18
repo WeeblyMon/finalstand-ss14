@@ -26,17 +26,13 @@ public sealed class FSSyringeFillerBuiState : BoundUserInterfaceState
     public string Status = string.Empty;
     public bool Running;
 
-    // Sent as a window rather than a percentage so the bar interpolates locally instead of needing
-    // a state push per tick.
     public TimeSpan StartedAt;
     public TimeSpan FinishAt;
     public bool CanFill;
     public bool CanPurge;
 
-    /// <summary>The loaded container cannot fill the magazine in one go.</summary>
     public bool SmallSource;
 
-    /// <summary>Only the magazine's existing contents are stopping the fill.</summary>
     public bool MixedBlocked;
 }
 

@@ -14,9 +14,6 @@ public sealed partial class FSArmorPiercingComponent : Component
     public TimeSpan Until;
 }
 
-// Bleeding in this fork lives on wounds, not on BloodstreamComponent.BleedAmount - the health
-// analyser reads BleedInflicterComponent.IsBleeding per woundable. Lowering the bloodstream figure
-// changed a number nothing reports, so the patient kept reading as bleeding.
 public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSStaunchBleeding>
 {
     [Dependency] private WoundSystem _wounds = default!;
@@ -60,8 +57,6 @@ public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFr
         if (comp.Until < until)
             comp.Until = until;
 
-        // Piercing is its own component rather than a bonus category, so register a nameplate-only
-        // buff as well - otherwise the recipient gets no HUD readout and no health bar outline.
         _bonus.ApplyBuff(entity.Owner,
             args.Effect.Source,
             EmptyBonuses,

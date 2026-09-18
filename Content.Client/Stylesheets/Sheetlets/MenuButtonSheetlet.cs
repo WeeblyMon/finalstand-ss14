@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Content.Client.Stylesheets.Fonts;
 using Content.Client.Stylesheets.SheetletConfigs;
 using Content.Client.Stylesheets.Stylesheets;
@@ -71,7 +71,6 @@ public sealed class MenuButtonSheetlet<T> : Sheetlet<T> where T : PalettedStyles
                 .Class(MenuButton.StyleClassLabelTopButton)
                 // FINALSTAND: 14 made the keybind read louder than the icon it labels.
                 .Prop(Label.StylePropertyFont, sheet.BaseFont.GetFont(10, FontKind.Bold)),
-            // new StyleProperty(Label.StylePropertyFont, notoSansDisplayBold14),
         };
 
         ButtonSheetlet<T>.MakeButtonRules<MenuButton>(rules, cfg.ButtonPalette, null);

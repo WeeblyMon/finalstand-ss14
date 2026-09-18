@@ -35,7 +35,6 @@ public static class FSHudStyle
         };
     }
 
-    /// <summary>Flat field for text entry: darker than a panel so it reads as writable.</summary>
     public static StyleBoxFlat InputBox()
     {
         var box = Box(FSPalette.PanelDeep, PanelEdge);
@@ -44,10 +43,6 @@ public static class FSHudStyle
         return box;
     }
 
-    /// <summary>
-    /// Puts a button on the HUD palette. ContainerButton carries a single style box rather than one
-    /// per state, so hover and press are swapped on the mouse events instead.
-    /// </summary>
     public static void StyleButton(ContainerButton button, int padX = 6, int padY = 3)
     {
         var normal = Box(PanelBack, PanelEdge);

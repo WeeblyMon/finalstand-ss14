@@ -19,8 +19,6 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
         var currentCell = FSItemSlots.TryGetSlot(EntityManager, _slots, gun, "gun_cell", out var cellSlot) ? cellSlot.Item : null;
 
-        // Find the replacement before ejecting, otherwise a player with no spare loses the cell
-        // they were using and the gun ends up empty.
         var newCell = FindBestPowerCell(user, currentCell);
         if (newCell == null)
         {

@@ -70,7 +70,7 @@ public sealed class ActionButton : Control, IEntityControl
 
     public ActionButton(IEntityManager entities, ActionUIController? controller = null)
     {
-        // TODO why is this constructor so slooooow. The rest of the code is fine
+        // TODO why is this constructor so slooooow.
 
         _entities = entities;
         _appearance = entities.System<SharedAppearanceSystem>();
@@ -79,8 +79,6 @@ public sealed class ActionButton : Control, IEntityControl
 
         MouseFilter = MouseFilterMode.Pass;
 
-        // Pinned both ways. GridContainer sizes every cell to the largest child, so one wide icon
-        // (a light toggle, say) used to stretch the whole grid.
         MinSize = new Vector2(SlotSize, SlotSize);
         SetSize = new Vector2(SlotSize, SlotSize);
         MaxSize = new Vector2(SlotSize, SlotSize);
@@ -116,8 +114,7 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
-        // FINALSTAND: bottom-left, with a hard black shadow. Top-left sat over the thickest part of
-        // most action icons, and on a bright icon the bare glyph vanished entirely.
+        // FINALSTAND: bottom-left, with a hard black shadow.
         Label = new Label
         {
             Name = "Label",
@@ -155,7 +152,6 @@ public sealed class ActionButton : Control, IEntityControl
             Visible = false,
             OverrideDirection = Direction.South,
         };
-        // padding to the left of the small icon
         var paddingBoxItemIcon = new BoxContainer
         {
             Orientation = LayoutOrientation.Horizontal,
@@ -379,7 +375,6 @@ public sealed class ActionButton : Control, IEntityControl
             ? tint
             : Color.White;
 
-        // Stock counter badge for grenade packs
         if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
         {
             _chargesLabel.Text = counter.Current.ToString();
@@ -395,8 +390,6 @@ public sealed class ActionButton : Control, IEntityControl
             _bigActionIcon.Modulate = iconColor;
         }
 
-        // Refresh highlight every frame for grenade selector buttons so switching
-        // active type is reflected immediately without needing a hover event.
         if (_entities.HasComponent<FSGrenadeSelectActionComponent>(Action!.Value.Owner))
             DrawModeChanged();
     }
@@ -418,13 +411,8 @@ public sealed class ActionButton : Control, IEntityControl
         DrawModeChanged();
     }
 
-    /// <summary>
-    /// Press this button down. If it was depressed and now set to not depressed, will
-    /// trigger the action.
-    /// </summary>
     public void Depress(GUIBoundKeyEventArgs args, bool depress)
     {
-        // action can still be toggled if it's allowed to stay selected
         if (Action?.Comp is not {Enabled: true})
             return;
 
@@ -437,7 +425,6 @@ public sealed class ActionButton : Control, IEntityControl
         _controller ??= UserInterfaceManager.GetUIController<ActionUIController>();
         HighlightRect.Visible = _beingHovered && (Action != null || _controller.IsDragging);
 
-        // Green border for the currently active grenade type (client-side, no toggle race condition)
         if (Action is { } grenadeAction
             && _entities.TryGetComponent(grenadeAction.Owner, out FSGrenadeSelectActionComponent? selectComp)
             && _player.LocalEntity is { } localPlayer
@@ -452,21 +439,17 @@ public sealed class ActionButton : Control, IEntityControl
             HighlightRect.Modulate = Color.White;
         }
 
-        // always show the normal empty button style if no action in this slot
         if (Action?.Comp is not {} action)
         {
             SetOnlyStylePseudoClass(ContainerButton.StylePseudoClassNormal);
             return;
         }
 
-        // show a hover only if the action is usable or another action is being dragged on top of this
         if (_beingHovered && (_controller.IsDragging || action.Enabled))
         {
             SetOnlyStylePseudoClass(ContainerButton.StylePseudoClassHover);
         }
 
-        // it's only depress-able if it's usable, so if we're depressed
-        // show the depressed style
         if (_depressed && !_beingHovered)
         {
             HighlightRect.Visible = false;
@@ -474,10 +457,8 @@ public sealed class ActionButton : Control, IEntityControl
             return;
         }
 
-        // if it's toggled on, always show the toggled on style (currently same as depressed style)
         if (action.Toggled || _controller.SelectingTargetFor == Action?.Owner)
         {
-            // when there's a toggle sprite, we're showing that sprite instead of highlighting this slot
             _actionsSys ??= _entities.System<ActionsSystem>();
             SetOnlyStylePseudoClass(_actionsSys.HasToggleIcon(Action?.Owner)
                 ? ContainerButton.StylePseudoClassNormal

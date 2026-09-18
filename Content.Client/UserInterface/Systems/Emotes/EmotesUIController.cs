@@ -54,7 +54,6 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
     {
         if (_menu == null)
         {
-            // setup window
             var prototypes = _prototypeManager.EnumeratePrototypes<EmotePrototype>();
             var models = ConvertToButtons(prototypes);
 
@@ -145,7 +144,6 @@ public sealed partial class EmotesUIController : UIController, IOnStateChanged<G
             if(emote.Category == EmoteCategory.Invalid)
                 continue;
 
-            // only valid emotes that have ways to be triggered by chat and player have access / no restriction on
             if (emote.Category == EmoteCategory.Invalid
                 || emote.ChatTriggers.Count == 0
                 || !(player.HasValue && whitelistSystem.IsWhitelistPassOrNull(emote.Whitelist, player.Value))

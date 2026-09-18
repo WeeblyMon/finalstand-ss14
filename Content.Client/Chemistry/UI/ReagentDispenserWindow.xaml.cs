@@ -17,9 +17,6 @@ using static Robust.Client.UserInterface.Controls.BoxContainer;
 
 namespace Content.Client.Chemistry.UI
 {
-    /// <summary>
-    /// Client-side UI used to control a <see cref="ReagentDispenserComponent"/>.
-    /// </summary>
     [GenerateTypedNameReferences]
     public sealed partial class ReagentDispenserWindow : FancyWindow
     {
@@ -42,10 +39,6 @@ namespace Content.Client.Chemistry.UI
         private string? _recipeKey;
         private int _dispenseAmount;
 
-        /// <summary>
-        /// Create and initialize the dispenser UI client-side. Creates the basic layout,
-        /// actual data isn't filled in until the server sends data about the dispenser.
-        /// </summary>
         public ReagentDispenserWindow()
         {
             RobustXamlLoader.Load(this);
@@ -150,16 +143,11 @@ namespace Content.Client.Chemistry.UI
             RefreshRecipes();
         }
 
-        /// <summary>
-        /// Update the button grid of reagents which can be dispensed.
-        /// </summary>
-        /// <param name="inventory">Reagents which can be dispensed by this dispenser</param>
         public void UpdateReagentsList(List<ReagentInventoryItem> inventory)
         {
             if (ReagentList == null)
                 return;
 
-            //Sort inventory by reagentLabel
             inventory.Sort((x, y) => x.ReagentLabel.CompareTo(y.ReagentLabel));
             _inventory = inventory;
 
@@ -227,10 +215,6 @@ namespace Content.Client.Chemistry.UI
                 ReagentList.AddChild(_cards[location]);
         }
 
-        /// <summary>
-        /// Update the UI state when new state data is received from the server.
-        /// </summary>
-        /// <param name="state">State data sent by the server.</param>
         public void UpdateState(BoundUserInterfaceState state)
         {
             var castState = (ReagentDispenserBoundUserInterfaceState) state;
@@ -244,7 +228,6 @@ namespace Content.Client.Chemistry.UI
             _entityManager.TryGetEntity(castState.OutputContainerEntity, out var outputContainerEnt);
             View.SetEntity(outputContainerEnt);
 
-            // Disable the Clear & Eject button if no beaker
             ClearButton.Disabled = castState.OutputContainer is null;
             EjectButton.Disabled = castState.OutputContainer is null;
 
@@ -255,8 +238,6 @@ namespace Content.Client.Chemistry.UI
 
         private void RefreshRecipes()
         {
-            // The sourceable set belongs in the key. Without it the first plan - computed before
-            // the reagent cards exist - was cached, and only a click on a kit forced a recompute.
             var key = _tab + "|"
                       + (_target?.ID ?? string.Empty) + "|"
                       + string.Join(',', Sourceable().OrderBy(x => x)) + "|"
@@ -281,8 +262,6 @@ namespace Content.Client.Chemistry.UI
         {
             RecipeInfo.Children.Clear();
 
-            // Blocked kits sink to the bottom. The panel used to list them in authored order, so a
-            // chemist read three lines of something they cannot make before reaching one they can.
             var kits = _prototypeManager.EnumeratePrototypes<FSFieldKitPrototype>()
                 .Select(kit => (Kit: kit, Plan: FSFieldKitResolver.Plan(
                     _prototypeManager, kit.ResolveIngredients(_prototypeManager), Sourceable(kit))))
@@ -326,8 +305,6 @@ namespace Content.Client.Chemistry.UI
 
         private Control BuildGuideRow(ReactionPrototype reaction)
         {
-            // Reactants come from the reaction itself rather than being re-authored in the guide,
-            // so a balance change to a recipe cannot leave the guide lying about it.
             var parts = reaction.Reactants
                 .OrderBy(kv => kv.Key)
                 .Select(kv => ReagentName(kv.Key) + " " + kv.Value.Amount + "u");
@@ -344,8 +321,6 @@ namespace Content.Client.Chemistry.UI
             row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-line",
                 ("reagents", string.Join(" + ", parts))), ready ? ReadyColor : null));
 
-            // A temperature gate is otherwise invisible: the reagents go in, nothing happens, and
-            // nothing anywhere says why. This is the single biggest reason a recipe "does not work".
             if (reaction.MinimumTemperature > 0f)
             {
                 row.AddChild(Sub(Loc.GetString("reagent-dispenser-window-guide-heat",
@@ -355,8 +330,6 @@ namespace Content.Client.Chemistry.UI
             return row;
         }
 
-        // Label does not wrap, it clips, so long purpose lines were cut off no matter how wide the
-        // panel got. RichTextLabel reflows inside MaxWidth instead.
         private const int RecipeTextWidth = 250;
 
         private static RichTextLabel Sub(string text, Color? modulate = null)
@@ -380,8 +353,6 @@ namespace Content.Client.Chemistry.UI
             var complete = direct.All(kv => _held.GetValueOrDefault(kv.Key, FixedPoint2.Zero) >= kv.Value);
             var blocked = plan.Unobtainable.Count > 0;
 
-            // Biomass is the one ingredient no dispenser stocks, so the row has to point at the
-            // satchel rather than just showing 0/2 next to a reagent nobody can find.
             var needsBiomass = !complete
                                && direct.TryGetValue(BiomassReagent, out var biomassNeed)
                                && _held.GetValueOrDefault(BiomassReagent, FixedPoint2.Zero) < biomassNeed;
@@ -389,8 +360,6 @@ namespace Content.Client.Chemistry.UI
 
             var body = new BoxContainer { Orientation = LayoutOrientation.Vertical, HorizontalExpand = true };
 
-            // Collapsed rows are one line: the name, and a status short enough to sit beside it.
-            // Purpose and the full plan are the reward for selecting a kit, not a standing cost.
             var header = new BoxContainer { Orientation = LayoutOrientation.Horizontal, HorizontalExpand = true };
             header.AddChild(new Label
             {
@@ -414,8 +383,6 @@ namespace Content.Client.Chemistry.UI
                 if (complete)
                     return Loc.GetString("reagent-dispenser-window-field-kit-ready");
 
-                // Naming the reagent is the whole point - "not brewable here" told a chemist
-                // nothing they could act on.
                 if (blocked)
                 {
                     return Loc.GetString(kit.Research
@@ -496,7 +463,6 @@ namespace Content.Client.Chemistry.UI
                 return;
             }
 
-            // Set Name of the container and its fill status (Ex: 44/100u)
             ContainerInfoName.Text = state.OutputContainer.DisplayName;
             ContainerInfoFill.Text = Loc.GetString("reagent-dispenser-window-fill-label",
                 ("current", state.OutputContainer.CurrentVolume),
@@ -509,7 +475,6 @@ namespace Content.Client.Chemistry.UI
             {
                 _held[reagent.Prototype] = quantity;
 
-                // Try get to the prototype for the given reagent. This gives us its name.
                 var found = _prototypeManager.TryIndex(reagent.Prototype, out ReagentPrototype? p);
                 var localizedName = found
                     ? p!.LocalizedName

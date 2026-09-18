@@ -12,10 +12,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Sole authority for medical identity. Membership is the rule - a job counts as medical if the
-// Medical department lists it - which is what lets the CMO carry a medigun. Resolution walks
-// mind -> job -> department prototype, so it is cached per mob and rebuilt only when a player
-// spawns, attaches or detaches.
 public sealed class FSMedicalRosterSystem : EntitySystem
 {
     [Dependency] private AccessReaderSystem _access = default!;
@@ -30,10 +26,6 @@ public sealed class FSMedicalRosterSystem : EntitySystem
     public const string CmoJob = "ChiefMedicalOfficer";
     public const string ChemistJob = "Chemist";
 
-    // Deliberately uncached. A cache here has to be invalidated on spawn, attach, detach, ghost and
-    // round restart, and getting any one of those wrong caches "not medical" for the rest of the
-    // round - which silently kills the triage feed, the ping filter and directives for that player.
-    // This is a component lookup plus a prototype index, called at most once a second per session.
     public string? JobOf(EntityUid mob)
     {
         return _mind.TryGetMind(mob, out var mindId, out _) && _jobs.MindTryGetJob(mindId, out var job)
@@ -52,7 +44,6 @@ public sealed class FSMedicalRosterSystem : EntitySystem
 
     public bool IsCmoJob(EntityUid mob) => JobOf(mob) == CmoJob;
 
-    /// <summary>Card-based gate, for anything an ID reader would guard. Distinct from the job.</summary>
     public bool HasCmoAccess(EntityUid user) => _access.FindAccessTags(user).Contains(CmoAccess);
 
     public IEnumerable<(ICommonSession Session, EntityUid Mob)> Medics()

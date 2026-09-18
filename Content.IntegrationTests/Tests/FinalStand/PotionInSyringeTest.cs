@@ -7,9 +7,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
-// A splash flask applies its payload by Touch; a syringe dart injects into the bloodstream and so runs
-// the metabolism path instead. A potion carrying only the reactive half works when thrown and does
-// nothing at all when fired, with no error either way.
 [TestFixture]
 public sealed class PotionInSyringeTest : GameTest
 {

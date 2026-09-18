@@ -53,8 +53,6 @@ public sealed partial class FSSelectIncendiaryGrenadeEvent : InstantActionEvent 
 public sealed partial class FSSelectFlashGrenadeEvent : InstantActionEvent { }
 public sealed partial class FSSelectPipeGrenadeEvent : InstantActionEvent { }
 
-// Hold-to-throw opens a wheel of the packs you are carrying; this is what it sends back.
-// The per-type action events above still work - this is another way to reach the same state.
 [Serializable, NetSerializable]
 public sealed class FSSelectGrenadeMessage : EntityEventArgs
 {

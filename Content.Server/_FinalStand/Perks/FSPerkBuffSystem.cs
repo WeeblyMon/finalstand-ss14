@@ -61,8 +61,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target))
             _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
-        // Re-checked every time, like Speed Demon and Rampage below - banked stacks must not
-        // keep paying out after the perk is unslotted.
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;
 
@@ -86,13 +84,11 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (bbLevel > 0 && ev.Shooter.HasValue)
             _knockback.ApplyKnockback(ev.Target, ev.Shooter.Value, Math.Clamp(bbLevel, 1, 3));
 
-        // Stamina drain, not a speed debuff - staggering via stamina works on NPCs too.
         var lbLevel = augs.GetSlottedLevel("LegBreaker");
         if (lbLevel > 0 && HasComp<StaminaComponent>(ev.Target))
             _stamina.TakeStaminaDamage(ev.Target, lbLevel * FSPerkBonusConstants.LegBreakerStaminaPerLevel, source: ev.Shooter);
     }
 
-    /// <summary>Called by FSWeaponStatSystem, which owns the subscription.</summary>
     public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)
     {
         if (!_mind.TryGetMind(holder, out var mindId, out _)) return;

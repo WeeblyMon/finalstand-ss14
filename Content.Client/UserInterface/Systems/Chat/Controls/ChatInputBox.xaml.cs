@@ -50,8 +50,7 @@ public class ChatInputBox : PanelContainer
         };
         Container.AddChild(FilterButton);
         AddStyleClass(StyleClassChatPanel);
-        // FINALSTAND: the bar's own controls were still on the vanilla palette while the panel
-        // around them had moved to the HUD's.
+        // FINALSTAND: the bar's own controls were still on the vanilla palette while the panel around them had moved to the HUD's.
         FSHudStyle.StyleButton(ChannelSelector);
         FSHudStyle.StyleButton(FilterButton);
         Input.StyleBoxOverride = FSHudStyle.InputBox();

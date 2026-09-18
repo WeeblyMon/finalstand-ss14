@@ -51,8 +51,6 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         if (comp.GrantedActionId == null)
             return;
 
-        // Check if the pack is still within a player's containers (e.g., moved pocket→pocket).
-        // Only revoke the action if it has truly left the player.
         if (FindPlayerOwner(uid) != null)
             return;
 
@@ -69,7 +67,6 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         }
     }
 
-    /// <summary>Writes current/max stock onto the action entity so ActionButton can display a badge.</summary>
     public void SyncPackCounter(EntityUid packUid, FSGrenadePackComponent pack)
     {
         if (pack.GrantedActionId is not { } actionId)
@@ -96,8 +93,6 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
         return null;
     }
 
-    // The wheel is built client-side, so confirm the player actually carries that pack type
-    // before trusting the choice.
     private void OnSelectFromWheel(FSSelectGrenadeMessage msg, EntitySessionEventArgs args)
     {
         if (args.SenderSession.AttachedEntity is not { } player)

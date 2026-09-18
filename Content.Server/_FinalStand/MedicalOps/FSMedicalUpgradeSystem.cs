@@ -8,9 +8,6 @@ using Content.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-// Medical research buys numbers, not just recipes. Values are pushed onto live components when a
-// node completes and onto new ones at MapInit, so a node bought mid-wave reaches the medigun already
-// in someone's hands. Mirrors FSResearchStaticGrantSystem's Unlocked(nodeId) idiom.
 public sealed class FSMedicalUpgradeSystem : EntitySystem
 {
     [Dependency] private FSMedicalResearchSystem _research = default!;
@@ -46,8 +43,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string MassCasualtyReadiness = "FSMedicalMassCasualtyReadiness";
     public const string DepartmentDividend = "FSMedicalDepartmentDividend";
 
-    // Every node id this system reads. MedicalResearchContentTest asserts each resolves, because a
-    // typo here is silently never true rather than an error.
     public static readonly string[] AllNodes =
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
@@ -125,7 +120,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     private void OnDefibInit(Entity<FSEmergencyDefibComponent> ent, ref MapInitEvent args) => ApplyDefib(ent);
     private void OnFillerInit(Entity<FSSyringeFillerComponent> ent, ref MapInitEvent args) => ApplyFiller(ent);
 
-    // The soft cap is never touched. Range, blood restoration, link count and tick rate only.
     private void ApplyMediGun(Entity<FSMediGunComponent> ent)
     {
         var c = ent.Comp;
@@ -142,15 +136,12 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         c.BaseBatteryWithdraw ??= c.BatteryWithdraw;
         c.BatteryWithdraw = c.BaseBatteryWithdraw.Value * (Unlocked(CellEfficiency) ? 0.6f : 1f);
 
-        // The only node allowed near the cap, and it moves it 10 points. Surgery, gauze and chems
-        // still own everything past that - the hand-off is the point of the cap.
         c.BaseSoftCapRatio ??= c.SoftCapRatio;
         c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
 
         Dirty(ent);
     }
 
-    // The per-wave ceiling rises but never disappears; it is what stops kills funding kills.
     private void ApplySatchel(Entity<FSHarvestSatchelComponent> ent)
     {
         var c = ent.Comp;
@@ -177,7 +168,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         Dirty(ent);
     }
 
-    // Repair stays partial at 45 of 60 - research buys the cooldown, never the mend, or surgery dies.
     private void ApplyStapler(Entity<FSBoneStaplerComponent> ent)
     {
         if (!TryComp<UseDelayComponent>(ent.Owner, out var delay))
@@ -205,7 +195,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             Dirty(ent.Owner, lifetime);
         }
 
-        // SharedSurgerySystem.Steps reads SpeedModifier off whatever the patient is strapped to.
         if (TryComp<OperatingTableComponent>(ent.Owner, out var table))
         {
             ent.Comp.BaseSurgerySpeed ??= table.SpeedModifier;
@@ -214,7 +203,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         }
     }
 
-    // The lockout carries the defib's whole balance, so this is the one number research may buy.
     private void ApplyDefib(Entity<FSEmergencyDefibComponent> ent)
     {
         if (!TryComp<DefibrillatorComponent>(ent.Owner, out var defib))
@@ -229,7 +217,6 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             ent.Comp.BaseReviveHealthFraction.Value + (Unlocked(DefibrillatorOutput) ? 0.15f : 0f);
     }
 
-    // The filler is station equipment, so this is throughput for the whole department at once.
     private void ApplyFiller(Entity<FSSyringeFillerComponent> ent)
     {
         ent.Comp.BaseUnitsPerSecond ??= ent.Comp.UnitsPerSecond;

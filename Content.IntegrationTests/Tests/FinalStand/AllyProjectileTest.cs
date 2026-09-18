@@ -139,9 +139,6 @@ public sealed class AllyProjectileTest : GameTest
         });
     }
 
-    // A prefilled magazine races SharedSolutionContainerSystem on MapInit. If the gun's handler wins,
-    // Shots is computed against a solution that does not exist yet and never recomputes, leaving a
-    // full magazine reporting empty to both the reload and the ammo counter.
     [Test]
     public async Task APrefilledMagazineReportsItsShots()
     {

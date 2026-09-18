@@ -39,8 +39,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const float DrHalfRate = 0.35f;
     private const float MinPreHealDamage = 10f;
 
-    // Healing yourself scores nothing. Any non-zero rate is a farm: stand somewhere safe, hurt
-    // yourself, top up, repeat. The budget is still consumed so it cannot be laundered later.
     private const int CreditsPerHealPoint = 16;
     private const int FundPerHealPoint = 8;
 
@@ -51,13 +49,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int ReviveCredits = 500;
     private const int ReviveFund = 300;
 
-    // Was 1000/750, which paid more than a revive for doing nothing afterwards. Sustained treatment
-    // is the intended earner now, so the survival bonus is a tail, not the headline.
     private const int PatientSavedCredits = 400;
     private const int PatientSavedFund = 300;
 
-    // A revive seconds before the horn cost nothing and paid in full. The patient has to actually
-    // be kept alive for a while for it to read as a save.
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
     public readonly record struct FSMedicalRoundStats(
@@ -124,13 +118,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.DamageDelta is null || args.DamageDelta.Empty)
             return;
 
-        // Taking damage no longer refunds the diminishing-returns budget. It used to clear at 25
-        // damage, so two players could trade a scratch and farm the full-rate tier forever. The
-        // budget now only resets at prep, which is the boundary that is not player-triggerable.
         if (args.DamageIncreased)
         {
-            // Fresh damage ends the old treatment claim. This is the event a player can see, and it
-            // replaces a flat timer nobody could reason about.
             if (!TryGetPlayerMind(args.Origin, out _))
                 _attribution.ClearAttribution(uid);
 
@@ -170,7 +159,6 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             credits: credits,
             fund: points * FundPerHealPoint);
 
-        // The payout tier is the whole diminishing-returns rule made visible. Grey means move on.
         if (TryComp<MindComponent>(healerMind, out var healerMindComp)
             && healerMindComp.UserId is { } userId
             && _players.TryGetSessionById(userId, out var session))

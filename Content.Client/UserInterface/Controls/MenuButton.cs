@@ -14,7 +14,6 @@ public sealed partial class MenuButton : ContainerButton
 {
     [Dependency] private IInputManager _inputManager = default!;
     public const string StyleClassLabelTopButton = "topButtonLabel";
-    // public const string StyleClassRedTopButton = "topButtonLabel";
 
     // TODO: KIIIIIILLLLLLLLLLLLLLLLLLLLLLLLLLL --kaylie.
     private static readonly Color ColorNormal = FSPalette.TextBright;
@@ -23,8 +22,7 @@ public sealed partial class MenuButton : ContainerButton
 
     private const float VertPad = 0f;
 
-    // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette. These are flat
-    // boxes in the HUD's own colours, swapped per draw mode since ContainerButton only carries one.
+    // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette.
     private static readonly StyleBoxFlat ChipNormal = MakeChip(FSPalette.ChipBack, FSPalette.ChipEdge);
     private static readonly StyleBoxFlat ChipHovered = MakeChip(FSPalette.ButtonHoverBack, FSPalette.ButtonHoverEdge);
     private static readonly StyleBoxFlat ChipPressed = MakeChip(FSPalette.ButtonPressBack, FSPalette.ButtonPressEdge);
@@ -111,7 +109,6 @@ public sealed partial class MenuButton : ContainerButton
         _inputManager.OnInputModeChanged -= OnKeyBindingChanged;
     }
 
-
     private void OnKeyBindingChanged(IKeyBinding obj)
     {
         _buttonLabel!.Text = _function == null ? "" : BoundKeyHelper.ShortKeyName(_function.Value);
@@ -124,13 +121,10 @@ public sealed partial class MenuButton : ContainerButton
 
     protected override void StylePropertiesChanged()
     {
-        // colors of children depend on style, so ensure we update when style is changed
         base.StylePropertiesChanged();
         UpdateChildColors();
     }
 
-    // Assigning StyleBoxOverride re-enters StylePropertiesChanged, which calls this again, so the
-    // box is only written when it actually changes.
     private void SetChip(StyleBoxFlat box)
     {
         if (!ReferenceEquals(StyleBoxOverride, box))
@@ -164,7 +158,6 @@ public sealed partial class MenuButton : ContainerButton
                 break;
         }
     }
-
 
     protected override void DrawModeChanged()
     {

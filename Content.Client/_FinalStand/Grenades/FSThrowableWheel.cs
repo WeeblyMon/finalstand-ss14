@@ -6,9 +6,6 @@ using Robust.Shared.Containers;
 
 namespace Content.Client._FinalStand.Grenades;
 
-// Holding the quick-throw key opens this instead of throwing. Built from the packs the player is
-// carrying, so it appears the instant the hold threshold passes; the server re-checks the player
-// really carries that type before switching.
 public sealed class FSThrowableWheel : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
@@ -22,7 +19,6 @@ public sealed class FSThrowableWheel : EntitySystem
         _menu = null;
     }
 
-    /// <summary>Opens the wheel. Returns false when there is nothing to choose between.</summary>
     public bool TryOpen()
     {
         Close();
@@ -32,7 +28,6 @@ public sealed class FSThrowableWheel : EntitySystem
 
         var active = CompOrNull<FSActiveGrenadeComponent>(user)?.ActiveType;
 
-        // One pack per type - carrying three frag packs is still one wedge.
         var packs = new Dictionary<GrenadeType, (EntityUid Uid, int Stock)>();
         Collect(user, packs, depth: 0);
 
@@ -63,7 +58,6 @@ public sealed class FSThrowableWheel : EntitySystem
         }
     }
 
-    // Two levels deep: held and worn, then inside those. Matches how the packs are actually carried.
     private void Collect(EntityUid root, Dictionary<GrenadeType, (EntityUid, int)> into, int depth)
     {
         if (!TryComp<ContainerManagerComponent>(root, out var mgr))

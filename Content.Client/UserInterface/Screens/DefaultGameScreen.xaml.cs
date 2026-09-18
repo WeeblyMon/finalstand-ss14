@@ -14,34 +14,22 @@ namespace Content.Client.UserInterface.Screens;
 [GenerateTypedNameReferences]
 public sealed partial class DefaultGameScreen : InGameScreen
 {
-    // Two hand slots plus a gap. HotbarGui centres the hands, so this clears them.
     private const float HandsHalfWidth = 78f;
 
-    // Clears the vitals block, which is 168px wide at a 24px margin in the same corner.
     private const float AlertsClearance = 210f;
 
-    // The bottom band is five modules with four equal gaps, and the hands must land on the screen's
-    // centre line. That only works if both flanks sum to the same width, so the weapon module is
-    // widened to match vitals+actions. These are that solution at 1920:
-    //   vitals 240 | actions 228 | hands 148 | storage 112 | weapon 356, gaps of 197.
     private const float ActionBarAnchor = 0.2995f;
 
     private const int ActionColumns = 6;
 
-    // Matches the 18px XAML margin the hotbar and inventory use to clear the XP bar, plus the 5px
-    // screen margin the presets apply.
     private const float BottomBandLift = 23f;
 
-    // Clears the vitals panel in the same corner. Its height varies with the status pills, so this
-    // is its tallest form rather than a live read - alerts shifting as you bleed would be worse.
     private const float AlertsLift = BottomBandLift + VitalsTallest + 6f;
 
-    // Vitals panel at its tallest (stamina bar + a row of status pills).
     private const float VitalsTallest = 68f;
 
     private const float ChatEdgeMargin = 12f;
 
-    // The prototype's chat is 290x~150 on a 1600-wide screen; these are that at 1920.
     private const float ChatDefaultWidth = 348f;
     private const float ChatDefaultHeight = 180f;
     private const float ChatMaxWidth = 520f;
@@ -51,23 +39,17 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private const float ChatToggleWidth = 20f;
     private const float ChatDockHeight = 34f;
 
-    // Footer of the storage grid, spanning its full width.
     private const float WornButtonHeight = 20f;
 
-    // The handle the chat collapses into, parked on the screen edge rather than on the window.
     private Button? _chatDock;
     private bool _chatCollapsed;
 
-    // Absolute screen rect of the open chat. The window is free, so a rect is the whole state.
     private UIBox2 _chatRect;
     private bool _chatPlaced;
     private bool _chatMoved;
 
-    /// <summary>Screen size the current <see cref="_chatRect"/> was computed against.</summary>
     private Vector2 _chatScreenSize;
 
-    // Height of the weapon module plus the throwables row above it. Measured by the overlay each
-    // frame - the module grows with the equipped weapon, so a constant here overlapped the row.
     private float _rightStackLift = WaveHudOverlay.RightStackMinHeight;
 
     private Vector2? _pendingChatSize;
@@ -83,24 +65,14 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetAnchorAndMarginPreset(TopLeft, LayoutPreset.TopLeft, margin: 10);
         SetAnchorAndMarginPreset(Ghost, LayoutPreset.BottomWide, margin: 80);
         SetAnchorAndMarginPreset(Hotbar, LayoutPreset.BottomWide, margin: 5);
-        // FINALSTAND: chat sits above the bottom band on the right, leaving the top right to the
-        // wave panel. Combat reads bottom-up, so the top corners stay quiet.
-        // Centre right, between the wave panel above and the weapon module below. Constrain, not
-        // Begin: a zero-overflow box still lets Begin grow to DesiredSize, and the chat log's
-        // desired height is the whole screen - that is what made it cover half the screen.
-        // Anchored to the origin so every margin is an absolute screen coordinate - that is what
-        // makes the window free to sit anywhere. Constrain, not Begin: a zero-overflow box still
-        // lets Begin grow to DesiredSize, and the chat log's desired height is the whole screen.
+        // FINALSTAND: chat sits above the bottom band on the right, leaving the top right to the wave panel.
         SetAnchorPreset(Chat, LayoutPreset.TopLeft);
         SetGrowHorizontal(Chat, GrowDirection.Constrain);
         SetGrowVertical(Chat, GrowDirection.Constrain);
 
         SetupChatToggle();
 
-        // FINALSTAND: one question per screen region. Status effects are personal condition, so
-        // they join the bottom-left survivability corner instead of sharing the top-right with
-        // chat and the wave panel. Inventory moves to the bottom right so the equipment strip
-        // reads left-to-right as vitals -> hands -> storage.
+        // FINALSTAND: one question per screen region.
         SetAnchorPreset(Alerts, LayoutPreset.BottomLeft);
         SetMarginLeft(Alerts, 24f);
         SetMarginRight(Alerts, 24f);
@@ -109,23 +81,16 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetGrowHorizontal(Alerts, GrowDirection.End);
         SetGrowVertical(Alerts, GrowDirection.Begin);
 
-        // The toggle moves into the storage panel, under the pocket grid, where the prototype has a
-        // labelled WORN button. The equipment grid it opens stays in this widget.
         SetAnchorPreset(Inventory, LayoutPreset.TopLeft);
         SetGrowHorizontal(Inventory, GrowDirection.End);
         SetGrowVertical(Inventory, GrowDirection.Begin);
 
         AdoptWornButton();
 
-        // Six across, wrapping upward. The XAML caps the container at 64px wide for the left-edge
-        // column the separated layout still uses, which would squeeze this to one action per row.
         Actions.ActionsContainer.MaxSize = new Vector2(9999, 9999);
         Actions.ActionsContainer.Columns = ActionColumns;
-        // Forward, so 1-6 is the top row and 7-12 fills in beneath it.
         Actions.ActionsContainer.ExpandBackwards = false;
 
-        // Centred on the quarter line: that is the midpoint between the vitals block and the hands,
-        // so the band reads vitals - actions - hands with even air between them at any width.
         SetAnchorLeft(Actions, ActionBarAnchor);
         SetAnchorRight(Actions, ActionBarAnchor);
         SetAnchorTop(Actions, 1f);
@@ -146,10 +111,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
         };
     }
 
-    /// <summary>
-    /// Clearance the chat's default position leaves for the weapon module and throwables row.
-    /// Pushed in by the wave HUD, which is the only thing that knows their drawn height.
-    /// </summary>
     public void SetRightStackLift(float lift)
     {
         if (MathF.Abs(lift - _rightStackLift) < 0.5f)
@@ -157,8 +118,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         _rightStackLift = lift;
 
-        // Only the default placement follows the band. Once the player has dragged the window it
-        // is theirs, and having it crawl away from the cursor would be worse than an overlap.
         if (!_chatMoved)
             ResetChatRect();
     }
@@ -167,7 +126,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
     {
         base.FrameUpdate(args);
 
-        // The screen has no size until it is laid out, so the first placement waits for one.
         if (Size.X > 0f && Size.Y > 0f)
         {
             if (!_chatPlaced)
@@ -182,8 +140,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
         PlaceInventoryBar();
     }
 
-    // Sits directly above the storage cluster rather than beside it. Measured live, because the
-    // storage panel's height changes with the worn button and the quick-slot rows.
     private void PlaceInventoryBar()
     {
         if (Hotbar.StoragePanel is not { } storage || storage.Size.Y <= 0f)
@@ -201,20 +157,14 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     private const float InventoryBarGap = 6f;
 
-    // The rect is absolute, so nothing about it survives the window changing size on its own.
-    // Going fullscreen used to leave the chat wherever it had been in the smaller window, which
-    // reads as it floating loose in the middle of the screen.
     private void ReflowChatForScreen()
     {
-        // An untouched window belongs to the layout, so it re-docks to the default corner.
         if (!_chatMoved)
         {
             ResetChatRect();
             return;
         }
 
-        // One the player placed keeps its offset from the bottom-right corner it was docked against,
-        // then is clamped so a shrinking window cannot push it off screen.
         _chatRect = _chatRect.Translated(Size - _chatScreenSize);
         ClampChatRect();
         _chatScreenSize = Size;
@@ -251,8 +201,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
         }
     }
 
-    // SetChatSize reads this back as (height, width), which is vanilla's order. Storing margins
-    // here meant the restored size was whatever the old anchoring happened to imply.
     private void ChatOnResizeFinish(Vector2 size)
     {
         OnChatResized?.Invoke(new Vector2(size.Y, size.X));
@@ -260,12 +208,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     public override ChatBox ChatBox => Chat;
 
-    // Vanilla stored the box as a height/width pair of margins off the top-right anchor. Anchored
-    // bottom-right instead, the height grows upward from the band rather than down from the top.
-    // Sizes stored under the old layout can be most of the screen, so both axes are clamped.
     public override void SetChatSize(Vector2 size)
     {
-        // Called from the stored CVar before the screen has a size, so it is held until placement.
         if (!_chatPlaced)
         {
             _pendingChatSize = size;
@@ -289,8 +233,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
         PlaceChatDock();
     }
 
-    // Collapsed, the window is gone and only this handle is left on the screen edge, at the height
-    // the chat was last at - so reopening it does not move the thing you were just looking at.
     private void PlaceChatDock()
     {
         if (_chatDock == null)
@@ -309,13 +251,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetMarginBottom(_chatDock, top + ChatDockHeight);
     }
 
-    // A real Button rather than a relabelled SlotControl. A slot draws a fixed-size graphic with
-    // its own hit area, so stretching one to fit a word left the text outside the clickable part.
-    // ToggleInventoryBar is public and is what the slot's handler called anyway.
     private void AdoptWornButton()
     {
-        // Orphaned, not hidden: InventoryUIController resets Visible on this button in three places,
-        // so hiding it leaves a stray toggle floating beside the hands as soon as you wear anything.
         Inventory.InventoryButton.Orphan();
 
         var worn = new Button
@@ -354,7 +291,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         _chatDock.OnPressed += _ => SetChatCollapsed(false);
 
-        // The other half of the pair rides the window itself, in its grip bar.
         Chat.FSToggle.Text = "▶";
         Chat.FSToggle.ToolTip = Loc.GetString("fs-chat-toggle-tooltip");
         Chat.FSToggle.MinSize = new Vector2(ChatToggleWidth, 16);
@@ -363,7 +299,6 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         Chat.FSGripLabel.ModulateSelfOverride = FSPalette.TextDim;
 
-        // The grip bar looks like a title, so nothing about it says the window can be moved.
         Chat.FSGripHint.StyleClasses.Add("LabelSubText");
         Chat.FSGripHint.ModulateSelfOverride = FSPalette.TextMuted;
     }

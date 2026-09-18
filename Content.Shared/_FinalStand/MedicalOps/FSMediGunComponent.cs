@@ -9,8 +9,6 @@ namespace Content.Shared._FinalStand.MedicalOps;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediGunComponent : Component
 {
-    // Prototype values, captured once at MapInit. Research applies deltas over these rather than
-    // assigning absolutes, so the YAML stays the authority for the baseline.
     [ViewVariables] public float? BaseMaxRange;
     [ViewVariables] public FixedPoint2? BaseBleedingAmountModifier;
     [ViewVariables] public int? BaseMaxLinksAmount;
@@ -49,7 +47,6 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public int MaxLinksAmount = 1;
 
-    /// <summary>Per-beam output once more than one patient is attached.</summary>
     [DataField]
     public float SplitLinkScale = 0.6f;
 
@@ -92,7 +89,6 @@ public sealed partial class FSMediGunHealedComponent : Component
     [DataField, AutoNetworkedField]
     public Color BeamColor;
 
-    // Latches so crossing the soft cap sounds once instead of every heal tick.
     [DataField]
     public bool SoftCapAnnounced;
 }
