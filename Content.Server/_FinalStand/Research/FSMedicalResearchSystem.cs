@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Server.Popups;
@@ -76,8 +76,23 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
     public Entity<FSMedicalResearchComponent> GetOrCreateState()
     {
+        if (TryGetState(out var existing))
+            return existing;
+
+        var spawned = Spawn(null, MapCoordinates.Nullspace);
+        var spawnedComp = AddComp<FSMedicalResearchComponent>(spawned);
+        _state = spawned;
+        return (spawned, spawnedComp);
+    }
+
+    // Read-only callers must use this: creating the state entity from a query leaks one per lookup.
+    public bool TryGetState(out Entity<FSMedicalResearchComponent> state)
+    {
         if (_state is { } cached && Exists(cached) && TryComp<FSMedicalResearchComponent>(cached, out var cachedComp))
-            return (cached, cachedComp);
+        {
+            state = (cached, cachedComp);
+            return true;
+        }
 
         var query = EntityQueryEnumerator<FSMedicalResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
@@ -86,13 +101,12 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
                 continue;
 
             _state = uid;
-            return (uid, comp);
+            state = (uid, comp);
+            return true;
         }
 
-        var spawned = Spawn(null, MapCoordinates.Nullspace);
-        var spawnedComp = AddComp<FSMedicalResearchComponent>(spawned);
-        _state = spawned;
-        return (spawned, spawnedComp);
+        state = default;
+        return false;
     }
 
     private void OnStateTerminating(EntityUid uid, FSMedicalResearchComponent comp, ref EntityTerminatingEvent args)
@@ -117,7 +131,9 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
     public bool IsNodeUnlocked(string nodeId)
     {
-        var state = GetOrCreateState();
+        if (!TryGetState(out var state))
+            return false;
+
         SyncLookup(state.Comp);
         return state.Comp.UnlockedLookup.Contains(nodeId);
     }
