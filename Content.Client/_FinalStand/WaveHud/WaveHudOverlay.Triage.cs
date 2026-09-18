@@ -1,4 +1,4 @@
-// Draws the medical triage panel on the right edge. Renders nothing when nobody is in trouble.
+// Draws the medical triage panel on the right edge. Always on for medical staff, hidden for everyone else.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
@@ -11,6 +11,10 @@ public sealed partial class WaveHudOverlay
         bool Responding, Vector2? Direction);
 
     public readonly List<TriageRow> TriageRows = new();
+
+    /// <summary>Medical staff keep the panel on screen with nobody down, so it reads as a standing
+    /// instrument rather than something that appears from nowhere mid-fight.</summary>
+    public bool IsMedicalStaff;
 
     /// <summary>Shared by the wave panel above it, so the right column has one left edge.</summary>
     public const float RightColumnWidth = 206f;
@@ -32,13 +36,17 @@ public sealed partial class WaveHudOverlay
     /// <summary>Draws under the wave panel. Returns the height used, so nothing stacks into it.</summary>
     private float DrawTriage(DrawingHandleScreen screen, float panelX, float top)
     {
-        if (TriageRows.Count == 0)
+        if (!IsMedicalStaff)
             return 0f;
 
         var labelH = _cachedLabelH;
         var rowH = MathF.Max(PipSize, labelH);
-        var panelH = TriagePad * 2f + labelH + 4f + TriageRows.Count * rowH
-                     + (TriageRows.Count - 1) * TriageRowGap;
+
+        // An empty board still reserves one row, so the panel holds its shape instead of snapping
+        // to a different size the moment the first casualty lands.
+        var rowCount = Math.Max(1, TriageRows.Count);
+        var panelH = TriagePad * 2f + labelH + 4f + rowCount * rowH
+                     + (rowCount - 1) * TriageRowGap;
 
         var x = panelX + panelW0 - TriageWidth;
         var box = new UIBox2(x, top, x + TriageWidth, top + panelH);
@@ -50,6 +58,13 @@ public sealed partial class WaveHudOverlay
 
         screen.DrawString(_labelFont!, new Vector2(innerX, y), "TRIAGE", TriageMuted);
         y += labelH + 4f;
+
+        if (TriageRows.Count == 0)
+        {
+            screen.DrawString(_labelFont!, new Vector2(innerX, y + (rowH - labelH) * 0.5f),
+                "NO CASUALTIES", PipResponding);
+            return panelH;
+        }
 
         foreach (var row in TriageRows)
         {

@@ -67,7 +67,11 @@ public sealed partial class WaveHudSystem : EntitySystem
         => EnsureOverlay().MedicalFund = ev.Balance;
 
     private void OnMedicalStatus(FSMedicalStatusEvent ev)
-        => EnsureOverlay().ShowMedicalFund = ev.IsMedical;
+    {
+        var overlay = EnsureOverlay();
+        overlay.ShowMedicalFund = ev.IsMedical;
+        overlay.IsMedicalStaff = ev.IsMedical;
+    }
 
     private void OnDarkWaveStarted(FSDarkWaveStartedEvent ev)
     {

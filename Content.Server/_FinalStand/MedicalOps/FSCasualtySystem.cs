@@ -143,14 +143,32 @@ public sealed partial class FSCasualtySystem : EntitySystem
         Broadcast();
     }
 
+    // The state-change event is an edge: miss it once - because the mob had no session attached at
+    // that instant, or another handler threw first - and that casualty is off the board for the rest
+    // of the round. This sweep reconciles from what the mobs actually are, so it cannot miss.
+    private void SweepCasualties()
+    {
+        foreach (var session in _player.Sessions)
+        {
+            if (session.AttachedEntity is not { } mob
+                || TerminatingOrDeleted(mob)
+                || _calls.ContainsKey(mob))
+            {
+                continue;
+            }
+
+            if (_mobState.IsCritical(mob) || _mobState.IsDead(mob))
+                RegisterCall(mob);
+        }
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        if (_calls.Count == 0)
-            return;
-
         var now = _timing.CurTime;
+
+        SweepCasualties();
 
         _finished.Clear();
         foreach (var (patient, call) in _calls)
