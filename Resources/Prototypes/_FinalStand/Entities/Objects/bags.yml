@@ -1,4 +1,4 @@
-# Construction counterpart to the vanilla ore bag: MagnetPickup vacuums anything the Storage
+﻿# Construction counterpart to the vanilla ore bag: MagnetPickup vacuums anything the Storage
 # whitelist accepts, so this one takes sheets and cable instead of ore.
 - type: entity
   name: construction bag
@@ -7,6 +7,7 @@
   description: A reinforced bag for hauling building stock. Magnetises nearby materials when attached to a belt.
   components:
   - type: MagnetPickup
+  - type: FSMagnetToggle
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag.rsi
     state: icon
@@ -39,6 +40,7 @@
   components:
   - type: MagnetPickup
     range: 2
+  - type: FSMagnetToggle
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag_holding.rsi
     state: icon

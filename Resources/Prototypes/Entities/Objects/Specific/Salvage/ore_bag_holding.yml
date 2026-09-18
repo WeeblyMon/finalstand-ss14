@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   name: ore bag of holding
   id: OreBagOfHolding
   parent: OreBag
@@ -6,6 +6,7 @@
   components:
   - type: MagnetPickup
     range: 2
+  - type: FSMagnetToggle # FINALSTAND: vanilla MagnetPickup has no on/off switch
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag_holding.rsi
     state: icon
