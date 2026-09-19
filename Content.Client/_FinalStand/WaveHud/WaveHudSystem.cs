@@ -1,4 +1,4 @@
-using Content.Client._FinalStand.Interface;
+﻿using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
@@ -22,7 +22,6 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
-    [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
@@ -50,7 +49,6 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
-        _client.PlayerJoinedServer += OnPlayerJoinedServer;
     }
 
     public void FlashDirective(Color colour)
@@ -298,7 +296,6 @@ public sealed partial class WaveHudSystem : EntitySystem
     public override void Shutdown()
     {
         base.Shutdown();
-        _client.PlayerJoinedServer -= OnPlayerJoinedServer;
 
         if (_overlay != null)
         {
@@ -309,14 +306,11 @@ public sealed partial class WaveHudSystem : EntitySystem
         }
     }
 
-    private void OnPlayerJoinedServer(object? sender, PlayerEventArgs _)
-    {
-        RaiseNetworkEvent(new WalletRequestEvent());
-        RaiseNetworkEvent(new FSPerkStateRequestMessage());
-    }
-
+    // Sent on attach rather than on connect: at connect the client is still on tick 1 while the
+    // server is thousands of ticks ahead, so the request arrives as a late MsgEntity and warns.
     private void OnLocalPlayerAttached(LocalPlayerAttachedEvent _)
     {
+        RaiseNetworkEvent(new WalletRequestEvent());
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
 
         var overlay = EnsureOverlay();
