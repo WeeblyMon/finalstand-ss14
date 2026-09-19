@@ -1,0 +1,22 @@
+# The tube is the source of truth for colour: SharedPoweredLightSystem stamps LightBulb.Color onto
+# the fixture's PointLight on every update, so editing the fixture alone gets overwritten.
+- type: entity
+  parent: LightTube
+  id: FSLightTubeEmber
+  name: ember light tube
+  description: A light fixture that burns a deep orange.
+  components:
+  - type: LightBulb
+    color: "#CF4C00"
+
+- type: entity
+  parent: Poweredlight
+  id: FSPoweredlightEmber
+  suffix: Ember
+  description: A light fixture burning a deep orange. Draws power and comes with its tube fitted.
+  components:
+  - type: PoweredLight
+    hasLampOnSpawn: FSLightTubeEmber
+  - type: PointLight
+    color: "#CF4C00"
+  - type: FSPlayerDamageImmune
