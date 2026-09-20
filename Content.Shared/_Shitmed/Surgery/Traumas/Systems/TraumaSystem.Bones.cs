@@ -220,6 +220,36 @@ public partial class TraumaSystem
         return true;
     }
 
+    // FINALSTAND: shared by every tool that mends bones (stapler, medigun) so "worst bone on this
+    // body" is computed once rather than re-implemented per item.
+    public bool TryFindWorstBone(EntityUid target, BodyComponent body, out EntityUid bone, out BoneComponent boneComp)
+    {
+        bone = default;
+        boneComp = default!;
+
+        var lowest = FixedPoint2.MaxValue;
+
+        foreach (var (organ, _) in _lookup.GetBodyOrgans((target, body)))
+        {
+            if (!TryComp<WoundableComponent>(organ, out var woundable))
+                continue;
+
+            foreach (var contained in woundable.Bone.ContainedEntities)
+            {
+                if (!TryComp<BoneComponent>(contained, out var candidate)
+                    || candidate.BoneIntegrity >= candidate.IntegrityCap
+                    || candidate.BoneIntegrity >= lowest)
+                    continue;
+
+                lowest = candidate.BoneIntegrity;
+                bone = contained;
+                boneComp = candidate;
+            }
+        }
+
+        return lowest != FixedPoint2.MaxValue;
+    }
+
     public bool SetBoneIntegrity(EntityUid bone, FixedPoint2 integrity, BoneComponent? boneComp = null)
     {
         if (!Resolve(bone, ref boneComp))

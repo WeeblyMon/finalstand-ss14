@@ -1,9 +1,12 @@
 using Content.Server.Power.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
+using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle;
 using Content.Shared.Item.ItemToggle.Components;
@@ -34,6 +37,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private TraumaSystem _trauma = default!;
 
     private EntityQuery<BatteryComponent> _batteryQuery;
     private EntityQuery<DamageableComponent> _damageableQuery;
@@ -99,6 +103,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (!_damageableQuery.TryComp(healed, out var damageable))
             return false;
 
+        MendWorstBone(healed, comp.BoneRepairPerTick);
+
         var scale = GetHealScale((healed, damageable), comp);
 
         if (TryComp<FSMediGunHealedComponent>(healed, out var link))
@@ -128,6 +134,18 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         _bloodstream.TryModifyBloodLevel(healed, comp.BleedingAmountModifier);
         return true;
+    }
+
+    private void MendWorstBone(EntityUid healed, FixedPoint2 amount)
+    {
+        if (amount <= FixedPoint2.Zero
+            || !TryComp<BodyComponent>(healed, out var body)
+            || !_trauma.TryFindWorstBone(healed, body, out var bone, out var boneComp))
+            return;
+
+        var repaired = FixedPoint2.Min(boneComp.IntegrityCap, boneComp.BoneIntegrity + amount);
+        _trauma.SetBoneIntegrity(bone, repaired, boneComp);
+        _trauma.UpdateBodyBoneAlert(healed, body);
     }
 
     public float GetHealScale(Entity<DamageableComponent> patient, FSMediGunComponent comp)
