@@ -14,17 +14,13 @@ public sealed partial class WaveHudOverlay
     public bool HasAmmoChoice;
     public bool HasThrowChoice;
     public bool WeaponTakesMagazines;
+    public string? ItemDetail;
 
-    // The inset every edge-anchored HUD module shares, so the storage row below this panel and the
-    // panel itself line up on one right edge.
     public const float ScreenMargin = 24f;
 
     // The storage row below sizes itself from this, so it can never out-run the panel above it.
     public const float WeaponPanelWidth = 356f;
 
-    // FINALSTAND: the one shared slot metric for every HUD grid drawn at this scale - the hotbar's
-    // storage row and the action bar both read this rather than one widget reaching into another's
-    // layout constants.
     public const int HudSlotCells = 7;
     public const float HudSlotGap = 4f;
     private const float HudSlotChrome = 8f * 2f + 2f;
@@ -56,12 +52,14 @@ public sealed partial class WaveHudOverlay
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
         var hasAmmo = WeaponLoaded is not null && WeaponCapacity is > 0;
+        var hasDetail = !hasAmmo && !string.IsNullOrEmpty(ItemDetail);
 
         var name = (WeaponName ?? "no weapon").ToUpperInvariant();
 
         var hintH = labelH + HintPadY * 2f;
         var contentH = labelH
                        + (hasAmmo ? 4f + valueH : 0f)
+                       + (hasDetail ? 4f + labelH : 0f)
                        + (WeaponTakesMagazines ? 5f + hintH : 0f);
         var panelH = MathF.Max(contentH + WeaponPanelPad * 2f, WeaponPanelMinH);
 
@@ -98,6 +96,13 @@ public sealed partial class WaveHudOverlay
             }
 
             ty += valueH;
+        }
+
+        if (hasDetail)
+        {
+            ty += 4f;
+            screen.DrawString(_labelFont!, new Vector2(textX, ty), ItemDetail!, WeaponMuted);
+            ty += labelH;
         }
 
         if (!WeaponTakesMagazines)
