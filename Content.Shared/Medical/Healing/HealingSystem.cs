@@ -94,7 +94,13 @@ public sealed partial class HealingSystem : EntitySystem
         if (healing.ModifyBloodLevel != 0 && bloodstream != null)
             _bloodstreamSystem.TryModifyBloodLevel((target.Owner, bloodstream), healing.ModifyBloodLevel);
 
-        if (!_damageable.TryChangeDamage(target.Owner, healing.Damage * _damageable.UniversalTopicalsHealModifier, out var healed, true, origin: args.Args.User) && healing.BloodlossModifier != 0)
+        var topicalHealing = healing.Damage * _damageable.UniversalTopicalsHealModifier;
+        var changedDamage = _damageable.TryChangeDamage(target.Owner, topicalHealing, out var healed, true, origin: args.Args.User);
+
+        // FINALSTAND: mob damage floors at zero while limb wounds persist.
+        var healedWounds = _wounds.TryHealWoundsOnOwner(target.Owner, topicalHealing);
+
+        if (!changedDamage && !healedWounds && healing.BloodlossModifier != 0)
             return;
 
         var total = healed.GetTotal();
@@ -152,6 +158,10 @@ public sealed partial class HealingSystem : EntitySystem
             }
         }
 
+        // FINALSTAND: limb wounds outlive mob damage, so they gate usability too.
+        if (HasHealableWounds(healing, target))
+            return true;
+
         if (TryComp<BloodstreamComponent>(target, out var bloodstream))
         {
             if (healing.Comp.ModifyBloodLevel > 0
@@ -170,6 +180,30 @@ public sealed partial class HealingSystem : EntitySystem
         if (healing.Comp.BloodlossModifier < 0 && _wounds.IsAnyWoundableBleeding(target.Owner))
         {
             return true;
+        }
+
+        return false;
+    }
+
+    private bool HasHealableWounds(Entity<HealingComponent> healing, Entity<DamageableComponent> target)
+    {
+        if (!_wounds.TryGetAllOwnerWoundedParts(target.Owner, out var woundables))
+            return false;
+
+        foreach (var woundable in woundables)
+        {
+            foreach (var wound in _wounds.GetWoundableWounds(woundable.Owner, woundable.Comp))
+            {
+                if (wound.Comp.WoundSeverityPoint <= 0
+                    || !healing.Comp.Damage.DamageDict.TryGetValue(wound.Comp.DamageType, out var heal)
+                    || heal >= 0)
+                {
+                    continue;
+                }
+
+                if (_wounds.CanHealWound(wound, wound.Comp))
+                    return true;
+            }
         }
 
         return false;
