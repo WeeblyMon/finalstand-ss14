@@ -55,7 +55,11 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
         SubscribeNetworkEvent<FSRespawnRequestMessage>(OnRespawnRequest);
+        SubscribeNetworkEvent<FSRespawnOfferRequestEvent>(OnRespawnOfferRequest);
     }
+
+    private void OnRespawnOfferRequest(FSRespawnOfferRequestEvent msg, EntitySessionEventArgs args)
+        => PushOffer(args.SenderSession);
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
     {

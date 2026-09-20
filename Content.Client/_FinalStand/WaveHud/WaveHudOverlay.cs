@@ -279,8 +279,6 @@ public sealed partial class WaveHudOverlay : Overlay
         var btnH = labelH + btnPad * 2f;
 
         var totalH = sepH;
-        if (IsRespawnOfferVisible)
-            totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsReadyUpVisible)
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
@@ -337,35 +335,36 @@ public sealed partial class WaveHudOverlay : Overlay
                 new Vector2((screenSize.X - subDims.X) * 0.5f, promptY + headDims.Y + gap),
                 subline, FSPalette.TextBright);
 
+            var afterTextY = promptY + headDims.Y + gap + subDims.Y;
+
             if (CasualtyStatus is { } casualty)
             {
                 var casualtyDims = screen.GetDimensions(_promptSubFont!, casualty, 1f);
                 var casualtyColor = CasualtyResponded ? FSPalette.Ok : FSPalette.TextMuted;
 
                 DrawShadowed(screen, _promptSubFont!,
-                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f,
-                        promptY + headDims.Y + gap + subDims.Y + gap * 0.5f),
+                    new Vector2((screenSize.X - casualtyDims.X) * 0.5f, afterTextY + gap * 0.5f),
                     casualty, casualtyColor);
+
+                afterTextY += gap * 0.5f + casualtyDims.Y;
             }
 
-            screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
-            y += sepH + rowPad;
+            const string btnLabel = "REVIVE NOW";
+            var btnDim = screen.GetDimensions(_labelFont!, btnLabel, 1f);
+            var btnPadX = MathF.Round(20f * s);
+            var btnPadY = MathF.Round(8f * s);
+            var respawnBtnW = btnDim.X + btnPadX * 2f;
+            var respawnBtnH = btnDim.Y + btnPadY * 2f;
+            var btnX = (screenSize.X - respawnBtnW) * 0.5f;
+            var btnY = afterTextY + gap * 2f;
 
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), "RESPAWN", muted);
-            y += labelH + 2f;
-
-            screen.DrawString(_labelFont!, new Vector2(panelX, y), $"-${RespawnCost:N0}", FSPalette.Money);
-            y += labelH + 3f;
-
-            RespawnButtonBounds = new UIBox2(panelX, y, panelX + panelW, y + btnH);
-            screen.DrawRect(RespawnButtonBounds, FSPalette.CellBack);
-
-            var respawnDim = screen.GetDimensions(_labelFont!, "RESPAWN", 1f);
-            screen.DrawString(_labelFont!,
-                new Vector2(panelX + (panelW - respawnDim.X) * 0.5f, y + (btnH - respawnDim.Y) * 0.5f),
-                "RESPAWN", FSPalette.Danger);
-
-            y += btnH + rowPad;
+            RespawnButtonBounds = new UIBox2(btnX, btnY, btnX + respawnBtnW, btnY + respawnBtnH);
+            DrawPanel(screen, RespawnButtonBounds, VitalsBack, VitalsEdge, FSPalette.Danger);
+            DrawShadowed(screen,
+                _labelFont!,
+                new Vector2(btnX + btnPadX, btnY + btnPadY),
+                btnLabel,
+                FSPalette.Danger);
         }
         else
         {

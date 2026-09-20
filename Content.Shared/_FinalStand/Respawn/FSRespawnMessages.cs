@@ -8,6 +8,11 @@ public sealed class FSRespawnRequestMessage : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
+public sealed class FSRespawnOfferRequestEvent : EntityEventArgs
+{
+}
+
+[Serializable, NetSerializable]
 public sealed class FSRespawnOfferEvent : EntityEventArgs
 {
     public bool Available;

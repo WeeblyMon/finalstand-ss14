@@ -312,13 +312,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         RaiseNetworkEvent(new WalletRequestEvent());
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
-
-        var overlay = EnsureOverlay();
-        overlay.IsRespawnOfferVisible = false;
-        overlay.RespawnButtonBounds = new UIBox2(-100, -100, -99, -99);
-
-        if (_ui.ActiveScreen is { } screen)
-            screen.Modulate = Color.White;
+        RaiseNetworkEvent(new FSRespawnOfferRequestEvent());
     }
 
     private WaveHudOverlay EnsureOverlay()
