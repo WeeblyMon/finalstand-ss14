@@ -218,7 +218,12 @@ public sealed partial class DamageableSystem
         if (!_damageableQuery.TryGetComponent(ent, out var damageable))
             return;
 
-        var damageDone = new DamageSpecifier();
+        // FINALSTAND: carry WoundSeverityMultipliers into the delta - without this the wound
+        // system's per-source severity knob is unreachable, since it only ever sees this delta.
+        var damageDone = new DamageSpecifier
+        {
+            WoundSeverityMultipliers = args.Damage.WoundSeverityMultipliers,
+        };
 
         damageDone.DamageDict.EnsureCapacity(args.Damage.DamageDict.Count);
 

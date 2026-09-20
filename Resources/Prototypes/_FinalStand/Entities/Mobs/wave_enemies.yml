@@ -41,6 +41,8 @@
     damage:
       types:
         Slash: 10
+      woundSeverityMultipliers:
+        Slash: 0.5
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/zombie.rsi
