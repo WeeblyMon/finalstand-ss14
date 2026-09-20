@@ -196,7 +196,13 @@ public abstract partial class SharedSurgerySystem
                 args.Part,
                 damageGroup: ent.Comp.MainGroup,
                 healable: true) <= 0)
+        {
+            // Blocked by a trauma looks identical to "nothing to heal" without this.
+            if (_wounds.GetWoundableSeverityPoint(args.Part, damageGroup: ent.Comp.MainGroup) > 0)
+                _popup.PopupClient(Loc.GetString("fs-surgery-tend-wounds-blocked"), args.User, args.User, PopupType.SmallCaution);
+
             return;
+        }
 
         var bonus = ent.Comp.HealMultiplier * _wounds.GetWoundableSeverityPoint(args.Part, damageGroup: ent.Comp.MainGroup);
 
@@ -208,6 +214,9 @@ public abstract partial class SharedSurgerySystem
         var group = _prototypes.Index<DamageGroupPrototype>(ent.Comp.MainGroup);
         foreach (var type in group.DamageTypes)
             adjustedDamage.DamageDict[type] -= bonus;
+
+        // FINALSTAND: direct - routing only through mob damage loops forever at full HP.
+        _wounds.TryHealWoundsOnWoundable(args.Part, adjustedDamage, out _);
 
         var ev = new SurgeryStepDamageEvent(args.User, args.Body, args.Part, args.Surgery, adjustedDamage, 0.5f);
         RaiseLocalEvent(args.Body, ref ev);
