@@ -85,13 +85,25 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 break;
         }
 
+        // Secondaries only support a lane that's already active this wave, never an unlisted one.
         foreach (var secondary in _secondaryBuffer)
         {
-            if (TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner) &&
-                _random.NextFloat() < spawner.ActivationChance)
+            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner))
+                continue;
+
+            var supported = false;
+            foreach (var primary in comp.SpawnerEntities)
             {
-                comp.SpawnerEntities.Add(secondary);
+                if (TryComp<WaveEnemySpawnerComponent>(primary, out var primarySpawner) &&
+                    primarySpawner.DirectionLabel == spawner.DirectionLabel)
+                {
+                    supported = true;
+                    break;
+                }
             }
+
+            if (supported && _random.NextFloat() < spawner.ActivationChance)
+                comp.SpawnerEntities.Add(secondary);
         }
     }
     private int RollActiveCount(int spawnerCount)

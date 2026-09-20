@@ -88,11 +88,12 @@
 - type: entity
   id: WaveEnemySpawnerSecondaryNorth
   name: Secondary Wave Spawner (North)
-  description: Supporting north spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  description: Supporting north spawn point. Sometimes active, spawns fewer enemies.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 1
+    directionLabel: N
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -103,11 +104,12 @@
 - type: entity
   id: WaveEnemySpawnerSecondaryEast
   name: Secondary Wave Spawner (East)
-  description: Supporting east spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  description: Supporting east spawn point. Sometimes active, spawns fewer enemies.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 4
+    directionLabel: E
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -118,11 +120,12 @@
 - type: entity
   id: WaveEnemySpawnerSecondarySouth
   name: Secondary Wave Spawner (South)
-  description: Supporting south spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  description: Supporting south spawn point. Sometimes active, spawns fewer enemies.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 7
+    directionLabel: S
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -133,11 +136,12 @@
 - type: entity
   id: WaveEnemySpawnerSecondaryWest
   name: Secondary Wave Spawner (West)
-  description: Supporting west spawn point. Sometimes active, spawns fewer enemies, hidden from the CCC.
+  description: Supporting west spawn point. Sometimes active, spawns fewer enemies.
   parent: MarkerBase
   components:
   - type: WaveEnemySpawner
     fromWave: 10
+    directionLabel: W
     secondary: true
   - type: Sprite
     drawdepth: Overdoors

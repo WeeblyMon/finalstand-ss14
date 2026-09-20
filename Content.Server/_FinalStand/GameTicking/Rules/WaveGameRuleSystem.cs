@@ -576,6 +576,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             : string.Join("/", comp.SpawnerEntities
                 .Select(s => TryComp<WaveEnemySpawnerComponent>(s, out var sc) ? sc.DirectionLabel : "?")
                 .Where(d => d.Length > 0)
+                .Distinct()
                 .Order());
         data = new CCCStateData(
             comp.WaveNumber,
