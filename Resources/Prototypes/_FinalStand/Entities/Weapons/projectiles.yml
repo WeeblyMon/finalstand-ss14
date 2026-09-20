@@ -464,3 +464,11 @@
   components:
   - type: BallisticAmmoProvider
     proto: FSCartridgeAntiMateriel
+
+# Deflected shrapnel: mobs only, so a glowing zombie cannot chew through the station it stands in.
+- type: entity
+  id: FSArmouredDeflectShard
+  parent: BulletLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSNoStructureDamage

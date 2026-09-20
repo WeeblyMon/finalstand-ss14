@@ -1,4 +1,4 @@
-using Robust.Shared.Audio;
+﻿using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Mobs;
@@ -14,7 +14,7 @@ public sealed partial class FSArmouredDeflectComponent : Component
 
     [DataField] public float ShrapnelDamageFraction = 0.5f;
 
-    [DataField] public string ShrapnelProto = "BulletLaser";
+    [DataField] public string ShrapnelProto = "FSArmouredDeflectShard";
 
     [DataField]
     public SoundSpecifier DeflectSound =
