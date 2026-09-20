@@ -8,4 +8,5 @@ public sealed class SurgeryOperationButton : ChoiceControl
     public EntityUid Surgery { get; init; }
     public EntProtoId SurgeryId { get; init; }
     public string OperationName { get; init; } = string.Empty;
+    public bool Unavailable { get; init; }
 }

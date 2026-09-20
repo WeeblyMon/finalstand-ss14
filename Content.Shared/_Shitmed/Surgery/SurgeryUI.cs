@@ -15,9 +15,14 @@ public enum SurgeryUIKey
 }
 
 [Serializable, NetSerializable]
-public sealed class SurgeryBuiState(Dictionary<NetEntity, List<EntProtoId>> choices) : BoundUserInterfaceState
+public sealed class SurgeryBuiState(
+    Dictionary<NetEntity, List<EntProtoId>> choices,
+    Dictionary<NetEntity, List<EntProtoId>> unavailable) : BoundUserInterfaceState
 {
     public readonly Dictionary<NetEntity, List<EntProtoId>> Choices = choices;
+
+    // FINALSTAND: surgeries the part fails a condition for, listed so the doctor can see they exist.
+    public readonly Dictionary<NetEntity, List<EntProtoId>> Unavailable = unavailable;
 }
 
 [Serializable, NetSerializable]

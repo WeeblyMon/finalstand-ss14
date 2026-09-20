@@ -38,6 +38,7 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
     [Dependency] private UserInterfaceSystem _ui = default!;
 
     private readonly Dictionary<NetEntity, List<EntProtoId>> _surgeries = new();
+    private readonly Dictionary<NetEntity, List<EntProtoId>> _unavailableSurgeries = new();
 
     public override void Initialize()
     {
@@ -54,9 +55,11 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
     protected override void RefreshUI(EntityUid body)
     {
         _surgeries.Clear();
+        _unavailableSurgeries.Clear();
         foreach (var part in _lookup.GetBodyOrgans(body))
         {
             var valid = new List<EntProtoId>();
+            var unavailable = new List<EntProtoId>();
             foreach (var surgery in AllSurgeries)
             {
                 if (GetSingleton(surgery) is not { } surgeryEnt)
@@ -66,13 +69,17 @@ public sealed partial class SurgerySystem : SharedSurgerySystem
                 RaiseLocalEvent(surgeryEnt, ref ev);
 
                 if (ev.Cancelled)
+                {
+                    unavailable.Add(surgery);
                     continue;
+                }
 
                 valid.Add(surgery);
             }
             _surgeries[GetNetEntity(part.Owner)] = valid;
+            _unavailableSurgeries[GetNetEntity(part.Owner)] = unavailable;
         }
-        _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(_surgeries));
+        _ui.SetUiState(body, SurgeryUIKey.Key, new SurgeryBuiState(_surgeries, _unavailableSurgeries));
         /*
             Reason we do this is because when applying a BUI State, it rolls back the state on the entity temporarily,
             which just so happens to occur right as we're checking for step completion, so we end up with the UI

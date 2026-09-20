@@ -35,6 +35,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
     private static readonly Color OperationNextColor = Color.FromHex("#8FE0B0");
     private static readonly Color OperationAvailableColor = new(0.72f, 0.72f, 0.72f);
     private static readonly Color OperationOutOfFocusColor = new(0.45f, 0.45f, 0.45f);
+    private static readonly Color OperationUnavailableColor = new(0.32f, 0.32f, 0.36f);
+
+    private readonly Dictionary<NetEntity, List<EntProtoId>> _unavailable = new();
 
     private static readonly (SurgeryFocus Focus, string Loc)[] Filters =
     {
@@ -126,6 +129,10 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
         if (!_window.IsOpen)
             _window.OpenCentered();
+
+        _unavailable.Clear();
+        foreach (var (part, ids) in state.Unavailable)
+            _unavailable[part] = ids;
 
         var oldSurgery = _surgery;
         var oldPart = _part;
@@ -317,47 +324,59 @@ public sealed partial class SurgeryBui : BoundUserInterface
         if (_window == null)
             return;
 
-        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}";
-        if (_surgeriesKey != key)
+        var unavailableIds = _unavailable.GetValueOrDefault(netPart) ?? new List<EntProtoId>();
+
+        var key = $"{netPart.Id}:{string.Join(',', surgeryIds)}|{string.Join(',', unavailableIds)}";
+        if (_surgeriesKey == key)
+            return;
+
+        _surgeriesKey = key;
+        _window.Surgeries.DisposeAllChildren();
+
+        var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name, bool Unavailable)>();
+        foreach (var (surgeryId, unavailable) in surgeryIds.Select(id => (id, false))
+                     .Concat(unavailableIds.Select(id => (id, true))))
         {
-            _surgeriesKey = key;
-            _window.Surgeries.DisposeAllChildren();
-
-            var surgeries = new List<(Entity<SurgeryComponent> Ent, EntProtoId Id, string Name)>();
-            foreach (var surgeryId in surgeryIds)
+            if (_system.GetSingleton(surgeryId) is not { } surgery ||
+                !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
             {
-                if (_system.GetSingleton(surgeryId) is not { } surgery ||
-                    !_entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
-                {
-                    continue;
-                }
-
-                var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
-                surgeries.Add(((surgery, surgeryComp), surgeryId, name));
+                continue;
             }
 
-            surgeries.Sort((a, b) =>
+            var name = _entities.GetComponent<MetaDataComponent>(surgery).EntityName;
+            surgeries.Add(((surgery, surgeryComp), surgeryId, name, unavailable));
+        }
+
+        surgeries.Sort((a, b) =>
+        {
+            // Unavailable operations sink below everything the doctor can actually start.
+            if (a.Unavailable != b.Unavailable)
+                return a.Unavailable ? 1 : -1;
+
+            var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
+            if (priority != 0)
+                return priority;
+
+            return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
+        });
+
+        foreach (var surgery in surgeries)
+        {
+            var surgeryButton = new SurgeryOperationButton
             {
-                var priority = a.Ent.Comp.Priority.CompareTo(b.Ent.Comp.Priority);
-                if (priority != 0)
-                    return priority;
+                Surgery = surgery.Ent.Owner,
+                SurgeryId = surgery.Id,
+                OperationName = surgery.Name,
+                Unavailable = surgery.Unavailable,
+            };
+            surgeryButton.Set(surgery.Name, null);
 
-                return string.Compare(a.Name, b.Name, StringComparison.Ordinal);
-            });
-
-            foreach (var surgery in surgeries)
-            {
-                var surgeryButton = new SurgeryOperationButton
-                {
-                    Surgery = surgery.Ent.Owner,
-                    SurgeryId = surgery.Id,
-                    OperationName = surgery.Name,
-                };
-                surgeryButton.Set(surgery.Name, null);
-
+            if (surgery.Unavailable)
+                surgeryButton.Button.Disabled = true;
+            else
                 surgeryButton.Button.OnPressed += _ => OnSurgeryPressed(surgery.Ent, netPart, surgery.Id);
-                _window.Surgeries.AddChild(surgeryButton);
-            }
+
+            _window.Surgeries.AddChild(surgeryButton);
         }
     }
 
@@ -568,6 +587,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
             if (child is not SurgeryOperationButton op)
                 continue;
 
+            if (op.Unavailable)
+            {
+                states.Add((op, false, false, false));
+                continue;
+            }
+
             var next = _system.GetNextStep(Owner, _part.Value, op.Surgery, user);
             var complete = next == null;
             var blocked = !complete && next!.Value.Surgery.Owner != op.Surgery;
@@ -597,7 +622,12 @@ public sealed partial class SurgeryBui : BoundUserInterface
             string glyph;
             Color colour;
 
-            if (complete)
+            if (op.Unavailable)
+            {
+                glyph = "✕  ";
+                colour = OperationUnavailableColor;
+            }
+            else if (complete)
             {
                 glyph = "✓  ";
                 colour = StepCompleteColor;
