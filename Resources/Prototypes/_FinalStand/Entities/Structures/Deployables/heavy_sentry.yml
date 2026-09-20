@@ -75,6 +75,10 @@
       path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
   - type: FSDeployableLifetime
     lifetime: 600
+  - type: FSPackable
+    packedProtoId: FSHeavySentryItem
+    packTime: 3
+    medicalOnly: false
   - type: Clickable
   - type: InteractionOutline
   - type: Physics

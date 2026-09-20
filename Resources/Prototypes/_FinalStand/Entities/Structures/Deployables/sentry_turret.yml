@@ -47,6 +47,10 @@
   - type: FSSentryTurret
   - type: FSDeployableLifetime
     lifetime: 600
+  - type: FSPackable
+    packedProtoId: FSSentryTurretItem
+    packTime: 3
+    medicalOnly: false
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
