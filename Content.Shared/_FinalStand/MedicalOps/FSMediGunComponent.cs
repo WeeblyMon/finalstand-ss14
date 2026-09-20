@@ -42,7 +42,7 @@ public sealed partial class FSMediGunComponent : Component
     public FixedPoint2 BleedingAmountModifier = 3;
 
     [DataField]
-    public float Frequency = 1f;
+    public float Frequency = 0.5f;
 
     [DataField]
     public int MaxLinksAmount = 1;
