@@ -27,7 +27,7 @@
     - enemyId: FSZombieRevenant
       fromWave: 15
       spawnChance: 0.03
-    prepDuration: 300
+    prepDuration: 600
     maxCombatDuration: 1800
     factionDisplay: "Undead detected"
     waveStartSound: !type:SoundPathSpecifier
