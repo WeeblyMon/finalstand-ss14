@@ -45,6 +45,10 @@
       name: Bluespace Construction Bag
       description: Twice the reach, far more room.
       price: 150000
+    - proto: ClothingBackpackHolding
+      name: Bluespace Bag
+      description: A backpack with vastly more room than it should have.
+      price: 150000
   - type: UserInterface
     interfaces:
       enum.FSBagShopUiKey.Key:
