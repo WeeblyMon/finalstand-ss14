@@ -152,7 +152,16 @@ public sealed partial class WoundSystem
                 ignoreBlockers: true);
 
             TryHealBleedingWounds(organ.Owner, float.MinValue, out _, woundable);
+
+            // FINALSTAND: rejuvenate left every bone broken.
+            foreach (var bone in woundable.Bone.ContainedEntities)
+            {
+                if (TryComp<BoneComponent>(bone, out var boneComp))
+                    _trauma.SetBoneIntegrity(bone, boneComp.IntegrityCap, boneComp);
+            }
         }
+
+        _trauma.UpdateBodyBoneAlert(body.Owner, body.Comp);
     }
 
     private void OnOrganRelated(Entity<WoundableComponent> child, ref OrganRelatedEvent args)
