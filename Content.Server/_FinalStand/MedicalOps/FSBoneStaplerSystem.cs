@@ -36,27 +36,40 @@ public sealed partial class FSBoneStaplerSystem : EntitySystem
             return;
 
         if (_useDelay.IsDelayed(ent.Owner))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-bone-stapler-recharging"), ent.Owner, args.User);
             return;
+        }
 
         if (!TryComp<BodyComponent>(target, out var body))
             return;
 
         args.Handled = true;
 
-        if (!_trauma.TryFindWorstBone(target, body, out var bone, out var boneComp))
+        // Re-queries each pass: mending the worst bone changes which one is worst.
+        EntityUid? firstBone = null;
+        for (var i = 0; i < ent.Comp.Bones; i++)
+        {
+            if (!_trauma.TryFindWorstBone(target, body, out var bone, out var boneComp))
+                break;
+
+            var repaired = FixedPoint2.Min(boneComp.IntegrityCap, boneComp.BoneIntegrity + ent.Comp.Repair);
+            _trauma.SetBoneIntegrity(bone, repaired, boneComp);
+            firstBone ??= bone;
+        }
+
+        if (firstBone is not { } mended)
         {
             _popup.PopupEntity(Loc.GetString("fs-bone-stapler-nothing-broken"), ent.Owner, args.User);
             _audio.PlayPvs(NothingToDoSound, ent.Owner);
             return;
         }
 
-        var repaired = FixedPoint2.Min(boneComp.IntegrityCap, boneComp.BoneIntegrity + ent.Comp.Repair);
-        _trauma.SetBoneIntegrity(bone, repaired, boneComp);
         _trauma.UpdateBodyBoneAlert(target, body);
 
         _useDelay.TryResetDelay(ent.Owner);
 
-        var limb = Identity.Name(Transform(bone).ParentUid, EntityManager);
+        var limb = Identity.Name(Transform(mended).ParentUid, EntityManager);
         _popup.PopupEntity(Loc.GetString("fs-bone-stapler-used-limb", ("limb", limb)), target, args.User);
         _audio.PlayPvs(StapleSound, target);
     }

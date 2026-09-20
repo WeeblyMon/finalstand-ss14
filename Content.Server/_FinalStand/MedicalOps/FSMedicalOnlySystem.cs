@@ -15,7 +15,7 @@ public sealed partial class FSMedicalOnlySystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSMedicalOnlyComponent, AfterInteractEvent>(OnAfterInteract,
-            before: [typeof(FSMediGunSystem), typeof(SharedDefibrillatorSystem)]);
+            before: [typeof(FSMediGunSystem), typeof(SharedDefibrillatorSystem), typeof(FSBoneStaplerSystem)]);
     }
 
     private void OnAfterInteract(EntityUid uid, FSMedicalOnlyComponent comp, AfterInteractEvent args)
