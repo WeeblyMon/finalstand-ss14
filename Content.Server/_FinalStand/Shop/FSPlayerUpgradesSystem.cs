@@ -9,6 +9,7 @@ using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Mind;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
@@ -31,6 +32,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     [Dependency] private ISerializationManager _serialization = default!;
     [Dependency] private FSItemStashSystem _stash = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
     {

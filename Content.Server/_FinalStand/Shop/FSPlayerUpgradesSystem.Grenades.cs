@@ -68,9 +68,15 @@ public sealed partial class FSPlayerUpgradesSystem
                 {
                     if (TryComp<FSSentryTurretComponent>(weapon, out var turret))
                     {
-                        turret.MaxAmmo += (int)def.ValuePerLevel;
+                        var bonus = (int)def.ValuePerLevel;
+                        turret.MaxAmmo += bonus;
                         turret.Ammo = turret.MaxAmmo;
                         Dirty(weapon, turret);
+                        ForEachDeployedSentry(weapon, player, t =>
+                        {
+                            t.MaxAmmo += bonus;
+                            t.Ammo = Math.Min(t.Ammo + bonus, t.MaxAmmo);
+                        });
                     }
                     break;
                 }
@@ -80,6 +86,8 @@ public sealed partial class FSPlayerUpgradesSystem
                     {
                         turret.FireInterval = MathF.Max(0.1f, turret.FireInterval * (1f - def.ValuePerLevel));
                         Dirty(weapon, turret);
+                        ForEachDeployedSentry(weapon, player, t =>
+                            t.FireInterval = MathF.Max(0.1f, t.FireInterval * (1f - def.ValuePerLevel)));
                     }
                     break;
                 }
@@ -89,6 +97,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     {
                         turret.DamageMultiplier += def.ValuePerLevel;
                         Dirty(weapon, turret);
+                        ForEachDeployedSentry(weapon, player, t => t.DamageMultiplier += def.ValuePerLevel);
                     }
                     break;
                 }
@@ -98,6 +107,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     {
                         turret.Range += def.ValuePerLevel;
                         Dirty(weapon, turret);
+                        ForEachDeployedSentry(weapon, player, t => t.Range += def.ValuePerLevel);
                     }
                     break;
                 }
@@ -220,5 +230,27 @@ public sealed partial class FSPlayerUpgradesSystem
         }
 
         return true;
+    }
+
+    // Turret upgrades are bought against the item in hand, but a turret already on the ground is a
+    // separate entity that only copied stats from the item at deploy time. Without this, buying an
+    // upgrade after placing a turret does nothing to the one already down.
+    private void ForEachDeployedSentry(EntityUid item, EntityUid player, Action<FSSentryTurretComponent> apply)
+    {
+        if (!_mind.TryGetMind(player, out var mindId, out _))
+            return;
+
+        if (!TryComp<FSDeployableItemComponent>(item, out var deployable))
+            return;
+
+        var query = EntityQueryEnumerator<FSSentryTurretComponent, FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out var turret, out var deployedBy))
+        {
+            if (deployedBy.OwnerMind != mindId || deployedBy.SourceProto.Id != deployable.DeployedProtoId.Id)
+                continue;
+
+            apply(turret);
+            Dirty(uid, turret);
+        }
     }
 }
