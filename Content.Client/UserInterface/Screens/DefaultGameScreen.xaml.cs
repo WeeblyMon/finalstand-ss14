@@ -144,6 +144,7 @@ public sealed partial class DefaultGameScreen : InGameScreen
         PlaceInventoryBar();
     }
 
+    // FINALSTAND: left of the storage row - stacking it above collided with the weapon module.
     private void PlaceInventoryBar()
     {
         if (Hotbar.StoragePanel is not { } storage || storage.Size.Y <= 0f)
@@ -153,10 +154,10 @@ public sealed partial class DefaultGameScreen : InGameScreen
         if (size.X <= 0f || size.Y <= 0f)
             return;
 
-        var centre = storage.GlobalPosition.X + storage.Size.X * 0.5f;
-        var bottom = storage.GlobalPosition.Y - InventoryBarGap;
+        var left = storage.GlobalPosition.X - InventoryBarGap - size.X;
+        var bottom = storage.GlobalPosition.Y + storage.Size.Y;
 
-        SetPosition(Inventory, new Vector2(centre - size.X * 0.5f, bottom - size.Y));
+        SetPosition(Inventory, new Vector2(left, bottom - size.Y));
     }
 
     private const float InventoryBarGap = 6f;
