@@ -1,13 +1,14 @@
 ﻿using System.Linq;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;
-using Content.Server.Chat.Systems;
 using Content.Server.Popups;
+using Content.Server.Radio.EntitySystems;
 using Content.Shared._FinalStand.Research;
 using Content.Shared._FinalStand.Research.Components;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Research.Systems;
 using Content.Shared.GameTicking;
+using Content.Shared.Radio;
 using Content.Shared.Research.Components;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -27,12 +28,12 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private RadioSystem _radio = default!;
 
     private static readonly SoundSpecifier PurchaseSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/research_purchase.ogg");
 
-    private static readonly Color AnnouncementColor = Color.FromHex("#4FA3D1");
+    private static readonly ProtoId<RadioChannelPrototype> MedicalChannel = "Medical";
 
     private static readonly ProtoId<FSTechBranchPrototype> MedicalBranch = "Medical";
 
@@ -190,11 +191,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         _popup.PopupEntity(Loc.GetString("fs-medical-research-purchased", ("name", node.Name)), uid, player);
         _audio.PlayPvs(PurchaseSound, uid);
 
-        _chat.DispatchStationAnnouncement(
-            uid,
-            Loc.GetString("fs-medical-research-announcement", ("name", node.Name), ("description", node.BonusDescription)),
-            Loc.GetString("fs-medical-research-announcement-sender"),
-            colorOverride: AnnouncementColor);
+        var announcement = Loc.GetString("fs-medical-research-announcement", ("name", node.Name), ("description", node.BonusDescription));
+        _radio.SendRadioMessage(player, announcement, MedicalChannel, player);
 
         Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
