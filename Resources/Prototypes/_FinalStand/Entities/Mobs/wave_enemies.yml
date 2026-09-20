@@ -41,8 +41,9 @@
     damage:
       types:
         Slash: 10
+      # Dismemberment/bone rolls need severity >9 per hit; this keeps every hit well under.
       woundSeverityMultipliers:
-        Slash: 0.5
+        Slash: 0.05
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/zombie.rsi
