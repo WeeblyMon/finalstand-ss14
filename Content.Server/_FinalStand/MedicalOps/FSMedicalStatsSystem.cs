@@ -52,12 +52,20 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const int PatientSavedCredits = 400;
     private const int PatientSavedFund = 300;
 
+    private const int SurgeryPoints = 20;
+    private const int SurgeryCredits = 200;
+    private const int SurgeryFund = 120;
+
+    private const int SurgeriesPaidPerPatientPerWave = 3;
+
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
     public readonly record struct FSMedicalRoundStats(
         int HealingPoints, float HpHealed, int Stabilises, int Revives, int PatientsSaved);
 
     private readonly Dictionary<EntityUid, FSMedicalRoundStats> _roundStats = new();
+
+    private readonly Dictionary<(EntityUid Surgeon, EntityUid Patient), (int Wave, int Count)> _surgeriesPaid = new();
 
     public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
 
@@ -71,6 +79,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             OnPatientDamageChanged, after: [typeof(BodyDamageRouterSystem)]);
         SubscribeLocalEvent<FSMedicalPatientComponent, MobStateChangedEvent>(OnPatientMobStateChanged);
 
+        SubscribeLocalEvent<FSSurgeryCompletedEvent>(OnSurgeryCompleted);
+
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
@@ -83,7 +93,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private void OnPlayerAttached(PlayerAttachedEvent ev) => EnsureComp<FSMedicalPatientComponent>(ev.Entity);
 
-    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev) => _roundStats.Clear();
+    private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
+    {
+        _roundStats.Clear();
+        _surgeriesPaid.Clear();
+    }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
     {
@@ -187,6 +201,35 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             points: points,
             credits: points * FSMedicalPayoutRates.SupplierCreditsPerPoint,
             fund: points * FSMedicalPayoutRates.SupplierFundPerPoint);
+    }
+
+    private void OnSurgeryCompleted(ref FSSurgeryCompletedEvent args)
+    {
+        if (args.Surgeon == args.Patient || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
+            return;
+
+        var wave = _waveRule.GetWaveNumber();
+        var key = (surgeonMind, args.Patient);
+
+        if (_surgeriesPaid.TryGetValue(key, out var record) && record.Wave == wave)
+        {
+            if (record.Count >= SurgeriesPaidPerPatientPerWave)
+                return;
+
+            _surgeriesPaid[key] = (wave, record.Count + 1);
+        }
+        else
+        {
+            _surgeriesPaid[key] = (wave, 1);
+        }
+
+        Award(surgeonMind, "surgery",
+            points: SurgeryPoints,
+            credits: SurgeryCredits,
+            fund: SurgeryFund);
+
+        _adminLogger.Add(LogType.Healed, LogImpact.Medium,
+            $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {SurgeryCredits} credits");
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)

@@ -2,6 +2,7 @@
 using System.Linq;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._FinalStand.Medical.Effects;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery.Conditions;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
@@ -180,6 +181,12 @@ public abstract partial class SharedSurgerySystem : EntitySystem
         var ev = new SurgeryStepEvent(args.User, ent, part, tool, surgery, step, complete);
         RaiseLocalEvent(step, ref ev);
         RaiseLocalEvent(args.User, ref ev);
+
+        if (_net.IsServer && GetNextStep(ent, part, surgery, args.User) == null)
+        {
+            var doneEv = new FSSurgeryCompletedEvent(args.User, ent, part, surgery);
+            RaiseLocalEvent(ent, ref doneEv);
+        }
 
         if (args.ToolUsed)
         {
