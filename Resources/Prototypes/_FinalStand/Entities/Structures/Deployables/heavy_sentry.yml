@@ -73,6 +73,8 @@
       path: /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg
     targetAcquiredSound:
       path: /Audio/_FinalStand/Deployables/HeavySentry/target_acquired.ogg
+  - type: FSDeployableLifetime
+    lifetime: 600
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
@@ -84,6 +86,9 @@
           !type:PhysShapeAabb
           bounds: "-0.45,-0.45,0.45,0.45"
         density: 190
+        # Not hard: a crew-served weapon on the floor, not a barricade. A solid body blocked players
+        # from walking past it and stopped their own bullets, per playtester reports.
+        hard: false
         mask:
         - MachineMask
         layer:
