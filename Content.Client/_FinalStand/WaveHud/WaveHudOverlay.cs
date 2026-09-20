@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client._FinalStand.Shop;
 using Content.Client.UserInterface.Screens;
+using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.CCVar;
@@ -221,7 +222,7 @@ public sealed partial class WaveHudOverlay : Overlay
     protected override void Draw(in OverlayDrawArgs args)
     {
         const float refWidth = 1920f;
-        const float margin = 24f;
+        const float margin = ScreenMargin;
 
         var screen = args.ScreenHandle;
         var screenSize = _clyde.ScreenSize;
@@ -310,7 +311,11 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
 
-        var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, BottomBandLift);
+        // The storage row owns the bottom of the right column, so the weapon module stacks on top
+        // of it rather than sharing its space.
+        var weaponLift = BottomBandLift + HotbarGui.StorageRowHeight + 6f;
+
+        var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, weaponLift);
         var throwH = DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
         RightStackHeight = screenSize.Y - BottomBandLift - (weaponTop - 6f - throwH);
 

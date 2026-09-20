@@ -15,7 +15,24 @@ public sealed partial class WaveHudOverlay
     public bool HasThrowChoice;
     public bool WeaponTakesMagazines;
 
-    private const float WeaponPanelW = 356f;
+    // The inset every edge-anchored HUD module shares, so the storage row below this panel and the
+    // panel itself line up on one right edge.
+    public const float ScreenMargin = 24f;
+
+    // The storage row below sizes itself from this, so it can never out-run the panel above it.
+    public const float WeaponPanelWidth = 356f;
+
+    // FINALSTAND: the one shared slot metric for every HUD grid drawn at this scale - the hotbar's
+    // storage row and the action bar both read this rather than one widget reaching into another's
+    // layout constants.
+    public const int HudSlotCells = 7;
+    public const float HudSlotGap = 4f;
+    private const float HudSlotChrome = 8f * 2f + 2f;
+
+    public const int HudSlotSize =
+        (int) ((WeaponPanelWidth - HudSlotChrome - (HudSlotCells - 1) * HudSlotGap) / HudSlotCells);
+
+    private const float WeaponPanelW = WeaponPanelWidth;
     private const float WeaponPanelPad = 8f;
     private const float WeaponPanelMinH = 46f;
 

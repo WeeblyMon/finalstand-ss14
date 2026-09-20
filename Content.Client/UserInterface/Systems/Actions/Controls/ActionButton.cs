@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.WaveHud;
 using Content.Client.Actions;
 using Content.Client.Actions.UI;
 using Content.Client.Cooldown;
@@ -24,9 +25,9 @@ public sealed class ActionButton : Control, IEntityControl
 {
     public const string StyleClassActionHighlightRect = "ActionHighlightRect";
 
-    // FINALSTAND: 2x SlotControl.DefaultButtonSize. Art is authored at 32 and the engine has no
-    // mipmaps, so only integer multiples stay sharp - 64 is the next size up from the HUD grid.
-    public const int SlotSize = 64;
+    // FINALSTAND: the shared HUD slot metric - keeps the action bar and the hotbar's storage row at
+    // one scale without either widget reaching into the other's layout constants.
+    public const int SlotSize = WaveHudOverlay.HudSlotSize;
     private const int SourceArtSize = 32;
     private const float ArtScale = SlotSize / (float) SourceArtSize;
 

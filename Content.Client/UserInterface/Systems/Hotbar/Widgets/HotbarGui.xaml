@@ -58,13 +58,20 @@
             <BoxContainer Name="RightGroup" Access="Public"
                 Orientation="Horizontal"
                 VerticalAlignment="Bottom">
+                <!-- FINALSTAND: one wide row - bag toggle, then the six storage slots. A square
+                     grid read as too small at this slot size, and the row sits under the wave
+                     HUD's weapon module rather than beside the hands. -->
                 <PanelContainer Name="StoragePanel" Access="Public" VerticalAlignment="Bottom">
-                    <BoxContainer Orientation="Vertical" VerticalAlignment="Bottom">
+                    <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" SeparationOverride="4">
+                        <!-- The worn-inventory toggle is reparented in here, ahead of the slots. -->
+                        <BoxContainer Name="FSWornSlot" Access="Public"
+                                      Orientation="Horizontal"
+                                      VerticalAlignment="Center"/>
                         <inventory:ItemSlotButtonContainer
                             Name="SecondHotbar"
                             Access="Public"
                             SlotGroup="SecondHotbar"
-                            VerticalAlignment="Bottom"
+                            VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             VerticalExpand="False"
                             Columns="3"
@@ -74,14 +81,9 @@
                             SlotGroup="MainHotbar"
                             VerticalExpand="False"
                             HorizontalAlignment="Center"
-                            VerticalAlignment="Bottom"
+                            VerticalAlignment="Center"
                             HorizontalExpand="False"
                             Columns="3"/>
-                        <!-- The worn-inventory toggle is reparented in here, under the grid. -->
-                        <BoxContainer Name="FSWornSlot" Access="Public"
-                                      Orientation="Horizontal"
-                                      HorizontalAlignment="Center"
-                                      Margin="0 3 0 0"/>
                     </BoxContainer>
                 </PanelContainer>
                 <inventory:ItemStatusPanel

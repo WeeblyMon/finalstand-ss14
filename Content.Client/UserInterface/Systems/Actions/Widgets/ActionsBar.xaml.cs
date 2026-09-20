@@ -12,7 +12,7 @@ public sealed partial class ActionsBar : UIWidget
 {
     // FINALSTAND: the bar owns its own geometry so the panels that dodge it cannot drift out of
     // step with it. Columns at SlotSize, plus grid gaps, the panel content margin and its border.
-    public const int Columns = 6;
+    public const int Columns = 9;
     private const int GridGap = 4;
     private const int PanelMargin = 8;
     private const int PanelMarginVertical = 7;

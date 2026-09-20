@@ -17,6 +17,10 @@ public abstract class ItemSlotUIContainer<T> : GridContainer, IItemslotUIContain
 
     public int? MaxColumns { get; set; }
 
+    // FINALSTAND: sized per container rather than through SlotControl.DefaultButtonSize, which the
+    // stripping window and the worn bar share.
+    public int? ButtonSize { get; set; }
+
     public virtual void ClearButtons()
     {
         foreach (var button in _buttons.Values)
@@ -73,6 +77,9 @@ public abstract class ItemSlotUIContainer<T> : GridContainer, IItemslotUIContain
 
     protected virtual void AddButton(T newButton)
     {
+        if (ButtonSize is { } size)
+            newButton.SetButtonSize(size);
+
         AddChild(newButton);
         Columns = MaxColumns ?? ChildCount;
     }
