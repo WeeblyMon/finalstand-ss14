@@ -87,7 +87,7 @@
       maxLevel: 3
       baseCost: 5000
       type: LandmineDamage
-      valuePerLevel: 0.25
+      valuePerLevel: 2.5
     - id: landmine-detonations
       name: Reusable Core
       description: The mine re-arms itself after going off, one extra time per level.
