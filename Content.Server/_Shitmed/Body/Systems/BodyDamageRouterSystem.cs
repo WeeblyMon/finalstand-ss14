@@ -72,7 +72,9 @@ public sealed partial class BodyDamageRouterSystem : EntitySystem
 
             if (value > 0)
             {
-                _wound.TryInduceWound(chosen.Value, type, value, out _);
+                // Only place player limb wounds are induced, so the multiplier must apply here.
+                var severity = value * args.DamageDelta.WoundSeverityMultipliers.GetValueOrDefault(type, 1);
+                _wound.TryInduceWound(chosen.Value, type, severity, out _);
             }
             else
             {
