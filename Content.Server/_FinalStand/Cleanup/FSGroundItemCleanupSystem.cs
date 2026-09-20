@@ -1,6 +1,9 @@
+using Content.Shared.Botany.Items.Components;
+using Content.Shared.Burial.Components;
 using Content.Shared.Explosion.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Item;
+using Content.Shared.Tools.Components;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Containers;
@@ -55,10 +58,15 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
 
         // Drinks, vials and other glassware carry a zero-damage MeleeWeapon purely for the splat
         // sound, so only things that can actually hurt someone count as a dropped weapon here.
+        // Tools (hatchets, spades, hoes, crowbars, etc.) also carry real melee damage but aren't
+        // dropped weapons - a botanist setting down a hatchet shouldn't lose it to this sweep.
         var meleeQuery = EntityQueryEnumerator<MeleeWeaponComponent, ItemComponent>();
         while (meleeQuery.MoveNext(out var uid, out var melee, out _))
         {
-            if (melee.Damage.GetTotal() > 0)
+            if (melee.Damage.GetTotal() > 0
+                && !HasComp<ToolComponent>(uid)
+                && !HasComp<ShovelComponent>(uid)
+                && !HasComp<BotanyHoeComponent>(uid))
                 Check(uid, now, toDelete);
         }
 
