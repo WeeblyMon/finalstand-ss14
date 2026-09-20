@@ -39,19 +39,19 @@ public sealed partial class FSRevenantComponent : Component
     [DataField] public float GrabMinRange = 2.5f;
     [DataField] public float GrabLandDistance = 1f;
     [DataField] public float GrabPullSpeed = 16f;
-    [DataField] public float GrabDamage = 6.3f;
+    [DataField] public float GrabDamage = 4.41f;
     [DataField] public float GrabPauseDuration = 0.6f;
 
     [DataField] public float BindCooldown = 10f;
     [DataField] public float BindDuration = 1.2f;
-    [DataField] public float BindDamage = 5.25f;
+    [DataField] public float BindDamage = 3.675f;
 
     [DataField] public float SliceCooldown = 1.5f;
     [DataField] public float MeleeRange = 1.5f;
     [DataField] public float SweepRange = 1.8f;
     [DataField] public float SweepArcDegrees = 90f;
     [DataField] public float SliceHitDelay = 0.25f;
-    [DataField] public float SliceDamage = 28.35f;
+    [DataField] public float SliceDamage = 19.845f;
 
     [DataField] public float ExecuteHealthThreshold = 0.30f;
     [DataField] public float ExecuteWindupDuration = 0.4f;
@@ -63,7 +63,7 @@ public sealed partial class FSRevenantComponent : Component
     [DataField] public int BoltCount = 4;
     [DataField] public float BoltSpreadDegrees = 25f;
     [DataField] public float BoltSpeed = 12f;
-    [DataField] public float BoltDamage = 15.15f;
+    [DataField] public float BoltDamage = 10.605f;
 
     public float GcdAccum;
     public float MarkAccum;
