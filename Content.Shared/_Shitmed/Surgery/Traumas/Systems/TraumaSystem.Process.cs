@@ -31,7 +31,8 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 public partial class TraumaSystem
 {
     private const string TraumaContainerId = "Traumas";
-    public static readonly TraumaType[] TraumasBlockingHealing = { TraumaType.BoneDamage, TraumaType.OrganDamage, TraumaType.Dismemberment };
+    // FINALSTAND: BoneDamage deliberately absent - a fracture blocked all flesh healing on the limb.
+    public static readonly TraumaType[] TraumasBlockingHealing = { TraumaType.OrganDamage, TraumaType.Dismemberment };
 
     private void InitProcess()
     {
