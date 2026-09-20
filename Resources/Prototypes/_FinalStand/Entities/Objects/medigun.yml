@@ -18,14 +18,14 @@
   - type: FSMediGun
     healing:
       types:
-        Blunt: -12
-        Slash: -12
-        Piercing: -12
-        Heat: -12
-        Cold: -8
-        Shock: -12
-        Asphyxiation: -12
-        Bloodloss: -12
+        Blunt: -6
+        Slash: -6
+        Piercing: -6
+        Heat: -6
+        Cold: -4
+        Shock: -6
+        Asphyxiation: -6
+        Bloodloss: -6
     soundOnTarget:
       path: /Audio/_FinalStand/Effects/medigun.ogg
   - type: Battery
