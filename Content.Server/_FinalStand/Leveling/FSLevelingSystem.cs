@@ -402,7 +402,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     public static float ComputeXpMultiplier(int prestige)
         => 1f + prestige * 0.20f;
 
-    public static int XpToNextLevel(int level) => 3000 * level * level;
+    public static int XpToNextLevel(int level) => 1500 * level * level;
 
     private static float GetXpMultiplier(int wave)
     {
