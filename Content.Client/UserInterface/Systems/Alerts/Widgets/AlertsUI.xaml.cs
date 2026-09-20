@@ -78,9 +78,16 @@ public sealed partial class AlertsUI : UIWidget
 
             var alertType = alertKey.AlertType.Value;
 
-            // FINALSTAND: the vitals panel owns health - figure, bar, panel border and status pills.
             if (Suppressed.Contains(alertType.Id))
+            {
+                if (_alertControls.Remove(alertKey, out var staleControl))
+                {
+                    staleControl.OnPressed -= AlertControlPressed;
+                    AlertContainer.Children.Remove(staleControl);
+                }
+
                 continue;
+            }
 
             if (!alertsSystem.TryGet(alertType, out var newAlert))
             {
