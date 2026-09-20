@@ -1,9 +1,7 @@
 using Content.Server._FinalStand.GameTicking.Rules;
-using Content.Server._FinalStand.Science;
 using Content.Shared._FinalStand.Loot;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
-using Robust.Server.Player;
 using Robust.Shared.Containers;
 using Robust.Shared.Random;
 
@@ -12,13 +10,15 @@ namespace Content.Server._FinalStand.Loot;
 public sealed class FSMaterialDropSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
-    [Dependency] private IPlayerManager _player = default!;
-    [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private SharedContainerSystem _container = default!;
 
     private const int WavesUntilCleanup = 2;
 
+    // Ceiling on drops loose on the floor at once; banked (picked-up) ones don't count.
+    private const int MaxLooseDrops = 300;
+
     private int _wavesEnded;
+    private readonly Queue<EntityUid> _looseDropOrder = new();
 
     public override void Initialize()
     {
@@ -28,21 +28,39 @@ public sealed class FSMaterialDropSystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
-    private void OnRoundRestart(RoundRestartCleanupEvent _) => _wavesEnded = 0;
+    private void OnRoundRestart(RoundRestartCleanupEvent _)
+    {
+        _wavesEnded = 0;
+        _looseDropOrder.Clear();
+    }
 
     private void OnMobStateChanged(Entity<FSMaterialDropComponent> ent, ref MobStateChangedEvent args)
     {
         if (args.NewMobState != MobState.Dead || ent.Comp.Materials.Count == 0)
             return;
 
-        var chance = MathF.Min(ent.Comp.MaxChance,
-            ent.Comp.BaseChance + ent.Comp.ChancePerScientist * CountScientists());
-
-        if (!_random.Prob(chance))
+        if (!_random.Prob(ent.Comp.DropChance))
             return;
 
         var drop = Spawn(_random.Pick(ent.Comp.Materials), Transform(ent).Coordinates);
         EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
+
+        _looseDropOrder.Enqueue(drop);
+        TrimLooseDrops();
+    }
+
+    private void TrimLooseDrops()
+    {
+        while (_looseDropOrder.Count > MaxLooseDrops)
+        {
+            var oldest = _looseDropOrder.Dequeue();
+
+            // Already picked up or gone - it's not floor litter anymore, leave it alone.
+            if (!Exists(oldest) || _container.IsEntityInContainer(oldest))
+                continue;
+
+            QueueDel(oldest);
+        }
     }
 
     private void OnWaveEnded(ref WaveEndedEvent args)
@@ -61,17 +79,5 @@ public sealed class FSMaterialDropSystem : EntitySystem
 
             QueueDel(uid);
         }
-    }
-
-    private int CountScientists()
-    {
-        var count = 0;
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob && _science.IsScience(mob))
-                count++;
-        }
-
-        return count;
     }
 }
