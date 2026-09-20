@@ -121,9 +121,15 @@ public sealed partial class DamageOverlayUiController : UIController
                     }
                 }
 
+                // FINALSTAND: healing drops the group from the dict, so this must reset first.
+                _overlay.OxygenLevel = 0;
+
                 if (damagePerGroup.TryGetValue("Airloss", out var oxyDamage))
                 {
                     _overlay.OxygenLevel = FixedPoint2.Min(1f, oxyDamage / critThreshold).Float();
+
+                    if (_overlay.OxygenLevel < 0.05f)
+                        _overlay.OxygenLevel = 0;
                 }
 
                 _overlay.CritLevel = 0;
