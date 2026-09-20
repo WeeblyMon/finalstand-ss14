@@ -1,6 +1,7 @@
 using Content.Server.Power.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Body;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
@@ -38,6 +39,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
     [Dependency] private TraumaSystem _trauma = default!;
+    [Dependency] private WoundSystem _wounds = default!;
 
     private EntityQuery<BatteryComponent> _batteryQuery;
     private EntityQuery<DamageableComponent> _damageableQuery;
@@ -104,6 +106,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return false;
 
         MendWorstBone(healed, comp.BoneRepairPerTick);
+
+        // Ungated by the soft cap below: that measures the HP bar, limb wounds are a separate pool.
+        _wounds.TryHealWoundsOnOwner(healed, comp.Healing * comp.LimbHealScale);
 
         var scale = GetHealScale((healed, damageable), comp);
 

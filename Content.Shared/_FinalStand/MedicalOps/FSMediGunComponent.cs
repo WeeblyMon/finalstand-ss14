@@ -65,10 +65,13 @@ public sealed partial class FSMediGunComponent : Component
     [DataField]
     public float MinEffectiveScale = 0.05f;
 
-    // Not gated by the soft cap - a lingering fracture on an otherwise-healed patient should
-    // still mend, slowly, rather than sit broken forever waiting on a doctor.
+    // Bone mend per tick, ungated by the soft cap.
     [DataField]
     public FixedPoint2 BoneRepairPerTick = 0.5f;
+
+    // Fraction of Healing applied to limb wounds per tick, ungated by the soft cap.
+    [DataField]
+    public float LimbHealScale = 0.5f;
 
     [DataField, AutoNetworkedField]
     public SoundSpecifier? SoundOnTarget;
