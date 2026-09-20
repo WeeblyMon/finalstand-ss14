@@ -52,19 +52,12 @@
     drawdepth: WallTops
     layers:
     - state: metal
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 28.125
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: MeleeSound
     soundGroups:
       Brute:
@@ -96,28 +89,6 @@
   id: FSBarricadeMetalReinforced
   suffix: Reinforced
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: metal
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/brute_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 28.125
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSBruteBarricade
 
@@ -126,28 +97,6 @@
   id: FSBarricadeMetalBiohazard
   suffix: Biohazard
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: metal
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/burn_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 28.125
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSBurnBarricade
   - type: Flammable
@@ -162,28 +111,6 @@
   id: FSBarricadeMetalComposite
   suffix: Composite
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: metal
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/explosive_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 28.125
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/metal_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: ExplosionResistance
     damageCoefficient: 0.5
   - type: Flammable
@@ -205,19 +132,12 @@
     drawdepth: WallTops
     layers:
     - state: plasteel
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 56.25
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Destructible
     thresholds:
     - trigger:
@@ -240,28 +160,6 @@
   id: FSBarricadePlasteelReinforced
   suffix: Reinforced
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: plasteel
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/brute_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 56.25
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSBruteBarricade
 
@@ -270,28 +168,6 @@
   id: FSBarricadePlasteelBiohazard
   suffix: Biohazard
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: plasteel
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/burn_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 56.25
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSBurnBarricade
   - type: Flammable
@@ -306,28 +182,6 @@
   id: FSBarricadePlasteelComposite
   suffix: Composite
   components:
-  - type: Sprite
-    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
-    drawdepth: WallTops
-    layers:
-    - state: plasteel
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-      visible: false
-    - state: AdditionalDamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.AdditionalDamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/explosive_barricade_cracks.rsi
-      visible: false
-  - type: DamageVisuals
-    thresholds: [4, 8, 12]
-    damageDivisor: 56.25
-    trackAllDamage: true
-    damageOverlay:
-      sprite: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: ExplosionResistance
     damageCoefficient: 0.5
   - type: Flammable
@@ -350,19 +204,12 @@
     layers:
     - state: folding_metal
       map: [ "enum.DoorVisualLayers.Base" ]
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/folding_metal_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 25
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_metal_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: AnimationPlayer
   - type: UseDelay
     delay: 0.3
@@ -421,19 +268,12 @@
     layers:
     - state: folding_plasteel
       map: [ "enum.DoorVisualLayers.Base" ]
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 50
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Door
     openSpriteState: folding_plasteel_closed
     closedSpriteState: folding_plasteel
@@ -485,19 +325,12 @@
     drawdepth: WallTops
     layers:
     - state: folding
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/folding_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 21.875
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSFoldingBarricade
   - type: MeleeSound
@@ -528,19 +361,12 @@
     drawdepth: WallTops
     layers:
     - state: sandbag
-    - state: DamageOverlay_0
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/sandbag_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 28.125
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/sandbag_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: FSSandbagBarricade
   - type: MeleeSound
@@ -632,19 +458,12 @@
     drawdepth: WallTops
     layers:
     - state: snow
-    - state: DamageOverlay_4
-      map: [ "enum.FSDamageOverlayVisuals.DamageOverlay" ]
-      sprite: _FinalStand/Structures/Walls/Barricades/snow_cracks.rsi
-      visible: false
   - type: DamageVisuals
     thresholds: [4, 8, 12]
     damageDivisor: 19
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/snow_cracks.rsi
-    overlay: false
-    targetLayers:
-    - "enum.FSDamageOverlayVisuals.DamageOverlay"
   - type: Damageable
     damageModifierSet: Wood
   - type: MeleeSound

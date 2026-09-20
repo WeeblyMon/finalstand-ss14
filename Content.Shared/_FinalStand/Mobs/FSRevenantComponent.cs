@@ -55,7 +55,7 @@ public sealed partial class FSRevenantComponent : Component
 
     [DataField] public float ExecuteHealthThreshold = 0.30f;
     [DataField] public float ExecuteWindupDuration = 0.4f;
-    [DataField] public float ExecuteDamage = 1050f;
+    [DataField] public float ExecuteDamage = 150f;
     [DataField] public float ExecuteEscapeTolerance = 3f;
 
     [DataField] public float BoltCooldown = 5f;
