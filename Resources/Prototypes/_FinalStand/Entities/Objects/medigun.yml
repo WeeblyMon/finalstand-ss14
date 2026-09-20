@@ -10,6 +10,11 @@
   - type: Item
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     size: Large
+  - type: Clothing
+    quickEquip: false
+    slots:
+    - back
+    - suitStorage
   - type: FSMediGun
     healing:
       types:
@@ -18,6 +23,9 @@
         Piercing: -12
         Heat: -12
         Cold: -8
+        Shock: -12
+        Asphyxiation: -12
+        Bloodloss: -12
     soundOnTarget:
       path: /Audio/_FinalStand/Effects/medigun.ogg
   - type: Battery
