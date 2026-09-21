@@ -7,6 +7,8 @@ using Content.Shared.Charges.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Power.Components;
+using Content.Shared.Power.EntitySystems;
 using Content.Shared.Storage;
 using Content.Shared.Tools.Components;
 using Content.Shared.Weapons.Ranged.Components;
@@ -22,6 +24,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private ItemSlotsSystem _itemSlots = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private EntityWhitelistSystem _magWhitelist = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -75,6 +78,9 @@ public sealed partial class WaveHudSystem
             if (!string.IsNullOrEmpty(behaviour))
                 return $"{behaviour.ToLowerInvariant()} - [Z] to switch";
         }
+
+        if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
+            return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
             return $"{drainable.Volume:0}/{drainable.MaxVolume:0}u";
