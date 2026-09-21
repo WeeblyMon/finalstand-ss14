@@ -7,7 +7,7 @@
   description: A reinforced bag for hauling building stock. Magnetises nearby materials when attached to a belt.
   components:
   - type: MagnetPickup
-  - type: FSMagnetToggle
+    slotFlags: null
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag.rsi
     state: icon
@@ -39,8 +39,8 @@
   description: A bluespace bag for hauling building stock. Reaches further and holds far more.
   components:
   - type: MagnetPickup
+    slotFlags: null
     range: 2
-  - type: FSMagnetToggle
   - type: Sprite
     sprite: Objects/Specific/Mining/ore_bag_holding.rsi
     state: icon

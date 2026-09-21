@@ -1,9 +1,13 @@
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
+using Content.Shared.Popups;
 using Content.Shared.Storage.Components;
+using Content.Shared.Verbs;
 using Content.Shared.Whitelist;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Storage.EntitySystems;
 
@@ -19,6 +23,7 @@ public sealed partial class MagnetPickupSystem : EntitySystem
     [Dependency] private SharedStorageSystem _storage = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     [Dependency] private EntityQuery<PhysicsComponent> _physicsQuery = default!;
 
@@ -34,11 +39,38 @@ public sealed partial class MagnetPickupSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<MagnetPickupComponent, MapInitEvent>(OnMagnetMapInit);
+        SubscribeLocalEvent<MagnetPickupComponent, GetVerbsEvent<AlternativeVerb>>(AddToggleMagnetVerb);
     }
 
     private void OnMagnetMapInit(EntityUid uid, MagnetPickupComponent component, MapInitEvent args)
     {
         component.NextScan = _timing.CurTime;
+    }
+
+    private void AddToggleMagnetVerb(EntityUid uid, MagnetPickupComponent component, GetVerbsEvent<AlternativeVerb> args)
+    {
+        if (!component.MagnetCanBeEnabled || !args.CanAccess || !args.CanInteract || !HasComp<HandsComponent>(args.User))
+            return;
+
+        var user = args.User;
+        args.Verbs.Add(new AlternativeVerb
+        {
+            Act = () => ToggleMagnet(uid, component, user),
+            Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/Spare/poweronoff.svg.192dpi.png")),
+            Text = Loc.GetString(component.MagnetEnabled ? "fs-magnet-toggle-off" : "fs-magnet-toggle-on"),
+            Priority = component.MagnetTogglePriority,
+        });
+    }
+
+    public void ToggleMagnet(EntityUid uid, MagnetPickupComponent comp, EntityUid user)
+    {
+        if (!comp.MagnetCanBeEnabled)
+            return;
+
+        comp.MagnetEnabled = !comp.MagnetEnabled;
+        Dirty(uid, comp);
+
+        _popup.PopupClient(Loc.GetString(comp.MagnetEnabled ? "fs-magnet-enabled" : "fs-magnet-disabled"), uid, user);
     }
 
     public override void Update(float frameTime)
@@ -54,6 +86,9 @@ public sealed partial class MagnetPickupSystem : EntitySystem
 
             comp.NextScan += ScanDelay;
             Dirty(uid, comp);
+
+            if (comp.MagnetCanBeEnabled && !comp.MagnetEnabled)
+                continue;
 
             var parentUid = xform.ParentUid;
 

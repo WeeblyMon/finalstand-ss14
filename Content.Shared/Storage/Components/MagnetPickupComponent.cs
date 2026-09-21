@@ -27,4 +27,17 @@ public sealed partial class MagnetPickupComponent : Component
 
     [DataField]
     public float Range = 1f;
+
+    [DataField, AutoNetworkedField]
+    public bool MagnetEnabled = true;
+
+    /// <summary>
+    /// If false, MagnetEnabled is controlled by something else (e.g. an ItemToggle) instead of the
+    /// verb added by this component.
+    /// </summary>
+    [DataField]
+    public bool MagnetCanBeEnabled = true;
+
+    [DataField]
+    public int MagnetTogglePriority = 3;
 }
