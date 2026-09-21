@@ -220,7 +220,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     }
 
     private const int DividendFundCost = 1500;
-    private const int DividendPayout = 1200;
+    private const int DividendPayout = 1800;
     private static readonly TimeSpan DividendCooldown = TimeSpan.FromSeconds(300);
 
     private void RunDividend(EntityUid performer)
