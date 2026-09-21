@@ -31,6 +31,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private FSMedicalFundSystem _medFund = default!;
     [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
 
@@ -39,24 +40,30 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const float DrHalfRate = 0.35f;
     private const float MinPreHealDamage = 10f;
 
-    private const int CreditsPerHealPoint = 16;
-    private const int FundPerHealPoint = 8;
+    private const int CreditsPerHealPoint = 48;
+    private const int FundPerHealPoint = 24;
 
     private const int StabilisePoints = 25;
-    private const int StabiliseCredits = 250;
-    private const int StabiliseFund = 150;
+    private const int StabiliseCredits = 750;
+    private const int StabiliseFund = 450;
     private const int RevivePoints = 60;
-    private const int ReviveCredits = 500;
-    private const int ReviveFund = 300;
+    private const int ReviveCredits = 1500;
+    private const int ReviveFund = 900;
 
-    private const int PatientSavedCredits = 400;
-    private const int PatientSavedFund = 300;
+    private const int PatientSavedCredits = 1200;
+    private const int PatientSavedFund = 900;
 
     private const int SurgeryPoints = 20;
-    private const int SurgeryCredits = 200;
-    private const int SurgeryFund = 120;
+    private const int SurgeryCredits = 400;
+    private const int SurgeryFund = 240;
 
     private const int SurgeriesPaidPerPatientPerWave = 3;
+
+    private const int TopicalPoints = 4;
+    private const int TopicalCredits = 60;
+    private const int TopicalFund = 30;
+
+    private const int TopicalsPaidPerPatientPerWave = 6;
 
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
@@ -66,6 +73,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private readonly Dictionary<EntityUid, FSMedicalRoundStats> _roundStats = new();
 
     private readonly Dictionary<(EntityUid Surgeon, EntityUid Patient), (int Wave, int Count)> _surgeriesPaid = new();
+    private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _topicalsPaid = new();
 
     public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
 
@@ -80,6 +88,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         SubscribeLocalEvent<FSMedicalPatientComponent, MobStateChangedEvent>(OnPatientMobStateChanged);
 
         SubscribeLocalEvent<FSSurgeryCompletedEvent>(OnSurgeryCompleted);
+        SubscribeLocalEvent<FSMedicalPatientComponent, FSTopicalAppliedEvent>(OnTopicalApplied);
 
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
@@ -97,6 +106,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     {
         _roundStats.Clear();
         _surgeriesPaid.Clear();
+        _topicalsPaid.Clear();
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
@@ -230,6 +240,34 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         _adminLogger.Add(LogType.Healed, LogImpact.Medium,
             $"{ToPrettyString(surgeonMind):surgeon} completed surgery on {ToPrettyString(args.Patient):patient} for {SurgeryCredits} credits");
+    }
+
+    private void OnTopicalApplied(EntityUid uid, FSMedicalPatientComponent comp, ref FSTopicalAppliedEvent args)
+    {
+        if (args.User == args.Target
+            || !_roster.IsMedical(args.User)
+            || !TryGetPlayerMind(args.User, out var medicMind))
+            return;
+
+        var wave = _waveRule.GetWaveNumber();
+        var key = (medicMind, args.Target);
+
+        if (_topicalsPaid.TryGetValue(key, out var record) && record.Wave == wave)
+        {
+            if (record.Count >= TopicalsPaidPerPatientPerWave)
+                return;
+
+            _topicalsPaid[key] = (wave, record.Count + 1);
+        }
+        else
+        {
+            _topicalsPaid[key] = (wave, 1);
+        }
+
+        Award(medicMind, "topical",
+            points: TopicalPoints,
+            credits: TopicalCredits,
+            fund: TopicalFund);
     }
 
     private static bool IsDownward(MobState oldState, MobState newState)
