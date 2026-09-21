@@ -191,7 +191,9 @@ public sealed partial class SurgeryBui : BoundUserInterface
 
                 RebuildOperations(netEntity, state.Choices[netEntity]);
 
+                // A finished operation stops being a valid choice; drop its dead steps.
                 if (oldSurgery is { } selected
+                    && state.Choices[netEntity].Contains(selected.Proto)
                     && _system.GetSingleton(selected.Proto) is { } surgery
                     && _entities.TryGetComponent(surgery, out SurgeryComponent? surgeryComp))
                 {
@@ -199,6 +201,7 @@ public sealed partial class SurgeryBui : BoundUserInterface
                 }
                 else
                 {
+                    ClearSurgerySelection();
                     OnPartPressed(netEntity, state.Choices[netEntity]);
                 }
 
@@ -213,6 +216,18 @@ public sealed partial class SurgeryBui : BoundUserInterface
             UpdateHeader();
             RefreshUI();
         }
+    }
+
+    private void ClearSurgerySelection()
+    {
+        _surgery = null;
+        _previousSurgeries.Clear();
+
+        if (_stepsKey == null)
+            return;
+
+        _stepsKey = null;
+        _window?.Steps.DisposeAllChildren();
     }
 
     private void ClearSelection()
