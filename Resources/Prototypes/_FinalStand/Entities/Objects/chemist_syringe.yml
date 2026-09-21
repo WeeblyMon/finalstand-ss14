@@ -20,6 +20,11 @@
   - type: SolutionInjectOnEmbed
     transferAmount: 1
     solution: injector
+  # Spent the moment it embeds, so it cleans itself up instead of littering the line.
+  - type: EmbeddableProjectile
+    deleteOnRemove: true
+  - type: TimedDespawn
+    lifetime: 20
 
 - type: latheRecipe
   id: FSChemistSyringe
