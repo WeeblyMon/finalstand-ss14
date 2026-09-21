@@ -71,18 +71,6 @@
                     MinSize="135 126"
                     VerticalAlignment="Bottom"
                     HorizontalAlignment="Center">
-                    <TextureButton
-                        Name="GroinButton"
-                        MinSize="99 54"
-                        VerticalAlignment="Top"
-                        HorizontalAlignment="Center">
-                        <TextureRect
-                            TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/groin.png"
-                            Stretch="KeepAspectCentered"
-                            SetSize="81 36"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"/>
-                    </TextureButton>
                     <PanelContainer
                         MinSize="72 108"
                         VerticalAlignment="Bottom"
@@ -140,6 +128,19 @@
                                 HorizontalAlignment="Center"/>
                         </TextureButton>
                     </PanelContainer>
+                    <!-- Last so it wins hit-testing: the leg groups overlap its lower half. -->
+                    <TextureButton
+                        Name="GroinButton"
+                        MinSize="99 44"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center">
+                        <TextureRect
+                            TexturePath="/Textures/_FinalStand/Interface/SurgeryDoll/groin.png"
+                            Stretch="KeepAspectCentered"
+                            SetSize="81 36"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"/>
+                    </TextureButton>
                 </PanelContainer>
             </PanelContainer>
 
