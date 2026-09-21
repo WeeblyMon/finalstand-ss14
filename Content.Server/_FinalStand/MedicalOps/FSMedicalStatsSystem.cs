@@ -40,18 +40,18 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     private const float DrHalfRate = 0.35f;
     private const float MinPreHealDamage = 10f;
 
-    private const int CreditsPerHealPoint = 48;
-    private const int FundPerHealPoint = 24;
+    private const int CreditsPerHealPoint = 14;
+    private const int FundPerHealPoint = 7;
 
     private const int StabilisePoints = 25;
-    private const int StabiliseCredits = 750;
-    private const int StabiliseFund = 450;
+    private const int StabiliseCredits = 225;
+    private const int StabiliseFund = 135;
     private const int RevivePoints = 60;
-    private const int ReviveCredits = 1500;
-    private const int ReviveFund = 900;
+    private const int ReviveCredits = 450;
+    private const int ReviveFund = 270;
 
-    private const int PatientSavedCredits = 1200;
-    private const int PatientSavedFund = 900;
+    private const int PatientSavedCredits = 360;
+    private const int PatientSavedFund = 270;
 
     private const int SurgeryPoints = 20;
     private const int SurgeryCredits = 400;
