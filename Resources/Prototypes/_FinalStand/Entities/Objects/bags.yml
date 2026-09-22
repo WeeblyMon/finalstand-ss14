@@ -22,7 +22,7 @@
   - type: Storage
     maxItemSize: Normal
     grid:
-    - 0,0,9,3
+    - 0,0,9,7
     quickInsert: true
     areaInsert: true
     whitelist:
@@ -49,4 +49,4 @@
     sprite: Objects/Specific/Mining/ore_bag_holding.rsi
   - type: Storage
     grid:
-    - 0,0,19,9
+    - 0,0,19,19
