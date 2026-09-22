@@ -12,6 +12,7 @@ using Robust.Client.Input;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
@@ -55,6 +56,16 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
+
+    // Window-width responsiveness times the player's UI Scale option; raw-pixel drawing reads this.
+    private float _hudScale = 1f;
+    private float _hudResolutionFactor = 1f;
+
+    public static float GetResolutionFactor(float screenWidth)
+    {
+        const float refWidth = 1920f;
+        return Math.Clamp(screenWidth / refWidth, 0.45f, 1.0f);
+    }
 
     private Texture? _iconCredits;
     private Texture? _iconTimer;
@@ -221,13 +232,17 @@ public sealed partial class WaveHudOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        const float refWidth = 1920f;
         const float margin = ScreenMargin;
 
         var screen = args.ScreenHandle;
         var screenSize = _clyde.ScreenSize;
 
-        var s = Math.Clamp(screenSize.X / refWidth, 0.45f, 1.0f);
+        var displayScale = _cfg.GetCVar(CVars.DisplayUIScale);
+        var uiScale = displayScale > 0f ? displayScale : _uiManager.DefaultUIScale;
+
+        _hudResolutionFactor = GetResolutionFactor(screenSize.X);
+        var s = _hudResolutionFactor * uiScale;
+        _hudScale = s;
 
         const float rowIconSz = 20f;
         const float augIconSz = 32f;
@@ -238,7 +253,7 @@ public sealed partial class WaveHudOverlay : Overlay
         var augGap = MathF.Round(3f * s);
         var panelW = MathF.Round(RightColumnWidth * s);
 
-        const int labelPt = 11;
+        var labelPt = Math.Max(9, (int)MathF.Round(11f * s));
         var valuePt = Math.Max(14, (int)MathF.Round(20f * s));
 
         EnsureHudIcons();
@@ -311,9 +326,11 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawBonusIndicator(screen, margin);
         DrawVitals(screen, margin, BottomBandLift);
 
-        // The storage row owns the bottom of the right column, so the weapon module stacks on top
-        // of it rather than sharing its space.
-        var weaponLift = BottomBandLift + HotbarGui.StorageRowHeight + 6f;
+        // Unlike FindHotbarTop(), which resolves a taller outer widget padded by unused vanilla containers.
+        var storageTop = FindStoragePanelTop();
+        var weaponLift = storageTop is { } storageTopY
+            ? MathF.Max(0f, screenSize.Y - storageTopY + 6f * s)
+            : (BottomBandLift + HotbarGui.StorageRowHeight + 6f) * uiScale;
 
         var weaponTop = DrawWeaponModuleAndGetTop(screen, rightEdge - margin, weaponLift);
         var throwH = DrawThrowables(screen, rightEdge - margin, weaponTop - 6f);
@@ -832,7 +849,8 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private static Control? FindNamedControlRecursive(Control root, string name, int depth)
     {
-        if (depth > 5)
+        // StoragePanel sits 6 levels under the screen - the old cap of 5 cut off one level short.
+        if (depth > 8)
             return null;
         foreach (var child in root.Children)
         {
@@ -916,6 +934,28 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         return _hotbarControl == null ? null : _hotbarControl.GlobalPixelRect.Top;
+    }
+
+    private Control? _storagePanelControl;
+    private Control? _storagePanelScreen;
+
+    private float? FindStoragePanelTop()
+    {
+        var screen = _uiManager.ActiveScreen;
+        if (screen == null)
+        {
+            _storagePanelScreen = null;
+            _storagePanelControl = null;
+            return null;
+        }
+
+        if (!ReferenceEquals(screen, _storagePanelScreen) || _storagePanelControl is null || _storagePanelControl.Disposed)
+        {
+            _storagePanelScreen = screen;
+            _storagePanelControl = FindNamedControlRecursive(screen, "StoragePanel", 0);
+        }
+
+        return _storagePanelControl == null ? null : _storagePanelControl.GlobalPixelRect.Top;
     }
 
     private readonly record struct BonusRow(string Label, string ValueText, Color ValueColor, string[] Tooltip, string IconKey);

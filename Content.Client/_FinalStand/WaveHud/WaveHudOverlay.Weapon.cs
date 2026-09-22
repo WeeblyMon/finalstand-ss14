@@ -28,7 +28,6 @@ public sealed partial class WaveHudOverlay
     public const int HudSlotSize =
         (int) ((WeaponPanelWidth - HudSlotChrome - (HudSlotCells - 1) * HudSlotGap) / HudSlotCells);
 
-    private const float WeaponPanelW = WeaponPanelWidth;
     private const float WeaponPanelPad = 8f;
     private const float WeaponPanelMinH = 46f;
 
@@ -56,23 +55,29 @@ public sealed partial class WaveHudOverlay
 
         var name = (WeaponName ?? "no weapon").ToUpperInvariant();
 
-        var hintH = labelH + HintPadY * 2f;
+        var panelW = WeaponPanelWidth * _hudScale;
+        var panelPad = WeaponPanelPad * _hudScale;
+        var panelMinH = WeaponPanelMinH * _hudScale;
+        var hintPadX = HintPadX * _hudScale;
+        var hintPadY = HintPadY * _hudScale;
+
+        var hintH = labelH + hintPadY * 2f;
         var contentH = labelH
                        + (hasAmmo ? 4f + valueH : 0f)
                        + (hasDetail ? 4f + labelH : 0f)
                        + (WeaponTakesMagazines ? 5f + hintH : 0f);
-        var panelH = MathF.Max(contentH + WeaponPanelPad * 2f, WeaponPanelMinH);
+        var panelH = MathF.Max(contentH + panelPad * 2f, panelMinH);
 
-        var x = rightEdge - WeaponPanelW;
+        var x = rightEdge - panelW;
         var bottom = _clyde.ScreenSize.Y - bandLift;
         var y = bottom - panelH;
 
-        var box = new UIBox2(x, y, x + WeaponPanelW, y + panelH);
+        var box = new UIBox2(x, y, x + panelW, y + panelH);
         DrawPanel(screen, box, WeaponBack, WeaponEdge, FSPalette.Money);
 
-        var textX = x + WeaponPanelPad;
-        var innerRight = x + WeaponPanelW - WeaponPanelPad;
-        var ty = y + WeaponPanelPad;
+        var textX = x + panelPad;
+        var innerRight = x + panelW - panelPad;
+        var ty = y + panelPad;
 
         screen.DrawString(_labelFont!, new Vector2(textX, ty), name,
             WeaponName is null ? WeaponMuted : WeaponText);
@@ -111,12 +116,12 @@ public sealed partial class WaveHudOverlay
         ty += 5f;
         const string hint = "[R] hold - ammo type";
         var hintColor = HasAmmoChoice ? HintCyan : HintDim;
-        var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + HintPadX * 2f;
+        var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + hintPadX * 2f;
         var chip = new UIBox2(innerRight - chipW, ty, innerRight, ty + hintH);
 
         DrawRounded(screen, chip, hintColor.WithAlpha(HasAmmoChoice ? 0.10f : 0.05f), 2f);
         screen.DrawRect(chip, hintColor.WithAlpha(HasAmmoChoice ? 0.45f : 0.22f), filled: false);
-        screen.DrawString(_labelFont!, new Vector2(chip.Left + HintPadX, ty + HintPadY), hint, hintColor);
+        screen.DrawString(_labelFont!, new Vector2(chip.Left + hintPadX, ty + hintPadY), hint, hintColor);
 
         return y;
     }

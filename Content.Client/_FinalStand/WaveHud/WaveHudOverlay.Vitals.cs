@@ -22,15 +22,26 @@ public sealed partial class WaveHudOverlay
 
     private const float TopLeftYSeparated = 150f;
 
-    private const float VitalsWidth = 240f;
-    private const float VitalsPadX = 8f;
-    private const float VitalsPadY = 7f;
-    private const float HpBarH = 12f;
-    private const float StaminaBarH = 8f;
-    private const float VitalsRowGap = 6f;
-    private const float PillPadX = 5f;
-    private const float PillPadY = 2f;
-    private const float PillGap = 3f;
+    // Raw-pixel drawing does not inherit engine UIScale, so these read _hudScale directly.
+    private const float VitalsWidthBase = 240f;
+    private const float VitalsPadXBase = 8f;
+    private const float VitalsPadYBase = 7f;
+    private const float HpBarHBase = 12f;
+    private const float StaminaBarHBase = 8f;
+    private const float VitalsRowGapBase = 6f;
+    private const float PillPadXBase = 5f;
+    private const float PillPadYBase = 2f;
+    private const float PillGapBase = 3f;
+
+    private float VitalsWidth => VitalsWidthBase * _hudScale;
+    private float VitalsPadX => VitalsPadXBase * _hudScale;
+    private float VitalsPadY => VitalsPadYBase * _hudScale;
+    private float HpBarH => HpBarHBase * _hudScale;
+    private float StaminaBarH => StaminaBarHBase * _hudScale;
+    private float VitalsRowGap => VitalsRowGapBase * _hudScale;
+    private float PillPadX => PillPadXBase * _hudScale;
+    private float PillPadY => PillPadYBase * _hudScale;
+    private float PillGap => PillGapBase * _hudScale;
 
     private static readonly Color VitalsBack = FSPalette.PanelBack;
     private static readonly Color VitalsEdge = FSPalette.PanelEdge;

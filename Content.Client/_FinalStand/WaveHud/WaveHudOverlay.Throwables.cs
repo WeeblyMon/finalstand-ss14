@@ -16,10 +16,15 @@ public sealed partial class WaveHudOverlay
     private UIBox2 _throwPrevBounds = new(-100, -100, -99, -99);
     private UIBox2 _throwNextBounds = new(-100, -100, -99, -99);
 
-    private const float ThrowArrowW = 20f;
-    private const float ThrowSlot = 32f;
-    private const float ThrowPad = 7f;
-    private const float ThrowGap = 3f;
+    private const float ThrowArrowWBase = 20f;
+    private const float ThrowSlotBase = 32f;
+    private const float ThrowPadBase = 7f;
+    private const float ThrowGapBase = 3f;
+
+    private float ThrowArrowW => ThrowArrowWBase * _hudScale;
+    private float ThrowSlot => ThrowSlotBase * _hudScale;
+    private float ThrowPad => ThrowPadBase * _hudScale;
+    private float ThrowGap => ThrowGapBase * _hudScale;
 
     private static readonly Color ThrowBack = FSPalette.PanelBack;
     private static readonly Color ThrowEdge = FSPalette.PanelEdge;
@@ -45,7 +50,7 @@ public sealed partial class WaveHudOverlay
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);
 
         var right = rightEdge;
-        var x = right - WeaponPanelW;
+        var x = right - WeaponPanelWidth * _hudScale;
         var top = bottom - rowH;
 
         var box = new UIBox2(x, top, right, bottom);
