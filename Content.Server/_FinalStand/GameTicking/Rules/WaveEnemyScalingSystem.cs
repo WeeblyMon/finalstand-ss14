@@ -18,6 +18,9 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
     public void ScaleEnemyHp(EntityUid enemy, int wave)
     {
         var multiplier = GetHpMultiplier(wave);
+        if (HasComp<FSGiantAbilitiesComponent>(enemy))
+            multiplier *= GetBossHpBonus(wave);
+
         if (multiplier <= 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
             return;
 
@@ -33,6 +36,10 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
         if (wave < 30) return 5.5f;
         return 9f;
     }
+
+    // On top of the shared curve above, so the boss keeps outscaling the trash around it.
+    private static float GetBossHpBonus(int wave)
+        => MathF.Min(1f + wave * 0.06f, 3f);
 
     public void ScaleEnemySpeed(EntityUid enemy, int wave)
     {

@@ -10,6 +10,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Projectiles;
 using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -213,7 +214,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _audio.PlayPvs(comp.ImpactSound, ent.Owner);
 
         var blast = new DamageSpecifier();
-        blast.DamageDict["Blunt"] = FixedPoint2.New(comp.SkyJumpDamage);
+        blast.DamageDict["Blunt"] = FixedPoint2.New(comp.SkyJumpDamage * GetDamageMultiplier(ent.Owner));
 
         CollectVictims(comp.LockedTarget, xform.MapID, comp.SkyJumpOuterRadius);
         foreach (var (victim, distance) in _victims)
@@ -246,6 +247,8 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         if (direction.LengthSquared() > 0.01f)
         {
             var boulder = Spawn(comp.BoulderProto, xform.Coordinates);
+            if (TryComp<ProjectileComponent>(boulder, out var boulderProj))
+                boulderProj.Damage *= GetDamageMultiplier(ent.Owner);
             _gun.ShootProjectile(boulder, direction, Vector2.Zero, ent.Owner, ent.Owner, comp.BoulderSpeed);
             _audio.PlayPvs(comp.BoulderThrowSound, ent.Owner);
         }
@@ -282,7 +285,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _audio.PlayPvs(comp.PunchSound, ent.Owner);
 
         var punch = new DamageSpecifier();
-        punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage);
+        punch.DamageDict["Blunt"] = FixedPoint2.New(comp.DashDamage * GetDamageMultiplier(ent.Owner));
 
         _swept.Clear();
         var travelled = (landing - comp.DashOrigin).Length();
@@ -306,6 +309,11 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         ShakeArea(landing, mapId, comp.ShakeRadius);
         Finish(ent, now);
     }
+
+    // Same wave/player scaling WaveEnemyScalingSystem already applies to melee - the ability kit
+    // rode a flat number before this, so it fell behind trash mobs at high waves.
+    private float GetDamageMultiplier(EntityUid ent)
+        => TryComp<FSWaveDamageScaleComponent>(ent, out var scale) ? scale.MeleeDamageMultiplier : 1f;
 
     private void Abort(Entity<FSGiantAbilitiesComponent> ent)
     {
