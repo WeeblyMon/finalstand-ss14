@@ -9,49 +9,51 @@ namespace Content.Shared._FinalStand.Weapons;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSChargeShotComponent : Component
 {
-    [DataField]
+    // Upgrade-mutated stats need AutoNetworkedField: this system's charge ramp runs shared (both
+    // sides), so a client that never receives an upgrade's write just predicts against stale defaults.
+    [DataField, AutoNetworkedField]
     public float MaxChargeTime = 1.2f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MinDamageMultiplier = 0.35f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MaxDamageMultiplier = 1.0f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public int MaxBonusPierce = 3;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MinPelletScale = 0.5f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MaxPelletScale = 2.0f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MinSpeedMultiplier = 0.8f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float MaxSpeedMultiplier = 1.8f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public int MinBounces;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public int MaxBounces = 3;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float BounceDamageRetained = 0.8f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public float BounceSpeedRetained = 0.85f;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public bool BounceRefund;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public bool BounceCrit;
 
-    [DataField]
+    [DataField, AutoNetworkedField]
     public bool Fracture;
 
     [DataField]
