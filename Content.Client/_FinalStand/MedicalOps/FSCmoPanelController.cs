@@ -1,17 +1,21 @@
 using Robust.Shared.Utility;
 using Robust.Client.ResourceManagement;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.WaveHud;
 using System.Numerics;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Client.UserInterface.Systems.Inventory.Widgets;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
@@ -21,13 +25,13 @@ public sealed class FSCmoPanelController : UIController
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resource = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IClyde _clyde = default!;
 
     private static readonly Color DirectiveIdle = FSPalette.TextDim;
     private static readonly Color DirectiveActive = FSPalette.Ok;
     private static readonly Color AbilityReady = FSPalette.DangerSoft;
     private static readonly Color AbilityCooling = FSPalette.TextDim;
-    // FINALSTAND: was its own #14171B/#2E333B pair, opaque while every other panel is 82%.
-    private const float VitalsRightEdge = 24f + 240f;
     private const float ActionBarFraction = 0.2995f;
     private const float ActionsHalfWidth = ActionsBar.BarWidth * 0.5f;
 
@@ -313,14 +317,20 @@ public sealed class FSCmoPanelController : UIController
         if (screenW <= 0f)
             return;
 
+        var displayScale = _cfg.GetCVar(CVars.DisplayUIScale);
+        var uiScale = displayScale > 0f ? displayScale : UIManager.DefaultUIScale;
+        var hudScale = WaveHudOverlay.GetResolutionFactor(_clyde.ScreenSize.X) * uiScale;
+        var vitalsRightEdge = WaveHudOverlay.ScreenMargin + WaveHudOverlay.VitalsWidthBase * hudScale;
+
         var actionsLeft = screenW * ActionBarFraction - ActionsHalfWidth;
-        var gapCentre = (VitalsRightEdge + actionsLeft) * 0.5f;
-        var available = actionsLeft - VitalsRightEdge;
+        var gapCentre = (vitalsRightEdge + actionsLeft) * 0.5f;
+        var available = actionsLeft - vitalsRightEdge;
 
         SetNarrow(available < WideLayoutMinimum);
 
         var size = _frame.DesiredSize;
-        var x = MathF.Max(EdgePadding, gapCentre - size.X * 0.5f);
+        // Floored against Vitals' real right edge, not a flat edge padding, so it can't collapse onto Health.
+        var x = MathF.Max(vitalsRightEdge + EdgePadding, gapCentre - size.X * 0.5f);
         var y = _hotbar.Position.Y + _hotbar.Size.Y - size.Y;
 
         LayoutContainer.SetPosition(_frame, new Vector2(x, y));

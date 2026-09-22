@@ -23,7 +23,7 @@ public sealed partial class WaveHudOverlay
     private const float TopLeftYSeparated = 150f;
 
     // Raw-pixel drawing does not inherit engine UIScale, so these read _hudScale directly.
-    private const float VitalsWidthBase = 240f;
+    public const float VitalsWidthBase = 240f;
     private const float VitalsPadXBase = 8f;
     private const float VitalsPadYBase = 7f;
     private const float HpBarHBase = 12f;
