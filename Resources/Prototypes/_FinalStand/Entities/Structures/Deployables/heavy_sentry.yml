@@ -19,7 +19,7 @@
     range: 6
     fireInterval: 0.3
     damageMultiplier: 3.6
-    spriteAngleOffset: 180
+    spriteAngleOffset: 340
     projectileProto: FSHeavySentryRound
     projectileSpeed: 30
     casingProto: FSHeavySentryCasing
@@ -65,7 +65,7 @@
     range: 6
     fireInterval: 0.3
     damageMultiplier: 3.6
-    spriteAngleOffset: 180
+    spriteAngleOffset: 340
     projectileProto: FSHeavySentryRound
     projectileSpeed: 30
     casingProto: FSHeavySentryCasing

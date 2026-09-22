@@ -45,6 +45,7 @@
       map: [ "gun" ]
   - type: Appearance
   - type: FSSentryTurret
+    spriteAngleOffset: 340
   - type: FSDeployableLifetime
     lifetime: 600
   - type: FSPackable
