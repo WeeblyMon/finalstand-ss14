@@ -13,32 +13,37 @@ namespace Content.Client._FinalStand.MedicalOps;
 public sealed class FSMedicPingOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
+    private readonly IGameTiming _timing;
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
     private readonly SpriteSystem _sprite;
 
     private readonly Texture? _normal;
     private readonly Texture? _hurt;
+    private readonly Texture? _buff1;
+    private readonly Texture? _buff2;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     private const float Lifetime = 2.5f;
     private const float BubbleMeters = 1.0f;
-
-    private static readonly Color ChemTint = Color.FromHex("#4FBF7A");
+    private const float BuffFlashSeconds = 1f;
 
     private readonly record struct Ping(EntityUid Target, bool IsHurt, float Life, FSPingKind Kind);
     private readonly List<Ping> _pings = new();
 
-    public FSMedicPingOverlay(IEntityManager entManager, IResourceCache cache)
+    public FSMedicPingOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
         _entManager = entManager;
+        _timing = timing;
         _transform = _entManager.System<SharedTransformSystem>();
         _sprite = _entManager.System<SpriteSystem>();
         _mobState = _entManager.System<MobStateSystem>();
 
         _normal = TryLoad(cache, "normal");
         _hurt = TryLoad(cache, "hurt");
+        _buff1 = TryLoad(cache, "buff_request_1");
+        _buff2 = TryLoad(cache, "buff_request_2");
     }
 
     private static Texture? TryLoad(IResourceCache cache, string name)
@@ -75,9 +80,16 @@ public sealed class FSMedicPingOverlay : Overlay
         var rotation = args.Viewport.Eye?.Rotation ?? Angle.Zero;
         var rotationMatrix = Matrix3Helpers.CreateRotation(-rotation);
 
+        var buffFlashOn = (int)(_timing.RealTime.TotalSeconds / BuffFlashSeconds) % 2 == 0;
+
         foreach (var ping in _pings)
         {
-            var texture = ping.IsHurt ? _hurt : _normal;
+            Texture? texture;
+            if (ping.Kind == FSPingKind.Chem)
+                texture = (buffFlashOn ? _buff1 : _buff2) ?? _normal;
+            else
+                texture = ping.IsHurt ? _hurt : _normal;
+
             if (texture == null)
                 continue;
 
@@ -107,8 +119,7 @@ public sealed class FSMedicPingOverlay : Overlay
             var yOffset = height / 2f + half * 0.6f;
             var box = new Box2(-half, yOffset - half, half, yOffset + half);
 
-            var tint = ping.Kind == FSPingKind.Chem ? ChemTint : Color.White;
-            handle.DrawTextureRect(texture, box, tint.WithAlpha(alpha));
+            handle.DrawTextureRect(texture, box, Color.White.WithAlpha(alpha));
         }
 
         handle.SetTransform(Matrix3x2.Identity);

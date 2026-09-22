@@ -18,7 +18,8 @@ public sealed class FSReviveIndicatorOverlay : Overlay
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
 
-    private readonly Texture? _icon;
+    private readonly Texture? _iconDead;
+    private readonly Texture? _iconCrit;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
@@ -38,12 +39,13 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
         ZIndex = 10;
 
-        _icon = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Interface/MedicPing/revive.png");
+        _iconDead = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Interface/MedicPing/revive_dead.png");
+        _iconCrit = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Interface/MedicPing/revive_crit.png");
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (_icon == null)
+        if (_iconDead == null && _iconCrit == null)
             return;
 
         var handle = args.WorldHandle;
@@ -52,12 +54,17 @@ public sealed class FSReviveIndicatorOverlay : Overlay
         var time = (float)_timing.RealTime.TotalSeconds;
 
         var query = _entManager.EntityQueryEnumerator<MobStateComponent, MindContainerComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var mindContainer, out var xform))
+        while (query.MoveNext(out var uid, out var mobState, out var mindContainer, out var xform))
         {
             if (!mindContainer.HasMind || xform.MapID != args.MapId)
                 continue;
 
-            if (!_mobState.IsIncapacitated(uid))
+            if (!_mobState.IsIncapacitated(uid, mobState))
+                continue;
+
+            var icon = _mobState.IsDead(uid, mobState) ? _iconDead : _iconCrit;
+            icon ??= _iconDead ?? _iconCrit;
+            if (icon == null)
                 continue;
 
             var worldPos = _transform.GetWorldPosition(xform);
@@ -69,10 +76,10 @@ public sealed class FSReviveIndicatorOverlay : Overlay
 
             var bob = MathF.Sin(time * BobSpeed) * BobAmplitude;
             var halfWidth = Width * 0.5f;
-            var halfHeight = Width * ((float)_icon.Height / _icon.Width) * 0.5f;
+            var halfHeight = Width * ((float)icon.Height / icon.Width) * 0.5f;
             var centre = VerticalOffset + bob;
 
-            handle.DrawTextureRect(_icon,
+            handle.DrawTextureRect(icon,
                 new Box2(-halfWidth, centre - halfHeight, halfWidth, centre + halfHeight));
         }
 
