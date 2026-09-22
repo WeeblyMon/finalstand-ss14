@@ -1,7 +1,7 @@
 - type: entity
   parent: ClothingUniformBase
   id: FSJumpsuitMatikane
-  name: Matikanetannhauser dress
+  name: Matikanefukukitaru dress
   description: A dress modeled after a certain racehorse's colors.
   components:
   - type: Sprite
