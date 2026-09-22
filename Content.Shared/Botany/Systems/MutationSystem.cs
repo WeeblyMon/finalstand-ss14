@@ -44,9 +44,13 @@ public sealed partial class PlantMutationSystem : EntitySystem
         if (!Resolve(ent, ref ent.Comp, false))
             return;
 
-        foreach (var mutation in _randomMutations.Mutations)
+        // Each mutation type needs its own draw - reusing the same (tick, entity) seed for every
+        // entry here would make them all resolve from the same underlying random value, correlating
+        // mutation types that should be independent rolls.
+        for (var i = 0; i < _randomMutations.Mutations.Count; i++)
         {
-            if (Random(ent, Math.Min(mutation.BaseOdds * severity, 1.0f)))
+            var mutation = _randomMutations.Mutations[i];
+            if (Random(ent, Math.Min(mutation.BaseOdds * severity, 1.0f), i))
             {
                 if (mutation.AppliesToPlant)
                     _entityEffects.TryApplyEffect(ent, mutation.Effect);
@@ -268,8 +272,8 @@ public sealed partial class PlantMutationSystem : EntitySystem
         }
     }
 
-    private bool Random(EntityUid uid, float p)
+    private bool Random(EntityUid uid, float p, int salt = 0)
     {
-        return SharedRandomExtensions.PredictedProb(_timing, p, GetNetEntity(uid));
+        return SharedRandomExtensions.PredictedProb(_timing, p, GetNetEntity(uid), new NetEntity(salt));
     }
 }
