@@ -1,8 +1,10 @@
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Botany.Items.Components;
 using Content.Shared.Burial.Components;
 using Content.Shared.Explosion.Components;
 using Content.Shared.GameTicking;
 using Content.Shared.Item;
+using Content.Shared.Projectiles;
 using Content.Shared.Tools.Components;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
@@ -79,6 +81,14 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         while (cartridgeQuery.MoveNext(out var uid, out var cartridge, out _))
         {
             if (!cartridge.Spent)
+                Check(uid, now, toDelete);
+        }
+
+        // Only a missed syringe sitting on the floor is litter; an embedded one is still working.
+        var syringeQuery = EntityQueryEnumerator<FSAllyProjectileComponent, ItemComponent>();
+        while (syringeQuery.MoveNext(out var uid, out _, out _))
+        {
+            if (!TryComp<EmbeddableProjectileComponent>(uid, out var embeddable) || embeddable.EmbeddedIntoUid == null)
                 Check(uid, now, toDelete);
         }
 
