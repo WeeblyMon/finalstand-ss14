@@ -95,12 +95,31 @@ public sealed class FSPackableSystem : EntitySystem
 
         args.Handled = true;
 
-        var item = Spawn(ent.Comp.PackedProtoId, _transform.GetMapCoordinates(ent.Owner));
-
-        if (TryComp<FSDeployableItemComponent>(item, out var deployable))
+        // Restore stock onto the item that was actually consumed to deploy this, instead of
+        // spawning a fresh one - otherwise deploy+pack loops duplicate stock for free.
+        EntityUid item;
+        if (TryComp<FSDeployedByComponent>(ent.Owner, out var deployedBy)
+            && deployedBy.SourceItem is { } sourceItem
+            && Exists(sourceItem)
+            && !TerminatingOrDeleted(sourceItem))
         {
-            deployable.Stock = 1;
-            Dirty(item, deployable);
+            item = sourceItem;
+
+            if (TryComp<FSDeployableItemComponent>(item, out var restored))
+            {
+                restored.Stock = Math.Min(restored.Stock + 1, restored.MaxStock);
+                Dirty(item, restored);
+            }
+        }
+        else
+        {
+            item = Spawn(ent.Comp.PackedProtoId, _transform.GetMapCoordinates(ent.Owner));
+
+            if (TryComp<FSDeployableItemComponent>(item, out var deployable))
+            {
+                deployable.Stock = 1;
+                Dirty(item, deployable);
+            }
         }
 
         if (TryComp<FSDeployableLifetimeComponent>(ent.Owner, out var lifetime))

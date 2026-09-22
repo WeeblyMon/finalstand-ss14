@@ -98,6 +98,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         deployedBy.OwnerMind = ownerMind;
         deployedBy.DeployedBy = deployer;
         deployedBy.SourceProto = comp.DeployedProtoId;
+        deployedBy.SourceItem = uid;
 
         var ev = new FSDeployableDeployedEvent(uid, deployer);
         RaiseLocalEvent(deployed, ref ev);
