@@ -9,6 +9,7 @@ using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Content.Shared.Stacks;
 using Content.Shared.Storage;
 using Content.Shared.Tools.Components;
 using Content.Shared.Weapons.Ranged.Components;
@@ -34,6 +35,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponReserve = 0;
         overlay.HasAmmoChoice = false;
         overlay.HasThrowChoice = false;
+        overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
 
         if (_player.LocalEntity is not { } player)
@@ -87,6 +89,9 @@ public sealed partial class WaveHudSystem
 
         if (_solutions.TryGetRefillableSolution(held, out _, out var refillable))
             return $"{refillable.Volume:0}/{refillable.MaxVolume:0}u";
+
+        if (TryComp<StackComponent>(held, out var stack))
+            return $"{stack.Count} held";
 
         if (TryComp<LimitedChargesComponent>(held, out var charges))
             return $"{charges.LastCharges}/{charges.MaxCharges} charges";
