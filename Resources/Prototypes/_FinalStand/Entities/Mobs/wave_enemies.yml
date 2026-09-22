@@ -252,7 +252,7 @@
   - type: MobThresholds
     thresholds:
       0: Alive
-      800: Dead
+      1200: Dead
   - type: MovementSpeedModifier
     baseWalkSpeed: 2.0
     baseSprintSpeed: 2.5
@@ -269,8 +269,8 @@
     - proto: FSResearchDisk
       chance: 0.0005
   - type: FSArmor
-    maxHPRatio: 0.4
-    regenRate: 10
+    maxHPRatio: 0.6
+    regenRate: 15
   - type: Sprite
     drawdepth: Mobs
     sprite: _FinalStand/Mobs/Zombies/tank.rsi
