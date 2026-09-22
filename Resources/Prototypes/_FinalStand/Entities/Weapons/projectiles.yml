@@ -214,7 +214,7 @@
   - type: Projectile
     damage:
       types:
-        Heat: 40
+        Heat: 120
   - type: PointLight
     castShadows: false
     color: "#FF6600"
