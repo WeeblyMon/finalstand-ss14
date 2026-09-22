@@ -23,10 +23,6 @@ public sealed partial class HotbarGui : UIWidget
         HandsPanel.PanelOverride = FSHudStyle.ModulePanel();
         StoragePanel.PanelOverride = FSHudStyle.ModulePanel();
 
-        // Slot count and gaps do not divide the panel width evenly, so pin the panel itself to the
-        // weapon module's width rather than let the leftover pixel or two show as a gap between them.
-        StoragePanel.MinSize = new Vector2(WaveHudOverlay.WeaponPanelWidth, 0f);
-
         foreach (var grid in new[] { SecondHotbar, MainHotbar })
         {
             grid.ButtonSize = WaveHudOverlay.HudSlotSize;
@@ -37,7 +33,7 @@ public sealed partial class HotbarGui : UIWidget
         // FINALSTAND: hands hold the centre; the storage row tracks the right edge so it stays
         // flush under the wave HUD's weapon module.
         Anchor(HandsPanel, HandsFraction);
-        AnchorRight(RightGroup, RightEdgeMargin);
+        ApplyStorageWidth();
 
         var hotbarController = UserInterfaceManager.GetUIController<HotbarUIController>();
         hotbarController.Setup(HandContainer);
@@ -46,15 +42,26 @@ public sealed partial class HotbarGui : UIWidget
 
     private const float HandsFraction = 0.5f;
 
-    // The band is inset by this much, so the row's own margin is what is left of the shared screen
-    // margin after the inset.
     public const float BandInset = 5f;
-    private const float RightEdgeMargin = WaveHudOverlay.ScreenMargin - BandInset;
 
     // The row spans the bag toggle plus the six storage slots, at the shared HUD slot size.
     private const float StoragePanelVerticalMargin = 7f;
 
     public const float StorageRowHeight = WaveHudOverlay.HudSlotSize + StoragePanelVerticalMargin * 2f + 2f;
+
+    protected override void UIScaleChanged()
+    {
+        base.UIScaleChanged();
+        ApplyStorageWidth();
+    }
+
+    // The weapon module draws in raw screen pixels; this row is scaled, so divide it back out.
+    private void ApplyStorageWidth()
+    {
+        var scale = UIScale <= 0f ? 1f : UIScale;
+        StoragePanel.MinSize = new Vector2(WaveHudOverlay.WeaponPanelWidth / scale, 0f);
+        AnchorRight(RightGroup, WaveHudOverlay.ScreenMargin / scale - BandInset);
+    }
 
     private static void AnchorRight(Control control, float margin)
     {
