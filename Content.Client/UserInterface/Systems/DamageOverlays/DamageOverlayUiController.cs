@@ -9,9 +9,11 @@ using Content.Shared.Traits.Assorted;
 using JetBrains.Annotations;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.Timing;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Client.UserInterface.Systems.DamageOverlays;
 
@@ -20,11 +22,16 @@ public sealed partial class DamageOverlayUiController : UIController
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     [UISystemDependency] private readonly MobThresholdSystem _mobThresholdSystem = default!;
     [UISystemDependency] private readonly StatusEffectsSystem _statusEffects = default!;
     [UISystemDependency] private readonly DamageableSystem _damageable = default!;
     private Overlays.DamageOverlay _overlay = default!;
+
+    // A stray missed event could otherwise leave the vignette stuck; resync on a short timer.
+    private TimeSpan _nextResync;
+    private static readonly TimeSpan ResyncInterval = TimeSpan.FromSeconds(0.5);
 
     public override void Initialize()
     {
@@ -33,6 +40,17 @@ public sealed partial class DamageOverlayUiController : UIController
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<MobThresholdChecked>(OnThresholdCheck);
+    }
+
+    public override void FrameUpdate(FrameEventArgs args)
+    {
+        if (_timing.RealTime < _nextResync)
+            return;
+
+        _nextResync = _timing.RealTime + ResyncInterval;
+
+        if (_playerManager.LocalEntity is { } entity && EntityManager.TryGetComponent<MobStateComponent>(entity, out var mobState))
+            UpdateOverlays(entity, mobState);
     }
 
     private void OnPlayerAttach(LocalPlayerAttachedEvent args)
