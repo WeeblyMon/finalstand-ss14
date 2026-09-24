@@ -14,7 +14,7 @@
     sprite: Objects/Specific/Mining/ore_bag_holding.rsi
   - type: Storage
     grid:
-    - 0,0,19,9
+    - 0,0,19,19
 
 - type: entity
   parent: OreBagOfHolding

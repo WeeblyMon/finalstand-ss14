@@ -32,23 +32,23 @@
     - proto: OreBag
       name: Ore Bag
       description: Magnetises nearby ore into the bag.
-      price: 3000
+      price: 100
     - proto: FSConstructionBag
       name: Construction Bag
       description: Magnetises nearby sheets and cable.
-      price: 3000
+      price: 100
     - proto: OreBagOfHolding
       name: Bluespace Ore Bag
       description: Twice the reach, far more room.
-      price: 150000
+      price: 250
     - proto: FSConstructionBagOfHolding
       name: Bluespace Construction Bag
       description: Twice the reach, far more room.
-      price: 150000
+      price: 250
     - proto: ClothingBackpackHolding
       name: Bluespace Bag
       description: A backpack with vastly more room than it should have.
-      price: 150000
+      price: 500
   - type: UserInterface
     interfaces:
       enum.FSBagShopUiKey.Key:
