@@ -1,30 +1,41 @@
+using System.Numerics;
 using Content.Shared._FinalStand.Audio;
 using Content.Shared.CCVar;
 using Robust.Client.Audio;
+using Robust.Shared.Audio;
 using Robust.Shared.Audio.Components;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Audio;
 
 /// <summary>
 /// Client-side mixing on top of each sound's own volume: per-file trims, the weapons slider,
-/// crowd compensation for identical sounds stacking, and a limiter on the combined weapons level.
-/// Runs after <see cref="AudioSystem"/>, which resets every stream's volume on its audio tick.
+/// compensation when several emitters start the same sound together, and a limiter on the
+/// combined weapons level. Offsets are fixed when a sound starts so nothing shifts mid-playback,
+/// and they are applied inside the engine's stream update so the source never plays unadjusted.
 /// </summary>
 public sealed partial class FSAudioMixerSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private SharedMapSystem _maps = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string TrimsId = "Default";
     private const float CrowdStrength = 0.8f;
-    private const float CrowdFloorDb = -12f;
-    private const float AttackSeconds = 0.03f;
-    private const float ReleaseSeconds = 0.3f;
+    private const float CrowdFloorDb = -9f;
+    private const float AttackSeconds = 0.05f;
+    private const float ReleaseSeconds = 0.5f;
+    private static readonly TimeSpan CrowdWindow = TimeSpan.FromMilliseconds(80);
 
     private static readonly string[] WeaponPrefixes =
     {
@@ -39,32 +50,44 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
         "/Audio/_FinalStand/Mobs/",
     };
 
-    private readonly Dictionary<string, FileMix?> _mix = new();
-    private readonly Dictionary<string, int> _counts = new();
-    private readonly List<(AudioComponent Comp, FileMix Mix, float Distance)> _audible = new();
+    private readonly Dictionary<EntityUid, Track> _tracks = new();
+    private readonly Dictionary<string, List<(TimeSpan Time, EntityUid Emitter)>> _recentStarts = new();
+    private readonly HashSet<EntityUid> _seen = new();
+    private readonly List<EntityUid> _stale = new();
+    private readonly HashSet<EntityUid> _emitters = new();
     private Dictionary<string, float> _trims = new();
+    private EntityQuery<PhysicsComponent> _physicsQuery;
 
     private float _weaponDb;
     private bool _dynamics;
     private float _headroom;
     private float _limiterDb;
 
-    private sealed class FileMix
+    private sealed class Track
     {
-        public float Offset;
+        public float FixedDb;
         public bool Weapon;
-        public bool Crowd;
     }
 
     public override void Initialize()
     {
         base.Initialize();
-        UpdatesAfter.Add(typeof(AudioSystem));
-        Subs.CVar(_cfg, CCVars.FSWeaponsVolume, SetWeaponsVolume, true);
+        UpdatesBefore.Add(typeof(AudioSystem));
+        _physicsQuery = GetEntityQuery<PhysicsComponent>();
+
+        Subs.CVar(_cfg, CCVars.FSWeaponsVolume, v => _weaponDb = MathF.Max(SharedAudioSystem.GainToVolume(v), -80f), true);
         Subs.CVar(_cfg, CCVars.FSAudioDynamics, v => _dynamics = v, true);
         Subs.CVar(_cfg, CCVars.FSWeaponsHeadroom, v => _headroom = MathF.Max(v, 0.01f), true);
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypesReloaded);
         LoadTrims();
+
+        _audio.ProcessStreamOverride += ProcessStream;
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _audio.ProcessStreamOverride -= ProcessStream;
     }
 
     private void OnPrototypesReloaded(PrototypesReloadedEventArgs args)
@@ -78,118 +101,202 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
         _trims = _proto.TryIndex<FSSoundTrimPrototype>(TrimsId, out var proto)
             ? proto.Trims
             : new Dictionary<string, float>();
-        _mix.Clear();
-    }
-
-    private void SetWeaponsVolume(float gain)
-    {
-        _weaponDb = MathF.Max(SharedAudioSystem.GainToVolume(gain), -80f);
-        _mix.Clear();
     }
 
     public override void FrameUpdate(float frameTime)
     {
-        _audible.Clear();
-        _counts.Clear();
-
+        var now = _timing.RealTime;
         var listener = _audio.GetListenerCoordinates();
+        var weaponSum = 0f;
+        _seen.Clear();
+
         var query = AllEntityQuery<AudioComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))
         {
-            var mix = GetMix(comp.FileName);
-            if (mix == null)
-                continue;
+            _seen.Add(uid);
 
-            // Zero gain means the engine muted it (out of range or another map).
-            if (comp.Gain <= 0f)
-                continue;
+            if (!_tracks.TryGetValue(uid, out var track))
+            {
+                track = StartTrack(comp.FileName, xform.ParentUid, now, comp.Started);
+                _tracks[uid] = track;
+            }
 
-            var distance = 0f;
-            if (!comp.Global && xform.MapID == listener.MapId)
-                distance = (_transform.GetWorldPosition(xform) - listener.Position).Length();
-
-            _audible.Add((comp, mix, distance));
-
-            if (mix.Crowd)
-                _counts[comp.FileName] = _counts.GetValueOrDefault(comp.FileName) + 1;
+            if (track.Weapon && _dynamics && comp.Started && comp.Playing)
+                weaponSum += SharedAudioSystem.VolumeToGain(comp.Params.Volume + track.FixedDb)
+                             * DistanceFactor(comp, xform, listener);
         }
 
-        var weaponSum = 0f;
-        foreach (var (comp, mix, distance) in _audible)
+        foreach (var uid in _tracks.Keys)
         {
-            if (!mix.Weapon || !_dynamics)
-                continue;
-
-            var volume = comp.Params.Volume + mix.Offset + CrowdDb(comp.FileName, mix);
-            weaponSum += SharedAudioSystem.VolumeToGain(volume) * DistanceFactor(comp, distance);
+            if (!_seen.Contains(uid))
+                _stale.Add(uid);
         }
 
+        foreach (var uid in _stale)
+        {
+            _tracks.Remove(uid);
+        }
+
+        _stale.Clear();
         UpdateLimiter(weaponSum, frameTime);
+    }
 
-        foreach (var (comp, mix, _) in _audible)
+    private Track StartTrack(string fileName, EntityUid emitter, TimeSpan now, bool alreadyStarted)
+    {
+        var track = new Track();
+        if (string.IsNullOrEmpty(fileName))
+            return track;
+
+        track.Weapon = HasPrefix(fileName, WeaponPrefixes);
+        track.FixedDb = _trims.GetValueOrDefault(fileName);
+
+        if (!_dynamics || !HasPrefix(fileName, CrowdPrefixes))
+            return track;
+
+        var crowdDb = CrowdDb(fileName, emitter, now);
+
+        // Sounds the engine already started (local predicted plays) keep the volume they started with.
+        if (alreadyStarted)
+            return track;
+
+        track.FixedDb += crowdDb;
+        if (track.Weapon)
+            track.FixedDb += _limiterDb;
+
+        return track;
+    }
+
+    private float CrowdDb(string fileName, EntityUid emitter, TimeSpan now)
+    {
+        if (!_recentStarts.TryGetValue(fileName, out var starts))
         {
-            var offset = mix.Offset + CrowdDb(comp.FileName, mix);
-            if (mix.Weapon && _dynamics)
-                offset += _limiterDb;
-
-            if (offset != 0f)
-                comp.Volume = comp.Params.Volume + offset;
+            starts = new List<(TimeSpan, EntityUid)>();
+            _recentStarts[fileName] = starts;
         }
-    }
 
-    private void UpdateLimiter(float weaponSum, float frameTime)
-    {
-        var target = weaponSum > _headroom && _dynamics
-            ? SharedAudioSystem.GainToVolume(_headroom / weaponSum)
-            : 0f;
+        starts.RemoveAll(s => now - s.Time > CrowdWindow);
+        starts.Add((now, emitter));
 
-        var seconds = target < _limiterDb ? AttackSeconds : ReleaseSeconds;
-        var blend = 1f - MathF.Exp(-frameTime / seconds);
-        _limiterDb += (target - _limiterDb) * blend;
-    }
+        _emitters.Clear();
+        foreach (var (_, other) in starts)
+        {
+            _emitters.Add(other);
+        }
 
-    private float CrowdDb(string fileName, FileMix mix)
-    {
-        if (!_dynamics || !mix.Crowd)
-            return 0f;
-
-        var count = _counts.GetValueOrDefault(fileName);
+        // Only other emitters count, so one gun firing on its own never ducks itself.
+        var count = _emitters.Count;
         if (count < 2)
             return 0f;
 
         return MathF.Max(-CrowdStrength * 10f * MathF.Log10(count), CrowdFloorDb);
     }
 
-    private float DistanceFactor(AudioComponent comp, float distance)
+    private void UpdateLimiter(float weaponSum, float frameTime)
     {
+        var target = _dynamics && weaponSum > _headroom
+            ? SharedAudioSystem.GainToVolume(_headroom / weaponSum)
+            : 0f;
+
+        var seconds = target < _limiterDb ? AttackSeconds : ReleaseSeconds;
+        _limiterDb += (target - _limiterDb) * (1f - MathF.Exp(-frameTime / seconds));
+    }
+
+    private float DistanceFactor(AudioComponent comp, TransformComponent xform, MapCoordinates listener)
+    {
+        if (comp.Global)
+            return 1f;
+
+        if (xform.MapID != listener.MapId)
+            return 0f;
+
+        var distance = (_transform.GetWorldPosition(xform) - listener.Position).Length();
         var reference = _audio.GetAudioDistance(comp.Params.ReferenceDistance);
         var max = _audio.GetAudioDistance(comp.Params.MaxDistance);
-        var d = Math.Clamp(_audio.GetAudioDistance(distance), reference, max);
-
         if (max <= reference)
             return 1f;
 
+        var d = Math.Clamp(_audio.GetAudioDistance(distance), reference, max);
         return Math.Clamp(1f - comp.Params.RolloffFactor * (d - reference) / (max - reference), 0f, 1f);
     }
 
-    private FileMix? GetMix(string fileName)
+    private float TargetVolume(EntityUid entity, AudioComponent component)
     {
+        // Read-only here: this runs on the audio job's worker threads.
+        if (_tracks.TryGetValue(entity, out var track))
+            return component.Params.Volume + track.FixedDb + (track.Weapon ? _weaponDb : 0f);
+
+        var fileName = component.FileName;
         if (string.IsNullOrEmpty(fileName))
-            return null;
+            return component.Params.Volume;
 
-        if (_mix.TryGetValue(fileName, out var cached))
-            return cached;
+        var volume = component.Params.Volume + _trims.GetValueOrDefault(fileName);
+        if (HasPrefix(fileName, WeaponPrefixes))
+            volume += _weaponDb;
 
-        var weapon = HasPrefix(fileName, WeaponPrefixes);
-        var offset = _trims.GetValueOrDefault(fileName) + (weapon ? _weaponDb : 0f);
-        var crowd = HasPrefix(fileName, CrowdPrefixes);
+        return volume;
+    }
 
-        FileMix? mix = weapon || crowd || offset != 0f
-            ? new FileMix { Offset = offset, Weapon = weapon, Crowd = crowd }
-            : null;
+    // Port of Robust.Client.Audio.AudioSystem.ProcessStream with the volume taken from TargetVolume.
+    private void ProcessStream(EntityUid entity, AudioComponent component, TransformComponent xform, MapCoordinates listener)
+    {
+        if (!component.Started)
+        {
+            component.Started = true;
+            component.StartPlaying();
+        }
 
-        _mix[fileName] = mix;
-        return mix;
+        if (component.Global)
+        {
+            if (xform.MapID != MapId.Nullspace && listener.MapId != xform.MapID)
+            {
+                component.Gain = 0f;
+                return;
+            }
+
+            component.Volume = TargetVolume(entity, component);
+            return;
+        }
+
+        if (listener.MapId != xform.MapID)
+        {
+            component.Gain = 0f;
+            return;
+        }
+
+        var parentUid = xform.ParentUid;
+        Vector2 worldPos;
+        component.Volume = TargetVolume(entity, component);
+
+        if ((component.Flags & AudioFlags.GridAudio) != 0x0)
+            worldPos = _maps.GetGridPosition(parentUid);
+        else
+            worldPos = _transform.GetWorldPosition(entity);
+
+        var delta = worldPos - listener.Position;
+        var distance = delta.Length();
+
+        if (_audio.GetAudioDistance(distance) > component.MaxDistance)
+        {
+            component.Gain = 0f;
+            return;
+        }
+
+        if (distance > 0f && distance < 0.01f)
+        {
+            worldPos = listener.Position;
+            delta = Vector2.Zero;
+            distance = 0f;
+        }
+
+        if ((component.Flags & AudioFlags.NoOcclusion) == AudioFlags.NoOcclusion)
+            component.Occlusion = 0f;
+        else
+            component.Occlusion = _audio.GetOcclusion(listener, delta, distance, parentUid);
+
+        component.Position = worldPos;
+
+        if (_physicsQuery.TryGetComponent(parentUid, out var physicsComp))
+            component.Velocity = _physics.GetMapLinearVelocity(parentUid, physicsComp);
     }
 
     private static bool HasPrefix(string fileName, string[] prefixes)
