@@ -153,10 +153,15 @@ namespace Content.Server.GameTicking
             var status = ready ? PlayerGameStatus.ReadyToPlay : PlayerGameStatus.NotReadyToPlay;
             foreach (var playerUserId in _playerGameStatuses.Keys)
             {
+                // FINALSTAND: skip no-ops and raise PlayerToggleReadyEvent for the lobby Ready Manifest.
+                if (_playerGameStatuses[playerUserId] == status)
+                    continue;
                 _playerGameStatuses[playerUserId] = status;
                 if (!_playerManager.TryGetSessionById(playerUserId, out var playerSession))
                     continue;
                 RaiseNetworkEvent(GetStatusMsg(playerSession), playerSession.Channel);
+                var ev = new PlayerToggleReadyEvent(playerSession);
+                RaiseLocalEvent(ref ev);
             }
         }
 
@@ -173,8 +178,15 @@ namespace Content.Server.GameTicking
                 return;
             }
 
-            _playerGameStatuses[player.UserId] = ready ? PlayerGameStatus.ReadyToPlay : PlayerGameStatus.NotReadyToPlay;
+            var status = ready ? PlayerGameStatus.ReadyToPlay : PlayerGameStatus.NotReadyToPlay;
+            if (_playerGameStatuses[player.UserId] == status)
+                return;
+
+            _playerGameStatuses[player.UserId] = status;
             RaiseNetworkEvent(GetStatusMsg(player), player.Channel);
+            // FINALSTAND: lobby Ready Manifest refreshes off this.
+            var ev = new PlayerToggleReadyEvent(player);
+            RaiseLocalEvent(ref ev);
             // update server info to reflect new ready count
             UpdateInfoText();
         }
@@ -185,4 +197,8 @@ namespace Content.Server.GameTicking
         public bool UserHasJoinedGame(NetUserId userId)
             => PlayerGameStatuses.TryGetValue(userId, out var status) && status == PlayerGameStatus.JoinedGame;
     }
+
+    // FINALSTAND: raised when a player's lobby ready state actually changes.
+    [ByRefEvent]
+    public record struct PlayerToggleReadyEvent(ICommonSession PlayerSession);
 }
