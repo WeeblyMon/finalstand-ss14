@@ -15,4 +15,10 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<float> FSWeaponsVolume =
         CVarDef.Create("fs.weapons_volume", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSAudioDynamics =
+        CVarDef.Create("fs.audio_dynamics", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<float> FSWeaponsHeadroom =
+        CVarDef.Create("fs.weapons_headroom", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
 }
