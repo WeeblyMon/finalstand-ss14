@@ -1,4 +1,4 @@
-﻿using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
@@ -10,6 +10,7 @@ using Robust.Client;
 using Robust.Client.Graphics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.GameTicking;
 using Robust.Client.Player;
 using Content.Client.UserInterface.Screens;
 using Robust.Client.UserInterface;
@@ -48,6 +49,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
 
@@ -111,14 +113,21 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private const float DownedDim = 0.22f;
 
+    // A round can end while you're down, leaving the offer set as the lobby becomes the active screen.
     private void UpdateDownedDim(WaveHudOverlay overlay)
     {
         if (_ui.ActiveScreen is not { } screen)
             return;
 
-        screen.Modulate = overlay.IsRespawnOfferVisible
+        screen.Modulate = overlay.IsRespawnOfferVisible && screen is InGameScreen
             ? Color.White.WithAlpha(DownedDim)
             : Color.White;
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        if (_overlay != null)
+            _overlay.IsRespawnOfferVisible = false;
     }
 
     private Control? _alerts;
