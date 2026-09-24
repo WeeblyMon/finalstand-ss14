@@ -7,6 +7,8 @@ using Content.Shared.Charges.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Inventory.VirtualItem;
+using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Content.Shared.Stacks;
@@ -45,6 +47,15 @@ public sealed partial class WaveHudSystem
 
         if (!_hands.TryGetActiveItem(player, out var active))
             return;
+
+        // A drag or two-handed wield parks a placeholder in the hand; only a drag is worth naming.
+        if (TryComp<VirtualItemComponent>(active, out var virtualItem))
+        {
+            if (TryComp<PullerComponent>(player, out var puller) && puller.Pulling == virtualItem.BlockingEntity)
+                overlay.WeaponName = Loc.GetString("fs-hud-dragging", ("target", Name(virtualItem.BlockingEntity)));
+
+            return;
+        }
 
         var held = active.Value;
 
