@@ -89,6 +89,10 @@ public sealed partial class FSMediGunSystem : EntitySystem
     {
         var comp = ent.Comp;
 
+        // A downed or dead medic isn't holding a beam steady - nothing else stops the gun for this.
+        if (comp.ParentEntity is not { } wielder || TerminatingOrDeleted(wielder) || _mobState.IsIncapacitated(wielder))
+            return false;
+
         var healedPos = _xform.GetMapCoordinates(healed);
         var gunPos = _xform.GetMapCoordinates(ent.Owner);
 
@@ -124,8 +128,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (scale <= 0f)
             return true;
 
-        if (comp.ParentEntity is { } medic && !TerminatingOrDeleted(medic) && _mobState.IsCritical(healed))
-            scale *= _medicalBonus.GetScale(medic, FSMedicalBonusCategory.Stabilisation);
+        if (_mobState.IsCritical(healed))
+            scale *= _medicalBonus.GetScale(wielder, FSMedicalBonusCategory.Stabilisation);
 
         if (comp.HealedEntities.Count > 1)
             scale *= comp.SplitLinkScale;
