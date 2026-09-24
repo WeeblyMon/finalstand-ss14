@@ -58052,6 +58052,18 @@ entities:
     - type: Transform
       parent: 1
       pos: -2.5,3.5
+- proto: SpawnPointCombatMedic
+  entities:
+  - uid: 548
+    components:
+    - type: Transform
+      parent: 1
+      pos: -3.5,-18.5
+  - uid: 616
+    components:
+    - type: Transform
+      parent: 1
+      pos: -3.5,-17.5
 - proto: SpawnPointHeadOfPersonnel
   entities:
   - uid: 864
@@ -58112,18 +58124,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -8.5,-9.5
-- proto: SpawnPointParamedic
-  entities:
-  - uid: 548
-    components:
-    - type: Transform
-      parent: 1
-      pos: -3.5,-18.5
-  - uid: 616
-    components:
-    - type: Transform
-      parent: 1
-      pos: -3.5,-17.5
 - proto: SpawnPointQuartermaster
   entities:
   - uid: 867

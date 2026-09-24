@@ -1,5 +1,6 @@
 ﻿using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Shared.Prototypes;
 using Content.Shared.Damage;
@@ -113,7 +114,7 @@ public sealed class MedicalScoringTest : GameTest
     }
 
     [Test]
-    public async Task HostileDamageRefillsTheBudgetButPlayerDamageDoesNot()
+    public async Task OnlyANewPrepRefillsTheBudget()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -137,8 +138,14 @@ public sealed class MedicalScoringTest : GameTest
             f.Hurt(60f);
             f.HealBy(f.MedicBody, 40f);
 
+            Assert.That(f.Points, Is.EqualTo(exhausted),
+                "hostile damage must not reset diminishing returns either");
+
+            entMan.EventBus.RaiseEvent(EventSource.Local, new WavePrepStartedEvent());
+            f.HealBy(f.MedicBody, 40f);
+
             Assert.That(f.Points, Is.GreaterThan(exhausted),
-                "hostile damage should restore the full rate");
+                "a new prep phase should restore the full rate");
         });
     }
 
@@ -195,7 +202,7 @@ public sealed class MedicalScoringTest : GameTest
     }
 
     [Test]
-    public async Task SelfTreatmentPaysLessThanTreatingSomeoneElse()
+    public async Task SelfTreatmentPaysNothing()
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -216,9 +223,8 @@ public sealed class MedicalScoringTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(selfPoints, Is.GreaterThan(0), "self-treatment is still medical work");
-                Assert.That(selfPoints, Is.LessThan(otherPoints),
-                    "treating someone else must always beat patching yourself up");
+                Assert.That(selfPoints, Is.EqualTo(0), "healing yourself must not score, or it can be farmed");
+                Assert.That(otherPoints, Is.GreaterThan(0), "treating someone else pays");
             });
         });
     }

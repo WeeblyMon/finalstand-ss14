@@ -86,12 +86,13 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.Mobs
                     return null;
                 }
 
-                // we should be seeing 3 alerts - our health, and the 2 debug alerts, in a specific order.
-                Assert.That(clientAlertsUI.AlertContainer.ChildCount, Is.GreaterThanOrEqualTo(3));
+                // we should be seeing the 2 debug alerts. FS: the health alert is hidden, the wave HUD shows vitals.
+                Assert.That(clientAlertsUI.AlertContainer.ChildCount, Is.GreaterThanOrEqualTo(2));
                 var alertControls = clientAlertsUI.AlertContainer.Children.Select(c => (AlertControl) c);
                 var alertIDs = alertControls.Select(ac => ac.Alert.ID).ToArray();
-                var expectedIDs = new[] { "HumanHealth", "Debug1", "Debug2" };
+                var expectedIDs = new[] { "Debug1", "Debug2" };
                 Assert.That(alertIDs, Is.SupersetOf(expectedIDs));
+                Assert.That(alertIDs, Does.Not.Contain("HumanHealth"));
             });
 
             await server.WaitAssertion(() =>
@@ -103,11 +104,11 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components.Mobs
 
             await client.WaitAssertion(() =>
             {
-                // we should be seeing 2 alerts now because one was cleared
-                Assert.That(clientAlertsUI.AlertContainer.ChildCount, Is.GreaterThanOrEqualTo(2));
+                // we should be seeing 1 alert now because one was cleared
+                Assert.That(clientAlertsUI.AlertContainer.ChildCount, Is.GreaterThanOrEqualTo(1));
                 var alertControls = clientAlertsUI.AlertContainer.Children.Select(c => (AlertControl) c);
                 var alertIDs = alertControls.Select(ac => ac.Alert.ID).ToArray();
-                var expectedIDs = new[] { "HumanHealth", "Debug2" };
+                var expectedIDs = new[] { "Debug2" };
                 Assert.That(alertIDs, Is.SupersetOf(expectedIDs));
             });
         }

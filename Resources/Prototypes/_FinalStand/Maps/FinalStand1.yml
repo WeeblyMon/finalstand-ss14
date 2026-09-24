@@ -24,7 +24,6 @@
           # medical (8) - Combat Medic replaces the Paramedic
           ChiefMedicalOfficer: [ 1, 1 ]
           MedicalDoctor:       [ 2, 2 ]
-          Paramedic:           [ 0, 0 ]
           CombatMedic:         [ 2, 2 ]
           Chemist:             [ 2, 2 ]
           # science (5)
