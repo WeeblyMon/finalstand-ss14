@@ -865,6 +865,20 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
     }
 
+    public bool TryGetWaveStatus(out int wave, out WavePhase phase)
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _))
+        {
+            wave = 0;
+            phase = WavePhase.Prep;
+            return false;
+        }
+
+        wave = comp.WaveNumber;
+        phase = comp.Phase;
+        return true;
+    }
+
     public void ReducePrepTimeBy(double seconds)
     {
         if (!TryGetActiveRule(out _, out var comp, out _)) return;
