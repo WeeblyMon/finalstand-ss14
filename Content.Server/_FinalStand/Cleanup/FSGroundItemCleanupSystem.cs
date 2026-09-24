@@ -111,7 +111,8 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         if (!_seenThisScan.Add(uid))
             return;
 
-        if (_containers.IsEntityInContainer(uid))
+        // Anchored items are installed fixtures, not loot - gas pipes are items with a melee attack.
+        if (_containers.IsEntityInContainer(uid) || Transform(uid).Anchored)
         {
             _groundedSince.Remove(uid);
             return;
