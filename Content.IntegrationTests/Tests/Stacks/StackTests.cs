@@ -18,6 +18,7 @@ public sealed class StackTest : GameTest
     [Description("Tests for SharedStackSystem.SetCount.")]
     public async Task SetTest()
     {
+        var baseline = SEntMan.EntityCount;
         var stack = await Spawn(StackEnt1);
 
         // Raising the count
@@ -35,7 +36,7 @@ public sealed class StackTest : GameTest
         // Setting to 0 deletes the stack
         await Server.WaitPost(() => _sStackSystem.SetCount((stack, null), 0));
         await Server.WaitRunTicks(1);
-        Assert.That(SEntMan.EntityCount, Is.Zero);
+        Assert.That(SEntMan.EntityCount, Is.EqualTo(baseline));
     }
 
     [Test]
@@ -43,6 +44,7 @@ public sealed class StackTest : GameTest
     public async Task MergeTest()
     {
         var stacks = new HashSet<EntityUid>();
+        var baseline = SEntMan.EntityCount;
 
         await Server.WaitPost(() =>
         {
@@ -66,7 +68,7 @@ public sealed class StackTest : GameTest
             Assert.That(_sStackSystem.GetCount(stacks.First()), Is.EqualTo(3));
 
             // Assert that the other stack was set to zero and deleted
-            Assert.That(SEntMan.EntityCount, Is.EqualTo(1));
+            Assert.That(SEntMan.EntityCount, Is.EqualTo(baseline + 1));
         }
     }
 
@@ -75,6 +77,7 @@ public sealed class StackTest : GameTest
     public async Task MergeOverflowTest()
     {
         var stacks = new HashSet<EntityUid>();
+        var baseline = SEntMan.EntityCount;
 
         await Server.WaitPost(() =>
         {
@@ -105,7 +108,7 @@ public sealed class StackTest : GameTest
             // Assert that both stacks were returned
             // And that the empty stack was deleted
             Assert.That(stacks, Has.Count.EqualTo(2));
-            Assert.That(SEntMan.EntityCount, Is.EqualTo(2));
+            Assert.That(SEntMan.EntityCount, Is.EqualTo(baseline + 2));
 
             // Assert we have the same count as what we spawned
             Assert.That(count, Is.EqualTo(33));

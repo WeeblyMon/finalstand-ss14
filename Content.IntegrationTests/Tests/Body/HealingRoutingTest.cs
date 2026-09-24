@@ -3,6 +3,7 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Shared._FinalStand.Medical;
+using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Damage;
@@ -29,6 +30,7 @@ public sealed class HealingRoutingTest : GameTest
             var lookup = entityManager.System<OrganLookupSystem>();
             var wounds = entityManager.System<WoundSystem>();
             var damageable = entityManager.System<DamageableSystem>();
+            var traumas = entityManager.System<TraumaSystem>();
 
             ProtoId<DamageTypePrototype> blunt = "Blunt";
             var bluntProto = protoManager.Index(blunt);
@@ -50,6 +52,20 @@ public sealed class HealingRoutingTest : GameTest
 
             // bleeding blocks healing by design, so clear it the way gauze does
             wounds.TryHealBleedsOnBody(body, -1000f);
+
+            // organ damage randomly rolled from the hit blocks healing until surgery, which is not what this tests
+            foreach (var part in hurt)
+            {
+                foreach (var wound in wounds.GetWoundableWounds(part))
+                {
+                    foreach (var trauma in traumas.GetAllWoundTraumas(wound).ToList())
+                    {
+                        if (TraumaSystem.TraumasBlockingHealing.Contains(trauma.Comp.TraumaType))
+                            traumas.RemoveTrauma(trauma);
+                    }
+                }
+            }
+
             damageable.TryChangeDamage(body, new DamageSpecifier(bluntProto, -30), true);
 
             foreach (var part in hurt)
