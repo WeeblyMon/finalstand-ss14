@@ -141,6 +141,7 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public EntProtoId? TargetWeaponProtoId;
 
     // Cost multiplier applied while DiscountResearch is unlocked.
+    [DataField] public ProtoId<FSTechNodePrototype>? RequiresResearch;
     [DataField] public ProtoId<FSTechNodePrototype>? DiscountResearch;
     [DataField] public float DiscountMultiplier = 1.0f;
 }

@@ -104,15 +104,21 @@ public sealed partial class WeaponShopWindow
     }
 
 
-    private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits, string name, string description, string? label = null)
+    private Control BuildUpgradeRow(WeaponUpgradeDef def, int currentLevel, int credits, string name, string description, string? label = null, string? lockedBy = null)
     {
         var atMax     = currentLevel >= def.MaxLevel;
         var nextCost  = def.BaseCost * (currentLevel + 1);
         var canAfford = !def.IsStub && !atMax && credits >= nextCost;
         var hasAny    = currentLevel > 0;
 
+        var locked = lockedBy != null && !atMax;
+
         Color bgColor, borderColor;
-        if (def.IsStub || (!canAfford && !atMax))
+        if (locked)
+        {
+            bgColor = RowInactive; borderColor = FSUiPalette.StateResearch;
+        }
+        else if (def.IsStub || (!canAfford && !atMax))
         {
             bgColor = RowInactive; borderColor = FSUiPalette.BorderNeutral;
         }
@@ -146,8 +152,10 @@ public sealed partial class WeaponShopWindow
             MinWidth = 140,
             MaxWidth = 185,
             ClipText = true,
-            Disabled = def.IsStub || atMax || !canAfford,
-            ToolTip = string.IsNullOrEmpty(description) ? name : description,
+            Disabled = def.IsStub || atMax || !canAfford || locked,
+            ToolTip = locked
+                ? Loc.GetString("shop-upgrade-locked-research", ("node", lockedBy!))
+                : string.IsNullOrEmpty(description) ? name : description,
         };
         btn.OnPressed += _ => OnUpgradePressed?.Invoke(def.Id);
         inner.AddChild(btn);
@@ -177,13 +185,16 @@ public sealed partial class WeaponShopWindow
             card.OnMouseExited  += _ => ClearPreview();
         }
 
-        var catText = label ?? UpgradeTypeToStatLabel(def.Type);
+        var catText = locked
+            ? Loc.GetString("shop-upgrade-research-label", ("node", lockedBy!))
+            : label ?? UpgradeTypeToStatLabel(def.Type);
         if (!string.IsNullOrEmpty(catText))
         {
             var catLabel = new Label
             {
                 Text = catText,
-                Modulate = FSUiPalette.TextMuted,
+                Modulate = locked ? FSUiPalette.StateResearch : FSUiPalette.TextMuted,
+                ClipText = locked,
                 HorizontalExpand = true,
                 HorizontalAlignment = HAlignment.Left,
                 Margin = new Thickness(4, 0, 0, 0),
@@ -255,6 +266,7 @@ public sealed partial class WeaponShopWindow
             Text = atMax ? "MAX" : $"${nextCost:N0}",
             Modulate = atMax
                 ? FSUiPalette.StatePending
+                : locked ? FSUiPalette.TextMuted
                 : canAfford ? FSUiPalette.StatePositive : FSUiPalette.StateNegative,
             MinWidth = 72,
             HorizontalAlignment = HAlignment.Right,
@@ -270,7 +282,7 @@ public sealed partial class WeaponShopWindow
 
         card.AddChild(inner);
 
-        if (!canAfford && !atMax)
+        if (!canAfford && !atMax && !locked)
             card.Modulate = new Color(1f, 1f, 1f, FSUiPalette.DisabledOpacity);
 
         return card;

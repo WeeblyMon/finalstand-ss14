@@ -241,6 +241,13 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        if (def.RequiresResearch is { } requiredNode && !_fsResearch.IsNodeUnlocked(requiredNode))
+        {
+            var nodeName = _protoManager.TryIndex(requiredNode, out var node) ? node.Name : requiredNode.Id;
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-locked-research", ("node", nodeName)), uid, player);
+            return;
+        }
+
         if (def.RequiresUpgrade != null)
         {
             var shopWeapon = _search.FindFirst(player, ShopProtoIds(comp));

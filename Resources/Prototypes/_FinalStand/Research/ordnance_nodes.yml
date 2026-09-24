@@ -710,6 +710,42 @@
   - FSOrdnancePercussionCapFusing
   bonusDescription: +2.5% Accuracy (Team)
 
+# -- Grenade sub-tree (unlocks grenade shop upgrades) --
+
+- type: fsTechNode
+  id: FSOrdnanceClusterMunitions
+  name: Cluster Munitions
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
+    state: icon
+  branch: Ordnance
+  tier: 3
+  cost: 4000
+  materialCost:
+    Steel: 27
+    Plastic: 18
+    Gold: 14
+  prerequisites:
+  - FSOrdnancePercussionCapFusing
+  bonusDescription: Unlocks the Cluster Grenade upgrade at the frag grenade shop
+
+- type: fsTechNode
+  id: FSOrdnanceGravatonImplosion
+  name: Gravaton Implosion Cores
+  icon:
+    sprite: _FinalStand/Objects/Weapons/Grenades/GravatonBomb.rsi
+    state: icon
+  branch: Ordnance
+  tier: 4
+  cost: 4500
+  materialCost:
+    Steel: 48
+    Plastic: 32
+    Gold: 24
+  prerequisites:
+  - FSOrdnanceClusterMunitions
+  bonusDescription: Unlocks the Singularity upgrade at the pipe bomb shop
+
 # -- Hydra sub-tree (rotary engineering parts) --
 
 - type: fsTechNode

@@ -241,11 +241,16 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             return;
         }
 
+        var shopClient = _entityManager.System<FSShopClientSystem>();
         foreach (var def in defs)
         {
             if (def.RequiresUpgrade != null
                 && levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
                 continue;
+
+            string? lockedBy = null;
+            if (def.RequiresResearch is { } node && !shopClient.IsResearchNodeUnlocked(node.Id))
+                lockedBy = _proto.TryIndex(node, out var nodeProto) ? nodeProto.Name : node.Id;
 
             var level = levels.GetValueOrDefault(def.Id, 0);
             var alt = def.AltWhenUpgrade != null
@@ -253,7 +258,7 @@ public sealed partial class WeaponShopWindow : DefaultWindow
             var name = alt && def.AltName != null ? def.AltName : def.Name;
             var desc = alt && def.AltDescription != null ? def.AltDescription : def.Description;
             var label = alt ? def.AltLabel : null;
-            UpgradesContainer.AddChild(BuildUpgradeRow(def, level, credits, name, desc, label));
+            UpgradesContainer.AddChild(BuildUpgradeRow(def, level, credits, name, desc, label, lockedBy));
         }
 
         var totalPurchased = 0;

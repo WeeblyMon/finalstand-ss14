@@ -36,6 +36,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _onSellFailed = OnSellFailed;
         shopClient.CreditsChanged       += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
+        shopClient.ResearchNodesChanged += _onUpgradesChanged;
         shopClient.RefreshNeeded        += _onRefreshNeeded;
         shopClient.SellCompleted        += _onSellCompleted;
         shopClient.SellFailed           += _onSellFailed;
@@ -130,6 +131,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         var shopClient = EntMan.System<FSShopClientSystem>();
         if (_onCreditsChanged  != null) shopClient.CreditsChanged       -= _onCreditsChanged;
         if (_onUpgradesChanged != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
+        if (_onUpgradesChanged != null) shopClient.ResearchNodesChanged -= _onUpgradesChanged;
         if (_onRefreshNeeded   != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
         if (_onSellCompleted   != null) shopClient.SellCompleted        -= _onSellCompleted;
         if (_onSellFailed      != null) shopClient.SellFailed           -= _onSellFailed;

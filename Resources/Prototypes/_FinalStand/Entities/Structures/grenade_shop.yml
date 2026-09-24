@@ -50,6 +50,7 @@
       baseCost: 20000
       type: GrenadeCluster
       valuePerLevel: 1
+      requiresResearch: FSOrdnanceClusterMunitions
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/FragGrenade.rsi
     state: icon
@@ -240,6 +241,7 @@
       baseCost: 20000
       type: GrenadeSingularity
       valuePerLevel: 1
+      requiresResearch: FSOrdnanceGravatonImplosion
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Grenades/Pipebomb.rsi
     state: icon
