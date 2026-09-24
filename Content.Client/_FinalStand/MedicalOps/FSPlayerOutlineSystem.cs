@@ -102,13 +102,13 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var healed, out var sprite))
         {
-            if (healed.Source != gun)
+            if (!healed.Sources.Contains(gun) || _wanted.Contains(uid))
                 continue;
 
-            if (_wanted.Contains(uid))
+            if (!TryComp<FSMediGunComponent>(gun, out var gunComp))
                 continue;
 
-            Apply(uid, sprite, healed.BeamColor.WithAlpha(pulse));
+            Apply(uid, sprite, gunComp.BeamColor.WithAlpha(pulse));
         }
     }
 

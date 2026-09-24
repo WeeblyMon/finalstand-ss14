@@ -45,8 +45,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     private readonly record struct LagState(Vector2 Mid, TimeSpan LastSeen);
 
-    private readonly Dictionary<EntityUid, LagState> _lag = new();
-    private readonly List<EntityUid> _stale = new();
+    private readonly Dictionary<(EntityUid Gun, EntityUid Patient), LagState> _lag = new();
+    private readonly List<(EntityUid Gun, EntityUid Patient)> _stale = new();
 
     public FSMediGunBeamOverlay(IEntityManager entManager, IGameTiming timing, IResourceCache cache)
     {
@@ -80,42 +80,49 @@ public sealed class FSMediGunBeamOverlay : Overlay
         var query = _entManager.EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
         {
-            if (!_entManager.TryGetComponent(healed.Source, out FSMediGunComponent? gun)
-                || gun.ParentEntity is not { } medic
-                || !_entManager.EntityExists(medic)
-                || !_entManager.EntityExists(patient))
-                continue;
-
-            if (!_entManager.TryGetComponent(medic, out TransformComponent? medicXform)
-                || !_entManager.TryGetComponent(patient, out TransformComponent? patientXform)
-                || medicXform.MapID != args.MapId
-                || patientXform.MapID != args.MapId)
-                continue;
-
-            var start = _transform.GetWorldPosition(medicXform);
-            var end = _transform.GetWorldPosition(patientXform);
-
-            var bounds = args.WorldAABB.Enlarged(3f);
-            if (!bounds.Contains(start) && !bounds.Contains(end))
-                continue;
-
-            var control = UpdateControlPoint(patient, start, end, dt);
-
-            BuildRibbon(start, control, end, uMin, vMin, cell);
-
-            if (_verts.Count >= 3)
-            {
-                if (_vertBuffer.Length < _verts.Count)
-                    _vertBuffer = new DrawVertexUV2D[_verts.Count];
-
-                _verts.CopyTo(_vertBuffer);
-
-                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _beam,
-                    new ReadOnlySpan<DrawVertexUV2D>(_vertBuffer, 0, _verts.Count), healed.BeamColor);
-            }
-
-            DrawParticles(handle, start, control, end, time, healed.BeamColor);
+            foreach (var source in healed.Sources)
+                DrawBeam(handle, _beam, args, source, patient, time, dt, uMin, vMin, cell);
         }
+    }
+
+    private void DrawBeam(DrawingHandleWorld handle, Texture beam, in OverlayDrawArgs args, EntityUid source,
+        EntityUid patient, float time, float dt, float uMin, float vMin, float cell)
+    {
+        if (!_entManager.TryGetComponent(source, out FSMediGunComponent? gun)
+            || gun.ParentEntity is not { } medic
+            || !_entManager.EntityExists(medic)
+            || !_entManager.EntityExists(patient))
+            return;
+
+        if (!_entManager.TryGetComponent(medic, out TransformComponent? medicXform)
+            || !_entManager.TryGetComponent(patient, out TransformComponent? patientXform)
+            || medicXform.MapID != args.MapId
+            || patientXform.MapID != args.MapId)
+            return;
+
+        var start = _transform.GetWorldPosition(medicXform);
+        var end = _transform.GetWorldPosition(patientXform);
+
+        var bounds = args.WorldAABB.Enlarged(3f);
+        if (!bounds.Contains(start) && !bounds.Contains(end))
+            return;
+
+        var control = UpdateControlPoint((source, patient), start, end, dt);
+
+        BuildRibbon(start, control, end, uMin, vMin, cell);
+
+        if (_verts.Count >= 3)
+        {
+            if (_vertBuffer.Length < _verts.Count)
+                _vertBuffer = new DrawVertexUV2D[_verts.Count];
+
+            _verts.CopyTo(_vertBuffer);
+
+            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, beam,
+                new ReadOnlySpan<DrawVertexUV2D>(_vertBuffer, 0, _verts.Count), gun.BeamColor);
+        }
+
+        DrawParticles(handle, start, control, end, time, gun.BeamColor);
     }
 
     private void BuildRibbon(Vector2 start, Vector2 control, Vector2 end, float uMin, float vMin, float cell)
@@ -215,17 +222,17 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _verts.Add(new DrawVertexUV2D(position, new Vector2(u, v)));
     }
 
-    private Vector2 UpdateControlPoint(EntityUid patient, Vector2 start, Vector2 end, float dt)
+    private Vector2 UpdateControlPoint((EntityUid Gun, EntityUid Patient) key, Vector2 start, Vector2 end, float dt)
     {
         var trueMid = (start + end) * 0.5f;
 
-        if (!_lag.TryGetValue(patient, out var state))
+        if (!_lag.TryGetValue(key, out var state))
             state = new LagState(trueMid, _timing.RealTime);
 
         var blend = 1f - MathF.Exp(-LagResponse * dt);
         var mid = Vector2.Lerp(state.Mid, trueMid, blend);
 
-        _lag[patient] = new LagState(mid, _timing.RealTime);
+        _lag[key] = new LagState(mid, _timing.RealTime);
 
         var offset = (mid - trueMid) * LagAmplify;
         var distance = offset.Length();

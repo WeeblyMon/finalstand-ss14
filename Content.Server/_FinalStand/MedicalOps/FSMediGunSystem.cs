@@ -216,8 +216,8 @@ public sealed partial class FSMediGunSystem : EntitySystem
         Dirty(uid, comp);
 
         var healed = EnsureComp<FSMediGunHealedComponent>(target);
-        healed.Source = uid;
-        healed.BeamColor = comp.BeamColor;
+        if (!healed.Sources.Contains(uid))
+            healed.Sources.Add(uid);
         Dirty(target, healed);
 
         _useDelay.TryResetDelay(uid);
@@ -242,7 +242,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         var comp = ent.Comp;
 
         foreach (var healed in comp.HealedEntities)
-            RemComp<FSMediGunHealedComponent>(healed);
+            Unlink(healed, ent.Owner);
 
         comp.HealedEntities.Clear();
         comp.IsActive = false;
@@ -251,12 +251,24 @@ public sealed partial class FSMediGunSystem : EntitySystem
         Dirty(ent.Owner, comp);
     }
 
+    private void Unlink(EntityUid patient, EntityUid gun)
+    {
+        if (!TryComp<FSMediGunHealedComponent>(patient, out var healed))
+            return;
+
+        healed.Sources.Remove(gun);
+        if (healed.Sources.Count == 0)
+            RemComp<FSMediGunHealedComponent>(patient);
+        else
+            Dirty(patient, healed);
+    }
+
     private void DisableConnection(Entity<FSMediGunComponent> ent, EntityUid toRemove)
     {
         if (!ent.Comp.HealedEntities.Remove(toRemove))
             return;
 
-        RemComp<FSMediGunHealedComponent>(toRemove);
+        Unlink(toRemove, ent.Owner);
         Dirty(ent.Owner, ent.Comp);
 
         _audio.PlayPvs(ent.Comp.SoundOnTargetLost, ent.Owner);

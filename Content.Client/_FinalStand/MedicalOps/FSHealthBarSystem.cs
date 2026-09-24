@@ -1,4 +1,4 @@
-﻿using Content.Client.Overlays;
+using Content.Client.Overlays;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Overlays;
@@ -121,10 +121,10 @@ public sealed partial class FSHealthBarSystem : EntitySystem
         var query = EntityQueryEnumerator<FSMediGunHealedComponent>();
         while (query.MoveNext(out var patient, out var healed))
         {
-            if (TryComp<FSMediGunComponent>(healed.Source, out var gun)
-                && gun.ParentEntity == local)
+            foreach (var source in healed.Sources)
             {
-                return patient;
+                if (TryComp<FSMediGunComponent>(source, out var gun) && gun.ParentEntity == local)
+                    return patient;
             }
         }
 

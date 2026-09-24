@@ -91,11 +91,9 @@ public sealed partial class FSMediGunComponent : Component
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediGunHealedComponent : Component
 {
+    // Several medics can beam the same patient; each gun links and unlinks independently.
     [DataField, AutoNetworkedField]
-    public EntityUid Source;
-
-    [DataField, AutoNetworkedField]
-    public Color BeamColor;
+    public List<EntityUid> Sources = new();
 
     [DataField]
     public bool SoftCapAnnounced;
