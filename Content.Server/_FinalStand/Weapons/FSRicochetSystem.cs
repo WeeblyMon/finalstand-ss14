@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Content.Server._FinalStand.Audio;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server.Projectiles;
 using Content.Shared._FinalStand.Weapons;
@@ -28,10 +29,14 @@ public sealed class FSRicochetSystem : EntitySystem
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSSoundThrottleSystem _soundThrottle = default!;
 
     public const string BounceFixture = "bounce";
 
     private static readonly TimeSpan BounceCooldown = TimeSpan.FromSeconds(0.05);
+    private static readonly TimeSpan BounceSoundWindow = TimeSpan.FromSeconds(0.15);
+    private const float BounceSoundRadius = 3f;
+    private const int BounceSoundMaxPlays = 2;
 
     private readonly HashSet<EntityUid> _reorient = new();
 
@@ -140,7 +145,7 @@ public sealed class FSRicochetSystem : EntitySystem
         projectile.ProjectileSpent = false;
 
         _reorient.Add(ent.Owner);
-        _audio.PlayPvs(ent.Comp.BounceSound, ent.Owner);
+        _soundThrottle.PlayPvsThrottled(ent.Comp.BounceSound, ent.Owner, BounceSoundWindow, BounceSoundRadius, BounceSoundMaxPlays);
 
         if (ent.Comp.BounceEffect is { } effect)
             Spawn(effect, Transform(ent).Coordinates);
