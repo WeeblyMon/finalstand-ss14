@@ -62,6 +62,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
     public event Action<string>? SellFailed;
 
     private readonly Dictionary<EntityUid, ShopGlowState> _lastGlowState = [];
+    private readonly HashSet<string> _ownedProtoIds = [];
 
     public override void Initialize()
     {
@@ -102,6 +103,11 @@ public sealed partial class FSShopClientSystem : EntitySystem
             engineering = departments.Engineering;
         }
 
+        // Hands, worn slots and the backpack - matches where the shop itself looks for the weapon.
+        _ownedProtoIds.Clear();
+        if (player != null)
+            CollectOwnedProtoIds(player.Value, _ownedProtoIds);
+
         var query = EntityQueryEnumerator<FSShopWeaponComponent, SpriteComponent>();
         while (query.MoveNext(out var uid, out var shop, out var sprite))
         {
@@ -112,7 +118,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
                 state = ShopGlowState.Locked;
             else if (shop.RequiresEngineering && !engineering)
                 state = ShopGlowState.Locked;
-            else if (player != null && PlayerHasWeapon(player.Value, shop.WeaponProtoId))
+            else if (OwnsShopWeapon(shop))
                 state = ShopGlowState.Owned;
             else if (CurrentCredits >= shop.Price)
                 state = ShopGlowState.Affordable;
@@ -367,16 +373,46 @@ public sealed partial class FSShopClientSystem : EntitySystem
         return false;
     }
 
-    private bool PlayerHasWeapon(EntityUid player, EntProtoId? protoId)
+    private bool OwnsShopWeapon(FSShopWeaponComponent shop)
     {
-        if (protoId == null) return false;
-        var targetId = protoId.Value.Id;
-        foreach (var held in _hands.EnumerateHeld(player))
+        if (shop.WeaponProtoId is { } proto && _ownedProtoIds.Contains(proto.Id))
+            return true;
+
+        foreach (var alias in shop.WeaponProtoIdAliases)
         {
-            if (MetaData(held).EntityPrototype?.ID == targetId)
+            if (_ownedProtoIds.Contains(alias.Id))
                 return true;
         }
+
         return false;
+    }
+
+    private void CollectOwnedProtoIds(EntityUid player, HashSet<string> ids)
+    {
+        void Add(EntityUid ent)
+        {
+            if (MetaData(ent).EntityPrototype?.ID is { } id)
+                ids.Add(id);
+        }
+
+        foreach (var held in _hands.EnumerateHeld(player))
+            Add(held);
+
+        foreach (var slot in InventorySlots)
+        {
+            if (_inventory.TryGetSlotEntity(player, slot, out var item) && item != null)
+                Add(item.Value);
+        }
+
+        if (_inventory.TryGetSlotEntity(player, "back", out var back) && back != null
+            && TryComp<ContainerManagerComponent>(back.Value, out var mgr))
+        {
+            foreach (var container in mgr.Containers.Values)
+            {
+                foreach (var entity in container.ContainedEntities)
+                    Add(entity);
+            }
+        }
     }
 
     private void ApplyOutline(SpriteComponent sprite, ShopGlowState state)
