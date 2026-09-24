@@ -183,7 +183,7 @@
     keysIn:
     - timer
   - type: Explosive
-    explosionType: FSGrenadeExplosion
+    explosionType: FSFragGrenadeExplosion
     maxIntensity: 10
     intensitySlope: 3
     totalIntensity: 150

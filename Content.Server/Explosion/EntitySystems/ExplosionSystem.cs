@@ -67,6 +67,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     private static readonly HashSet<string> FsExplosionTypes = new()
     {
         "FSGrenadeExplosion",
+        "FSFragGrenadeExplosion",
         "FSRocketExplosion",
     };
     [Dependency] private EntityQuery<FlammableComponent> _flammableQuery = default!;

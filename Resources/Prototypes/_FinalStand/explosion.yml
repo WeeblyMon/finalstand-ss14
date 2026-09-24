@@ -11,6 +11,20 @@
   fireStates: 3
   temperature: 800
 
+# Frag grenade only: double FSGrenadeExplosion's damage without buffing the other grenades or the Hydra.
+- type: explosion
+  id: FSFragGrenadeExplosion
+  damagePerIntensity:
+    types:
+      Cellular: 30
+  tileBreakChance: [0, 0, 0]
+  tileBreakIntensity: [0, 0, 0]
+  tileBreakRerollReduction: 0
+  lightColor: Orange
+  texturePath: /Textures/Effects/fire.rsi
+  fireStates: 3
+  temperature: 800
+
 - type: explosion
   id: FSExplosiveShotExplosion
   damagePerIntensity:
