@@ -17,5 +17,7 @@ public sealed partial class FSMaterialDropComponent : Component
         "SheetPlastic1",
         "SheetPlasma1",
         "IngotGold1",
+        "IngotSilver1",
+        "SheetUranium1",
     };
 }
