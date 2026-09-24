@@ -44,3 +44,8 @@ public sealed class FSCryoStatusEvent : EntityEventArgs
         HasStoredBody = hasStoredBody;
     }
 }
+
+[Serializable, NetSerializable]
+public sealed class FSCryoStatusRequestEvent : EntityEventArgs
+{
+}

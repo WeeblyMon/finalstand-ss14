@@ -1,4 +1,4 @@
-﻿using Content.Server.Ghost;
+using Content.Server.Ghost;
 using Content.Shared._FinalStand.CryoSleep;
 using Content.Shared.Bed.Cryostorage;
 using Content.Shared.CCVar;
@@ -34,6 +34,13 @@ public sealed class FSCryoSleepSystem : EntitySystem
         SubscribeLocalEvent<CryostorageComponent, ActivateInWorldEvent>(OnPodActivate);
         SubscribeLocalEvent<CanEnterCryostorageComponent, EntGotInsertedIntoContainerMessage>(OnInsertedIntoPod);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
+        SubscribeNetworkEvent<FSCryoStatusRequestEvent>(OnStatusRequest);
+    }
+
+    // The client asks directly instead of only waiting on a push it might never get.
+    private void OnStatusRequest(FSCryoStatusRequestEvent ev, EntitySessionEventArgs args)
+    {
+        PushStatus(args.SenderSession);
     }
 
     public bool TryGetStoredBody(NetUserId userId, out EntityUid body, out EntityUid pod)

@@ -10,11 +10,22 @@ public sealed partial class GhostUIController
     private FSCryoWakeupWindow? _cryoWindow;
     private FSConfirmWindow? _cryoLobbyWindow;
     private bool _hasStoredCryoBody;
-
-    private void InitializeFinalStandCryo()
+    private void SubscribeFinalStandCryo()
     {
         EntityManager.EventBus.SubscribeEvent<FSCryoStatusEvent>(EventSource.Network, this, OnCryoStatus);
         EntityManager.EventBus.SubscribeEvent<FSCryoWakeupResponseEvent>(EventSource.Network, this, OnCryoWakeupResponse);
+    }
+
+    private void UnsubscribeFinalStandCryo()
+    {
+        EntityManager.EventBus.UnsubscribeEvent<FSCryoStatusEvent>(EventSource.Network, this);
+        EntityManager.EventBus.UnsubscribeEvent<FSCryoWakeupResponseEvent>(EventSource.Network, this);
+        _hasStoredCryoBody = false;
+    }
+
+    private void RequestFinalStandCryoStatus()
+    {
+        _net.SendSystemNetworkMessage(new FSCryoStatusRequestEvent());
     }
 
     private void OnCryoStatus(FSCryoStatusEvent ev)
