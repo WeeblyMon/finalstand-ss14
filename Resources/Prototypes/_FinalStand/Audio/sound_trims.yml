@@ -1,20 +1,20 @@
 - type: fsSoundTrims
   id: Default
   trims:
-    /Audio/Weapons/Guns/Gunshots/atreides.ogg: -10
+    /Audio/Weapons/Guns/Gunshots/atreides.ogg: -4
     /Audio/Weapons/Guns/Gunshots/sniper.ogg: -9.5
     /Audio/Weapons/Guns/Gunshots/shotgun.ogg: -8
     /Audio/Effects/Lightning/lightningshock.ogg: -7.5
     /Audio/_FinalStand/Weapons/L6/fire.ogg: -7.5
     /Audio/Weapons/Guns/Gunshots/ltrifle.ogg: -7.5
-    /Audio/Weapons/Guns/Gunshots/pistol.ogg: -7
+    /Audio/Weapons/Guns/Gunshots/pistol.ogg: -5
     /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg: -5.5
     /Audio/Weapons/ebladeon.ogg: -5.5
     /Audio/Weapons/Guns/Gunshots/c-20r.ogg: -5
     /Audio/Weapons/Guns/Gunshots/rifle2.ogg: -5
     /Audio/Weapons/eblademiss.ogg: -5
-    /Audio/Weapons/Guns/Gunshots/mk58.ogg: -4.5
-    /Audio/Weapons/Guns/Gunshots/laser.ogg: -4
+    /Audio/Weapons/Guns/Gunshots/mk58.ogg: -4
+    /Audio/Weapons/Guns/Gunshots/laser.ogg: -1
     /Audio/Weapons/Guns/Gunshots/smg.ogg: -4
     /Audio/Weapons/Guns/Gunshots/rpgfire.ogg: -3
     /Audio/_FinalStand/Weapons/LaserCarbine/fire.ogg: -2.5
@@ -23,3 +23,4 @@
     /Audio/Weapons/Guns/Gunshots/mateba.ogg: -1
     /Audio/_FinalStand/Weapons/N1984/fire.ogg: -0.5
     /Audio/_FinalStand/Mobs/Devastator/chainsawidle.ogg: -0.5
+    /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg: -0.5
