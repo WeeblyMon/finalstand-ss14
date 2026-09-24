@@ -95,12 +95,12 @@ public sealed class ChemSupplyCreditTest : GameTest
             var syringe = entMan.SpawnEntity(ItemProto, map.GridCoords);
             entMan.EnsureComponent<FSProducedByComponent>(syringe).ProducerMind = chemist;
 
-            attribution.RecordTreatment(patient, medicBody, syringe);
-
             var brute = new DamageSpecifier(protos.Index<DamageTypePrototype>(BluntDamage), 1);
             var before = stats.GetStats(chemist).HealingPoints;
 
+            // Hurt first: taking damage ends any earlier treatment claim.
             damageable.TryChangeDamage(patient, brute * 400f, ignoreResistances: true);
+            attribution.RecordTreatment(patient, medicBody, syringe);
             damageable.TryChangeDamage(patient, brute * -60f, ignoreResistances: true, origin: medicBody);
 
             var earned = stats.GetStats(chemist).HealingPoints - before;
