@@ -64,6 +64,9 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int TotalSpent = 0;
 
+    // Only a shop purchase earns the base-price refund; free job gear would otherwise be a money printer.
+    [DataField] public bool Purchased;
+
     [DataField, AutoNetworkedField] public bool KnifeGolden = false;
 
     [DataField] public bool VaporiseWeakMobEnabled = false;
