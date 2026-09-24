@@ -1,26 +1,34 @@
 - type: fsSoundTrims
   id: Default
   trims:
-    /Audio/Weapons/Guns/Gunshots/atreides.ogg: -4
-    /Audio/Weapons/Guns/Gunshots/sniper.ogg: -9.5
-    /Audio/Weapons/Guns/Gunshots/shotgun.ogg: -8
-    /Audio/Effects/Lightning/lightningshock.ogg: -7.5
-    /Audio/_FinalStand/Weapons/L6/fire.ogg: -7.5
-    /Audio/Weapons/Guns/Gunshots/ltrifle.ogg: -7.5
-    /Audio/Weapons/Guns/Gunshots/pistol.ogg: -5
-    /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg: -5.5
-    /Audio/Weapons/ebladeon.ogg: -5.5
-    /Audio/Weapons/Guns/Gunshots/c-20r.ogg: -5
-    /Audio/Weapons/Guns/Gunshots/rifle2.ogg: -5
-    /Audio/Weapons/eblademiss.ogg: -5
-    /Audio/Weapons/Guns/Gunshots/mk58.ogg: -4
-    /Audio/Weapons/Guns/Gunshots/laser.ogg: -1
-    /Audio/Weapons/Guns/Gunshots/smg.ogg: -4
-    /Audio/Weapons/Guns/Gunshots/rpgfire.ogg: -3
-    /Audio/_FinalStand/Weapons/LaserCarbine/fire.ogg: -2.5
-    /Audio/_FinalStand/Mobs/Devastator/chainsawattack.ogg: -2
-    /Audio/Weapons/ebladehum.ogg: -1.5
-    /Audio/Weapons/Guns/Gunshots/mateba.ogg: -1
-    /Audio/_FinalStand/Weapons/N1984/fire.ogg: -0.5
-    /Audio/_FinalStand/Mobs/Devastator/chainsawidle.ogg: -0.5
-    /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg: -0.5
+    /Audio/Weapons/Guns/Gunshots/minigun.ogg:               0  # Minigun
+    /Audio/Weapons/Guns/Gunshots/estocshot.ogg:             0  # Estoc DMR
+    /Audio/Weapons/Guns/Gunshots/ltrifle.ogg:               -7.5  # Lecter
+    /Audio/Weapons/Guns/Gunshots/rifle2.ogg:                -5  # AKMS
+    /Audio/_FinalStand/Weapons/L6/fire.ogg:                 -7.5  # L6 SAW
+    /Audio/Weapons/Guns/Gunshots/c-20r.ogg:                 -5  # C-20r
+    /Audio/Weapons/Guns/Gunshots/atreides.ogg:              -4  # Drozd, Atreides
+    /Audio/Weapons/Guns/Gunshots/smg.ogg:                   -4  # WT550
+    /Audio/Weapons/Guns/Gunshots/mk58.ogg:                  -4  # MK 58, sentry turret
+    /Audio/Weapons/Guns/Gunshots/pistol.ogg:                -5  # Viper
+    /Audio/_FinalStand/Weapons/N1984/fire.ogg:              -0.5  # Desert Eagle
+    /Audio/Weapons/Guns/Gunshots/mateba.ogg:                -1  # Mateba
+    /Audio/Weapons/Guns/Gunshots/shotgun.ogg:               -8  # Double Barrel, Bulldog, Kammerer, Blunderbuss
+    /Audio/Weapons/Guns/Gunshots/hushpup.ogg:               0  # Hushpup (prototype already -3)
+    /Audio/Weapons/Guns/Gunshots/sniper.ogg:                -3  # Kardashev-Mosin, Hristov
+    /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg:          -0.5  # Energy Magnum, Energy Shotgun
+    /Audio/_FinalStand/Weapons/EnergyShotgun/charge.ogg:    0  # Energy Shotgun charge
+    /Audio/_FinalStand/Weapons/EnergyShotgun/bounce.ogg:    0  # Energy Shotgun ricochet
+    /Audio/Weapons/Guns/Gunshots/laser.ogg:                 -1  # Adv. Laser Pistol
+    /Audio/_FinalStand/Weapons/LaserCarbine/fire.ogg:       -2.5  # Laser Carbine
+    /Audio/Weapons/Guns/Gunshots/laser3.ogg:                0  # Pulse Rifle, X-Ray Cannon
+    /Audio/Effects/Lightning/lightningshock.ogg:            -7.5  # Tesla Gun
+    /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg:      -5.5  # Hydra
+    /Audio/Weapons/Guns/Gunshots/rpgfire.ogg:               -3  # RPG-7
+    /Audio/_FinalStand/Weapons/Harvester/laser.ogg:         0  # Harvester
+    /Audio/Weapons/ebladeon.ogg:                            -5.5  # Energy Sword on
+    /Audio/Weapons/eblademiss.ogg:                          -5  # Energy Sword swing
+    /Audio/Weapons/ebladehum.ogg:                           -1.5  # Energy Sword hum
+    /Audio/_FinalStand/Deployables/HeavySentry/fire.ogg:    0  # Heavy Sentry
+    /Audio/_FinalStand/Mobs/Devastator/chainsawattack.ogg:  -2  # Devastator attack
+    /Audio/_FinalStand/Mobs/Devastator/chainsawidle.ogg:    -0.5  # Devastator idle
