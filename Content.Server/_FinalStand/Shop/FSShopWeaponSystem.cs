@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Research;
 using Content.Server._FinalStand.Departments;
@@ -176,7 +176,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
 
-        EnsureComp<FSWeaponUpgradeStateComponent>(weapon).Purchased = true;
+        EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
         TryGiveItemToPlayer(player, weapon);
 
@@ -367,9 +367,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
 
         var combinedSpent = TryComp<FSWeaponUpgradeStateComponent>(weapon, out var ws) ? ws.TotalSpent : 0;
-        var purchased = ws?.Purchased ?? false;
 
-        var baseRefund    = purchased ? (int)(comp.Price * 0.40f) : 0;
+        var baseRefund    = (int)(comp.Price * 0.40f);
         var upgradeRefund = (int)(combinedSpent * 0.40f);
         var totalRefund   = baseRefund + upgradeRefund;
         totalRefund = (int)(Math.Round(totalRefund / 50.0) * 50);
