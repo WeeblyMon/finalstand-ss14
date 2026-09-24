@@ -6,8 +6,9 @@ namespace Content.Shared._FinalStand.Perks;
 [Serializable, NetSerializable]
 public sealed class FSPerkLoadout
 {
-    public Dictionary<string, int> Levels = new();
-    public string[] Slots = new string[FSPerkDef.SlotCount];
+    // Properties, not fields: the DB copy goes through System.Text.Json, which skips fields entirely.
+    public Dictionary<string, int> Levels { get; set; } = new();
+    public string[] Slots { get; set; } = new string[FSPerkDef.SlotCount];
 
     public FSPerkLoadout()
     {
