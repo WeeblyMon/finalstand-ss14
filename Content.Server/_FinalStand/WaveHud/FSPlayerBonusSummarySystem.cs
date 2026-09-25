@@ -1,5 +1,8 @@
 using Content.Shared._FinalStand.WaveHud;
+using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Perks;
+using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.Shop;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Leveling;
@@ -32,6 +35,9 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSBloodloadSystem _bloodload = default!;
+    [Dependency] private FSPerkCritSystem _perkCrit = default!;
+    [Dependency] private CritSystem _crit = default!;
+    [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -109,7 +115,21 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
                 explosiveDamage = ComputeGrenadeExplosiveDamage(perks);
         }
 
-        var summary = new FSPlayerBonusSummaryEvent(gunDamage, fireRate, meleeDamage, explosiveDamage, reloadSpeed, magazineSize);
+        var critChance = Empty;
+        var critDamage = Empty;
+        var attackSpeed = Empty;
+        if (held is { } weapon)
+        {
+            var isGun = HasComp<GunComponent>(weapon);
+            var isMelee = !isGun && HasComp<MeleeWeaponComponent>(weapon);
+            if (isGun || isMelee)
+                ComputeCrit(mob, weapon, isMelee, out critChance, out critDamage);
+            if (isMelee)
+                attackSpeed = ComputeAttackSpeed(mob, weapon);
+        }
+
+        var summary = new FSPlayerBonusSummaryEvent(gunDamage, fireRate, meleeDamage, explosiveDamage, reloadSpeed, magazineSize,
+            critChance, critDamage, attackSpeed, ComputeResistance(mob, mindId, perks), ComputeMoveSpeed(mindId, perks));
 
         if (_lastSent.TryGetValue(session.UserId, out var previous) && summary.Matches(previous))
             return;
@@ -280,6 +300,134 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             total += berserker;
             sources.Add(FormatPct("Berserker", berserker));
         }
+    }
+
+    private void ComputeCrit(EntityUid mob, EntityUid weapon, bool melee,
+        out FSBonusCategory critChance, out FSBonusCategory critDamage)
+    {
+        var state = CompOrNull<FSWeaponUpgradeStateComponent>(weapon);
+        var weaponChance = melee ? state?.CritChance ?? 0f : _crit.CalculateCritChance(weapon);
+        var perkChance = _perkCrit.GetCritChanceBonus(mob, weapon, melee);
+        var chance = FSPerkCritSystem.CombineChance(weaponChance, perkChance);
+
+        critChance = Empty;
+        critDamage = Empty;
+        if (chance <= 0f)
+            return;
+
+        var chanceSources = new List<string>();
+        if (weaponChance > 0f)
+            chanceSources.Add(FormatPct("Weapon", weaponChance * 100f));
+        if (perkChance > 0f)
+            chanceSources.Add(FormatPct(melee ? "Ravage" : "Rifleman", perkChance * 100f));
+        critChance = new FSBonusCategory(chance * 100f, chanceSources.ToArray());
+
+        // Melee weapons without their own crit use the perk crit multiplier.
+        var baseMultiplier = melee
+            ? weaponChance > 0f ? state!.CritDamageMultiplier : FSPerkBonusConstants.PerkMeleeCritMultiplier
+            : _crit.CalculateCritMultiplier(weapon);
+        var perkMultiplier = _perkCrit.GetCritMultiplierBonus(mob, weapon);
+
+        var damageSources = new List<string> { FormatPct("Weapon", (baseMultiplier - 1f) * 100f) };
+        if (perkMultiplier > 0f)
+            damageSources.Add(FormatPct("Perks", perkMultiplier * 100f));
+        critDamage = new FSBonusCategory((baseMultiplier + perkMultiplier - 1f) * 100f, damageSources.ToArray());
+    }
+
+    private FSBonusCategory ComputeAttackSpeed(EntityUid mob, EntityUid weapon)
+    {
+        var total = 1f;
+        var sources = new List<string>();
+
+        if (TryComp<FSPerkMeleeSpeedComponent>(mob, out var ravage) && ravage.Multiplier > 1f)
+        {
+            total *= ravage.Multiplier;
+            sources.Add(FormatPct("Ravage", (ravage.Multiplier - 1f) * 100f));
+        }
+
+        if (TryComp<FSWeaponUpgradeStateComponent>(weapon, out var state) && state.AttackSpeedMultiplier > 1f)
+        {
+            total *= state.AttackSpeedMultiplier;
+            sources.Add(FormatPct("Upgrades", (state.AttackSpeedMultiplier - 1f) * 100f));
+        }
+
+        var medical = _medicalBonus.GetBonus(mob, FSMedicalBonusCategory.MeleeSpeed);
+        if (medical > 0f)
+        {
+            total *= 1f + medical;
+            sources.Add(FormatPct("Medical buff", medical * 100f));
+        }
+
+        return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
+    }
+
+    // Mirrors FSIncomingDamagePerkSystem: each source multiplies damage taken.
+    private FSBonusCategory ComputeResistance(EntityUid mob, EntityUid mindId, FSPerkLevelsComponent? perks)
+    {
+        if (perks == null)
+            return Empty;
+
+        var taken = 1f;
+        var sources = new List<string>();
+
+        void Add(string label, float multiplier)
+        {
+            taken *= multiplier;
+            sources.Add(FormatPct(label, (1f - multiplier) * 100f));
+        }
+
+        var jugg = perks.GetSlottedLevel("Juggernaught");
+        if (jugg > 0)
+            Add("Juggernaught (zombies)", 1f - jugg * FSPerkBonusConstants.JuggernaughtPerLevel);
+
+        var sns = perks.GetSlottedLevel("SwordAndShield");
+        if (sns > 0
+            && _hands.TryGetActiveItem(mob, out var active) && active is { } activeItem
+            && HasComp<MeleeWeaponComponent>(activeItem) && !HasComp<GunComponent>(activeItem))
+            Add("Sword & Shield", 1f - sns * FSPerkBonusConstants.SwordAndShieldResistPerLevel);
+
+        if (perks.GetSlottedLevel("GlassCannon") > 0)
+            Add("Glass Cannon", FSPerkBonusConstants.GlassCannonIncomingMultiplier);
+
+        var pacifist = perks.GetSlottedLevel("Pacifist");
+        if (pacifist > 0)
+            Add("Pacifist", 1f - pacifist * FSPerkBonusConstants.PacifistResistPerLevel);
+
+        var rampage = perks.GetSlottedLevel("Rampage");
+        if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
+            Add("Rampage", MathF.Max(0f, 1f - ramp.Stacks * rampage * FSPerkBonusConstants.RampageResistPerLevel));
+
+        return sources.Count > 0 ? new FSBonusCategory((1f - taken) * 100f, sources.ToArray()) : Empty;
+    }
+
+    // Mirrors FSPerkBuffSystem.OnLightweight.
+    private FSBonusCategory ComputeMoveSpeed(EntityUid mindId, FSPerkLevelsComponent? perks)
+    {
+        if (perks == null)
+            return Empty;
+
+        var total = 1f;
+        var sources = new List<string>();
+
+        void Add(string label, float bonus)
+        {
+            total *= 1f + bonus;
+            sources.Add(FormatPct(label, bonus * 100f));
+        }
+
+        var lightweight = perks.GetSlottedLevel("Lightweight");
+        if (lightweight > 0)
+            Add("Lightweight", lightweight * FSPerkBonusConstants.LightweightPerLevel);
+
+        var speedDemon = perks.GetSlottedLevel("SpeedDemon");
+        if (speedDemon > 0 && TryComp<FSSpeedDemonComponent>(mindId, out var sd) && sd.Stacks > 0)
+            Add("Speed Demon", sd.Stacks * speedDemon * FSPerkBonusConstants.SpeedDemonPerLevel);
+
+        var rampage = perks.GetSlottedLevel("Rampage");
+        if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
+            Add("Rampage", ramp.Stacks * rampage * FSPerkBonusConstants.RampageSpeedPerLevel);
+
+        return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
     }
 
     private static void AddImplosion(FSPerkLevelsComponent? perks, ref float total, List<string> sources)

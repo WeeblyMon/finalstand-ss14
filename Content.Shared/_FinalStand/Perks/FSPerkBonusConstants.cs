@@ -37,8 +37,8 @@ public static class FSPerkBonusConstants
 
     public const float CombatMedicPerLevel = 0.06f;     // healer and healed ally, ranged and melee
     public const float CombatMedicSeconds = 15f;
-    public const float RavageCritPerLevel = 0.025f;     // melee only
-    public const float RavageAttackSpeedPerLevel = 0.04f;
+    public const float RavageCritPerLevel = 0.05f;      // melee only
+    public const float RavageAttackSpeedPerLevel = 0.08f;
     public const float CriticalPlusPerLevel = 0.25f;    // added to the crit multiplier
     public const float PerkMeleeCritMultiplier = 1.5f;  // melee crits from perks on weapons without their own crit
     public const float RiflemanPerLevel = 0.04f;        // crit chance and crit multiplier, semi-auto rifles only

@@ -29,6 +29,18 @@ public sealed partial class FSCombatMedicSystem : EntitySystem
         return 1f + buff.Level * FSPerkBonusConstants.CombatMedicPerLevel;
     }
 
+    /// <summary>
+    /// For heals that may not change the mob's total damage, like bandages or the medigun only mending limb wounds.
+    /// </summary>
+    public void OnHealedAlly(EntityUid healer, EntityUid patient)
+    {
+        if (healer == patient || !_mind.TryGetMind(healer, out var healerMind, out var mind) || mind.UserId == null)
+            return;
+
+        var ev = new FSAllyHealedEvent(healerMind, patient, 0f);
+        OnAllyHealed(ref ev);
+    }
+
     private void OnAllyHealed(ref FSAllyHealedEvent ev)
     {
         if (!TryComp<FSPerkLevelsComponent>(ev.HealerMind, out var perks))
