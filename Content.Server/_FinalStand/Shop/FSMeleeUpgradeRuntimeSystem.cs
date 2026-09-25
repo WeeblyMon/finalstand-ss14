@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
@@ -36,6 +37,8 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSStunOverrideSystem _fsStun = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private FSPerkCritSystem _perkCrit = default!;
+    [Dependency] private FSUndyingSystem _undying = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 
@@ -72,10 +75,12 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
         }
 
         var didCrit = false;
-        if (state.CritChance > 0f && _random.NextFloat() < state.CritChance)
+        if (state.CritChance > 0f
+            && _random.NextFloat() < FSPerkCritSystem.CombineChance(state.CritChance, _perkCrit.GetCritChanceBonus(user, weapon, melee: true)))
         {
             didCrit = true;
-            args.BonusDamage += args.BaseDamage * (state.CritDamageMultiplier - 1f);
+            var multiplier = state.CritDamageMultiplier + _perkCrit.GetCritMultiplierBonus(user, weapon);
+            args.BonusDamage += args.BaseDamage * (multiplier - 1f);
         }
 
         foreach (var target in args.HitEntities)
@@ -139,7 +144,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 bonus.MoneyBonus = state.MoneyGainBonusPerKill;
             }
 
-            if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && _mind.TryGetMind(user, out var mindId, out _))
+            if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && !_undying.IsActive(user) && _mind.TryGetMind(user, out var mindId, out _))
                 _wallet.GiveCredits(mindId, state.MoneyPerHitBonus);
         }
 

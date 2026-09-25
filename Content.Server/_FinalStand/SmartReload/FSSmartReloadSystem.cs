@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Utility;
 using System.Linq;
 using Content.Server.Popups;
@@ -36,6 +37,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedStorageSystem _storage = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private FSBloodloadSystem _bloodload = default!;
 
     private readonly Dictionary<EntityUid, DoAfterId> _activeShellInserts = new();
 
@@ -159,7 +161,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
 
     private float GetReloadMultiplier(EntityUid user, EntityUid gun)
     {
-        var mult = 1.0f;
+        var mult = _bloodload.GetReloadTimeMultiplier(user);
         if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var state))
             mult *= state.ReloadSpeedMultiplier * state.ResearchReloadMultiplier;
         return mult;

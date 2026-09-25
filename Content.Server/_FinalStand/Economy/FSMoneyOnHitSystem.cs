@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Shop;
@@ -15,6 +16,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private FSUndyingSystem _undying = default!;
 
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
     private EntityQuery<FSArmorComponent> _armorQuery;
@@ -44,6 +46,8 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         if (_armorQuery.TryGetComponent(uid, out var armor) && armor.CurrentArmor > 0)
             return;
 
+        if (_undying.IsActive(args.Origin.Value))
+            return;
         if (!_mind.TryGetMind(args.Origin.Value, out var mindId, out _))
             return;
 

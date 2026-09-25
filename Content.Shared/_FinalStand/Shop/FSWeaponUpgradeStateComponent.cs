@@ -45,6 +45,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool AftershockEnabled = false;
 
     [DataField] public int MagazineSizeBonus = 0;
+    [DataField] public float ResearchMagazinePercent = 0f;
     [DataField] public float BatteryFireCostReduction = 0f;
 
     [DataField] public float AttackSpeedMultiplier = 1f;

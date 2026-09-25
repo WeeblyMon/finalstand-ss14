@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Shop;
@@ -22,6 +23,7 @@ public sealed partial class FSRocketUpgradeSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private FSImplosionSystem _implosion = default!;
 
     private static readonly ProtoId<TagPrototype> ExplosiveTag = "WeaponExplosive";
 
@@ -36,6 +38,8 @@ public sealed partial class FSRocketUpgradeSystem : EntitySystem
 
     private void OnAttemptTrigger(EntityUid uid, ExplodeOnTriggerComponent _, ref AttemptTriggerEvent args)
     {
+        _implosion.ApplyToExplosive(uid, args.User);
+
         // Independent of the per-weapon shop-upgrade state below, so hand-thrown grenades
         // (no ProjectileComponent.Weapon) benefit too.
         if (_tags.HasTag(uid, ExplosiveTag) && TryComp<ExplosiveComponent>(uid, out var researchExplosive))

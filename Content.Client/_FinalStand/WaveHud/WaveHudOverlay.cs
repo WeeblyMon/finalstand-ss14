@@ -114,6 +114,11 @@ public sealed partial class WaveHudOverlay : Overlay
     public FSBonusCategory ExplosiveDamage;
     public FSBonusCategory ReloadSpeed;
     public FSBonusCategory MagazineSize;
+    public FSBonusCategory CritChance;
+    public FSBonusCategory CritDamage;
+    public FSBonusCategory AttackSpeed;
+    public FSBonusCategory Resistance;
+    public FSBonusCategory MoveSpeed;
 
     private int _bonusVersion;
 
@@ -125,6 +130,11 @@ public sealed partial class WaveHudOverlay : Overlay
         ExplosiveDamage = ev.ExplosiveDamage;
         ReloadSpeed = ev.ReloadSpeed;
         MagazineSize = ev.MagazineSize;
+        CritChance = ev.CritChance;
+        CritDamage = ev.CritDamage;
+        AttackSpeed = ev.AttackSpeed;
+        Resistance = ev.Resistance;
+        MoveSpeed = ev.MoveSpeed;
         _bonusVersion++;
     }
 
@@ -724,11 +734,15 @@ public sealed partial class WaveHudOverlay : Overlay
     private Font? _tinyFont;
     private readonly Dictionary<string, Texture?> _statIconCache = new();
 
+    public const string PerkIconPrefix = "perk:";
+
     private Texture? GetStatIcon(string key)
     {
         if (_statIconCache.TryGetValue(key, out var cached))
             return cached;
-        var path = $"/Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png";
+        var path = key.StartsWith(PerkIconPrefix)
+            ? $"/Textures/_FinalStand/Interface/Perks/Icons/{key[PerkIconPrefix.Length..]}.png"
+            : $"/Textures/_FinalStand/Interface/HUD/hud_stat_{key}.png";
         Texture? tex = null;
         if (_resourceCache.TryContentFileRead(path, out var stream))
             using (stream)
@@ -993,7 +1007,12 @@ public sealed partial class WaveHudOverlay : Overlay
         if (holdingMelee) AddPctRow(_bonusRows, "Melee", "melee", MeleeDamage);
         if (holdingExplosive) AddPctRow(_bonusRows, "Explosive", "explosive", ExplosiveDamage);
         if (holdingGun) AddPctRow(_bonusRows, "Reload", "reload", ReloadSpeed);
-        if (holdingGun) AddFlatRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
+        if (holdingGun) AddPctRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
+        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Chance", "crit", CritChance);
+        if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Dmg", "critdmg", CritDamage);
+        if (holdingMelee) AddPctRow(_bonusRows, "Atk Speed", "atkspeed", AttackSpeed);
+        AddPctRow(_bonusRows, "Resist", "resist", Resistance);
+        AddPctRow(_bonusRows, "Speed", "speed", MoveSpeed);
 
         return _bonusRows;
     }
@@ -1004,15 +1023,6 @@ public sealed partial class WaveHudOverlay : Overlay
             return;
         var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}%";
         rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
-    }
-
-    private static void AddFlatRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
-    {
-        if (MathF.Abs(cat.Percent) < 0.5f)
-            return;
-        var n = (int)MathF.Round(cat.Percent);
-        var text = n >= 0 ? $"+{n}" : n.ToString();
-        rows.Add(new BonusRow(label, text, n >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
     }
 
     private float GetViewportPixelWidth()

@@ -35,6 +35,18 @@ public sealed class FSWeaponClassifierSystem : EntitySystem
     public const string TeslaProto = "WeaponTeslaGunFS";
     public const string HarvesterProto = "WeaponHarvesterFS";
 
+    private static readonly HashSet<string> SemiAutoRifleProtos =
+    [
+        "WeaponSniperMosin",
+        "WeaponRifleEstoc",
+        "WeaponSniperHristov",
+    ];
+
+    public bool IsSemiAutoRifle(EntityUid uid)
+    {
+        return Prototype(uid)?.ID is { } id && SemiAutoRifleProtos.Contains(id);
+    }
+
     public FSWeaponKind Classify(EntityUid uid)
     {
         var protoId = Prototype(uid)?.ID;

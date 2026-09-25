@@ -74,6 +74,13 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
         }
 
         if (others > 0 && allPlayers)
+        {
             args.Handled = true;
+            return;
+        }
+
+        // Relayed because this system owns the (MeleeWeaponComponent, MeleeHitEvent) subscription.
+        if (args.IsHit && others > 0)
+            RaiseLocalEvent(new FSPlayerMeleeHitEvent(args));
     }
 }

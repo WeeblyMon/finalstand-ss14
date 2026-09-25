@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
@@ -38,6 +39,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntInsertedIntoContainerMessage>(OnMagInsertedToGun);
+        SubscribeLocalEvent<GunComponent, GotEquippedHandEvent>(OnGunEquippedHand);
     }
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
@@ -108,18 +110,21 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     private void OnMagInsertedToGun(EntityUid gun, FSWeaponUpgradeStateComponent state,
         EntInsertedIntoContainerMessage args)
     {
-        if (state.MagazineSizeBonus <= 0) return;
         if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal)) return;
 
         var upgraded = EnsureComp<FSMagUpgradedComponent>(args.Entity);
         var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
-        if (diff <= 0) return;
-
+        if (diff > 0)
+        {
 #pragma warning disable RA0002
-        bal.Capacity += diff;
-        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
+            bal.Capacity += diff;
+            bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
 #pragma warning restore RA0002
-        upgraded.AppliedBonus = state.MagazineSizeBonus;
-        Dirty(args.Entity, bal);
+            upgraded.AppliedBonus = state.MagazineSizeBonus;
+            Dirty(args.Entity, bal);
+        }
+
+        var holder = Transform(gun).ParentUid;
+        ReconcileMagazinePercent(gun, HasComp<HandsComponent>(holder) ? holder : null);
     }
 }

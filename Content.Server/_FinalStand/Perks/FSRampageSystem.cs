@@ -65,7 +65,7 @@ public sealed partial class FSRampageSystem : EntitySystem
     private void OnZombieKilled(ref FSZombieKilledByPlayerEvent ev)
     {
         var level = ev.Perks.GetSlottedLevel("Rampage");
-        if (level <= 0) return;
+        if (level <= 0 || !ev.WasMeleeKill) return;
 
         var mindId = ev.MindId;
         var ramp = EnsureComp<FSRampageComponent>(mindId);

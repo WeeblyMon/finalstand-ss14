@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Shop;
+using Content.Shared.Hands.Components;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Weapons;
@@ -73,7 +74,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
         var shopLevels = state.Levels;
 
-        ReconcileCapacity(weapon, tracker, state, isBallistic, isL6, isMinigun, isHydra);
+        ReconcileCapacity(weapon, state, isBallistic, isL6, isMinigun, isHydra);
         ReconcileChargeRate(weapon, tracker, isEnergy, isXray, isTesla);
         ReconcileMisc(weapon, tracker, state, isL6, isMinigun, isXray, isRpg, isTesla);
         ReconcileAugments(weapon, tracker, state, shopLevels, isMinigun, isXray, isTesla);
@@ -82,54 +83,39 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
             _gun.RefreshModifiers(weapon);
     }
 
-    // Pure - shared with FSPlayerBonusSummarySystem, mirrors ReconcileCapacity's node list.
-    public int GetMagazineFlatBonus(bool isBallistic, bool isL6, bool isMinigun, bool isHydra)
+    private const float MagazinePercentCap = 0.15f;
+
+    // Pure - shared with FSPlayerBonusSummarySystem. Gains are capped so research adds at most 15%.
+    public float GetMagazinePercentBonus(bool isBallistic, bool isL6, bool isMinigun, bool isHydra)
     {
-        var total = 0;
-        if (isBallistic && Unlocked("FSOrdnanceL6BasicMunitions")) total += 5;
-        if (isBallistic && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates")) total += 15;
-        if (isMinigun && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates")) total += 15;
-        if (isL6 && Unlocked("FSOrdnanceL6SoftPackAmmoBags")) total -= 7;
-        if (isL6 && Unlocked("FSOrdnanceL6DisintegratingBeltLinks")) total += 20;
-        if (isHydra && Unlocked("FSOrdnanceVentedChambers")) total += 2;
-        if (isHydra && Unlocked("FSOrdnanceHydra")) total += 1;
-        return total;
+        var gain = 0f;
+        var loss = 0f;
+        if (isBallistic && Unlocked("FSOrdnanceL6BasicMunitions")) gain += 0.05f;
+        if (isBallistic && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates")) gain += 0.05f;
+        if (isMinigun && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates")) gain += 0.05f;
+        if (isL6 && Unlocked("FSOrdnanceL6DisintegratingBeltLinks")) gain += 0.05f;
+        if (isL6 && Unlocked("FSOrdnanceL6SoftPackAmmoBags")) loss += 0.10f;
+        if (isHydra && Unlocked("FSOrdnanceVentedChambers")) gain += 0.15f;
+        return MathF.Min(gain, MagazinePercentCap) - loss;
     }
 
-    private void ReconcileCapacity(EntityUid weapon, FSResearchAppliedComponent tracker, FSWeaponUpgradeStateComponent state,
+    private void ReconcileCapacity(EntityUid weapon, FSWeaponUpgradeStateComponent state,
         bool isBallistic, bool isL6, bool isMinigun, bool isHydra)
     {
-        var hasBallisticProvider = TryComp<BallisticAmmoProviderComponent>(weapon, out var bal);
-        var magazineFed = HasComp<MagazineAmmoProviderComponent>(weapon) || HasComp<ChamberMagazineAmmoProviderComponent>(weapon);
-        if (!hasBallisticProvider && !magazineFed)
+        if (!HasComp<BallisticAmmoProviderComponent>(weapon)
+            && !HasComp<MagazineAmmoProviderComponent>(weapon)
+            && !HasComp<ChamberMagazineAmmoProviderComponent>(weapon))
             return;
 
-        var total = 0;
-        total += Delta(tracker, "FSOrdnanceL6BasicMunitions", isBallistic && Unlocked("FSOrdnanceL6BasicMunitions") ? 1 : 0) * 5;
-        total += Delta(tracker, "FSOrdnanceMinigunSynchronizedFeedGates", isBallistic && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates") ? 1 : 0) * 15;
-        total += Delta(tracker, "FSOrdnanceMinigunSynchronizedFeedGates-kicker", isMinigun && Unlocked("FSOrdnanceMinigunSynchronizedFeedGates") ? 1 : 0) * 15;
-        total += Delta(tracker, "FSOrdnanceL6SoftPackAmmoBags", isL6 && Unlocked("FSOrdnanceL6SoftPackAmmoBags") ? 1 : 0) * -7;
-        total += Delta(tracker, "FSOrdnanceL6DisintegratingBeltLinks", isL6 && Unlocked("FSOrdnanceL6DisintegratingBeltLinks") ? 1 : 0) * 20;
-        total += Delta(tracker, "FSOrdnanceVentedChambers", isHydra && Unlocked("FSOrdnanceVentedChambers") ? 1 : 0) * 2;
-        total += Delta(tracker, "FSOrdnanceHydra", isHydra && Unlocked("FSOrdnanceHydra") ? 1 : 0) * 1;
-
-        if (total == 0)
+        var percent = GetMagazinePercentBonus(isBallistic, isL6, isMinigun, isHydra);
+        if (MathF.Abs(percent - state.ResearchMagazinePercent) < 0.0001f)
             return;
 
-        if (magazineFed)
-        {
-            state.MagazineSizeBonus += total;
-            Dirty(weapon, state);
-            _playerUpgrades.ApplyMagSizeBonusToCurrentMag(weapon, total);
-            return;
-        }
+        state.ResearchMagazinePercent = percent;
+        Dirty(weapon, state);
 
-#pragma warning disable RA0002
-        bal!.Capacity = Math.Max(1, bal.Capacity + total);
-        if (total > 0)
-            bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + total, bal.Capacity);
-#pragma warning restore RA0002
-        Dirty(weapon, bal);
+        var holder = Transform(weapon).ParentUid;
+        _playerUpgrades.ReconcileMagazinePercent(weapon, HasComp<HandsComponent>(holder) ? holder : null);
     }
 
     private void ReconcileChargeRate(EntityUid weapon, FSResearchAppliedComponent tracker,

@@ -29,6 +29,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
+    private List<FSPerkTimedBuff> _perkBuffs = new();
 
     public override void Initialize()
     {
@@ -41,6 +42,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
+        SubscribeNetworkEvent<FSPerkTimedBuffsEvent>(ev => _perkBuffs = ev.Buffs);
         SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
         SubscribeNetworkEvent<FSHealPayoutEvent>(OnHealPayout);
         SubscribeNetworkEvent<FSMedicalFundUpdatedEvent>(OnMedicalFund);
@@ -126,6 +128,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
+        _perkBuffs = new();
         if (_overlay != null)
             _overlay.IsRespawnOfferVisible = false;
     }
@@ -233,13 +236,24 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         overlay.MedicalBuffs.Clear();
 
+        var now = _timing.CurTime;
+        foreach (var buff in _perkBuffs)
+        {
+            if (now >= buff.EndTime)
+                continue;
+
+            overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
+                buff.Name,
+                WaveHudOverlay.PerkIconPrefix + buff.PerkId.ToLowerInvariant(),
+                (int) Math.Ceiling((buff.EndTime - now).TotalSeconds),
+                Loc.GetString("fs-buff-source-perk")));
+        }
+
         if (_player.LocalEntity is not { } player
             || !TryComp<FSMedicalBonusComponent>(player, out var bonus))
         {
             return;
         }
-
-        var now = _timing.CurTime;
 
         foreach (var (source, buff) in bonus.Active)
         {
