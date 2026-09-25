@@ -55,6 +55,9 @@ public sealed class FSPerkDef
             .ToArray();
     }
 
+    private static string[] PctTable(string format, float[] perLevel) =>
+        Table(format, perLevel.Select(v => v * 100f).ToArray());
+
     private static string[] Rows(string format, float scale, float[] perLevel)
     {
         var rows = new string[MaxLevel];
@@ -201,6 +204,61 @@ public sealed class FSPerkDef
                 "Increases research points gained per Harvester hit.",
                 PerkCategory.Yellow,
                 ["+1 RP/Hit", "+2 RP/Hit", "+3 RP/Hit", "+4 RP/Hit"]),
+
+            new("CombatMedic", "Combat Medic",
+                "Healing an ally grants you both increased damage for 15 seconds.",
+                PerkCategory.Blue,
+                Pct("+{0}% Damage", FSPerkBonusConstants.CombatMedicPerLevel)),
+
+            new("Ravage", "Ravage",
+                "Increases critical hit chance and attack speed with melee weapons.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance / +{1}% Attack Speed", FSPerkBonusConstants.RavageCritPerLevel, FSPerkBonusConstants.RavageAttackSpeedPerLevel)),
+
+            new("CriticalPlus", "Critical Plus",
+                "Increases your critical hit damage multiplier.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Damage", FSPerkBonusConstants.CriticalPlusPerLevel)),
+
+            new("Implosion", "Implosion",
+                "Increases your explosive damage, but your explosions are 25% smaller.",
+                PerkCategory.Red,
+                PctTable("+{0}% Explosive Damage", FSPerkBonusConstants.ImplosionDamage)),
+
+            new("Rifleman", "Rifleman",
+                "Increases crit chance and crit damage with the Mosin, Estoc and Hristov.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance/Damage", FSPerkBonusConstants.RiflemanPerLevel)),
+
+            new("Berserker", "Berserker",
+                "The lower your health, the more damage you deal. Halved for ranged damage.",
+                PerkCategory.Red,
+                Pct("Up to +{0}% Damage", FSPerkBonusConstants.BerserkerPerLevel)),
+
+            new("Undying", "Undying",
+                "Going down lets you keep fighting with unlimited ammo, then you die.",
+                PerkCategory.Blue,
+                Table("{0}s Duration", FSPerkBonusConstants.UndyingSeconds)),
+
+            new("ManOnFire", "The Man On Fire",
+                "Reduces fire damage taken. At max level, burning slowly heals you.",
+                PerkCategory.Blue,
+                PctTable("-{0}% Fire Damage", FSPerkBonusConstants.ManOnFireResist)),
+
+            new("Bandolier", "Bandolier",
+                "Increases the magazine size of your guns.",
+                PerkCategory.Green,
+                Pct("+{0}% Magazine Size", FSPerkBonusConstants.BandolierPerLevel)),
+
+            new("ShadowRounds", "Shadow Rounds",
+                "Shots have a chance to not consume ammo.",
+                PerkCategory.Red,
+                PctTable("{0}% Chance", FSPerkBonusConstants.ShadowRoundsChance)),
+
+            new("Bloodload", "Bloodload",
+                "Melee kills increase your reload speed for 12 seconds.",
+                PerkCategory.Green,
+                Pct("+{0}% Reload Speed", FSPerkBonusConstants.BloodloadPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

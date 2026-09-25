@@ -35,7 +35,27 @@ public static class FSPerkBonusConstants
 
     public const float DeathAuraStacksPerLevel = 5f;
 
+    public const float CombatMedicPerLevel = 0.06f;     // healer and healed ally, ranged and melee
+    public const float CombatMedicSeconds = 15f;
+    public const float RavageCritPerLevel = 0.025f;     // melee only
+    public const float RavageAttackSpeedPerLevel = 0.04f;
+    public const float CriticalPlusPerLevel = 0.25f;    // added to the crit multiplier
+    public const float PerkMeleeCritMultiplier = 1.5f;  // melee crits from perks on weapons without their own crit
+    public const float RiflemanPerLevel = 0.04f;        // crit chance and crit multiplier, semi-auto rifles only
+    public const float BerserkerPerLevel = 0.30f;       // at zero health; scales with missing health
+    public const float BerserkerRangedFactor = 0.5f;
+    public const float ImplosionRadiusMultiplier = 0.75f;
+    public const float BandolierPerLevel = 0.15f;       // of base magazine capacity
+    public const float BloodloadPerLevel = 0.70f;       // reload speed
+    public const float BloodloadSeconds = 12f;
+    public const float ManOnFireHealPerSecond = 0.5f;   // only past full immunity
+
+
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
     public static readonly float[] AdrenalineSeconds = [2.1f, 2.8f, 3.5f, 4.2f];
     public static readonly float[] LifeLeechHeal = [1f, 2f, 4f, 6f];
+    public static readonly float[] ImplosionDamage = [0.14f, 0.21f, 0.28f, 0.35f];
+    public static readonly float[] UndyingSeconds = [1f, 4f, 8f, 16f];
+    public static readonly float[] ManOnFireResist = [0.50f, 0.75f, 1.00f, 1.10f];
+    public static readonly float[] ShadowRoundsChance = [0.08f, 0.12f, 0.16f, 0.20f];
 }
