@@ -151,11 +151,20 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         }
 
         var healed = -(float)args.DamageDelta.GetTotal();
-        if (healed < 1f)
+        if (healed <= 0f)
             return;
 
         if (!TryGetPlayerMind(args.Origin, out var healerMind)
             && !_attribution.TryGetAttributedMedic(uid, out healerMind))
+            return;
+
+        if (!_mind.TryGetMind(uid, out var healedMind, out _) || healedMind != healerMind)
+        {
+            var allyHealed = new FSAllyHealedEvent(healerMind, uid, healed);
+            RaiseLocalEvent(ref allyHealed);
+        }
+
+        if (healed < 1f)
             return;
 
         var preHeal = (float)_damageable.GetTotalDamage(uid) + healed;

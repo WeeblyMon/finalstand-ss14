@@ -56,6 +56,13 @@ public sealed partial class FSPerkSystem : EntitySystem
         Log.Debug($"[FSPerk] OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
         SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
+        RaisePerksChanged(ev.Entity, mindId, perks);
+    }
+
+    private void RaisePerksChanged(EntityUid body, EntityUid mindId, FSPerkLevelsComponent perks)
+    {
+        var changed = new FSPerksChangedEvent(mindId, perks);
+        RaiseLocalEvent(body, ref changed);
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -247,7 +254,10 @@ public sealed partial class FSPerkSystem : EntitySystem
             SaveToDb(mindId, perks);
             SendStateToClient(mindId, perks);
             if (mind?.CurrentEntity is { } playerEntity)
+            {
                 _movement.RefreshMovementSpeedModifiers(playerEntity);
+                RaisePerksChanged(playerEntity, mindId, perks);
+            }
             return;
         }
 

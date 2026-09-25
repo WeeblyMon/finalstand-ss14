@@ -18,7 +18,7 @@
   materialCost:
     Steel: 2
     Plastic: 2
-  bonusDescription: +5 Magazine Capacity (Team)
+  bonusDescription: +5% Magazine Capacity (Team)
 
 - type: fsTechNode
   id: FSOrdnanceL6HeavyDutyReceivers
@@ -125,7 +125,7 @@
   exclusiveGroup: FSOrdnanceL6FeedChoice
   bonusDescription: |-
     +12% Reload Speed (L6-SAW)
-    -7 Magazine Capacity (L6-SAW)
+    -10% Magazine Capacity (L6-SAW)
 
 - type: fsTechNode
   id: FSOrdnanceL6DisintegratingBeltLinks
@@ -143,7 +143,7 @@
   - FSOrdnanceL6FeedSystem
   exclusiveGroup: FSOrdnanceL6FeedChoice
   bonusDescription: |-
-    +20 Magazine Capacity (L6-SAW)
+    +5% Magazine Capacity (L6-SAW)
     -10% Reload Speed (L6-SAW)
 
 - type: fsTechNode
@@ -340,8 +340,8 @@
   prerequisites:
   - FSOrdnanceMinigunExtendedDrumTuning
   bonusDescription: |-
-    +15 Magazine Capacity (Team)
-    +15 Magazine Capacity (Minigun)
+    +5% Magazine Capacity (Team)
+    +5% Magazine Capacity (Minigun)
 
 - type: fsTechNode
   id: FSOrdnanceMinigun12vElectricActuators
@@ -836,7 +836,7 @@
   - FSOrdnanceInternalGasPistons
   exclusiveGroup: FSOrdnanceHydraBarrelChoice
   bonusDescription: |-
-    +2 Chamber Capacity (Hydra)
+    +15% Chamber Capacity (Hydra)
     -10% Projectile Speed (Hydra)
 
 - type: fsTechNode
@@ -860,7 +860,6 @@
     Unlocks the Hydra shop.
     +5% Damage (Hydra)
     +5% Fire Rate (Hydra)
-    +1 Chamber Capacity (Hydra)
 
 # -- RPG-7 sub-tree (rocketry propulsion parts) --
 

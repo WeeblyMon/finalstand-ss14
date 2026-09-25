@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Perks;
 ﻿using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.StepTrigger.Systems;
@@ -13,6 +14,7 @@ public sealed class FSLandmineSystem : EntitySystem
     [Dependency] private ItemToggleSystem _toggle = default!;
     [Dependency] private SharedExplosionSystem _explosion = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSImplosionSystem _implosion = default!;
 
     public override void Initialize()
     {
@@ -58,8 +60,17 @@ public sealed class FSLandmineSystem : EntitySystem
         var max = comp.HighExplosive ? comp.HighExplosiveMaxIntensity : comp.MaxIntensity;
 
         var cause = DeployerOf(ent) ?? args.User;
-        _explosion.QueueExplosion(ent.Owner, comp.ExplosionType, total * comp.IntensityMultiplier,
-            comp.IntensitySlope, max, canCreateVacuum: false, user: cause);
+        total *= comp.IntensityMultiplier;
+        var slope = comp.IntensitySlope;
+        if (_implosion.TryGetFactors(cause, out var implosion))
+        {
+            total *= implosion.Total;
+            slope *= implosion.Slope;
+            max *= implosion.Max;
+        }
+
+        _explosion.QueueExplosion(ent.Owner, comp.ExplosionType, total,
+            slope, max, canCreateVacuum: false, user: cause);
 
         args.Handled = true;
 

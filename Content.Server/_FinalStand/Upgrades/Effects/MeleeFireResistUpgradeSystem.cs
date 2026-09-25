@@ -22,6 +22,7 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private TemperatureSystem _temperature = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSManOnFireSystem _manOnFire = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
 
@@ -81,6 +82,12 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
 
     private void OnWielderHeatExchange(Entity<HandsComponent> ent, ref BeforeHeatExchangeEvent args)
     {
+        if (_manOnFire.IsHeatImmune(ent))
+        {
+            args.HeatTransferModifier = 0f;
+            return;
+        }
+
         foreach (var held in _hands.EnumerateHeld((ent.Owner, ent.Comp)))
         {
             if (TryComp<FSWeaponUpgradeStateComponent>(held, out var state) && state.FireDamageResist >= 1f)

@@ -993,7 +993,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (holdingMelee) AddPctRow(_bonusRows, "Melee", "melee", MeleeDamage);
         if (holdingExplosive) AddPctRow(_bonusRows, "Explosive", "explosive", ExplosiveDamage);
         if (holdingGun) AddPctRow(_bonusRows, "Reload", "reload", ReloadSpeed);
-        if (holdingGun) AddFlatRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
+        if (holdingGun) AddPctRow(_bonusRows, "Mag Size", "magsize", MagazineSize);
 
         return _bonusRows;
     }
@@ -1004,15 +1004,6 @@ public sealed partial class WaveHudOverlay : Overlay
             return;
         var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}%";
         rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
-    }
-
-    private static void AddFlatRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
-    {
-        if (MathF.Abs(cat.Percent) < 0.5f)
-            return;
-        var n = (int)MathF.Round(cat.Percent);
-        var text = n >= 0 ? $"+{n}" : n.ToString();
-        rows.Add(new BonusRow(label, text, n >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
     }
 
     private float GetViewportPixelWidth()

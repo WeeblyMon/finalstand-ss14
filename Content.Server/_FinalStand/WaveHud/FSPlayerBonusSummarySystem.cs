@@ -29,6 +29,9 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStatic = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
+    [Dependency] private FSCombatMedicSystem _combatMedic = default!;
+    [Dependency] private FSBerserkerSystem _berserker = default!;
+    [Dependency] private FSBloodloadSystem _bloodload = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -98,12 +101,12 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (held is { } heldUid)
         {
             if (HasComp<GunComponent>(heldUid))
-                ComputeGunCategories(heldUid, perks, hasOfficer, officerLevel, deathAuraStacks,
+                ComputeGunCategories(mob, heldUid, perks, hasOfficer, officerLevel, deathAuraStacks,
                     out gunDamage, out fireRate, out explosiveDamage, out reloadSpeed, out magazineSize);
             else if (HasComp<MeleeWeaponComponent>(heldUid))
-                meleeDamage = ComputeMeleeDamage(perks);
+                meleeDamage = ComputeMeleeDamage(mob, perks);
             else if (HasComp<FSGrenadePackComponent>(heldUid))
-                explosiveDamage = ComputeGrenadeExplosiveDamage();
+                explosiveDamage = ComputeGrenadeExplosiveDamage(perks);
         }
 
         var summary = new FSPlayerBonusSummaryEvent(gunDamage, fireRate, meleeDamage, explosiveDamage, reloadSpeed, magazineSize);
@@ -115,7 +118,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         RaiseNetworkEvent(summary, Filter.SinglePlayer(session));
     }
 
-    private void ComputeGunCategories(EntityUid heldUid, FSPerkLevelsComponent? perks,
+    private void ComputeGunCategories(EntityUid mob, EntityUid heldUid, FSPerkLevelsComponent? perks,
         bool hasOfficer, int officerLevel, int deathAuraStacks,
         out FSBonusCategory gunDamage, out FSBonusCategory fireRate, out FSBonusCategory explosiveDamage,
         out FSBonusCategory reloadSpeed, out FSBonusCategory magazineSize)
@@ -174,6 +177,10 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             dmgSources.Add(FormatPct("Pacifist", pct));
         }
 
+        AddPerkDamage(mob, perks, ranged: true, ref dmgPct, dmgSources);
+        if (isLauncher)
+            AddImplosion(perks, ref dmgPct, dmgSources);
+
         var damageCategory = new FSBonusCategory(dmgPct, dmgSources.ToArray());
         gunDamage = isLauncher ? Empty : damageCategory;
         explosiveDamage = isLauncher ? damageCategory : Empty;
@@ -193,17 +200,36 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         }
         fireRate = new FSBonusCategory(frPct, frSources.ToArray());
 
-        reloadSpeed = reloadPct != 0f
-            ? new FSBonusCategory(reloadPct * 100f, new[] { FormatPct("Ordnance research", reloadPct * 100f) })
-            : Empty;
+        var reloadTotal = reloadPct * 100f;
+        var reloadSources = new List<string>();
+        if (reloadPct != 0f)
+            reloadSources.Add(FormatPct("Ordnance research", reloadTotal));
 
-        var flatMagBonus = _researchStatic.GetMagazineFlatBonus(isBallistic, isL6, isMinigun, isHydra);
-        magazineSize = flatMagBonus != 0
-            ? new FSBonusCategory(flatMagBonus, new[] { $"Ordnance research {(flatMagBonus > 0 ? "+" : "")}{flatMagBonus} rounds" })
-            : Empty;
+        var bloodload = _bloodload.GetReloadTimeMultiplier(mob);
+        if (bloodload < 1f)
+        {
+            var pct = (1f / bloodload - 1f) * 100f;
+            reloadTotal += pct;
+            reloadSources.Add(FormatPct("Bloodload", pct));
+        }
+        reloadSpeed = reloadSources.Count > 0 ? new FSBonusCategory(reloadTotal, reloadSources.ToArray()) : Empty;
+
+        var magPct = _researchStatic.GetMagazinePercentBonus(isBallistic, isL6, isMinigun, isHydra) * 100f;
+        var magSources = new List<string>();
+        if (magPct != 0f)
+            magSources.Add(FormatPct("Ordnance research", magPct));
+
+        var bandolierLevel = perks?.GetSlottedLevel("Bandolier") ?? 0;
+        if (bandolierLevel > 0)
+        {
+            var pct = bandolierLevel * FSPerkBonusConstants.BandolierPerLevel * 100f;
+            magPct += pct;
+            magSources.Add(FormatPct("Bandolier", pct));
+        }
+        magazineSize = magSources.Count > 0 ? new FSBonusCategory(magPct, magSources.ToArray()) : Empty;
     }
 
-    private FSBonusCategory ComputeMeleeDamage(FSPerkLevelsComponent? perks)
+    private FSBonusCategory ComputeMeleeDamage(EntityUid mob, FSPerkLevelsComponent? perks)
     {
         var pct = 0f;
         var sources = new List<string>();
@@ -231,17 +257,56 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             sources.Add(FormatPct("Pacifist", p));
         }
 
+        AddPerkDamage(mob, perks, ranged: false, ref pct, sources);
+
         return sources.Count > 0 ? new FSBonusCategory(pct, sources.ToArray()) : Empty;
     }
 
-    private FSBonusCategory ComputeGrenadeExplosiveDamage()
+    private void AddPerkDamage(EntityUid mob, FSPerkLevelsComponent? perks, bool ranged, ref float total, List<string> sources)
     {
-        var mul = _researchBuff.GetDamageMultiplier(false, false, true, false, false, false, false, false, false);
-        if (mul == 1f)
-            return Empty;
+        if (perks == null || !_mind.TryGetMind(mob, out var mindId, out _))
+            return;
 
-        var pct = (mul - 1f) * 100f;
-        return new FSBonusCategory(pct, new[] { FormatPct("Ordnance research", pct) });
+        var medic = (_combatMedic.GetDamageMultiplier(mindId) - 1f) * 100f;
+        if (medic > 0f)
+        {
+            total += medic;
+            sources.Add(FormatPct("Combat Medic", medic));
+        }
+
+        var berserker = (_berserker.GetMultiplier(mob, perks, ranged) - 1f) * 100f;
+        if (berserker > 0.5f)
+        {
+            total += berserker;
+            sources.Add(FormatPct("Berserker", berserker));
+        }
+    }
+
+    private static void AddImplosion(FSPerkLevelsComponent? perks, ref float total, List<string> sources)
+    {
+        var level = perks?.GetSlottedLevel("Implosion") ?? 0;
+        if (level <= 0)
+            return;
+
+        var pct = FSPerkBonusConstants.ImplosionDamage[Math.Min(level, FSPerkDef.MaxLevel) - 1] * 100f;
+        total += pct;
+        sources.Add(FormatPct("Implosion", pct));
+    }
+
+    private FSBonusCategory ComputeGrenadeExplosiveDamage(FSPerkLevelsComponent? perks)
+    {
+        var pct = 0f;
+        var sources = new List<string>();
+
+        var mul = _researchBuff.GetDamageMultiplier(false, false, true, false, false, false, false, false, false);
+        if (mul != 1f)
+        {
+            pct = (mul - 1f) * 100f;
+            sources.Add(FormatPct("Ordnance research", pct));
+        }
+
+        AddImplosion(perks, ref pct, sources);
+        return sources.Count > 0 ? new FSBonusCategory(pct, sources.ToArray()) : Empty;
     }
 
     private static string FormatPct(string label, float pct) => $"{label} {(pct >= 0 ? "+" : "")}{pct:0.#}%";
@@ -283,7 +348,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         if (hasGrenadePack)
         {
-            var grenadeExplosive = ComputeGrenadeExplosiveDamage();
+            var grenadeExplosive = ComputeGrenadeExplosiveDamage(perks);
             sb.AppendLine($"  ExplosiveDamage (grenade): {grenadeExplosive.Percent:0.##}%  [{string.Join(", ", grenadeExplosive.Sources)}]");
             return sb.ToString();
         }
@@ -296,7 +361,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         if (hasGun)
         {
-            ComputeGunCategories(heldUid, perks, hasOfficer, officerLevel, deathAuraStacks,
+            ComputeGunCategories(mob, heldUid, perks, hasOfficer, officerLevel, deathAuraStacks,
                 out var gunDamage, out var fireRate, out var explosiveDamage, out var reloadSpeed, out var magazineSize);
             sb.AppendLine($"  GunDamage: {gunDamage.Percent:0.##}%  [{string.Join(", ", gunDamage.Sources)}]");
             sb.AppendLine($"  FireRate: {fireRate.Percent:0.##}%  [{string.Join(", ", fireRate.Sources)}]");
@@ -306,7 +371,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         }
         if (hasMelee)
         {
-            var melee = ComputeMeleeDamage(perks);
+            var melee = ComputeMeleeDamage(mob, perks);
             sb.AppendLine($"  MeleeDamage: {melee.Percent:0.##}%  [{string.Join(", ", melee.Sources)}]");
         }
 

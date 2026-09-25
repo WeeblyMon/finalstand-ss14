@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Chemistry;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Body.Components;
@@ -33,6 +34,7 @@ public sealed partial class HypospraySystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private ReactiveSystem _reactive = default!;
     [Dependency] private SharedSolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private FSTreatmentAttributionSystem _fsAttribution = default!;
 
     public override void Initialize()
     {
@@ -161,6 +163,8 @@ public sealed partial class HypospraySystem : EntitySystem
 
         _adminLogger.Add(LogType.ForceFeed,
             $"{ToPrettyString(user):user} injected {ToPrettyString(target):target} with {ToPrettyString(hypo):hypo} ({SharedSolutionContainerSystem.ToPrettyString(removed):solution})");
+
+        _fsAttribution.RecordTreatment(target, user, hypo.Owner);
 
         var afterEv = new AfterHyposprayInjectsEvent(user, hypo, target);
         RaiseLocalEvent(user, ref afterEv);
