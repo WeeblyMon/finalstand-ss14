@@ -35,5 +35,6 @@ public static partial class PoolManager
         (CCVars.MovementMobPushing.Name, "false"),
         (CCVars.ResourceUploadingStoreDeletionDays.Name, "0"),
         (CCVars.FSAutoStart.Name, "false"),
+        (CCVars.StaticStorageUI.Name, "true"),
     };
 }
