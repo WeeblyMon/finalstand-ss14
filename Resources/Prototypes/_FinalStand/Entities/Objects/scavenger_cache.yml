@@ -1,0 +1,15 @@
+# Dropped by the Scavenger perk. Activating it hands out one random reward, then it's gone.
+- type: entity
+  id: FSScavengerCache
+  name: supply cache
+  description: Supplies scavenged from the horde. Press E on it before it's gone.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Storage/boxes.rsi
+    state: box
+  - type: Clickable
+  - type: InteractionOutline
+  - type: FSScavengerCache
+  - type: TimedDespawn
+    lifetime: 20

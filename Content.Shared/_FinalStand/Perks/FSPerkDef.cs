@@ -55,6 +55,11 @@ public sealed class FSPerkDef
             .ToArray();
     }
 
+    private static string[] Levels(string format, Func<int, object[]> args)
+        => Enumerable.Range(0, MaxLevel)
+            .Select(i => string.Format(CultureInfo.InvariantCulture, format, args(i)))
+            .ToArray();
+
     private static string[] PctTable(string format, float[] perLevel) =>
         Table(format, perLevel.Select(v => v * 100f).ToArray());
 
@@ -259,6 +264,60 @@ public sealed class FSPerkDef
                 "Melee kills increase your reload speed for 12 seconds.",
                 PerkCategory.Green,
                 Pct("+{0}% Reload Speed", FSPerkBonusConstants.BloodloadPerLevel)),
+
+            new("Speedload", "Speedload",
+                "Increases your reload speed.",
+                PerkCategory.Red,
+                Pct("+{0}% Reload Speed", FSPerkBonusConstants.SpeedloadPerLevel)) { IconFile = "bloodload" },
+
+            new("Executioner", "Executioner",
+                "Deal increased damage to zombies below 35% health.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.ExecutionerPerLevel)) { IconFile = "berserker" },
+
+            new("Shredder", "Shredder",
+                "Hits stack vulnerability on zombies, up to 10. Stacks fade 4s after the last hit.",
+                PerkCategory.Red,
+                PctTable("+{0}% Damage Taken per Stack", FSPerkBonusConstants.ShredderPerStack)) { IconFile = "deathaura" },
+
+            new("SpecialisedKilling", "Specialised Killing",
+                "Deal increased damage to special zombies and bosses.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.SpecialisedKillingPerLevel)) { IconFile = "rifleman" },
+
+            new("Thorns", "Thorns",
+                "Kills grant stacks. Taking zombie damage spends one and reflects it back.",
+                PerkCategory.Blue,
+                Levels("{0} Stacks / {1:0.##}% Reflect",
+                    i => [FSPerkBonusConstants.ThornsMaxStacks[i], FSPerkBonusConstants.ThornsReflect[i] * 100f])) { IconFile = "juggernaught" },
+
+            new("StaticDischarge", "Static Discharge",
+                "Getting hit by a zombie stuns the zombies around you. Specials for half as long.",
+                PerkCategory.Blue,
+                Levels("{0:0.##} Tile Radius / {1:0.##}s Cooldown",
+                    i => [FSPerkBonusConstants.StaticDischargeRadius[i], FSPerkBonusConstants.StaticDischargeCooldown[i]])) { IconFile = "untouchable" },
+
+            new("BuiltToLast", "Built To Last",
+                "Your barricades take less damage. You heal when one of them breaks.",
+                PerkCategory.Blue,
+                Levels("-{0:0.##}% Barricade Damage / +{1:0.##} HP",
+                    i => [FSPerkBonusConstants.BuiltToLastPerLevel * (i + 1) * 100f, FSPerkBonusConstants.BuiltToLastHeal[i]])) { IconFile = "cargonian" },
+
+            new("Technician", "Technician",
+                "More mine and barricade stock, refilled fully each wave. Max level: +1 of every other.",
+                PerkCategory.Green,
+                ["+1 Mine/Barricade Stock", "+2 Mine/Barricade Stock", "+3 Mine/Barricade Stock",
+                    "+4 Mine/Barricade Stock / +1 Other Deployables"]) { IconFile = "officer" },
+
+            new("Underdog", "Underdog",
+                "Gain damage and resistance for every zombie near you, up to 8.",
+                PerkCategory.Purple,
+                PctTable("+{0}% per Nearby Zombie", FSPerkBonusConstants.UnderdogPerZombie)) { IconFile = "rampage" },
+
+            new("Scavenger", "Scavenger",
+                "Kills can drop a supply cache holding ammo, a heal or credits.",
+                PerkCategory.Purple,
+                PctTable("{0}% Drop Chance", FSPerkBonusConstants.ScavengerChance)) { IconFile = "profiteer" },
         ];
 
         All = list.ToDictionary(a => a.Id);

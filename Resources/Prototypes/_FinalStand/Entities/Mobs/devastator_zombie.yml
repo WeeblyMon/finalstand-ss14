@@ -6,6 +6,7 @@
   suffix: Devastator
   name: devastator zombie
   components:
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/devastatorzombie.png
   - type: FSDevastator

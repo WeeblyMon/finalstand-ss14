@@ -50,6 +50,20 @@ public static class FSPerkBonusConstants
     public const float BloodloadSeconds = 12f;
     public const float ManOnFireHealPerSecond = 0.5f;   // only past full immunity
 
+    public const float SpeedloadPerLevel = 0.10f;
+    public const float ExecutionerPerLevel = 0.10f;
+    public const float ExecutionerHealthFraction = 0.35f;
+    public const int ShredderMaxStacks = 10;
+    public const float ShredderSeconds = 4f;
+    public const float SpecialisedKillingPerLevel = 0.10f;
+    public const float StaticDischargeStunSeconds = 1.5f;
+    public const float StaticDischargeSpecialFactor = 0.5f;
+    public const float BuiltToLastPerLevel = 0.10f;
+    public const float UnderdogRadius = 5f;
+    public const int UnderdogMaxZombies = 8;
+    public const float ScavengerHeal = 15f;
+    public const int ScavengerCredits = 150;
+
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
     public static readonly float[] AdrenalineSeconds = [2.1f, 2.8f, 3.5f, 4.2f];
@@ -58,4 +72,15 @@ public static class FSPerkBonusConstants
     public static readonly float[] UndyingSeconds = [1f, 4f, 8f, 16f];
     public static readonly float[] ManOnFireResist = [0.50f, 0.75f, 1.00f, 1.10f];
     public static readonly float[] ShadowRoundsChance = [0.08f, 0.12f, 0.16f, 0.20f];
+    public static readonly float[] ShredderPerStack = [0.01f, 0.015f, 0.02f, 0.025f];
+    public static readonly int[] ThornsMaxStacks = [50, 100, 150, 200];
+    public static readonly float[] ThornsReflect = [0.25f, 0.50f, 0.75f, 1.00f];
+    public static readonly float[] StaticDischargeRadius = [1.5f, 2f, 2.5f, 3f];
+    public static readonly float[] StaticDischargeCooldown = [15f, 12f, 10f, 8f];
+    public static readonly float[] BuiltToLastHeal = [5f, 10f, 15f, 20f];
+    public static readonly float[] UnderdogPerZombie = [0.02f, 0.03f, 0.04f, 0.05f];
+    public static readonly float[] ScavengerChance = [0.03f, 0.05f, 0.075f, 0.10f];
+
+    public static int TechnicianBonus(int level, int baseMaxStock)
+        => level <= 0 ? 0 : baseMaxStock >= 2 ? level : level >= 4 ? 1 : 0;
 }

@@ -11,6 +11,9 @@
   parent: BaseStructure
   id: FSBarricadeBase
   components:
+  - type: Tag
+    tags:
+    - FSBarricade
   - type: Rotatable
   - type: Anchorable
   - type: Climbable

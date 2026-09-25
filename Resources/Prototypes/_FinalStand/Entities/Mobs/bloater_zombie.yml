@@ -6,6 +6,7 @@
   suffix: Bloater
   name: bloater
   components:
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/boomer.png
   - type: FSBoomOnDeath

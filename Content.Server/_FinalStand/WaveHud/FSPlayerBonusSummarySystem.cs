@@ -35,6 +35,8 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSBloodloadSystem _bloodload = default!;
+    [Dependency] private FSSpeedloadSystem _speedload = default!;
+    [Dependency] private FSUnderdogSystem _underdog = default!;
     [Dependency] private FSPerkCritSystem _perkCrit = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
@@ -232,6 +234,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             reloadTotal += pct;
             reloadSources.Add(FormatPct("Bloodload", pct));
         }
+
+        var speedload = _speedload.GetReloadTimeMultiplier(mob);
+        if (speedload < 1f)
+        {
+            var pct = (1f / speedload - 1f) * 100f;
+            reloadTotal += pct;
+            reloadSources.Add(FormatPct("Speedload", pct));
+        }
         reloadSpeed = reloadSources.Count > 0 ? new FSBonusCategory(reloadTotal, reloadSources.ToArray()) : Empty;
 
         var magPct = _researchStatic.GetMagazinePercentBonus(isBallistic, isL6, isMinigun, isHydra) * 100f;
@@ -299,6 +309,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             total += berserker;
             sources.Add(FormatPct("Berserker", berserker));
+        }
+
+        var underdog = (_underdog.GetMultiplier(mob, perks) - 1f) * 100f;
+        if (underdog > 0f)
+        {
+            total += underdog;
+            sources.Add(FormatPct("Underdog", underdog));
         }
     }
 
@@ -396,6 +413,10 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var rampage = perks.GetSlottedLevel("Rampage");
         if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             Add("Rampage", MathF.Max(0f, 1f - ramp.Stacks * rampage * FSPerkBonusConstants.RampageResistPerLevel));
+
+        var underdog = _underdog.GetMultiplier(mob, perks);
+        if (underdog > 1f)
+            Add("Underdog", 1f / underdog);
 
         return sources.Count > 0 ? new FSBonusCategory((1f - taken) * 100f, sources.ToArray()) : Empty;
     }

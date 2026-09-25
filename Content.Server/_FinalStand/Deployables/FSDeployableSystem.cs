@@ -19,6 +19,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private Perks.FSTechnicianSystem _technician = default!;
 
     public override void Initialize()
     {
@@ -76,9 +77,10 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         var ownerMind = _mind.TryGetMind(deployer, out var mindId, out _) ? mindId : (EntityUid?) null;
 
-        if (comp.MaxDeployed > 0 && CountDeployed(ownerMind, comp.DeployedProtoId) >= comp.MaxDeployed)
+        var maxDeployed = comp.MaxDeployed > 0 ? comp.MaxDeployed + _technician.GetBonusForUser(deployer, comp) : 0;
+        if (maxDeployed > 0 && CountDeployed(ownerMind, comp.DeployedProtoId) >= maxDeployed)
         {
-            _popup.PopupEntity(Loc.GetString("fs-deployable-max-deployed", ("max", comp.MaxDeployed)), deployer, deployer);
+            _popup.PopupEntity(Loc.GetString("fs-deployable-max-deployed", ("max", maxDeployed)), deployer, deployer);
             return false;
         }
 

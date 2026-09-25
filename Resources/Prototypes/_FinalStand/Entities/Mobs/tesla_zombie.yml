@@ -6,6 +6,7 @@
   suffix: Tesla
   name: tesla zombie
   components:
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/teslazombie.png
   - type: FSTeslaZombie

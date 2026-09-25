@@ -20,6 +20,7 @@ public sealed class FSPackableSystem : EntitySystem
     [Dependency] private FSMedicalOnlySystem _medical = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private Perks.FSTechnicianSystem _technician = default!;
 
     private static readonly SoundSpecifier PackSound =
         new SoundPathSpecifier("/Audio/Items/zip.ogg");
@@ -107,7 +108,8 @@ public sealed class FSPackableSystem : EntitySystem
 
             if (TryComp<FSDeployableItemComponent>(item, out var restored))
             {
-                restored.Stock = Math.Min(restored.Stock + 1, restored.MaxStock);
+                var max = restored.MaxStock + _technician.GetBonusForUser(args.User, restored);
+                restored.Stock = Math.Max(restored.Stock, Math.Min(restored.Stock + 1, max));
                 Dirty(item, restored);
             }
         }
