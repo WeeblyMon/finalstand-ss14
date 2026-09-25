@@ -47638,8 +47638,6 @@ entities:
       deviceLists:
       - 3414
       - 3425
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 6170
@@ -48406,8 +48404,6 @@ entities:
     - type: DeviceNetwork
       deviceLists:
       - 3425
-      configurators:
-      - invalid
   - uid: 10969
     components:
     - type: Transform
@@ -48574,8 +48570,6 @@ entities:
     - type: DeviceNetwork
       deviceLists:
       - 3425
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#990000FF'
   - uid: 8625
