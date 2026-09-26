@@ -5,7 +5,7 @@ namespace Content.Shared._FinalStand.Perks;
 public sealed partial class FSPickupVisualsComponent : Component
 {
     [DataField]
-    public float SpinDegreesPerSecond = 60f;
+    public float SpinDegreesPerSecond = 42f;
 
     [DataField]
     public float BobHeight = 0.06f;
