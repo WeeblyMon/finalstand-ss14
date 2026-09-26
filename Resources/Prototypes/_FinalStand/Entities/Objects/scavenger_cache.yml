@@ -6,9 +6,13 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
-    sprite: Objects/Storage/boxes.rsi
-    state: box
+    sprite: _FinalStand/Objects/Misc/scavenger_cache.rsi
     drawdepth: Items
+    layers:
+    - state: glow
+      shader: unshaded
+    - state: icon
+  - type: FSPickupVisuals
   - type: Visibility
     layer: 8
   - type: Clickable
