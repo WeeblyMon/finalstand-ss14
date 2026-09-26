@@ -144,4 +144,16 @@ public sealed partial class WeaponUpgradeDef
     [DataField] public ProtoId<FSTechNodePrototype>? RequiresResearch;
     [DataField] public ProtoId<FSTechNodePrototype>? DiscountResearch;
     [DataField] public float DiscountMultiplier = 1.0f;
+
+    private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
+
+    // Shared so the shop window shows exactly what the server charges.
+    public int LevelCost(int level, bool discounted)
+    {
+        var mult = level > 0 && level <= LevelCostMults.Length
+            ? LevelCostMults[level - 1]
+            : 3.6f + (level - LevelCostMults.Length) * 1.2f;
+        var cost = (int)MathF.Round(BaseCost * mult);
+        return discounted ? (int)MathF.Round(cost * DiscountMultiplier) : cost;
+    }
 }

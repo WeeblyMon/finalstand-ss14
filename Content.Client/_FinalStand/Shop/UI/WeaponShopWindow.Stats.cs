@@ -502,11 +502,4 @@ public sealed partial class WeaponShopWindow
         var approx = (int)(shopComp.StatCapacity * 0.2f);
         return (Math.Min(1f, approx / 30f), $"{approx}", approx);
     }
-
-    private static Color StatBarColor(int value) => value switch
-    {
-        < 33 => FSUiPalette.StateNegative,
-        < 66 => FSUiPalette.StatePending,
-        _    => FSUiPalette.StatePositive,
-    };
 }

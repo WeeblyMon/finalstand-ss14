@@ -86,8 +86,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         var estimatedSpent = 0;
         foreach (var def in comp.Upgrades)
         {
-            var level = levels.GetValueOrDefault(def.Id, 0);
-            estimatedSpent += def.BaseCost * level * (level + 1) / 2;
+            for (var l = 1; l <= levels.GetValueOrDefault(def.Id, 0); l++)
+                estimatedSpent += def.LevelCost(l, false);
         }
         var raw = comp.Price * 0.40 + estimatedSpent * 0.40;
         return Math.Max(0, (int)Math.Round(raw / 50.0) * 50);
@@ -114,10 +114,10 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         if (_window == null || !EntMan.TryGetComponent<FSShopWeaponComponent>(Owner, out var comp))
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
+        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), EntMan);
         _window.RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         _window.UpdateBalance(shopClient.CurrentCredits);
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);
-        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), EntMan);
         _window.ResetConfirmation();
         UpdateSellButtonState();
     }

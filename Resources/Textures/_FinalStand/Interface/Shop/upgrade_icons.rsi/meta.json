@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "FinalStand",
+  "size": {
+    "x": 24,
+    "y": 24
+  },
+  "states": [
+    {
+      "name": "damage"
+    },
+    {
+      "name": "firerate"
+    },
+    {
+      "name": "magazine"
+    },
+    {
+      "name": "accuracy"
+    },
+    {
+      "name": "armorpierce"
+    },
+    {
+      "name": "range"
+    },
+    {
+      "name": "pierce"
+    },
+    {
+      "name": "knockback"
+    },
+    {
+      "name": "blast"
+    },
+    {
+      "name": "capacity"
+    },
+    {
+      "name": "regen"
+    },
+    {
+      "name": "bolt"
+    },
+    {
+      "name": "cluster"
+    },
+    {
+      "name": "crit"
+    },
+    {
+      "name": "fire"
+    },
+    {
+      "name": "money"
+    },
+    {
+      "name": "heart"
+    },
+    {
+      "name": "slow"
+    },
+    {
+      "name": "chain"
+    },
+    {
+      "name": "shield"
+    },
+    {
+      "name": "speed"
+    },
+    {
+      "name": "bleed"
+    },
+    {
+      "name": "melee"
+    },
+    {
+      "name": "deployable"
+    },
+    {
+      "name": "upgrade"
+    }
+  ]
+}

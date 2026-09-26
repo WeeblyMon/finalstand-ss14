@@ -262,9 +262,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        var cost = GetUpgradeLevelCost(def, currentLevel + 1);
-        if (def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode))
-            cost = (int)MathF.Round(cost * def.DiscountMultiplier);
+        var cost = def.LevelCost(currentLevel + 1,
+            def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode));
 
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
@@ -510,16 +509,6 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             if (Exists(item.Uid))
                 QueueDel(item.Uid);
         }
-    }
-
-    private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
-
-    private static int GetUpgradeLevelCost(WeaponUpgradeDef def, int level)
-    {
-        var mult = level > 0 && level <= LevelCostMults.Length
-            ? LevelCostMults[level - 1]
-            : 3.6f + (level - LevelCostMults.Length) * 1.2f;
-        return (int)MathF.Round(def.BaseCost * mult);
     }
 
     private void SendWeaponLevels(EntityUid mindId, Dictionary<string, int> levels, string title = "",
