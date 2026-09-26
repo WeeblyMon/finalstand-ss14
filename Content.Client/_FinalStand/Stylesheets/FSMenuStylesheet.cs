@@ -13,28 +13,26 @@ namespace Content.Client._FinalStand.Stylesheets;
 // Shared stylesheet for every FS menu window, sourced from FSUiPalette.
 public sealed class FSMenuStylesheet
 {
-    private const string PanelTexture = "/Textures/_FinalStand/Interface/Research/panel_bg.png";
-
     private static Stylesheet? _cached;
 
     public Stylesheet Stylesheet { get; }
 
-    // Built once. The rules hold colours and textures only, so every FS window can share one instance.
+    // Built once. The rules hold colours only, so every FS window can share one instance.
     public static Stylesheet Get(IUserInterfaceManager uiManager, IResourceCache resCache)
-        => _cached ??= new FSMenuStylesheet(uiManager, resCache).Stylesheet;
+        => _cached ??= new FSMenuStylesheet(uiManager).Stylesheet;
 
-    public static StyleBoxTexture CardPanel(IResourceCache resCache, Color tint)
+    // Square with a 1px edge, like the HUD's panels.
+    public static StyleBoxFlat CardPanel(Color fill)
     {
-        var box = new StyleBoxTexture
+        return new StyleBoxFlat
         {
-            Texture = resCache.GetResource<TextureResource>(PanelTexture).Texture,
-            Modulate = tint,
+            BackgroundColor = fill,
+            BorderColor = FSUiPalette.BgTrack,
+            BorderThickness = new Thickness(1),
         };
-        box.SetPatchMargin(StyleBox.Margin.All, FSUiPalette.PanelCornerRadius);
-        return box;
     }
 
-    public FSMenuStylesheet(IUserInterfaceManager uiManager, IResourceCache resCache)
+    public FSMenuStylesheet(IUserInterfaceManager uiManager)
     {
         StyleBoxFlat Box(Color bg, Color? border = null, float bw = 0, float ph = 8, float pv = 4) =>
             new StyleBoxFlat
@@ -48,12 +46,12 @@ public sealed class FSMenuStylesheet
                 ContentMarginBottomOverride = pv,
             };
 
-        var winPanel   = CardPanel(resCache, FSUiPalette.BgDeep);
-        var cardPanel  = CardPanel(resCache, FSUiPalette.BgSurface);
+        var winPanel   = CardPanel(FSUiPalette.BgDeep);
+        var cardPanel  = CardPanel(FSUiPalette.BgSurface);
         var winHeader  = Box(FSUiPalette.BgRecess);
-        var btnNormal  = Box(FSUiPalette.BgSurface, FSUiPalette.BorderNeutral, 1);
-        var btnHover   = Box(FSUiPalette.BgElevated, FSUiPalette.AccentBrand, 1);
-        var btnPressed = Box(FSUiPalette.BgPressed, FSUiPalette.AccentBrandDim, 1);
+        var btnNormal  = Box(FSUiPalette.BgDeep, FSUiPalette.BorderNeutral, 1);
+        var btnHover   = Box(FSUiPalette.BgElevated, FSUiPalette.BorderSubtle, 1);
+        var btnPressed = Box(FSUiPalette.BgPressed, FSUiPalette.BorderPressed, 1);
         var btnDisable = Box(FSUiPalette.BgDisabled, FSUiPalette.BorderDisabled, 1);
 
         var divider = new StyleBoxFlat

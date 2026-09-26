@@ -73,7 +73,7 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         ((Control)this).Stylesheet = FSMenuStylesheet.Get(
             IoCManager.Resolve<IUserInterfaceManager>(), _resourceCache);
 
-        var panelBox = FSMenuStylesheet.CardPanel(_resourceCache, FSUiPalette.BgSurface);
+        var panelBox = FSMenuStylesheet.CardPanel(FSUiPalette.BgSurface);
         GraphPanelContainer.PanelOverride = panelBox;
         DetailPanelContainer.PanelOverride = panelBox;
 
