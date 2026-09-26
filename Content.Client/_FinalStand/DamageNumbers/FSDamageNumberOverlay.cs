@@ -110,7 +110,12 @@ public sealed partial class FSDamageNumberOverlay : Overlay
             alpha = Math.Clamp(alpha, 0f, 1f);
 
             Color fg, outline;
-            if (num.IsHeal)
+            if (num.CustomColor is { } custom)
+            {
+                fg      = custom.WithAlpha(alpha);
+                outline = new Color(custom.R * 0.3f, custom.G * 0.3f, custom.B * 0.3f, alpha * 0.9f);
+            }
+            else if (num.IsHeal)
             {
                 fg      = HealFg.WithAlpha(alpha);
                 outline = HealOutline.WithAlpha(alpha * 0.9f);
@@ -166,6 +171,7 @@ public sealed partial class FSDamageNumberOverlay : Overlay
         public bool IsLevelUp;
         public bool IsHeal;
         public int LevelUpAp;
+        public Color? CustomColor;
         public float Age;
         public float Lifetime;
 

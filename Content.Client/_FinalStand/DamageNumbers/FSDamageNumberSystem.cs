@@ -33,6 +33,7 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
         SubscribeNetworkEvent<FSArmorDamageNumberEvent>(OnArmorDamageNumber);
         SubscribeNetworkEvent<FSLevelUpNumberEvent>(OnLevelUpNumber);
         SubscribeNetworkEvent<FSHealNumberEvent>(OnHealNumber);
+        SubscribeNetworkEvent<FSFloatingTextEvent>(OnFloatingText);
     }
 
     public override void Shutdown()
@@ -51,7 +52,7 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
 
     private void Spawn(NetEntity netTarget, string text, float amount, float spreadBias,
         bool isCrit = false, bool isArmor = false, bool isHeal = false, bool isLevelUp = false,
-        int levelUpAp = 0, float lifetime = 0f, bool reveal = true)
+        int levelUpAp = 0, float lifetime = 0f, bool reveal = true, Color? color = null)
     {
         var target = GetEntity(netTarget);
         if (!Exists(target) || _numberOverlay == null)
@@ -59,11 +60,12 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
 
         var xform = Transform(target);
         var spread = (_random.NextFloat() - 0.5f) * 0.5f + spreadBias;
-        var vertOffset = isLevelUp ? 0.6f : 0.35f + _random.NextFloat() * 0.25f;
+        var centred = isLevelUp || color != null;
+        var vertOffset = centred ? 0.6f : 0.35f + _random.NextFloat() * 0.25f;
 
         _numberOverlay.Add(new FSDamageNumberOverlay.DamageNumber
         {
-            OriginWorldPos = _transform.GetWorldPosition(xform) + new Vector2(isLevelUp ? 0f : spread, vertOffset),
+            OriginWorldPos = _transform.GetWorldPosition(xform) + new Vector2(centred ? 0f : spread, vertOffset),
             MapId = xform.MapID,
             Amount = amount,
             IsCrit = isCrit,
@@ -71,6 +73,7 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
             IsHeal = isHeal,
             IsLevelUp = isLevelUp,
             LevelUpAp = levelUpAp,
+            CustomColor = color,
             Lifetime = lifetime,
             Text = text,
             Age = 0f,
@@ -88,6 +91,9 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
 
     private void OnHealNumber(FSHealNumberEvent ev) =>
         Spawn(ev.Target, $"+{(int)MathF.Round(ev.Amount)}", ev.Amount, 0.2f, isHeal: true, reveal: false);
+
+    private void OnFloatingText(FSFloatingTextEvent ev) =>
+        Spawn(ev.Target, ev.Text, 0f, 0f, lifetime: 1.6f, reveal: false, color: ev.Color);
 
     private void OnLevelUpNumber(FSLevelUpNumberEvent ev) =>
         Spawn(ev.Target, $"LEVEL UP +{ev.ApGained}PP", 0f, 0f, isLevelUp: true, levelUpAp: ev.ApGained,
