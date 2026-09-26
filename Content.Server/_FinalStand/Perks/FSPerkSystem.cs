@@ -165,6 +165,10 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
+            // An empty build would silently erase the saved loadout.
+            if (perks.Levels.Count == 0)
+                return false;
+
             var loadout = new FSPerkLoadout { Levels = new Dictionary<string, int>(perks.Levels) };
             Array.Copy(perks.Slots, loadout.Slots, FSPerkDef.SlotCount);
             perks.Loadouts[msg.LoadoutIndex] = loadout;

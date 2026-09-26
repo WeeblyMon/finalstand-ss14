@@ -4,34 +4,34 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Stylesheets;
 
-// Perk category identity. Deliberately its own set: these carry category, not state,
+// Perk category identity, toned to the HUD. These carry category, not state,
 // so they must not be folded into FSUiPalette's semantic tokens.
 public static class FSPerkPalette
 {
     public static readonly Dictionary<PerkCategory, Color> Background = new()
     {
-        [PerkCategory.Red]    = Color.FromHex("#2A1416"),
-        [PerkCategory.Blue]   = Color.FromHex("#131E32"),
-        [PerkCategory.Green]  = Color.FromHex("#12251C"),
-        [PerkCategory.Yellow] = Color.FromHex("#2A2314"),
-        [PerkCategory.Purple] = Color.FromHex("#221733"),
+        [PerkCategory.Red]    = Color.FromHex("#2a1a17"),
+        [PerkCategory.Blue]   = Color.FromHex("#17202a"),
+        [PerkCategory.Green]  = Color.FromHex("#1c2218"),
+        [PerkCategory.Yellow] = Color.FromHex("#29221a"),
+        [PerkCategory.Purple] = Color.FromHex("#221c27"),
     };
 
     public static readonly Dictionary<PerkCategory, Color> Accent = new()
     {
-        [PerkCategory.Red]    = Color.FromHex("#F87171"),
-        [PerkCategory.Blue]   = Color.FromHex("#60A5FA"),
-        [PerkCategory.Green]  = Color.FromHex("#4ADE80"),
-        [PerkCategory.Yellow] = Color.FromHex("#FBBF24"),
-        [PerkCategory.Purple] = Color.FromHex("#C084FC"),
+        [PerkCategory.Red]    = Color.FromHex("#c4695a"),
+        [PerkCategory.Blue]   = Color.FromHex("#6f9dc0"),
+        [PerkCategory.Green]  = Color.FromHex("#9bb07f"),
+        [PerkCategory.Yellow] = Color.FromHex("#c08a3e"),
+        [PerkCategory.Purple] = Color.FromHex("#a58bbb"),
     };
 
-    public static readonly Dictionary<PerkCategory, Color[]> LevelRamp = new()
+    public static readonly Dictionary<PerkCategory, Color> Edge = new()
     {
-        [PerkCategory.Red]    = [Color.Transparent, Color.FromHex("#4C1D1D"), Color.FromHex("#7F2D2D"), Color.FromHex("#B91C1C"), Color.FromHex("#EF4444")],
-        [PerkCategory.Blue]   = [Color.Transparent, Color.FromHex("#1E3A5F"), Color.FromHex("#1D4ED8"), Color.FromHex("#2563EB"), Color.FromHex("#3B82F6")],
-        [PerkCategory.Green]  = [Color.Transparent, Color.FromHex("#14532D"), Color.FromHex("#166534"), Color.FromHex("#15803D"), Color.FromHex("#22C55E")],
-        [PerkCategory.Yellow] = [Color.Transparent, Color.FromHex("#4A3A0F"), Color.FromHex("#854D0E"), Color.FromHex("#B45309"), Color.FromHex("#FBBF24")],
-        [PerkCategory.Purple] = [Color.Transparent, Color.FromHex("#3B1F5C"), Color.FromHex("#6B21A8"), Color.FromHex("#7E22CE"), Color.FromHex("#A855F7")],
+        [PerkCategory.Red]    = Color.FromHex("#5a2c24"),
+        [PerkCategory.Blue]   = Color.FromHex("#2e4a60"),
+        [PerkCategory.Green]  = Color.FromHex("#3e4a2f"),
+        [PerkCategory.Yellow] = Color.FromHex("#5c4a26"),
+        [PerkCategory.Purple] = Color.FromHex("#4a3b58"),
     };
 }

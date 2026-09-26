@@ -1,102 +1,93 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       Title="Perk Shop"
-                      Resizable="False"
-                      SetSize="860 640"
-                      MinSize="860 640">
+                      Resizable="True"
+                      SetSize="1060 700"
+                      MinSize="760 600">
     <TabContainer Name="ShopTabs" VerticalExpand="True">
 
-        <!-- ═══════════════════ TAB 0: PERKS ═══════════════════ -->
-        <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True" Margin="8">
+        <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
 
-            <!-- LEFT: Info + Slots + Loadouts -->
-            <ScrollContainer SetWidth="270" VerticalExpand="True" HScrollEnabled="False">
-            <BoxContainer Orientation="Vertical" SetWidth="260" Margin="10 0 0 0">
+            <PanelContainer Name="HeaderPanel">
+                <BoxContainer Orientation="Horizontal" Margin="20 12">
+                    <BoxContainer Orientation="Vertical" VerticalAlignment="Center">
+                        <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
+                            <Label Name="EquippedTitle" Text="EQUIPPED" Margin="0 0 8 0" />
+                            <Label Name="EquippedCountLabel" Text="0 / 6" />
+                        </BoxContainer>
+                        <BoxContainer Name="SlotsRow" Orientation="Horizontal" SeparationOverride="8" />
+                    </BoxContainer>
+                    <Control HorizontalExpand="True" />
+                    <BoxContainer Orientation="Vertical" VerticalAlignment="Center">
+                        <BoxContainer Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Label Name="PpLabel" Text="0" Margin="0 0 6 0" />
+                            <Label Name="PpUnitLabel" Text="PP" VerticalAlignment="Bottom" Margin="0 0 0 3" />
+                        </BoxContainer>
+                        <Label Name="InvestedLabel" Text="" HorizontalAlignment="Right" />
+                    </BoxContainer>
+                </BoxContainer>
+            </PanelContainer>
 
-                <!-- Selected perk icon (cat bg → level bg → icon); anchors set in constructor -->
-                <LayoutContainer Name="SelectedIconContainer" SetWidth="64" SetHeight="64" Margin="0 0 0 6">
-                    <PanelContainer Name="SelectedIconCatBg" />
-                    <PanelContainer Name="SelectedIconLevelBg" />
-                    <TextureRect Name="SelectedPerkIcon" Stretch="KeepAspectCentered" />
-                </LayoutContainer>
+            <BoxContainer Name="BodyBox" Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True">
 
-                <!-- AP display (prominent, always visible) -->
-                <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
-                    <Label Text="PP: " StyleClasses="FSCurrency" />
-                    <Label Name="ApLabel" Text="0" StyleClasses="FSCurrency" />
+                <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="20 14 20 0">
+                    <BoxContainer Orientation="Horizontal" SeparationOverride="6" Margin="0 0 0 12">
+                        <Button Name="FilterAll"    Text="ALL"     ToggleMode="True" />
+                        <Button Name="FilterRed"    Text="OFFENSE" ToggleMode="True" />
+                        <Button Name="FilterBlue"   Text="DEFENSE" ToggleMode="True" />
+                        <Button Name="FilterGreen"  Text="UTILITY" ToggleMode="True" />
+                        <Button Name="FilterYellow" Text="ECONOMY" ToggleMode="True" />
+                        <Button Name="FilterPurple" Text="HYBRID"  ToggleMode="True" />
+                        <Control HorizontalExpand="True" />
+                        <LineEdit Name="SearchBar" PlaceHolder="Search perks" SetWidth="200" />
+                    </BoxContainer>
+                    <ScrollContainer Name="PerkScroll" VerticalExpand="True" HorizontalExpand="True" HScrollEnabled="False">
+                        <BoxContainer Name="PerkGrid" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="18" Margin="0 0 0 16" />
+                    </ScrollContainer>
                 </BoxContainer>
 
-                <!-- Name + Level + Category -->
-                <Label Name="SelectedNameLabel" Text="—" StyleClasses="LabelHeading" Margin="0 0 0 2" />
-                <Label Name="SelectedLevelLabel" Text="Level 0 / 4" StyleClasses="FSMuted" Margin="0 0 0 2" />
-                <Label Name="SelectedCategoryLabel" Text="" Margin="0 0 0 4" />
-
-                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
-
-                <!-- Active slots -->
-                <Label Text="ACTIVE SLOTS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
-                <BoxContainer Name="SlotsRow" Orientation="Horizontal" Margin="0 0 0 6" />
-
-                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
-
-                <!-- Description + effects -->
-                <RichTextLabel Name="SelectedDescLabel" HorizontalExpand="True" Margin="0 0 0 4" />
-                <BoxContainer Name="LevelEffectsBox" Orientation="Vertical" Margin="0 0 0 8" />
-
-                <Label Name="SelectedCostLabel" Text="" StyleClasses="FSCurrency" Margin="0 0 0 6" />
-
-                <!-- Action buttons -->
-                <Button Name="UpgradeButton" Text="Unlock / Upgrade" Disabled="True" Margin="0 0 0 3" />
-                <Button Name="EquipButton" Text="Equip to First Open Slot" Disabled="True" Margin="0 0 0 3" />
-                <Button Name="UnequipButton" Text="Unequip from Slot" Disabled="True" Margin="0 0 0 3" />
-                <Button Name="RespecButton" Text="Respec (Refund All)" StyleClasses="FSNegative" Margin="0 0 0 6" />
-
-                <PanelContainer StyleClasses="LowDivider" Margin="0 0 0 6" />
-
-                <!-- Loadouts -->
-                <Label Text="LOADOUTS" StyleClasses="FSSectionHeader" Margin="0 0 0 4" />
-                <BoxContainer Orientation="Horizontal" Margin="0 0 0 3">
-                    <Button Name="SaveLoadout0" Text="Save 1" HorizontalExpand="True" Margin="0 0 2 0" />
-                    <Button Name="LoadLoadout0" Text="Load 1" HorizontalExpand="True" />
-                </BoxContainer>
-                <BoxContainer Orientation="Horizontal" Margin="0 0 0 3">
-                    <Button Name="SaveLoadout1" Text="Save 2" HorizontalExpand="True" Margin="0 0 2 0" />
-                    <Button Name="LoadLoadout1" Text="Load 2" HorizontalExpand="True" />
-                </BoxContainer>
-                <BoxContainer Orientation="Horizontal">
-                    <Button Name="SaveLoadout2" Text="Save 3" HorizontalExpand="True" Margin="0 0 2 0" />
-                    <Button Name="LoadLoadout2" Text="Load 3" HorizontalExpand="True" />
-                </BoxContainer>
+                <PanelContainer Name="DetailPanel">
+                    <BoxContainer Name="DetailBox" Orientation="Vertical" Margin="22" SeparationOverride="18">
+                        <BoxContainer Name="InfoBox" Orientation="Vertical" SeparationOverride="12">
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="14">
+                                <PanelContainer Name="SelectedIconBox" SetSize="84 84">
+                                    <TextureRect Name="SelectedPerkIcon" SetSize="60 60" Stretch="KeepAspectCentered"
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </PanelContainer>
+                                <BoxContainer Orientation="Vertical" VerticalAlignment="Center" SeparationOverride="6">
+                                    <Label Name="SelectedNameLabel" Text="" />
+                                    <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+                                        <PanelContainer Name="CategoryTag">
+                                            <Label Name="SelectedCategoryLabel" Text="" Margin="6 1" />
+                                        </PanelContainer>
+                                        <Label Name="SelectedLevelLabel" Text="" />
+                                    </BoxContainer>
+                                </BoxContainer>
+                            </BoxContainer>
+                            <RichTextLabel Name="SelectedDescLabel" />
+                        </BoxContainer>
+                        <BoxContainer Name="ActionsBox" Orientation="Vertical" VerticalExpand="True" SeparationOverride="8">
+                            <BoxContainer Name="LevelEffectsBox" Orientation="Vertical" SeparationOverride="4" />
+                            <Control VerticalExpand="True" MinHeight="8" />
+                            <Label Name="ShortfallLabel" Text="" Visible="False" />
+                            <Button Name="UpgradeButton" MinHeight="42" />
+                            <Button Name="EquipButton" MinHeight="38" />
+                        </BoxContainer>
+                    </BoxContainer>
+                </PanelContainer>
 
             </BoxContainer>
-            </ScrollContainer>
 
-            <!-- Vertical separator -->
-            <PanelContainer StyleClasses="LowDivider" Margin="4 0" />
-
-            <!-- RIGHT: Filter + Search + Icon grid -->
-            <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
-
-                <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
-                    <Button Name="FilterAll"    Text="All"     HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
-                    <Button Name="FilterRed"    Text="Offense" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
-                    <Button Name="FilterBlue"   Text="Defense" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
-                    <Button Name="FilterGreen"  Text="Utility" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
-                    <Button Name="FilterYellow" Text="Economy" HorizontalExpand="True" ToggleMode="True" Margin="0 0 2 0" />
-                    <Button Name="FilterPurple" Text="Hybrid"  HorizontalExpand="True" ToggleMode="True" />
+            <PanelContainer Name="FooterPanel">
+                <BoxContainer Orientation="Horizontal" Margin="20 10" SeparationOverride="10">
+                    <Label Name="LoadoutsTitle" Text="LOADOUTS" VerticalAlignment="Center" Margin="0 0 6 0" />
+                    <BoxContainer Name="LoadoutRow" Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="10" />
+                    <Button Name="RespecButton" Text="RESPEC…" VerticalAlignment="Center" MinHeight="34" />
                 </BoxContainer>
-
-                <LineEdit Name="SearchBar" PlaceHolder="Search perks..." Margin="0 0 0 6" />
-
-                <ScrollContainer VerticalExpand="True" HorizontalExpand="True">
-                    <BoxContainer Name="PerkGrid" Orientation="Vertical" HorizontalExpand="True" />
-                </ScrollContainer>
-
-            </BoxContainer>
+            </PanelContainer>
 
         </BoxContainer>
 
-        <!-- ═══════════════════ TAB 1: PRESTIGE ═══════════════════ -->
         <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="16">
 
             <Label Name="PrestigeLevelLabel" Text="Prestige 0 — Level 1" StyleClasses="LabelHeading" Margin="0 0 0 8" />
