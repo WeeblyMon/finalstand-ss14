@@ -69,7 +69,7 @@ public sealed partial class WeaponShopWindow
         if (!TryPreview(def, out var stat, out var fill, out var text) || !_statBarRefs.TryGetValue(stat, out var refs))
             return;
 
-        ApplyStatBar(refs, fill, $"{refs.BaseText} → {text}", FSUiPalette.Currency, true);
+        ApplyStatBar(refs, fill, text, FSUiPalette.Currency, true);
     }
 
     private void ClearPreview()
@@ -96,5 +96,8 @@ public sealed partial class WeaponShopWindow
 
         refs.ValueLabel.Text = text;
         refs.ValueLabel.FontColorOverride = valueColor ?? FSUiPalette.TextPrimary;
+        refs.DeltaChip.Visible = preview;
+        refs.DeltaLabel.Text = preview ? Delta(refs.BaseText, text) : "";
+        refs.Tile.PanelOverride = Box(FSUiPalette.BgDeep, preview ? MaxedEdge : FSUiPalette.BgTrack, new Thickness(1), 12, 10);
     }
 }

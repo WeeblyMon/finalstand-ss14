@@ -120,7 +120,7 @@ public sealed partial class WeaponShopWindow
         else if (meleeComp != null || meleeProto != null)
             BuildMeleeStats(meleeComp, meleeProto, damageMultiplier, attackSpeedMult);
 
-        if (!isDeployable)
+        if (!isDeployable && !isGrenade)
             AppendCritStats(critComp, critProto, critChanceBonus, critDamageMult);
     }
 

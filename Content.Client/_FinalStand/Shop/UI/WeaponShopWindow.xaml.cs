@@ -42,21 +42,23 @@ public sealed partial class WeaponShopWindow : FancyWindow
     private float _confirmTimer;
     private int _sellRefund;
     private const float ConfirmTimeout = 4f;
-    private const int BarSegments = 14;
-    private const float MinCardWidth = 290f;
+    private const int BarSegments = 10;
 
-    private int _columns;
+    private float _rowsWidth;
 
     private readonly Font _fontCaption;
     private readonly Font _fontBody;
     private readonly Font _fontBold;
     private readonly Font _fontTitle;
-    private readonly Font _fontValue;
+    private readonly Font _fontName;
 
     private sealed class StatBarRefs
     {
+        public required PanelContainer Tile;
         public required PanelContainer[] Segments;
         public required Label ValueLabel;
+        public required PanelContainer DeltaChip;
+        public required Label DeltaLabel;
         public float BaseFill;
         public string BaseText = "";
         public Color? BaseColor;
@@ -92,27 +94,30 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _fontCaption = _resourceCache.NotoStack("Bold", 9);
         _fontBody    = _resourceCache.NotoStack("Regular", 11);
         _fontBold    = _resourceCache.NotoStack("Bold", 11);
-        _fontTitle   = _resourceCache.NotoStack("Bold", 17);
-        _fontValue   = _resourceCache.NotoStack("Bold", 12);
+        _fontTitle   = _resourceCache.NotoStack("Bold", 16);
+        _fontName    = _resourceCache.NotoStack("Bold", 20);
 
-        BannerPanel.PanelOverride = Box(FSUiPalette.BgSurface, FSUiPalette.BgTrack, new Thickness(0, 0, 0, 1));
-        SpriteFrame.PanelOverride = Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(1));
+        LeftPanel.PanelOverride = Box(FSUiPalette.BgSurface, FSUiPalette.BgTrack, new Thickness(0, 0, 1, 0));
+        BuildPlate();
 
-        WeaponNameLabel.FontOverride = _fontTitle;
+        WeaponNameLabel.FontOverride = _fontName;
         WeaponNameLabel.FontColorOverride = FSUiPalette.TextPrimary;
         OwnedChipLabel.FontOverride = _fontCaption;
-        CategoryLabel.FontColorOverride = FSUiPalette.TextMuted;
-        Caption(UpgradesTitle);
-        Caption(BalanceTitle);
-        UpgradeCounterLabel.FontColorOverride = Color.FromHex("#6a6761");
+        Caption(ProgressTitle);
+        ProgressLabel.FontOverride = _fontBold;
+        ProgressLabel.FontColorOverride = FSUiPalette.TextPrimary;
         NotOwnedLabel.FontColorOverride = FSUiPalette.StatePending;
+
+        BalanceChip.PanelOverride = Box(MaxedFill, MaxedEdge, new Thickness(1), 12, 4);
+        BalanceTitle.FontOverride = _fontCaption;
+        BalanceTitle.FontColorOverride = FSUiPalette.StatePending;
         BalanceLabel.FontOverride = _fontTitle;
         BalanceLabel.FontColorOverride = FSUiPalette.Currency;
-        SellConfirmLabel.FontColorOverride = FSUiPalette.TextPrimary;
 
         BuyButton.Label.FontOverride = _fontBold;
         BuyButton.Label.HorizontalAlignment = HAlignment.Center;
         SellButton.Label.FontOverride = _fontCaption;
+        SellButton.Label.HorizontalAlignment = HAlignment.Center;
         KeepButton.Label.FontOverride = _fontCaption;
 
         BuyButton.OnPressed += _ => OnBuyPressed?.Invoke();
@@ -134,6 +139,41 @@ public sealed partial class WeaponShopWindow : FancyWindow
         ExitConfirmState();
     }
 
+    // The display plate: sprite centred, category top-left, ownership bottom-left, bracketed corners.
+    private void BuildPlate()
+    {
+        PlateBg.PanelOverride = Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(1));
+        LayoutContainer.SetAnchorPreset(PlateBg, LayoutContainer.LayoutPreset.Wide);
+        LayoutContainer.SetAnchorPreset(WeaponSprite, LayoutContainer.LayoutPreset.Center);
+        LayoutContainer.SetGrowHorizontal(WeaponSprite, LayoutContainer.GrowDirection.Both);
+        LayoutContainer.SetGrowVertical(WeaponSprite, LayoutContainer.GrowDirection.Both);
+
+        PlateCategory.FontOverride = _fontCaption;
+        PlateCategory.FontColorOverride = CaptionDim;
+        LayoutContainer.SetPosition(PlateCategory, new System.Numerics.Vector2(14, 8));
+
+        LayoutContainer.SetAnchorPreset(OwnedChip, LayoutContainer.LayoutPreset.BottomLeft);
+        LayoutContainer.SetGrowVertical(OwnedChip, LayoutContainer.GrowDirection.Begin);
+        LayoutContainer.SetMarginLeft(OwnedChip, 14);
+        LayoutContainer.SetMarginBottom(OwnedChip, -10);
+
+        AddBracket(LayoutContainer.LayoutPreset.TopLeft, new Thickness(2, 2, 0, 0));
+        AddBracket(LayoutContainer.LayoutPreset.TopRight, new Thickness(0, 2, 2, 0));
+        AddBracket(LayoutContainer.LayoutPreset.BottomLeft, new Thickness(2, 0, 0, 2));
+        AddBracket(LayoutContainer.LayoutPreset.BottomRight, new Thickness(0, 0, 2, 2));
+    }
+
+    private void AddBracket(LayoutContainer.LayoutPreset corner, Thickness sides)
+    {
+        var bracket = new PanelContainer
+        {
+            SetSize = new System.Numerics.Vector2(14, 14),
+            PanelOverride = new StyleBoxFlat { BackgroundColor = Color.Transparent, BorderColor = CaptionDim, BorderThickness = sides },
+        };
+        Plate.AddChild(bracket);
+        LayoutContainer.SetAnchorAndMarginPreset(bracket, corner);
+    }
+
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
@@ -145,12 +185,11 @@ public sealed partial class WeaponShopWindow : FancyWindow
                 ExitConfirmState();
         }
 
-        var columns = Math.Max(1, (int)((UpgradesScroll.Width - 14f + 10f) / (MinCardWidth + 10f)));
-        if (columns != _columns && UpgradesScroll.Width > 0)
+        // Row descriptions wrap to the column, so they rebuild when the window is resized.
+        if (UpgradesScroll.Width > 0 && Math.Abs(UpgradesScroll.Width - _rowsWidth) > 16f)
         {
-            _columns = columns;
-            UpgradesContainer.Columns = columns;
-            RebuildCards();
+            _rowsWidth = UpgradesScroll.Width;
+            RebuildRows();
         }
     }
 
@@ -168,9 +207,9 @@ public sealed partial class WeaponShopWindow : FancyWindow
 
         var meta = entMan.GetComponent<MetaDataComponent>(shopEntity);
         WeaponNameLabel.Text = Capitalize(meta.EntityName);
-        CategoryLabel.Text = comp.Category;
+        PlateCategory.Text = comp.Category.ToUpperInvariant();
         DescLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
-            $"[color={Color.FromHex("#a9a59f").ToHex()}]{FormattedMessage.EscapeText(meta.EntityDescription)}[/color]"));
+            $"[color={DescText.ToHex()}]{FormattedMessage.EscapeText(meta.EntityDescription)}[/color]"));
         WeaponSprite.SetEntity(shopEntity);
 
         var shopClient = _entityManager.System<FSShopClientSystem>();
@@ -184,7 +223,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _credits = credits;
         BalanceLabel.Text = Money(credits);
         RefreshBuyButton();
-        RebuildCards();
+        RebuildRows();
     }
 
     public void UpdateWeaponTitle(string title)
@@ -207,16 +246,15 @@ public sealed partial class WeaponShopWindow : FancyWindow
         OwnedChipLabel.FontColorOverride = hasWeapon ? FSPerkPalette.Accent[PerkCategory.Green] : FSUiPalette.TextMuted;
         OwnedChip.PanelOverride = hasWeapon
             ? Box(FSPerkPalette.Background[PerkCategory.Green], FSPerkPalette.Edge[PerkCategory.Green], new Thickness(1))
-            : Box(Color.Transparent, FSUiPalette.BorderNeutral, new Thickness(1));
+            : Box(FSUiPalette.BgRecess, FSUiPalette.BorderNeutral, new Thickness(1));
 
         SellButton.Visible = hasWeapon;
-        NotOwnedLabel.Visible = !hasWeapon;
-        NotOwnedLabel.Text = $"· Buy and carry the {WeaponNameLabel.Text} to upgrade it";
+        NotOwnedLabel.Text = hasWeapon ? "" : "Buy and carry this weapon to upgrade it.";
         if (!_inConfirmState)
             ExitConfirmState();
 
         RefreshBuyButton();
-        RebuildCards();
+        RebuildRows();
     }
 
     public void ResetConfirmation()
@@ -230,7 +268,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _defs = defs;
         _levels = levels;
         _credits = credits;
-        RebuildCards();
+        RebuildRows();
     }
 
     private void RefreshBuyButton()
@@ -245,14 +283,14 @@ public sealed partial class WeaponShopWindow : FancyWindow
 
         var afford = _credits >= _price;
         BuyButton.Disabled = !afford;
-        BuyButton.Text = !afford ? $"{Money(_price)} · {Money(_price - _credits)} SHORT"
+        BuyButton.Text = !afford ? $"BUY · {Money(_price)} ({Money(_price - _credits)} SHORT)"
             : _owned ? $"BUY ANOTHER · {Money(_price)}"
             : $"BUY · {Money(_price)}";
 
         // Only the first purchase is the window's primary action.
         var primary = afford && !_owned;
         BuyButton.StyleBoxOverride = primary
-            ? Box(FSUiPalette.Currency, Color.FromHex("#e3bd70"), new Thickness(1))
+            ? Box(FSUiPalette.Currency, GoldEdge, new Thickness(1))
             : Box(FSUiPalette.BgElevated, FSUiPalette.BorderNeutral, new Thickness(1));
         BuyButton.Label.FontColorOverride = primary ? FSUiPalette.BgDeep : afford ? FSUiPalette.TextPrimary : FSUiPalette.TextMuted;
     }
