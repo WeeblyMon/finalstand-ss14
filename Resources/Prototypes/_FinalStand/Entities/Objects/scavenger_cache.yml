@@ -1,15 +1,33 @@
-# Dropped by the Scavenger perk. Activating it hands out one random reward, then it's gone.
+# Dropped by the Scavenger perk for its owner only: on the Admin layer and force-sent to the owner's session.
 - type: entity
   id: FSScavengerCache
   name: supply cache
-  description: Supplies scavenged from the horde. Press E on it before it's gone.
+  description: Supplies scavenged from the horde. Walk over it to grab it before it's gone.
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: Objects/Storage/boxes.rsi
     state: box
+    drawdepth: Items
+  - type: Visibility
+    layer: 8
   - type: Clickable
   - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+    fixedRotation: true
+  - type: Fixtures
+    fixtures:
+      pickup:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.3,-0.3,0.3,0.3"
+        hard: false
+        layer:
+        - LowImpassable
+  - type: StepTrigger
+    requiredTriggeredSpeed: 0
+    ignoreWeightless: true
   - type: FSScavengerCache
   - type: TimedDespawn
     lifetime: 20

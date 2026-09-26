@@ -1,12 +1,14 @@
-// Scavenger perk: kills can drop a supply cache that gives whoever opens it ammo, a heal or credits.
+// Scavenger perk: kills can drop a private supply cache that gives its owner ammo, a heal or credits.
 using Content.Server._FinalStand.Ammo;
 using Content.Server._FinalStand.Economy;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
-using Content.Shared.Interaction;
+using Content.Shared.StepTrigger.Systems;
 using Content.Shared.Mind;
+using Robust.Server.GameStates;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -20,6 +22,7 @@ public sealed class FSScavengerSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private PvsOverrideSystem _pvsOverride = default!;
 
     private static readonly EntProtoId CacheProto = "FSScavengerCache";
 
@@ -27,7 +30,8 @@ public sealed class FSScavengerSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSZombieKilledByPlayerEvent>(OnZombieKilled);
-        SubscribeLocalEvent<FSScavengerCacheComponent, ActivateInWorldEvent>(OnActivate);
+        SubscribeLocalEvent<FSScavengerCacheComponent, StepTriggerAttemptEvent>(OnStepAttempt);
+        SubscribeLocalEvent<FSScavengerCacheComponent, StepTriggeredOffEvent>(OnStepped);
     }
 
     private void OnZombieKilled(ref FSZombieKilledByPlayerEvent ev)
@@ -36,16 +40,26 @@ public sealed class FSScavengerSystem : EntitySystem
         if (level <= 0 || !_random.Prob(FSPerkBonusConstants.ScavengerChance[level - 1]))
             return;
 
-        Spawn(CacheProto, Transform(ev.Zombie).Coordinates);
+        var cache = Spawn(CacheProto, Transform(ev.Zombie).Coordinates);
+        EnsureComp<FSScavengerCacheComponent>(cache).OwnerMind = ev.MindId;
+
+        if (TryComp<ActorComponent>(ev.Killer, out var actor))
+            _pvsOverride.AddForceSend(cache, actor.PlayerSession);
     }
 
-    private void OnActivate(Entity<FSScavengerCacheComponent> ent, ref ActivateInWorldEvent args)
+    private void OnStepAttempt(Entity<FSScavengerCacheComponent> ent, ref StepTriggerAttemptEvent args)
     {
-        if (args.Handled || TerminatingOrDeleted(ent))
+        args.Continue |= ent.Comp.OwnerMind is { } owner
+            && _mind.TryGetMind(args.Tripper, out var mindId, out _)
+            && mindId == owner;
+    }
+
+    private void OnStepped(Entity<FSScavengerCacheComponent> ent, ref StepTriggeredOffEvent args)
+    {
+        if (TerminatingOrDeleted(ent) || EntityManager.IsQueuedForDeletion(ent))
             return;
 
-        args.Handled = true;
-        var user = args.User;
+        var user = args.Tripper;
 
         string message;
         switch (_random.Next(3))
