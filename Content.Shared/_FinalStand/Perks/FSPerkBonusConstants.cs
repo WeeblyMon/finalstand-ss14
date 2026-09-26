@@ -82,5 +82,5 @@ public static class FSPerkBonusConstants
     public static readonly float[] ScavengerChance = [0.03f, 0.05f, 0.075f, 0.10f];
 
     public static int TechnicianBonus(int level, int baseMaxStock)
-        => level <= 0 ? 0 : baseMaxStock >= 2 ? level : level >= 4 ? 1 : 0;
+        => level <= 0 ? 0 : baseMaxStock >= 2 ? level : 1;
 }
