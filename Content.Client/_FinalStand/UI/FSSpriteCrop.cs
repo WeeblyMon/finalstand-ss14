@@ -11,7 +11,7 @@ using ISImage = SixLabors.ImageSharp.Image;
 namespace Content.Client._FinalStand.UI;
 
 // Draws sprite icons trimmed to their opaque pixels, so small items fill their slot like large ones.
-public sealed class FSSpriteCrop
+public sealed partial class FSSpriteCrop
 {
     [Dependency] private IEntityManager _entity = default!;
     [Dependency] private IResourceCache _resources = default!;

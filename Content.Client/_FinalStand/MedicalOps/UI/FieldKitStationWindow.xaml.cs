@@ -274,7 +274,7 @@ public sealed partial class FieldKitStationWindow : FancyWindow
         return $"Split it into {(int) (volume.Float() / 50)} splash flasks under Package, or brew more to fill a magazine.";
     }
 
-    private void Log(string entry)
+    private void RecordMade(string entry)
     {
         _log.Insert(0, entry);
         if (_log.Count > 6)

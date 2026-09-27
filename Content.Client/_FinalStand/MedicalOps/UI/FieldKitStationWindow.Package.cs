@@ -92,7 +92,7 @@ public sealed partial class FieldKitStationWindow
         button.OnPressed += _ =>
         {
             OnLoadMagazine?.Invoke();
-            Log($"{load} darts loaded");
+            RecordMade($"{load} darts loaded");
         };
         body.AddChild(button);
         return card;
@@ -141,7 +141,7 @@ public sealed partial class FieldKitStationWindow
             if (selected == null)
                 return;
             OnFillFlasks?.Invoke(selected.Capacity, _flaskCount);
-            Log($"{_flaskCount} × {selected.Capacity}u flask");
+            RecordMade($"{_flaskCount} × {selected.Capacity}u flask");
         };
         body.AddChild(button);
         return card;
@@ -157,7 +157,7 @@ public sealed partial class FieldKitStationWindow
         button.OnPressed += _ =>
         {
             OnBottle?.Invoke(count);
-            Log($"{count} bottle{(count == 1 ? "" : "s")}");
+            RecordMade($"{count} bottle{(count == 1 ? "" : "s")}");
         };
         body.AddChild(button);
         return card;
@@ -183,7 +183,7 @@ public sealed partial class FieldKitStationWindow
         button.OnPressed += _ =>
         {
             OnPill?.Invoke(_dose, count);
-            Log($"{count} × {_dose}u pill{(count == 1 ? "" : "s")}");
+            RecordMade($"{count} × {_dose}u pill{(count == 1 ? "" : "s")}");
         };
         body.AddChild(button);
         return card;
