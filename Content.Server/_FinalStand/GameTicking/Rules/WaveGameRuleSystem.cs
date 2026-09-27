@@ -101,7 +101,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 if (comp.SpawnerEntities.Count == 0 && now >= comp.NextSpawnerRetryTime)
                 {
                     comp.NextSpawnerRetryTime = now + TimeSpan.FromSeconds(1);
-                    _spawning.SelectSpawners(comp);
+                    _spawning.SelectSpawners(comp, CountScalingPlayers());
                 }
                 if (comp.VoteCountdownActive && !comp.VoteCountdownSoundPlayed && now >= comp.VoteCountdownSoundTime)
                 {
@@ -228,7 +228,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
         }
 
-        _spawning.SelectSpawners(comp);
+        _spawning.SelectSpawners(comp, CountScalingPlayers());
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
@@ -275,7 +275,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.Phase = WavePhase.Combat;
 
         if (comp.SpawnerEntities.Count == 0)
-            _spawning.SelectSpawners(comp);
+            _spawning.SelectSpawners(comp, CountScalingPlayers());
 
         comp.CCCEntity = EntityUid.Invalid;
         var cq = EntityQueryEnumerator<FinalStandCCCComponent>();

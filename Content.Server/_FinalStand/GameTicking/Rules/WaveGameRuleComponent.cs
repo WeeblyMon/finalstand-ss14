@@ -66,6 +66,9 @@ public sealed partial class WaveGameRuleComponent : Component
     public int PlayerBonusFromWave = 1;
 
     [DataField]
+    public List<int> MaxLanesByPlayers = new() { 2, 2, 3, 3 };
+
+    [DataField]
     public int KillReward = 100;
 
     [DataField]

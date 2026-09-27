@@ -41,7 +41,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
-    public void SelectSpawners(WaveGameRuleComponent comp)
+    public void SelectSpawners(WaveGameRuleComponent comp, int players)
     {
         _spawnerBuffer.Clear();
         _secondaryBuffer.Clear();
@@ -71,12 +71,13 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
         // spawner set as the one before it, so single-corridor can't chain indefinitely.
         const int maxAttempts = 20;
+        var lanes = Math.Min(_spawnerBuffer.Count, MaxLanes(comp, players));
         for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
             if (_spawnerBuffer.Count > 1)
                 _random.Shuffle(_spawnerBuffer);
 
-            var activeCount = RollActiveCount(_spawnerBuffer.Count);
+            var activeCount = RollActiveCount(lanes);
             comp.SpawnerEntities.Clear();
             for (var i = 0; i < activeCount; i++)
                 comp.SpawnerEntities.Add(_spawnerBuffer[i]);
@@ -106,6 +107,13 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 comp.SpawnerEntities.Add(secondary);
         }
     }
+    public static int MaxLanes(WaveGameRuleComponent comp, int players)
+    {
+        var table = comp.MaxLanesByPlayers;
+        var index = Math.Max(players, 1) - 1;
+        return index < table.Count ? table[index] : int.MaxValue;
+    }
+
     private int RollActiveCount(int spawnerCount)
     {
         if (spawnerCount <= 1)
@@ -139,7 +147,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
         if (comp.SpawnerEntities.Count == 0)
         {
-            SelectSpawners(comp);
+            SelectSpawners(comp, comp.ScalingPlayersThisWave);
             comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(1);
             if (comp.SpawnerEntities.Count == 0)
                 return;
