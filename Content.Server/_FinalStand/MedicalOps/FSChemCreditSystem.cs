@@ -17,6 +17,7 @@ public sealed class FSChemCreditSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private FSMedicalFundSystem _medFund = default!;
 
     private static readonly TimeSpan ClaimLifetime = TimeSpan.FromSeconds(120);
 
@@ -76,6 +77,9 @@ public sealed class FSChemCreditSystem : EntitySystem
             return;
 
         _wallet.GiveCredits(claim.SupplierMind, cut);
+        _medFund.GrantMedicalFunds(
+            cut * FSMedicalPayoutRates.SupplierFundPerPoint / FSMedicalPayoutRates.SupplierCreditsPerPoint,
+            "chem-buff", claim.SupplierMind);
 
         _adminLogger.Add(LogType.Action, LogImpact.Low,
             $"{ToPrettyString(claim.SupplierMind):chemist} earned {cut} supply credit from a buffed kill");

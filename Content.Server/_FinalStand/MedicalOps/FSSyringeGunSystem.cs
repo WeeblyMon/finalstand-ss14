@@ -5,6 +5,7 @@ using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Containers;
+using Robust.Shared.Spawners;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
@@ -12,6 +13,9 @@ public sealed class FSSyringeGunSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
+
+    private const float DartLifetime = 6f;
 
     public override void Initialize()
     {
@@ -36,6 +40,9 @@ public sealed class FSSyringeGunSystem : EntitySystem
 
         foreach (var dart in args.FiredProjectiles)
         {
+            EnsureComp<TimedDespawnComponent>(dart).Lifetime = DartLifetime;
+            _attribution.PropagateProducer(magazine, dart);
+
             if (sourceSolution.Volume <= 0)
                 break;
 

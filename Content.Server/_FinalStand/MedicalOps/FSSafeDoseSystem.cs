@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.EntityConditions;
 using Content.Shared.Body.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -17,6 +18,7 @@ public sealed class FSSafeDoseSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
 
     private static readonly SoundSpecifier DartHit =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/dart_hit.ogg");
@@ -38,6 +40,7 @@ public sealed class FSSafeDoseSystem : EntitySystem
         if (args.Shooter is { } shooter && ally)
         {
             _credit.RegisterDelivery(args.Embedded, shooter);
+            _attribution.RecordTreatment(args.Embedded, shooter, ent.Owner);
             _audio.PlayEntity(DartHit, shooter, args.Embedded);
         }
 
