@@ -13,13 +13,9 @@ namespace Content.Client._FinalStand.Research;
 public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
 {
     [ViewVariables]
-    private FSResearchTreeMenu? _consoleMenu;
+    private FSResearchTreeMenu? _menu;
 
-    private Action<EntityUid>? _onDatabaseUpdated;
-    private Action<string>? _onAuthorityDenied;
-    private Action? _onPersonalPickChanged;
-    private Action? _onSharedResearchChanged;
-    private Action<int, int>? _onContribution;
+    private FSResearchClientSystem? _research;
 
     public FSResearchConsoleBoundUserInterface(EntityUid owner, Enum uiKey) : base(owner, uiKey)
     {
@@ -28,110 +24,65 @@ public sealed class FSResearchConsoleBoundUserInterface : BoundUserInterface
     protected override void Open()
     {
         base.Open();
+        if (_menu != null)
+            return;
 
-        var owner = Owner;
+        _menu = this.CreateWindow<FSResearchTreeMenu>();
+        _menu.SetEntity(Owner);
 
-        _consoleMenu = this.CreateWindow<FSResearchTreeMenu>();
-        _consoleMenu.SetEntity(owner);
+        _menu.OnFsNodeSelected += id => SendMessage(new FSSelectResearchNodeMessage(id));
+        _menu.OnFsNodeQueued += id => SendMessage(new FSEnqueueResearchNodeMessage(id));
+        _menu.OnFsNodeDequeued += id => SendMessage(new FSDequeueResearchNodeMessage(id));
+        _menu.OnServerButtonPressed += () => SendMessage(new ConsoleServerSelectionMessage());
+        _menu.OnClearPersonalPick += () => SendMessage(new FSClearPersonalResearchMessage());
+        _menu.OnClearSharedPick += () => SendMessage(new FSClearSharedResearchMessage());
 
-        _consoleMenu.OnTechnologyCardPressed += id =>
-        {
-            SendMessage(new ConsoleUnlockTechnologyMessage(id));
-        };
-
-        _consoleMenu.OnFsNodeSelected += id =>
-        {
-            SendMessage(new FSSelectResearchNodeMessage(id));
-        };
-
-        _consoleMenu.OnFsNodeQueued += id =>
-        {
-            SendMessage(new FSEnqueueResearchNodeMessage(id));
-        };
-
-        _consoleMenu.OnFsNodeDequeued += id =>
-        {
-            SendMessage(new FSDequeueResearchNodeMessage(id));
-        };
-
-        _consoleMenu.OnServerButtonPressed += () =>
-        {
-            SendMessage(new ConsoleServerSelectionMessage());
-        };
-
-        _consoleMenu.OnClearPersonalPick += () =>
-        {
-            SendMessage(new FSClearPersonalResearchMessage());
-        };
-
-        _consoleMenu.OnClearSharedPick += () =>
-        {
-            SendMessage(new FSClearSharedResearchMessage());
-        };
-
-        var researchClient = EntMan.System<FSResearchClientSystem>();
-        _onDatabaseUpdated = uid =>
-        {
-            if (uid == owner)
-                _consoleMenu?.RefreshLiveState();
-        };
-        researchClient.DatabaseUpdated += _onDatabaseUpdated;
-
-        _onAuthorityDenied = reason => _consoleMenu?.ShowAuthorityDenied(reason);
-        researchClient.AuthorityDenied += _onAuthorityDenied;
-
-        _onPersonalPickChanged = () => _consoleMenu?.RefreshLiveState();
-        researchClient.PersonalPickChanged += _onPersonalPickChanged;
-
-        _onSharedResearchChanged = () => _consoleMenu?.RefreshLiveState();
-        researchClient.SharedResearchChanged += _onSharedResearchChanged;
-
-        _onContribution = (contributed, earned) => _consoleMenu?.SetContribution(contributed, earned);
-        researchClient.ContributionReceived += _onContribution;
+        _research = EntMan.System<FSResearchClientSystem>();
+        _research.DatabaseUpdated += OnDatabaseUpdated;
+        _research.AuthorityDenied += OnAuthorityDenied;
+        _research.PersonalPickChanged += Refresh;
+        _research.SharedResearchChanged += Refresh;
+        _research.ContributionReceived += OnContribution;
     }
+
+    private void OnDatabaseUpdated(EntityUid uid)
+    {
+        if (uid == Owner)
+            Refresh();
+    }
+
+    private void OnAuthorityDenied(string reason) => _menu?.ShowAuthorityDenied(reason);
+
+    private void OnContribution(int contributed, int earned) => _menu?.SetContribution(contributed, earned);
+
+    private void Refresh() => _menu?.RefreshLiveState();
 
     public override void OnProtoReload(PrototypesReloadedEventArgs args)
     {
         base.OnProtoReload(args);
 
-        if (!args.WasModified<TechnologyPrototype>() && !args.WasModified<FSTechNodePrototype>())
-            return;
-
-        if (State is not ResearchConsoleBoundInterfaceState rState)
-            return;
-
-        _consoleMenu?.InvalidateLayout();
-        _consoleMenu?.UpdatePanels(rState);
-        _consoleMenu?.UpdateInformationPanel(rState);
+        if (args.WasModified<TechnologyPrototype>() || args.WasModified<FSTechNodePrototype>())
+            _menu?.InvalidateLayout();
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
     {
         base.UpdateState(state);
 
-        if (state is not ResearchConsoleBoundInterfaceState castState)
-            return;
-        _consoleMenu?.UpdatePanels(castState);
-        _consoleMenu?.UpdateInformationPanel(castState);
+        if (state is ResearchConsoleBoundInterfaceState)
+            Refresh();
     }
 
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (!disposing)
+        if (!disposing || _research == null)
             return;
 
-        var researchClient = EntMan.System<FSResearchClientSystem>();
-        if (_onDatabaseUpdated != null)
-            researchClient.DatabaseUpdated -= _onDatabaseUpdated;
-        if (_onAuthorityDenied != null)
-            researchClient.AuthorityDenied -= _onAuthorityDenied;
-        if (_onPersonalPickChanged != null)
-            researchClient.PersonalPickChanged -= _onPersonalPickChanged;
-        if (_onSharedResearchChanged != null)
-            researchClient.SharedResearchChanged -= _onSharedResearchChanged;
-
-        if (_onContribution != null)
-            researchClient.ContributionReceived -= _onContribution;
+        _research.DatabaseUpdated -= OnDatabaseUpdated;
+        _research.AuthorityDenied -= OnAuthorityDenied;
+        _research.PersonalPickChanged -= Refresh;
+        _research.SharedResearchChanged -= Refresh;
+        _research.ContributionReceived -= OnContribution;
     }
 }
