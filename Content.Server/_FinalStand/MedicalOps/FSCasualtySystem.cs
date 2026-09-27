@@ -215,7 +215,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
                 Patient = GetNetEntity(patient),
                 Name = Identity.Name(patient, EntityManager),
                 State = StateOf(patient),
-                Position = GetNetCoordinates(Transform(patient).Coordinates),
+                Position = GetNetCoordinates(_xform.GetMoverCoordinates(patient)),
                 Responder = responder,
             });
         }
