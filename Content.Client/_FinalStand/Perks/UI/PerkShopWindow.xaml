@@ -47,7 +47,7 @@
                 </BoxContainer>
 
                 <PanelContainer Name="DetailPanel">
-                    <BoxContainer Name="DetailBox" Orientation="Vertical" Margin="22" SeparationOverride="18">
+                    <BoxContainer Name="DetailBox" Orientation="Vertical" Margin="18" SeparationOverride="14">
                         <BoxContainer Name="InfoBox" Orientation="Vertical" SeparationOverride="12">
                             <BoxContainer Orientation="Horizontal" SeparationOverride="14">
                                 <PanelContainer Name="SelectedIconBox" SetSize="84 84">
@@ -79,10 +79,10 @@
             </BoxContainer>
 
             <PanelContainer Name="FooterPanel">
-                <BoxContainer Orientation="Horizontal" Margin="20 10" SeparationOverride="10">
+                <BoxContainer Orientation="Horizontal" Margin="20 8" SeparationOverride="10">
                     <Label Name="LoadoutsTitle" Text="LOADOUTS" VerticalAlignment="Center" Margin="0 0 6 0" />
-                    <BoxContainer Name="LoadoutRow" Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="10" />
-                    <Button Name="RespecButton" Text="RESPEC…" VerticalAlignment="Center" MinHeight="34" />
+                    <BoxContainer Name="LoadoutRow" Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="8" />
+                    <Button Name="RespecButton" Text="RESPEC…" VerticalAlignment="Center" MinHeight="32" />
                 </BoxContainer>
             </PanelContainer>
 

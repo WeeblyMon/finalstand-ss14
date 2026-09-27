@@ -187,10 +187,15 @@ public sealed partial class PerkShopWindow
             ToolTip = def.Name + (locked ? " — not owned" : $" — level {level} of {FSPerkDef.MaxLevel}"),
         };
 
+        // Unowned tiles keep a muted wash of their category so the catalogue still reads by colour.
+        var categoryFill = FSPerkPalette.Background[def.Category];
+        var categoryEdge = FSPerkPalette.Edge[def.Category];
+        var fill = locked ? Color.InterpolateBetween(FSUiPalette.BgRecess, categoryFill, 0.55f) : categoryFill;
+        var restEdge = locked ? Color.InterpolateBetween(FSUiPalette.BgTrack, categoryEdge, 0.6f) : categoryEdge;
+
         void Paint(bool hover)
         {
-            var fill = selected ? FSUiPalette.BgElevated : locked ? FSUiPalette.BgRecess : FSPerkPalette.Background[def.Category];
-            var edge = selected ? FSUiPalette.AccentBrand : hover ? FSUiPalette.BorderSubtle : locked ? FSUiPalette.BorderDisabled : FSUiPalette.BgTrack;
+            var edge = selected ? FSUiPalette.AccentBrand : hover ? FSPerkPalette.Accent[def.Category] : restEdge;
             tile.StyleBoxOverride = Box(fill, edge, new Thickness(selected ? 2 : 1));
         }
         Paint(false);
@@ -215,7 +220,7 @@ public sealed partial class PerkShopWindow
                 Stretch = TextureRect.StretchMode.Scale,
                 SetSize = new Vector2(44, 44),
                 HorizontalAlignment = HAlignment.Center,
-                Modulate = Color.White.WithAlpha(locked ? 0.35f : 1f),
+                Modulate = locked ? FSPerkPalette.Accent[def.Category].WithAlpha(0.6f) : Color.White,
             });
         }
 
@@ -233,7 +238,6 @@ public sealed partial class PerkShopWindow
                 FontOverride = _fontSmallBold,
                 FontColorOverride = locked ? FSUiPalette.TextMuted : FSUiPalette.TextPrimary,
                 HorizontalAlignment = HAlignment.Center,
-                ClipText = true,
             });
         }
         content.AddChild(nameBox);

@@ -180,7 +180,8 @@ public sealed partial class PerkShopWindow : FancyWindow
             compact ? new Thickness(0, 1, 0, 0) : new Thickness(1, 0, 0, 0));
         InfoBox.HorizontalExpand = compact;
         ActionsBox.HorizontalExpand = compact;
-        SelectedDescLabel.MaxWidth = compact ? 320 : DetailWidth - 44;
+        SelectedDescLabel.MaxWidth = compact ? 320 : DetailWidth - 36;
+        RebuildLoadouts();
     }
 
     private void RebuildLoadouts()
@@ -189,6 +190,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         if (_state == null)
             return;
 
+        var buildEmpty = _state.Levels.Count == 0;
         for (var i = 0; i < LoadoutCount; i++)
         {
             var idx = i;
@@ -198,40 +200,43 @@ public sealed partial class PerkShopWindow : FancyWindow
             var card = new PanelContainer
             {
                 HorizontalExpand = true,
-                MaxWidth = 250,
-                PanelOverride = Box(FSUiPalette.BgSurface, FSUiPalette.BgTrack, new Thickness(1), 10, 8),
+                MaxWidth = 300,
+                PanelOverride = Box(FSUiPalette.BgSurface, used ? FSUiPalette.BorderNeutral : FSUiPalette.BgTrack, new Thickness(1), 8, 5),
             };
-            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10 };
+            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8 };
 
-            var info = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, SeparationOverride = 4 };
-            info.AddChild(new Label
+            row.AddChild(new Label
             {
-                Text = $"LOADOUT {i + 1}",
-                FontOverride = _fontSmallBold,
-                FontColorOverride = FSUiPalette.TextPrimary,
+                Text = (i + 1).ToString(),
+                MinWidth = 12,
+                FontOverride = _fontBodyBold,
+                FontColorOverride = used ? FSUiPalette.TextPrimary : FSUiPalette.BorderSubtle,
+                VerticalAlignment = VAlignment.Center,
             });
 
-            var minis = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 3 };
-            for (var s = 0; s < FSPerkDef.SlotCount; s++)
+            var minis = new BoxContainer
             {
-                var id = used ? loadout!.Slots[s] : null;
-                minis.AddChild(MiniIcon(id));
-            }
-            info.AddChild(minis);
-            row.AddChild(info);
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                SeparationOverride = 2,
+                HorizontalExpand = true,
+                VerticalAlignment = VAlignment.Center,
+                Visible = !_compact,
+            };
+            for (var s = 0; s < FSPerkDef.SlotCount; s++)
+                minis.AddChild(MiniIcon(used ? loadout!.Slots[s] : null));
+            row.AddChild(minis);
+            if (_compact)
+                row.AddChild(new Control { HorizontalExpand = true });
 
-            var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4 };
             var load = SmallButton("LOAD", !used);
             load.ToolTip = used ? $"Swap to this build ({loadout!.Levels.Count} perks). Your current build is refunded first." : "Nothing saved here";
             load.OnPressed += _ => OnLoadLoadout?.Invoke(new FSLoadLoadoutMessage { LoadoutIndex = idx });
-            var buildEmpty = _state.Levels.Count == 0;
             var save = SmallButton("SAVE", buildEmpty);
             save.ToolTip = buildEmpty ? "Your build is empty — nothing to save"
                 : used ? "Overwrite with your current build" : "Save your current build here";
             save.OnPressed += _ => OnSaveLoadout?.Invoke(new FSSaveLoadoutMessage { LoadoutIndex = idx });
-            buttons.AddChild(load);
-            buttons.AddChild(save);
-            row.AddChild(buttons);
+            row.AddChild(load);
+            row.AddChild(save);
 
             card.AddChild(row);
             LoadoutRow.AddChild(card);
@@ -240,22 +245,27 @@ public sealed partial class PerkShopWindow : FancyWindow
 
     private Control MiniIcon(string? perkId)
     {
-        var hasPerk = !string.IsNullOrEmpty(perkId) && FSPerkDef.All.TryGetValue(perkId, out _);
+        FSPerkDef? def = null;
+        if (!string.IsNullOrEmpty(perkId))
+            FSPerkDef.All.TryGetValue(perkId, out def);
+
         var panel = new PanelContainer
         {
-            SetSize = new System.Numerics.Vector2(20, 20),
-            PanelOverride = hasPerk
-                ? Box(FSPerkPalette.Background[FSPerkDef.All[perkId!].Category], FSUiPalette.BgTrack, new Thickness(1))
+            SetSize = new System.Numerics.Vector2(18, 18),
+            VerticalAlignment = VAlignment.Center,
+            PanelOverride = def != null
+                ? Box(FSPerkPalette.Background[def.Category], FSPerkPalette.Edge[def.Category], new Thickness(1))
                 : Box(FSUiPalette.BgRecess, FSUiPalette.BgTrack, new Thickness(1)),
+            ToolTip = def?.Name,
         };
 
-        if (hasPerk && GetPerkIcon(perkId!) is { } icon)
+        if (def != null && GetPerkIcon(def.Id) is { } icon)
         {
             panel.AddChild(new TextureRect
             {
                 Texture = icon,
                 Stretch = TextureRect.StretchMode.Scale,
-                SetSize = new System.Numerics.Vector2(16, 16),
+                SetSize = new System.Numerics.Vector2(14, 14),
                 HorizontalAlignment = HAlignment.Center,
                 VerticalAlignment = VAlignment.Center,
             });
@@ -265,7 +275,7 @@ public sealed partial class PerkShopWindow : FancyWindow
 
     private Button SmallButton(string text, bool disabled)
     {
-        var button = new Button { Text = text, Disabled = disabled, MinHeight = 24, MinWidth = 56 };
+        var button = new Button { Text = text, Disabled = disabled, MinHeight = 26, MinWidth = 50, VerticalAlignment = VAlignment.Center };
         button.Label.FontOverride = _fontSmallBold;
         button.Label.HorizontalAlignment = HAlignment.Center;
         return button;

@@ -100,6 +100,22 @@ public sealed class FSMenuStylesheet
                 .Prop(ScrollBar.StylePropertyGrabber, scrollGrabGrab),
         };
 
+        // Tabs: active tab gets the HUD's gold underline; the page behind is the window colour, not the engine's blue-grey.
+        var tabActive = Box(FSUiPalette.BgDeep, FSUiPalette.BorderPressed, 0, 12, 4);
+        tabActive.BorderThickness = new Thickness(0, 0, 0, 2);
+        var tabInactive = Box(FSUiPalette.BgRecess, FSUiPalette.BgRecess, 0, 12, 4);
+        custom.Add(Element<TabContainer>()
+            .Prop(TabContainer.StylePropertyPanelStyleBox, Box(FSUiPalette.BgDeep, null, 0, 0, 0))
+            .Prop(TabContainer.StylePropertyTabStyleBox, tabActive)
+            .Prop(TabContainer.StylePropertyTabStyleBoxInactive, tabInactive)
+            .Prop(TabContainer.stylePropertyTabFontColor, FSUiPalette.TextPrimary)
+            .Prop(TabContainer.StylePropertyTabFontColorInactive, FSUiPalette.TextMuted)
+            .Prop(Control.StylePropertyModulateSelf, Color.White));
+
+        custom.Add(Element<LineEdit>()
+            .Prop(LineEdit.StylePropertyStyleBox, Box(FSUiPalette.BgRecess, FSUiPalette.BorderNeutral, 1, 8, 4))
+            .Prop(Control.StylePropertyModulateSelf, Color.White));
+
         custom.AddRange(FSStyleRules.Buttons(btnNormal, btnHover, btnPressed, btnDisable));
         custom.AddRange(FSStyleRules.SemanticText());
 
