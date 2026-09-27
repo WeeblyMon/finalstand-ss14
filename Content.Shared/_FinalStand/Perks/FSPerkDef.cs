@@ -171,7 +171,7 @@ public sealed class FSPerkDef
                 Pct("+{0}% Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
 
             new("FieldMedic", "Field Medic",
-                "Increases the potency of your healing.",
+                "Bandages, ointments and medigun beams you apply heal more.",
                 PerkCategory.Blue,
                 Pct("+{0}% Healing", FSPerkBonusConstants.FieldMedicPerLevel)),
 

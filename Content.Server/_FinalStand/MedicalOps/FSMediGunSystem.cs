@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.Perks;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Body;
@@ -113,8 +114,11 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         MendWorstBone(healed, comp.BoneRepairPerTick);
 
+        var potency = new FSHealingPotencyEvent(1f);
+        RaiseLocalEvent(wielder, ref potency);
+
         // Ungated by the soft cap below: that measures the HP bar, limb wounds are a separate pool.
-        var mendedWounds = _wounds.TryHealWoundsOnOwner(healed, comp.Healing * comp.LimbHealScale);
+        var mendedWounds = _wounds.TryHealWoundsOnOwner(healed, comp.Healing * (comp.LimbHealScale * potency.Multiplier));
         if (mendedWounds || damageable.TotalDamage > 0)
             _combatMedic.OnHealedAlly(wielder, healed);
 
@@ -140,7 +144,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         _damageable.TryChangeDamage(
             healed,
-            comp.Healing * scale,
+            comp.Healing * (scale * potency.Multiplier),
             ignoreResistances: true,
             interruptsDoAfters: false,
             origin: comp.ParentEntity);
