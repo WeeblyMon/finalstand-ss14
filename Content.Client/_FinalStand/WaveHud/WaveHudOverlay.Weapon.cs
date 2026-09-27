@@ -51,7 +51,7 @@ public sealed partial class WaveHudOverlay
         var labelH = _cachedLabelH;
         var valueH = _cachedValueH;
         var hasAmmo = WeaponLoaded is not null && WeaponCapacity is > 0;
-        var hasDetail = !hasAmmo && !string.IsNullOrEmpty(ItemDetail);
+        var hasDetail = !string.IsNullOrEmpty(ItemDetail);
 
         var name = (WeaponName ?? "no weapon").ToUpperInvariant();
 

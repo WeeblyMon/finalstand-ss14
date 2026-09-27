@@ -19,3 +19,5 @@ fs-solution-label-mixed = mixed
 fs-syringe-filler-purge = Purge
 fs-syringe-filler-purge-and-fill = Purge & fill
 fs-syringe-filler-small-source = Use a jug to fill it in one go.
+fs-syringe-gun-examine-empty = No magazine loaded.
+fs-syringe-gun-examine-loaded = Loaded with [color=#5FE3B4]{ $mix }[/color] ({ $units }u).

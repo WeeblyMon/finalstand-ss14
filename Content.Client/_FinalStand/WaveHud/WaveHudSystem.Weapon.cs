@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
+using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Utility;
 using Content.Shared.Charges.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -28,6 +29,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private EntityWhitelistSystem _magWhitelist = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -79,6 +81,10 @@ public sealed partial class WaveHudSystem
         overlay.WeaponReserve = CountSpareMagazines(player, held);
         overlay.HasAmmoChoice = overlay.WeaponReserve > 0;
         overlay.WeaponTakesMagazines = TryGetMagazineSlot(held, out _);
+
+        if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
+            && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))
+            overlay.ItemDetail = mix;
     }
 
     private string? GetItemDetail(EntityUid held)
