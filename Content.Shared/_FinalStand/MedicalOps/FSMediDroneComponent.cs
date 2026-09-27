@@ -7,7 +7,7 @@ namespace Content.Shared._FinalStand.MedicalOps;
 public sealed partial class FSMediDroneComponent : Component
 {
     [ViewVariables]
-    public EntityUid? Owner;
+    public EntityUid? Launcher;
 
     [ViewVariables]
     public EntityUid? Target;

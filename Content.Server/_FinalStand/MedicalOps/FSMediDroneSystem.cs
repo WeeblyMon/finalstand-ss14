@@ -44,7 +44,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
 
     private void OnDeployed(Entity<FSMediDroneComponent> ent, ref FSDeployableDeployedEvent args)
     {
-        ent.Comp.Owner = args.User;
+        ent.Comp.Launcher = args.User;
         ent.Comp.OrbitAngle = (float) (_xform.GetWorldPosition(ent.Owner) - _xform.GetWorldPosition(args.User)).ToAngle().Theta;
         _xform.Unanchor(ent.Owner, Transform(ent.Owner));
         _audio.PlayPvs(LaunchSound, ent.Owner, AudioParams.Default.WithVolume(-4f));
@@ -58,7 +58,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
         var query = EntityQueryEnumerator<FSMediDroneComponent, FSMediGunComponent>();
         while (query.MoveNext(out var uid, out var drone, out var gun))
         {
-            if (drone.Owner is not { } owner || TerminatingOrDeleted(owner))
+            if (drone.Launcher is not { } owner || TerminatingOrDeleted(owner))
             {
                 QueueDel(uid);
                 continue;
