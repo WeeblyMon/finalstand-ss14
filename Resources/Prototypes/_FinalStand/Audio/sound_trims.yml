@@ -18,14 +18,14 @@
     /Audio/Weapons/Guns/Gunshots/sniper.ogg:                -3  # Kardashev-Mosin, Hristov
     /Audio/Weapons/Guns/Gunshots/laser_cannon.ogg:          -3  # Energy Magnum, Energy Shotgun
     /Audio/_FinalStand/Weapons/EnergyShotgun/charge.ogg:    -2  # Energy Shotgun charge
-    /Audio/_FinalStand/Weapons/EnergyShotgun/bounce.ogg:    0  # Energy Shotgun ricochet
+    /Audio/_FinalStand/Weapons/EnergyShotgun/bounce.ogg:    -7  # Energy Shotgun ricochet
     /Audio/Weapons/Guns/Gunshots/laser.ogg:                 -1  # Adv. Laser Pistol
     /Audio/_FinalStand/Weapons/LaserCarbine/fire.ogg:       -6  # Laser Carbine
     /Audio/Weapons/Guns/Gunshots/laser3.ogg:                0  # Pulse Rifle, X-Ray Cannon
     /Audio/Effects/Lightning/lightningshock.ogg:            -7.5  # Tesla Gun
     /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg:      -5.5  # Hydra
     /Audio/Weapons/Guns/Gunshots/rpgfire.ogg:               -3  # RPG-7
-    /Audio/_FinalStand/Weapons/Harvester/laser.ogg:         0  # Harvester
+    /Audio/_FinalStand/Weapons/Harvester/laser.ogg:         -3  # Harvester
     /Audio/Weapons/ebladeon.ogg:                            -5.5  # Energy Sword on
     /Audio/Weapons/eblademiss.ogg:                          -5  # Energy Sword swing
     /Audio/Weapons/ebladehum.ogg:                           -1.5  # Energy Sword hum
