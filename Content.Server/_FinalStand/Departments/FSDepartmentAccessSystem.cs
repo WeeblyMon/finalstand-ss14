@@ -24,6 +24,7 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
 
     private static readonly ProtoId<DepartmentPrototype> ScienceDept = "Science";
     private static readonly ProtoId<DepartmentPrototype> EngineeringDept = "Engineering";
+    private static readonly ProtoId<DepartmentPrototype> MedicalDept = "Medical";
 
     private static readonly ProtoId<AccessLevelPrototype>[] ScienceAccess = ["Research", "ResearchDirector"];
     private static readonly ProtoId<AccessLevelPrototype>[] EngineeringAccess = ["Engineering", "ChiefEngineer"];
@@ -90,12 +91,14 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
         var comp = EnsureComp<FSDepartmentAccessComponent>(user);
         var science = IsScience(user);
         var engineering = IsEngineering(user);
+        var medical = HasJobIn(user, MedicalDept);
 
-        if (comp.Science == science && comp.Engineering == engineering)
+        if (comp.Science == science && comp.Engineering == engineering && comp.Medical == medical)
             return;
 
         comp.Science = science;
         comp.Engineering = engineering;
+        comp.Medical = medical;
         Dirty(user, comp);
     }
 

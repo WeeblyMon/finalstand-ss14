@@ -8,7 +8,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-public sealed class FSSyringeGunExamineSystem : EntitySystem
+public sealed partial class FSSyringeGunExamineSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedContainerSystem _containers = default!;

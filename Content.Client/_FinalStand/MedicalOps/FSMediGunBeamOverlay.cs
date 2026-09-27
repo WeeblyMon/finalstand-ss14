@@ -94,6 +94,9 @@ public sealed class FSMediGunBeamOverlay : Overlay
             || !_entManager.EntityExists(patient))
             return;
 
+        if (gun.BeamFromSelf)
+            medic = source;
+
         if (!_entManager.TryGetComponent(medic, out TransformComponent? medicXform)
             || !_entManager.TryGetComponent(patient, out TransformComponent? patientXform)
             || medicXform.MapID != args.MapId

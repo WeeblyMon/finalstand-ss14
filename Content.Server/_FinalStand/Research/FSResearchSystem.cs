@@ -62,6 +62,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         var station = GetOrCreateStation();
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        unlocked.UnionWith(_medicalResearch.UnlockedNodeIds());
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Entity)), Filter.SinglePlayer(args.Player));
@@ -726,12 +727,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         RaiseNetworkEvent(new FSPersonalResearchStateEvent(nodeId, progress, queue), Filter.SinglePlayer(session));
     }
 
-    private void BroadcastUnlockedNodes()
+    public void BroadcastUnlockedNodes()
     {
         if (!TryGetStation(out var station))
             return;
 
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        unlocked.UnionWith(_medicalResearch.UnlockedNodeIds());
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.Broadcast());
     }
 

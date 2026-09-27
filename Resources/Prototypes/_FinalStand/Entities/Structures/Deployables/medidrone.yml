@@ -1,0 +1,82 @@
+- type: entity
+  id: FSMediDroneItem
+  parent: BaseItem
+  name: medi-drone
+  description: A folded healing drone. Deploy it and it follows you, peeling off to heal wounded allies nearby up to half health. It burns out when its charge runs dry. Press Z to aim a placement, click to deploy - or throw it (Ctrl+Q).
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Item
+    size: Small
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/medidrone.rsi
+    state: full
+  - type: FSMedicalOnly
+  - type: FSDeployableItem
+    deployedProtoId: FSMediDroneDeployed
+    requiresScience: false
+    requiresMedical: true
+    maxDeployed: 1
+    regenPerWave: 0
+  - type: FSPlaceable
+    previewProtoId: FSMediDroneDeployed
+    range: 3
+
+- type: entity
+  id: FSMediDroneDeployed
+  name: medi-drone
+  description: A small healing drone. It sticks to the medic who launched it and beams wounded allies back up to half health.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/medidrone.rsi
+    drawdepth: OverMobs
+    layers:
+    - state: full
+      map: [ "charge" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSMediDroneVisuals.Charge:
+        charge:
+          Full: { state: full }
+          ThreeQuarters: { state: charge75 }
+          Half: { state: charge50 }
+          Quarter: { state: charge25 }
+          Empty: { state: empty }
+  - type: Clickable
+  - type: InteractionOutline
+  - type: PointLight
+    enabled: true
+    radius: 1.5
+    energy: 1.5
+    color: "#E23B3B"
+  - type: FSMediDrone
+  - type: FSMediGun
+    beamFromSelf: true
+    frequency: 1.0
+    maxRange: 4
+    batteryWithdraw: 1
+    softCapRatio: 0.5
+    boneRepairPerTick: 0.25
+    bleedingAmountModifier: 1
+    healing:
+      types:
+        Blunt: -2
+        Slash: -2
+        Piercing: -2
+        Heat: -2
+        Cold: -1.5
+        Shock: -2
+        Asphyxiation: -2
+        Bloodloss: -2
+    soundOnTarget:
+      path: /Audio/_FinalStand/Effects/medigun.ogg
+  - type: Battery
+    maxCharge: 20
+    startingCharge: 20
+  - type: Explosive
+    explosionType: FSGrenadeExplosion
+    maxIntensity: 4
+    intensitySlope: 2
+    totalIntensity: 20
+    canCreateVacuum: false

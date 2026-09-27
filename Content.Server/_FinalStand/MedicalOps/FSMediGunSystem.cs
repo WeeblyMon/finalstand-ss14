@@ -210,12 +210,22 @@ public sealed partial class FSMediGunSystem : EntitySystem
             return;
         }
 
+        Link(ent, target, args.User);
+
+        _useDelay.TryResetDelay(uid);
+        args.Handled = true;
+    }
+
+    public void Link(Entity<FSMediGunComponent> ent, EntityUid target, EntityUid wielder)
+    {
+        var (uid, comp) = ent;
+
         while (comp.HealedEntities.Count >= comp.MaxLinksAmount && comp.HealedEntities.Count > 0)
             DisableConnection(ent, comp.HealedEntities[0]);
 
         comp.HealedEntities.Add(target);
         comp.IsActive = true;
-        comp.ParentEntity = args.User;
+        comp.ParentEntity = wielder;
         comp.NextTick = _timing.CurTime + TimeSpan.FromSeconds(comp.Frequency);
         Dirty(uid, comp);
 
@@ -223,9 +233,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (!healed.Sources.Contains(uid))
             healed.Sources.Add(uid);
         Dirty(target, healed);
-
-        _useDelay.TryResetDelay(uid);
-        args.Handled = true;
 
         _audio.PlayPvs(comp.SoundOnTarget, uid);
     }
@@ -237,11 +244,11 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
     private void OnParentChanged(Entity<FSMediGunComponent> ent, ref EntParentChangedMessage args)
     {
-        if (args.Transform.ParentUid != ent.Comp.ParentEntity)
+        if (!ent.Comp.BeamFromSelf && args.Transform.ParentUid != ent.Comp.ParentEntity)
             DisableAllConnections(ent);
     }
 
-    private void DisableAllConnections(Entity<FSMediGunComponent> ent)
+    public void DisableAllConnections(Entity<FSMediGunComponent> ent)
     {
         var comp = ent.Comp;
 

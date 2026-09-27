@@ -86,6 +86,10 @@ public sealed partial class FSMediGunComponent : Component
 
     [DataField, AutoNetworkedField]
     public Color BeamColor = Color.FromHex("#E23B3B");
+
+    // Free-flying emitters draw the beam from themselves rather than from the medic they serve.
+    [DataField]
+    public bool BeamFromSelf;
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]

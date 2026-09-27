@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 09/24/2026 22:48:49
-  entityCount: 11030
+  entityCount: 11032
 maps:
 - 259
 grids:
@@ -34809,6 +34809,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 8.5,-2.5
+- proto: FSDeployableShopMediDrone
+  entities:
+  - uid: 11032
+    components:
+    - type: Transform
+      parent: 1
+      pos: -23.5,-1.5
 - proto: FSDeployableShopHeavySentry
   entities:
   - uid: 10960
@@ -59675,6 +59682,11 @@ entities:
       pos: 42.514263,-1.2184255
 - proto: Table
   entities:
+  - uid: 11031
+    components:
+    - type: Transform
+      parent: 1
+      pos: -23.5,-1.5
   - uid: 8
     components:
     - type: Transform

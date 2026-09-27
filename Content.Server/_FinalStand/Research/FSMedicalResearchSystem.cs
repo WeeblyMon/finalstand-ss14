@@ -29,6 +29,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private RadioSystem _radio = default!;
+    [Dependency] private FSResearchSystem _science = default!;
 
     private static readonly SoundSpecifier PurchaseSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/research_purchase.ogg");
@@ -134,6 +135,9 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SyncConsoles();
     }
 
+    public IEnumerable<string> UnlockedNodeIds() =>
+        TryGetState(out var state) ? state.Comp.UnlockedNodes.Select(n => n.Id) : [];
+
     public bool IsNodeUnlocked(string nodeId)
     {
         if (!TryGetState(out var state))
@@ -224,6 +228,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         SyncConsoles();
 
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+        _science.BroadcastUnlockedNodes();
         return true;
     }
 

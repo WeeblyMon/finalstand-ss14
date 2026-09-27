@@ -97,10 +97,12 @@ public sealed partial class FSShopClientSystem : EntitySystem
 
         var science = false;
         var engineering = false;
+        var medical = false;
         if (player != null && TryComp<FSDepartmentAccessComponent>(player.Value, out var departments))
         {
             science = departments.Science;
             engineering = departments.Engineering;
+            medical = departments.Medical;
         }
 
         // Hands, worn slots and the backpack - matches where the shop itself looks for the weapon.
@@ -117,6 +119,8 @@ public sealed partial class FSShopClientSystem : EntitySystem
             else if (shop.RequiresScience && !science)
                 state = ShopGlowState.Locked;
             else if (shop.RequiresEngineering && !engineering)
+                state = ShopGlowState.Locked;
+            else if (shop.RequiresMedical && !medical)
                 state = ShopGlowState.Locked;
             else if (OwnsShopWeapon(shop))
                 state = ShopGlowState.Owned;

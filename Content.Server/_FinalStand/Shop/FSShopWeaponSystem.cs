@@ -29,6 +29,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private FSItemStashSystem _stash = default!;
     [Dependency] private FSInventorySearchSystem _search = default!;
     [Dependency] private FSResearchSystem _fsResearch = default!;
+    [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
+    [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
@@ -78,7 +80,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     // Research and department locks. Every entry point checks this, not just the UI open.
     private bool TryAccess(EntityUid uid, FSShopWeaponComponent comp, EntityUid player, bool silent = false)
     {
-        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
+        if (comp.RequiresResearch is { } required && !IsResearched(required))
         {
             if (!silent)
                 _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, player);
@@ -99,8 +101,18 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return false;
         }
 
+        if (comp.RequiresMedical && !_roster.IsMedical(player))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("fs-medical-only"), uid, player);
+            return false;
+        }
+
         return true;
     }
+
+    private bool IsResearched(string nodeId) =>
+        _fsResearch.IsNodeUnlocked(nodeId) || _medicalResearch.IsNodeUnlocked(nodeId);
 
     private void OnOpenAttempt(EntityUid uid, FSShopWeaponComponent comp, ActivatableUIOpenAttemptEvent args)
     {
@@ -241,7 +253,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        if (def.RequiresResearch is { } requiredNode && !_fsResearch.IsNodeUnlocked(requiredNode))
+        if (def.RequiresResearch is { } requiredNode && !IsResearched(requiredNode))
         {
             var nodeName = _protoManager.TryIndex(requiredNode, out var node) ? node.Name : requiredNode.Id;
             _popup.PopupEntity(Loc.GetString("shop-upgrade-locked-research", ("node", nodeName)), uid, player);

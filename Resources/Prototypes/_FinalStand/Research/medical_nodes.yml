@@ -203,6 +203,19 @@
   - [ FSMedicalFocusedEmitters, FSMedicalRapidCycling ]
   bonusDescription: Emergency defibrillators recharge a third faster.
 
+- type: fsTechNode
+  id: FSMedicalMediDrone
+  name: Medi-Drone
+  icon:
+    sprite: _FinalStand/Objects/Medical/medidrone.rsi
+    state: full
+  branch: Medical
+  tier: 3
+  cost: 1100
+  prerequisites:
+  - FSMedicalHaemostaticBeam
+  bonusDescription: Medical staff can buy a Medi-Drone at the drone shop. It follows its medic and heals wounded allies nearby up to half health until its charge runs out.
+
 # ── Line B: Trauma (field hospital, casualty recovery, bone stapler) ──────────────────────────
 
 - type: fsTechNode

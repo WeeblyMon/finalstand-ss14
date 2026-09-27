@@ -257,3 +257,34 @@
     sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     state: icon
     scale: 1,1
+
+# ── Medical Deployables ──────────────────────────────────────────────────────────────────────
+- type: entity
+  id: FSDeployableShopMediDrone
+  parent: FSWeaponShopBase
+  name: Medi-Drone
+  description: A healing drone that follows you and beams wounded allies nearby up to half health. Burns out when its charge runs dry.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSMediDroneItem
+    requiresResearch: FSMedicalMediDrone
+    requiresMedical: true
+    singlePurchase: true
+    price: 3000
+    category: Medical Deployable
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: medi-drone-capacity
+      name: Spare Drone
+      description: Carry one more Medi-Drone for when the first burns out.
+      maxLevel: 1
+      baseCost: 3000
+      type: DeployableCapacity
+      valuePerLevel: 1
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/medidrone.rsi
+    state: full
+    scale: 1,1

@@ -11,4 +11,7 @@ public sealed partial class FSDepartmentAccessComponent : Component
 
     [AutoNetworkedField]
     public bool Engineering;
+
+    [AutoNetworkedField]
+    public bool Medical;
 }
