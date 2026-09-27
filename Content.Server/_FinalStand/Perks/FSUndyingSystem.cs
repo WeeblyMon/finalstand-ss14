@@ -14,6 +14,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSPerkNotifySystem _notify = default!;
+    [Dependency] private FSPerkAmmoSystem _ammo = default!;
 
     public override void Initialize()
     {
@@ -45,6 +46,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
         ent.Comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
         args.State = MobState.Alive;
 
+        _ammo.FillHeld(ent);
         _popup.PopupEntity("Undying!", ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
         _notify.SendStacksToBody(ent, "Undying", ent.Comp.ShownSeconds);
@@ -63,6 +65,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
 
             if (now < end)
             {
+                _ammo.FillHeld(uid);
                 var left = (int) Math.Ceiling((end - now).TotalSeconds);
                 if (left != undying.ShownSeconds)
                 {
