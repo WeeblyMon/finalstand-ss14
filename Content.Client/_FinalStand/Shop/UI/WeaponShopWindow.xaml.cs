@@ -45,6 +45,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
     private const int BarSegments = 10;
 
     private float _rowsWidth;
+    private bool _rowsDirty;
 
     private readonly Font _fontCaption;
     private readonly Font _fontBody;
@@ -189,6 +190,13 @@ public sealed partial class WeaponShopWindow : FancyWindow
         if (UpgradesScroll.Width > 0 && Math.Abs(UpgradesScroll.Width - _rowsWidth) > 16f)
         {
             _rowsWidth = UpgradesScroll.Width;
+            _rowsDirty = true;
+        }
+
+        // Balance, ownership and level updates often land together; rebuild the rows once per frame.
+        if (_rowsDirty)
+        {
+            _rowsDirty = false;
             RebuildRows();
         }
     }
@@ -223,7 +231,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _credits = credits;
         BalanceLabel.Text = Money(credits);
         RefreshBuyButton();
-        RebuildRows();
+        _rowsDirty = true;
     }
 
     public void UpdateWeaponTitle(string title)
@@ -254,7 +262,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
             ExitConfirmState();
 
         RefreshBuyButton();
-        RebuildRows();
+        _rowsDirty = true;
     }
 
     public void ResetConfirmation()
@@ -268,7 +276,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _defs = defs;
         _levels = levels;
         _credits = credits;
-        RebuildRows();
+        _rowsDirty = true;
     }
 
     private void RefreshBuyButton()

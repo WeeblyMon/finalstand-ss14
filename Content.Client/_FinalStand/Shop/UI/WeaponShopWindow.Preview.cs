@@ -6,6 +6,10 @@ namespace Content.Client._FinalStand.Shop.UI;
 
 public sealed partial class WeaponShopWindow
 {
+    private static readonly StyleBoxFlat SegmentOn = new() { BackgroundColor = FSUiPalette.TextPrimary };
+    private static readonly StyleBoxFlat SegmentPreview = new() { BackgroundColor = FSUiPalette.Currency };
+    private static readonly StyleBoxFlat SegmentOff = new() { BackgroundColor = FSUiPalette.BgTrack };
+
     // One level of def, applied to the stat it moves: which bar, its new fill, and its new value text.
     private bool TryPreview(WeaponUpgradeDef def, out string stat, out float fill, out string text)
     {
@@ -87,12 +91,7 @@ public sealed partial class WeaponShopWindow
         var high = preview ? Math.Max(current, target) : target;
 
         for (var i = 0; i < refs.Segments.Length; i++)
-        {
-            var color = i < low ? FSUiPalette.TextPrimary
-                : i < high ? FSUiPalette.Currency
-                : FSUiPalette.BgTrack;
-            refs.Segments[i].PanelOverride = new StyleBoxFlat { BackgroundColor = color };
-        }
+            refs.Segments[i].PanelOverride = i < low ? SegmentOn : i < high ? SegmentPreview : SegmentOff;
 
         refs.ValueLabel.Text = text;
         refs.ValueLabel.FontColorOverride = valueColor ?? FSUiPalette.TextPrimary;

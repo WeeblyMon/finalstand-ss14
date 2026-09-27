@@ -21,7 +21,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     protected override void Open()
     {
         base.Open();
-        _window = this.CreateWindowCenteredLeft<WeaponShopWindow>();
+        _window = this.CreateWindow<WeaponShopWindow>();
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnUpgradePressed += OnUpgradePressed;
         _window.OnSellConfirmed += OnSellConfirmed;
