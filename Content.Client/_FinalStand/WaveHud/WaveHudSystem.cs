@@ -246,7 +246,7 @@ public sealed partial class WaveHudSystem : EntitySystem
                 buff.Name,
                 WaveHudOverlay.PerkIconPrefix + buff.PerkId.ToLowerInvariant(),
                 (int) Math.Ceiling((buff.EndTime - now).TotalSeconds),
-                Loc.GetString("fs-buff-source-perk")));
+                [Loc.GetString("fs-buff-source-perk")]));
         }
 
         if (_player.LocalEntity is not { } player
@@ -280,7 +280,7 @@ public sealed partial class WaveHudSystem : EntitySystem
                 label,
                 chem ? BuffIconKey(source) : "buff_" + source,
                 seconds,
-                Loc.GetString(chem ? "fs-buff-source-chem" : "fs-buff-source-cmo")));
+                [Loc.GetString(chem ? "fs-buff-source-chem" : "fs-buff-source-cmo"), ..FSMedicalBonusText.Describe(buff.Bonuses)]));
         }
     }
 

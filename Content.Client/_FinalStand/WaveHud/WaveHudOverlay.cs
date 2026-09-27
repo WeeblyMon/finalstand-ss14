@@ -156,7 +156,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public string? CasualtyStatus;
     public bool CasualtyResponded;
 
-    public readonly record struct MedicalBuffRow(string Name, string IconKey, int SecondsRemaining, string Source);
+    public readonly record struct MedicalBuffRow(string Name, string IconKey, int SecondsRemaining, string[] Tooltip);
 
     public readonly List<MedicalBuffRow> MedicalBuffs = new();
 
@@ -824,7 +824,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
                 var cellW = iconSz + iconTextGap + valueDims.X;
                 _bonusRowCells.Add((new UIBox2(margin, y, margin + cellW, y + iconSz),
-                    buff.Name, [buff.Source]));
+                    buff.Name, buff.Tooltip));
 
                 y += iconSz + rowGap;
             }
