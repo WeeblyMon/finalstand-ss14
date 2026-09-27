@@ -21697,7 +21697,7 @@ entities:
     - type: Transform
       parent: 1
       pos: -10.5,-4.5
-- proto: ChemMaster
+- proto: FSFieldKitStation
   entities:
   - uid: 795
     components:

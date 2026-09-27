@@ -1,0 +1,92 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      Title="Field Kit Station"
+                      Resizable="True"
+                      SetSize="1240 760"
+                      MinSize="1120 640">
+    <BoxContainer Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True">
+
+        <TabContainer Name="Tabs" HorizontalExpand="True" VerticalExpand="True">
+
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
+                <PanelContainer Name="BrewStrip">
+                    <BoxContainer Orientation="Horizontal" MinHeight="88">
+                        <BoxContainer Orientation="Vertical" SetWidth="120" Margin="20 12" VerticalAlignment="Center" SeparationOverride="2">
+                            <Label Name="SatchelTitle" Text="SATCHEL" />
+                            <Label Name="SatchelLabel" Text="0u" />
+                            <Label Name="SatchelHint" Text="harvested tissue" />
+                        </BoxContainer>
+                        <Button Name="DumpButton" MinHeight="44" MinWidth="140" VerticalAlignment="Center" Margin="0 0 12 0" />
+                        <BoxContainer Orientation="Vertical" SetWidth="200" Margin="4 12 16 12" VerticalAlignment="Center" SeparationOverride="6">
+                            <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                                <Label Name="TankTitle" Text="TISSUE TANK" HorizontalExpand="True" />
+                                <Label Name="TankLabel" />
+                            </BoxContainer>
+                            <BoxContainer Name="TankBar" Orientation="Horizontal" SetHeight="8" />
+                            <Label Name="TankHint" Text="Shared by every chemist." />
+                        </BoxContainer>
+                        <Control HorizontalExpand="True" />
+                        <BoxContainer Orientation="Vertical" Margin="0 12 20 12" VerticalAlignment="Center" SeparationOverride="6">
+                            <Label Name="BatchTitle" Text="BATCH SIZE" />
+                            <BoxContainer Name="BatchRow" Orientation="Horizontal" SeparationOverride="4" />
+                        </BoxContainer>
+                    </BoxContainer>
+                </PanelContainer>
+                <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
+                    <GridContainer Name="CardGrid" Columns="3" HSeparationOverride="12" VSeparationOverride="12" Margin="16" />
+                </ScrollContainer>
+            </BoxContainer>
+
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
+                <PanelContainer Name="RawStrip">
+                    <BoxContainer Orientation="Horizontal" MinHeight="64" Margin="20 0" SeparationOverride="12">
+                        <LineEdit Name="SearchBox" PlaceHolder="Search reagents" SetWidth="260" VerticalAlignment="Center" />
+                        <Control HorizontalExpand="True" />
+                        <Label Name="AmountTitle" Text="DISPENSE" VerticalAlignment="Center" />
+                        <BoxContainer Name="AmountRow" Orientation="Horizontal" SeparationOverride="4" VerticalAlignment="Center" />
+                    </BoxContainer>
+                </PanelContainer>
+                <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
+                    <BoxContainer Name="RawGroups" Orientation="Vertical" SeparationOverride="18" Margin="16" />
+                </ScrollContainer>
+            </BoxContainer>
+
+            <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True">
+                <PanelContainer Name="PackStrip">
+                    <BoxContainer Orientation="Horizontal" MinHeight="64" Margin="20 0" SeparationOverride="14">
+                        <Label Name="FromJugTitle" Text="FROM THE JUG" VerticalAlignment="Center" />
+                        <BoxContainer Name="PackJugBar" Orientation="Horizontal" SetWidth="280" SetHeight="10" VerticalAlignment="Center" />
+                        <Label Name="PackJugLabel" VerticalAlignment="Center" />
+                        <Control HorizontalExpand="True" />
+                        <Label Name="LabelTitle" Text="LABEL" VerticalAlignment="Center" />
+                        <LineEdit Name="LabelEdit" PlaceHolder="Bottles and pills" SetWidth="220" VerticalAlignment="Center" />
+                    </BoxContainer>
+                </PanelContainer>
+                <GridContainer Name="PackGrid" Columns="2" HSeparationOverride="12" VSeparationOverride="12" Margin="16" VerticalExpand="True" />
+            </BoxContainer>
+
+        </TabContainer>
+
+        <PanelContainer Name="Sidebar" SetWidth="290">
+            <BoxContainer Orientation="Vertical" Margin="16" SeparationOverride="12">
+                <BoxContainer Orientation="Horizontal">
+                    <Label Name="JugTitle" Text="JUG" HorizontalExpand="True" />
+                    <Label Name="JugLabel" />
+                </BoxContainer>
+                <BoxContainer Name="JugBar" Orientation="Horizontal" SetHeight="12" />
+                <BoxContainer Name="JugRows" Orientation="Vertical" SeparationOverride="4" />
+                <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                    <Button Name="EmptyButton" Text="EMPTY" MinHeight="32" HorizontalExpand="True" />
+                    <Button Name="EjectButton" Text="EJECT" MinHeight="32" HorizontalExpand="True" />
+                </BoxContainer>
+                <PanelContainer Name="ContextPanel" VerticalExpand="True">
+                    <BoxContainer Orientation="Vertical" Margin="12 10" SeparationOverride="6">
+                        <Label Name="ContextTitle" />
+                        <BoxContainer Name="ContextBody" Orientation="Vertical" SeparationOverride="4" />
+                    </BoxContainer>
+                </PanelContainer>
+            </BoxContainer>
+        </PanelContainer>
+
+    </BoxContainer>
+</controls:FancyWindow>

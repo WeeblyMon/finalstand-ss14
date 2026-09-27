@@ -277,7 +277,7 @@ public sealed class FSSyringeFillerSystem : EntitySystem
             : proto.LocalizedName;
     }
 
-    private static bool SameContents(Solution magazine, Solution source)
+    internal static bool SameContents(Solution magazine, Solution source)
     {
         foreach (var reagent in magazine.Contents)
         {

@@ -1,0 +1,133 @@
+- type: entity
+  id: FSFieldKitStation
+  parent: BaseMachinePowered
+  name: field kit station
+  description: The chemist's bench. Empty your satchel into its tissue tank, pick a potion and it brews the batch straight into your jug. Packages flasks, magazines, bottles and pills too.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    sprite: Structures/Machines/mixer.rsi
+    snapCardinals: true
+    layers:
+    - state: mixer_empty
+    - state: mixer_screens
+      shader: unshaded
+      map: ["enum.PowerDeviceVisualLayers.Powered"]
+  - type: Icon
+    sprite: Structures/Machines/mixer.rsi
+    state: mixer_empty
+  - type: ItemMapper
+    containerWhitelist: [jug]
+    mapLayers:
+      mixer_loaded:
+        whitelist:
+          components:
+          - FitsInDispenser
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.4,0.25,0.4"
+        density: 190
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Destructible
+    thresholds:
+    - trigger: !type:DamageTrigger
+        damage: 175
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalGlassBreak
+  - type: ApcPowerReceiver
+    powerLoad: 250
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.PowerDeviceVisuals.Powered:
+        enum.PowerDeviceVisualLayers.Powered:
+          True: { visible: true }
+          False: { visible: false }
+  - type: ActivatableUI
+    key: enum.FSFieldKitStationUiKey.Key
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+      enum.FSFieldKitStationUiKey.Key:
+        type: FSFieldKitStationBoundUserInterface
+      enum.StorageUiKey.Key:
+        type: StorageBoundUserInterface
+  - type: FSFieldKitStation
+  - type: FSMedicalOnly
+  - type: UseDelay
+    delay: 0
+  - type: Storage
+    openOnActivate: false
+    maxItemSize: Large
+    grid:
+    - 0,0,15,11
+    whitelist:
+      tags:
+      - ChemDispensable
+  - type: ItemSlots
+    slots:
+      jug:
+        name: fs-field-kit-slot-jug
+        priority: 9
+        whitelist:
+          components:
+          - FitsInDispenser
+        blacklist:
+          components:
+          - FSHarvestSatchel
+        ejectOnBreak: true
+      magazine:
+        name: fs-field-kit-slot-magazine
+        whitelist:
+          tags:
+          - FSSyringeMagazine
+        ejectOnBreak: true
+  - type: ContainerContainer
+    containers:
+      jug: !type:ContainerSlot
+      magazine: !type:ContainerSlot
+      storagebase: !type:Container
+      flaskRack: !type:Container
+  - type: SolutionContainerManager
+    solutions:
+      tank:
+        maxVol: 500
+  - type: EntityTableContainerFill
+    containers:
+      storagebase: !type:AllSelector
+        children:
+        - id: JugAluminium
+        - id: JugCarbon
+        - id: JugChlorine
+        - id: JugCopper
+        - id: JugEthanol
+        - id: JugFluorine
+        - id: JugSugar
+        - id: JugHydrogen
+        - id: JugIodine
+        - id: JugIron
+        - id: JugLithium
+        - id: JugMercury
+        - id: JugNitrogen
+        - id: JugOxygen
+        - id: JugPhosphorus
+        - id: JugPotassium
+        - id: JugRadium
+        - id: JugSilicon
+        - id: JugSodium
+        - id: JugSulfur
+  - type: GuideHelp
+    guides:
+    - Chemist
+  - type: AmbientMusicMarkerMedical
