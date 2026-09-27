@@ -176,6 +176,11 @@
     size: Large
     shape:
     - 0,0,2,1
+  - type: Clothing # FINALSTAND
+    quickEquip: false
+    slots:
+    - back
+    - suitStorage
   - type: ContainerContainer
     containers:
       gun_magazine: !type:ContainerSlot
