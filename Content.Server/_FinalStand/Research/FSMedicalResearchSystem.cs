@@ -191,11 +191,15 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         _popup.PopupEntity(Loc.GetString("fs-medical-research-purchased", ("name", node.Name)), uid, player);
         _audio.PlayPvs(PurchaseSound, uid);
 
-        var announcement = Loc.GetString("fs-medical-research-announcement", ("name", node.Name), ("description", node.BonusDescription));
-        _radio.SendRadioMessage(player, announcement, MedicalChannel, player);
+        var tag = $"[fsability name=\"{TagSafe(node.Name)}\" tooltip=\"{TagSafe(node.BonusDescription)}\"/]";
+        var announcement = Loc.GetString("fs-medical-research-announcement", ("name", tag));
+        _radio.SendRadioMessage(player, announcement, MedicalChannel, player, escapeMarkup: false);
 
         Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
+
+    private static string TagSafe(string text) =>
+        text.Replace("\"", "'").Replace("[", "(").Replace("]", ")");
 
     public bool TryPurchase(string nodeId)
     {
