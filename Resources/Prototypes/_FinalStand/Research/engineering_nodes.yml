@@ -189,19 +189,6 @@
   vanillaTechnologyId: BasicShuttleArmament
 
 - type: fsTechNode
-  id: FSEngineeringDualWieldingTechnology
-  name: Dual Wielding Technology
-  icon:
-    sprite: Clothing/Back/Specific/harmpack.rsi
-    state: icon
-  branch: Engineering
-  tier: 2
-  cost: 3500
-  prerequisites:
-  - FSEngineeringSpecialMeans
-  vanillaTechnologyId: DualWieldingTechnology
-
-- type: fsTechNode
   id: FSEngineeringBluespaceStorage
   name: Bluespace Storage
   icon:
