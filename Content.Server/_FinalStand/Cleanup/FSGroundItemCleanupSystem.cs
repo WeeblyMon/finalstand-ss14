@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._Shitmed.Medical.Surgery.Tools;
 using Content.Shared.Botany.Items.Components;
 using Content.Shared.Burial.Components;
 using Content.Shared.Explosion.Components;
@@ -67,6 +68,7 @@ public sealed partial class FSGroundItemCleanupSystem : EntitySystem
         {
             if (melee.Damage.GetTotal() > 0
                 && !HasComp<ToolComponent>(uid)
+                && !HasComp<SurgeryToolComponent>(uid)
                 && !HasComp<ShovelComponent>(uid)
                 && !HasComp<BotanyHoeComponent>(uid))
                 Check(uid, now, toDelete);
