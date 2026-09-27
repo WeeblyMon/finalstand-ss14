@@ -6,8 +6,11 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
 using Robust.Server.GameObjects;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -23,6 +26,12 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     [Dependency] private AppearanceSystem _appearance = default!;
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private FSMediGunSystem _mediGun = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier LaunchSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
+    private static readonly SoundSpecifier LowChargeSound = new SoundPathSpecifier("/Audio/Machines/beep.ogg");
+
+    private const float LowChargeLevel = 0.25f;
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _candidates = new();
 
@@ -36,7 +45,9 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     private void OnDeployed(Entity<FSMediDroneComponent> ent, ref FSDeployableDeployedEvent args)
     {
         ent.Comp.Owner = args.User;
+        ent.Comp.OrbitAngle = (float) (_xform.GetWorldPosition(ent.Owner) - _xform.GetWorldPosition(args.User)).ToAngle().Theta;
         _xform.Unanchor(ent.Owner, Transform(ent.Owner));
+        _audio.PlayPvs(LaunchSound, ent.Owner, AudioParams.Default.WithVolume(-4f));
     }
 
     public override void Update(float frameTime)
@@ -55,6 +66,13 @@ public sealed partial class FSMediDroneSystem : EntitySystem
 
             var level = _battery.GetChargeLevel(uid);
             UpdateVisuals((uid, drone), level);
+            UpdateCountdown((uid, drone), gun);
+
+            if (level <= LowChargeLevel && !drone.LowChargeWarned)
+            {
+                drone.LowChargeWarned = true;
+                _audio.PlayPvs(LowChargeSound, uid, AudioParams.Default.WithVolume(-6f));
+            }
 
             if (level <= 0f)
             {
@@ -145,19 +163,37 @@ public sealed partial class FSMediDroneSystem : EntitySystem
         if ((position - ownerPosition).Length() > drone.Comp.LeashRange)
             drone.Comp.Target = null;
 
-        var (anchor, distance) = drone.Comp.Target is { } target && !TerminatingOrDeleted(target)
+        var (anchor, radius) = drone.Comp.Target is { } target && !TerminatingOrDeleted(target)
             ? (_xform.GetWorldPosition(target), drone.Comp.HoverDistance)
             : (ownerPosition, drone.Comp.FollowDistance);
 
-        var offset = position - anchor;
-        var length = offset.Length();
-        if (length <= distance)
+        drone.Comp.OrbitAngle = (drone.Comp.OrbitAngle + drone.Comp.OrbitSpeed * frameTime) % MathF.Tau;
+        var goal = anchor + new Vector2(MathF.Cos(drone.Comp.OrbitAngle), MathF.Sin(drone.Comp.OrbitAngle)) * radius;
+
+        var toGoal = goal - position;
+        var gap = toGoal.Length();
+        if (gap < 0.001f)
             return;
 
-        var goal = anchor + (length > 0.01f ? offset / length : Vector2.UnitY) * distance;
-        var toGoal = goal - position;
-        var step = MathF.Min(toGoal.Length(), drone.Comp.Speed * frameTime);
-        _xform.SetWorldPosition(drone, position + Vector2.Normalize(toGoal) * step);
+        var step = MathF.Min(gap, drone.Comp.Speed * frameTime);
+        _xform.SetWorldPosition(drone, position + toGoal / gap * step);
+    }
+
+    private void UpdateCountdown(Entity<FSMediDroneComponent> drone, FSMediGunComponent gun)
+    {
+        if (gun.BatteryWithdraw <= 0f)
+            return;
+
+        var perSecond = gun.BatteryWithdraw / gun.Frequency;
+        var seconds = (int) MathF.Ceiling(_battery.GetCharge(drone.Owner) / perSecond);
+        var max = (int) MathF.Ceiling(Comp<BatteryComponent>(drone.Owner).MaxCharge / perSecond);
+
+        if (seconds == drone.Comp.SecondsLeft && max == drone.Comp.MaxSeconds)
+            return;
+
+        drone.Comp.SecondsLeft = seconds;
+        drone.Comp.MaxSeconds = max;
+        Dirty(drone);
     }
 
     private void UpdateVisuals(Entity<FSMediDroneComponent> drone, float level)

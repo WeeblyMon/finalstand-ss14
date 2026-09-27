@@ -47,9 +47,14 @@
   - type: InteractionOutline
   - type: PointLight
     enabled: true
-    radius: 1.5
-    energy: 1.5
+    radius: 2
+    energy: 1.3
     color: "#E23B3B"
+  - type: AmbientSound
+    volume: -14
+    range: 4
+    sound:
+      path: /Audio/Ambience/Objects/server_fans.ogg
   - type: FSMediDrone
   - type: FSMediGun
     beamFromSelf: true

@@ -104,6 +104,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
             return;
 
         var start = _transform.GetWorldPosition(medicXform);
+        if (gun.BeamFromSelf)
+            start.Y += FSMediDroneVisualSystem.HoverHeight;
         var end = _transform.GetWorldPosition(patientXform);
 
         var bounds = args.WorldAABB.Enlarged(3f);

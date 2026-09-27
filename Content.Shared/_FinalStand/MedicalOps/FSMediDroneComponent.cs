@@ -1,8 +1,9 @@
+using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMediDroneComponent : Component
 {
     [ViewVariables]
@@ -25,6 +26,21 @@ public sealed partial class FSMediDroneComponent : Component
 
     [DataField]
     public float Speed = 4.5f;
+
+    [DataField]
+    public float OrbitSpeed = 2.2f;
+
+    [ViewVariables]
+    public float OrbitAngle;
+
+    [DataField, AutoNetworkedField]
+    public int SecondsLeft;
+
+    [DataField, AutoNetworkedField]
+    public int MaxSeconds;
+
+    [ViewVariables]
+    public bool LowChargeWarned;
 
     [DataField]
     public TimeSpan ScanInterval = TimeSpan.FromSeconds(1);
