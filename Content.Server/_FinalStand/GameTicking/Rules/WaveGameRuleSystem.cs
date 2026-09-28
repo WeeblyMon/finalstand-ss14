@@ -9,6 +9,7 @@ using Content.Server._FinalStand.CCC;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
+using Content.Server.RoundEnd;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Light.Components;
@@ -55,12 +56,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private ApcSystem _apc = default!;
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
+    [Dependency] private RoundEndSystem _roundEnd = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
     private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
 
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
     private const float CreditsPerSecondSkipped = 2.0f;
 
     private const float DefaultFlickerMin = 0.7f;
@@ -152,6 +155,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
                 if (now >= comp.NextHeartbeatTime)
                 {
+                    if (comp.IsDarkWave && !comp.RoundLost && IsTeamWiped())
+                    {
+                        comp.RoundLost = true;
+                        Log.Info($"[WaveGameRule] Every player died during dark wave {comp.WaveNumber}. Ending round.");
+                        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-wave-team-wiped"), Color.Red);
+                        _roundEnd.EndRound(WipeRoundEndCountdown);
+                    }
+
                     var timeLeft = comp.PhaseEndTime - now;
                     Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} | " +
                              $"spawned {comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave} | " +
@@ -408,6 +419,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             count++;
         }
         return count;
+    }
+
+    private bool IsTeamWiped()
+    {
+        var anyPlayer = false;
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity is not { } attached)
+                continue;
+
+            anyPlayer = true;
+            if (HasComp<MobStateComponent>(attached) && !_mobState.IsDead(attached))
+                return false;
+        }
+
+        return anyPlayer;
     }
 
     private void AwardPrepSkipBonus(WaveGameRuleComponent comp)

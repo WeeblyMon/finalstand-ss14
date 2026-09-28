@@ -160,6 +160,7 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField] public int DarkWaveEnemyCap = 30;
 
     public bool IsDarkWave = false;
+    public bool RoundLost;
     public bool IsDarkWaveUpcoming = false;
     public bool ForceDarkWave = false;
     public int WavesSinceLastDarkWave = 999;
