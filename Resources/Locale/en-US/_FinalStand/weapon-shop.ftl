@@ -13,3 +13,9 @@ shop-grenade-already-owned = You already have this grenade type.
 shop-item-already-owned = You already have one of these.
 
 fs-starting-weapon-already-issued = Your job weapon was already issued this round.
+
+fs-shop-bound-examine-yours = [color=#7ec8ff]Bound to you.[/color]
+fs-shop-bound-examine-other = [color=orange]Bound to {$owner}.[/color] Only they can use it.
+fs-shop-bound-someone = someone else
+fs-shop-bound-not-yours = This belongs to someone else.
+shop-item-already-owned-elsewhere = You already own one. It isn't on you - go find it.

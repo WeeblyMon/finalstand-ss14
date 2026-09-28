@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.MedicalOps;
+using Content.Server._FinalStand.Shop;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Buckle.Components;
@@ -21,6 +22,7 @@ public sealed class FSPackableSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private Perks.FSTechnicianSystem _technician = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     private static readonly SoundSpecifier PackSound =
         new SoundPathSpecifier("/Audio/Items/zip.ogg");
@@ -71,6 +73,15 @@ public sealed class FSPackableSystem : EntitySystem
             return false;
         }
 
+        if (TryComp<FSDeployedByComponent>(ent, out var deployedBy)
+            && deployedBy.SourceItem is { } source
+            && Exists(source)
+            && !_binding.IsUsableBy(source, user))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-shop-bound-not-yours"), user, user);
+            return false;
+        }
+
         var args = new DoAfterArgs(EntityManager, user, ent.Comp.PackTime, new FSPackDoAfterEvent(), ent, ent)
         {
             BreakOnMove = true,
@@ -116,6 +127,8 @@ public sealed class FSPackableSystem : EntitySystem
         else
         {
             item = Spawn(ent.Comp.PackedProtoId, _transform.GetMapCoordinates(ent.Owner));
+            if (deployedBy?.OwnerMind is { } ownerMind)
+                _binding.Bind(item, ownerMind);
 
             if (TryComp<FSDeployableItemComponent>(item, out var deployable))
             {

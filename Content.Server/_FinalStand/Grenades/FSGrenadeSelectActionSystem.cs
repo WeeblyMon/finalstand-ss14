@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Shop;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
@@ -9,6 +10,7 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     public override void Initialize()
     {
@@ -32,7 +34,7 @@ public sealed partial class FSGrenadeSelectActionSystem : EntitySystem
             return;
 
         var player = FindPlayerOwner(uid);
-        if (player == null)
+        if (player == null || !_binding.IsUsableBy(uid, player.Value))
             return;
 
         EntityUid? actionId = null;

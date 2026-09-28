@@ -42,6 +42,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
@@ -180,6 +181,13 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        var bindable = IsBindable(comp);
+        if (bindable && _binding.OwnsAny(mindId, ShopProtoIds(comp)))
+        {
+            _popup.PopupEntity(Loc.GetString("shop-item-already-owned-elsewhere"), uid, player);
+            return;
+        }
+
         if (!_wallet.TryDeductCredits(mindId, comp.Price))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
@@ -189,6 +197,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
 
         EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+        if (bindable)
+            _binding.Bind(weapon, mindId);
 
         TryGiveItemToPlayer(player, weapon);
 
@@ -299,6 +309,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     }
 
     // Every prototype this shop considers "its" weapon: the weapon, its aliases, and any upgrade retarget.
+    private bool IsBindable(FSShopWeaponComponent comp)
+    {
+        if (comp.SinglePurchase)
+            return true;
+
+        return comp.WeaponProtoId is { } id
+            && _protoManager.TryIndex(id, out var proto)
+            && (proto.HasComp<FSGrenadePackComponent>(EntityManager.ComponentFactory)
+                || proto.HasComp<FSDeployableItemComponent>(EntityManager.ComponentFactory));
+    }
+
     private static HashSet<string> ShopProtoIds(FSShopWeaponComponent comp, bool includeUpgradeTargets = false)
     {
         var protos = new HashSet<string>();

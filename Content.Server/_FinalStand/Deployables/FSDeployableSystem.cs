@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Science;
+using Content.Server._FinalStand.Shop;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Placement;
@@ -20,6 +21,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private Perks.FSTechnicianSystem _technician = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     public override void Initialize()
     {
@@ -66,6 +68,12 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (comp.RequiresEngineering && !_engineering.IsEngineering(deployer))
         {
             _popup.PopupEntity(Loc.GetString("fs-engineering-only-use"), deployer, deployer);
+            return false;
+        }
+
+        if (!_binding.IsUsableBy(uid, deployer))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-shop-bound-not-yours"), deployer, deployer);
             return false;
         }
 
