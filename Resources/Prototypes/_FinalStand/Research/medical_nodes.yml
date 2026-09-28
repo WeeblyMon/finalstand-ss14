@@ -199,8 +199,8 @@
   branch: Medical
   tier: 4
   cost: 1600
-  prerequisiteGroups:
-  - [ FSMedicalFocusedEmitters, FSMedicalRapidCycling ]
+  prerequisites:
+  - FSMedicalRecoveryUplink
   bonusDescription: Emergency defibrillators recharge a third faster.
 
 - type: fsTechNode
@@ -264,8 +264,6 @@
   branch: Medical
   tier: 3
   cost: 1100
-  prerequisiteGroups:
-  - [ FSMedicalAutoclaveKit, FSMedicalReinforcedCanvas ]
   bonusDescription: Casualty Recovery recharges in 80 seconds instead of 120.
 
 - type: fsTechNode
@@ -278,7 +276,7 @@
   tier: 4
   cost: 1600
   prerequisites:
-  - FSMedicalRecoveryUplink
+  - FSMedicalBoneWelder
   bonusDescription: Unlocks the field hospital kit at the medical lathe, so the department can run a second tent.
   vanillaTechnologyId: FSForwardAidStation
 
@@ -543,15 +541,11 @@
     sprite: Objects/Economy/cash.rsi
     state: cash_10
   branch: Medical
-  tier: 5
+  tier: 6
   cost: 2200
   prerequisites:
   - FSMedicalMassCasualtyReadiness
-  - FSMedicalAnalgesicChemistry
-  - FSMedicalForwardAidStation
-  - FSMedicalDefibrillatorOutput
-  - FSMedicalSterileField
-  bonusDescription: The end of the tree. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.
+  bonusDescription: The end of the Command line. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.
 
 - type: fsTechNode
   id: FSMedicalFocusedNanites
@@ -563,7 +557,7 @@
   tier: 5
   cost: 2200
   prerequisites:
-  - FSMedicalCapacitorRecovery
+  - FSMedicalLimbMender
   bonusDescription: The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.
 
 - type: fsTechNode
@@ -679,8 +673,8 @@
   branch: Medical
   tier: 5
   cost: 2200
-  prerequisiteGroups:
-  - [ FSMedicalRefinedEmitters, FSMedicalUberCycling ]
+  prerequisites:
+  - FSMedicalRapidRecharge
   bonusDescription: Medical beam guns keep recharging while beaming instead of pausing for 8 seconds.
 
 - type: fsTechNode
