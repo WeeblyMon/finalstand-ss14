@@ -708,3 +708,29 @@
   prerequisites:
   - FSMedicalRefinedEmitters
   bonusDescription: OverHealer shields fade half as fast once the beam lets go.
+
+- type: fsTechNode
+  id: FSMedicalUltraCycling
+  name: Ultra Cycling
+  icon:
+    sprite: _FinalStand/Objects/Medical/ubercharger.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalUberCycling
+  bonusDescription: Anyone under an ÜberCharge also has unlimited stamina.
+
+- type: fsTechNode
+  id: FSMedicalEfficientCycling
+  name: Efficient Cycling
+  icon:
+    sprite: _FinalStand/Objects/Medical/ubercharger.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalUberCycling
+  bonusDescription: ÜberCharges last 13 seconds instead of 10.

@@ -2,7 +2,9 @@ using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
+using Content.Shared.Actions;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
@@ -112,7 +114,39 @@ public sealed partial class FSMediGunComponent : Component
     // Fraction of the shield's ceiling lost per second once it stops being fed.
     [DataField]
     public float OverhealDecay = 0.05f;
+
+    // Percent, 0-100. Built by healing on the UberCharger, drained while an Über runs.
+    [DataField, AutoNetworkedField]
+    public float UberCharge;
+
+    [DataField]
+    public float UberChargePerHp = 0.5f;
+
+    // Trickle while the patient sits at the soft cap, so topping someone off still builds charge.
+    [DataField]
+    public float UberChargeWhileCapped = 0.4f;
+
+    [DataField]
+    public float UberDuration = 10f;
+
+    [DataField]
+    public bool UberInfiniteStamina;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan? UberEndTime;
+
+    [DataField]
+    public EntProtoId UberActionId = "FSActionMediGunUber";
+
+    [DataField, AutoNetworkedField]
+    public EntityUid? UberAction;
+
+    [ViewVariables] public float? BaseUberDuration;
+
+    public bool UberActive => UberEndTime != null;
 }
+
+public sealed partial class FSMediGunUberActionEvent : InstantActionEvent;
 
 public enum FSMediGunVariant : byte
 {

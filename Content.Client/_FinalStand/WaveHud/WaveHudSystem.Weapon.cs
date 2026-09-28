@@ -99,7 +99,18 @@ public sealed partial class WaveHudSystem
         }
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
-            return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
+        {
+            var charge = $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
+            if (TryComp<FSMediGunComponent>(held, out var medigun) && medigun.Variant == FSMediGunVariant.UberCharger)
+            {
+                var uber = medigun.UberActive ? "ÜBER ACTIVE"
+                    : medigun.UberCharge >= 100f ? "ÜBER READY"
+                    : $"ÜBER {medigun.UberCharge:0}%";
+                return $"{charge} · {uber}";
+            }
+
+            return charge;
+        }
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
             return $"{drainable.Volume:0}/{drainable.MaxVolume:0}u";

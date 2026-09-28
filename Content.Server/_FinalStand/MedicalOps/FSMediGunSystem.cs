@@ -44,6 +44,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSOverhealSystem _overheal = default!;
+    [Dependency] private FSUberSystem _uber = default!;
 
     private EntityQuery<BatteryComponent> _batteryQuery;
     private EntityQuery<DamageableComponent> _damageableQuery;
@@ -104,7 +105,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
             || (gunPos.Position - healedPos.Position).Length() > comp.MaxRange)
             return false;
 
-        if (_batteryQuery.HasComp(ent.Owner) && !_battery.TryUseCharge(ent.Owner, comp.BatteryWithdraw))
+        if (!comp.UberActive && _batteryQuery.HasComp(ent.Owner) && !_battery.TryUseCharge(ent.Owner, comp.BatteryWithdraw))
         {
             _battery.SetCharge(ent.Owner, 0f);
             return false;
@@ -134,9 +135,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
             link.SoftCapAnnounced = capped;
         }
 
+        _uber.Cover(ent, healed);
+
         if (scale <= 0f)
         {
             _overheal.Feed(healed, comp, comp.OverhealPerTick * potency.Multiplier);
+            _uber.AddCharge(ent, comp.UberChargeWhileCapped);
             return true;
         }
 
@@ -149,9 +153,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
         _damageable.TryChangeDamage(
             healed,
             comp.Healing * (scale * potency.Multiplier),
+            out var restored,
             ignoreResistances: true,
             interruptsDoAfters: false,
             origin: comp.ParentEntity);
+
+        _uber.AddCharge(ent, -restored.GetTotal().Float() * comp.UberChargePerHp);
 
         _bloodstream.TryModifyBloodLevel(healed, comp.BleedingAmountModifier);
         return true;
@@ -234,6 +241,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         comp.HealedEntities.Add(target);
         comp.IsActive = true;
         comp.ParentEntity = wielder;
+        _uber.Cover(ent, target);
         comp.NextTick = _timing.CurTime + TimeSpan.FromSeconds(comp.Frequency);
         Dirty(uid, comp);
 

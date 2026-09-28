@@ -36,6 +36,8 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string UberCycling = "FSMedicalUberCycling";
     public const string PerfectedEmitters = "FSMedicalPerfectedEmitters";
     public const string PolishedEmitters = "FSMedicalPolishedEmitters";
+    public const string UltraCycling = "FSMedicalUltraCycling";
+    public const string EfficientCycling = "FSMedicalEfficientCycling";
 
     public const string AutoclaveKit = "FSMedicalAutoclaveKit";
     public const string ReinforcedCanvas = "FSMedicalReinforcedCanvas";
@@ -63,7 +65,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
         CellEfficiency, DefibrillatorOutput, FocusedNanites,
         CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning, BackfeederNanites,
-        RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters,
+        RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters, UltraCycling, EfficientCycling,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
@@ -179,6 +181,10 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
 
         c.BaseOverhealDecay ??= c.OverhealDecay;
         c.OverhealDecay = c.BaseOverhealDecay.Value * (Unlocked(PolishedEmitters) ? 0.5f : 1f);
+
+        c.BaseUberDuration ??= c.UberDuration;
+        c.UberDuration = c.BaseUberDuration.Value + (Unlocked(EfficientCycling) ? 3f : 0f);
+        c.UberInfiniteStamina = Unlocked(UltraCycling);
 
         ApplyMediGunBattery(ent);
         Dirty(ent);
