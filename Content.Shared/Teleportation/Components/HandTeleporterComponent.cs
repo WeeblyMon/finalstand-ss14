@@ -52,6 +52,12 @@ public sealed partial class HandTeleporterComponent : Component
     /// </summary>
     [DataField("portalCreationDelay")]
     public float PortalCreationDelay = 1.0f;
+
+    // FS: portals close on their own after this many seconds
+    [DataField]
+    public float? PortalLifetime;
+
+    public TimeSpan? PortalsExpireAt;
 }
 
 [Serializable, NetSerializable]

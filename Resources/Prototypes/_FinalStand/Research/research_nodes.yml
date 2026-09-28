@@ -147,3 +147,29 @@
   - FSResearchQuantumLeaping
   - FSResearchAnomalyCoreHarnessing
   vanillaTechnologyId: BluespaceTimeManipulation
+
+- type: technology
+  id: FSHandTeleportation
+  name: research-technology-fs-hand-teleportation
+  icon:
+    sprite: Objects/Devices/hand_teleporter.rsi
+    state: icon
+  discipline: Experimental
+  tier: 3
+  cost: 10000
+  recipeUnlocks:
+  - FSHandTeleporter
+
+- type: fsTechNode
+  id: FSResearchHandTeleportation
+  name: Hand Teleportation
+  icon:
+    sprite: Objects/Devices/hand_teleporter.rsi
+    state: icon
+  branch: Research
+  tier: 4
+  cost: 5500
+  prerequisites:
+  - FSResearchQuantumLeaping
+  bonusDescription: Unlocks the hand teleporter at the protolathe. Holds 2 charges, one per portal pair, recharging every 2 minutes. Portals close after 20 seconds.
+  vanillaTechnologyId: FSHandTeleportation

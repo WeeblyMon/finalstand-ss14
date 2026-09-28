@@ -1,5 +1,7 @@
 using Content.Server.Administration.Logs;
 using Content.Server.Popups;
+using Content.Shared.Charges.Components;
+using Content.Shared.Charges.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Database;
 using Content.Shared.Interaction.Events;
@@ -7,6 +9,7 @@ using Content.Shared.Popups;
 using Content.Shared.Teleportation.Components;
 using Content.Shared.Teleportation.Systems;
 using Robust.Server.Audio;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Teleportation;
 
@@ -20,6 +23,8 @@ public sealed partial class HandTeleporterSystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private SharedDoAfterSystem _doafter = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedChargesSystem _charges = default!; // FS
+    [Dependency] private IGameTiming _timing = default!; // FS
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -27,6 +32,20 @@ public sealed partial class HandTeleporterSystem : EntitySystem
         SubscribeLocalEvent<HandTeleporterComponent, UseInHandEvent>(OnUseInHand);
         SubscribeLocalEvent<HandTeleporterComponent, TeleporterDoAfterEvent>(OnDoAfter);
         SubscribeLocalEvent<GridSplitEvent>(OnGridSplit);
+    }
+
+    // FS: close expired portal pairs
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var now = _timing.CurTime;
+        var query = EntityQueryEnumerator<HandTeleporterComponent>();
+        while (query.MoveNext(out var uid, out var teleporter))
+        {
+            if (teleporter.PortalsExpireAt <= now)
+                FizzlePortals((uid, teleporter), null, false);
+        }
     }
 
     private void OnGridSplit(ref GridSplitEvent args)
@@ -71,6 +90,14 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             var xform = Transform(args.User);
             if (xform.ParentUid != xform.GridUid)
                 return;
+
+            // FS: opening a new pair costs a charge
+            if (component.FirstPortal == null && TryComp<LimitedChargesComponent>(uid, out var charges) && _charges.IsEmpty((uid, charges)))
+            {
+                _popup.PopupEntity(Loc.GetString("handheld-teleporter-no-charge"), uid, args.User);
+                args.Handled = true;
+                return;
+            }
 
             var doafterArgs = new DoAfterArgs(EntityManager, args.User, component.PortalCreationDelay, new TeleporterDoAfterEvent(), uid, used: uid)
             {
@@ -122,10 +149,17 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             if (xform.ParentUid != xform.GridUid)
                 return;
 
+            // FS
+            if (TryComp<LimitedChargesComponent>(uid, out var charges) && !_charges.TryUseCharge((uid, charges)))
+                return;
+
             var timeout = EnsureComp<PortalTimeoutComponent>(user);
             timeout.EnteredPortal = null;
             component.FirstPortal = Spawn(component.FirstPortalPrototype, Transform(user).Coordinates);
             Dirty(uid, component);
+
+            if (component.PortalLifetime is { } lifetime) // FS
+                component.PortalsExpireAt = _timing.CurTime + TimeSpan.FromSeconds(lifetime);
 
             if (component.AllowPortalsOnDifferentMaps && TryComp<PortalComponent>(component.FirstPortal, out var portal))
                 portal.CanTeleportToOtherMaps = true;
@@ -193,6 +227,7 @@ public sealed partial class HandTeleporterSystem : EntitySystem
 
         entity.Comp.FirstPortal = null;
         entity.Comp.SecondPortal = null;
+        entity.Comp.PortalsExpireAt = null; // FS
         Dirty(entity);
         _audio.PlayPvs(entity.Comp.ClearPortalsSound, entity);
 

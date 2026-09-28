@@ -58,3 +58,13 @@
   completetime: 2
   materials:
     Steel: 150
+
+- type: latheRecipe
+  id: FSHandTeleporter
+  result: HandTeleporter
+  completetime: 10
+  materials:
+    Steel: 500
+    Glass: 400
+    Silver: 300
+    Plasma: 300

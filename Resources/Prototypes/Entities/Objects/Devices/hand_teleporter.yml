@@ -9,6 +9,11 @@
     layers:
     - state: icon
   - type: HandTeleporter
+    portalLifetime: 20 # FS
+  - type: LimitedCharges # FS
+    maxCharges: 2
+  - type: AutoRecharge # FS
+    rechargeDuration: 120
   - type: Tag
     tags:
     - HighRiskItem

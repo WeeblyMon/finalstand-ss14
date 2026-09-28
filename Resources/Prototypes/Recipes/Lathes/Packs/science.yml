@@ -24,6 +24,7 @@
   - DeviceDesynchronizer
   - ClothingBackpackHarmpack
   - TeleporterChipBlank
+  - FSHandTeleporter
 
 - type: latheRecipePack
   id: ScienceClothing
