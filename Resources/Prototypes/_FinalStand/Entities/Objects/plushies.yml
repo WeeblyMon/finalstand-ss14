@@ -1,0 +1,9 @@
+- type: entity
+  parent: BasePlushie
+  id: FSPlushieSmiley
+  name: smiley plushie
+  description: A squishy yellow smiley. It's always happy to see you.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Fun/smiley_plushie.rsi
+    state: icon
