@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Placement;
 using Content.Shared.Mind;
 using Content.Shared.Throwing;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using System.Numerics;
 
@@ -15,6 +16,7 @@ namespace Content.Server._FinalStand.Deployables;
 public sealed partial class FSDeployableSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
@@ -92,10 +94,20 @@ public sealed partial class FSDeployableSystem : EntitySystem
             return false;
         }
 
+        Direction? facingDir = comp.FaceDeployerDirection
+            ? facing ?? Transform(deployer).LocalRotation.GetCardinalDir()
+            : null;
+
+        if (IsOccupied(coords, facingDir))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-deployable-occupied"), deployer, deployer);
+            return false;
+        }
+
         var deployed = Spawn(comp.DeployedProtoId, coords);
 
-        if (comp.FaceDeployerDirection)
-            _transform.SetLocalRotation(deployed, (facing ?? Transform(deployer).LocalRotation.GetCardinalDir()).ToAngle());
+        if (facingDir is { } dir)
+            _transform.SetLocalRotation(deployed, dir.ToAngle());
 
         if (!_transform.AnchorEntity(deployed))
         {
@@ -109,6 +121,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         deployedBy.DeployedBy = deployer;
         deployedBy.SourceProto = comp.DeployedProtoId;
         deployedBy.SourceItem = uid;
+        deployedBy.Facing = facingDir;
 
         var ev = new FSDeployableDeployedEvent(uid, deployer);
         RaiseLocalEvent(deployed, ref ev);
@@ -118,6 +131,21 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("fs-deployable-placed"), deployed, deployer);
         return true;
+    }
+
+    private bool IsOccupied(EntityCoordinates coords, Direction? facing)
+    {
+        if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
+            return false;
+
+        var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, _map.TileIndicesFor(gridUid, grid, coords));
+        while (anchored.MoveNext(out var other))
+        {
+            if (TryComp<FSDeployedByComponent>(other, out var existing) && existing.Facing == facing)
+                return true;
+        }
+
+        return false;
     }
 
     public int CountDeployed(EntityUid? ownerMind, EntProtoId proto)
