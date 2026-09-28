@@ -235,7 +235,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
         ShakeArea(comp.LockedTarget, xform.MapID, comp.ShakeRadius);
 
-        comp.NextSkyJump = now + TimeSpan.FromSeconds(comp.SkyJumpCooldown);
+        comp.NextSkyJump = now + TimeSpan.FromSeconds(comp.SkyJumpCooldown * comp.CooldownMultiplier);
         Finish(ent, now);
     }
 
@@ -253,14 +253,14 @@ public sealed class FSGiantAbilitySystem : EntitySystem
             _audio.PlayPvs(comp.BoulderThrowSound, ent.Owner);
         }
 
-        comp.NextBoulder = now + TimeSpan.FromSeconds(comp.BoulderCooldown);
+        comp.NextBoulder = now + TimeSpan.FromSeconds(comp.BoulderCooldown * comp.CooldownMultiplier);
         Finish(ent, now);
     }
 
     private void Dash(Entity<FSGiantAbilitiesComponent> ent, TransformComponent xform, TimeSpan now)
     {
         var comp = ent.Comp;
-        comp.NextDash = now + TimeSpan.FromSeconds(comp.DashCooldown);
+        comp.NextDash = now + TimeSpan.FromSeconds(comp.DashCooldown * comp.CooldownMultiplier);
 
         if (comp.DashHeading.LengthSquared() < 0.01f)
         {

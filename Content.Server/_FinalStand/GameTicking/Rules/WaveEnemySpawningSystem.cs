@@ -293,7 +293,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 htn.Blackboard.SetValue("VisionRadius", boom.AggroVisionRadius);
             }
         }
-        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber);
+        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
+        _scaling.ScaleBossForPlayers(enemy, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
         _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);

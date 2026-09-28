@@ -13,6 +13,8 @@ public sealed partial class FSGiantAbilitiesComponent : Component
     [DataField]
     public float GlobalCooldown = 0.8f;
 
+    public float CooldownMultiplier = 1f;
+
     [DataField]
     public float SkyJumpCooldown = 6f;
 
