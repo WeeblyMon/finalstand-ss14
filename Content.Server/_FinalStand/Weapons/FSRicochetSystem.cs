@@ -87,7 +87,8 @@ public sealed class FSRicochetSystem : EntitySystem
 
         if (args.OurFixtureId == BounceFixture)
         {
-            OnBounced(ent, projectile);
+            if (args.OtherFixture.Hard)
+                OnBounced(ent, projectile);
             return;
         }
 
