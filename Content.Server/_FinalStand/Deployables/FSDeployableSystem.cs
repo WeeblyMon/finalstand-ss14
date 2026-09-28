@@ -109,7 +109,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (facingDir is { } dir)
             _transform.SetLocalRotation(deployed, dir.ToAngle());
 
-        if (!_transform.AnchorEntity(deployed))
+        if (!Transform(deployed).Anchored && !_transform.AnchorEntity(deployed))
         {
             Del(deployed);
             _popup.PopupEntity(Loc.GetString("fs-deployable-no-anchor"), deployer, deployer);
