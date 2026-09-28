@@ -337,7 +337,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
     /// <param name="args">The message containing the selected part</param>
     private void OnHealthAnalyzerPartSelected(Entity<HealthAnalyzerComponent> healthAnalyzer, ref HealthAnalyzerPartSelectedMessage args)
     {
-        if (!TryGetEntity(args.Owner, out var owner))
+        if (!TryGetEntity(args.Owner, out var owner) || healthAnalyzer.Comp.ScannedEntity != owner) // FS
             return;
 
         healthAnalyzer.Comp.CurrentMode = HealthAnalyzerMode.Body; // If you press a part ye get redirected bozo.
@@ -366,7 +366,7 @@ public sealed partial class HealthAnalyzerSystem : EntitySystem
     /// <param name="args">The message containing the selected mode</param>
     private void OnHealthAnalyzerModeSelected(Entity<HealthAnalyzerComponent> healthAnalyzer, ref HealthAnalyzerModeSelectedMessage args)
     {
-        if (!TryGetEntity(args.Owner, out var owner))
+        if (!TryGetEntity(args.Owner, out var owner) || healthAnalyzer.Comp.ScannedEntity != owner) // FS
             return;
 
         healthAnalyzer.Comp.CurrentMode = args.Mode; // If you press a part ye get redirected bozo.
