@@ -15,6 +15,7 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     [Dependency] private FSMedicalResearchSystem _research = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private FSMediGunVariantSystem _variants = default!;
 
     public const string ExtendedOptics = "FSMedicalExtendedOptics";
     public const string HaemostaticBeam = "FSMedicalHaemostaticBeam";
@@ -31,6 +32,10 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string LimbMender = "FSMedicalLimbMender";
     public const string SplitBeamTuning = "FSMedicalSplitBeamTuning";
     public const string BackfeederNanites = "FSMedicalBackfeederNanites";
+    public const string RefinedEmitters = "FSMedicalRefinedEmitters";
+    public const string UberCycling = "FSMedicalUberCycling";
+    public const string PerfectedEmitters = "FSMedicalPerfectedEmitters";
+    public const string PolishedEmitters = "FSMedicalPolishedEmitters";
 
     public const string AutoclaveKit = "FSMedicalAutoclaveKit";
     public const string ReinforcedCanvas = "FSMedicalReinforcedCanvas";
@@ -57,7 +62,8 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
         CellEfficiency, DefibrillatorOutput, FocusedNanites,
-        CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning,
+        CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning, BackfeederNanites,
+        RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
@@ -90,6 +96,9 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             return;
 
         ApplyToAll();
+
+        if (ev.NodeId is RefinedEmitters or UberCycling)
+            _variants.SwapAll();
     }
 
     private void ApplyToAll()
@@ -123,7 +132,11 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             ApplyFiller((uid, filler));
     }
 
-    private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args) => ApplyMediGun(ent);
+    private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args)
+    {
+        ApplyMediGun(ent);
+        _variants.QueueIfOutdated(ent);
+    }
     private void OnSatchelInit(Entity<FSHarvestSatchelComponent> ent, ref MapInitEvent args) => ApplySatchel(ent);
     private void OnFlaskInit(Entity<FSSplashFlaskComponent> ent, ref MapInitEvent args) => ApplyFlask(ent);
     private void OnStaplerInit(Entity<FSBoneStaplerComponent> ent, ref MapInitEvent args) => ApplyStapler(ent);
@@ -160,6 +173,12 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
 
         c.BaseSplitLinkScale ??= c.SplitLinkScale;
         c.SplitLinkScale = c.BaseSplitLinkScale.Value * (Unlocked(SplitBeamTuning) ? 1.25f : 1f);
+
+        c.BaseOverhealRatio ??= c.OverhealRatio;
+        c.OverhealRatio = c.BaseOverhealRatio.Value * (Unlocked(PerfectedEmitters) ? 2f : 1f);
+
+        c.BaseOverhealDecay ??= c.OverhealDecay;
+        c.OverhealDecay = c.BaseOverhealDecay.Value * (Unlocked(PolishedEmitters) ? 0.5f : 1f);
 
         ApplyMediGunBattery(ent);
         Dirty(ent);

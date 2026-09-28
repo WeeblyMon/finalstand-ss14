@@ -21,6 +21,8 @@ public sealed partial class FSMediGunComponent : Component
     [ViewVariables] public float? BaseMaxCharge;
     [ViewVariables] public float? BaseRechargeRate;
     [ViewVariables] public TimeSpan? BaseRechargePause;
+    [ViewVariables] public float? BaseOverhealRatio;
+    [ViewVariables] public float? BaseOverhealDecay;
 
     [DataField, AutoNetworkedField]
     public TimeSpan? NextTick;
@@ -96,6 +98,27 @@ public sealed partial class FSMediGunComponent : Component
     // Free-flying emitters draw the beam from themselves rather than from the medic they serve.
     [DataField]
     public bool BeamFromSelf;
+
+    [DataField, AutoNetworkedField]
+    public FSMediGunVariant Variant = FSMediGunVariant.Base;
+
+    // Shield ceiling as a fraction of the patient's crit threshold; 0 means the gun cannot overheal.
+    [DataField]
+    public float OverhealRatio;
+
+    [DataField]
+    public float OverhealPerTick = 4f;
+
+    // Fraction of the shield's ceiling lost per second once it stops being fed.
+    [DataField]
+    public float OverhealDecay = 0.05f;
+}
+
+public enum FSMediGunVariant : byte
+{
+    Base,
+    OverHealer,
+    UberCharger,
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]

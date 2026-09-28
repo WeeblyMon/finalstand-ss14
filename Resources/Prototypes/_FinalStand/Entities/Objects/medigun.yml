@@ -42,3 +42,36 @@
   - type: UseDelay
     delay: 1.0
   - type: Appearance
+
+- type: entity
+  parent: FSMedicalBeamGun
+  id: FSMedicalBeamGunOverHealer
+  name: overhealer
+  description: A refined beam gun. Once a patient is patched as far as the beam allows, it keeps pouring nanites in as a shield that soaks up damage and slowly fades.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/overhealer.rsi
+    state: icon
+  - type: Item
+    sprite: _FinalStand/Objects/Medical/overhealer.rsi
+    size: Large
+  - type: FSMediGun
+    variant: OverHealer
+    overhealRatio: 0.5
+    beamColor: "#3FD7E0"
+
+- type: entity
+  parent: FSMedicalBeamGun
+  id: FSMedicalBeamGunUberCharger
+  name: ubercharger
+  description: A cycling beam gun. Healing builds an ÜberCharge; release it to make you and your patient untouchable for a few seconds.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Medical/ubercharger.rsi
+    state: icon
+  - type: Item
+    sprite: _FinalStand/Objects/Medical/ubercharger.rsi
+    size: Large
+  - type: FSMediGun
+    variant: UberCharger
+    beamColor: "#FF6A3D"

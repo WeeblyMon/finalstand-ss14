@@ -43,6 +43,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private TraumaSystem _trauma = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
+    [Dependency] private FSOverhealSystem _overheal = default!;
 
     private EntityQuery<BatteryComponent> _batteryQuery;
     private EntityQuery<DamageableComponent> _damageableQuery;
@@ -134,7 +135,10 @@ public sealed partial class FSMediGunSystem : EntitySystem
         }
 
         if (scale <= 0f)
+        {
+            _overheal.Feed(healed, comp, comp.OverhealPerTick * potency.Multiplier);
             return true;
+        }
 
         if (_mobState.IsCritical(healed))
             scale *= _medicalBonus.GetScale(wielder, FSMedicalBonusCategory.Stabilisation);

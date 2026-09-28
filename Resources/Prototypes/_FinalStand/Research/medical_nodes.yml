@@ -643,3 +643,68 @@
   prerequisites:
   - FSMedicalFocusedEmitters
   bonusDescription: Holding two patients costs less: each gets 75% of the healing instead of 60%.
+
+- type: fsTechNode
+  id: FSMedicalRefinedEmitters
+  name: Refined Emitters
+  icon:
+    sprite: _FinalStand/Objects/Medical/overhealer.rsi
+    state: icon
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalFocusedEmitters
+  bonusDescription: Every medical beam gun becomes an OverHealer. Healing a patient past the beam's limit builds a shield of up to half their health that soaks damage and fades over time.
+
+- type: fsTechNode
+  id: FSMedicalUberCycling
+  name: Über Cycling
+  icon:
+    sprite: _FinalStand/Objects/Medical/ubercharger.rsi
+    state: icon
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalRapidCycling
+  bonusDescription: Every medical beam gun becomes an UberCharger. Healing builds an ÜberCharge that makes the medic and their patient invulnerable for 10 seconds.
+
+- type: fsTechNode
+  id: FSMedicalBackfeederNanites
+  name: Backfeeder Nanites
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: microreactor
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisiteGroups:
+  - [ FSMedicalRefinedEmitters, FSMedicalUberCycling ]
+  bonusDescription: Medical beam guns keep recharging while beaming instead of pausing for 8 seconds.
+
+- type: fsTechNode
+  id: FSMedicalPerfectedEmitters
+  name: Perfected Emitters
+  icon:
+    sprite: _FinalStand/Objects/Medical/overhealer.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalRefinedEmitters
+  bonusDescription: OverHealer shields can grow to a patient's full health instead of half.
+
+- type: fsTechNode
+  id: FSMedicalPolishedEmitters
+  name: Polished Emitters
+  icon:
+    sprite: _FinalStand/Objects/Medical/overhealer.rsi
+    state: icon
+  branch: Medical
+  tier: 5
+  cost: 2200
+  prerequisites:
+  - FSMedicalRefinedEmitters
+  bonusDescription: OverHealer shields fade half as fast once the beam lets go.
