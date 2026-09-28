@@ -642,7 +642,7 @@
   cost: 1600
   prerequisites:
   - FSMedicalFocusedEmitters
-  bonusDescription: Holding two patients costs less: each gets 75% of the healing instead of 60%.
+  bonusDescription: "Holding two patients costs less: each gets 75% of the healing instead of 60%."
 
 - type: fsTechNode
   id: FSMedicalRefinedEmitters
