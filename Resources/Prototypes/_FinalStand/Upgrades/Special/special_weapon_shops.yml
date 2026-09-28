@@ -242,12 +242,13 @@
   id: FSWeaponShopXrayCannon
   parent: FSWeaponShopBase
   name: X-Ray Cannon
-  description: Experimental energy weapon that punches through solid matter. Self-recharging. No ammo required.
+  description: Science's heavy energy weapon. Punches through solid matter, and its hits feed the station's research. Self-recharging. No ammo required.
   components:
   - type: FSShopWeapon
     requiresResearch: FSOrdnanceXrayCannon
+    requiresScience: true
     weaponProtoId: WeaponXrayCannonFS
-    price: 175000
+    price: 60000
     category: Self-Recharging X-Ray Cannon
     statDamage: 75
     statFireRate: 30
@@ -261,8 +262,6 @@
       baseCost: 11000
       type: SelfChargeSpeed
       valuePerLevel: 2.0
-      discountResearch: FSOrdnanceDielectricCoatings
-      discountMultiplier: 0.85
     - id: xray-accuracy
       name: Collimator
       description: Precision collimator tightens the beam by 10° per level.

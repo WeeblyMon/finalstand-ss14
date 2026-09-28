@@ -410,6 +410,7 @@
   - type: HitscanAmmo
   - type: FSXrayRaycast
     maxDistance: 20
+  - type: FSResearchOnHit
   - type: HitscanBasicVisuals
     muzzleFlash:
       sprite: Objects/Weapons/Guns/Projectiles/projectiles.rsi

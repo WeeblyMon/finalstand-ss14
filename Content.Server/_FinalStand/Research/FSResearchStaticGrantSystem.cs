@@ -329,27 +329,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 #pragma warning restore RA0002
                     Dirty(weapon, xrayGun);
                 }
-
-                // Frequency Sync -> xray-fire-rate, +0.1 FR/level.
-                var dFreq = Delta(tracker, "FSOrdnanceFrequencySync",
-                    Unlocked("FSOrdnanceFrequencySync") ? shopLevels.GetValueOrDefault("xray-fire-rate", 0) : 0);
-                if (dFreq != 0)
-                {
-#pragma warning disable RA0002
-                    xrayGun.FireRate += 0.1f * dFreq;
-                    xrayGun.FireRateModified = xrayGun.FireRate;
-#pragma warning restore RA0002
-                    Dirty(weapon, xrayGun);
-                }
-            }
-
-            // Density Tuning -> xray-pierce, +1 pierce once maxed (level 3).
-            var dDensity = Delta(tracker, "FSOrdnanceDensityTuning",
-                Unlocked("FSOrdnanceDensityTuning") && shopLevels.GetValueOrDefault("xray-pierce", 0) >= 3 ? 1 : 0);
-            if (dDensity != 0)
-            {
-                state.PierceThreshold += FixedPoint2.New(dDensity);
-                stateDirty = true;
             }
 
             // Focal Overdrive -> xray-damage, flat +5% once owned.

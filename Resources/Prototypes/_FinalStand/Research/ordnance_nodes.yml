@@ -977,11 +977,8 @@
     +1 Blast Radius (RPG-7)
     +5% Projectile Speed (RPG-7)
 
-# Energy line - shared root (WeaponizedLaserManipulation + High-Output Capacitors), then splits
-# into the X-Ray Cannon branch and Tesla Gun branch. WaveParticleHarnessing and
-# ConcentratedLaserWeaponry keep their repurposed identities but are no longer the weapon gate
-# themselves - they're mid-chain component nodes now, with a dedicated final-assembly node at the
-# end of each branch.
+# Energy line - shared root (WeaponizedLaserManipulation + High-Output Capacitors) feeding the
+# team energy nodes and the Tesla Gun branch. The X-Ray Cannon lives on the Harvester line.
 
 - type: fsTechNode
   id: FSOrdnanceWeaponizedLaserManipulation
@@ -1013,56 +1010,6 @@
   - FSOrdnanceWeaponizedLaserManipulation
   bonusDescription: +5% Charge Rate (Team)
 
-# -- X-Ray Cannon branch --
-
-- type: fsTechNode
-  id: FSOrdnanceWaveParticleHarnessing
-  name: Wave Particle Harnessing
-  icon:
-    sprite: Objects/Weapons/Guns/Battery/xray.rsi
-    state: icon
-  branch: Ordnance
-  tier: 3
-  cost: 4000
-  materialCost:
-    Steel: 18
-    Gold: 12
-  prerequisites:
-  - FSOrdnanceHighOutputCapacitors
-  bonusDescription: +8% Hitscan Range (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceLeadLinedEmitters
-  name: Lead-Lined Emitters
-  icon:
-    sprite: Objects/Tools/geiger.rsi
-    state: geiger_base
-  branch: Ordnance
-  tier: 4
-  cost: 4000
-  materialCost:
-    Steel: 32
-    Gold: 21
-  prerequisites:
-  - FSOrdnanceWaveParticleHarnessing
-  bonusDescription: +5% Armor Shred (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceIsotopeSynthesiser
-  name: Isotope Synthesiser
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: o1
-  branch: Ordnance
-  tier: 4
-  cost: 4000
-  materialCost:
-    Steel: 32
-    Gold: 21
-  prerequisites:
-  - FSOrdnanceWaveParticleHarnessing
-  bonusDescription: +5% Radiation Coating tick damage per level (X-Ray)
-
 - type: fsTechNode
   id: FSOrdnanceConcentratedLaserWeaponry
   name: Concentrated Laser Weaponry
@@ -1070,32 +1017,16 @@
     sprite: Objects/Weapons/Guns/Battery/laser_cannon.rsi
     state: icon
   branch: Ordnance
-  tier: 5
+  tier: 3
   cost: 4500
   materialCost:
-    Steel: 50
-    Gold: 32
+    Steel: 18
+    Gold: 12
   prerequisites:
-  - FSOrdnanceLeadLinedEmitters
+  - FSOrdnanceHighOutputCapacitors
   bonusDescription: |-
     +3% Damage (Team)
     +2% Damage (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceDielectricCoatings
-  name: Dielectric Coatings
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: o2
-  branch: Ordnance
-  tier: 6
-  cost: 4000
-  materialCost:
-    Steel: 72
-    Gold: 47
-  prerequisites:
-  - FSOrdnanceConcentratedLaserWeaponry
-  bonusDescription: -15% Resonant Cell shop price (X-Ray)
 
 - type: fsTechNode
   id: FSOrdnanceCryogenicCoolingPumps
@@ -1104,124 +1035,16 @@
     sprite: Objects/Power/power_cells.rsi
     state: antique
   branch: Ordnance
-  tier: 6
+  tier: 4
   cost: 4500
   materialCost:
-    Steel: 72
-    Gold: 47
+    Steel: 32
+    Gold: 21
   prerequisites:
   - FSOrdnanceConcentratedLaserWeaponry
   bonusDescription: |-
     +4% Charge Rate (Team, 2nd source)
     +2% Charge Rate (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceFocusingCrystalPrisms
-  name: Focusing Crystal Prisms
-  icon:
-    sprite: Objects/Materials/Shards/crystal.rsi
-    state: shard1
-  branch: Ordnance
-  tier: 7
-  cost: 3000
-  materialCost:
-    Steel: 98
-    Gold: 64
-  prerequisites:
-  - FSOrdnanceCryogenicCoolingPumps
-  exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: |-
-    +10% Damage (X-Ray)
-    -8% Charge Rate (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceCollimatorFlanges
-  name: Collimator Flanges
-  icon:
-    sprite: Objects/Materials/Shards/crystal.rsi
-    state: shard2
-  branch: Ordnance
-  tier: 7
-  cost: 3000
-  materialCost:
-    Steel: 98
-    Gold: 64
-  prerequisites:
-  - FSOrdnanceCryogenicCoolingPumps
-  exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: |-
-    +2° Accuracy per Collimator level (X-Ray)
-    -5% Damage (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceDensityTuning
-  name: Density Tuning
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: small
-  branch: Ordnance
-  tier: 8
-  cost: 3500
-  materialCost:
-    Steel: 128
-    Gold: 83
-  prerequisites:
-  - FSOrdnanceCollimatorFlanges
-  bonusDescription: +1 Pierce once Deep Penetration is maxed (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceFrequencySync
-  name: Frequency Sync
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: medium
-  branch: Ordnance
-  tier: 9
-  cost: 3500
-  materialCost:
-    Steel: 162
-    Gold: 105
-  prerequisites:
-  - FSOrdnanceDensityTuning
-  bonusDescription: +0.1 Fire Rate per Pulse Accelerator level (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceFocalOverdrive
-  name: Focal Overdrive
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: hyper
-  branch: Ordnance
-  tier: 10
-  cost: 3500
-  materialCost:
-    Steel: 200
-    Gold: 130
-  prerequisites:
-  - FSOrdnanceFrequencySync
-  bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)
-
-- type: fsTechNode
-  id: FSOrdnanceXrayCannon
-  name: X-Ray Cannon
-  icon:
-    sprite: Objects/Weapons/Guns/Battery/xray.rsi
-    state: icon
-  branch: Ordnance
-  tier: 11
-  cost: 9000
-  materialCost:
-    Steel: 242
-    Gold: 157
-  prerequisiteGroups:
-  - - FSOrdnanceFocusingCrystalPrisms
-    - FSOrdnanceFocalOverdrive
-  weaponShopUnlock: FSWeaponShopXrayCannon
-  bonusDescription: |-
-    Unlocks the X-Ray Cannon shop.
-    +5% Damage (X-Ray)
-    +5% Charge Rate (X-Ray)
-    +1 Pierce (X-Ray)
 
 # -- Tesla Gun branch --
 
@@ -1592,3 +1415,131 @@
   bonusDescription: |-
     +8% Damage (Harvester)
     +8% Fire Rate (Harvester)
+
+# X-Ray Cannon - Science's heavy weapon, continuing the Harvester line.
+
+- type: fsTechNode
+  id: FSOrdnanceWaveParticleHarnessing
+  name: Wave Particle Harnessing
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/xray.rsi
+    state: icon
+  branch: Ordnance
+  tier: 4
+  cost: 4000
+  materialCost:
+    Steel: 60
+    Gold: 30
+  prerequisites:
+  - FSOrdnanceHarvesterOverdrive
+  bonusDescription: +8% Hitscan Range (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceXrayCannon
+  name: X-Ray Cannon
+  icon:
+    sprite: Objects/Weapons/Guns/Battery/xray.rsi
+    state: icon
+  branch: Ordnance
+  tier: 5
+  cost: 7000
+  materialCost:
+    Steel: 90
+    Gold: 45
+  prerequisites:
+  - FSOrdnanceWaveParticleHarnessing
+  weaponShopUnlock: FSWeaponShopXrayCannon
+  bonusDescription: |-
+    Unlocks the X-Ray Cannon shop (Science only). Its hits feed research like the Harvester's.
+    +5% Damage (X-Ray)
+    +5% Charge Rate (X-Ray)
+    +1 Pierce (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceLeadLinedEmitters
+  name: Lead-Lined Emitters
+  icon:
+    sprite: Objects/Tools/geiger.rsi
+    state: geiger_base
+  branch: Ordnance
+  tier: 6
+  cost: 4000
+  materialCost:
+    Steel: 110
+    Gold: 55
+  prerequisites:
+  - FSOrdnanceXrayCannon
+  bonusDescription: +5% Armor Shred (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceIsotopeSynthesiser
+  name: Isotope Synthesiser
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: o1
+  branch: Ordnance
+  tier: 6
+  cost: 4000
+  materialCost:
+    Steel: 110
+    Gold: 55
+  prerequisites:
+  - FSOrdnanceXrayCannon
+  bonusDescription: +5% Radiation Coating tick damage per level (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceFocusingCrystalPrisms
+  name: Focusing Crystal Prisms
+  icon:
+    sprite: Objects/Materials/Shards/crystal.rsi
+    state: shard1
+  branch: Ordnance
+  tier: 7
+  cost: 3500
+  materialCost:
+    Steel: 130
+    Gold: 65
+  prerequisiteGroups:
+  - - FSOrdnanceLeadLinedEmitters
+    - FSOrdnanceIsotopeSynthesiser
+  exclusiveGroup: FSOrdnanceXrayCoolingChoice
+  bonusDescription: |-
+    +10% Damage (X-Ray)
+    -8% Charge Rate (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceCollimatorFlanges
+  name: Collimator Flanges
+  icon:
+    sprite: Objects/Materials/Shards/crystal.rsi
+    state: shard2
+  branch: Ordnance
+  tier: 7
+  cost: 3500
+  materialCost:
+    Steel: 130
+    Gold: 65
+  prerequisiteGroups:
+  - - FSOrdnanceLeadLinedEmitters
+    - FSOrdnanceIsotopeSynthesiser
+  exclusiveGroup: FSOrdnanceXrayCoolingChoice
+  bonusDescription: |-
+    +2° Accuracy per Collimator level (X-Ray)
+    -5% Damage (X-Ray)
+
+- type: fsTechNode
+  id: FSOrdnanceFocalOverdrive
+  name: Focal Overdrive
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: hyper
+  branch: Ordnance
+  tier: 8
+  cost: 4000
+  materialCost:
+    Steel: 160
+    Gold: 80
+  prerequisiteGroups:
+  - - FSOrdnanceFocusingCrystalPrisms
+    - FSOrdnanceCollimatorFlanges
+  bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)

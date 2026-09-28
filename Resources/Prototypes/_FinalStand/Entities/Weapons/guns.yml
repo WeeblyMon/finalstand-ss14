@@ -873,6 +873,7 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSScienceOnly
   - type: Tag
     tags:
     - WeaponGunEnergy

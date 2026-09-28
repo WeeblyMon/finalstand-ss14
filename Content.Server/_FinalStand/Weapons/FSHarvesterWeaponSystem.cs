@@ -60,6 +60,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         SubscribeLocalEvent<FSHarvesterComponent, AmmoShotEvent>(OnShot);
         SubscribeLocalEvent<FSHarvesterComponent, HitscanRaycastFiredEvent>(OnHit);
+        SubscribeLocalEvent<FSResearchOnHitComponent, HitscanRaycastFiredEvent>(OnResearchHit);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
@@ -130,24 +131,35 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
         var damageEvent = new HitscanDamageDealtEvent { Target = hit, DamageDealt = dealt };
         RaiseLocalEvent(uid, ref damageEvent);
 
+        TryGrantHitResearch(args.Data.Shooter, hit, RpPerHit, "harvester-hit", perkId: "HarvesterTuning");
+    }
+
+    private void OnResearchHit(Entity<FSResearchOnHitComponent> ent, ref HitscanRaycastFiredEvent args)
+    {
+        if (args.Data.HitEntity is { } hit)
+            TryGrantHitResearch(args.Data.Shooter, hit, ent.Comp.ResearchPerHit, "research-weapon-hit");
+    }
+
+    // Shares the per-zombie money cap: a third of it can be turned into research per player.
+    private void TryGrantHitResearch(EntityUid? shooter, EntityUid hit, int amount, string source, string? perkId = null)
+    {
         if (!_enemyQuery.HasComponent(hit)
             || !TryComp<FSMoneyOnHitCapComponent>(hit, out var cap)
             || TryComp<FSArmorComponent>(hit, out var armor) && armor.CurrentArmor > 0
-            || args.Data.Shooter is not { } shooter
-            || !_mind.TryGetMind(shooter, out var mindId, out _))
+            || shooter == null
+            || !_mind.TryGetMind(shooter.Value, out var mindId, out _))
             return;
 
-        var perkBonus = TryComp<FSPerkLevelsComponent>(mindId, out var perks)
-            ? perks.GetSlottedLevel("HarvesterTuning")
-            : 0;
+        if (perkId != null && TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+            amount += perks.GetSlottedLevel(perkId);
 
         cap.ResearchGivenPerPlayer.TryGetValue(mindId, out var given);
-        var grant = Math.Min(RpPerHit + perkBonus, cap.MaxMoneyPerPlayer / ResearchCapDivisor - given);
+        var grant = Math.Min(amount, cap.MaxMoneyPerPlayer / ResearchCapDivisor - given);
         if (grant <= 0)
             return;
 
         cap.ResearchGivenPerPlayer[mindId] = given + grant;
-        _research.GrantResearchPoints(grant, "harvester-hit", mindId);
+        _research.GrantResearchPoints(grant, source, mindId);
     }
 
     public override void Update(float frameTime)
