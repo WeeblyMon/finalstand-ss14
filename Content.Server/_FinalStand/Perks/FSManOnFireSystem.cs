@@ -15,6 +15,7 @@ public sealed partial class FSManOnFireSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private TemperatureSystem _temperature = default!;
+    [Dependency] private FSHealingFireSystem _healingFire = default!;
 
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);
     private TimeSpan _nextTick;
@@ -63,7 +64,10 @@ public sealed partial class FSManOnFireSystem : EntitySystem
                 _temperature.ChangeHeat((uid, temp), (normalTemp - temp.Temperature) * temp.HeatCapacity, ignoreHeatResistance: true);
 
             if (resist > 1f && flammable.OnFire)
+            {
                 _damageable.HealEvenly(uid, FixedPoint2.New(-FSPerkBonusConstants.ManOnFireHealPerSecond));
+                _healingFire.MarkHealing(uid);
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
     [Dependency] private TemperatureSystem _temperature = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSManOnFireSystem _manOnFire = default!;
+    [Dependency] private FSHealingFireSystem _healingFire = default!;
 
     private const float BurningBuffHealPerSecond = 1f;
 
@@ -50,7 +51,10 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
                 continue;
 
             if (TryGetHeldWielderBuff(uid, hands, out _))
+            {
                 _damageable.HealEvenly(uid, FixedPoint2.New(-BurningBuffHealPerSecond));
+                _healingFire.MarkHealing(uid);
+            }
         }
 
         // Actively clamp body temperature for fire-immune players — catches any path that
