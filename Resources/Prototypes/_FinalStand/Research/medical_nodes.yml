@@ -565,3 +565,81 @@
   prerequisites:
   - FSMedicalCapacitorRecovery
   bonusDescription: The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.
+
+- type: fsTechNode
+  id: FSMedicalCellEfficiency2
+  name: Cell Efficiency II
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: hyper
+  branch: Medical
+  tier: 3
+  cost: 1100
+  prerequisites:
+  - FSMedicalCellEfficiency
+  bonusDescription: The medical beam gun draws another 25% less charge on top of Cell Efficiency.
+
+- type: fsTechNode
+  id: FSMedicalCapacitorBank
+  name: Capacitor Bank
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: high
+  branch: Medical
+  tier: 3
+  cost: 1100
+  prerequisites:
+  - FSMedicalCellEfficiency
+  bonusDescription: Medical beam gun cells hold 50% more charge.
+
+- type: fsTechNode
+  id: FSMedicalRapidRecharge
+  name: Rapid Recharge
+  icon:
+    sprite: Objects/Power/power_cells.rsi
+    state: hyper
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalCapacitorBank
+  bonusDescription: Medical beam guns recharge 50% faster.
+
+- type: fsTechNode
+  id: FSMedicalBoneKnitter
+  name: Bone-Knitter Beam
+  icon:
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
+  branch: Medical
+  tier: 3
+  cost: 1100
+  prerequisites:
+  - FSMedicalHaemostaticBeam
+  bonusDescription: The beam mends broken bones twice as fast.
+
+- type: fsTechNode
+  id: FSMedicalLimbMender
+  name: Limb-Mender Lattice
+  icon:
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalBoneKnitter
+  bonusDescription: The beam heals limb wounds 60% faster.
+
+- type: fsTechNode
+  id: FSMedicalSplitBeamTuning
+  name: Split-Beam Tuning
+  icon:
+    sprite: _FinalStand/Objects/Medical/medigun.rsi
+    state: icon
+  branch: Medical
+  tier: 4
+  cost: 1600
+  prerequisites:
+  - FSMedicalFocusedEmitters
+  bonusDescription: Holding two patients costs less: each gets 75% of the healing instead of 60%.

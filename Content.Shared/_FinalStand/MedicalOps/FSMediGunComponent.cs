@@ -15,6 +15,12 @@ public sealed partial class FSMediGunComponent : Component
     [ViewVariables] public float? BaseFrequency;
     [ViewVariables] public float? BaseBatteryWithdraw;
     [ViewVariables] public float? BaseSoftCapRatio;
+    [ViewVariables] public FixedPoint2? BaseBoneRepairPerTick;
+    [ViewVariables] public float? BaseLimbHealScale;
+    [ViewVariables] public float? BaseSplitLinkScale;
+    [ViewVariables] public float? BaseMaxCharge;
+    [ViewVariables] public float? BaseRechargeRate;
+    [ViewVariables] public TimeSpan? BaseRechargePause;
 
     [DataField, AutoNetworkedField]
     public TimeSpan? NextTick;
