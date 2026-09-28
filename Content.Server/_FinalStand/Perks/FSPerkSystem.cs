@@ -19,6 +19,7 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -248,6 +249,9 @@ public sealed partial class FSPerkSystem : EntitySystem
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
+        if (session.AttachedEntity is { } attached && !_shopAccess.CanUse(attached))
+            return;
+
         if (_mind.TryGetMind(session, out var mindId, out var mind))
         {
             // In-round path: operate on the ECS component, creating it lazily if OnPlayerAttached missed it.
