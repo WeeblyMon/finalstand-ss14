@@ -4,7 +4,7 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Perks;
 
 // Flags entities whose fire is healing them so the client can recolour it.
-public sealed class FSHealingFireSystem : EntitySystem
+public sealed partial class FSHealingFireSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;

@@ -57,6 +57,7 @@ public sealed partial class HandTeleporterComponent : Component
     [DataField]
     public float? PortalLifetime;
 
+    [AutoNetworkedField]
     public TimeSpan? PortalsExpireAt;
 }
 

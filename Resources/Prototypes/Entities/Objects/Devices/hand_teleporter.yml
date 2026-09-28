@@ -8,6 +8,14 @@
     sprite: /Textures/Objects/Devices/hand_teleporter.rsi
     layers:
     - state: icon
+      map: [ "base" ]
+  - type: Appearance # FS
+  - type: GenericVisualizer # FS: dims when out of charges
+    visuals:
+      enum.LimitedChargesState.HasCharges:
+        base:
+          True: { color: White }
+          False: { color: DimGray }
   - type: HandTeleporter
     portalLifetime: 20 # FS
   - type: LimitedCharges # FS

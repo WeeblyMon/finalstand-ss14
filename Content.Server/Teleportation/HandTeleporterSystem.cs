@@ -1,5 +1,6 @@
 using Content.Server.Administration.Logs;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.Teleportation;
 using Content.Shared.Charges.Components;
 using Content.Shared.Charges.Systems;
 using Content.Shared.DoAfter;
@@ -9,6 +10,7 @@ using Content.Shared.Popups;
 using Content.Shared.Teleportation.Components;
 using Content.Shared.Teleportation.Systems;
 using Robust.Server.Audio;
+using Robust.Shared.Audio;
 using Robust.Shared.Timing;
 
 namespace Content.Server.Teleportation;
@@ -25,6 +27,8 @@ public sealed partial class HandTeleporterSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedChargesSystem _charges = default!; // FS
     [Dependency] private IGameTiming _timing = default!; // FS
+
+    private static readonly SoundSpecifier PortalCollapseSound = new SoundCollectionSpecifier("sparks"); // FS
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -43,8 +47,16 @@ public sealed partial class HandTeleporterSystem : EntitySystem
         var query = EntityQueryEnumerator<HandTeleporterComponent>();
         while (query.MoveNext(out var uid, out var teleporter))
         {
-            if (teleporter.PortalsExpireAt <= now)
-                FizzlePortals((uid, teleporter), null, false);
+            if (teleporter.PortalsExpireAt > now || teleporter.PortalsExpireAt == null)
+                continue;
+
+            foreach (var portal in new[] { teleporter.FirstPortal, teleporter.SecondPortal })
+            {
+                if (!Deleted(portal))
+                    _audio.PlayPvs(PortalCollapseSound, Transform(portal.Value).Coordinates);
+            }
+
+            FizzlePortals((uid, teleporter), null, false);
         }
     }
 
@@ -159,7 +171,11 @@ public sealed partial class HandTeleporterSystem : EntitySystem
             Dirty(uid, component);
 
             if (component.PortalLifetime is { } lifetime) // FS
+            {
                 component.PortalsExpireAt = _timing.CurTime + TimeSpan.FromSeconds(lifetime);
+                MarkExpiring(component.FirstPortal.Value, component.PortalsExpireAt.Value);
+                Dirty(uid, component);
+            }
 
             if (component.AllowPortalsOnDifferentMaps && TryComp<PortalComponent>(component.FirstPortal, out var portal))
                 portal.CanTeleportToOtherMaps = true;
@@ -189,12 +205,22 @@ public sealed partial class HandTeleporterSystem : EntitySystem
 
             _adminLogger.Add(LogType.EntitySpawn, LogImpact.High, $"{ToPrettyString(user):player} opened {ToPrettyString(component.SecondPortal.Value)} at {Transform(component.SecondPortal.Value).Coordinates} linked to {ToPrettyString(component.FirstPortal!.Value)} using {ToPrettyString(uid)}");
             _link.TryLink(component.FirstPortal!.Value, component.SecondPortal.Value, true);
+            if (component.PortalsExpireAt is { } expiresAt) // FS
+                MarkExpiring(component.SecondPortal.Value, expiresAt);
             _audio.PlayPvs(component.NewPortalSound, uid);
         }
         else
         {
             FizzlePortals((uid, component), user, false);
         }
+    }
+
+    // FS
+    private void MarkExpiring(EntityUid portal, TimeSpan expiresAt)
+    {
+        var expiring = EnsureComp<FSExpiringPortalComponent>(portal);
+        expiring.ExpiresAt = expiresAt;
+        Dirty(portal, expiring);
     }
 
     /// <summary>
