@@ -47,6 +47,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
     private readonly List<(EntityUid Victim, float Distance)> _victims = new();
     private readonly HashSet<EntityUid> _swept = new();
+    private readonly List<(Vector2 Position, float Distance)> _targets = new();
 
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
 
@@ -94,33 +95,33 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         var comp = ent.Comp;
         var origin = _transform.GetWorldPosition(xform);
 
-        if (FindTarget(origin, xform.MapID, comp.SkyJumpMaxRange) is not { } target)
+        CollectTargets(origin, xform.MapID, MathF.Max(comp.SkyJumpMaxRange, comp.BoulderMaxRange));
+        if (_targets.Count == 0)
             return false;
 
-        var targetPos = _transform.GetWorldPosition(target);
-        var distance = Vector2.Distance(origin, targetPos);
-        comp.LockedTarget = targetPos;
-
-        if (now >= comp.NextSkyJump && distance >= comp.SkyJumpMinRange && distance <= comp.SkyJumpMaxRange)
+        if (now >= comp.NextSkyJump && NearestInBand(comp.SkyJumpMinRange, comp.SkyJumpMaxRange) is { } jumpTarget)
         {
+            comp.LockedTarget = jumpTarget;
             Begin(ent, FSGiantAbility.SkyJumpWindup, comp.SkyJumpWindup, now);
             Spawn(comp.LaunchEffect, xform.Coordinates);
             _audio.PlayPvs(comp.RoarSound, ent.Owner);
             return true;
         }
 
-        if (now >= comp.NextBoulder && distance >= comp.BoulderMinRange && distance <= comp.BoulderMaxRange)
+        if (now >= comp.NextBoulder && NearestInBand(comp.BoulderMinRange, comp.BoulderMaxRange) is { } boulderTarget)
         {
+            comp.LockedTarget = boulderTarget;
             Begin(ent, FSGiantAbility.BoulderWindup, comp.BoulderWindup, now);
-            var lane = origin + (targetPos - origin).Normalized() * comp.BoulderMaxRange;
+            var lane = origin + (boulderTarget - origin).Normalized() * comp.BoulderMaxRange;
             DrawLane(ent, origin, lane, xform.MapID, 1.2f);
             return true;
         }
 
-        if (now < comp.NextDash || distance < comp.DashMinRange || distance > comp.DashMaxRange)
+        if (now < comp.NextDash || NearestInBand(comp.DashMinRange, comp.DashMaxRange) is not { } dashTarget)
             return false;
 
-        comp.DashHeading = (targetPos - origin).Normalized();
+        comp.LockedTarget = dashTarget;
+        comp.DashHeading = (dashTarget - origin).Normalized();
         comp.DashOrigin = origin;
         comp.DashLanding = ProbeDash(origin, comp.DashHeading, comp.DashDistance, xform.MapID);
 
@@ -377,35 +378,43 @@ public sealed class FSGiantAbilitySystem : EntitySystem
         _transform.SetWorldRotation(fist, heading.ToWorldAngle());
     }
 
-    private EntityUid? FindTarget(Vector2 origin, MapId mapId, float range)
+    private void CollectTargets(Vector2 origin, MapId mapId, float range)
     {
+        _targets.Clear();
         var candidates = _actorPool.Get();
         try
         {
             _lookup.GetEntitiesInRange<ActorComponent>(new MapCoordinates(origin, mapId), range, candidates);
-
-            EntityUid? best = null;
-            var bestDistance = float.MaxValue;
 
             foreach (var (candidate, _) in candidates)
             {
                 if (!_mobState.IsAlive(candidate))
                     continue;
 
-                var distance = Vector2.DistanceSquared(origin, _transform.GetWorldPosition(candidate));
-                if (distance >= bestDistance)
-                    continue;
-
-                best = candidate;
-                bestDistance = distance;
+                var position = _transform.GetWorldPosition(candidate);
+                _targets.Add((position, Vector2.Distance(origin, position)));
             }
-
-            return best;
         }
         finally
         {
             _actorPool.Return(candidates);
         }
+    }
+
+    private Vector2? NearestInBand(float min, float max)
+    {
+        Vector2? best = null;
+        var bestDistance = float.MaxValue;
+        foreach (var (position, distance) in _targets)
+        {
+            if (distance < min || distance > max || distance >= bestDistance)
+                continue;
+
+            best = position;
+            bestDistance = distance;
+        }
+
+        return best;
     }
 
     private void CollectVictims(Vector2 origin, MapId mapId, float radius)
