@@ -2,6 +2,7 @@ using Content.Client.Charges.UI;
 using Content.Client.Items;
 using Content.Shared.Charges.Components;
 using Content.Shared.Charges.Systems;
+using Content.Shared.Teleportation.Components;
 
 namespace Content.Client.Charges;
 
@@ -13,7 +14,8 @@ public sealed partial class ChargesSystem : SharedChargesSystem
     public override void Initialize()
     {
         base.Initialize();
-        Subs.ItemStatus<LimitedChargesComponent>(entity => new ChargeStatusControl(entity));
+        // FS: the hand teleporter draws its own charge line
+        Subs.ItemStatus<LimitedChargesComponent>(entity => HasComp<HandTeleporterComponent>(entity) ? null : new ChargeStatusControl(entity));
     }
 
     public override void Update(float frameTime)

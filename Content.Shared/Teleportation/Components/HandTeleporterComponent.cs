@@ -59,6 +59,9 @@ public sealed partial class HandTeleporterComponent : Component
 
     [AutoNetworkedField]
     public TimeSpan? PortalsExpireAt;
+
+    [AutoNetworkedField]
+    public TimeSpan? PortalsPausedLeft;
 }
 
 [Serializable, NetSerializable]

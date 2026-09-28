@@ -8,4 +8,10 @@ public sealed partial class FSExpiringPortalComponent : Component
 {
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan ExpiresAt;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan? PausedLeft;
+
+    [DataField, AutoNetworkedField]
+    public float Lifetime;
 }

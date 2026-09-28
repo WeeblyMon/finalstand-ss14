@@ -17,7 +17,7 @@
           True: { color: White }
           False: { color: DimGray }
   - type: HandTeleporter
-    portalLifetime: 20 # FS
+    portalLifetime: 60 # FS
   - type: LimitedCharges # FS
     maxCharges: 2
   - type: AutoRecharge # FS

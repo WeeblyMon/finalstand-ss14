@@ -13,13 +13,16 @@ public sealed partial class FSExpiringPortalSystem : EntitySystem
         SubscribeLocalEvent<FSExpiringPortalComponent, ExaminedEvent>(OnExamined);
     }
 
-    public int SecondsLeft(TimeSpan expiresAt)
+    public float SecondsLeft(TimeSpan expiresAt, TimeSpan? pausedLeft)
     {
-        return Math.Max(0, (int) Math.Ceiling((expiresAt - _timing.CurTime).TotalSeconds));
+        var left = pausedLeft ?? expiresAt - _timing.CurTime;
+        return Math.Max(0f, (float) left.TotalSeconds);
     }
 
     private void OnExamined(Entity<FSExpiringPortalComponent> ent, ref ExaminedEvent args)
     {
-        args.PushMarkup(Loc.GetString("fs-portal-examine-closes", ("seconds", SecondsLeft(ent.Comp.ExpiresAt))));
+        var seconds = (int) Math.Ceiling(SecondsLeft(ent.Comp.ExpiresAt, ent.Comp.PausedLeft));
+        args.PushMarkup(Loc.GetString(ent.Comp.PausedLeft != null ? "fs-portal-examine-paused" : "fs-portal-examine-closes",
+            ("seconds", seconds)));
     }
 }
