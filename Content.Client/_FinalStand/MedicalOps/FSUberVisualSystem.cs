@@ -2,7 +2,10 @@ using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Input;
+using Content.Shared.Interaction;
 using Robust.Client.Graphics;
+using Robust.Client.Input;
+using Robust.Shared.Input;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Containers;
@@ -13,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-// Über feedback: the Alt+E key, aura and ready sparkle emitters, deploy shockwave, blocked-hit sparks and the end puff.
+// Über feedback: the Alt+E context key, aura and ready sparkle emitters, deploy shockwave, blocked-hit sparks and the end puff.
 public sealed partial class FSUberVisualSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
@@ -25,6 +28,7 @@ public sealed partial class FSUberVisualSystem : EntitySystem
     [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private FSParticleSystem _particles = default!;
+    [Dependency] private IInputManager _input = default!;
 
     public static readonly TimeSpan FlickerWindow = TimeSpan.FromSeconds(2);
 
@@ -32,6 +36,8 @@ public sealed partial class FSUberVisualSystem : EntitySystem
     private readonly Dictionary<EntityUid, int> _readySparkles = new();
     private readonly HashSet<EntityUid> _seen = new();
     private readonly List<EntityUid> _stale = new();
+
+    private bool _swallowAltUp;
 
     private FSShockwaveOverlay? _shockwave;
     private FSUberOverlay? _hud;
@@ -46,6 +52,7 @@ public sealed partial class FSUberVisualSystem : EntitySystem
 
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.FSUberCharge, InputCmdHandler.FromDelegate(OnUberKey))
+            .BindBefore(ContentKeyFunctions.AltActivateItemInWorld, new AltEHandler(this), typeof(SharedInteractionSystem))
             .Register<FSUberVisualSystem>();
 
         _shockwave = new FSShockwaveOverlay(_timing, _prototypes);
@@ -70,6 +77,33 @@ public sealed partial class FSUberVisualSystem : EntitySystem
     {
         if (HeldUberCharger() != null)
             RaiseNetworkEvent(new FSUberActivateMessage());
+    }
+
+    // Alt+E alt-activates as usual, unless an UberCharger is in hand; then it deploys and the alt-activate is swallowed.
+    // Alt+click shares the key function, so only the keyboard E is claimed.
+    private bool TryClaimAltE(BoundKeyState state)
+    {
+        if (state == BoundKeyState.Up)
+        {
+            var swallow = _swallowAltUp;
+            _swallowAltUp = false;
+            return swallow;
+        }
+
+        if (!_input.IsKeyDown(Keyboard.Key.E) || HeldUberCharger() == null)
+            return false;
+
+        RaiseNetworkEvent(new FSUberActivateMessage());
+        _swallowAltUp = true;
+        return true;
+    }
+
+    private sealed class AltEHandler(FSUberVisualSystem system) : InputCmdHandler
+    {
+        public override bool FireOutsidePrediction => true;
+
+        public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
+            => system.TryClaimAltE(message.State);
     }
 
     public Entity<FSMediGunComponent>? HeldUberCharger()

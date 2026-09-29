@@ -100,7 +100,7 @@ public sealed partial class WaveHudSystem
         var left = gun.UberEndTime is { } end ? (float) Math.Max(0, (end - _timing.CurTime).TotalSeconds) : 0f;
         var key = _input.TryGetKeyBinding(ContentKeyFunctions.FSUberCharge, out var binding)
             ? binding.GetKeyString()
-            : "?";
+            : "Alt+E";
 
         overlay.Uber = new WaveHudOverlay.UberMeter(gun.UberCharge, gun.UberActive, left, gun.BeamColor, key);
     }
