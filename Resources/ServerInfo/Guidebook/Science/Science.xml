@@ -31,7 +31,7 @@ The R&D console shows six colored tabs, one per research branch. Each branch is 
   <Box>
     <GuideEntityEmbed Entity="WeaponXrayCannon" Caption="X-Ray Cannon"/>
   </Box>
-[color=#F97316]Ordnance[/color] is the weapons branch, and the one reason to main Science even if you never touch a lathe: researching far enough down a weapon line unlocks its shop - the L6-SAW, Minigun, Hydra grenade launcher, RPG-7, and Tesla Cannon. Anyone on the station can buy from an unlocked shop, so Science's payoff is being the one who makes it possible in the first place. The Harvester also has its own research line inside Ordnance, and at the end of it is the X-Ray Cannon: a Science-only heavy weapon that punches through walls and, like the Harvester, turns its hits into research.
+[color=#F97316]Ordnance[/color] is the weapons branch, and the one reason to main Science even if you never touch a lathe: researching far enough down a weapon line unlocks its shop - the L6-SAW, Minigun, Hydra grenade launcher, RPG-7, and Tesla Cannon. Anyone on the station can buy from an unlocked shop, so Science's payoff is being the one who makes it possible in the first place. The Harvester also has its own research line inside Ordnance. Research far enough and the Harvester shop can convert your Harvester into an X-Ray Cannon: a heavier weapon that punches through walls and still turns its hits into research.
 
 ## Medical, Logistics, Engineering, Research
 The other four branches wrap the station's Medical, Service, Salvage/Engineering, and general Research disciplines - unlocking a node there prints new recipes at the relevant lathes (medical gear, cargo/service equipment, engineering machinery, and so on) rather than granting a combat buff.

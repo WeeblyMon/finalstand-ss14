@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 09/24/2026 22:48:49
-  entityCount: 11033
+  entityCount: 11031
 maps:
 - 259
 grids:
@@ -35701,13 +35701,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 7.5,17.5
-- proto: FSWeaponShopXrayCannon
-  entities:
-  - uid: 9671
-    components:
-    - type: Transform
-      parent: 1
-      pos: 7.5,-3.5
 - proto: Fulton
   entities:
   - uid: 2839
@@ -60171,12 +60164,6 @@ entities:
       pos: -42.5,-3.5
 - proto: TableFancyPurple
   entities:
-  - uid: 11033
-    components:
-    - type: Transform
-      parent: 1
-      rot: 1.5707963267948966 rad
-      pos: 7.5,-3.5
   - uid: 1683
     components:
     - type: Transform

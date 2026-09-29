@@ -239,70 +239,6 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopXrayCannon
-  parent: FSWeaponShopBase
-  name: X-Ray Cannon
-  description: Science's heavy energy weapon. Punches through solid matter, and its hits feed the station's research. Self-recharging. No ammo required.
-  components:
-  - type: FSShopWeapon
-    requiresResearch: FSOrdnanceXrayCannon
-    requiresScience: true
-    weaponProtoId: WeaponXrayCannonFS
-    price: 60000
-    category: Self-Recharging X-Ray Cannon
-    statDamage: 75
-    statFireRate: 30
-    statAccuracy: 90
-    statCapacity: 80
-    upgrades:
-    - id: xray-self-charge
-      name: Resonant Cell
-      description: Tuned resonator doubles self-recharge rate per level.
-      maxLevel: 3
-      baseCost: 11000
-      type: SelfChargeSpeed
-      valuePerLevel: 2.0
-    - id: xray-accuracy
-      name: Collimator
-      description: Precision collimator tightens the beam by 10° per level.
-      maxLevel: 3
-      baseCost: 10000
-      type: Accuracy
-      valuePerLevel: 10.0
-    - id: xray-fire-rate
-      name: Pulse Accelerator
-      description: Faster charge cycling increases fire rate by 0.5/level.
-      maxLevel: 3
-      baseCost: 11000
-      type: FireRate
-      valuePerLevel: 0.5
-    - id: xray-damage
-      name: Overloaded Emitter
-      description: Higher energy output increases damage by 20% per level.
-      maxLevel: 4
-      baseCost: 12000
-      type: Damage
-      valuePerLevel: 0.2
-    - id: xray-pierce
-      name: Deep Penetration
-      description: Beam punches through additional targets per level.
-      maxLevel: 3
-      baseCost: 13000
-      type: Pierce
-      valuePerLevel: 1
-    - id: xray-dot
-      name: Radiation Coating
-      description: Irradiated targets emit radiation, taking ticking damage while marked. Duration and intensity scale per level.
-      maxLevel: 3
-      baseCost: 16000
-      type: RadiationCoating
-      valuePerLevel: 1
-  - type: Sprite
-    sprite: Objects/Weapons/Guns/Battery/xray.rsi
-    state: base
-    scale: 1,1
-
-- type: entity
   id: FSWeaponShopMinigun
   parent: FSWeaponShopBase
   name: Minigun
@@ -374,6 +310,8 @@
   components:
   - type: FSShopWeapon
     weaponProtoId: WeaponHarvesterFS
+    weaponProtoIdAliases:
+    - WeaponXrayCannonFS
     requiresScience: true
     price: 500
     category: Sustained-Fire Bio-Radiation Beam
@@ -387,8 +325,72 @@
       description: Boosts beam damage by 15% per level.
       maxLevel: 5
       baseCost: 12000
+      targetWeaponProtoId: WeaponHarvesterFS
       type: Damage
       valuePerLevel: 0.15
+    - id: harvester-xray-conversion
+      name: X-Ray Conversion
+      description: Rebuilds the Harvester into an X-Ray Cannon. It still feeds research on every hit, hits far harder and fires through walls.
+      maxLevel: 1
+      baseCost: 60000
+      targetWeaponProtoId: WeaponHarvesterFS
+      type: ConvertWeapon
+      spawnProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+    - id: xray-self-charge
+      name: Resonant Cell
+      description: Tuned resonator doubles self-recharge rate per level.
+      maxLevel: 3
+      baseCost: 11000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: SelfChargeSpeed
+      valuePerLevel: 2.0
+    - id: xray-accuracy
+      name: Collimator
+      description: Precision collimator tightens the beam by 10° per level.
+      maxLevel: 3
+      baseCost: 10000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: Accuracy
+      valuePerLevel: 10.0
+    - id: xray-fire-rate
+      name: Pulse Accelerator
+      description: Faster charge cycling increases fire rate by 0.5/level.
+      maxLevel: 3
+      baseCost: 11000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: FireRate
+      valuePerLevel: 0.5
+    - id: xray-damage
+      name: Overloaded Emitter
+      description: Higher energy output increases damage by 20% per level.
+      maxLevel: 4
+      baseCost: 12000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: Damage
+      valuePerLevel: 0.2
+    - id: xray-pierce
+      name: Deep Penetration
+      description: Beam punches through additional targets per level.
+      maxLevel: 3
+      baseCost: 13000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: Pierce
+      valuePerLevel: 1
+    - id: xray-dot
+      name: Radiation Coating
+      description: Irradiated targets emit radiation, taking ticking damage while marked. Duration and intensity scale per level.
+      maxLevel: 3
+      baseCost: 16000
+      targetWeaponProtoId: WeaponXrayCannonFS
+      requiresResearch: FSOrdnanceXrayCannon
+      type: RadiationCoating
+      valuePerLevel: 1
   - type: Sprite
     sprite: _FinalStand/Objects/Weapons/Guns/Harvester.rsi
     state: icon

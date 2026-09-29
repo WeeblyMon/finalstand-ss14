@@ -293,6 +293,15 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        if (def.Type == WeaponUpgradeType.ConvertWeapon && def.SpawnProtoId is { } result)
+        {
+            ConvertWeapon(player, weapon, state, result, def.Id, cost);
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
+            var (convAcc, convNextAcc) = ComputeAccuracy(player, comp);
+            SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), convAcc, convNextAcc);
+            return;
+        }
+
         var newLevel = currentLevel + 1;
         var isFirstUpgradeEver = state.Levels.Count == 0;
         state.Levels[def.Id] = newLevel;
@@ -308,7 +317,19 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), upAcc, upNextAcc);
     }
 
-    // Every prototype this shop considers "its" weapon: the weapon, its aliases, and any upgrade retarget.
+    private void ConvertWeapon(EntityUid player, EntityUid weapon, FSWeaponUpgradeStateComponent state,
+        EntProtoId result, string upgradeId, int cost)
+    {
+        var converted = Spawn(result, Transform(player).Coordinates);
+        var convertedState = EnsureComp<FSWeaponUpgradeStateComponent>(converted);
+        convertedState.Levels[upgradeId] = 1;
+        convertedState.TotalSpent = state.TotalSpent + cost;
+
+        Del(weapon);
+        TryGiveItemToPlayer(player, converted);
+        _researchStaticGrant.Reconcile(converted);
+    }
+
     private bool IsBindable(FSShopWeaponComponent comp)
     {
         if (comp.SinglePurchase)
@@ -320,6 +341,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
                 || proto.HasComp<FSDeployableItemComponent>(EntityManager.ComponentFactory));
     }
 
+    // Every prototype this shop considers "its" weapon: the weapon, its aliases, and any upgrade retarget.
     private static HashSet<string> ShopProtoIds(FSShopWeaponComponent comp, bool includeUpgradeTargets = false)
     {
         var protos = new HashSet<string>();
