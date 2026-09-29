@@ -22,10 +22,12 @@ void fragment() {
     rim = max(rim, texture2D(TEXTURE, UV + vec2( 0.0, -1.0) * ps).a);
     rim *= (1.0 - col.a);
 
+    // Premultiplied output: colour outside the sprite must stay zero or the whole quad lights up.
     highp float pulse = 0.7 + 0.3 * sin(TIME * 6.0);
-    highp vec4 body = vec4(mix(col.rgb, metal, strength), col.a);
-    highp vec4 glow = vec4(mix(tint.rgb, vec3(1.0), 0.35), rim * pulse * strength);
+    highp vec3 body = mix(col.rgb, clamp(metal, 0.0, 1.0) * col.a, strength);
+    highp float glowA = rim * pulse * strength;
+    highp vec3 glow = mix(tint.rgb, vec3(1.0), 0.35) * glowA;
 
-    COLOR = mix(body, glow, glow.a);
+    COLOR = vec4(body * (1.0 - glowA) + glow, col.a * (1.0 - glowA) + glowA);
     lightSample = mix(lightSample, vec3(1.0), strength * 0.6);
 }
