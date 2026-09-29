@@ -120,11 +120,11 @@ public sealed partial class FSMediGunComponent : Component
     public float UberCharge;
 
     [DataField]
-    public float UberChargePerHp = 0.5f;
+    public float UberChargePerHp = 0.25f;
 
     // Trickle while the patient sits at the soft cap, so topping someone off still builds charge.
     [DataField]
-    public float UberChargeWhileCapped = 0.4f;
+    public float UberChargeWhileCapped = 0.2f;
 
     [DataField]
     public float UberDuration = 10f;

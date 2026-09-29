@@ -150,15 +150,17 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (comp.HealedEntities.Count > 1)
             scale *= comp.SplitLinkScale;
 
+        // TryChangeDamage reports what was asked for, not what landed, so measure the real change.
+        var before = _damageable.GetTotalDamage((healed, damageable)).Float();
         _damageable.TryChangeDamage(
             healed,
             comp.Healing * (scale * potency.Multiplier),
-            out var restored,
             ignoreResistances: true,
             interruptsDoAfters: false,
             origin: comp.ParentEntity);
 
-        _uber.AddCharge(ent, -restored.GetTotal().Float() * comp.UberChargePerHp);
+        var restored = before - _damageable.GetTotalDamage((healed, damageable)).Float();
+        _uber.AddCharge(ent, restored * comp.UberChargePerHp);
 
         _bloodstream.TryModifyBloodLevel(healed, comp.BleedingAmountModifier);
         return true;
