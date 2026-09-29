@@ -10,24 +10,26 @@ public sealed class FSParticleOverlay : Overlay
     private readonly FSParticleSystem _particles;
     private readonly ShaderInstance _additive;
 
+    private static readonly ProtoId<ShaderPrototype> AdditiveShader = "FSAdditive";
+
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     public FSParticleOverlay(IEntityManager entManager, FSParticleSystem particles)
     {
         _particles = particles;
-        _additive = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("FSAdditive").Instance();
+        _additive = IoCManager.Resolve<IPrototypeManager>().Index(AdditiveShader).Instance();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (_particles.Count == 0)
+        if (_particles.ParticleCount == 0)
             return;
 
         var handle = args.WorldHandle;
         var bounds = args.WorldAABB.Enlarged(1f);
         handle.UseShader(_additive);
 
-        for (var i = 0; i < _particles.Count; i++)
+        for (var i = 0; i < _particles.ParticleCount; i++)
         {
             ref var p = ref _particles.Particles[i];
             if (p.Map != args.MapId || !bounds.Contains(p.Position))

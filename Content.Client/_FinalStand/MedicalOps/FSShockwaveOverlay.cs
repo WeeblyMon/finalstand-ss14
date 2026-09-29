@@ -13,6 +13,8 @@ public sealed class FSShockwaveOverlay : Overlay
     private readonly IGameTiming _timing;
     private readonly ShaderInstance _shader;
 
+    private static readonly ProtoId<ShaderPrototype> ShockwaveShader = "FSShockwave";
+
     public const int MaxWaves = 4;
     public const float Duration = 0.55f;
     public const float MaxRadius = 5f;
@@ -29,7 +31,7 @@ public sealed class FSShockwaveOverlay : Overlay
     public FSShockwaveOverlay(IGameTiming timing, IPrototypeManager prototypes)
     {
         _timing = timing;
-        _shader = prototypes.Index<ShaderPrototype>("FSShockwave").InstanceUnique();
+        _shader = prototypes.Index(ShockwaveShader).InstanceUnique();
     }
 
     public void Add(MapCoordinates at)

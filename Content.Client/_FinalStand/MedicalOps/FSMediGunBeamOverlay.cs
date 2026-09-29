@@ -21,6 +21,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private readonly Texture? _glint;
     private readonly ShaderInstance _additive;
 
+    private static readonly ProtoId<ShaderPrototype> AdditiveShader = "FSAdditive";
+
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
     private const int GridSize = 4;
@@ -74,7 +76,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _dot = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/dot.png");
         _cross = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/cross.png");
         _glint = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/glint.png");
-        _additive = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("FSAdditive").Instance();
+        _additive = IoCManager.Resolve<IPrototypeManager>().Index(AdditiveShader).Instance();
     }
 
     protected override void Draw(in OverlayDrawArgs args)

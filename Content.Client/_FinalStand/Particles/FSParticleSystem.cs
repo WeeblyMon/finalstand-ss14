@@ -46,7 +46,7 @@ public sealed partial class FSParticleSystem : EntitySystem
     }
 
     public readonly Particle[] Particles = new Particle[MaxParticles];
-    public int Count;
+    public int ParticleCount;
 
     private readonly Dictionary<int, Attachment> _attachments = new();
     private readonly List<int> _deadHandles = new();
@@ -147,13 +147,13 @@ public sealed partial class FSParticleSystem : EntitySystem
     private void Step(float dt)
     {
         var i = 0;
-        while (i < Count)
+        while (i < ParticleCount)
         {
             ref var p = ref Particles[i];
             p.Age += dt;
             if (p.Age >= p.Life)
             {
-                Particles[i] = Particles[--Count];
+                Particles[i] = Particles[--ParticleCount];
                 continue;
             }
 
@@ -169,7 +169,7 @@ public sealed partial class FSParticleSystem : EntitySystem
 
     private void Spawn(FSParticleEmitterPrototype emitter, MapId map, Vector2 origin, Color tint)
     {
-        if (Count >= MaxParticles || GetTexture(emitter.Texture) is not { } texture)
+        if (ParticleCount >= MaxParticles || GetTexture(emitter.Texture) is not { } texture)
             return;
 
         var angle = MathHelper.DegreesToRadians(emitter.Direction + _random.NextFloat(-emitter.Spread, emitter.Spread) / 2f);
@@ -180,7 +180,7 @@ public sealed partial class FSParticleSystem : EntitySystem
             : Vector2.Zero;
         var jitter = 1f + _random.NextFloat(-emitter.SizeJitter, emitter.SizeJitter);
 
-        Particles[Count++] = new Particle
+        Particles[ParticleCount++] = new Particle
         {
             Map = map,
             Position = origin + emitter.Offset + offset,
