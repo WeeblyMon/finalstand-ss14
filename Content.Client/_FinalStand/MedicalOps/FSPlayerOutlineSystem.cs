@@ -36,7 +36,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
 
         SubscribeLocalEvent<FSBuffFlashComponent, ComponentShutdown>(OnFlashShutdown);
         SubscribeLocalEvent<FSMediGunHealedComponent, ComponentShutdown>(OnHealedShutdown);
-        SubscribeLocalEvent<FSUberedComponent, ComponentShutdown>(OnUberedShutdown);
     }
 
     public override void Shutdown()
@@ -52,11 +51,6 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
     }
 
     private void OnHealedShutdown(Entity<FSMediGunHealedComponent> ent, ref ComponentShutdown args)
-    {
-        Clear(ent.Owner);
-    }
-
-    private void OnUberedShutdown(Entity<FSUberedComponent> ent, ref ComponentShutdown args)
     {
         Clear(ent.Owner);
     }
