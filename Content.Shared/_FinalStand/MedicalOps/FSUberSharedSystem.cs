@@ -4,6 +4,7 @@ using Content.Shared.Damage.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
@@ -44,6 +45,7 @@ public sealed partial class FSUberSharedSystem : EntitySystem
 
         ent.Comp.NextTing = _timing.CurTime + TingInterval;
         _audio.PlayPvs(BlockedSound, ent, AudioParams.Default.WithVolume(-3f).WithVariation(0.15f));
+        RaiseNetworkEvent(new FSUberBlockedEvent(GetNetEntity(ent)), Filter.Pvs(ent));
     }
 
     private void OnBeforeStamina(Entity<FSUberedComponent> ent, ref BeforeStaminaDamageEvent args)

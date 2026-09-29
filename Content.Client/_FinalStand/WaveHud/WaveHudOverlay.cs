@@ -30,6 +30,7 @@ public sealed partial class WaveHudOverlay : Overlay
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IUserInterfaceManager _uiManager = default!;
     [Dependency] private IEntityManager _entityManager = default!;
+    [Dependency] private Robust.Shared.Timing.IGameTiming _timing = default!;
 
     private static readonly ResPath NotoBoldPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
 

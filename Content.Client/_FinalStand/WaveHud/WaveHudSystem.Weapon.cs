@@ -8,6 +8,8 @@ using Content.Shared.Charges.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Input;
+using Robust.Client.Input;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Power.Components;
@@ -29,6 +31,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private EntityWhitelistSystem _magWhitelist = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private IInputManager _input = default!;
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
@@ -41,6 +44,7 @@ public sealed partial class WaveHudSystem
         overlay.HasThrowChoice = false;
         overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
+        overlay.Uber = null;
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -66,6 +70,7 @@ public sealed partial class WaveHudSystem
         if (!HasComp<GunComponent>(held))
         {
             overlay.ItemDetail = GetItemDetail(held);
+            UpdateUberMeter(overlay, held);
             return;
         }
 
@@ -87,6 +92,19 @@ public sealed partial class WaveHudSystem
             overlay.ItemDetail = mix;
     }
 
+    private void UpdateUberMeter(WaveHudOverlay overlay, EntityUid held)
+    {
+        if (!TryComp<FSMediGunComponent>(held, out var gun) || gun.Variant != FSMediGunVariant.UberCharger)
+            return;
+
+        var left = gun.UberEndTime is { } end ? (float) Math.Max(0, (end - _timing.CurTime).TotalSeconds) : 0f;
+        var key = _input.TryGetKeyBinding(ContentKeyFunctions.FSUberCharge, out var binding)
+            ? binding.GetKeyString()
+            : "?";
+
+        overlay.Uber = new WaveHudOverlay.UberMeter(gun.UberCharge, gun.UberActive, left, gun.BeamColor, key);
+    }
+
     private string? GetItemDetail(EntityUid held)
     {
         if (TryComp<MultipleToolComponent>(held, out var multi)
@@ -99,18 +117,7 @@ public sealed partial class WaveHudSystem
         }
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
-        {
-            var charge = $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
-            if (TryComp<FSMediGunComponent>(held, out var medigun) && medigun.Variant == FSMediGunVariant.UberCharger)
-            {
-                var uber = medigun.UberActive ? "ÜBER ACTIVE"
-                    : medigun.UberCharge >= 100f ? "ÜBER READY"
-                    : $"ÜBER {medigun.UberCharge:0}%";
-                return $"{charge} · {uber}";
-            }
-
-            return charge;
-        }
+            return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
             return $"{drainable.Volume:0}/{drainable.MaxVolume:0}u";

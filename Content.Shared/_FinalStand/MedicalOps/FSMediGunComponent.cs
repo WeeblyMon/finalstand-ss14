@@ -143,6 +143,8 @@ public sealed partial class FSMediGunComponent : Component
 
     [ViewVariables] public float? BaseUberDuration;
 
+    [ViewVariables] public EntityUid? UberLoop;
+
     public bool UberActive => UberEndTime != null;
 }
 

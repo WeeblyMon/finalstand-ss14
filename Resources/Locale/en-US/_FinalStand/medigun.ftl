@@ -3,3 +3,4 @@ fs-medical-only = You have no idea how to use this.
 fs-uber-ready = ÜBERCHARGE READY!
 fs-uber-not-ready = ÜberCharge at { $charge }% - keep healing.
 fs-uber-deployed = ÜBERCHARGE DEPLOYED!
+fs-uber-banner = ÜBERCHARGED

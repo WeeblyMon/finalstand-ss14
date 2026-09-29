@@ -220,7 +220,7 @@ binds:
   key: MouseLeft
   canFocus: true
   mod1: Alt
-- function: AltActivateItemInWorld # secondary binding
+- function: FSUberCharge
   type: State
   key: E
   mod1: Alt

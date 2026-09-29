@@ -15,6 +15,13 @@ public sealed partial class WaveHudOverlay
     public bool HasThrowChoice;
     public bool WeaponTakesMagazines;
     public string? ItemDetail;
+    public UberMeter? Uber;
+
+    public readonly record struct UberMeter(float Charge, bool Active, float SecondsLeft, Color Color, string Key);
+
+    private const int UberSegments = 10;
+    private const float UberSegmentH = 7f;
+    private static readonly Color UberGold = Color.FromHex("#FFD86B");
 
     public const float ScreenMargin = 24f;
 
@@ -65,7 +72,8 @@ public sealed partial class WaveHudOverlay
         var contentH = labelH
                        + (hasAmmo ? 4f + valueH : 0f)
                        + (hasDetail ? 4f + labelH : 0f)
-                       + (WeaponTakesMagazines ? 5f + hintH : 0f);
+                       + (WeaponTakesMagazines ? 5f + hintH : 0f)
+                       + (Uber != null ? 6f + labelH + 3f + UberSegmentH * _hudScale + 5f + hintH : 0f);
         var panelH = MathF.Max(contentH + panelPad * 2f, panelMinH);
 
         var x = rightEdge - panelW;
@@ -110,6 +118,9 @@ public sealed partial class WaveHudOverlay
             ty += labelH;
         }
 
+        if (Uber is { } uber)
+            ty = DrawUberMeter(screen, uber, textX, innerRight, ty, labelH, hintH, hintPadX, hintPadY);
+
         if (!WeaponTakesMagazines)
             return y;
 
@@ -124,5 +135,53 @@ public sealed partial class WaveHudOverlay
         screen.DrawString(_labelFont!, new Vector2(chip.Left + hintPadX, ty + hintPadY), hint, hintColor);
 
         return y;
+    }
+
+    private float DrawUberMeter(DrawingHandleScreen screen, UberMeter uber, float left, float right, float ty,
+        float labelH, float hintH, float hintPadX, float hintPadY)
+    {
+        var time = (float) _timing.RealTime.TotalSeconds;
+        var ready = !uber.Active && uber.Charge >= 100f;
+        var flash = 0.5f + 0.5f * MathF.Sin(time * 8f);
+        var colour = ready ? Color.InterpolateBetween(UberGold, Color.White, flash * 0.6f) : uber.Color;
+
+        ty += 6f;
+        screen.DrawString(_labelFont!, new Vector2(left, ty), "ÜBERCHARGE", ready ? colour : WeaponText);
+
+        var status = uber.Active ? $"{uber.SecondsLeft:0.0}s" : ready ? "READY" : $"{uber.Charge:0}%";
+        var statusW = screen.GetDimensions(_labelFont!, status, 1f).X;
+        screen.DrawString(_labelFont!, new Vector2(right - statusW, ty), status, uber.Active || ready ? colour : AmmoFull);
+        ty += labelH + 3f;
+
+        var segH = UberSegmentH * _hudScale;
+        var gap = 3f * _hudScale;
+        var segW = (right - left - gap * (UberSegments - 1)) / UberSegments;
+        var filled = uber.Charge / 100f * UberSegments;
+
+        for (var i = 0; i < UberSegments; i++)
+        {
+            var x0 = left + i * (segW + gap);
+            var cell = new UIBox2(x0, ty, x0 + segW, ty + segH);
+            screen.DrawRect(cell, FSPalette.BarTrack);
+
+            var part = Math.Clamp(filled - i, 0f, 1f);
+            if (part <= 0f)
+                continue;
+
+            screen.DrawRect(new UIBox2(x0, ty, x0 + segW * part, ty + segH), colour);
+            screen.DrawRect(new UIBox2(x0, ty, x0 + segW * part, ty + 1f), FSPalette.BarSheen);
+        }
+
+        ty += segH + 5f;
+
+        var hint = uber.Active ? "ÜBER ACTIVE" : $"[{uber.Key}] deploy Über";
+        var hintColor = ready ? colour : HintDim;
+        var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + hintPadX * 2f;
+        var chip = new UIBox2(right - chipW, ty, right, ty + hintH);
+        DrawRounded(screen, chip, hintColor.WithAlpha(ready ? 0.14f : 0.05f), 2f);
+        screen.DrawRect(chip, hintColor.WithAlpha(ready ? 0.6f : 0.22f), filled: false);
+        screen.DrawString(_labelFont!, new Vector2(chip.Left + hintPadX, ty + hintPadY), hint, hintColor);
+
+        return ty + hintH;
     }
 }
