@@ -1,0 +1,31 @@
+// Über chrome: greyscale mapped onto a metallic ramp in the medic's colour, a sweeping specular band and a rim glow.
+uniform highp vec4 tint;
+uniform highp float strength;
+
+void fragment() {
+    highp vec4 col = zTexture(UV);
+    highp vec2 ps = TEXTURE_PIXEL_SIZE;
+
+    highp float lum = dot(col.rgb, vec3(0.299, 0.587, 0.114));
+    highp vec3 dark = tint.rgb * 0.22;
+    highp vec3 mid = mix(tint.rgb, vec3(0.9), 0.3);
+    highp vec3 metal = lum < 0.5 ? mix(dark, mid, lum * 2.0) : mix(mid, vec3(1.0), (lum - 0.5) * 2.0);
+
+    highp float band = fract((FRAGCOORD.x + FRAGCOORD.y) / 140.0 - TIME * 0.85);
+    highp float spec = smoothstep(0.0, 0.06, band) * smoothstep(0.14, 0.06, band);
+    metal += vec3(spec * 0.75);
+
+    highp float rim = 0.0;
+    rim = max(rim, texture2D(TEXTURE, UV + vec2( 1.0,  0.0) * ps).a);
+    rim = max(rim, texture2D(TEXTURE, UV + vec2(-1.0,  0.0) * ps).a);
+    rim = max(rim, texture2D(TEXTURE, UV + vec2( 0.0,  1.0) * ps).a);
+    rim = max(rim, texture2D(TEXTURE, UV + vec2( 0.0, -1.0) * ps).a);
+    rim *= (1.0 - col.a);
+
+    highp float pulse = 0.7 + 0.3 * sin(TIME * 6.0);
+    highp vec4 body = vec4(mix(col.rgb, metal, strength), col.a);
+    highp vec4 glow = vec4(mix(tint.rgb, vec3(1.0), 0.35), rim * pulse * strength);
+
+    COLOR = mix(body, glow, glow.a);
+    lightSample = mix(lightSample, vec3(1.0), strength * 0.6);
+}

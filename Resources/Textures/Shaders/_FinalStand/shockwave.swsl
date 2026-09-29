@@ -1,0 +1,24 @@
+// Expanding ring that pushes the screen outward and brightens along its edge.
+uniform sampler2D SCREEN_TEXTURE;
+uniform lowp int count;
+uniform highp vec2[4] centres;
+uniform highp float[4] radii;
+uniform highp float[4] strengths;
+
+void fragment() {
+    highp vec2 offset = vec2(0.0);
+    highp float glow = 0.0;
+
+    for (int i = 0; i < count; ++i) {
+        highp vec2 d = FRAGCOORD.xy - centres[i];
+        highp float dist = length(d);
+        highp float width = max(radii[i] * 0.16, 6.0);
+        highp float ring = exp(-pow((dist - radii[i]) / width, 2.0));
+        if (dist > 0.001)
+            offset += d / dist * ring * strengths[i] * 12.0;
+        glow += ring * strengths[i];
+    }
+
+    highp vec4 c = zTextureSpec(SCREEN_TEXTURE, UV - offset * SCREEN_PIXEL_SIZE);
+    COLOR = vec4(c.rgb * (1.0 + glow * 0.5), c.a);
+}

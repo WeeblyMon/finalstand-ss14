@@ -1,4 +1,4 @@
-// Single owner of the outline shader on player sprites, so two features cannot fight over PostShader.
+// Single owner of player sprite post-shaders: Über chrome, then the medic's target outline, then buff flashes.
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -19,10 +19,11 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
 
     private const string OutlineShader = "SelectionOutline";
+    private const string ChromeShader = "FSUberChrome";
 
     private FSBuffFlashOverlay _overlay = default!;
 
-    private readonly Dictionary<EntityUid, ShaderInstance> _shaders = new();
+    private readonly Dictionary<EntityUid, (string Proto, ShaderInstance Instance)> _shaders = new();
     private readonly HashSet<EntityUid> _wanted = new();
     private readonly List<EntityUid> _stale = new();
 
@@ -35,6 +36,7 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
 
         SubscribeLocalEvent<FSBuffFlashComponent, ComponentShutdown>(OnFlashShutdown);
         SubscribeLocalEvent<FSMediGunHealedComponent, ComponentShutdown>(OnHealedShutdown);
+        SubscribeLocalEvent<FSUberedComponent, ComponentShutdown>(OnUberedShutdown);
     }
 
     public override void Shutdown()
@@ -54,12 +56,18 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
         Clear(ent.Owner);
     }
 
+    private void OnUberedShutdown(Entity<FSUberedComponent> ent, ref ComponentShutdown args)
+    {
+        Clear(ent.Owner);
+    }
+
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
 
         _wanted.Clear();
 
+        ApplyUberChrome();
         ApplyBuffFlashes();
         ApplyMediGunTargets();
 
@@ -75,6 +83,23 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
         _stale.Clear();
     }
 
+    private void ApplyUberChrome()
+    {
+        var now = _timing.CurTime;
+        var time = (float) _timing.RealTime.TotalSeconds;
+        var query = EntityQueryEnumerator<FSUberedComponent, SpriteComponent>();
+
+        while (query.MoveNext(out var uid, out var ubered, out var sprite))
+        {
+            if (now >= ubered.EndTime)
+                continue;
+
+            var shader = Use(uid, sprite, ChromeShader);
+            shader.SetParameter("tint", ubered.SourceColor);
+            shader.SetParameter("strength", FSUberVisualSystem.IsFlickerOff(ubered.EndTime - now, time) ? 0f : 1f);
+        }
+    }
+
     private void ApplyBuffFlashes()
     {
         var now = _timing.CurTime;
@@ -82,7 +107,7 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
 
         while (query.MoveNext(out var uid, out var flash, out var sprite))
         {
-            if (now >= flash.EndTime)
+            if (now >= flash.EndTime || _wanted.Contains(uid))
                 continue;
 
             var remaining = (float) (flash.EndTime - now).TotalSeconds;
@@ -114,15 +139,20 @@ public sealed class FSPlayerOutlineSystem : EntitySystem
 
     private void Apply(EntityUid uid, SpriteComponent sprite, Color colour)
     {
-        if (!_shaders.TryGetValue(uid, out var shader))
+        Use(uid, sprite, OutlineShader).SetParameter("outline_color", colour);
+    }
+
+    private ShaderInstance Use(EntityUid uid, SpriteComponent sprite, string proto)
+    {
+        if (!_shaders.TryGetValue(uid, out var entry) || entry.Proto != proto)
         {
-            shader = _prototypes.Index<ShaderPrototype>(OutlineShader).InstanceUnique();
-            _shaders[uid] = shader;
+            entry = (proto, _prototypes.Index<ShaderPrototype>(proto).InstanceUnique());
+            _shaders[uid] = entry;
         }
 
-        shader.SetParameter("outline_color", colour);
-        sprite.PostShader = shader;
+        sprite.PostShader = entry.Instance;
         _wanted.Add(uid);
+        return entry.Instance;
     }
 
     private EntityUid? LocalMediGun()
