@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.MedicalOps;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
@@ -15,6 +16,10 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private readonly SharedTransformSystem _transform;
 
     private readonly Texture? _beam;
+    private readonly Texture? _dot;
+    private readonly Texture? _cross;
+    private readonly Texture? _glint;
+    private readonly ShaderInstance _additive;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
@@ -27,6 +32,16 @@ public sealed class FSMediGunBeamOverlay : Overlay
     private const int MaxSegments = 80;
 
     private const float Width = 0.62f;
+    private const float HaloWidth = 2.2f;
+    private const float UberWidth = 1.6f;
+
+    private const int StrandCount = 2;
+    private const float StrandAmplitude = 0.11f;
+    private const float StrandTurnsPerTile = 1.4f;
+    private const float StrandSpeed = 5f;
+    private const float StrandThickness = 0.035f;
+
+    private static readonly Color UberGold = Color.FromHex("#FFD86B");
 
     private const float LagResponse = 7f;
     private const float LagAmplify = 1.6f;
@@ -42,6 +57,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
 
     private readonly List<DrawVertexUV2D> _verts = new();
     private DrawVertexUV2D[] _vertBuffer = new DrawVertexUV2D[64];
+    private readonly Vector2[] _quad = new Vector2[6];
 
     private readonly record struct LagState(Vector2 Mid, TimeSpan LastSeen);
 
@@ -55,6 +71,10 @@ public sealed class FSMediGunBeamOverlay : Overlay
         _transform = _entManager.System<SharedTransformSystem>();
 
         _beam = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/medigun_beam.png");
+        _dot = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/dot.png");
+        _cross = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/cross.png");
+        _glint = FSOverlayTextures.TryLoad(cache, "/Textures/_FinalStand/Effects/Particles/glint.png");
+        _additive = IoCManager.Resolve<IPrototypeManager>().Index<ShaderPrototype>("FSAdditive").Instance();
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -113,24 +133,134 @@ public sealed class FSMediGunBeamOverlay : Overlay
             return;
 
         var control = UpdateControlPoint((source, patient), start, end, dt);
+        var uber = gun.UberActive;
+        var width = Width * (uber ? UberWidth : 1f);
 
-        BuildRibbon(start, control, end, uMin, vMin, cell);
+        handle.UseShader(_additive);
+        DrawRibbon(handle, beam, start, control, end, width * HaloWidth, uMin, vMin, cell,
+            gun.BeamColor.WithAlpha(uber ? 0.55f : 0.28f));
+        handle.UseShader(null);
 
-        if (_verts.Count >= 3)
-        {
-            if (_vertBuffer.Length < _verts.Count)
-                _vertBuffer = new DrawVertexUV2D[_verts.Count];
+        DrawRibbon(handle, beam, start, control, end, width, uMin, vMin, cell, gun.BeamColor);
 
-            _verts.CopyTo(_vertBuffer);
-
-            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, beam,
-                new ReadOnlySpan<DrawVertexUV2D>(_vertBuffer, 0, _verts.Count), gun.BeamColor);
-        }
+        handle.UseShader(_additive);
+        DrawStrands(handle, start, control, end, time, Color.InterpolateBetween(gun.BeamColor, Color.White, 0.5f), uber);
+        DrawPulse(handle, start, control, end, time, gun, patient);
+        if (!uber && gun.Variant == FSMediGunVariant.UberCharger && gun.UberCharge >= 100f)
+            DrawReadyGlints(handle, start, control, end, time);
+        handle.UseShader(null);
 
         DrawParticles(handle, start, control, end, time, gun.BeamColor);
     }
 
-    private void BuildRibbon(Vector2 start, Vector2 control, Vector2 end, float uMin, float vMin, float cell)
+    private void DrawRibbon(DrawingHandleWorld handle, Texture beam, Vector2 start, Vector2 control, Vector2 end,
+        float width, float uMin, float vMin, float cell, Color colour)
+    {
+        BuildRibbon(start, control, end, width, uMin, vMin, cell);
+        if (_verts.Count < 3)
+            return;
+
+        if (_vertBuffer.Length < _verts.Count)
+            _vertBuffer = new DrawVertexUV2D[_verts.Count];
+
+        _verts.CopyTo(_vertBuffer);
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, beam,
+            new ReadOnlySpan<DrawVertexUV2D>(_vertBuffer, 0, _verts.Count), colour);
+    }
+
+    // Two thin threads twisting around the core, like the TF2 medigun stream.
+    private void DrawStrands(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time,
+        Color colour, bool uber)
+    {
+        var span = (end - start).Length();
+        if (span <= 0.01f)
+            return;
+
+        var steps = Math.Clamp((int) (span * 8f), 8, 96);
+        var amplitude = StrandAmplitude * (uber ? 1.6f : 1f);
+
+        for (var strand = 0; strand < StrandCount; strand++)
+        {
+            var phase = strand * MathF.PI;
+            Vector2? previous = null;
+
+            for (var i = 0; i <= steps; i++)
+            {
+                var t = (float) i / steps;
+                var tangent = BezierTangent(start, control, end, t);
+                var length = tangent.Length();
+                if (length <= 0.0001f)
+                    continue;
+
+                var normal = new Vector2(-tangent.Y, tangent.X) / length;
+                var taper = MathF.Sin(t * MathF.PI);
+                var wave = MathF.Sin(t * span * StrandTurnsPerTile * MathF.Tau - time * StrandSpeed + phase);
+                var point = Bezier(start, control, end, t) + normal * wave * amplitude * taper;
+
+                if (previous is { } from)
+                    DrawThickLine(handle, from, point, StrandThickness, colour.WithAlpha(0.55f * taper + 0.1f));
+
+                previous = point;
+            }
+        }
+    }
+
+    // One bright packet per heal tick; it turns into a cross once the heal is feeding an overheal shield.
+    private void DrawPulse(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time,
+        FSMediGunComponent gun, EntityUid patient)
+    {
+        var period = MathF.Max(0.2f, gun.Frequency);
+        var t = time / period % 1f;
+        var point = Bezier(start, control, end, t);
+        var fade = MathF.Sin(t * MathF.PI);
+
+        var overhealing = gun.OverhealRatio > 0f
+                          && _entManager.TryGetComponent(patient, out FSOverhealComponent? shield)
+                          && shield.Amount < shield.Max;
+
+        var texture = overhealing ? _cross : _dot;
+        if (texture == null)
+            return;
+
+        var size = (overhealing ? 0.42f : 0.34f) * (0.7f + 0.3f * fade) * (gun.UberActive ? 1.4f : 1f);
+        var colour = Color.InterpolateBetween(gun.BeamColor, Color.White, overhealing ? 0.55f : 0.35f);
+        handle.DrawTextureRect(texture, Box2.CenteredAround(point, new Vector2(size, size)), colour.WithAlpha(fade));
+    }
+
+    private void DrawReadyGlints(DrawingHandleWorld handle, Vector2 start, Vector2 control, Vector2 end, float time)
+    {
+        if (_glint == null)
+            return;
+
+        for (var i = 0; i < 3; i++)
+        {
+            var t = (time * 0.6f + i / 3f) % 1f;
+            var point = Bezier(start, control, end, t);
+            var twinkle = 0.5f + 0.5f * MathF.Sin(time * 9f + i * 2.1f);
+            var size = 0.3f + 0.15f * twinkle;
+            var box = new Box2Rotated(Box2.CenteredAround(point, new Vector2(size, size)), time * 2f + i, point);
+            handle.DrawTextureRect(_glint, box, UberGold.WithAlpha(MathF.Sin(t * MathF.PI) * (0.6f + 0.4f * twinkle)));
+        }
+    }
+
+    private void DrawThickLine(DrawingHandleWorld handle, Vector2 a, Vector2 b, float thickness, Color colour)
+    {
+        var dir = b - a;
+        var length = dir.Length();
+        if (length <= 0.0001f)
+            return;
+
+        var normal = new Vector2(-dir.Y, dir.X) / length * (thickness / 2f);
+        _quad[0] = a + normal;
+        _quad[1] = a - normal;
+        _quad[2] = b + normal;
+        _quad[3] = a - normal;
+        _quad[4] = b - normal;
+        _quad[5] = b + normal;
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _quad, colour);
+    }
+
+    private void BuildRibbon(Vector2 start, Vector2 control, Vector2 end, float width, float uMin, float vMin, float cell)
     {
         _verts.Clear();
 
@@ -150,8 +280,8 @@ public sealed class FSMediGunBeamOverlay : Overlay
             var v0 = vMin + cell * ((float)k / SegmentsPerTile);
             var v1 = vMin + cell * ((float)(k + 1) / SegmentsPerTile);
 
-            if (!TryEdge(start, control, end, t0, out var l0, out var r0)
-                || !TryEdge(start, control, end, t1, out var l1, out var r1))
+            if (!TryEdge(start, control, end, t0, width, out var l0, out var r0)
+                || !TryEdge(start, control, end, t1, width, out var l1, out var r1))
                 continue;
 
             Add(l0, uMin, v0);
@@ -202,7 +332,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
         }
     }
 
-    private static bool TryEdge(Vector2 a, Vector2 b, Vector2 c, float t, out Vector2 left, out Vector2 right)
+    private static bool TryEdge(Vector2 a, Vector2 b, Vector2 c, float t, float width, out Vector2 left, out Vector2 right)
     {
         left = default;
         right = default;
@@ -215,7 +345,7 @@ public sealed class FSMediGunBeamOverlay : Overlay
             return false;
 
         var normal = new Vector2(-tangent.Y, tangent.X) / length;
-        var half = Width * 0.5f;
+        var half = width * 0.5f;
 
         left = point + normal * half;
         right = point - normal * half;
