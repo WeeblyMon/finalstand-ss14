@@ -207,7 +207,16 @@ public sealed partial class FSResearchNodeGraphControl : Control
         var anchor = (local - Origin()) / K;
         var inViewport = local - ScrollPixels();
         SetZoom(zoom);
-        QueueScroll(() => (anchor * K + Origin() - inViewport) / UIScale);
+
+        if (_scroll == null)
+            return;
+
+        _scroll.Measure(_scroll.Size);
+        _scroll.Arrange(UIBox2.FromDimensions(_scroll.Position, _scroll.Size));
+
+        var target = (anchor * K + Origin() - inViewport) / UIScale;
+        _scroll.HScroll = Math.Max(0f, target.X);
+        _scroll.VScroll = Math.Max(0f, target.Y);
     }
 
     private void FocusFirstNode()
