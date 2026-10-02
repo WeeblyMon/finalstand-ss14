@@ -3,7 +3,7 @@
   parent: BaseItem
   id: FSRivetGun
   name: rivet gun
-  description: Fires steel rivets. A rivet patches up the first barricade it hits and stings any zombie it reaches. Load it with steel sheets.
+  description: Fires steel rivets. A rivet patches up the first barricade it hits and stings any zombie it reaches. It feeds itself from the steel sheets you carry.
   components:
   - type: Sprite
     sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
@@ -21,8 +21,8 @@
       path: /Audio/_FinalStand/MedicalOps/bone_stapler.ogg
   - type: BasicEntityAmmoProvider
     proto: FSRivet
-    capacity: 24
-    count: 24
+    capacity: 6
+    count: 6
   - type: AmmoCounter
   - type: FSRivetGun
 

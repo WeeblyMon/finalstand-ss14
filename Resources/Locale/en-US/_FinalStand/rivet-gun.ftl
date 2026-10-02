@@ -1,2 +1,1 @@
-fs-rivet-gun-loaded = Loaded {$count} rivets.
-fs-rivet-gun-full = The rivet gun is full.
+fs-rivet-gun-no-steel = No steel sheets to feed the rivet gun.
