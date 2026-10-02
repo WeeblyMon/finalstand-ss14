@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.Repair;
 using Content.Shared._FinalStand.Utility;
 using Content.Shared.Charges.Components;
 using Content.Shared.Chemistry.EntitySystems;
@@ -33,6 +34,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private IInputManager _input = default!;
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
+    [Dependency] private FSRivetGunSystem _rivetGun = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -40,6 +42,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponLoaded = null;
         overlay.WeaponCapacity = null;
         overlay.WeaponReserve = 0;
+        overlay.WeaponReserveText = null;
         overlay.HasAmmoChoice = false;
         overlay.HasThrowChoice = false;
         overlay.WeaponTakesMagazines = false;
@@ -86,6 +89,11 @@ public sealed partial class WaveHudSystem
         overlay.WeaponReserve = CountSpareMagazines(player, held);
         overlay.HasAmmoChoice = overlay.WeaponReserve > 0;
         overlay.WeaponTakesMagazines = TryGetMagazineSlot(held, out _);
+
+        if (overlay.WeaponTakesMagazines)
+            overlay.WeaponReserveText = overlay.WeaponReserve == 1 ? "1 mag in reserve" : $"{overlay.WeaponReserve} mags in reserve";
+        else if (TryComp<FSRivetGunComponent>(held, out var rivetGun))
+            overlay.WeaponReserveText = $"{_rivetGun.CountMaterial(player, rivetGun.Material)} steel left";
 
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))

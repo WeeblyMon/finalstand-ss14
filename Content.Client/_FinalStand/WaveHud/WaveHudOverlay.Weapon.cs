@@ -11,6 +11,7 @@ public sealed partial class WaveHudOverlay
     public int? WeaponLoaded;
     public int? WeaponCapacity;
     public int WeaponReserve;
+    public string? WeaponReserveText;
     public bool HasAmmoChoice;
     public bool HasThrowChoice;
     public bool WeaponTakesMagazines;
@@ -100,9 +101,8 @@ public sealed partial class WaveHudOverlay
 
             screen.DrawString(_valueFont!, new Vector2(textX, ty), $"{loaded}/{capacity}", ammoColor);
 
-            if (WeaponTakesMagazines)
+            if (WeaponReserveText is { } reserve)
             {
-                var reserve = WeaponReserve == 1 ? "1 mag in reserve" : $"{WeaponReserve} mags in reserve";
                 var reserveW = screen.GetDimensions(_labelFont!, reserve, 1f).X;
                 screen.DrawString(_labelFont!,
                     new Vector2(innerRight - reserveW, ty + valueH - labelH), reserve, WeaponMuted);
