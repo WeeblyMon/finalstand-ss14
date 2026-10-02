@@ -84,6 +84,9 @@ public sealed partial class FSRCDEngineerOnlySystem
         var directional = TryComp<RCDComponent>(ent, out var rcdComp)
             && _proto.Index(rcdComp.ProtoId).Rotation == RcdRotation.User;
 
+        if (!Transform(args.Built).Anchored)
+            _transform.AnchorEntity(args.Built);
+
         var deployedBy = EnsureComp<FSDeployedByComponent>(args.Built);
         deployedBy.OwnerMind = _mind.TryGetMind(args.User, out var mindId, out _) ? mindId : null;
         deployedBy.DeployedBy = args.User;

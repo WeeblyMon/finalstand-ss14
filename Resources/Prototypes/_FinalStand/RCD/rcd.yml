@@ -66,3 +66,33 @@
   rotation: User
   allowMultiDirection: true
   fx: EffectRCDConstruct2
+
+- type: rcd
+  id: FSSentryTurretDeployed
+  name: fs-rcd-sentry
+  category: Main
+  sprite:
+    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+    state: icon
+  mode: ConstructObject
+  prototype: FSSentryTurretDeployed
+  cost: 0
+  delay: 3
+  collisionMask: Impassable
+  rotation: Fixed
+  fx: EffectRCDConstruct2
+
+- type: rcd
+  id: FSHeavySentryDeployed
+  name: fs-rcd-heavy-sentry
+  category: Main
+  sprite:
+    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
+    state: icon
+  mode: ConstructObject
+  prototype: FSHeavySentryDeployed
+  cost: 0
+  delay: 4
+  collisionMask: Impassable
+  rotation: Fixed
+  fx: EffectRCDConstruct4

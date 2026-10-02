@@ -46,10 +46,10 @@
   - type: Appearance
   - type: FSSentryTurret
     spriteAngleOffset: 340
-  - type: FSPackable
-    packedProtoId: FSSentryTurretItem
-    packTime: 3
-    medicalOnly: false
+  - type: RCDDeconstructable
+    cost: 0
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
@@ -68,7 +68,6 @@
         - MachineMask
         layer:
         - MachineLayer
-  - type: Anchorable
   - type: Damageable
     damageModifierSet: Metallic
   - type: Injurable

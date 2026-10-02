@@ -312,12 +312,16 @@
   - type: FSEngineerOnlyRCD
     caps:
       barricade: 8
+      sentry: 2
+      heavy: 1
   - type: RCD
     availablePrototypes:
     - FSBarricadeMetal # FS
     - FSBarricadePlasteel # FS
     - FSBarricadeMetalDoor # FS
     - FSBarricadePlasteelDoor # FS
+    - FSSentryTurretDeployed # FS
+    - FSHeavySentryDeployed # FS
     - WallSolid
     - FloorSteel
     - Plating

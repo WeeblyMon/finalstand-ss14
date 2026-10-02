@@ -11,3 +11,5 @@ fs-rcd-barricade-metal = metal barricade
 fs-rcd-barricade-plasteel = plasteel barricade
 fs-rcd-barricade-metal-door = metal door barricade
 fs-rcd-barricade-plasteel-door = plasteel door barricade
+fs-rcd-sentry = sentry turret
+fs-rcd-heavy-sentry = heavy sentry

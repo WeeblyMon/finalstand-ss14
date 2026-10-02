@@ -24,3 +24,19 @@
   materials:
     Plasteel: 4
     Steel: 2
+
+- type: fsBuildRecipe
+  id: FSSentryTurretDeployed
+  capGroup: sentry
+  materials:
+    Steel: 6
+    Glass: 2
+    Silver: 1
+
+- type: fsBuildRecipe
+  id: FSHeavySentryDeployed
+  capGroup: heavy
+  materials:
+    Plasteel: 4
+    Steel: 6
+    Gold: 1
