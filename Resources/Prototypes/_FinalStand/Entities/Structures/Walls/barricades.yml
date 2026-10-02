@@ -49,6 +49,7 @@
   name: metal barricade
   description: A sturdy and easily assembled barricade made of metal plates, often used for quick fortifications.
   components:
+  - type: FSStructureHealth
   - type: FSPlateRepair
     material: Steel
   - type: RCDDeconstructable
@@ -130,6 +131,7 @@
   name: plasteel barricade
   description: A sturdy and easily assembled barricade made of reinforced plasteel plates, the pinnacle of strongpoints.
   components:
+  - type: FSStructureHealth
   - type: FSPlateRepair
     material: Plasteel
   - type: RCDDeconstructable
@@ -202,6 +204,7 @@
   name: folding metal barricade
   description: A folding metal barricade weaker than the non-folding counterpart. Able to be opened and closed at a moment's notice.
   components:
+  - type: FSStructureHealth
   - type: FSPlateRepair
     material: Steel
   - type: RCDDeconstructable
@@ -269,6 +272,7 @@
   name: folding plasteel barricade
   description: A tough folding plasteel barricade stronger than its metal counterpart. Can be closed and opened at a moment's notice.
   components:
+  - type: FSStructureHealth
   - type: FSPlateRepair
     material: Plasteel
   - type: RCDDeconstructable
