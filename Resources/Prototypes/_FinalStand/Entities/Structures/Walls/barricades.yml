@@ -79,11 +79,6 @@
         !type:DamageTrigger
         damage: 450
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetSteel1:
-            min: 2
-            max: 2
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -154,11 +149,6 @@
         !type:DamageTrigger
         damage: 900
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetPlasteel1:
-            min: 3
-            max: 3
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -259,11 +249,6 @@
         !type:DamageTrigger
         damage: 400
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetSteel1:
-            min: 3
-            max: 3
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -320,11 +305,6 @@
         !type:DamageTrigger
         damage: 800
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetPlasteel1:
-            min: 4
-            max: 4
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
