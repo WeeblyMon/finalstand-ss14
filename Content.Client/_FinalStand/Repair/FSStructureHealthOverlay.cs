@@ -2,9 +2,12 @@ using System.Numerics;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Components;
+using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Repair;
@@ -15,16 +18,19 @@ public sealed partial class FSStructureHealthOverlay : Overlay
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
 
     private static readonly Color Back = new(0f, 0f, 0f, 0.75f);
     private static readonly Color Good = Color.FromHex("#7fd17a");
     private static readonly Color Worn = Color.FromHex("#d9a441");
     private static readonly Color Critical = Color.FromHex("#e0574f");
+    private static readonly Color CapMark = Color.FromHex("#FF3B3B");
     private const float Width = 34f;
     private const float Height = 5f;
     private const float CriticalFraction = 0.3f;
 
     private SharedTransformSystem? _xform;
+    private SharedHandsSystem? _hands;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -48,6 +54,7 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         _xform ??= _entMan.System<SharedTransformSystem>();
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
+        var rivetCap = HeldRivetCap();
         var flash = 0.55f + 0.45f * MathF.Sin((float) _timing.RealTime.TotalSeconds * 8f);
 
         var query = _entMan.EntityQueryEnumerator<FSStructureHealthComponent, DamageableComponent, TransformComponent>();
@@ -65,6 +72,26 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             var box = UIBox2.FromDimensions(center.X - Width / 2f, center.Y + 14f, Width, Height);
             handle.DrawRect(new UIBox2(box.Left - 1f, box.Top - 1f, box.Right + 1f, box.Bottom + 1f), Back);
             handle.DrawRect(new UIBox2(box.Left, box.Top, box.Left + Width * fraction, box.Bottom), color);
+
+            if (rivetCap is { } cap)
+            {
+                var markX = box.Left + Width * cap;
+                handle.DrawRect(new UIBox2(markX, box.Top - 2f, markX + 1f, box.Bottom + 2f), CapMark);
+            }
         }
+    }
+
+    private float? HeldRivetCap()
+    {
+        _hands ??= _entMan.System<SharedHandsSystem>();
+        if (_player.LocalEntity is not { } local
+            || !_hands.TryGetActiveItem(local, out var held)
+            || !_entMan.HasComponent<FSRivetGunComponent>(held)
+            || !_entMan.TryGetComponent<BasicEntityAmmoProviderComponent>(held, out var ammo)
+            || !_proto.TryIndex<EntityPrototype>(ammo.Proto, out var proto)
+            || !proto.TryGetComponent<FSRivetComponent>(out var rivet, _entMan.ComponentFactory))
+            return null;
+
+        return rivet.RepairCap;
     }
 }
