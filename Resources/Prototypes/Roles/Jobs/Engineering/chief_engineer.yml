@@ -43,6 +43,7 @@
   storage:
     back:
     - Flash
+    - RCD # FS
 
 - type: chameleonOutfit
   id: ChiefEngineerChameleonOutfit

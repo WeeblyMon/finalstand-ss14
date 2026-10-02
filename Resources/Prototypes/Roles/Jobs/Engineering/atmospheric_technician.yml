@@ -28,9 +28,9 @@
     belt: ClothingBeltUtilityEngineering
     ears: ClothingHeadsetEngineering
     pocket1: FlashlightSeclite
-  #storage:
-    #back:
-    #- Stuff
+  storage: # FS
+    back:
+    - RCD
 
 - type: chameleonOutfit
   id: AtmosphericTechnicianChameleonOutfit
