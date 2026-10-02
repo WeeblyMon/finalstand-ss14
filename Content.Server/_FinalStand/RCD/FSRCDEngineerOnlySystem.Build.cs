@@ -1,9 +1,11 @@
 using Content.Server._FinalStand.Deployables;
+using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
@@ -17,9 +19,16 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSPlacementRuleSystem _placementRules = default!;
     [Dependency] private FSDeployableSystem _deployable = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     private const float RefundFraction = 0.5f;
     private const int StationCap = 120;
+    private const float ThreatRange = 5f;
+    private const float ThreatDelayMultiplier = 3f;
+
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _threats = new();
 
     private readonly List<Entity<StackComponent>> _stacks = new();
 
@@ -65,6 +74,24 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         return missing.Count > 0
             && Refuse(rcd, user, Loc.GetString("fs-rcd-need-materials", ("list", string.Join(", ", missing))));
+    }
+
+    private void OnDelay(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDDelayEvent args)
+    {
+        if (!TryComp<RCDComponent>(ent, out var rcdComp) || _proto.Index(rcdComp.ProtoId).Mode != RcdMode.ConstructObject)
+            return;
+
+        _threats.Clear();
+        _lookup.GetEntitiesInRange(_transform.ToMapCoordinates(args.Location), ThreatRange, _threats);
+        foreach (var zombie in _threats)
+        {
+            if (!_mobState.IsDead(zombie) && _interaction.InRangeUnobstructed(zombie.Owner, args.Location, ThreatRange))
+            {
+                args.Delay *= ThreatDelayMultiplier;
+                _popup.PopupEntity(Loc.GetString("fs-rcd-under-threat"), ent, args.User, PopupType.SmallCaution);
+                return;
+            }
+        }
     }
 
     private bool Refuse(EntityUid rcd, EntityUid user, string message)

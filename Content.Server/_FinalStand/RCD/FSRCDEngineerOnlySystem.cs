@@ -30,6 +30,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, RCDDoAfterEvent>(OnDoAfter,
             after: [typeof(RCDSystem)]);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDBuiltEvent>(OnBuilt);
+        SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDDelayEvent>(OnDelay);
     }
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)

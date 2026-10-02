@@ -212,6 +212,10 @@ public sealed partial class RCDSystem : EntitySystem
 
         #endregion
 
+        var delayEv = new Content.Shared._FinalStand.RCD.FSRCDDelayEvent(user, location, delay); // FS
+        RaiseLocalEvent(uid, ref delayEv); // FS
+        delay = delayEv.Delay; // FS
+
         // Try to start the do after
         var effect = Spawn(effectPrototype, _mapSystem.ToCenterCoordinates(tile, mapGrid));
         var ev = new RCDDoAfterEvent(
