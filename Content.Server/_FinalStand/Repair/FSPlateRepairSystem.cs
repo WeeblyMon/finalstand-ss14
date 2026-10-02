@@ -12,6 +12,7 @@ using Content.Shared.Stacks;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Repair;
 
@@ -25,6 +26,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private const float FitDelay = 1f;
@@ -39,6 +41,13 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
         SubscribeLocalEvent<FSPlateRepairComponent, FSPlateFitDoAfterEvent>(OnFitted);
         SubscribeLocalEvent<FSPlateRepairComponent, FSPlateWeldDoAfterEvent>(OnWelded);
         SubscribeLocalEvent<FSPlateRepairComponent, ExaminedEvent>(OnExamined);
+        SubscribeLocalEvent<FSPlateRepairComponent, DamageChangedEvent>(OnDamaged);
+    }
+
+    private void OnDamaged(Entity<FSPlateRepairComponent> ent, ref DamageChangedEvent args)
+    {
+        if (args.DamageIncreased)
+            ent.Comp.LastDamaged = _timing.CurTime;
     }
 
     private void OnInteractUsing(Entity<FSPlateRepairComponent> ent, ref InteractUsingEvent args)
