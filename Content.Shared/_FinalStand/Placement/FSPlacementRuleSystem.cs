@@ -26,7 +26,7 @@ public sealed class FSPlacementRuleSystem : EntitySystem
 
         return _turf.TryGetTileRef(coords, out var tile)
                && !_turf.IsTileBlocked(tile.Value, CollisionGroup.Impassable)
-               && IsTileBuildable(coords, comp.BlocksPath);
+               && IsTileBuildable(coords, false);
     }
 
     public bool IsTileBuildable(EntityCoordinates coords, bool blocksPath)

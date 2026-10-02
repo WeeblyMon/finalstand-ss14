@@ -99,8 +99,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
             ? facing ?? Transform(deployer).LocalRotation.GetCardinalDir()
             : null;
 
-        var blocksPath = TryComp<FSPlaceableComponent>(uid, out var placeable) && placeable.BlocksPath;
-        if (!_placementRules.IsTileBuildable(coords, blocksPath))
+        if (!_placementRules.IsTileBuildable(coords, false))
         {
             _popup.PopupEntity(Loc.GetString("fs-deployable-no-build"), deployer, deployer);
             return false;
