@@ -1,4 +1,7 @@
 using Content.Server._FinalStand.Departments;
+using Content.Server.Destructible;
+using Content.Server.Stack;
+using Content.Shared.Damage.Components;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Robust.Shared.Map.Components;
@@ -17,12 +20,38 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private SharedMapSystem _mapSystem = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private StackSystem _stack = default!;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, AfterInteractEvent>(OnAfterInteract,
             before: [typeof(RCDSystem)]);
+        SubscribeLocalEvent<FSEngineerOnlyRCDComponent, RCDDoAfterEvent>(OnDoAfter,
+            after: [typeof(RCDSystem)]);
+    }
+
+    private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
+    {
+        if (args.Cancelled
+            || args.Args.Target is not { } target
+            || !EntityManager.IsQueuedForDeletion(target)
+            || !TryComp<FSDeconstructRefundComponent>(target, out var refund))
+            return;
+
+        var health = 1f;
+        if (_destructible.TryGetDestroyedAt(target, out var destroyedAt) && destroyedAt > 0
+            && TryComp<DamageableComponent>(target, out var damageable))
+            health = Math.Clamp(1f - (damageable.TotalDamage / destroyedAt.Value).Float(), 0f, 1f);
+
+        var coords = Transform(target).Coordinates;
+        foreach (var (material, count) in refund.Materials)
+        {
+            var amount = (int) MathF.Floor(count * health * refund.Fraction);
+            if (amount > 0)
+                _stack.SpawnMultipleAtPosition(material, amount, coords);
+        }
     }
 
     private void OnAfterInteract(EntityUid uid, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)

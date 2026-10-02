@@ -17,6 +17,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private FSPlacementRuleSystem _placementRules = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
@@ -97,6 +98,13 @@ public sealed partial class FSDeployableSystem : EntitySystem
         Direction? facingDir = comp.FaceDeployerDirection
             ? facing ?? Transform(deployer).LocalRotation.GetCardinalDir()
             : null;
+
+        var blocksPath = TryComp<FSPlaceableComponent>(uid, out var placeable) && placeable.BlocksPath;
+        if (!_placementRules.IsTileBuildable(coords, blocksPath))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-deployable-no-build"), deployer, deployer);
+            return false;
+        }
 
         if (IsOccupied(coords, facingDir))
         {

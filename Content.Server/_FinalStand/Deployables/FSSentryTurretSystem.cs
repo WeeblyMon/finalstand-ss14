@@ -119,6 +119,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     private void Fire(EntityUid uid, FSSentryTurretComponent turret, TransformComponent xform, Vector2 direction)
     {
         var projectile = Spawn(turret.ProjectileProto, xform.Coordinates);
+        EnsureComp<FSDeployableProjectileComponent>(projectile);
 
         if (TryComp<ProjectileComponent>(projectile, out var proj))
             proj.Damage *= turret.DamageMultiplier;

@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Weapons;
@@ -7,6 +8,7 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Projectiles;
 
 namespace Content.Server._FinalStand.Economy;
 
@@ -24,6 +26,8 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
 
     private const int BaseMoneyPerHit = 30;
 
+    private EntityUid? _deployableHitTarget;
+
     // The Harvester lands 20 hitscans a second, so at full rate it caps every enemy almost
     // instantly. Its payout is scaled down to keep it a research weapon, not an income weapon.
     private const float HarvesterMoneyMultiplier = 0.30f;
@@ -35,10 +39,19 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         _harvesterQuery = GetEntityQuery<FSHarvesterComponent>();
 
         SubscribeLocalEvent<FSMoneyOnHitCapComponent, DamageChangedEvent>(OnDamageChanged);
+        SubscribeLocalEvent<FSDeployableProjectileComponent, ProjectileHitEvent>(OnDeployableHit);
+    }
+
+    private void OnDeployableHit(Entity<FSDeployableProjectileComponent> ent, ref ProjectileHitEvent args)
+    {
+        _deployableHitTarget = args.Target;
     }
 
     private void OnDamageChanged(EntityUid uid, FSMoneyOnHitCapComponent cap, DamageChangedEvent args)
     {
+        var fromDeployable = _deployableHitTarget == uid;
+        _deployableHitTarget = null;
+
         if (!args.DamageIncreased || args.Origin == null)
             return;
         if (_mobState.IsDead(uid))
@@ -56,7 +69,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
             return;
 
         var payout = BaseMoneyPerHit;
-        if (_hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
+        if (!fromDeployable && _hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
         {
             if (_upgradeQuery.TryGetComponent(heldItem.Value, out var ws) && ws.MoneyPerHitBonus > 0)
                 payout += ws.MoneyPerHitBonus;

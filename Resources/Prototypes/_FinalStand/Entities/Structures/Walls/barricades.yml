@@ -15,7 +15,6 @@
     tags:
     - FSBarricade
   - type: Rotatable
-  - type: Anchorable
   - type: Climbable
   - type: Appearance
   - type: InteractionOutline
@@ -50,6 +49,13 @@
   name: metal barricade
   description: A sturdy and easily assembled barricade made of metal plates, often used for quick fortifications.
   components:
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
+  - type: FSDeconstructRefund
+    materials:
+      SheetSteel1: 6
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -130,6 +136,13 @@
   name: plasteel barricade
   description: A sturdy and easily assembled barricade made of reinforced plasteel plates, the pinnacle of strongpoints.
   components:
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
+  - type: FSDeconstructRefund
+    materials:
+      SheetPlasteel1: 8
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -201,6 +214,13 @@
   name: folding metal barricade
   description: A folding metal barricade weaker than the non-folding counterpart. Able to be opened and closed at a moment's notice.
   components:
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
+  - type: FSDeconstructRefund
+    materials:
+      SheetSteel1: 6
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -265,6 +285,13 @@
   name: folding plasteel barricade
   description: A tough folding plasteel barricade stronger than its metal counterpart. Can be closed and opened at a moment's notice.
   components:
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
+  - type: FSDeconstructRefund
+    materials:
+      SheetPlasteel1: 8
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops

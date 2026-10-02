@@ -5,6 +5,7 @@ using Content.Server.Destructible.Thresholds;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -169,7 +170,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         foreach (var (candidate, _) in _destructibleBuffer)
         {
             if (HasComp<WaveSpawnedTagComponent>(candidate)) continue;
-            if (HasComp<DoorComponent>(candidate)) continue; // doors handled by pry/smash system
+            if (HasComp<DoorComponent>(candidate) && !HasComp<FSDeployedByComponent>(candidate)) continue; // doors handled by pry/smash system
             if (HasComp<MobStateComponent>(candidate) && !_mobState.IsDead(candidate)) continue;
             if (!HasComp<DamageableComponent>(candidate)) continue;
             if (TryComp<FSBreachCostOverrideComponent>(candidate, out var ov) && ov.Cost >= 999f) continue;

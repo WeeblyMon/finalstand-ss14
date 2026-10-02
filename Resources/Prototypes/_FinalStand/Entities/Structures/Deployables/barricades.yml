@@ -21,6 +21,7 @@
     regenPerWave: 1
     faceDeployerDirection: true
   - type: FSPlaceable
+    blocksPath: true
     previewProtoId: FSBarricadeMetal
     range: 10
 
@@ -42,6 +43,7 @@
     regenPerWave: 1
     faceDeployerDirection: true
   - type: FSPlaceable
+    blocksPath: true
     previewProtoId: FSBarricadeMetalDoor
     range: 10
 
@@ -64,6 +66,7 @@
     regenPerWave: 1
     faceDeployerDirection: true
   - type: FSPlaceable
+    blocksPath: true
     previewProtoId: FSBarricadePlasteel
     range: 10
 
@@ -86,5 +89,6 @@
     regenPerWave: 1
     faceDeployerDirection: true
   - type: FSPlaceable
+    blocksPath: true
     previewProtoId: FSBarricadePlasteelDoor
     range: 10

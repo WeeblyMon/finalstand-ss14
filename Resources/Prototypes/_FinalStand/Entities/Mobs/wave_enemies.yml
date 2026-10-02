@@ -151,6 +151,17 @@
   suffix: Armoured
   name: armoured zombie
   components:
+  - type: FSMaterialDrop
+    materials:
+    - SheetSteel1
+    - SheetGlass1
+    - SheetPlastic1
+    - SheetPlasma1
+    - IngotGold1
+    - IngotSilver1
+    - SheetUranium1
+    - SheetPlasteel1
+    - SheetPlasteel1
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
@@ -203,6 +214,17 @@
   name: destroyer zombie
   abstract: true
   components:
+  - type: FSMaterialDrop
+    materials:
+    - SheetSteel1
+    - SheetGlass1
+    - SheetPlastic1
+    - SheetPlasma1
+    - IngotGold1
+    - IngotSilver1
+    - SheetUranium1
+    - SheetPlasteel1
+    - SheetPlasteel1
   - type: MobThresholds
     thresholds:
       0: Alive
