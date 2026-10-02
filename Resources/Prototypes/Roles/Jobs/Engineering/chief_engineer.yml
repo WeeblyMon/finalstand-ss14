@@ -44,6 +44,7 @@
     back:
     - Flash
     - RCD # FS
+    - FSRivetGun # FS
 
 - type: chameleonOutfit
   id: ChiefEngineerChameleonOutfit
