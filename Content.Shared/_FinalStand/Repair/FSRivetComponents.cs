@@ -21,7 +21,4 @@ public sealed partial class FSRivetComponent : Component
 
     [DataField]
     public float RepairCap = 0.75f;
-
-    [DataField]
-    public TimeSpan HitCooldown = TimeSpan.FromSeconds(1);
 }
