@@ -1,1 +1,13 @@
 fs-rcd-build-blocked = Something about this spot resists the RCD.
+fs-rcd-in-the-way = Someone is in the way.
+fs-rcd-need-materials = Need {$list}.
+fs-rcd-need-entry = {$need} {$name} (have {$have})
+fs-rcd-cap = {$group} limit reached ({$used}/{$max}).
+fs-rcd-cap-group-barricade = Barricade
+fs-rcd-cap-group-sentry = Sentry
+fs-rcd-cap-group-heavy = Heavy sentry
+fs-rcd-materials-gone = You no longer have the materials, so the build falls apart.
+fs-rcd-barricade-metal = metal barricade
+fs-rcd-barricade-plasteel = plasteel barricade
+fs-rcd-barricade-metal-door = metal door barricade
+fs-rcd-barricade-plasteel-door = plasteel door barricade

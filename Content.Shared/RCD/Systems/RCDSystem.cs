@@ -614,6 +614,8 @@ public sealed partial class RCDSystem : EntitySystem
                 var ent = SpawnAttachedTo(prototype.Prototype, _mapSystem.GridTileToLocal(gridUid, mapGrid, position), rotation: rotation);
 
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to spawn {ToPrettyString(ent)} at {position} on grid {gridUid}");
+                var built = new Content.Shared._FinalStand.RCD.FSRCDBuiltEvent(user, ent, direction); // FS
+                RaiseLocalEvent(uid, ref built); // FS
                 break;
 
             case RcdMode.Deconstruct:

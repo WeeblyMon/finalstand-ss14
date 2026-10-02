@@ -1,0 +1,26 @@
+# Materials the RCD takes from your inventory. IDs match the RCD prototype and the entity it builds.
+- type: fsBuildRecipe
+  id: FSBarricadeMetal
+  capGroup: barricade
+  materials:
+    Steel: 4
+
+- type: fsBuildRecipe
+  id: FSBarricadePlasteel
+  capGroup: barricade
+  materials:
+    Plasteel: 3
+    Steel: 2
+
+- type: fsBuildRecipe
+  id: FSBarricadeMetalDoor
+  capGroup: barricade
+  materials:
+    Steel: 5
+
+- type: fsBuildRecipe
+  id: FSBarricadePlasteelDoor
+  capGroup: barricade
+  materials:
+    Plasteel: 4
+    Steel: 2

@@ -53,9 +53,6 @@
     cost: 1
     delay: 2
     fx: EffectRCDDeconstruct2
-  - type: FSDeconstructRefund
-    materials:
-      SheetSteel1: 6
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -140,9 +137,6 @@
     cost: 1
     delay: 2
     fx: EffectRCDDeconstruct2
-  - type: FSDeconstructRefund
-    materials:
-      SheetPlasteel1: 8
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -218,9 +212,6 @@
     cost: 1
     delay: 2
     fx: EffectRCDDeconstruct2
-  - type: FSDeconstructRefund
-    materials:
-      SheetSteel1: 6
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -289,9 +280,6 @@
     cost: 1
     delay: 2
     fx: EffectRCDDeconstruct2
-  - type: FSDeconstructRefund
-    materials:
-      SheetPlasteel1: 8
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops

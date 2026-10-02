@@ -1,0 +1,68 @@
+# Combat pieces sit at the top level of the RCD menu ("Main"); costs come from fsBuildRecipe.
+- type: rcd
+  id: FSBarricadeMetal
+  name: fs-rcd-barricade-metal
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: metal
+  mode: ConstructObject
+  prototype: FSBarricadeMetal
+  cost: 0
+  delay: 1.5
+  collisionMask: Impassable
+  collisionBounds: "-0.49,-0.49,0.49,-0.38"
+  rotation: User
+  allowMultiDirection: true
+  fx: EffectRCDConstruct1
+
+- type: rcd
+  id: FSBarricadePlasteel
+  name: fs-rcd-barricade-plasteel
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: plasteel
+  mode: ConstructObject
+  prototype: FSBarricadePlasteel
+  cost: 0
+  delay: 2
+  collisionMask: Impassable
+  collisionBounds: "-0.49,-0.49,0.49,-0.38"
+  rotation: User
+  allowMultiDirection: true
+  fx: EffectRCDConstruct2
+
+- type: rcd
+  id: FSBarricadeMetalDoor
+  name: fs-rcd-barricade-metal-door
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_metal_closed
+  mode: ConstructObject
+  prototype: FSBarricadeMetalDoor
+  cost: 0
+  delay: 1.5
+  collisionMask: Impassable
+  collisionBounds: "-0.49,-0.49,0.49,-0.38"
+  rotation: User
+  allowMultiDirection: true
+  fx: EffectRCDConstruct1
+
+- type: rcd
+  id: FSBarricadePlasteelDoor
+  name: fs-rcd-barricade-plasteel-door
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: folding_plasteel_closed
+  mode: ConstructObject
+  prototype: FSBarricadePlasteelDoor
+  cost: 0
+  delay: 2
+  collisionMask: Impassable
+  collisionBounds: "-0.49,-0.49,0.49,-0.38"
+  rotation: User
+  allowMultiDirection: true
+  fx: EffectRCDConstruct2

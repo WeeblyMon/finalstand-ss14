@@ -310,8 +310,14 @@
   description: The rapid construction device can be used to quickly place and remove various station structures and fixtures. Requires compressed matter to function.
   components:
   - type: FSEngineerOnlyRCD
+    caps:
+      barricade: 8
   - type: RCD
     availablePrototypes:
+    - FSBarricadeMetal # FS
+    - FSBarricadePlasteel # FS
+    - FSBarricadeMetalDoor # FS
+    - FSBarricadePlasteelDoor # FS
     - WallSolid
     - FloorSteel
     - Plating
