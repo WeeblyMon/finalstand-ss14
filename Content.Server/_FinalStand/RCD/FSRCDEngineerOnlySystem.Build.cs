@@ -19,6 +19,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private SharedMindSystem _mind = default!;
 
     private const float RefundFraction = 0.5f;
+    private const int StationCap = 120;
 
     private readonly List<Entity<StackComponent>> _stacks = new();
 
@@ -40,6 +41,10 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         if (_deployable.IsOccupied(args.ClickLocation, facing))
             return Refuse(rcd, user, Loc.GetString("fs-deployable-occupied"));
+
+        var built = StationBuilt();
+        if (built >= StationCap)
+            return Refuse(rcd, user, Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", StationCap)));
 
         if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var max))
         {
@@ -127,6 +132,19 @@ public sealed partial class FSRCDEngineerOnlySystem
                 && !TerminatingOrDeleted(uid)
                 && _proto.TryIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id, out var recipe)
                 && recipe.CapGroup == group)
+                count++;
+        }
+
+        return count;
+    }
+
+    private int StationBuilt()
+    {
+        var count = 0;
+        var query = EntityQueryEnumerator<FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out var deployedBy))
+        {
+            if (!TerminatingOrDeleted(uid) && _proto.HasIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id))
                 count++;
         }
 
