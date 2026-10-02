@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Deployables;
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Placement;
@@ -22,6 +23,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private FSBreachEvaluator _breach = default!;
 
     private const float RefundFraction = 0.5f;
     private const int StationCap = 120;
@@ -47,6 +49,9 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         if (!_placementRules.IsTileBuildable(args.ClickLocation, blocksPath: true))
             return Refuse(rcd, user, Loc.GetString("fs-rcd-in-the-way"));
+
+        if (_breach.IsAdjacentToSpace(args.ClickLocation))
+            return Refuse(rcd, user, Loc.GetString("fs-rcd-next-to-space"));
 
         if (_deployable.IsOccupied(args.ClickLocation, facing))
             return Refuse(rcd, user, Loc.GetString("fs-deployable-occupied"));

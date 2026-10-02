@@ -8,6 +8,7 @@ fs-rcd-cap-group-sentry = Sentry
 fs-rcd-cap-group-heavy = Heavy sentry
 fs-rcd-station-cap = The station can't hold more fortifications ({$used}/{$max}).
 fs-rcd-under-threat = A zombie can see you. Building takes longer.
+fs-rcd-next-to-space = Too close to space to hold.
 fs-rcd-materials-gone = You no longer have the materials, so the build falls apart.
 fs-rcd-barricade-metal = metal barricade
 fs-rcd-barricade-plasteel = plasteel barricade

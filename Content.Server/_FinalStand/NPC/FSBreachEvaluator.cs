@@ -273,13 +273,14 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         }
     }
 
-    public bool IsAdjacentToSpace(EntityUid entity)
+    public bool IsAdjacentToSpace(EntityUid entity) => IsAdjacentToSpace(Transform(entity).Coordinates);
+
+    public bool IsAdjacentToSpace(EntityCoordinates coords)
     {
-        var xform = Transform(entity);
-        if (xform.GridUid is not { } gridUid) return false;
+        if (_transform.GetGrid(coords) is not { } gridUid) return false;
         if (!TryComp<MapGridComponent>(gridUid, out var gridComp)) return false;
 
-        var indices = _mapSystem.GetTileRef(gridUid, gridComp, xform.Coordinates).GridIndices;
+        var indices = _mapSystem.GetTileRef(gridUid, gridComp, coords).GridIndices;
 
         foreach (var offset in CardinalOffsets)
         {
