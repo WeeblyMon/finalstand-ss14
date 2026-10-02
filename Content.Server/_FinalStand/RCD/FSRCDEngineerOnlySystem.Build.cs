@@ -81,8 +81,8 @@ public sealed partial class FSRCDEngineerOnlySystem
             return;
         }
 
-        var directional = TryComp<RCDComponent>(ent, out var rcdComp)
-            && _proto.Index(rcdComp.ProtoId).Rotation == RcdRotation.User;
+        var directional = _proto.TryIndex<RCDPrototype>(protoId, out var rcdProto)
+            && rcdProto.Rotation == RcdRotation.User;
 
         if (!Transform(args.Built).Anchored)
             _transform.AnchorEntity(args.Built);
