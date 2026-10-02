@@ -333,13 +333,6 @@
     - ReinforcedWindow
     - Airlock
     - AirlockGlass
-    - Firelock
-    - TubeLight
-    - BulbLight
-    - LVCable
-    - MVCable
-    - HVCable
-    - CableTerminal
     - Deconstruct
   - type: LimitedCharges
     maxCharges: 30
