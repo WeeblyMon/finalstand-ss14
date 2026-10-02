@@ -25,7 +25,7 @@
     /Audio/Effects/Lightning/lightningshock.ogg:            -7.5  # Tesla Gun
     /Audio/Weapons/Guns/Gunshots/grenade_launcher.ogg:      -5.5  # Hydra
     /Audio/Weapons/Guns/Gunshots/rpgfire.ogg:               -3  # RPG-7
-    /Audio/_FinalStand/Weapons/Harvester/laser.ogg:         -3  # Harvester
+    /Audio/_FinalStand/Weapons/Harvester/laser.ogg:         -5  # Harvester
     /Audio/Weapons/ebladeon.ogg:                            -5.5  # Energy Sword on
     /Audio/Weapons/eblademiss.ogg:                          -5  # Energy Sword swing
     /Audio/Weapons/ebladehum.ogg:                           -1.5  # Energy Sword hum

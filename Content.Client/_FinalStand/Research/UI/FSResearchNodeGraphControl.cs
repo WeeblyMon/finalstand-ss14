@@ -55,6 +55,7 @@ public sealed partial class FSResearchNodeGraphControl : Control
     private string? _branchFilter;
     private string? _lineFilter;
     private float _zoom = 1f;
+    private Vector2? _pan;
     private bool _layoutStale = true;
     private bool _medical;
 
@@ -175,6 +176,7 @@ public sealed partial class FSResearchNodeGraphControl : Control
 
     public void ResetView()
     {
+        _pan = null;
         SetZoom(1f);
         FocusFirstNode();
     }
@@ -214,7 +216,8 @@ public sealed partial class FSResearchNodeGraphControl : Control
         _scroll.Measure(_scroll.Size);
         _scroll.Arrange(UIBox2.FromDimensions(_scroll.Position, _scroll.Size));
 
-        var target = (anchor * K + Origin() - inViewport) / UIScale;
+        _pan = Vector2.Clamp(inViewport - anchor * K, Vector2.Zero, SpareSpace());
+        var target = (anchor * K + _pan.Value - inViewport) / UIScale;
         _scroll.HScroll = Math.Max(0f, target.X);
         _scroll.VScroll = Math.Max(0f, target.Y);
     }
@@ -259,9 +262,15 @@ public sealed partial class FSResearchNodeGraphControl : Control
     private Vector2 ScrollPixels()
         => _scroll == null ? Vector2.Zero : new Vector2(_scroll.HScroll, _scroll.VScroll) * UIScale;
 
-    // Narrow trees sit centred in the viewport instead of hugging the left edge.
+    // Narrow trees start centred; once zoomed, the tree stays where the cursor anchored it.
     private Vector2 Origin()
-        => new(MathF.Max(0f, (PixelWidth - _contentSize.X * K) / 2f), 0f);
+    {
+        var spare = SpareSpace();
+        return Vector2.Clamp(_pan ?? new Vector2(spare.X / 2f, 0f), Vector2.Zero, spare);
+    }
+
+    private Vector2 SpareSpace()
+        => Vector2.Max(Vector2.Zero, (Vector2) PixelSize - _contentSize * K);
 
     private void UpdateMinSize()
     {
@@ -282,6 +291,7 @@ public sealed partial class FSResearchNodeGraphControl : Control
 
     private void Rebuild()
     {
+        _pan = null;
         _nodes.Clear();
         _nodeById.Clear();
         _branchById.Clear();
