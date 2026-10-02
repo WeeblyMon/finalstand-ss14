@@ -214,6 +214,8 @@
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_metal_cracks.rsi
+  - type: FSFoldedDamageOverlay
+    folded: _FinalStand/Structures/Walls/Barricades/folding_metal_closed_cracks.rsi
   - type: AnimationPlayer
   - type: UseDelay
     delay: 0.3
@@ -277,6 +279,8 @@
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  - type: FSFoldedDamageOverlay
+    folded: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi
   - type: Door
     openSpriteState: folding_plasteel_closed
     closedSpriteState: folding_plasteel
