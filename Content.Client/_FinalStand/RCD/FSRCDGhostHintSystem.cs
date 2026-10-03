@@ -10,6 +10,8 @@ using Robust.Client.Input;
 using Robust.Client.Placement;
 using Robust.Client.Player;
 using Robust.Client.State;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
@@ -25,6 +27,7 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
     [Dependency] private IEyeManager _eye = default!;
     [Dependency] private IStateManager _state = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
     [Dependency] private HandsSystem _hands = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;
@@ -71,7 +74,8 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
             || !_hands.TryGetActiveItem(player, out var held)
             || !HasComp<FSEngineerOnlyRCDComponent>(held)
             || !TryComp<RCDComponent>(held, out var rcd)
-            || IsClientSide(held.Value))
+            || IsClientSide(held.Value)
+            || _ui.CurrentlyHovered is not IViewportControl)
             return;
 
         var mapCoords = _eye.PixelToMap(_input.MouseScreenPosition);
