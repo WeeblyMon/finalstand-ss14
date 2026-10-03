@@ -2,7 +2,9 @@
 using Content.Client.Gameplay;
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.RCD;
+using Content.Shared.CCVar;
 using Content.Shared.Interaction;
+using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Robust.Client.Graphics;
@@ -12,6 +14,7 @@ using Robust.Client.Player;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
@@ -28,6 +31,8 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
     [Dependency] private IStateManager _state = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private HandsSystem _hands = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;
@@ -78,6 +83,13 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
             || !TryComp<RCDComponent>(held, out var rcd)
             || IsClientSide(held.Value))
             return;
+
+        if (!_cfg.GetCVar(CCVars.FSRcdHintSeen))
+        {
+            _cfg.SetCVar(CCVars.FSRcdHintSeen, true);
+            _cfg.SaveToFile();
+            _popup.PopupEntity(Loc.GetString("fs-rcd-first-hint"), player, player, PopupType.Large);
+        }
 
         if (_ui.CurrentlyHovered is not IViewportControl)
             return;
