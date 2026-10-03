@@ -33,3 +33,4 @@ fs-rcd-summary-deconstruct = Deconstruct · click your own structures for a refu
 fs-rcd-summary-ready = {$name} · can build ×{$count}
 fs-rcd-summary-short = {$name} · short {$list}
 fs-rcd-summary-capped = {$name} · limit reached
+fs-rcd-spent = -{$amount} {$name}

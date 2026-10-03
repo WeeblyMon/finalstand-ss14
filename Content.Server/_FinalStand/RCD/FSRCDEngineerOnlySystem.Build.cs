@@ -122,6 +122,11 @@ public sealed partial class FSRCDEngineerOnlySystem
             return;
         }
 
+        var spent = new List<string>();
+        foreach (var (material, amount) in recipe.Materials)
+            spent.Add(Loc.GetString("fs-rcd-spent", ("amount", amount), ("name", Loc.GetString(_proto.Index(material).Name))));
+        _popup.PopupCoordinates(string.Join("  ", spent), Transform(args.Built).Coordinates, args.User, PopupType.Small);
+
         var directional = _proto.TryIndex<RCDPrototype>(protoId, out var rcdProto)
             && rcdProto.Rotation == RcdRotation.User;
 
