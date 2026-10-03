@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
+using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared._FinalStand.Utility;
@@ -34,7 +35,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private IInputManager _input = default!;
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
-    [Dependency] private FSRivetGunSystem _rivetGun = default!;
+    [Dependency] private FSCarriedMaterialSystem _materials = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -93,7 +94,7 @@ public sealed partial class WaveHudSystem
         if (overlay.WeaponTakesMagazines)
             overlay.WeaponReserveText = overlay.WeaponReserve == 1 ? "1 mag in reserve" : $"{overlay.WeaponReserve} mags in reserve";
         else if (TryComp<FSRivetGunComponent>(held, out var rivetGun))
-            overlay.WeaponReserveText = $"{_rivetGun.CountMaterial(player, rivetGun.Material)} steel left";
+            overlay.WeaponReserveText = $"{_materials.Count(player, rivetGun.Material)} steel left";
 
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))
