@@ -16,6 +16,8 @@ public sealed record FSLeaderboardEntry(
     int Credits,
     int Score)
 {
+    public int Fortify { get; init; }
+
     public static FSLeaderboardEntry[] Sort(IEnumerable<FSLeaderboardEntry> entries)
     {
         return entries
