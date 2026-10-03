@@ -3,6 +3,7 @@ using Content.Server.Destructible;
 using Content.Server.Stack;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
@@ -31,6 +32,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
             after: [typeof(RCDSystem)]);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDBuiltEvent>(OnBuilt);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDDelayEvent>(OnDelay);
+        SubscribeNetworkEvent<FSRCDProbeRequestEvent>(OnProbe);
     }
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
@@ -44,37 +46,20 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         if (args.Handled || !args.CanReach)
             return;
 
-        // No-build markers apply to everyone, engineers included.
-        if (IsBuildBlockedHere(uid, args))
-        {
-            args.Handled = true;
-            _popup.PopupEntity(Loc.GetString("fs-rcd-build-blocked"), uid, args.User, PopupType.Medium);
+        if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is not { } reason)
             return;
-        }
 
-        if (!_engineering.IsEngineering(args.User))
-        {
-            args.Handled = true;
-            _popup.PopupEntity("Can only be used by Engineers", uid, args.User, PopupType.Medium);
-            return;
-        }
-
-        if (IsRecipeBlocked(uid, comp, args))
-            args.Handled = true;
+        args.Handled = true;
+        _popup.PopupEntity(reason, uid, args.User, PopupType.Medium);
     }
 
-    // Objects (walls, airlocks, windows) are blocked on marked tiles; floor tiles stay legal.
-    private bool IsBuildBlockedHere(EntityUid rcd, AfterInteractEvent args)
+    // Objects (walls, airlocks, windows) are blocked on marked tiles; floor tiles stay legal. Applies to engineers too.
+    private bool IsNoBuildTile(EntityCoordinates location, EntityUid user)
     {
-        if (!TryComp<RCDComponent>(rcd, out var rcdComp)
-            || _proto.Index(rcdComp.ProtoId).Mode != RcdMode.ConstructObject)
-            return false;
-
-        var location = args.ClickLocation;
         if (!location.IsValid(EntityManager))
             return false;
 
-        var gridUid = _transform.GetGrid(location) ?? _transform.GetGrid(args.User);
+        var gridUid = _transform.GetGrid(location) ?? _transform.GetGrid(user);
         if (!TryComp<MapGridComponent>(gridUid, out var mapGrid))
             return false;
 

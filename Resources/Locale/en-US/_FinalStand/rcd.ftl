@@ -1,4 +1,4 @@
-fs-rcd-build-blocked = Something about this spot resists the RCD.
+fs-rcd-build-blocked = No-build zone.
 fs-rcd-in-the-way = Someone is in the way.
 fs-rcd-need-materials = Need {$list}.
 fs-rcd-need-entry = {$need} {$name} (have {$have})
@@ -16,3 +16,4 @@ fs-rcd-barricade-metal-door = metal door barricade
 fs-rcd-barricade-plasteel-door = plasteel door barricade
 fs-rcd-sentry = sentry turret
 fs-rcd-heavy-sentry = heavy sentry
+fs-rcd-engineers-only = Only engineers can use the RCD.

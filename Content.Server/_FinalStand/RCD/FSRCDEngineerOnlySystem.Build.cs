@@ -11,6 +11,10 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
+using Content.Shared.Damage.Components;
+using Content.Shared.Stacks;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.RCD;
 
@@ -33,38 +37,45 @@ public sealed partial class FSRCDEngineerOnlySystem
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _threats = new();
 
 
-    private bool IsRecipeBlocked(EntityUid rcd, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)
+    public string? GetBlockReason(EntityUid rcd, FSEngineerOnlyRCDComponent comp, EntityUid user, EntityCoordinates location)
     {
+        if (!_engineering.IsEngineering(user))
+            return Loc.GetString("fs-rcd-engineers-only");
+
         if (!TryComp<RCDComponent>(rcd, out var rcdComp))
-            return false;
+            return null;
 
         var rcdProto = _proto.Index(rcdComp.ProtoId);
-        if (rcdProto.Mode != RcdMode.ConstructObject
-            || !_proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe))
-            return false;
+        if (rcdProto.Mode != RcdMode.ConstructObject)
+            return null;
 
-        var user = args.User;
+        if (IsNoBuildTile(location, user))
+            return Loc.GetString("fs-rcd-build-blocked");
+
+        if (!_proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe))
+            return null;
+
         Direction? facing = rcdProto.Rotation == RcdRotation.User ? rcdComp.ConstructionDirection : null;
 
-        if (!_placementRules.IsTileBuildable(args.ClickLocation, blocksPath: true))
-            return Refuse(rcd, user, Loc.GetString("fs-rcd-in-the-way"));
+        if (!_placementRules.IsTileBuildable(location, blocksPath: true))
+            return Loc.GetString("fs-rcd-in-the-way");
 
-        if (_breach.IsAdjacentToSpace(args.ClickLocation))
-            return Refuse(rcd, user, Loc.GetString("fs-rcd-next-to-space"));
+        if (_breach.IsAdjacentToSpace(location))
+            return Loc.GetString("fs-rcd-next-to-space");
 
-        if (_deployable.IsOccupied(args.ClickLocation, facing))
-            return Refuse(rcd, user, Loc.GetString("fs-deployable-occupied"));
+        if (_deployable.IsOccupied(location, facing))
+            return Loc.GetString("fs-deployable-occupied");
 
         var built = StationBuilt();
         if (built >= StationCap)
-            return Refuse(rcd, user, Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", StationCap)));
+            return Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", StationCap));
 
         if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var max))
         {
             var used = CapUsed(user, group);
             if (used >= max)
-                return Refuse(rcd, user, Loc.GetString("fs-rcd-cap",
-                    ("group", Loc.GetString("fs-rcd-cap-group-" + group)), ("used", used), ("max", max)));
+                return Loc.GetString("fs-rcd-cap",
+                    ("group", Loc.GetString("fs-rcd-cap-group-" + group)), ("used", used), ("max", max));
         }
 
         var missing = new List<string>();
@@ -77,7 +88,8 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         return missing.Count > 0
-            && Refuse(rcd, user, Loc.GetString("fs-rcd-need-materials", ("list", string.Join(", ", missing))));
+            ? Loc.GetString("fs-rcd-need-materials", ("list", string.Join(", ", missing)))
+            : null;
     }
 
     private void OnDelay(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDDelayEvent args)
@@ -96,12 +108,6 @@ public sealed partial class FSRCDEngineerOnlySystem
                 return;
             }
         }
-    }
-
-    private bool Refuse(EntityUid rcd, EntityUid user, string message)
-    {
-        _popup.PopupEntity(message, rcd, user, PopupType.Medium);
-        return true;
     }
 
     private void OnBuilt(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDBuiltEvent args)
@@ -132,22 +138,31 @@ public sealed partial class FSRCDEngineerOnlySystem
 
     private void RefundDeconstruct(EntityUid target)
     {
+        var coords = Transform(target).Coordinates;
+        foreach (var (material, amount) in RefundFor(target) ?? [])
+            _stack.SpawnMultipleAtPosition(_proto.Index(material).Spawn, amount, coords);
+    }
+
+    public Dictionary<ProtoId<StackPrototype>, int>? RefundFor(EntityUid target)
+    {
         var protoId = MetaData(target).EntityPrototype?.ID;
         if (protoId == null || !_proto.TryIndex<FSBuildRecipePrototype>(protoId, out var recipe))
-            return;
+            return null;
 
         var health = 1f;
         if (_destructible.TryGetDestroyedAt(target, out var destroyedAt) && destroyedAt > 0
-            && TryComp<Content.Shared.Damage.Components.DamageableComponent>(target, out var damageable))
+            && TryComp<DamageableComponent>(target, out var damageable))
             health = Math.Clamp(1f - (damageable.TotalDamage / destroyedAt.Value).Float(), 0f, 1f);
 
-        var coords = Transform(target).Coordinates;
+        var refund = new Dictionary<ProtoId<StackPrototype>, int>();
         foreach (var (material, count) in recipe.Materials)
         {
             var amount = (int) MathF.Floor(count * health * RefundFraction);
             if (amount > 0)
-                _stack.SpawnMultipleAtPosition(_proto.Index(material).Spawn, amount, coords);
+                refund[material] = amount;
         }
+
+        return refund;
     }
 
     private int CapUsed(EntityUid user, string group)
