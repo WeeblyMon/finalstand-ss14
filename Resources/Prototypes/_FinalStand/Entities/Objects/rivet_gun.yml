@@ -18,7 +18,9 @@
     availableModes:
     - SemiAuto
     soundGunshot:
-      path: /Audio/_FinalStand/MedicalOps/bone_stapler.ogg
+      path: /Audio/_FinalStand/Weapons/RivetGun/rivet_shot.ogg
+      params:
+        variation: 0.08
   - type: BasicEntityAmmoProvider
     proto: FSRivet
     capacity: 6
