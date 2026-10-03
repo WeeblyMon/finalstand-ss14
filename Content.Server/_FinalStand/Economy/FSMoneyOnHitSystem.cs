@@ -71,7 +71,9 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         var payout = BaseMoneyPerHit;
         if (!fromDeployable && _hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
         {
-            if (_upgradeQuery.TryGetComponent(heldItem.Value, out var ws) && ws.MoneyPerHitBonus > 0)
+            if (TryComp<FSFlatMoneyPerHitComponent>(heldItem, out var flat))
+                payout = flat.Amount;
+            else if (_upgradeQuery.TryGetComponent(heldItem.Value, out var ws) && ws.MoneyPerHitBonus > 0)
                 payout += ws.MoneyPerHitBonus;
 
             if (_harvesterQuery.HasComponent(heldItem.Value))

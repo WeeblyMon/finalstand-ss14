@@ -27,6 +27,7 @@
     count: 6
   - type: AmmoCounter
   - type: FSRivetGun
+  - type: FSFlatMoneyPerHit
 
 - type: entity
   parent: BaseBullet
