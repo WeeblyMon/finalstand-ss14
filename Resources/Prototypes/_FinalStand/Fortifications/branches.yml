@@ -17,3 +17,29 @@
   layers:
   - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
     state: bulwark
+
+- type: fsUpgrade
+  id: FSBranchFiringStep
+  name: fs-branch-firing-step
+  description: fs-branch-firing-step-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  cost:
+    Steel: 3
+    Plastic: 2
+  hits: 5
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  components:
+  - type: FSFiringStep
+
+- type: alert
+  id: FSFiringStep
+  icons:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  name: fs-alert-firing-step
+  description: fs-alert-firing-step-desc

@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Fortifications;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Research;
 using Content.Shared._FinalStand.MedicalOps;
@@ -11,6 +12,7 @@ public sealed class FSWeaponStatSystem : EntitySystem
     [Dependency] private FSPerkBuffSystem _perks = default!;
     [Dependency] private FSResearchBuffSystem _research = default!;
     [Dependency] private FSMedicalBonusSystem _medical = default!;
+    [Dependency] private FSFiringStepSystem _firingStep = default!;
 
     public override void Initialize()
     {
@@ -29,5 +31,6 @@ public sealed class FSWeaponStatSystem : EntitySystem
 
         _perks.ApplyGunModifiers(holder, ref args);
         _medical.ApplyGunModifiers(holder, ref args);
+        _firingStep.ApplyGunModifiers(holder, ref args);
     }
 }

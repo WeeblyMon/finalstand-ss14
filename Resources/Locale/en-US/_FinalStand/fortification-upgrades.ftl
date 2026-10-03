@@ -23,3 +23,7 @@ fs-grade-uranium-desc = Triple health, the toughest there is. Repairs take twice
 
 fs-branch-bulwark = Bulwark
 fs-branch-bulwark-desc = Chokepoint holder. +35% health and zombies would rather breach somewhere else. Plating repairs take 50% longer.
+fs-branch-firing-step = Firing Step
+fs-branch-firing-step-desc = Gunline. Allies standing on or just behind it get 30% tighter spread and take 15% less melee damage.
+fs-alert-firing-step = Firing Step
+fs-alert-firing-step-desc = You're braced on a firing step: tighter spread, less melee damage taken.
