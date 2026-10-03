@@ -1,0 +1,116 @@
+// Asks the server why the tile under the RCD ghost would be refused (or what deconstructing it refunds) and shows the answer.
+using Content.Client.Gameplay;
+using Content.Client.Hands.Systems;
+using Content.Shared._FinalStand.RCD;
+using Content.Shared.Interaction;
+using Content.Shared.RCD;
+using Content.Shared.RCD.Components;
+using Robust.Client.Graphics;
+using Robust.Client.Input;
+using Robust.Client.Placement;
+using Robust.Client.Player;
+using Robust.Client.State;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Timing;
+
+namespace Content.Client._FinalStand.RCD;
+
+public sealed class FSRCDGhostHintSystem : EntitySystem
+{
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IPlacementManager _placement = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private IEyeManager _eye = default!;
+    [Dependency] private IStateManager _state = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private HandsSystem _hands = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+
+    private static readonly TimeSpan ProbeInterval = TimeSpan.FromSeconds(0.4);
+
+    public EntityCoordinates? Tile { get; private set; }
+    public string? Text { get; private set; }
+    public bool Blocked { get; private set; }
+
+    private (EntityUid Rcd, EntityCoordinates Tile, string Proto, EntityUid? Target, Direction Dir) _lastKey;
+    private TimeSpan _nextProbe;
+    private NetCoordinates? _resultTile;
+    private string? _resultText;
+    private bool _resultBlocked;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeNetworkEvent<FSRCDProbeResultEvent>(OnResult);
+        _overlays.AddOverlay(new FSRCDGhostHintOverlay());
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _overlays.RemoveOverlay<FSRCDGhostHintOverlay>();
+    }
+
+    private void OnResult(FSRCDProbeResultEvent ev)
+    {
+        _resultTile = ev.Location;
+        _resultText = ev.Text;
+        _resultBlocked = ev.Blocked;
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        Tile = null;
+        Text = null;
+        Blocked = false;
+
+        if (_player.LocalEntity is not { } player
+            || !_hands.TryGetActiveItem(player, out var held)
+            || !HasComp<FSEngineerOnlyRCDComponent>(held)
+            || !TryComp<RCDComponent>(held, out var rcd)
+            || IsClientSide(held.Value))
+            return;
+
+        var mapCoords = _eye.PixelToMap(_input.MouseScreenPosition);
+        if (!_map.TryFindGridAt(mapCoords, out var gridUid, out var grid))
+            return;
+
+        var center = _map.GridTileToLocal(gridUid, grid, _map.TileIndicesFor(gridUid, grid, mapCoords));
+        Tile = center;
+
+        if (!_transform.InRange(Transform(player).Coordinates, center, SharedInteractionSystem.InteractionRange))
+        {
+            Text = Loc.GetString("fs-rcd-too-far");
+            Blocked = true;
+            return;
+        }
+
+        var proto = ProtoMan.Index(rcd.ProtoId);
+        EntityUid? target = proto.Mode == RcdMode.Deconstruct && _state.CurrentState is GameplayStateBase screen
+            ? screen.GetClickedEntity(mapCoords)
+            : null;
+
+        var key = (held.Value, center, rcd.ProtoId.Id, target, _placement.Direction);
+        if (key != _lastKey)
+        {
+            _lastKey = key;
+            _resultTile = null;
+            _nextProbe = TimeSpan.Zero;
+        }
+
+        if (_timing.RealTime >= _nextProbe)
+        {
+            _nextProbe = _timing.RealTime + ProbeInterval;
+            RaiseNetworkEvent(new FSRCDProbeRequestEvent(GetNetEntity(held.Value), GetNetCoordinates(center), GetNetEntity(target)));
+        }
+
+        if (_resultTile is { } resultTile && GetCoordinates(resultTile) == center)
+        {
+            Text = _resultText;
+            Blocked = _resultBlocked;
+        }
+    }
+}

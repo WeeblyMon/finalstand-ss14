@@ -79,7 +79,7 @@ public sealed partial class AlignRCDConstruction : PlacementMode
 
         if (!_transformSystem.InRange(xform.Coordinates, position, SharedInteractionSystem.InteractionRange))
         {
-            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(0);
+            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(PlaceColorBaseAlpha * 0.35f); // FS: faint, not invisible, so "Too far" has a ghost to sit under
             return false;
         }
 

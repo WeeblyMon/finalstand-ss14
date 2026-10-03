@@ -17,3 +17,7 @@ fs-rcd-barricade-plasteel-door = plasteel door barricade
 fs-rcd-sentry = sentry turret
 fs-rcd-heavy-sentry = heavy sentry
 fs-rcd-engineers-only = Only engineers can use the RCD.
+fs-rcd-too-far = Too far.
+fs-rcd-refund = Refund: {$list}
+fs-rcd-refund-nothing = nothing, too damaged
+fs-rcd-cant-deconstruct = Can't deconstruct.
