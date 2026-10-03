@@ -1,4 +1,5 @@
 using Content.Shared.Stacks;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Repair;
@@ -21,4 +22,10 @@ public sealed partial class FSRivetComponent : Component
 
     [DataField]
     public float RepairCap = 0.75f;
+
+    [DataField]
+    public EntProtoId RepairEffect = "FSRivetSparks";
+
+    [DataField]
+    public SoundSpecifier RepairSound = new SoundPathSpecifier("/Audio/Effects/clang.ogg", AudioParams.Default.WithVolume(-4f).WithVariation(0.15f));
 }

@@ -28,6 +28,13 @@ public sealed partial class FSRivetSystem : EntitySystem
 
         args.Damage = new DamageSpecifier();
 
+        if (TryComp<ProjectileComponent>(ent, out var projectile))
+        {
+            projectile.ImpactEffect = ent.Comp.RepairEffect;
+            projectile.SoundHit = ent.Comp.RepairSound;
+            projectile.ForceSound = true;
+        }
+
         if (!_destructible.TryGetDestroyedAt(args.Target, out var max))
             return;
 

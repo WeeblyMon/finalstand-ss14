@@ -54,3 +54,21 @@
       types:
         Piercing: 6
   - type: FSRivet
+
+- type: entity
+  id: FSRivetSparks
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    drawdepth: Effects
+    layers:
+    - shader: unshaded
+      map: ["enum.EffectLayers.Unshaded"]
+      sprite: _FinalStand/Effects/rivet_sparks.rsi
+      state: sparks
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
