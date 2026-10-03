@@ -11,6 +11,7 @@ using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Destructible.Thresholds.Triggers;
+using Content.Shared.Examine;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Stacks;
@@ -53,6 +54,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         SubscribeLocalEvent<FSUpgradeableComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
         SubscribeLocalEvent<FSEngineerHammerComponent, MeleeHitEvent>(OnHammerHit);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+        SubscribeLocalEvent<FSUpgradeableComponent, ExaminedEvent>(OnExamined);
         Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
     }
 
@@ -64,6 +66,32 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         var multiplier = WaveMultiplier();
         if (!multiplier.Equals(1f))
             SetWaveMultiplier(ent, multiplier);
+    }
+
+    private void OnExamined(Entity<FSUpgradeableComponent> ent, ref ExaminedEvent args)
+    {
+        if (!args.IsInDetailsRange)
+            return;
+
+        using (args.PushGroup(nameof(FSUpgradeSystem)))
+        {
+            var installed = new List<string> { Loc.GetString(Proto.Index(ent.Comp.Grade).Name) };
+            if (ent.Comp.Branch is { } branch)
+                installed.Add(Loc.GetString(Proto.Index(branch).Name));
+
+            args.PushMarkup(Loc.GetString("fs-upgrade-examine-installed", ("list", string.Join(", ", installed))));
+
+            if (ent.Comp.Pending is { } pending)
+            {
+                var upgrade = Proto.Index(pending);
+                args.PushMarkup(Loc.GetString("fs-upgrade-examine-pending",
+                    ("name", Loc.GetString(upgrade.Name)), ("done", ent.Comp.Poured), ("hits", upgrade.Hits)));
+            }
+            else if (_departments.IsEngineering(args.Examiner))
+            {
+                args.PushMarkup(Loc.GetString("fs-upgrade-examine-hint"));
+            }
+        }
     }
 
     private void OnPrepStarted(WavePrepStartedEvent args)

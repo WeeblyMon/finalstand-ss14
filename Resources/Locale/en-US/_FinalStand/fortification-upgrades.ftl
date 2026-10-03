@@ -30,3 +30,7 @@ fs-branch-floodlit = Floodlit
 fs-branch-floodlit-desc = Lane light. A battery floodlight lights the lane in front of it, even through a Dark Wave blackout.
 fs-alert-firing-step = Firing Step
 fs-alert-firing-step-desc = You're braced on a firing step: tighter spread, less melee damage taken.
+
+fs-upgrade-examine-installed = Fitted: [color=#5fc8e8]{$list}[/color].
+fs-upgrade-examine-pending = Upgrading to [color=#d9a441]{$name}[/color]: {$done}/{$hits} hits.
+fs-upgrade-examine-hint = Alt-click with an engineer's hammer to upgrade it.
