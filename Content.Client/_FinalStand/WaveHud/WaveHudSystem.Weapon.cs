@@ -2,7 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
+using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.Materials;
+using Content.Shared._FinalStand.RCD;
+using Content.Shared.RCD.Components;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared._FinalStand.Utility;
@@ -124,6 +127,9 @@ public sealed partial class WaveHudSystem
             if (!string.IsNullOrEmpty(behaviour))
                 return $"{behaviour.ToLowerInvariant()} - [Z] to switch";
         }
+
+        if (TryComp<FSEngineerOnlyRCDComponent>(held, out var fsRcd) && TryComp<RCDComponent>(held, out var rcd))
+            return FSRCDText.Summary(EntityManager, ProtoMan, _player.LocalEntity, fsRcd, ProtoMan.Index(rcd.ProtoId));
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
             return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";

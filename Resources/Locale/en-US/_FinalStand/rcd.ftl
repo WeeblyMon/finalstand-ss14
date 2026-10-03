@@ -21,6 +21,7 @@ fs-rcd-too-far = Too far.
 fs-rcd-refund = Refund: {$list}
 fs-rcd-refund-nothing = nothing, too damaged
 fs-rcd-cant-deconstruct = Can't deconstruct.
-fs-rcd-status-build = [color=#d9a441]BUILD[/color] {$name}
-fs-rcd-status-deconstruct = [color=#ff6b5e]DECONSTRUCT[/color] click your own structures for a refund
-fs-rcd-status-caps = {$group} {$used}/{$max} · Station {$station}/{$stationMax}
+fs-rcd-summary-deconstruct = Deconstruct · click your own structures for a refund
+fs-rcd-summary-ready = {$name} · can build ×{$count}
+fs-rcd-summary-short = {$name} · short {$list}
+fs-rcd-summary-capped = {$name} · limit reached

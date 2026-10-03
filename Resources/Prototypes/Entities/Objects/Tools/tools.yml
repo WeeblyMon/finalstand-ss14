@@ -314,6 +314,13 @@
       barricade: 8
       sentry: 2
       heavy: 1
+    palette: # FS
+    - FSBarricadeMetal
+    - FSBarricadeMetalDoor
+    - FSBarricadePlasteel
+    - FSBarricadePlasteelDoor
+    - FSSentryTurretDeployed
+    - FSHeavySentryDeployed
   - type: RCD
     availablePrototypes:
     - FSBarricadeMetal # FS
