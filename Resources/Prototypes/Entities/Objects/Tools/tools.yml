@@ -362,7 +362,7 @@
   - type: UserInterface
     interfaces:
       enum.RcdUiKey.Key:
-        type: RCDMenuBoundUserInterface
+        type: FSRCDMenuBoundUserInterface # FS
   - type: ActivatableUI
     inHandsOnly: true
     key: enum.RcdUiKey.Key

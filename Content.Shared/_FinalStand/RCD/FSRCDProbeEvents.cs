@@ -20,3 +20,11 @@ public sealed class FSRCDProbeResultEvent(NetEntity rcd, NetCoordinates location
     public readonly string? Text = text;
     public readonly bool Blocked = blocked;
 }
+
+// Belt layout picks a piece without the RCD menu open.
+[Serializable, NetSerializable]
+public sealed class FSRCDBeltPickEvent(NetEntity rcd, string piece) : EntityEventArgs
+{
+    public readonly NetEntity Rcd = rcd;
+    public readonly string Piece = piece;
+}

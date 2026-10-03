@@ -47,6 +47,22 @@ public sealed partial class FSRCDEngineerOnlySystem
         RaiseNetworkEvent(new FSRCDProbeResultEvent(ev.Rcd, ev.Location, text, blocked), args.SenderSession);
     }
 
+    private void OnBeltPick(FSRCDBeltPickEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } user
+            || !_hands.TryGetActiveItem(user, out var held)
+            || GetEntity(ev.Rcd) != held
+            || !HasComp<FSEngineerOnlyRCDComponent>(held)
+            || !TryComp<RCDComponent>(held, out var rcd))
+            return;
+
+        var available = rcd.AvailablePrototypes;
+        if (!available.Contains(ev.Piece))
+            return;
+
+        RaiseLocalEvent(held.Value, new RCDSystemMessage(ev.Piece) { Actor = user });
+    }
+
     private string MaterialList(Dictionary<ProtoId<StackPrototype>, int> materials)
     {
         if (materials.Count == 0)
