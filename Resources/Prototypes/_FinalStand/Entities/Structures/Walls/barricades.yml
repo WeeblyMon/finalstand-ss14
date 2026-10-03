@@ -52,7 +52,7 @@
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradeSteel
-    options: [ FSGradePlasteel, FSGradeUranium, FSBranchBulwark, FSBranchFiringStep ]
+    options: [ FSGradePlasteel, FSGradeUranium, FSBranchBulwark, FSBranchFiringStep, FSBranchFloodlit ]
   - type: UserInterface
     interfaces:
       enum.FSUpgradeUiKey.Key:
@@ -104,7 +104,7 @@
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradePlasteel
-    options: [ FSGradeUranium, FSBranchBulwark, FSBranchFiringStep ]
+    options: [ FSGradeUranium, FSBranchBulwark, FSBranchFiringStep, FSBranchFloodlit ]
   - type: FSPlateRepair
     material: Plasteel
   - type: RCDDeconstructable
@@ -141,6 +141,13 @@
   description: A folding metal barricade weaker than the non-folding counterpart. Able to be opened and closed at a moment's notice.
   components:
   - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSBranchFloodlit ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
   - type: FSPlateRepair
     material: Steel
   - type: RCDDeconstructable
@@ -209,6 +216,9 @@
   description: A tough folding plasteel barricade stronger than its metal counterpart. Can be closed and opened at a moment's notice.
   components:
   - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradePlasteel
+    options: [ FSBranchFloodlit ]
   - type: FSPlateRepair
     material: Plasteel
   - type: RCDDeconstructable

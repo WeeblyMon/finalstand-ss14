@@ -43,3 +43,32 @@
     state: firing_step
   name: fs-alert-firing-step
   description: fs-alert-firing-step-desc
+- type: fsUpgrade
+  id: FSBranchFloodlit
+  name: fs-branch-floodlit
+  description: fs-branch-floodlit-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit
+  cost:
+    Steel: 1
+    Glass: 1
+    Silver: 1
+    Plasma: 1
+  hits: 4
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit_lens
+    shader: unshaded
+  components:
+  - type: PointLight
+    radius: 8
+    energy: 2.2
+    softness: 1
+    color: "#fff1c4"
+    lightMask: ConeSingle
+    autoRot: true
+    castShadows: true
