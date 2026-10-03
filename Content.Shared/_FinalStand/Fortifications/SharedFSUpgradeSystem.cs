@@ -16,6 +16,16 @@ public abstract class SharedFSUpgradeSystem : EntitySystem
 
     public FSUpgradeBlock Check(FSUpgradeableComponent comp, FSUpgradePrototype upgrade)
     {
+        if (upgrade.Slot == FSUpgradeSlot.Module)
+        {
+            if (comp.Modules.Contains(upgrade.ID))
+                return FSUpgradeBlock.Owned;
+
+            return upgrade.Requires is not { } needed || comp.Modules.Contains(needed)
+                ? FSUpgradeBlock.None
+                : FSUpgradeBlock.NeedsPrevious;
+        }
+
         if (upgrade.Slot == FSUpgradeSlot.Branch)
         {
             if (comp.Branch == upgrade.ID)

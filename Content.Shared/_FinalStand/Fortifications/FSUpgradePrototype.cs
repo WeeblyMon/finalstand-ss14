@@ -9,6 +9,7 @@ public enum FSUpgradeSlot : byte
 {
     Grade,
     Branch,
+    Module,
 }
 
 [Prototype("fsUpgrade")]
@@ -65,4 +66,23 @@ public sealed partial class FSUpgradePrototype : IPrototype
 
     [DataField]
     public ComponentRegistry? Components;
+
+    [DataField]
+    public FSSentryModifier? Sentry;
+}
+
+[DataDefinition]
+public sealed partial class FSSentryModifier
+{
+    [DataField]
+    public int Ammo;
+
+    [DataField]
+    public float FireInterval = 1f;
+
+    [DataField]
+    public float Damage;
+
+    [DataField]
+    public float Range;
 }

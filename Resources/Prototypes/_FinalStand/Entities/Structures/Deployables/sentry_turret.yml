@@ -8,6 +8,13 @@
     mode: SnapgridCenter
   components:
   - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSModuleBelt, FSModuleBeltDouble, FSModuleServos, FSModuleOptics, FSModuleHardenedRounds, FSModuleUraniumRounds ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
   - type: Sprite
     drawdepth: Objects
     noRot: true

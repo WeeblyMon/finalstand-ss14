@@ -34,3 +34,16 @@ fs-alert-firing-step-desc = You're braced on a firing step: tighter spread, less
 fs-upgrade-examine-installed = Fitted: [color=#5fc8e8]{$list}[/color].
 fs-upgrade-examine-pending = Upgrading to [color=#d9a441]{$name}[/color]: {$done}/{$hits} hits.
 fs-upgrade-examine-hint = Alt-click with an engineer's hammer to upgrade it.
+
+fs-module-belt = Extended Belt
+fs-module-belt-desc = 60 more rounds before it runs dry.
+fs-module-belt-double = Double Belt
+fs-module-belt-double-desc = Another 100 rounds on top of the extended belt.
+fs-module-servos = Cycling Servos
+fs-module-servos-desc = Fires a third faster.
+fs-module-optics = Optics Package
+fs-module-optics-desc = Engages one tile further out.
+fs-module-hardened = Hardened Rounds
+fs-module-hardened-desc = +25% damage per round.
+fs-module-uranium = Depleted Uranium Rounds
+fs-module-uranium-desc = A further +35% damage per round.

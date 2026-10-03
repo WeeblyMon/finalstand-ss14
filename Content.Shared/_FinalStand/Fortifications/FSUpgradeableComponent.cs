@@ -16,6 +16,9 @@ public sealed partial class FSUpgradeableComponent : Component
     [DataField, AutoNetworkedField]
     public ProtoId<FSUpgradePrototype>? Branch;
 
+    [DataField, AutoNetworkedField]
+    public List<ProtoId<FSUpgradePrototype>> Modules = new();
+
     [AutoNetworkedField]
     public ProtoId<FSUpgradePrototype>? Pending;
 

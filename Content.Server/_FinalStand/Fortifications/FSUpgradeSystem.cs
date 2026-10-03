@@ -5,6 +5,7 @@ using Content.Server.Chat.Managers;
 using Content.Server._FinalStand.Repair;
 using Content.Server.Destructible;
 using Content.Server.Popups;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Materials;
@@ -78,6 +79,8 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             var installed = new List<string> { Loc.GetString(Proto.Index(ent.Comp.Grade).Name) };
             if (ent.Comp.Branch is { } branch)
                 installed.Add(Loc.GetString(Proto.Index(branch).Name));
+            foreach (var module in ent.Comp.Modules)
+                installed.Add(Loc.GetString(Proto.Index(module).Name));
 
             args.PushMarkup(Loc.GetString("fs-upgrade-examine-installed", ("list", string.Join(", ", installed))));
 
@@ -237,16 +240,34 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
     public void Apply(Entity<FSUpgradeableComponent> ent, FSUpgradePrototype upgrade)
     {
-        if (upgrade.Slot == FSUpgradeSlot.Grade)
-            ent.Comp.Grade = upgrade.ID;
-        else
-            ent.Comp.Branch = upgrade.ID;
+        switch (upgrade.Slot)
+        {
+            case FSUpgradeSlot.Grade:
+                ent.Comp.Grade = upgrade.ID;
+                break;
+            case FSUpgradeSlot.Branch:
+                ent.Comp.Branch = upgrade.ID;
+                break;
+            case FSUpgradeSlot.Module:
+                ent.Comp.Modules.Add(upgrade.ID);
+                break;
+        }
 
         ent.Comp.Pending = null;
         ent.Comp.Poured = 0;
 
         if (upgrade.Components != null)
             EntityManager.AddComponents(ent, upgrade.Components);
+
+        if (upgrade.Sentry is { } sentry && TryComp<FSSentryTurretComponent>(ent, out var turret))
+        {
+            turret.MaxAmmo += sentry.Ammo;
+            turret.Ammo += sentry.Ammo;
+            turret.FireInterval *= sentry.FireInterval;
+            turret.DamageMultiplier += sentry.Damage;
+            turret.Range += sentry.Range;
+            Dirty(ent, turret);
+        }
 
         Recalculate(ent);
         Dirty(ent);
