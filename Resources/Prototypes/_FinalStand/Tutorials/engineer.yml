@@ -1,0 +1,34 @@
+- type: fsTutorial
+  id: FSTutorialEngineer
+  jobs: [ StationEngineer, AtmosphericTechnician, ChiefEngineer ]
+  pages:
+  - image:
+      sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+      state: metal
+    title: fs-tutorial-eng-1-title
+    text: fs-tutorial-eng-1-text
+  - image:
+      sprite: Objects/Tools/rcd.rsi
+      state: icon
+    title: fs-tutorial-eng-2-title
+    text: fs-tutorial-eng-2-text
+  - image:
+      sprite: Objects/Weapons/Melee/sledgehammer.rsi
+      state: icon
+    title: fs-tutorial-eng-3-title
+    text: fs-tutorial-eng-3-text
+  - image:
+      sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+      state: icon
+    title: fs-tutorial-eng-4-title
+    text: fs-tutorial-eng-4-text
+  - image:
+      sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+      state: icon
+    title: fs-tutorial-eng-5-title
+    text: fs-tutorial-eng-5-text
+  - image:
+      sprite: Structures/Machines/silo.rsi
+      state: silo
+    title: fs-tutorial-eng-6-title
+    text: fs-tutorial-eng-6-text

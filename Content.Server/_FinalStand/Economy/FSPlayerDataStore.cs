@@ -177,6 +177,12 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             pragma.ExecuteNonQuery();
         }
 
+        using (var tutorials = db.CreateCommand())
+        {
+            tutorials.CommandText = "CREATE TABLE IF NOT EXISTS tutorials_seen (user_id TEXT NOT NULL, tutorial TEXT NOT NULL, PRIMARY KEY (user_id, tutorial))";
+            tutorials.ExecuteNonQuery();
+        }
+
         using var createCmd = db.CreateCommand();
         createCmd.CommandText = """
             CREATE TABLE IF NOT EXISTS prestige (
