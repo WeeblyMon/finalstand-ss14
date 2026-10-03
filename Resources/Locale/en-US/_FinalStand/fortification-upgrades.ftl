@@ -12,3 +12,10 @@ fs-upgrade-tooltip = {$name}
 fs-upgrade-blocked-owned = Already installed.
 fs-upgrade-blocked-needsprevious = Needs the previous grade first.
 fs-upgrade-blocked-branchtaken = This barricade already has a branch.
+
+fs-grade-steel = Steel grade
+fs-grade-steel-desc = Standard plating.
+fs-grade-plasteel = Plasteel grade
+fs-grade-plasteel-desc = Doubles health. Repaired with plasteel plates.
+fs-grade-uranium = Depleted uranium grade
+fs-grade-uranium-desc = Triple health, the toughest there is. Repairs take twice as long.
