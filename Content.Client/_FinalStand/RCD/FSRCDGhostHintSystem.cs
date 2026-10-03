@@ -37,6 +37,7 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
     public EntityCoordinates? Tile { get; private set; }
     public string? Text { get; private set; }
     public bool Blocked { get; private set; }
+    public bool Deconstructing { get; private set; }
 
     private (EntityUid Rcd, EntityCoordinates Tile, string Proto, EntityUid? Target, Direction Dir) _lastKey;
     private TimeSpan _nextProbe;
@@ -69,13 +70,16 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
         Tile = null;
         Text = null;
         Blocked = false;
+        Deconstructing = false;
 
         if (_player.LocalEntity is not { } player
             || !_hands.TryGetActiveItem(player, out var held)
             || !HasComp<FSEngineerOnlyRCDComponent>(held)
             || !TryComp<RCDComponent>(held, out var rcd)
-            || IsClientSide(held.Value)
-            || _ui.CurrentlyHovered is not IViewportControl)
+            || IsClientSide(held.Value))
+            return;
+
+        if (_ui.CurrentlyHovered is not IViewportControl)
             return;
 
         var mapCoords = _eye.PixelToMap(_input.MouseScreenPosition);
@@ -93,6 +97,7 @@ public sealed class FSRCDGhostHintSystem : EntitySystem
         }
 
         var proto = ProtoMan.Index(rcd.ProtoId);
+        Deconstructing = proto.Mode == RcdMode.Deconstruct;
         EntityUid? target = proto.Mode == RcdMode.Deconstruct && _state.CurrentState is GameplayStateBase screen
             ? screen.GetClickedEntity(mapCoords)
             : null;
