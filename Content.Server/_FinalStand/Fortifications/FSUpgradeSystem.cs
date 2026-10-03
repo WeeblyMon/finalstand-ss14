@@ -1,9 +1,12 @@
 // Engineers pick an upgrade with the hammer (alt-click), then hit the structure to pour materials in; it upgrades in place.
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server.Chat.Managers;
 using Content.Server._FinalStand.Repair;
 using Content.Server.Destructible;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
@@ -32,10 +35,14 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private IChatManager _chat = default!;
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
     private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
         AudioParams.Default.WithVariation(0.1f));
+    private static readonly (int Wave, float Multiplier)[] WaveSteps = [(20, 2.2f), (10, 1.5f)];
+
     private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
 
     public override void Initialize()
@@ -45,6 +52,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         SubscribeLocalEvent<FSUpgradeableComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<FSUpgradeableComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
         SubscribeLocalEvent<FSEngineerHammerComponent, MeleeHitEvent>(OnHammerHit);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
     }
 
@@ -52,6 +60,43 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     {
         if (_destructible.TryGetDestroyedAt(ent.Owner, out var max))
             ent.Comp.SteelHealth = max.Value.Float() / Proto.Index(ent.Comp.Grade).Health;
+
+        var multiplier = WaveMultiplier();
+        if (!multiplier.Equals(1f))
+            SetWaveMultiplier(ent, multiplier);
+    }
+
+    private void OnPrepStarted(WavePrepStartedEvent args)
+    {
+        var multiplier = WaveMultiplier();
+        var raised = false;
+        var query = EntityQueryEnumerator<FSUpgradeableComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (comp.WaveMultiplier.Equals(multiplier))
+                continue;
+
+            raised |= multiplier > comp.WaveMultiplier;
+            SetWaveMultiplier((uid, comp), multiplier);
+        }
+
+        if (raised)
+            _chat.DispatchServerAnnouncement(Loc.GetString("fs-upgrade-wave-hardened",
+                ("percent", (int) MathF.Round((multiplier - 1f) * 100f))), Color.FromHex("#5fc8e8"));
+    }
+
+    private float WaveMultiplier()
+    {
+        if (!_waveRule.TryGetWaveStatus(out var wave, out _))
+            return 1f;
+
+        foreach (var (from, multiplier) in WaveSteps)
+        {
+            if (wave >= from)
+                return multiplier;
+        }
+
+        return 1f;
     }
 
     private void OnDamaged(Entity<FSUpgradeableComponent> ent, ref DamageChangedEvent args)

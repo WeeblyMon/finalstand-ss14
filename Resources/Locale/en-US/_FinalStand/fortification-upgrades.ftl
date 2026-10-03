@@ -6,6 +6,7 @@ fs-upgrade-needs = Each hit needs {$list}.
 fs-upgrade-selected = {$name}: {$hits} hits to go.
 fs-upgrade-progress = Upgrading: {$done}/{$hits}.
 fs-upgrade-done = {$name} installed.
+fs-upgrade-wave-hardened = Fortifications reinforced for the harder waves: +{$percent}% health on every barricade.
 fs-upgrade-tooltip = {$name}
     {$desc}
     Cost: {$cost} over {$hits} hits.
