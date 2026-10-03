@@ -80,7 +80,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         var missing = new List<string>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = _materials.Count(user, material);
+            var have = Available(user, material);
             if (have < need)
                 missing.Add(Loc.GetString("fs-rcd-need-entry", ("need", need), ("have", have),
                     ("name", Loc.GetString(_proto.Index(material).Name))));
@@ -115,7 +115,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (protoId == null || !_proto.TryIndex<FSBuildRecipePrototype>(protoId, out var recipe))
             return;
 
-        if (!_materials.TryConsume(args.User, recipe.Materials))
+        if (!TryCommit(ent, args.User, recipe))
         {
             QueueDel(args.Built);
             _popup.PopupEntity(Loc.GetString("fs-rcd-materials-gone"), ent, args.User, PopupType.Medium);
@@ -159,11 +159,13 @@ public sealed partial class FSRCDEngineerOnlySystem
                 used[group] = used.GetValueOrDefault(group) + 1;
         }
 
-        if (station == rcd.Comp.StationUsed && DictionaryEquals(used, rcd.Comp.CapsUsed))
+        var silo = SiloStockFor(user, rcd.Comp);
+        if (station == rcd.Comp.StationUsed && DictionaryEquals(used, rcd.Comp.CapsUsed) && DictionaryEquals(silo, rcd.Comp.SiloStock))
             return;
 
         rcd.Comp.StationUsed = station;
         rcd.Comp.CapsUsed = used;
+        rcd.Comp.SiloStock = silo;
         Dirty(rcd);
     }
 

@@ -23,4 +23,8 @@ public sealed partial class FSEngineerOnlyRCDComponent : Component
 
     [AutoNetworkedField]
     public int StationUsed;
+
+    // Sheets of each palette material the holder could draw from silos in reach.
+    [AutoNetworkedField]
+    public Dictionary<string, int> SiloStock = new();
 }

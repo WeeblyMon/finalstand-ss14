@@ -26,7 +26,10 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    private static readonly TimeSpan UsageRefreshInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan UsageRefreshInterval = TimeSpan.FromSeconds(0.5);
+    private static readonly TimeSpan ReservationTimeout = TimeSpan.FromSeconds(30);
+    private readonly Dictionary<EntityUid, TimeSpan> _reservedAt = new();
+    private readonly List<EntityUid> _expired = new();
     private TimeSpan _nextUsageRefresh;
 
     public override void Initialize()
@@ -44,6 +47,9 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
     {
+        if (args.Cancelled)
+            Release(ent);
+
         if (!args.Cancelled && args.Args.Target is { } target && EntityManager.IsQueuedForDeletion(target))
         {
             RefundDeconstruct(target);
@@ -57,6 +63,21 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
             return;
 
         _nextUsageRefresh = _timing.CurTime + UsageRefreshInterval;
+
+        // A build that never started (vanilla refused it after us) would otherwise hold its silo stock forever.
+        foreach (var (rcd, at) in _reservedAt)
+        {
+            if (_timing.CurTime - at > ReservationTimeout)
+                _expired.Add(rcd);
+        }
+
+        foreach (var rcd in _expired)
+        {
+            Release(rcd);
+            _reservedAt.Remove(rcd);
+        }
+
+        _expired.Clear();
         var query = EntityQueryEnumerator<FSEngineerOnlyRCDComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))
         {
@@ -70,11 +91,30 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         if (args.Handled || !args.CanReach)
             return;
 
-        if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is not { } reason)
+        if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is { } reason)
+        {
+            args.Handled = true;
+            _popup.PopupEntity(reason, uid, args.User, PopupType.Medium);
             return;
+        }
 
-        args.Handled = true;
-        _popup.PopupEntity(reason, uid, args.User, PopupType.Medium);
+        if (RecipeFor(uid) is { } recipe && !TryReserve(uid, args.User, recipe))
+        {
+            args.Handled = true;
+            _popup.PopupEntity(Loc.GetString("fs-rcd-silo-busy"), uid, args.User, PopupType.Medium);
+            return;
+        }
+
+        _reservedAt[uid] = _timing.CurTime;
+    }
+
+    private FSBuildRecipePrototype? RecipeFor(EntityUid rcd)
+    {
+        return TryComp<RCDComponent>(rcd, out var rcdComp)
+               && _proto.Index(rcdComp.ProtoId).Mode == RcdMode.ConstructObject
+               && _proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe)
+            ? recipe
+            : null;
     }
 
     // Objects (walls, airlocks, windows) are blocked on marked tiles; floor tiles stay legal. Applies to engineers too.

@@ -35,3 +35,4 @@ fs-rcd-summary-short = {$name} · short {$list}
 fs-rcd-summary-capped = {$name} · limit reached
 fs-rcd-spent = -{$amount} {$name}
 fs-rcd-first-hint = Z: choose a piece · Click: build · R: rotate
+fs-rcd-silo-busy = The silo stock is already promised to another build.
