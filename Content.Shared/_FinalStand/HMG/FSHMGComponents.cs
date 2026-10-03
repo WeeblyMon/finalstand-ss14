@@ -1,0 +1,87 @@
+using Robust.Shared.GameStates;
+
+namespace Content.Shared._FinalStand.HMG;
+
+// A crewed heavy machine gun: the gun lives on this entity and fires for whoever is buckled to it.
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSHMGComponent : Component
+{
+    [AutoNetworkedField]
+    public EntityUid? Gunner;
+
+    [AutoNetworkedField]
+    public EntityUid? Crate;
+
+    [DataField]
+    public float Arc = 90f;
+
+    // Sustained fire overheats in about 4 s; an overheated gun is locked until it has fully cooled.
+    [DataField]
+    public float HeatPerShot = 0.075f;
+
+    [DataField]
+    public float CoolPerSecond = 0.34f;
+
+    [DataField, AutoNetworkedField]
+    public float Heat;
+
+    [AutoNetworkedField]
+    public TimeSpan HeatAt;
+
+    [AutoNetworkedField]
+    public TimeSpan OverheatedUntil;
+
+    [DataField]
+    public float LinkRange = 1.5f;
+
+    [DataField]
+    public TimeSpan MessageCooldown = TimeSpan.FromSeconds(1);
+
+    public TimeSpan NextMessage;
+}
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSHMGGunnerComponent : Component
+{
+    [AutoNetworkedField]
+    public EntityUid Hmg;
+
+    public bool WasInCombatMode;
+}
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSAmmoCrateComponent : Component
+{
+    [DataField, AutoNetworkedField]
+    public int Rounds = 3000;
+
+    [DataField]
+    public int MaxRounds = 3000;
+
+    [AutoNetworkedField]
+    public EntityUid? LinkedTo;
+}
+
+// Projectiles that pay a fixed amount per hit no matter what the shooter is holding.
+[RegisterComponent]
+public sealed partial class FSFlatMoneyProjectileComponent : Component
+{
+    [DataField]
+    public int Amount = 10;
+}
+
+[Robust.Shared.Serialization.NetSerializable, Serializable]
+public enum FSAmmoCrateVisuals : byte
+{
+    Level,
+}
+
+[Robust.Shared.Serialization.NetSerializable, Serializable]
+public enum FSAmmoCrateLevel : byte
+{
+    Empty,
+    Low,
+    Medium,
+    High,
+    Full,
+}

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.RCD;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD.Components;
@@ -39,6 +40,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private IInputManager _input = default!;
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
+    [Dependency] private FSHMGSystem _hmg = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -57,6 +59,12 @@ public sealed partial class WaveHudSystem
             return;
 
         overlay.HasThrowChoice = CountGrenadeTypes(player) > 1;
+
+        if (TryComp<FSHMGGunnerComponent>(player, out var gunner) && TryComp<FSHMGComponent>(gunner.Hmg, out var hmg))
+        {
+            UpdateHmg(overlay, (gunner.Hmg, hmg));
+            return;
+        }
 
         if (!_hands.TryGetActiveItem(player, out var active))
             return;
@@ -102,6 +110,22 @@ public sealed partial class WaveHudSystem
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))
             overlay.ItemDetail = mix;
+    }
+
+    private void UpdateHmg(WaveHudOverlay overlay, Entity<FSHMGComponent> hmg)
+    {
+        overlay.WeaponName = Name(hmg);
+        var ammo = new GetAmmoCountEvent();
+        RaiseLocalEvent(hmg, ref ammo);
+        overlay.WeaponLoaded = ammo.Count;
+        overlay.WeaponCapacity = ammo.Capacity;
+
+        var heat = (int) MathF.Round(_hmg.CurrentHeat(hmg.Comp) * 100f);
+        overlay.ItemDetail = _hmg.IsOverheated(hmg.Comp)
+            ? Loc.GetString("fs-hud-hmg-overheated")
+            : TryComp<FSAmmoCrateComponent>(hmg.Comp.Crate, out var crate)
+                ? Loc.GetString("fs-hud-hmg-detail", ("crate", crate.Rounds), ("heat", heat))
+                : Loc.GetString("fs-hud-hmg-no-crate", ("heat", heat));
     }
 
     private void UpdateUberMeter(WaveHudOverlay overlay, EntityUid held)

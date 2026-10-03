@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Recoloured from RMC-14 modular ammo boxes (https://github.com/RMC-14/RMC-14): original sprite by Aleksh, modified by Ramiris, SharkSnake98, RavenCaat, noctyrnal; large box by TadJohnson00",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "crate"
+    },
+    {
+      "name": "ammo_full"
+    },
+    {
+      "name": "ammo_high"
+    },
+    {
+      "name": "ammo_medium"
+    },
+    {
+      "name": "ammo_low"
+    }
+  ]
+}

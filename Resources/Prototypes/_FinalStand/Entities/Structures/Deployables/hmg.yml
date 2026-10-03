@@ -1,0 +1,141 @@
+# Crewed heavy machine gun (M2C art from RMC-14). Click it to sit behind it; fires in a 90° arc from a linked ammo crate.
+- type: entity
+  parent: BaseStructure
+  id: FSHMGDeployed
+  name: heavy machine gun
+  description: A tripod-mounted heavy machine gun. Sit behind it to fire in the direction it faces. Drag an ammo crate next to it to keep the belt fed.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
+    drawdepth: Objects
+    layers:
+    - state: deployed
+    - state: overheat
+      map: [ "overheat" ]
+      shader: unshaded
+      visible: false
+  - type: Rotatable
+  - type: InteractionOutline
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.49,0.45,-0.3"
+        density: 300
+        mask:
+        - FullTileMask
+        layer:
+        - TableLayer
+  - type: Strap
+    position: Stand
+    buckleOffset: "0,0.45"
+  - type: Gun
+    fireRate: 8
+    projectileSpeed: 30
+    minAngle: 2
+    maxAngle: 9
+    angleIncrease: 0.6
+    angleDecay: 12
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+      params:
+        volume: 2
+  - type: BasicEntityAmmoProvider
+    proto: FSHMGBullet
+    capacity: 100
+    count: 100
+  - type: FSHMG
+  - type: FSStructureHealth
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
+  - type: Damageable
+    damageModifierSet: FSBarricade
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Appearance
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: BaseBullet
+  id: FSHMGBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 12
+  - type: FSFlatMoneyProjectile
+
+- type: entity
+  parent: BaseStructureDynamic
+  id: FSAmmoCrate
+  name: HMG ammo crate
+  description: 3,000 belted rounds. Drag it next to a heavy machine gun and leave it there; it feeds the belt as long as nobody is dragging it.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
+    drawdepth: Objects
+    layers:
+    - state: crate
+    - state: ammo_full
+      map: [ "ammo" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.FSAmmoCrateVisuals.Level:
+        ammo:
+          Full: { state: ammo_full, visible: true }
+          High: { state: ammo_high, visible: true }
+          Medium: { state: ammo_medium, visible: true }
+          Low: { state: ammo_low, visible: true }
+          Empty: { visible: false }
+  - type: InteractionOutline
+  - type: Pullable
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.35,-0.3,0.35,0.3"
+        density: 120
+        mask:
+        - MachineMask
+        layer:
+        - MidImpassable
+        - LowImpassable
+  - type: FSAmmoCrate
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 1
+    fx: EffectRCDDeconstruct2
+  - type: Damageable
+    damageModifierSet: FSBarricade
+  - type: Injurable
+    damageContainer: Inorganic
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 150
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
