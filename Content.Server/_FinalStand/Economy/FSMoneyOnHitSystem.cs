@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Perks;
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Damage;
@@ -27,6 +28,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
     private const int BaseMoneyPerHit = 30;
 
     private EntityUid? _deployableHitTarget;
+    private (EntityUid Target, int Amount)? _flatHit;
 
     // The Harvester lands 20 hitscans a second, so at full rate it caps every enemy almost
     // instantly. Its payout is scaled down to keep it a research weapon, not an income weapon.
@@ -40,6 +42,7 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
 
         SubscribeLocalEvent<FSMoneyOnHitCapComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<FSDeployableProjectileComponent, ProjectileHitEvent>(OnDeployableHit);
+        SubscribeLocalEvent<FSFlatMoneyProjectileComponent, ProjectileHitEvent>(OnFlatHit);
     }
 
     private void OnDeployableHit(Entity<FSDeployableProjectileComponent> ent, ref ProjectileHitEvent args)
@@ -47,10 +50,17 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         _deployableHitTarget = args.Target;
     }
 
+    private void OnFlatHit(Entity<FSFlatMoneyProjectileComponent> ent, ref ProjectileHitEvent args)
+    {
+        _flatHit = (args.Target, ent.Comp.Amount);
+    }
+
     private void OnDamageChanged(EntityUid uid, FSMoneyOnHitCapComponent cap, DamageChangedEvent args)
     {
         var fromDeployable = _deployableHitTarget == uid;
         _deployableHitTarget = null;
+        int? flatAmount = _flatHit is { } flatHit && flatHit.Target == uid ? flatHit.Amount : null;
+        _flatHit = null;
 
         if (!args.DamageIncreased || args.Origin == null)
             return;
@@ -68,8 +78,8 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         if (alreadyGiven >= cap.MaxMoneyPerPlayer)
             return;
 
-        var payout = BaseMoneyPerHit;
-        if (!fromDeployable && _hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
+        var payout = flatAmount ?? BaseMoneyPerHit;
+        if (flatAmount == null && !fromDeployable && _hands.TryGetActiveItem(args.Origin.Value, out var heldItem))
         {
             if (TryComp<FSFlatMoneyPerHitComponent>(heldItem, out var flat))
                 payout = flat.Amount;
