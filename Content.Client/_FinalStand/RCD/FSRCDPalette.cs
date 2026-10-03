@@ -48,7 +48,7 @@ public sealed class FSRCDPalette
         var materials = entMan.System<FSCarriedMaterialSystem>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = user is { } u ? materials.Count(u, material) : 0;
+            var have = FSRCDText.Have(materials, user, fs, material);
             count = Math.Min(count, need > 0 ? have / need : count);
         }
 
@@ -68,7 +68,7 @@ public sealed class FSRCDPalette
         var footer = Loc.GetString("fs-rcd-info-time", ("seconds", piece.Delay));
         if (proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))
         {
-            lines.Add(FSRCDText.Costs(entMan, proto, user, recipe, "\n"));
+            lines.Add(FSRCDText.Costs(entMan, proto, user, fs, recipe, "\n"));
             if (recipe.CapGroup is { } group)
                 footer = $"{FSRCDText.CapShort(fs, group)} · {footer}";
         }

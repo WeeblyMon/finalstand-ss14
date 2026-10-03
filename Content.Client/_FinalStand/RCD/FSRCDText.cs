@@ -1,6 +1,7 @@
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
+using Content.Shared.Stacks;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.RCD;
@@ -10,6 +11,12 @@ public static class FSRCDText
 {
     private const string Enough = "#8fe07a";
     private const string Short = "#ff6b5e";
+
+    // Carried sheets plus whatever the server says the holder can draw from silos in reach.
+    public static int Have(FSCarriedMaterialSystem materials, EntityUid? user, FSEngineerOnlyRCDComponent fs, ProtoId<StackPrototype> material)
+    {
+        return (user is { } u ? materials.Count(u, material) : 0) + fs.SiloStock.GetValueOrDefault(material);
+    }
 
     public static string Name(IPrototypeManager protoMan, RCDPrototype proto)
     {
@@ -25,13 +32,13 @@ public static class FSRCDText
     // Separate method so Roslyn doesn't fold it into a call the sandbox rejects.
     private static string Concat(string a, string b) => a + b;
 
-    public static string Costs(IEntityManager entMan, IPrototypeManager proto, EntityUid? user, FSBuildRecipePrototype recipe, string separator = "  ")
+    public static string Costs(IEntityManager entMan, IPrototypeManager proto, EntityUid? user, FSEngineerOnlyRCDComponent fs, FSBuildRecipePrototype recipe, string separator = "  ")
     {
         var materials = entMan.System<FSCarriedMaterialSystem>();
         var parts = new List<string>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = user is { } u ? materials.Count(u, material) : 0;
+            var have = Have(materials, user, fs, material);
             parts.Add($"[color={(have >= need ? Enough : Short)}]{have}/{need}[/color] {Loc.GetString(proto.Index(material).Name)}");
         }
 
@@ -57,7 +64,7 @@ public static class FSRCDText
         var missing = new List<string>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = user is { } u ? materials.Count(u, material) : 0;
+            var have = Have(materials, user, fs, material);
             if (have < need)
                 missing.Add($"{need - have} {Loc.GetString(proto.Index(material).Name)}");
         }
