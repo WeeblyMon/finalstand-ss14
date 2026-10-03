@@ -46,7 +46,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
         if (args.Handled || PlatesNeeded(ent) <= 0 && ent.Comp.Fitted == 0)
             return;
 
-        var delayScale = _departments.IsEngineering(args.User) ? 1f : UntrainedMultiplier;
+        var delayScale = (_departments.IsEngineering(args.User) ? 1f : UntrainedMultiplier) * ent.Comp.DelayMultiplier;
 
         if (TryComp<StackComponent>(args.Used, out var stack) && stack.StackTypeId == ent.Comp.Material)
         {

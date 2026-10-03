@@ -14,4 +14,6 @@ public sealed partial class FSPlateRepairComponent : Component
     public int Plates = 4;
 
     public int Fitted;
+
+    public float DelayMultiplier = 1f;
 }

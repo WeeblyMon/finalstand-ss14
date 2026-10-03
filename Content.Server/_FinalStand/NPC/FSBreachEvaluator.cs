@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Fortifications;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
 using Content.Server.Destructible.Thresholds;
@@ -36,6 +37,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     [Dependency] private SharedMapSystem _mapSystem = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSUpgradeSystem _upgrades = default!;
 
     // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
@@ -337,7 +339,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         if (TryComp<FSBreachCostOverrideComponent>(structure, out var overrideComp))
             return overrideComp.Cost;
 
-        return MathF.Max(1f, GetStructureMaxHp(structure) / baseDamage);
+        return MathF.Max(1f, GetStructureMaxHp(structure) / baseDamage * _upgrades.BreachMultiplier(structure));
     }
 
     private float GetStructureMaxHp(EntityUid structure)

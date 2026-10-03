@@ -45,6 +45,7 @@
     - Flash
     - RCD # FS
     - FSRivetGun # FS
+    - FSEngineerHammer # FS
 
 - type: chameleonOutfit
   id: ChiefEngineerChameleonOutfit

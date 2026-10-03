@@ -15,7 +15,12 @@ public sealed partial class FSStructureHealthSystem : EntitySystem
 
     private void OnMapInit(Entity<FSStructureHealthComponent> ent, ref MapInitEvent args)
     {
-        if (!_destructible.TryGetDestroyedAt(ent.Owner, out var max))
+        Refresh(ent.AsNullable());
+    }
+
+    public void Refresh(Entity<FSStructureHealthComponent?> ent)
+    {
+        if (!Resolve(ent, ref ent.Comp, false) || !_destructible.TryGetDestroyedAt(ent.Owner, out var max))
             return;
 
         ent.Comp.Max = max.Value.Float();

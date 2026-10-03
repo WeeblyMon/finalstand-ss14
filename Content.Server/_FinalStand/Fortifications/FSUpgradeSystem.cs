@@ -1,0 +1,254 @@
+// Engineers pick an upgrade with the hammer (alt-click), then hit the structure to pour materials in; it upgrades in place.
+using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Repair;
+using Content.Server.Destructible;
+using Content.Server.Popups;
+using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.Materials;
+using Content.Shared._FinalStand.Repair;
+using Content.Shared.Damage.Systems;
+using Content.Shared.Destructible.Thresholds.Triggers;
+using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Popups;
+using Content.Shared.Stacks;
+using Content.Shared.Verbs;
+using Content.Shared.Weapons.Melee.Events;
+using Robust.Server.Audio;
+using Robust.Server.GameObjects;
+using Robust.Shared.Audio;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
+
+namespace Content.Server._FinalStand.Fortifications;
+
+public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
+{
+    [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private FSStructureHealthSystem _health = default!;
+    [Dependency] private FSCarriedMaterialSystem _materials = default!;
+    [Dependency] private FSDepartmentAccessSystem _departments = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
+    private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
+        AudioParams.Default.WithVariation(0.1f));
+    private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSUpgradeableComponent, MapInitEvent>(OnMapInit);
+        SubscribeLocalEvent<FSUpgradeableComponent, DamageChangedEvent>(OnDamaged);
+        SubscribeLocalEvent<FSUpgradeableComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
+        SubscribeLocalEvent<FSEngineerHammerComponent, MeleeHitEvent>(OnHammerHit);
+        Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
+    }
+
+    private void OnMapInit(Entity<FSUpgradeableComponent> ent, ref MapInitEvent args)
+    {
+        if (_destructible.TryGetDestroyedAt(ent.Owner, out var max))
+            ent.Comp.SteelHealth = max.Value.Float() / Proto.Index(ent.Comp.Grade).Health;
+    }
+
+    private void OnDamaged(Entity<FSUpgradeableComponent> ent, ref DamageChangedEvent args)
+    {
+        if (args.DamageIncreased)
+            ent.Comp.LastDamaged = _timing.CurTime;
+    }
+
+    private void OnGetVerbs(Entity<FSUpgradeableComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
+    {
+        if (!args.CanAccess || !args.CanInteract || !HasComp<FSEngineerHammerComponent>(args.Using))
+            return;
+
+        var user = args.User;
+        args.Verbs.Add(new AlternativeVerb
+        {
+            Text = Loc.GetString("fs-upgrade-verb"),
+            Act = () =>
+            {
+                if (!_departments.IsEngineering(user))
+                {
+                    _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), ent, user);
+                    return;
+                }
+
+                _ui.OpenUi(ent.Owner, FSUpgradeUiKey.Key, user);
+            },
+        });
+    }
+
+    private void OnSelect(Entity<FSUpgradeableComponent> ent, ref FSUpgradeSelectMessage args)
+    {
+        var user = args.Actor;
+        if (!ent.Comp.Options.Contains(args.Upgrade)
+            || !_departments.IsEngineering(user)
+            || !_hands.TryGetActiveItem(user, out var held)
+            || !HasComp<FSEngineerHammerComponent>(held))
+            return;
+
+        _ui.CloseUi(ent.Owner, FSUpgradeUiKey.Key, user);
+
+        var upgrade = Proto.Index(args.Upgrade);
+        var block = Check(ent.Comp, upgrade);
+        if (block != FSUpgradeBlock.None)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant()), ent, user);
+            return;
+        }
+
+        if (ent.Comp.Pending != args.Upgrade)
+        {
+            ent.Comp.Pending = args.Upgrade;
+            ent.Comp.Poured = 0;
+            Dirty(ent);
+        }
+
+        _popup.PopupEntity(Loc.GetString("fs-upgrade-selected",
+            ("name", Loc.GetString(upgrade.Name)), ("hits", upgrade.Hits - ent.Comp.Poured)), ent, user);
+    }
+
+    private void OnHammerHit(Entity<FSEngineerHammerComponent> ent, ref MeleeHitEvent args)
+    {
+        if (args.HitEntities.Count != 1 || !TryComp<FSUpgradeableComponent>(args.HitEntities[0], out var comp))
+            return;
+
+        args.Handled = true;
+        var target = new Entity<FSUpgradeableComponent>(args.HitEntities[0], comp);
+        var user = args.User;
+
+        if (comp.Pending is not { } pendingId)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-pick-first"), target, user);
+            return;
+        }
+
+        if (!_departments.IsEngineering(user))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), target, user);
+            return;
+        }
+
+        if (comp.LastDamaged is { } last && _timing.CurTime - last < InterruptWindow)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-under-attack"), target, user, PopupType.SmallCaution);
+            return;
+        }
+
+        var upgrade = Proto.Index(pendingId);
+        var cost = HitCost(upgrade, comp.Poured);
+        if (!_materials.TryConsume(user, cost))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-needs", ("list", CostText(cost))), target, user, PopupType.SmallCaution);
+            return;
+        }
+
+        comp.Poured++;
+        _audio.PlayPvs(PourSound, target);
+
+        if (comp.Poured < upgrade.Hits)
+        {
+            Dirty(target);
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-progress", ("done", comp.Poured), ("hits", upgrade.Hits)), target, user);
+            return;
+        }
+
+        Apply(target, upgrade);
+        _audio.PlayPvs(DoneSound, target);
+        _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, user, PopupType.Medium);
+    }
+
+    public void Apply(Entity<FSUpgradeableComponent> ent, FSUpgradePrototype upgrade)
+    {
+        if (upgrade.Slot == FSUpgradeSlot.Grade)
+            ent.Comp.Grade = upgrade.ID;
+        else
+            ent.Comp.Branch = upgrade.ID;
+
+        ent.Comp.Pending = null;
+        ent.Comp.Poured = 0;
+
+        if (upgrade.Components != null)
+            EntityManager.AddComponents(ent, upgrade.Components);
+
+        Recalculate(ent);
+        Dirty(ent);
+    }
+
+    public void SetWaveMultiplier(Entity<FSUpgradeableComponent> ent, float multiplier)
+    {
+        ent.Comp.WaveMultiplier = multiplier;
+        Recalculate(ent);
+    }
+
+    public float BreachMultiplier(EntityUid uid)
+    {
+        if (!TryComp<FSUpgradeableComponent>(uid, out var comp))
+            return 1f;
+
+        var multiplier = Proto.Index(comp.Grade).Breach;
+        if (comp.Branch is { } branch)
+            multiplier *= Proto.Index(branch).Breach;
+
+        return multiplier;
+    }
+
+    private void Recalculate(Entity<FSUpgradeableComponent> ent)
+    {
+        var grade = Proto.Index(ent.Comp.Grade);
+        var branch = ent.Comp.Branch is { } id ? Proto.Index(id) : null;
+
+        var health = ent.Comp.SteelHealth * grade.Health * (branch?.Health ?? 1f) * ent.Comp.WaveMultiplier;
+        ScaleDestruction(ent, health);
+        _health.Refresh(ent.Owner);
+
+        if (TryComp<FSPlateRepairComponent>(ent, out var repair))
+        {
+            repair.DelayMultiplier = grade.RepairDelay * (branch?.RepairDelay ?? 1f);
+            if (grade.PlateMaterial is { } material)
+                repair.Material = material;
+        }
+    }
+
+    private void ScaleDestruction(EntityUid uid, float health)
+    {
+        if (health <= 0f
+            || !TryComp<DestructibleComponent>(uid, out var destructible)
+            || !_destructible.TryGetDestroyedAt((uid, destructible), out var current)
+            || current.Value <= 0)
+            return;
+
+        var ratio = health / current.Value.Float();
+        foreach (var threshold in destructible.Thresholds)
+        {
+            if (threshold.Trigger is DamageTrigger trigger)
+                trigger.Damage *= ratio;
+        }
+    }
+
+    private static Dictionary<ProtoId<StackPrototype>, int> HitCost(FSUpgradePrototype upgrade, int hit)
+    {
+        var cost = new Dictionary<ProtoId<StackPrototype>, int>();
+        foreach (var (material, total) in upgrade.Cost)
+        {
+            var amount = total * (hit + 1) / upgrade.Hits - total * hit / upgrade.Hits;
+            if (amount > 0)
+                cost[material] = amount;
+        }
+
+        return cost;
+    }
+
+    private string CostText(Dictionary<ProtoId<StackPrototype>, int> cost)
+    {
+        var parts = new List<string>();
+        foreach (var (material, amount) in cost)
+            parts.Add($"{amount} {Loc.GetString(Proto.Index(material).Name)}");
+
+        return string.Join(", ", parts);
+    }
+}

@@ -1,0 +1,22 @@
+# Engineer upgrade tool: alt-click a fortification to pick an upgrade, then hit it to pour materials in.
+- type: entity
+  parent: BaseItem
+  id: FSEngineerHammer
+  name: engineer's hammer
+  description: Alt-click a fortification to choose an upgrade, then hit it to pour in materials from your pack. Doubles as a decent club.
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/sledgehammer.rsi
+    state: icon
+  - type: Item
+    size: Normal
+    sprite: Objects/Weapons/Melee/sledgehammer.rsi
+  - type: MeleeWeapon
+    wideAnimationRotation: -135
+    attackRate: 1.25
+    damage:
+      types:
+        Blunt: 12
+    soundHit:
+      collection: MetalThud
+  - type: FSEngineerHammer

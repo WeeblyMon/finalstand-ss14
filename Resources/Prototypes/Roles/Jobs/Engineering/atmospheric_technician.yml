@@ -32,6 +32,7 @@
     back:
     - RCD
     - FSRivetGun # FS
+    - FSEngineerHammer # FS
 
 - type: chameleonOutfit
   id: AtmosphericTechnicianChameleonOutfit
