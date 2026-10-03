@@ -30,7 +30,6 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
 
     private const float RefundFraction = 0.5f;
-    private const int StationCap = 120;
     private const float ThreatRange = 5f;
     private const float ThreatDelayMultiplier = 3f;
 
@@ -67,8 +66,8 @@ public sealed partial class FSRCDEngineerOnlySystem
             return Loc.GetString("fs-deployable-occupied");
 
         var built = StationBuilt();
-        if (built >= StationCap)
-            return Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", StationCap));
+        if (built >= comp.StationCap)
+            return Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", comp.StationCap));
 
         if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var max))
         {
@@ -134,6 +133,47 @@ public sealed partial class FSRCDEngineerOnlySystem
         deployedBy.DeployedBy = args.User;
         deployedBy.SourceProto = protoId;
         deployedBy.Facing = directional ? args.Direction : null;
+
+        RefreshUsage(ent, args.User);
+    }
+
+    public void RefreshUsage(Entity<FSEngineerOnlyRCDComponent> rcd, EntityUid user)
+    {
+        var mind = _mind.TryGetMind(user, out var mindId, out _) ? mindId : (EntityUid?) null;
+        var used = new Dictionary<string, int>();
+        var station = 0;
+
+        var query = EntityQueryEnumerator<FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out var deployedBy))
+        {
+            if (TerminatingOrDeleted(uid) || !_proto.TryIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id, out var recipe))
+                continue;
+
+            station++;
+            if (mind != null && deployedBy.OwnerMind == mind && recipe.CapGroup is { } group)
+                used[group] = used.GetValueOrDefault(group) + 1;
+        }
+
+        if (station == rcd.Comp.StationUsed && DictionaryEquals(used, rcd.Comp.CapsUsed))
+            return;
+
+        rcd.Comp.StationUsed = station;
+        rcd.Comp.CapsUsed = used;
+        Dirty(rcd);
+    }
+
+    private static bool DictionaryEquals(Dictionary<string, int> a, Dictionary<string, int> b)
+    {
+        if (a.Count != b.Count)
+            return false;
+
+        foreach (var (key, value) in a)
+        {
+            if (!b.TryGetValue(key, out var other) || other != value)
+                return false;
+        }
+
+        return true;
     }
 
     private void RefundDeconstruct(EntityUid target)

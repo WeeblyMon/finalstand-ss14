@@ -10,6 +10,8 @@ using Content.Shared.Popups;
 using Content.Shared.RCD.Components;
 using Content.Shared.RCD.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
+using Content.Shared.Hands.Components;
 
 namespace Content.Server._FinalStand.RCD;
 
@@ -22,6 +24,10 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
     [Dependency] private StackSystem _stack = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan UsageRefreshInterval = TimeSpan.FromSeconds(1);
+    private TimeSpan _nextUsageRefresh;
 
     public override void Initialize()
     {
@@ -38,7 +44,24 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
     {
         if (!args.Cancelled && args.Args.Target is { } target && EntityManager.IsQueuedForDeletion(target))
+        {
             RefundDeconstruct(target);
+            RefreshUsage(ent, args.User);
+        }
+    }
+
+    public override void Update(float frameTime)
+    {
+        if (_timing.CurTime < _nextUsageRefresh)
+            return;
+
+        _nextUsageRefresh = _timing.CurTime + UsageRefreshInterval;
+        var query = EntityQueryEnumerator<FSEngineerOnlyRCDComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var xform))
+        {
+            if (HasComp<HandsComponent>(xform.ParentUid))
+                RefreshUsage((uid, comp), xform.ParentUid);
+        }
     }
 
     private void OnAfterInteract(EntityUid uid, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)
