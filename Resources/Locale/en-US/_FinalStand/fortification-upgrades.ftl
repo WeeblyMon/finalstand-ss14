@@ -19,3 +19,7 @@ fs-grade-plasteel = Plasteel grade
 fs-grade-plasteel-desc = Doubles health. Repaired with plasteel plates.
 fs-grade-uranium = Depleted uranium grade
 fs-grade-uranium-desc = Triple health, the toughest there is. Repairs take twice as long.
+
+
+fs-branch-bulwark = Bulwark
+fs-branch-bulwark-desc = Chokepoint holder. +35% health and zombies would rather breach somewhere else. Plating repairs take 50% longer.

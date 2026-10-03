@@ -28,6 +28,9 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         var grade = Proto.Index(ent.Comp.Grade);
         var target = (ent.Owner, sprite);
+        if (ent.Comp.Branch is { } branch)
+            AddLayers(target, Proto.Index(branch));
+
         if (grade.State is { } state)
             _sprite.LayerSetRsiState(target, 0, state);
 
@@ -43,6 +46,19 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         overlay.Sprite = cracks;
         if (_sprite.LayerMapTryGet(target, OverlayLayer, out var layer, false))
             _sprite.LayerSetRsi(target, layer, new ResPath(cracks), _sprite.LayerGetRsiState(target, layer));
+    }
+
+    private void AddLayers(Entity<SpriteComponent> sprite, FSUpgradePrototype upgrade)
+    {
+        for (var i = 0; i < upgrade.Layers.Count; i++)
+        {
+            var key = $"fs-upgrade-{upgrade.ID}-{i}";
+            if (_sprite.LayerMapTryGet(sprite.AsNullable(), key, out _, false))
+                continue;
+
+            var layer = _sprite.AddLayer(sprite.AsNullable(), upgrade.Layers[i], null);
+            _sprite.LayerMapSet(sprite.AsNullable(), key, layer);
+        }
     }
 
     private void OnHealthState(Entity<FSStructureHealthComponent> ent, ref AfterAutoHandleStateEvent args)

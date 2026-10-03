@@ -1,0 +1,19 @@
+# Barricade branches: picked for where the barricade stands, not for which zombie is coming. One per barricade.
+- type: fsUpgrade
+  id: FSBranchBulwark
+  name: fs-branch-bulwark
+  description: fs-branch-bulwark-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: bulwark
+  cost:
+    Plasteel: 2
+    Steel: 2
+  hits: 6
+  health: 1.35
+  breach: 1.5
+  repairDelay: 1.5
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: bulwark

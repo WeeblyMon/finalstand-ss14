@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "license": "CC0-1.0",
+  "copyright": "Drawn for Final Stand",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "bulwark",
+      "directions": 4
+    },
+    {
+      "name": "firing_step",
+      "directions": 4
+    },
+    {
+      "name": "floodlit",
+      "directions": 4
+    },
+    {
+      "name": "floodlit_lens",
+      "directions": 4
+    }
+  ]
+}

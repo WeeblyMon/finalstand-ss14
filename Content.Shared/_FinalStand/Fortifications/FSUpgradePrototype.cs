@@ -61,5 +61,8 @@ public sealed partial class FSUpgradePrototype : IPrototype
     public Color? Color;
 
     [DataField]
+    public List<PrototypeLayerData> Layers = new();
+
+    [DataField]
     public ComponentRegistry? Components;
 }
