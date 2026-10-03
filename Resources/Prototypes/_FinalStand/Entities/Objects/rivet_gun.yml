@@ -33,10 +33,9 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
-    sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
     layers:
-    - state: bullet
-      shader: unshaded
+    - state: rivet
   - type: Fixtures
     fixtures:
       projectile:
