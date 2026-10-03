@@ -314,6 +314,8 @@
       barricade: 8
       sentry: 2
       heavy: 1
+      hmg: 1
+      crate: 2
     palette: # FS
     - FSBarricadeMetal
     - FSBarricadeMetalDoor
@@ -321,6 +323,8 @@
     - FSBarricadePlasteelDoor
     - FSSentryTurretDeployed
     - FSHeavySentryDeployed
+    - FSHMGDeployed
+    - FSAmmoCrate
   - type: RCD
     availablePrototypes:
     - FSBarricadeMetal # FS
@@ -329,6 +333,8 @@
     - FSBarricadePlasteelDoor # FS
     - FSSentryTurretDeployed # FS
     - FSHeavySentryDeployed # FS
+    - FSHMGDeployed # FS
+    - FSAmmoCrate # FS
     - WallSolid
     - FloorSteel
     - Plating

@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.Departments;
 using Content.Server.Destructible;
 using Content.Server.Stack;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Robust.Shared.Map;
@@ -90,6 +91,13 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     {
         if (args.Handled || !args.CanReach)
             return;
+
+        if (args.Target is { } target && TryComp<FSHMGComponent>(target, out var hmg) && hmg.Gunner != null)
+        {
+            args.Handled = true;
+            _popup.PopupEntity(Loc.GetString("fs-rcd-hmg-crewed"), uid, args.User, PopupType.Medium);
+            return;
+        }
 
         if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is { } reason)
         {

@@ -8,6 +8,7 @@ using Content.Shared._FinalStand.RCD;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
@@ -130,7 +131,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         var directional = _proto.TryIndex<RCDPrototype>(protoId, out var rcdProto)
             && rcdProto.Rotation == RcdRotation.User;
 
-        if (!Transform(args.Built).Anchored)
+        if (!Transform(args.Built).Anchored && !HasComp<PullableComponent>(args.Built))
             _transform.AnchorEntity(args.Built);
 
         var deployedBy = EnsureComp<FSDeployedByComponent>(args.Built);

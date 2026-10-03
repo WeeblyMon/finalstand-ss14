@@ -40,3 +40,18 @@
     Plasteel: 4
     Steel: 6
     Gold: 1
+
+- type: fsBuildRecipe
+  id: FSHMGDeployed
+  capGroup: hmg
+  materials:
+    Steel: 6
+    Plasteel: 3
+
+- type: fsBuildRecipe
+  id: FSAmmoCrate
+  capGroup: crate
+  materials:
+    Steel: 3
+    Brass: 2
+    Gunpowder: 1

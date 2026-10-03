@@ -96,3 +96,33 @@
   collisionMask: Impassable
   rotation: Fixed
   fx: EffectRCDConstruct4
+
+- type: rcd
+  id: FSHMGDeployed
+  name: fs-rcd-hmg
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
+    state: icon
+  mode: ConstructObject
+  prototype: FSHMGDeployed
+  cost: 0
+  delay: 4
+  collisionMask: Impassable
+  rotation: User
+  fx: EffectRCDConstruct4
+
+- type: rcd
+  id: FSAmmoCrate
+  name: fs-rcd-ammo-crate
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
+    state: crate
+  mode: ConstructObject
+  prototype: FSAmmoCrate
+  cost: 0
+  delay: 2
+  collisionMask: Impassable
+  rotation: Fixed
+  fx: EffectRCDConstruct2
