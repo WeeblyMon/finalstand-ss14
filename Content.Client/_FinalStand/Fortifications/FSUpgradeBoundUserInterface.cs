@@ -1,5 +1,10 @@
-using Content.Client.UserInterface.Controls;
+using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.Materials;
+using Robust.Client.GameObjects;
+using Robust.Client.Input;
+using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Shared.Prototypes;
 
@@ -8,11 +13,12 @@ namespace Content.Client._FinalStand.Fortifications;
 public sealed class FSUpgradeBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IResourceCache _cache = default!;
 
-    private static readonly Color Unavailable = Color.FromHex("#3a3a3a").WithAlpha(0.6f);
-    private static readonly Color Pending = Color.FromHex("#d9a441").WithAlpha(0.45f);
-
-    private SimpleRadialMenu? _menu;
+    private FSUpgradeRing? _ring;
 
     protected override void Open()
     {
@@ -21,47 +27,39 @@ public sealed class FSUpgradeBoundUserInterface(EntityUid owner, Enum uiKey) : B
         if (!EntMan.TryGetComponent<FSUpgradeableComponent>(Owner, out var comp))
             return;
 
-        _menu = this.CreateWindow<SimpleRadialMenu>();
-        _menu.SetButtons(CreateButtons(comp));
-        _menu.OpenOverMouseScreenPosition();
-    }
-
-    private IEnumerable<RadialMenuOptionBase> CreateButtons(FSUpgradeableComponent comp)
-    {
+        var sprite = EntMan.System<SpriteSystem>();
         var rules = EntMan.System<FSUpgradeSystem>();
+        var materials = EntMan.System<FSCarriedMaterialSystem>();
+        var user = _player.LocalEntity;
+
+        var entries = new List<FSUpgradeEntry>();
         foreach (var id in comp.Options)
         {
             var upgrade = _proto.Index(id);
-            var block = rules.Check(comp, upgrade);
-            var tooltip = Loc.GetString("fs-upgrade-tooltip",
-                ("name", Loc.GetString(upgrade.Name)),
-                ("desc", Loc.GetString(upgrade.Description)),
-                ("cost", CostText(upgrade)),
-                ("hits", upgrade.Hits));
-
-            if (block != FSUpgradeBlock.None)
-                tooltip += "\n" + Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant());
-
-            yield return new RadialMenuActionOption<ProtoId<FSUpgradePrototype>>(Select, id)
+            var affordable = true;
+            foreach (var (stack, need) in upgrade.Cost)
             {
-                IconSpecifier = RadialMenuIconSpecifier.With(upgrade.Icon),
-                ToolTip = tooltip,
-                BackgroundColor = block != FSUpgradeBlock.None ? Unavailable : comp.Pending == id ? Pending : null,
-            };
+                if (user is not { } u || materials.Count(u, stack) < need)
+                    affordable = false;
+            }
+
+            entries.Add(new FSUpgradeEntry(upgrade, sprite.Frame0(upgrade.Icon), rules.Check(comp, upgrade), comp.Pending == id, !affordable));
         }
+
+        _ring = new FSUpgradeRing(new FSRCDLook(_cache, _proto, sprite), EntMan, user, comp, entries, _input.MouseScreenPosition.Position);
+        _ring.OnPick += entry =>
+        {
+            SendMessage(new FSUpgradeSelectMessage(entry.Upgrade.ID));
+            Close();
+        };
+        _ring.OnDismiss += Close;
+        _ui.PopupRoot.AddChild(_ring);
     }
 
-    private string CostText(FSUpgradePrototype upgrade)
+    protected override void Dispose(bool disposing)
     {
-        var parts = new List<string>();
-        foreach (var (material, amount) in upgrade.Cost)
-            parts.Add($"{amount} {Loc.GetString(_proto.Index(material).Name)}");
-
-        return string.Join(", ", parts);
-    }
-
-    private void Select(ProtoId<FSUpgradePrototype> upgrade)
-    {
-        SendMessage(new FSUpgradeSelectMessage(upgrade));
+        base.Dispose(disposing);
+        _ring?.Orphan();
+        _ring = null;
     }
 }

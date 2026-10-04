@@ -4,9 +4,6 @@ fs-upgrade-under-attack = It's under attack. Wait until it's quiet to keep worki
 fs-upgrade-needs = Each hit needs {$list}.
 fs-upgrade-done = {$name} installed.
 fs-upgrade-wave-hardened = Fortifications reinforced for the harder waves: +{$percent}% health on every barricade.
-fs-upgrade-tooltip = {$name}
-    {$desc}
-    Cost: {$cost} over {$hits} hits.
 fs-upgrade-blocked-owned = Already installed.
 fs-upgrade-blocked-needsprevious = Needs the previous grade first.
 fs-upgrade-blocked-branchtaken = This barricade already has a branch.
@@ -44,3 +41,7 @@ fs-module-hardened = Hardened Rounds
 fs-module-hardened-desc = +25% damage per round.
 fs-module-uranium = Depleted Uranium Rounds
 fs-module-uranium-desc = A further +35% damage per round.
+fs-upgrade-ring-hint = Pick an upgrade. You start hammering it in straight away.
+fs-upgrade-ring-hits = {$hits} hammer hits
+fs-upgrade-ring-in-progress = In progress: {$done}/{$hits} hits
+fs-upgrade-ring-fitted = fitted
