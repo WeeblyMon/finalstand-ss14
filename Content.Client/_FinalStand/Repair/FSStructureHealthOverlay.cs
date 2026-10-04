@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.RCD;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -57,6 +58,7 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
         var rivetCap = HeldRivetCap();
+        var showAll = HoldingBuildTool();
         var flash = 0.55f + 0.45f * MathF.Sin((float) _timing.RealTime.TotalSeconds * 8f);
 
         var query = _entMan.EntityQueryEnumerator<FSStructureHealthComponent, DamageableComponent, TransformComponent>();
@@ -67,10 +69,12 @@ public sealed partial class FSStructureHealthOverlay : Overlay
 
             var fraction = Math.Clamp(1f - damageable.TotalDamage.Float() / health.Max, 0f, 1f);
             var progress = UpgradeProgress(uid);
-            if (fraction >= 1f && progress <= 0f)
+            if (fraction >= 1f && progress <= 0f && !showAll)
                 continue;
 
             var color = fraction < CriticalFraction ? Critical.WithAlpha(flash) : fraction < 0.6f ? Worn : Good;
+            if (fraction >= 1f)
+                color = color.WithAlpha(0.55f);
             var center = Vector2.Transform(_xform.GetWorldPosition(xform), matrix);
             var box = UIBox2.FromDimensions(center.X - Width / 2f, center.Y + 14f, Width, Height);
             handle.DrawRect(new UIBox2(box.Left - 1f, box.Top - 1f, box.Right + 1f, box.Bottom + 1f), Back);
@@ -100,6 +104,15 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             return 0f;
 
         return (float) upgradeable.Poured / upgrade.Hits;
+    }
+
+    // With a hammer or RCD in hand every fortification shows its bar, so the whole line reads at a glance.
+    private bool HoldingBuildTool()
+    {
+        _hands ??= _entMan.System<SharedHandsSystem>();
+        return _player.LocalEntity is { } local
+               && _hands.TryGetActiveItem(local, out var held)
+               && (_entMan.HasComponent<FSEngineerHammerComponent>(held) || _entMan.HasComponent<FSEngineerOnlyRCDComponent>(held));
     }
 
     private float? HeldRivetCap()
