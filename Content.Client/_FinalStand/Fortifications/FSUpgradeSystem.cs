@@ -28,14 +28,17 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 
         var grade = Proto.Index(ent.Comp.Grade);
         var target = (ent.Owner, sprite);
-        if (ent.Comp.Branch is { } branch)
-            AddLayers(target, Proto.Index(branch));
-
         if (grade.State is { } state)
             _sprite.LayerSetRsiState(target, 0, state);
 
         if (grade.Color is { } color)
             _sprite.LayerSetColor(target, 0, color);
+
+        if (ent.Comp.Branch is { } branch)
+            AddLayers(target, Proto.Index(branch));
+
+        foreach (var module in ent.Comp.Modules)
+            AddLayers(target, Proto.Index(module));
 
         if (grade.Cracks is not { } cracks
             || !TryComp<DamageVisualsComponent>(ent, out var damageVisuals)
@@ -50,14 +53,23 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 
     private void AddLayers(Entity<SpriteComponent> sprite, FSUpgradePrototype upgrade)
     {
+        var target = sprite.AsNullable();
+        var baseState = _sprite.LayerGetRsiState(target, 0).Name;
         for (var i = 0; i < upgrade.Layers.Count; i++)
         {
             var key = $"fs-upgrade-{upgrade.ID}-{i}";
-            if (_sprite.LayerMapTryGet(sprite.AsNullable(), key, out _, false))
+            if (!_sprite.LayerMapTryGet(target, key, out var layer, false))
+            {
+                layer = _sprite.AddLayer(target, upgrade.Layers[i], null);
+                _sprite.LayerMapSet(target, key, layer);
+            }
+
+            if (upgrade.Layers[i].State is not { } state || baseState == null)
                 continue;
 
-            var layer = _sprite.AddLayer(sprite.AsNullable(), upgrade.Layers[i], null);
-            _sprite.LayerMapSet(sprite.AsNullable(), key, layer);
+            var variant = $"{baseState}_{state}";
+            if (_sprite.LayerGetEffectiveRsi(target, layer)?.TryGetState(variant, out _) == true)
+                _sprite.LayerSetRsiState(target, layer, variant);
         }
     }
 
