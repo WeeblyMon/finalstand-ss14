@@ -28,6 +28,16 @@
     title: fs-tutorial-eng-5-title
     text: fs-tutorial-eng-5-text
   - image:
+      sprite: _FinalStand/Structures/Deployables/hmg.rsi
+      state: icon
+    title: fs-tutorial-eng-hmg-title
+    text: fs-tutorial-eng-hmg-text
+  - image:
+      sprite: _FinalStand/Objects/Devices/emplacement_kit.rsi
+      state: icon
+    title: fs-tutorial-eng-emplacement-title
+    text: fs-tutorial-eng-emplacement-text
+  - image:
       sprite: Structures/Machines/silo.rsi
       state: silo
     title: fs-tutorial-eng-6-title
