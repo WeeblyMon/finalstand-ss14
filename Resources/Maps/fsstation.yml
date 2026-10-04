@@ -57993,23 +57993,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -5.5,-5.5
-- proto: SpawnPointAtmos
-  entities:
-  - uid: 975
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,12.5
-  - uid: 976
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,11.5
-  - uid: 977
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,10.5
 - proto: SpawnPointBartender
   entities:
   - uid: 7411
@@ -58304,6 +58287,21 @@ entities:
     - type: Transform
       parent: 1
       pos: -8.5,19.5
+  - uid: 975
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,12.5
+  - uid: 976
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,11.5
+  - uid: 977
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,10.5
 - proto: SpawnPointWarden
   entities:
   - uid: 9670

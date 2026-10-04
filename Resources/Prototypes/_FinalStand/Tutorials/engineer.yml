@@ -1,6 +1,6 @@
 - type: fsTutorial
   id: FSTutorialEngineer
-  jobs: [ StationEngineer, AtmosphericTechnician, ChiefEngineer ]
+  jobs: [ StationEngineer, ChiefEngineer ]
   pages:
   - image:
       sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
