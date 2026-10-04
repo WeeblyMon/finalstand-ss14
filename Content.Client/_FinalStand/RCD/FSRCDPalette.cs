@@ -54,26 +54,4 @@ public sealed class FSRCDPalette
 
         return count;
     }
-
-    public static string Info(IEntityManager entMan, IPrototypeManager proto, EntityUid? user,
-        FSEngineerOnlyRCDComponent fs, RCDPrototype piece)
-    {
-        var lines = new List<string> { $"[bold]{FSRCDText.Name(proto, piece)}[/bold]" };
-        if (piece.Mode == RcdMode.Deconstruct)
-        {
-            lines.Add(Loc.GetString("fs-rcd-info-deconstruct"));
-            return string.Join("\n", lines);
-        }
-
-        var footer = Loc.GetString("fs-rcd-info-time", ("seconds", piece.Delay));
-        if (proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))
-        {
-            lines.Add(FSRCDText.Costs(entMan, proto, user, fs, recipe, "\n"));
-            if (recipe.CapGroup is { } group)
-                footer = $"{FSRCDText.CapShort(fs, group)} · {footer}";
-        }
-
-        lines.Add($"[color=#96938d]{footer}[/color]");
-        return string.Join("\n", lines);
-    }
 }

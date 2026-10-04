@@ -32,19 +32,6 @@ public static class FSRCDText
     // Separate method so Roslyn doesn't fold it into a call the sandbox rejects.
     private static string Concat(string a, string b) => a + b;
 
-    public static string Costs(IEntityManager entMan, IPrototypeManager proto, EntityUid? user, FSEngineerOnlyRCDComponent fs, FSBuildRecipePrototype recipe, string separator = "  ")
-    {
-        var materials = entMan.System<FSCarriedMaterialSystem>();
-        var parts = new List<string>();
-        foreach (var (material, need) in recipe.Materials)
-        {
-            var have = Have(materials, user, fs, material);
-            parts.Add($"[color={(have >= need ? Enough : Short)}]{have}/{need}[/color] {Loc.GetString(proto.Index(material).Name)}");
-        }
-
-        return string.Join(separator, parts);
-    }
-
     // One plain line for the HUD weapon panel, which can't take markup: what you can build, or what you're short.
     public static string Summary(IEntityManager entMan, IPrototypeManager proto, EntityUid? user,
         FSEngineerOnlyRCDComponent fs, RCDPrototype piece)
@@ -74,8 +61,4 @@ public static class FSRCDText
             : Loc.GetString("fs-rcd-summary-capped", ("name", name));
     }
 
-    public static string CapShort(FSEngineerOnlyRCDComponent comp, string group)
-    {
-        return $"{Loc.GetString("fs-rcd-cap-group-" + group)} {comp.CapsUsed.GetValueOrDefault(group)}/{comp.Caps.GetValueOrDefault(group)}";
-    }
 }

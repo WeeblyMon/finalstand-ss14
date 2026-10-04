@@ -1,20 +1,17 @@
-// Build Belt layout: while an engineer holds the RCD, a slot bar sits above the hands. Each slot shows how many of
-// that piece you can build right now; the card above it explains the selected piece. Z steps to the next slot.
-using System.Numerics;
-using Content.Client._FinalStand.Interface;
+// Build Belt layout: while an engineer holds the RCD, the belt sits above the hands. Z steps to the next slot.
 using Content.Client.Hands.Systems;
-using Content.Client.Message;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Robust.Client.GameObjects;
-using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.RCD;
 
@@ -24,21 +21,20 @@ public sealed class FSRCDBeltSystem : EntitySystem
     [Dependency] private IUserInterfaceManager _ui = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IResourceCache _cache = default!;
     [Dependency] private HandsSystem _hands = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
-    private const float SlotSize = 60f;
     private const float BottomMargin = 112f;
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan StepDebounce = TimeSpan.FromSeconds(0.2);
+    private static readonly SpriteSpecifier StationIcon =
+        new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/Radial/RCD/walls_and_flooring.png"));
 
-    private BoxContainer? _root;
-    private RichTextLabel? _card;
-    private BoxContainer? _slots;
+    private FSBuildBelt? _belt;
     private Control? _attachedTo;
     private EntityUid? _rcd;
     private bool _stationOpen;
-    private int _builtFor;
     private TimeSpan _nextRefresh;
     private TimeSpan _nextStep;
 
@@ -57,8 +53,7 @@ public sealed class FSRCDBeltSystem : EntitySystem
             return;
 
         var index = cycle.FindIndex(p => p.ID == comp.ProtoId.Id);
-        var next = cycle[((index < 0 ? -1 : index) + direction + cycle.Count) % cycle.Count];
-        Pick(rcd, next);
+        Pick(rcd, cycle[((index < 0 ? -1 : index) + direction + cycle.Count) % cycle.Count]);
     }
 
     private void Pick(EntityUid rcd, RCDPrototype piece)
@@ -82,7 +77,7 @@ public sealed class FSRCDBeltSystem : EntitySystem
             return;
         }
 
-        if (_root == null || _attachedTo != _ui.ActiveScreen || _rcd != rcd)
+        if (_belt == null || _attachedTo != _ui.ActiveScreen || _rcd != rcd)
         {
             Attach();
             _rcd = rcd;
@@ -114,170 +109,82 @@ public sealed class FSRCDBeltSystem : EntitySystem
         if (_ui.ActiveScreen is not { } screen)
             return;
 
-        _card = new RichTextLabel { MaxWidth = 340 };
-        var toggle = new Button { Text = Loc.GetString("fs-rcd-switch-to-ring"), StyleClasses = { "OpenBoth" } };
-        toggle.OnPressed += _ =>
+        _belt = new FSBuildBelt(new FSRCDLook(_cache, ProtoMan, _sprite), EntityManager)
+        {
+            StationIcon = _sprite.Frame0(StationIcon),
+        };
+        _belt.OnPick += OnPick;
+        _belt.OnToggleLayout += () =>
         {
             _cfg.SetCVar(CCVars.FSRcdBeltLayout, false);
             _cfg.SaveToFile();
         };
 
-        var cardRow = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            SeparationOverride = 8,
-            Children =
-            {
-                new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, Children = { _card, new Label { Text = Loc.GetString("fs-rcd-belt-hint"), FontColorOverride = FSPalette.TextDim } } },
-                toggle,
-            },
-        };
-
-        _slots = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 4 };
-        _root = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            SeparationOverride = 4,
-            Children =
-            {
-                Panel(cardRow, FSPalette.PanelBack, new Thickness(8, 6)),
-                new CenterContainer { Children = { _slots } },
-            },
-        };
-
-        LayoutContainer.SetAnchorPreset(_root, LayoutContainer.LayoutPreset.CenterBottom);
-        LayoutContainer.SetGrowHorizontal(_root, LayoutContainer.GrowDirection.Both);
-        LayoutContainer.SetGrowVertical(_root, LayoutContainer.GrowDirection.Begin);
-        LayoutContainer.SetMarginBottom(_root, -BottomMargin);
-        screen.AddChild(_root);
+        LayoutContainer.SetAnchorPreset(_belt, LayoutContainer.LayoutPreset.CenterBottom);
+        LayoutContainer.SetGrowHorizontal(_belt, LayoutContainer.GrowDirection.Both);
+        LayoutContainer.SetGrowVertical(_belt, LayoutContainer.GrowDirection.Begin);
+        LayoutContainer.SetMarginBottom(_belt, -BottomMargin);
+        screen.AddChild(_belt);
         _attachedTo = screen;
-        _builtFor = 0;
+    }
+
+    private void OnPick(FSRCDEntry entry)
+    {
+        switch (entry.Kind)
+        {
+            case FSRCDEntryKind.Station:
+                _stationOpen = true;
+                break;
+            case FSRCDEntryKind.Back:
+                _stationOpen = false;
+                break;
+            default:
+                if (_rcd is { } rcd && entry.Piece is { } piece)
+                    Pick(rcd, piece);
+                break;
+        }
+
+        _nextRefresh = TimeSpan.Zero;
     }
 
     private void Detach()
     {
-        _root?.Orphan();
-        _root = null;
-        _card = null;
-        _slots = null;
+        _belt?.Orphan();
+        _belt = null;
         _attachedTo = null;
         _rcd = null;
     }
 
     private void Refresh(EntityUid rcd)
     {
-        if (_slots == null || _card == null
+        if (_belt == null
             || !TryComp<RCDComponent>(rcd, out var comp)
             || !TryComp<FSEngineerOnlyRCDComponent>(rcd, out var fs))
             return;
 
         var palette = new FSRCDPalette(ProtoMan, comp, fs);
         var user = _player.LocalEntity;
-        var pieces = _stationOpen ? palette.Station : palette.Pieces;
+        var current = comp.ProtoId.Id;
 
-        _slots.RemoveAllChildren();
-        var number = 1;
-        foreach (var piece in pieces)
-            _slots.AddChild(Slot(rcd, number++, piece, fs, comp, user));
-
-        if (!_stationOpen && palette.Station.Count > 0)
-            _slots.AddChild(StationSlot(number++, open: true));
-        else if (_stationOpen)
-            _slots.AddChild(StationSlot(number++, open: false));
-
-        if (!_stationOpen && palette.Deconstruct != null)
-            _slots.AddChild(Slot(rcd, number, palette.Deconstruct, fs, comp, user));
-
-        _card.SetMarkup(FSRCDPalette.Info(EntityManager, ProtoMan, user, fs, ProtoMan.Index(comp.ProtoId)));
-    }
-
-    private Control Slot(EntityUid rcd, int number, RCDPrototype piece, FSEngineerOnlyRCDComponent fs, RCDComponent comp, EntityUid? user)
-    {
-        var selected = piece.ID == comp.ProtoId.Id;
-        var affordable = FSRCDPalette.Affordable(EntityManager, ProtoMan, user, fs, piece);
-        var deconstruct = piece.Mode == RcdMode.Deconstruct;
-
-        var button = new Button { SetSize = new Vector2(SlotSize, SlotSize + 6), ToolTip = FSRCDText.Name(ProtoMan, piece) };
-        button.OnPressed += _ => Pick(rcd, piece);
-
-        var layout = new LayoutContainer { SetSize = new Vector2(SlotSize, SlotSize + 6) };
-        if (piece.Sprite is { } sprite)
+        List<FSRCDEntry> entries;
+        if (_stationOpen)
         {
-            var icon = new TextureRect
-            {
-                Texture = _sprite.Frame0(sprite),
-                Stretch = TextureRect.StretchMode.KeepAspectCentered,
-                SetSize = new Vector2(36, 36),
-            };
-            LayoutContainer.SetPosition(icon, new Vector2((SlotSize - 36) / 2f, 13));
-            layout.AddChild(icon);
+            entries = FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, palette.Station);
+            entries.Add(new FSRCDEntry(FSRCDEntryKind.Back, null, null, -1, false, null, false));
+        }
+        else
+        {
+            entries = FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, palette.Pieces);
+            if (palette.Station.Count > 0)
+                entries.Add(new FSRCDEntry(FSRCDEntryKind.Station, null, null, -1, false, null,
+                    palette.Station.Exists(p => p.ID == current)));
+            if (palette.Deconstruct != null)
+                entries.AddRange(FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, [palette.Deconstruct]));
         }
 
-        var numberLabel = new Label { Text = number.ToString(), FontColorOverride = FSPalette.TextDim };
-        LayoutContainer.SetPosition(numberLabel, new Vector2(3, -2));
-        layout.AddChild(numberLabel);
-
-        if (affordable >= 0)
-        {
-            var countLabel = new Label
-            {
-                Text = $"×{affordable}",
-                FontColorOverride = affordable > 0 ? FSPalette.Ok : FSPalette.DangerSoft,
-            };
-            LayoutContainer.SetAnchorAndMarginPreset(countLabel, LayoutContainer.LayoutPreset.TopRight);
-            LayoutContainer.SetGrowHorizontal(countLabel, LayoutContainer.GrowDirection.Begin);
-            LayoutContainer.SetMarginTop(countLabel, -2);
-            LayoutContainer.SetMarginRight(countLabel, -3);
-            layout.AddChild(countLabel);
-        }
-
-        var bar = new PanelContainer
-        {
-            SetSize = new Vector2(SlotSize - 8, 3),
-            PanelOverride = new StyleBoxFlat
-            {
-                BackgroundColor = deconstruct ? FSPalette.Danger : affordable != 0 ? FSPalette.Ok : FSPalette.Danger,
-            },
-        };
-        LayoutContainer.SetPosition(bar, new Vector2(4, SlotSize + 1));
-        layout.AddChild(bar);
-        button.AddChild(layout);
-
-        return Panel(button, selected ? FSPalette.ButtonPressBack : FSPalette.CellBack, new Thickness(1),
-            selected ? FSPalette.Money : FSPalette.CellEdge);
-    }
-
-    private Control StationSlot(int number, bool open)
-    {
-        var button = new Button
-        {
-            SetSize = new Vector2(SlotSize, SlotSize + 6),
-            Text = Loc.GetString(open ? "fs-rcd-belt-station" : "fs-rcd-belt-back"),
-            ToolTip = Loc.GetString("fs-rcd-ring-station"),
-        };
-        button.OnPressed += _ =>
-        {
-            _stationOpen = open;
-            _nextRefresh = TimeSpan.Zero;
-        };
-        return Panel(button, FSPalette.CellBack, new Thickness(1), FSPalette.CellEdge);
-    }
-
-    private static PanelContainer Panel(Control child, Color back, Thickness padding, Color? edge = null)
-    {
-        return new PanelContainer
-        {
-            PanelOverride = new StyleBoxFlat
-            {
-                BackgroundColor = back,
-                BorderColor = edge ?? FSPalette.PanelEdge,
-                BorderThickness = new Thickness(1),
-                ContentMarginLeftOverride = padding.Left,
-                ContentMarginRightOverride = padding.Right,
-                ContentMarginTopOverride = padding.Top,
-                ContentMarginBottomOverride = padding.Bottom,
-            },
-            Children = { child },
-        };
+        _belt.Entries = entries;
+        _belt.User = user;
+        _belt.Rcd = fs;
+        _belt.Resize();
     }
 }
