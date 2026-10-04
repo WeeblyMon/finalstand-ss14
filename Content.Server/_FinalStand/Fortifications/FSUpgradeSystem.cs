@@ -4,6 +4,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
 using Content.Server._FinalStand.Repair;
 using Content.Server.Destructible;
+using Content.Server.Effects;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
@@ -22,6 +23,7 @@ using Content.Shared.Interaction;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -41,12 +43,16 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
+    [Dependency] private ColorFlashEffectSystem _color = default!;
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan HitDelay = TimeSpan.FromSeconds(0.7);
     private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
         AudioParams.Default.WithVariation(0.1f));
     private static readonly (int Wave, float Multiplier)[] WaveSteps = [(20, 2.2f), (10, 1.5f)];
+
+    private static readonly EntProtoId HitEffect = "FSRivetSparks";
+    private static readonly Color DoneFlash = Color.FromHex("#ffd27a");
 
     private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
 
@@ -271,6 +277,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         target.Comp.Poured++;
         _audio.PlayPvs(PourSound, target);
+        Spawn(HitEffect, Transform(target).Coordinates);
 
         if (target.Comp.Poured < upgrade.Hits)
         {
@@ -280,6 +287,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         Apply(target, upgrade);
         _audio.PlayPvs(DoneSound, target);
+        _color.RaiseEffect(DoneFlash, [target.Owner], Filter.Pvs(target, entityManager: EntityManager));
         _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, user, PopupType.Medium);
         return false;
     }
