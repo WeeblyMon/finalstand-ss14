@@ -114,6 +114,10 @@ public sealed partial class AlignRCDConstruction : PlacementMode
         if (!_rcdSystem.IsRCDOperationStillValid(heldEntity.Value, rcd, gridUid.Value, mapGrid, tile, posVector, target, player.Value, false))
             return false;
 
+        // FS: the server's build rules (caps, materials, no-build zones) turn the ghost red too.
+        if (_entityManager.System<Content.Client._FinalStand.RCD.FSRCDGhostHintSystem>().Blocked)
+            return false;
+
         return true;
     }
 }

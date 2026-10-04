@@ -14,11 +14,8 @@ public sealed class FSRCDGhostHintOverlay : Overlay
     private static readonly ResPath FontPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
     private static readonly Color BlockedText = Color.FromHex("#ff7a6e");
     private static readonly Color InfoText = Color.FromHex("#c9f0b4");
-    private static readonly Color BlockedEdge = Color.FromHex("#ff4b3e").WithAlpha(0.85f);
-    private static readonly Color BlockedFill = Color.FromHex("#ff4b3e").WithAlpha(0.14f);
     private static readonly Color Backing = new(0f, 0f, 0f, 0.7f);
     private static readonly Color RefundText = Color.FromHex("#e8b45a");
-    private static readonly Color DeconstructEdge = Color.FromHex("#e8823a").WithAlpha(0.9f);
 
     private Font? _font;
 
@@ -43,23 +40,11 @@ public sealed class FSRCDGhostHintOverlay : Overlay
         _font ??= new VectorFont(_resources.GetResource<FontResource>(FontPath), 10);
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
-        var a = Vector2.Transform(world.Position - new Vector2(0.5f, 0.5f), matrix);
-        var b = Vector2.Transform(world.Position + new Vector2(0.5f, 0.5f), matrix);
-        var box = new UIBox2(Vector2.Min(a, b), Vector2.Max(a, b));
-
-        if (hints.Blocked)
-        {
-            handle.DrawRect(box, BlockedFill);
-            handle.DrawRect(box, BlockedEdge, filled: false);
-        }
-        else if (hints.Deconstructing)
-        {
-            handle.DrawRect(box, DeconstructEdge, filled: false);
-            handle.DrawRect(new UIBox2(box.TopLeft + Vector2.One, box.BottomRight - Vector2.One), DeconstructEdge, filled: false);
-        }
+        var center = Vector2.Transform(world.Position, matrix);
+        var tileHalf = (Vector2.Transform(world.Position + new Vector2(0f, 0.5f), matrix) - center).Length();
 
         var size = handle.GetDimensions(_font, text, 1f);
-        var pos = new Vector2(box.Center.X - size.X / 2f, box.Bottom + 4f);
+        var pos = new Vector2(center.X - size.X / 2f, center.Y + tileHalf + 4f);
         handle.DrawRect(new UIBox2(pos - new Vector2(4f, 2f), pos + size + new Vector2(4f, 2f)), Backing);
         handle.DrawString(_font, pos, text, hints.Blocked ? BlockedText : hints.Deconstructing ? RefundText : InfoText);
     }
