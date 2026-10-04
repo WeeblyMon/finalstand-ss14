@@ -136,7 +136,10 @@ public sealed class FSRCDLook
             {
                 var have = FSRCDText.Have(materials, user, fs, stack);
                 var haveText = have.ToString();
-                var rest = $" / {need} {MaterialName(stack)}";
+                var silo = fs.SiloStock.GetValueOrDefault(stack);
+                var rest = silo > 0
+                    ? Loc.GetString("fs-rcd-cost-rest-silo", ("need", need), ("name", MaterialName(stack)), ("silo", silo))
+                    : Loc.GetString("fs-rcd-cost-rest", ("need", need), ("name", MaterialName(stack)));
                 var icon = 16f * scale;
                 var width = icon + 4f * scale + handle.GetDimensions(mono, haveText, 1f).X + handle.GetDimensions(mono, rest, 1f).X;
                 var x = centered ? topCenter.X - width / 2f : topCenter.X;

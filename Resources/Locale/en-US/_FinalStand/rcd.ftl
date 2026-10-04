@@ -47,3 +47,5 @@ fs-rcd-role-deconstruct-title = Deconstruct
 fs-rcd-role-deconstruct = Take down something you built. The refund shrinks with its damage.
 fs-rcd-belt-chip-build = BUILD
 fs-rcd-belt-chip-decon = DECONSTRUCT
+fs-rcd-cost-rest = {" "}/ {$need} {$name}
+fs-rcd-cost-rest-silo = {" "}/ {$need} {$name} ({$silo} silo)
