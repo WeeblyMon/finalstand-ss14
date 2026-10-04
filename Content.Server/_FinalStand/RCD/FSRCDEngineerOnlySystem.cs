@@ -99,10 +99,10 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
             return;
         }
 
-        if (args.Target is { } owned && IsDeconstructing(uid) && !CanTakeDown(args.User, owned))
+        if (args.Target is { } owned && IsDeconstructing(uid) && TakeDownBlock(args.User, owned) is { } refusal)
         {
             args.Handled = true;
-            _popup.PopupEntity(Loc.GetString("fs-rcd-not-yours"), uid, args.User, PopupType.Medium);
+            _popup.PopupEntity(refusal, uid, args.User, PopupType.Medium);
             return;
         }
 

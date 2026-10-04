@@ -32,9 +32,9 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (_proto.Index(rcd.ProtoId).Mode == RcdMode.Deconstruct)
         {
             var target = GetEntity(ev.Target);
-            if (target is { } owned && !CanTakeDown(user, owned))
+            if (target is { } owned && TakeDownBlock(user, owned) is { } refusal)
             {
-                RaiseNetworkEvent(new FSRCDProbeResultEvent(ev.Rcd, ev.Location, Loc.GetString("fs-rcd-not-yours"), true), args.SenderSession);
+                RaiseNetworkEvent(new FSRCDProbeResultEvent(ev.Rcd, ev.Location, refusal, true), args.SenderSession);
                 return;
             }
 

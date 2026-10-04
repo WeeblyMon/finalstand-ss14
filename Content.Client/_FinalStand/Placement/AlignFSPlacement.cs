@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.Hands.Systems;
+using Content.Shared._FinalStand.Emplacement;
 using Content.Shared._FinalStand.Placement;
 using Robust.Client.Placement;
 using Robust.Client.Player;
@@ -17,6 +18,7 @@ public sealed class AlignFSPlacement : PlacementMode
     private readonly HandsSystem _handsSystem;
     private readonly SharedTransformSystem _transformSystem;
     private readonly FSPlacementRuleSystem _rule;
+    private readonly FSEmplacementRuleSystem _emplacement;
 
     private const float SearchBoxSize = 2f;
     private const float PlaceColorBaseAlpha = 0.5f;
@@ -28,6 +30,7 @@ public sealed class AlignFSPlacement : PlacementMode
         _handsSystem = _entityManager.System<HandsSystem>();
         _transformSystem = _entityManager.System<SharedTransformSystem>();
         _rule = _entityManager.System<FSPlacementRuleSystem>();
+        _emplacement = _entityManager.System<FSEmplacementRuleSystem>();
 
         ValidPlaceColor = ValidPlaceColor.WithAlpha(PlaceColorBaseAlpha);
     }
@@ -61,6 +64,9 @@ public sealed class AlignFSPlacement : PlacementMode
 
         if (!_entityManager.TryGetComponent<FSPlaceableComponent>(heldEntity, out var placeable))
             return false;
+
+        if (_entityManager.TryGetComponent<FSEmplacementKitComponent>(heldEntity, out var kit))
+            return _emplacement.CanPlace(player, position, pManager.Direction, kit, placeable.Range);
 
         return _rule.CanPlaceAt(player, position, placeable);
     }

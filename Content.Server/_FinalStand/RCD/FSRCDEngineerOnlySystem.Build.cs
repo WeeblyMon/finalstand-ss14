@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Deployables;
+using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
@@ -12,8 +13,6 @@ using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
-using Content.Shared.Roles;
-using Content.Shared.Roles.Jobs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Stacks;
 using Robust.Shared.Map;
@@ -32,12 +31,10 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSBreachEvaluator _breach = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
-    [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private ISharedPlayerManager _player = default!;
 
     private const float RefundFraction = 0.5f;
     private const float ChiefCapMultiplier = 1.5f;
-    private static readonly ProtoId<JobPrototype> ChiefEngineer = "ChiefEngineer";
     private const float ThreatRange = 5f;
     private const float ThreatDelayMultiplier = 3f;
 
@@ -183,11 +180,19 @@ public sealed partial class FSRCDEngineerOnlySystem
         Dirty(rcd);
     }
 
-    public bool CanTakeDown(EntityUid user, EntityUid target)
+    public string? TakeDownBlock(EntityUid user, EntityUid target)
+    {
+        if (HasComp<FSEmplacementPieceComponent>(target) || HasComp<FSEmplacementComponent>(target))
+            return Loc.GetString("fs-emplacement-pack-instead");
+
+        return CanTakeDown(user, target) ? null : Loc.GetString("fs-rcd-not-yours");
+    }
+
+    private bool CanTakeDown(EntityUid user, EntityUid target)
     {
         if (!TryComp<FSDeployedByComponent>(target, out var deployedBy)
             || deployedBy.OwnerMind is not { } owner
-            || IsChiefEngineer(user))
+            || _engineering.IsChiefEngineer(user))
             return true;
 
         if (_mind.TryGetMind(user, out var mindId, out _) && mindId == owner)
@@ -198,14 +203,9 @@ public sealed partial class FSRCDEngineerOnlySystem
                || !_player.TryGetSessionById(ownerId, out _);
     }
 
-    public bool IsChiefEngineer(EntityUid user)
-    {
-        return _mind.TryGetMind(user, out var mindId, out _) && _jobs.MindHasJobWithId(mindId, ChiefEngineer);
-    }
-
     private int CapFor(int max, EntityUid user)
     {
-        return IsChiefEngineer(user) ? (int) MathF.Ceiling(max * ChiefCapMultiplier) : max;
+        return _engineering.IsChiefEngineer(user) ? (int) MathF.Ceiling(max * ChiefCapMultiplier) : max;
     }
 
     private Dictionary<string, int> CapsFor(FSEngineerOnlyRCDComponent comp, EntityUid user)
