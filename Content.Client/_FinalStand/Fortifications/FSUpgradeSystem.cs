@@ -7,7 +7,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Fortifications;
 
-public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
+public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
 

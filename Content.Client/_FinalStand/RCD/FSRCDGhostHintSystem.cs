@@ -21,7 +21,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.RCD;
 
-public sealed class FSRCDGhostHintSystem : EntitySystem
+public sealed partial class FSRCDGhostHintSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPlacementManager _placement = default!;

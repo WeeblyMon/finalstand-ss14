@@ -16,7 +16,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.RCD;
 
-public sealed class FSRCDMenuBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
+public sealed partial class FSRCDMenuBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IPlayerManager _player = default!;

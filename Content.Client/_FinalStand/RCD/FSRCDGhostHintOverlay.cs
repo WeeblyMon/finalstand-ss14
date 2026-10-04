@@ -6,7 +6,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.RCD;
 
-public sealed class FSRCDGhostHintOverlay : Overlay
+public sealed partial class FSRCDGhostHintOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IResourceCache _resources = default!;

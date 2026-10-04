@@ -10,7 +10,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Fortifications;
 
-public sealed class FSUpgradeBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
+public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IPlayerManager _player = default!;

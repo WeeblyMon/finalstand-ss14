@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Tutorial;
 
-public sealed class FSTutorialSystem : EntitySystem
+public sealed partial class FSTutorialSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
 
@@ -50,7 +50,7 @@ public sealed class FSTutorialSystem : EntitySystem
     }
 }
 
-public sealed class FSTutorialCommand : LocalizedEntityCommands
+public sealed partial class FSTutorialCommand : LocalizedEntityCommands
 {
     [Dependency] private FSTutorialSystem _tutorial = default!;
 
