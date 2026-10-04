@@ -72,6 +72,7 @@ public sealed class FSRCDMenuBoundUserInterface(EntityUid owner, Enum uiKey) : B
         _ring.OnDismiss += Close;
         _ring.OnToggleLayout += () =>
         {
+            EntMan.System<FSRCDBeltSystem>().SuppressSteps();
             _cfg.SetCVar(CCVars.FSRcdBeltLayout, true);
             _cfg.SaveToFile();
             Close();

@@ -28,6 +28,7 @@ public sealed class FSRCDBeltSystem : EntitySystem
     private const float BottomMargin = 112f;
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan StepDebounce = TimeSpan.FromSeconds(0.2);
+    private static readonly TimeSpan ToggleGrace = TimeSpan.FromSeconds(0.6);
     private static readonly SpriteSpecifier StationIcon =
         new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/Radial/RCD/walls_and_flooring.png"));
 
@@ -54,6 +55,12 @@ public sealed class FSRCDBeltSystem : EntitySystem
 
         var index = cycle.FindIndex(p => p.ID == comp.ProtoId.Id);
         Pick(rcd, cycle[((index < 0 ? -1 : index) + direction + cycle.Count) % cycle.Count]);
+    }
+
+    // Switching layouts closes the ring, and the server's echo reopens the menu once; don't count that as a Z press.
+    public void SuppressSteps()
+    {
+        _nextStep = _timing.RealTime + ToggleGrace;
     }
 
     private void Pick(EntityUid rcd, RCDPrototype piece)
