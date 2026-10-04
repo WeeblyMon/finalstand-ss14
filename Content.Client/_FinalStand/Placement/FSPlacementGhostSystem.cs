@@ -23,6 +23,12 @@ public sealed class FSPlacementGhostSystem : EntitySystem
         base.Update(frameTime);
 
         var placerEntity = _placementManager.CurrentPermission?.MobUid;
+        if (placerEntity != null && _placementManager.CurrentPermission?.PlacementOption == PlacementMode && Deleted(placerEntity))
+        {
+            _placementManager.Clear();
+            return;
+        }
+
         var placerIsFsPlaceable = HasComp<FSPlaceableComponent>(placerEntity);
 
         if (_placementManager.Eraser || (placerEntity != null && !placerIsFsPlaceable))
