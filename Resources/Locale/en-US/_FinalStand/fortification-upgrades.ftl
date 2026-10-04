@@ -45,3 +45,8 @@ fs-upgrade-ring-hint = Pick an upgrade. You start hammering it in straight away.
 fs-upgrade-ring-hits = {$hits} hammer hits
 fs-upgrade-ring-in-progress = In progress: {$done}/{$hits} hits
 fs-upgrade-ring-fitted = fitted
+
+fs-addon-barbed-wire = Barbed Wire
+fs-addon-barbed-wire-desc = Zombies that hit this barricade take a cut and slow down, and nobody can climb over it. Zombies would rather breach elsewhere. Can't go next to a door.
+fs-upgrade-blocked-near-door = Barbed wire can't go right next to a door.
+fs-barbed-wire-no-vault = The barbed wire stops you climbing over.

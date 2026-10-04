@@ -1,0 +1,19 @@
+# Add-ons sit on top of a grade and a branch. Barbed wire: cuts and slows zombies that hit it, can't be vaulted.
+- type: fsUpgrade
+  id: FSAddonBarbedWire
+  name: fs-addon-barbed-wire
+  description: fs-addon-barbed-wire-desc
+  slot: Module
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: wire
+  cost:
+    Steel: 3
+  hits: 3
+  breach: 1.5
+  awayFromDoors: 1.5
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: wire
+  components:
+  - type: FSBarbedWire

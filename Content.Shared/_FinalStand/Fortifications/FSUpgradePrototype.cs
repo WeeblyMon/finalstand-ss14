@@ -69,6 +69,9 @@ public sealed partial class FSUpgradePrototype : IPrototype
 
     [DataField]
     public FSSentryModifier? Sentry;
+
+    [DataField]
+    public float AwayFromDoors;
 }
 
 [DataDefinition]

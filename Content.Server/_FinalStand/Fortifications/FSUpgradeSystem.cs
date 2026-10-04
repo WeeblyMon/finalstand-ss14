@@ -12,6 +12,7 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Doors.Components;
 using Content.Shared.Destructible.Thresholds.Triggers;
 using Content.Shared.Examine;
 using Content.Shared.Hands.EntitySystems;
@@ -40,6 +41,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
@@ -47,6 +49,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
     private static readonly TimeSpan HitDelay = TimeSpan.FromSeconds(0.7);
+    private const float MaxBreachMultiplier = 2f;
     private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
         AudioParams.Default.WithVariation(0.1f));
     private static readonly (int Wave, float Multiplier)[] WaveSteps = [(20, 2.2f), (10, 1.5f)];
@@ -219,6 +222,12 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             return;
         }
 
+        if (upgrade.AwayFromDoors > 0f && NearDoor(ent, upgrade.AwayFromDoors))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-blocked-near-door"), ent, user);
+            return;
+        }
+
         if (ent.Comp.Pending != args.Upgrade)
         {
             ent.Comp.Pending = args.Upgrade;
@@ -341,8 +350,21 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         var multiplier = Proto.Index(comp.Grade).Breach;
         if (comp.Branch is { } branch)
             multiplier *= Proto.Index(branch).Breach;
+        foreach (var module in comp.Modules)
+            multiplier *= Proto.Index(module).Breach;
 
-        return multiplier;
+        return MathF.Min(multiplier, MaxBreachMultiplier);
+    }
+
+    private bool NearDoor(EntityUid uid, float range)
+    {
+        foreach (var door in _lookup.GetEntitiesInRange<DoorComponent>(Transform(uid).Coordinates, range))
+        {
+            if (door.Owner != uid)
+                return true;
+        }
+
+        return false;
     }
 
     private void Recalculate(Entity<FSUpgradeableComponent> ent)
