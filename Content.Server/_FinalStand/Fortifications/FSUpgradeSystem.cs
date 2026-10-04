@@ -1,4 +1,4 @@
-// Engineers pick an upgrade with the hammer (alt-click), then hit the structure to pour materials in; it upgrades in place.
+// Click a fortification with the Engineer's Hammer to pick an upgrade, then hammer it in: each hit pours in materials.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
@@ -17,7 +17,8 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Stacks;
 using Content.Shared.Verbs;
-using Content.Shared.Weapons.Melee.Events;
+using Content.Shared.DoAfter;
+using Content.Shared.Interaction;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
@@ -39,8 +40,10 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IChatManager _chat = default!;
+    [Dependency] private SharedDoAfterSystem _doAfter = default!;
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan HitDelay = TimeSpan.FromSeconds(0.7);
     private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
         AudioParams.Default.WithVariation(0.1f));
     private static readonly (int Wave, float Multiplier)[] WaveSteps = [(20, 2.2f), (10, 1.5f)];
@@ -53,7 +56,9 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         SubscribeLocalEvent<FSUpgradeableComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<FSUpgradeableComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<FSUpgradeableComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
-        SubscribeLocalEvent<FSEngineerHammerComponent, MeleeHitEvent>(OnHammerHit);
+        SubscribeLocalEvent<FSUpgradeableComponent, InteractUsingEvent>(OnInteractUsing);
+        SubscribeLocalEvent<FSUpgradeableComponent, ActivateInWorldEvent>(OnActivate);
+        SubscribeLocalEvent<FSUpgradeableComponent, FSHammerDoAfterEvent>(OnHammerDoAfter);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<FSUpgradeableComponent, ExaminedEvent>(OnExamined);
         Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
@@ -145,17 +150,48 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         args.Verbs.Add(new AlternativeVerb
         {
             Text = Loc.GetString("fs-upgrade-verb"),
-            Act = () =>
-            {
-                if (!_departments.IsEngineering(user))
-                {
-                    _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), ent, user);
-                    return;
-                }
-
-                _ui.OpenUi(ent.Owner, FSUpgradeUiKey.Key, user);
-            },
+            Act = () => OpenMenu(ent, user),
         });
+    }
+
+    private void OnInteractUsing(Entity<FSUpgradeableComponent> ent, ref InteractUsingEvent args)
+    {
+        if (args.Handled || !HasComp<FSEngineerHammerComponent>(args.Used))
+            return;
+
+        args.Handled = true;
+        Engage(ent, args.User, args.Used);
+    }
+
+    private void OnActivate(Entity<FSUpgradeableComponent> ent, ref ActivateInWorldEvent args)
+    {
+        if (args.Handled
+            || !_hands.TryGetActiveItem(args.User, out var held)
+            || !HasComp<FSEngineerHammerComponent>(held))
+            return;
+
+        args.Handled = true;
+        Engage(ent, args.User, held.Value);
+    }
+
+    // Click with the hammer: pick an upgrade if none is under way, otherwise keep hammering the one that is.
+    private void Engage(Entity<FSUpgradeableComponent> ent, EntityUid user, EntityUid hammer)
+    {
+        if (ent.Comp.Pending == null)
+            OpenMenu(ent, user);
+        else
+            StartHammering(ent, user, hammer);
+    }
+
+    private void OpenMenu(Entity<FSUpgradeableComponent> ent, EntityUid user)
+    {
+        if (!_departments.IsEngineering(user))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), ent, user);
+            return;
+        }
+
+        _ui.OpenUi(ent.Owner, FSUpgradeUiKey.Key, user);
     }
 
     private void OnSelect(Entity<FSUpgradeableComponent> ent, ref FSUpgradeSelectMessage args)
@@ -184,58 +220,68 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             Dirty(ent);
         }
 
-        _popup.PopupEntity(Loc.GetString("fs-upgrade-selected",
-            ("name", Loc.GetString(upgrade.Name)), ("hits", upgrade.Hits - ent.Comp.Poured)), ent, user);
+        StartHammering(ent, user, held.Value);
     }
 
-    private void OnHammerHit(Entity<FSEngineerHammerComponent> ent, ref MeleeHitEvent args)
+    private void StartHammering(Entity<FSUpgradeableComponent> ent, EntityUid user, EntityUid hammer)
     {
-        if (args.HitEntities.Count != 1 || !TryComp<FSUpgradeableComponent>(args.HitEntities[0], out var comp))
+        if (!_departments.IsEngineering(user))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), ent, user);
+            return;
+        }
+
+        _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, HitDelay, new FSHammerDoAfterEvent(), ent, ent, hammer)
+        {
+            BreakOnMove = true,
+            BreakOnDamage = true,
+            NeedHand = true,
+            BlockDuplicate = true,
+        });
+    }
+
+    private void OnHammerDoAfter(Entity<FSUpgradeableComponent> ent, ref FSHammerDoAfterEvent args)
+    {
+        if (args.Cancelled || args.Handled)
             return;
 
         args.Handled = true;
-        var target = new Entity<FSUpgradeableComponent>(args.HitEntities[0], comp);
-        var user = args.User;
+        args.Repeat = PourHit(ent, args.User);
+    }
 
-        if (comp.Pending is not { } pendingId)
-        {
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-pick-first"), target, user);
-            return;
-        }
+    // One hammer hit. True while the upgrade still needs more hits and this one went in.
+    public bool PourHit(Entity<FSUpgradeableComponent> target, EntityUid user)
+    {
+        if (target.Comp.Pending is not { } pendingId)
+            return false;
 
-        if (!_departments.IsEngineering(user))
-        {
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-engineers-only"), target, user);
-            return;
-        }
-
-        if (comp.LastDamaged is { } last && _timing.CurTime - last < InterruptWindow)
+        if (target.Comp.LastDamaged is { } last && _timing.CurTime - last < InterruptWindow)
         {
             _popup.PopupEntity(Loc.GetString("fs-upgrade-under-attack"), target, user, PopupType.SmallCaution);
-            return;
+            return false;
         }
 
         var upgrade = Proto.Index(pendingId);
-        var cost = HitCost(upgrade, comp.Poured);
+        var cost = HitCost(upgrade, target.Comp.Poured);
         if (!_materials.TryConsume(user, cost))
         {
             _popup.PopupEntity(Loc.GetString("fs-upgrade-needs", ("list", CostText(cost))), target, user, PopupType.SmallCaution);
-            return;
+            return false;
         }
 
-        comp.Poured++;
+        target.Comp.Poured++;
         _audio.PlayPvs(PourSound, target);
 
-        if (comp.Poured < upgrade.Hits)
+        if (target.Comp.Poured < upgrade.Hits)
         {
             Dirty(target);
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-progress", ("done", comp.Poured), ("hits", upgrade.Hits)), target, user);
-            return;
+            return true;
         }
 
         Apply(target, upgrade);
         _audio.PlayPvs(DoneSound, target);
         _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, user, PopupType.Medium);
+        return false;
     }
 
     public void Apply(Entity<FSUpgradeableComponent> ent, FSUpgradePrototype upgrade)

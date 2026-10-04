@@ -14,7 +14,7 @@ fs-tutorial-eng-2-title = Build with the RCD
 fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold] to build, [bold]middle-click[/bold] to rotate. Costs come from the materials you carry, then from any silo within 20 tiles.
     The middle of the menu shows what you have against what you need. If a spot is refused, the reason is written under the ghost. Prefer a hotbar? Switch to the belt layout from the menu.
 fs-tutorial-eng-3-title = Upgrade with the hammer
-fs-tutorial-eng-3-text = Alt-click a barricade with your hammer to choose an upgrade, then hit it. Each hit pours in materials from your pack.
+fs-tutorial-eng-3-text = Click a barricade with your hammer (or press [bold]E[/bold] on it) to choose an upgrade. You start hammering it in right away; each hit pours in materials from your pack. Click it again to carry on if you stop.
     [bold]Grades[/bold]: steel, then plasteel, then depleted uranium for the toughest barricades.
     [bold]Branches[/bold], one per barricade: Bulwark for chokepoints, Firing Step for your gunline, Floodlit for dark lanes. Hits don't count while it's under attack.
 fs-tutorial-eng-4-title = Keep it standing

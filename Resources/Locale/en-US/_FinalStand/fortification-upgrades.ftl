@@ -1,10 +1,7 @@
 fs-upgrade-verb = Choose upgrade
 fs-upgrade-engineers-only = Only engineers know how to upgrade this.
-fs-upgrade-pick-first = Alt-click with the hammer to choose an upgrade first.
 fs-upgrade-under-attack = It's under attack. Wait until it's quiet to keep working.
 fs-upgrade-needs = Each hit needs {$list}.
-fs-upgrade-selected = {$name}: {$hits} hits to go.
-fs-upgrade-progress = Upgrading: {$done}/{$hits}.
 fs-upgrade-done = {$name} installed.
 fs-upgrade-wave-hardened = Fortifications reinforced for the harder waves: +{$percent}% health on every barricade.
 fs-upgrade-tooltip = {$name}
@@ -33,7 +30,7 @@ fs-alert-firing-step-desc = You're braced on a firing step: tighter spread, less
 
 fs-upgrade-examine-installed = Fitted: [color=#5fc8e8]{$list}[/color].
 fs-upgrade-examine-pending = Upgrading to [color=#d9a441]{$name}[/color]: {$done}/{$hits} hits.
-fs-upgrade-examine-hint = Alt-click with an engineer's hammer to upgrade it.
+fs-upgrade-examine-hint = Click it with an engineer's hammer to upgrade it.
 
 fs-module-belt = Extended Belt
 fs-module-belt-desc = 60 more rounds before it runs dry.
