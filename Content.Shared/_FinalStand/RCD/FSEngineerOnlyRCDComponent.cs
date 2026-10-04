@@ -22,6 +22,9 @@ public sealed partial class FSEngineerOnlyRCDComponent : Component
     public Dictionary<string, int> CapsUsed = new();
 
     [AutoNetworkedField]
+    public Dictionary<string, int> CapsMax = new();
+
+    [AutoNetworkedField]
     public int StationUsed;
 
     // Sheets of each palette material the holder could draw from silos in reach.

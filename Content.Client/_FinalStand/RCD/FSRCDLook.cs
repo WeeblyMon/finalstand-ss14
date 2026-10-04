@@ -94,7 +94,7 @@ public sealed class FSRCDLook
             var capped = false;
             if (proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe)
                 && recipe.CapGroup is { } group
-                && fs.Caps.TryGetValue(group, out var max))
+                && fs.CapsMax.TryGetValue(group, out var max))
             {
                 var used = fs.CapsUsed.GetValueOrDefault(group);
                 cap = (used, max);
@@ -154,7 +154,7 @@ public sealed class FSRCDLook
             }
 
             var meta = Loc.GetString("fs-rcd-info-time", ("seconds", piece.Delay));
-            if (recipe.CapGroup is { } group && fs.Caps.TryGetValue(group, out var max))
+            if (recipe.CapGroup is { } group && fs.CapsMax.TryGetValue(group, out var max))
                 meta = $"{fs.CapsUsed.GetValueOrDefault(group)}/{max} · {meta}";
             y += Text(handle, Mono(8f, scale), meta, topCenter.X, y + 2f * scale, Muted, centered) + 2f * scale;
         }

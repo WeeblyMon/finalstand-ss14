@@ -99,6 +99,13 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
             return;
         }
 
+        if (args.Target is { } owned && IsDeconstructing(uid) && !CanTakeDown(args.User, owned))
+        {
+            args.Handled = true;
+            _popup.PopupEntity(Loc.GetString("fs-rcd-not-yours"), uid, args.User, PopupType.Medium);
+            return;
+        }
+
         if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is { } reason)
         {
             args.Handled = true;
@@ -114,6 +121,11 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         }
 
         _reservedAt[uid] = _timing.CurTime;
+    }
+
+    private bool IsDeconstructing(EntityUid rcd)
+    {
+        return TryComp<RCDComponent>(rcd, out var rcdComp) && _proto.Index(rcdComp.ProtoId).Mode == RcdMode.Deconstruct;
     }
 
     private FSBuildRecipePrototype? RecipeFor(EntityUid rcd)

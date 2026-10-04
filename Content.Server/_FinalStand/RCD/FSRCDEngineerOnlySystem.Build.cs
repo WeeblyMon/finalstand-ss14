@@ -12,9 +12,12 @@ using Content.Shared.Movement.Pulling.Components;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
+using Content.Shared.Roles;
+using Content.Shared.Roles.Jobs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Stacks;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.RCD;
@@ -29,8 +32,12 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSBreachEvaluator _breach = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
+    [Dependency] private ISharedPlayerManager _player = default!;
 
     private const float RefundFraction = 0.5f;
+    private const float ChiefCapMultiplier = 1.5f;
+    private static readonly ProtoId<JobPrototype> ChiefEngineer = "ChiefEngineer";
     private const float ThreatRange = 5f;
     private const float ThreatDelayMultiplier = 3f;
 
@@ -70,8 +77,9 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (built >= comp.StationCap)
             return Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", comp.StationCap));
 
-        if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var max))
+        if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var baseMax))
         {
+            var max = CapFor(baseMax, user);
             var used = CapUsed(user, group);
             if (used >= max)
                 return Loc.GetString("fs-rcd-cap",
@@ -161,13 +169,52 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         var silo = SiloStockFor(user, rcd.Comp);
-        if (station == rcd.Comp.StationUsed && DictionaryEquals(used, rcd.Comp.CapsUsed) && DictionaryEquals(silo, rcd.Comp.SiloStock))
+        var max = CapsFor(rcd.Comp, user);
+        if (station == rcd.Comp.StationUsed
+            && DictionaryEquals(used, rcd.Comp.CapsUsed)
+            && DictionaryEquals(max, rcd.Comp.CapsMax)
+            && DictionaryEquals(silo, rcd.Comp.SiloStock))
             return;
 
         rcd.Comp.StationUsed = station;
         rcd.Comp.CapsUsed = used;
+        rcd.Comp.CapsMax = max;
         rcd.Comp.SiloStock = silo;
         Dirty(rcd);
+    }
+
+    public bool CanTakeDown(EntityUid user, EntityUid target)
+    {
+        if (!TryComp<FSDeployedByComponent>(target, out var deployedBy)
+            || deployedBy.OwnerMind is not { } owner
+            || IsChiefEngineer(user))
+            return true;
+
+        if (_mind.TryGetMind(user, out var mindId, out _) && mindId == owner)
+            return true;
+
+        return !TryComp<MindComponent>(owner, out var ownerMind)
+               || ownerMind.UserId is not { } ownerId
+               || !_player.TryGetSessionById(ownerId, out _);
+    }
+
+    public bool IsChiefEngineer(EntityUid user)
+    {
+        return _mind.TryGetMind(user, out var mindId, out _) && _jobs.MindHasJobWithId(mindId, ChiefEngineer);
+    }
+
+    private int CapFor(int max, EntityUid user)
+    {
+        return IsChiefEngineer(user) ? (int) MathF.Ceiling(max * ChiefCapMultiplier) : max;
+    }
+
+    private Dictionary<string, int> CapsFor(FSEngineerOnlyRCDComponent comp, EntityUid user)
+    {
+        var caps = new Dictionary<string, int>();
+        foreach (var (group, max) in comp.Caps)
+            caps[group] = CapFor(max, user);
+
+        return caps;
     }
 
     private static bool DictionaryEquals(Dictionary<string, int> a, Dictionary<string, int> b)

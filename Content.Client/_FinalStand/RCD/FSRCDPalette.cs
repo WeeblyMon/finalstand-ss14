@@ -42,7 +42,7 @@ public sealed class FSRCDPalette
             return -1;
 
         var count = Math.Max(0, fs.StationCap - fs.StationUsed);
-        if (recipe.CapGroup is { } group && fs.Caps.TryGetValue(group, out var max))
+        if (recipe.CapGroup is { } group && fs.CapsMax.TryGetValue(group, out var max))
             count = Math.Min(count, Math.Max(0, max - fs.CapsUsed.GetValueOrDefault(group)));
 
         var materials = entMan.System<FSCarriedMaterialSystem>();

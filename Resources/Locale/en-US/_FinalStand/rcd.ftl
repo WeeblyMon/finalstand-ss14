@@ -25,6 +25,7 @@ fs-rcd-too-far = Too far.
 fs-rcd-refund = Refund: {$list}
 fs-rcd-refund-nothing = nothing, too damaged
 fs-rcd-cant-deconstruct = Can't deconstruct.
+fs-rcd-not-yours = Someone else built this. Only they or the Chief Engineer can take it down.
 fs-rcd-info-time = {$seconds}s build
 fs-rcd-ring-station = Station pieces
 fs-rcd-switch-to-belt = Belt layout

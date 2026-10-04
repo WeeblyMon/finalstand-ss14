@@ -32,6 +32,12 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (_proto.Index(rcd.ProtoId).Mode == RcdMode.Deconstruct)
         {
             var target = GetEntity(ev.Target);
+            if (target is { } owned && !CanTakeDown(user, owned))
+            {
+                RaiseNetworkEvent(new FSRCDProbeResultEvent(ev.Rcd, ev.Location, Loc.GetString("fs-rcd-not-yours"), true), args.SenderSession);
+                return;
+            }
+
             var refund = target is { } t ? RefundFor(t) : null;
             blocked = refund == null && target != null && !HasComp<RCDDeconstructableComponent>(target);
             text = refund != null
