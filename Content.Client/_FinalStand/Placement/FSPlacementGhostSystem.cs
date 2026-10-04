@@ -45,7 +45,8 @@ public sealed class FSPlacementGhostSystem : EntitySystem
             return;
         }
 
-        var directional = TryComp<FSDeployableItemComponent>(heldEntity, out var deployable)
+        var directional = placeable.Rotates
+                          || TryComp<FSDeployableItemComponent>(heldEntity, out var deployable)
                           && deployable.FaceDeployerDirection;
         var starting = heldEntity != placerEntity;
 
