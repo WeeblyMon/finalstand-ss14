@@ -1,4 +1,5 @@
 using Content.Server.Hands.Systems;
+using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.Interaction;
 using Content.Shared.RCD;
@@ -71,13 +72,8 @@ public sealed partial class FSRCDEngineerOnlySystem
 
     private string MaterialList(Dictionary<ProtoId<StackPrototype>, int> materials)
     {
-        if (materials.Count == 0)
-            return Loc.GetString("fs-rcd-refund-nothing");
-
-        var parts = new List<string>();
-        foreach (var (material, amount) in materials)
-            parts.Add($"{amount} {Loc.GetString(_proto.Index(material).Name)}");
-
-        return string.Join(", ", parts);
+        return materials.Count == 0
+            ? Loc.GetString("fs-rcd-refund-nothing")
+            : FSMaterialText.List(_proto, materials);
     }
 }

@@ -249,14 +249,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
     private string PartName(EntProtoId part) => _proto.Index(part).Name;
 
-    private string MaterialList(Dictionary<ProtoId<StackPrototype>, int> materials)
-    {
-        var parts = new List<string>();
-        foreach (var (material, amount) in materials)
-            parts.Add($"{amount} {Loc.GetString(_proto.Index(material).Name)}");
-
-        return string.Join(", ", parts);
-    }
+    private string MaterialList(Dictionary<ProtoId<StackPrototype>, int> materials) => FSMaterialText.List(_proto, materials);
 
     public override void Update(float frameTime)
     {

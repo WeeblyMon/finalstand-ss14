@@ -302,7 +302,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         var cost = HitCost(upgrade, target.Comp.Poured);
         if (!_materials.TryConsume(user, cost))
         {
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-needs", ("list", CostText(cost))), target, user, PopupType.SmallCaution);
+            _popup.PopupEntity(Loc.GetString("fs-upgrade-needs", ("list", FSMaterialText.List(Proto, cost))), target, user, PopupType.SmallCaution);
             return false;
         }
 
@@ -440,14 +440,5 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         }
 
         return cost;
-    }
-
-    private string CostText(Dictionary<ProtoId<StackPrototype>, int> cost)
-    {
-        var parts = new List<string>();
-        foreach (var (material, amount) in cost)
-            parts.Add($"{amount} {Loc.GetString(Proto.Index(material).Name)}");
-
-        return string.Join(", ", parts);
     }
 }
