@@ -1,6 +1,7 @@
 // Draws pings in the world (pop-in, ripple, label, distance), arrows at the screen edge for off-screen pings,
 // a red ring and edge flash for bosses, a ghost of the piece for "build here", and the role task panel.
 using System.Numerics;
+using Content.Client._FinalStand.Engineering;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared.RCD;
 using Robust.Client.GameObjects;
@@ -35,6 +36,8 @@ public sealed partial class FSPingOverlay : Overlay
     private SharedTransformSystem? _xform;
     private FSPingClientSystem? _pings;
     private SpriteSystem? _sprite;
+    private FSEngineeringObjectiveClientSystem? _objectives;
+    private static readonly Color ObjectiveColor = Color.FromHex("#F59E0B");
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -76,7 +79,8 @@ public sealed partial class FSPingOverlay : Overlay
                 DrawAtEdge(handle, ping.Data, bounds, screen, alpha, distance);
         }
 
-        DrawTasks(handle, bounds, me);
+        var top = DrawObjectives(handle, bounds);
+        DrawTasks(handle, bounds, me, top);
         DrawBossFlash(handle, bounds, now);
     }
 
@@ -169,7 +173,26 @@ public sealed partial class FSPingOverlay : Overlay
         handle.DrawString(font, new Vector2(at.X - size.X / 2f, at.Y + 13f), text, FSPingLook.InfoColor.WithAlpha(alpha));
     }
 
-    private void DrawTasks(DrawingHandleScreen handle, UIBox2i bounds, MapCoordinates me)
+    private float DrawObjectives(DrawingHandleScreen handle, UIBox2i bounds)
+    {
+        _objectives ??= _entMan.System<FSEngineeringObjectiveClientSystem>();
+        var top = bounds.Top + PanelTop;
+        var lines = _objectives.Lines;
+        if (lines.Count == 0)
+            return top;
+
+        var font = _look.Font(9);
+        var x = bounds.Right - PanelWidth - 24f;
+        var height = 8f + lines.Count * 16f;
+        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(PanelWidth, height)), FSPingLook.Back);
+        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(3f, height)), ObjectiveColor);
+        for (var i = 0; i < lines.Count; i++)
+            handle.DrawString(font, new Vector2(x + 10f, top + 4f + i * 16f), Truncate(handle, font, lines[i], PanelWidth - 16f), ObjectiveColor);
+
+        return top + height + 6f;
+    }
+
+    private void DrawTasks(DrawingHandleScreen handle, UIBox2i bounds, MapCoordinates me, float top)
     {
         var tasks = _pings!.Tasks;
         if (tasks.Count == 0)
@@ -179,7 +202,7 @@ public sealed partial class FSPingOverlay : Overlay
         var row = _look.Font(9);
         var sub = _look.Font(8);
         var x = bounds.Right - PanelWidth - 24f;
-        var y = bounds.Top + PanelTop;
+        var y = top;
         var shown = Math.Min(PanelRows, tasks.Count);
         var height = 22f + shown * 34f + (tasks.Count > PanelRows ? 16f : 0f);
         handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y), new Vector2(PanelWidth, height)), FSPingLook.Back);
