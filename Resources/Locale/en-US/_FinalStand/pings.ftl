@@ -1,0 +1,32 @@
+fs-ping-go = Go here
+fs-ping-danger = Danger
+fs-ping-defend = Defend here
+fs-ping-fallback = Fall back
+fs-ping-needammo = Need ammo
+fs-ping-acknowledge = On it
+fs-ping-need-repair = Need repair
+fs-ping-need-chems = Need chems
+fs-ping-enemy = Enemy
+fs-ping-boss = BOSS: {$name}
+fs-ping-revive = Revive {$name}
+fs-ping-repair = Repair {$name} ({$percent}%)
+fs-ping-bay = Mech Bay: {$stage}
+fs-ping-ammo = Ammo here
+fs-ping-ammo-rounds = Ammo: {$rounds} rounds
+fs-ping-ammo-uses = Ammo: {$uses} refills
+fs-ping-door = Hold this door
+fs-ping-build = Build {$name} here
+
+fs-ping-wheel-go = Go
+fs-ping-wheel-danger = Danger
+fs-ping-wheel-defend = Defend
+fs-ping-wheel-fallback = Fall back
+fs-ping-wheel-ammo = Need ammo
+fs-ping-wheel-chems = Need chems
+fs-ping-wheel-repair = Need repair
+fs-ping-wheel-ack = On it
+
+fs-ping-tasks-title = TASKS
+fs-ping-task-claimed = {$name} is on it
+fs-ping-task-more = +{$count} more
+fs-ping-on-it = {$name}: on it
