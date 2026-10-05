@@ -1,12 +1,18 @@
-// Keeps the pings and tasks the server sent, drops expired ones, and plays a short sound per category.
+// Keeps the pings and tasks the server sent, drops expired ones, plays a short sound per category and logs your role's pings in chat.
+using Content.Client.UserInterface.Systems.Chat;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Pings;
+using Content.Shared.CCVar;
+using Content.Shared.Chat;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.UserInterface;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Configuration;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Pings;
 
@@ -18,6 +24,9 @@ public sealed partial class FSPingClientSystem : EntitySystem
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private const int PerSender = 3;
     private static readonly TimeSpan BossFlash = TimeSpan.FromSeconds(0.8);
@@ -90,6 +99,28 @@ public sealed partial class FSPingClientSystem : EntitySystem
         _audio.PlayGlobal(sound, Filter.Local(), false, AudioParams.Default.WithVolume(forMe ? -2f : -9f));
         if (ev.Type == FSPingType.Boss)
             BossFlashUntil = now + BossFlash;
+
+        if (forMe && _cfg.GetCVar(CCVars.FSPingChat))
+            LogToChat(ev);
+    }
+
+    private void LogToChat(FSPingEvent ev)
+    {
+        var where = string.Empty;
+        if (_player.LocalEntity is { } local)
+        {
+            var me = _transform.GetMapCoordinates(local);
+            var at = _transform.ToMapCoordinates(GetCoordinates(ev.Coords));
+            var offset = at.Position - me.Position;
+            if (at.MapId == me.MapId && offset.Length() >= 1f)
+                where = Loc.GetString("fs-ping-chat-where", ("distance", (int) offset.Length()),
+                    ("dir", Loc.GetString($"fs-ping-dir-{offset.ToWorldAngle().GetDir().ToString().ToLowerInvariant()}")));
+        }
+
+        var text = Loc.GetString("fs-ping-chat", ("name", ev.SenderName), ("label", ev.Label), ("where", where));
+        var wrapped = $"[color=#9ca3af]{FormattedMessage.EscapeText(text)}[/color]";
+        _ui.GetUIController<ChatUIController>().ProcessChatMessage(
+            new ChatMessage(ChatChannel.Notifications, text, wrapped, NetEntity.Invalid, null), speechBubble: false);
     }
 
     public override void FrameUpdate(float frameTime)

@@ -11,6 +11,9 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSRcdBeltLayout =
         CVarDef.Create("fs.rcd_belt_layout", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    public static readonly CVarDef<bool> FSPingChat =
+        CVarDef.Create("fs.ping_chat", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     public static readonly CVarDef<bool> FSRcdHintSeen =
         CVarDef.Create("fs.rcd_hint_seen", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
