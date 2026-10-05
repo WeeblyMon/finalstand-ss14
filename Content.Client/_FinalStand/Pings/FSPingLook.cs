@@ -1,0 +1,124 @@
+// How each ping type looks: icon, colour and marker shape. Shape follows the category so colour-blind players can tell them apart.
+using System.Numerics;
+using Content.Shared._FinalStand.Pings;
+using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
+
+namespace Content.Client._FinalStand.Pings;
+
+public enum FSPingShape : byte
+{
+    Diamond,
+    Circle,
+    Square,
+}
+
+public sealed class FSPingLook
+{
+    public static readonly Color EnemyColor = Color.FromHex("#f08a24");
+    public static readonly Color BossColor = Color.FromHex("#e0303a");
+    public static readonly Color RequestColor = Color.FromHex("#4fa3ff");
+    public static readonly Color InfoColor = Color.FromHex("#e9e5da");
+    public static readonly Color Back = Color.FromHex("#0e1013").WithAlpha(0.85f);
+
+    private const string IconDir = "/Textures/_FinalStand/Interface/Pings/";
+
+    private readonly IResourceCache _cache;
+    private readonly Dictionary<string, Texture> _icons = new();
+    private readonly Dictionary<int, Font> _fonts = new();
+
+    public FSPingLook(IResourceCache cache)
+    {
+        _cache = cache;
+    }
+
+    public Font Font(int size)
+    {
+        if (!_fonts.TryGetValue(size, out var font))
+            _fonts[size] = font = new VectorFont(_cache.GetResource<FontResource>("/Fonts/NotoSans/NotoSans-Bold.ttf"), size);
+        return font;
+    }
+
+    public Texture Icon(FSPingType type, string? overridePath = null)
+    {
+        var path = overridePath is { Length: > 0 } custom ? custom : IconDir + IconName(type) + ".png";
+        if (!_icons.TryGetValue(path, out var tex))
+            _icons[path] = tex = _cache.GetResource<TextureResource>(path).Texture;
+        return tex;
+    }
+
+    public static string IconName(FSPingType type) => type switch
+    {
+        FSPingType.Go => "go",
+        FSPingType.Danger => "danger",
+        FSPingType.Enemy or FSPingType.Special => "enemy",
+        FSPingType.Boss => "boss",
+        FSPingType.Defend => "defend",
+        FSPingType.FallBack => "fallback",
+        FSPingType.NeedAmmo or FSPingType.Ammo => "ammo",
+        FSPingType.NeedChems => "chems",
+        FSPingType.NeedRepair or FSPingType.Repair => "repair",
+        FSPingType.BuildHere => "build",
+        FSPingType.Revive => "revive",
+        FSPingType.Loot => "loot",
+        FSPingType.Bay => "bay",
+        FSPingType.Door => "door",
+        _ => "ack",
+    };
+
+    public static Color ColorOf(FSPingType type) => type switch
+    {
+        FSPingType.Boss => BossColor,
+        FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => EnemyColor,
+        FSPingType.NeedAmmo or FSPingType.NeedChems or FSPingType.NeedRepair or FSPingType.Repair
+            or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay => RequestColor,
+        _ => InfoColor,
+    };
+
+    public static FSPingShape ShapeOf(FSPingType type) => type switch
+    {
+        FSPingType.Boss or FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => FSPingShape.Diamond,
+        FSPingType.NeedAmmo or FSPingType.NeedChems or FSPingType.NeedRepair or FSPingType.Repair
+            or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay => FSPingShape.Circle,
+        _ => FSPingShape.Square,
+    };
+
+    public static bool IsRequest(FSPingType type) => ShapeOf(type) == FSPingShape.Circle;
+
+    // A filled marker in the category shape with a darker rim, then the icon tinted dark on top.
+    public void DrawMarker(DrawingHandleScreen handle, Vector2 center, float size, FSPingType type, float alpha, string? iconPath = null)
+    {
+        var color = ColorOf(type);
+        Shape(handle, center, size / 2f + 2f, ShapeOf(type), Back.WithAlpha(alpha * 0.9f));
+        Shape(handle, center, size / 2f, ShapeOf(type), color.WithAlpha(alpha));
+        var icon = Icon(type, iconPath);
+        var side = size * (iconPath != null ? 0.8f : 0.62f);
+        var tint = iconPath != null ? Color.White.WithAlpha(alpha) : Back.WithAlpha(alpha);
+        handle.DrawTextureRect(icon, UIBox2.FromDimensions(center - new Vector2(side / 2f), new Vector2(side)), tint);
+    }
+
+    public static void Shape(DrawingHandleScreen handle, Vector2 center, float r, FSPingShape shape, Color color)
+    {
+        switch (shape)
+        {
+            case FSPingShape.Circle:
+                handle.DrawCircle(center, r, Color.ToSrgb(color));
+                break;
+            case FSPingShape.Diamond:
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan,
+                    new[] { center + new Vector2(0, -r), center + new Vector2(r, 0), center + new Vector2(0, r), center + new Vector2(-r, 0) },
+                    color);
+                break;
+            default:
+                var s = r * 0.86f;
+                handle.DrawRect(new UIBox2(center.X - s, center.Y - s, center.X + s, center.Y + s), color);
+                break;
+        }
+    }
+
+    public static void Ring(DrawingHandleScreen handle, Vector2 center, float r, float width, Color color)
+    {
+        for (var w = 0f; w < width; w += 0.75f)
+            handle.DrawCircle(center, r - w, Color.ToSrgb(color), false);
+    }
+}
