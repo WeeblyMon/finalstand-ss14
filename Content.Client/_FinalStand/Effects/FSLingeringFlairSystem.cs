@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
+using Content.Shared._FinalStand.Particles;
 using Robust.Client.Player;
 using Robust.Shared.Prototypes;
 
@@ -18,6 +19,12 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
     [Dependency] private FSParticleSystem _particles = default!;
     [Dependency] private FSFlairClientSystem _flair = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> Debris = "FSDebris";
+    private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
+    private static readonly ProtoId<FSParticleEmitterPrototype> MechSmoke = "FSMechSmoke";
+    private static readonly ProtoId<FSParticleEmitterPrototype> MechSparks = "FSMechSparks";
+    private static readonly ProtoId<FSParticleEmitterPrototype> UraniumGlow = "FSUraniumGlow";
 
     private static readonly ProtoId<FSUpgradePrototype> Uranium = "FSGradeUranium";
     private const float SmokeBelow = 0.25f;
@@ -74,8 +81,8 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
             {
                 flair = new MechFlair
                 {
-                    Smoke = _particles.Attach("FSMechSmoke", uid),
-                    Sparks = _particles.Attach("FSMechSparks", uid),
+                    Smoke = _particles.Attach(MechSmoke, uid),
+                    Sparks = _particles.Attach(MechSparks, uid),
                     LastStep = _transform.GetWorldPosition(xform),
                 };
                 _mechs[uid] = flair;
@@ -91,7 +98,7 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
                 continue;
 
             flair.LastStep = pos;
-            _particles.Burst("FSDustPuff", uid, countScale: 0.4f);
+            _particles.Burst(DustPuff, uid, countScale: 0.4f);
             if (piloting != uid)
                 _flair.Kick(_transform.GetMapCoordinates(uid, xform), StepKick, StepKickRange);
         }
@@ -121,7 +128,7 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
         {
             var total = damageable.TotalDamage.Float();
             if (_damage.TryGetValue(uid, out var last) && total > last + 0.5f)
-                _particles.Burst("FSDebris", uid, countScale: 0.3f);
+                _particles.Burst(Debris, uid, countScale: 0.3f);
 
             _damage[uid] = total;
         }
@@ -146,7 +153,7 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
             var uranium = upgradeable.Grade == Uranium;
             var has = _glows.ContainsKey(uid);
             if (uranium && !has)
-                _glows[uid] = _particles.Attach("FSUraniumGlow", uid);
+                _glows[uid] = _particles.Attach(UraniumGlow, uid);
             else if (!uranium && has)
             {
                 _particles.Detach(_glows[uid]);

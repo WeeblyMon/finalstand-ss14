@@ -1,8 +1,10 @@
 // The barrel glows orange, red, then white as the HMG heats up; it throws casings while firing and vents steam once it cools.
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.HMG;
+using Content.Shared._FinalStand.Particles;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.HMG;
 
@@ -12,6 +14,9 @@ public sealed class FSHMGVisualSystem : EntitySystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private FSParticleSystem _particles = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> Casing = "FSCasing";
+    private static readonly ProtoId<FSParticleEmitterPrototype> SteamVent = "FSSteamVent";
 
     private const string Layer = "overheat";
     private const float ShowAbove = 0.25f;
@@ -52,9 +57,9 @@ public sealed class FSHMGVisualSystem : EntitySystem
             if (_last.TryGetValue(uid, out var last))
             {
                 if (raw > last.Heat + 0.001f)
-                    _particles.Burst("FSCasing", uid);
+                    _particles.Burst(Casing, uid);
                 if (last.Overheated && !overheated)
-                    _particles.Burst("FSSteamVent", uid);
+                    _particles.Burst(SteamVent, uid);
             }
 
             _last[uid] = (raw, overheated);

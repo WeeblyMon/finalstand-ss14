@@ -13,6 +13,7 @@ using Content.Shared.Stacks;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
+using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -32,6 +33,8 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> WeldSparks = "FSWeldSparks";
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private const float FitDelay = 1f;
@@ -120,7 +123,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
         _damageable.HealEvenly(ent.Owner, -FixedPoint2.New(PerPlate(ent) * ent.Comp.Fitted), origin: args.User);
         ent.Comp.Fitted = 0;
         _popup.PopupEntity(Loc.GetString("fs-plate-repair-welded"), ent, args.User);
-        _flair.Burst("FSWeldSparks", ent);
+        _flair.Burst(WeldSparks, ent);
     }
 
     private void OnExamined(Entity<FSPlateRepairComponent> ent, ref ExaminedEvent args)

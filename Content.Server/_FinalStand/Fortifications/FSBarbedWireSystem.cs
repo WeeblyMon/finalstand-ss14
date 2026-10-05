@@ -8,6 +8,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Weapons.Melee.Events;
+using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -23,6 +24,8 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> WireShred = "FSWireShred";
 
     private static readonly SoundSpecifier CutSound = new SoundPathSpecifier("/Audio/Weapons/bladeslice.ogg", AudioParams.Default.WithVolume(-6f).WithVariation(0.15f));
 
@@ -49,6 +52,6 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
 
         _slow.ApplySlow(args.User, SlowSource, ent.Comp.Slow, ent.Comp.SlowDuration);
         _audio.PlayPvs(CutSound, args.User);
-        _flair.Burst("FSWireShred", args.User);
+        _flair.Burst(WireShred, args.User);
     }
 }

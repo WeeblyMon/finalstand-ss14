@@ -23,6 +23,7 @@ using Content.Shared.Stacks;
 using Content.Shared.Verbs;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
+using Content.Shared._FinalStand.Particles;
 using Robust.Server.Audio;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
@@ -51,6 +52,9 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeGlints = "FSUpgradeGlints";
+    private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeRing = "FSUpgradeRing";
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
     private static readonly ProtoId<FSUpgradePrototype> Bulwark = "FSBranchBulwark";
@@ -320,8 +324,8 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         Apply(target, upgrade);
         _audio.PlayPvs(DoneSound, target);
         var flash = upgrade.Color ?? DoneFlash;
-        _flair.Burst("FSUpgradeRing", target, flash);
-        _flair.Burst("FSUpgradeGlints", target, flash);
+        _flair.Burst(UpgradeRing, target, flash);
+        _flair.Burst(UpgradeGlints, target, flash);
         _audio.PlayPvs(ChimeSound, target, AudioParams.Default.WithVolume(-4f).WithPitchScale(upgrade.Slot == FSUpgradeSlot.Grade ? 1.15f : 0.95f));
         _color.RaiseEffect(DoneFlash, [target.Owner], Filter.Pvs(target, entityManager: EntityManager));
         _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, PopupType.Medium);

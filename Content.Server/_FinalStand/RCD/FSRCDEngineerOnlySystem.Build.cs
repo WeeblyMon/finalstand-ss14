@@ -17,6 +17,7 @@ using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared.Damage.Components;
 using Content.Shared.Stacks;
+using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -39,6 +40,8 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
 
     private const float RefundFraction = 0.5f;
     private const float SalvageRefundFraction = 0.75f;
@@ -151,7 +154,7 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         _telemetry.RecordSpend("rcd", recipe.Materials);
         _audio.PlayPvs(PlacedSound, args.Built);
-        _flair.Burst("FSDustPuff", args.Built);
+        _flair.Burst(DustPuff, args.Built);
 
         var spent = new List<string>();
         foreach (var (material, amount) in recipe.Materials)

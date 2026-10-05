@@ -15,8 +15,10 @@ using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Prototypes;
 using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Ranged.Events;
+using Content.Shared._FinalStand.Particles;
 
 namespace Content.Server._FinalStand.Mech;
 
@@ -30,6 +32,11 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
+    private static readonly ProtoId<FSParticleEmitterPrototype> SmokeBurst = "FSSmokeBurst";
+    private static readonly ProtoId<FSParticleEmitterPrototype> StompRing = "FSStompRing";
+    private static readonly ProtoId<FSParticleEmitterPrototype> WeldSparks = "FSWeldSparks";
 
     private static readonly TimeSpan BailoutTime = TimeSpan.FromSeconds(3);
     private static readonly SoundSpecifier WreckSound = new SoundCollectionSpecifier("MetalBreak");
@@ -76,8 +83,8 @@ public sealed partial class FSCombatMechSystem : EntitySystem
 
         ent.Comp.WasBroken = true;
         _audio.PlayPvs(WreckSound, ent);
-        _flair.Burst("FSSmokeBurst", ent, kick: 0.8f);
-        _flair.Burst("FSWeldSparks", ent);
+        _flair.Burst(SmokeBurst, ent, kick: 0.8f);
+        _flair.Burst(WeldSparks, ent);
         if (ent.Comp.LastPilot is not { } pilot || TerminatingOrDeleted(pilot) || !_transform.InRange(pilot, ent.Owner, 2f))
             return;
 
@@ -90,8 +97,8 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         if (!args.Planted)
             return;
 
-        _flair.Burst("FSStompRing", ent, kick: 0.7f);
-        _flair.Burst("FSDustPuff", ent);
+        _flair.Burst(StompRing, ent, kick: 0.7f);
+        _flair.Burst(DustPuff, ent);
     }
 
     private void OnCharge(Entity<MechEquipmentComponent> ent, ref FSMechGunChargeEvent args)

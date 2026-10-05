@@ -2,7 +2,9 @@
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Mech;
+using Content.Shared._FinalStand.Particles;
 using Robust.Client.GameObjects;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Mech;
@@ -14,13 +16,15 @@ public sealed partial class FSSkyfallVisualSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSParticleSystem _particles = default!;
 
+    private static readonly ProtoId<FSParticleEmitterPrototype> MissileTrail = "FSMissileTrail";
+
     private const string MissileLayer = "missile";
     private const float GrowBy = 0.5f;
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSSkyfallMissileComponent, ComponentStartup>((uid, _, _) => _particles.Attach("FSMissileTrail", uid));
+        SubscribeLocalEvent<FSSkyfallMissileComponent, ComponentStartup>((uid, _, _) => _particles.Attach(MissileTrail, uid));
     }
 
     public override void FrameUpdate(float frameTime)

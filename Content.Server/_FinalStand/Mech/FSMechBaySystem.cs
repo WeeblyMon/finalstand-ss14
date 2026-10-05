@@ -18,6 +18,7 @@ using Content.Shared.Stacks;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Systems;
 using Content.Shared.Verbs;
+using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -40,6 +41,9 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
     [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+
+    private static readonly ProtoId<FSParticleEmitterPrototype> BayArc = "FSBayArc";
+    private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private static readonly TimeSpan UpkeepInterval = TimeSpan.FromSeconds(1);
@@ -145,7 +149,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
                 ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count));
         _popup.PopupEntity(message, ent, PopupType.Medium);
         _audio.PlayPvs(StageSound, ent);
-        _flair.Burst("FSBayArc", ent);
+        _flair.Burst(BayArc, ent);
     }
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
@@ -166,7 +170,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         ent.Comp.Plated = false;
         Dirty(ent);
         _audio.PlayPvs(RollOutSound, ent);
-        _flair.Burst("FSDustRing", ent, kick: 0.6f);
+        _flair.Burst(DustRing, ent, kick: 0.6f);
         _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
     }
 
