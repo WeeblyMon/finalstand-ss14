@@ -294,6 +294,10 @@
       chance: 1.0
     - proto: FSResearchDisk
       chance: 0.0005
+    - proto: FSDurandBossPlate
+      chance: 1.0
+    - proto: FSOverclockRandom
+      chance: 0.5
   - type: FSArmor
     maxHPRatio: 0.6
     regenRate: 15
