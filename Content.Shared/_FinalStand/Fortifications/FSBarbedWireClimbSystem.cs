@@ -1,5 +1,6 @@
-// Barbed wire barricades refuse anyone trying to vault them.
+// Barbed wire barricades refuse anyone trying to vault them, and say so on examine.
 using Content.Shared.Climbing.Events;
+using Content.Shared.Examine;
 using Content.Shared.Popups;
 
 namespace Content.Shared._FinalStand.Fortifications;
@@ -12,6 +13,12 @@ public sealed partial class FSBarbedWireClimbSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSBarbedWireComponent, AttemptClimbEvent>(OnAttemptClimb);
+        SubscribeLocalEvent<FSBarbedWireComponent, ExaminedEvent>(OnExamined);
+    }
+
+    private void OnExamined(Entity<FSBarbedWireComponent> ent, ref ExaminedEvent args)
+    {
+        args.PushMarkup(Loc.GetString("fs-barbed-wire-examine"));
     }
 
     private void OnAttemptClimb(Entity<FSBarbedWireComponent> ent, ref AttemptClimbEvent args)
