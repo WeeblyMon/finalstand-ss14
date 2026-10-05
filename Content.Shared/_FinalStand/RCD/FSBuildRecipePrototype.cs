@@ -15,4 +15,7 @@ public sealed partial class FSBuildRecipePrototype : IPrototype
 
     [DataField]
     public string? CapGroup;
+
+    [DataField]
+    public string? Research;
 }

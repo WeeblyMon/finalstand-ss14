@@ -65,6 +65,9 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         Direction? facing = rcdProto.Rotation == RcdRotation.User ? rcdComp.ConstructionDirection : null;
 
+        if (recipe.Research is { } node && !_research.Has(node))
+            return Loc.GetString("fs-rcd-needs-research");
+
         if (!_placementRules.IsTileBuildable(location, blocksPath: true))
             return Loc.GetString("fs-rcd-in-the-way");
 
