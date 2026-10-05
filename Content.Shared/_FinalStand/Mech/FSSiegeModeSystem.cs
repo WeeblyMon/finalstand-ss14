@@ -1,10 +1,11 @@
-// Plants and unplants a mech in siege mode, and applies what being planted means.
+// Plants and unplants a mech in siege mode. Planted, it is anchored, so the breach AI treats it as part of the line.
 using Content.Shared.Actions;
 using Content.Shared.Damage.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Vehicle.Components;
+using Robust.Shared.Network;
 
 namespace Content.Shared._FinalStand.Mech;
 
@@ -16,6 +17,7 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _speed = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private INetManager _net = default!;
 
     public override void Initialize()
     {
@@ -68,6 +70,15 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
         _actions.SetToggled(ent.Comp.ActionEntity, planted);
         _speed.RefreshMovementSpeedModifiers(ent.Owner);
         _damageable.SetDamageModifierSetId(ent.Owner, planted ? ent.Comp.SiegeArmor : ent.Comp.NormalArmor);
+
+        if (_net.IsClient)
+            return;
+
+        var xform = Transform(ent);
+        if (planted && !xform.Anchored)
+            _transform.AnchorEntity((ent.Owner, xform));
+        else if (!planted && xform.Anchored)
+            _transform.Unanchor(ent.Owner, xform);
     }
 
     private void OnRefreshSpeed(Entity<FSSiegeModeComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
