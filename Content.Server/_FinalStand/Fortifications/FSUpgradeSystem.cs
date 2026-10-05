@@ -64,6 +64,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     private static readonly Color DoneFlash = Color.FromHex("#ffd27a");
 
     private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
+    private static readonly SoundSpecifier ChimeSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
 
     public override void Initialize()
     {
@@ -317,6 +318,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         Apply(target, upgrade);
         _audio.PlayPvs(DoneSound, target);
+        _audio.PlayPvs(ChimeSound, target, AudioParams.Default.WithVolume(-4f).WithPitchScale(upgrade.Slot == FSUpgradeSlot.Grade ? 1.15f : 0.95f));
         _color.RaiseEffect(DoneFlash, [target.Owner], Filter.Pvs(target, entityManager: EntityManager));
         _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, user, PopupType.Medium);
         return false;

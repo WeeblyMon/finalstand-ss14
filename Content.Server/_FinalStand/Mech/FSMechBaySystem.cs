@@ -18,6 +18,7 @@ using Content.Shared.Stacks;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Systems;
 using Content.Shared.Verbs;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -37,10 +38,13 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private static readonly TimeSpan UpkeepInterval = TimeSpan.FromSeconds(1);
     private const float WeldFuel = 10f;
+    private static readonly SoundSpecifier StageSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
+    private static readonly SoundSpecifier RollOutSound = new SoundPathSpecifier("/Audio/Effects/Vehicle/vehiclestartup.ogg");
 
     private readonly HashSet<Entity<MechComponent>> _parked = new();
     private TimeSpan _nextUpkeep;
@@ -128,6 +132,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             ? Loc.GetString("fs-mech-bay-stage-done", ("next", Loc.GetString(next.Name)), ("role", RoleName(next.Role)))
             : Loc.GetString("fs-mech-bay-ready");
         _popup.PopupEntity(message, ent, user, PopupType.Medium);
+        _audio.PlayPvs(StageSound, ent);
     }
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
@@ -139,6 +144,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         ent.Comp.Stage = 0;
         Dirty(ent);
         Spawn(ent.Comp.Result, Transform(ent).Coordinates);
+        _audio.PlayPvs(RollOutSound, ent);
         _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
     }
 

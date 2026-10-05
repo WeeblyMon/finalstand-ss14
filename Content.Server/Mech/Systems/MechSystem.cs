@@ -40,6 +40,8 @@ public sealed partial class MechSystem : SharedMechSystem
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedToolSystem _toolSystem = default!;
     [Dependency] private Content.Shared.Movement.Systems.MovementSpeedModifierSystem _movementSpeed = default!; // FS: from Monolith
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FS
+    private static readonly Robust.Shared.Audio.SoundSpecifier LowPowerSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/warning_buzzer.ogg"); // FS
 
     private static readonly ProtoId<ToolQualityPrototype> PryingQuality = "Prying";
 
@@ -344,6 +346,8 @@ public sealed partial class MechSystem : SharedMechSystem
 
         component.CriticalPowerState = critical;
         Dirty(uid, component);
+        if (critical)
+            _audio.PlayPvs(LowPowerSound, uid); // FS
         _movementSpeed.RefreshMovementSpeedModifiers(uid);
     }
 

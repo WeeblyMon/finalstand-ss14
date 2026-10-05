@@ -8,6 +8,8 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Weapons.Melee.Events;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Fortifications;
@@ -19,6 +21,9 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier CutSound = new SoundPathSpecifier("/Audio/Weapons/bladeslice.ogg", AudioParams.Default.WithVolume(-6f).WithVariation(0.15f));
 
     private const string SlowSource = "barbed-wire";
     private static readonly ProtoId<DamageTypePrototype> Slash = "Slash";
@@ -42,5 +47,6 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
             _bloodstream.TryModifyBleedAmount(args.User, RazorBleed);
 
         _slow.ApplySlow(args.User, SlowSource, ent.Comp.Slow, ent.Comp.SlowDuration);
+        _audio.PlayPvs(CutSound, args.User);
     }
 }

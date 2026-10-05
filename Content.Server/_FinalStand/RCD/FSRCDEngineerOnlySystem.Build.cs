@@ -17,6 +17,7 @@ using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared.Damage.Components;
 using Content.Shared.Stacks;
+using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -36,9 +37,11 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
 
     private const float RefundFraction = 0.5f;
     private const float SalvageRefundFraction = 0.75f;
+    private static readonly SoundSpecifier PlacedSound = new SoundPathSpecifier("/Audio/Effects/thunk.ogg", AudioParams.Default.WithVariation(0.1f));
     private const float RapidAssemblyMultiplier = 0.75f;
     private const float ChiefCapMultiplier = 1.5f;
     private const float ThreatRange = 5f;
@@ -141,6 +144,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         _telemetry.RecordSpend("rcd", recipe.Materials);
+        _audio.PlayPvs(PlacedSound, args.Built);
 
         var spent = new List<string>();
         foreach (var (material, amount) in recipe.Materials)

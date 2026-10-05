@@ -13,6 +13,8 @@ using Content.Shared.Stacks;
 using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Repair;
@@ -25,6 +27,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private SharedStackSystem _stack = default!;
     [Dependency] private SharedToolSystem _tool = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
@@ -34,6 +37,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     private const float UntrainedMultiplier = 2f;
     private const float WeldDelay = 2f;
     private const float WeldFuel = 5f;
+    private static readonly SoundSpecifier PlateSound = new SoundPathSpecifier("/Audio/Effects/metal_thud1.ogg", AudioParams.Default.WithVariation(0.1f));
     private const float QuickSetMultiplier = 0.6f;
     private const float ArcWeldingMultiplier = 0.7f;
     private const float MinWeldSeconds = 1f;
@@ -99,6 +103,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
 
         args.Handled = true;
         ent.Comp.Fitted++;
+        _audio.PlayPvs(PlateSound, ent);
         var remaining = PlatesNeeded(ent);
         _popup.PopupEntity(remaining > 0
             ? Loc.GetString("fs-plate-repair-fitted-more", ("count", remaining), ("material", MaterialName(ent)))

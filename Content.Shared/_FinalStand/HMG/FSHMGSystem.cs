@@ -16,6 +16,9 @@ public sealed class FSHMGSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedBuckleSystem _buckle = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
+
+    private static readonly Robust.Shared.Audio.SoundSpecifier OverheatSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Items/hiss.ogg");
     [Dependency] private SharedCombatModeSystem _combat = default!;
 
     public override void Initialize()
@@ -124,6 +127,7 @@ public sealed class FSHMGSystem : EntitySystem
         {
             ent.Comp.OverheatedUntil = _timing.CurTime + TimeSpan.FromSeconds(1f / ent.Comp.CoolPerSecond);
             _popup.PopupPredicted(Loc.GetString("fs-hmg-overheat-start"), ent, args.User, PopupType.MediumCaution);
+            _audio.PlayPredicted(OverheatSound, ent, args.User);
         }
 
         Dirty(ent);

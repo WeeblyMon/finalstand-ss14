@@ -19,6 +19,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Verbs;
+using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
@@ -45,11 +46,14 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<AlertPrototype> CoverAlert = "FSEmplacementCover";
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private const float MeleeRange = 1.5f;
     private const float ReinforcedSandbagDamage = 2f / 3f;
+    private static readonly SoundSpecifier UnfoldSound = new SoundPathSpecifier("/Audio/Effects/box_deploy.ogg");
+    private static readonly SoundSpecifier FoldSound = new SoundPathSpecifier("/Audio/Items/zip.ogg");
 
     private readonly Dictionary<(EntityUid Grid, Vector2i Tile), FSEmplacementComponent> _coverTiles = new();
     private readonly Dictionary<EntityUid, float> _covered = new();
@@ -107,6 +111,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
 
         QueueDel(kit);
         args.Handled = true;
+        _audio.PlayPvs(UnfoldSound, core);
         _popup.PopupEntity(Loc.GetString("fs-emplacement-placed"), core, args.User);
     }
 
@@ -199,6 +204,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     {
         ent.Comp.Packed = true;
         var kit = Spawn(ent.Comp.Kit, _transform.GetMapCoordinates(ent));
+        _audio.PlayPvs(FoldSound, kit);
         foreach (var piece in ent.Comp.Pieces)
             QueueDel(piece);
 

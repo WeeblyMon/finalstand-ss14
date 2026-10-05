@@ -41,6 +41,8 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private SharedContentEyeSystem _eye = default!; // FS: from Monolith
     [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FS
+    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!; // FS
+    private static readonly Robust.Shared.Audio.SoundSpecifier CycleSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Machines/button.ogg"); // FS
 
     [SubscribeLocalEvent]
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -200,6 +202,7 @@ public abstract partial class SharedMechSystem : EntitySystem
 
         if (_net.IsServer)
             _popup.PopupEntity(popupString, uid);
+            _audio.PlayPvs(CycleSound, uid); // FS
 
         Dirty(uid, component);
     }

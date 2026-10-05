@@ -5,6 +5,8 @@ using Content.Shared.DoAfter;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Vehicle.Components;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 
 namespace Content.Shared._FinalStand.Mech;
@@ -18,6 +20,10 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private INetManager _net = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
+    private static readonly SoundSpecifier PlantSound = new SoundPathSpecifier("/Audio/Effects/hydraulic_press.ogg");
+    private static readonly SoundSpecifier UnplantSound = new SoundPathSpecifier("/Audio/Machines/boltsup.ogg");
 
     public override void Initialize()
     {
@@ -60,6 +66,7 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
 
         args.Handled = true;
         SetPlanted(ent, !ent.Comp.Planted);
+        _audio.PlayPredicted(ent.Comp.Planted ? PlantSound : UnplantSound, ent, args.User);
         _popup.PopupPredicted(Loc.GetString(ent.Comp.Planted ? "fs-siege-planted" : "fs-siege-unplanted"), ent, args.User);
     }
 
