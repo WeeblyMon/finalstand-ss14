@@ -316,6 +316,7 @@
       heavy: 1
       hmg: 1
       crate: 2
+      mechbay: 1
     palette: # FS
     - FSBarricadeMetal
     - FSBarricadeMetalDoor
@@ -325,6 +326,7 @@
     - FSHeavySentryDeployed
     - FSHMGDeployed
     - FSAmmoCrate
+    - FSMechBay
   - type: RCD
     availablePrototypes:
     - FSBarricadeMetal # FS

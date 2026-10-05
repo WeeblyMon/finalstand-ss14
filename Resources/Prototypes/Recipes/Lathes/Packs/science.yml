@@ -15,6 +15,8 @@
 - type: latheRecipePack
   id: ScienceEquipment
   recipes:
+  - FSDurandControlModule # FS
+  - FSDurandTargetingModule # FS
   - AnomalyScanner
   - NodeScanner
   - AnomalyLocator
@@ -47,6 +49,10 @@
 - type: latheRecipePack
   id: ScienceWeapons
   recipes:
+  - FSMechWeaponFiredart # FS
+  - FSMechWeaponSolaris # FS
+  - FSMechWeaponPulseRifle # FS
+  - FSMechWeaponTesla # FS
   - WeaponPistolCHIMP
   - WeaponForceGun
   - WeaponProtoKineticAccelerator

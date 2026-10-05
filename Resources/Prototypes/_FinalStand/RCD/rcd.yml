@@ -126,3 +126,18 @@
   collisionMask: Impassable
   rotation: Fixed
   fx: EffectRCDConstruct2
+
+- type: rcd
+  id: FSMechBay
+  name: fs-rcd-mech-bay
+  category: Main
+  sprite:
+    sprite: _FinalStand/Structures/MechBay/mech_bay.rsi
+    state: pad
+  mode: ConstructObject
+  prototype: FSMechBay
+  cost: 0
+  delay: 8
+  collisionMask: Impassable
+  rotation: Fixed
+  fx: EffectRCDConstruct4

@@ -268,3 +268,44 @@
   prerequisites:
   - FSEngineeringReinforcedSandbags
   bonusDescription: The emplacement unfolds with a third sentry in its front row.
+
+- type: fsTechNode
+  id: FSEngineeringMechBay
+  name: Mech Bay
+  icon:
+    sprite: _FinalStand/Structures/MechBay/mech_bay.rsi
+    state: pad
+  branch: Engineering
+  tier: 3
+  cost: 6000
+  prerequisites:
+  - FSEngineeringRipleyAPLU
+  bonusDescription: Engineers can build a Mech Bay with the RCD. Ballistic Durand weapons are built at it.
+
+- type: fsTechNode
+  id: FSEngineeringDurand
+  name: Durand
+  icon:
+    sprite: Objects/Specific/Mech/mecha.rsi
+    state: durand
+  branch: Engineering
+  tier: 4
+  cost: 9000
+  prerequisites:
+  - FSEngineeringMechBay
+  bonusDescription: Prints the Durand control core and targeting module. Fit them at the Mech Bay between Engineering's stages.
+  vanillaTechnologyId: FSDurandElectronics
+
+- type: fsTechNode
+  id: FSEngineeringMechEnergyWeapons
+  name: Mech Energy Weapons
+  icon:
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_laser
+  branch: Engineering
+  tier: 5
+  cost: 9000
+  prerequisites:
+  - FSEngineeringDurand
+  bonusDescription: Prints the Firedart, Solaris, pulse rifle and tesla cannon for the Durand.
+  vanillaTechnologyId: FSMechEnergyWeapons

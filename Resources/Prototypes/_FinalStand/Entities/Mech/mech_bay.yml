@@ -1,0 +1,225 @@
+# The Mech Bay: Engineering builds it with the RCD, then Engineering and Science take turns assembling a Durand on it.
+- type: entity
+  id: FSMechBay
+  name: mech bay
+  description: A 3x3 assembly gantry. Engineering and Science take turns building a Durand on it, and a mech parked on it recharges and gets patched up.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    drawdepth: FloorObjects
+    layers:
+    - sprite: _FinalStand/Structures/MechBay/mech_bay.rsi
+      state: pad
+    - sprite: _FinalStand/Structures/MechBay/durand_construction.rsi
+      state: durand0
+      visible: false
+      map: [ "enum.FSMechBayVisualLayers.Stage" ]
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-1.45,-1.45,1.45,1.45"
+        hard: false
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: Damageable
+    damageModifierSet: Metallic
+  - type: Injurable
+    damageContainer: StructuralInorganic
+  - type: FSPlayerDamageImmune
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 800
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+  - type: RCDDeconstructable
+    cost: 0
+    delay: 6
+    fx: EffectRCDDeconstruct6
+  - type: FSMechBay
+    stages:
+    - name: fs-mech-bay-stage-frame
+      role: Engineering
+      materials:
+        Steel: 10
+        Plasteel: 5
+      time: 6
+      state: durand3
+    - name: fs-mech-bay-stage-core
+      role: Science
+      part: FSDurandControlModule
+      state: durand6
+    - name: fs-mech-bay-stage-limbs
+      role: Engineering
+      materials:
+        Steel: 10
+      time: 6
+      state: durand10
+    - name: fs-mech-bay-stage-targeting
+      role: Science
+      part: FSDurandTargetingModule
+      state: durand13
+    - name: fs-mech-bay-stage-armour
+      role: Engineering
+      materials:
+        Plasteel: 10
+        Uranium: 3
+        Diamond: 1
+      time: 8
+      state: durand18
+    crafts:
+    - proto: FSMechWeaponScattershot
+      materials:
+        Steel: 8
+        Plasteel: 2
+    - proto: FSMechWeaponHades
+      materials:
+        Steel: 8
+        Plasteel: 2
+        Plasma: 2
+    - proto: FSMechWeaponUltraAC2
+      materials:
+        Steel: 10
+        Plasteel: 4
+    - proto: FSMechWeaponMissileRack
+      materials:
+        Steel: 8
+        Plasteel: 4
+        Gold: 2
+
+- type: entity
+  parent: BaseItem
+  id: FSDurandControlModule
+  name: Durand control core
+  description: The central control and peripherals boards for a Durand. Fit it at the Mech Bay.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: cpuboard_adv
+  - type: Item
+    size: Small
+
+- type: entity
+  parent: BaseItem
+  id: FSDurandTargetingModule
+  name: Durand targeting and power module
+  description: Weapon targeting boards with a power cell already wired in. Fit it at the Mech Bay.
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: cpuboard_super
+  - type: Item
+    size: Small
+
+- type: latheRecipe
+  id: FSDurandControlModule
+  result: FSDurandControlModule
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 500
+    Glass: 500
+    Gold: 300
+    Silver: 300
+
+- type: latheRecipe
+  id: FSDurandTargetingModule
+  result: FSDurandTargetingModule
+  categories:
+  - Robotics
+  completetime: 8
+  materials:
+    Steel: 500
+    Glass: 500
+    Silver: 400
+    Plasma: 300
+
+- type: latheRecipe
+  id: FSMechWeaponPulseRifle
+  result: FSMechWeaponPulseRifle
+  categories:
+  - Weapons
+  completetime: 10
+  materials:
+    Steel: 1500
+    Plasteel: 500
+    Gold: 400
+    Uranium: 200
+
+- type: latheRecipe
+  id: FSMechWeaponSolaris
+  result: FSMechWeaponSolaris
+  categories:
+  - Weapons
+  completetime: 10
+  materials:
+    Steel: 1200
+    Glass: 600
+    Gold: 300
+    Plasma: 300
+
+- type: latheRecipe
+  id: FSMechWeaponFiredart
+  result: FSMechWeaponFiredart
+  categories:
+  - Weapons
+  completetime: 8
+  materials:
+    Steel: 1000
+    Glass: 500
+    Gold: 200
+
+- type: latheRecipe
+  id: FSMechWeaponTesla
+  result: FSMechWeaponTesla
+  categories:
+  - Weapons
+  completetime: 12
+  materials:
+    Steel: 1500
+    Gold: 500
+    Silver: 500
+    Plasma: 400
+
+- type: technology
+  id: FSDurandElectronics
+  name: research-technology-fs-durand-electronics
+  icon:
+    sprite: Objects/Specific/Mech/mecha.rsi
+    state: durand
+  discipline: Industrial
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+  - FSDurandControlModule
+  - FSDurandTargetingModule
+
+- type: technology
+  id: FSMechEnergyWeapons
+  name: research-technology-fs-mech-energy-weapons
+  icon:
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_laser
+  discipline: Arsenal
+  tier: 3
+  cost: 15000
+  recipeUnlocks:
+  - FSMechWeaponFiredart
+  - FSMechWeaponSolaris
+  - FSMechWeaponPulseRifle
+  - FSMechWeaponTesla

@@ -55,3 +55,11 @@
     Steel: 3
     Brass: 2
     Gunpowder: 1
+
+- type: fsBuildRecipe
+  id: FSMechBay
+  capGroup: mechbay
+  research: FSEngineeringMechBay
+  materials:
+    Steel: 20
+    Plasteel: 8
