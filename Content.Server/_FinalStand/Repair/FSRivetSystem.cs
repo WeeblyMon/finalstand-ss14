@@ -14,6 +14,8 @@ public sealed partial class FSRivetSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
 
+    private const float DefaultCap = 0.75f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -28,7 +30,8 @@ public sealed partial class FSRivetSystem : EntitySystem
 
         args.Damage = new DamageSpecifier();
 
-        if (TryComp<ProjectileComponent>(ent, out var projectile))
+        TryComp<ProjectileComponent>(ent, out var projectile);
+        if (projectile != null)
         {
             projectile.ImpactEffect = ent.Comp.RepairEffect;
             projectile.SoundHit = ent.Comp.RepairSound;
@@ -38,7 +41,8 @@ public sealed partial class FSRivetSystem : EntitySystem
         if (!_destructible.TryGetDestroyedAt(args.Target, out var max))
             return;
 
-        var floor = max.Value.Float() * (1f - ent.Comp.RepairCap);
+        var cap = CompOrNull<FSRivetGunComponent>(projectile?.Weapon)?.RepairCap ?? DefaultCap;
+        var floor = max.Value.Float() * (1f - cap);
         var heal = MathF.Min(ent.Comp.Heal, damageable.TotalDamage.Float() - floor);
         if (heal > 0f)
             _damageable.HealEvenly((args.Target, damageable), -FixedPoint2.New(heal), origin: args.Shooter);

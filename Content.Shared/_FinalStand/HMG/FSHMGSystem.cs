@@ -98,7 +98,7 @@ public sealed class FSHMGSystem : EntitySystem
 
         var facing = _transform.GetWorldRotation(ent) - Math.PI / 2;
         var aim = new Angle(to - from);
-        if (Math.Abs(Angle.ShortestDistance(facing, aim).Degrees) <= ent.Comp.Arc / 2f)
+        if (Math.Abs(Angle.ShortestDistance(facing, aim).Degrees) <= (ent.Comp.Arc + ent.Comp.ArcBonus) / 2f)
             return;
 
         args.Cancelled = true;
@@ -117,7 +117,7 @@ public sealed class FSHMGSystem : EntitySystem
 
     private void OnShot(Entity<FSHMGComponent> ent, ref GunShotEvent args)
     {
-        ent.Comp.Heat = CurrentHeat(ent.Comp) + ent.Comp.HeatPerShot * args.Ammo.Count;
+        ent.Comp.Heat = CurrentHeat(ent.Comp) + ent.Comp.HeatPerShot * ent.Comp.HeatMultiplier * args.Ammo.Count;
         ent.Comp.HeatAt = _timing.CurTime;
 
         if (ent.Comp.Heat >= 1f)

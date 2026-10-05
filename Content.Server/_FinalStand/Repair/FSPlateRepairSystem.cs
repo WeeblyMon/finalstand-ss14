@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Engineering;
 using Content.Server.Destructible;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Repair;
@@ -10,6 +11,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Interaction;
 using Content.Shared.Stacks;
 using Content.Shared.Tools;
+using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
 using Robust.Shared.Prototypes;
 
@@ -25,12 +27,16 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private FSEngineeringResearchSystem _research = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private const float FitDelay = 1f;
     private const float UntrainedMultiplier = 2f;
     private const float WeldDelay = 2f;
     private const float WeldFuel = 5f;
+    private const float QuickSetMultiplier = 0.6f;
+    private const float ArcWeldingMultiplier = 0.7f;
+    private const float MinWeldSeconds = 1f;
 
     public override void Initialize()
     {
@@ -57,7 +63,8 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
                 return;
             }
 
-            _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, FitDelay * delayScale,
+            var fit = FitDelay * delayScale * (_research.Has(FSEngineeringNodes.QuickSetPlating) ? QuickSetMultiplier : 1f);
+            _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, fit,
                 new FSPlateFitDoAfterEvent(), ent, ent, args.Used)
             {
                 BreakOnMove = true,
@@ -68,8 +75,18 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
         }
 
         if (ent.Comp.Fitted > 0 && _tool.HasQuality(args.Used, Welding))
-            args.Handled = _tool.UseTool(args.Used, args.User, ent, WeldDelay * delayScale,
+            args.Handled = _tool.UseTool(args.Used, args.User, ent, WeldTime(args.Used, delayScale),
                 Welding, new FSPlateWeldDoAfterEvent(), WeldFuel);
+    }
+
+    private float WeldTime(EntityUid tool, float delayScale)
+    {
+        var weld = WeldDelay * delayScale;
+        if (!_research.Has(FSEngineeringNodes.ArcWelding))
+            return weld;
+
+        var toolSpeed = CompOrNull<ToolComponent>(tool)?.SpeedModifier ?? 1f;
+        return MathF.Max(weld * ArcWeldingMultiplier, MinWeldSeconds * toolSpeed);
     }
 
     private void OnFitted(Entity<FSPlateRepairComponent> ent, ref FSPlateFitDoAfterEvent args)

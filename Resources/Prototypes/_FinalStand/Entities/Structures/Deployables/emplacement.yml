@@ -42,6 +42,9 @@
       offset: -1,-1
     - proto: FSEmplacementSentry
       offset: 1,-1
+    researchHardpoint:
+      proto: FSEmplacementSentry
+      offset: 0,-1
 
 - type: entity
   id: FSEmplacementPreview

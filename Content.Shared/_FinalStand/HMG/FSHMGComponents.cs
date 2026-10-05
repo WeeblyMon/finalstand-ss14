@@ -15,6 +15,12 @@ public sealed partial class FSHMGComponent : Component
     [DataField]
     public float Arc = 90f;
 
+    [AutoNetworkedField]
+    public float ArcBonus;
+
+    [AutoNetworkedField]
+    public float HeatMultiplier = 1f;
+
     // Sustained fire overheats in about 4 s; an overheated gun is locked until it has fully cooled.
     [DataField]
     public float HeatPerShot = 0.075f;
@@ -33,6 +39,8 @@ public sealed partial class FSHMGComponent : Component
 
     [DataField]
     public float LinkRange = 1.5f;
+
+    public float LinkBonus;
 
     [DataField]
     public TimeSpan MessageCooldown = TimeSpan.FromSeconds(1);
@@ -57,6 +65,8 @@ public sealed partial class FSAmmoCrateComponent : Component
 
     [DataField]
     public int MaxRounds = 3000;
+
+    public bool Compressed;
 
     [AutoNetworkedField]
     public EntityUid? LinkedTo;

@@ -1,4 +1,4 @@
-# Wrapper nodes over the vanilla Industrial discipline (incl. atmospherics) plus all of Arsenal (shuttle/mining defense weapons - Salvage/Engineering territory, not personal armory).
+# Engineering research: behaviour changes for the line (they apply to what is already built), the field tools, and the vanilla tool and power unlocks.
 
 - type: fsTechNode
   id: FSEngineeringSalvageEquipment
@@ -12,17 +12,6 @@
   vanillaTechnologyId: SalvageEquipment
 
 - type: fsTechNode
-  id: FSEngineeringSpaceScanning
-  name: Space Scanning
-  icon:
-    sprite: Objects/Tools/handheld_mass_scanner.rsi
-    state: icon
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: SpaceScanning
-
-- type: fsTechNode
   id: FSEngineeringAdvancedPowercells
   name: Advanced Powercells
   icon:
@@ -32,17 +21,6 @@
   tier: 1
   cost: 2500
   vanillaTechnologyId: AdvancedPowercells
-
-- type: fsTechNode
-  id: FSEngineeringMechanicalCompression
-  name: Mechanical Compression
-  icon:
-    sprite: Structures/Machines/flatpacker.rsi
-    state: base
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: MechanicalCompression
 
 - type: fsTechNode
   id: FSEngineeringIndustrialEngineering
@@ -56,17 +34,6 @@
   vanillaTechnologyId: IndustrialEngineering
 
 - type: fsTechNode
-  id: FSEngineeringPowerGeneration
-  name: Power Generation
-  icon:
-    sprite: Structures/Power/Generation/portable_generator.rsi
-    state: portgen0
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: PowerGeneration
-
-- type: fsTechNode
   id: FSEngineeringRipleyAPLU
   name: Ripley APLU
   icon:
@@ -76,65 +43,6 @@
   tier: 1
   cost: 2500
   vanillaTechnologyId: RipleyAPLU
-
-- type: fsTechNode
-  id: FSEngineeringSalvageWeapons
-  name: Salvage Weapons
-  icon:
-    sprite: Objects/Weapons/Guns/Basic/kinetic_accelerator.rsi
-    state: icon
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: SalvageWeapons
-
-- type: fsTechNode
-  id: FSEngineeringSpecialMeans
-  name: Special Means
-  icon:
-    sprite: Clothing/Back/Backpacks/electropack.rsi
-    state: icon
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: SpecialMeans
-
-- type: fsTechNode
-  id: FSEngineeringAtmosphericTech
-  name: Atmospheric Tech
-  icon:
-    sprite: Structures/Piping/Atmospherics/thermomachine.rsi
-    state: freezerOff
-  branch: Engineering
-  tier: 1
-  cost: 2500
-  vanillaTechnologyId: AtmosphericTech
-
-- type: fsTechNode
-  id: FSEngineeringShuttlecraft
-  name: Shuttlecraft
-  icon:
-    sprite: Structures/Shuttles/gyroscope.rsi
-    state: base
-  branch: Engineering
-  tier: 2
-  cost: 3500
-  prerequisites:
-  - FSEngineeringSpaceScanning
-  vanillaTechnologyId: Shuttlecraft
-
-- type: fsTechNode
-  id: FSEngineeringAdvancedAtmospherics
-  name: Advanced Atmospherics
-  icon:
-    sprite: Objects/Devices/Holoprojectors/atmos.rsi
-    state: icon
-  branch: Engineering
-  tier: 2
-  cost: 3500
-  prerequisites:
-  - FSEngineeringAtmosphericTech
-  vanillaTechnologyId: AdvancedAtmospherics
 
 - type: fsTechNode
   id: FSEngineeringAdvancedToolsTechnology
@@ -163,32 +71,6 @@
   vanillaTechnologyId: MassExcavation
 
 - type: fsTechNode
-  id: FSEngineeringOptimizedMicrogalvanism
-  name: Optimized Microgalvanism
-  icon:
-    sprite: Objects/Power/power_cells.rsi
-    state: microreactor
-  branch: Engineering
-  tier: 2
-  cost: 3500
-  prerequisites:
-  - FSEngineeringAdvancedPowercells
-  vanillaTechnologyId: OptimizedMicrogalvanism
-
-- type: fsTechNode
-  id: FSEngineeringBasicShuttleArmament
-  name: Basic Shuttle Armament
-  icon:
-    sprite: Structures/Power/cage_recharger.rsi
-    state: full
-  branch: Engineering
-  tier: 2
-  cost: 3500
-  prerequisites:
-  - FSEngineeringSalvageWeapons
-  vanillaTechnologyId: BasicShuttleArmament
-
-- type: fsTechNode
   id: FSEngineeringBluespaceStorage
   name: Bluespace Storage
   icon:
@@ -202,14 +84,187 @@
   vanillaTechnologyId: BluespaceStorage
 
 - type: fsTechNode
-  id: FSEngineeringAdvancedShuttleWeapon
-  name: Advanced Shuttle Weapon
+  id: FSEngineeringQuickSetPlating
+  name: Quick-Set Plating
   icon:
-    sprite: Objects/Weapons/Guns/Ammunition/Magazine/Grenade/grenade_cartridge.rsi
+    sprite: Objects/Materials/Sheets/metal.rsi
+    state: steel_3
+  branch: Engineering
+  tier: 1
+  cost: 2500
+  bonusDescription: Plates fit 40% faster.
+
+- type: fsTechNode
+  id: FSEngineeringRapidAssembly
+  name: Rapid Assembly
+  icon:
+    sprite: Objects/Tools/rcd.rsi
+    state: icon
+  branch: Engineering
+  tier: 1
+  cost: 2500
+  bonusDescription: The RCD builds 25% faster.
+
+- type: fsTechNode
+  id: FSEngineeringPneumaticRivets
+  name: Pneumatic Rivets
+  icon:
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+    state: icon
+  branch: Engineering
+  tier: 1
+  cost: 2500
+  bonusDescription: Rivet guns fire 40% faster.
+
+- type: fsTechNode
+  id: FSEngineeringCompressedBelts
+  name: Compressed Belts
+  icon:
+    sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
+    state: crate
+  branch: Engineering
+  tier: 1
+  cost: 2500
+  bonusDescription: Ammo crates hold 50% more rounds, including ones already built.
+
+- type: fsTechNode
+  id: FSEngineeringReinforcedSandbags
+  name: Reinforced Sandbags
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: sandbag
+  branch: Engineering
+  tier: 1
+  cost: 2500
+  bonusDescription: Emplacement sandbags take a third less damage.
+
+- type: fsTechNode
+  id: FSEngineeringArcWelding
+  name: Arc Welding
+  icon:
+    sprite: Objects/Tools/welder.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringQuickSetPlating
+  bonusDescription: Welding plates in is 30% faster. A weld never takes under a second.
+
+- type: fsTechNode
+  id: FSEngineeringSalvagePlating
+  name: Salvage Plating
+  icon:
+    sprite: Objects/Materials/Sheets/metal.rsi
+    state: steel
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringQuickSetPlating
+  bonusDescription: Deconstructing refunds 75% instead of 50%.
+
+- type: fsTechNode
+  id: FSEngineeringRazorCoil
+  name: Razor Coil
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: wire
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringRapidAssembly
+  bonusDescription: Barbed wire cuts twice as deep and makes zombies bleed.
+
+- type: fsTechNode
+  id: FSEngineeringPrecisionRivets
+  name: Precision Rivets
+  icon:
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringPneumaticRivets
+  bonusDescription: Rivets repair up to 90% instead of 75%.
+
+- type: fsTechNode
+  id: FSEngineeringCoolingJacket
+  name: Cooling Jacket
+  icon:
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringCompressedBelts
+  bonusDescription: HMGs build heat 35% slower.
+
+- type: fsTechNode
+  id: FSEngineeringFieldTools
+  name: Field Tools
+  icon:
+    sprite: Objects/Tools/welder_experimental.rsi
+    state: icon
+  branch: Engineering
+  tier: 2
+  cost: 3500
+  prerequisites:
+  - FSEngineeringAdvancedToolsTechnology
+  bonusDescription: Unlocks the arc welder, hydraulic jaws and impact drill at the protolathe.
+  vanillaTechnologyId: FSFieldTools
+
+- type: fsTechNode
+  id: FSEngineeringOverbuiltBulwark
+  name: Overbuilt Bulwark
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: bulwark
+  branch: Engineering
+  tier: 3
+  cost: 4500
+  prerequisites:
+  - FSEngineeringRazorCoil
+  bonusDescription: Bulwark barricades get 10% more health.
+
+- type: fsTechNode
+  id: FSEngineeringTraverseGearing
+  name: Traverse Gearing
+  icon:
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
     state: icon
   branch: Engineering
   tier: 3
   cost: 4500
   prerequisites:
-  - FSEngineeringBasicShuttleArmament
-  vanillaTechnologyId: AdvancedShuttleWeapon
+  - FSEngineeringCoolingJacket
+  bonusDescription: HMGs cover a 120 degree arc instead of 90.
+
+- type: fsTechNode
+  id: FSEngineeringBeltFeed
+  name: Belt Feed
+  icon:
+    sprite: _FinalStand/Structures/Deployables/ammo_crate.rsi
+    state: crate
+  branch: Engineering
+  tier: 3
+  cost: 4500
+  prerequisites:
+  - FSEngineeringCoolingJacket
+  bonusDescription: HMGs draw from a crate up to 2.5 tiles away.
+
+- type: fsTechNode
+  id: FSEngineeringThirdHardpoint
+  name: Third Hardpoint
+  icon:
+    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+    state: icon
+  branch: Engineering
+  tier: 3
+  cost: 4500
+  prerequisites:
+  - FSEngineeringReinforcedSandbags
+  bonusDescription: The emplacement unfolds with a third sentry in its front row.

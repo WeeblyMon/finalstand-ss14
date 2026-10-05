@@ -1,5 +1,7 @@
 // Click a fortification with the Engineer's Hammer to pick an upgrade, then hammer it in: each hit pours in materials.
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Research;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
 using Content.Server._FinalStand.Repair;
@@ -46,8 +48,11 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private ColorFlashEffectSystem _color = default!;
+    [Dependency] private FSEngineeringResearchSystem _research = default!;
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
+    private static readonly ProtoId<FSUpgradePrototype> Bulwark = "FSBranchBulwark";
+    private const float OverbuiltBulwarkHealth = 1.1f;
     private static readonly TimeSpan HitDelay = TimeSpan.FromSeconds(0.7);
     private const float MaxBreachMultiplier = 2f;
     private static readonly SoundSpecifier PourSound = new SoundPathSpecifier("/Audio/_FinalStand/Structures/metalhit.ogg",
@@ -69,8 +74,22 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         SubscribeLocalEvent<FSUpgradeableComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<FSUpgradeableComponent, FSHammerDoAfterEvent>(OnHammerDoAfter);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+        SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
         SubscribeLocalEvent<FSUpgradeableComponent, ExaminedEvent>(OnExamined);
         Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
+    }
+
+    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    {
+        if (ev.NodeId != FSEngineeringNodes.OverbuiltBulwark)
+            return;
+
+        var query = EntityQueryEnumerator<FSUpgradeableComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (comp.Branch == Bulwark)
+                Recalculate((uid, comp));
+        }
     }
 
     private void OnMapInit(Entity<FSUpgradeableComponent> ent, ref MapInitEvent args)
@@ -373,6 +392,8 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         var branch = ent.Comp.Branch is { } id ? Proto.Index(id) : null;
 
         var health = ent.Comp.SteelHealth * grade.Health * (branch?.Health ?? 1f) * ent.Comp.WaveMultiplier;
+        if (ent.Comp.Branch == Bulwark && _research.Has(FSEngineeringNodes.OverbuiltBulwark))
+            health *= OverbuiltBulwarkHealth;
         ScaleDestruction(ent, health);
         _health.Refresh(ent.Owner);
 

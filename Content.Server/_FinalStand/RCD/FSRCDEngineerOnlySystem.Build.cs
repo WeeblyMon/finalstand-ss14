@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Emplacement;
+using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
@@ -32,8 +33,11 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSBreachEvaluator _breach = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private ISharedPlayerManager _player = default!;
+    [Dependency] private FSEngineeringResearchSystem _research = default!;
 
     private const float RefundFraction = 0.5f;
+    private const float SalvageRefundFraction = 0.75f;
+    private const float RapidAssemblyMultiplier = 0.75f;
     private const float ChiefCapMultiplier = 1.5f;
     private const float ThreatRange = 5f;
     private const float ThreatDelayMultiplier = 3f;
@@ -101,6 +105,9 @@ public sealed partial class FSRCDEngineerOnlySystem
     {
         if (!TryComp<RCDComponent>(ent, out var rcdComp) || _proto.Index(rcdComp.ProtoId).Mode != RcdMode.ConstructObject)
             return;
+
+        if (_research.Has(FSEngineeringNodes.RapidAssembly))
+            args.Delay *= RapidAssemblyMultiplier;
 
         _threats.Clear();
         _lookup.GetEntitiesInRange(_transform.ToMapCoordinates(args.Location), ThreatRange, _threats);
@@ -249,10 +256,11 @@ public sealed partial class FSRCDEngineerOnlySystem
             && TryComp<DamageableComponent>(target, out var damageable))
             health = Math.Clamp(1f - (damageable.TotalDamage / destroyedAt.Value).Float(), 0f, 1f);
 
+        var fraction = _research.Has(FSEngineeringNodes.SalvagePlating) ? SalvageRefundFraction : RefundFraction;
         var refund = new Dictionary<ProtoId<StackPrototype>, int>();
         foreach (var (material, count) in recipe.Materials)
         {
-            var amount = (int) MathF.Floor(count * health * RefundFraction);
+            var amount = (int) MathF.Floor(count * health * fraction);
             if (amount > 0)
                 refund[material] = amount;
         }

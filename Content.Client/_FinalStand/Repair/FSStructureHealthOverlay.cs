@@ -120,12 +120,9 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         _hands ??= _entMan.System<SharedHandsSystem>();
         if (_player.LocalEntity is not { } local
             || !_hands.TryGetActiveItem(local, out var held)
-            || !_entMan.HasComponent<FSRivetGunComponent>(held)
-            || !_entMan.TryGetComponent<BasicEntityAmmoProviderComponent>(held, out var ammo)
-            || !_proto.TryIndex<EntityPrototype>(ammo.Proto, out var proto)
-            || !proto.TryGetComponent<FSRivetComponent>(out var rivet, _entMan.ComponentFactory))
+            || !_entMan.TryGetComponent<FSRivetGunComponent>(held, out var gun))
             return null;
 
-        return rivet.RepairCap;
+        return gun.RepairCap;
     }
 }

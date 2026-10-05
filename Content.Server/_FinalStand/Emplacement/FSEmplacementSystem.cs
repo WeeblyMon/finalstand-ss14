@@ -1,6 +1,7 @@
 // The Chief Engineer's Defensive Emplacement: unfolds whole, feeds its hardpoint sentries, covers whoever stands inside, and folds back to the CE when the wave ends.
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.NPC;
 using Content.Shared._FinalStand.Deployables;
@@ -43,10 +44,12 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSEngineeringResearchSystem _research = default!;
 
     private static readonly ProtoId<AlertPrototype> CoverAlert = "FSEmplacementCover";
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private const float MeleeRange = 1.5f;
+    private const float ReinforcedSandbagDamage = 2f / 3f;
 
     private readonly Dictionary<(EntityUid Grid, Vector2i Tile), FSEmplacementComponent> _coverTiles = new();
     private readonly Dictionary<EntityUid, float> _covered = new();
@@ -62,6 +65,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         SubscribeLocalEvent<FSEmplacementComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<FSEmplacementComponent, EntityTerminatingEvent>(OnCoreTerminating);
         SubscribeLocalEvent<FSEmplacementCoverComponent, DamageModifyEvent>(OnDamageModify);
+        SubscribeLocalEvent<FSEmplacementPieceComponent, DamageModifyEvent>(OnPieceDamageModify);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
     }
 
@@ -86,7 +90,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         comp.Deployed = true;
         comp.OwnerMind = _mind.TryGetMind(args.User, out var mindId, out _) ? mindId : null;
 
-        foreach (var piece in kit.Comp.Pieces)
+        foreach (var piece in Pieces(kit.Comp))
         {
             var uid = Spawn(piece.Proto, FSEmplacementRuleSystem.TileOf(center, piece.Offset, args.Direction));
             _transform.SetLocalRotation(uid, FSEmplacementRuleSystem.RotationOf(piece, args.Direction));
@@ -104,6 +108,21 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         QueueDel(kit);
         args.Handled = true;
         _popup.PopupEntity(Loc.GetString("fs-emplacement-placed"), core, args.User);
+    }
+
+    private IEnumerable<FSEmplacementPiece> Pieces(FSEmplacementKitComponent kit)
+    {
+        foreach (var piece in kit.Pieces)
+            yield return piece;
+
+        if (kit.ResearchHardpoint is { } extra && _research.Has(FSEngineeringNodes.ThirdHardpoint))
+            yield return extra;
+    }
+
+    private void OnPieceDamageModify(Entity<FSEmplacementPieceComponent> ent, ref DamageModifyEvent args)
+    {
+        if (!HasComp<FSSentryTurretComponent>(ent) && _research.Has(FSEngineeringNodes.ReinforcedSandbags))
+            args.Damage *= ReinforcedSandbagDamage;
     }
 
     private string? GetBlockReason(Entity<FSEmplacementKitComponent> kit, EntityUid user, EntityCoordinates center, Direction facing)

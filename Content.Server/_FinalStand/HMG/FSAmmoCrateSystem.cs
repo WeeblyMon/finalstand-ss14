@@ -1,5 +1,6 @@
 // Links an ammo crate to the nearest HMG within reach and keeps that gun's belt topped up from it.
 // A crate being dragged feeds nothing; one crate feeds one gun.
+using Content.Server._FinalStand.Engineering;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared.Examine;
 using Content.Shared.Movement.Pulling.Components;
@@ -9,12 +10,13 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.HMG;
 
-public sealed class FSAmmoCrateSystem : EntitySystem
+public sealed partial class FSAmmoCrateSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private FSEngineeringResearchSystem _engineering = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private TimeSpan _next;
@@ -28,6 +30,7 @@ public sealed class FSAmmoCrateSystem : EntitySystem
 
     private void OnCrateInit(Entity<FSAmmoCrateComponent> ent, ref MapInitEvent args)
     {
+        _engineering.ApplyCrate(ent);
         UpdateVisuals(ent);
     }
 
@@ -47,8 +50,8 @@ public sealed class FSAmmoCrateSystem : EntitySystem
         var guns = EntityQueryEnumerator<FSHMGComponent, BasicEntityAmmoProviderComponent, TransformComponent>();
         while (guns.MoveNext(out var gunUid, out var hmg, out var ammo, out var gunXform))
         {
-            if (!StillLinked(hmg.Crate, gunUid, gunXform, hmg.LinkRange))
-                Link((gunUid, hmg), FindCrate(gunUid, gunXform, hmg.LinkRange));
+            if (!StillLinked(hmg.Crate, gunUid, gunXform, hmg.LinkRange + hmg.LinkBonus))
+                Link((gunUid, hmg), FindCrate(gunUid, gunXform, hmg.LinkRange + hmg.LinkBonus));
 
             if (hmg.Crate is not { } crateUid
                 || !TryComp<FSAmmoCrateComponent>(crateUid, out var crate)

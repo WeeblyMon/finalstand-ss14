@@ -12,6 +12,9 @@ public sealed partial class FSEmplacementKitComponent : Component
 
     [DataField]
     public List<FSEmplacementPiece> Pieces = new();
+
+    [DataField]
+    public FSEmplacementPiece? ResearchHardpoint;
 }
 
 [DataDefinition]
