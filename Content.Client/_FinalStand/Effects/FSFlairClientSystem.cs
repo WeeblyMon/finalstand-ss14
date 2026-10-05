@@ -69,14 +69,20 @@ public sealed partial class FSFlairClientSystem : EntitySystem
         var map = _transform.ToMapCoordinates(coords);
         _particles.Burst(ev.Emitter, map, ev.Tint, ev.Count);
 
-        if (ev.Kick <= 0f || _player.LocalEntity is not { } local)
+        if (ev.Kick > 0f)
+            Kick(map, KickStrength * ev.Kick, KickRange);
+    }
+
+    public void Kick(MapCoordinates at, float strength, float range)
+    {
+        if (_player.LocalEntity is not { } local)
             return;
 
         var me = _transform.GetMapCoordinates(local);
-        if (me.MapId != map.MapId || (me.Position - map.Position).Length() > KickRange)
+        if (me.MapId != at.MapId || (me.Position - at.Position).Length() > range)
             return;
 
-        var kick = new Vector2(_random.NextFloat(-1f, 1f), _random.NextFloat(-1f, 1f)) * KickStrength * ev.Kick;
+        var kick = new Vector2(_random.NextFloat(-1f, 1f), _random.NextFloat(-1f, 1f)) * strength;
         _recoil.KickCamera(local, kick);
     }
 

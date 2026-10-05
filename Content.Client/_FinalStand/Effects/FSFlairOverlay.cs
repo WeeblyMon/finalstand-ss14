@@ -1,9 +1,10 @@
 // World-space flair that is also information: build holograms filling in, the planted Durand's frontal shield,
-// the emplacement's cover zone, and a faint line from each sentry to what it's shooting at.
+// the emplacement's cover zone, a faint line from each sentry to what it's shooting at, and a mech's low-power blink.
 using System.Numerics;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Mech;
+using Content.Shared.Mech.Components;
 using Content.Shared.RCD;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -25,6 +26,7 @@ public sealed partial class FSFlairOverlay : Overlay
     private static readonly Color ShieldColor = Color.FromHex("#7fd8ff");
     private static readonly Color CoverColor = Color.FromHex("#d9c39a");
     private static readonly Color LaserColor = Color.FromHex("#ff5a4a");
+    private static readonly Color AlarmColor = Color.FromHex("#ff2a2a");
     private const float ShieldRadius = 1.25f;
     private const int ShieldSegments = 16;
     private const float CoverRange = 8f;
@@ -56,6 +58,7 @@ public sealed partial class FSFlairOverlay : Overlay
         DrawShields(handle, args, pulse);
         DrawCover(handle, args);
         DrawSentryLines(handle, args);
+        DrawLowPower(handle, args, now);
     }
 
     private void DrawHolograms(DrawingHandleWorld handle, in OverlayDrawArgs args, TimeSpan now)
@@ -124,6 +127,23 @@ public sealed partial class FSFlairOverlay : Overlay
             var size = zone.Radius * 2f + 1f;
             var alpha = 0.45f * (1f - distance / CoverRange) + 0.1f;
             handle.DrawRect(Box2.CenteredAround(center, new Vector2(size)), CoverColor.WithAlpha(alpha), false);
+        }
+    }
+
+    private void DrawLowPower(DrawingHandleWorld handle, in OverlayDrawArgs args, TimeSpan now)
+    {
+        if ((int) (now.TotalSeconds * 2) % 2 == 1)
+            return;
+
+        var query = _entMan.EntityQueryEnumerator<FSCombatMechComponent, MechComponent, TransformComponent>();
+        while (query.MoveNext(out _, out _, out var mech, out var xform))
+        {
+            if (!mech.CriticalPowerState || mech.Broken || xform.MapID != args.MapId)
+                continue;
+
+            var center = _xform!.GetWorldPosition(xform);
+            handle.DrawCircle(center, 0.9f, AlarmColor.WithAlpha(0.12f));
+            handle.DrawCircle(center, 0.9f, AlarmColor.WithAlpha(0.6f), false);
         }
     }
 
