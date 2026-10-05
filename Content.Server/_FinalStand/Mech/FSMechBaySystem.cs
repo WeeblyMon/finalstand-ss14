@@ -1,6 +1,7 @@
 // Runs the Mech Bay: each assembly stage needs the right department and parts, engineers build mech guns at it,
 // and a mech parked on it recharges and gets patched up.
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Engineering;
 using Content.Server.Mech.Systems;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Mech;
@@ -35,6 +36,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private static readonly TimeSpan UpkeepInterval = TimeSpan.FromSeconds(1);
@@ -113,6 +115,8 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
         }
 
+        _telemetry.RecordSpend("mech-bay", stage.Materials);
+
         Advance(ent, args.User);
     }
 
@@ -183,6 +187,8 @@ public sealed partial class FSMechBaySystem : EntitySystem
         var craft = ent.Comp.Crafts[args.Index];
         if (!_materials.TryConsume(args.User, craft.Materials))
             return;
+
+        _telemetry.RecordSpend("mech-bay", craft.Materials);
 
         var item = Spawn(craft.Proto, Transform(ent).Coordinates);
         _hands.TryPickupAnyHand(args.User, item);

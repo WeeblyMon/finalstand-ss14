@@ -34,6 +34,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
+    [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
 
     private const float RefundFraction = 0.5f;
     private const float SalvageRefundFraction = 0.75f;
@@ -137,6 +138,8 @@ public sealed partial class FSRCDEngineerOnlySystem
             _popup.PopupEntity(Loc.GetString("fs-rcd-materials-gone"), ent, args.User, PopupType.Medium);
             return;
         }
+
+        _telemetry.RecordSpend("rcd", recipe.Materials);
 
         var spent = new List<string>();
         foreach (var (material, amount) in recipe.Materials)

@@ -49,6 +49,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private ColorFlashEffectSystem _color = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
+    [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
 
     private static readonly TimeSpan InterruptWindow = TimeSpan.FromSeconds(3);
     private static readonly ProtoId<FSUpgradePrototype> Bulwark = "FSBranchBulwark";
@@ -303,6 +304,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             return false;
         }
 
+        _telemetry.RecordSpend("upgrades", cost);
         target.Comp.Poured++;
         _audio.PlayPvs(PourSound, target);
         Spawn(HitEffect, Transform(target).Coordinates);

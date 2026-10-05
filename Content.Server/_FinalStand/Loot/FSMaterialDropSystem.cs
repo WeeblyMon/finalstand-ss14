@@ -12,6 +12,7 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private WaveGameRuleSystem _waves = default!;
+    [Dependency] private Engineering.FSEngineeringTelemetrySystem _telemetry = default!;
 
     private const int WavesUntilCleanup = 2;
 
@@ -47,7 +48,9 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
             if (!_random.Prob(chance))
                 continue;
 
-            var drop = Spawn(_random.Pick(ent.Comp.Materials), Transform(ent).Coordinates);
+            var proto = _random.Pick(ent.Comp.Materials);
+            var drop = Spawn(proto, Transform(ent).Coordinates);
+            _telemetry.RecordDrop(proto);
             EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
             _looseDropOrder.Enqueue(drop);
         }
