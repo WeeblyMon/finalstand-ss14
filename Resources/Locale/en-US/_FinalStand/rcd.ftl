@@ -57,3 +57,4 @@ fs-rcd-belt-chip-decon = DECONSTRUCT
 fs-rcd-cost-rest = {" "}/ {$need} {$name}
 fs-rcd-cost-rest-silo = {" "}/ {$need} {$name} ({$silo} silo)
 fs-rcd-hmg-crewed = Someone is crewing that gun.
+fs-silo-low = [color=#e0574f]Silo low:[/color] only {$sheets} steel sheets left. Bring drops back to the silo.
