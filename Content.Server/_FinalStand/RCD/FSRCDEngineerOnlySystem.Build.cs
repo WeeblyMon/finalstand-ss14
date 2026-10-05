@@ -52,6 +52,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     private const float ThreatDelayMultiplier = 3f;
 
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _threats = new();
+    private readonly Dictionary<EntityUid, Dictionary<string, int>> _builtByMind = new();
 
 
     public string? GetBlockReason(EntityUid rcd, FSEngineerOnlyRCDComponent comp, EntityUid user, EntityCoordinates location)
@@ -66,7 +67,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (rcdProto.Mode != RcdMode.ConstructObject)
             return null;
 
-        if (IsNoBuildTile(location, user))
+        if (_placementRules.HasNoBuildMarker(location))
             return Loc.GetString("fs-rcd-build-blocked");
 
         if (!_proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe))
@@ -86,14 +87,14 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (_deployable.IsOccupied(location, facing))
             return Loc.GetString("fs-deployable-occupied");
 
-        var built = StationBuilt();
+        var built = CountBuilt();
         if (built >= comp.StationCap)
             return Loc.GetString("fs-rcd-station-cap", ("used", built), ("max", comp.StationCap));
 
         if (recipe.CapGroup is { } group && comp.Caps.TryGetValue(group, out var baseMax))
         {
             var max = CapFor(baseMax, user);
-            var used = CapUsed(user, group);
+            var used = BuiltBy(user).GetValueOrDefault(group);
             if (used >= max)
                 return Loc.GetString("fs-rcd-cap",
                     ("group", Loc.GetString("fs-rcd-cap-group-" + group)), ("used", used), ("max", max));
@@ -178,10 +179,13 @@ public sealed partial class FSRCDEngineerOnlySystem
 
     public void RefreshUsage(Entity<FSEngineerOnlyRCDComponent> rcd, EntityUid user)
     {
-        var mind = _mind.TryGetMind(user, out var mindId, out _) ? mindId : (EntityUid?) null;
-        var used = new Dictionary<string, int>();
-        var station = 0;
+        ApplyUsage(rcd, user, CountBuilt());
+    }
 
+    private int CountBuilt()
+    {
+        _builtByMind.Clear();
+        var station = 0;
         var query = EntityQueryEnumerator<FSDeployedByComponent>();
         while (query.MoveNext(out var uid, out var deployedBy))
         {
@@ -189,10 +193,27 @@ public sealed partial class FSRCDEngineerOnlySystem
                 continue;
 
             station++;
-            if (mind != null && deployedBy.OwnerMind == mind && recipe.CapGroup is { } group)
-                used[group] = used.GetValueOrDefault(group) + 1;
+            if (deployedBy.OwnerMind is not { } owner || recipe.CapGroup is not { } group)
+                continue;
+
+            if (!_builtByMind.TryGetValue(owner, out var groups))
+                _builtByMind[owner] = groups = new Dictionary<string, int>();
+            groups[group] = groups.GetValueOrDefault(group) + 1;
         }
 
+        return station;
+    }
+
+    private IReadOnlyDictionary<string, int> BuiltBy(EntityUid user)
+    {
+        return _mind.TryGetMind(user, out var mindId, out _) && _builtByMind.TryGetValue(mindId, out var groups)
+            ? groups
+            : new Dictionary<string, int>();
+    }
+
+    private void ApplyUsage(Entity<FSEngineerOnlyRCDComponent> rcd, EntityUid user, int station)
+    {
+        var used = new Dictionary<string, int>(BuiltBy(user));
         var silo = SiloStockFor(user, rcd.Comp);
         var max = CapsFor(rcd.Comp, user);
         var locked = LockedPieces(rcd.Comp);
@@ -306,35 +327,4 @@ public sealed partial class FSRCDEngineerOnlySystem
         return refund;
     }
 
-    private int CapUsed(EntityUid user, string group)
-    {
-        if (!_mind.TryGetMind(user, out var mindId, out _))
-            return 0;
-
-        var count = 0;
-        var query = EntityQueryEnumerator<FSDeployedByComponent>();
-        while (query.MoveNext(out var uid, out var deployedBy))
-        {
-            if (deployedBy.OwnerMind == mindId
-                && !TerminatingOrDeleted(uid)
-                && _proto.TryIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id, out var recipe)
-                && recipe.CapGroup == group)
-                count++;
-        }
-
-        return count;
-    }
-
-    private int StationBuilt()
-    {
-        var count = 0;
-        var query = EntityQueryEnumerator<FSDeployedByComponent>();
-        while (query.MoveNext(out var uid, out var deployedBy))
-        {
-            if (!TerminatingOrDeleted(uid) && _proto.HasIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id))
-                count++;
-        }
-
-        return count;
-    }
 }

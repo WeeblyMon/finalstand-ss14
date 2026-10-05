@@ -34,18 +34,10 @@ public sealed class FSPlacementRuleSystem : EntitySystem
         if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
 
+        if (blocksPath && HasNoBuildMarker(coords))
+            return false;
+
         var tile = _map.TileIndicesFor(gridUid, grid, coords);
-
-        if (blocksPath)
-        {
-            var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
-            while (anchored.MoveNext(out var ent))
-            {
-                if (HasComp<FSNoRCDBuildComponent>(ent))
-                    return false;
-            }
-        }
-
         _mobs.Clear();
         _lookup.GetLocalEntitiesIntersecting(gridUid, tile, _mobs, flags: LookupFlags.Dynamic);
         foreach (var mob in _mobs)
@@ -55,5 +47,21 @@ public sealed class FSPlacementRuleSystem : EntitySystem
         }
 
         return true;
+    }
+
+    // Marked tiles refuse anything that blocks a path; floors stay legal.
+    public bool HasNoBuildMarker(EntityCoordinates coords)
+    {
+        if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
+            return false;
+
+        var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, _map.TileIndicesFor(gridUid, grid, coords));
+        while (anchored.MoveNext(out var ent))
+        {
+            if (HasComp<FSNoRCDBuildComponent>(ent))
+                return true;
+        }
+
+        return false;
     }
 }

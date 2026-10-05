@@ -4,8 +4,6 @@ using Content.Server.Stack;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
-using Robust.Shared.Map;
-using Robust.Shared.Map.Components;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.RCD.Components;
@@ -21,7 +19,6 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _proto = default!;
-    [Dependency] private SharedMapSystem _mapSystem = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
     [Dependency] private StackSystem _stack = default!;
@@ -79,11 +76,12 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         }
 
         _expired.Clear();
+        int? station = null;
         var query = EntityQueryEnumerator<FSEngineerOnlyRCDComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))
         {
             if (HasComp<HandsComponent>(xform.ParentUid))
-                RefreshUsage((uid, comp), xform.ParentUid);
+                ApplyUsage((uid, comp), xform.ParentUid, station ??= CountBuilt());
         }
     }
 
@@ -135,27 +133,5 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
                && _proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe)
             ? recipe
             : null;
-    }
-
-    // Objects (walls, airlocks, windows) are blocked on marked tiles; floor tiles stay legal. Applies to engineers too.
-    private bool IsNoBuildTile(EntityCoordinates location, EntityUid user)
-    {
-        if (!location.IsValid(EntityManager))
-            return false;
-
-        var gridUid = _transform.GetGrid(location) ?? _transform.GetGrid(user);
-        if (!TryComp<MapGridComponent>(gridUid, out var mapGrid))
-            return false;
-
-        var tile = _mapSystem.TileIndicesFor(gridUid.Value, mapGrid, location);
-        var anchored = _mapSystem.GetAnchoredEntitiesEnumerator(gridUid.Value, mapGrid, tile);
-
-        while (anchored.MoveNext(out var ent))
-        {
-            if (HasComp<FSNoRCDBuildComponent>(ent.Value))
-                return true;
-        }
-
-        return false;
     }
 }
