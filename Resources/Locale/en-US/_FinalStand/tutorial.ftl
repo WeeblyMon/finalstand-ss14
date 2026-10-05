@@ -29,6 +29,9 @@ fs-tutorial-eng-hmg-text = Build an HMG and an ammo crate with the RCD, then dra
 fs-tutorial-eng-emplacement-title = The emplacement
 fs-tutorial-eng-emplacement-text = The Chief Engineer carries a [bold]defensive emplacement[/bold]: a sandbag ring with two sentries that never run dry while its crate has rounds, and a crate that refills magazines.
     Press [bold]Z[/bold] with the kit, turn it with [bold]middle-click[/bold] so the open side faces your team, then click. Anyone inside takes less melee damage. It folds back to the Chief Engineer when the wave ends.
+fs-tutorial-eng-durand-title = The Durand
+fs-tutorial-eng-durand-text = Once Science researches the [bold]Mech Bay[/bold], build one with the RCD away from the line. Engineering welds the frame, limbs and armour in from your pack; Science fits the control core and targeting module between your stages. Examine the bay to see whose turn it is.
+    Build Scattershots, Hades carbines, autocannons and missile racks at the bay with alt-click. Park the Durand on the bay to recharge and repair it. In a fight, use [bold]siege mode[/bold] to plant it: it can't move, but it takes far less damage, especially from the front, and your rivet gun can patch it.
 fs-tutorial-eng-6-title = Getting paid
 fs-tutorial-eng-6-text = You earn credits when your structures soak wave damage and when you repair that damage. Rivet hits on zombies pay too.
     Bring the materials you pick up to the silo so every engineer can build from them. The silo is also restocked at the start of every prep. Your Fortify score is on the leaderboard.

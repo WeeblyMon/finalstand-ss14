@@ -38,6 +38,11 @@
     title: fs-tutorial-eng-emplacement-title
     text: fs-tutorial-eng-emplacement-text
   - image:
+      sprite: Objects/Specific/Mech/mecha.rsi
+      state: durand
+    title: fs-tutorial-eng-durand-title
+    text: fs-tutorial-eng-durand-text
+  - image:
       sprite: Structures/Machines/silo.rsi
       state: silo
     title: fs-tutorial-eng-6-title
