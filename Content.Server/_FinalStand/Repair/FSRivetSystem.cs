@@ -1,5 +1,7 @@
 using Content.Server.Destructible;
+using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.Mech.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -24,7 +26,8 @@ public sealed partial class FSRivetSystem : EntitySystem
 
     private void OnRivetHit(Entity<FSRivetComponent> ent, ref ProjectileHitEvent args)
     {
-        if (!HasComp<FSPlateRepairComponent>(args.Target)
+        var planted = TryComp<FSSiegeModeComponent>(args.Target, out var siege) && siege.Planted;
+        if (!HasComp<FSPlateRepairComponent>(args.Target) && !planted
             || !TryComp<DamageableComponent>(args.Target, out var damageable))
             return;
 
@@ -38,11 +41,16 @@ public sealed partial class FSRivetSystem : EntitySystem
             projectile.ForceSound = true;
         }
 
-        if (!_destructible.TryGetDestroyedAt(args.Target, out var max))
+        float max;
+        if (TryComp<MechComponent>(args.Target, out var mech))
+            max = mech.MaxIntegrity.Float();
+        else if (_destructible.TryGetDestroyedAt(args.Target, out var destroyedAt))
+            max = destroyedAt.Value.Float();
+        else
             return;
 
         var cap = CompOrNull<FSRivetGunComponent>(projectile?.Weapon)?.RepairCap ?? DefaultCap;
-        var floor = max.Value.Float() * (1f - cap);
+        var floor = max * (1f - cap);
         var heal = MathF.Min(ent.Comp.Heal, damageable.TotalDamage.Float() - floor);
         if (heal > 0f)
             _damageable.HealEvenly((args.Target, damageable), -FixedPoint2.New(heal), origin: args.Shooter);

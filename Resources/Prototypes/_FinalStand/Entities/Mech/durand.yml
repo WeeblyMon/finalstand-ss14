@@ -91,12 +91,28 @@
     fuelCost: 30
     doAfterDelay: 8
   - type: FSCombatMech
+  - type: FSSiegeMode
   - type: FSFriendlyFire
   - type: Tag
     tags:
     - DoorBumpOpener
     - FootstepSound
     - Durand
+
+- type: entity
+  parent: BaseMechAction
+  id: FSActionMechSiege
+  name: Siege mode
+  description: Plant the Durand. Planted, it can't move, wears heavier armour and takes half damage from the front. Unplanting takes two seconds.
+  components:
+  - type: Action
+    useDelay: 3
+  - type: Sprite
+    sprite: Interface/Actions/actions_mecha.rsi
+    layers:
+    - state: mech_defense_mode_off
+  - type: InstantAction
+    event: !type:FSSiegeModeActionEvent
 
 - type: entity
   id: FSMechDurandBattery
