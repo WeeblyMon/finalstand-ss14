@@ -76,11 +76,11 @@ public sealed partial class FSPingClientSystem : EntitySystem
         Pings.Add(new FSActivePing(ev, now, now + TimeSpan.FromSeconds(ev.Lifetime)));
 
         var forMe = ForMe(ev.Audience);
-        var sound = ev.Type switch
+        var sound = FSPingLook.CategoryOf(ev.Type) switch
         {
-            FSPingType.Boss => BossSound,
-            FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => EnemySound,
-            _ when FSPingLook.IsRequest(ev.Type) => RequestSound,
+            FSPingCategory.Boss => BossSound,
+            FSPingCategory.Enemy => EnemySound,
+            FSPingCategory.Request => RequestSound,
             _ => InfoSound,
         };
 

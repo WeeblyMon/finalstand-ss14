@@ -13,6 +13,14 @@ public enum FSPingShape : byte
     Square,
 }
 
+public enum FSPingCategory : byte
+{
+    Boss,
+    Enemy,
+    Request,
+    Info,
+}
+
 public sealed class FSPingLook
 {
     public static readonly Color EnemyColor = Color.FromHex("#f08a24");
@@ -66,24 +74,29 @@ public sealed class FSPingLook
         _ => "ack",
     };
 
-    public static Color ColorOf(FSPingType type) => type switch
+    public static FSPingCategory CategoryOf(FSPingType type) => type switch
     {
-        FSPingType.Boss => BossColor,
-        FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => EnemyColor,
+        FSPingType.Boss => FSPingCategory.Boss,
+        FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => FSPingCategory.Enemy,
         FSPingType.NeedAmmo or FSPingType.NeedChems or FSPingType.NeedRepair or FSPingType.Repair
-            or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay => RequestColor,
+            or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay => FSPingCategory.Request,
+        _ => FSPingCategory.Info,
+    };
+
+    public static Color ColorOf(FSPingType type) => CategoryOf(type) switch
+    {
+        FSPingCategory.Boss => BossColor,
+        FSPingCategory.Enemy => EnemyColor,
+        FSPingCategory.Request => RequestColor,
         _ => InfoColor,
     };
 
-    public static FSPingShape ShapeOf(FSPingType type) => type switch
+    public static FSPingShape ShapeOf(FSPingType type) => CategoryOf(type) switch
     {
-        FSPingType.Boss or FSPingType.Enemy or FSPingType.Special or FSPingType.Danger => FSPingShape.Diamond,
-        FSPingType.NeedAmmo or FSPingType.NeedChems or FSPingType.NeedRepair or FSPingType.Repair
-            or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay => FSPingShape.Circle,
+        FSPingCategory.Boss or FSPingCategory.Enemy => FSPingShape.Diamond,
+        FSPingCategory.Request => FSPingShape.Circle,
         _ => FSPingShape.Square,
     };
-
-    public static bool IsRequest(FSPingType type) => ShapeOf(type) == FSPingShape.Circle;
 
     // A filled marker in the category shape with a darker rim, then the icon tinted dark on top.
     public void DrawMarker(DrawingHandleScreen handle, Vector2 center, float size, FSPingType type, float alpha, string? iconPath = null)
