@@ -3,8 +3,9 @@ using System.Numerics;
 using Content.Client._FinalStand.RCD;
 using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Fortifications;
-using Content.Shared._FinalStand.Materials;
+using Content.Shared.Stacks;
 using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Fortifications;
 
@@ -13,8 +14,7 @@ public sealed record FSUpgradeEntry(FSUpgradePrototype Upgrade, Texture? Icon, F
 public sealed class FSUpgradeRing : FSRingControl
 {
     private readonly FSRCDLook _look;
-    private readonly IEntityManager _entMan;
-    private readonly EntityUid? _user;
+    private readonly IReadOnlyDictionary<ProtoId<StackPrototype>, int> _carried;
     private readonly FSUpgradeableComponent _comp;
     private readonly List<FSUpgradeEntry> _entries;
 
@@ -22,13 +22,12 @@ public sealed class FSUpgradeRing : FSRingControl
 
     protected override int SlotCount => _entries.Count;
 
-    public FSUpgradeRing(FSRCDLook look, IEntityManager entMan, EntityUid? user, FSUpgradeableComponent comp,
+    public FSUpgradeRing(FSRCDLook look, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSUpgradeableComponent comp,
         List<FSUpgradeEntry> entries, Vector2 cursor)
         : base(entries.Count, entries.FindIndex(e => e.Pending), cursor)
     {
         _look = look;
-        _entMan = entMan;
-        _user = user;
+        _carried = carried;
         _comp = comp;
         _entries = entries;
     }
@@ -79,14 +78,6 @@ public sealed class FSUpgradeRing : FSRingControl
             (_look.Body(8f, scale), Loc.GetString(entry.Upgrade.Description), FSRCDLook.Muted, true),
         };
 
-        var materials = _entMan.System<FSCarriedMaterialSystem>();
-        var rows = new List<(Texture? Icon, int Have, int Need, string Name)>();
-        foreach (var (stack, need) in entry.Upgrade.Cost)
-        {
-            var have = _user is { } u ? materials.Count(u, stack) : 0;
-            rows.Add((_look.MaterialIcon(stack), have, need, _look.MaterialName(stack)));
-        }
-
         var status = entry.Block switch
         {
             FSUpgradeBlock.None when entry.Pending => (Loc.GetString("fs-upgrade-ring-in-progress", ("done", _comp.Poured), ("hits", entry.Upgrade.Hits)), FSRCDLook.Gold),
@@ -95,12 +86,11 @@ public sealed class FSUpgradeRing : FSRingControl
             _ => (Loc.GetString("fs-upgrade-blocked-" + entry.Block.ToString().ToLowerInvariant()), FSRCDLook.Bad),
         };
 
-        var mono = _look.Mono(8.5f, scale);
         var icon = 16f * scale;
         var height = 0f;
         foreach (var line in lines)
             height += line.Wrap ? FSRCDLook.Wrapped(handle, line.Font, line.Text, 0, 0, width, line.Color, true, draw: false) : line.Font.GetLineHeight(1f);
-        height += rows.Count * (icon + 2f * scale) + _look.Mono(8f, scale).GetLineHeight(1f) + 2f * scale;
+        height += entry.Upgrade.Cost.Count * (icon + 2f * scale) + _look.Mono(8f, scale).GetLineHeight(1f) + 2f * scale;
 
         var y = center.Y - height / 2f;
         foreach (var line in lines)
@@ -110,20 +100,8 @@ public sealed class FSUpgradeRing : FSRingControl
                 : FSRCDLook.Text(handle, line.Font, line.Text, center.X, y, line.Color, true);
         }
 
-        foreach (var (tex, have, need, name) in rows)
-        {
-            var haveText = have.ToString();
-            var rest = $" / {need} {name}";
-            var rowW = icon + 4f * scale + handle.GetDimensions(mono, haveText, 1f).X + handle.GetDimensions(mono, rest, 1f).X;
-            var x = center.X - rowW / 2f;
-            if (tex != null)
-                handle.DrawTextureRect(tex, UIBox2.FromDimensions(new Vector2(x, y), new Vector2(icon)));
-            x += icon + 4f * scale;
-            var rowY = y + (icon - mono.GetLineHeight(1f)) / 2f;
-            handle.DrawString(mono, new Vector2(x, rowY), haveText, have >= need ? FSRCDLook.Good : FSRCDLook.Bad);
-            handle.DrawString(mono, new Vector2(x + handle.GetDimensions(mono, haveText, 1f).X, rowY), rest, FSRCDLook.Muted);
-            y += icon + 2f * scale;
-        }
+        foreach (var (stack, need) in entry.Upgrade.Cost)
+            y += _look.DrawCostRow(handle, stack, _carried.GetValueOrDefault(stack), need, $" / {need} {_look.MaterialName(stack)}", center.X, y, scale, true);
 
         FSRCDLook.Text(handle, _look.Mono(8f, scale), status.Item1, center.X, y + 2f * scale, status.Item2, true);
     }

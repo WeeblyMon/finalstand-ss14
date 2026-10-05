@@ -1,6 +1,5 @@
 // Shared look for the Build Ring and Build Belt: palette, fonts at UI scale, circles, icons and the cost block.
 using System.Numerics;
-using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Content.Shared.Stacks;
@@ -91,13 +90,13 @@ public sealed class FSRCDLook
     public string MaterialName(ProtoId<StackPrototype> stack) => Loc.GetString(_proto.Index(stack).Name).ToLowerInvariant();
 
     // Builds the entries both pickers show, with have/need worked out once.
-    public static List<FSRCDEntry> Entries(IEntityManager entMan, IPrototypeManager proto, SpriteSystem sprite,
-        EntityUid? user, FSEngineerOnlyRCDComponent fs, string current, IEnumerable<RCDPrototype> pieces)
+    public static List<FSRCDEntry> Entries(IPrototypeManager proto, SpriteSystem sprite,
+        IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSEngineerOnlyRCDComponent fs, string current, IEnumerable<RCDPrototype> pieces)
     {
         var list = new List<FSRCDEntry>();
         foreach (var piece in pieces)
         {
-            var affordable = FSRCDPalette.Affordable(entMan, proto, user, fs, piece);
+            var affordable = FSRCDPalette.Affordable(proto, carried, fs, piece);
             (int, int)? cap = null;
             var capped = false;
             if (proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe)
@@ -125,7 +124,7 @@ public sealed class FSRCDLook
     }
 
     // Name, a one-line role, one row per material (icon, have in green or red, / need), then cap and build time.
-    public float DrawInfo(DrawingHandleScreen handle, IEntityManager entMan, EntityUid? user, FSEngineerOnlyRCDComponent fs,
+    public float DrawInfo(DrawingHandleScreen handle, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSEngineerOnlyRCDComponent fs,
         RCDPrototype piece, Vector2 topCenter, float scale, bool centered, float maxWidth)
     {
         var y = topCenter.Y;
@@ -142,27 +141,13 @@ public sealed class FSRCDLook
 
         if (_proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))
         {
-            var materials = entMan.System<FSCarriedMaterialSystem>();
-            var mono = Mono(8.5f, scale);
             foreach (var (stack, need) in recipe.Materials)
             {
-                var have = FSRCDText.Have(materials, user, fs, stack);
-                var haveText = have.ToString();
                 var silo = fs.SiloStock.GetValueOrDefault(stack);
                 var rest = silo > 0
                     ? Loc.GetString("fs-rcd-cost-rest-silo", ("need", need), ("name", MaterialName(stack)), ("silo", silo))
                     : Loc.GetString("fs-rcd-cost-rest", ("need", need), ("name", MaterialName(stack)));
-                var icon = 16f * scale;
-                var width = icon + 4f * scale + handle.GetDimensions(mono, haveText, 1f).X + handle.GetDimensions(mono, rest, 1f).X;
-                var x = centered ? topCenter.X - width / 2f : topCenter.X;
-                if (MaterialIcon(stack) is { } tex)
-                    handle.DrawTextureRect(tex, UIBox2.FromDimensions(new Vector2(x, y), new Vector2(icon, icon)));
-                x += icon + 4f * scale;
-                var rowY = y + (icon - mono.GetLineHeight(1f)) / 2f;
-                handle.DrawString(mono, new Vector2(x, rowY), haveText, have >= need ? Good : Bad);
-                x += handle.GetDimensions(mono, haveText, 1f).X;
-                handle.DrawString(mono, new Vector2(x, rowY), rest, Muted);
-                y += icon + 2f * scale;
+                y += DrawCostRow(handle, stack, FSRCDText.Have(carried, fs, stack), need, rest, topCenter.X, y, scale, centered);
             }
 
             var meta = Loc.GetString("fs-rcd-info-time", ("seconds", piece.Delay));
@@ -172,6 +157,25 @@ public sealed class FSRCDLook
         }
 
         return y - topCenter.Y;
+    }
+
+    public float DrawCostRow(DrawingHandleScreen handle, ProtoId<StackPrototype> stack, int have, int need, string rest,
+        float x, float y, float scale, bool centered)
+    {
+        var mono = Mono(8.5f, scale);
+        var haveText = have.ToString();
+        var icon = 16f * scale;
+        var width = icon + 4f * scale + handle.GetDimensions(mono, haveText, 1f).X + handle.GetDimensions(mono, rest, 1f).X;
+        if (centered)
+            x -= width / 2f;
+
+        if (MaterialIcon(stack) is { } tex)
+            handle.DrawTextureRect(tex, UIBox2.FromDimensions(new Vector2(x, y), new Vector2(icon, icon)));
+        x += icon + 4f * scale;
+        var rowY = y + (icon - mono.GetLineHeight(1f)) / 2f;
+        handle.DrawString(mono, new Vector2(x, rowY), haveText, have >= need ? Good : Bad);
+        handle.DrawString(mono, new Vector2(x + handle.GetDimensions(mono, haveText, 1f).X, rowY), rest, Muted);
+        return icon + 2f * scale;
     }
 
     public float MeasureInfo(DrawingHandleScreen handle, RCDPrototype piece, float scale, float maxWidth)

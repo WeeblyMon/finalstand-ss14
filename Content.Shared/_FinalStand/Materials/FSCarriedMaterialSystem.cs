@@ -21,11 +21,21 @@ public sealed class FSCarriedMaterialSystem : EntitySystem
         return total;
     }
 
+    public Dictionary<ProtoId<StackPrototype>, int> CountAll(EntityUid? user)
+    {
+        var counts = new Dictionary<ProtoId<StackPrototype>, int>();
+        if (user is { } root)
+            CountInto(root, counts);
+
+        return counts;
+    }
+
     public bool Has(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
     {
+        var carried = CountAll(user);
         foreach (var (material, need) in materials)
         {
-            if (Count(user, material) < need)
+            if (carried.GetValueOrDefault(material) < need)
                 return false;
         }
 
@@ -71,6 +81,23 @@ public sealed class FSCarriedMaterialSystem : EntitySystem
     {
         _stacks.Clear();
         CollectFrom(user, material);
+    }
+
+    private void CountInto(EntityUid root, Dictionary<ProtoId<StackPrototype>, int> counts)
+    {
+        if (!TryComp<ContainerManagerComponent>(root, out var manager))
+            return;
+
+        foreach (var container in manager.Containers.Values)
+        {
+            foreach (var contained in container.ContainedEntities)
+            {
+                if (TryComp<StackComponent>(contained, out var stack))
+                    counts[stack.StackTypeId] = counts.GetValueOrDefault(stack.StackTypeId) + stack.Count;
+                else
+                    CountInto(contained, counts);
+            }
+        }
     }
 
     private void CollectFrom(EntityUid root, ProtoId<StackPrototype> material)

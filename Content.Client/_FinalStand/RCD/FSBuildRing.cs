@@ -2,15 +2,16 @@
 using System.Numerics;
 using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.RCD;
+using Content.Shared.Stacks;
 using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.RCD;
 
 public sealed class FSBuildRing : FSRingControl
 {
     private readonly FSRCDLook _look;
-    private readonly IEntityManager _entMan;
-    private readonly EntityUid? _user;
+    private readonly IReadOnlyDictionary<ProtoId<StackPrototype>, int> _carried;
     private readonly FSEngineerOnlyRCDComponent _fs;
     private readonly Texture? _stationIcon;
     private readonly List<FSRCDEntry> _top;
@@ -23,13 +24,12 @@ public sealed class FSBuildRing : FSRingControl
 
     protected override int SlotCount => _layer.Count;
 
-    public FSBuildRing(FSRCDLook look, IEntityManager entMan, EntityUid? user, FSEngineerOnlyRCDComponent fs,
+    public FSBuildRing(FSRCDLook look, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSEngineerOnlyRCDComponent fs,
         List<FSRCDEntry> top, List<FSRCDEntry> station, Texture? stationIcon, Vector2 cursor)
         : base(top.Count, top.FindIndex(e => e.Selected), cursor)
     {
         _look = look;
-        _entMan = entMan;
-        _user = user;
+        _carried = carried;
         _fs = fs;
         _top = top;
         _station = station;
@@ -122,7 +122,7 @@ public sealed class FSBuildRing : FSRingControl
             return;
 
         var height = _look.MeasureInfo(handle, piece, scale, width);
-        _look.DrawInfo(handle, _entMan, _user, _fs, piece, new Vector2(center.X, center.Y - height / 2f), scale, centered: true, width);
+        _look.DrawInfo(handle, _carried, _fs, piece, new Vector2(center.X, center.Y - height / 2f), scale, centered: true, width);
     }
 
     private void DrawTitle(DrawingHandleScreen handle, Vector2 center, float scale, float width, string title, string role, Color color)

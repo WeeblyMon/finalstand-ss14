@@ -1,7 +1,7 @@
-using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
+using Content.Shared.Stacks;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.RCD;
@@ -35,7 +35,7 @@ public sealed class FSRCDPalette
     }
 
     // How many of this piece the user could build right now, counting every material and both caps.
-    public static int Affordable(IEntityManager entMan, IPrototypeManager proto, EntityUid? user,
+    public static int Affordable(IPrototypeManager proto, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried,
         FSEngineerOnlyRCDComponent fs, RCDPrototype piece)
     {
         if (!proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))
@@ -45,10 +45,9 @@ public sealed class FSRCDPalette
         if (recipe.CapGroup is { } group && fs.CapsMax.TryGetValue(group, out var max))
             count = Math.Min(count, Math.Max(0, max - fs.CapsUsed.GetValueOrDefault(group)));
 
-        var materials = entMan.System<FSCarriedMaterialSystem>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = FSRCDText.Have(materials, user, fs, material);
+            var have = FSRCDText.Have(carried, fs, material);
             count = Math.Min(count, need > 0 ? have / need : count);
         }
 

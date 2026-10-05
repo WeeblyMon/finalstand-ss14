@@ -189,7 +189,7 @@ public sealed partial class WaveHudSystem
         }
 
         if (TryComp<FSEngineerOnlyRCDComponent>(held, out var fsRcd) && TryComp<RCDComponent>(held, out var rcd))
-            return FSRCDText.Summary(EntityManager, ProtoMan, _player.LocalEntity, fsRcd, ProtoMan.Index(rcd.ProtoId));
+            return FSRCDText.Summary(ProtoMan, _materials.CountAll(_player.LocalEntity), fsRcd, ProtoMan.Index(rcd.ProtoId));
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
             return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";

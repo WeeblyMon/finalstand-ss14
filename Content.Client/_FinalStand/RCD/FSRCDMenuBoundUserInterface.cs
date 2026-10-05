@@ -1,5 +1,6 @@
 // The RCD picker. Ring layout: the Build Ring opens with your current piece under the cursor.
 // Belt layout: Z steps to the next belt slot instead of opening anything.
+using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
 using Content.Shared.RCD;
@@ -49,19 +50,19 @@ public sealed partial class FSRCDMenuBoundUserInterface(EntityUid owner, Enum ui
 
         var sprite = EntMan.System<SpriteSystem>();
         var look = new FSRCDLook(_cache, _proto, sprite);
-        var user = _player.LocalEntity;
+        var carried = EntMan.System<FSCarriedMaterialSystem>().CountAll(_player.LocalEntity);
         var current = rcd.ProtoId.Id;
 
-        var top = FSRCDLook.Entries(EntMan, _proto, sprite, user, fs, current, palette.Pieces);
+        var top = FSRCDLook.Entries(_proto, sprite, carried, fs, current, palette.Pieces);
         var stationSelected = palette.Station.Exists(p => p.ID == current);
         top.Add(new FSRCDEntry(FSRCDEntryKind.Station, null, null, -1, false, null, stationSelected));
         if (palette.Deconstruct != null)
-            top.AddRange(FSRCDLook.Entries(EntMan, _proto, sprite, user, fs, current, [palette.Deconstruct]));
+            top.AddRange(FSRCDLook.Entries(_proto, sprite, carried, fs, current, [palette.Deconstruct]));
 
-        var station = FSRCDLook.Entries(EntMan, _proto, sprite, user, fs, current, palette.Station);
+        var station = FSRCDLook.Entries(_proto, sprite, carried, fs, current, palette.Station);
         station.Add(new FSRCDEntry(FSRCDEntryKind.Back, null, null, -1, false, null, false));
 
-        _ring = new FSBuildRing(look, EntMan, user, fs, top, station, sprite.Frame0(StationIcon),
+        _ring = new FSBuildRing(look, carried, fs, top, station, sprite.Frame0(StationIcon),
             _input.MouseScreenPosition.Position);
         _ring.OnPick += entry =>
         {

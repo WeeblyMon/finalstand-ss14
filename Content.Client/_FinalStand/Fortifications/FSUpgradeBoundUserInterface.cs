@@ -29,8 +29,7 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
 
         var sprite = EntMan.System<SpriteSystem>();
         var rules = EntMan.System<FSUpgradeSystem>();
-        var materials = EntMan.System<FSCarriedMaterialSystem>();
-        var user = _player.LocalEntity;
+        var carried = EntMan.System<FSCarriedMaterialSystem>().CountAll(_player.LocalEntity);
 
         var entries = new List<FSUpgradeEntry>();
         foreach (var id in comp.Options)
@@ -39,14 +38,14 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
             var affordable = true;
             foreach (var (stack, need) in upgrade.Cost)
             {
-                if (user is not { } u || materials.Count(u, stack) < need)
+                if (carried.GetValueOrDefault(stack) < need)
                     affordable = false;
             }
 
             entries.Add(new FSUpgradeEntry(upgrade, sprite.Frame0(upgrade.Icon), rules.Check(comp, upgrade), comp.Pending == id, !affordable));
         }
 
-        _ring = new FSUpgradeRing(new FSRCDLook(_cache, _proto, sprite), EntMan, user, comp, entries, _input.MouseScreenPosition.Position);
+        _ring = new FSUpgradeRing(new FSRCDLook(_cache, _proto, sprite), carried, comp, entries, _input.MouseScreenPosition.Position);
         _ring.OnPick += entry =>
         {
             SendMessage(new FSUpgradeSelectMessage(entry.Upgrade.ID));

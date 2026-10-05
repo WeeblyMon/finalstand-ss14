@@ -1,9 +1,11 @@
 // The Build Belt: a card that explains the selected piece over a row of slots, each showing how many you can build now.
 using System.Numerics;
 using Content.Shared._FinalStand.RCD;
+using Content.Shared.Stacks;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Shared.Input;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.RCD;
 
@@ -17,23 +19,21 @@ public sealed class FSBuildBelt : Control
     private const float Raise = 4f;
 
     private readonly FSRCDLook _look;
-    private readonly IEntityManager _entMan;
     private readonly List<(UIBox2 Box, FSRCDEntry Entry)> _hits = new();
     private UIBox2 _toggleBox;
     private Vector2 _mouse;
 
     public List<FSRCDEntry> Entries = new();
     public Texture? StationIcon;
-    public EntityUid? User;
+    public IReadOnlyDictionary<ProtoId<StackPrototype>, int> Carried = new Dictionary<ProtoId<StackPrototype>, int>();
     public FSEngineerOnlyRCDComponent? Rcd;
 
     public event Action<FSRCDEntry>? OnPick;
     public event Action? OnToggleLayout;
 
-    public FSBuildBelt(FSRCDLook look, IEntityManager entMan)
+    public FSBuildBelt(FSRCDLook look)
     {
         _look = look;
-        _entMan = entMan;
         MouseFilter = MouseFilterMode.Stop;
     }
 
@@ -113,7 +113,7 @@ public sealed class FSBuildBelt : Control
         handle.DrawString(chipFont, chip.TopLeft + new Vector2(4f, 1f) * scale, chipText, decon ? Color.White : Color.FromHex("#12141a"));
 
         if (selected?.Piece is { } piece)
-            _look.DrawInfo(handle, _entMan, User, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false,
+            _look.DrawInfo(handle, Carried, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false,
                 _toggleBox.Left - chip.Right - 24f * scale);
 
         var hintFont = _look.Mono(7f, scale);

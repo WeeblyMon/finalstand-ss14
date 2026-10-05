@@ -1,5 +1,6 @@
 // Build Belt layout: while an engineer holds the RCD, the belt sits above the hands. Z steps to the next slot.
 using Content.Client.Hands.Systems;
+using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
 using Content.Shared.RCD;
@@ -24,6 +25,7 @@ public sealed partial class FSRCDBeltSystem : EntitySystem
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private HandsSystem _hands = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private FSCarriedMaterialSystem _materials = default!;
 
     private const float BottomMargin = 112f;
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(0.25);
@@ -116,7 +118,7 @@ public sealed partial class FSRCDBeltSystem : EntitySystem
         if (_ui.ActiveScreen is not { } screen)
             return;
 
-        _belt = new FSBuildBelt(new FSRCDLook(_cache, ProtoMan, _sprite), EntityManager)
+        _belt = new FSBuildBelt(new FSRCDLook(_cache, ProtoMan, _sprite))
         {
             StationIcon = _sprite.Frame0(StationIcon),
         };
@@ -170,27 +172,27 @@ public sealed partial class FSRCDBeltSystem : EntitySystem
             return;
 
         var palette = new FSRCDPalette(ProtoMan, comp, fs);
-        var user = _player.LocalEntity;
+        var carried = _materials.CountAll(_player.LocalEntity);
         var current = comp.ProtoId.Id;
 
         List<FSRCDEntry> entries;
         if (_stationOpen)
         {
-            entries = FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, palette.Station);
+            entries = FSRCDLook.Entries(ProtoMan, _sprite, carried, fs, current, palette.Station);
             entries.Add(new FSRCDEntry(FSRCDEntryKind.Back, null, null, -1, false, null, false));
         }
         else
         {
-            entries = FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, palette.Pieces);
+            entries = FSRCDLook.Entries(ProtoMan, _sprite, carried, fs, current, palette.Pieces);
             if (palette.Station.Count > 0)
                 entries.Add(new FSRCDEntry(FSRCDEntryKind.Station, null, null, -1, false, null,
                     palette.Station.Exists(p => p.ID == current)));
             if (palette.Deconstruct != null)
-                entries.AddRange(FSRCDLook.Entries(EntityManager, ProtoMan, _sprite, user, fs, current, [palette.Deconstruct]));
+                entries.AddRange(FSRCDLook.Entries(ProtoMan, _sprite, carried, fs, current, [palette.Deconstruct]));
         }
 
         _belt.Entries = entries;
-        _belt.User = user;
+        _belt.Carried = carried;
         _belt.Rcd = fs;
         _belt.Resize();
     }

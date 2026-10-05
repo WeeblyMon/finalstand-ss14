@@ -1,4 +1,3 @@
-using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Content.Shared.Stacks;
@@ -13,9 +12,9 @@ public static class FSRCDText
     private const string Short = "#ff6b5e";
 
     // Carried sheets plus whatever the server says the holder can draw from silos in reach.
-    public static int Have(FSCarriedMaterialSystem materials, EntityUid? user, FSEngineerOnlyRCDComponent fs, ProtoId<StackPrototype> material)
+    public static int Have(IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSEngineerOnlyRCDComponent fs, ProtoId<StackPrototype> material)
     {
-        return (user is { } u ? materials.Count(u, material) : 0) + fs.SiloStock.GetValueOrDefault(material);
+        return carried.GetValueOrDefault(material) + fs.SiloStock.GetValueOrDefault(material);
     }
 
     public static string Name(IPrototypeManager protoMan, RCDPrototype proto)
@@ -33,7 +32,7 @@ public static class FSRCDText
     private static string Concat(string a, string b) => a + b;
 
     // One plain line for the HUD weapon panel, which can't take markup: what you can build, or what you're short.
-    public static string Summary(IEntityManager entMan, IPrototypeManager proto, EntityUid? user,
+    public static string Summary(IPrototypeManager proto, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried,
         FSEngineerOnlyRCDComponent fs, RCDPrototype piece)
     {
         if (piece.Mode == RcdMode.Deconstruct)
@@ -49,15 +48,14 @@ public static class FSRCDText
         if (recipe.CapGroup is { } group && fs.CapsMax.TryGetValue(group, out var max))
             name = Loc.GetString("fs-rcd-summary-cap", ("name", name), ("used", fs.CapsUsed.GetValueOrDefault(group)), ("max", max));
 
-        var count = FSRCDPalette.Affordable(entMan, proto, user, fs, piece);
+        var count = FSRCDPalette.Affordable(proto, carried, fs, piece);
         if (count > 0)
             return Loc.GetString("fs-rcd-summary-ready", ("name", name), ("count", count));
 
-        var materials = entMan.System<FSCarriedMaterialSystem>();
         var missing = new List<string>();
         foreach (var (material, need) in recipe.Materials)
         {
-            var have = Have(materials, user, fs, material);
+            var have = Have(carried, fs, material);
             if (have < need)
                 missing.Add($"{need - have} {Loc.GetString(proto.Index(material).Name)}");
         }
