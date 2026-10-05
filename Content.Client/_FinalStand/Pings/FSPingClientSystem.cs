@@ -55,19 +55,7 @@ public sealed partial class FSPingClientSystem : EntitySystem
 
     public bool ForMe(FSPingAudience audience)
     {
-        if (audience == FSPingAudience.Everyone)
-            return true;
-
-        if (!TryComp<FSDepartmentAccessComponent>(_player.LocalEntity, out var dept))
-            return false;
-
-        return audience switch
-        {
-            FSPingAudience.Engineering => dept.Engineering,
-            FSPingAudience.Medical => dept.Medical,
-            FSPingAudience.Science => dept.Science,
-            _ => false,
-        };
+        return FSPingAudiences.Includes(audience, CompOrNull<FSDepartmentAccessComponent>(_player.LocalEntity));
     }
 
     private void OnPing(FSPingEvent ev)

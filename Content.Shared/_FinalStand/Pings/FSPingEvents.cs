@@ -1,4 +1,5 @@
 // Ping types, who they're for, and the messages that carry pings and the per-role task board between client and server.
+using Content.Shared._FinalStand.Departments;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;
 
@@ -34,6 +35,21 @@ public enum FSPingAudience : byte
     Engineering,
     Medical,
     Science,
+}
+
+public static class FSPingAudiences
+{
+    public static bool Includes(FSPingAudience audience, FSDepartmentAccessComponent? dept)
+    {
+        return audience switch
+        {
+            FSPingAudience.Everyone => true,
+            FSPingAudience.Engineering => dept?.Engineering == true,
+            FSPingAudience.Medical => dept?.Medical == true,
+            FSPingAudience.Science => dept?.Science == true,
+            _ => false,
+        };
+    }
 }
 
 [Serializable, NetSerializable]

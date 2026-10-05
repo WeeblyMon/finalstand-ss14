@@ -140,19 +140,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
 
     public bool InAudience(EntityUid uid, FSPingAudience audience)
     {
-        if (audience == FSPingAudience.Everyone)
-            return true;
-
-        if (!TryComp<FSDepartmentAccessComponent>(uid, out var dept))
-            return false;
-
-        return audience switch
-        {
-            FSPingAudience.Engineering => dept.Engineering,
-            FSPingAudience.Medical => dept.Medical,
-            FSPingAudience.Science => dept.Science,
-            _ => false,
-        };
+        return FSPingAudiences.Includes(audience, CompOrNull<FSDepartmentAccessComponent>(uid));
     }
 
     public override void Update(float frameTime)
