@@ -25,6 +25,7 @@ public sealed class FSHMGVisualSystem : EntitySystem
     private static readonly Color White = Color.FromHex("#fff4e0");
 
     private readonly Dictionary<EntityUid, (float Heat, bool Overheated)> _last = new();
+    private readonly List<EntityUid> _gone = new();
 
     public override void Initialize()
     {
@@ -64,6 +65,16 @@ public sealed class FSHMGVisualSystem : EntitySystem
 
             _last[uid] = (raw, overheated);
         }
+
+        foreach (var uid in _last.Keys)
+        {
+            if (TerminatingOrDeleted(uid))
+                _gone.Add(uid);
+        }
+
+        foreach (var uid in _gone)
+            _last.Remove(uid);
+        _gone.Clear();
     }
 
     private static Color Stage(float heat)
