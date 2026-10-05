@@ -1,0 +1,109 @@
+# The Durand: a slow, heavily armoured combat mech built at the Mech Bay. Ported from Goob-Station's MechDurand onto vanilla's vehicle mechs.
+- type: damageModifierSet
+  id: FSMechArmor
+  coefficients:
+    Blunt: 0.6
+    Slash: 0.6
+    Piercing: 0.65
+    Shock: 1.4
+    Heat: 0.7
+  flatReductions:
+    Blunt: 8
+    Heat: 10
+
+- type: damageModifierSet
+  id: FSMechArmorSiege
+  coefficients:
+    Blunt: 0.35
+    Slash: 0.35
+    Piercing: 0.4
+    Shock: 1.2
+    Heat: 0.45
+  flatReductions:
+    Blunt: 12
+    Slash: 8
+    Heat: 12
+
+- type: entity
+  id: FSMechDurand
+  parent: BaseMech
+  name: Durand
+  description: A slow combat mech with heavy armour and hard punches. Plant it in siege mode to hold a lane.
+  components:
+  - type: Sprite
+    drawdepth: Mobs
+    noRot: true
+    sprite: Objects/Specific/Mech/mecha.rsi
+    layers:
+    - map: [ "enum.MechVisualLayers.Base" ]
+      state: durand
+  - type: FootstepModifier
+    footstepSoundCollection:
+      path: /Audio/Mecha/sound_mecha_powerloader_step.ogg
+  - type: Mech
+    baseState: durand
+    openState: durand-open
+    brokenState: durand-broken
+    maxIntegrity: 400
+    maxEquipmentAmount: 3
+    airtight: true
+    equipmentWhitelist:
+      tags:
+      - CombatMech
+  - type: Vehicle
+    transferDamageModifier:
+      coefficients:
+        Blunt: 0.25
+        Slash: 0.25
+        Piercing: 0.25
+        Cold: 0.25
+        Heat: 0.25
+        Shock: 0.25
+    operatorWhitelist:
+      components:
+        - HumanoidProfile
+  - type: MeleeWeapon
+    hidden: true
+    attackRate: 1
+    damage:
+      types:
+        Blunt: 40
+        Structural: 60
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 1.5
+    baseSprintSpeed: 1.5
+  - type: Damageable
+    damageModifierSet: FSMechArmor
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 900
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+  - type: CanMoveInAir
+  - type: MovementAlwaysTouching
+  - type: Repairable
+    fuelCost: 30
+    doAfterDelay: 8
+  - type: FSCombatMech
+  - type: FSFriendlyFire
+  - type: Tag
+    tags:
+    - DoorBumpOpener
+    - FootstepSound
+    - Durand
+
+- type: entity
+  id: FSMechDurandBattery
+  parent: FSMechDurand
+  suffix: Battery
+  components:
+  - type: ContainerFill
+    containers:
+      mech-battery-slot:
+      - PowerCellHigh

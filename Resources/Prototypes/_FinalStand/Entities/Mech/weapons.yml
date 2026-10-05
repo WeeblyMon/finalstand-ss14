@@ -1,0 +1,170 @@
+# Durand weapons, ported from Goob-Station's combat mech guns. Energy guns are printed by Science, ballistics by Engineering.
+# Every gun runs off a small cell the mech tops up from its own power before each shot.
+- type: entity
+  id: FSBaseMechWeapon
+  parent: BaseMechEquipment
+  abstract: true
+  components:
+  - type: Battery
+    maxCharge: 100
+    startingCharge: 100
+  - type: Appearance
+  - type: AmmoCounter
+  - type: Tag
+    tags:
+    - CombatMech
+
+- type: entity
+  id: FSMechWeaponPulseRifle
+  parent: FSBaseMechWeapon
+  name: eZ-14 heavy pulse rifle
+  description: Fires heavy pulse bolts. Printed by Science.
+  components:
+  - type: Sprite
+    state: mecha_pulse
+  - type: Gun
+    fireRate: 1.5
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
+  - type: BatteryAmmoProvider
+    proto: Pulse
+    fireCost: 40
+
+- type: entity
+  id: FSMechWeaponSolaris
+  parent: FSBaseMechWeapon
+  name: CH-LC "Solaris" laser cannon
+  description: A fast-firing mounted laser that drinks power. Printed by Science.
+  components:
+  - type: Sprite
+    state: mecha_laser
+  - type: Gun
+    fireRate: 3
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/laser.ogg
+  - type: BatteryAmmoProvider
+    proto: RedMediumLaser
+    fireCost: 30
+
+- type: entity
+  id: FSMechWeaponFiredart
+  parent: FSBaseMechWeapon
+  name: CH-PS "Firedart" laser
+  description: The standard mounted laser. Cheap to run. Printed by Science.
+  components:
+  - type: Sprite
+    state: mecha_laser
+  - type: Gun
+    fireRate: 1.5
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/laser.ogg
+  - type: BatteryAmmoProvider
+    proto: RedLaser
+    fireCost: 10
+
+- type: entity
+  id: FSMechWeaponTesla
+  parent: FSBaseMechWeapon
+  name: P-X tesla cannon
+  description: Throws slow balls of lightning that arc between zombies. Printed by Science.
+  components:
+  - type: Sprite
+    state: mecha_wholegen
+  - type: Gun
+    projectileSpeed: 6
+    fireRate: 0.4
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Effects/Lightning/lightningshock.ogg
+      params:
+        variation: 0.2
+  - type: BatteryAmmoProvider
+    proto: TeslaGunBullet
+    fireCost: 99
+
+- type: entity
+  id: FSMechWeaponScattershot
+  parent: FSBaseMechWeapon
+  name: LBX AC-10 "Scattershot"
+  description: A mounted shotgun for the front of a horde. Built by Engineering.
+  components:
+  - type: Sprite
+    state: mecha_scatter
+  - type: Gun
+    fireRate: 1.5
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
+  - type: BatteryAmmoProvider
+    proto: ShellShotgun
+    fireCost: 30
+
+- type: entity
+  id: FSMechWeaponHades
+  parent: FSBaseMechWeapon
+  name: FNX-99 "Hades" carbine
+  description: A mounted shotgun loaded with incendiary shells. Built by Engineering.
+  components:
+  - type: Sprite
+    state: mecha_carbine
+  - type: Gun
+    fireRate: 1.2
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
+  - type: BatteryAmmoProvider
+    proto: ShellShotgunIncendiary
+    fireCost: 40
+
+- type: entity
+  id: FSMechWeaponUltraAC2
+  parent: FSBaseMechWeapon
+  name: Ultra AC-2
+  description: A mounted autocannon that chews through a lane. Built by Engineering.
+  components:
+  - type: Sprite
+    state: mecha_uac2
+  - type: Gun
+    fireRate: 6
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
+  - type: BatteryAmmoProvider
+    proto: CartridgeLightRifle
+    fireCost: 5
+
+- type: entity
+  id: FSMechWeaponMissileRack
+  parent: FSBaseMechWeapon
+  name: SRM-8 missile rack
+  description: Light missiles that burst on whatever they hit. Built by Engineering.
+  components:
+  - type: Sprite
+    state: mecha_missilerack
+  - type: Gun
+    fireRate: 1
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
+  - type: BatteryAmmoProvider
+    proto: BulletWeakRocket
+    fireCost: 25
