@@ -1,5 +1,11 @@
 // Engineering research nodes: answers "is it unlocked" for the systems that check inline, and pushes the rest onto HMGs, crates and rivet guns, built or not.
+using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Research;
+using Content.Server.Chat.Managers;
+using Content.Shared._FinalStand.Research.Prototypes;
+using Content.Shared.Popups;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -28,6 +34,12 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IChatManager _chat = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private FSDepartmentAccessSystem _departments = default!;
+
+    private static readonly ProtoId<FSTechBranchPrototype> EngineeringBranch = "Engineering";
 
     private const float TraverseArcBonus = 30f;
     private const float CoolingHeatMultiplier = 0.65f;
@@ -49,6 +61,9 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
 
     private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
     {
+        if (ev.Earned)
+            AnnounceToEngineers(ev.NodeId);
+
         var hmgs = EntityQueryEnumerator<FSHMGComponent>();
         while (hmgs.MoveNext(out var uid, out var comp))
             ApplyHmg((uid, comp));
@@ -60,6 +75,23 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
         var guns = EntityQueryEnumerator<FSRivetGunComponent>();
         while (guns.MoveNext(out var uid, out var comp))
             ApplyRivetGun((uid, comp));
+    }
+
+    private void AnnounceToEngineers(string nodeId)
+    {
+        if (!_proto.TryIndex<FSTechNodePrototype>(nodeId, out var node) || node.Branch != EngineeringBranch)
+            return;
+
+        var message = Loc.GetString("fs-engineering-research-done", ("name", node.Name), ("bonus", node.BonusDescription));
+        var actors = EntityQueryEnumerator<ActorComponent>();
+        while (actors.MoveNext(out var uid, out var actor))
+        {
+            if (!_departments.IsEngineering(uid))
+                continue;
+
+            _chat.DispatchServerMessage(actor.PlayerSession, message);
+            _popup.PopupEntity(Loc.GetString("fs-engineering-research-done-popup", ("name", node.Name)), uid, uid, PopupType.Medium);
+        }
     }
 
     private void ApplyHmg(Entity<FSHMGComponent> ent)
