@@ -4,7 +4,6 @@ using Content.Server._FinalStand.Research;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared.Popups;
-using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Repair;
@@ -83,13 +82,9 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
             return;
 
         var message = Loc.GetString("fs-engineering-research-done", ("name", node.Name), ("bonus", node.BonusDescription));
-        var actors = EntityQueryEnumerator<ActorComponent>();
-        while (actors.MoveNext(out var uid, out var actor))
+        foreach (var (uid, session) in _departments.Engineers())
         {
-            if (!_departments.IsEngineering(uid))
-                continue;
-
-            _chat.DispatchServerMessage(actor.PlayerSession, message);
+            _chat.DispatchServerMessage(session, message);
             _popup.PopupEntity(Loc.GetString("fs-engineering-research-done-popup", ("name", node.Name)), uid, uid, PopupType.Medium);
         }
     }

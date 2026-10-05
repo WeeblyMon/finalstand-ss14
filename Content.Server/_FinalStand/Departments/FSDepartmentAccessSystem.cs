@@ -8,6 +8,7 @@ using Content.Shared.Roles;
 using Content.Shared.Roles.Components;
 using Content.Shared.Roles.Jobs;
 using Robust.Server.Player;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -91,6 +92,15 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
     {
         return HasAccess(user, ChiefEngineerAccess)
                || _mind.TryGetMind(user, out var mindId, out _) && _jobs.MindHasJobWithId(mindId, ChiefEngineerJob);
+    }
+
+    public IEnumerable<(EntityUid Uid, ICommonSession Session)> Engineers()
+    {
+        foreach (var session in _player.Sessions)
+        {
+            if (session.AttachedEntity is { } mob && IsEngineering(mob))
+                yield return (mob, session);
+        }
     }
 
     public void Refresh(EntityUid user)
