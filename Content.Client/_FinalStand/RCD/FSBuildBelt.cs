@@ -168,7 +168,9 @@ public sealed class FSBuildBelt : Control
             else if (icon != null)
             {
                 var iconBox = UIBox2.FromDimensions(new Vector2(box.Center.X - iconSide / 2f, box.Top + 8f * scale), new Vector2(iconSide));
-                handle.DrawTextureRect(icon, iconBox, Color.White.WithAlpha(capped ? 0.4f : 1f));
+                handle.DrawTextureRect(icon, iconBox, Color.White.WithAlpha(capped || entry.Locked ? 0.4f : 1f));
+                if (entry.Locked)
+                    _look.DrawLock(handle, iconBox.Center, 18f * scale);
             }
 
             if (entry.Kind == FSRCDEntryKind.Station)

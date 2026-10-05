@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.Engineering;
@@ -180,12 +181,15 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         var silo = SiloStockFor(user, rcd.Comp);
         var max = CapsFor(rcd.Comp, user);
+        var locked = LockedPieces(rcd.Comp);
         if (station == rcd.Comp.StationUsed
             && DictionaryEquals(used, rcd.Comp.CapsUsed)
             && DictionaryEquals(max, rcd.Comp.CapsMax)
-            && DictionaryEquals(silo, rcd.Comp.SiloStock))
+            && DictionaryEquals(silo, rcd.Comp.SiloStock)
+            && locked.SequenceEqual(rcd.Comp.Locked))
             return;
 
+        rcd.Comp.Locked = locked;
         rcd.Comp.StationUsed = station;
         rcd.Comp.CapsUsed = used;
         rcd.Comp.CapsMax = max;
@@ -214,6 +218,20 @@ public sealed partial class FSRCDEngineerOnlySystem
         return !TryComp<MindComponent>(owner, out var ownerMind)
                || ownerMind.UserId is not { } ownerId
                || !_player.TryGetSessionById(ownerId, out _);
+    }
+
+    private List<string> LockedPieces(FSEngineerOnlyRCDComponent comp)
+    {
+        var locked = new List<string>();
+        foreach (var piece in comp.Palette)
+        {
+            if (_proto.TryIndex<FSBuildRecipePrototype>(piece.Id, out var recipe)
+                && recipe.Research is { } node
+                && !_research.Has(node))
+                locked.Add(piece.Id);
+        }
+
+        return locked;
     }
 
     private int CapFor(int max, EntityUid user)

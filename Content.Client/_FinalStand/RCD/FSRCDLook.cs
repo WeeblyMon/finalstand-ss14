@@ -20,7 +20,7 @@ public enum FSRCDEntryKind : byte
 }
 
 public sealed record FSRCDEntry(FSRCDEntryKind Kind, RCDPrototype? Piece, Texture? Icon, int Affordable, bool Short,
-    (int Used, int Max)? Cap, bool Selected);
+    (int Used, int Max)? Cap, bool Selected, bool Locked = false);
 
 public sealed class FSRCDLook
 {
@@ -40,6 +40,14 @@ public sealed class FSRCDLook
     private readonly IPrototypeManager _proto;
     private readonly SpriteSystem _sprite;
     private readonly Dictionary<(string, int), Font> _fonts = new();
+    private Texture? _lock;
+
+    public Texture LockIcon => _lock ??= _cache.GetResource<TextureResource>("/Textures/Interface/VerbIcons/lock.svg.192dpi.png").Texture;
+
+    public void DrawLock(DrawingHandleScreen handle, Vector2 center, float side)
+    {
+        handle.DrawTextureRect(LockIcon, UIBox2.FromDimensions(center - new Vector2(side / 2f), new Vector2(side)), Fg);
+    }
 
     public FSRCDLook(IResourceCache cache, IPrototypeManager proto, SpriteSystem sprite)
     {
@@ -101,14 +109,16 @@ public sealed class FSRCDLook
                 capped = used >= max;
             }
 
+            var locked = fs.Locked.Contains(piece.ID);
             list.Add(new FSRCDEntry(
                 piece.Mode == RcdMode.Deconstruct ? FSRCDEntryKind.Deconstruct : FSRCDEntryKind.Piece,
                 piece,
                 piece.Sprite is { } spec ? sprite.Frame0(spec) : null,
                 affordable,
-                affordable == 0 && !capped,
+                affordable == 0 && !capped && !locked,
                 cap,
-                piece.ID == current));
+                piece.ID == current,
+                locked));
         }
 
         return list;
@@ -121,6 +131,8 @@ public sealed class FSRCDLook
         var y = topCenter.Y;
         var name = FSRCDText.Name(_proto, piece);
         y += Text(handle, Bold(10f, scale), name, topCenter.X, y, Fg, centered);
+        if (fs.Locked.Contains(piece.ID))
+            y += Text(handle, Mono(8f, scale), Loc.GetString("fs-rcd-locked"), topCenter.X, y, Bad, centered);
 
         var roleKey = "fs-rcd-role-" + piece.ID;
         if (piece.Mode == RcdMode.Deconstruct)

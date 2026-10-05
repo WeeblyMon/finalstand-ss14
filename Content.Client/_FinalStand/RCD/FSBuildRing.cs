@@ -78,7 +78,7 @@ public sealed class FSBuildRing : FSRingControl
         Color? glow = entry.Selected ? (decon ? FSRCDLook.Bad : FSRCDLook.Gold) : null;
         var icon = entry.Kind == FSRCDEntryKind.Station ? _stationIcon : entry.Icon;
 
-        DrawSlotBase(handle, pos, r, decon ? FSRCDLook.DeconBack : FSRCDLook.Panel, edge, glow, icon, capped ? 0.45f : 1f, scale, hot);
+        DrawSlotBase(handle, pos, r, decon ? FSRCDLook.DeconBack : FSRCDLook.Panel, edge, glow, icon, capped || entry.Locked ? 0.4f : 1f, scale, hot);
 
         if (entry.Kind == FSRCDEntryKind.Back)
         {
@@ -86,6 +86,9 @@ public sealed class FSBuildRing : FSRingControl
             var text = Loc.GetString("fs-rcd-belt-back");
             handle.DrawString(font, pos - handle.GetDimensions(font, text, 1f) / 2f, text, FSRCDLook.Muted);
         }
+
+        if (entry.Locked)
+            _look.DrawLock(handle, pos + new Vector2(r * 0.62f, r * 0.62f), 16f * scale);
 
         if (entry.Short)
             DrawDot(handle, pos, r, scale, FSRCDLook.Bad);
