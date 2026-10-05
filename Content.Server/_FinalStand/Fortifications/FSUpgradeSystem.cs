@@ -324,7 +324,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         _flair.Burst("FSUpgradeGlints", target, flash);
         _audio.PlayPvs(ChimeSound, target, AudioParams.Default.WithVolume(-4f).WithPitchScale(upgrade.Slot == FSUpgradeSlot.Grade ? 1.15f : 0.95f));
         _color.RaiseEffect(DoneFlash, [target.Owner], Filter.Pvs(target, entityManager: EntityManager));
-        _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, user, PopupType.Medium);
+        _popup.PopupEntity(Loc.GetString("fs-upgrade-done", ("name", Loc.GetString(upgrade.Name))), target, PopupType.Medium);
         return false;
     }
 

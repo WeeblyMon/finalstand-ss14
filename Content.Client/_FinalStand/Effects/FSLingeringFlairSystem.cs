@@ -1,7 +1,10 @@
-// Effects that follow a state rather than a moment: a hurt mech smokes and sparks, a walking mech kicks up dust, uranium glows.
+// Effects that follow a state rather than a moment: a hurt mech smokes and sparks, a walking mech kicks up dust, uranium glows,
+// and a fortification chips when it takes a hit.
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Mech;
+using Content.Shared._FinalStand.Repair;
+using Content.Shared.Damage.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Robust.Client.Player;
@@ -23,11 +26,14 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
     private const float StepKickRange = 3f;
     private const float StepKick = 0.15f;
     private const float GlowScanInterval = 0.5f;
+    private const float DebrisInterval = 0.1f;
 
     private readonly Dictionary<EntityUid, MechFlair> _mechs = new();
     private readonly Dictionary<EntityUid, int> _glows = new();
+    private readonly Dictionary<EntityUid, float> _damage = new();
     private readonly List<EntityUid> _dead = new();
     private float _glowScan;
+    private float _debrisScan;
 
     private sealed class MechFlair
     {
@@ -39,6 +45,13 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         UpdateMechs();
+
+        _debrisScan -= frameTime;
+        if (_debrisScan <= 0f)
+        {
+            _debrisScan = DebrisInterval;
+            UpdateDebris();
+        }
 
         _glowScan -= frameTime;
         if (_glowScan > 0f)
@@ -97,6 +110,30 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
             _particles.Detach(_mechs[uid].Sparks);
             _mechs.Remove(uid);
         }
+
+        _dead.Clear();
+    }
+
+    private void UpdateDebris()
+    {
+        var query = EntityQueryEnumerator<FSStructureHealthComponent, DamageableComponent>();
+        while (query.MoveNext(out var uid, out _, out var damageable))
+        {
+            var total = damageable.TotalDamage.Float();
+            if (_damage.TryGetValue(uid, out var last) && total > last + 0.5f)
+                _particles.Burst("FSDebris", uid, countScale: 0.3f);
+
+            _damage[uid] = total;
+        }
+
+        foreach (var uid in _damage.Keys)
+        {
+            if (TerminatingOrDeleted(uid))
+                _dead.Add(uid);
+        }
+
+        foreach (var uid in _dead)
+            _damage.Remove(uid);
 
         _dead.Clear();
     }
