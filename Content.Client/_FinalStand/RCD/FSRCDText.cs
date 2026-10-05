@@ -43,6 +43,12 @@ public static class FSRCDText
         if (!proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))
             return name;
 
+        if (fs.Locked.Contains(piece.ID))
+            return Loc.GetString("fs-rcd-summary-locked", ("name", name));
+
+        if (recipe.CapGroup is { } group && fs.CapsMax.TryGetValue(group, out var max))
+            name = Loc.GetString("fs-rcd-summary-cap", ("name", name), ("used", fs.CapsUsed.GetValueOrDefault(group)), ("max", max));
+
         var count = FSRCDPalette.Affordable(entMan, proto, user, fs, piece);
         if (count > 0)
             return Loc.GetString("fs-rcd-summary-ready", ("name", name), ("count", count));
