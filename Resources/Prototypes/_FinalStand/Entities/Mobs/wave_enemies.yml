@@ -154,14 +154,10 @@
   - type: FSMaterialDrop
     materials:
     - SheetSteel1
-    - SheetGlass1
-    - SheetPlastic1
-    - SheetPlasma1
-    - IngotGold1
-    - IngotSilver1
-    - SheetUranium1
+    - SheetSteel1
     - SheetPlasteel1
     - SheetPlasteel1
+    - SheetBrass1
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
@@ -217,14 +213,10 @@
   - type: FSMaterialDrop
     materials:
     - SheetSteel1
-    - SheetGlass1
-    - SheetPlastic1
-    - SheetPlasma1
-    - IngotGold1
-    - IngotSilver1
-    - SheetUranium1
+    - SheetSteel1
     - SheetPlasteel1
     - SheetPlasteel1
+    - SheetBrass1
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -271,6 +263,16 @@
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
+  - type: FSMaterialDrop
+    dropChance: 1
+    rolls: 4
+    materials:
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetUranium1
+    - SheetUranium1
+    - MaterialDiamond1
   - type: FSKnockbackResist
     multiplier: 0.01
   - type: MobThresholds

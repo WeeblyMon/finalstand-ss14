@@ -7,10 +7,11 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Loot;
 
-public sealed class FSMaterialDropSystem : EntitySystem
+public sealed partial class FSMaterialDropSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedContainerSystem _container = default!;
+    [Dependency] private WaveGameRuleSystem _waves = default!;
 
     private const int WavesUntilCleanup = 2;
 
@@ -39,13 +40,18 @@ public sealed class FSMaterialDropSystem : EntitySystem
         if (args.NewMobState != MobState.Dead || ent.Comp.Materials.Count == 0)
             return;
 
-        if (!_random.Prob(ent.Comp.DropChance))
-            return;
+        var chance = MathF.Min(ent.Comp.DropChance + ent.Comp.ChancePerWave * _waves.GetWaveNumber(),
+            MathF.Max(ent.Comp.MaxChance, ent.Comp.DropChance));
+        for (var i = 0; i < ent.Comp.Rolls; i++)
+        {
+            if (!_random.Prob(chance))
+                continue;
 
-        var drop = Spawn(_random.Pick(ent.Comp.Materials), Transform(ent).Coordinates);
-        EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
+            var drop = Spawn(_random.Pick(ent.Comp.Materials), Transform(ent).Coordinates);
+            EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
+            _looseDropOrder.Enqueue(drop);
+        }
 
-        _looseDropOrder.Enqueue(drop);
         TrimLooseDrops();
     }
 
