@@ -8,6 +8,7 @@ using Content.Server._FinalStand.Repair;
 using Content.Server.Destructible;
 using Content.Server.Effects;
 using Content.Server.Popups;
+using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.GameTicking;
@@ -51,7 +52,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private ColorFlashEffectSystem _color = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeGlints = "FSUpgradeGlints";
     private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeRing = "FSUpgradeRing";

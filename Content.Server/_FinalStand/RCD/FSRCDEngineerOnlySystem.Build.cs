@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._FinalStand.Deployables;
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.NPC;
@@ -18,6 +19,7 @@ using Content.Shared.RCD.Components;
 using Content.Shared.Damage.Components;
 using Content.Shared.Stacks;
 using Content.Shared._FinalStand.Particles;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -38,8 +40,8 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
 

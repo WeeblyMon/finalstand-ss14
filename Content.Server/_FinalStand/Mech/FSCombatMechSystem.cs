@@ -1,6 +1,7 @@
 // Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, guns refill from mech power,
 // and rounds fired from a mech don't hit it and pay a flat amount.
 using Content.Server.Mech.Systems;
+using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
@@ -31,7 +32,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> SmokeBurst = "FSSmokeBurst";

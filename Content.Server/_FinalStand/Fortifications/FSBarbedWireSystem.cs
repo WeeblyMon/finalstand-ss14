@@ -1,4 +1,5 @@
 // Wave attackers that melee a wired barricade take a cut and a short slow. Nobody is credited for the cut.
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades.Effects;
@@ -23,7 +24,7 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> WireShred = "FSWireShred";
 

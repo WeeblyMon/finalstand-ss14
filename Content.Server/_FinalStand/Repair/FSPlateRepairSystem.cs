@@ -2,6 +2,7 @@ using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
 using Content.Server.Destructible;
 using Content.Server.Popups;
+using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -29,7 +30,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private SharedToolSystem _tool = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;

@@ -6,6 +6,8 @@ using Content.Shared.Mobs;
 using Content.Shared.Popups;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Audio;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.HMG;
@@ -16,10 +18,10 @@ public sealed class FSHMGSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedBuckleSystem _buckle = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
-
-    private static readonly Robust.Shared.Audio.SoundSpecifier OverheatSound = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/Items/hiss.ogg");
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
+
+    private static readonly SoundSpecifier OverheatSound = new SoundPathSpecifier("/Audio/Items/hiss.ogg");
 
     public override void Initialize()
     {

@@ -1,6 +1,7 @@
 // The Chief Engineer's Defensive Emplacement: unfolds whole, feeds its hardpoint sentries, covers whoever stands inside, and folds back to the CE when the wave ends.
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.NPC;
@@ -21,6 +22,7 @@ using Content.Shared.Popups;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Verbs;
 using Content.Shared._FinalStand.Particles;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -48,8 +50,8 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private AlertsSystem _alerts = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";

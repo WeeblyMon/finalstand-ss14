@@ -3,6 +3,7 @@
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
 using Content.Server.Mech.Systems;
+using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Damage.Components;
@@ -19,6 +20,7 @@ using Content.Shared.Tools;
 using Content.Shared.Tools.Systems;
 using Content.Shared.Verbs;
 using Content.Shared._FinalStand.Particles;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -39,8 +41,8 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
-    [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
-    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> BayArc = "FSBayArc";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";
