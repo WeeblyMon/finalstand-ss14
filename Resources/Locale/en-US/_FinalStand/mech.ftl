@@ -27,3 +27,4 @@ fs-mech-bay-examine-stage = Stage {$stage}/{$total}: [bold]{$name}[/bold]. {$rol
 fs-mech-bay-examine-ready = The Durand is finished. Use the bay to roll it out.
 fs-siege-planted = Planted. Heavy armour up.
 fs-siege-unplanted = Unplanted. You can move again.
+fs-mech-mount-full = That mount size is already taken.

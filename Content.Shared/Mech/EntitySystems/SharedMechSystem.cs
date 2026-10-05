@@ -40,6 +40,7 @@ public abstract partial class SharedMechSystem : EntitySystem
     [Dependency] protected VehicleSystem Vehicle = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private SharedContentEyeSystem _eye = default!; // FS: from Monolith
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FS
 
     [SubscribeLocalEvent]
     private void OnToggleEquipmentAction(EntityUid uid, MechComponent component, MechToggleEquipmentEvent args)
@@ -223,6 +224,9 @@ public abstract partial class SharedMechSystem : EntitySystem
             return;
 
         if (_whitelistSystem.IsWhitelistFail(component.EquipmentWhitelist, toInsert))
+            return;
+
+        if (!_mounts.HasRoom(uid, toInsert)) // FS
             return;
 
         equipmentComponent.EquipmentOwner = uid;
