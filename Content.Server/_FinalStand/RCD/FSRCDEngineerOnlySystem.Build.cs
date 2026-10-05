@@ -37,6 +37,7 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private ISharedPlayerManager _player = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
+    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
 
     private const float RefundFraction = 0.5f;
@@ -125,9 +126,14 @@ public sealed partial class FSRCDEngineerOnlySystem
             {
                 args.Delay *= ThreatDelayMultiplier;
                 _popup.PopupEntity(Loc.GetString("fs-rcd-under-threat"), ent, args.User, PopupType.SmallCaution);
-                return;
+                break;
             }
         }
+
+        var piece = _proto.Index(rcdComp.ProtoId);
+        var direction = rcdComp.ConstructionDirection;
+        var rotation = piece.Rotation == RcdRotation.User ? direction.ToAngle() : Angle.Zero;
+        _flair.Hologram(args.Location, piece.ID, args.Delay, rotation);
     }
 
     private void OnBuilt(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDBuiltEvent args)
@@ -145,6 +151,7 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         _telemetry.RecordSpend("rcd", recipe.Materials);
         _audio.PlayPvs(PlacedSound, args.Built);
+        _flair.Burst("FSDustPuff", args.Built);
 
         var spent = new List<string>();
         foreach (var (material, amount) in recipe.Materials)

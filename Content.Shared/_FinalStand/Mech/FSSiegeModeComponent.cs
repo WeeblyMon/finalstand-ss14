@@ -41,5 +41,8 @@ public sealed partial class FSSiegeModeComponent : Component
 
 public sealed partial class FSSiegeModeActionEvent : InstantActionEvent;
 
+[ByRefEvent]
+public readonly record struct FSSiegePlantedEvent(bool Planted);
+
 [Serializable, NetSerializable]
 public sealed partial class FSSiegeModeDoAfterEvent : SimpleDoAfterEvent;

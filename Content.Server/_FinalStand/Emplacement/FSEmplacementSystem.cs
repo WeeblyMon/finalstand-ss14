@@ -47,11 +47,13 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
+    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<AlertPrototype> CoverAlert = "FSEmplacementCover";
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private const float MeleeRange = 1.5f;
     private const float ReinforcedSandbagDamage = 2f / 3f;
+    private const float UnfoldStagger = 0.08f;
     private static readonly SoundSpecifier UnfoldSound = new SoundPathSpecifier("/Audio/Effects/box_deploy.ogg");
     private static readonly SoundSpecifier FoldSound = new SoundPathSpecifier("/Audio/Items/zip.ogg");
 
@@ -112,6 +114,9 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         QueueDel(kit);
         args.Handled = true;
         _audio.PlayPvs(UnfoldSound, core);
+        for (var i = 0; i < comp.Pieces.Count; i++)
+            _flair.Burst("FSDustPuff", comp.Pieces[i], delay: i * UnfoldStagger, count: 0.6f);
+        _flair.Burst("FSDustRing", core, delay: comp.Pieces.Count * UnfoldStagger, kick: 0.5f);
         _popup.PopupEntity(Loc.GetString("fs-emplacement-placed"), core, args.User);
     }
 

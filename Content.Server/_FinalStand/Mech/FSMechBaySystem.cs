@@ -39,6 +39,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private Robust.Shared.Audio.Systems.SharedAudioSystem _audio = default!;
+    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
 
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private static readonly TimeSpan UpkeepInterval = TimeSpan.FromSeconds(1);
@@ -133,6 +134,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             : Loc.GetString("fs-mech-bay-ready");
         _popup.PopupEntity(message, ent, user, PopupType.Medium);
         _audio.PlayPvs(StageSound, ent);
+        _flair.Burst("FSBayArc", ent);
     }
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
@@ -145,6 +147,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         Dirty(ent);
         Spawn(ent.Comp.Result, Transform(ent).Coordinates);
         _audio.PlayPvs(RollOutSound, ent);
+        _flair.Burst("FSDustRing", ent, kick: 0.6f);
         _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
     }
 

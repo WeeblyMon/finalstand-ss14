@@ -81,6 +81,9 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
         if (_net.IsClient)
             return;
 
+        var ev = new FSSiegePlantedEvent(planted);
+        RaiseLocalEvent(ent, ref ev);
+
         var xform = Transform(ent);
         if (planted && !xform.Anchored)
             _transform.AnchorEntity((ent.Owner, xform));

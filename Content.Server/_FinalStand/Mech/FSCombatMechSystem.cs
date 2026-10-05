@@ -29,6 +29,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
 
     private static readonly TimeSpan BailoutTime = TimeSpan.FromSeconds(3);
     private static readonly SoundSpecifier WreckSound = new SoundCollectionSpecifier("MetalBreak");
@@ -38,6 +39,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSCombatMechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
         SubscribeLocalEvent<FSCombatMechComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MechSystem)]);
+        SubscribeLocalEvent<FSSiegeModeComponent, FSSiegePlantedEvent>(OnPlanted);
         SubscribeLocalEvent<MechEquipmentComponent, FSMechGunChargeEvent>(OnCharge);
         SubscribeLocalEvent<MechEquipmentComponent, AmmoShotEvent>(OnAmmoShot);
     }
@@ -74,11 +76,22 @@ public sealed partial class FSCombatMechSystem : EntitySystem
 
         ent.Comp.WasBroken = true;
         _audio.PlayPvs(WreckSound, ent);
+        _flair.Burst("FSSmokeBurst", ent, kick: 0.8f);
+        _flair.Burst("FSWeldSparks", ent);
         if (ent.Comp.LastPilot is not { } pilot || TerminatingOrDeleted(pilot) || !_transform.InRange(pilot, ent.Owner, 2f))
             return;
 
         _bailout.Start(pilot, BailoutTime);
         _popup.PopupEntity(Loc.GetString("fs-mech-wrecked"), pilot, pilot, PopupType.LargeCaution);
+    }
+
+    private void OnPlanted(Entity<FSSiegeModeComponent> ent, ref FSSiegePlantedEvent args)
+    {
+        if (!args.Planted)
+            return;
+
+        _flair.Burst("FSStompRing", ent, kick: 0.7f);
+        _flair.Burst("FSDustPuff", ent);
     }
 
     private void OnCharge(Entity<MechEquipmentComponent> ent, ref FSMechGunChargeEvent args)

@@ -22,6 +22,7 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private Content.Server._FinalStand.Effects.FSFlairSystem _flair = default!;
 
     private static readonly SoundSpecifier CutSound = new SoundPathSpecifier("/Audio/Weapons/bladeslice.ogg", AudioParams.Default.WithVolume(-6f).WithVariation(0.15f));
 
@@ -48,5 +49,6 @@ public sealed partial class FSBarbedWireSystem : EntitySystem
 
         _slow.ApplySlow(args.User, SlowSource, ent.Comp.Slow, ent.Comp.SlowDuration);
         _audio.PlayPvs(CutSound, args.User);
+        _flair.Burst("FSWireShred", args.User);
     }
 }
