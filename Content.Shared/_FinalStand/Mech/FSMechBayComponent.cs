@@ -1,4 +1,5 @@
-// A 3x3 gantry where Engineering and Science take turns assembling a Durand, and where a parked one recharges.
+// A 3x3 gantry where a Durand is assembled part by part, and where a parked one recharges.
+using System.Linq;
 using Content.Shared.Stacks;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -10,7 +11,7 @@ namespace Content.Shared._FinalStand.Mech;
 public sealed partial class FSMechBayComponent : Component
 {
     [DataField(required: true)]
-    public List<FSMechBayStage> Stages = new();
+    public List<FSMechBaySlot> Slots = new();
 
     [DataField]
     public EntProtoId Result = "FSMechDurandBattery";
@@ -18,8 +19,20 @@ public sealed partial class FSMechBayComponent : Component
     [DataField]
     public List<FSMechBayCraft> Crafts = new();
 
+    [DataField]
+    public string Sprite = "_FinalStand/Structures/MechBay/durand_construction.rsi";
+
+    [DataField]
+    public int FrameStates = 18;
+
     [AutoNetworkedField]
-    public int Stage;
+    public List<string> Installed = new();
+
+    [AutoNetworkedField]
+    public bool Plated;
+
+    [DataField]
+    public float PlatedIntegrity = 1.25f;
 
     [DataField]
     public float ParkRange = 1.2f;
@@ -29,6 +42,24 @@ public sealed partial class FSMechBayComponent : Component
 
     [DataField]
     public float RepairPerSecond = 3f;
+
+    public bool Ready => Installed.Count >= Slots.Count;
+
+    public bool CanInstall(FSMechBaySlot slot)
+    {
+        if (Installed.Contains(slot.Id))
+            return false;
+
+        if (slot.Last)
+            return Slots.All(s => s.Last || Installed.Contains(s.Id));
+
+        return slot.First || Slots.All(s => !s.First || Installed.Contains(s.Id));
+    }
+
+    public FSMechBaySlot? Next()
+    {
+        return Slots.FirstOrDefault(CanInstall) ?? Slots.FirstOrDefault(s => !Installed.Contains(s.Id));
+    }
 }
 
 public enum FSMechBayRole : byte
@@ -38,8 +69,11 @@ public enum FSMechBayRole : byte
 }
 
 [DataDefinition]
-public sealed partial class FSMechBayStage
+public sealed partial class FSMechBaySlot
 {
+    [DataField(required: true)]
+    public string Id = string.Empty;
+
     [DataField(required: true)]
     public LocId Name;
 
@@ -50,13 +84,24 @@ public sealed partial class FSMechBayStage
     public Dictionary<ProtoId<StackPrototype>, int> Materials = new();
 
     [DataField]
-    public EntProtoId? Part;
+    public List<EntProtoId> Parts = new();
 
     [DataField]
-    public float Time = 5f;
+    public EntProtoId? Plate;
+
+    [DataField]
+    public float Time = 4f;
+
+    [DataField]
+    public bool First;
+
+    [DataField]
+    public bool Last;
 
     [DataField(required: true)]
-    public string State = string.Empty;
+    public string Icon = string.Empty;
+
+    public bool Weldable => Materials.Count > 0;
 }
 
 [DataDefinition]

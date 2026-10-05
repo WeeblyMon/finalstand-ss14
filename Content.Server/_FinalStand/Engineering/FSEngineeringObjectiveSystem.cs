@@ -57,19 +57,18 @@ public sealed partial class FSEngineeringObjectiveSystem : EntitySystem
         var bays = EntityQueryEnumerator<FSMechBayComponent>();
         while (bays.MoveNext(out var bay))
         {
-            if (bay.Stage >= bay.Stages.Count)
+            if (bay.Ready)
             {
                 lines.Add(Loc.GetString("fs-objective-bay-ready"));
                 continue;
             }
 
-            if (bay.Stage == 0)
+            if (bay.Installed.Count == 0 || bay.Next() is not { } slot)
                 continue;
 
-            var stage = bay.Stages[bay.Stage];
-            lines.Add(Loc.GetString("fs-objective-bay", ("stage", bay.Stage + 1), ("total", bay.Stages.Count),
-                ("name", Loc.GetString(stage.Name)),
-                ("role", Loc.GetString(stage.Role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science"))));
+            lines.Add(Loc.GetString("fs-objective-bay", ("stage", bay.Installed.Count), ("total", bay.Slots.Count),
+                ("name", Loc.GetString(slot.Name)),
+                ("role", Loc.GetString(slot.Role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science"))));
         }
 
         var silos = 0;

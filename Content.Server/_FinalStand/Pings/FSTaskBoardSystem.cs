@@ -95,7 +95,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             Label = label,
             Build = build,
             Created = _timing.CurTime,
-            BayStage = target is { } bay && TryComp<FSMechBayComponent>(bay, out var bayComp) ? bayComp.Stage : -1,
+            BayStage = target is { } bay && TryComp<FSMechBayComponent>(bay, out var bayComp) ? bayComp.Installed.Count : -1,
         });
         _dirty = true;
     }
@@ -191,7 +191,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             case FSPingType.BuildHere:
                 return BuiltOn(task.Coords);
             case FSPingType.Bay:
-                return task.Target is { } bay && TryComp<FSMechBayComponent>(bay, out var comp) && comp.Stage != task.BayStage;
+                return task.Target is { } bay && TryComp<FSMechBayComponent>(bay, out var comp) && comp.Installed.Count != task.BayStage;
             case FSPingType.NeedChems:
                 return TerminatingOrDeleted(task.Requester)
                        || task.Claimer is { } medic && _transform.InRange(medic, task.Requester, ArrivedRange);

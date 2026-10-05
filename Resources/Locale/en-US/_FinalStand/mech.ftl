@@ -7,29 +7,40 @@ research-technology-fs-mech-energy-weapons = Mech Energy Weapons
 
 fs-mech-bay-role-engineering = Engineering
 fs-mech-bay-role-science = Science
-fs-mech-bay-stage-frame = Frame
-fs-mech-bay-stage-core = Control core
-fs-mech-bay-stage-limbs = Limbs and actuators
-fs-mech-bay-stage-targeting = Power and targeting
-fs-mech-bay-stage-armour = Armour
-fs-mech-bay-wrong-role = {$role} does this stage.
-fs-mech-bay-needs-part = This stage needs a {$part}.
-fs-mech-bay-needs-weld = This stage is welded in. Use a welder, with the materials in your pack.
+fs-mech-bay-slot-chassis = Chassis
+fs-mech-bay-slot-left-leg = Left leg
+fs-mech-bay-slot-right-leg = Right leg
+fs-mech-bay-slot-left-arm = Left arm
+fs-mech-bay-slot-right-arm = Right arm
+fs-mech-bay-slot-core = Control core
+fs-mech-bay-slot-targeting = Targeting module
+fs-mech-bay-slot-armour = Armour
+fs-mech-bay-wrong-role = Only {$role} welds parts on.
+fs-mech-bay-needs-part = Next it needs a {$part}.
+fs-mech-bay-needs-weld = Weld the next part on with a welder, with the materials in your pack.
+fs-mech-bay-nothing-to-weld = Nothing to weld right now. It's waiting on a part.
 fs-mech-bay-needs-materials = You need {$list}.
-fs-mech-bay-stage-done = Stage done. Next: {$next} ({$role}).
+fs-mech-bay-slot-filled = The {$slot} is already fitted.
+fs-mech-bay-slot-not-yet = The {$slot} can't go on yet. The chassis goes first and the armour last.
+fs-mech-bay-slot-done = {$slot} fitted ({$done}/{$total}).
 fs-mech-bay-ready = The Durand is finished. Use the bay to roll it out.
 fs-mech-bay-rolled-out = The Durand rolls off the gantry.
 fs-mech-bay-craft-verb = Build {$name} ({$list})
-fs-mech-bay-examine-stage = Stage {$stage}/{$total}: [bold]{$name}[/bold]. {$role} {$weld ->
-    [true] welds in {$need}.
-   *[false] fits a {$need}.
+fs-mech-bay-examine-progress = Durand parts fitted: [bold]{$done}/{$total}[/bold]. Still missing:
+fs-mech-bay-examine-slot = {$open ->
+    [yes] [color=white]{$slot}[/color]
+   *[no] [color=gray]{$slot}[/color]
+} - {$role} {$weld ->
+    [yes] welds in {$need}
+   *[no] brings a {$need}
 }
+fs-mech-bay-or-plate = {$need}, or a {$plate} (tougher hull)
 fs-mech-bay-examine-ready = The Durand is finished. Use the bay to roll it out.
 fs-siege-planted = Planted. Heavy armour up.
 fs-siege-unplanted = Unplanted. You can move again.
 fs-mech-mount-full = That mount size is already taken.
 fs-mech-wrecked = Your mech is wrecked! Get clear!
-fs-objective-bay = Mech Bay {$stage}/{$total}: {$name} ({$role})
+fs-objective-bay = Mech Bay {$stage}/{$total} - next: {$name} ({$role})
 fs-objective-bay-ready = Durand ready to roll out
 fs-objective-silo-low = Silo low: {$sheets} steel
 fs-objective-emplacement-prep = Emplacement not set up

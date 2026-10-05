@@ -1,4 +1,4 @@
-// Runs the Mech Bay: each assembly stage needs the right department and parts, engineers build mech guns at it,
+// Runs the Mech Bay: engineers weld the frame and limbs, carried parts fit straight on, engineers build mech guns at it,
 // and a mech parked on it recharges and gets patched up.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
@@ -55,97 +55,116 @@ public sealed partial class FSMechBaySystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSMechBayComponent, InteractUsingEvent>(OnInteractUsing);
         SubscribeLocalEvent<FSMechBayComponent, ActivateInWorldEvent>(OnActivate);
-        SubscribeLocalEvent<FSMechBayComponent, FSMechBayStageDoAfterEvent>(OnStageWelded);
+        SubscribeLocalEvent<FSMechBayComponent, FSMechBayWeldDoAfterEvent>(OnWelded);
         SubscribeLocalEvent<FSMechBayComponent, FSMechBayCraftDoAfterEvent>(OnCrafted);
         SubscribeLocalEvent<FSMechBayComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
         SubscribeLocalEvent<FSMechBayComponent, ExaminedEvent>(OnExamined);
     }
 
-    private FSMechBayStage? Current(FSMechBayComponent bay) => bay.Stage < bay.Stages.Count ? bay.Stages[bay.Stage] : null;
-
-    private bool InRole(EntityUid user, FSMechBayRole role)
-    {
-        return role == FSMechBayRole.Engineering ? _departments.IsEngineering(user) : _departments.IsScience(user);
-    }
-
     private void OnInteractUsing(Entity<FSMechBayComponent> ent, ref InteractUsingEvent args)
     {
-        if (args.Handled || Current(ent.Comp) is not { } stage)
+        if (args.Handled || ent.Comp.Ready)
             return;
 
         args.Handled = true;
-        if (!InRole(args.User, stage.Role))
+        var used = MetaData(args.Used).EntityPrototype?.ID;
+        foreach (var slot in ent.Comp.Slots)
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-wrong-role", ("role", RoleName(stage.Role))), ent, args.User);
-            return;
-        }
+            var plate = slot.Plate?.Id == used;
+            if (!plate && !slot.Parts.Exists(p => p.Id == used))
+                continue;
 
-        if (stage.Part is { } part)
-        {
-            if (MetaData(args.Used).EntityPrototype?.ID != part.Id)
+            if (!ent.Comp.CanInstall(slot))
             {
-                _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-part", ("part", PartName(part))), ent, args.User);
+                _popup.PopupEntity(Loc.GetString(ent.Comp.Installed.Contains(slot.Id) ? "fs-mech-bay-slot-filled" : "fs-mech-bay-slot-not-yet",
+                    ("slot", Loc.GetString(slot.Name))), ent, args.User);
                 return;
             }
 
             QueueDel(args.Used);
-            Advance(ent, args.User);
+            if (plate)
+                ent.Comp.Plated = true;
+            Install(ent, slot);
             return;
         }
 
         if (!_tool.HasQuality(args.Used, Welding))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-weld"), ent, args.User);
+            var next = ent.Comp.Next();
+            _popup.PopupEntity(next is { Weldable: false }
+                ? Loc.GetString("fs-mech-bay-needs-part", ("part", PartName(next.Parts[0])))
+                : Loc.GetString("fs-mech-bay-needs-weld"), ent, args.User);
             return;
         }
 
-        if (!_materials.Has(args.User, stage.Materials))
+        if (!_departments.IsEngineering(args.User))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(stage.Materials))), ent, args.User);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-wrong-role", ("role", RoleName(FSMechBayRole.Engineering))), ent, args.User);
             return;
         }
 
-        _tool.UseTool(args.Used, args.User, ent, stage.Time, Welding, new FSMechBayStageDoAfterEvent(), WeldFuel);
+        if (ent.Comp.Slots.Find(s => s.Weldable && ent.Comp.CanInstall(s)) is not { } weld)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-nothing-to-weld"), ent, args.User);
+            return;
+        }
+
+        if (!_materials.Has(args.User, weld.Materials))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(weld.Materials))), ent, args.User);
+            return;
+        }
+
+        _tool.UseTool(args.Used, args.User, ent, weld.Time, Welding, new FSMechBayWeldDoAfterEvent(weld.Id), WeldFuel);
     }
 
-    private void OnStageWelded(Entity<FSMechBayComponent> ent, ref FSMechBayStageDoAfterEvent args)
+    private void OnWelded(Entity<FSMechBayComponent> ent, ref FSMechBayWeldDoAfterEvent args)
     {
-        if (args.Cancelled || args.Handled || Current(ent.Comp) is not { } stage)
+        var id = args.Slot;
+        if (args.Cancelled || args.Handled || ent.Comp.Slots.Find(s => s.Id == id) is not { } slot || !ent.Comp.CanInstall(slot))
             return;
 
         args.Handled = true;
-        if (!_materials.TryConsume(args.User, stage.Materials))
+        if (!_materials.TryConsume(args.User, slot.Materials))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(stage.Materials))), ent, args.User);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(slot.Materials))), ent, args.User);
             return;
         }
 
-        _telemetry.RecordSpend("mech-bay", stage.Materials);
-
-        Advance(ent, args.User);
+        _telemetry.RecordSpend("mech-bay", slot.Materials);
+        Install(ent, slot);
     }
 
-    private void Advance(Entity<FSMechBayComponent> ent, EntityUid user)
+    private void Install(Entity<FSMechBayComponent> ent, FSMechBaySlot slot)
     {
-        ent.Comp.Stage++;
+        ent.Comp.Installed.Add(slot.Id);
         Dirty(ent);
-        var message = Current(ent.Comp) is { } next
-            ? Loc.GetString("fs-mech-bay-stage-done", ("next", Loc.GetString(next.Name)), ("role", RoleName(next.Role)))
-            : Loc.GetString("fs-mech-bay-ready");
-        _popup.PopupEntity(message, ent, user, PopupType.Medium);
+        var message = ent.Comp.Ready
+            ? Loc.GetString("fs-mech-bay-ready")
+            : Loc.GetString("fs-mech-bay-slot-done", ("slot", Loc.GetString(slot.Name)),
+                ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count));
+        _popup.PopupEntity(message, ent, PopupType.Medium);
         _audio.PlayPvs(StageSound, ent);
         _flair.Burst("FSBayArc", ent);
     }
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
     {
-        if (args.Handled || ent.Comp.Stage < ent.Comp.Stages.Count)
+        if (args.Handled || !ent.Comp.Ready)
             return;
 
         args.Handled = true;
-        ent.Comp.Stage = 0;
+        var mech = Spawn(ent.Comp.Result, Transform(ent).Coordinates);
+        if (ent.Comp.Plated && TryComp<MechComponent>(mech, out var mechComp))
+        {
+            mechComp.MaxIntegrity *= ent.Comp.PlatedIntegrity;
+            mechComp.Integrity = mechComp.MaxIntegrity;
+            Dirty(mech, mechComp);
+        }
+
+        ent.Comp.Installed.Clear();
+        ent.Comp.Plated = false;
         Dirty(ent);
-        Spawn(ent.Comp.Result, Transform(ent).Coordinates);
         _audio.PlayPvs(RollOutSound, ent);
         _flair.Burst("FSDustRing", ent, kick: 0.6f);
         _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
@@ -205,17 +224,25 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
     private void OnExamined(Entity<FSMechBayComponent> ent, ref ExaminedEvent args)
     {
-        if (Current(ent.Comp) is not { } stage)
+        if (ent.Comp.Ready)
         {
             args.PushMarkup(Loc.GetString("fs-mech-bay-examine-ready"));
             return;
         }
 
-        var need = stage.Part is { } part ? PartName(part) : MaterialList(stage.Materials);
-        args.PushMarkup(Loc.GetString("fs-mech-bay-examine-stage",
-            ("stage", ent.Comp.Stage + 1), ("total", ent.Comp.Stages.Count),
-            ("name", Loc.GetString(stage.Name)), ("role", RoleName(stage.Role)), ("need", need),
-            ("weld", stage.Part == null)));
+        args.PushMarkup(Loc.GetString("fs-mech-bay-examine-progress", ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count)));
+        foreach (var slot in ent.Comp.Slots)
+        {
+            if (ent.Comp.Installed.Contains(slot.Id))
+                continue;
+
+            var need = slot.Weldable ? MaterialList(slot.Materials) : PartName(slot.Parts[0]);
+            if (slot.Plate is { } plate)
+                need = Loc.GetString("fs-mech-bay-or-plate", ("need", need), ("plate", PartName(plate)));
+            args.PushMarkup(Loc.GetString("fs-mech-bay-examine-slot", ("slot", Loc.GetString(slot.Name)),
+                ("role", RoleName(slot.Role)), ("need", need), ("weld", slot.Weldable ? "yes" : "no"),
+                ("open", ent.Comp.CanInstall(slot) ? "yes" : "no")));
+        }
     }
 
     private string RoleName(FSMechBayRole role) => Loc.GetString(role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science");

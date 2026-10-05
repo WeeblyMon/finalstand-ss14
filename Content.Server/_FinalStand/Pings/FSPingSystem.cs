@@ -184,12 +184,11 @@ public sealed partial class FSPingSystem : EntitySystem
             if (HealthOf(t) is { } health && health < RepairThreshold)
                 return RepairOf(t);
 
-            if (TryComp<FSMechBayComponent>(t, out var bay) && bay.Stage < bay.Stages.Count)
+            if (TryComp<FSMechBayComponent>(t, out var bay) && !bay.Ready && bay.Next() is { } slot)
             {
-                var stage = bay.Stages[bay.Stage];
                 return new Resolved(FSPingType.Bay,
-                    stage.Role == FSMechBayRole.Engineering ? FSPingAudience.Engineering : FSPingAudience.Science,
-                    Loc.GetString("fs-ping-bay", ("stage", Loc.GetString(stage.Name))), t, Lifetime: 10f);
+                    slot.Role == FSMechBayRole.Engineering ? FSPingAudience.Engineering : FSPingAudience.Science,
+                    Loc.GetString("fs-ping-bay", ("stage", Loc.GetString(slot.Name))), t, Lifetime: 10f);
             }
 
             if (TryComp<FSAmmoCrateComponent>(t, out var crate))

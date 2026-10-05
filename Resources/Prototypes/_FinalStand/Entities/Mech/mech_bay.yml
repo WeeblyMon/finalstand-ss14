@@ -1,8 +1,8 @@
-# The Mech Bay: Engineering builds it with the RCD, then Engineering and Science take turns assembling a Durand on it.
+# The Mech Bay: Engineering builds it with the RCD, then the Durand goes on part by part: welded frame and limbs, Science boards, armour last.
 - type: entity
   id: FSMechBay
   name: mech bay
-  description: A 3x3 assembly gantry. Engineering and Science take turns building a Durand on it, and a mech parked on it recharges and gets patched up.
+  description: A 3x3 assembly gantry. A Durand goes on it part by part, and a mech parked on it recharges and gets patched up.
   placement:
     mode: SnapgridCenter
   components:
@@ -51,36 +51,61 @@
     delay: 6
     fx: EffectRCDDeconstruct6
   - type: FSMechBay
-    stages:
-    - name: fs-mech-bay-stage-frame
+    slots:
+    - id: chassis
+      name: fs-mech-bay-slot-chassis
       role: Engineering
+      first: true
       materials:
         Steel: 10
         Plasteel: 5
       time: 6
-      state: durand3
-    - name: fs-mech-bay-stage-core
-      role: Science
-      part: FSDurandControlModule
-      state: durand6
-    - name: fs-mech-bay-stage-limbs
+      icon: durand_chassis
+    - id: left-leg
+      name: fs-mech-bay-slot-left-leg
       role: Engineering
       materials:
-        Steel: 10
-      time: 6
-      state: durand10
-    - name: fs-mech-bay-stage-targeting
-      role: Science
-      part: FSDurandTargetingModule
-      state: durand13
-    - name: fs-mech-bay-stage-armour
+        Steel: 3
+      icon: durand_l_leg
+    - id: right-leg
+      name: fs-mech-bay-slot-right-leg
       role: Engineering
+      materials:
+        Steel: 3
+      icon: durand_r_leg
+    - id: left-arm
+      name: fs-mech-bay-slot-left-arm
+      role: Engineering
+      materials:
+        Steel: 3
+      icon: durand_l_arm
+    - id: right-arm
+      name: fs-mech-bay-slot-right-arm
+      role: Engineering
+      materials:
+        Steel: 3
+      icon: durand_r_arm
+    - id: core
+      name: fs-mech-bay-slot-core
+      role: Science
+      parts: [ FSDurandControlModule ]
+      icon: durand_harness
+    - id: targeting
+      name: fs-mech-bay-slot-targeting
+      role: Science
+      parts: [ FSDurandTargetingModule ]
+      icon: durand_head
+    - id: armour
+      name: fs-mech-bay-slot-armour
+      role: Engineering
+      last: true
       materials:
         Plasteel: 10
         Uranium: 3
         Diamond: 1
+      plate: FSDurandBossPlate
       time: 8
-      state: durand18
+      icon: durand_armor
     crafts:
     - proto: FSMechWeaponAutocannon
       materials:
@@ -135,6 +160,26 @@
     state: cpuboard_super
   - type: Item
     size: Small
+
+- type: entity
+  parent: BaseItem
+  id: FSDurandBossPlate
+  name: giant hide plate
+  description: A slab of armour torn off a Giant. Too heavy to carry with one hand. Haul it to the Mech Bay to plate a Durand with a tougher hull.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/MechBay/durand_construction.rsi
+    state: durand_armor
+    color: "#c9b79a"
+  - type: Item
+    size: Huge
+  - type: MultiHandedItem
+  - type: HeldSpeedModifier
+    walkModifier: 0.6
+    sprintModifier: 0.6
+  - type: EmitSoundOnLand
+    sound:
+      path: /Audio/Effects/metal_thud1.ogg
 
 - type: latheRecipe
   id: FSDurandControlModule
