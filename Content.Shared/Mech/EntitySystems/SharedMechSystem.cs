@@ -201,8 +201,10 @@ public abstract partial class SharedMechSystem : EntitySystem
             : Loc.GetString("mech-equipment-select-none-popup");
 
         if (_net.IsServer)
+        {
             _popup.PopupEntity(popupString, uid);
             _audio.PlayPvs(CycleSound, uid); // FS
+        }
 
         Dirty(uid, component);
     }
