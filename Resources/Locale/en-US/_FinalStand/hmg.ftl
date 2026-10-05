@@ -7,3 +7,9 @@ fs-ammo-crate-unlinked = It isn't feeding anything. Leave it within a tile of a 
 fs-hud-hmg-detail = Crate {$crate} · heat {$heat}%
 fs-hud-hmg-no-crate = No crate linked · heat {$heat}%
 fs-hud-hmg-overheated = OVERHEATED · cooling
+fs-hud-mech-no-weapon = {$mech} · no gun fitted
+fs-hud-mech-detail = {$low ->
+    [yes] LOW POWER {$energy}%
+   *[no] power {$energy}%
+} · hull {$integrity}/{$max}
+fs-hud-mech-detail-siege = SIEGE · power {$energy}% · hull {$integrity}/{$max}

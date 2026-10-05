@@ -4,6 +4,9 @@ using System.Linq;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.HMG;
+using Content.Shared._FinalStand.Mech;
+using Content.Shared.Mech.Components;
+using Content.Shared.Vehicle.Components;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD.Components;
@@ -66,6 +69,12 @@ public sealed partial class WaveHudSystem
             return;
         }
 
+        if (TryComp<VehicleOperatorComponent>(player, out var pilot) && TryComp<MechComponent>(pilot.Vehicle, out var mech))
+        {
+            UpdateMech(overlay, (pilot.Vehicle.Value, mech));
+            return;
+        }
+
         if (!_hands.TryGetActiveItem(player, out var active))
             return;
 
@@ -110,6 +119,33 @@ public sealed partial class WaveHudSystem
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))
             overlay.ItemDetail = mix;
+    }
+
+    private void UpdateMech(WaveHudOverlay overlay, Entity<MechComponent> mech)
+    {
+        var energy = mech.Comp.MaxEnergy > 0 ? (int) MathF.Round((mech.Comp.Energy / mech.Comp.MaxEnergy).Float() * 100f) : 0;
+        var integrity = (int) MathF.Round(mech.Comp.Integrity.Float());
+        var max = (int) MathF.Round(mech.Comp.MaxIntegrity.Float());
+        var siege = TryComp<FSSiegeModeComponent>(mech, out var siegeComp) && siegeComp.Planted;
+
+        if (mech.Comp.CurrentSelectedEquipment is { } equipment)
+        {
+            overlay.WeaponName = Name(equipment);
+            var ammo = new GetAmmoCountEvent();
+            RaiseLocalEvent(equipment, ref ammo);
+            if (ammo.Capacity > 0)
+            {
+                overlay.WeaponLoaded = ammo.Count;
+                overlay.WeaponCapacity = ammo.Capacity;
+            }
+        }
+        else
+        {
+            overlay.WeaponName = Loc.GetString("fs-hud-mech-no-weapon", ("mech", Name(mech)));
+        }
+
+        overlay.ItemDetail = Loc.GetString(siege ? "fs-hud-mech-detail-siege" : "fs-hud-mech-detail",
+            ("energy", energy), ("integrity", integrity), ("max", max), ("low", mech.Comp.CriticalPowerState ? "yes" : "no"));
     }
 
     private void UpdateHmg(WaveHudOverlay overlay, Entity<FSHMGComponent> hmg)
