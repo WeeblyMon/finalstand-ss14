@@ -50,7 +50,9 @@
     airtight: true
     equipmentWhitelist:
       tags:
-      - CombatMech
+      - LightMechMount
+      - MediumMechMount
+      - HeavyMechMount
   - type: Vehicle
     transferDamageModifier:
       coefficients:
@@ -92,6 +94,8 @@
     fuelCost: 30
     doAfterDelay: 8
   - type: FSCombatMech
+    mountLimits:
+      HeavyMechMount: 1
   - type: FSSiegeMode
   - type: FSFriendlyFire
   - type: Tag

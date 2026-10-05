@@ -280,7 +280,7 @@
   cost: 6000
   prerequisites:
   - FSEngineeringRipleyAPLU
-  bonusDescription: Engineers can build a Mech Bay with the RCD. Ballistic Durand weapons are built at it.
+  bonusDescription: Engineers can build a Mech Bay with the RCD. The Durand's ballistic guns, from the LAC-29 to the Bazooka, are built at it.
 
 - type: fsTechNode
   id: FSEngineeringDurand
@@ -307,5 +307,5 @@
   cost: 9000
   prerequisites:
   - FSEngineeringDurand
-  bonusDescription: Prints the Firedart, Solaris, pulse rifle and tesla cannon for the Durand.
+  bonusDescription: Prints the Firedart, Solaris, pulse rifle, tesla cannon and RAVAGER plasma cannon for the Durand.
   vanillaTechnologyId: FSMechEnergyWeapons

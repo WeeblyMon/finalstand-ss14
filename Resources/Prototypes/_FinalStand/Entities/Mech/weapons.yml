@@ -1,5 +1,14 @@
-# Durand weapons, ported from Goob-Station's combat mech guns. Energy guns are printed by Science, ballistics by Engineering.
-# Every gun runs off a small cell the mech tops up from its own power before each shot.
+# Durand weapons on Monolith's mount sizes. Ballistics are Monolith's combat guns, retuned for zombies; Engineering builds them at the Mech Bay.
+# Energy guns are Goob-Station's; Science prints them. Every gun runs off a cell the mech tops up from its own power.
+- type: Tag
+  id: LightMechMount
+
+- type: Tag
+  id: MediumMechMount
+
+- type: Tag
+  id: HeavyMechMount
+
 - type: entity
   id: FSBaseMechWeapon
   parent: BaseMechEquipment
@@ -10,53 +19,199 @@
     startingCharge: 100
   - type: Appearance
   - type: AmmoCounter
+
+- type: entity
+  id: FSBaseMechWeaponLight
+  parent: FSBaseMechWeapon
+  abstract: true
+  components:
   - type: Tag
     tags:
-    - CombatMech
+    - LightMechMount
 
 - type: entity
-  id: FSMechWeaponPulseRifle
+  id: FSBaseMechWeaponMedium
   parent: FSBaseMechWeapon
-  name: eZ-14 heavy pulse rifle
-  description: Fires heavy pulse bolts. Printed by Science.
+  abstract: true
   components:
-  - type: Sprite
-    state: mecha_pulse
-  - type: Gun
-    fireRate: 1.5
-    selectedMode: SemiAuto
-    availableModes:
-    - SemiAuto
-    soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
-  - type: BatteryAmmoProvider
-    proto: Pulse
-    fireCost: 40
+  - type: Tag
+    tags:
+    - MediumMechMount
 
 - type: entity
-  id: FSMechWeaponSolaris
+  id: FSBaseMechWeaponHeavy
   parent: FSBaseMechWeapon
-  name: CH-LC "Solaris" laser cannon
-  description: A fast-firing mounted laser that drinks power. Printed by Science.
+  abstract: true
+  components:
+  - type: Tag
+    tags:
+    - HeavyMechMount
+
+- type: entity
+  id: FSMechWeaponAutocannon
+  parent: FSBaseMechWeaponLight
+  name: LAC-29 35mm autocannon
+  description: The everyman's mech rifle. Steady armour-piercing rounds. Light mount.
   components:
   - type: Sprite
-    state: mecha_laser
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: assaultrifle64x32
   - type: Gun
-    fireRate: 3
+    projectileSpeed: 40
+    fireRate: 2.5
+    minAngle: 0
+    maxAngle: 15
+    angleIncrease: 1
+    angleDecay: 15
     selectedMode: FullAuto
     availableModes:
     - FullAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/laser.ogg
+      path: /Audio/_FinalStand/Weapons/Mech/slammer.ogg
+  - type: Battery
+    maxCharge: 180
+    startingCharge: 180
   - type: BatteryAmmoProvider
-    proto: RedMediumLaser
-    fireCost: 30
+    proto: FSMech35mmBullet
+    fireCost: 60
+
+- type: entity
+  id: FSMechWeaponRotary
+  parent: FSBaseMechWeaponLight
+  name: RAC-6 rotary machine gun
+  description: A six-barrel gatling gun. Buries a crowd in rounds up close. Light mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: smg64x32
+  - type: Gun
+    projectileSpeed: 30
+    fireRate: 14
+    minAngle: 0
+    maxAngle: 35
+    angleIncrease: 1
+    angleDecay: 20
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/minigun.ogg
+  - type: BatteryAmmoProvider
+    proto: FSMechRotaryBullet
+    fireCost: 18
+
+- type: entity
+  id: FSMechWeaponShotgun
+  parent: FSBaseMechWeaponLight
+  name: SH-0.5 shotgun
+  description: A mech-grade shotgun throwing six heavy pellets a shot. Light mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: shotgun64x32
+  - type: Gun
+    projectileSpeed: 30
+    fireRate: 1.5
+    minAngle: 0
+    maxAngle: 30
+    angleIncrease: 10
+    angleDecay: 5
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+  - type: BatteryAmmoProvider
+    proto: FSMechPelletSpread
+    fireCost: 50
+
+- type: entity
+  id: FSMechWeaponDMR
+  parent: FSBaseMechWeaponMedium
+  name: DMR-90mm autocannon
+  description: A heavy autocannon whose shells burst on impact. Medium mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: sniper64x32
+  - type: Gun
+    projectileSpeed: 45
+    fireRate: 1.5
+    minAngle: 0
+    maxAngle: 10
+    angleIncrease: 1.5
+    angleDecay: 10
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/Mech/uaf_57mm.ogg
+  - type: Battery
+    maxCharge: 200
+    startingCharge: 200
+  - type: BatteryAmmoProvider
+    proto: FSMech90mmShell
+    fireCost: 100
+
+- type: entity
+  id: FSMechWeaponMetronome
+  parent: FSBaseMechWeaponHeavy
+  name: 220mm "Metronome" burst cannon
+  description: Fires three high-explosive shells, then cools down. Heavy mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: heavycannon64x32
+  - type: Gun
+    projectileSpeed: 40
+    fireRate: 3
+    burstFireRate: 3
+    shotsPerBurst: 3
+    burstCooldown: 4
+    minAngle: 0
+    maxAngle: 12
+    angleIncrease: 1
+    angleDecay: 20
+    selectedMode: Burst
+    availableModes:
+    - Burst
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/Mech/120mm_mortar.ogg
+  - type: Battery
+    maxCharge: 300
+    startingCharge: 300
+  - type: BatteryAmmoProvider
+    proto: FSMech120mmShell
+    fireCost: 100
+
+- type: entity
+  id: FSMechWeaponBazooka
+  parent: FSBaseMechWeaponHeavy
+  name: R3 "Bazooka" rocket system
+  description: Slow, unguided rockets with a wide blast. Heavy mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: rpg64x32
+  - type: Gun
+    fireRate: 0.3
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
+  - type: Battery
+    maxCharge: 500
+    startingCharge: 500
+  - type: BatteryAmmoProvider
+    proto: FSMechRocket
+    fireCost: 250
 
 - type: entity
   id: FSMechWeaponFiredart
-  parent: FSBaseMechWeapon
+  parent: FSBaseMechWeaponLight
   name: CH-PS "Firedart" laser
-  description: The standard mounted laser. Cheap to run. Printed by Science.
+  description: The standard mounted laser. Cheap to run. Light mount.
   components:
   - type: Sprite
     state: mecha_laser
@@ -72,10 +227,49 @@
     fireCost: 10
 
 - type: entity
+  id: FSMechWeaponSolaris
+  parent: FSBaseMechWeaponMedium
+  name: CH-LC "Solaris" laser cannon
+  description: A fast-firing mounted laser that drinks power. Medium mount.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: laserrifle64x32
+  - type: Gun
+    fireRate: 3
+    selectedMode: FullAuto
+    availableModes:
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/laser.ogg
+  - type: BatteryAmmoProvider
+    proto: RedMediumLaser
+    fireCost: 30
+
+- type: entity
+  id: FSMechWeaponPulseRifle
+  parent: FSBaseMechWeaponMedium
+  name: eZ-14 heavy pulse rifle
+  description: Fires heavy pulse bolts. Medium mount.
+  components:
+  - type: Sprite
+    state: mecha_pulse
+  - type: Gun
+    fireRate: 1.5
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
+  - type: BatteryAmmoProvider
+    proto: Pulse
+    fireCost: 40
+
+- type: entity
   id: FSMechWeaponTesla
-  parent: FSBaseMechWeapon
+  parent: FSBaseMechWeaponHeavy
   name: P-X tesla cannon
-  description: Throws slow balls of lightning that arc between zombies. Printed by Science.
+  description: Throws slow balls of lightning that arc between zombies. Heavy mount.
   components:
   - type: Sprite
     state: mecha_wholegen
@@ -94,77 +288,174 @@
     fireCost: 99
 
 - type: entity
-  id: FSMechWeaponScattershot
-  parent: FSBaseMechWeapon
-  name: LBX AC-10 "Scattershot"
-  description: A mounted shotgun for the front of a horde. Built by Engineering.
+  id: FSMechWeaponRavager
+  parent: FSBaseMechWeaponHeavy
+  name: RAVAGER plasma cannon
+  description: Sprays wide, short-lived plasma bolts. Devastating up close. Heavy mount.
   components:
   - type: Sprite
-    state: mecha_scatter
+    sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
+    state: flamer64x32
   - type: Gun
-    fireRate: 1.5
-    selectedMode: FullAuto
-    availableModes:
-    - FullAuto
-    soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
-  - type: BatteryAmmoProvider
-    proto: ShellShotgun
-    fireCost: 30
-
-- type: entity
-  id: FSMechWeaponHades
-  parent: FSBaseMechWeapon
-  name: FNX-99 "Hades" carbine
-  description: A mounted shotgun loaded with incendiary shells. Built by Engineering.
-  components:
-  - type: Sprite
-    state: mecha_carbine
-  - type: Gun
-    fireRate: 1.2
-    selectedMode: FullAuto
-    availableModes:
-    - FullAuto
-    soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
-  - type: BatteryAmmoProvider
-    proto: ShellShotgunIncendiary
-    fireCost: 40
-
-- type: entity
-  id: FSMechWeaponUltraAC2
-  parent: FSBaseMechWeapon
-  name: Ultra AC-2
-  description: A mounted autocannon that chews through a lane. Built by Engineering.
-  components:
-  - type: Sprite
-    state: mecha_uac2
-  - type: Gun
-    fireRate: 6
-    selectedMode: FullAuto
-    availableModes:
-    - FullAuto
-    soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/shotgun.ogg
-  - type: BatteryAmmoProvider
-    proto: CartridgeLightRifle
-    fireCost: 5
-
-- type: entity
-  id: FSMechWeaponMissileRack
-  parent: FSBaseMechWeapon
-  name: SRM-8 missile rack
-  description: Light missiles that burst on whatever they hit. Built by Engineering.
-  components:
-  - type: Sprite
-    state: mecha_missilerack
-  - type: Gun
+    projectileSpeed: 25
+    minAngle: 0
+    maxAngle: 30
     fireRate: 1
-    selectedMode: SemiAuto
+    angleIncrease: 3
+    angleDecay: 15
+    selectedMode: FullAuto
     availableModes:
-    - SemiAuto
+    - FullAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
+      path: /Audio/Weapons/Guns/Gunshots/laser_cannon2.ogg
+  - type: Battery
+    maxCharge: 300
+    startingCharge: 300
   - type: BatteryAmmoProvider
-    proto: BulletWeakRocket
-    fireCost: 25
+    proto: FSMechPlasmaBolt
+    fireCost: 100
+
+- type: entity
+  id: FSMech35mmBullet
+  parent: BaseBullet
+  name: 35mm round
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 32
+        Structural: 40
+  - type: TimedDespawn
+    lifetime: 3
+
+- type: entity
+  id: FSMechRotaryBullet
+  parent: BaseBullet
+  name: .45 round
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 11
+  - type: TimedDespawn
+    lifetime: 2
+
+- type: entity
+  id: FSMechPellet
+  parent: BaseBullet
+  name: heavy pellet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
+    state: buckshot
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 16
+
+- type: entity
+  id: FSMechPelletSpread
+  parent: FSMechPellet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: ProjectileSpread
+    proto: FSMechPellet
+    count: 6
+    spread: 15
+
+- type: entity
+  id: FSMech90mmShell
+  parent: BaseBulletTrigger
+  name: 90mm shell
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 50
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/mech_shell.rsi
+    layers:
+    - state: base-projectile
+  - type: PointLight
+    radius: 3.5
+    energy: 0.5
+    color: orange
+  - type: ExplodeOnTrigger
+  - type: Explosive
+    explosionType: Default
+    totalIntensity: 12
+    intensitySlope: 4
+    maxIntensity: 3
+    maxTileBreak: 0
+  - type: TimedDespawn
+    lifetime: 4
+
+- type: entity
+  id: FSMech120mmShell
+  parent: BulletRocket
+  name: 120mm shell
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 45
+        Blunt: 30
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/mech_shell.rsi
+    layers:
+    - state: base-projectile
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 8
+    intensitySlope: 6
+    totalIntensity: 20
+    maxTileBreak: 0
+  - type: TimedDespawn
+    lifetime: 5
+
+- type: entity
+  id: FSMechRocket
+  parent: BulletRocket
+  name: 280mm rocket
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Blunt: 80
+        Heat: 40
+  - type: Explosive
+    explosionType: Default
+    maxIntensity: 15
+    intensitySlope: 4
+    totalIntensity: 80
+    maxTileBreak: 0
+  - type: TimedDespawn
+    lifetime: 6
+
+- type: entity
+  id: FSMechPlasmaBolt
+  parent: BaseBullet
+  name: plasma bolt
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Guns/Projectiles/projectiles_tg.rsi
+    layers:
+    - state: omnilaser
+      shader: unshaded
+  - type: Projectile
+    damage:
+      types:
+        Heat: 45
+  - type: PointLight
+    radius: 2
+    energy: 1
+    color: "#d94cff"
+  - type: TimedDespawn
+    lifetime: 0.8

@@ -82,24 +82,35 @@
       time: 8
       state: durand18
     crafts:
-    - proto: FSMechWeaponScattershot
+    - proto: FSMechWeaponAutocannon
       materials:
         Steel: 8
         Plasteel: 2
-    - proto: FSMechWeaponHades
+    - proto: FSMechWeaponRotary
       materials:
         Steel: 8
         Plasteel: 2
-        Plasma: 2
-    - proto: FSMechWeaponUltraAC2
-      materials:
-        Steel: 10
-        Plasteel: 4
-    - proto: FSMechWeaponMissileRack
+        Brass: 2
+    - proto: FSMechWeaponShotgun
       materials:
         Steel: 8
+        Plasteel: 2
+    - proto: FSMechWeaponDMR
+      materials:
+        Steel: 12
         Plasteel: 4
+        Gunpowder: 2
+    - proto: FSMechWeaponMetronome
+      materials:
+        Steel: 15
+        Plasteel: 6
+        Gunpowder: 4
+    - proto: FSMechWeaponBazooka
+      materials:
+        Steel: 12
+        Plasteel: 6
         Gold: 2
+        Gunpowder: 4
 
 - type: entity
   parent: BaseItem
@@ -185,6 +196,18 @@
     Gold: 200
 
 - type: latheRecipe
+  id: FSMechWeaponRavager
+  result: FSMechWeaponRavager
+  categories:
+  - Weapons
+  completetime: 12
+  materials:
+    Steel: 1500
+    Plasteel: 500
+    Plasma: 600
+    Uranium: 200
+
+- type: latheRecipe
   id: FSMechWeaponTesla
   result: FSMechWeaponTesla
   categories:
@@ -223,3 +246,4 @@
   - FSMechWeaponSolaris
   - FSMechWeaponPulseRifle
   - FSMechWeaponTesla
+  - FSMechWeaponRavager

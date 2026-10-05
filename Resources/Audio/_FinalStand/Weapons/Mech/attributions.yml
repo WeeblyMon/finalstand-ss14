@@ -1,0 +1,9 @@
+- files: ["slammer.ogg", "120mm_mortar.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Taken from Aurora.3, via Monolith"
+  source: "https://github.com/Aurorastation/Aurora.3/tree/master/sound/weapons/gunshot"
+
+- files: ["uaf_57mm.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Taken from UAF, via Monolith"
+  source: "https://fractalsoftworks.com/forum/index.php?topic=12709.0"
