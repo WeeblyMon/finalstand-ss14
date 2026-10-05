@@ -15,3 +15,4 @@ fs-research-queue-full = Queue is full ({$max} maximum).
 fs-research-payout = Research grant: +{$credits} credits for {$node}.
 
 research-technology-fs-hand-teleportation = Hand Teleportation
+research-technology-fs-field-tools = Field Tools
