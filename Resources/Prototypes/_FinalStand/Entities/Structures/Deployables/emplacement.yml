@@ -93,6 +93,7 @@
     maxUses: 4
   - type: FSEmplacement
     kit: FSEmplacementKit
+  - type: FSCoverZone
   - type: Destructible
     thresholds:
     - trigger:
