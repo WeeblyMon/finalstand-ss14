@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Components;
@@ -8,19 +9,22 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Repair;
 
-// Engineers see a health bar under damaged fortifications; it flashes once a structure drops below 30%.
+// Engineers see a health bar under damaged fortifications (flashing below 30%); everyone sees upgrade progress and nearby crate ammo.
 public sealed partial class FSStructureHealthOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IResourceCache _cache = default!;
 
     private static readonly Color Back = new(0f, 0f, 0f, 0.75f);
     private static readonly Color Good = Color.FromHex("#7fd17a");
@@ -31,6 +35,10 @@ public sealed partial class FSStructureHealthOverlay : Overlay
     private const float Width = 34f;
     private const float Height = 5f;
     private const float CriticalFraction = 0.3f;
+    private const float CrateRange = 2.5f;
+    private static readonly Color CrateText = Color.FromHex("#e8d9a8");
+
+    private Font? _font;
 
     private SharedTransformSystem? _xform;
     private SharedHandsSystem? _hands;
@@ -43,6 +51,11 @@ public sealed partial class FSStructureHealthOverlay : Overlay
     }
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
+    {
+        return _player.LocalEntity != null;
+    }
+
+    private bool IsEngineer()
     {
         return _player.LocalEntity is { } local
             && _entMan.TryGetComponent<FSDepartmentAccessComponent>(local, out var dept)
@@ -57,8 +70,9 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         _xform ??= _entMan.System<SharedTransformSystem>();
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
+        var engineer = IsEngineer();
         var rivetCap = HeldRivetCap();
-        var showAll = HoldingBuildTool();
+        var showAll = engineer && HoldingBuildTool();
         var flash = 0.55f + 0.45f * MathF.Sin((float) _timing.RealTime.TotalSeconds * 8f);
 
         var query = _entMan.EntityQueryEnumerator<FSStructureHealthComponent, DamageableComponent, TransformComponent>();
@@ -69,6 +83,13 @@ public sealed partial class FSStructureHealthOverlay : Overlay
 
             var fraction = Math.Clamp(1f - damageable.TotalDamage.Float() / health.Max, 0f, 1f);
             var progress = UpgradeProgress(uid);
+            if (!engineer)
+            {
+                if (progress > 0f)
+                    DrawProgress(handle, Vector2.Transform(_xform.GetWorldPosition(xform), matrix), progress);
+                continue;
+            }
+
             if (fraction >= 1f && progress <= 0f && !showAll)
                 continue;
 
@@ -81,17 +102,48 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             handle.DrawRect(new UIBox2(box.Left, box.Top, box.Left + Width * fraction, box.Bottom), color);
 
             if (progress > 0f)
-            {
-                var bar = new UIBox2(box.Left, box.Bottom + 2f, box.Right, box.Bottom + 4f);
-                handle.DrawRect(new UIBox2(bar.Left - 1f, bar.Top - 1f, bar.Right + 1f, bar.Bottom + 1f), Back);
-                handle.DrawRect(new UIBox2(bar.Left, bar.Top, bar.Left + Width * progress, bar.Bottom), Progress);
-            }
+                DrawProgress(handle, center with { Y = center.Y + 6f }, progress);
 
             if (rivetCap is { } cap)
             {
                 var markX = box.Left + Width * cap;
                 handle.DrawRect(new UIBox2(markX, box.Top - 2f, markX + 1f, box.Bottom + 2f), CapMark);
             }
+        }
+
+        DrawCrates(handle, matrix, args.MapId, showAll);
+    }
+
+    private static void DrawProgress(DrawingHandleScreen handle, Vector2 center, float progress)
+    {
+        var bar = UIBox2.FromDimensions(center.X - Width / 2f, center.Y + 16f, Width, 2f);
+        handle.DrawRect(new UIBox2(bar.Left - 1f, bar.Top - 1f, bar.Right + 1f, bar.Bottom + 1f), Back);
+        handle.DrawRect(new UIBox2(bar.Left, bar.Top, bar.Left + Width * progress, bar.Bottom), Progress);
+    }
+
+    private void DrawCrates(DrawingHandleScreen handle, Matrix3x2 matrix, MapId map, bool showAll)
+    {
+        if (_player.LocalEntity is not { } local)
+            return;
+
+        _font ??= new VectorFont(_cache.GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Bold.ttf"), 9);
+        var me = _xform!.GetWorldPosition(local);
+        var crates = _entMan.EntityQueryEnumerator<FSAmmoCrateComponent, TransformComponent>();
+        while (crates.MoveNext(out _, out var crate, out var xform))
+        {
+            if (xform.MapID != map)
+                continue;
+
+            var pos = _xform.GetWorldPosition(xform);
+            if (!showAll && (pos - me).Length() > CrateRange)
+                continue;
+
+            var text = crate.Rounds.ToString("N0");
+            var screen = Vector2.Transform(pos, matrix);
+            var size = handle.GetDimensions(_font, text, 1f);
+            var at = new Vector2(screen.X - size.X / 2f, screen.Y - 30f);
+            handle.DrawRect(UIBox2.FromDimensions(at - new Vector2(3f, 1f), size + new Vector2(6f, 2f)), Back);
+            handle.DrawString(_font, at, text, crate.Rounds > 0 ? CrateText : Critical);
         }
     }
 
