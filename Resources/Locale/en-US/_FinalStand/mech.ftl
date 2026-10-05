@@ -45,3 +45,13 @@ fs-objective-bay-ready = Durand ready to roll out
 fs-objective-silo-low = Silo low: {$sheets} steel
 fs-objective-emplacement-prep = Emplacement not set up
 fs-objective-emplacement-down = Emplacement packed during a wave
+fs-overclock-wrong-gun = This overclock only fits the {$gun}.
+fs-overclock-already = That gun already has an overclock.
+fs-overclock-fitted = Overclock fitted: {$name}.
+fs-overclock-examine = Overclocked: [color=#f59e0b]{$name}[/color].
+fs-overclock-big-bertha = Big Bertha
+fs-overclock-lead-storm = Lead Storm
+fs-overclock-tight-choke = Tight Choke
+fs-overclock-hyper-propellant = Hyper Propellant
+fs-overclock-rolling-thunder = Rolling Thunder
+fs-overclock-quick-loader = Quick Loader
