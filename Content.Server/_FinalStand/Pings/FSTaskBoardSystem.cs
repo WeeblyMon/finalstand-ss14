@@ -2,6 +2,7 @@
 // Badly damaged player-built fortifications raise their own repair task, a few at most.
 using System.Linq;
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.Repair;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Mech;
@@ -22,7 +23,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private ISharedPlayerManager _players = default!;
-    [Dependency] private FSPingSystem _pings = default!;
+    [Dependency] private FSStructureHealthSystem _health = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan UnclaimedLife = TimeSpan.FromSeconds(60);
@@ -185,7 +186,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         switch (task.Type)
         {
             case FSPingType.Repair:
-                return task.Target is { } structure && (_pings.HealthOf(structure) ?? 1f) >= RepairedAbove;
+                return task.Target is { } structure && (_health.Fraction(structure) ?? 1f) >= RepairedAbove;
             case FSPingType.Revive:
                 return task.Target is { } patient && !_mobState.IsIncapacitated(patient);
             case FSPingType.BuildHere:
@@ -226,7 +227,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         var query = EntityQueryEnumerator<FSDeployedByComponent, FSStructureHealthComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var deployedBy, out _, out var xform))
         {
-            if (_autoRaised.Contains(uid) || _pings.HealthOf(uid) is not { } health || health >= AutoRepairBelow)
+            if (_autoRaised.Contains(uid) || _health.Fraction(uid) is not { } health || health >= AutoRepairBelow)
                 continue;
 
             _autoRaised.Add(uid);

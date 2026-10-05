@@ -1,6 +1,7 @@
 // Turns a ping request into a ping: works out what was pinged, rate-limits the sender, tells everyone, and opens a task for requests.
 using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.MedicalOps;
+using Content.Server._FinalStand.Repair;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.FriendlyFire;
@@ -10,7 +11,6 @@ using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared._FinalStand.Repair;
-using Content.Shared.Damage.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Item;
@@ -37,6 +37,7 @@ public sealed partial class FSPingSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private FSMedicPingSystem _medicPing = default!;
     [Dependency] private FSTaskBoardSystem _tasks = default!;
+    [Dependency] private FSStructureHealthSystem _health = default!;
 
     private const float MaxRange = 24f;
     private const float RepairThreshold = 0.7f;
@@ -181,7 +182,7 @@ public sealed partial class FSPingSystem : EntitySystem
             if (t != sender && HasComp<FSFriendlyFireComponent>(t) && HasComp<MobStateComponent>(t) && _mobState.IsIncapacitated(t))
                 return new Resolved(FSPingType.Revive, FSPingAudience.Medical, Loc.GetString("fs-ping-revive", ("name", Name(t))), t, Lifetime: 12f);
 
-            if (HealthOf(t) is { } health && health < RepairThreshold)
+            if (_health.Fraction(t) is { } health && health < RepairThreshold)
                 return RepairOf(t);
 
             if (TryComp<FSMechBayComponent>(t, out var bay) && !bay.Ready && bay.Next() is { } slot)
@@ -223,18 +224,9 @@ public sealed partial class FSPingSystem : EntitySystem
 
     private Resolved RepairOf(EntityUid structure)
     {
-        var percent = (int) MathF.Round((HealthOf(structure) ?? 1f) * 100f);
+        var percent = (int) MathF.Round((_health.Fraction(structure) ?? 1f) * 100f);
         return new Resolved(FSPingType.Repair, FSPingAudience.Engineering,
             Loc.GetString("fs-ping-repair", ("name", Name(structure)), ("percent", percent)), structure, Lifetime: 10f);
-    }
-
-    public float? HealthOf(EntityUid uid)
-    {
-        if (!TryComp<FSStructureHealthComponent>(uid, out var health) || health.Max <= 0f
-            || !TryComp<DamageableComponent>(uid, out var damageable))
-            return null;
-
-        return Math.Clamp(1f - damageable.TotalDamage.Float() / health.Max, 0f, 1f);
     }
 
     private EntityUid? NearestDamaged(EntityCoordinates coords)
@@ -245,7 +237,7 @@ public sealed partial class FSPingSystem : EntitySystem
         var query = EntityQueryEnumerator<FSStructureHealthComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.MapID != map.MapId || HealthOf(uid) is not { } health || health >= RepairThreshold)
+            if (xform.MapID != map.MapId || _health.Fraction(uid) is not { } health || health >= RepairThreshold)
                 continue;
 
             var distance = (_transform.GetWorldPosition(xform) - map.Position).Length();

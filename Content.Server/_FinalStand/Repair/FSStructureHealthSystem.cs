@@ -1,5 +1,6 @@
 using Content.Server.Destructible;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.Damage.Components;
 
 namespace Content.Server._FinalStand.Repair;
 
@@ -25,5 +26,14 @@ public sealed partial class FSStructureHealthSystem : EntitySystem
 
         ent.Comp.Max = max.Value.Float();
         Dirty(ent);
+    }
+
+    public float? Fraction(EntityUid uid)
+    {
+        if (!TryComp<FSStructureHealthComponent>(uid, out var health) || health.Max <= 0f
+            || !TryComp<DamageableComponent>(uid, out var damageable))
+            return null;
+
+        return FSStructureHealth.Fraction(health, damageable);
     }
 }

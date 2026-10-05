@@ -81,7 +81,7 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             if (xform.MapID != args.MapId || health.Max <= 0f)
                 continue;
 
-            var fraction = Math.Clamp(1f - damageable.TotalDamage.Float() / health.Max, 0f, 1f);
+            var fraction = FSStructureHealth.Fraction(health, damageable);
             var progress = UpgradeProgress(uid);
             if (!engineer)
             {
