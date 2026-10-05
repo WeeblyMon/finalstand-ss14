@@ -114,7 +114,7 @@ public sealed partial class WaveHudSystem
         if (overlay.WeaponTakesMagazines)
             overlay.WeaponReserveText = overlay.WeaponReserve == 1 ? "1 mag in reserve" : $"{overlay.WeaponReserve} mags in reserve";
         else if (TryComp<FSRivetGunComponent>(held, out var rivetGun))
-            overlay.WeaponReserveText = $"{_materials.Count(player, rivetGun.Material)} steel left";
+            overlay.WeaponReserveText = Loc.GetString("fs-hud-rivet-steel", ("count", _materials.Count(player, rivetGun.Material)));
 
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
             && _syringeGun.TryGetLoad((held, syringeGun), out var mix, out _))

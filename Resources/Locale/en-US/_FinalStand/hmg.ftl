@@ -13,3 +13,4 @@ fs-hud-mech-detail = {$low ->
    *[no] power {$energy}%
 } · hull {$integrity}/{$max}
 fs-hud-mech-detail-siege = SIEGE · power {$energy}% · hull {$integrity}/{$max}
+fs-hud-rivet-steel = {$count} steel left
