@@ -1,11 +1,10 @@
-// Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, the pilot sees a little further,
-// guns refill from mech power, and rounds fired from a mech don't hit it and pay a flat amount.
+// Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, guns refill from mech power,
+// and rounds fired from a mech don't hit it and pay a flat amount.
 using Content.Server.Mech.Systems;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Mech.Equipment.Components;
-using Content.Shared.Movement.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Power.Components;
@@ -19,7 +18,6 @@ namespace Content.Server._FinalStand.Mech;
 public sealed partial class FSCombatMechSystem : EntitySystem
 {
     [Dependency] private NpcFactionSystem _faction = default!;
-    [Dependency] private SharedContentEyeSystem _eye = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private MechSystem _mech = default!;
 
@@ -33,22 +31,14 @@ public sealed partial class FSCombatMechSystem : EntitySystem
 
     private void OnOperatorSet(Entity<FSCombatMechComponent> ent, ref VehicleOperatorSetEvent args)
     {
-        if (args.OldOperator is { } oldPilot)
-        {
+        if (args.OldOperator != null)
             _faction.ClearFactions((ent.Owner, null));
-            _eye.ResetZoom(oldPilot);
-        }
 
-        if (args.NewOperator is not { } pilot)
+        if (args.NewOperator is not { } pilot || !TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
             return;
 
-        if (TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
-        {
-            _faction.ClearFactions((ent.Owner, null), false);
-            _faction.AddFactions((ent.Owner, null), pilotFactions.Factions);
-        }
-
-        _eye.SetZoom(pilot, ent.Comp.PilotZoom, ignoreLimits: true);
+        _faction.ClearFactions((ent.Owner, null), false);
+        _faction.AddFactions((ent.Owner, null), pilotFactions.Factions);
     }
 
     private void OnCharge(Entity<MechEquipmentComponent> ent, ref FSMechGunChargeEvent args)
