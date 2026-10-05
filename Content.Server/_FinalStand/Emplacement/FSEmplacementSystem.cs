@@ -5,6 +5,7 @@ using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.NPC;
 using Content.Shared._FinalStand.Deployables;
+using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Emplacement;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Placement;
@@ -327,8 +328,9 @@ public sealed partial class FSEmplacementSystem : EntitySystem
                 continue;
 
             var center = _map.TileIndicesFor(gridUid, grid, xform.Coordinates);
-            for (var x = -1; x <= 1; x++)
-            for (var y = -1; y <= 1; y++)
+            var radius = CompOrNull<FSCoverZoneComponent>(uid)?.Radius ?? 1;
+            for (var x = -radius; x <= radius; x++)
+            for (var y = -radius; y <= radius; y++)
                 _coverTiles[(gridUid, center + new Vector2i(x, y))] = comp;
         }
 
