@@ -15,8 +15,8 @@ fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold
     The middle of the menu shows what you have against what you need. If a spot is refused, the reason is written under the ghost. Prefer a hotbar? Switch to the belt layout from the menu.
 fs-tutorial-eng-3-title = Upgrade with the hammer
 fs-tutorial-eng-3-text = Click a barricade with your hammer (or press [bold]E[/bold] on it) to choose an upgrade. You start hammering it in right away; each hit pours in materials from your pack. Click it again to carry on if you stop.
-    [bold]Grades[/bold]: steel, then plasteel, then depleted uranium for the toughest barricades.
-    [bold]Branches[/bold], one per barricade: Bulwark for chokepoints, Firing Step for your gunline, Floodlit for dark lanes. Hits don't count while it's under attack.
+    Grades: [bold]steel[/bold], then [bold]plasteel[/bold], then [bold]depleted uranium[/bold] for the toughest barricades.
+    Branches, one per barricade: [bold]Bulwark[/bold] for chokepoints, [bold]Firing Step[/bold] for your gunline, [bold]Floodlit[/bold] for dark lanes. Hits don't count while it's under attack.
 fs-tutorial-eng-4-title = Keep it standing
 fs-tutorial-eng-4-text = Your [bold]rivet gun[/bold] repairs any barricade it hits, up to the red mark on its health bar, and feeds itself steel from your pack. It works mid-fight.
     For the last stretch, [bold]fit plates and weld them in[/bold]. Engineers see a health bar over every damaged fortification; one that flashes is close to falling.
