@@ -12,4 +12,8 @@ public sealed partial class FSCombatMechComponent : Component
 
     [DataField]
     public Dictionary<ProtoId<TagPrototype>, int> MountLimits = new();
+
+    public EntityUid? LastPilot;
+
+    public bool WasBroken;
 }

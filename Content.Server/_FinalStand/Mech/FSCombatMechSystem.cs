@@ -9,7 +9,12 @@ using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Systems;
+using Content.Shared.Popups;
 using Content.Shared.Projectiles;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Ranged.Events;
 
@@ -20,11 +25,19 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private NpcFactionSystem _faction = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private MechSystem _mech = default!;
+    [Dependency] private FSMechBailoutSystem _bailout = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+
+    private static readonly TimeSpan BailoutTime = TimeSpan.FromSeconds(3);
+    private static readonly SoundSpecifier WreckSound = new SoundCollectionSpecifier("MetalBreak");
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSCombatMechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
+        SubscribeLocalEvent<FSCombatMechComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MechSystem)]);
         SubscribeLocalEvent<MechEquipmentComponent, FSMechGunChargeEvent>(OnCharge);
         SubscribeLocalEvent<MechEquipmentComponent, AmmoShotEvent>(OnAmmoShot);
     }
@@ -34,11 +47,38 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         if (args.OldOperator != null)
             _faction.ClearFactions((ent.Owner, null));
 
-        if (args.NewOperator is not { } pilot || !TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
+        if (args.NewOperator is not { } pilot)
+            return;
+
+        ent.Comp.LastPilot = pilot;
+        if (!TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
             return;
 
         _faction.ClearFactions((ent.Owner, null), false);
         _faction.AddFactions((ent.Owner, null), pilotFactions.Factions);
+    }
+
+    private void OnDamageChanged(Entity<FSCombatMechComponent> ent, ref DamageChangedEvent args)
+    {
+        if (!TryComp<MechComponent>(ent, out var mech))
+            return;
+
+        if (!mech.Broken)
+        {
+            ent.Comp.WasBroken = false;
+            return;
+        }
+
+        if (ent.Comp.WasBroken)
+            return;
+
+        ent.Comp.WasBroken = true;
+        _audio.PlayPvs(WreckSound, ent);
+        if (ent.Comp.LastPilot is not { } pilot || TerminatingOrDeleted(pilot) || !_transform.InRange(pilot, ent.Owner, 2f))
+            return;
+
+        _bailout.Start(pilot, BailoutTime);
+        _popup.PopupEntity(Loc.GetString("fs-mech-wrecked"), pilot, pilot, PopupType.LargeCaution);
     }
 
     private void OnCharge(Entity<MechEquipmentComponent> ent, ref FSMechGunChargeEvent args)
