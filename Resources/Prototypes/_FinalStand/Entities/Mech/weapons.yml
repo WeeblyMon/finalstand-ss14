@@ -459,3 +459,66 @@
     color: "#d94cff"
   - type: TimedDespawn
     lifetime: 0.8
+
+- type: entity
+  id: FSMechWeaponSkyfall
+  parent: FSBaseMechWeaponHeavy
+  name: '"Skyfall" swarm pod'
+  description: Fires twelve micro-missiles that climb, then dive onto zombies the mech can see. Long reload. Heavy mount.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Mech/mecha_equipment.rsi
+    state: mecha_missilerack_six
+  - type: Gun
+    projectileSpeed: 9
+    fireRate: 20
+    burstFireRate: 20
+    shotsPerBurst: 12
+    burstCooldown: 8
+    minAngle: 30
+    maxAngle: 70
+    angleIncrease: 4
+    angleDecay: 20
+    selectedMode: Burst
+    availableModes:
+    - Burst
+    soundGunshot:
+      path: /Audio/Weapons/Guns/Gunshots/rocket_launcher.ogg
+      params:
+        volume: -8
+        pitch: 1.4
+  - type: Battery
+    maxCharge: 600
+    startingCharge: 600
+  - type: BatteryAmmoProvider
+    proto: FSSkyfallMissile
+    fireCost: 50
+  - type: FSSkyfallLauncher
+
+- type: entity
+  id: FSSkyfallMissile
+  parent: BaseBullet
+  name: micro-missile
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    noRot: false
+    layers:
+    - texture: /Textures/_FinalStand/Effects/Particles/dot.png
+      color: "#00000070"
+      scale: 0.5, 0.5
+    - sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
+      state: frag
+      scale: 0.7, 0.7
+      map: [ "missile" ]
+  - type: Projectile
+    damage:
+      types:
+        Blunt: 10
+        Heat: 8
+  - type: FSSkyfallMissile
+    splashDamage:
+      types:
+        Heat: 6
+  - type: TimedDespawn
+    lifetime: 3

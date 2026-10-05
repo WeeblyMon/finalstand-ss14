@@ -130,6 +130,13 @@
         Steel: 15
         Plasteel: 6
         Gunpowder: 4
+    - proto: FSMechWeaponSkyfall
+      materials:
+        Steel: 15
+        Plasteel: 6
+        Gold: 2
+        Gunpowder: 6
+      time: 8
     - proto: FSMechWeaponBazooka
       materials:
         Steel: 12
