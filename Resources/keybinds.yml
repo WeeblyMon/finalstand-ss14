@@ -157,7 +157,7 @@ binds:
   canFocus: true
 - function: EditorRotateObject
   type: State
-  key: MouseMiddle
+  key: R # FS: middle mouse is the ping key
 - function: EditorFlipObject
   type: State
   key: MouseMiddle
@@ -529,7 +529,10 @@ binds:
 - function: Point
   type: State
   key: MouseMiddle
-  mod1: Shift
+  mod1: Alt # FS: Shift is sprint
+- function: FSPing
+  type: State
+  key: MouseMiddle
 - function: ArcadeUp
   type: State
   key: Up

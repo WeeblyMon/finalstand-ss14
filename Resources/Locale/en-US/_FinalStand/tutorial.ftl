@@ -11,7 +11,7 @@ fs-tutorial-eng-1-title = Your job: hold the line
 fs-tutorial-eng-1-text = Zombies come in waves. Your barricades and sentries decide where they hit and how long it takes them. A barricade blocks the edge it faces, and bullets fly over it, so your team shoots from behind it.
     Flames go over barricades too. They don't stop Flamethrowers.
 fs-tutorial-eng-2-title = Build with the RCD
-fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold] to build, [bold]middle-click[/bold] to rotate. Costs come from the materials you carry, then from any silo within 20 tiles.
+fs-tutorial-eng-2-text = Press [bold]Z[/bold] to pick a piece, [bold]click[/bold] to build, [bold]R[/bold] to rotate. Costs come from the materials you carry, then from any silo within 20 tiles.
     The middle of the menu shows what you have against what you need. If a spot is refused, the reason is written under the ghost. Prefer a hotbar? Switch to the belt layout from the menu.
 fs-tutorial-eng-3-title = Upgrade with the hammer
 fs-tutorial-eng-3-text = Click a barricade with your hammer (or press [bold]E[/bold] on it) to choose an upgrade. You start hammering it in right away; each hit pours in materials from your pack. Click it again to carry on if you stop.
@@ -28,7 +28,7 @@ fs-tutorial-eng-hmg-text = Build an HMG and an ammo crate with the RCD, then dra
     It covers a 90° arc and overheats if you hold the trigger too long. A line shows which crate feeds which gun.
 fs-tutorial-eng-emplacement-title = The emplacement
 fs-tutorial-eng-emplacement-text = The Chief Engineer carries a [bold]defensive emplacement[/bold]: a sandbag ring with two sentries that never run dry while its crate has rounds, and a crate that refills magazines.
-    Press [bold]Z[/bold] with the kit, turn it with [bold]middle-click[/bold] so the open side faces your team, then click. Anyone inside takes less melee damage. It folds back to the Chief Engineer when the wave ends.
+    Press [bold]Z[/bold] with the kit, turn it with [bold]R[/bold] so the open side faces your team, then click. Anyone inside takes less melee damage. It folds back to the Chief Engineer when the wave ends.
 fs-tutorial-eng-durand-title = The Durand
 fs-tutorial-eng-durand-text = Once Science researches the [bold]Mech Bay[/bold], build one with the RCD away from the line. Engineering welds the frame, limbs and armour in from your pack; Science fits the control core and targeting module between your stages. Examine the bay to see whose turn it is.
     Build guns at the bay with alt-click. The Durand takes three: light and medium guns in any mix, and at most one heavy. Park the Durand on the bay to recharge and repair it. In a fight, use [bold]siege mode[/bold] to plant it: it can't move, but it takes far less damage, especially from the front, and your rivet gun can patch it.

@@ -3,7 +3,7 @@
   parent: BaseItem
   id: FSEmplacementKit
   name: defensive emplacement kit
-  description: Sandbags, two sentry mounts and a resupply crate, folded for carrying. Press Z to aim it, middle-click to turn it, click to set it up. It folds back to you when the wave ends.
+  description: Sandbags, two sentry mounts and a resupply crate, folded for carrying. Press Z to aim it, R to turn it, click to set it up. It folds back to you when the wave ends.
   components:
   - type: Item
     size: Normal
