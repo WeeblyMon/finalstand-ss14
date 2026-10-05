@@ -308,7 +308,7 @@ public sealed partial class FSRCDEngineerOnlySystem
 
     public Dictionary<ProtoId<StackPrototype>, int>? RefundFor(EntityUid target)
     {
-        var protoId = MetaData(target).EntityPrototype?.ID;
+        var protoId = CompOrNull<MetaDataComponent>(target)?.EntityPrototype?.ID;
         if (protoId == null || !_proto.TryIndex<FSBuildRecipePrototype>(protoId, out var recipe))
             return null;
 

@@ -113,6 +113,8 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
         EntityUid? target = proto.Mode == RcdMode.Deconstruct && _state.CurrentState is GameplayStateBase screen
             ? screen.GetClickedEntity(mapCoords)
             : null;
+        if (target is { } clicked && IsClientSide(clicked))
+            target = null;
 
         var key = (held.Value, center, rcd.ProtoId.Id, target, _placement.Direction);
         if (key != _lastKey)
