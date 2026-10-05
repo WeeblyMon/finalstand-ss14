@@ -31,4 +31,5 @@ fs-tutorial-eng-emplacement-text = The Chief Engineer carries a [bold]defensive 
     Press [bold]Z[/bold] with the kit, turn it with [bold]middle-click[/bold] so the open side faces your team, then click. Anyone inside takes less melee damage. It folds back to the Chief Engineer when the wave ends.
 fs-tutorial-eng-6-title = Getting paid
 fs-tutorial-eng-6-text = You earn credits when your structures soak wave damage and when you repair that damage. Rivet hits on zombies pay too.
-    Bring the materials you pick up to the silo so every engineer can build from them. Your Fortify score is on the leaderboard.
+    Bring the materials you pick up to the silo so every engineer can build from them. The silo is also restocked at the start of every prep. Your Fortify score is on the leaderboard.
+    Ask Science for the Engineering research branch: faster rivets, cooler HMGs, razor wire and the field tools all come from there.
