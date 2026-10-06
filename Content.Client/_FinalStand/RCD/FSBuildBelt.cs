@@ -1,5 +1,6 @@
 // The Build Belt: a card that explains the selected piece over a row of slots, each showing how many you can build now.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.Stacks;
 using Robust.Client.Graphics;
@@ -111,7 +112,7 @@ public sealed class FSBuildBelt : Control
         var chipSize = handle.GetDimensions(chipFont, chipText, 1f);
         var chip = UIBox2.FromDimensions(new Vector2(x, y + 1f * scale), chipSize + new Vector2(8f, 2f) * scale);
         handle.DrawRect(chip, decon ? FSRCDLook.Bad : FSRCDLook.Gold);
-        handle.DrawString(chipFont, chip.TopLeft + new Vector2(4f, 1f) * scale, chipText, decon ? Color.White : Color.FromHex("#12141a"));
+        handle.DrawString(chipFont, chip.TopLeft + new Vector2(4f, 1f) * scale, chipText, decon ? FSRCDLook.Fg : FSPalette.PanelDeep.WithAlpha(1f));
 
         if (selected?.Piece is { } piece)
             _look.DrawInfo(handle, Carried, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false,
@@ -149,7 +150,7 @@ public sealed class FSBuildBelt : Control
             _hits.Add((box, entry));
 
             var hover = box.Contains(_mouse);
-            handle.DrawRect(box, entry.Selected ? (decon ? Color.FromHex("#3a1a18") : FSRCDLook.SelectedBack) : decon ? FSRCDLook.DeconBack : FSRCDLook.Panel);
+            handle.DrawRect(box, entry.Selected ? (decon ? FSRCDLook.DeconSelected : FSRCDLook.SelectedBack) : decon ? FSRCDLook.DeconBack : FSRCDLook.Panel);
             var edge = entry.Selected ? (decon ? FSRCDLook.Bad : FSRCDLook.Gold) : hover ? FSRCDLook.Fg : FSRCDLook.Edge;
             handle.DrawRect(box, edge, filled: false);
             if (entry.Selected)

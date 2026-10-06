@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
@@ -12,10 +13,10 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
     [Dependency] private IResourceCache _resources = default!;
 
     private static readonly ResPath FontPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
-    private static readonly Color BlockedText = Color.FromHex("#ff7a6e");
-    private static readonly Color InfoText = Color.FromHex("#c9f0b4");
+    private static readonly Color BlockedText = FSPalette.DangerSoft;
+    private static readonly Color InfoText = FSPalette.Ok;
     private static readonly Color Backing = new(0f, 0f, 0f, 0.7f);
-    private static readonly Color RefundText = Color.FromHex("#e8b45a");
+    private static readonly Color RefundText = FSPalette.Money;
 
     private Font? _font;
 

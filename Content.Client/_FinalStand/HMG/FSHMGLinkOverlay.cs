@@ -1,4 +1,5 @@
 // A thin brass line from each HMG to the crate feeding it, so a glance shows which crate feeds which gun.
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.HMG;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
@@ -9,7 +10,7 @@ public sealed class FSHMGLinkOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
 
-    private static readonly Color Belt = Color.FromHex("#e8c56a").WithAlpha(0.55f);
+    private static readonly Color Belt = FSPalette.Money.WithAlpha(0.55f);
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 

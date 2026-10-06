@@ -1,5 +1,6 @@
 // Shared look for the Build Ring and Build Belt: palette, fonts at UI scale, circles, icons and the cost block.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Content.Shared.Stacks;
@@ -23,17 +24,18 @@ public sealed record FSRCDEntry(FSRCDEntryKind Kind, RCDPrototype? Piece, Textur
 
 public sealed class FSRCDLook
 {
-    public static readonly Color Panel = Color.FromHex("#1b1e23").WithAlpha(0.95f);
-    public static readonly Color PanelDeep = Color.FromHex("#0e1013").WithAlpha(0.95f);
-    public static readonly Color Edge = Color.FromHex("#363b44");
-    public static readonly Color Fg = Color.FromHex("#e9e5da");
-    public static readonly Color Muted = Color.FromHex("#9aa1ab");
-    public static readonly Color Gold = Color.FromHex("#d9a441");
-    public static readonly Color Good = Color.FromHex("#7fd17a");
-    public static readonly Color Bad = Color.FromHex("#e0574f");
-    public static readonly Color DeconBack = Color.FromHex("#2a1514").WithAlpha(0.95f);
-    public static readonly Color DeconEdge = Color.FromHex("#7a2e2a");
-    public static readonly Color SelectedBack = Color.FromHex("#2b2618").WithAlpha(0.97f);
+    public static readonly Color Panel = FSPalette.PanelBack;
+    public static readonly Color PanelDeep = FSPalette.PanelDeep;
+    public static readonly Color Edge = FSPalette.ChipEdge;
+    public static readonly Color Fg = FSPalette.TextBright;
+    public static readonly Color Muted = FSPalette.TextMuted;
+    public static readonly Color Gold = FSPalette.Money;
+    public static readonly Color Good = FSPalette.Ok;
+    public static readonly Color Bad = FSPalette.DangerSoft;
+    public static readonly Color DeconBack = Color.FromHex("#2a1514").WithAlpha(0.88f);
+    public static readonly Color DeconSelected = Color.FromHex("#3a1a18").WithAlpha(0.92f);
+    public static readonly Color DeconEdge = FSPalette.Danger;
+    public static readonly Color SelectedBack = FSPalette.ButtonPressBack;
 
     private readonly IResourceCache _cache;
     private readonly IPrototypeManager _proto;

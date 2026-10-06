@@ -1,5 +1,6 @@
 // How each ping type looks: icon, colour and marker shape. Shape follows the category so colour-blind players can tell them apart.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Pings;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -26,8 +27,8 @@ public sealed class FSPingLook
     public static readonly Color EnemyColor = Color.FromHex("#f08a24");
     public static readonly Color BossColor = Color.FromHex("#e0303a");
     public static readonly Color RequestColor = Color.FromHex("#4fa3ff");
-    public static readonly Color InfoColor = Color.FromHex("#e9e5da");
-    public static readonly Color Back = Color.FromHex("#0e1013").WithAlpha(0.85f);
+    public static readonly Color InfoColor = FSPalette.TextBright;
+    public static readonly Color Back = FSPalette.PanelDeep;
 
     private const string IconDir = "/Textures/_FinalStand/Interface/Pings/";
 

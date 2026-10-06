@@ -1,6 +1,7 @@
 // The eight-slice ping wheel. Opened by holding the ping key it follows the mouse direction and sends on release;
 // opened by the wheel key it waits for a click.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Pings;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -117,7 +118,7 @@ public sealed class FSPingWheel : Control
 
         handle.DrawCircle(center, (Radius + SlotRadius + 8f) * scale, Color.ToSrgb(FSPingLook.Back.WithAlpha(0.55f)));
         handle.DrawCircle(center, disc, Color.ToSrgb(FSPingLook.Back));
-        FSPingLook.Ring(handle, center, disc, 1.5f, Color.FromHex("#363b44"));
+        FSPingLook.Ring(handle, center, disc, 1.5f, FSPalette.ChipEdge);
 
         for (var i = 0; i < Slices.Length; i++)
         {

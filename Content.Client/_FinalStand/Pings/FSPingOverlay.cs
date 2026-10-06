@@ -2,6 +2,7 @@
 // a red ring and edge flash for bosses, a ghost of the piece for "build here", and the role task panel.
 using System.Numerics;
 using Content.Client._FinalStand.Engineering;
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared.RCD;
@@ -39,7 +40,7 @@ public sealed partial class FSPingOverlay : Overlay
     private FSPingClientSystem? _pings;
     private SpriteSystem? _sprite;
     private FSEngineeringObjectiveClientSystem? _objectives;
-    private static readonly Color ObjectiveColor = Color.FromHex("#F59E0B");
+    private static readonly Color ObjectiveColor = FSPalette.Warn;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 

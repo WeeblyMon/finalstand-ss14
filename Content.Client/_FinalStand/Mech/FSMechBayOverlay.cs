@@ -1,5 +1,6 @@
 // A row of part icons under an unfinished Mech Bay: fitted parts solid, the ones that can go on now pulsing, the rest dim.
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Mech;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -20,8 +21,8 @@ public sealed partial class FSMechBayOverlay : Overlay
     private const float IconSize = 0.42f;
     private const float Gap = 0.04f;
     private const float BelowCenter = 1.75f;
-    private static readonly Color Missing = Color.FromHex("#6b7280");
-    private static readonly Color Open = Color.FromHex("#f59e0b");
+    private static readonly Color Missing = FSPalette.TextDim;
+    private static readonly Color Open = FSPalette.Warn;
 
     private SharedTransformSystem? _xform;
     private SpriteSystem? _sprite;

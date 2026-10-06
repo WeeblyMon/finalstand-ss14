@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.HMG;
@@ -27,16 +28,16 @@ public sealed partial class FSStructureHealthOverlay : Overlay
     [Dependency] private IResourceCache _cache = default!;
 
     private static readonly Color Back = new(0f, 0f, 0f, 0.75f);
-    private static readonly Color Good = Color.FromHex("#7fd17a");
-    private static readonly Color Worn = Color.FromHex("#d9a441");
-    private static readonly Color Critical = Color.FromHex("#e0574f");
-    private static readonly Color CapMark = Color.FromHex("#FF3B3B");
+    private static readonly Color Good = FSPalette.Ok;
+    private static readonly Color Worn = FSPalette.Warn;
+    private static readonly Color Critical = FSPalette.HealthLow;
+    private static readonly Color CapMark = FSPalette.Danger;
     private static readonly Color Progress = Color.FromHex("#5fc8e8");
     private const float Width = 34f;
     private const float Height = 5f;
     private const float CriticalFraction = 0.3f;
     private const float CrateRange = 2.5f;
-    private static readonly Color CrateText = Color.FromHex("#e8d9a8");
+    private static readonly Color CrateText = FSPalette.Money;
 
     private Font? _font;
 
