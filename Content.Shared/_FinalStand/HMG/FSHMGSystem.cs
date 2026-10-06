@@ -52,7 +52,7 @@ public sealed class FSHMGSystem : EntitySystem
         seat.WasInCombatMode = _combat.IsInCombatMode(gunner);
         Dirty(gunner, seat);
         _combat.SetInCombatMode(gunner, true);
-        _transform.SetLocalRotation(gunner, Transform(ent).LocalRotation);
+        _transform.SetLocalRotation(gunner, Angle.Zero);
     }
 
     private void OnUnstrapped(Entity<FSHMGComponent> ent, ref UnstrappedEvent args)
