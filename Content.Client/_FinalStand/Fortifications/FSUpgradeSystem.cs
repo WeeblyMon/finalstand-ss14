@@ -2,7 +2,9 @@
 using Content.Client.Damage;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.Doors.Components;
 using Robust.Client.GameObjects;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Fortifications;
@@ -10,15 +12,38 @@ namespace Content.Client._FinalStand.Fortifications;
 public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedAppearanceSystem _appearance = default!;
 
     private const string OverlayLayer = "DamageOverlay";
     private const float CrackStages = 16f;
+    private const string LayerPrefix = "fs-upgrade-";
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSUpgradeableComponent, AfterAutoHandleStateEvent>(OnUpgradeState);
         SubscribeLocalEvent<FSStructureHealthComponent, AfterAutoHandleStateEvent>(OnHealthState);
+        SubscribeLocalEvent<FSUpgradeableComponent, AppearanceChangeEvent>((uid, comp, args) => HideWhenFolded((uid, comp), args.Sprite));
+    }
+
+    private void HideWhenFolded(Entity<FSUpgradeableComponent> ent, SpriteComponent? sprite)
+    {
+        if (sprite == null || !_appearance.TryGetData<DoorState>(ent, DoorVisuals.State, out var state))
+            return;
+
+        var folded = state is DoorState.Open or DoorState.Opening;
+        var installed = new List<ProtoId<FSUpgradePrototype>>(ent.Comp.Modules);
+        if (ent.Comp.Branch is { } branch)
+            installed.Add(branch);
+
+        foreach (var id in installed)
+        {
+            for (var i = 0; i < Proto.Index(id).Layers.Count; i++)
+            {
+                if (_sprite.LayerMapTryGet((ent.Owner, sprite), $"{LayerPrefix}{id}-{i}", out var layer, false))
+                    _sprite.LayerSetVisible((ent.Owner, sprite), layer, !folded);
+            }
+        }
     }
 
     private void OnUpgradeState(Entity<FSUpgradeableComponent> ent, ref AfterAutoHandleStateEvent args)
@@ -40,6 +65,8 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         foreach (var module in ent.Comp.Modules)
             AddLayers(target, Proto.Index(module));
 
+        HideWhenFolded(ent, sprite);
+
         if (grade.Cracks is not { } cracks
             || !TryComp<DamageVisualsComponent>(ent, out var damageVisuals)
             || damageVisuals.DamageOverlay is not { } overlay
@@ -57,7 +84,7 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         var baseState = _sprite.LayerGetRsiState(target, 0).Name;
         for (var i = 0; i < upgrade.Layers.Count; i++)
         {
-            var key = $"fs-upgrade-{upgrade.ID}-{i}";
+            var key = $"{LayerPrefix}{upgrade.ID}-{i}";
             if (!_sprite.LayerMapTryGet(target, key, out var layer, false))
             {
                 layer = _sprite.AddLayer(target, upgrade.Layers[i], null);
