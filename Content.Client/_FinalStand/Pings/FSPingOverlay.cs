@@ -2,6 +2,7 @@
 // a red ring and edge flash for bosses, a ghost of the piece for "build here", and the role task panel.
 using System.Numerics;
 using Content.Client._FinalStand.Engineering;
+using Content.Client._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared.RCD;
 using Robust.Client.GameObjects;
@@ -22,6 +23,7 @@ public sealed partial class FSPingOverlay : Overlay
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private const float MarkerSize = 28f;
     private const float EdgeInset = 48f;
@@ -79,8 +81,9 @@ public sealed partial class FSPingOverlay : Overlay
                 DrawAtEdge(handle, ping.Data, bounds, screen, alpha, distance);
         }
 
-        var top = DrawObjectives(handle, bounds);
-        DrawTasks(handle, bounds, me, top);
+        var (x, width, top) = Column(bounds);
+        top = DrawObjectives(handle, x, width, top);
+        DrawTasks(handle, x, width, me, top);
         DrawBossFlash(handle, bounds, now);
     }
 
@@ -173,26 +176,32 @@ public sealed partial class FSPingOverlay : Overlay
         handle.DrawString(font, new Vector2(at.X - size.X / 2f, at.Y + 13f), text, FSPingLook.InfoColor.WithAlpha(alpha));
     }
 
-    private float DrawObjectives(DrawingHandleScreen handle, UIBox2i bounds)
+    private (float X, float Width, float Top) Column(UIBox2i bounds)
+    {
+        if (_overlays.TryGetOverlay<WaveHudOverlay>(out var hud) && hud.PanelLeft >= 0f && hud.RightColumnBottom >= 0f)
+            return (hud.PanelLeft, hud.PanelWidth, hud.RightColumnBottom + 8f);
+
+        return (bounds.Right - PanelWidth - 24f, PanelWidth, bounds.Top + PanelTop);
+    }
+
+    private float DrawObjectives(DrawingHandleScreen handle, float x, float width, float top)
     {
         _objectives ??= _entMan.System<FSEngineeringObjectiveClientSystem>();
-        var top = bounds.Top + PanelTop;
         var lines = _objectives.Lines;
         if (lines.Count == 0)
             return top;
 
         var font = _look.Font(9);
-        var x = bounds.Right - PanelWidth - 24f;
         var height = 8f + lines.Count * 16f;
-        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(PanelWidth, height)), FSPingLook.Back);
+        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(width, height)), FSPingLook.Back);
         handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(3f, height)), ObjectiveColor);
         for (var i = 0; i < lines.Count; i++)
-            handle.DrawString(font, new Vector2(x + 10f, top + 4f + i * 16f), Truncate(handle, font, lines[i], PanelWidth - 16f), ObjectiveColor);
+            handle.DrawString(font, new Vector2(x + 10f, top + 4f + i * 16f), Truncate(handle, font, lines[i], width - 16f), ObjectiveColor);
 
         return top + height + 6f;
     }
 
-    private void DrawTasks(DrawingHandleScreen handle, UIBox2i bounds, MapCoordinates me, float top)
+    private void DrawTasks(DrawingHandleScreen handle, float x, float width, MapCoordinates me, float top)
     {
         var tasks = _pings!.Tasks;
         if (tasks.Count == 0)
@@ -201,11 +210,10 @@ public sealed partial class FSPingOverlay : Overlay
         var title = _look.Font(9);
         var row = _look.Font(9);
         var sub = _look.Font(8);
-        var x = bounds.Right - PanelWidth - 24f;
         var y = top;
         var shown = Math.Min(PanelRows, tasks.Count);
         var height = 22f + shown * 34f + (tasks.Count > PanelRows ? 16f : 0f);
-        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y), new Vector2(PanelWidth, height)), FSPingLook.Back);
+        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y), new Vector2(width, height)), FSPingLook.Back);
         handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y), new Vector2(3f, height)), FSPingLook.RequestColor);
         handle.DrawString(title, new Vector2(x + 10f, y + 4f), Loc.GetString("fs-ping-tasks-title"), FSPingLook.RequestColor);
         y += 22f;
@@ -214,13 +222,13 @@ public sealed partial class FSPingOverlay : Overlay
         {
             var task = tasks[i];
             _look.DrawMarker(handle, new Vector2(x + 20f, y + 15f), 20f, task.Type, 1f);
-            var line = Truncate(handle, row, task.Label, PanelWidth - 80f);
+            var line = Truncate(handle, row, task.Label, width - 80f);
             handle.DrawString(row, new Vector2(x + 36f, y + 2f), line, FSPingLook.InfoColor);
 
             var status = task.ClaimedBy is { } claimer
                 ? Loc.GetString("fs-ping-task-claimed", ("name", claimer))
                 : task.Requester;
-            handle.DrawString(sub, new Vector2(x + 36f, y + 17f), Truncate(handle, sub, status, PanelWidth - 90f),
+            handle.DrawString(sub, new Vector2(x + 36f, y + 17f), Truncate(handle, sub, status, width - 90f),
                 task.ClaimedBy != null ? FSPingLook.EnemyColor : FSPingLook.InfoColor.WithAlpha(0.6f));
 
             if (TaskWorld(task) is { } world && world.MapId == me.MapId)
@@ -228,8 +236,8 @@ public sealed partial class FSPingOverlay : Overlay
                 var offset = world.Position - me.Position;
                 var distance = $"{offset.Length():0}m";
                 var size = handle.GetDimensions(row, distance, 1f);
-                handle.DrawString(row, new Vector2(x + PanelWidth - size.X - 26f, y + 2f), distance, FSPingLook.InfoColor);
-                DrawArrow(handle, new Vector2(x + PanelWidth - 14f, y + 10f), offset);
+                handle.DrawString(row, new Vector2(x + width - size.X - 26f, y + 2f), distance, FSPingLook.InfoColor);
+                DrawArrow(handle, new Vector2(x + width - 14f, y + 10f), offset);
             }
 
             y += 34f;
