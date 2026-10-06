@@ -121,7 +121,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSSentryTurret
-    spriteAngleOffset: 340
+    spriteAngleOffset: 0
     range: 4
 
 - type: alert

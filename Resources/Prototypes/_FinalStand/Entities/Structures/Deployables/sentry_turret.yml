@@ -26,7 +26,7 @@
       map: [ "gun" ]
   - type: Appearance
   - type: FSSentryTurret
-    spriteAngleOffset: 340
+    spriteAngleOffset: 0
   - type: RCDDeconstructable
     cost: 0
     delay: 2
