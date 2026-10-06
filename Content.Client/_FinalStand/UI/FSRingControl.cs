@@ -5,6 +5,7 @@ using Content.Client._FinalStand.RCD;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Timing;
 using Robust.Shared.Input;
 
 namespace Content.Client._FinalStand.UI;
@@ -23,6 +24,7 @@ public abstract class FSRingControl : Control
     protected Vector2 Mouse;
 
     public event Action? OnDismiss;
+    public Func<bool>? StillValid;
 
     protected abstract int SlotCount { get; }
 
@@ -73,6 +75,13 @@ public abstract class FSRingControl : Control
     }
 
     protected void Dismiss() => OnDismiss?.Invoke();
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        if (StillValid != null && !StillValid())
+            Dismiss();
+    }
 
     protected override void MouseMove(GUIMouseMoveEventArgs args)
     {

@@ -58,6 +58,7 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
             Close();
         };
         _ring.OnDismiss += Close;
+        _ring.StillValid = () => EntMan.HasComponent<FSEngineerHammerComponent>(HeldHammer());
         _ui.PopupRoot.AddChild(_ring);
     }
 

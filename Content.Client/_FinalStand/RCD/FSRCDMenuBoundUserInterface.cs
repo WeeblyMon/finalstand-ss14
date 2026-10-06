@@ -3,6 +3,7 @@
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Robust.Client.GameObjects;
@@ -71,6 +72,8 @@ public sealed partial class FSRCDMenuBoundUserInterface(EntityUid owner, Enum ui
             Close();
         };
         _ring.OnDismiss += Close;
+        _ring.StillValid = () => _player.LocalEntity is { } local
+            && EntMan.System<SharedHandsSystem>().TryGetActiveItem(local, out var held) && held == Owner;
         _ring.OnToggleLayout += () =>
         {
             EntMan.System<FSRCDBeltSystem>().SuppressSteps();
