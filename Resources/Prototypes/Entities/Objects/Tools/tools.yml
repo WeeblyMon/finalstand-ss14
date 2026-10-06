@@ -311,12 +311,13 @@
   components:
   - type: FSEngineerOnlyRCD
     caps:
-      barricade: 8
-      sentry: 2
-      heavy: 1
-      hmg: 1
-      crate: 2
+      barricade: 300
+      sentry: 100
+      heavy: 100
+      hmg: 2
+      crate: 100
       mechbay: 1
+    stationCap: 2000
     palette: # FS
     - FSBarricadeMetal
     - FSBarricadeMetalDoor
