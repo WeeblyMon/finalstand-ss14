@@ -25,8 +25,8 @@ fs-branch-floodlit-desc = Lane light. A battery floodlight lights the lane in fr
 fs-alert-firing-step = Firing Step
 fs-alert-firing-step-desc = You're braced on a firing step: tighter spread, less melee damage taken.
 
-fs-upgrade-examine-installed = Fitted: [color=#5fc8e8]{$list}[/color].
-fs-upgrade-examine-pending = Upgrading to [color=#d9a441]{$name}[/color]: {$done}/{$hits} hits.
+fs-upgrade-examine-installed = Fitted: [color=#7e9464]{$list}[/color].
+fs-upgrade-examine-pending = Upgrading to [color=#d2a44e]{$name}[/color]: {$done}/{$hits} hits.
 fs-upgrade-examine-hint = Click it with an engineer's hammer to upgrade it.
 
 fs-module-belt = Extended Belt
@@ -50,5 +50,5 @@ fs-addon-barbed-wire = Barbed Wire
 fs-addon-barbed-wire-desc = Zombies that hit this barricade take a cut and slow down, and nobody can climb over it. Zombies would rather breach elsewhere. Can't go next to a door.
 fs-upgrade-blocked-near-door = Barbed wire can't go right next to a door.
 fs-barbed-wire-no-vault = The barbed wire stops you climbing over.
-fs-barbed-wire-examine = [color=#d9a441]Wired:[/color] cuts and slows zombies that hit it. Nobody can climb over it.
+fs-barbed-wire-examine = [color=#d2a44e]Wired:[/color] cuts and slows zombies that hit it. Nobody can climb over it.
 fs-upgrade-ring-pick-one = BRANCH · PICK ONE
