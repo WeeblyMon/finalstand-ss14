@@ -2,6 +2,7 @@
 // and a mech parked on it recharges and gets patched up.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Materials;
 using Content.Server.Mech.Systems;
 using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Materials;
@@ -30,7 +31,7 @@ namespace Content.Server._FinalStand.Mech;
 public sealed partial class FSMechBaySystem : EntitySystem
 {
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
-    [Dependency] private FSCarriedMaterialSystem _materials = default!;
+    [Dependency] private FSSiloNetworkSystem _silo = default!;
     [Dependency] private SharedToolSystem _tool = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -115,7 +116,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
         }
 
-        if (!_materials.Has(args.User, weld.Materials))
+        if (!_silo.Has(args.User, weld.Materials))
         {
             _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(weld.Materials))), ent, args.User);
             return;
@@ -131,7 +132,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
 
         args.Handled = true;
-        if (!_materials.TryConsume(args.User, slot.Materials))
+        if (!_silo.TryConsume(args.User, slot.Materials))
         {
             _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(slot.Materials))), ent, args.User);
             return;
@@ -198,7 +199,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     private void StartCraft(Entity<FSMechBayComponent> ent, EntityUid user, int index)
     {
         var craft = ent.Comp.Crafts[index];
-        if (!_materials.Has(user, craft.Materials))
+        if (!_silo.Has(user, craft.Materials))
         {
             _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(craft.Materials))), ent, user);
             return;
@@ -219,7 +220,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
         args.Handled = true;
         var craft = ent.Comp.Crafts[args.Index];
-        if (!_materials.TryConsume(args.User, craft.Materials))
+        if (!_silo.TryConsume(args.User, craft.Materials))
             return;
 
         _telemetry.RecordSpend("mech-bay", craft.Materials);

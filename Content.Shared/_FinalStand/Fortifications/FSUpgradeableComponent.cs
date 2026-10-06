@@ -32,8 +32,12 @@ public sealed partial class FSUpgradeableComponent : Component
     public TimeSpan? LastDamaged;
 }
 
-[RegisterComponent, NetworkedComponent]
-public sealed partial class FSEngineerHammerComponent : Component;
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSEngineerHammerComponent : Component
+{
+    [AutoNetworkedField]
+    public Dictionary<string, int> SiloStock = new();
+}
 
 [Serializable, NetSerializable]
 public enum FSUpgradeUiKey : byte

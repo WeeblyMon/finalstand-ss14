@@ -1,6 +1,7 @@
 // Click a fortification with the Engineer's Hammer to pick an upgrade, then hammer it in: each hit pours in materials.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Materials;
 using Content.Server._FinalStand.Research;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
@@ -18,6 +19,8 @@ using Content.Shared.Damage.Systems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Destructible.Thresholds.Triggers;
 using Content.Shared.Examine;
+using System.Linq;
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Popups;
 using Content.Shared.Stacks;
@@ -38,7 +41,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 {
     [Dependency] private DestructibleSystem _destructible = default!;
     [Dependency] private FSStructureHealthSystem _health = default!;
-    [Dependency] private FSCarriedMaterialSystem _materials = default!;
+    [Dependency] private FSSiloNetworkSystem _silo = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
@@ -69,6 +72,10 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     private static readonly EntProtoId HitEffect = "FSRivetSparks";
     private static readonly Color DoneFlash = Color.FromHex("#ffd27a");
 
+    private static readonly TimeSpan StockInterval = TimeSpan.FromSeconds(0.5);
+    private TimeSpan _nextStock;
+    private List<ProtoId<StackPrototype>>? _costMaterials;
+
     private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
     private static readonly SoundSpecifier ChimeSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
 
@@ -85,6 +92,32 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
         SubscribeLocalEvent<FSUpgradeableComponent, ExaminedEvent>(OnExamined);
         Subs.BuiEvents<FSUpgradeableComponent>(FSUpgradeUiKey.Key, subs => subs.Event<FSUpgradeSelectMessage>(OnSelect));
+    }
+
+    public override void Update(float frameTime)
+    {
+        if (_timing.CurTime < _nextStock)
+            return;
+
+        _nextStock = _timing.CurTime + StockInterval;
+        _costMaterials ??= Proto.EnumeratePrototypes<FSUpgradePrototype>().SelectMany(u => u.Cost.Keys).Distinct().ToList();
+
+        var query = EntityQueryEnumerator<FSEngineerHammerComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var hammer, out var xform))
+        {
+            if (!HasComp<HandsComponent>(xform.ParentUid))
+                continue;
+
+            var stock = new Dictionary<string, int>();
+            foreach (var stack in _costMaterials)
+                stock[stack] = _silo.Sheets(xform.ParentUid, stack);
+
+            if (stock.Count == hammer.SiloStock.Count && stock.All(kv => hammer.SiloStock.GetValueOrDefault(kv.Key) == kv.Value))
+                continue;
+
+            hammer.SiloStock = stock;
+            Dirty(uid, hammer);
+        }
     }
 
     private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
@@ -305,7 +338,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         var upgrade = Proto.Index(pendingId);
         var cost = HitCost(upgrade, target.Comp.Poured);
-        if (!_materials.TryConsume(user, cost))
+        if (!_silo.TryConsume(user, cost))
         {
             _popup.PopupEntity(Loc.GetString("fs-upgrade-needs", ("list", FSMaterialText.List(Proto, cost))), target, user, PopupType.SmallCaution);
             return false;

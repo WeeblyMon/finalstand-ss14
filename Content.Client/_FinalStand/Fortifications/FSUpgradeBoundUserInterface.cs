@@ -1,6 +1,7 @@
 using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Materials;
+using Content.Shared.Hands.EntitySystems;
 using Robust.Client.GameObjects;
 using Robust.Client.Input;
 using Robust.Client.Player;
@@ -30,6 +31,11 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
         var sprite = EntMan.System<SpriteSystem>();
         var rules = EntMan.System<FSUpgradeSystem>();
         var carried = EntMan.System<FSCarriedMaterialSystem>().CountAll(_player.LocalEntity);
+        if (EntMan.TryGetComponent<FSEngineerHammerComponent>(HeldHammer(), out var hammer))
+        {
+            foreach (var (stack, sheets) in hammer.SiloStock)
+                carried[stack] = carried.GetValueOrDefault(stack) + sheets;
+        }
 
         var entries = new List<FSUpgradeEntry>();
         foreach (var id in comp.Options)
@@ -53,6 +59,13 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
         };
         _ring.OnDismiss += Close;
         _ui.PopupRoot.AddChild(_ring);
+    }
+
+    private EntityUid? HeldHammer()
+    {
+        return _player.LocalEntity is { } local && EntMan.System<SharedHandsSystem>().TryGetActiveItem(local, out var held)
+            ? held
+            : null;
     }
 
     protected override void Dispose(bool disposing)
