@@ -2,6 +2,7 @@
 // opened by the wheel key it waits for a click.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Pings;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -116,8 +117,8 @@ public sealed class FSPingWheel : Control
         var center = Center();
         var disc = 48f * scale;
 
-        handle.DrawCircle(center, (Radius + SlotRadius + 8f) * scale, Color.ToSrgb(FSPingLook.Back.WithAlpha(0.55f)));
-        handle.DrawCircle(center, disc, Color.ToSrgb(FSPingLook.Back));
+        FSShapes.Disc(handle, center, (Radius + SlotRadius + 8f) * scale, FSPingLook.Back.WithAlpha(0.55f));
+        FSShapes.Disc(handle, center, disc, FSPingLook.Back);
         FSPingLook.Ring(handle, center, disc, 1.5f, FSPalette.ChipEdge);
 
         for (var i = 0; i < Slices.Length; i++)
@@ -126,7 +127,7 @@ public sealed class FSPingWheel : Control
             var pos = center + SlotDir(i) * Radius * scale;
             var size = SlotRadius * 2f * scale * (hot ? 1.15f : 1f);
             if (hot)
-                handle.DrawCircle(pos, size / 2f + 6f * scale, Color.ToSrgb(FSPingLook.ColorOf(Slices[i].Type).WithAlpha(0.35f)));
+                FSShapes.Disc(handle, pos, size / 2f + 6f * scale, FSPingLook.ColorOf(Slices[i].Type).WithAlpha(0.35f));
             _look.DrawMarker(handle, pos, size, Slices[i].Type, hot ? 1f : 0.75f);
         }
 

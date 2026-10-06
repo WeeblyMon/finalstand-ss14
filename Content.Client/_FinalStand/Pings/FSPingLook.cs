@@ -1,6 +1,7 @@
 // How each ping type looks: icon, colour and marker shape. Shape follows the category so colour-blind players can tell them apart.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Pings;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -116,7 +117,7 @@ public sealed class FSPingLook
         switch (shape)
         {
             case FSPingShape.Circle:
-                handle.DrawCircle(center, r, Color.ToSrgb(color));
+                FSShapes.Disc(handle, center, r, color);
                 break;
             case FSPingShape.Diamond:
                 handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan,
@@ -132,7 +133,6 @@ public sealed class FSPingLook
 
     public static void Ring(DrawingHandleScreen handle, Vector2 center, float r, float width, Color color)
     {
-        for (var w = 0f; w < width; w += 0.75f)
-            handle.DrawCircle(center, r - w, Color.ToSrgb(color), false);
+        FSShapes.Ring(handle, center, r, width, color);
     }
 }

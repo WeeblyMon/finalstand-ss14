@@ -1,6 +1,7 @@
 // Shared look for the Build Ring and Build Belt: palette, fonts at UI scale, circles, icons and the cost block.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.RCD;
 using Content.Shared.Stacks;
@@ -71,13 +72,15 @@ public sealed class FSRCDLook
 
     public static void Circle(DrawingHandleScreen handle, Vector2 center, float radius, Color color, bool filled = true)
     {
-        handle.DrawCircle(center, radius, Color.ToSrgb(color), filled);
+        if (filled)
+            FSShapes.Disc(handle, center, radius, color);
+        else
+            FSShapes.Ring(handle, center, radius + 0.75f, 1.5f, color);
     }
 
     public static void RingEdge(DrawingHandleScreen handle, Vector2 center, float radius, float width, Color color)
     {
-        for (var w = 0f; w < width; w += 0.5f)
-            Circle(handle, center, radius - w, color, filled: false);
+        FSShapes.Ring(handle, center, radius, width, color);
     }
 
     public Texture? MaterialIcon(ProtoId<StackPrototype> stack)
