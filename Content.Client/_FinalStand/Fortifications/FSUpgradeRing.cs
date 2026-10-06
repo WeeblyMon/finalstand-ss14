@@ -120,11 +120,11 @@ public sealed class FSUpgradeRing : FSRingControl
         var icon = 16f * scale;
         do
         {
-            lines =
-            [
+            lines = new List<(Font Font, string Text, Color Color, bool Wrap)>
+            {
                 (_look.Bold(10f, scale), Loc.GetString(entry.Upgrade.Name), FSRCDLook.Fg, false),
                 (_look.Body(bodyPt, scale), Loc.GetString(entry.Upgrade.Description), FSRCDLook.Muted, true),
-            ];
+            };
 
             height = 0f;
             foreach (var line in lines)
