@@ -5,6 +5,7 @@ using Content.Shared.RCD.Components;
 using Robust.Client.Placement;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
+using Robust.Shared.Timing; // FS
 
 namespace Content.Client.RCD;
 
@@ -18,8 +19,9 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IPlacementManager _placementManager = default!;
     [Dependency] private HandsSystem _hands = default!;
+    [Dependency] private IGameTiming _timing = default!; // FS
 
-    private Direction _placementDirection = default;
+    private TimeSpan _nextDirectionSync; // FS
 
     public override void Update(float frameTime)
     {
@@ -55,11 +57,11 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
         }
         var prototype = ProtoMan.Index(rcd.ProtoId);
 
-        // Update the direction the RCD prototype based on the placer direction
-        if (_placementDirection != _placementManager.Direction)
+        // FS: resend whenever the held RCD disagrees with the ghost, not only when the ghost turns
+        if (rcd.ConstructionDirection != _placementManager.Direction && _timing.RealTime >= _nextDirectionSync)
         {
-            _placementDirection = _placementManager.Direction;
-            RaiseNetworkEvent(new RCDConstructionGhostRotationEvent(GetNetEntity(heldEntity.Value), _placementDirection));
+            _nextDirectionSync = _timing.RealTime + TimeSpan.FromSeconds(0.25);
+            RaiseNetworkEvent(new RCDConstructionGhostRotationEvent(GetNetEntity(heldEntity.Value), _placementManager.Direction));
         }
 
         // If the placer has not changed, exit
