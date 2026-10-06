@@ -17,6 +17,7 @@ public sealed class FSBuildBelt : Control
     private const float Pad = 5f;
     private const float CardH = 104f;
     private const float Raise = 4f;
+    private const float Grow = 64f / 38f;
 
     private readonly FSRCDLook _look;
     private readonly List<(UIBox2 Box, FSRCDEntry Entry)> _hits = new();
@@ -40,7 +41,7 @@ public sealed class FSBuildBelt : Control
     public void Resize()
     {
         var beltW = Entries.Count * SlotW + Math.Max(0, Entries.Count - 1) * Gap + Pad * 2f;
-        SetSize = new Vector2(Math.Max(beltW, 440f), CardH + 6f + SlotH + Pad * 2f + Raise);
+        SetSize = new Vector2(Math.Max(beltW, 440f), CardH + 6f + SlotH + Pad * 2f + Raise) * Grow;
     }
 
     protected override void MouseMove(GUIMouseMoveEventArgs args)
@@ -79,7 +80,7 @@ public sealed class FSBuildBelt : Control
         if (Rcd == null)
             return;
 
-        var scale = UIScale;
+        var scale = UIScale * Grow;
         var width = PixelSize.X;
         DrawCard(handle, scale, width);
         DrawSlots(handle, scale, width);

@@ -71,12 +71,25 @@ public sealed class FSUpgradeRing : FSRingControl
             return;
         }
 
-        var width = disc * 1.55f;
-        var lines = new List<(Font Font, string Text, Color Color, bool Wrap)>
+        var width = disc * 1.6f;
+        var bodyPt = 8f;
+        List<(Font Font, string Text, Color Color, bool Wrap)> lines;
+        float height;
+        var icon = 16f * scale;
+        do
         {
-            (_look.Bold(10f, scale), Loc.GetString(entry.Upgrade.Name), FSRCDLook.Fg, false),
-            (_look.Body(8f, scale), Loc.GetString(entry.Upgrade.Description), FSRCDLook.Muted, true),
-        };
+            lines =
+            [
+                (_look.Bold(10f, scale), Loc.GetString(entry.Upgrade.Name), FSRCDLook.Fg, false),
+                (_look.Body(bodyPt, scale), Loc.GetString(entry.Upgrade.Description), FSRCDLook.Muted, true),
+            ];
+
+            height = 0f;
+            foreach (var line in lines)
+                height += line.Wrap ? FSRCDLook.Wrapped(handle, line.Font, line.Text, 0, 0, width, line.Color, true, draw: false) : line.Font.GetLineHeight(1f);
+            height += entry.Upgrade.Cost.Count * (icon + 2f * scale) + _look.Mono(8f, scale).GetLineHeight(1f) + 2f * scale;
+            bodyPt -= 0.5f;
+        } while (height > disc * 1.8f && bodyPt >= 6f);
 
         var status = entry.Block switch
         {
@@ -85,12 +98,6 @@ public sealed class FSUpgradeRing : FSRingControl
             FSUpgradeBlock.Owned => (Loc.GetString("fs-upgrade-blocked-owned"), FSRCDLook.Gold),
             _ => (Loc.GetString("fs-upgrade-blocked-" + entry.Block.ToString().ToLowerInvariant()), FSRCDLook.Bad),
         };
-
-        var icon = 16f * scale;
-        var height = 0f;
-        foreach (var line in lines)
-            height += line.Wrap ? FSRCDLook.Wrapped(handle, line.Font, line.Text, 0, 0, width, line.Color, true, draw: false) : line.Font.GetLineHeight(1f);
-        height += entry.Upgrade.Cost.Count * (icon + 2f * scale) + _look.Mono(8f, scale).GetLineHeight(1f) + 2f * scale;
 
         var y = center.Y - height / 2f;
         foreach (var line in lines)

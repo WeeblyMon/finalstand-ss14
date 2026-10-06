@@ -13,6 +13,7 @@ public abstract class FSRingControl : Control
 {
     protected const float SlotRadius = 30f;
     protected const float HoverGrow = 1.13f;
+    private const float Grow = 64f / 42f;
     private const float MinRadius = 112f;
     private const float SlotSpacing = 76f;
 
@@ -34,8 +35,10 @@ public abstract class FSRingControl : Control
         LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
 
         Hot = Math.Max(0, startSlot);
-        _anchor = cursor - SlotOffset(Hot, maxSlots, 1f);
+        _anchor = cursor - SlotOffset(Hot, maxSlots, Grow);
     }
+
+    protected float Scale => UIScale * Grow;
 
     private static float Angle(int index, int count) => -MathF.PI / 2f + index * MathF.Tau / count;
 
@@ -47,7 +50,7 @@ public abstract class FSRingControl : Control
 
     protected Vector2 Center()
     {
-        var pad = (Radius + SlotRadius + 30f) * UIScale;
+        var pad = (Radius + SlotRadius + 30f) * Scale;
         var size = PixelSize;
         return new Vector2(
             Math.Clamp(_anchor.X, pad, Math.Max(pad, size.X - pad)),
@@ -74,7 +77,7 @@ public abstract class FSRingControl : Control
     protected override void MouseMove(GUIMouseMoveEventArgs args)
     {
         base.MouseMove(args);
-        var scale = UIScale;
+        var scale = Scale;
         var center = Center();
         Mouse = args.RelativePixelPosition;
         Hot = -1;
@@ -114,7 +117,7 @@ public abstract class FSRingControl : Control
     protected override void Draw(DrawingHandleScreen handle)
     {
         base.Draw(handle);
-        var scale = UIScale;
+        var scale = Scale;
         var center = Center();
         var disc = DiscRadius(scale);
 
