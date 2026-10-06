@@ -75,7 +75,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (!_proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe))
             return null;
 
-        Direction? facing = rcdProto.Rotation == RcdRotation.User ? rcdComp.ConstructionDirection : null;
+        Direction? facing = rcdProto.AllowMultiDirection ? rcdComp.ConstructionDirection : null;
 
         if (recipe.Research is { } node && !_research.Has(node))
             return Loc.GetString("fs-rcd-needs-research");
@@ -165,7 +165,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         _popup.PopupCoordinates(string.Join("  ", spent), Transform(args.Built).Coordinates, args.User, PopupType.Small);
 
         var directional = _proto.TryIndex<RCDPrototype>(protoId, out var rcdProto)
-            && rcdProto.Rotation == RcdRotation.User;
+            && rcdProto.AllowMultiDirection;
 
         if (!Transform(args.Built).Anchored && !HasComp<PullableComponent>(args.Built))
             _transform.AnchorEntity(args.Built);
