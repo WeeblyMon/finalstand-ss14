@@ -61,3 +61,7 @@ fs-silo-low = [color=#e0574f]Silo low:[/color] only {$sheets} steel sheets left.
 fs-rcd-locked = LOCKED - needs Science research
 fs-rcd-summary-cap = {$name} ({$used}/{$max})
 fs-rcd-summary-locked = {$name} · needs Science research
+fs-silo-examine-pool = This is the [color=#f2c14e]main silo[/color]. Every other silo sends its deposits here.
+fs-silo-examine-dropoff = This is a [color=#f2c14e]drop-off silo[/color]. Deposits go to the main silo, and machines near it draw from the main silo.
+fs-silo-examine-line = - {$sheets} {$name}
+fs-silo-examine-empty = The main silo is empty.

@@ -3,6 +3,7 @@ using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared.Database;
+using Content.Shared.Examine;
 using Content.Shared.GameTicking;
 using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
@@ -34,6 +35,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
         SubscribeLocalEvent<OreSiloClientComponent, MapInitEvent>((_, _, _) => _dirty = true);
         SubscribeLocalEvent<FSSiloNetworkComponent, MaterialAmountChangedEvent>(OnAmountChanged);
         SubscribeLocalEvent<FSSiloNetworkComponent, EntityTerminatingEvent>(OnTerminating);
+        SubscribeLocalEvent<FSSiloNetworkComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
         {
             _pool = null;
@@ -75,6 +77,33 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
         if (ChoosePool(ent) is { } next)
             MoveAll(ent, next);
         _dirty = true;
+    }
+
+    private void OnExamined(Entity<FSSiloNetworkComponent> ent, ref ExaminedEvent args)
+    {
+        if (Pool is not { } pool || !TryComp<MaterialStorageComponent>(pool, out var storage))
+            return;
+
+        using (args.PushGroup(nameof(FSSiloNetworkSystem)))
+        {
+            args.PushMarkup(Loc.GetString(ent.Owner == pool ? "fs-silo-examine-pool" : "fs-silo-examine-dropoff"));
+            var empty = true;
+            foreach (var (id, amount) in storage.Storage)
+            {
+                if (!_proto.TryIndex<MaterialPrototype>(id, out var material))
+                    continue;
+
+                var sheets = amount / _storage.GetSheetVolume(material);
+                if (sheets <= 0)
+                    continue;
+
+                empty = false;
+                args.PushMarkup(Loc.GetString("fs-silo-examine-line", ("sheets", sheets), ("name", Loc.GetString(material.Name))));
+            }
+
+            if (empty)
+                args.PushMarkup(Loc.GetString("fs-silo-examine-empty"));
+        }
     }
 
     public override void Update(float frameTime)
