@@ -30,6 +30,7 @@
   - type: Strap
     position: Stand
     buckleOffset: "0,0.45"
+    modifyBuckleDrawDepth: false
   - type: Gun
     fireRate: 8
     projectileSpeed: 30
