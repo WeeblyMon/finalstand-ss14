@@ -17,7 +17,7 @@
         type: FSUpgradeBoundUserInterface
   - type: Sprite
     drawdepth: Objects
-    noRot: true
+    noRot: false
     sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     layers:
     - state: base
