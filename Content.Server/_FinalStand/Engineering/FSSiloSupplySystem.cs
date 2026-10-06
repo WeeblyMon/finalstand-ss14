@@ -1,5 +1,6 @@
-// Stocks every silo at the first prep and tops it up at each one after, and warns engineers when steel runs low.
+// Stocks the silo network's pool at the first prep and tops it up at each one after, and warns engineers when steel runs low.
 using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Materials;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.GameTicking;
@@ -15,6 +16,7 @@ public sealed partial class FSSiloSupplySystem : EntitySystem
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSSiloNetworkSystem _silo = default!;
 
     private const int UnitsPerSheet = 100;
     private static readonly (string Material, int Sheets)[] Opening = [("Steel", 40), ("Plasteel", 10)];
@@ -44,12 +46,11 @@ public sealed partial class FSSiloSupplySystem : EntitySystem
         var supply = _stocked ? PerWave : Opening;
         _stocked = true;
 
-        var query = EntityQueryEnumerator<OreSiloComponent, MaterialStorageComponent>();
-        while (query.MoveNext(out var uid, out _, out var storage))
-        {
-            foreach (var (material, sheets) in supply)
-                _storage.TryChangeMaterialAmount(uid, material, sheets * UnitsPerSheet, storage);
-        }
+        if (_silo.Pool is not { } pool)
+            return;
+
+        foreach (var (material, sheets) in supply)
+            _storage.TryChangeMaterialAmount(pool, material, sheets * UnitsPerSheet);
     }
 
     public override void Update(float frameTime)
