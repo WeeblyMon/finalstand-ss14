@@ -65,7 +65,7 @@ public sealed partial class FSFlairOverlay : Overlay
     {
         foreach (var holo in _flair!.Holograms)
         {
-            if (!_proto.TryIndex<RCDPrototype>(holo.Piece, out var piece) || piece.Sprite is not { } spec)
+            if (!_proto.TryIndex<RCDPrototype>(holo.Piece, out var piece) || piece.Prototype is not { } built)
                 continue;
 
             var map = _xform!.ToMapCoordinates(holo.Coords);
@@ -74,12 +74,15 @@ public sealed partial class FSFlairOverlay : Overlay
 
             var total = (float) (holo.End - holo.Start).TotalSeconds;
             var progress = total > 0f ? Math.Clamp((float) (now - holo.Start).TotalSeconds / total, 0f, 1f) : 1f;
-            var box = Box2.CenteredAround(map.Position, Vector2.One);
-            var rotated = new Box2Rotated(box, holo.Rotation, map.Position);
-            handle.DrawTextureRect(_sprite!.Frame0(spec), rotated, HoloColor.WithAlpha(0.2f + 0.5f * progress));
+            var texture = _sprite!.GetPrototypeIcon(built).Default;
+            var size = new Vector2(texture.Width, texture.Height) / EyeManager.PixelsPerMeter;
+            var grid = _xform.GetWorldRotation(holo.Coords.EntityId);
+            var box = Box2.CenteredAround(map.Position, size);
+            handle.DrawTextureRect(texture, new Box2Rotated(box, grid + holo.Rotation, map.Position), HoloColor.WithAlpha(0.25f + 0.45f * progress));
 
-            var y = box.Bottom + box.Height * progress;
-            handle.DrawLine(new Vector2(box.Left, y), new Vector2(box.Right, y), HoloColor.WithAlpha(0.9f));
+            var y = -size.Y / 2f + size.Y * progress;
+            handle.DrawLine(map.Position + grid.RotateVec(new Vector2(-size.X / 2f, y)),
+                map.Position + grid.RotateVec(new Vector2(size.X / 2f, y)), HoloColor.WithAlpha(0.9f));
         }
     }
 
