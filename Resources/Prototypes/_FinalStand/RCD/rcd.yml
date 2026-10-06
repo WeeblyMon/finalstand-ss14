@@ -79,7 +79,7 @@
   cost: 0
   delay: 3
   collisionMask: Impassable
-  rotation: Fixed
+  rotation: User
   fx: EffectRCDConstruct2
 
 - type: rcd
@@ -94,7 +94,7 @@
   cost: 0
   delay: 4
   collisionMask: Impassable
-  rotation: Fixed
+  rotation: User
   fx: EffectRCDConstruct4
 
 - type: rcd
