@@ -51,3 +51,4 @@ fs-addon-barbed-wire-desc = Zombies that hit this barricade take a cut and slow 
 fs-upgrade-blocked-near-door = Barbed wire can't go right next to a door.
 fs-barbed-wire-no-vault = The barbed wire stops you climbing over.
 fs-barbed-wire-examine = [color=#d9a441]Wired:[/color] cuts and slows zombies that hit it. Nobody can climb over it.
+fs-upgrade-ring-pick-one = BRANCH · PICK ONE

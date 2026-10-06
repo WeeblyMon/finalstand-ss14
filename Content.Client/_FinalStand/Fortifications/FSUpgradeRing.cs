@@ -20,6 +20,8 @@ public sealed class FSUpgradeRing : FSRingControl
 
     public event Action<FSUpgradeEntry>? OnPick;
 
+    private static readonly Color BranchColor = Color.FromHex("#5fb3c9");
+
     protected override int SlotCount => _entries.Count;
 
     public FSUpgradeRing(FSRCDLook look, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSUpgradeableComponent comp,
@@ -45,7 +47,11 @@ public sealed class FSUpgradeRing : FSRingControl
         var r = SlotRadius * scale * (hot ? HoverGrow : 1f);
         var owned = entry.Block == FSUpgradeBlock.Owned;
         var blocked = entry.Block != FSUpgradeBlock.None;
-        var edge = entry.Pending || owned ? FSRCDLook.Gold : hot && !blocked ? FSRCDLook.Fg : FSRCDLook.Edge;
+        var branch = entry.Upgrade.Slot == FSUpgradeSlot.Branch;
+        var edge = entry.Pending || owned ? FSRCDLook.Gold
+            : hot && !blocked ? FSRCDLook.Fg
+            : branch ? BranchColor
+            : FSRCDLook.Edge;
         Color? glow = entry.Pending ? FSRCDLook.Gold : null;
 
         DrawSlotBase(handle, pos, r, owned ? FSRCDLook.SelectedBack : FSRCDLook.Panel, edge, glow, entry.Icon,
@@ -57,6 +63,42 @@ public sealed class FSUpgradeRing : FSRingControl
             DrawBadge(handle, _look.Mono(7f, scale), pos, r, scale, $"{_comp.Poured}/{entry.Upgrade.Hits}", FSRCDLook.Gold);
         else if (entry.Short && !blocked)
             DrawDot(handle, pos, r, scale, FSRCDLook.Bad);
+    }
+
+    protected override void DrawExtras(DrawingHandleScreen handle, Vector2 center, float scale)
+    {
+        var first = _entries.FindIndex(e => e.Upgrade.Slot == FSUpgradeSlot.Branch);
+        var last = _entries.FindLastIndex(e => e.Upgrade.Slot == FSUpgradeSlot.Branch);
+        if (first < 0 || last <= first)
+            return;
+
+        var radius = (Radius + SlotRadius + 10f) * scale;
+        var from = SlotOffset(first, _entries.Count, 1f);
+        var to = SlotOffset(last, _entries.Count, 1f);
+        var start = MathF.Atan2(from.Y, from.X);
+        var sweep = MathF.Atan2(to.Y, to.X) - start;
+        if (sweep < 0f)
+            sweep += MathF.Tau;
+
+        const int steps = 24;
+        var points = new Vector2[steps + 1];
+        for (var w = -1f; w <= 1f; w += 1f)
+        {
+            for (var i = 0; i <= steps; i++)
+            {
+                var a = start + sweep * i / steps;
+                points[i] = center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * (radius + w * scale);
+            }
+
+            handle.DrawPrimitives(DrawPrimitiveTopology.LineStrip, points, BranchColor.WithAlpha(0.7f));
+        }
+
+        var mid = start + sweep / 2f;
+        var font = _look.Mono(8f, scale);
+        var text = Loc.GetString("fs-upgrade-ring-pick-one");
+        var size = handle.GetDimensions(font, text, 1f);
+        var at = center + new Vector2(MathF.Cos(mid), MathF.Sin(mid)) * (radius + 6f * scale + size.Y);
+        handle.DrawString(font, at - size / 2f, text, BranchColor);
     }
 
     protected override void DrawCenter(DrawingHandleScreen handle, Vector2 center, float disc, float scale)
