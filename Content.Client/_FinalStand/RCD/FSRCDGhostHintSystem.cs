@@ -3,7 +3,6 @@ using Content.Client.Gameplay;
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
-using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
@@ -101,7 +100,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
         var center = _map.GridTileToLocal(gridUid, grid, _map.TileIndicesFor(gridUid, grid, mapCoords));
         Tile = center;
 
-        if (!_transform.InRange(Transform(player).Coordinates, center, SharedInteractionSystem.InteractionRange))
+        if (!_transform.InRange(Transform(player).Coordinates, center, Comp<FSEngineerOnlyRCDComponent>(held.Value).Reach))
         {
             Text = Loc.GetString("fs-rcd-too-far");
             Blocked = true;

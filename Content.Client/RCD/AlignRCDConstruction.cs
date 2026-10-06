@@ -77,7 +77,8 @@ public sealed partial class AlignRCDConstruction : PlacementMode
         if (!_entityManager.TryGetComponent<TransformComponent>(player, out var xform))
             return false;
 
-        if (!_transformSystem.InRange(xform.Coordinates, position, SharedInteractionSystem.InteractionRange))
+        var reach = _handsSystem.TryGetActiveItem(player.Value, out var reachRcd) ? _rcdSystem.Reach(reachRcd.Value) : SharedInteractionSystem.InteractionRange; // FS
+        if (!_transformSystem.InRange(xform.Coordinates, position, reach)) // FS
         {
             InvalidPlaceColor = InvalidPlaceColor.WithAlpha(PlaceColorBaseAlpha * 0.35f); // FS: faint, not invisible, so "Too far" has a ghost to sit under
             return false;

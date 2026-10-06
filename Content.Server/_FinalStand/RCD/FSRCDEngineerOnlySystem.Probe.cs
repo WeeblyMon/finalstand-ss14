@@ -1,7 +1,6 @@
 using Content.Server.Hands.Systems;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
-using Content.Shared.Interaction;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared.Stacks;
@@ -13,8 +12,6 @@ public sealed partial class FSRCDEngineerOnlySystem
 {
     [Dependency] private HandsSystem _hands = default!;
 
-    private const float ProbeRange = SharedInteractionSystem.InteractionRange + 1f;
-
     private void OnProbe(FSRCDProbeRequestEvent ev, EntitySessionEventArgs args)
     {
         if (args.SenderSession.AttachedEntity is not { } user
@@ -25,7 +22,7 @@ public sealed partial class FSRCDEngineerOnlySystem
             return;
 
         var location = GetCoordinates(ev.Location);
-        if (!location.IsValid(EntityManager) || !_transform.InRange(Transform(user).Coordinates, location, ProbeRange))
+        if (!location.IsValid(EntityManager) || !_transform.InRange(Transform(user).Coordinates, location, comp.Reach + 1f))
             return;
 
         string? text;

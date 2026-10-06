@@ -13,6 +13,9 @@ public sealed partial class FSEngineerOnlyRCDComponent : Component
     [DataField, AutoNetworkedField]
     public int StationCap = 120;
 
+    [DataField, AutoNetworkedField]
+    public float Reach = 2.5f;
+
     // Fortification pieces in menu order: ring slices clockwise from the top, belt slots left to right.
     [DataField]
     public List<ProtoId<RCDPrototype>> Palette = new();

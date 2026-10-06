@@ -124,7 +124,7 @@ public sealed partial class RCDSystem : EntitySystem
 
     private void OnAfterInteract(EntityUid uid, RCDComponent component, AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach)
+        if (args.Handled || !args.CanReach && !HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FS
             return;
 
         var user = args.User;
@@ -233,7 +233,8 @@ public sealed partial class RCDSystem : EntitySystem
             BreakOnMove = true,
             AttemptFrequency = AttemptFrequency.EveryTick,
             CancelDuplicate = false,
-            BlockDuplicate = false
+            BlockDuplicate = false,
+            DistanceThreshold = Reach(uid) // FS
         };
 
         args.Handled = true;
@@ -332,6 +333,8 @@ public sealed partial class RCDSystem : EntitySystem
 
     #region Entity construction/deconstruction rule checks
 
+    public float Reach(EntityUid uid) => CompOrNull<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)?.Reach ?? SharedInteractionSystem.InteractionRange; // FS
+
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
         return IsRCDOperationStillValid(uid, component, gridUid, mapGrid, tile, position, component.ConstructionDirection, target, user, popMsgs);
@@ -363,8 +366,8 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Exit if the target / target location is obstructed
         var unobstructed = (target == null)
-            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), popup: popMsgs)
-            : _interaction.InRangeUnobstructed(user, target.Value, popup: popMsgs);
+            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), Reach(uid), popup: popMsgs) // FS
+            : _interaction.InRangeUnobstructed(user, target.Value, Reach(uid), popup: popMsgs); // FS
 
         if (!unobstructed)
             return false;
