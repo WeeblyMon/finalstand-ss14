@@ -54,19 +54,21 @@ public sealed partial class FSMechBayOverlay : Overlay
             if ((center - me.Position).Length() > ShowRange)
                 continue;
 
+            var grid = xform.GridUid is { } gridUid ? _xform.GetWorldRotation(gridUid) : Angle.Zero;
             var width = bay.Slots.Count * (IconSize + Gap) - Gap;
-            var x = center.X - width / 2f;
-            var y = center.Y - BelowCenter;
-            handle.DrawRect(new Box2(x - 0.06f, y - 0.06f, x + width + 0.06f, y + IconSize + 0.06f), Color.Black.WithAlpha(0.45f));
+            var row = center + grid.RotateVec(new Vector2(0f, -BelowCenter + IconSize / 2f));
+            handle.DrawRect(new Box2Rotated(Box2.CenteredAround(row, new Vector2(width + 0.12f, IconSize + 0.12f)), grid, row),
+                Color.Black.WithAlpha(0.45f));
 
+            var x = -width / 2f + IconSize / 2f;
             foreach (var slot in bay.Slots)
             {
-                var box = new Box2(x, y, x + IconSize, y + IconSize);
+                var at = row + grid.RotateVec(new Vector2(x, 0f));
                 var texture = _sprite.Frame0(new SpriteSpecifier.Rsi(new ResPath(bay.Sprite), slot.Icon));
                 var color = bay.Installed.Contains(slot.Id) ? Color.White
                     : bay.CanInstall(slot) ? Open.WithAlpha(pulse)
                     : Missing.WithAlpha(0.45f);
-                handle.DrawTextureRect(texture, box, color);
+                handle.DrawTextureRect(texture, new Box2Rotated(Box2.CenteredAround(at, new Vector2(IconSize)), grid, at), color);
                 x += IconSize + Gap;
             }
         }

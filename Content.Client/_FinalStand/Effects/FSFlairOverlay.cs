@@ -129,7 +129,8 @@ public sealed partial class FSFlairOverlay : Overlay
 
             var size = zone.Radius * 2f + 1f;
             var alpha = 0.45f * (1f - distance / CoverRange) + 0.1f;
-            handle.DrawRect(Box2.CenteredAround(center, new Vector2(size)), CoverColor.WithAlpha(alpha), false);
+            var grid = xform.GridUid is { } gridUid ? _xform.GetWorldRotation(gridUid) : Angle.Zero;
+            handle.DrawRect(new Box2Rotated(Box2.CenteredAround(center, new Vector2(size)), grid, center), CoverColor.WithAlpha(alpha), false);
         }
     }
 
