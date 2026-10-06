@@ -337,6 +337,7 @@
     - FSHeavySentryDeployed # FS
     - FSHMGDeployed # FS
     - FSAmmoCrate # FS
+    - FSMechBay # FS
     - WallSolid
     - FloorSteel
     - Plating
