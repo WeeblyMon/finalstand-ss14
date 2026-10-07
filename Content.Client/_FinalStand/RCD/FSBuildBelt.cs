@@ -45,6 +45,17 @@ public sealed class FSBuildBelt : Control
         SetSize = new Vector2(Math.Max(beltW, 440f), CardH + 6f + SlotH + Pad * 2f + Raise) * Grow;
     }
 
+    public FSRCDEntry? Hovered()
+    {
+        foreach (var (box, entry) in _hits)
+        {
+            if (box.Contains(_mouse))
+                return entry;
+        }
+
+        return null;
+    }
+
     protected override void MouseMove(GUIMouseMoveEventArgs args)
     {
         base.MouseMove(args);

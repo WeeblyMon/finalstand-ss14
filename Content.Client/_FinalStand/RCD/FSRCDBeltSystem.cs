@@ -1,4 +1,4 @@
-// Build Belt layout: while an engineer holds the RCD, the belt sits above the hands. Z steps to the next slot.
+// Build Belt layout: while an engineer holds the RCD, the belt sits above the hands. Z picks the slot under the cursor, or steps to the next one.
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
@@ -48,6 +48,11 @@ public sealed partial class FSRCDBeltSystem : EntitySystem
             return;
 
         _nextStep = _timing.RealTime + StepDebounce;
+        if (_belt != null && _ui.CurrentlyHovered == _belt && _belt.Hovered() is { } hovered)
+        {
+            OnPick(hovered);
+            return;
+        }
 
         var cycle = new List<RCDPrototype>(palette.Pieces);
         if (palette.Deconstruct != null)
