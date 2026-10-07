@@ -77,17 +77,6 @@
     baseSprintSpeed: 1.5
   - type: Damageable
     damageModifierSet: FSMechArmor
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 900
-      behaviors:
-      - !type:PlaySoundBehavior
-        sound:
-          collection: MetalBreak
-      - !type:DoActsBehavior
-        acts: ["Destruction"]
   - type: CanMoveInAir
   - type: MovementAlwaysTouching
   - type: Repairable

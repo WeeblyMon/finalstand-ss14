@@ -1,5 +1,5 @@
 // Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, guns refill from mech power,
-// and rounds fired from a mech don't hit it and pay a flat amount.
+// and rounds fired from a mech don't hit it and pay a flat amount. A wreck unplants and takes no more damage, so it stays until repaired.
 using Content.Server.Mech.Systems;
 using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.HMG;
@@ -33,6 +33,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private FSSiegeModeSystem _siege = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> SmokeBurst = "FSSmokeBurst";
@@ -47,6 +48,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSCombatMechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
         SubscribeLocalEvent<FSCombatMechComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MechSystem)]);
+        SubscribeLocalEvent<FSCombatMechComponent, BeforeDamageChangedEvent>(OnBeforeDamage);
         SubscribeLocalEvent<FSSiegeModeComponent, FSSiegePlantedEvent>(OnPlanted);
         SubscribeLocalEvent<MechEquipmentComponent, FSMechGunChargeEvent>(OnCharge);
         SubscribeLocalEvent<MechEquipmentComponent, AmmoShotEvent>(OnAmmoShot);
@@ -83,6 +85,9 @@ public sealed partial class FSCombatMechSystem : EntitySystem
             return;
 
         ent.Comp.WasBroken = true;
+        if (TryComp<FSSiegeModeComponent>(ent, out var siege) && siege.Planted)
+            _siege.SetPlanted((ent.Owner, siege), false);
+
         _audio.PlayPvs(WreckSound, ent);
         _flair.Burst(SmokeBurst, ent, kick: 0.8f);
         _flair.Burst(WeldSparks, ent);
@@ -91,6 +96,12 @@ public sealed partial class FSCombatMechSystem : EntitySystem
 
         _bailout.Start(pilot, BailoutTime);
         _popup.PopupEntity(Loc.GetString("fs-mech-wrecked"), pilot, pilot, PopupType.LargeCaution);
+    }
+
+    private void OnBeforeDamage(Entity<FSCombatMechComponent> ent, ref BeforeDamageChangedEvent args)
+    {
+        if (TryComp<MechComponent>(ent, out var mech) && mech.Broken && args.Damage.AnyPositive())
+            args.Cancelled = true;
     }
 
     private void OnPlanted(Entity<FSSiegeModeComponent> ent, ref FSSiegePlantedEvent args)
