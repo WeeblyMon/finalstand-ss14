@@ -1,9 +1,11 @@
-// Fakes a Skyfall missile's arc: the missile layer climbs and grows over its shadow, then drops back as it dives. Leaves a smoke trail.
+// Fakes a Skyfall missile's arc: the missile layer climbs and grows over its shadow, then drops back as it dives. Leaves a smoke trail
+// and marks what each missile has locked on to.
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Particles;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -15,6 +17,7 @@ public sealed partial class FSSkyfallVisualSystem : EntitySystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSParticleSystem _particles = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> MissileTrail = "FSMissileTrail";
 
@@ -25,6 +28,13 @@ public sealed partial class FSSkyfallVisualSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSSkyfallMissileComponent, ComponentStartup>((uid, _, _) => _particles.Attach(MissileTrail, uid));
+        _overlays.AddOverlay(new FSSkyfallLockOverlay());
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _overlays.RemoveOverlay<FSSkyfallLockOverlay>();
     }
 
     public override void FrameUpdate(float frameTime)

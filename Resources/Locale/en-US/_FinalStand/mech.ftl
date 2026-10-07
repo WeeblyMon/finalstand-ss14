@@ -55,3 +55,5 @@ fs-overclock-tight-choke = Tight Choke
 fs-overclock-hyper-propellant = Hyper Propellant
 fs-overclock-rolling-thunder = Rolling Thunder
 fs-overclock-quick-loader = Quick Loader
+fs-skyfall-lock = LOCK
+fs-skyfall-lock-many = LOCK ×{$count}
