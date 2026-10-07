@@ -40,6 +40,7 @@ public sealed partial class FSPingSystem : EntitySystem
     [Dependency] private FSStructureHealthSystem _health = default!;
 
     private const float MaxRange = 24f;
+    private const float TaskPingLife = 60f;
     private const float RepairThreshold = 0.7f;
     private const float NearbyRepairRange = 3f;
     private const int BucketSize = 3;
@@ -95,7 +96,9 @@ public sealed partial class FSPingSystem : EntitySystem
     public FSPingType Ping(EntityUid sender, EntityCoordinates coords, EntityUid? target, FSPingType? forced)
     {
         var resolved = forced is { } kind ? ResolveForced(sender, kind, coords) : ResolveSmart(sender, coords, target);
-        Broadcast(sender, resolved, coords);
+        if (resolved.Type is FSPingType.NeedChems or FSPingType.Repair or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay)
+            resolved = resolved with { Lifetime = TaskPingLife };
+        var id = Broadcast(sender, resolved, coords);
 
         switch (resolved.Type)
         {
@@ -104,13 +107,13 @@ public sealed partial class FSPingSystem : EntitySystem
                 break;
             case FSPingType.NeedChems:
                 _medicPing.RequestChems(sender);
-                _tasks.Open(resolved.Type, resolved.Audience, coords, sender, sender, resolved.Label);
+                _tasks.Open(resolved.Type, resolved.Audience, coords, sender, sender, resolved.Label, ping: id);
                 break;
             case FSPingType.Repair:
             case FSPingType.BuildHere:
             case FSPingType.Revive:
             case FSPingType.Bay:
-                _tasks.Open(resolved.Type, resolved.Audience, coords, resolved.Track, sender, resolved.Label, resolved.Build);
+                _tasks.Open(resolved.Type, resolved.Audience, coords, resolved.Track, sender, resolved.Label, resolved.Build, ping: id);
                 break;
         }
 
@@ -269,7 +272,7 @@ public sealed partial class FSPingSystem : EntitySystem
         return best;
     }
 
-    private void Broadcast(EntityUid sender, Resolved resolved, EntityCoordinates coords)
+    private int Broadcast(EntityUid sender, Resolved resolved, EntityCoordinates coords)
     {
         RaiseNetworkEvent(new FSPingEvent
         {
@@ -285,5 +288,6 @@ public sealed partial class FSPingSystem : EntitySystem
             BuildProto = resolved.Build,
             Lifetime = resolved.Lifetime,
         }, Filter.Broadcast());
+        return _nextId;
     }
 }

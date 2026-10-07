@@ -61,6 +61,12 @@ public sealed class FSPingRequestEvent(NetCoordinates coords, NetEntity? target,
 }
 
 [Serializable, NetSerializable]
+public sealed class FSPingClearedEvent(int id) : EntityEventArgs
+{
+    public readonly int Id = id;
+}
+
+[Serializable, NetSerializable]
 public sealed class FSPingRefusedEvent(float seconds) : EntityEventArgs
 {
     public readonly float Seconds = seconds;

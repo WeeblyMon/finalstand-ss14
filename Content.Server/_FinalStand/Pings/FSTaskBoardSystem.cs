@@ -59,6 +59,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         public TimeSpan Created;
         public int BayStage;
         public bool Auto;
+        public int? Ping;
     }
 
     public override void Initialize()
@@ -74,7 +75,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     }
 
     public void Open(FSPingType type, FSPingAudience audience, EntityCoordinates coords, EntityUid? target,
-        EntityUid requester, string label, string? build = null, bool auto = false)
+        EntityUid requester, string label, string? build = null, bool auto = false, int? ping = null)
     {
         var existing = _board.FirstOrDefault(t => t.Type == type
             && (target != null ? t.Target == target : t.Coords.TryDistance(EntityManager, coords, out var d) && d < 0.5f));
@@ -82,6 +83,11 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         {
             existing.Created = _timing.CurTime;
             existing.Label = label;
+            if (ping != null)
+            {
+                Cleared(existing);
+                existing.Ping = ping;
+            }
             _dirty = true;
             return;
         }
@@ -89,12 +95,13 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         // Match the client, which keeps one untargeted ping per type and three pings per sender.
         if (!auto)
         {
-            if (target == null)
-                _board.RemoveAll(t => !t.Auto && t.Requester == requester && t.Type == type && t.Target == null);
-
-            var mine = _board.Where(t => !t.Auto && t.Requester == requester).OrderBy(t => t.Created).ToList();
+            var replaced = _board.Where(t => !t.Auto && t.Requester == requester && t.Type == type && t.Target == null && target == null).ToList();
+            var mine = _board.Where(t => !t.Auto && t.Requester == requester && !replaced.Contains(t)).OrderBy(t => t.Created).ToList();
             for (var i = 0; i <= mine.Count - PerRequester; i++)
-                _board.Remove(mine[i]);
+                replaced.Add(mine[i]);
+
+            foreach (var gone in replaced)
+                Remove(gone);
         }
 
         _board.Add(new BoardTask
@@ -110,6 +117,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             Build = build,
             Created = _timing.CurTime,
             Auto = auto,
+            Ping = ping,
             BayStage = target is { } bay && TryComp<FSMechBayComponent>(bay, out var bayComp) ? bayComp.Installed.Count : -1,
         });
         _dirty = true;
@@ -172,12 +180,24 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             if (_timing.CurTime - task.Created < life && !Done(task))
                 continue;
 
-            _board.RemoveAt(i);
-            _dirty = true;
+            Remove(task);
         }
 
         if (_dirty)
             SendBoards();
+    }
+
+    private void Remove(BoardTask task)
+    {
+        _board.Remove(task);
+        Cleared(task);
+        _dirty = true;
+    }
+
+    private void Cleared(BoardTask task)
+    {
+        if (task.Ping is { } id)
+            RaiseNetworkEvent(new FSPingClearedEvent(id), Filter.Broadcast());
     }
 
     private bool Done(BoardTask task)

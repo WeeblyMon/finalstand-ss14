@@ -48,6 +48,7 @@ public sealed partial class FSPingClientSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<FSPingEvent>(OnPing);
         SubscribeNetworkEvent<FSTaskBoardEvent>(ev => Tasks = ev.Tasks);
+        SubscribeNetworkEvent<FSPingClearedEvent>(ev => Pings.RemoveAll(p => p.Data.Id == ev.Id));
         SubscribeNetworkEvent<FSPingRefusedEvent>(ev => MutedUntil = _timing.RealTime + TimeSpan.FromSeconds(ev.Seconds));
         _overlays.AddOverlay(new FSPingOverlay());
     }
