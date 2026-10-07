@@ -116,4 +116,14 @@
   - type: ContainerFill
     containers:
       mech-battery-slot:
-      - PowerCellHigh
+      - FSMechPowerCell
+
+- type: entity
+  parent: PowerCellHigh
+  id: FSMechPowerCell
+  name: mech power cell
+  description: A heavy cell built to keep a combat mech fighting for a whole wave.
+  components:
+  - type: Battery
+    maxCharge: 4320
+    startingCharge: 4320

@@ -41,7 +41,7 @@ public sealed partial class FSMechBayComponent : Component
     public float ParkRange = 1.2f;
 
     [DataField]
-    public float RechargePerSecond = 15f;
+    public float RechargePerSecond = 40f;
 
     [DataField]
     public float RepairPerSecond = 3f;
