@@ -72,9 +72,14 @@ public sealed partial class FSPingSystem : EntitySystem
     {
         if (args.SenderSession.AttachedEntity is not { } sender
             || !HasComp<FSFriendlyFireComponent>(sender)
-            || _mobState.IsIncapacitated(sender)
-            || !TryConsumeToken(args.SenderSession.UserId))
+            || _mobState.IsIncapacitated(sender))
             return;
+
+        if (!TryConsumeToken(args.SenderSession.UserId))
+        {
+            RaiseNetworkEvent(new FSPingRefusedEvent((float) WaitFor(args.SenderSession.UserId).TotalSeconds), args.SenderSession);
+            return;
+        }
 
         var coords = GetCoordinates(ev.Coords);
         if (!coords.IsValid(EntityManager) || !_transform.InRange(Transform(sender).Coordinates, coords, MaxRange))
@@ -140,6 +145,18 @@ public sealed partial class FSPingSystem : EntitySystem
         }
 
         return true;
+    }
+
+    public TimeSpan WaitFor(NetUserId user)
+    {
+        if (!_limits.TryGetValue(user, out var limit))
+            return TimeSpan.Zero;
+
+        var now = _timing.RealTime;
+        if (now < limit.MutedUntil)
+            return limit.MutedUntil - now;
+
+        return limit.Tokens >= 1f ? TimeSpan.Zero : BucketRefill * (1f - limit.Tokens);
     }
 
     private Resolved ResolveForced(EntityUid sender, FSPingType forced, EntityCoordinates coords)

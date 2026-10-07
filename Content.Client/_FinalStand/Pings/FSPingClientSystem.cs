@@ -41,12 +41,14 @@ public sealed partial class FSPingClientSystem : EntitySystem
     public readonly List<FSActivePing> Pings = new();
     public List<FSTaskEntry> Tasks { get; private set; } = new();
     public TimeSpan BossFlashUntil { get; private set; }
+    public TimeSpan MutedUntil { get; private set; }
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeNetworkEvent<FSPingEvent>(OnPing);
         SubscribeNetworkEvent<FSTaskBoardEvent>(ev => Tasks = ev.Tasks);
+        SubscribeNetworkEvent<FSPingRefusedEvent>(ev => MutedUntil = _timing.RealTime + TimeSpan.FromSeconds(ev.Seconds));
         _overlays.AddOverlay(new FSPingOverlay());
     }
 

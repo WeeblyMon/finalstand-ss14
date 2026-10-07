@@ -8,6 +8,7 @@ using Content.Shared._FinalStand.Pings;
 using Content.Shared.RCD;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.Input;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
@@ -25,6 +26,7 @@ public sealed partial class FSPingOverlay : Overlay
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IInputManager _input = default!;
 
     private const float MarkerSize = 28f;
     private const float EdgeInset = 48f;
@@ -86,6 +88,18 @@ public sealed partial class FSPingOverlay : Overlay
         top = DrawObjectives(handle, x, width, top);
         DrawTasks(handle, x, width, me, top);
         DrawBossFlash(handle, bounds, now);
+        DrawMuted(handle, now);
+    }
+
+    private void DrawMuted(DrawingHandleScreen handle, TimeSpan now)
+    {
+        var left = (_pings!.MutedUntil - now).TotalSeconds;
+        if (left <= 0)
+            return;
+
+        var at = _input.MouseScreenPosition.Position + new Vector2(16f, -30f);
+        handle.DrawTextureRect(_look.Muted, UIBox2.FromDimensions(at, new Vector2(22f)), FSPalette.DangerSoft);
+        handle.DrawString(_look.Font(9), at + new Vector2(25f, 3f), Loc.GetString("fs-ping-muted", ("seconds", (int) Math.Ceiling(left))), FSPalette.DangerSoft);
     }
 
     private bool TryWorld(FSPingEvent ping, out MapCoordinates world)

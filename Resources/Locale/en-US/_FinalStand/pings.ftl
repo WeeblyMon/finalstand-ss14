@@ -29,6 +29,7 @@ fs-ping-wheel-ack = On it
 fs-ping-tasks-title = TASKS
 fs-ping-task-claimed = {$name} is on it
 fs-ping-task-more = +{$count} more
+fs-ping-muted = Muted {$seconds}s
 fs-ping-on-it = {$name}: on it
 fs-ping-chat = [Ping] {$name}: {$label}{$where}
 fs-ping-chat-where = {" "}({$distance} m {$dir})
@@ -41,3 +42,8 @@ fs-ping-dir-southwest = SW
 fs-ping-dir-west = W
 fs-ping-dir-northwest = NW
 fs-ping-dir-invalid = ?
+
+cmd-pingchat-desc = Turns the [Ping] lines in chat on or off.
+cmd-pingchat-help = Usage: pingchat
+cmd-pingchat-on = Ping lines in chat are on.
+cmd-pingchat-off = Ping lines in chat are off.

@@ -49,6 +49,8 @@ public sealed class FSPingLook
         return font;
     }
 
+    public Texture Muted => _cache.GetResource<TextureResource>(IconDir + "muted.png").Texture;
+
     public Texture Icon(FSPingType type, string? overridePath = null)
     {
         var path = overridePath is { Length: > 0 } custom ? custom : IconDir + IconName(type) + ".png";
