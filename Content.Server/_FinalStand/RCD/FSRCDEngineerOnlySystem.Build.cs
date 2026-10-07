@@ -191,7 +191,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         var query = EntityQueryEnumerator<FSDeployedByComponent>();
         while (query.MoveNext(out var uid, out var deployedBy))
         {
-            if (TerminatingOrDeleted(uid) || !_proto.TryIndex<FSBuildRecipePrototype>(deployedBy.SourceProto.Id, out var recipe))
+            if (TerminatingOrDeleted(uid) || deployedBy.SourceProto.Id is not { } source || !_proto.TryIndex<FSBuildRecipePrototype>(source, out var recipe))
                 continue;
 
             station++;
