@@ -1,4 +1,4 @@
-// Whether something can reach the silo network: any networked silo on its grid within that silo's range. Power doesn't matter.
+// Whether something can reach the silo network (any networked silo on its grid within that silo's range, power ignored), and which silo holds the pool.
 using Content.Shared.Materials.OreSilo;
 
 namespace Content.Shared._FinalStand.Materials;
@@ -21,5 +21,17 @@ public sealed class FSSiloReachSystem : EntitySystem
         }
 
         return false;
+    }
+
+    public EntityUid PoolOr(EntityUid silo)
+    {
+        var query = EntityQueryEnumerator<FSSiloNetworkComponent>();
+        while (query.MoveNext(out var uid, out var network))
+        {
+            if (network.Pool)
+                return uid;
+        }
+
+        return silo;
     }
 }
