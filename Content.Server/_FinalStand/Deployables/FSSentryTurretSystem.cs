@@ -129,8 +129,8 @@ public sealed class FSSentryTurretSystem : EntitySystem
         if (turret.CasingProto is not { } proto)
             return;
 
-        var eject = direction.ToWorldAngle() + Angle.FromDegrees(_random.NextFloat(60f, 120f));
-        var offset = eject.ToVec() * _random.NextFloat(0.15f, 0.4f);
+        var back = Angle.FromDegrees(_random.NextFloat(-25f, 25f)).RotateVec(-Vector2.Normalize(direction));
+        var offset = back * _random.NextFloat(0.6f, 1f);
 
         var casing = Spawn(proto, xform.Coordinates.Offset(offset));
         _transform.SetWorldRotation(casing, _random.NextAngle());
