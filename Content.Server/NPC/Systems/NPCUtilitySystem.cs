@@ -346,6 +346,9 @@ public sealed partial class NPCUtilitySystem : EntitySystem
             }
             case TargetIsAliveCon:
             {
+                if (TryComp<Content.Shared.Mech.Components.MechComponent>(targetUid, out var mech)) // FS
+                    return !mech.Broken && mech.PilotSlot.ContainedEntity != null ? 1f : 0f; // FS
+
                 return _mobState.IsAlive(targetUid) ? 1f : 0f;
             }
             case TargetIsCritCon:
