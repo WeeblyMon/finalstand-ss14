@@ -189,7 +189,8 @@ public sealed partial class FSPingSystem : EntitySystem
             {
                 return new Resolved(FSPingType.Bay,
                     slot.Role == FSMechBayRole.Engineering ? FSPingAudience.Engineering : FSPingAudience.Science,
-                    Loc.GetString("fs-ping-bay", ("stage", Loc.GetString(slot.Name))), t, Lifetime: 10f);
+                    Loc.GetString("fs-ping-bay", ("stage", Loc.GetString(slot.Name)),
+                        ("dept", Loc.GetString($"fs-mech-bay-role-{slot.Role.ToString().ToLowerInvariant()}"))), t, Lifetime: 10f);
             }
 
             if (TryComp<FSAmmoCrateComponent>(t, out var crate))
