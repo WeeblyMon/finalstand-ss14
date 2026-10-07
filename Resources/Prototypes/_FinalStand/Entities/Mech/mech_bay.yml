@@ -57,33 +57,37 @@
       role: Engineering
       first: true
       materials:
-        Steel: 10
-        Plasteel: 5
+        Steel: 50
+        Plasteel: 25
       time: 6
       icon: broadsword_chassis
     - id: left-leg
       name: fs-mech-bay-slot-left-leg
       role: Engineering
       materials:
-        Steel: 3
+        Steel: 15
+        Plasteel: 5
       icon: broadsword_l_leg
     - id: right-leg
       name: fs-mech-bay-slot-right-leg
       role: Engineering
       materials:
-        Steel: 3
+        Steel: 15
+        Plasteel: 5
       icon: broadsword_r_leg
     - id: left-arm
       name: fs-mech-bay-slot-left-arm
       role: Engineering
       materials:
-        Steel: 3
+        Steel: 15
+        Plasteel: 5
       icon: broadsword_l_arm
     - id: right-arm
       name: fs-mech-bay-slot-right-arm
       role: Engineering
       materials:
-        Steel: 3
+        Steel: 15
+        Plasteel: 5
       icon: broadsword_r_arm
     - id: core
       name: fs-mech-bay-slot-core
@@ -100,9 +104,9 @@
       role: Engineering
       last: true
       materials:
-        Plasteel: 10
-        Uranium: 3
-        Diamond: 1
+        Plasteel: 40
+        Uranium: 12
+        Diamond: 4
       plate: FSBroadswordBossPlate
       time: 8
       icon: broadsword_armor
@@ -195,10 +199,10 @@
   - Robotics
   completetime: 8
   materials:
-    Steel: 500
-    Glass: 500
-    Gold: 300
-    Silver: 300
+    Steel: 2000
+    Glass: 1500
+    Gold: 1000
+    Silver: 1000
 
 - type: latheRecipe
   id: FSBroadswordTargetingModule
@@ -207,10 +211,10 @@
   - Robotics
   completetime: 8
   materials:
-    Steel: 500
-    Glass: 500
-    Silver: 400
-    Plasma: 300
+    Steel: 2000
+    Glass: 1500
+    Silver: 1200
+    Plasma: 1000
 
 - type: latheRecipe
   id: FSMechWeaponPulseRifle
