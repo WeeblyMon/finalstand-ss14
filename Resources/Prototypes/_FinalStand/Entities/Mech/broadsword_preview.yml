@@ -1,0 +1,46 @@
+# Temporary size check for the Broadsword art. A plain statue, not a mech; remove once the Broadsword is decided.
+- type: entity
+  id: FSBroadswordPreview
+  name: Broadsword size preview
+  description: A statue showing how big the Broadsword would be. Not a working mech.
+  suffix: DEBUG
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Mech/broadsword.rsi
+    state: broadsword
+    drawdepth: Mobs
+    noRot: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Rotatable
+    rotateWhileAnchored: true
+  - type: Pullable
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.45,0.45,0.45"
+        density: 200
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+
+- type: entity
+  parent: FSBroadswordPreview
+  id: FSBroadswordPreviewBlue
+  suffix: DEBUG, blue
+  components:
+  - type: Sprite
+    state: tsfbroadsword
+
+- type: entity
+  parent: FSBroadswordPreview
+  id: FSBroadswordPreviewTan
+  suffix: DEBUG, tan
+  components:
+  - type: Sprite
+    state: pdvbroadsword
