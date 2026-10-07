@@ -522,3 +522,27 @@
         Heat: 6
   - type: TimedDespawn
     lifetime: 3
+
+- type: entity
+  id: FSSkyfallBlast
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    drawdepth: Effects
+    sprite: Effects/explosion.rsi
+    layers:
+    - state: explosionfast
+      shader: unshaded
+      scale: 0.35, 0.35
+  - type: PointLight
+    radius: 2
+    energy: 2.5
+    color: "#ffb35c"
+  - type: EmitSoundOnSpawn
+    sound:
+      path: /Audio/Effects/explosion_small1.ogg
+      params:
+        volume: -8
+        variation: 0.15
+  - type: TimedDespawn
+    lifetime: 0.48

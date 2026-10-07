@@ -12,6 +12,7 @@ using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Events;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mech;
@@ -24,6 +25,8 @@ public sealed partial class FSSkyfallSystem : EntitySystem
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
+
+    private static readonly EntProtoId Blast = "FSSkyfallBlast";
 
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _nearby = new();
 
@@ -126,6 +129,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
 
     private void OnHit(Entity<FSSkyfallMissileComponent> ent, ref ProjectileHitEvent args)
     {
+        Spawn(Blast, _transform.GetMapCoordinates(ent));
         if (ent.Comp.SplashDamage.Empty)
             return;
 
