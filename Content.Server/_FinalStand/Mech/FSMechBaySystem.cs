@@ -51,6 +51,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     private static readonly ProtoId<ToolQualityPrototype> Welding = "Welding";
     private static readonly TimeSpan UpkeepInterval = TimeSpan.FromSeconds(1);
     private const float WeldFuel = 10f;
+    private static readonly VerbCategory CraftCategory = new("fs-mech-bay-craft-category", null);
     private static readonly SoundSpecifier StageSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier RollOutSound = new SoundPathSpecifier("/Audio/Effects/Vehicle/vehiclestartup.ogg");
 
@@ -64,7 +65,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         SubscribeLocalEvent<FSMechBayComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<FSMechBayComponent, FSMechBayWeldDoAfterEvent>(OnWelded);
         SubscribeLocalEvent<FSMechBayComponent, FSMechBayCraftDoAfterEvent>(OnCrafted);
-        SubscribeLocalEvent<FSMechBayComponent, GetVerbsEvent<AlternativeVerb>>(OnGetVerbs);
+        SubscribeLocalEvent<FSMechBayComponent, GetVerbsEvent<ExamineVerb>>(OnGetVerbs);
         SubscribeLocalEvent<FSMechBayComponent, ExaminedEvent>(OnExamined);
     }
 
@@ -177,7 +178,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
     }
 
-    private void OnGetVerbs(Entity<FSMechBayComponent> ent, ref GetVerbsEvent<AlternativeVerb> args)
+    private void OnGetVerbs(Entity<FSMechBayComponent> ent, ref GetVerbsEvent<ExamineVerb> args)
     {
         if (!args.CanAccess || !args.CanInteract || !_departments.IsEngineering(args.User))
             return;
@@ -187,10 +188,13 @@ public sealed partial class FSMechBaySystem : EntitySystem
         {
             var index = i;
             var craft = ent.Comp.Crafts[i];
-            args.Verbs.Add(new AlternativeVerb
+            args.Verbs.Add(new ExamineVerb
             {
                 Text = Loc.GetString("fs-mech-bay-craft-verb", ("name", _proto.Index(craft.Proto).Name),
                     ("list", MaterialList(craft.Materials))),
+                Category = CraftCategory,
+                ShowOnExamineTooltip = false,
+                CloseMenu = true,
                 Act = () => StartCraft(ent, user, index),
             });
         }
