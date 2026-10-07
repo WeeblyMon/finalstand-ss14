@@ -38,6 +38,9 @@ public sealed partial class FSSkyfallMissileComponent : Component
     [DataField]
     public DamageSpecifier SplashDamage = new();
 
+    [AutoNetworkedField]
+    public EntityUid? LockedOn;
+
     public EntityUid? Launcher;
     public EntityUid? Shooter;
     public bool Diving;

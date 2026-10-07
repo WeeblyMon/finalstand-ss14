@@ -29,6 +29,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
     private static readonly EntProtoId Blast = "FSSkyfallBlast";
 
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _nearby = new();
+    private readonly List<(EntityUid Target, float Distance)> _visible = new();
 
     public override void Initialize()
     {
@@ -61,6 +62,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
     private void OnShot(Entity<FSSkyfallLauncherComponent> ent, ref AmmoShotEvent args)
     {
         var shooter = CompOrNull<MechEquipmentComponent>(ent)?.EquipmentOwner;
+        var index = 0;
         foreach (var projectile in args.FiredProjectiles)
         {
             if (!TryComp<FSSkyfallMissileComponent>(projectile, out var missile))
@@ -69,6 +71,8 @@ public sealed partial class FSSkyfallSystem : EntitySystem
             missile.Launcher = ent;
             missile.Shooter = shooter;
             missile.Launched = _timing.CurTime;
+            Visible(missile, Transform(projectile));
+            missile.LockedOn = _visible.Count > 0 ? _visible[index++ % _visible.Count].Target : null;
             Dirty(projectile, missile);
         }
     }
@@ -83,16 +87,31 @@ public sealed partial class FSSkyfallSystem : EntitySystem
                 continue;
 
             missile.Diving = true;
-            if (FindTarget(missile, xform) is not { } target)
+            var target = missile.LockedOn is { } locked && !TerminatingOrDeleted(locked) && !_mobState.IsDead(locked)
+                ? locked
+                : FindTarget(missile, xform);
+            if (target != missile.LockedOn)
+            {
+                missile.LockedOn = target;
+                Dirty(uid, missile);
+            }
+
+            if (target == null)
                 continue;
 
             var homing = EnsureComp<FSHomingProjectileComponent>(uid);
             homing.TurnRateDegrees = missile.TurnRate;
-            homing.Target = target;
+            homing.Target = target.Value;
         }
     }
 
     private EntityUid? FindTarget(FSSkyfallMissileComponent missile, TransformComponent xform)
+    {
+        Visible(missile, xform);
+        return _visible.Count > 0 ? _visible[0].Target : null;
+    }
+
+    private void Visible(FSSkyfallMissileComponent missile, TransformComponent xform)
     {
         var here = _transform.GetMapCoordinates(xform);
         var shooter = missile.Shooter is { } s && Exists(s) ? s : (EntityUid?) null;
@@ -102,23 +121,18 @@ public sealed partial class FSSkyfallSystem : EntitySystem
         _nearby.Clear();
         _lookup.GetEntitiesInRange(here, missile.SearchRange, _nearby);
 
-        EntityUid? best = null;
-        var bestDistance = float.MaxValue;
+        _visible.Clear();
         foreach (var zombie in _nearby)
         {
             if (_mobState.IsDead(zombie))
                 continue;
 
             var at = _transform.GetMapCoordinates(zombie);
-            var distance = (at.Position - here.Position).LengthSquared();
-            if (distance >= bestDistance || !_interaction.InRangeUnobstructed(eye, at, 0f, CollisionGroup.Opaque, ignore))
-                continue;
-
-            best = zombie;
-            bestDistance = distance;
+            if (_interaction.InRangeUnobstructed(eye, at, 0f, CollisionGroup.Opaque, ignore))
+                _visible.Add((zombie, (at.Position - here.Position).LengthSquared()));
         }
 
-        return best;
+        _visible.Sort((a, b) => a.Distance.CompareTo(b.Distance));
     }
 
     private void OnPreventCollide(Entity<FSSkyfallMissileComponent> ent, ref PreventCollideEvent args)
