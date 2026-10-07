@@ -111,7 +111,7 @@
     state: shotgun64x32
   - type: Gun
     projectileSpeed: 30
-    fireRate: 1.5
+    fireRate: 2
     minAngle: 0
     maxAngle: 30
     angleIncrease: 10
@@ -136,7 +136,7 @@
     state: sniper64x32
   - type: Gun
     projectileSpeed: 45
-    fireRate: 1.5
+    fireRate: 2
     minAngle: 0
     maxAngle: 10
     angleIncrease: 1.5
@@ -167,7 +167,7 @@
     fireRate: 3
     burstFireRate: 3
     shotsPerBurst: 3
-    burstCooldown: 4
+    burstCooldown: 2
     minAngle: 0
     maxAngle: 12
     angleIncrease: 1
@@ -194,7 +194,7 @@
     sprite: _FinalStand/Objects/Mech/tgmc_mecha_weapons.rsi
     state: rpg64x32
   - type: Gun
-    fireRate: 0.3
+    fireRate: 0.6
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -216,7 +216,7 @@
   - type: Sprite
     state: mecha_laser
   - type: Gun
-    fireRate: 1.5
+    fireRate: 2
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -255,7 +255,7 @@
   - type: Sprite
     state: mecha_pulse
   - type: Gun
-    fireRate: 1.5
+    fireRate: 2
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -275,7 +275,7 @@
     state: mecha_wholegen
   - type: Gun
     projectileSpeed: 6
-    fireRate: 0.4
+    fireRate: 0.8
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -300,7 +300,7 @@
     projectileSpeed: 25
     minAngle: 0
     maxAngle: 30
-    fireRate: 1
+    fireRate: 1.5
     angleIncrease: 3
     angleDecay: 15
     selectedMode: FullAuto
