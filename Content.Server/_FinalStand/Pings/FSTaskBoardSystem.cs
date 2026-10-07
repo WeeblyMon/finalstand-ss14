@@ -34,6 +34,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     private const float RepairedAbove = 0.9f;
     private const float ClaimRange = 4f;
     private const float ArrivedRange = 1.5f;
+    private const int PerRequester = 3;
 
     private readonly List<BoardTask> _board = new();
     private readonly HashSet<EntityUid> _autoRaised = new();
@@ -57,6 +58,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         public string? ClaimerName;
         public TimeSpan Created;
         public int BayStage;
+        public bool Auto;
     }
 
     public override void Initialize()
@@ -72,7 +74,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     }
 
     public void Open(FSPingType type, FSPingAudience audience, EntityCoordinates coords, EntityUid? target,
-        EntityUid requester, string label, string? build = null)
+        EntityUid requester, string label, string? build = null, bool auto = false)
     {
         var existing = _board.FirstOrDefault(t => t.Type == type
             && (target != null ? t.Target == target : t.Coords.TryDistance(EntityManager, coords, out var d) && d < 0.5f));
@@ -82,6 +84,17 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             existing.Label = label;
             _dirty = true;
             return;
+        }
+
+        // Match the client, which keeps one untargeted ping per type and three pings per sender.
+        if (!auto)
+        {
+            if (target == null)
+                _board.RemoveAll(t => !t.Auto && t.Requester == requester && t.Type == type && t.Target == null);
+
+            var mine = _board.Where(t => !t.Auto && t.Requester == requester).OrderBy(t => t.Created).ToList();
+            for (var i = 0; i <= mine.Count - PerRequester; i++)
+                _board.Remove(mine[i]);
         }
 
         _board.Add(new BoardTask
@@ -96,6 +109,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             Label = label,
             Build = build,
             Created = _timing.CurTime,
+            Auto = auto,
             BayStage = target is { } bay && TryComp<FSMechBayComponent>(bay, out var bayComp) ? bayComp.Installed.Count : -1,
         });
         _dirty = true;
@@ -222,7 +236,7 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
             _autoTimes.Enqueue(_timing.CurTime);
             var requester = deployedBy.DeployedBy is { } builder && Exists(builder) ? builder : uid;
             Open(FSPingType.Repair, FSPingAudience.Engineering, xform.Coordinates, uid, requester,
-                Loc.GetString("fs-ping-repair", ("name", Name(uid)), ("percent", (int) MathF.Round(health * 100f))));
+                Loc.GetString("fs-ping-repair", ("name", Name(uid)), ("percent", (int) MathF.Round(health * 100f))), auto: true);
             if (_autoTimes.Count >= AutoTasksPerWindow)
                 return;
         }
