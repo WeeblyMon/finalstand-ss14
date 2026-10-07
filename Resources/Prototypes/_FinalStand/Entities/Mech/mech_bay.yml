@@ -135,7 +135,7 @@
         Steel: 15
         Plasteel: 6
         Gold: 2
-        Gunpowder: 6
+        Gunpowder: 5
       time: 8
     - proto: FSMechWeaponBazooka
       materials:
