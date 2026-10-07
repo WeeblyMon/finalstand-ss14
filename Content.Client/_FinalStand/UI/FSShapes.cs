@@ -68,9 +68,9 @@ public static class FSShapes
 
         using (stream)
         using (var image = SixLabors.ImageSharp.Image.Load<Rgba32>(stream))
+        using (var resized = image.Clone(x => x.Resize(pixels, pixels)))
         {
-            image.Mutate(x => x.Resize(pixels, pixels, KnownResamplers.Lanczos3));
-            var texture = _clyde.LoadTextureFromImage(image, path, new TextureLoadParameters
+            var texture = _clyde.LoadTextureFromImage(resized, path, new TextureLoadParameters
             {
                 SampleParameters = new TextureSampleParameters { Filter = true },
                 Srgb = true,
