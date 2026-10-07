@@ -56,3 +56,4 @@ fs-overclock-rolling-thunder = Rolling Thunder
 fs-overclock-quick-loader = Quick Loader
 fs-skyfall-lock = LOCK
 fs-skyfall-lock-many = LOCK ×{$count}
+fs-skyfall-reload = RELOAD {$seconds}s
