@@ -1,5 +1,5 @@
-// The RCD picker. Ring layout: the Build Ring opens with your current piece under the cursor.
-// Belt layout: Z steps to the next belt slot instead of opening anything.
+// The RCD picker. Ring layout: the Build Ring opens centred on the cursor.
+// Belt layout: Z picks the belt slot under the cursor, or steps to the next one, instead of opening anything.
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;

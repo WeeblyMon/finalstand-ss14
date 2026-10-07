@@ -1,5 +1,5 @@
 // Shared ring mechanics for the FS radial pickers: slot layout, hover, click and the dark centre disc.
-// It opens shifted so a chosen slot sits under the cursor, and stays clamped on screen.
+// It opens centred on the cursor, so every slot is always the same flick away, and stays clamped on screen.
 using System.Numerics;
 using Content.Client._FinalStand.RCD;
 using Robust.Client.Graphics;
@@ -28,7 +28,7 @@ public abstract class FSRingControl : Control
 
     protected abstract int SlotCount { get; }
 
-    protected FSRingControl(int maxSlots, int startSlot, Vector2 cursor)
+    protected FSRingControl(int maxSlots, Vector2 cursor)
     {
         Radius = MathF.Max(MinRadius, maxSlots * SlotSpacing / MathF.Tau);
         MouseFilter = MouseFilterMode.Stop;
@@ -36,8 +36,7 @@ public abstract class FSRingControl : Control
         VerticalExpand = true;
         LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
 
-        Hot = Math.Max(0, startSlot);
-        _anchor = cursor - SlotOffset(Hot, maxSlots, Grow);
+        _anchor = cursor;
     }
 
     protected float Scale => UIScale * Grow;

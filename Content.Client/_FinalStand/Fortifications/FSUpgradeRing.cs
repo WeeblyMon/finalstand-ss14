@@ -26,7 +26,7 @@ public sealed class FSUpgradeRing : FSRingControl
 
     public FSUpgradeRing(FSRCDLook look, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSUpgradeableComponent comp,
         List<FSUpgradeEntry> entries, Vector2 cursor)
-        : base(entries.Count, entries.FindIndex(e => e.Pending), cursor)
+        : base(entries.Count, cursor)
     {
         _look = look;
         _carried = carried;

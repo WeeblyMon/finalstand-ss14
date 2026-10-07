@@ -26,7 +26,7 @@ public sealed class FSBuildRing : FSRingControl
 
     public FSBuildRing(FSRCDLook look, IReadOnlyDictionary<ProtoId<StackPrototype>, int> carried, FSEngineerOnlyRCDComponent fs,
         List<FSRCDEntry> top, List<FSRCDEntry> station, Texture? stationIcon, Vector2 cursor)
-        : base(top.Count, top.FindIndex(e => e.Selected), cursor)
+        : base(top.Count, cursor)
     {
         _look = look;
         _carried = carried;
