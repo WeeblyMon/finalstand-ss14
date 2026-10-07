@@ -28,7 +28,8 @@ public sealed partial class FSPingInputSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private static readonly TimeSpan HoldTime = TimeSpan.FromSeconds(0.15);
-    private static readonly TimeSpan DoubleTap = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan DoubleTap = TimeSpan.FromSeconds(0.3);
+    private static readonly TimeSpan Chatter = TimeSpan.FromSeconds(0.08);
     private const float DragDistance = 20f;
     private const float DoubleTapDistance = 30f;
 
@@ -60,7 +61,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
 
     private void OnPingDown(ICommonSession? session)
     {
-        if (_wheel != null || !Capture())
+        if (_wheel != null || _timing.RealTime - _lastTap < Chatter || !Capture())
             return;
 
         _holding = true;
