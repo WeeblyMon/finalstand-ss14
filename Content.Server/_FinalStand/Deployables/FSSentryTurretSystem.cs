@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Projectiles;
+using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Audio;
@@ -26,6 +27,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _enemyPool =
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
@@ -130,9 +132,9 @@ public sealed class FSSentryTurretSystem : EntitySystem
             return;
 
         var back = Angle.FromDegrees(_random.NextFloat(-25f, 25f)).RotateVec(-Vector2.Normalize(direction));
-        var offset = back * _random.NextFloat(0.6f, 1f);
-
-        var casing = Spawn(proto, xform.Coordinates.Offset(offset));
+        var casing = Spawn(proto, _transform.GetMapCoordinates(xform));
         _transform.SetWorldRotation(casing, _random.NextAngle());
+        _throwing.TryThrow(casing, back * _random.NextFloat(0.9f, 1.5f), baseThrowSpeed: 7f,
+            recoil: false, playSound: false, compensateFriction: true);
     }
 }

@@ -99,5 +99,15 @@
     drawdepth: SmallObjects
     sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
     state: casing
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.05
+        density: 5
+        hard: false
   - type: TimedDespawn
     lifetime: 10
