@@ -23,7 +23,6 @@ fs-mech-bay-needs-materials = Short of {$list} (carried and silo together).
 fs-mech-bay-slot-filled = The {$slot} is already fitted.
 fs-mech-bay-slot-not-yet = The {$slot} can't go on yet. The chassis goes first and the armour last.
 fs-mech-bay-slot-done = {$slot} fitted ({$done}/{$total}).
-fs-mech-bay-ready = The Durand is finished. Use the bay to roll it out.
 fs-mech-bay-rolled-out = The Durand rolls off the gantry.
 fs-mech-bay-craft-verb = Build {$name} ({$list})
 fs-mech-bay-craft-category = Build weapon

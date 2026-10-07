@@ -159,13 +159,16 @@ public sealed partial class FSMechBaySystem : EntitySystem
     {
         ent.Comp.Installed.Add(slot.Id);
         Dirty(ent);
-        var message = ent.Comp.Ready
-            ? Loc.GetString("fs-mech-bay-ready")
-            : Loc.GetString("fs-mech-bay-slot-done", ("slot", Loc.GetString(slot.Name)),
-                ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count));
-        _popup.PopupEntity(message, ent, PopupType.Medium);
         _audio.PlayPvs(StageSound, ent);
         _flair.Burst(BayArc, ent);
+        if (ent.Comp.Ready)
+        {
+            RollOut(ent);
+            return;
+        }
+
+        _popup.PopupEntity(Loc.GetString("fs-mech-bay-slot-done", ("slot", Loc.GetString(slot.Name)),
+            ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count)), ent, PopupType.Medium);
     }
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
@@ -174,6 +177,11 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
 
         args.Handled = true;
+        RollOut(ent);
+    }
+
+    private void RollOut(Entity<FSMechBayComponent> ent)
+    {
         var mech = Spawn(ent.Comp.Result, Transform(ent).Coordinates);
         if (ent.Comp.Plated && TryComp<MechComponent>(mech, out var mechComp))
         {
@@ -187,7 +195,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         Dirty(ent);
         _audio.PlayPvs(RollOutSound, ent);
         _flair.Burst(DustRing, ent, kick: 0.6f);
-        _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, args.User, PopupType.Large);
+        _popup.PopupEntity(Loc.GetString("fs-mech-bay-rolled-out"), ent, PopupType.Large);
     }
 
     private void OnGetVerbs(Entity<FSMechBayComponent> ent, ref GetVerbsEvent<ExamineVerb> args)
