@@ -42,7 +42,7 @@
     availableModes:
     - FullAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+      path: /Audio/_FinalStand/Deployables/HMG/fire.ogg
       params:
         volume: 2
   - type: BasicEntityAmmoProvider
