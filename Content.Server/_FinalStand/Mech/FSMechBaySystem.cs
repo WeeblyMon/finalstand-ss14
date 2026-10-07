@@ -82,17 +82,23 @@ public sealed partial class FSMechBaySystem : EntitySystem
             if (!plate && !slot.Parts.Exists(p => p.Id == used))
                 continue;
 
-            if (!ent.Comp.CanInstall(slot))
+            if (!ent.Comp.CanInstall(slot) || plate && ent.Comp.Plated)
             {
-                _popup.PopupEntity(Loc.GetString(ent.Comp.Installed.Contains(slot.Id) ? "fs-mech-bay-slot-filled" : "fs-mech-bay-slot-not-yet",
+                _popup.PopupEntity(Loc.GetString(ent.Comp.Installed.Contains(slot.Id) || plate && ent.Comp.Plated ? "fs-mech-bay-slot-filled" : "fs-mech-bay-slot-not-yet",
                     ("slot", Loc.GetString(slot.Name))), ent, args.User);
                 return;
             }
 
             QueueDel(args.Used);
-            if (plate)
-                ent.Comp.Plated = true;
-            Install(ent, slot);
+            if (!plate)
+            {
+                Install(ent, slot);
+                return;
+            }
+
+            ent.Comp.Plated = true;
+            Dirty(ent);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-plate-fitted"), ent, args.User, PopupType.Medium);
             return;
         }
 
@@ -117,7 +123,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
         }
 
-        if (!_silo.Has(args.User, weld.Materials))
+        if (!PlateFitted(ent.Comp, weld) && !_silo.Has(args.User, weld.Materials))
         {
             _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(weld.Materials))), ent, args.User);
             return;
@@ -133,6 +139,12 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
 
         args.Handled = true;
+        if (PlateFitted(ent.Comp, slot))
+        {
+            Install(ent, slot);
+            return;
+        }
+
         if (!_silo.TryConsume(args.User, slot.Materials))
         {
             _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(slot.Materials))), ent, args.User);
@@ -242,19 +254,19 @@ public sealed partial class FSMechBaySystem : EntitySystem
         }
 
         args.PushMarkup(Loc.GetString("fs-mech-bay-examine-progress", ("done", ent.Comp.Installed.Count), ("total", ent.Comp.Slots.Count)));
-        foreach (var slot in ent.Comp.Slots)
-        {
-            if (ent.Comp.Installed.Contains(slot.Id))
-                continue;
+        if (ent.Comp.Next() is not { } slot)
+            return;
 
-            var need = slot.Weldable ? MaterialList(slot.Materials) : PartName(slot.Parts[0]);
-            if (slot.Plate is { } plate)
-                need = Loc.GetString("fs-mech-bay-or-plate", ("need", need), ("plate", PartName(plate)));
-            args.PushMarkup(Loc.GetString("fs-mech-bay-examine-slot", ("slot", Loc.GetString(slot.Name)),
-                ("role", RoleName(slot.Role)), ("need", need), ("weld", slot.Weldable ? "yes" : "no"),
-                ("open", ent.Comp.CanInstall(slot) ? "yes" : "no")));
-        }
+        var need = slot.Weldable ? MaterialList(slot.Materials) : PartName(slot.Parts[0]);
+        if (PlateFitted(ent.Comp, slot))
+            need = Loc.GetString("fs-mech-bay-fitted-plate");
+        else if (slot.Plate is { } plate)
+            need = Loc.GetString("fs-mech-bay-or-plate", ("need", need), ("plate", PartName(plate)));
+        args.PushMarkup(Loc.GetString("fs-mech-bay-examine-next", ("slot", Loc.GetString(slot.Name)),
+            ("role", RoleName(slot.Role)), ("need", need), ("weld", slot.Weldable ? "yes" : "no")));
     }
+
+    private static bool PlateFitted(FSMechBayComponent bay, FSMechBaySlot slot) => bay.Plated && slot.Plate != null;
 
     private string RoleName(FSMechBayRole role) => Loc.GetString(role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science");
 

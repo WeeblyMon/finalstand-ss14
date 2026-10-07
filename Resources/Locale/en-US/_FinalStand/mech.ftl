@@ -26,15 +26,15 @@ fs-mech-bay-slot-done = {$slot} fitted ({$done}/{$total}).
 fs-mech-bay-ready = The Durand is finished. Use the bay to roll it out.
 fs-mech-bay-rolled-out = The Durand rolls off the gantry.
 fs-mech-bay-craft-verb = Build {$name} ({$list})
-fs-mech-bay-examine-progress = Durand parts fitted: [bold]{$done}/{$total}[/bold]. Still missing:
-fs-mech-bay-examine-slot = {$open ->
-    [yes] [color=white]{$slot}[/color]
-   *[no] [color=gray]{$slot}[/color]
-} - {$role} {$weld ->
+fs-mech-bay-craft-category = Build weapon
+fs-mech-bay-examine-progress = Durand parts fitted: [bold]{$done}/{$total}[/bold].
+fs-mech-bay-examine-next = Next: [bold]{$slot}[/bold] - {$role} {$weld ->
     [yes] welds in {$need}
    *[no] brings a {$need}
 }
 fs-mech-bay-or-plate = {$need}, or a {$plate} (tougher hull)
+fs-mech-bay-fitted-plate = the fitted hide plate
+fs-mech-bay-plate-fitted = Hide plate fitted. Weld it in to finish the armour.
 fs-mech-bay-examine-ready = The Durand is finished. Use the bay to roll it out.
 fs-siege-planted = Planted. Heavy armour up.
 fs-siege-unplanted = Unplanted. You can move again.
