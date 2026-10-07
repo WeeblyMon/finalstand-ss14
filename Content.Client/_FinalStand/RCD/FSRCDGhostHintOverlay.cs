@@ -30,7 +30,7 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
     protected override void Draw(in OverlayDrawArgs args)
     {
         var hints = _entMan.System<FSRCDGhostHintSystem>();
-        if (args.ViewportControl == null || hints.Tile is not { } tile || hints.Text is not { } text)
+        if (args.ViewportControl == null || hints.Tile is not { } tile || hints.Text is not { } && !hints.Rotatable)
             return;
 
         var xform = _entMan.System<SharedTransformSystem>();
@@ -44,17 +44,22 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         var center = Vector2.Transform(world.Position, matrix);
         var tileHalf = (Vector2.Transform(world.Position + new Vector2(0f, 0.5f), matrix) - center).Length();
 
-        var size = handle.GetDimensions(_font, text, 1f);
-        var pos = new Vector2(center.X - size.X / 2f, center.Y + tileHalf + 4f);
-        handle.DrawRect(new UIBox2(pos - new Vector2(4f, 2f), pos + size + new Vector2(4f, 2f)), Backing);
-        handle.DrawString(_font, pos, text, hints.Blocked ? BlockedText : hints.Deconstructing ? RefundText : InfoText);
+        var y = center.Y + tileHalf + 4f;
+        if (hints.Text is { } text)
+        {
+            var size = handle.GetDimensions(_font, text, 1f);
+            var pos = new Vector2(center.X - size.X / 2f, y);
+            handle.DrawRect(new UIBox2(pos - new Vector2(4f, 2f), pos + size + new Vector2(4f, 2f)), Backing);
+            handle.DrawString(_font, pos, text, hints.Blocked ? BlockedText : hints.Deconstructing ? RefundText : InfoText);
+            y += size.Y + 6f;
+        }
 
         if (!hints.Rotatable)
             return;
 
         var rotate = Loc.GetString("fs-rcd-rotate-hint");
         var rotateSize = handle.GetDimensions(_font, rotate, 1f);
-        var rotatePos = new Vector2(center.X - rotateSize.X / 2f, pos.Y + size.Y + 6f);
+        var rotatePos = new Vector2(center.X - rotateSize.X / 2f, y);
         handle.DrawRect(new UIBox2(rotatePos - new Vector2(4f, 2f), rotatePos + rotateSize + new Vector2(4f, 2f)), Backing);
         handle.DrawString(_font, rotatePos, rotate, FSPalette.TextMuted);
     }
