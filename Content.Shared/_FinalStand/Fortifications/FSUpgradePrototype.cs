@@ -59,6 +59,18 @@ public sealed partial class FSUpgradePrototype : IPrototype
     public string? Cracks;
 
     [DataField]
+    public string? FoldingState;
+
+    [DataField]
+    public string? FoldedState;
+
+    [DataField]
+    public string? FoldingCracks;
+
+    [DataField]
+    public string? FoldedCracks;
+
+    [DataField]
     public Color? Color;
 
     [DataField]

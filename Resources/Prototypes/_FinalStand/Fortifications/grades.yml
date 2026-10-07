@@ -24,6 +24,10 @@
   plateMaterial: Plasteel
   state: plasteel
   cracks: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
+  foldingState: folding_plasteel
+  foldedState: folding_plasteel_closed
+  foldingCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  foldedCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi
 
 - type: fsUpgrade
   id: FSGradeUranium
@@ -43,3 +47,7 @@
   state: plasteel
   color: "#b9f28c"
   cracks: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
+  foldingState: folding_plasteel
+  foldedState: folding_plasteel_closed
+  foldingCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  foldedCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi

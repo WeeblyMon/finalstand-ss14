@@ -2,6 +2,7 @@
 using Content.Client.Damage;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared._FinalStand.Visuals;
 using Content.Shared.Doors.Components;
 using Robust.Client.GameObjects;
 using Robust.Shared.Prototypes;
@@ -53,7 +54,9 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 
         var grade = Proto.Index(ent.Comp.Grade);
         var target = (ent.Owner, sprite);
-        if (grade.State is { } state)
+        if (TryComp<DoorComponent>(ent, out var door))
+            GradeFolding((ent.Owner, door), target, grade);
+        else if (grade.State is { } state)
             _sprite.LayerSetRsiState(target, 0, state);
 
         if (grade.Color is { } color)
@@ -67,7 +70,8 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 
         HideWhenFolded(ent, sprite);
 
-        if (grade.Cracks is not { } cracks
+        var cracks = door != null ? grade.FoldingCracks : grade.Cracks;
+        if (cracks == null
             || !TryComp<DamageVisualsComponent>(ent, out var damageVisuals)
             || damageVisuals.DamageOverlay is not { } overlay
             || overlay.Sprite == cracks)
@@ -76,6 +80,28 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         overlay.Sprite = cracks;
         if (_sprite.LayerMapTryGet(target, OverlayLayer, out var layer, false))
             _sprite.LayerSetRsi(target, layer, new ResPath(cracks), _sprite.LayerGetRsiState(target, layer));
+    }
+
+    private void GradeFolding(Entity<DoorComponent> door, Entity<SpriteComponent> sprite, FSUpgradePrototype grade)
+    {
+        if (grade.FoldingState is not { } upright || grade.FoldedState is not { } folded)
+            return;
+
+        door.Comp.ClosedSpriteState = upright;
+        door.Comp.OpenSpriteState = folded;
+        if (door.Comp.ClosedSpriteStates is { Count: > 0 } closedStates && door.Comp.OpenSpriteStates is { Count: > 0 } openStates)
+        {
+            closedStates[0] = (DoorVisualLayers.Base, upright);
+            openStates[0] = (DoorVisualLayers.Base, folded);
+        }
+
+        _sprite.LayerSetRsiState(sprite.AsNullable(), 0, door.Comp.State is DoorState.Open or DoorState.Opening ? folded : upright);
+
+        if (grade.FoldedCracks is { } foldedCracks && TryComp<FSFoldedDamageOverlayComponent>(door, out var overlay))
+        {
+            overlay.Folded = foldedCracks;
+            overlay.Upright = grade.FoldingCracks;
+        }
     }
 
     private void AddLayers(Entity<SpriteComponent> sprite, FSUpgradePrototype upgrade)
