@@ -115,6 +115,7 @@
           !type:PhysShapeAabb
           bounds: "-0.35,-0.3,0.35,0.3"
         density: 120
+        hard: false
         mask:
         - MachineMask
         layer:
