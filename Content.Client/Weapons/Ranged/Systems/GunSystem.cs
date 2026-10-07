@@ -348,7 +348,7 @@ public sealed partial class GunSystem : SharedGunSystem
         var ent = Spawn(message.Prototype, coordinates);
         TransformSystem.SetWorldRotationNoLerp(ent, message.Angle);
 
-        if (tracked != null)
+        if (tracked != null && fsFlash.Offset == Vector2.Zero) // FS
         {
             var track = EnsureComp<TrackUserComponent>(ent);
             track.User = tracked;
