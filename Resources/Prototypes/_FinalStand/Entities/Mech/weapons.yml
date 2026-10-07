@@ -73,7 +73,7 @@
     startingCharge: 180
   - type: BatteryAmmoProvider
     proto: FSMech35mmBullet
-    fireCost: 60
+    fireCost: 10
 
 - type: entity
   id: FSMechWeaponRotary
@@ -98,7 +98,7 @@
       path: /Audio/Weapons/Guns/Gunshots/minigun.ogg
   - type: BatteryAmmoProvider
     proto: FSMechRotaryBullet
-    fireCost: 18
+    fireCost: 3
 
 - type: entity
   id: FSMechWeaponShotgun
@@ -123,7 +123,7 @@
       path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
   - type: BatteryAmmoProvider
     proto: FSMechPelletSpread
-    fireCost: 50
+    fireCost: 8
 
 - type: entity
   id: FSMechWeaponDMR
@@ -151,7 +151,7 @@
     startingCharge: 200
   - type: BatteryAmmoProvider
     proto: FSMech90mmShell
-    fireCost: 100
+    fireCost: 17
 
 - type: entity
   id: FSMechWeaponMetronome
@@ -182,7 +182,7 @@
     startingCharge: 300
   - type: BatteryAmmoProvider
     proto: FSMech120mmShell
-    fireCost: 100
+    fireCost: 17
 
 - type: entity
   id: FSMechWeaponBazooka
@@ -205,7 +205,7 @@
     startingCharge: 500
   - type: BatteryAmmoProvider
     proto: FSMechRocket
-    fireCost: 250
+    fireCost: 42
 
 - type: entity
   id: FSMechWeaponFiredart
@@ -224,7 +224,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: BatteryAmmoProvider
     proto: RedLaser
-    fireCost: 10
+    fireCost: 2
 
 - type: entity
   id: FSMechWeaponSolaris
@@ -244,7 +244,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: BatteryAmmoProvider
     proto: RedMediumLaser
-    fireCost: 30
+    fireCost: 5
 
 - type: entity
   id: FSMechWeaponPulseRifle
@@ -263,7 +263,7 @@
       path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
   - type: BatteryAmmoProvider
     proto: Pulse
-    fireCost: 40
+    fireCost: 7
 
 - type: entity
   id: FSMechWeaponTesla
@@ -285,7 +285,7 @@
         variation: 0.2
   - type: BatteryAmmoProvider
     proto: TeslaGunBullet
-    fireCost: 99
+    fireCost: 16
 
 - type: entity
   id: FSMechWeaponRavager
@@ -313,7 +313,7 @@
     startingCharge: 300
   - type: BatteryAmmoProvider
     proto: FSMechPlasmaBolt
-    fireCost: 100
+    fireCost: 17
 
 - type: entity
   id: FSMech35mmBullet
@@ -492,7 +492,7 @@
     startingCharge: 600
   - type: BatteryAmmoProvider
     proto: FSSkyfallMissile
-    fireCost: 50
+    fireCost: 8
   - type: FSSkyfallLauncher
 
 - type: entity
