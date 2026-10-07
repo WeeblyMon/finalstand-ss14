@@ -125,7 +125,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
         if (!PlateFitted(ent.Comp, weld) && !_silo.Has(args.User, weld.Materials))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(weld.Materials))), ent, args.User);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(_silo.Missing(args.User, weld.Materials)))), ent, args.User);
             return;
         }
 
@@ -147,7 +147,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
         if (!_silo.TryConsume(args.User, slot.Materials))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(slot.Materials))), ent, args.User);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(_silo.Missing(args.User, slot.Materials)))), ent, args.User);
             return;
         }
 
@@ -217,7 +217,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
         var craft = ent.Comp.Crafts[index];
         if (!_silo.Has(user, craft.Materials))
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(craft.Materials))), ent, user);
+            _popup.PopupEntity(Loc.GetString("fs-mech-bay-needs-materials", ("list", MaterialList(_silo.Missing(user, craft.Materials)))), ent, user);
             return;
         }
 

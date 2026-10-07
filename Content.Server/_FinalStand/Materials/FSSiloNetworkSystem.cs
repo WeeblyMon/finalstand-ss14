@@ -256,6 +256,20 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
         return true;
     }
 
+    public Dictionary<ProtoId<StackPrototype>, int> Missing(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
+    {
+        var carried = _carried.CountAll(user);
+        var missing = new Dictionary<ProtoId<StackPrototype>, int>();
+        foreach (var (stack, need) in materials)
+        {
+            var have = carried.GetValueOrDefault(stack) + Sheets(user, stack);
+            if (have < need)
+                missing[stack] = need - have;
+        }
+
+        return missing;
+    }
+
     public bool TryConsume(EntityUid user, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)
     {
         if (!Has(user, materials))
