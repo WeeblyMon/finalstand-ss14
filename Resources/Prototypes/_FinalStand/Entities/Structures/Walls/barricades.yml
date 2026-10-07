@@ -143,7 +143,7 @@
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradeSteel
-    options: [ FSBranchFloodlit ]
+    options: [ FSGradePlasteel, FSGradeUranium ]
   - type: UserInterface
     interfaces:
       enum.FSUpgradeUiKey.Key:
@@ -218,7 +218,7 @@
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradePlasteel
-    options: [ FSBranchFloodlit ]
+    options: [ FSGradeUranium ]
   - type: FSPlateRepair
     material: Plasteel
   - type: RCDDeconstructable
