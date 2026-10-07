@@ -1,4 +1,5 @@
-// Effects that follow a state rather than a moment: a hurt mech smokes and sparks, a walking mech kicks up dust, uranium glows,
+// Effects that follow a state rather than a moment: a hurt mech smokes and sparks, a mech out of power flickers and spits sparks,
+// a walking mech kicks up dust, uranium glows,
 // and a fortification chips when it takes a hit.
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Fortifications;
@@ -8,8 +9,10 @@ using Content.Shared.Damage.Components;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Content.Shared._FinalStand.Particles;
+using Robust.Client.GameObjects;
 using Robust.Client.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Effects;
 
@@ -19,8 +22,11 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
     [Dependency] private FSParticleSystem _particles = default!;
     [Dependency] private FSFlairClientSystem _flair = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> Debris = "FSDebris";
+    private static readonly ProtoId<FSParticleEmitterPrototype> PowerSpark = "FSWeldSparks";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> MechSmoke = "FSMechSmoke";
     private static readonly ProtoId<FSParticleEmitterPrototype> MechSparks = "FSMechSparks";
@@ -47,6 +53,8 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
         public int Smoke;
         public int Sparks;
         public System.Numerics.Vector2 LastStep;
+        public bool Dimmed;
+        public double NextSpark;
     }
 
     public override void FrameUpdate(float frameTime)
@@ -92,6 +100,7 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
             var alive = !mech.Broken;
             _particles.SetRateScale(flair.Smoke, alive && health < SmokeBelow ? 1f : 0f);
             _particles.SetRateScale(flair.Sparks, alive && health < SparksBelow ? 1f : 0f);
+            Brownout(uid, flair, alive && mech.CriticalPowerState);
 
             var pos = _transform.GetWorldPosition(xform);
             if ((pos - flair.LastStep).Length() < StepLength)
@@ -119,6 +128,32 @@ public sealed partial class FSLingeringFlairSystem : EntitySystem
         }
 
         _dead.Clear();
+    }
+
+    private void Brownout(EntityUid uid, MechFlair flair, bool low)
+    {
+        if (!TryComp<SpriteComponent>(uid, out var sprite))
+            return;
+
+        if (!low)
+        {
+            if (flair.Dimmed)
+                _sprite.SetColor((uid, sprite), Color.White);
+            flair.Dimmed = false;
+            return;
+        }
+
+        flair.Dimmed = true;
+        var t = _timing.RealTime.TotalSeconds;
+        var stutter = (int) (t * 9) * 7919 % 13 == 0;
+        var level = stutter ? 0.35f : 0.68f + 0.12f * MathF.Sin((float) t * 3f);
+        _sprite.SetColor((uid, sprite), new Color(level, level, level * 1.05f));
+
+        if (t < flair.NextSpark)
+            return;
+
+        flair.NextSpark = t + 0.7 + (int) (t * 13) % 9 * 0.1;
+        _particles.Burst(PowerSpark, uid, countScale: 0.4f);
     }
 
     private void UpdateDebris()

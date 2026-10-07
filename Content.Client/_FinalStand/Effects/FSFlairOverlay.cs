@@ -12,6 +12,7 @@ using Robust.Client.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Effects;
 
@@ -27,6 +28,9 @@ public sealed partial class FSFlairOverlay : Overlay
     private static readonly Color CoverColor = Color.FromHex("#d9c39a");
     private static readonly Color LaserColor = Color.FromHex("#ff5a4a");
     private static readonly Color AlarmColor = Color.FromHex("#ff2a2a");
+    private static readonly SpriteSpecifier LowPowerIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/Interface/Alerts/battery.rsi"), "battery0");
+    private const float LowPowerIconSize = 0.5f;
+    private const float LowPowerIconHeight = 1.1f;
     private const float ShieldRadius = 1.25f;
     private const int ShieldSegments = 16;
     private const float CoverRange = 8f;
@@ -136,18 +140,16 @@ public sealed partial class FSFlairOverlay : Overlay
 
     private void DrawLowPower(DrawingHandleWorld handle, in OverlayDrawArgs args, TimeSpan now)
     {
-        if ((int) (now.TotalSeconds * 2) % 2 == 1)
-            return;
-
+        var pulse = 0.55f + 0.45f * MathF.Abs(MathF.Sin((float) now.TotalSeconds * 3f));
+        var icon = _sprite!.Frame0(LowPowerIcon);
         var query = _entMan.EntityQueryEnumerator<FSCombatMechComponent, MechComponent, TransformComponent>();
         while (query.MoveNext(out _, out _, out var mech, out var xform))
         {
             if (!mech.CriticalPowerState || mech.Broken || xform.MapID != args.MapId)
                 continue;
 
-            var center = _xform!.GetWorldPosition(xform);
-            handle.DrawCircle(center, 0.9f, AlarmColor.WithAlpha(0.12f));
-            handle.DrawCircle(center, 0.9f, AlarmColor.WithAlpha(0.6f), false);
+            var at = _xform!.GetWorldPosition(xform) + new Vector2(0f, LowPowerIconHeight);
+            handle.DrawTextureRect(icon, Box2.CenteredAround(at, new Vector2(LowPowerIconSize)), AlarmColor.WithAlpha(pulse));
         }
     }
 
