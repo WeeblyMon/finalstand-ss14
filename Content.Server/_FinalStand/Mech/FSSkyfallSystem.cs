@@ -120,7 +120,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
 
     private void OnPreventCollide(Entity<FSSkyfallMissileComponent> ent, ref PreventCollideEvent args)
     {
-        if (!ent.Comp.Diving)
+        if (!ent.Comp.Diving || !HasComp<WaveSpawnedTagComponent>(args.OtherEntity))
             args.Cancelled = true;
     }
 
