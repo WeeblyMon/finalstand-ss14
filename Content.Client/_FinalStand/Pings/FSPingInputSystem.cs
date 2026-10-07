@@ -31,6 +31,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
     private static readonly TimeSpan HoldTime = TimeSpan.FromSeconds(0.15);
     private static readonly TimeSpan DoubleTap = TimeSpan.FromSeconds(0.3);
     private static readonly TimeSpan Chatter = TimeSpan.FromSeconds(0.08);
+    private static readonly TimeSpan AfterDanger = TimeSpan.FromSeconds(0.4);
     private const float DragDistance = 20f;
     private const float DoubleTapDistance = 30f;
 
@@ -44,6 +45,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
     private TimeSpan _lastTap;
     private Vector2 _lastTapScreen;
     private (EntityCoordinates Coords, EntityUid? Target, TimeSpan SendAt)? _pendingTap;
+    private TimeSpan _quietUntil;
 
     public override void Initialize()
     {
@@ -63,7 +65,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
 
     private void OnPingDown(ICommonSession? session)
     {
-        if (_wheel != null || _timing.RealTime - _lastTap < Chatter || !Capture())
+        if (_wheel != null || _timing.RealTime - _lastTap < Chatter || _timing.RealTime < _quietUntil || !Capture())
             return;
 
         _holding = true;
@@ -92,6 +94,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
         if (doubled)
         {
             _pendingTap = null;
+            _quietUntil = now + AfterDanger;
             Send(FSPingType.Danger);
             return;
         }
