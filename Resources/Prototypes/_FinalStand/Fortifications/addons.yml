@@ -11,7 +11,6 @@
     Steel: 3
   hits: 3
   breach: 1.5
-  awayFromDoors: 1.5
   layers:
   - sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     state: wire

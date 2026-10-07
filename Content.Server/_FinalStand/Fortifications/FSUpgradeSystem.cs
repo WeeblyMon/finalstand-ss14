@@ -16,7 +16,6 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
-using Content.Shared.Doors.Components;
 using Content.Shared.Destructible.Thresholds.Triggers;
 using Content.Shared.Examine;
 using System.Linq;
@@ -48,7 +47,6 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
@@ -282,12 +280,6 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             return;
         }
 
-        if (upgrade.AwayFromDoors > 0f && NearDoor(ent, upgrade.AwayFromDoors))
-        {
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-blocked-near-door"), ent, user);
-            return;
-        }
-
         if (ent.Comp.Pending != args.Upgrade)
         {
             ent.Comp.Pending = args.Upgrade;
@@ -419,17 +411,6 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             multiplier *= Proto.Index(module).Breach;
 
         return MathF.Min(multiplier, MaxBreachMultiplier);
-    }
-
-    private bool NearDoor(EntityUid uid, float range)
-    {
-        foreach (var door in _lookup.GetEntitiesInRange<DoorComponent>(Transform(uid).Coordinates, range))
-        {
-            if (door.Owner != uid)
-                return true;
-        }
-
-        return false;
     }
 
     private void Recalculate(Entity<FSUpgradeableComponent> ent)
