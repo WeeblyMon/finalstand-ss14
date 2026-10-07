@@ -1,4 +1,4 @@
-# The Durand: a slow, heavily armoured combat mech built at the Mech Bay. Ported from Goob-Station's MechDurand onto vanilla's vehicle mechs.
+# The Broadsword: a slow, heavily armoured combat mech built at the Mech Bay. Ported from Goob-Station's MechDurand onto vanilla's vehicle mechs.
 - type: damageModifierSet
   id: FSMechArmor
   coefficients:
@@ -25,9 +25,9 @@
     Heat: 12
 
 - type: entity
-  id: FSMechDurand
+  id: FSMechBroadsword
   parent: BaseMech
-  name: Durand
+  name: Broadsword
   description: A slow combat mech with heavy armour and hard punches. Plant it in siege mode to hold a lane.
   components:
   - type: Sprite
@@ -97,7 +97,7 @@
   parent: BaseMechAction
   id: FSActionMechSiege
   name: Siege mode
-  description: Plant the Durand. Planted, it can't move, wears heavier armour and takes half damage from the front. Unplanting takes two seconds.
+  description: Plant the Broadsword. Planted, it can't move, wears heavier armour and takes half damage from the front. Unplanting takes two seconds.
   components:
   - type: Action
     useDelay: 3
@@ -109,8 +109,8 @@
     event: !type:FSSiegeModeActionEvent
 
 - type: entity
-  id: FSMechDurandBattery
-  parent: FSMechDurand
+  id: FSMechBroadswordBattery
+  parent: FSMechBroadsword
   suffix: Battery
   components:
   - type: ContainerFill

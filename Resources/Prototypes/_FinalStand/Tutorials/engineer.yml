@@ -40,8 +40,8 @@
   - image:
       sprite: _FinalStand/Objects/Mech/broadsword.rsi
       state: broadsword
-    title: fs-tutorial-eng-durand-title
-    text: fs-tutorial-eng-durand-text
+    title: fs-tutorial-eng-broadsword-title
+    text: fs-tutorial-eng-broadsword-text
   - image:
       sprite: Structures/Machines/silo.rsi
       state: silo

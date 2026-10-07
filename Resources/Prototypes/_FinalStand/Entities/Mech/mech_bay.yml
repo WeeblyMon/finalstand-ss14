@@ -1,8 +1,8 @@
-# The Mech Bay: Engineering builds it with the RCD, then the Durand goes on part by part: welded frame and limbs, Science boards, armour last.
+# The Mech Bay: Engineering builds it with the RCD, then the Broadsword goes on part by part: welded frame and limbs, Science boards, armour last.
 - type: entity
   id: FSMechBay
   name: mech bay
-  description: A 3x3 assembly gantry. A Durand goes on it part by part, and a mech parked on it recharges and gets patched up.
+  description: A 3x3 assembly gantry. A Broadsword goes on it part by part, and a mech parked on it recharges and gets patched up.
   placement:
     mode: SnapgridCenter
   components:
@@ -88,12 +88,12 @@
     - id: core
       name: fs-mech-bay-slot-core
       role: Science
-      parts: [ FSDurandControlModule ]
+      parts: [ FSBroadswordControlModule ]
       icon: broadsword_harness
     - id: targeting
       name: fs-mech-bay-slot-targeting
       role: Science
-      parts: [ FSDurandTargetingModule ]
+      parts: [ FSBroadswordTargetingModule ]
       icon: broadsword_head
     - id: armour
       name: fs-mech-bay-slot-armour
@@ -103,7 +103,7 @@
         Plasteel: 10
         Uranium: 3
         Diamond: 1
-      plate: FSDurandBossPlate
+      plate: FSBroadswordBossPlate
       time: 8
       icon: broadsword_armor
     crafts:
@@ -146,9 +146,9 @@
 
 - type: entity
   parent: BaseItem
-  id: FSDurandControlModule
-  name: Durand control core
-  description: The central control and peripherals boards for a Durand. Fit it at the Mech Bay.
+  id: FSBroadswordControlModule
+  name: Broadsword control core
+  description: The central control and peripherals boards for a Broadsword. Fit it at the Mech Bay.
   components:
   - type: Sprite
     sprite: Objects/Misc/module.rsi
@@ -158,8 +158,8 @@
 
 - type: entity
   parent: BaseItem
-  id: FSDurandTargetingModule
-  name: Durand targeting and power module
+  id: FSBroadswordTargetingModule
+  name: Broadsword targeting and power module
   description: Weapon targeting boards with a power cell already wired in. Fit it at the Mech Bay.
   components:
   - type: Sprite
@@ -170,9 +170,9 @@
 
 - type: entity
   parent: BaseItem
-  id: FSDurandBossPlate
+  id: FSBroadswordBossPlate
   name: giant hide plate
-  description: A slab of armour torn off a Giant. Too heavy to carry with one hand. Haul it to the Mech Bay to plate a Durand with a tougher hull.
+  description: A slab of armour torn off a Giant. Too heavy to carry with one hand. Haul it to the Mech Bay to plate a Broadsword with a tougher hull.
   components:
   - type: Sprite
     sprite: _FinalStand/Structures/MechBay/broadsword_construction.rsi
@@ -189,8 +189,8 @@
       path: /Audio/Effects/metal_thud1.ogg
 
 - type: latheRecipe
-  id: FSDurandControlModule
-  result: FSDurandControlModule
+  id: FSBroadswordControlModule
+  result: FSBroadswordControlModule
   categories:
   - Robotics
   completetime: 8
@@ -201,8 +201,8 @@
     Silver: 300
 
 - type: latheRecipe
-  id: FSDurandTargetingModule
-  result: FSDurandTargetingModule
+  id: FSBroadswordTargetingModule
+  result: FSBroadswordTargetingModule
   categories:
   - Robotics
   completetime: 8
@@ -272,8 +272,8 @@
     Plasma: 400
 
 - type: technology
-  id: FSDurandElectronics
-  name: research-technology-fs-durand-electronics
+  id: FSBroadswordElectronics
+  name: research-technology-fs-broadsword-electronics
   icon:
     sprite: _FinalStand/Objects/Mech/broadsword.rsi
     state: broadsword
@@ -281,8 +281,8 @@
   tier: 3
   cost: 15000
   recipeUnlocks:
-  - FSDurandControlModule
-  - FSDurandTargetingModule
+  - FSBroadswordControlModule
+  - FSBroadswordTargetingModule
 
 - type: technology
   id: FSMechEnergyWeapons

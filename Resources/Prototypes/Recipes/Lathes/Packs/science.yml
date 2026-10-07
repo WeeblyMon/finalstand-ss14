@@ -15,8 +15,8 @@
 - type: latheRecipePack
   id: ScienceEquipment
   recipes:
-  - FSDurandControlModule # FS
-  - FSDurandTargetingModule # FS
+  - FSBroadswordControlModule # FS
+  - FSBroadswordTargetingModule # FS
   - AnomalyScanner
   - NodeScanner
   - AnomalyLocator

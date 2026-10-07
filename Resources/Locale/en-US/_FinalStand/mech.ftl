@@ -1,8 +1,8 @@
 fs-rcd-mech-bay = mech bay
 fs-rcd-cap-group-mechbay = mech bay
-fs-rcd-role-FSMechBay = Where the Durand is built, armed and recharged.
+fs-rcd-role-FSMechBay = Where the Broadsword is built, armed and recharged.
 fs-rcd-needs-research = Science hasn't researched this yet.
-research-technology-fs-durand-electronics = Durand Electronics
+research-technology-fs-broadsword-electronics = Broadsword Electronics
 research-technology-fs-mech-energy-weapons = Mech Energy Weapons
 
 fs-mech-bay-role-engineering = Engineering
@@ -23,10 +23,10 @@ fs-mech-bay-needs-materials = Short of {$list} (carried and silo together).
 fs-mech-bay-slot-filled = The {$slot} is already fitted.
 fs-mech-bay-slot-not-yet = The {$slot} can't go on yet. The chassis goes first and the armour last.
 fs-mech-bay-slot-done = {$slot} fitted ({$done}/{$total}).
-fs-mech-bay-rolled-out = The Durand rolls off the gantry.
+fs-mech-bay-rolled-out = The Broadsword rolls off the gantry.
 fs-mech-bay-craft-verb = Build {$name} ({$list})
 fs-mech-bay-craft-category = Build weapon
-fs-mech-bay-examine-progress = Durand parts fitted: [bold]{$done}/{$total}[/bold].
+fs-mech-bay-examine-progress = Broadsword parts fitted: [bold]{$done}/{$total}[/bold].
 fs-mech-bay-examine-next = Next: [bold]{$slot}[/bold] - {$role} {$weld ->
     [yes] welds in {$need}
    *[no] brings a {$need}
@@ -34,13 +34,13 @@ fs-mech-bay-examine-next = Next: [bold]{$slot}[/bold] - {$role} {$weld ->
 fs-mech-bay-or-plate = {$need}, or a {$plate} (tougher hull)
 fs-mech-bay-fitted-plate = the fitted hide plate
 fs-mech-bay-plate-fitted = Hide plate fitted. Weld it in to finish the armour.
-fs-mech-bay-examine-ready = The Durand is finished. Use the bay to roll it out.
+fs-mech-bay-examine-ready = The Broadsword is finished. Use the bay to roll it out.
 fs-siege-planted = Planted. Heavy armour up.
 fs-siege-unplanted = Unplanted. You can move again.
 fs-mech-mount-full = That mount size is already taken.
 fs-mech-wrecked = Your mech is wrecked! Get clear!
 fs-objective-bay = Mech Bay {$stage}/{$total} - next: {$name} ({$role})
-fs-objective-bay-ready = Durand ready to roll out
+fs-objective-bay-ready = Broadsword ready to roll out
 fs-objective-silo-low = Silo low: {$sheets} steel
 fs-objective-emplacement-prep = Emplacement not set up
 fs-objective-emplacement-down = Emplacement packed during a wave

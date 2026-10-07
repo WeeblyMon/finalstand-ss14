@@ -1,4 +1,4 @@
-// A 3x3 gantry where a Durand is assembled part by part, and where a parked one recharges.
+// A 3x3 gantry where a Broadsword is assembled part by part, and where a parked one recharges.
 using System.Linq;
 using Content.Shared.Stacks;
 using Robust.Shared.GameStates;
@@ -14,7 +14,7 @@ public sealed partial class FSMechBayComponent : Component
     public List<FSMechBaySlot> Slots = new();
 
     [DataField]
-    public EntProtoId Result = "FSMechDurandBattery";
+    public EntProtoId Result = "FSMechBroadswordBattery";
 
     [DataField]
     public List<FSMechBayCraft> Crafts = new();

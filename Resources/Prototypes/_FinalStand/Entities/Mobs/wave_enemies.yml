@@ -294,7 +294,7 @@
       chance: 1.0
     - proto: FSResearchDisk
       chance: 0.0005
-    - proto: FSDurandBossPlate
+    - proto: FSBroadswordBossPlate
       chance: 1.0
     - proto: FSOverclockRandom
       chance: 0.5

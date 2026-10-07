@@ -1,4 +1,4 @@
-# Durand weapons on Monolith's mount sizes. Ballistics are Monolith's combat guns, retuned for zombies; Engineering builds them at the Mech Bay.
+# Broadsword weapons on Monolith's mount sizes. Ballistics are Monolith's combat guns, retuned for zombies; Engineering builds them at the Mech Bay.
 # Energy guns are Goob-Station's; Science prints them. Every gun runs off a cell the mech tops up from its own power.
 - type: Tag
   id: LightMechMount
