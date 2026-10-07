@@ -1,4 +1,5 @@
-// The ping key: tap for a smart ping on whatever is under the cursor, double-tap for danger, hold or drag for the wheel.
+// The ping key: tap for a smart ping on whatever is under the cursor, double-tap for danger alone, hold or drag for the wheel.
+// A single tap waits out the double-tap window before it is sent.
 // The wheel key opens the same wheel and waits for a click.
 using System.Numerics;
 using Content.Client.Gameplay;
@@ -42,6 +43,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
     private EntityUid? _pressTarget;
     private TimeSpan _lastTap;
     private Vector2 _lastTapScreen;
+    private (EntityCoordinates Coords, EntityUid? Target, TimeSpan SendAt)? _pendingTap;
 
     public override void Initialize()
     {
@@ -84,10 +86,17 @@ public sealed partial class FSPingInputSystem : EntitySystem
         }
 
         var now = _timing.RealTime;
-        var doubled = now - _lastTap < DoubleTap && (_pressScreen - _lastTapScreen).Length() < DoubleTapDistance;
-        _lastTap = doubled ? TimeSpan.Zero : now;
+        var doubled = _pendingTap != null && now - _lastTap < DoubleTap && (_pressScreen - _lastTapScreen).Length() < DoubleTapDistance;
+        _lastTap = now;
         _lastTapScreen = _pressScreen;
-        Send(doubled ? FSPingType.Danger : null);
+        if (doubled)
+        {
+            _pendingTap = null;
+            Send(FSPingType.Danger);
+            return;
+        }
+
+        _pendingTap = (_pressCoords, _pressTarget, now + DoubleTap);
     }
 
     private void OnWheelKey(ICommonSession? session)
@@ -119,6 +128,12 @@ public sealed partial class FSPingInputSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
+        if (_pendingTap is { } tap && _timing.RealTime >= tap.SendAt)
+        {
+            _pendingTap = null;
+            RaiseNetworkEvent(new FSPingRequestEvent(GetNetCoordinates(tap.Coords), tap.Target is { } target ? GetNetEntity(target) : null, null));
+        }
+
         if (_wheel != null)
         {
             _wheel.Track(_input.MouseScreenPosition.Position);
