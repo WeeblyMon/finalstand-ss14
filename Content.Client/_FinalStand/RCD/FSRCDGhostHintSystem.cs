@@ -42,6 +42,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     public string? Text { get; private set; }
     public bool Blocked { get; private set; }
     public bool Deconstructing { get; private set; }
+    public bool Rotatable { get; private set; }
 
     private (EntityUid Rcd, EntityCoordinates Tile, string Proto, EntityUid? Target, Direction Dir) _lastKey;
     private TimeSpan _nextProbe;
@@ -75,6 +76,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
         Text = null;
         Blocked = false;
         Deconstructing = false;
+        Rotatable = false;
 
         if (_player.LocalEntity is not { } player
             || !_hands.TryGetActiveItem(player, out var held)
@@ -109,6 +111,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
 
         var proto = ProtoMan.Index(rcd.ProtoId);
         Deconstructing = proto.Mode == RcdMode.Deconstruct;
+        Rotatable = proto.Mode == RcdMode.ConstructObject && proto.Rotation == RcdRotation.User;
         EntityUid? target = proto.Mode == RcdMode.Deconstruct && _state.CurrentState is GameplayStateBase screen
             ? screen.GetClickedEntity(mapCoords)
             : null;

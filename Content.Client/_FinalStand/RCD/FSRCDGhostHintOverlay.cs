@@ -48,5 +48,14 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         var pos = new Vector2(center.X - size.X / 2f, center.Y + tileHalf + 4f);
         handle.DrawRect(new UIBox2(pos - new Vector2(4f, 2f), pos + size + new Vector2(4f, 2f)), Backing);
         handle.DrawString(_font, pos, text, hints.Blocked ? BlockedText : hints.Deconstructing ? RefundText : InfoText);
+
+        if (!hints.Rotatable)
+            return;
+
+        var rotate = Loc.GetString("fs-rcd-rotate-hint");
+        var rotateSize = handle.GetDimensions(_font, rotate, 1f);
+        var rotatePos = new Vector2(center.X - rotateSize.X / 2f, pos.Y + size.Y + 6f);
+        handle.DrawRect(new UIBox2(rotatePos - new Vector2(4f, 2f), rotatePos + rotateSize + new Vector2(4f, 2f)), Backing);
+        handle.DrawString(_font, rotatePos, rotate, FSPalette.TextMuted);
     }
 }
