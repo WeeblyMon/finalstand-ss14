@@ -57,3 +57,7 @@ fs-overclock-quick-loader = Quick Loader
 fs-skyfall-lock = LOCK
 fs-skyfall-lock-many = LOCK ×{$count}
 fs-skyfall-reload = RELOAD {$seconds}s
+fs-mech-hud-hull = HULL {$value}
+fs-mech-hud-power = PWR {$value}
+fs-mech-hud-siege = SIEGE
+fs-mech-hud-low-power = LOW POWER · RECHARGE AT THE MECH BAY
