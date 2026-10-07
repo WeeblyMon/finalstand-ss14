@@ -8,6 +8,7 @@ using Content.Shared.GameTicking;
 using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
 using Content.Shared.Stacks;
+using Robust.Server.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Materials;
@@ -21,6 +22,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private PvsOverrideSystem _pvs = default!;
 
     private readonly Dictionary<ProtoId<StackPrototype>, (string Material, int PerSheet)?> _sheetMaterials = new();
     private readonly Dictionary<string, int> _reserved = new();
@@ -160,6 +162,14 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
             network.Pool = isPool;
             Dirty(uid, network);
+        }
+
+        if (_pool != best)
+        {
+            if (_pool is { } old && Exists(old))
+                _pvs.RemoveGlobalOverride(old);
+            if (best is { } chosen)
+                _pvs.AddGlobalOverride(chosen);
         }
 
         _pool = best;
