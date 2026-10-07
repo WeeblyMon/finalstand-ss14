@@ -1,4 +1,4 @@
-// Shows the half-built Durand on the Mech Bay pad, further along with each part fitted.
+// Shows the half-built mech on the Mech Bay pad, further along with each part fitted.
 using Content.Shared._FinalStand.Mech;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -34,6 +34,6 @@ public sealed partial class FSMechBayVisualizerSystem : EntitySystem
         var total = Math.Max(1, ent.Comp.Slots.Count);
         _sprite.LayerSetVisible((ent.Owner, sprite), layer, done > 0);
         if (done > 0)
-            _sprite.LayerSetRsiState((ent.Owner, sprite), layer, $"durand{done * ent.Comp.FrameStates / total}");
+            _sprite.LayerSetRsiState((ent.Owner, sprite), layer, $"{ent.Comp.FramePrefix}{done * ent.Comp.FrameStates / total}");
     }
 }

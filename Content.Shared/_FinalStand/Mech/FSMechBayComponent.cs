@@ -20,10 +20,13 @@ public sealed partial class FSMechBayComponent : Component
     public List<FSMechBayCraft> Crafts = new();
 
     [DataField]
-    public string Sprite = "_FinalStand/Structures/MechBay/durand_construction.rsi";
+    public string Sprite = "_FinalStand/Structures/MechBay/broadsword_construction.rsi";
 
     [DataField]
     public int FrameStates = 18;
+
+    [DataField]
+    public string FramePrefix = "broadsword";
 
     [AutoNetworkedField]
     public List<string> Installed = new();
