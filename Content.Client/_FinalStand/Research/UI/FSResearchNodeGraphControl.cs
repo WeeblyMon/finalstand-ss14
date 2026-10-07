@@ -43,7 +43,6 @@ public sealed partial class FSResearchNodeGraphControl : Control
     private readonly FontResource _boldFont;
     private readonly FontResource _regularFont;
     private readonly FontResource _monoFont;
-    private readonly Texture _discTexture;
     private readonly Texture _glowTexture;
     private readonly Dictionary<(FontResource, int), Font> _fonts = new();
     private readonly Dictionary<string, List<string>> _wrapCache = new();
@@ -98,7 +97,6 @@ public sealed partial class FSResearchNodeGraphControl : Control
         _monoFont = _resourceCache.GetResource<FontResource>("/EngineFonts/NotoSans/NotoSansMono-Regular.ttf");
 
         const string dir = "/Textures/_FinalStand/Interface/Research/";
-        _discTexture = _resourceCache.GetResource<TextureResource>(dir + "node_disc.png").Texture;
         _glowTexture = _resourceCache.GetResource<TextureResource>(dir + "node_glow.png").Texture;
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Content.Client._FinalStand.UI;
 using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Research.UI;
@@ -240,7 +241,7 @@ public sealed partial class FSResearchNodeGraphControl
     }
 
     private static void DrawRing(DrawingHandleScreen handle, Vector2 center, float radius, float thickness, Color color)
-        => DrawArc(handle, center, radius, thickness, 0f, MathF.Tau, color);
+        => FSShapes.Ring(handle, center, radius + thickness / 2f, thickness, color);
 
     private static void DrawDashedRing(DrawingHandleScreen handle, Vector2 center, float radius, float thickness,
         float dash, float gap, Color color, float phase = 0f)
@@ -272,8 +273,8 @@ public sealed partial class FSResearchNodeGraphControl
         return points;
     }
 
-    private void DrawDisc(DrawingHandleScreen handle, Vector2 center, float radius, Color color)
-        => handle.DrawTextureRect(_discTexture, UIBox2.FromDimensions(center - new Vector2(radius), new Vector2(radius * 2)), color);
+    private static void DrawDisc(DrawingHandleScreen handle, Vector2 center, float radius, Color color)
+        => FSShapes.Disc(handle, center, radius, color);
 
     private void DrawGlow(DrawingHandleScreen handle, Vector2 center, float radius, Color color)
         => handle.DrawTextureRect(_glowTexture, UIBox2.FromDimensions(center - new Vector2(radius), new Vector2(radius * 2)), color);
