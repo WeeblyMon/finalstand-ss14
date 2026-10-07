@@ -36,6 +36,8 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudSystem
 {
+    private const int RechargeHintAt = 30;
+
     [Dependency] private ItemSlotsSystem _itemSlots = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private EntityWhitelistSystem _magWhitelist = default!;
@@ -145,7 +147,8 @@ public sealed partial class WaveHudSystem
         }
 
         overlay.ItemDetail = Loc.GetString(siege ? "fs-hud-mech-detail-siege" : "fs-hud-mech-detail",
-            ("energy", energy), ("integrity", integrity), ("max", max), ("low", mech.Comp.CriticalPowerState ? "yes" : "no"));
+            ("energy", energy), ("integrity", integrity), ("max", max), ("low", mech.Comp.CriticalPowerState ? "yes" : "no"),
+            ("recharge", energy <= RechargeHintAt ? "yes" : "no"));
     }
 
     private void UpdateHmg(WaveHudOverlay overlay, Entity<FSHMGComponent> hmg)
