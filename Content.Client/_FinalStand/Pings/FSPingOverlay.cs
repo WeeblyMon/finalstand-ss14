@@ -227,9 +227,9 @@ public sealed partial class FSPingOverlay : Overlay
             handle.DrawString(row, new Vector2(x + 36f, y + 2f), line, FSPingLook.InfoColor);
 
             var status = task.ClaimedBy is { } claimer
-                ? Loc.GetString("fs-ping-task-claimed", ("name", claimer))
-                : task.Requester;
-            handle.DrawString(sub, new Vector2(x + 36f, y + 17f), Truncate(handle, sub, status, width - 90f),
+                ? Claimed(handle, sub, claimer, width - 90f)
+                : Truncate(handle, sub, task.Requester, width - 90f);
+            handle.DrawString(sub, new Vector2(x + 36f, y + 17f), status,
                 task.ClaimedBy != null ? FSPingLook.EnemyColor : FSPingLook.InfoColor.WithAlpha(0.6f));
 
             if (TaskWorld(task) is { } world && world.MapId == me.MapId)
@@ -286,6 +286,22 @@ public sealed partial class FSPingOverlay : Overlay
     private static float Pop(float t)
     {
         return t < 0.7f ? 1.15f * (t / 0.7f) : 1.15f - 0.15f * ((t - 0.7f) / 0.3f);
+    }
+
+    private static string Claimed(DrawingHandleScreen handle, Font font, string name, float max)
+    {
+        var full = Loc.GetString("fs-ping-task-claimed", ("name", name));
+        if (handle.GetDimensions(font, full, 1f).X <= max)
+            return full;
+
+        for (var len = name.Length - 1; len > 0; len--)
+        {
+            var cut = Loc.GetString("fs-ping-task-claimed", ("name", name.Substring(0, len) + "…"));
+            if (handle.GetDimensions(font, cut, 1f).X <= max)
+                return cut;
+        }
+
+        return full;
     }
 
     private static string Truncate(DrawingHandleScreen handle, Font font, string text, float max)
