@@ -1,9 +1,10 @@
-// Keeps the pings and tasks the server sent, drops expired ones, plays a short sound per category and logs your role's pings in chat.
+// Keeps the pings and tasks the server sent, drops expired ones and ones whose mob has died, plays a short sound from the ping and logs your role's pings in chat.
 using Content.Client.UserInterface.Systems.Chat;
 using Content.Shared._FinalStand.Departments;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared.CCVar;
 using Content.Shared.Chat;
+using Content.Shared.Mobs.Systems;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
@@ -27,8 +28,10 @@ public sealed partial class FSPingClientSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     private const int PerSender = 3;
+    private const float PingHearing = 18f;
     private static readonly TimeSpan BossFlash = TimeSpan.FromSeconds(0.8);
     private static readonly SoundSpecifier InfoSound = new SoundPathSpecifier("/Audio/Machines/quickbeep.ogg");
     private static readonly SoundSpecifier EnemySound = new SoundPathSpecifier("/Audio/Machines/twobeep.ogg");
@@ -84,7 +87,11 @@ public sealed partial class FSPingClientSystem : EntitySystem
             _ => InfoSound,
         };
 
-        _audio.PlayGlobal(sound, Filter.Local(), false, AudioParams.Default.WithVolume(forMe ? -2f : -9f));
+        var volume = AudioParams.Default.WithVolume(forMe ? -2f : -9f);
+        if (ev.Type == FSPingType.Boss)
+            _audio.PlayGlobal(sound, Filter.Local(), false, volume);
+        else
+            _audio.PlayStatic(sound, Filter.Local(), GetCoordinates(ev.Coords), false, volume.WithMaxDistance(PingHearing));
         if (ev.Type == FSPingType.Boss)
             BossFlashUntil = now + BossFlash;
 
@@ -114,6 +121,11 @@ public sealed partial class FSPingClientSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         var now = _timing.RealTime;
-        Pings.RemoveAll(p => now >= p.End);
+        Pings.RemoveAll(p => now >= p.End || TargetGone(p.Data));
+    }
+
+    private bool TargetGone(FSPingEvent ping)
+    {
+        return ping.Target is { } net && TryGetEntity(net, out var target) && Exists(target) && _mobState.IsDead(target.Value);
     }
 }
