@@ -11,8 +11,8 @@
     layers:
     - sprite: _FinalStand/Structures/MechBay/mech_bay.rsi
       state: pad
-    - sprite: _FinalStand/Structures/MechBay/durand_construction.rsi
-      state: durand0
+    - sprite: _FinalStand/Structures/MechBay/broadsword_construction.rsi
+      state: broadsword0
       visible: false
       map: [ "enum.FSMechBayVisualLayers.Stage" ]
   - type: Clickable
@@ -60,41 +60,41 @@
         Steel: 10
         Plasteel: 5
       time: 6
-      icon: durand_chassis
+      icon: broadsword_chassis
     - id: left-leg
       name: fs-mech-bay-slot-left-leg
       role: Engineering
       materials:
         Steel: 3
-      icon: durand_l_leg
+      icon: broadsword_l_leg
     - id: right-leg
       name: fs-mech-bay-slot-right-leg
       role: Engineering
       materials:
         Steel: 3
-      icon: durand_r_leg
+      icon: broadsword_r_leg
     - id: left-arm
       name: fs-mech-bay-slot-left-arm
       role: Engineering
       materials:
         Steel: 3
-      icon: durand_l_arm
+      icon: broadsword_l_arm
     - id: right-arm
       name: fs-mech-bay-slot-right-arm
       role: Engineering
       materials:
         Steel: 3
-      icon: durand_r_arm
+      icon: broadsword_r_arm
     - id: core
       name: fs-mech-bay-slot-core
       role: Science
       parts: [ FSDurandControlModule ]
-      icon: durand_harness
+      icon: broadsword_harness
     - id: targeting
       name: fs-mech-bay-slot-targeting
       role: Science
       parts: [ FSDurandTargetingModule ]
-      icon: durand_head
+      icon: broadsword_head
     - id: armour
       name: fs-mech-bay-slot-armour
       role: Engineering
@@ -105,7 +105,7 @@
         Diamond: 1
       plate: FSDurandBossPlate
       time: 8
-      icon: durand_armor
+      icon: broadsword_armor
     crafts:
     - proto: FSMechWeaponAutocannon
       materials:
@@ -175,8 +175,8 @@
   description: A slab of armour torn off a Giant. Too heavy to carry with one hand. Haul it to the Mech Bay to plate a Durand with a tougher hull.
   components:
   - type: Sprite
-    sprite: _FinalStand/Structures/MechBay/durand_construction.rsi
-    state: durand_armor
+    sprite: _FinalStand/Structures/MechBay/broadsword_construction.rsi
+    state: broadsword_armor
     color: "#c9b79a"
   - type: Item
     size: Huge
@@ -275,8 +275,8 @@
   id: FSDurandElectronics
   name: research-technology-fs-durand-electronics
   icon:
-    sprite: Objects/Specific/Mech/mecha.rsi
-    state: durand
+    sprite: _FinalStand/Objects/Mech/broadsword.rsi
+    state: broadsword
   discipline: Industrial
   tier: 3
   cost: 15000

@@ -286,8 +286,8 @@
   id: FSEngineeringDurand
   name: Durand
   icon:
-    sprite: Objects/Specific/Mech/mecha.rsi
-    state: durand
+    sprite: _FinalStand/Objects/Mech/broadsword.rsi
+    state: broadsword
   branch: Engineering
   tier: 4
   cost: 9000

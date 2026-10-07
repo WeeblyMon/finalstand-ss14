@@ -38,8 +38,8 @@
     title: fs-tutorial-eng-emplacement-title
     text: fs-tutorial-eng-emplacement-text
   - image:
-      sprite: Objects/Specific/Mech/mecha.rsi
-      state: durand
+      sprite: _FinalStand/Objects/Mech/broadsword.rsi
+      state: broadsword
     title: fs-tutorial-eng-durand-title
     text: fs-tutorial-eng-durand-text
   - image:

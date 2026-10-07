@@ -30,8 +30,8 @@ public sealed partial class FSFlairOverlay : Overlay
     private static readonly Color AlarmColor = Color.FromHex("#ff2a2a");
     private static readonly SpriteSpecifier LowPowerIcon = new SpriteSpecifier.Rsi(new ResPath("/Textures/Interface/Alerts/battery.rsi"), "battery0");
     private const float LowPowerIconSize = 0.5f;
-    private const float LowPowerIconHeight = 1.1f;
-    private const float ShieldRadius = 1.25f;
+    private const float LowPowerIconHeight = 1.45f;
+    private const float ShieldRadius = 1.55f;
     private const int ShieldSegments = 16;
     private const float CoverRange = 8f;
 
