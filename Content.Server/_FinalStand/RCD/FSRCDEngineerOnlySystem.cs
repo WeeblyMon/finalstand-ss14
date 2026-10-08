@@ -87,7 +87,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
     private void OnAfterInteract(EntityUid uid, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach)
+        if (args.Handled)
             return;
 
         if (args.Target is { } target && TryComp<FSHMGComponent>(target, out var hmg) && hmg.Gunner != null)
