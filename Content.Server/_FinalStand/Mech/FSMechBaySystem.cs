@@ -44,6 +44,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private FSWorkSoundSystem _workSound = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> BayArc = "FSBayArc";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";
@@ -54,6 +55,18 @@ public sealed partial class FSMechBaySystem : EntitySystem
     private static readonly VerbCategory CraftCategory = new("fs-mech-bay-craft-category", null);
     private static readonly SoundSpecifier StageSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier RollOutSound = new SoundPathSpecifier("/Audio/Effects/Vehicle/vehiclestartup.ogg");
+    private static readonly SoundSpecifier FitSound = new SoundPathSpecifier("/Audio/Items/toolbox_insert.ogg");
+    private static readonly SoundSpecifier[] WeldSounds =
+    {
+        new SoundPathSpecifier("/Audio/Items/welder.ogg"),
+        new SoundPathSpecifier("/Audio/Items/welder2.ogg"),
+    };
+    private static readonly SoundSpecifier[] CraftSounds =
+    {
+        new SoundPathSpecifier("/Audio/Items/drill_use.ogg"),
+        new SoundPathSpecifier("/Audio/Items/ratchet.ogg"),
+        new SoundPathSpecifier("/Audio/Items/screwdriver.ogg"),
+    };
 
     private readonly HashSet<Entity<MechComponent>> _parked = new();
     private TimeSpan _nextUpkeep;
@@ -90,6 +103,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
             }
 
             QueueDel(args.Used);
+            _audio.PlayPvs(FitSound, ent);
             if (!plate)
             {
                 Install(ent, slot);
@@ -104,10 +118,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
         if (!_tool.HasQuality(args.Used, Welding))
         {
-            var next = ent.Comp.Next();
-            _popup.PopupEntity(next is { Weldable: false }
-                ? Loc.GetString("fs-mech-bay-needs-part", ("part", PartName(next.Parts[0])))
-                : Loc.GetString("fs-mech-bay-needs-weld"), ent, args.User);
+            _popup.PopupEntity(NextStep(ent.Comp), ent, args.User);
             return;
         }
 
@@ -119,7 +130,7 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
         if (ent.Comp.Slots.Find(s => s.Weldable && ent.Comp.CanInstall(s)) is not { } weld)
         {
-            _popup.PopupEntity(Loc.GetString("fs-mech-bay-nothing-to-weld"), ent, args.User);
+            _popup.PopupEntity(NextStep(ent.Comp), ent, args.User);
             return;
         }
 
@@ -129,11 +140,13 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
         }
 
-        _tool.UseTool(args.Used, args.User, ent, weld.Time, Welding, new FSMechBayWeldDoAfterEvent(weld.Id), WeldFuel);
+        if (_tool.UseTool(args.Used, args.User, ent, weld.Time, Welding, new FSMechBayWeldDoAfterEvent(weld.Id), WeldFuel))
+            _workSound.Start(ent, Transform(ent).Coordinates, WeldSounds, weld.Time);
     }
 
     private void OnWelded(Entity<FSMechBayComponent> ent, ref FSMechBayWeldDoAfterEvent args)
     {
+        _workSound.Stop(ent);
         var id = args.Slot;
         if (args.Cancelled || args.Handled || ent.Comp.Slots.Find(s => s.Id == id) is not { } slot || !ent.Comp.CanInstall(slot))
             return;
@@ -173,11 +186,33 @@ public sealed partial class FSMechBaySystem : EntitySystem
 
     private void OnActivate(Entity<FSMechBayComponent> ent, ref ActivateInWorldEvent args)
     {
-        if (args.Handled || !ent.Comp.Ready)
+        if (args.Handled)
             return;
 
         args.Handled = true;
-        RollOut(ent);
+        if (ent.Comp.Ready)
+            RollOut(ent);
+        else
+            _popup.PopupEntity(NextStep(ent.Comp), ent, args.User);
+    }
+
+    private string NextStep(FSMechBayComponent bay)
+    {
+        if (bay.Next() is not { } slot)
+            return Loc.GetString("fs-mech-bay-examine-ready");
+
+        var name = Loc.GetString(slot.Name);
+        var role = RoleName(slot.Role);
+        if (PlateFitted(bay, slot))
+            return Loc.GetString("fs-mech-bay-next-plate", ("role", role));
+
+        if (!slot.Weldable)
+            return Loc.GetString("fs-mech-bay-next-part", ("slot", name), ("part", PartName(slot.Parts[0])), ("role", role));
+
+        var need = MaterialList(slot.Materials);
+        if (slot.Plate is { } plate)
+            need = Loc.GetString("fs-mech-bay-or-plate", ("need", need), ("plate", PartName(plate)));
+        return Loc.GetString("fs-mech-bay-next-weld", ("slot", name), ("role", role), ("need", need));
     }
 
     private void RollOut(Entity<FSMechBayComponent> ent)
@@ -229,16 +264,18 @@ public sealed partial class FSMechBaySystem : EntitySystem
             return;
         }
 
-        _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, craft.Time, new FSMechBayCraftDoAfterEvent(index), ent, ent)
-        {
-            BreakOnMove = true,
-            BreakOnDamage = true,
-            NeedHand = true,
-        });
+        if (_doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, user, craft.Time, new FSMechBayCraftDoAfterEvent(index), ent, ent)
+            {
+                BreakOnMove = true,
+                BreakOnDamage = true,
+                NeedHand = true,
+            }))
+            _workSound.Start(ent, Transform(ent).Coordinates, CraftSounds, craft.Time);
     }
 
     private void OnCrafted(Entity<FSMechBayComponent> ent, ref FSMechBayCraftDoAfterEvent args)
     {
+        _workSound.Stop(ent);
         if (args.Cancelled || args.Handled || args.Index < 0 || args.Index >= ent.Comp.Crafts.Count)
             return;
 
