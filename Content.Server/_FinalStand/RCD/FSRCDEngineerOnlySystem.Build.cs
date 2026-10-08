@@ -32,6 +32,13 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private FSPlacementRuleSystem _placementRules = default!;
     [Dependency] private FSDeployableSystem _deployable = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSWorkSoundSystem _workSound = default!;
+
+    private static readonly SoundSpecifier[] BuildSounds =
+    {
+        new SoundPathSpecifier("/Audio/Items/drill_use.ogg"),
+        new SoundPathSpecifier("/Audio/Items/ratchet.ogg"),
+    };
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MobStateSystem _mobState = default!;
@@ -140,6 +147,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         var direction = rcdComp.ConstructionDirection;
         var rotation = piece.Rotation == RcdRotation.User ? direction.ToAngle() : Angle.Zero;
         _flair.Hologram(args.Location, piece.ID, args.Delay, rotation);
+        _workSound.Start(ent, args.Location, BuildSounds, args.Delay);
     }
 
     private void OnBuilt(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDBuiltEvent args)

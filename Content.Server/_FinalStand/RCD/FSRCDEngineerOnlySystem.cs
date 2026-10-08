@@ -45,6 +45,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
     {
+        _workSound.Stop(ent);
         if (args.Cancelled)
             Release(ent);
 
