@@ -8,6 +8,8 @@ using Content.Shared.Interaction;
 using Content.Shared.Popups;
 using Content.Shared.RCD.Components;
 using Content.Shared.RCD.Systems;
+using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using Content.Shared.Hands.Components;
@@ -94,32 +96,38 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         if (args.Target is { } target && TryComp<FSHMGComponent>(target, out var hmg) && hmg.Gunner != null)
         {
             args.Handled = true;
-            _popup.PopupEntity(Loc.GetString("fs-rcd-hmg-crewed"), uid, args.User, PopupType.Medium);
+            Deny(uid, args.User, Loc.GetString("fs-rcd-hmg-crewed"), args.ClickLocation);
             return;
         }
 
         if (args.Target is { } owned && IsDeconstructing(uid) && TakeDownBlock(args.User, owned) is { } refusal)
         {
             args.Handled = true;
-            _popup.PopupEntity(refusal, uid, args.User, PopupType.Medium);
+            Deny(uid, args.User, refusal, args.ClickLocation);
             return;
         }
 
         if (GetBlockReason(uid, comp, args.User, args.ClickLocation) is { } reason)
         {
             args.Handled = true;
-            _popup.PopupEntity(reason, uid, args.User, PopupType.Medium);
+            Deny(uid, args.User, reason, args.ClickLocation);
             return;
         }
 
         if (RecipeFor(uid) is { } recipe && !TryReserve(uid, args.User, recipe))
         {
             args.Handled = true;
-            _popup.PopupEntity(Loc.GetString("fs-rcd-silo-busy"), uid, args.User, PopupType.Medium);
+            Deny(uid, args.User, Loc.GetString("fs-rcd-silo-busy"), args.ClickLocation);
             return;
         }
 
         _reservedAt[uid] = _timing.CurTime;
+    }
+
+    private void Deny(EntityUid rcd, EntityUid user, string text, EntityCoordinates at)
+    {
+        _popup.PopupEntity(text, rcd, user, PopupType.Medium);
+        RaiseNetworkEvent(new FSRCDDeniedEvent(GetNetCoordinates(at)), Filter.Entities(user));
     }
 
     private bool IsDeconstructing(EntityUid rcd)

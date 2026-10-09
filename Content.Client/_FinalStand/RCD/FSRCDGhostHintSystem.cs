@@ -13,7 +13,10 @@ using Robust.Client.Player;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.CustomControls;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
+using Robust.Shared.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
@@ -35,6 +38,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     [Dependency] private HandsSystem _hands = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly TimeSpan ProbeInterval = TimeSpan.FromSeconds(0.4);
 
@@ -43,6 +47,13 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     public bool Blocked { get; private set; }
     public bool Deconstructing { get; private set; }
     public bool Rotatable { get; private set; }
+    public EntityUid? Rcd { get; private set; }
+    public RCDPrototype? Piece { get; private set; }
+    public TimeSpan DeniedAt { get; private set; }
+    public EntityCoordinates? DeniedTile { get; private set; }
+
+    private static readonly SoundSpecifier DeniedSound = new SoundPathSpecifier("/Audio/Machines/custom_deny.ogg",
+        AudioParams.Default.WithVolume(-6f));
 
     private (EntityUid Rcd, EntityCoordinates Tile, string Proto, EntityUid? Target, Direction Dir) _lastKey;
     private TimeSpan _nextProbe;
@@ -54,6 +65,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<FSRCDProbeResultEvent>(OnResult);
+        SubscribeNetworkEvent<FSRCDDeniedEvent>(OnDenied);
         _overlays.AddOverlay(new FSRCDGhostHintOverlay());
     }
 
@@ -70,9 +82,21 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
         _resultBlocked = ev.Blocked;
     }
 
+    private void OnDenied(FSRCDDeniedEvent ev)
+    {
+        if (!_cfg.GetCVar(CCVars.FSEngDeniedFeedback))
+            return;
+
+        DeniedAt = _timing.RealTime;
+        DeniedTile = GetCoordinates(ev.Location);
+        _audio.PlayGlobal(DeniedSound, Filter.Local(), false);
+    }
+
     public override void FrameUpdate(float frameTime)
     {
         Tile = null;
+        Rcd = null;
+        Piece = null;
         Text = null;
         Blocked = false;
         Deconstructing = false;
@@ -104,12 +128,16 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
 
         if (!_transform.InRange(Transform(player).Coordinates, center, Comp<FSEngineerOnlyRCDComponent>(held.Value).Reach))
         {
+            Rcd = held;
+            Piece = ProtoMan.Index(rcd.ProtoId);
             Text = Loc.GetString("fs-rcd-too-far");
             Blocked = true;
             return;
         }
 
         var proto = ProtoMan.Index(rcd.ProtoId);
+        Rcd = held;
+        Piece = proto;
         Deconstructing = proto.Mode == RcdMode.Deconstruct;
         Rotatable = proto.Mode == RcdMode.ConstructObject && proto.Rotation == RcdRotation.User;
         EntityUid? target = proto.Mode == RcdMode.Deconstruct && _state.CurrentState is GameplayStateBase screen

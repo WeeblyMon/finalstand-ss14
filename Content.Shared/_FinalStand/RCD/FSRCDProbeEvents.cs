@@ -28,3 +28,10 @@ public sealed class FSRCDBeltPickEvent(NetEntity rcd, string piece) : EntityEven
     public readonly NetEntity Rcd = rcd;
     public readonly string Piece = piece;
 }
+
+// The server refused a build click; the client shakes the ghost card and flashes the tile.
+[Serializable, NetSerializable]
+public sealed class FSRCDDeniedEvent(NetCoordinates location) : EntityEventArgs
+{
+    public readonly NetCoordinates Location = location;
+}
