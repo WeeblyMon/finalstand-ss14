@@ -156,7 +156,8 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         }
 
         PruneTrails();
-        DrawCrates(handle, matrix, args.MapId, showAll);
+        if (!_cfg.GetCVar(CCVars.FSEngWorldChips))
+            DrawCrates(handle, matrix, args.MapId, showAll);
     }
 
     // Recent damage lingers as a white chunk, then drains down to the real value.

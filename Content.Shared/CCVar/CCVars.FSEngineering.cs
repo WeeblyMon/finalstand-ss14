@@ -12,4 +12,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngDeniedFeedback =
         CVarDef.Create("fs.eng_denied_feedback", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngWorldChips =
+        CVarDef.Create("fs.eng_world_chips", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }
