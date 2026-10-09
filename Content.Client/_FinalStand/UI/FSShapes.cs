@@ -1,6 +1,8 @@
 // Smooth discs and rings for screen UI. Each size is rendered once into a texture at its exact pixel size, with
 // supersampled coverage, then drawn 1:1 so nothing is scaled or resampled. Shrunk does the same for a PNG: a one-off
 // high-quality resize to the size it is shown at, standing in for the mipmaps the engine doesn't have.
+// Shapes that follow the world zoom (big discs, rings and arcs) snap to a few baked sizes and stretch the last few
+// percent, so zooming doesn't bake a new texture every frame.
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Shared.ContentPack;
@@ -18,7 +20,9 @@ public static class FSShapes
 {
     private const int Samples = 4;
     private const float Step = 4f;
-    private const int MaxCached = 1024;
+    private const int MaxCached = 4096;
+    private const float SnapAbove = 40f;
+    private const float SnapStep = 1.08f;
 
     private static readonly Dictionary<(int Radius, int Width), Texture> Cache = new();
     private static readonly Dictionary<(string Path, int Size), Texture> Shrinks = new();
@@ -39,6 +43,8 @@ public static class FSShapes
         if (radius <= 0.5f || color.A <= 0f)
             return;
 
+        var scale = Snap(ref radius);
+        width /= scale;
         var key = ((int) MathF.Round(radius * Step), (int) MathF.Round(width * Step));
         if (!Cache.TryGetValue(key, out var texture))
         {
@@ -52,9 +58,23 @@ public static class FSShapes
             Cache[key] = texture;
         }
 
-        var size = new Vector2(texture.Width, texture.Height);
-        var topLeft = new Vector2(MathF.Round(center.X - size.X / 2f), MathF.Round(center.Y - size.Y / 2f));
+        var size = new Vector2(texture.Width, texture.Height) * scale;
+        var topLeft = scale == 1f
+            ? new Vector2(MathF.Round(center.X - size.X / 2f), MathF.Round(center.Y - size.Y / 2f))
+            : center - size / 2f;
         handle.DrawTextureRect(texture, UIBox2.FromDimensions(topLeft, size), color);
+    }
+
+    // Snaps a large radius to the nearest baked size and returns how much to stretch that bake to reach the real one.
+    private static float Snap(ref float radius)
+    {
+        if (radius <= SnapAbove)
+            return 1f;
+
+        var snapped = MathF.Pow(SnapStep, MathF.Round(MathF.Log(radius) / MathF.Log(SnapStep)));
+        var scale = radius / snapped;
+        radius = snapped;
+        return scale;
     }
 
     public static Texture? Shrunk(string path, int pixels)
@@ -84,14 +104,16 @@ public static class FSShapes
 
     public static void Arc(DrawingHandleScreen handle, Vector2 center, float radius, float width, float startDeg, float endDeg, Color color)
     {
+        var scale = Snap(ref radius);
         var r = MathF.Round(radius * 2f) / 2f;
-        var w = MathF.Round(width * 4f) / 4f;
+        var w = MathF.Round(width / scale * 4f) / 4f;
         var s = MathF.Round(startDeg * 2f) / 2f;
         var e = MathF.Round(endDeg * 2f) / 2f;
         var lo = MathF.Min(s, e) * MathF.PI / 180f;
         var hi = MathF.Max(s, e) * MathF.PI / 180f;
         var key = $"arc|{r}|{w}|{s}|{e}";
-        DrawBaked(handle, center, color, key, (int) MathF.Ceiling(r * 2f) + 4, (int) MathF.Ceiling(r * 2f) + 4, (x, y) =>
+        var side = (int) MathF.Ceiling(r * 2f) + 4;
+        DrawBaked(handle, center, color, key, side, side, (x, y) =>
         {
             var d = MathF.Sqrt(x * x + y * y);
             if (d > r || d < r - w)
@@ -100,7 +122,28 @@ public static class FSShapes
             while (a < lo) a += MathF.Tau;
             while (a > lo + MathF.Tau) a -= MathF.Tau;
             return a <= hi;
-        }, trim: true);
+        }, trim: true, scale: scale, region: ArcRegion(side, r, w, lo, hi));
+    }
+
+    // The pixel box an arc can touch, so baking skips the empty rest of its circle.
+    private static (int MinX, int MinY, int MaxX, int MaxY) ArcRegion(int side, float r, float w, float lo, float hi)
+    {
+        float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        var steps = Math.Max(2, (int) MathF.Ceiling((hi - lo) / 0.02f));
+        for (var i = 0; i <= steps; i++)
+        {
+            var a = lo + (hi - lo) * i / steps;
+            var dir = new Vector2(MathF.Cos(a), MathF.Sin(a));
+            foreach (var d in new[] { r, r - w })
+            {
+                minX = MathF.Min(minX, dir.X * d); maxX = MathF.Max(maxX, dir.X * d);
+                minY = MathF.Min(minY, dir.Y * d); maxY = MathF.Max(maxY, dir.Y * d);
+            }
+        }
+
+        var half = side / 2f;
+        return (Math.Max(0, (int) MathF.Floor(minX + half) - 2), Math.Max(0, (int) MathF.Floor(minY + half) - 2),
+            Math.Min(side - 1, (int) MathF.Ceiling(maxX + half) + 2), Math.Min(side - 1, (int) MathF.Ceiling(maxY + half) + 2));
     }
 
     public static void Slanted(DrawingHandleScreen handle, Vector2 topLeft, float width, float height, float slant, Color color,
@@ -139,7 +182,7 @@ public static class FSShapes
     }
 
     private static void DrawBaked(DrawingHandleScreen handle, Vector2 center, Color color, string key, int width, int height,
-        Func<float, float, bool> inside, bool trim = false)
+        Func<float, float, bool> inside, bool trim = false, float scale = 1f, (int MinX, int MinY, int MaxX, int MaxY)? region = null)
     {
         if (color.A <= 0f)
             return;
@@ -153,23 +196,27 @@ public static class FSShapes
                 Baked.Clear();
             }
 
-            baked = Bake(width, height, inside, trim);
+            baked = Bake(width, height, inside, trim, region);
             Baked[key] = baked;
         }
 
-        var size = new Vector2(baked.Texture.Width, baked.Texture.Height);
-        var topLeft = center + baked.Offset;
-        handle.DrawTextureRect(baked.Texture, UIBox2.FromDimensions(new Vector2(MathF.Round(topLeft.X), MathF.Round(topLeft.Y)), size), color);
+        var size = new Vector2(baked.Texture.Width, baked.Texture.Height) * scale;
+        var topLeft = center + baked.Offset * scale;
+        if (scale == 1f)
+            topLeft = new Vector2(MathF.Round(topLeft.X), MathF.Round(topLeft.Y));
+        handle.DrawTextureRect(baked.Texture, UIBox2.FromDimensions(topLeft, size), color);
     }
 
-    private static (Texture, Vector2) Bake(int width, int height, Func<float, float, bool> inside, bool trim)
+    private static (Texture, Vector2) Bake(int width, int height, Func<float, float, bool> inside, bool trim,
+        (int MinX, int MinY, int MaxX, int MaxY)? region = null)
     {
         _clyde ??= IoCManager.Resolve<IClyde>();
         var alpha = new byte[width * height];
         int minX = width, minY = height, maxX = -1, maxY = -1;
-        for (var y = 0; y < height; y++)
+        var (fromX, fromY, toX, toY) = region ?? (0, 0, width - 1, height - 1);
+        for (var y = fromY; y <= toY; y++)
         {
-            for (var x = 0; x < width; x++)
+            for (var x = fromX; x <= toX; x++)
             {
                 var hits = 0;
                 for (var sy = 0; sy < Samples; sy++)
