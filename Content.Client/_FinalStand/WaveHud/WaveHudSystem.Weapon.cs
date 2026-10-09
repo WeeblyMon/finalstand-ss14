@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
+using Content.Client._FinalStand.Engineering;
 using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared.Mech.Components;
@@ -43,6 +44,7 @@ public sealed partial class WaveHudSystem
     [Dependency] private FSSyringeGunExamineSystem _syringeGun = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private FSHMGSystem _hmg = default!;
+    [Dependency] private FSToolCardSystem _toolCard = default!;
 
     private void UpdateWeapon(WaveHudOverlay overlay)
     {
@@ -112,7 +114,7 @@ public sealed partial class WaveHudSystem
 
         if (overlay.WeaponTakesMagazines)
             overlay.WeaponReserveText = overlay.WeaponReserve == 1 ? "1 mag in reserve" : $"{overlay.WeaponReserve} mags in reserve";
-        else if (TryComp<FSRivetGunComponent>(held, out var rivetGun))
+        else if (TryComp<FSRivetGunComponent>(held, out var rivetGun) && !_toolCard.Covers(held))
             overlay.WeaponReserveText = Loc.GetString("fs-hud-rivet-steel", ("count", _materials.Count(player, rivetGun.Material)));
 
         if (TryComp<FSSyringeGunComponent>(held, out var syringeGun)
@@ -180,7 +182,7 @@ public sealed partial class WaveHudSystem
         }
 
         if (TryComp<FSEngineerOnlyRCDComponent>(held, out var fsRcd) && TryComp<RCDComponent>(held, out var rcd))
-            return FSRCDText.Summary(ProtoMan, _materials.CountAll(_player.LocalEntity), fsRcd, ProtoMan.Index(rcd.ProtoId));
+            return _toolCard.Covers(held) ? null : FSRCDText.Summary(ProtoMan, _materials.CountAll(_player.LocalEntity), fsRcd, ProtoMan.Index(rcd.ProtoId));
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
             return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
