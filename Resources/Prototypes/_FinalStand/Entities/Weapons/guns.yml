@@ -895,7 +895,7 @@
     proto: FSXrayLaser
     fireCost: 100
   - type: BatterySelfRecharger
-    autoRechargeRate: 20
+    autoRechargeRate: 30
     autoRechargePauseTime: 2
   - type: Crit
     baseCritChance: 0.05
@@ -948,7 +948,7 @@
     - Back
     - suitStorage
   - type: Gun
-    fireRate: 20
+    fireRate: 10
     minAngle: 0
     maxAngle: 0
     angleIncrease: 0
