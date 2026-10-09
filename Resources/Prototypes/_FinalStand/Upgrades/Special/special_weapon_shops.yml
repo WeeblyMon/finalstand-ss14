@@ -325,7 +325,6 @@
       description: Boosts beam damage by 15% per level.
       maxLevel: 5
       baseCost: 12000
-      targetWeaponProtoId: WeaponHarvesterFS
       type: Damage
       valuePerLevel: 0.15
     - id: harvester-xray-conversion

@@ -86,7 +86,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _stash.Stash(player, newSword);
     }
 
-    private void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
+    public void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
     {
         _serialization.CopyTo(from, ref to, notNullableOverride: true);
     }
