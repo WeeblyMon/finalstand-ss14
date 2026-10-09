@@ -59,8 +59,12 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         if (args.OldOperator != null)
             _faction.ClearFactions((ent.Owner, null));
 
+        // The open-cockpit sprite only faces south, so an empty mech faces south too and its guns match it.
         if (args.NewOperator is not { } pilot)
+        {
+            _transform.SetLocalRotation(ent.Owner, Angle.Zero);
             return;
+        }
 
         ent.Comp.LastPilot = pilot;
         if (!TryComp<NpcFactionMemberComponent>(pilot, out var pilotFactions))
