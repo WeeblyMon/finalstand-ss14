@@ -53,7 +53,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     public EntityCoordinates? DeniedTile { get; private set; }
     public Direction Direction => _placement.Direction;
 
-    private static readonly SoundSpecifier DeniedSound = new SoundPathSpecifier("/Audio/Machines/custom_deny.ogg",
+    private static readonly SoundSpecifier DeniedSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/denied.ogg",
         AudioParams.Default.WithVolume(-6f));
 
     private (EntityUid Rcd, EntityCoordinates Tile, string Proto, EntityUid? Target, Direction Dir) _lastKey;

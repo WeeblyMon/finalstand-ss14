@@ -17,7 +17,7 @@ public sealed class FSRepairFeedbackClientSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSDamageNumberSystem _numbers = default!;
 
-    private static readonly SoundSpecifier CapSound = new SoundPathSpecifier("/Audio/Machines/quickbeep.ogg",
+    private static readonly SoundSpecifier CapSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/cap_tick.ogg",
         AudioParams.Default.WithVolume(-8f).WithPitchScale(0.8f));
 
     public EntityUid? CapTarget { get; private set; }

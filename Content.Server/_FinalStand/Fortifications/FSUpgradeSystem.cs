@@ -78,7 +78,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     private static readonly SoundSpecifier FinalHitSound = new SoundPathSpecifier("/Audio/Effects/metal_slam1.ogg");
     private const float PitchLow = 0.9f;
     private const float PitchHigh = 1.25f;
-    private static readonly SoundSpecifier ChimeSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
+    private static readonly SoundSpecifier ChimeSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/upgrade_bell.ogg");
 
     public override void Initialize()
     {

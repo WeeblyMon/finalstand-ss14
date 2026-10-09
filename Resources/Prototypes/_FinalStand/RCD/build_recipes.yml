@@ -2,7 +2,7 @@
 - type: fsBuildRecipe
   id: FSBarricadeMetal
   landSound:
-    path: /Audio/Effects/metal_thud2.ogg
+    collection: FSEngLandSteel
   capGroup: barricade
   materials:
     Steel: 4
@@ -10,7 +10,7 @@
 - type: fsBuildRecipe
   id: FSBarricadePlasteel
   landSound:
-    path: /Audio/Effects/metal_slam3.ogg
+    collection: FSEngLandPlasteel
   capGroup: barricade
   materials:
     Plasteel: 3
@@ -19,7 +19,7 @@
 - type: fsBuildRecipe
   id: FSBarricadeMetalDoor
   landSound:
-    path: /Audio/Effects/metal_thud2.ogg
+    collection: FSEngLandSteel
   capGroup: barricade
   materials:
     Steel: 5
@@ -27,7 +27,7 @@
 - type: fsBuildRecipe
   id: FSBarricadePlasteelDoor
   landSound:
-    path: /Audio/Effects/metal_slam3.ogg
+    collection: FSEngLandPlasteel
   capGroup: barricade
   materials:
     Plasteel: 4
@@ -36,7 +36,7 @@
 - type: fsBuildRecipe
   id: FSSentryTurretDeployed
   landSound:
-    path: /Audio/Effects/metal_slam1.ogg
+    collection: FSEngLandTurret
   capGroup: sentry
   materials:
     Steel: 6
@@ -46,7 +46,7 @@
 - type: fsBuildRecipe
   id: FSHeavySentryDeployed
   landSound:
-    path: /Audio/Effects/metal_slam1.ogg
+    collection: FSEngLandTurret
   capGroup: heavy
   materials:
     Plasteel: 4
@@ -56,7 +56,7 @@
 - type: fsBuildRecipe
   id: FSHMGDeployed
   landSound:
-    path: /Audio/Effects/metal_slam1.ogg
+    collection: FSEngLandTurret
   capGroup: hmg
   materials:
     Steel: 6
@@ -75,7 +75,7 @@
 - type: fsBuildRecipe
   id: FSMechBay
   landSound:
-    path: /Audio/Effects/metal_slam5.ogg
+    collection: FSEngLandPlasteel
   capGroup: mechbay
   research: FSEngineeringMechBay
   materials:
