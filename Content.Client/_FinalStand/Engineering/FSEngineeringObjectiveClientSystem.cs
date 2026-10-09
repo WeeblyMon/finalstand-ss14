@@ -5,11 +5,13 @@ namespace Content.Client._FinalStand.Engineering;
 
 public sealed partial class FSEngineeringObjectiveClientSystem : EntitySystem
 {
-    public IReadOnlyList<string> Lines { get; private set; } = Array.Empty<string>();
+    public IReadOnlyList<string> Lines => Latest?.Lines ?? (IReadOnlyList<string>) Array.Empty<string>();
+
+    public FSEngineeringObjectiveEvent? Latest { get; private set; }
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSEngineeringObjectiveEvent>(ev => Lines = ev.Lines);
+        SubscribeNetworkEvent<FSEngineeringObjectiveEvent>(ev => Latest = ev);
     }
 }

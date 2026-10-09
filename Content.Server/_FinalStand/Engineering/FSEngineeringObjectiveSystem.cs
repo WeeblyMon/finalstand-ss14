@@ -31,44 +31,53 @@ public sealed partial class FSEngineeringObjectiveSystem : EntitySystem
             return;
 
         _next = _timing.CurTime + Interval;
-        var lines = Build();
-        if (lines.SequenceEqual(_last) && _timing.CurTime < _resendAt)
+        var ev = Build();
+        if (ev.Lines.SequenceEqual(_last) && _timing.CurTime < _resendAt)
             return;
 
-        _last = lines;
+        _last = ev.Lines;
         _resendAt = _timing.CurTime + Resend;
         foreach (var (_, session) in _departments.Engineers())
-            RaiseNetworkEvent(new FSEngineeringObjectiveEvent(lines), session);
+            RaiseNetworkEvent(ev, session);
     }
 
-    private List<string> Build()
+    private FSEngineeringObjectiveEvent Build()
     {
-        var lines = new List<string>();
+        var ev = new FSEngineeringObjectiveEvent(new List<string>());
+        void Add(FSObjectiveKind kind, string text, int stage = 0, int total = 0, bool science = false)
+        {
+            ev.Lines.Add(text);
+            ev.Kinds.Add(kind);
+            ev.Stages.Add(stage);
+            ev.Totals.Add(total);
+            ev.Science.Add(science);
+        }
 
         var bays = EntityQueryEnumerator<FSMechBayComponent>();
         while (bays.MoveNext(out var bay))
         {
             if (bay.Ready)
             {
-                lines.Add(Loc.GetString("fs-objective-bay-ready"));
+                Add(FSObjectiveKind.BayReady, Loc.GetString("fs-objective-bay-ready"), bay.Slots.Count, bay.Slots.Count);
                 continue;
             }
 
             if (bay.Installed.Count == 0 || bay.Next() is not { } slot)
                 continue;
 
-            lines.Add(Loc.GetString("fs-objective-bay", ("stage", bay.Installed.Count), ("total", bay.Slots.Count),
+            Add(FSObjectiveKind.Bay, Loc.GetString("fs-objective-bay",
                 ("name", Loc.GetString(slot.Name)),
-                ("role", Loc.GetString(slot.Role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science"))));
+                ("role", Loc.GetString(slot.Role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science"))),
+                bay.Installed.Count, bay.Slots.Count, slot.Role != FSMechBayRole.Engineering);
         }
 
         if (_silo.TryGetSteelSheets(out var sheets) && sheets < FSSiloSupplySystem.LowSteelSheets)
-            lines.Add(Loc.GetString("fs-objective-silo-low", ("sheets", sheets)));
+            Add(FSObjectiveKind.Silo, Loc.GetString("fs-objective-silo-low", ("sheets", sheets)));
 
         if (_waves.TryGetWaveStatus(out _, out var phase) && KitWaiting())
-            lines.Add(Loc.GetString(phase == WavePhase.Combat ? "fs-objective-emplacement-down" : "fs-objective-emplacement-prep"));
+            Add(FSObjectiveKind.Emplacement, Loc.GetString(phase == WavePhase.Combat ? "fs-objective-emplacement-down" : "fs-objective-emplacement-prep"));
 
-        return lines;
+        return ev;
     }
 
     private bool KitWaiting()

@@ -3,7 +3,9 @@
 using System.Numerics;
 using Content.Client._FinalStand.Engineering;
 using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.UI;
 using Content.Client._FinalStand.WaveHud;
+using Content.Shared._FinalStand.Engineering;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared.RCD;
 using Robust.Client.GameObjects;
@@ -43,6 +45,7 @@ public sealed partial class FSPingOverlay : Overlay
     private SpriteSystem? _sprite;
     private FSEngineeringObjectiveClientSystem? _objectives;
     private static readonly Color ObjectiveColor = FSPalette.Warn;
+    private static readonly Color ScienceColor = Color.FromHex("#b48ae6");
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -199,21 +202,74 @@ public sealed partial class FSPingOverlay : Overlay
         return (bounds.Right - PanelWidth - 24f, PanelWidth, bounds.Top + PanelTop);
     }
 
+    // The engineer's "what's next" block: a header, then one row per job with a coloured marker, and the Mech Bay's
+    // stages as pips with the next one pulsing in the colour of the department that owes it.
     private float DrawObjectives(DrawingHandleScreen handle, float x, float width, float top)
     {
         _objectives ??= _entMan.System<FSEngineeringObjectiveClientSystem>();
-        var lines = _objectives.Lines;
-        if (lines.Count == 0)
+        if (_objectives.Latest is not { Lines.Count: > 0 } ev)
             return top;
 
+        var header = _look.Font(7);
         var font = _look.Font(9);
-        var height = 8f + lines.Count * 16f;
-        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(width, height)), FSPingLook.Back);
-        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, top), new Vector2(3f, height)), ObjectiveColor);
-        for (var i = 0; i < lines.Count; i++)
-            handle.DrawString(font, new Vector2(x + 10f, top + 4f + i * 16f), Truncate(handle, font, lines[i], width - 16f), ObjectiveColor);
+        const float headerHeight = 16f;
+        const float rowHeight = 18f;
+        const float pipRow = 10f;
+        var height = headerHeight + 6f;
+        for (var i = 0; i < ev.Lines.Count; i++)
+            height += rowHeight + (HasPips(ev, i) ? pipRow : 0f);
+        var pulse = 0.55f + 0.45f * MathF.Sin((float) _timing.RealTime.TotalSeconds * 5f);
+
+        FSShapes.Slanted(handle, new Vector2(x, top), width, height, 6f, FSPingLook.Back);
+        FSShapes.Slanted(handle, new Vector2(x, top), 9f, height, 6f, ObjectiveColor);
+        handle.DrawString(header, new Vector2(x + 14f, top + 3f), Loc.GetString("fs-objective-header"), ObjectiveColor);
+
+        var y = top + headerHeight;
+        for (var i = 0; i < ev.Lines.Count; i++)
+        {
+            var kind = i < ev.Kinds.Count ? ev.Kinds[i] : FSObjectiveKind.Silo;
+            var science = i < ev.Science.Count && ev.Science[i];
+            var color = ObjectiveTint(kind, science);
+            FSShapes.Diamond(handle, new Vector2(x + 17f, y + rowHeight / 2f), 8f, color);
+            handle.DrawString(font, new Vector2(x + 26f, y + 2f), Truncate(handle, font, ev.Lines[i], width - 36f),
+                kind == FSObjectiveKind.BayReady ? FSPalette.Ok : FSPalette.TextBright);
+            y += rowHeight;
+
+            if (!HasPips(ev, i))
+                continue;
+
+            DrawStagePips(handle, x + 26f, y + 2f, MathF.Min(width - 36f, ev.Totals[i] * 9f), ev.Stages[i], ev.Totals[i], color, pulse);
+            y += pipRow;
+        }
 
         return top + height + 6f;
+    }
+
+    private static bool HasPips(FSEngineeringObjectiveEvent ev, int i)
+    {
+        return i < ev.Kinds.Count && ev.Kinds[i] == FSObjectiveKind.Bay && i < ev.Totals.Count && ev.Totals[i] > 0;
+    }
+
+    private static void DrawStagePips(DrawingHandleScreen handle, float left, float top, float width, int stage, int total, Color next, float pulse)
+    {
+        const float gap = 2f;
+        var pip = (width - gap * (total - 1)) / total;
+        for (var k = 0; k < total; k++)
+        {
+            var color = k < stage ? FSPalette.TextBright : k == stage ? next.WithAlpha(pulse) : Color.White.WithAlpha(0.12f);
+            FSShapes.Slanted(handle, new Vector2(left + k * (pip + gap), top), pip + 2f, 5f, 2f, color);
+        }
+    }
+
+    private static Color ObjectiveTint(FSObjectiveKind kind, bool science)
+    {
+        return kind switch
+        {
+            FSObjectiveKind.Bay => science ? ScienceColor : FSPalette.Money,
+            FSObjectiveKind.BayReady => FSPalette.Ok,
+            FSObjectiveKind.Emplacement => FSPalette.DangerSoft,
+            _ => FSPalette.Warn,
+        };
     }
 
     private void DrawTasks(DrawingHandleScreen handle, float x, float width, MapCoordinates me, float top)
