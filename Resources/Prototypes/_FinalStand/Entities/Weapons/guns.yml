@@ -959,8 +959,11 @@
     minAngle: 0
     maxAngle: 0
   - type: Battery
-    maxCharge: 6000
-    startingCharge: 6000
+    maxCharge: 200
+    startingCharge: 200
   - type: BatteryAmmoProvider
     proto: FSHarvesterBeam
-    fireCost: 0
+    fireCost: 1
+  - type: BatterySelfRecharger
+    autoRechargeRate: 20
+    autoRechargePauseTime: 1.5
