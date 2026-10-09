@@ -874,6 +874,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSScienceOnly
+  - type: FSResearchHud
   - type: Tag
     tags:
     - WeaponGunEnergy
@@ -930,6 +931,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSHarvester
+  - type: FSResearchHud
   - type: FSScienceOnly
   - type: Tag
     tags:
