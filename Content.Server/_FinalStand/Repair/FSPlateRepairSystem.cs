@@ -32,6 +32,7 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSFlairSystem _flair = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
+    [Dependency] private FSRepairFeedbackSystem _feedback = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSEngineeringResearchSystem _research = default!;
 
@@ -121,7 +122,9 @@ public sealed partial class FSPlateRepairSystem : EntitySystem
             return;
 
         args.Handled = true;
+        var before = CompOrNull<DamageableComponent>(ent)?.TotalDamage.Float() ?? 0f;
         _damageable.HealEvenly(ent.Owner, -FixedPoint2.New(PerPlate(ent) * ent.Comp.Fitted), origin: args.User);
+        _feedback.Repaired(ent, args.User, before - (CompOrNull<DamageableComponent>(ent)?.TotalDamage.Float() ?? 0f));
         ent.Comp.Fitted = 0;
         _popup.PopupEntity(Loc.GetString("fs-plate-repair-welded"), ent, args.User);
         _flair.Burst(WeldSparks, ent);

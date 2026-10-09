@@ -15,6 +15,7 @@ public sealed partial class FSRivetSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private FSRepairFeedbackSystem _feedback = default!;
 
     private const float DefaultCap = 0.75f;
 
@@ -53,6 +54,13 @@ public sealed partial class FSRivetSystem : EntitySystem
         var floor = max * (1f - cap);
         var heal = MathF.Min(ent.Comp.Heal, damageable.TotalDamage.Float() - floor);
         if (heal > 0f)
+        {
             _damageable.HealEvenly((args.Target, damageable), -FixedPoint2.New(heal), origin: args.Shooter);
+            _feedback.Repaired(args.Target, args.Shooter, heal);
+        }
+        else if (damageable.TotalDamage > 0)
+        {
+            _feedback.CapReached(args.Target, args.Shooter);
+        }
     }
 }

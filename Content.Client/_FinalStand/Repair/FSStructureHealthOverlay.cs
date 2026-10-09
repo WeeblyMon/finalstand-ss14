@@ -60,6 +60,7 @@ public sealed partial class FSStructureHealthOverlay : Overlay
 
     private SharedTransformSystem? _xform;
     private SharedHandsSystem? _hands;
+    private FSRepairFeedbackClientSystem? _feedback;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -150,14 +151,27 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             {
                 var slant = MathF.Round(height * 0.6f);
                 var markX = MathF.Round(topLeft.X + slant / 2f + (full - slant) * cap);
-                handle.DrawRect(new UIBox2(markX - 1f, topLeft.Y - 3f * s, markX + 2f, topLeft.Y + height + 3f * s), Back);
-                handle.DrawRect(new UIBox2(markX, topLeft.Y - 2f * s, markX + 1f, topLeft.Y + height + 2f * s), CapMark);
+                var pulse = CapPulse(uid);
+                var reach = (2f + 4f * pulse) * s;
+                var markColor = Color.InterpolateBetween(CapMark, Color.White, pulse);
+                handle.DrawRect(new UIBox2(markX - 1f, topLeft.Y - reach - 1f, markX + 2f, topLeft.Y + height + reach + 1f), Back);
+                handle.DrawRect(new UIBox2(markX, topLeft.Y - reach, markX + 1f + MathF.Round(pulse * 2f), topLeft.Y + height + reach), markColor);
             }
         }
 
         PruneTrails();
         if (!_cfg.GetCVar(CCVars.FSEngWorldChips))
             DrawCrates(handle, matrix, args.MapId, showAll);
+    }
+
+    private float CapPulse(EntityUid uid)
+    {
+        _feedback ??= _entMan.System<FSRepairFeedbackClientSystem>();
+        if (_feedback.CapTarget != uid)
+            return 0f;
+
+        var since = (float) (_timing.RealTime - _feedback.CapAt).TotalSeconds;
+        return since is >= 0f and < 0.5f ? 1f - since / 0.5f : 0f;
     }
 
     // Recent damage lingers as a white chunk, then drains down to the real value.

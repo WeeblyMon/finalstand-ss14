@@ -89,6 +89,9 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
     private void OnArmorDamageNumber(FSArmorDamageNumberEvent ev) =>
         Spawn(ev.Target, ((int)MathF.Round(ev.Amount)).ToString(), ev.Amount, -0.2f, isArmor: true);
 
+    public void SpawnHeal(NetEntity target, float amount) =>
+        Spawn(target, $"+{(int)MathF.Round(amount)}", amount, 0.2f, isHeal: true, reveal: false);
+
     private void OnHealNumber(FSHealNumberEvent ev) =>
         Spawn(ev.Target, $"+{(int)MathF.Round(ev.Amount)}", ev.Amount, 0.2f, isHeal: true, reveal: false);
 
