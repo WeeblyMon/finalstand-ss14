@@ -207,9 +207,9 @@
     state: rpg64x32
   - type: Gun
     fireRate: 0.6
-    selectedMode: SemiAuto
+    selectedMode: FullAuto
     availableModes:
-    - SemiAuto
+    - FullAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/rpgfire.ogg
   - type: Battery
@@ -231,9 +231,9 @@
     state: mecha_laser
   - type: Gun
     fireRate: 2
-    selectedMode: SemiAuto
+    selectedMode: FullAuto
     availableModes:
-    - SemiAuto
+    - FullAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: BatteryAmmoProvider
@@ -274,9 +274,9 @@
     state: mecha_pulse
   - type: Gun
     fireRate: 2
-    selectedMode: SemiAuto
+    selectedMode: FullAuto
     availableModes:
-    - SemiAuto
+    - FullAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
   - type: BatteryAmmoProvider
@@ -296,9 +296,9 @@
   - type: Gun
     projectileSpeed: 6
     fireRate: 0.8
-    selectedMode: SemiAuto
+    selectedMode: FullAuto
     availableModes:
-    - SemiAuto
+    - FullAuto
     soundGunshot:
       path: /Audio/Effects/Lightning/lightningshock.ogg
       params:
