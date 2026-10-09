@@ -35,7 +35,6 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    private const float BaseDamage = 2f;
     private const int RpPerHit = 10;
     private const int ResearchCapDivisor = 3;
     private const float DefaultRange = 7f;
@@ -123,7 +122,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
             isHarvester: true);
 
         var dmg = new DamageSpecifier();
-        dmg.DamageDict["Radiation"] = FixedPoint2.New(BaseDamage * shopMultiplier * researchMultiplier);
+        dmg.DamageDict["Radiation"] = FixedPoint2.New(comp.Damage * shopMultiplier * researchMultiplier);
 
         if (!_damageable.TryChangeDamage(hit, dmg, out var dealt, origin: args.Data.Shooter ?? args.Data.Gun))
             return;

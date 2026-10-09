@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
 using Content.Shared.Projectiles;
@@ -48,7 +49,6 @@ public sealed partial class WeaponShopWindow
         GunComponent? gunProto = null;
         MeleeWeaponComponent? meleeProto = null;
         CritComponent? critProto = null;
-        // A converted weapon is a different prototype to the shop's, so prefer what the player carries.
         var carriedProtoId = weapon.HasValue
             ? entMan.GetComponent<MetaDataComponent>(weapon.Value).EntityPrototype?.ID
             : null;
@@ -400,6 +400,8 @@ public sealed partial class WeaponShopWindow
                 damage = (float)proj.Damage.GetTotal();
             else if (projProto.TryGetComponent<HitscanBasicDamageComponent>(out var hitscan, entMan.ComponentFactory))
                 damage = (float)hitscan.Damage.GetTotal();
+            else if (projProto.TryGetComponent<FSHarvesterComponent>(out var harvester, entMan.ComponentFactory))
+                damage = harvester.Damage;
             if (projProto.TryGetComponent<ProjectileSpreadComponent>(out var spread, entMan.ComponentFactory))
                 pellets = spread.Count;
         }
