@@ -193,6 +193,9 @@
   - type: BatteryAmmoProvider
     proto: FSMech120mmShell
     fireCost: 17
+  - type: FSMechCycleSound
+    sound:
+      path: /Audio/Weapons/Guns/Cock/lmg_cock.ogg
 
 - type: entity
   id: FSMechWeaponBazooka
@@ -218,6 +221,10 @@
   - type: BatteryAmmoProvider
     proto: FSMechRocket
     fireCost: 42
+  - type: FSMechCycleSound
+    sound:
+      path: /Audio/Weapons/Guns/MagIn/rifle_load.ogg
+    delay: 0.45
 
 - type: entity
   id: FSMechWeaponFiredart
@@ -306,6 +313,10 @@
   - type: BatteryAmmoProvider
     proto: TeslaGunBullet
     fireCost: 16
+  - type: FSMechCycleSound
+    sound:
+      path: /Audio/_FinalStand/Weapons/Mech/tesla_charge.ogg
+    delay: 0.1
 
 - type: entity
   id: FSMechWeaponRavager
@@ -518,6 +529,9 @@
     proto: FSSkyfallMissile
     fireCost: 8
   - type: FSSkyfallLauncher
+  - type: FSMechCycleSound
+    sound:
+      path: /Audio/Weapons/Guns/MagIn/m41_reload.ogg
 
 - type: entity
   id: FSSkyfallMissile

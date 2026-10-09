@@ -7,3 +7,8 @@
   license: "CC-BY-SA-3.0"
   copyright: "Taken from UAF, via Monolith"
   source: "https://fractalsoftworks.com/forum/index.php?topic=12709.0"
+
+- files: ["tesla_charge.ogg"]
+  license: "CC0-1.0"
+  copyright: "Kenney (www.kenney.nl), Sci-fi Sounds; converted to mono"
+  source: "https://kenney.nl/assets/sci-fi-sounds"
