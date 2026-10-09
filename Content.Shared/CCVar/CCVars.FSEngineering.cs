@@ -39,4 +39,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<string> FSEngHintsSeen =
         CVarDef.Create("fs.eng_hints_seen", "", CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngToolCard =
+        CVarDef.Create("fs.eng_tool_card", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

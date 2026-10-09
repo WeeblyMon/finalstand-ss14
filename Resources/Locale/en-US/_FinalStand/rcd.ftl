@@ -73,3 +73,12 @@ fs-silo-examine-pool = This is the [color=#d2a44e]main silo[/color]. Every other
 fs-silo-examine-dropoff = This is a [color=#d2a44e]drop-off silo[/color]. Deposits go to the main silo, and machines near it draw from the main silo.
 fs-silo-examine-line = - {$sheets} {$name}
 fs-silo-examine-empty = The main silo is empty.
+fs-tool-card-rcd = RCD
+fs-tool-card-short = SHORT
+fs-tool-card-rivet = RIVET GUN
+fs-tool-card-rivet-steel = {$count} steel
+fs-tool-card-rivet-shots = ≈{$count} rivets
+fs-tool-card-rivet-cap = repairs to {$percent}%
+fs-tool-card-hammer = HAMMER
+fs-tool-card-hammer-idle = Point at a barricade to see its grade
+fs-tool-card-hammer-pour = {$name} {$hits}/{$total}
