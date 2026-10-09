@@ -8,6 +8,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Client.GameObjects;
+using Content.Shared.Vehicle.Components;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
 using Content.Shared._FinalStand.Mobs;
@@ -62,6 +63,7 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId) continue;
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
             if (_entManager.HasComponent<FSNoHealthBarComponent>(uid)) continue;
+            if (_entManager.HasComponent<VehicleOperatorComponent>(uid)) continue;
 
             var bounds = _spriteSystem.GetLocalBounds((uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
