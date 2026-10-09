@@ -35,3 +35,10 @@ public sealed class FSRCDDeniedEvent(NetCoordinates location) : EntityEventArgs
 {
     public readonly NetCoordinates Location = location;
 }
+
+// A piece just finished building; nearby clients give it a short landing pop.
+[Serializable, NetSerializable]
+public sealed class FSBuildLandedEvent(NetEntity built) : EntityEventArgs
+{
+    public readonly NetEntity Built = built;
+}

@@ -164,8 +164,9 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         _telemetry.RecordSpend("rcd", recipe.Materials);
-        _audio.PlayPvs(PlacedSound, args.Built);
+        _audio.PlayPvs(recipe.LandSound ?? PlacedSound, args.Built, AudioParams.Default.WithVariation(0.08f));
         _flair.Burst(DustPuff, args.Built);
+        RaiseNetworkEvent(new FSBuildLandedEvent(GetNetEntity(args.Built)), Filter.Pvs(args.Built, entityManager: EntityManager));
 
         var spent = new List<string>();
         foreach (var (material, amount) in recipe.Materials)

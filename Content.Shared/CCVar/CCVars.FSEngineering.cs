@@ -18,4 +18,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngRepairFeedback =
         CVarDef.Create("fs.eng_repair_feedback", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngBuildPop =
+        CVarDef.Create("fs.eng_build_pop", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

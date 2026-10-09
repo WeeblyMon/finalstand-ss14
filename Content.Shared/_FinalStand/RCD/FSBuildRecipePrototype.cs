@@ -1,4 +1,5 @@
 using Content.Shared.Stacks;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.RCD;
@@ -18,4 +19,7 @@ public sealed partial class FSBuildRecipePrototype : IPrototype
 
     [DataField]
     public string? Research;
+
+    [DataField]
+    public SoundSpecifier? LandSound;
 }
