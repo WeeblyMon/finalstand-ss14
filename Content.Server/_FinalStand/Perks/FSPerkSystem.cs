@@ -3,6 +3,7 @@ using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
@@ -29,6 +30,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeNetworkEvent<FSPerkStateRequestMessage>(OnStateRequested);
         SubscribeNetworkEvent<FSBuyPerkMessage>(OnBuyPerk);
         SubscribeNetworkEvent<FSEquipPerkMessage>(OnEquipPerk);
@@ -64,6 +66,22 @@ public sealed partial class FSPerkSystem : EntitySystem
     {
         var changed = new FSPerksChangedEvent(mindId, perks);
         RaiseLocalEvent(body, ref changed);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out var mind) || mind.UserId == null)
+            return;
+
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+        {
+            var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
+            perks = EnsureComp<FSPerkLevelsComponent>(mindId);
+            DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
+            SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
+        }
+
+        RaisePerksChanged(ev.Mob, mindId, perks);
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
