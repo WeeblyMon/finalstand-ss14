@@ -117,11 +117,11 @@ public sealed partial class FSStructureHealthOverlay : Overlay
 
             var fraction = FSStructureHealth.Fraction(health, damageable);
             var trail = Trail(uid, fraction, now, dt);
-            var progress = UpgradeProgress(uid);
+            var (progress, pourColor) = UpgradeProgress(uid);
             if (!engineer)
             {
                 if (progress > 0f)
-                    DrawProgress(handle, center, progress, width, s);
+                    DrawProgress(handle, center, progress, pourColor, width, s);
                 continue;
             }
 
@@ -140,7 +140,7 @@ public sealed partial class FSStructureHealthOverlay : Overlay
                 FSWorldChip.Pips(handle, topLeft + new Vector2(-3f * s, height / 2f), grade.Rank, MathF.Round(5f * s), grade.Color);
 
             if (progress > 0f)
-                DrawProgress(handle, center, progress, width, s);
+                DrawProgress(handle, center, progress, pourColor, width, s);
 
             if (rivetCap is { } cap)
             {
@@ -191,10 +191,10 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         _stale.Clear();
     }
 
-    private void DrawProgress(DrawingHandleScreen handle, Vector2 center, float progress, float width, float s)
+    private void DrawProgress(DrawingHandleScreen handle, Vector2 center, float progress, Color color, float width, float s)
     {
         var topLeft = new Vector2(MathF.Round(center.X - width / 2f), MathF.Round(center.Y + 22f * s));
-        FSWorldChip.Rail(handle, topLeft, width, MathF.Max(2f, MathF.Round(2f * s)), progress, Progress);
+        FSWorldChip.Rail(handle, topLeft, width, MathF.Max(2f, MathF.Round(3f * s)), progress, color);
     }
 
     private (int Rank, Color Color)? Grade(EntityUid uid)
@@ -238,15 +238,16 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         }
     }
 
-    private float UpgradeProgress(EntityUid uid)
+    // How far the pending upgrade is poured, in the colour of what it will become.
+    private (float Progress, Color Color) UpgradeProgress(EntityUid uid)
     {
         if (!_entMan.TryGetComponent<FSUpgradeableComponent>(uid, out var upgradeable)
             || upgradeable.Pending is not { } pending
             || upgradeable.Poured <= 0
             || !_proto.TryIndex(pending, out var upgrade))
-            return 0f;
+            return (0f, Progress);
 
-        return (float) upgradeable.Poured / upgrade.Hits;
+        return ((float) upgradeable.Poured / upgrade.Hits, upgrade.HudColor ?? Progress);
     }
 
     // With a hammer or RCD in hand every fortification shows its bar, so the whole line reads at a glance.

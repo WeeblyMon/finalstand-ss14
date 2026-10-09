@@ -75,6 +75,9 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     private List<ProtoId<StackPrototype>>? _costMaterials;
 
     private static readonly SoundSpecifier DoneSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
+    private static readonly SoundSpecifier FinalHitSound = new SoundPathSpecifier("/Audio/Effects/metal_slam1.ogg");
+    private const float PitchLow = 0.9f;
+    private const float PitchHigh = 1.25f;
     private static readonly SoundSpecifier ChimeSound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
 
     public override void Initialize()
@@ -338,7 +341,8 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
 
         _telemetry.RecordSpend("upgrades", cost);
         target.Comp.Poured++;
-        _audio.PlayPvs(PourSound, target);
+        var progress = upgrade.Hits > 1 ? (target.Comp.Poured - 1f) / (upgrade.Hits - 1f) : 1f;
+        _audio.PlayPvs(PourSound, target, PourSound.Params.WithPitchScale(PitchLow + (PitchHigh - PitchLow) * progress));
         Spawn(HitEffect, Transform(target).Coordinates);
 
         if (target.Comp.Poured < upgrade.Hits)
@@ -348,9 +352,10 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         }
 
         Apply(target, upgrade);
+        _audio.PlayPvs(FinalHitSound, target, AudioParams.Default.WithVolume(-2f));
         _audio.PlayPvs(DoneSound, target);
-        var flash = upgrade.Color ?? DoneFlash;
-        _flair.Burst(UpgradeRing, target, flash);
+        var flash = upgrade.HudColor ?? upgrade.Color ?? DoneFlash;
+        _flair.Burst(UpgradeRing, target, flash, kick: 0.25f);
         _flair.Burst(UpgradeGlints, target, flash);
         _audio.PlayPvs(ChimeSound, target, AudioParams.Default.WithVolume(-4f).WithPitchScale(upgrade.Slot == FSUpgradeSlot.Grade ? 1.15f : 0.95f));
         _color.RaiseEffect(DoneFlash, [target.Owner], Filter.Pvs(target, entityManager: EntityManager));
