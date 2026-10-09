@@ -27,10 +27,8 @@ public sealed class FSDeployableAlertClientSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
 
-    private static readonly SoundSpecifier LowSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_low.ogg",
-        AudioParams.Default.WithVolume(-8f));
-    private static readonly SoundSpecifier LostSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_lost.ogg",
-        AudioParams.Default.WithVolume(-6f));
+    private static readonly SoundSpecifier LowSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_low.ogg");
+    private static readonly SoundSpecifier LostSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_lost.ogg");
 
     private static readonly string[] Compass = { "E", "NE", "N", "NW", "W", "SW", "S", "SE" };
 

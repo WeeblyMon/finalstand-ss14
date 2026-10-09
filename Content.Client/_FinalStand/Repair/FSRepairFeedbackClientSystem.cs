@@ -18,7 +18,7 @@ public sealed class FSRepairFeedbackClientSystem : EntitySystem
     [Dependency] private FSDamageNumberSystem _numbers = default!;
 
     private static readonly SoundSpecifier CapSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/cap_tick.ogg",
-        AudioParams.Default.WithVolume(-8f).WithPitchScale(0.8f));
+        AudioParams.Default.WithPitchScale(0.8f));
 
     public EntityUid? CapTarget { get; private set; }
     public TimeSpan CapAt { get; private set; }
