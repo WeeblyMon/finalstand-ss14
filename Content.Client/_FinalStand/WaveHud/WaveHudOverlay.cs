@@ -1012,7 +1012,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Chance", "crit", CritChance);
         if (holdingGun || holdingMelee) AddPctRow(_bonusRows, "Crit Dmg", "critdmg", CritDamage);
         if (holdingMelee) AddPctRow(_bonusRows, "Atk Speed", "atkspeed", AttackSpeed);
-        AddPctRow(_bonusRows, "Resist", "resist", Resistance);
+        AddPointsRow(_bonusRows, "Resist", "resist", Resistance);
         AddPctRow(_bonusRows, "Speed", "speed", MoveSpeed);
 
         return _bonusRows;
@@ -1023,6 +1023,14 @@ public sealed partial class WaveHudOverlay : Overlay
         if (MathF.Abs(cat.Percent) < 0.05f)
             return;
         var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}%";
+        rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
+    }
+
+    private static void AddPointsRow(List<BonusRow> rows, string label, string iconKey, FSBonusCategory cat)
+    {
+        if (MathF.Abs(cat.Percent) < 0.05f)
+            return;
+        var text = $"{(cat.Percent >= 0 ? "+" : "")}{cat.Percent:0.#}";
         rows.Add(new BonusRow(label, text, cat.Percent >= 0 ? BonusPositive : BonusNegative, cat.Sources, iconKey));
     }
 
