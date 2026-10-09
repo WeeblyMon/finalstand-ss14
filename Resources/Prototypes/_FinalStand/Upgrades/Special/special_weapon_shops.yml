@@ -345,15 +345,6 @@
       requiresResearch: FSOrdnanceXrayCannon
       type: SelfChargeSpeed
       valuePerLevel: 3.2
-    - id: xray-accuracy
-      name: Collimator
-      description: Precision collimator tightens the beam by 10° per level.
-      maxLevel: 3
-      baseCost: 10000
-      targetWeaponProtoId: WeaponXrayCannonFS
-      requiresResearch: FSOrdnanceXrayCannon
-      type: Accuracy
-      valuePerLevel: 10.0
     - id: xray-fire-rate
       name: Pulse Accelerator
       description: Faster charge cycling increases fire rate by 0.5/level.
