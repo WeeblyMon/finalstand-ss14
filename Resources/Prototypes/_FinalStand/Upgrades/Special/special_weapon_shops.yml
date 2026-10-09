@@ -339,13 +339,13 @@
       requiresResearch: FSOrdnanceXrayCannon
     - id: xray-self-charge
       name: Resonant Cell
-      description: Tuned resonator doubles self-recharge rate per level.
+      description: Tuned resonator more than triples self-recharge rate per level.
       maxLevel: 3
       baseCost: 11000
       targetWeaponProtoId: WeaponXrayCannonFS
       requiresResearch: FSOrdnanceXrayCannon
       type: SelfChargeSpeed
-      valuePerLevel: 2.0
+      valuePerLevel: 3.2
     - id: xray-accuracy
       name: Collimator
       description: Precision collimator tightens the beam by 10° per level.
