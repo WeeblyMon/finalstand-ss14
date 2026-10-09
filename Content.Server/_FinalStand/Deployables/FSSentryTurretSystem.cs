@@ -28,6 +28,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private FSDeployableAlertSystem _alerts = default!;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _enemyPool =
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
@@ -121,6 +122,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
         turret.Ammo--;
         Dirty(uid, turret);
+        _alerts.AmmoSpent(uid, turret);
 
         if (turret.Ammo <= 0)
             QueueDel(uid);

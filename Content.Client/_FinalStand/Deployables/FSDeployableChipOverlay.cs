@@ -45,6 +45,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
     private readonly Dictionary<int, Font> _fonts = new();
     private SharedTransformSystem? _xform;
     private SharedHandsSystem? _hands;
+    private FSDeployableAlertClientSystem _alerts = default!;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -59,6 +60,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
             return;
 
         _xform ??= _entMan.System<SharedTransformSystem>();
+        _alerts ??= _entMan.System<FSDeployableAlertClientSystem>();
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
         var s = _ui.DefaultUIScale;
@@ -76,7 +78,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
 
             var fraction = sentry.MaxAmmo > 0 ? (float) sentry.Ammo / sentry.MaxAmmo : 0f;
             var color = sentry.Ammo <= 0 ? Empty : fraction < LowFraction ? Low : Ammo;
-            Chip(ctx, uid, xform, fraction, color, sentry.Ammo.ToString(), 8, lifetimes, true);
+            Chip(ctx, uid, xform, fraction, color, sentry.Ammo.ToString(), 8, lifetimes, true, alert: _alerts.Pulse(uid));
         }
 
         var boxes = _entMan.EntityQueryEnumerator<FSAmmoBoxComponent, TransformComponent>();
@@ -125,7 +127,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
 
     // Draws one chip above the entity and returns the right edge of its plate, or null if it was culled.
     private Vector2? Chip(in Ctx ctx, EntityUid uid, TransformComponent xform, float fraction, Color color, string text,
-        int segments, EntityQuery<FSDeployableLifetimeComponent> lifetimes, bool showText, bool timed = true)
+        int segments, EntityQuery<FSDeployableLifetimeComponent> lifetimes, bool showText, bool timed = true, float alert = 0f)
     {
         var pos = _xform!.GetWorldPosition(xform);
         var screen = Vector2.Transform(pos, ctx.Matrix);
@@ -134,7 +136,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
             return null;
 
         var s = ctx.Scale;
-        var full = ctx.Tool || (pos - ctx.Me).Length() <= NearRange;
+        var full = ctx.Tool || alert > 0f || (pos - ctx.Me).Length() <= NearRange;
         var tileHalf = (Vector2.Transform(pos + new Vector2(0f, 0.5f), ctx.Matrix) - screen).Length();
         var height = MathF.Round(5f * s);
         var gap = MathF.Max(1f, MathF.Round(s));
@@ -151,6 +153,10 @@ public sealed partial class FSDeployableChipOverlay : Overlay
             FSShapes.Slanted(ctx.Handle, plate, width + 8f * s, textSize.Y + 2f * s, MathF.Round(4f * s), FSWorldChip.Back);
             ctx.Handle.DrawString(ctx.Font, new Vector2(left + bar + 5f * s, plate.Y + 1f * s), text, color);
         }
+
+        if (alert > 0f)
+            FSShapes.Slanted(ctx.Handle, new Vector2(left - 6f * s, top - 4f * s), width + 12f * s, height + 8f * s,
+                MathF.Round(4f * s), Low.WithAlpha(0.35f + 0.5f * alert), border: MathF.Max(1f, 1.5f * s));
 
         FSWorldChip.Bar(ctx.Handle, new Vector2(left, top), barWidth, height, segments, gap, fraction, color);
 

@@ -30,4 +30,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngWaveReport =
         CVarDef.Create("fs.eng_wave_report", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngOwnerAlerts =
+        CVarDef.Create("fs.eng_owner_alerts", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

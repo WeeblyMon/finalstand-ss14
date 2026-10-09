@@ -7,3 +7,5 @@ fs-wave-report-soaked = SOAKED
 fs-wave-report-repaired = REPAIRED
 fs-wave-report-kills = KILLS
 fs-wave-report-earned = EARNED
+fs-sentry-alert-lost = {$name} LOST · {$where}
+fs-sentry-alert-spent = {$name} OUT OF AMMO · {$where}
