@@ -8,15 +8,4 @@ fs-hud-hmg-detail = Crate {$crate} · heat {$heat}%
 fs-hud-hmg-no-crate = No crate linked · heat {$heat}%
 fs-hud-hmg-overheated = OVERHEATED · cooling
 fs-hud-mech-no-weapon = {$mech} · no gun fitted
-fs-hud-mech-detail = {$low ->
-    [yes] LOW POWER {$energy}%
-   *[no] power {$energy}%
-} · hull {$integrity}/{$max}{$recharge ->
-    [yes] {" "}· recharge at the Mech Bay
-   *[no] {""}
-}
-fs-hud-mech-detail-siege = SIEGE · power {$energy}% · hull {$integrity}/{$max}{$recharge ->
-    [yes] {" "}· recharge at the Mech Bay
-   *[no] {""}
-}
 fs-hud-rivet-steel = {$count} steel left

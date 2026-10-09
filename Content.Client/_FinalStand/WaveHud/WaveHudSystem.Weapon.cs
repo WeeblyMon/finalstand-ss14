@@ -4,7 +4,6 @@ using System.Linq;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.RCD;
 using Content.Shared._FinalStand.HMG;
-using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Content.Shared._FinalStand.Materials;
@@ -36,8 +35,6 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudSystem
 {
-    private const int RechargeHintAt = 30;
-
     [Dependency] private ItemSlotsSystem _itemSlots = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private EntityWhitelistSystem _magWhitelist = default!;
@@ -125,11 +122,6 @@ public sealed partial class WaveHudSystem
 
     private void UpdateMech(WaveHudOverlay overlay, Entity<MechComponent> mech)
     {
-        var energy = mech.Comp.MaxEnergy > 0 ? (int) MathF.Round((mech.Comp.Energy / mech.Comp.MaxEnergy).Float() * 100f) : 0;
-        var integrity = (int) MathF.Round(mech.Comp.Integrity.Float());
-        var max = (int) MathF.Round(mech.Comp.MaxIntegrity.Float());
-        var siege = TryComp<FSSiegeModeComponent>(mech, out var siegeComp) && siegeComp.Planted;
-
         if (mech.Comp.CurrentSelectedEquipment is { } equipment)
         {
             overlay.WeaponName = Name(equipment);
@@ -145,10 +137,6 @@ public sealed partial class WaveHudSystem
         {
             overlay.WeaponName = Loc.GetString("fs-hud-mech-no-weapon", ("mech", Name(mech)));
         }
-
-        overlay.ItemDetail = Loc.GetString(siege ? "fs-hud-mech-detail-siege" : "fs-hud-mech-detail",
-            ("energy", energy), ("integrity", integrity), ("max", max), ("low", mech.Comp.CriticalPowerState ? "yes" : "no"),
-            ("recharge", energy <= RechargeHintAt ? "yes" : "no"));
     }
 
     private void UpdateHmg(WaveHudOverlay overlay, Entity<FSHMGComponent> hmg)
