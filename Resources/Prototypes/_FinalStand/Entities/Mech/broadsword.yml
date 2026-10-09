@@ -54,17 +54,17 @@
       - MediumMechMount
       - HeavyMechMount
   - type: Vehicle
-    transferDamageModifier:
-      coefficients:
-        Blunt: 0.25
-        Slash: 0.25
-        Piercing: 0.25
-        Cold: 0.25
-        Heat: 0.25
-        Shock: 0.25
+    transferDamage: false
     operatorWhitelist:
       components:
         - HumanoidProfile
+  - type: MechAir
+    air:
+      volume: 70
+      moles:
+        Oxygen: 0.611
+        Nitrogen: 2.299
+      temperature: 293.15
   - type: MeleeWeapon
     hidden: true
     attackRate: 1
