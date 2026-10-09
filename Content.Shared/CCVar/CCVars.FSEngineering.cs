@@ -33,4 +33,10 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngOwnerAlerts =
         CVarDef.Create("fs.eng_owner_alerts", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngFirstHints =
+        CVarDef.Create("fs.eng_first_hints", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<string> FSEngHintsSeen =
+        CVarDef.Create("fs.eng_hints_seen", "", CVar.CLIENTONLY | CVar.ARCHIVE);
 }
