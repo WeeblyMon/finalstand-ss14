@@ -7,6 +7,7 @@ research-technology-fs-mech-energy-weapons = Mech Energy Weapons
 
 fs-mech-bay-role-engineering = Engineering
 fs-mech-bay-role-science = Science
+fs-mech-bay-strip-next = NEXT · {$name} · {$role}
 fs-mech-bay-slot-chassis = Chassis
 fs-mech-bay-slot-left-leg = Left leg
 fs-mech-bay-slot-right-leg = Right leg
