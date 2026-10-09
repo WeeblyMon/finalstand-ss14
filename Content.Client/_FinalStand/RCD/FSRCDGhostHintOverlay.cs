@@ -38,7 +38,7 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
     private static readonly Color InfoText = FSPalette.Ok;
     private static readonly Color Backing = new(0f, 0f, 0f, 0.7f);
     private static readonly Color RefundText = FSPalette.Money;
-    private static readonly Color CardBack = FSPalette.PanelDeep;
+    private static readonly Color CardBack = FSPalette.PanelDeep.WithAlpha(0.95f);
     private static readonly Color DeniedRed = FSPalette.Danger;
     private const float CardWidth = 172f;
     private const float Slant = 8f;
@@ -53,6 +53,7 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
     public FSRCDGhostHintOverlay()
     {
         IoCManager.InjectDependencies(this);
+        ZIndex = 10;
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -82,7 +83,7 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
             && _entMan.TryGetComponent<FSEngineerOnlyRCDComponent>(hints.Rcd, out var fs))
         {
             var s = _ui.DefaultUIScale;
-            var shake = since < ShakeTime ? MathF.Sin(since * 70f) * 4f * s * (1f - since / ShakeTime) : 0f;
+            var shake = since < ShakeTime ? MathF.Sin(since * 70f) * 6f * s * (1f - since / ShakeTime) : 0f;
             DrawCard(handle, hints, piece, fs, new Vector2(center.X + shake, center.Y + tileHalf + 6f * s), s);
             return;
         }
@@ -104,8 +105,9 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         var b = Vector2.Transform(world.Position + new Vector2(0.5f, -0.5f), matrix);
         var box = new UIBox2(Vector2.Min(a, b), Vector2.Max(a, b));
         var fade = 1f - since / FlashTime;
-        handle.DrawRect(box, DeniedRed.WithAlpha(0.35f * fade));
-        handle.DrawRect(box, DeniedRed.WithAlpha(0.9f * fade), false);
+        handle.DrawRect(box, DeniedRed.WithAlpha(0.5f * fade));
+        handle.DrawRect(box, DeniedRed.WithAlpha(fade), false);
+        handle.DrawRect(new UIBox2(box.TopLeft + Vector2.One, box.BottomRight - Vector2.One), DeniedRed.WithAlpha(fade), false);
     }
 
     private void DrawCard(DrawingHandleScreen handle, FSRCDGhostHintSystem hints, RCDPrototype piece,
@@ -153,13 +155,14 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         var x = left + slant + pad;
         var right = left + width - slant / 2f - pad;
         var y = top + pad;
-        handle.DrawString(name, new Vector2(x, y), FSRCDText.Name(_proto, piece), FSPalette.TextBright);
+        var timeWidth = 0f;
         if (piece.Mode != RcdMode.Deconstruct)
         {
-            var time = Loc.GetString("fs-rcd-info-time", ("seconds", piece.Delay));
-            var timeWidth = handle.GetDimensions(mono, time, 1f).X;
-            handle.DrawString(mono, new Vector2(right - timeWidth, y + (line - monoLine) / 2f), time, FSPalette.TextMuted);
+            var time = Loc.GetString("fs-rcd-card-time", ("seconds", piece.Delay));
+            timeWidth = handle.GetDimensions(mono, time, 1f).X + 6f * s;
+            handle.DrawString(mono, new Vector2(right - timeWidth + 6f * s, y + (line - monoLine) / 2f), time, FSPalette.TextMuted);
         }
+        handle.DrawString(name, new Vector2(x, y), Truncate(handle, name, FSRCDText.Name(_proto, piece), right - x - timeWidth), FSPalette.TextBright);
         y += line;
 
         if (costs is { Materials.Count: > 0 })
@@ -210,10 +213,10 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         {
             y += 6f * s;
             var bannerHeight = monoLine + 4f * s;
-            var color = refused ? BlockedText : hints.Deconstructing ? RefundText : InfoText;
+            var color = refused ? FSPalette.TextBright : hints.Deconstructing ? RefundText : InfoText;
             if (refused)
                 FSShapes.Slanted(handle, new Vector2(x - 4f * s, y), right - x + 8f * s, bannerHeight, MathF.Round(4f * s),
-                    DeniedRed.WithAlpha(0.28f));
+                    DeniedRed.WithAlpha(0.55f));
             handle.DrawString(mono, new Vector2(x, y + 2f * s), Truncate(handle, mono, banner, right - x), color);
             y += bannerHeight;
         }

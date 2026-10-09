@@ -34,6 +34,7 @@ fs-rcd-belt-hint = Z picks the slot under the cursor or the next one · click a 
 fs-rcd-rotate-hint = R: rotate
 fs-rcd-card-rotate = rotate
 fs-rcd-card-cap = CAP
+fs-rcd-card-time = {$seconds}s
 fs-rcd-belt-station = station
 fs-rcd-belt-back = Back
 fs-rcd-summary-deconstruct = Deconstruct · click your own structures for a refund
