@@ -221,7 +221,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         WeaponSprite.SetEntity(shopEntity);
 
         var shopClient = _entityManager.System<FSShopClientSystem>();
-        BuildStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), entMan);
+        BuildStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId, comp.WeaponProtoIdAliases), entMan);
         RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         UpdateBalance(shopClient.CurrentCredits);
     }

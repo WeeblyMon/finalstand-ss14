@@ -48,8 +48,14 @@ public sealed partial class WeaponShopWindow
         GunComponent? gunProto = null;
         MeleeWeaponComponent? meleeProto = null;
         CritComponent? critProto = null;
-        if (shopComp.WeaponProtoId is { } weaponProtoId
-            && _proto.TryIndex<EntityPrototype>(weaponProtoId, out weaponProto))
+        // A converted weapon is a different prototype to the shop's, so prefer what the player carries.
+        var carriedProtoId = weapon.HasValue
+            ? entMan.GetComponent<MetaDataComponent>(weapon.Value).EntityPrototype?.ID
+            : null;
+        var protoId = carriedProtoId ?? shopComp.WeaponProtoId?.Id;
+
+        if (protoId != null
+            && _proto.TryIndex<EntityPrototype>(protoId, out weaponProto))
         {
             weaponProto.TryGetComponent<GunComponent>(out gunProto, entMan.ComponentFactory);
             weaponProto.TryGetComponent<MeleeWeaponComponent>(out meleeProto, entMan.ComponentFactory);

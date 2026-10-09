@@ -272,22 +272,26 @@ public sealed partial class FSShopClientSystem : EntitySystem
     }
 
     // Finds the owned instance of the weapon/grenade-pack matching protoId across hands and inventory.
-    public EntityUid? FindOwnedWeapon(EntProtoId? protoId)
+    public EntityUid? FindOwnedWeapon(EntProtoId? protoId, List<EntProtoId>? aliases = null)
     {
         var player = _player.LocalSession?.AttachedEntity;
         if (player == null || protoId == null) return null;
-        var targetId = protoId.Value.Id;
+        var targets = new HashSet<string> { protoId.Value.Id };
+        foreach (var alias in aliases ?? [])
+            targets.Add(alias.Id);
+
+        bool Matches(EntityUid ent) => MetaData(ent).EntityPrototype?.ID is { } id && targets.Contains(id);
 
         foreach (var held in _hands.EnumerateHeld(player.Value))
         {
-            if (MetaData(held).EntityPrototype?.ID == targetId)
+            if (Matches(held))
                 return held;
         }
 
         foreach (var slot in InventorySlots)
         {
             if (_inventory.TryGetSlotEntity(player.Value, slot, out var item) && item != null
-                && MetaData(item.Value).EntityPrototype?.ID == targetId)
+                && Matches(item.Value))
                 return item.Value;
         }
 
@@ -298,7 +302,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
             {
                 foreach (var entity in container.ContainedEntities)
                 {
-                    if (MetaData(entity).EntityPrototype?.ID == targetId)
+                    if (Matches(entity))
                         return entity;
                 }
             }
