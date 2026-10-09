@@ -37,6 +37,7 @@ public static class FSWorldChip
     {
         var slant = MathF.Round(height);
         FSShapes.Slanted(handle, topLeft - Vector2.One, width + 2f, height + 2f, slant, Back);
+        FSShapes.Slanted(handle, topLeft, width, height, slant, Track);
         FSShapes.Slanted(handle, topLeft, width, height, slant, fill, fill: fraction);
     }
 

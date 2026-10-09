@@ -121,7 +121,10 @@ public sealed partial class FSStructureHealthOverlay : Overlay
             if (!engineer)
             {
                 if (progress > 0f)
-                    DrawProgress(handle, center, progress, pourColor, width, s);
+                {
+                    var half = (Vector2.Transform(_xform.GetWorldPosition(xform) + new Vector2(0f, 0.5f), matrix) - center).Length();
+                    DrawProgress(handle, new Vector2(MathF.Round(center.X - width / 2f), MathF.Round(center.Y + half * 0.55f)), progress, pourColor, width, s);
+                }
                 continue;
             }
 
@@ -133,14 +136,15 @@ public sealed partial class FSStructureHealthOverlay : Overlay
                 color = color.WithAlpha(0.55f);
 
             var full = FSWorldChip.Width(width, height, segments, gap);
-            var topLeft = new Vector2(MathF.Round(center.X - full / 2f), MathF.Round(center.Y + 14f * s));
+            var tileHalf = (Vector2.Transform(_xform.GetWorldPosition(xform) + new Vector2(0f, 0.5f), matrix) - center).Length();
+            var topLeft = new Vector2(MathF.Round(center.X - full / 2f), MathF.Round(center.Y + tileHalf * 0.55f));
             FSWorldChip.Bar(handle, topLeft, width, height, segments, gap, fraction, color, trail);
 
             if (!compact && Grade(uid) is { } grade)
                 FSWorldChip.Pips(handle, topLeft + new Vector2(-3f * s, height / 2f), grade.Rank, MathF.Round(5f * s), grade.Color);
 
             if (progress > 0f)
-                DrawProgress(handle, center, progress, pourColor, width, s);
+                DrawProgress(handle, topLeft with { Y = topLeft.Y + height + 3f * s }, progress, pourColor, full, s);
 
             if (rivetCap is { } cap)
             {
@@ -191,9 +195,8 @@ public sealed partial class FSStructureHealthOverlay : Overlay
         _stale.Clear();
     }
 
-    private void DrawProgress(DrawingHandleScreen handle, Vector2 center, float progress, Color color, float width, float s)
+    private void DrawProgress(DrawingHandleScreen handle, Vector2 topLeft, float progress, Color color, float width, float s)
     {
-        var topLeft = new Vector2(MathF.Round(center.X - width / 2f), MathF.Round(center.Y + 22f * s));
         FSWorldChip.Rail(handle, topLeft, width, MathF.Max(2f, MathF.Round(3f * s)), progress, color);
     }
 
