@@ -7,6 +7,7 @@
   icon:
     sprite: Objects/Materials/Sheets/metal.rsi
     state: steel
+  hudColor: "#a9adb0"
 
 - type: fsUpgrade
   id: FSGradePlasteel
@@ -17,6 +18,7 @@
     sprite: Objects/Materials/Sheets/metal.rsi
     state: plasteel
   requires: FSGradeSteel
+  hudColor: "#7fb0d6"
   cost:
     Plasteel: 3
   hits: 5
@@ -38,6 +40,7 @@
     sprite: Objects/Materials/Sheets/other.rsi
     state: uranium
   requires: FSGradePlasteel
+  hudColor: "#b9f28c"
   cost:
     Uranium: 3
   hits: 8

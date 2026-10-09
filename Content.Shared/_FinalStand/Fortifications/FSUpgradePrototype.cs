@@ -74,6 +74,9 @@ public sealed partial class FSUpgradePrototype : IPrototype
     public Color? Color;
 
     [DataField]
+    public Color? HudColor;
+
+    [DataField]
     public List<PrototypeLayerData> Layers = new();
 
     [DataField]
