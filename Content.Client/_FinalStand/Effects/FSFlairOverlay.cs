@@ -1,4 +1,4 @@
-// World-space flair that is also information: build holograms filling in, the planted Broadsword's frontal shield,
+// World-space flair that is also information: build holograms filling in, the planted Broadsword's frontal barrier,
 // the emplacement's cover zone, a faint line from each sentry to what it's shooting at, and a mech's low-power blink.
 using System.Numerics;
 using Content.Shared._FinalStand.Deployables;
@@ -32,13 +32,18 @@ public sealed partial class FSFlairOverlay : Overlay
     private const float LowPowerIconSize = 0.5f;
     private const float LowPowerIconHeight = 1.45f;
     private const float ShieldRadius = 1.55f;
-    private const int ShieldSegments = 16;
+    private const int ShieldSegments = 28;
+    private const float ShieldOpenTime = 0.35f;
+    private const float ShieldCloseTime = 0.25f;
+    private const double ShieldSweepTime = 2.4;
     private const float CoverRange = 8f;
 
     private SharedTransformSystem? _xform;
     private SpriteSystem? _sprite;
     private SharedAppearanceSystem? _appearance;
     private FSFlairClientSystem? _flair;
+    private readonly Dictionary<EntityUid, ShieldState> _shields = new();
+    private double _shieldTime;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
@@ -90,28 +95,131 @@ public sealed partial class FSFlairOverlay : Overlay
         }
     }
 
+    // The siege barrier: it unfolds from the centre when the mech plants and folds away when it lifts. A thick curved band
+    // with a bright leading edge, a hex lattice that shimmers as a wave runs through it, a highlight sweeping across, emitter
+    // nodes at both ends, and a flare whenever the mech takes a hit.
     private void DrawShields(DrawingHandleWorld handle, in OverlayDrawArgs args, float pulse)
     {
+        var now = _timing.RealTime.TotalSeconds;
+        var dt = (float) Math.Clamp(now - _shieldTime, 0d, 0.1d);
+        _shieldTime = now;
+
         var query = _entMan.EntityQueryEnumerator<FSSiegeModeComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var siege, out var xform))
         {
-            if (!siege.Planted || xform.MapID != args.MapId)
-                continue;
-
-            var center = _xform!.GetWorldPosition(xform);
-            var facing = _xform.GetWorldRotation(xform);
-            var half = Angle.FromDegrees(siege.FrontalArc / 2f);
-            var points = new List<Vector2> { center };
-            for (var i = 0; i <= ShieldSegments; i++)
+            if (!_shields.TryGetValue(uid, out var state))
             {
-                var angle = facing - half + (half * 2) * (i / (float) ShieldSegments);
-                points.Add(center + angle.ToWorldVec() * ShieldRadius);
+                if (!siege.Planted)
+                    continue;
+
+                _shields[uid] = state = new ShieldState();
             }
 
-            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, points.ToArray(), ShieldColor.WithAlpha(0.12f + 0.06f * pulse));
-            for (var i = 1; i < points.Count - 1; i++)
-                handle.DrawLine(points[i], points[i + 1], ShieldColor.WithAlpha(0.55f + 0.25f * pulse));
+            state.Open = siege.Planted
+                ? MathF.Min(1f, state.Open + dt / ShieldOpenTime)
+                : MathF.Max(0f, state.Open - dt / ShieldCloseTime);
+
+            var hull = _entMan.TryGetComponent<MechComponent>(uid, out var mech) ? mech.Integrity.Float() : 0f;
+            if (siege.Planted && hull < state.Hull - 0.5f)
+                state.FlashAt = now;
+            state.Hull = hull;
+
+            if (state.Open <= 0f)
+            {
+                _shields.Remove(uid);
+                continue;
+            }
+
+            if (xform.MapID != args.MapId)
+                continue;
+
+            var open = 1f - (1f - state.Open) * (1f - state.Open) * (1f - state.Open);
+            var flash = (float) Math.Clamp(1d - (now - state.FlashAt) / 0.35, 0d, 1d);
+            var center = _xform!.GetWorldPosition(xform);
+            var facing = _xform.GetWorldRotation(xform);
+            var half = (float) Angle.FromDegrees(siege.FrontalArc / 2f).Theta * open;
+            var outer = ShieldRadius * (0.8f + 0.2f * open);
+            var inner = outer - 0.22f;
+            var edge = ShieldColor.WithAlpha(1f);
+
+            Band(handle, center, facing, half, 0f, inner, -1f, 1f, ShieldColor.WithAlpha(0.035f * open));
+            Band(handle, center, facing, half, inner - 0.25f, inner, -1f, 1f, ShieldColor.WithAlpha(0.06f * open));
+            Band(handle, center, facing, half, inner, outer, -1f, 1f, ShieldColor.WithAlpha((0.13f + 0.05f * pulse + 0.3f * flash) * open));
+            Band(handle, center, facing, half, outer - 0.05f, outer + 0.015f, -1f, 1f, edge.WithAlpha((0.7f + 0.3f * flash) * open));
+            Band(handle, center, facing, half, inner - 0.01f, inner + 0.015f, -1f, 1f, edge.WithAlpha(0.3f * open));
+
+            var sweep = (float) (now / ShieldSweepTime % 1d) * 2.4f - 1.2f;
+            Band(handle, center, facing, half, inner, outer, sweep - 0.12f, sweep + 0.12f, Color.White.WithAlpha(0.22f * open));
+
+            Lattice(handle, center, facing, half, inner, outer, (float) now, open);
+
+            foreach (var side in new[] { -1f, 1f })
+            {
+                var node = center + Dir(facing, half * side) * (outer - 0.11f);
+                handle.DrawCircle(node, 0.07f, edge.WithAlpha(0.35f * open));
+                handle.DrawCircle(node, 0.035f, Color.White.WithAlpha((0.8f + 0.2f * pulse) * open));
+            }
         }
+    }
+
+    // A slice of ring between two radii, from one fraction of the arc to another (-1 is one end, 1 the other).
+    private static void Band(DrawingHandleWorld handle, Vector2 center, Angle facing, float half, float r0, float r1,
+        float from, float to, Color color)
+    {
+        from = Math.Clamp(from, -1f, 1f);
+        to = Math.Clamp(to, -1f, 1f);
+        if (to <= from || half <= 0f || color.A <= 0f)
+            return;
+
+        var steps = Math.Max(2, (int) MathF.Ceiling(ShieldSegments * (to - from) / 2f));
+        var strip = new Vector2[(steps + 1) * 2];
+        for (var i = 0; i <= steps; i++)
+        {
+            var dir = Dir(facing, half * (from + (to - from) * i / steps));
+            strip[i * 2] = center + dir * r0;
+            strip[i * 2 + 1] = center + dir * r1;
+        }
+
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, strip, color);
+    }
+
+    // Two staggered rows of hex cells across the band; a wave travels along them so the barrier looks alive.
+    private static void Lattice(DrawingHandleWorld handle, Vector2 center, Angle facing, float half, float inner, float outer,
+        float time, float open)
+    {
+        var mid = (inner + outer) / 2f;
+        var cell = 0.075f;
+        var count = Math.Max(1, (int) (half * 2f * mid / (cell * 1.75f)));
+        for (var row = 0; row < 2; row++)
+        {
+            var radius = mid + (row == 0 ? -cell * 0.45f : cell * 0.45f);
+            for (var i = 0; i < count; i++)
+            {
+                var frac = (i + (row == 0 ? 0.25f : 0.75f)) / count * 2f - 1f;
+                var wave = MathF.Max(0f, MathF.Sin(frac * 4f - time * 2.6f + row));
+                var alpha = (0.07f + 0.4f * wave * wave) * open;
+                var at = center + Dir(facing, half * frac) * radius;
+                var spin = facing.Theta + half * frac;
+                Vector2? last = null;
+                for (var k = 0; k <= 6; k++)
+                {
+                    var a = spin + k * MathF.PI / 3f;
+                    var p = at + new Vector2(MathF.Cos((float) a), MathF.Sin((float) a)) * cell * 0.5f;
+                    if (last is { } prev)
+                        handle.DrawLine(prev, p, ShieldColor.WithAlpha(alpha));
+                    last = p;
+                }
+            }
+        }
+    }
+
+    private static Vector2 Dir(Angle facing, float offset) => (facing + offset).ToWorldVec();
+
+    private sealed class ShieldState
+    {
+        public float Open;
+        public float Hull;
+        public double FlashAt = double.MinValue;
     }
 
     private void DrawCover(DrawingHandleWorld handle, in OverlayDrawArgs args)
