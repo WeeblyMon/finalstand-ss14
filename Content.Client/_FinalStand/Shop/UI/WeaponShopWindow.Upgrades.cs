@@ -101,8 +101,6 @@ public sealed partial class WeaponShopWindow
             return;
         }
 
-        // Shops whose upgrades retarget more than one weapon group by weapon instead, so a
-        // conversion's upgrades read as a locked set rather than looking buyable on the base gun.
         var targets = visible.Select(d => d.TargetWeaponProtoId?.Id).Distinct().ToList();
         if (targets.Count > 1)
         {
@@ -171,7 +169,6 @@ public sealed partial class WeaponShopWindow
             if (def.RequiresResearch is { } node && !shopClient.IsResearchNodeUnlocked(node.Id))
                 lockedBy = _proto.TryIndex(node, out var nodeProto) ? nodeProto.Name : node.Id;
 
-            // The server refuses any retargeted upgrade unless that exact weapon is carried.
             if (lockedBy == null
                 && def.TargetWeaponProtoId is { } target
                 && !shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), target))
