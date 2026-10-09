@@ -1,8 +1,11 @@
 // A card under the RCD ghost: what the piece costs against what you have, how much of its cap is used, the build time,
 // why the tile is refused, and the rotate key. A refused click shakes the card and flashes the tile red.
+// Sentries and HMGs also show their reach around the ghost before you commit.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;
+using Content.Shared._FinalStand.Deployables;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;
@@ -44,6 +47,9 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
     private const float Slant = 8f;
     private const float ShakeTime = 0.3f;
     private const float FlashTime = 0.45f;
+    private const float HmgReach = 6f;
+    private static readonly Color RangeEdge = FSPalette.TextBright.WithAlpha(0.35f);
+    private static readonly Color RangeFill = FSPalette.TextBright.WithAlpha(0.05f);
 
     private Font? _font;
     private FSRCDLook? _look;
@@ -77,6 +83,8 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
 
         var center = Vector2.Transform(world.Position, matrix);
         var tileHalf = (Vector2.Transform(world.Position + new Vector2(0f, 0.5f), matrix) - center).Length();
+        if (hints.Piece is { } shown && _cfg.GetCVar(CCVars.FSEngRangePreview))
+            DrawRange(handle, shown, hints.Direction, center, tileHalf * 2f);
 
         if (_cfg.GetCVar(CCVars.FSEngGhostCard)
             && hints.Piece is { } piece
@@ -89,6 +97,40 @@ public sealed partial class FSRCDGhostHintOverlay : Overlay
         }
 
         DrawStrip(handle, hints, center, tileHalf);
+    }
+
+    // A faint ring for a sentry's range, or the HMG's traverse wedge in the direction it will face.
+    private void DrawRange(DrawingHandleScreen handle, RCDPrototype piece, Direction direction, Vector2 center, float tile)
+    {
+        if (piece.Prototype is not { } id || !_proto.TryIndex<EntityPrototype>(id, out var proto))
+            return;
+
+        if (proto.TryGetComponent<FSSentryTurretComponent>(out var sentry))
+        {
+            var radius = sentry.Range * tile;
+            FSShapes.Disc(handle, center, radius, RangeFill);
+            FSShapes.Ring(handle, center, radius, 1.5f, RangeEdge);
+            return;
+        }
+
+        if (!proto.TryGetComponent<FSHMGComponent>(out var hmg))
+            return;
+
+        var facing = (float) (direction.ToAngle() - Math.PI / 2).Degrees;
+        var half = hmg.Arc / 2f;
+        var reach = HmgReach * tile;
+        var fan = new Vector2[26];
+        fan[0] = center;
+        for (var i = 0; i <= 24; i++)
+        {
+            var a = MathHelper.DegreesToRadians(facing - half + hmg.Arc * i / 24f);
+            fan[i + 1] = center + new Vector2(MathF.Cos((float) a), -MathF.Sin((float) a)) * reach;
+        }
+
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, fan, RangeFill);
+        FSShapes.Arc(handle, center, reach, 1.5f, -(facing + half), -(facing - half), RangeEdge);
+        handle.DrawLine(center, fan[1], RangeEdge);
+        handle.DrawLine(center, fan[^1], RangeEdge);
     }
 
     private void DrawDeniedFlash(DrawingHandleScreen handle, SharedTransformSystem xform, Matrix3x2 matrix,

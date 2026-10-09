@@ -51,6 +51,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
     public RCDPrototype? Piece { get; private set; }
     public TimeSpan DeniedAt { get; private set; }
     public EntityCoordinates? DeniedTile { get; private set; }
+    public Direction Direction => _placement.Direction;
 
     private static readonly SoundSpecifier DeniedSound = new SoundPathSpecifier("/Audio/Machines/custom_deny.ogg",
         AudioParams.Default.WithVolume(-6f));

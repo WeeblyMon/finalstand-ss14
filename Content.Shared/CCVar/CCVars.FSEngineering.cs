@@ -24,4 +24,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngMechHudMotion =
         CVarDef.Create("fs.eng_mech_hud_motion", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngRangePreview =
+        CVarDef.Create("fs.eng_range_preview", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }
