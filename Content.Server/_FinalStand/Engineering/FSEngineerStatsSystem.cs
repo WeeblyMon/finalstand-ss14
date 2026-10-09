@@ -1,11 +1,13 @@
 // Engineer income and stats: pays owners for wave damage their structures soak and for repairing that damage,
-// counts equipment kills, and writes the engineering block of the round-end summary.
+// counts equipment kills, sends each engineer a report card when a wave ends, and writes the engineering block of the
+// round-end summary.
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
+using Content.Shared._FinalStand.Engineering;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Server.GameTicking;
 using Content.Shared.Damage.Systems;
@@ -37,6 +39,7 @@ public sealed class FSEngineerStatsSystem : EntitySystem
     private readonly Dictionary<EntityUid, float> _absorbedThisWave = new();
     private readonly Dictionary<(EntityUid Mind, EntityUid Structure), float> _repairedThisWave = new();
     private readonly Dictionary<EntityUid, float> _unpaid = new();
+    private readonly Dictionary<EntityUid, (float Absorbed, float Repaired, int Kills, float Credits)> _wave = new();
 
     public FSEngineerRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
 
@@ -46,6 +49,7 @@ public sealed class FSEngineerStatsSystem : EntitySystem
         SubscribeLocalEvent<FSDeployedByComponent, DamageChangedEvent>(OnStructureDamageChanged);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd, after: [typeof(FSLevelingSystem)]);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestartCleanup);
     }
@@ -57,12 +61,30 @@ public sealed class FSEngineerStatsSystem : EntitySystem
         _absorbedThisWave.Clear();
         _repairedThisWave.Clear();
         _unpaid.Clear();
+        _wave.Clear();
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
     {
         _absorbedThisWave.Clear();
         _repairedThisWave.Clear();
+    }
+
+    private void OnWaveEnded(ref WaveEndedEvent ev)
+    {
+        foreach (var (mindId, wave) in _wave)
+        {
+            if (!TryComp<MindComponent>(mindId, out var mind)
+                || mind.UserId is not { } userId
+                || !_players.TryGetSessionById(userId, out var session)
+                || wave.Absorbed < 1f && wave.Repaired < 1f && wave.Kills == 0)
+                continue;
+
+            RaiseNetworkEvent(new FSEngineerWaveReportEvent(ev.WaveNumber, (int) wave.Absorbed, (int) wave.Repaired, wave.Kills,
+                (int) wave.Credits), session);
+        }
+
+        _wave.Clear();
     }
 
     private void OnStructureDamageChanged(Entity<FSDeployedByComponent> ent, ref DamageChangedEvent args)
@@ -132,6 +154,9 @@ public sealed class FSEngineerStatsSystem : EntitySystem
 
     private void Record(EntityUid mindId, float absorbed = 0f, float repaired = 0f, int kills = 0, float credits = 0f)
     {
+        var wave = _wave.GetValueOrDefault(mindId);
+        _wave[mindId] = (wave.Absorbed + absorbed, wave.Repaired + repaired, wave.Kills + kills, wave.Credits + credits);
+
         var cur = _roundStats.GetValueOrDefault(mindId);
         _roundStats[mindId] = new FSEngineerRoundStats(
             cur.Absorbed + absorbed,

@@ -27,4 +27,7 @@ public sealed partial class CCVars
 
     public static readonly CVarDef<bool> FSEngRangePreview =
         CVarDef.Create("fs.eng_range_preview", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSEngWaveReport =
+        CVarDef.Create("fs.eng_wave_report", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }
