@@ -72,7 +72,8 @@ public sealed partial class RCDSystem : EntitySystem
         // On init, set the RCD to its first available recipe
         if (component.AvailablePrototypes.Count > 0)
         {
-            component.ProtoId = component.AvailablePrototypes.ElementAt(0);
+            if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+                component.ProtoId = component.AvailablePrototypes.ElementAt(0);
             Dirty(uid, component);
 
             return;
@@ -85,7 +86,7 @@ public sealed partial class RCDSystem : EntitySystem
     private void OnRCDSystemMessage(EntityUid uid, RCDComponent component, RCDSystemMessage args)
     {
         // Exit if the RCD doesn't actually know the supplied prototype
-        if (!component.AvailablePrototypes.Contains(args.ProtoId) && args.ProtoId != "Invalid") // FS: "Invalid" is the empty selection
+        if (!component.AvailablePrototypes.Contains(args.ProtoId) && args.ProtoId != "Invalid")
             return;
 
         if (!ProtoMan.Resolve<RCDPrototype>(args.ProtoId, out var prototype))
@@ -131,8 +132,8 @@ public sealed partial class RCDSystem : EntitySystem
         var location = args.ClickLocation;
         var prototype = ProtoMan.Index(component.ProtoId);
 
-        if (prototype.Mode == RcdMode.Invalid) // FS
-            return; // FS
+        if (prototype.Mode == RcdMode.Invalid)
+            return;
 
         // Initial validity checks
         if (!location.IsValid(EntityManager))
