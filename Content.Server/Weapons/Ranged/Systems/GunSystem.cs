@@ -213,40 +213,6 @@ public sealed partial class GunSystem : SharedGunSystem
         ShootProjectile(uid, mapDirection, gunVelocity, gun, user, gun.Comp.ProjectileSpeedModified);
     }
 
-    /// <summary>
-    /// Gets a linear spread of angles between start and end.
-    /// </summary>
-    /// <param name="start">Start angle in degrees</param>
-    /// <param name="end">End angle in degrees</param>
-    /// <param name="intervals">How many shots there are</param>
-    private Angle[] LinearSpread(Angle start, Angle end, int intervals)
-    {
-        var angles = new Angle[intervals];
-        DebugTools.Assert(intervals > 1);
-
-        for (var i = 0; i <= intervals - 1; i++)
-        {
-            angles[i] = new Angle(start + (end - start) * i / (intervals - 1));
-        }
-
-        return angles;
-    }
-
-    private Angle GetRecoilAngle(TimeSpan curTime, GunComponent component, Angle direction)
-    {
-        var timeSinceLastFire = (curTime - component.LastFire).TotalSeconds;
-        var newTheta = MathHelper.Clamp(component.CurrentAngle.Theta + component.AngleIncreaseModified.Theta - component.AngleDecayModified.Theta * timeSinceLastFire, component.MinAngleModified.Theta, component.MaxAngleModified.Theta);
-        component.CurrentAngle = new Angle(newTheta);
-        component.LastFire = component.NextFire;
-
-        // Convert it so angle can go either side.
-        var random = Random.NextFloat(-0.5f, 0.5f);
-        var spread = component.CurrentAngle.Theta * random;
-        var angle = new Angle(direction.Theta + component.CurrentAngle.Theta * random);
-        DebugTools.Assert(spread <= component.MaxAngleModified.Theta);
-        return angle;
-    }
-
     protected override void CreateEffect(EntityUid gunUid, MuzzleFlashEvent message, EntityUid? user = null)
     {
         var filter = Filter.Pvs(gunUid, entityManager: EntityManager);
@@ -258,6 +224,11 @@ public sealed partial class GunSystem : SharedGunSystem
     }
 
     public override void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound)
+    {
+        PlayImpactSound(otherEntity, modifiedDamage, weaponSound, forceWeaponSound, null); // fs
+    }
+
+    public void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound, ICommonSession? exclude)
     {
         DebugTools.Assert(!Deleted(otherEntity), "Impact sound entity was deleted");
 
@@ -275,21 +246,33 @@ public sealed partial class GunSystem : SharedGunSystem
             {
                 var damageSoundTypeParams = damageSoundType?.Params ?? AudioParams.Default;
                 damageSoundTypeParams = damageSoundTypeParams.WithVariation(DamagePitchVariation);
-                Audio.PlayPvs(damageSoundType, otherEntity, damageSoundTypeParams);
+                PlayImpact(damageSoundType, otherEntity, damageSoundTypeParams, exclude); // fs
                 playedSound = true;
             }
             else if (type != null && rangedSound.SoundGroups?.TryGetValue(type, out var damageSoundGroup) == true)
             {
                 var damageSoundGroupParams = damageSoundGroup?.Params ?? AudioParams.Default;
                 damageSoundGroupParams = damageSoundGroupParams.WithVariation(DamagePitchVariation);
-                Audio.PlayPvs(damageSoundGroup, otherEntity, damageSoundGroupParams);
+                PlayImpact(damageSoundGroup, otherEntity, damageSoundGroupParams, exclude); // fs
                 playedSound = true;
             }
         }
 
         if (!playedSound && weaponSound != null)
         {
-            Audio.PlayPvs(weaponSound, otherEntity);
+            PlayImpact(weaponSound, otherEntity, null, exclude); // fs
         }
+    }
+
+    private void PlayImpact(SoundSpecifier? sound, EntityUid uid, AudioParams? audioParams, ICommonSession? exclude)
+    {
+        if (exclude == null)
+        {
+            Audio.PlayPvs(sound, uid, audioParams);
+            return;
+        }
+
+        var filter = Filter.Pvs(uid, entityManager: EntityManager).RemovePlayer(exclude); // fs
+        Audio.PlayEntity(sound, filter, uid, true, audioParams);
     }
 }
