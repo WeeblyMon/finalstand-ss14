@@ -4,7 +4,6 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage.Components;
-using Content.Shared.Damage.Systems;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Power.Components;
 using Content.Shared.Power.EntitySystems;
@@ -21,7 +20,6 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
-    [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private AppearanceSystem _appearance = default!;
     [Dependency] private ExplosionSystem _explosion = default!;
@@ -34,6 +32,10 @@ public sealed partial class FSMediDroneSystem : EntitySystem
     private const float LowChargeLevel = 0.25f;
 
     private readonly HashSet<Entity<FSFriendlyFireComponent>> _candidates = new();
+
+    // Near the cap the beam restores a sliver per tick while still spending full charge.
+    private const float MinUsefulScale = 0.25f;
+    private const float MinHealableDamage = 2f;
 
     public override void Initialize()
     {
@@ -126,7 +128,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
             if (!IsTreatable(candidate, gun, owner))
                 continue;
 
-            var damage = (float) _damageable.GetTotalDamage(candidate.Owner);
+            var damage = HealableDamage(Comp<DamageableComponent>(candidate.Owner), gun);
             if (damage <= worst)
                 continue;
 
@@ -143,8 +145,21 @@ public sealed partial class FSMediDroneSystem : EntitySystem
                && !TerminatingOrDeleted(patient)
                && !_mobState.IsDead(patient)
                && TryComp<DamageableComponent>(patient, out var damageable)
-               && damageable.TotalDamage > 0
-               && _mediGun.GetHealScale((patient, damageable), gun) > 0f;
+               && HealableDamage(damageable, gun) >= MinHealableDamage
+               && _mediGun.GetHealScale((patient, damageable), gun) >= MinUsefulScale;
+    }
+
+    // Poison, radiation and the like count toward total damage but the beam cannot touch them.
+    private static float HealableDamage(DamageableComponent damageable, FSMediGunComponent gun)
+    {
+        var total = 0f;
+        foreach (var (type, amount) in damageable.Damage.DamageDict)
+        {
+            if (gun.Healing.DamageDict.ContainsKey(type))
+                total += amount.Float();
+        }
+
+        return total;
     }
 
     private void Fly(Entity<FSMediDroneComponent> drone, EntityUid owner, float frameTime)
