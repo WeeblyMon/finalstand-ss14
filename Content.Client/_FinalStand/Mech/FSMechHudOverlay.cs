@@ -80,6 +80,9 @@ public sealed partial class FSMechHudOverlay : Overlay
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
+    // Where the combat button goes, under the weapon cards, in screen pixels; null when not piloting.
+    public UIBox2? CombatBox { get; private set; }
+
     public FSMechHudOverlay()
     {
         IoCManager.InjectDependencies(this);
@@ -104,6 +107,7 @@ public sealed partial class FSMechHudOverlay : Overlay
 
         if (_hud.Piloted() is not { } mech)
         {
+            CombatBox = null;
             if (_active != null)
             {
                 _downAt = now;
@@ -174,7 +178,10 @@ public sealed partial class FSMechHudOverlay : Overlay
         Readout(handle, new Vector2(c.X + radius + 18f * s, readY), Loc.GetString("fs-mech-hud-power"), Percent(_powerShown),
             Faded(powerColor, boot), false, s);
 
-        Cards(handle, comp, new Vector2(c.X + radius + 40f * s, c.Y - radius * 0.92f), now, motion, s);
+        var cardsAt = new Vector2(c.X + radius + 40f * s, c.Y - radius * 0.92f);
+        Cards(handle, comp, cardsAt, now, motion, s);
+        CombatBox = UIBox2.FromDimensions(cardsAt + new Vector2(0f, FSMechHudSystem.WeaponKeys * CardStep * s + 2f * s),
+            new Vector2(CardWidth * s, 22f * s));
         Callouts(handle, mech, new Vector2(c.X, c.Y + radius + 16f * s), power, now, motion, s);
     }
 
