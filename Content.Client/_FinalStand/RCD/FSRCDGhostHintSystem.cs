@@ -116,7 +116,7 @@ public sealed partial class FSRCDGhostHintSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("fs-rcd-first-hint"), player, player, PopupType.Large);
         }
 
-        if (_ui.CurrentlyHovered is not IViewportControl)
+        if (_ui.CurrentlyHovered is not IViewportControl || ProtoMan.Index(rcd.ProtoId).Mode == RcdMode.Invalid)
             return;
 
         var mapCoords = _eye.PixelToMap(_input.MouseScreenPosition);

@@ -64,7 +64,7 @@ public sealed partial class FSRCDEngineerOnlySystem
             return;
 
         var available = rcd.AvailablePrototypes;
-        if (!available.Contains(ev.Piece))
+        if (!available.Contains(ev.Piece) && ev.Piece != FSRCDEmpty.Piece)
             return;
 
         RaiseLocalEvent(held.Value, new RCDSystemMessage(ev.Piece) { Actor = user });

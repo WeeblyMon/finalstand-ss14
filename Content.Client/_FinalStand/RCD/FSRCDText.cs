@@ -19,6 +19,9 @@ public static class FSRCDText
 
     public static string Name(IPrototypeManager protoMan, RCDPrototype proto)
     {
+        if (proto.Mode == RcdMode.Invalid)
+            return Loc.GetString("fs-rcd-empty-name");
+
         var name = proto.Mode is RcdMode.ConstructObject or RcdMode.ConstructTile
                    && proto.Prototype != null
                    && protoMan.TryIndex(proto.Prototype, out EntityPrototype? entProto)
@@ -37,6 +40,9 @@ public static class FSRCDText
     {
         if (piece.Mode == RcdMode.Deconstruct)
             return Loc.GetString("fs-rcd-summary-deconstruct");
+
+        if (piece.Mode == RcdMode.Invalid)
+            return Loc.GetString("fs-rcd-summary-empty");
 
         var name = Name(proto, piece);
         if (!proto.TryIndex<FSBuildRecipePrototype>(piece.ID, out var recipe))

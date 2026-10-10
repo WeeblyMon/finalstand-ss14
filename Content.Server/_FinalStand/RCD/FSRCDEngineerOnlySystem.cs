@@ -90,7 +90,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
     private void OnAfterInteract(EntityUid uid, FSEngineerOnlyRCDComponent comp, AfterInteractEvent args)
     {
-        if (args.Handled)
+        if (args.Handled || TryComp<RCDComponent>(uid, out var selected) && selected.ProtoId == FSRCDEmpty.Piece)
             return;
 
         if (args.Target is { } target && TryComp<FSHMGComponent>(target, out var hmg) && hmg.Gunner != null)

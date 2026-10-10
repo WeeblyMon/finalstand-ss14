@@ -85,7 +85,7 @@ public sealed partial class RCDSystem : EntitySystem
     private void OnRCDSystemMessage(EntityUid uid, RCDComponent component, RCDSystemMessage args)
     {
         // Exit if the RCD doesn't actually know the supplied prototype
-        if (!component.AvailablePrototypes.Contains(args.ProtoId))
+        if (!component.AvailablePrototypes.Contains(args.ProtoId) && args.ProtoId != "Invalid") // FS: "Invalid" is the empty selection
             return;
 
         if (!ProtoMan.Resolve<RCDPrototype>(args.ProtoId, out var prototype))
@@ -130,6 +130,9 @@ public sealed partial class RCDSystem : EntitySystem
         var user = args.User;
         var location = args.ClickLocation;
         var prototype = ProtoMan.Index(component.ProtoId);
+
+        if (prototype.Mode == RcdMode.Invalid) // FS
+            return; // FS
 
         // Initial validity checks
         if (!location.IsValid(EntityManager))

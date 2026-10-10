@@ -5,6 +5,7 @@ using Content.Shared.RCD.Components;
 using Robust.Client.Placement;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
+using Robust.Shared.Prototypes; // FS
 using Robust.Shared.Timing; // FS
 
 namespace Content.Client.RCD;
@@ -22,6 +23,8 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!; // FS
 
     private TimeSpan _nextDirectionSync; // FS
+    private EntityUid? _ghostRcd; // FS
+    private (EntityUid Rcd, ProtoId<RCDPrototype> Piece)? _cleared; // FS
 
     public override void Update(float frameTime)
     {
@@ -49,6 +52,7 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
 
         if (!TryComp<RCDComponent>(heldEntity, out var rcd))
         {
+            _ghostRcd = null; // FS
             // If the player was holding an RCD, but is no longer, cancel placement
             if (placerIsRCD)
                 _placementManager.Clear();
@@ -56,6 +60,25 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
             return;
         }
         var prototype = ProtoMan.Index(rcd.ProtoId);
+
+        // FS: the ghost vanished while the same RCD is still held, so the player right-clicked it away. Clear the RCD.
+        if (_ghostRcd == heldEntity && !placerIsRCD && _cleared == null && prototype.Mode != RcdMode.Invalid)
+        {
+            _cleared = (heldEntity.Value, rcd.ProtoId);
+            RaiseNetworkEvent(new Content.Shared._FinalStand.RCD.FSRCDBeltPickEvent(GetNetEntity(heldEntity.Value),
+                Content.Shared._FinalStand.RCD.FSRCDEmpty.Piece));
+        }
+
+        if (_cleared is { } cleared && (cleared.Rcd != heldEntity || cleared.Piece != rcd.ProtoId)) // FS
+            _cleared = null; // FS
+
+        if (prototype.Mode == RcdMode.Invalid || _cleared != null) // FS
+        { // FS
+            if (placerIsRCD) // FS
+                _placementManager.Clear(); // FS
+            _ghostRcd = null; // FS
+            return; // FS
+        } // FS
 
         // FS: resend whenever the held RCD disagrees with the ghost, not only when the ghost turns
         if (rcd.ConstructionDirection != _placementManager.Direction && _timing.RealTime >= _nextDirectionSync)
@@ -81,5 +104,6 @@ public sealed partial class RCDConstructionGhostSystem : EntitySystem
 
         _placementManager.Clear();
         _placementManager.BeginPlacing(newObjInfo);
+        _ghostRcd = heldEntity; // FS
     }
 }
