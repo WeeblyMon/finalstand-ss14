@@ -1,6 +1,7 @@
 using Content.Shared.Damage;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Weapons.Melee.Events
 {
@@ -11,6 +12,8 @@ namespace Content.Shared.Weapons.Melee.Events
         /// Coordinates being attacked.
         /// </summary>
         public readonly NetCoordinates Coordinates;
+
+        public GameTick ViewTick; // fs
 
         protected AttackEvent(NetCoordinates coordinates)
         {
