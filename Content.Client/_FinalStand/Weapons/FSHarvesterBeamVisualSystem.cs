@@ -35,7 +35,7 @@ public sealed partial class FSHarvesterBeamVisualSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSHarvesterBeamFiredEvent>(OnBeamFired);
+        SubscribeAllEvent<FSHarvesterBeamFiredEvent>(OnBeamFired);
     }
 
     public override void FrameUpdate(float frameTime)
