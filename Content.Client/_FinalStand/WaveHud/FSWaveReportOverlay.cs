@@ -1,9 +1,7 @@
-// When a wave ends, a card slides in near the top of the screen with what your line did: damage soaked, HP repaired,
-// equipment kills and credits earned, counting up, then slides away.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;
-using Content.Shared._FinalStand.Engineering;
+using Content.Shared._FinalStand.WaveHud;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -11,7 +9,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
-namespace Content.Client._FinalStand.Engineering;
+namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class FSWaveReportOverlay : Overlay
 {
@@ -24,14 +22,14 @@ public sealed partial class FSWaveReportOverlay : Overlay
     private static readonly Color Back = FSPalette.PanelDeep.WithAlpha(0.92f);
     private static readonly Color Shadow = Color.Black.WithAlpha(0.35f);
 
-    private const float Width = 380f;
+    private const float ColumnWidth = 84f;
     private const float Height = 74f;
     private const float Slant = 14f;
     private const double SlideTime = 0.3;
     private const double HoldTime = 6.5;
     private const double CountTime = 0.9;
 
-    private FSEngineerWaveReportEvent? _report;
+    private FSWaveReportEvent? _report;
     private TimeSpan _shownAt;
     private Font? _label;
     private Font? _number;
@@ -44,7 +42,7 @@ public sealed partial class FSWaveReportOverlay : Overlay
         IoCManager.InjectDependencies(this);
     }
 
-    public void Show(FSEngineerWaveReportEvent report)
+    public void Show(FSWaveReportEvent report)
     {
         _report = report;
         _shownAt = _timing.RealTime;
@@ -52,7 +50,7 @@ public sealed partial class FSWaveReportOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (_report is not { } report)
+        if (_report is not { } report || report.Values.Count == 0)
             return;
 
         var age = (_timing.RealTime - _shownAt).TotalSeconds;
@@ -71,9 +69,10 @@ public sealed partial class FSWaveReportOverlay : Overlay
 
         var handle = args.ScreenHandle;
         var bounds = args.ViewportBounds;
-        var width = MathF.Round(Width * s);
-        var height = MathF.Round(Height * s);
         var slant = MathF.Round(Slant * s);
+        var columnWidth = MathF.Round(ColumnWidth * s);
+        var width = MathF.Round(columnWidth * report.Values.Count + slant * 2f + 28f * s);
+        var height = MathF.Round(Height * s);
         var left = MathF.Round(bounds.Center.X - width / 2f + (1f - slideIn) * 60f * s - slideOut * 60f * s);
         var top = MathF.Round(bounds.Top + bounds.Height * 0.16f);
         var topLeft = new Vector2(left, top);
@@ -84,27 +83,24 @@ public sealed partial class FSWaveReportOverlay : Overlay
         FSShapes.Slanted(handle, topLeft + new Vector2(2f * s, 0f), slant + 4f * s, height, slant, Fade(FSPalette.Money, alpha));
 
         var x = left + slant + 14f * s;
-        var title = Loc.GetString("fs-wave-report-title", ("wave", report.Wave));
-        handle.DrawString(_label!, new Vector2(x, top + 8f * s), title, Fade(FSPalette.Money, alpha));
+        handle.DrawString(_label!, new Vector2(x, top + 8f * s), report.Title, Fade(FSPalette.Money, alpha));
 
-        var columns = new (string Caption, int Value, string Prefix, Color Color)[]
-        {
-            (Loc.GetString("fs-wave-report-soaked"), report.Absorbed, "", FSPalette.TextBright),
-            (Loc.GetString("fs-wave-report-repaired"), report.Repaired, "+", FSPalette.Ok),
-            (Loc.GetString("fs-wave-report-kills"), report.Kills, "", FSPalette.TextBright),
-            (Loc.GetString("fs-wave-report-earned"), report.Credits, "$", FSPalette.Money),
-        };
-
-        var columnWidth = (width - slant * 2f - 28f * s) / columns.Length;
         var rowTop = top + 24f * s;
-        for (var i = 0; i < columns.Length; i++)
+        for (var i = 0; i < report.Values.Count; i++)
         {
-            var (caption, value, prefix, color) = columns[i];
+            var style = i < report.Styles.Count ? report.Styles[i] : FSWaveReportStyle.Plain;
+            var (prefix, color) = style switch
+            {
+                FSWaveReportStyle.Gain => ("+", FSPalette.Ok),
+                FSWaveReportStyle.Money => ("$", FSPalette.Money),
+                _ => ("", FSPalette.TextBright),
+            };
             var cx = x + i * columnWidth;
-            var shown = (int) MathF.Round(value * count);
+            var shown = (int) MathF.Round(report.Values[i] * count);
             handle.DrawString(_number!, new Vector2(cx, rowTop), prefix + shown.ToString("N0"), Fade(color, alpha));
-            handle.DrawString(_label!, new Vector2(cx, rowTop + _number!.GetLineHeight(1f) - 2f * s), caption,
-                Fade(FSPalette.TextMuted, alpha));
+            if (i < report.Captions.Count)
+                handle.DrawString(_label!, new Vector2(cx, rowTop + _number!.GetLineHeight(1f) - 2f * s), report.Captions[i],
+                    Fade(FSPalette.TextMuted, alpha));
         }
     }
 

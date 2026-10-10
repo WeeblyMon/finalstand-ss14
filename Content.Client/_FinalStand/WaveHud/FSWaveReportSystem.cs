@@ -1,9 +1,9 @@
-using Content.Shared._FinalStand.Engineering;
+using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Shared.Configuration;
 
-namespace Content.Client._FinalStand.Engineering;
+namespace Content.Client._FinalStand.WaveHud;
 
 public sealed class FSWaveReportSystem : EntitySystem
 {
@@ -17,7 +17,7 @@ public sealed class FSWaveReportSystem : EntitySystem
         base.Initialize();
         _overlay = new FSWaveReportOverlay();
         _overlays.AddOverlay(_overlay);
-        SubscribeNetworkEvent<FSEngineerWaveReportEvent>(OnReport);
+        SubscribeNetworkEvent<FSWaveReportEvent>(OnReport);
     }
 
     public override void Shutdown()
@@ -26,7 +26,7 @@ public sealed class FSWaveReportSystem : EntitySystem
         _overlays.RemoveOverlay(_overlay);
     }
 
-    private void OnReport(FSEngineerWaveReportEvent ev)
+    private void OnReport(FSWaveReportEvent ev)
     {
         if (_cfg.GetCVar(CCVars.FSEngWaveReport))
             _overlay.Show(ev);

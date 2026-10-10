@@ -88,6 +88,8 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
 
     public bool IsEngineering(EntityUid user) => IsInDepartment(user, EngineeringDept, EngineeringAccess);
 
+    public bool IsMedical(EntityUid user) => HasJobIn(user, MedicalDept);
+
     public bool IsChiefEngineer(EntityUid user)
     {
         return HasAccess(user, ChiefEngineerAccess)

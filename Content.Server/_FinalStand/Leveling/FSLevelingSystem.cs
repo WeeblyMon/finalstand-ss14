@@ -365,6 +365,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }, Filter.SinglePlayer(session));
     }
 
+    public (int Kills, int Assists) KillsOf(EntityUid mindId)
+    {
+        var stats = _roundStats.GetValueOrDefault(mindId);
+        return (stats.Kills, stats.Assists);
+    }
+
     public FSLeaderboardEntry[] GetLeaderboardSnapshot()
     {
         var query = EntityQueryEnumerator<FSPlayerLevelComponent, MindComponent>();
