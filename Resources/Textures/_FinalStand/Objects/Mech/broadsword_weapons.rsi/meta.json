@@ -12,7 +12,15 @@
       "directions": 4
     },
     {
+      "name": "assaultrifle_right_far",
+      "directions": 4
+    },
+    {
       "name": "assaultrifle_left",
+      "directions": 4
+    },
+    {
+      "name": "assaultrifle_left_far",
       "directions": 4
     },
     {
@@ -20,7 +28,15 @@
       "directions": 4
     },
     {
+      "name": "assaultrifle_back_far",
+      "directions": 4
+    },
+    {
       "name": "heavycannon_right",
+      "directions": 4
+    },
+    {
+      "name": "heavycannon_right_far",
       "directions": 4
     },
     {
@@ -28,7 +44,15 @@
       "directions": 4
     },
     {
+      "name": "heavycannon_left_far",
+      "directions": 4
+    },
+    {
       "name": "heavycannon_back",
+      "directions": 4
+    },
+    {
+      "name": "heavycannon_back_far",
       "directions": 4
     },
     {
@@ -36,7 +60,15 @@
       "directions": 4
     },
     {
+      "name": "laserrifle_right_far",
+      "directions": 4
+    },
+    {
       "name": "laserrifle_left",
+      "directions": 4
+    },
+    {
+      "name": "laserrifle_left_far",
       "directions": 4
     },
     {
@@ -44,7 +76,15 @@
       "directions": 4
     },
     {
+      "name": "laserrifle_back_far",
+      "directions": 4
+    },
+    {
       "name": "rpg_right",
+      "directions": 4
+    },
+    {
+      "name": "rpg_right_far",
       "directions": 4
     },
     {
@@ -52,7 +92,15 @@
       "directions": 4
     },
     {
+      "name": "rpg_left_far",
+      "directions": 4
+    },
+    {
       "name": "rpg_back",
+      "directions": 4
+    },
+    {
+      "name": "rpg_back_far",
       "directions": 4
     },
     {
@@ -60,7 +108,15 @@
       "directions": 4
     },
     {
+      "name": "shotgun_right_far",
+      "directions": 4
+    },
+    {
       "name": "shotgun_left",
+      "directions": 4
+    },
+    {
+      "name": "shotgun_left_far",
       "directions": 4
     },
     {
@@ -68,7 +124,15 @@
       "directions": 4
     },
     {
+      "name": "shotgun_back_far",
+      "directions": 4
+    },
+    {
       "name": "smg_right",
+      "directions": 4
+    },
+    {
+      "name": "smg_right_far",
       "directions": 4
     },
     {
@@ -76,7 +140,15 @@
       "directions": 4
     },
     {
+      "name": "smg_left_far",
+      "directions": 4
+    },
+    {
       "name": "smg_back",
+      "directions": 4
+    },
+    {
+      "name": "smg_back_far",
       "directions": 4
     },
     {
@@ -84,7 +156,15 @@
       "directions": 4
     },
     {
+      "name": "sniper_right_far",
+      "directions": 4
+    },
+    {
       "name": "sniper_left",
+      "directions": 4
+    },
+    {
+      "name": "sniper_left_far",
       "directions": 4
     },
     {
@@ -92,7 +172,15 @@
       "directions": 4
     },
     {
+      "name": "sniper_back_far",
+      "directions": 4
+    },
+    {
       "name": "tow_right",
+      "directions": 4
+    },
+    {
+      "name": "tow_right_far",
       "directions": 4
     },
     {
@@ -100,7 +188,15 @@
       "directions": 4
     },
     {
+      "name": "tow_left_far",
+      "directions": 4
+    },
+    {
       "name": "tow_back",
+      "directions": 4
+    },
+    {
+      "name": "tow_back_far",
       "directions": 4
     },
     {
@@ -108,7 +204,15 @@
       "directions": 4
     },
     {
+      "name": "flamer_right_far",
+      "directions": 4
+    },
+    {
       "name": "flamer_left",
+      "directions": 4
+    },
+    {
+      "name": "flamer_left_far",
       "directions": 4
     },
     {
@@ -116,7 +220,15 @@
       "directions": 4
     },
     {
+      "name": "flamer_back_far",
+      "directions": 4
+    },
+    {
       "name": "missilerack_back",
+      "directions": 4
+    },
+    {
+      "name": "missilerack_back_far",
       "directions": 4
     }
   ]

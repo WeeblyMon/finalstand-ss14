@@ -1,4 +1,5 @@
 // Draws a combat mech's mounted guns on its body: the heavy weapon on the shoulder, the rest in the right then left hand.
+// Each mount has a layer over the mech and one under it, so whatever sits behind the body in a view is hidden by it.
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Tag;
@@ -33,7 +34,11 @@ public sealed class FSMechWeaponVisualSystem : EntitySystem
 
             _shown[uid] = key;
             for (var i = 0; i < Mounts.Length; i++)
-                Show((uid, sprite), Mounts[i], _states[i]);
+            {
+                var state = _states[i] is { } s ? $"{s}_{Mounts[i]}" : null;
+                Show((uid, sprite), $"fs-mount-{Mounts[i]}", state, false);
+                Show((uid, sprite), $"fs-mount-{Mounts[i]}-far", state == null ? null : state + "_far", true);
+            }
         }
 
         foreach (var uid in _shown.Keys)
@@ -61,19 +66,17 @@ public sealed class FSMechWeaponVisualSystem : EntitySystem
         }
     }
 
-    private void Show(Entity<SpriteComponent> mech, string mount, string? state)
+    private void Show(Entity<SpriteComponent> mech, string key, string? rsiState, bool under)
     {
-        var key = $"fs-mount-{mount}";
         if (!_sprite.LayerMapTryGet(mech.AsNullable(), key, out var layer, false))
         {
-            if (state == null)
+            if (rsiState == null)
                 return;
 
-            layer = _sprite.AddRsiLayer(mech.AsNullable(), $"{state}_{mount}", Rsi);
+            layer = _sprite.AddRsiLayer(mech.AsNullable(), rsiState, Rsi, under ? 0 : null);
             _sprite.LayerMapSet(mech.AsNullable(), key, layer);
         }
 
-        var rsiState = state == null ? null : $"{state}_{mount}";
         var rsi = _sprite.LayerGetEffectiveRsi(mech.AsNullable(), layer);
         var visible = rsiState != null && rsi != null && rsi.TryGetState(rsiState, out _);
         _sprite.LayerSetVisible(mech.AsNullable(), layer, visible);
