@@ -391,16 +391,10 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var taken = _incomingPerks.GetIncomingMultiplier(mindId, perks, fromZombie: true, holdingMelee, parts);
 
         var sources = new List<string>();
-        foreach (var (perkId, resist) in parts)
-        {
-            sources.Add(perkId == "GlassCannon"
-                ? FormatPct(ResistLabel(perkId), resist * 100f)
-                : FormatPoints(ResistLabel(perkId), resist * 100f));
-        }
-
         var points = 0f;
         foreach (var (perkId, resist) in parts)
         {
+            sources.Add(FormatPct(ResistLabel(perkId), resist * 100f));
             if (perkId != "GlassCannon")
                 points += resist;
         }
@@ -484,7 +478,6 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     }
 
     private static string FormatPct(string label, float pct) => $"{label} {(pct >= 0 ? "+" : "")}{pct:0.#}%";
-    private static string FormatPoints(string label, float points) => $"{label} {(points >= 0 ? "+" : "")}{points:0.#}";
 
     // Debug-only, backs the fsdebugbonus console command.
     public string DescribeFor(EntityUid mob)
