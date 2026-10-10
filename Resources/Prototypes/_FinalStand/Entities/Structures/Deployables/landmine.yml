@@ -34,4 +34,3 @@
   - type: FSArmingDelay
     delay: 3
   - type: FSPlayerDamageImmune
-  - type: Anchorable
