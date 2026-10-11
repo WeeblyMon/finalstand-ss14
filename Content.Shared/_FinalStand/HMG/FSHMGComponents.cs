@@ -21,6 +21,15 @@ public sealed partial class FSHMGComponent : Component
     [AutoNetworkedField]
     public float HeatMultiplier = 1f;
 
+    [DataField, AutoNetworkedField]
+    public float DamageMultiplier = 1f;
+
+    [DataField, AutoNetworkedField]
+    public float FireRateMultiplier = 1f;
+
+    [DataField, AutoNetworkedField]
+    public float UpgradeHeatMultiplier = 1f;
+
     // Sustained fire overheats in about 4 s; an overheated gun is locked until it has fully cooled.
     [DataField]
     public float HeatPerShot = 0.075f;

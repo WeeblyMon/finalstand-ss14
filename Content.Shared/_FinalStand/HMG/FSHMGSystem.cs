@@ -1,10 +1,13 @@
 // Seats a gunner on the HMG, limits fire to its arc, and builds heat so sustained fire overheats it.
+using Content.Shared._FinalStand.Fortifications;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.CombatMode;
 using Content.Shared.Mobs;
 using Content.Shared.Popups;
+using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
@@ -20,6 +23,7 @@ public sealed class FSHMGSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
+    [Dependency] private SharedGunSystem _gun = default!;
 
     private static readonly SoundSpecifier OverheatSound = new SoundPathSpecifier("/Audio/Items/hiss.ogg");
 
@@ -30,6 +34,8 @@ public sealed class FSHMGSystem : EntitySystem
         SubscribeLocalEvent<FSHMGComponent, UnstrappedEvent>(OnUnstrapped);
         SubscribeLocalEvent<FSHMGComponent, AttemptShootEvent>(OnAttemptShoot);
         SubscribeLocalEvent<FSHMGComponent, GunShotEvent>(OnShot);
+        SubscribeLocalEvent<FSHMGComponent, AmmoShotEvent>(OnAmmoShot);
+        SubscribeLocalEvent<FSHMGComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
         SubscribeLocalEvent<FSHMGGunnerComponent, MobStateChangedEvent>(OnGunnerState);
     }
 
@@ -40,6 +46,32 @@ public sealed class FSHMGSystem : EntitySystem
     }
 
     public bool IsOverheated(FSHMGComponent comp) => _timing.CurTime < comp.OverheatedUntil;
+
+    public void Upgrade(Entity<FSHMGComponent> ent, FSHMGModifier modifier)
+    {
+        ent.Comp.DamageMultiplier += modifier.Damage;
+        ent.Comp.FireRateMultiplier *= modifier.FireRate;
+        ent.Comp.UpgradeHeatMultiplier *= modifier.Heat;
+        Dirty(ent);
+        _gun.RefreshModifiers(ent.Owner);
+    }
+
+    private void OnRefreshModifiers(Entity<FSHMGComponent> ent, ref GunRefreshModifiersEvent args)
+    {
+        args.FireRate *= ent.Comp.FireRateMultiplier;
+    }
+
+    private void OnAmmoShot(Entity<FSHMGComponent> ent, ref AmmoShotEvent args)
+    {
+        if (ent.Comp.DamageMultiplier.Equals(1f))
+            return;
+
+        foreach (var projectile in args.FiredProjectiles)
+        {
+            if (TryComp<ProjectileComponent>(projectile, out var proj))
+                proj.Damage *= ent.Comp.DamageMultiplier;
+        }
+    }
 
     private void OnStrapped(Entity<FSHMGComponent> ent, ref StrappedEvent args)
     {
@@ -122,7 +154,7 @@ public sealed class FSHMGSystem : EntitySystem
 
     private void OnShot(Entity<FSHMGComponent> ent, ref GunShotEvent args)
     {
-        ent.Comp.Heat = CurrentHeat(ent.Comp) + ent.Comp.HeatPerShot * ent.Comp.HeatMultiplier * args.Ammo.Count;
+        ent.Comp.Heat = CurrentHeat(ent.Comp) + ent.Comp.HeatPerShot * ent.Comp.HeatMultiplier * ent.Comp.UpgradeHeatMultiplier * args.Ammo.Count;
         ent.Comp.HeatAt = _timing.CurTime;
 
         if (ent.Comp.Heat >= 1f)

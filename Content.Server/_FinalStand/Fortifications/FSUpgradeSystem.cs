@@ -13,6 +13,7 @@ using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
@@ -54,6 +55,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private FSEngineeringTelemetrySystem _telemetry = default!;
     [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private FSHMGSystem _hmg = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeGlints = "FSUpgradeGlints";
     private static readonly ProtoId<FSParticleEmitterPrototype> UpgradeRing = "FSUpgradeRing";
@@ -393,6 +395,9 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
             turret.Range += sentry.Range;
             Dirty(ent, turret);
         }
+
+        if (upgrade.Hmg is { } hmg && TryComp<FSHMGComponent>(ent, out var gun))
+            _hmg.Upgrade((ent.Owner, gun), hmg);
 
         Recalculate(ent);
         Dirty(ent);

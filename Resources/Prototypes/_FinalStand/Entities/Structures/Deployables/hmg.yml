@@ -51,6 +51,13 @@
     count: 100
   - type: FSHMG
   - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSHMGModuleHeavyRounds, FSHMGModuleUraniumRounds, FSHMGModuleBolt, FSHMGModuleBarrel ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
   - type: RCDDeconstructable
     cost: 1
     delay: 2
@@ -80,7 +87,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 12
+        Piercing: 40
   - type: FSFlatMoneyProjectile
 
 - type: entity

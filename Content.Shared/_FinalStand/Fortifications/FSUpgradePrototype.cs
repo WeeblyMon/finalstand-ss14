@@ -85,6 +85,21 @@ public sealed partial class FSUpgradePrototype : IPrototype
     [DataField]
     public FSSentryModifier? Sentry;
 
+    [DataField]
+    public FSHMGModifier? Hmg;
+}
+
+[DataDefinition]
+public sealed partial class FSHMGModifier
+{
+    [DataField]
+    public float Damage;
+
+    [DataField]
+    public float FireRate = 1f;
+
+    [DataField]
+    public float Heat = 1f;
 }
 
 [DataDefinition]
