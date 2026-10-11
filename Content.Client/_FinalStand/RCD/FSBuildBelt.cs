@@ -21,6 +21,7 @@ public sealed class FSBuildBelt : Control
     private const float Grow = 64f / 38f;
     private const float HintWidth = 150f;
     private float _grow = Grow;
+    private float _cardH = CardH;
 
     private readonly FSRCDLook _look;
     private readonly List<(UIBox2 Box, FSRCDEntry Entry)> _hits = new();
@@ -47,7 +48,7 @@ public sealed class FSBuildBelt : Control
         var natural = Math.Max(beltW, 440f);
         var room = UserInterfaceManager.RootControl.Size.X - 40f;
         _grow = room > 0f ? Math.Min(Grow, room / natural) : Grow;
-        SetSize = new Vector2(natural, CardH + 6f + SlotH + Pad * 2f + Raise) * _grow;
+        SetSize = new Vector2(natural, _cardH + 6f + SlotH + Pad * 2f + Raise) * _grow;
     }
 
     public FSRCDEntry? Hovered()
@@ -105,35 +106,47 @@ public sealed class FSBuildBelt : Control
 
     private void DrawCard(DrawingHandleScreen handle, float scale, float width)
     {
-        var card = new UIBox2(0, 0, width, CardH * scale);
-        handle.DrawRect(card, FSRCDLook.PanelDeep);
-        handle.DrawRect(card, FSRCDLook.Edge, filled: false);
+        var selected = Entries.Find(e => e.Selected);
+        var hintLeft = width - HintWidth * scale - 10f * scale;
+        var x = 10f * scale;
+        var y = 7f * scale;
+        var chipFont = _look.Mono(7.5f, scale);
+        var decon = selected?.Kind == FSRCDEntryKind.Deconstruct;
+        var chipText = Loc.GetString(decon ? "fs-rcd-belt-chip-decon" : "fs-rcd-belt-chip-build");
+        var chipSize = handle.GetDimensions(chipFont, chipText, 1f);
+        var chip = UIBox2.FromDimensions(new Vector2(x, y + 1f * scale), chipSize + new Vector2(8f, 2f) * scale);
 
         var toggleFont = _look.Mono(8f, scale);
         var toggleText = Loc.GetString("fs-rcd-switch-to-ring");
         var toggleSize = handle.GetDimensions(toggleFont, toggleText, 1f);
         var pad = new Vector2(8f, 4f) * scale;
         _toggleBox = UIBox2.FromDimensions(new Vector2(width - toggleSize.X - pad.X * 2f - 8f * scale, 8f * scale), toggleSize + pad * 2f);
+        var infoWidth = Math.Min(_toggleBox.Left, hintLeft) - chip.Right - 24f * scale;
+
+        if (selected?.Piece is { } measured)
+        {
+            var needed = MathF.Ceiling((y + _look.MeasureInfo(handle, measured, scale, infoWidth, Rcd!.Locked.Contains(measured.ID)) + 8f * scale) / scale);
+            needed = Math.Max(CardH, needed);
+            if (!needed.Equals(_cardH))
+            {
+                _cardH = needed;
+                Resize();
+            }
+        }
+
+        var card = new UIBox2(0, 0, width, _cardH * scale);
+        handle.DrawRect(card, FSRCDLook.PanelDeep);
+        handle.DrawRect(card, FSRCDLook.Edge, filled: false);
+
         handle.DrawRect(_toggleBox, FSRCDLook.Panel);
         handle.DrawRect(_toggleBox, _toggleBox.Contains(_mouse) ? FSRCDLook.Gold : FSRCDLook.Edge, filled: false);
         handle.DrawString(toggleFont, _toggleBox.TopLeft + pad, toggleText, FSRCDLook.Fg);
 
-        var selected = Entries.Find(e => e.Selected);
-        var x = 10f * scale;
-        var y = 7f * scale;
-        var decon = selected?.Kind == FSRCDEntryKind.Deconstruct;
-
-        var chipFont = _look.Mono(7.5f, scale);
-        var chipText = Loc.GetString(decon ? "fs-rcd-belt-chip-decon" : "fs-rcd-belt-chip-build");
-        var chipSize = handle.GetDimensions(chipFont, chipText, 1f);
-        var chip = UIBox2.FromDimensions(new Vector2(x, y + 1f * scale), chipSize + new Vector2(8f, 2f) * scale);
         handle.DrawRect(chip, decon ? FSRCDLook.Bad : FSRCDLook.Gold);
         handle.DrawString(chipFont, chip.TopLeft + new Vector2(4f, 1f) * scale, chipText, decon ? FSRCDLook.Fg : FSPalette.PanelDeep.WithAlpha(1f));
 
-        var hintLeft = width - HintWidth * scale - 10f * scale;
         if (selected?.Piece is { } piece)
-            _look.DrawInfo(handle, Carried, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false,
-                Math.Min(_toggleBox.Left, hintLeft) - chip.Right - 24f * scale);
+            _look.DrawInfo(handle, Carried, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false, infoWidth);
 
         var hintFont = _look.Mono(7f, scale);
         var hintY = _toggleBox.Bottom + 6f * scale;
@@ -145,7 +158,7 @@ public sealed class FSBuildBelt : Control
     {
         _hits.Clear();
         var beltW = (Entries.Count * SlotW + Math.Max(0, Entries.Count - 1) * Gap + Pad * 2f) * scale;
-        var top = (CardH + 6f + Raise) * scale;
+        var top = (_cardH + 6f + Raise) * scale;
         var belt = UIBox2.FromDimensions(new Vector2((width - beltW) / 2f, top), new Vector2(beltW, (SlotH + Pad * 2f) * scale));
         handle.DrawRect(belt, FSRCDLook.PanelDeep);
         handle.DrawRect(belt, FSRCDLook.Edge, filled: false);
