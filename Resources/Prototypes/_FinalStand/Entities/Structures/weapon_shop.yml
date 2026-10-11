@@ -185,18 +185,18 @@
       valuePerLevel: 0.3
     - id: mk58-cash-flow
       name: Cash Flow
-      description: "Boosts your per-hit earnings. All weapons already earn 10 credits per hit — this adds +2 per level. Max 3 levels: 12/14/16 per hit."
-      maxLevel: 3
+      description: "Boosts your per-hit earnings. All weapons already earn 30 credits per hit — this adds +2 per level. Max 2 levels: 32/34 per hit."
+      maxLevel: 2
       baseCost: 150
       type: MoneyPerHit
       valuePerLevel: 2
     - id: mk58-payday
       name: Payday
-      description: +50 bonus credits per kill with this gun per level.
+      description: +35 bonus credits per kill with this gun per level.
       maxLevel: 4
       baseCost: 100
       type: MoneyGainBonus
-      valuePerLevel: 50
+      valuePerLevel: 35
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/mk58.rsi
     state: base
