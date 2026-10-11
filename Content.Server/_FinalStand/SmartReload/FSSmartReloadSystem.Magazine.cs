@@ -86,17 +86,25 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         RaiseLocalEvent(ref reloaded);
     }
 
+    private static readonly string[] StorageSlots = ["back", "belt", "suitstorage"];
+    private static readonly string[] EquipSlots = ["pocket1", "pocket2"];
+
     private void TryStoreItemInInventory(EntityUid user, EntityUid item)
     {
-        if (_inventory.TryGetSlotEntity(user, "back", out var backpack)
-            && TryComp<StorageComponent>(backpack, out var storagComp)
-            && _storage.Insert(backpack.Value, item, out _, storageComp: storagComp, playSound: false))
-            return;
+        foreach (var slot in StorageSlots)
+        {
+            if (_inventory.TryGetSlotEntity(user, slot, out var container)
+                && TryComp<StorageComponent>(container, out var storage)
+                && _storage.Insert(container.Value, item, out _, storageComp: storage, playSound: false))
+                return;
+        }
 
-        if (_inventory.TryEquip(user, user, item, "pocket1", silent: true))
-            return;
-        if (_inventory.TryEquip(user, user, item, "pocket2", silent: true))
-            return;
+        foreach (var slot in EquipSlots)
+        {
+            if (_inventory.TryEquip(user, user, item, slot, silent: true))
+                return;
+        }
 
+        _hands.TryPickupAnyHand(user, item);
     }
 }
