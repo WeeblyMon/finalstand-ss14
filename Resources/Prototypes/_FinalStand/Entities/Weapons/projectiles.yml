@@ -401,6 +401,16 @@
     energy: 7.0
 
 
+- type: entity
+  parent: BulletMinigun
+  id: FSBulletMinigun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 12
+
 # ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
 - type: entity
   id: FSXrayLaser
