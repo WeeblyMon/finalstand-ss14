@@ -19,6 +19,8 @@ public sealed class FSBuildBelt : Control
     private const float CardH = 104f;
     private const float Raise = 4f;
     private const float Grow = 64f / 38f;
+    private const float HintWidth = 150f;
+    private float _grow = Grow;
 
     private readonly FSRCDLook _look;
     private readonly List<(UIBox2 Box, FSRCDEntry Entry)> _hits = new();
@@ -42,7 +44,10 @@ public sealed class FSBuildBelt : Control
     public void Resize()
     {
         var beltW = Entries.Count * SlotW + Math.Max(0, Entries.Count - 1) * Gap + Pad * 2f;
-        SetSize = new Vector2(Math.Max(beltW, 440f), CardH + 6f + SlotH + Pad * 2f + Raise) * Grow;
+        var natural = Math.Max(beltW, 440f);
+        var room = UserInterfaceManager.RootControl.Size.X - 40f;
+        _grow = room > 0f ? Math.Min(Grow, room / natural) : Grow;
+        SetSize = new Vector2(natural, CardH + 6f + SlotH + Pad * 2f + Raise) * _grow;
     }
 
     public FSRCDEntry? Hovered()
@@ -92,7 +97,7 @@ public sealed class FSBuildBelt : Control
         if (Rcd == null)
             return;
 
-        var scale = UIScale * Grow;
+        var scale = UIScale * _grow;
         var width = PixelSize.X;
         DrawCard(handle, scale, width);
         DrawSlots(handle, scale, width);
@@ -125,18 +130,15 @@ public sealed class FSBuildBelt : Control
         handle.DrawRect(chip, decon ? FSRCDLook.Bad : FSRCDLook.Gold);
         handle.DrawString(chipFont, chip.TopLeft + new Vector2(4f, 1f) * scale, chipText, decon ? FSRCDLook.Fg : FSPalette.PanelDeep.WithAlpha(1f));
 
+        var hintLeft = width - HintWidth * scale - 10f * scale;
         if (selected?.Piece is { } piece)
             _look.DrawInfo(handle, Carried, Rcd!, piece, new Vector2(chip.Right + 8f * scale, y), scale, centered: false,
-                _toggleBox.Left - chip.Right - 24f * scale);
+                Math.Min(_toggleBox.Left, hintLeft) - chip.Right - 24f * scale);
 
         var hintFont = _look.Mono(7f, scale);
         var hintY = _toggleBox.Bottom + 6f * scale;
         foreach (var line in Loc.GetString("fs-rcd-belt-hint").Split(" · "))
-        {
-            var size = handle.GetDimensions(hintFont, line, 1f);
-            handle.DrawString(hintFont, new Vector2(width - size.X - 10f * scale, hintY), line, FSRCDLook.Muted);
-            hintY += size.Y;
-        }
+            hintY += FSRCDLook.Wrapped(handle, hintFont, line, hintLeft, hintY, HintWidth * scale, FSRCDLook.Muted, false);
     }
 
     private void DrawSlots(DrawingHandleScreen handle, float scale, float width)

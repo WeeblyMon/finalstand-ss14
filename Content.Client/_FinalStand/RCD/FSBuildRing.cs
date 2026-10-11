@@ -121,7 +121,8 @@ public sealed class FSBuildRing : FSRingControl
         if (entry.Piece is not { } piece)
             return;
 
-        var height = _look.MeasureInfo(handle, piece, scale, width);
+        width = disc * 1.3f;
+        var height = _look.MeasureInfo(handle, piece, scale, width, _fs.Locked.Contains(piece.ID));
         _look.DrawInfo(handle, _carried, _fs, piece, new Vector2(center.X, center.Y - height / 2f), scale, centered: true, width);
     }
 

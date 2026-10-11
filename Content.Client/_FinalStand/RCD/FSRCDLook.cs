@@ -134,9 +134,9 @@ public sealed class FSRCDLook
     {
         var y = topCenter.Y;
         var name = FSRCDText.Name(_proto, piece);
-        y += Text(handle, Bold(10f, scale), name, topCenter.X, y, Fg, centered);
+        y += Wrapped(handle, Bold(10f, scale), name, topCenter.X, y, maxWidth, Fg, centered);
         if (fs.Locked.Contains(piece.ID))
-            y += Text(handle, Mono(8f, scale), Loc.GetString("fs-rcd-locked"), topCenter.X, y, Bad, centered);
+            y += Wrapped(handle, Mono(8f, scale), Loc.GetString("fs-rcd-locked"), topCenter.X, y, maxWidth, Bad, centered);
 
         var roleKey = "fs-rcd-role-" + piece.ID;
         if (piece.Mode == RcdMode.Deconstruct)
@@ -183,9 +183,11 @@ public sealed class FSRCDLook
         return icon + 2f * scale;
     }
 
-    public float MeasureInfo(DrawingHandleScreen handle, RCDPrototype piece, float scale, float maxWidth)
+    public float MeasureInfo(DrawingHandleScreen handle, RCDPrototype piece, float scale, float maxWidth, bool locked = false)
     {
-        var height = handle.GetDimensions(Bold(10f, scale), "A", 1f).Y;
+        var height = Wrapped(handle, Bold(10f, scale), FSRCDText.Name(_proto, piece), 0f, 0f, maxWidth, Fg, false, draw: false);
+        if (locked)
+            height += Wrapped(handle, Mono(8f, scale), Loc.GetString("fs-rcd-locked"), 0f, 0f, maxWidth, Bad, false, draw: false);
         var roleKey = piece.Mode == RcdMode.Deconstruct ? "fs-rcd-role-deconstruct" : "fs-rcd-role-" + piece.ID;
         if (Loc.TryGetString(roleKey, out var role))
             height += Wrapped(handle, Body(8f, scale), role, 0f, 0f, maxWidth, Muted, false, draw: false);
