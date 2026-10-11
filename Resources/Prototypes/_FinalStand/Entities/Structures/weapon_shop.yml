@@ -269,6 +269,13 @@
       baseCost: 2000
       type: Knockback
       valuePerLevel: 1
+    - id: n1984-hollow-point
+      name: Hollow Point
+      description: Enhanced rounds increase damage by 15% per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: Damage
+      valuePerLevel: 0.15
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     state: base
