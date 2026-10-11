@@ -964,7 +964,7 @@
     autoRechargeRate: 48
     autoRechargePauseTime: 0
   - type: FSWeaponRechargeAudio
-    emptyPenaltyDuration: 6
+    emptyPenaltyDuration: 0
     rechargeStartSound:
       path: /Audio/Weapons/Guns/Gunshots/charge.ogg
   - type: Crit

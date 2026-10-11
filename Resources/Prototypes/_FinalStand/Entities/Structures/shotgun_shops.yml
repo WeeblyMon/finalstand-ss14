@@ -159,6 +159,13 @@
       baseCost: 5250
       type: FireRate
       valuePerLevel: 0.5
+    - id: bulldog-damage
+      name: Powder Charge
+      description: Heavier load increases damage dealt by 15% per level.
+      maxLevel: 5
+      baseCost: 5250
+      type: Damage
+      valuePerLevel: 0.15
     - id: bulldog-drum-capacity
       name: High-Cap Drum
       description: Adds 3 shells to drum magazine capacity per level.
