@@ -523,6 +523,20 @@
       baseCost: 1350
       type: MovementSpeed
       valuePerLevel: 0.05
+    - id: wt550-hollow-point
+      name: Hollow Point
+      description: Enhanced rounds increase damage by 15% per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: Damage
+      valuePerLevel: 0.15
+    - id: wt550-extended-mag
+      name: Extended Mag
+      description: Adds 5 rounds to magazine capacity per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: MagazineSize
+      valuePerLevel: 5
   - type: Sprite
     sprite: Objects/Weapons/Guns/SMGs/wt550.rsi
     state: base
