@@ -25,6 +25,9 @@ fs-ping-wheel-ammo = Need ammo
 fs-ping-wheel-chems = Need chems
 fs-ping-wheel-repair = Need repair
 fs-ping-wheel-ack = On it
+fs-ping-wheel-title = PING
+fs-ping-wheel-hint-release = release to send
+fs-ping-wheel-hint-click = click to send
 
 fs-ping-tasks-title = TASKS
 fs-ping-task-claimed = {$name} is on it
