@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -8,7 +9,6 @@ using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
-using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
@@ -18,9 +18,9 @@ namespace Content.Shared._FinalStand.Weapons;
 // letting X-Ray shots punch through solid matter to reach the first zombie in line.
 public sealed partial class FSXrayRaycastSystem : EntitySystem
 {
-    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
+    [Dependency] private SharedFSLagCompensationSystem _lagCompensation = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
@@ -42,7 +42,7 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
         var shooter = args.Shooter ?? args.Gun;
         var mapCoords = _transform.ToMapCoordinates(args.FromCoordinates);
         var ray = new CollisionRay(mapCoords.Position, args.ShotDirection, (int) CollisionGroup.Opaque);
-        var results = _physics.IntersectRay(mapCoords.MapId, ray, ent.Comp.MaxDistance, shooter, false);
+        var results = _lagCompensation.IntersectRay(mapCoords.MapId, ray, ent.Comp.MaxDistance, shooter, args.Shooter);
 
         var isFriendly = args.Shooter != null && _ffQuery.HasComponent(args.Shooter.Value);
 

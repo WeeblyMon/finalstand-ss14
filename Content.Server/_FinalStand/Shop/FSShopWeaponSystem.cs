@@ -325,6 +325,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         _upgrades.CopyUpgradeState(state, convertedState);
         convertedState.Levels[upgradeId] = 1;
         convertedState.TotalSpent = state.TotalSpent + cost;
+        Dirty(converted, convertedState);
 
         Del(weapon);
         TryGiveItemToPlayer(player, converted);

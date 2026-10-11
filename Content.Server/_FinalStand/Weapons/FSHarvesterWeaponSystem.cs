@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
+using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.Damage;
 using Content.Shared.GameTicking;
 using Content.Shared.Damage.Systems;
@@ -34,6 +35,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedFSLagCompensationSystem _lagCompensation = default!;
 
     private const int RpPerHit = 10;
     private const int ResearchCapDivisor = 3;
@@ -107,11 +109,15 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         (fromCoords, shotAngle) = _hitscanCoords.ToGridRelative(fromCoords, shotAngle);
 
+        var filter = Filter.Pvs(fromCoords, entityMan: EntityManager);
+        if (args.Data.Shooter is { } shooter && _lagCompensation.IsPredictedShot(shooter) && _lagCompensation.CanPredictHitscan(uid))
+            filter.RemoveWhereAttachedEntity(e => e == shooter);
+
         RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords),
                 (float) shotAngle.Theta,
                 distance,
                 args.Data.Shooter is { } beamShooter ? GetNetEntity(beamShooter) : null),
-            Filter.Pvs(fromCoords, entityMan: EntityManager));
+            filter);
 
         if (args.Data.HitEntity is not { } hit)
             return;

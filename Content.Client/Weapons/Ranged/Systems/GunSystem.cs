@@ -4,6 +4,7 @@ using Content.Client.Animations;
 using Content.Client.Clickable;
 using Content.Client._FinalStand.Weapons;
 using Content.Client.Items;
+using Content.Client._FinalStand.Weapons.Prediction;
 using Content.Client.Weapons.Ranged.Components;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
@@ -23,6 +24,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
+using Robust.Client.Timing;
 using Robust.Shared.Animations;
 using Robust.Shared.Audio;
 using Robust.Shared.Configuration;
@@ -54,6 +56,8 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SpriteTreeSystem _spriteTree = default!;
+    [Dependency] private FSShotPredictionSystem _shotPrediction = default!; // fs
+    [Dependency] private IClientGameTiming _clientTiming = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
     public static readonly EntProtoId MuzzleLightProto = "FSMuzzleFlashLight";
@@ -98,7 +102,7 @@ public sealed partial class GunSystem : SharedGunSystem
         SubscribeAllEvent<MuzzleFlashEvent>(OnMuzzleFlash);
 
         // Plays animated effects on the client.
-        SubscribeNetworkEvent<HitscanEvent>(OnHitscan);
+        SubscribeAllEvent<HitscanEvent>(OnHitscan); // fs
 
         InitializeMagazineVisuals();
         InitializeSpentAmmo();
@@ -249,6 +253,9 @@ public sealed partial class GunSystem : SharedGunSystem
             Coordinates = GetNetCoordinates(coordinates),
             Gun = GetNetEntity(gun),
             Continuous = _cfg.GetCVar(CCVars.ControlHoldToAttackRanged),
+            ViewTick = _clientTiming.LastRealTick, // fs
+            ShotTick = Timing.CurTick,
+            Predicted = _shotPrediction.CanPredict(gun),
         });
     }
 
@@ -262,6 +269,12 @@ public sealed partial class GunSystem : SharedGunSystem
         // This also means any ammo specific stuff can be grabbed as necessary.
         var direction = TransformSystem.ToMapCoordinates(fromCoordinates).Position - TransformSystem.ToMapCoordinates(toCoordinates).Position;
         var worldAngle = direction.ToAngle().Opposite();
+
+        var fromMap = TransformSystem.ToMapCoordinates(fromCoordinates); // fs
+        var aimAngle = (-direction).ToAngle();
+        var shotDirection = GetRecoilAngle(Timing.CurTime, gun, aimAngle).ToVec();
+        var predict = !throwItems && _shotPrediction.ShouldPredict(user, gun);
+        var shotTick = CurrentShotTick;
 
         foreach (var (ent, shootable) in ammo)
         {
@@ -281,6 +294,9 @@ public sealed partial class GunSystem : SharedGunSystem
                 case CartridgeAmmoComponent cartridge:
                     if (!cartridge.Spent)
                     {
+                        if (predict) // fs
+                            _shotPrediction.PredictProjectiles(gun, user!.Value, null, cartridge.Prototype, fromMap, aimAngle, shotDirection, shotTick);
+
                         SetCartridgeSpent(ent!.Value, cartridge, true);
                         MuzzleFlash(gun, cartridge, worldAngle, user);
                         Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
@@ -300,6 +316,9 @@ public sealed partial class GunSystem : SharedGunSystem
 
                     break;
                 case AmmoComponent newAmmo:
+                    if (predict && ent != null) // fs
+                        _shotPrediction.PredictProjectiles(gun, user!.Value, ent, null, fromMap, aimAngle, shotDirection, shotTick);
+
                     MuzzleFlash(gun, newAmmo, worldAngle, user);
                     Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
                     Recoil(user, direction, gun.Comp.CameraRecoilScalarModified);
@@ -309,6 +328,9 @@ public sealed partial class GunSystem : SharedGunSystem
                         RemoveShootable(ent.Value);
                     break;
                 case HitscanAmmoComponent:
+                    if (predict) // fs
+                        _shotPrediction.PredictHitscan(gun, ent, user!.Value, fromCoordinates, shotDirection);
+
                     Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
                     Recoil(user, direction, gun.Comp.CameraRecoilScalarModified);
                     break;
@@ -566,4 +588,9 @@ public sealed partial class GunSystem : SharedGunSystem
     }
 
     public override void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound) { }
+
+    public void SetCosmeticTarget(EntityUid projectile, EntityUid target) // fs
+    {
+        EnsureComp<TargetedProjectileComponent>(projectile).Target = target;
+    }
 }
