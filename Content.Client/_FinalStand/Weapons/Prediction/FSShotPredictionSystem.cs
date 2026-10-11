@@ -74,6 +74,8 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     private bool _enabled;
     private float _margin;
 
+    public TimeSpan? LastServerBulletDelay { get; private set; }
+
     public override void Initialize()
     {
         base.Initialize();
@@ -452,6 +454,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     private void OnTwinSeen(PredictedShot shot, EntityUid twin, FSShotTwinComponent comp)
     {
         shot.Twin = twin;
+        LastServerBulletDelay = _timing.RealTime - shot.Start;
 
         if (comp.Hideable && Matches(shot, twin))
         {

@@ -14,6 +14,7 @@ public sealed partial class FSNetLagCommand : LocalizedCommands
     [Dependency] private IClientGameTiming _timing = default!;
     [Dependency] private IClientNetManager _net = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IEntitySystemManager _systems = default!;
 
     public override string Command => "fsnetlag";
 
@@ -30,5 +31,8 @@ public sealed partial class FSNetLagCommand : LocalizedCommands
             ("ms", ((int) ms).ToString()),
             ("ping", (_net.ServerChannel?.Ping ?? 0).ToString()),
             ("prediction", LocalizationManager.GetString(prediction))));
+
+        if (_systems.GetEntitySystem<FSShotPredictionSystem>().LastServerBulletDelay is { } delay)
+            shell.WriteLine(LocalizationManager.GetString($"cmd-{Command}-shot", ("ms", ((int) delay.TotalMilliseconds).ToString())));
     }
 }
