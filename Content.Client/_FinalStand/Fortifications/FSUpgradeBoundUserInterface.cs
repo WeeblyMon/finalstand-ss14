@@ -48,7 +48,9 @@ public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum ui
                     affordable = false;
             }
 
-            entries.Add(new FSUpgradeEntry(upgrade, sprite.Frame0(upgrade.Icon), rules.Check(comp, upgrade), comp.Pending == id, !affordable));
+            var block = rules.Check(comp, upgrade);
+            entries.Add(new FSUpgradeEntry(upgrade, sprite.Frame0(upgrade.Icon), block, comp.Pending == id, !affordable,
+                rules.BlockText(block, upgrade)));
         }
 
         _ring = new FSUpgradeRing(new FSRCDLook(_cache, _proto, sprite), carried, comp, entries, _input.MouseScreenPosition.Position);

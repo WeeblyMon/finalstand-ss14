@@ -1,4 +1,5 @@
 // The hammer's upgrade picker, in the same ring style as the RCD: the disc explains the hovered upgrade and what it costs.
+using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.RCD;
 using Content.Client._FinalStand.UI;
@@ -9,7 +10,8 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Fortifications;
 
-public sealed record FSUpgradeEntry(FSUpgradePrototype Upgrade, Texture? Icon, FSUpgradeBlock Block, bool Pending, bool Short);
+public sealed record FSUpgradeEntry(FSUpgradePrototype Upgrade, Texture? Icon, FSUpgradeBlock Block, bool Pending, bool Short,
+    string BlockReason);
 
 public sealed class FSUpgradeRing : FSRingControl
 {
@@ -65,6 +67,30 @@ public sealed class FSUpgradeRing : FSRingControl
             DrawDot(handle, pos, r, scale, FSRCDLook.Bad);
     }
 
+    protected override void DrawUnderSlots(DrawingHandleScreen handle, Vector2 center, float scale)
+    {
+        var count = _entries.Count;
+        var width = 4f * scale;
+        for (var i = 0; i < count; i++)
+        {
+            if (_entries[i].Upgrade.Requires is not { } needed)
+                continue;
+
+            var j = _entries.FindIndex(e => e.Upgrade.ID == needed);
+            if (j < 0)
+                continue;
+
+            var from = -90f + j * 360f / count;
+            var sweep = ((-90f + i * 360f / count - from) % 360f + 540f) % 360f - 180f;
+            var met = _entries[i].Block != FSUpgradeBlock.NeedsPrevious;
+            var color = Hot == i || Hot == j ? FSRCDLook.Fg : met ? FSRCDLook.Gold : FSRCDLook.Muted;
+            FSShapes.Arc(handle, center, Radius * scale + width / 2f, width, MathF.Min(from, from + sweep), MathF.Max(from, from + sweep), color);
+
+            var mid = (from + sweep / 2f) * MathF.PI / 180f;
+            FSShapes.Diamond(handle, center + new Vector2(MathF.Cos(mid), MathF.Sin(mid)) * Radius * scale, 12f * scale, color);
+        }
+    }
+
     protected override void DrawExtras(DrawingHandleScreen handle, Vector2 center, float scale)
     {
         var first = _entries.FindIndex(e => e.Upgrade.Slot == FSUpgradeSlot.Branch);
@@ -113,45 +139,52 @@ public sealed class FSUpgradeRing : FSRingControl
             return;
         }
 
-        var width = disc * 1.6f;
-        var bodyPt = 8f;
-        List<(Font Font, string Text, Color Color, bool Wrap)> lines;
-        float height;
-        var icon = 16f * scale;
-        do
-        {
-            lines = new List<(Font Font, string Text, Color Color, bool Wrap)>
-            {
-                (_look.Bold(10f, scale), Loc.GetString(entry.Upgrade.Name), FSRCDLook.Fg, false),
-                (_look.Body(bodyPt, scale), Loc.GetString(entry.Upgrade.Description), FSRCDLook.Muted, true),
-            };
-
-            height = 0f;
-            foreach (var line in lines)
-                height += line.Wrap ? FSRCDLook.Wrapped(handle, line.Font, line.Text, 0, 0, width, line.Color, true, draw: false) : line.Font.GetLineHeight(1f);
-            height += entry.Upgrade.Cost.Count * (icon + 2f * scale) + _look.Mono(8f, scale).GetLineHeight(1f) + 2f * scale;
-            bodyPt -= 0.5f;
-        } while (height > disc * 1.8f && bodyPt >= 6f);
-
         var status = entry.Block switch
         {
             FSUpgradeBlock.None when entry.Pending => (Loc.GetString("fs-upgrade-ring-in-progress", ("done", _comp.Poured), ("hits", entry.Upgrade.Hits)), FSRCDLook.Gold),
             FSUpgradeBlock.None => (Loc.GetString("fs-upgrade-ring-hits", ("hits", entry.Upgrade.Hits)), FSRCDLook.Muted),
             FSUpgradeBlock.Owned => (Loc.GetString("fs-upgrade-blocked-owned"), FSRCDLook.Gold),
-            _ => (Loc.GetString("fs-upgrade-blocked-" + entry.Block.ToString().ToLowerInvariant()), FSRCDLook.Bad),
+            _ => (entry.BlockReason, FSRCDLook.Bad),
         };
 
-        var y = center.Y - height / 2f;
-        foreach (var line in lines)
+        var width = disc * 1.35f;
+        var fit = scale;
+        for (var shrink = 1f; shrink >= 0.7f; shrink -= 0.05f)
         {
-            y += line.Wrap
-                ? FSRCDLook.Wrapped(handle, line.Font, line.Text, center.X, y, width, line.Color, true)
-                : FSRCDLook.Text(handle, line.Font, line.Text, center.X, y, line.Color, true);
+            fit = scale * shrink;
+            if (Layout(handle, entry, status, center, 0f, width, fit, draw: false) <= disc * 1.45f)
+                break;
         }
 
-        foreach (var (stack, need) in entry.Upgrade.Cost)
-            y += _look.DrawCostRow(handle, stack, _carried.GetValueOrDefault(stack), need, $" / {need} {_look.MaterialName(stack)}", center.X, y, scale, true);
+        var height = Layout(handle, entry, status, center, 0f, width, fit, draw: false);
+        Layout(handle, entry, status, center, center.Y - height / 2f, width, fit, draw: true);
+    }
 
-        FSRCDLook.Text(handle, _look.Mono(8f, scale), status.Item1, center.X, y + 2f * scale, status.Item2, true);
+    private float Layout(DrawingHandleScreen handle, FSUpgradeEntry entry, (string Text, Color Color) status, Vector2 center,
+        float top, float width, float scale, bool draw)
+    {
+        var y = top;
+        y += FSRCDLook.Wrapped(handle, _look.Bold(10f, scale), Loc.GetString(entry.Upgrade.Name), center.X, y, width, FSRCDLook.Fg, true, draw);
+        y += FSRCDLook.Wrapped(handle, _look.Body(8f, scale), Loc.GetString(entry.Upgrade.Description), center.X, y, width, FSRCDLook.Muted, true, draw);
+
+        var costs = entry.Upgrade.Cost.ToList();
+        var columns = costs.Count > 2 ? 2 : 1;
+        for (var i = 0; i < costs.Count; i += columns)
+        {
+            var inRow = Math.Min(columns, costs.Count - i);
+            for (var c = 0; c < inRow && draw; c++)
+            {
+                var (stack, need) = costs[i + c];
+                var rest = columns == 1 ? $" / {need} {_look.MaterialName(stack)}" : $"/{need}";
+                var x = inRow == 1 ? center.X : center.X + (c == 0 ? -width / 4f : width / 4f);
+                _look.DrawCostRow(handle, stack, _carried.GetValueOrDefault(stack), need, rest, x, y, scale, true);
+            }
+
+            y += 18f * scale;
+        }
+
+        y += 2f * scale;
+        y += FSRCDLook.Wrapped(handle, _look.Mono(8f, scale), status.Text, center.X, y, width, status.Color, true, draw);
+        return y - top;
     }
 }

@@ -279,7 +279,7 @@ public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
         var block = Check(ent.Comp, upgrade);
         if (block != FSUpgradeBlock.None)
         {
-            _popup.PopupEntity(Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant()), ent, user);
+            _popup.PopupEntity(BlockText(block, upgrade), ent, user);
             return;
         }
 

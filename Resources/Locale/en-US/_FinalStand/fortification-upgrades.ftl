@@ -5,7 +5,7 @@ fs-upgrade-needs = Each hit needs {$list}.
 fs-upgrade-done = {$name} installed.
 fs-upgrade-wave-hardened = Fortifications reinforced for the harder waves: +{$percent}% health on every barricade.
 fs-upgrade-blocked-owned = Already installed.
-fs-upgrade-blocked-needsprevious = Needs the previous grade first.
+fs-upgrade-blocked-needsprevious = Needs {$name} first.
 fs-upgrade-blocked-branchtaken = This barricade already has a branch.
 
 fs-grade-steel = Steel grade

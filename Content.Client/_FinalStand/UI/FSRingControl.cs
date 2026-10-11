@@ -73,6 +73,10 @@ public abstract class FSRingControl : Control
     {
     }
 
+    protected virtual void DrawUnderSlots(DrawingHandleScreen handle, Vector2 center, float scale)
+    {
+    }
+
     protected void Dismiss() => OnDismiss?.Invoke();
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -131,6 +135,7 @@ public abstract class FSRingControl : Control
 
         FSRCDLook.Circle(handle, center, disc, FSRCDLook.PanelDeep);
         FSRCDLook.Circle(handle, center, disc, FSRCDLook.Edge, filled: false);
+        DrawUnderSlots(handle, center, scale);
 
         for (var i = 0; i < SlotCount; i++)
             DrawSlot(handle, i, center + SlotOffset(i, SlotCount, scale), i == Hot, scale);

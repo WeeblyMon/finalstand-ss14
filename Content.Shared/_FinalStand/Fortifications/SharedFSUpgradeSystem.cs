@@ -42,6 +42,12 @@ public abstract class SharedFSUpgradeSystem : EntitySystem
             : FSUpgradeBlock.NeedsPrevious;
     }
 
+    public string BlockText(FSUpgradeBlock block, FSUpgradePrototype upgrade)
+    {
+        var needed = upgrade.Requires is { } id ? Loc.GetString(Proto.Index(id).Name) : string.Empty;
+        return Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant(), ("name", needed));
+    }
+
     private bool HasReached(ProtoId<FSUpgradePrototype> current, ProtoId<FSUpgradePrototype> target)
     {
         ProtoId<FSUpgradePrototype>? step = current;
