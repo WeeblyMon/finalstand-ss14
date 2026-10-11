@@ -147,7 +147,7 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public int AccumulatedSurvivalBonus = 0;
 
-    [DataField] public int GuaranteedDarkWave = 6;
+    [DataField] public int GuaranteedDarkWave = 8;
 
     [DataField] public float DarkWaveWarningDelay = 30f;
     public float DarkWaveWarningAccum;

@@ -11,7 +11,7 @@
   fireStates: 3
   temperature: 800
 
-# Frag grenade only: double FSGrenadeExplosion's damage without buffing the other grenades or the Hydra.
+# Frag grenade and Hydra: double FSGrenadeExplosion's damage without buffing the other grenades.
 - type: explosion
   id: FSFragGrenadeExplosion
   damagePerIntensity:
