@@ -1,6 +1,8 @@
 using Content.Server.Popups;
+using Content.Server._Shitmed.DelayedDeath;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Robust.Shared.Timing;
@@ -20,6 +22,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSUndyingComponent, UpdateMobStateEvent>(OnUpdateMobState, after: [typeof(MobThresholdSystem)]);
+        SubscribeLocalEvent<FSUndyingComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
 
     public bool IsActive(EntityUid uid)
@@ -38,18 +41,40 @@ public sealed partial class FSUndyingSystem : EntitySystem
             return;
         }
 
-        if (ent.Comp.Used || ent.Comp.Level <= 0 || args.Component.CurrentState != MobState.Alive)
+        if (!TryTrigger(ent))
             return;
+
+        args.State = MobState.Alive;
+    }
+
+    private void OnMobStateChanged(Entity<FSUndyingComponent> ent, ref MobStateChangedEvent args)
+    {
+        if (args.NewMobState == MobState.Alive)
+            return;
+
+        if (ent.Comp.EndTime == null && !TryTrigger(ent, args.OldMobState))
+            return;
+
+        _mobState.ChangeMobState(ent, MobState.Alive, args.Component);
+    }
+
+    private bool TryTrigger(Entity<FSUndyingComponent> ent, MobState? from = null)
+    {
+        var current = from ?? CompOrNull<MobStateComponent>(ent)?.CurrentState ?? MobState.Alive;
+        if (ent.Comp.Used || ent.Comp.Level <= 0 || current != MobState.Alive)
+            return false;
 
         var seconds = FSPerkBonusConstants.UndyingSeconds[Math.Clamp(ent.Comp.Level, 1, FSPerkDef.MaxLevel) - 1];
         ent.Comp.Used = true;
         ent.Comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
-        args.State = MobState.Alive;
+
+        RemComp<DelayedDeathComponent>(ent);
 
         _ammo.FillHeld(ent);
         _popup.PopupEntity("Undying!", ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
         _notify.SendStacksToBody(ent, "Undying", ent.Comp.ShownSeconds);
+        return true;
     }
 
     public override void Update(float frameTime)
@@ -66,6 +91,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
             if (now < end)
             {
                 _ammo.FillHeld(uid);
+                RemComp<DelayedDeathComponent>(uid);
                 var left = (int) Math.Ceiling((end - now).TotalSeconds);
                 if (left != undying.ShownSeconds)
                 {
