@@ -1,4 +1,5 @@
 using Content.Server.Destructible;
+using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Mech.Components;
@@ -28,7 +29,7 @@ public sealed partial class FSRivetSystem : EntitySystem
     private void OnRivetHit(Entity<FSRivetComponent> ent, ref ProjectileHitEvent args)
     {
         var planted = TryComp<FSSiegeModeComponent>(args.Target, out var siege) && siege.Planted;
-        if (!HasComp<FSPlateRepairComponent>(args.Target) && !planted
+        if (!HasComp<FSPlateRepairComponent>(args.Target) && !planted && !HasComp<FinalStandCCCTagComponent>(args.Target)
             || !TryComp<DamageableComponent>(args.Target, out var damageable))
             return;
 
