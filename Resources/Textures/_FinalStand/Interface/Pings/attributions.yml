@@ -1,0 +1,4 @@
+- files: ["go.png", "fallback.png", "danger.png", "enemy.png", "boss.png", "defend.png", "ammo.png", "repair.png", "build.png", "revive.png", "loot.png", "bay.png", "door.png", "ack.png"]
+  license: "CC0-1.0"
+  copyright: "Kenney (www.kenney.nl), 1-Bit Pack; scaled 4x"
+  source: "https://kenney.nl/assets/1-bit-pack"
