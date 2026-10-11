@@ -96,7 +96,13 @@ public sealed partial class FSPingSystem : EntitySystem
     public FSPingType Ping(EntityUid sender, EntityCoordinates coords, EntityUid? target, FSPingType? forced)
     {
         var resolved = forced is { } kind ? ResolveForced(sender, kind, coords) : ResolveSmart(sender, coords, target);
-        if (resolved.Type is FSPingType.NeedChems or FSPingType.Repair or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay)
+        if (resolved.Type == FSPingType.NeedChems)
+        {
+            _medicPing.RequestChems(sender);
+            return resolved.Type;
+        }
+
+        if (resolved.Type is FSPingType.Repair or FSPingType.BuildHere or FSPingType.Revive or FSPingType.Bay)
             resolved = resolved with { Lifetime = TaskPingLife };
         var id = Broadcast(sender, resolved, coords);
 
@@ -104,10 +110,6 @@ public sealed partial class FSPingSystem : EntitySystem
         {
             case FSPingType.Acknowledge:
                 _tasks.Claim(sender, coords, target);
-                break;
-            case FSPingType.NeedChems:
-                _medicPing.RequestChems(sender);
-                _tasks.Open(resolved.Type, resolved.Audience, coords, sender, sender, resolved.Label, ping: id);
                 break;
             case FSPingType.Repair:
             case FSPingType.BuildHere:
