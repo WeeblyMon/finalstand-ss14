@@ -32,7 +32,6 @@ public sealed class FSPingLook
     public static readonly Color Back = FSPalette.PanelDeep;
 
     private const string IconDir = "/Textures/_FinalStand/Interface/Pings/";
-    private const string ChemIcon = "/Textures/_FinalStand/Interface/MedicPing/chem.png";
 
     private readonly IResourceCache _cache;
     private readonly Dictionary<string, Texture> _icons = new();
@@ -69,6 +68,7 @@ public sealed class FSPingLook
         FSPingType.Defend => "defend",
         FSPingType.FallBack => "fallback",
         FSPingType.NeedAmmo or FSPingType.Ammo => "ammo",
+        FSPingType.NeedChems => "chems",
         FSPingType.NeedRepair or FSPingType.Repair => "repair",
         FSPingType.BuildHere => "build",
         FSPingType.Revive => "revive",
@@ -105,8 +105,6 @@ public sealed class FSPingLook
     // A filled marker in the category shape with a darker rim, then the icon tinted dark on top.
     public void DrawMarker(DrawingHandleScreen handle, Vector2 center, float size, FSPingType type, float alpha, string? iconPath = null)
     {
-        if (type == FSPingType.NeedChems)
-            iconPath ??= ChemIcon;
         var color = ColorOf(type);
         Shape(handle, center, size / 2f + 2f, ShapeOf(type), Back.WithAlpha(alpha * 0.9f));
         Shape(handle, center, size / 2f, ShapeOf(type), color.WithAlpha(alpha));
