@@ -387,10 +387,10 @@
   - type: Electrified
     requirePower: true
   - type: FSTeslaArc
-    arcInterval: 0.8
+    arcInterval: 0.4
     arcRange: 6
-    maxArcs: 3
-    maxTotalArcs: 4
+    maxArcs: 5
+    maxTotalArcs: 8
     damage:
       types:
         Shock: 30
