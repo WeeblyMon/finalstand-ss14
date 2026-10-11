@@ -298,7 +298,7 @@
       types:
         Piercing: 30
 
-# ── Hydra grenade projectile — FSGrenadeExplosion blocks struct/player damage ──
+# ── Hydra grenade projectile — FSHydraExplosion blocks struct/player damage ──
 - type: entity
   parent: BulletGrenadeFrag
   id: FSBulletGrenadeFrag
@@ -308,7 +308,7 @@
     tags:
     - WeaponExplosive
   - type: Explosive
-    explosionType: FSGrenadeExplosion
+    explosionType: FSHydraExplosion
     maxIntensity: 2.5
     intensitySlope: 3
     totalIntensity: 10
