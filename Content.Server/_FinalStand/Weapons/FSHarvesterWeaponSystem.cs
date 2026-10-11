@@ -107,7 +107,10 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         (fromCoords, shotAngle) = _hitscanCoords.ToGridRelative(fromCoords, shotAngle);
 
-        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords), (float)shotAngle.Theta, distance),
+        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords),
+                (float) shotAngle.Theta,
+                distance,
+                args.Data.Shooter is { } beamShooter ? GetNetEntity(beamShooter) : null),
             Filter.Pvs(fromCoords, entityMan: EntityManager));
 
         if (args.Data.HitEntity is not { } hit)

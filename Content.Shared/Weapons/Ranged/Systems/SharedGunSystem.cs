@@ -677,7 +677,19 @@ public abstract partial class SharedGunSystem : EntitySystem
     [Serializable, NetSerializable]
     public sealed class HitscanEvent : EntityEventArgs
     {
-        public List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier Sprite, float Distance)> Sprites = [];
+        public List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier Sprite, float Distance, HitscanPart Part)> Sprites = [];
+
+        public NetEntity? Shooter;
+        public NetCoordinates? Origin;
+        public NetCoordinates? Impact;
+    }
+
+    [Serializable, NetSerializable]
+    public enum HitscanPart : byte
+    {
+        Muzzle,
+        Travel,
+        Impact,
     }
 
     /// <summary>

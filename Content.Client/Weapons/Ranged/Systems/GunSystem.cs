@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Animations;
 using Content.Client.Clickable;
+using Content.Client._FinalStand.Weapons;
 using Content.Client.Items;
 using Content.Client.Weapons.Ranged.Components;
 using Content.Shared.Camera;
@@ -56,6 +57,7 @@ public sealed partial class GunSystem : SharedGunSystem
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
     public static readonly EntProtoId MuzzleLightProto = "FSMuzzleFlashLight";
+
     private GunTargetEntityComparer _comparer = default!;
 
     public bool SpreadOverlay
@@ -122,6 +124,9 @@ public sealed partial class GunSystem : SharedGunSystem
         // E.g., if a grid rotates while part of the beam is parented to the grid, and part of it is parented to the map.
         // Ideally, there should only be one entity, with one sprite that has multiple layers
         // Or at the very least, have the other entities parented to the same entity to make sure they stick together.
+        var shooter = ev.Shooter is { } netShooter ? GetEntity(netShooter) : (EntityUid?) null;
+        var impact = ev.Impact is { } netImpact ? GetCoordinates(netImpact) : (EntityCoordinates?) null;
+
         foreach (var a in ev.Sprites)
         {
             if (a.Sprite is not SpriteSpecifier.Rsi rsi)
@@ -133,6 +138,15 @@ public sealed partial class GunSystem : SharedGunSystem
                 continue;
 
             var ent = Spawn(HitscanProto, coords);
+
+            if (shooter is { } shooterUid && Exists(shooterUid) && impact is { } impactCoords)
+            {
+                var follow = EnsureComp<FSBeamFollowComponent>(ent);
+                follow.Shooter = shooterUid;
+                follow.Impact = impactCoords;
+                follow.Part = a.Part;
+            }
+
             if (!rsi.RsiState.StartsWith("muzzle"))
             {
                 var beamLight = Factory.GetComponent<PointLightComponent>();
