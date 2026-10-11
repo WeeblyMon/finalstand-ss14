@@ -32,7 +32,7 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
 
     private void OnBeforeStructureDamage(EntityUid uid, FSPlayerDamageImmuneComponent _, ref BeforeDamageChangedEvent args)
     {
-        if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value))
+        if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value) && args.Damage.AnyPositive())
             args.Cancelled = true;
     }
 
