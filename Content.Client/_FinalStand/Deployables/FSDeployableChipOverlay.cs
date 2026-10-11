@@ -16,6 +16,7 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
@@ -44,6 +45,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
 
     private readonly Dictionary<int, Font> _fonts = new();
     private SharedTransformSystem? _xform;
+    private SharedMapSystem? _map;
     private SharedHandsSystem? _hands;
     private FSDeployableAlertClientSystem _alerts = default!;
 
@@ -60,6 +62,7 @@ public sealed partial class FSDeployableChipOverlay : Overlay
             return;
 
         _xform ??= _entMan.System<SharedTransformSystem>();
+        _map ??= _entMan.System<SharedMapSystem>();
         _alerts ??= _entMan.System<FSDeployableAlertClientSystem>();
         var handle = args.ScreenHandle;
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
@@ -145,6 +148,8 @@ public sealed partial class FSDeployableChipOverlay : Overlay
         var textSize = full && showText ? ctx.Handle.GetDimensions(ctx.Font, text, 1f) : Vector2.Zero;
         var width = bar + (textSize.X > 0f ? textSize.X + 5f * s : 0f);
         var top = MathF.Round(screen.Y - tileHalf * 1.3f - height);
+        if (FSWorldHudSpace.BarNorth(_entMan, _map!, xform))
+            top = MathF.Min(top, MathF.Round(screen.Y - tileHalf * 1.45f - 4f * s - height / 2f - MathF.Max(textSize.Y, height) / 2f - s));
         var left = MathF.Round(screen.X - width / 2f);
 
         if (textSize.X > 0f)

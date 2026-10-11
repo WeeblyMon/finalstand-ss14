@@ -38,6 +38,8 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
 
     protected virtual bool ShouldDraw(EntityUid uid, TMarker marker, TransformComponent xform) => true;
 
+    protected virtual float Lift(EntityUid uid, TMarker marker, TransformComponent xform) => 0f;
+
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     protected FSWorldLabelOverlay()
@@ -83,7 +85,8 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
             var label = DynamicLabel ? GetLabel(uid, marker) : Label;
             var labelSize = DynamicLabel ? handle.GetDimensions(_font, label, 1f) : _constantLabelSize;
 
-            var labelPos = new Vector2(screenPos.X - labelSize.X / 2f, screenPos.Y - VerticalOffset + bob);
+            var labelPos = new Vector2(screenPos.X - labelSize.X / 2f,
+                screenPos.Y - VerticalOffset - Lift(uid, marker, xform) + bob);
             DrawOutlined(handle, _font, labelPos, label);
 
             if (!ShowArrow)
