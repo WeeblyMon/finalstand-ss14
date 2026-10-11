@@ -65,6 +65,8 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
 
         _numberOverlay.Add(new FSDamageNumberOverlay.DamageNumber
         {
+            Target = target,
+            Mergeable = !isLevelUp && color == null,
             OriginWorldPos = _transform.GetWorldPosition(xform) + new Vector2(centred ? 0f : spread, vertOffset),
             MapId = xform.MapID,
             Amount = amount,

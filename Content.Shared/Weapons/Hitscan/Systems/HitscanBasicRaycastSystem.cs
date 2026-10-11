@@ -79,7 +79,7 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
         var predictedBy = _lagCompensation.IsPredictedShot(args.Shooter) && _lagCompensation.CanPredictHitscan(ent) // fs
             ? args.Shooter
             : null;
-        FireEffects(args.FromCoordinates, distanceTried, args.ShotDirection.ToAngle(), ent.Owner, predictedBy);
+        FireEffects(args.FromCoordinates, distanceTried, args.ShotDirection.ToAngle(), ent.Owner, args.Shooter, predictedBy);
 
         // Admin logging
         if (result?.HitEntity != null)
@@ -114,34 +114,24 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
     /// <param name="distance">Distance of the hitscan shot.</param>
     /// <param name="shotAngle">Angle of the shot.</param>
     /// <param name="hitscanUid">The hitscan entity itself.</param>
-    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, EntityUid hitscanUid, EntityUid? predictedBy) // fs
+    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, EntityUid hitscanUid, EntityUid? shooter, EntityUid? predictedBy) // fs
     {
-        var sprites = BuildEffects(fromCoordinates, distance, shotAngle, hitscanUid, out var origin); // fs
-        if (sprites.Count == 0)
+        if (BuildEffects(fromCoordinates, distance, shotAngle, hitscanUid, shooter) is not { Origin: { } origin } effects) // fs
             return;
 
-        var filter = Filter.Pvs(origin, entityMan: EntityManager); // fs
+        var filter = Filter.Pvs(GetCoordinates(origin), entityMan: EntityManager); // fs
         if (predictedBy != null)
             filter.RemoveWhereAttachedEntity(e => e == predictedBy.Value);
 
-        RaiseNetworkEvent(new SharedGunSystem.HitscanEvent
-        {
-            Sprites = sprites,
-        }, filter);
+        RaiseNetworkEvent(effects, filter);
     }
 
-    public List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale)> BuildEffects(
-        EntityCoordinates fromCoordinates,
-        float distance,
-        Angle shotAngle,
-        EntityUid hitscanUid,
-        out EntityCoordinates origin)
+    public SharedGunSystem.HitscanEvent? BuildEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, EntityUid hitscanUid, EntityUid? shooter) // fs
     {
-        origin = fromCoordinates;
-        var sprites = new List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale)>();
-        if (distance == 0 || !_visualsQuery.TryComp(hitscanUid, out var vizComp)) // fs
-            return sprites;
+        if (distance == 0 || !_visualsQuery.TryComp(hitscanUid, out var vizComp))
+            return null;
 
+        var sprites = new List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale, SharedGunSystem.HitscanPart part)>();
         var fromXform = Transform(fromCoordinates.EntityId);
 
         // We'll get the effects relative to the grid / map of the firer
@@ -167,7 +157,7 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
                 var coords = fromCoordinates.Offset(shotAngle.ToVec().Normalized() / 2);
                 var netCoords = GetNetCoordinates(coords);
 
-                sprites.Add((netCoords, shotAngle, vizComp.MuzzleFlash, 1f));
+                sprites.Add((netCoords, shotAngle, vizComp.MuzzleFlash, 1f, SharedGunSystem.HitscanPart.Muzzle));
             }
 
             if (vizComp.TravelFlash != null)
@@ -175,7 +165,7 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
                 var coords = fromCoordinates.Offset(shotAngle.ToVec() * (distance + 0.5f) / 2);
                 var netCoords = GetNetCoordinates(coords);
 
-                sprites.Add((netCoords, shotAngle, vizComp.TravelFlash, distance - 1.5f));
+                sprites.Add((netCoords, shotAngle, vizComp.TravelFlash, distance - 1.5f, SharedGunSystem.HitscanPart.Travel));
             }
         }
 
@@ -184,10 +174,18 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
             var coords = fromCoordinates.Offset(shotAngle.ToVec() * distance);
             var netCoords = GetNetCoordinates(coords);
 
-            sprites.Add((netCoords, shotAngle.FlipPositive(), vizComp.ImpactFlash, 1f));
+            sprites.Add((netCoords, shotAngle.FlipPositive(), vizComp.ImpactFlash, 1f, SharedGunSystem.HitscanPart.Impact));
         }
 
-        origin = fromCoordinates; // fs
-        return sprites;
+        if (sprites.Count == 0) // fs
+            return null;
+
+        return new SharedGunSystem.HitscanEvent
+        {
+            Sprites = sprites,
+            Shooter = shooter is { } user ? GetNetEntity(user) : null,
+            Origin = GetNetCoordinates(fromCoordinates),
+            Impact = GetNetCoordinates(fromCoordinates.Offset(shotAngle.ToVec() * distance)),
+        };
     }
 }

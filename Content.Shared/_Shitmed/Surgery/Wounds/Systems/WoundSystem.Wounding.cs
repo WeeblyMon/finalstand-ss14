@@ -827,14 +827,7 @@ public sealed partial class WoundSystem
             // if wounds amount somehow changes it triggers an enumeration error. owch
             woundableComp.WoundableSeverity = WoundableSeverity.Severed;
 
-            if (TryComp<TargetingComponent>(body, out var targeting))
-            {
-                targeting.BodyStatus = GetWoundableStatesOnBodyPainFeels(body);
-                Dirty(body, targeting);
-
-                if (_net.IsServer)
-                    RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(body)), body);
-            }
+            _targeting.UpdateBodyStatus(body, GetWoundableStatesOnBodyPainFeels(body));
 
             _audio.PlayPvs(woundableComp.WoundableDestroyedSound, body);
             _appearance.SetData(woundableEntity,
@@ -1030,14 +1023,7 @@ public sealed partial class WoundSystem
         var body = bodyPart.Body.Value;
         woundableComp.WoundableSeverity = WoundableSeverity.Severed;
 
-        if (TryComp<TargetingComponent>(body, out var targeting))
-        {
-            targeting.BodyStatus = GetWoundableStatesOnBodyPainFeels(body);
-            Dirty(body, targeting);
-
-            if (_net.IsServer)
-                RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(body)), body);
-        }
+        _targeting.UpdateBodyStatus(body, GetWoundableStatesOnBodyPainFeels(body));
 
         var childBodyPart = Comp<OrganComponent>(woundableEntity);
         if (TryComp<InventoryComponent>(bodyPart.Body, out var inventory)
@@ -1416,14 +1402,7 @@ public sealed partial class WoundSystem
         if (bodyPart.Body == null)
             return;
 
-        if (!TryComp<TargetingComponent>(bodyPart.Body.Value, out var targeting))
-            return;
-
-        targeting.BodyStatus = GetWoundableStatesOnBodyPainFeels(bodyPart.Body.Value);
-        Dirty(bodyPart.Body.Value, targeting);
-
-        if (_net.IsServer)
-            RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(bodyPart.Body.Value)), bodyPart.Body.Value);
+        _targeting.UpdateBodyStatus(bodyPart.Body.Value, GetWoundableStatesOnBodyPainFeels(bodyPart.Body.Value));
 
         _appearance.SetData(woundable,
             WoundableVisualizerKeys.Wounds,

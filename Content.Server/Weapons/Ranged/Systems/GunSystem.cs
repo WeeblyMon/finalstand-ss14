@@ -81,6 +81,13 @@ public sealed partial class GunSystem : SharedGunSystem
         mapDirection = toMap - fromMap.Position;
         var gunVelocity = Physics.GetMapLinearVelocity(fromEnt);
 
+        if (mapDirection.LengthSquared() > 0f)
+        {
+            var muzzleShift = (-TransformSystem.GetWorldRotation(fromEnt.EntityId))
+                .RotateVec(mapDirection.Normalized() * MuzzleOffset);
+            fromEnt = fromEnt.Offset(muzzleShift);
+        }
+
         // I must be high because this was getting tripped even when true.
         // DebugTools.Assert(direction != Vector2.Zero);
         var shotProjectiles = new List<EntityUid>(ammo.Count);

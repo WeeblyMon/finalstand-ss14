@@ -598,13 +598,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (comp.WaveNumber >= special.FromWave)
                 types.Add(special.EnemyId.Id);
         }
-        var directions = comp.SpawnerEntities.Count == 0
-            ? "none"
-            : string.Join("/", comp.SpawnerEntities
-                .Select(s => TryComp<WaveEnemySpawnerComponent>(s, out var sc) ? sc.DirectionLabel : "?")
-                .Where(d => d.Length > 0)
-                .Distinct()
-                .Order());
+        var directions = _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
             comp.Phase,

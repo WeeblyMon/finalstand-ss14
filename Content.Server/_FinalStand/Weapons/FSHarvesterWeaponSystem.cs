@@ -113,7 +113,11 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
         if (args.Data.Shooter is { } shooter && _lagCompensation.IsPredictedShot(shooter) && _lagCompensation.CanPredictHitscan(uid))
             filter.RemoveWhereAttachedEntity(e => e == shooter);
 
-        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords), (float)shotAngle.Theta, distance), filter);
+        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords),
+                (float) shotAngle.Theta,
+                distance,
+                args.Data.Shooter is { } beamShooter ? GetNetEntity(beamShooter) : null),
+            filter);
 
         if (args.Data.HitEntity is not { } hit)
             return;

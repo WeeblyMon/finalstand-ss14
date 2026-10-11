@@ -121,9 +121,11 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         else
             proto.TryGetComponent(out spread, Factory);
 
+        var muzzleShift = shotDirection.LengthSquared() > 0f ? shotDirection.Normalized() * SharedGunSystem.MuzzleOffset : Vector2.Zero;
+
         if (spread == null)
         {
-            SpawnCosmetic(gun, user, proto, from, shotDirection, tick);
+            SpawnCosmetic(gun, user, proto, from, shotDirection, muzzleShift, tick);
             return;
         }
 
@@ -131,18 +133,18 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         RaiseLocalEvent(gun, ref spreadEvent);
 
         var angles = SharedGunSystem.LinearSpread(aimAngle - spreadEvent.Spread / 2, aimAngle + spreadEvent.Spread / 2, spread.Count);
-        SpawnCosmetic(gun, user, proto, from, angles[0].ToVec(), tick);
+        SpawnCosmetic(gun, user, proto, from, angles[0].ToVec(), muzzleShift, tick);
 
         if (!_protoMan.TryIndex(spread.Proto, out var pelletProto))
             return;
 
         for (var i = 1; i < spread.Count; i++)
         {
-            SpawnCosmetic(gun, user, pelletProto, from, angles[i].ToVec(), tick);
+            SpawnCosmetic(gun, user, pelletProto, from, angles[i].ToVec(), muzzleShift, tick);
         }
     }
 
-    private void SpawnCosmetic(Entity<GunComponent> gun, EntityUid user, EntityPrototype proto, MapCoordinates from, Vector2 direction, GameTick tick)
+    private void SpawnCosmetic(Entity<GunComponent> gun, EntityUid user, EntityPrototype proto, MapCoordinates from, Vector2 direction, Vector2 muzzleShift, GameTick tick)
     {
         if (!proto.Components.ContainsKey(Factory.GetComponentName<ProjectileComponent>()) || direction.LengthSquared() < 0.0001f)
             return;
@@ -155,6 +157,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         var key = (tick, _nextIndex++);
         direction = direction.Normalized();
+        from = new MapCoordinates(from.Position + muzzleShift, from.MapId);
 
         if (proto.Components.ContainsKey(Factory.GetComponentName<FSRicochetComponent>()))
             return;
@@ -245,13 +248,12 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
                 distance = (_transform.GetWorldPosition(harvested.HitEntity) - _transform.ToMapCoordinates(origin).Position).Length();
 
             var (coords, angle) = _hitscanCoords.ToGridRelative(origin, direction.ToAngle());
-            RaiseLocalEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(coords), (float) angle.Theta, distance));
+            RaiseLocalEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(coords), (float) angle.Theta, distance, GetNetEntity(user)));
             return;
         }
 
-        var sprites = _hitscanRaycast.BuildEffects(fromCoordinates, distance, direction.ToAngle(), hitscan, out _);
-        if (sprites.Count > 0)
-            RaiseLocalEvent(new SharedGunSystem.HitscanEvent { Sprites = sprites });
+        if (_hitscanRaycast.BuildEffects(fromCoordinates, distance, direction.ToAngle(), hitscan, user) is { } effects)
+            RaiseLocalEvent(effects);
     }
 
     public override void FrameUpdate(float frameTime)

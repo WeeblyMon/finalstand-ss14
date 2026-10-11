@@ -80,26 +80,40 @@ public sealed partial class FSHarvesterBeamVisualSystem : EntitySystem
             return;
 
         var angle = new Angle(ev.Angle);
+        var shooter = ev.Shooter is { } netShooter ? GetEntity(netShooter) : (EntityUid?) null;
+        var impact = coords.Offset(angle.ToVec() * ev.Distance);
 
-        SpawnFlash(coords, relativeXform, angle, "muzzle_harvester_beam", 1f, 0.5f);
+        SpawnFlash(coords, relativeXform, angle, "muzzle_harvester_beam", 1f, 0.5f,
+            shooter, impact, SharedGunSystem.HitscanPart.Muzzle);
 
         if (ev.Distance >= 1f)
-            SpawnFlash(coords, relativeXform, angle, "harvester_beam", ev.Distance - 1.5f, (ev.Distance + 0.5f) / 2f);
+            SpawnFlash(coords, relativeXform, angle, "harvester_beam", ev.Distance - 1.5f, (ev.Distance + 0.5f) / 2f,
+                shooter, impact, SharedGunSystem.HitscanPart.Travel);
 
         // Impact uses the same angle as the beam - Angle.FlipPositive() only normalizes to a positive range, it does not reverse direction.
-        SpawnFlash(coords, relativeXform, angle, "impact_harvester_beam", 1f, ev.Distance);
+        SpawnFlash(coords, relativeXform, angle, "impact_harvester_beam", 1f, ev.Distance,
+            shooter, impact, SharedGunSystem.HitscanPart.Impact);
 
         UpdateGlow(coords, angle, ev.Distance);
     }
 
     private void SpawnFlash(EntityCoordinates origin, TransformComponent relativeXform, Angle angle,
-        string state, float lengthScale, float offsetAlongBeam)
+        string state, float lengthScale, float offsetAlongBeam,
+        EntityUid? shooter, EntityCoordinates impact, SharedGunSystem.HitscanPart part)
     {
         if (lengthScale <= 0f)
             return;
 
         var coords = origin.Offset(angle.ToVec() * offsetAlongBeam);
         var ent = Spawn(HitscanProto, coords);
+
+        if (shooter is { } shooterUid && Exists(shooterUid))
+        {
+            var follow = EnsureComp<FSBeamFollowComponent>(ent);
+            follow.Shooter = shooterUid;
+            follow.Impact = impact;
+            follow.Part = part;
+        }
 
         var sprite = Comp<SpriteComponent>(ent);
         var xform = Transform(ent);
