@@ -49,6 +49,8 @@ public sealed partial class GunSystem : SharedGunSystem
         args.Price += price * ent.Comp.UnspawnedCount;
     }
 
+    private const float MuzzleOffset = 0.15f;
+
     public override void Shoot(Entity<GunComponent> gun, List<(EntityUid? Entity, IShootable Shootable)> ammo,
         EntityCoordinates fromCoordinates, EntityCoordinates toCoordinates, out bool userImpulse, EntityUid? user = null, bool throwItems = false)
     {
@@ -80,6 +82,13 @@ public sealed partial class GunSystem : SharedGunSystem
         toMap = fromMap.Position + angle.ToVec() * mapDirection.Length();
         mapDirection = toMap - fromMap.Position;
         var gunVelocity = Physics.GetMapLinearVelocity(fromEnt);
+
+        if (mapDirection.LengthSquared() > 0f)
+        {
+            var muzzleShift = (-TransformSystem.GetWorldRotation(fromEnt.EntityId))
+                .RotateVec(mapDirection.Normalized() * MuzzleOffset);
+            fromEnt = fromEnt.Offset(muzzleShift);
+        }
 
         // I must be high because this was getting tripped even when true.
         // DebugTools.Assert(direction != Vector2.Zero);
