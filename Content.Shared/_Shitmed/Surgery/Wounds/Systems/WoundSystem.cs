@@ -8,6 +8,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared.FixedPoint;
 using Content.Shared._Shitmed.Body;
@@ -69,6 +70,7 @@ public sealed partial class WoundSystem : EntitySystem
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private TraumaSystem _trauma = default!;
+    [Dependency] private SharedTargetingSystem _targeting = default!;
     private float _medicalHealingTickrate = 0.5f;
     private TimeSpan _minimumTimeBeforeHeal = TimeSpan.FromSeconds(2f);
 

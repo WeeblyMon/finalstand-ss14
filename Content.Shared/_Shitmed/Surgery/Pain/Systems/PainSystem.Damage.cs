@@ -635,14 +635,7 @@ public partial class PainSystem
         var ev = new PainFeelsChangedEvent(nerveComp.ParentedNerveSystem, nerveUid, nerveComp.PainFeels);
         RaiseLocalEvent(nerveUid, ref ev);
 
-        if (!TryComp<TargetingComponent>(organ.Body.Value, out var targeting))
-            return;
-
-        targeting.BodyStatus = _wound.GetWoundableStatesOnBodyPainFeels(organ.Body.Value);
-        Dirty(organ.Body.Value, targeting);
-
-        if (_net.IsServer)
-            RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(organ.Body.Value)), organ.Body.Value);
+        _targeting.UpdateBodyStatus(organ.Body.Value, _wound.GetWoundableStatesOnBodyPainFeels(organ.Body.Value));
     }
 
     private void UpdateDamage(EntityUid nerveSysEnt, NerveSystemComponent nerveSys)
@@ -659,12 +652,13 @@ public partial class PainSystem
         if (nerveSys.LastPainThreshold != nerveSys.Pain)
         {
             if (_timing.CurTime > nerveSys.UpdateTime)
+            {
                 nerveSys.LastPainThreshold = nerveSys.Pain;
+                shouldUpdate = true;
+            }
 
             if (_timing.CurTime > nerveSys.ReactionUpdateTime)
                 UpdatePainThreshold(nerveSysEnt, nerveSys);
-
-            shouldUpdate = true;
         }
 
         if (_timing.CurTime > nerveSys.NextCritScream)
@@ -724,11 +718,8 @@ public partial class PainSystem
                 if (_timing.CurTime > value.Time)
                     shouldUpdate |= TryRemovePainFeelsModifier(key.Item1, key.Item2, ent, nerve);
 
-        if (shouldUpdate
-            && _net.IsServer)
-        {
-            RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(body)), body); // Shitcod to handle overlays.
-        }
+        if (shouldUpdate)
+            _threshold.NotifyThresholdChecked(body);
     }
 
     private void UpdateNerveSystemPain(EntityUid uid, NerveSystemComponent? nerveSys = null)
