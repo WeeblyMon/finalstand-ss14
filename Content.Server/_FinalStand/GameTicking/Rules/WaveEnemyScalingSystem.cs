@@ -35,9 +35,10 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
 
     private static float GetHpMultiplier(int wave)
     {
-        if (wave < 10) return 1f + (wave - 1) * 0.15f;
-        if (wave < 20) return 2.8f;
-        if (wave < 30) return 5.5f;
+        if (wave <= 1) return 1f;
+        if (wave <= 10) return 1f + (wave - 1) * 0.2f;
+        if (wave <= 20) return 2.8f + (wave - 10) * 0.27f;
+        if (wave <= 30) return 5.5f + (wave - 20) * 0.35f;
         return 9f;
     }
 
