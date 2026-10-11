@@ -1,4 +1,5 @@
-﻿using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.CCC;
+using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
@@ -390,6 +391,60 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 return candidate;
         }
         return null;
+    }
+
+    public string GetSpawnDirections(WaveGameRuleComponent comp)
+    {
+        if (comp.IsDarkWave)
+            return "all";
+
+        var labels = new SortedSet<string>();
+        foreach (var spawnerUid in comp.SpawnerEntities)
+        {
+            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) && spawner.DirectionLabel.Length > 0)
+                labels.Add(spawner.DirectionLabel);
+        }
+
+        if (RevenantPossible(comp))
+        {
+            var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
+            while (query.MoveNext(out var uid, out var spawner))
+            {
+                if (comp.WaveNumber >= spawner.FromWave && TryGetCompassLabel(uid, out var label))
+                    labels.Add(label);
+            }
+        }
+
+        if (labels.Count == 0)
+            return comp.SpawnerEntities.Count == 0 ? "none" : "?";
+
+        return string.Join("/", labels);
+    }
+
+    private bool RevenantPossible(WaveGameRuleComponent comp)
+    {
+        foreach (var special in comp.SpecialEnemyPool)
+        {
+            if (special.EnemyId == RevenantProto && comp.WaveNumber >= special.FromWave)
+                return true;
+        }
+
+        return GetDirectorPool(comp).Contains(RevenantProto);
+    }
+
+    private bool TryGetCompassLabel(EntityUid uid, out string label)
+    {
+        label = string.Empty;
+
+        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
+        if (!query.MoveNext(out var cccUid, out _))
+            return false;
+
+        var delta = _transform.GetWorldPosition(uid) - _transform.GetWorldPosition(cccUid);
+        label = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
+            ? delta.X > 0 ? "E" : "W"
+            : delta.Y > 0 ? "N" : "S";
+        return true;
     }
 
     public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)
