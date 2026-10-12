@@ -85,15 +85,15 @@ public sealed class WeeklyChallengeTest : GameTest
             var at = DateTime.UtcNow;
             var week = FSWeeklyRules.WeekKey(at);
             var weeklyRun = new FSRunRecord("Ada", FSDifficulty.Hard, FSPlayerBracket.Crew, 22, false, 4000, 900, at, week);
-            var normalRun = weeklyRun with { Players = "Bo", Weekly = null, Difficulty = FSDifficulty.Normal };
+            var normalRun = weeklyRun with { Players = "Bo", Weekly = null, Waves = 5 };
 
             Assert.That(ladder.RecordRun(weeklyRun), Is.True);
-            Assert.That(ladder.RecordRun(normalRun), Is.True, "standard ladders don't compete with weekly runs");
+            Assert.That(ladder.RecordRun(normalRun), Is.True, "a shorter Hard run still sets the Hard record: weekly runs don't count there");
             Assert.Multiple(() =>
             {
                 Assert.That(store.GetWeeklyTopRuns(week, 10).Select(r => r.Players), Is.EqualTo(new[] { "Ada" }));
-                Assert.That(ladder.GetTopRuns(FSDifficulty.Hard, FSPlayerBracket.Crew), Is.Empty,
-                    "a weekly run with forced modifiers must not sit on the Hard ladder");
+                Assert.That(ladder.GetTopRuns(FSDifficulty.Hard, FSPlayerBracket.Crew).Select(r => r.Players), Is.EqualTo(new[] { "Bo" }),
+                    "a weekly run with forced modifiers must not sit on the Hard ladder or block its records");
             });
 
             var user = Guid.NewGuid();

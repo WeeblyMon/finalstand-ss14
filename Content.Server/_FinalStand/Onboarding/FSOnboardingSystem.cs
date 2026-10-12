@@ -69,6 +69,9 @@ public sealed partial class FSOnboardingSystem : EntitySystem
 
         var userId = session.UserId;
         var record = _store.GetOnboarding(userId.UserId);
+        if (!_store.IsProgressReadable(userId.UserId))
+            return;
+
         if (!record.Known)
         {
             record = rookie
@@ -130,7 +133,7 @@ public sealed partial class FSOnboardingSystem : EntitySystem
                 continue;
 
             var record = _store.GetOnboarding(session.UserId.UserId);
-            if (!record.WasRookie || record.Graduated)
+            if (!_store.IsProgressReadable(session.UserId.UserId) || !record.WasRookie || record.Graduated)
                 continue;
 
             _store.SaveOnboarding(session.UserId.UserId, Graduate(session, mindId, record));

@@ -34,6 +34,16 @@ public sealed partial class WaveGameRuleSystem
 
         _endlessVote = _votes.CreateVote(options);
         _endlessVote.OnFinished += OnEndlessVoteFinished;
+        _endlessVote.OnCancelled += OnEndlessVoteCancelled;
+    }
+
+    private void OnEndlessVoteCancelled(IVoteHandle sender)
+    {
+        if (sender != _endlessVote)
+            return;
+
+        _endlessVote = null;
+        TryDeclineEndless();
     }
 
     private void OnEndlessVoteFinished(IVoteHandle sender, VoteFinishedEventArgs args)
@@ -119,6 +129,7 @@ public sealed partial class WaveGameRuleSystem
         var vote = _endlessVote;
         _endlessVote = null;
         vote.OnFinished -= OnEndlessVoteFinished;
+        vote.OnCancelled -= OnEndlessVoteCancelled;
         vote.Cancel();
     }
 }

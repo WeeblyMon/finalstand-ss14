@@ -78,7 +78,7 @@ public sealed class MentorTest : GameTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(mentor.IsEligibleMentor(session), Is.False, "the test player is a fresh rookie");
+                Assert.That(mentor.IsEligibleMentor(session), Is.False, "a player with no playtime or levels is never a mentor");
                 Assert.That(mentor.CanMentor(session, session), Is.False);
                 Assert.That(mentor.Award(session, session, 5, "fs-mentor-reason-revive"), Is.Zero);
                 Assert.That(mentor.CurrentRecord(session.UserId.UserId).Total, Is.Zero);

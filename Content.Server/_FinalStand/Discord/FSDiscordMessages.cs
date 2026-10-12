@@ -128,7 +128,9 @@ public static class FSDiscordMessages
 
     private static string DescribeRecord(FSRunRecord record, FSRunRecord? previous)
     {
-        var ladder = $"{Loc.GetString(FSDifficultyRules.NameLocId(record.Difficulty))} · {Loc.GetString(FSLadder.BracketLocId(record.Bracket))}";
+        var ladder = record.Weekly != null
+            ? Loc.GetString("fs-discord-weekly-ladder")
+            : $"{Loc.GetString(FSDifficultyRules.NameLocId(record.Difficulty))} · {Loc.GetString(FSLadder.BracketLocId(record.Bracket))}";
         return previous == null
             ? Loc.GetString("fs-discord-record-first", ("ladder", ladder), ("players", record.Players))
             : Loc.GetString("fs-discord-record-beaten", ("ladder", ladder), ("players", record.Players), ("previous", previous.Players));

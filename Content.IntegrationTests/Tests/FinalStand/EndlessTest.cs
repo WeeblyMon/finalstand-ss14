@@ -2,6 +2,7 @@ using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Fixtures.Attributes;
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Records;
 using Content.Server._FinalStand.Titles;
 using Content.Server.GameTicking;
@@ -41,13 +42,15 @@ public sealed class EndlessTest : GameTest
     {
         var minds = SEntMan.System<SharedMindSystem>();
         var session = ServerSession!;
-        if (minds.TryGetMind(session, out var mindId, out _))
-            return;
+        if (!minds.TryGetMind(session, out var mindId, out _))
+        {
+            var body = SEntMan.SpawnEntity("MobHuman", coords);
+            mindId = minds.CreateMind(session.UserId, "Defender");
+            minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
+        }
 
-        var body = SEntMan.SpawnEntity("MobHuman", coords);
-        mindId = minds.CreateMind(session.UserId, "Defender");
-        minds.TransferTo(mindId, body, mind: SEntMan.GetComponent<MindComponent>(mindId));
         SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
+        SEntMan.EnsureComponent<FSPlayerLevelComponent>(mindId);
     }
 
     [Test]
@@ -66,6 +69,8 @@ public sealed class EndlessTest : GameTest
             EnsurePlayer(map.GridCoords);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            var present = new WaveEndedEvent(1);
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
             Assert.That(waveRule.TryStartEndless(), Is.False, "nothing to push on from before a win");
 
             waveRule.ForceNextWave(shell, 30);
@@ -113,6 +118,8 @@ public sealed class EndlessTest : GameTest
             EnsurePlayer(map.GridCoords);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            var present = new WaveEndedEvent(1);
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
             waveRule.ForceNextWave(shell, 30);
             waveRule.ForceNextWave(shell);
             Assert.That(waveRule.IsAwaitingEndless(), Is.True);

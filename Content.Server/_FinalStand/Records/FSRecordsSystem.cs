@@ -57,7 +57,7 @@ public sealed partial class FSRecordsSystem : EntitySystem
 
         foreach (var session in _playerManager.Sessions)
         {
-            if (session.AttachedEntity != null && _mind.TryGetMind(session, out _, out _))
+            if (_presence.GetWavesPresent(session.UserId) > 0)
                 _titles.Grant(session.UserId, EndlessTitle);
         }
     }
@@ -67,7 +67,7 @@ public sealed partial class FSRecordsSystem : EntitySystem
         VictoryThisRound = true;
         foreach (var session in _playerManager.Sessions)
         {
-            if (session.AttachedEntity == null || !_mind.TryGetMind(session, out _, out _))
+            if (_presence.GetWavesPresent(session.UserId) <= 0)
                 continue;
 
             _titles.Grant(session.UserId, VictoryTitle);

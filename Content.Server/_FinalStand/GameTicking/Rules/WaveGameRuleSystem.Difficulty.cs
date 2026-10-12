@@ -70,7 +70,7 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TrySetDifficulty(FSDifficulty difficulty)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked)
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
         comp.Difficulty = difficulty;
@@ -104,7 +104,8 @@ public sealed partial class WaveGameRuleSystem
         CancelRerollVote();
     }
 
-    public readonly record struct RoundSummary(int WavesCleared, int Kills, bool Victory, FSDifficulty Difficulty, string? WeeklyKey = null);
+    public readonly record struct RoundSummary(int WavesCleared, int Kills, bool Victory, FSDifficulty Difficulty,
+        string? WeeklyKey = null, bool Assisted = false);
 
     public bool TryGetRoundSummary(out RoundSummary summary)
     {
@@ -114,7 +115,8 @@ public sealed partial class WaveGameRuleSystem
             return false;
         }
 
-        summary = new RoundSummary(comp.WavesCompleted, comp.TotalEnemiesKilled, comp.Victory, comp.Difficulty, comp.WeeklyKey);
+        summary = new RoundSummary(comp.WavesCompleted, comp.TotalEnemiesKilled, comp.Victory, comp.Difficulty,
+            comp.WeeklyKey, comp.AdminAssisted);
         return true;
     }
 }

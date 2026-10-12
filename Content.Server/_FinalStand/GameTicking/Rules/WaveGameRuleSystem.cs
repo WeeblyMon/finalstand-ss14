@@ -58,6 +58,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
     [Dependency] private FSArchetypeSystem _archetypes = default!;
+    [Dependency] private FSRoundPresenceSystem _presence = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
@@ -439,7 +440,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         var points = comp.VictoryPerkReward + FSDifficultyRules.VictoryBonusPerkPoints(comp.Difficulty);
         if (points > 0)
-            _wallet.DistributePerkPoints(points);
+        {
+            foreach (var session in _playerManager.Sessions)
+            {
+                if (_presence.GetWavesPresent(session.UserId) > 0 && _mind.TryGetMind(session, out var mindId, out _))
+                    _wallet.AddPerkPoints(mindId, points);
+            }
+        }
 
         _chatManager.DispatchServerAnnouncement(
             Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", points)),
@@ -681,6 +688,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             shell.WriteError("The round is already won.");
             return;
         }
+
+        comp.AdminAssisted = true;
 
         if (targetWave.HasValue)
         {

@@ -3,6 +3,7 @@ using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Fixtures.Attributes;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Records;
 using Content.Server._FinalStand.Titles;
 using Content.Server.GameTicking;
@@ -147,8 +148,12 @@ public sealed class DifficultyTest : GameTest
             var wallet = SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            SEntMan.EnsureComponent<FSPlayerLevelComponent>(mindId);
+            var present = new WaveEndedEvent(1);
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Nightmare), Is.True);
             waveRule.ForceNextWave(shell, 30);
+            SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
             var before = wallet.PerkPoints;
             waveRule.ForceNextWave(shell);
 
@@ -156,7 +161,7 @@ public sealed class DifficultyTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(wallet.PerkPoints - before,
-                    Is.GreaterThanOrEqualTo(5 + FSDifficultyRules.VictoryBonusPerkPoints(FSDifficulty.Nightmare)));
+                    Is.EqualTo(5 + FSDifficultyRules.VictoryBonusPerkPoints(FSDifficulty.Nightmare)));
                 Assert.That(owned, Does.Contain(FSRecordsSystem.VictoryTitle));
                 Assert.That(owned, Does.Contain(FSRecordsSystem.HardVictoryTitle));
                 Assert.That(owned, Does.Contain(FSRecordsSystem.NightmareVictoryTitle));

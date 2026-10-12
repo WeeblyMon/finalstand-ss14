@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Records;
 using Content.Server._FinalStand.Titles;
@@ -62,20 +63,25 @@ public sealed class VictoryTest : GameTest
             var pointsBefore = wallet.PerkPoints;
 
             Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            SEntMan.EnsureComponent<FSPlayerLevelComponent>(mindId);
+            var present = new WaveEndedEvent(1);
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, ref present);
 
             waveRule.ForceNextWave(shell, 30);
             Assert.That(waveRule.TryGetWaveStatus(out var wave, out var phase), Is.True);
             Assert.That((wave, phase), Is.EqualTo((30, WavePhase.Combat)));
             Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.InRound), "nothing ends the round before wave 30 falls");
 
+            SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
+            pointsBefore = wallet.PerkPoints;
             waveRule.ForceNextWave(shell);
 
             Assert.Multiple(() =>
             {
                 Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.PostRound), "clearing wave 30 ends the round in victory");
                 Assert.That(waveRule.GetWaveNumber(), Is.EqualTo(30), "the wave counter must not roll into an endless wave 31");
-                Assert.That(wallet.PerkPoints - pointsBefore, Is.GreaterThanOrEqualTo(5),
-                    "every defender earns the victory PP (round-end XP can add level-up points on top)");
+                Assert.That(wallet.PerkPoints - pointsBefore, Is.EqualTo(5),
+                    "every defender earns exactly the victory PP (levelling is switched off so it can't hide a shortfall)");
                 Assert.That(records.VictoryThisRound, Is.True);
                 Assert.That(titles.GetOwned(session.UserId).Select(t => t.Id), Does.Contain(FSRecordsSystem.VictoryTitle));
             });

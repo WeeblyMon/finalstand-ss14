@@ -50,6 +50,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
     private readonly List<(string Player, string Title)> _rareTitles = new();
     private TimeSpan? _lastLivePing;
     private bool _wasAboveLiveThreshold;
+    private readonly HashSet<string> _weeklyPosted = new();
 
     public WebhookPayload? LastPayload { get; private set; }
 
@@ -60,8 +61,14 @@ public sealed partial class FSDiscordSystem : EntitySystem
         _cfg.OnValueChanged(CCVars.FSDiscordWebhook, url =>
         {
             _webhook = null;
-            if (!string.IsNullOrWhiteSpace(url))
-                _discord.GetWebhook(url, data => _webhook = data.ToIdentifier());
+            if (string.IsNullOrWhiteSpace(url))
+                return;
+
+            _discord.GetWebhook(url, data =>
+            {
+                if (_cfg.GetCVar(CCVars.FSDiscordWebhook) == url)
+                    _webhook = data.ToIdentifier();
+            });
         }, true);
 
         SubscribeLocalEvent<FSRunRecordedEvent>(OnRunRecorded);
@@ -97,7 +104,7 @@ public sealed partial class FSDiscordSystem : EntitySystem
         var week = FSWeeklyRules.WeekKey(utc);
         var lastCall = FSWeeklyRules.IsLastCall(utc);
         var key = lastCall ? WeeklyLastCallKey : WeeklyOpenKey;
-        if (_store.GetMeta(key) == week)
+        if (!_weeklyPosted.Add($"{key}:{week}") || _store.GetMeta(key) == week)
             return;
 
         _store.SetMeta(key, week);

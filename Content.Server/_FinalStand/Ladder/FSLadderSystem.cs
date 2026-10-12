@@ -7,6 +7,7 @@ using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Content.Shared.Examine;
+using Content.Shared.GameTicking;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
 using Robust.Shared.Network;
@@ -34,11 +35,13 @@ public sealed partial class FSLadderSystem : EntitySystem
     private static readonly TimeSpan RequestInterval = TimeSpan.FromSeconds(0.5);
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastRequest = new();
+    private bool _recordedThisRound;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _recordedThisRound = false);
         SubscribeNetworkEvent<FSLadderRequestEvent>(OnLadderRequest);
         SubscribeLocalEvent<FSLadderBoardComponent, ActivateInWorldEvent>(OnBoardActivated);
         SubscribeLocalEvent<FSLadderBoardComponent, ExaminedEvent>(OnBoardExamined);
@@ -49,8 +52,16 @@ public sealed partial class FSLadderSystem : EntitySystem
 
     private void OnRoundEndText(RoundEndTextAppendEvent args)
     {
-        if (!_waveRule.TryGetRoundSummary(out var summary) || summary.WavesCleared <= 0)
+        if (_recordedThisRound || _ticker.RunLevel != GameRunLevel.PostRound
+            || !_waveRule.TryGetRoundSummary(out var summary) || summary.WavesCleared <= 0)
             return;
+
+        _recordedThisRound = true;
+        if (summary.Assisted)
+        {
+            args.AddLine(Loc.GetString("fs-ladder-assisted"));
+            return;
+        }
 
         var names = new List<string>();
         var seen = new HashSet<NetUserId>();

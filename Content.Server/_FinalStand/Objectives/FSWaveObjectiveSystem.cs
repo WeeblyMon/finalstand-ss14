@@ -8,6 +8,7 @@ using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
@@ -107,7 +108,8 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
             _waveRule.GetRewardMultiplier());
 
     private int CountPlayers()
-        => _playerManager.Sessions.Count(s => s.Status == SessionStatus.InGame && s.AttachedEntity != null);
+        => _playerManager.Sessions.Count(s => s.Status == SessionStatus.InGame
+            && s.AttachedEntity is { } body && HasComp<MobStateComponent>(body));
 
     public override void Update(float frameTime)
     {

@@ -90,7 +90,7 @@ public sealed partial class FSPlayerDataStore
     }
 
     public OnboardingRecord GetOnboarding(Guid userId)
-        => TryRead($"onboarding load for {userId}", () => GetOnboardingCore(userId), default);
+        => ReadProgress(userId, $"onboarding load for {userId}", () => GetOnboardingCore(userId), default);
 
     private OnboardingRecord GetOnboardingCore(Guid userId)
     {
@@ -109,7 +109,7 @@ public sealed partial class FSPlayerDataStore
 
     public void SaveOnboarding(Guid userId, OnboardingRecord record)
     {
-        if (!DbReady("onboarding save")) return;
+        if (!ProgressWritable(userId, "onboarding save")) return;
 
         using var cmd = DbCommand();
         cmd.CommandText = """
@@ -130,7 +130,7 @@ public sealed partial class FSPlayerDataStore
     }
 
     public List<string> GetTitles(Guid userId)
-        => TryRead($"title load for {userId}", () => GetTitlesCore(userId), new List<string>());
+        => ReadProgress(userId, $"title load for {userId}", () => GetTitlesCore(userId), new List<string>());
 
     private List<string> GetTitlesCore(Guid userId)
     {
@@ -170,7 +170,7 @@ public sealed partial class FSPlayerDataStore
         }, 0);
 
     public ProfileRecord GetProfile(Guid userId)
-        => TryRead($"profile load for {userId}", () => GetProfileCore(userId), default);
+        => ReadProgress(userId, $"profile load for {userId}", () => GetProfileCore(userId), default);
 
     private ProfileRecord GetProfileCore(Guid userId)
     {
@@ -196,7 +196,7 @@ public sealed partial class FSPlayerDataStore
 
     public void SaveProfile(Guid userId, ProfileRecord profile)
     {
-        if (!DbReady("profile save")) return;
+        if (!ProgressWritable(userId, "profile save")) return;
 
         using var cmd = DbCommand();
         cmd.CommandText = """
@@ -374,7 +374,7 @@ public sealed partial class FSPlayerDataStore
     }
 
     public Dictionary<string, int> GetMastery(Guid userId)
-        => TryRead($"mastery load for {userId}", () =>
+        => ReadProgress(userId, $"mastery load for {userId}", () =>
         {
             using var cmd = DbCommand();
             cmd.CommandText = "SELECT perk_id, kills FROM fs_mastery WHERE user_id = $id";
@@ -388,7 +388,7 @@ public sealed partial class FSPlayerDataStore
 
     public void SaveMastery(Guid userId, string perkId, int kills)
     {
-        if (!DbReady("mastery save")) return;
+        if (!ProgressWritable(userId, "mastery save")) return;
 
         using var cmd = DbCommand();
         cmd.CommandText = """
@@ -404,7 +404,7 @@ public sealed partial class FSPlayerDataStore
     public record struct MentorRecord(int Total, int Balance, string WeekKey, int WeekPoints);
 
     public MentorRecord GetMentor(Guid userId)
-        => TryRead($"mentor load for {userId}", () =>
+        => ReadProgress(userId, $"mentor load for {userId}", () =>
         {
             using var cmd = DbCommand();
             cmd.CommandText = "SELECT total, balance, week_key, week_points FROM fs_mentor WHERE user_id = $id";
@@ -417,7 +417,7 @@ public sealed partial class FSPlayerDataStore
 
     public void SaveMentor(Guid userId, MentorRecord record)
     {
-        if (!DbReady("mentor save")) return;
+        if (!ProgressWritable(userId, "mentor save")) return;
 
         using var cmd = DbCommand();
         cmd.CommandText = """
@@ -438,7 +438,7 @@ public sealed partial class FSPlayerDataStore
     }
 
     public HashSet<string> GetTutorialFlags(Guid userId)
-        => TryRead($"tutorial load for {userId}", () =>
+        => ReadProgress(userId, $"tutorial load for {userId}", () =>
         {
             using var cmd = DbCommand();
             cmd.CommandText = "SELECT tip FROM fs_tutorial WHERE user_id = $id";
@@ -471,5 +471,37 @@ public sealed partial class FSPlayerDataStore
         cmd.CommandText = "DELETE FROM fs_tutorial WHERE user_id = $id";
         cmd.Parameters.AddWithValue("$id", userId.ToString());
         TryExecute(cmd, $"tutorial reset for {userId}");
+    }
+
+    private readonly HashSet<Guid> _unreadable = new();
+
+    public bool IsProgressReadable(Guid userId) => !_unreadable.Contains(userId);
+
+    private T ReadProgress<T>(Guid userId, string what, Func<T> read, T fallback)
+    {
+        if (!DbReady(what))
+            return fallback;
+
+        try
+        {
+            return read();
+        }
+        catch (Exception e)
+        {
+            _unreadable.Add(userId);
+            Log.Error($"[FSWallet] {what} failed, so this player's progress won't be saved until restart: {e.Message}");
+            return fallback;
+        }
+    }
+
+    private bool ProgressWritable(Guid userId, string what)
+    {
+        if (!DbReady(what))
+            return false;
+        if (!_unreadable.Contains(userId))
+            return true;
+
+        Log.Warning($"[FSWallet] {what} for {userId} skipped: their saved progress couldn't be read, so saving now would overwrite it");
+        return false;
     }
 }

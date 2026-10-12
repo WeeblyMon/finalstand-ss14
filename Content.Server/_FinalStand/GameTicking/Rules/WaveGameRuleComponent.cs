@@ -153,6 +153,7 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField] public int VictoryPerkReward = 5;
     public bool Victory;
     public bool AwaitingEndless;
+    public bool AdminAssisted;
     public bool Endless;
     public int EndlessEscalations;
     [DataField] public int EndlessEscalationInterval = 5;

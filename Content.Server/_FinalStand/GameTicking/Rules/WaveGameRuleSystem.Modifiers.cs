@@ -60,7 +60,7 @@ public sealed partial class WaveGameRuleSystem
 
     public bool TrySetModifiers(IReadOnlyList<ProtoId<FSRoundModifierPrototype>> ids)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked)
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked || comp.WeeklyKey != null)
             return false;
 
         var modifiers = new List<FSRoundModifierPrototype>();
@@ -113,6 +113,7 @@ public sealed partial class WaveGameRuleSystem
 
         _rerollVote = _votes.CreateVote(options);
         _rerollVote.OnFinished += OnRerollVoteFinished;
+        _rerollVote.OnCancelled += OnRerollVoteCancelled;
         return true;
     }
 
@@ -122,11 +123,18 @@ public sealed partial class WaveGameRuleSystem
             return;
         _rerollVote = null;
 
-        if (args.Winner is not true || !TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked)
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.DifficultyLocked)
             return;
 
         comp.ModifiersRerolled = true;
-        RollModifiers(comp);
+        if (args.Winner is true)
+            RollModifiers(comp);
+    }
+
+    private void OnRerollVoteCancelled(IVoteHandle sender)
+    {
+        if (sender == _rerollVote)
+            _rerollVote = null;
     }
 
     private void CancelRerollVote()
@@ -137,6 +145,7 @@ public sealed partial class WaveGameRuleSystem
         var vote = _rerollVote;
         _rerollVote = null;
         vote.OnFinished -= OnRerollVoteFinished;
+        vote.OnCancelled -= OnRerollVoteCancelled;
         vote.Cancel();
     }
 

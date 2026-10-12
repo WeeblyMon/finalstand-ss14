@@ -16,7 +16,7 @@ public sealed partial class SetDifficultyCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (args.Length != 1 || !Enum.TryParse<FSDifficulty>(args[0], true, out var difficulty))
+        if (args.Length != 1 || !Enum.TryParse<FSDifficulty>(args[0], true, out var difficulty) || !Enum.IsDefined(difficulty))
         {
             shell.WriteError(Help);
             return;

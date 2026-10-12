@@ -6,6 +6,7 @@ fs-ladder-board-examine-empty = No runs recorded yet. Be the first.
 fs-ladder-board-examine = Record to beat (Normal, 5+ players): {$players}, wave {$waves}.
 fs-ladder-window-title = Server records
 fs-ladder-window-empty = No runs recorded here yet.
+fs-ladder-window-loading = Loading records…
 fs-ladder-col-rank = #
 fs-ladder-col-result = Result
 fs-ladder-col-time = Time
@@ -43,6 +44,7 @@ fs-discord-nearly-beaten = {$short} {$short ->
    *[other] waves
 } short of the record held by {$holder} (wave {$waves})
 fs-discord-record-first = First run on {$ladder}: {$players}
+fs-discord-weekly-ladder = this week's challenge
 fs-discord-record-beaten = {$players} took the {$ladder} record from {$previous}
 fs-discord-title-victory = The station held!
 fs-discord-title-fell = The station fell at wave {$waves}
@@ -52,12 +54,15 @@ fs-discord-live-wave = Fighting wave {$wave}. Jump in!
 fs-discord-live-lobby = A round is about to start. Jump in!
 
 fs-ladder-new-weekly-record = [color=#FFB300][bold]NEW WEEKLY CHALLENGE RECORD[/bold][/color]! The defenders earn the Weekly Champion title.
+fs-ladder-assisted = An admin skipped waves this round, so it does not count for server records or the weekly challenge.
 fs-ladder-weekly = This week
 fs-ladder-weekly-header = Weekly challenge: {$name}
 
 fs-weekly-none = There's no weekly challenge set up.
 fs-weekly-too-late = The weekly challenge can only be started before wave 1, and only once per round.
 fs-weekly-vote-running = A weekly challenge vote is already running.
+fs-weekly-vote-used = The weekly challenge vote has already been held this round.
+fs-weekly-vote-too-late = The weekly challenge vote passed, but wave 1 had already started. This round stays a normal round.
 fs-weekly-vote-title = Play this week's challenge, {$name}?
 fs-weekly-vote-yes = Yes, take the challenge
 fs-weekly-vote-no = No, normal round

@@ -8,6 +8,7 @@ using Content.Server.GameTicking;
 using Content.Server.Voting;
 using Content.Server.Voting.Managers;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -32,12 +33,18 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
     private static readonly TimeSpan VoteDuration = TimeSpan.FromSeconds(30);
 
     private IVoteHandle? _vote;
+    private bool _votedThisRound;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
         SubscribeLocalEvent<FSRunRecordedEvent>(OnRunRecorded);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _vote = null;
+            _votedThisRound = false;
+        });
     }
 
     public FSWeeklyChallengePrototype? GetChallenge(DateTime utc)
@@ -49,7 +56,9 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
     public bool TryStartVote(ICommonSession? initiator, out string error)
     {
         error = string.Empty;
-        var challenge = GetChallenge(DateTime.UtcNow);
+        var now = DateTime.UtcNow;
+        var challenge = GetChallenge(now);
+        var week = FSWeeklyRules.WeekKey(now);
         if (challenge == null)
         {
             error = Loc.GetString("fs-weekly-none");
@@ -68,6 +77,12 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
             return false;
         }
 
+        if (_votedThisRound)
+        {
+            error = Loc.GetString("fs-weekly-vote-used");
+            return false;
+        }
+
         var options = new VoteOptions
         {
             Title = Loc.GetString("fs-weekly-vote-title", ("name", Loc.GetString(challenge.Name))),
@@ -80,14 +95,15 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
         };
         options.SetInitiatorOrServer(initiator);
 
+        _votedThisRound = true;
         _vote = _votes.CreateVote(options);
         _vote.OnFinished += (sender, args) =>
         {
             if (sender != _vote)
                 return;
             _vote = null;
-            if (args.Winner is true)
-                StartWeekly(challenge);
+            if (args.Winner is true && !_waveRule.TryStartWeekly(challenge, week))
+                _chat.DispatchServerAnnouncement(Loc.GetString("fs-weekly-vote-too-late"));
         };
         _vote.OnCancelled += sender =>
         {
@@ -102,7 +118,8 @@ public sealed partial class FSWeeklyChallengeSystem : EntitySystem
 
     private void OnRoundEndText(RoundEndTextAppendEvent args)
     {
-        if (!_waveRule.TryGetWeekly(out var challenge, out var week) || !_waveRule.TryGetRoundSummary(out var summary))
+        if (!_waveRule.TryGetWeekly(out var challenge, out var week) || !_waveRule.TryGetRoundSummary(out var summary)
+            || summary.Assisted)
             return;
 
         var cleared = summary.Victory || summary.WavesCleared >= challenge.ClearWave;

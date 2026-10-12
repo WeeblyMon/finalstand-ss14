@@ -73,6 +73,7 @@ public sealed class DiscordTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var discord = SEntMan.System<FSDiscordSystem>();
+            var before = discord.LastPayload;
             var run = new FSRunRecord("Ada", FSDifficulty.Normal, FSPlayerBracket.Solo, 9, false, 1800, 300, At);
             var recorded = new FSRunRecordedEvent(run, null, true);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, ref recorded);
@@ -80,6 +81,7 @@ public sealed class DiscordTest : GameTest
                 "", "", TimeSpan.Zero, 1, 0, Array.Empty<RoundEndMessageEvent.RoundEndPlayerInfo>(), null));
 
             Assert.That(discord.LastPayload, Is.Not.Null, "with no webhook configured the payload is still built, just not sent");
+            Assert.That(discord.LastPayload, Is.Not.EqualTo(before), "a fresh payload is built for this round");
             Assert.That(discord.LastPayload!.Value.Embeds!.Single().Fields.Any(f => f.Value.Contains("Ada")), Is.True);
         });
     }
