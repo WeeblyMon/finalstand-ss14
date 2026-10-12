@@ -833,6 +833,7 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
             if (damage <= highestDamage)
                 continue;
 
+            highestDamage = damage; // FINALSTAND: was never updated, so the last type won
             highestDamageType = type;
         }
 
