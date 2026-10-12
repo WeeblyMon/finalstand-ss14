@@ -62,6 +62,21 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _hudScale = 1f;
     private float _hudResolutionFactor = 1f;
 
+    private static string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    {
+        if (maxWidth <= 0f || screen.GetDimensions(font, text, 1f).X <= maxWidth)
+            return text;
+
+        for (var length = text.Length - 1; length > 0; length--)
+        {
+            var trimmed = text[..length].TrimEnd() + "…";
+            if (screen.GetDimensions(font, trimmed, 1f).X <= maxWidth)
+                return trimmed;
+        }
+
+        return string.Empty;
+    }
+
     public static float GetResolutionFactor(float screenWidth)
     {
         const float refWidth = 1920f;
@@ -314,6 +329,7 @@ public sealed partial class WaveHudOverlay : Overlay
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
         if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
+        if (ObjectiveLabel != null) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
         var layoutRaw = _cfg.GetCVar(CCVars.UILayout);
@@ -464,8 +480,9 @@ public sealed partial class WaveHudOverlay : Overlay
             var textX = panelX + panelInset + rowIconSz + iconGap;
             var textBlockH = labelH + 4f + thisValueH;
             var textStartY = innerY + (rowContentH - textBlockH) / 2f;
-            screen.DrawString(_labelFont!, new Vector2(textX, textStartY), label, muted);
-            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
+            var textW = panelX + panelW - panelInset - textX;
+            screen.DrawString(_labelFont!, new Vector2(textX, textStartY), FitText(screen, _labelFont!, label, textW), muted);
+            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), FitText(screen, font, value, textW), valueColor);
             return y + sepH + rowH;
         }
 

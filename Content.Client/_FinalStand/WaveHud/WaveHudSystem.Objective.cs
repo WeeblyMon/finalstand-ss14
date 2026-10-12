@@ -48,7 +48,7 @@ public sealed partial class WaveHudSystem
             parts.Add($"{secs / 60}:{secs % 60:D2}");
         }
 
-        overlay.ObjectiveLabel = $"{Loc.GetString("fs-hud-objective")} · {objective.Name.ToUpperInvariant()}";
+        overlay.ObjectiveLabel = objective.Name.ToUpperInvariant();
         overlay.ObjectiveValue = string.Join("  ", parts);
         overlay.ObjectiveColor = FSPalette.Warn;
     }

@@ -9,7 +9,6 @@ fs-objective-nobody-falls-desc = Clear this wave without anyone going down.
 fs-objective-blitz-name = Blitz
 fs-objective-blitz-desc = Clear this wave within {$seconds} seconds.
 
-fs-hud-objective = BONUS
 fs-hud-objective-done = BONUS DONE
 fs-hud-objective-failed = BONUS FAILED
 fs-hud-objective-holding = holding
