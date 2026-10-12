@@ -41,6 +41,7 @@
   - type: FSNullField
     radius: 4
     slowFactor: 0.5
+  - type: FSDeployableFieldVisuals
   - type: FSDeployableLifetime
     lifetime: 45
   - type: Physics
