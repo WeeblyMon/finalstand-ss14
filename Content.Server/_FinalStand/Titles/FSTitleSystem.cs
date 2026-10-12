@@ -10,6 +10,9 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Titles;
 
+[ByRefEvent]
+public readonly record struct FSTitleEarnedEvent(NetUserId UserId, ProtoId<FSTitlePrototype> Title);
+
 public sealed partial class FSTitleSystem : EntitySystem
 {
     [Dependency] private FSPlayerDataStore _store = default!;
@@ -68,6 +71,8 @@ public sealed partial class FSTitleSystem : EntitySystem
         }
 
         Log.Info($"[FSTitle] {userId} earned {titleId}");
+        var earned = new FSTitleEarnedEvent(userId, titleId);
+        RaiseLocalEvent(ref earned);
         return true;
     }
 

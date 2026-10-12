@@ -1,0 +1,32 @@
+- type: fsWeeklyChallenge
+  id: FSWeeklyLastArmoury
+  name: fs-weekly-last-armoury-name
+  description: fs-weekly-last-armoury-desc
+  order: 0
+  difficulty: Hard
+  clearWave: 25
+  modifiers:
+  - FSModifierElitePack
+  - FSModifierNightShift
+
+- type: fsWeeklyChallenge
+  id: FSWeeklyRestlessDead
+  name: fs-weekly-restless-dead-name
+  description: fs-weekly-restless-dead-desc
+  order: 1
+  difficulty: Normal
+  clearWave: 20
+  modifiers:
+  - FSModifierRegenerators
+  - FSModifierJuggernauts
+
+- type: fsWeeklyChallenge
+  id: FSWeeklyTidalWave
+  name: fs-weekly-tidal-wave-name
+  description: fs-weekly-tidal-wave-desc
+  order: 2
+  difficulty: Nightmare
+  clearWave: 30
+  modifiers:
+  - FSModifierSwarm
+  - FSModifierFrenzy

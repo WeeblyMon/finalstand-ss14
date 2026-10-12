@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Ladder;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Leaderboard;
@@ -35,6 +36,13 @@ public sealed class FSLeaderboardWindow : FancyWindow
             VerticalExpand = true,
             Margin = new Thickness(8),
         };
+
+        var recordsRow = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal };
+        recordsRow.AddChild(new Control { HorizontalExpand = true });
+        var records = new Button { Text = Loc.GetString("fs-ladder-open-records"), MinHeight = 28 };
+        records.OnPressed += _ => IoCManager.Resolve<IUserInterfaceManager>().GetUIController<FSLadderUIController>().Open();
+        recordsRow.AddChild(records);
+        content.AddChild(recordsRow);
 
         var headerGrid = new GridContainer
         {
