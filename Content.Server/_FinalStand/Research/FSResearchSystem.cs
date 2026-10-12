@@ -135,7 +135,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
     {
         _station = null;
-        GetOrCreateStation();
+        if (TerminatingOrDeleted(uid))
+            return;
+
+        if (args.Server is { } server && !TerminatingOrDeleted(server))
+            GetOrCreateStation();
         SyncConsoles();
     }
 
@@ -180,8 +184,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
 
         var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
-        if (serverQuery.MoveNext(out var serverUid, out _))
+        while (serverQuery.MoveNext(out var serverUid, out _))
         {
+            if (TerminatingOrDeleted(serverUid))
+                continue;
+
             var comp = EnsureComp<FSStationResearchComponent>(serverUid);
             _station = serverUid;
             station = (serverUid, comp);
@@ -196,7 +203,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent, ResearchClientComponent>();
         while (query.MoveNext(out _, out _, out var client))
         {
-            if (client.Server is { } linked && Exists(linked) && HasComp<ResearchServerComponent>(linked))
+            if (client.Server is { } linked && !TerminatingOrDeleted(linked) && HasComp<ResearchServerComponent>(linked))
             {
                 server = linked;
                 return true;
