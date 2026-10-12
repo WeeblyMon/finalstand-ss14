@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._FinalStand.Melee;
 using Content.Client.Gameplay;
 using Content.Shared.CCVar;
 using Content.Shared.CombatMode;
@@ -36,6 +37,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IClientGameTiming _clientTiming = default!; // fs
+    [Dependency] private FSMeleeJuiceSystem _fsJuice = default!; // FINALSTAND
 
     private const string MeleeLungeKey = "melee-lunge";
 
