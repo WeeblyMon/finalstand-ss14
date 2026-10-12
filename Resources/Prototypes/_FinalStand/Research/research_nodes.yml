@@ -181,10 +181,8 @@
     sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
     state: icon
   branch: Research
-  tier: 2
+  tier: 1
   cost: 3000
-  prerequisites:
-  - FSResearchBasicRobotics
   bonusDescription: Carry one more Damage Beacon charge.
 
 - type: fsTechNode
@@ -194,7 +192,7 @@
     sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
     state: base
   branch: Research
-  tier: 3
+  tier: 2
   cost: 4000
   prerequisites:
   - FSResearchDamageBeaconSpareCasing
@@ -207,10 +205,8 @@
     sprite: _FinalStand/Objects/Devices/NullField.rsi
     state: icon
   branch: Research
-  tier: 2
+  tier: 1
   cost: 3000
-  prerequisites:
-  - FSResearchMagnetsTech
   bonusDescription: Carry one more Null Field Emitter charge.
 
 - type: fsTechNode
@@ -220,7 +216,7 @@
     sprite: _FinalStand/Objects/Devices/NullField.rsi
     state: base
   branch: Research
-  tier: 3
+  tier: 2
   cost: 4000
   prerequisites:
   - FSResearchNullFieldSpareCore
