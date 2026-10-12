@@ -79,6 +79,7 @@ public sealed class TutorialCardTest : GameTest
         {
             var ui = Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>()
                 .GetUIController<Content.Client._FinalStand.Tutorial.FSTutorialUIController>();
+            ui.Reset();
 
             ui.Enqueue(FSTutorialTip.Welcome);
             ui.Enqueue(FSTutorialTip.Prep);

@@ -106,7 +106,16 @@ public sealed class FSLadderWindow : FancyWindow
         Bracket = bracket;
         Weekly = weekly;
         RefreshToggles();
+        ShowLoading();
         OnSelectionChanged?.Invoke(difficulty, bracket, weekly);
+    }
+
+    public void ShowLoading()
+    {
+        _rows.RemoveAllChildren();
+        _weeklyName.Visible = false;
+        _empty.Text = Loc.GetString("fs-ladder-window-loading");
+        _empty.Visible = true;
     }
 
     public void Populate(FSLadderResponseEvent response)
@@ -119,6 +128,7 @@ public sealed class FSLadderWindow : FancyWindow
             _weeklyName.Text = Loc.GetString("fs-ladder-weekly-header", ("name", response.WeeklyName));
 
         _rows.RemoveAllChildren();
+        _empty.Text = Loc.GetString("fs-ladder-window-empty");
         _empty.Visible = response.Runs.Length == 0;
 
         for (var i = 0; i < response.Runs.Length; i++)

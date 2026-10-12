@@ -80,6 +80,15 @@ public static class FSArchetypeRules
         _ => "fs-archetype-specialist",
     };
 
+    public static string CategoryLocId(PerkCategory category) => category switch
+    {
+        PerkCategory.Red => "fs-archetype-category-offense",
+        PerkCategory.Blue => "fs-archetype-category-defense",
+        PerkCategory.Green => "fs-archetype-category-utility",
+        PerkCategory.Yellow => "fs-archetype-category-economy",
+        _ => "fs-archetype-category-hybrid",
+    };
+
     public static string EffectLocId(FSArchetype archetype)
         => $"{NameLocId(archetype.Category)}-{(archetype.Tier == FSArchetypeTier.Keystone ? "keystone" : "effect")}";
 }

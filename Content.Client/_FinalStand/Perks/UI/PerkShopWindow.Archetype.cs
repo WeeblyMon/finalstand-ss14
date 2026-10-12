@@ -15,7 +15,7 @@ public sealed partial class PerkShopWindow
         if (!archetype.Active)
         {
             ArchetypeLabel.Text = archetype.Count > 0
-                ? Loc.GetString("fs-archetype-progress", ("category", CatLabel[archetype.Category]),
+                ? Loc.GetString("fs-archetype-progress", ("category", Loc.GetString(FSArchetypeRules.CategoryLocId(archetype.Category))),
                     ("count", archetype.Count), ("needed", FSArchetypeRules.ArchetypeCount))
                 : string.Empty;
             ArchetypeLabel.FontColorOverride = FSUiPalette.TextMuted;

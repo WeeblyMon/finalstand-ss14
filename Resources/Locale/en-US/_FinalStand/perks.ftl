@@ -41,6 +41,11 @@ fs-mastery-progress-max = Mastery: {$tier} · {$kills} kills
 fs-mastery-hint = Kills while this perk is slotted at level 4 count toward its mastery.
 
 fs-archetype-tooltip = Slot {$archetype} perks of one category for an archetype bonus, {$keystone} for its keystone.
+fs-archetype-category-offense = OFFENSE
+fs-archetype-category-defense = DEFENSE
+fs-archetype-category-utility = UTILITY
+fs-archetype-category-economy = ECONOMY
+fs-archetype-category-hybrid = HYBRID
 fs-archetype-progress = {$category} {$count}/{$needed} for an archetype
 fs-archetype-line = {$name}: {$effect} · keystone at {$needed} ({$count}/{$needed})
 fs-archetype-keystone-line = {$name} KEYSTONE: {$effect}

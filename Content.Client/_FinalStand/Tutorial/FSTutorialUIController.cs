@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client.Gameplay;
 using Content.Shared._FinalStand.Tutorial;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -10,7 +11,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Tutorial;
 
-public sealed class FSTutorialUIController : UIController
+public sealed class FSTutorialUIController : UIController, IOnStateExited<GameplayState>
 {
     private static readonly TimeSpan ShowTime = TimeSpan.FromSeconds(25);
     private const float MaxFrameStep = 0.25f;
@@ -48,6 +49,16 @@ public sealed class FSTutorialUIController : UIController
         _remaining -= Math.Min(args.DeltaSeconds, MaxFrameStep);
         if (_remaining <= 0f)
             Dismiss();
+    }
+
+    public void OnStateExited(GameplayState state) => Reset();
+
+    public void Reset()
+    {
+        _queue.Clear();
+        Showing = null;
+        if (_card != null)
+            _card.Visible = false;
     }
 
     public void Dismiss()

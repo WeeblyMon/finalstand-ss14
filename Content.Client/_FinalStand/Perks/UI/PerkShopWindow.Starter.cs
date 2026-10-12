@@ -26,6 +26,8 @@ public sealed partial class PerkShopWindow
             button.Label.FontOverride = _fontSmallBold;
             button.OnPressed += _ => ShowStarterBuilds();
         }
+
+        OnClose += () => _starterDialog?.Close();
     }
 
     private void RefreshStarterBuilds()

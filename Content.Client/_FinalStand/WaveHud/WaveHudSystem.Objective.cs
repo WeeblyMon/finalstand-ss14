@@ -6,6 +6,8 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudSystem
 {
     private FSWaveObjectiveStateEvent? _objective;
+    private FSWaveObjectiveStateEvent? _objectiveDrawn;
+    private int _objectiveSecondsDrawn = -1;
 
     private void OnObjectiveState(FSWaveObjectiveStateEvent ev)
     {
@@ -19,8 +21,18 @@ public sealed partial class WaveHudSystem
         if (_objective is not { } objective)
         {
             overlay.ObjectiveLabel = null;
+            _objectiveDrawn = null;
             return;
         }
+
+        var seconds = objective.EndTime is { } end
+            ? (int) Math.Ceiling(Math.Max(0, (end - _timing.CurTime).TotalSeconds))
+            : -1;
+        if (ReferenceEquals(objective, _objectiveDrawn) && seconds == _objectiveSecondsDrawn)
+            return;
+
+        _objectiveDrawn = objective;
+        _objectiveSecondsDrawn = seconds;
 
         switch (objective.Result)
         {
@@ -36,20 +48,16 @@ public sealed partial class WaveHudSystem
                 return;
         }
 
-        var parts = new List<string>(2);
-        if (objective.Kind == FSWaveObjectiveKind.KillQuota)
-            parts.Add($"{objective.Progress}/{objective.Target}");
-        else if (objective.Kind == FSWaveObjectiveKind.NoDowns)
-            parts.Add(Loc.GetString("fs-hud-objective-holding"));
-
-        if (objective.EndTime is { } end)
+        var progress = objective.Kind switch
         {
-            var secs = (int) Math.Ceiling(Math.Max(0, (end - _timing.CurTime).TotalSeconds));
-            parts.Add($"{secs / 60}:{secs % 60:D2}");
-        }
+            FSWaveObjectiveKind.KillQuota => $"{objective.Progress}/{objective.Target}",
+            FSWaveObjectiveKind.NoDowns => Loc.GetString("fs-hud-objective-holding"),
+            _ => null,
+        };
+        var timer = seconds >= 0 ? $"{seconds / 60}:{seconds % 60:D2}" : null;
 
         overlay.ObjectiveLabel = objective.Name.ToUpperInvariant();
-        overlay.ObjectiveValue = string.Join("  ", parts);
+        overlay.ObjectiveValue = progress != null && timer != null ? $"{progress}  {timer}" : progress ?? timer ?? string.Empty;
         overlay.ObjectiveColor = FSPalette.Warn;
     }
 }

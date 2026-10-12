@@ -62,7 +62,21 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _hudScale = 1f;
     private float _hudResolutionFactor = 1f;
 
-    private static string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    private readonly Dictionary<(string Text, Font Font, int Width), string> _fitCache = new();
+
+    private string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    {
+        var key = (text, font, (int) maxWidth);
+        if (_fitCache.TryGetValue(key, out var cached))
+            return cached;
+
+        if (_fitCache.Count > 256)
+            _fitCache.Clear();
+
+        return _fitCache[key] = TrimToWidth(screen, font, text, maxWidth);
+    }
+
+    private static string TrimToWidth(DrawingHandleScreen screen, Font font, string text, float maxWidth)
     {
         if (maxWidth <= 0f || screen.GetDimensions(font, text, 1f).X <= maxWidth)
             return text;

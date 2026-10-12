@@ -2,14 +2,20 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Network;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Ladder;
 
 public sealed class FSLadderUIController : UIController
 {
     [Dependency] private IClientNetManager _net = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan SendInterval = TimeSpan.FromSeconds(0.6);
 
     private FSLadderWindow? _window;
+    private (FSDifficulty Difficulty, FSPlayerBracket Bracket, bool Weekly)? _pending;
+    private TimeSpan _lastSent = TimeSpan.MinValue;
 
     public override void Initialize()
     {
@@ -29,19 +35,38 @@ public sealed class FSLadderUIController : UIController
         if (!_window.IsOpen)
             _window.OpenCentered();
         _window.MoveToFront();
+        _window.ShowLoading();
         Request(_window.Difficulty, _window.Bracket, _window.Weekly);
     }
 
     private void Request(FSDifficulty difficulty, FSPlayerBracket bracket, bool weekly)
     {
+        _pending = (difficulty, bracket, weekly);
+        TrySend();
+    }
+
+    public override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        if (_pending != null)
+            TrySend();
+    }
+
+    private void TrySend()
+    {
+        if (_pending is not { } pending || _timing.RealTime - _lastSent < SendInterval)
+            return;
+
+        _pending = null;
         if (!_net.IsConnected)
             return;
 
+        _lastSent = _timing.RealTime;
         EntityManager.EntityNetManager.SendSystemNetworkMessage(new FSLadderRequestEvent
         {
-            Difficulty = difficulty,
-            Bracket = bracket,
-            Weekly = weekly,
+            Difficulty = pending.Difficulty,
+            Bracket = pending.Bracket,
+            Weekly = pending.Weekly,
         });
     }
 
