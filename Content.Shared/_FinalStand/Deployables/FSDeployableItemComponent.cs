@@ -15,6 +15,8 @@ public sealed partial class FSDeployableItemComponent : Component
     [DataField, AutoNetworkedField]
     public int MaxStock = 1;
 
+    [ViewVariables] public int ResearchStockBonus;
+
     [DataField]
     public bool RequiresScience = true;
 
