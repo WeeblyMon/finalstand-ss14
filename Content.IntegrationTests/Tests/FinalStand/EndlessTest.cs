@@ -65,7 +65,7 @@ public sealed class EndlessTest : GameTest
             SEntMan.System<FSPlayerDataStore>().DeleteProgress(ServerSession!.UserId.UserId);
             EnsurePlayer(map.GridCoords);
 
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(waveRule.TryStartEndless(), Is.False, "nothing to push on from before a win");
 
             waveRule.ForceNextWave(shell, 30);
@@ -112,7 +112,7 @@ public sealed class EndlessTest : GameTest
             var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
             EnsurePlayer(map.GridCoords);
 
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             waveRule.ForceNextWave(shell, 30);
             waveRule.ForceNextWave(shell);
             Assert.That(waveRule.IsAwaitingEndless(), Is.True);

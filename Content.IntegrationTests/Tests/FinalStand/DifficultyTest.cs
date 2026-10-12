@@ -30,7 +30,7 @@ public sealed class DifficultyTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(Server.ResolveDependency<IVoteManager>().ActiveVotes
                 .Any(v => v.Title == Loc.GetString("fs-difficulty-vote-title")), Is.False);
         });
@@ -46,7 +46,7 @@ public sealed class DifficultyTest : GameTest
             var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
 
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Hard), Is.False, "no active round, nothing to set");
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(waveRule.GetDifficulty(), Is.EqualTo(FSDifficulty.Normal));
 
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Normal), Is.True);
@@ -79,7 +79,7 @@ public sealed class DifficultyTest : GameTest
         {
             var ticker = SEntMan.System<GameTicker>();
             var votes = Server.ResolveDependency<IVoteManager>();
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             var vote = votes.ActiveVotes.Single(v => v.Title == Loc.GetString("fs-difficulty-vote-title"));
             vote.CastVote(ServerSession!, (int) FSDifficulty.Nightmare);
@@ -108,7 +108,7 @@ public sealed class DifficultyTest : GameTest
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
             var votes = Server.ResolveDependency<IVoteManager>();
             var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             var vote = votes.ActiveVotes.Single(v => v.Title == Loc.GetString("fs-difficulty-vote-title"));
             vote.CastVote(ServerSession!, (int) FSDifficulty.Hard);
@@ -146,7 +146,7 @@ public sealed class DifficultyTest : GameTest
             }
             var wallet = SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
 
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(waveRule.TrySetDifficulty(FSDifficulty.Nightmare), Is.True);
             waveRule.ForceNextWave(shell, 30);
             var before = wallet.PerkPoints;

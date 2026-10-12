@@ -61,7 +61,7 @@ public sealed class VictoryTest : GameTest
             walletOwner = mindId;
             var pointsBefore = wallet.PerkPoints;
 
-            Assert.That(ticker.StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             waveRule.ForceNextWave(shell, 30);
             Assert.That(waveRule.TryGetWaveStatus(out var wave, out var phase), Is.True);

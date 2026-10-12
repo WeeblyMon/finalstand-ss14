@@ -25,7 +25,7 @@ public sealed class DiscordTest : GameTest
                 "Final Stand EU", 42, run,
                 new FSDiscordMessages.Mvp("Ada", 1300, 2),
                 new FSDiscordMessages.Mvp("Bo", 200, 9),
-                new[] { (run, (FSRunRecord?) previous) },
+                new[] { (run, (FSRunRecord) previous) },
                 new[] { ("Ada", "Nightmare Breaker") },
                 previous));
 
@@ -54,7 +54,7 @@ public sealed class DiscordTest : GameTest
             var holder = new FSRunRecord("Vex", FSDifficulty.Normal, FSPlayerBracket.Crew, 28, false, 7000, 3000, At);
             var run = holder with { Players = "Rook", Waves = 26, EndedAtUtc = At.AddDays(1) };
             var payload = FSDiscordMessages.RoundSummary(new FSDiscordMessages.RoundReport(
-                "S", 1, run, null, null, Array.Empty<(FSRunRecord, FSRunRecord?)>(),
+                "S", 1, run, null, null, Array.Empty<(FSRunRecord, FSRunRecord)>(),
                 Array.Empty<(string, string)>(), holder));
 
             var text = string.Join("\n", payload.Embeds!.Single().Fields.Select(f => f.Value));

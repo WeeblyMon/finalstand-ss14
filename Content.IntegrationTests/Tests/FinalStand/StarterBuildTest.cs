@@ -13,6 +13,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class StarterBuildTest : GameTest
 {
+    private static readonly ProtoId<FSStarterBuildPrototype> Rifleman = "FSStarterRifleman";
+
     public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
 
     [Test]
@@ -61,7 +63,7 @@ public sealed class StarterBuildTest : GameTest
             Array.Fill(perks.Slots, string.Empty);
             wallet.PerkPoints = 15;
 
-            var build = SProtoMan.Index<FSStarterBuildPrototype>("FSStarterRifleman");
+            var build = SProtoMan.Index(Rifleman);
             perksSys.ApplyStarterBuild(session, build.ID);
 
             Assert.Multiple(() =>

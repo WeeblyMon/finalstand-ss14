@@ -48,7 +48,7 @@ public sealed class RoundModifierTest : GameTest
         await Server.WaitAssertion(() =>
         {
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             Assert.That(waveRule.TrySetModifiers(new List<ProtoId<FSRoundModifierPrototype>>()), Is.True);
             Assert.That(waveRule.TryGetActiveState(out var plain), Is.True);
@@ -78,7 +78,7 @@ public sealed class RoundModifierTest : GameTest
         {
             var waveRule = SEntMan.System<WaveGameRuleSystem>();
             var spawning = SEntMan.System<WaveEnemySpawningSystem>();
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(waveRule.TrySetModifiers(new List<ProtoId<FSRoundModifierPrototype>> { "FSModifierRegenerators" }), Is.True);
 
             var rule = SEntMan.EntityQuery<WaveGameRuleComponent>().Single();
@@ -98,7 +98,7 @@ public sealed class RoundModifierTest : GameTest
             var shell = Server.ResolveDependency<IServerConsoleHost>().LocalShell;
 
             Assert.That(waveRule.TryStartRerollVote(null, out _), Is.False, "no round, no vote");
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
 
             Assert.That(waveRule.TryStartRerollVote(ServerSession, out var error), Is.True, error);
             Assert.That(waveRule.TryStartRerollVote(ServerSession, out _), Is.False, "one reroll vote at a time");

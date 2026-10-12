@@ -31,7 +31,7 @@ public sealed class WaveObjectiveTest : GameTest
         }
 
         SEntMan.EnsureComponent<FSPlayerWalletComponent>(mindId);
-        Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+        Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
         SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, 6);
         return (mindId, body);
     }
@@ -84,7 +84,7 @@ public sealed class WaveObjectiveTest : GameTest
     public async Task RunningOutOfTimeFailsTheObjective()
     {
         var map = await Pair.CreateTestMap();
-        FSWaveObjectiveSystem.ActiveObjective? current = null;
+        FSWaveObjectiveSystem.ActiveObjective current = null;
 
         await Server.WaitAssertion(() =>
         {
@@ -99,7 +99,7 @@ public sealed class WaveObjectiveTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            Assert.That(current!.Result, Is.EqualTo(FSWaveObjectiveResult.Failed));
+            Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Failed));
         });
     }
 
@@ -148,7 +148,7 @@ public sealed class WaveObjectiveTest : GameTest
         {
             var objectives = SEntMan.System<FSWaveObjectiveSystem>();
             Assert.That(objectives.TryStartRandom(), Is.False, "no round, no objective");
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(objectives.TryStartRandom(), Is.False, "nothing during prep");
 
             SEntMan.System<WaveGameRuleSystem>().ForceNextWave(Server.ResolveDependency<IServerConsoleHost>().LocalShell, 10);

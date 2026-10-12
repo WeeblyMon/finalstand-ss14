@@ -164,7 +164,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         {
             foreach (var spawner in rule.SpawnerEntities)
             {
-                if (TerminatingOrDeleted(spawner) || !TryComp<TransformComponent>(spawner, out var spXform))
+                if (TerminatingOrDeleted(spawner) || !TryComp(spawner, out TransformComponent? spXform))
                     continue;
 
                 TryAddSpawner(spXform);

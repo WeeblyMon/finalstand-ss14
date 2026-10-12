@@ -52,7 +52,7 @@ public sealed class WeeklyChallengeTest : GameTest
             var challenge = weekly.GetChallenge(DateTime.UtcNow)!;
 
             Assert.That(weekly.StartWeekly(challenge), Is.False, "no round running");
-            Assert.That(SEntMan.System<GameTicker>().StartGameRule("WaveSurvivalZombie"), Is.True);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
             Assert.That(weekly.StartWeekly(challenge), Is.True);
             Assert.That(weekly.StartWeekly(challenge), Is.False, "the weekly can only be started once a round");
 
