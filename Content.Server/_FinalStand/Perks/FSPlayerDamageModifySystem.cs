@@ -76,6 +76,10 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }
+
+        var taken = FSArchetypeSystem.Bonus(augs).DamageTaken;
+        if (Math.Abs(taken - 1f) > 0.0001f && args.Damage.GetTotal() > 0)
+            args.Damage *= taken;
     }
 
     private void OnHealingPotency(EntityUid uid, ActorComponent comp, ref FSHealingPotencyEvent args)

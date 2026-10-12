@@ -14,6 +14,7 @@
                         <BoxContainer Orientation="Horizontal" Margin="0 0 0 6">
                             <Label Name="EquippedTitle" Text="EQUIPPED" Margin="0 0 8 0" />
                             <Label Name="EquippedCountLabel" Text="0 / 6" />
+                            <Label Name="ArchetypeLabel" Margin="14 0 0 0" />
                         </BoxContainer>
                         <BoxContainer Name="SlotsRow" Orientation="Horizontal" SeparationOverride="8" />
                     </BoxContainer>

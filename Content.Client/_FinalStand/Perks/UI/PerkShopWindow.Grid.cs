@@ -261,7 +261,20 @@ public sealed partial class PerkShopWindow
                 },
             });
         }
-        content.AddChild(pips);
+        var mastery = FSPerkMastery.Tier(_state?.Mastery.GetValueOrDefault(def.Id) ?? 0);
+        if (maxed && mastery != FSMasteryTier.None)
+        {
+            content.AddChild(new Label
+            {
+                Text = Loc.GetString(FSPerkMastery.TierLocId(mastery)).ToUpperInvariant(),
+                FontOverride = _fontSmallBold,
+                FontColorOverride = FSPerkMastery.TierColor(mastery),
+                HorizontalAlignment = HAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 6),
+            });
+        }
+        else
+            content.AddChild(pips);
         layers.AddChild(content);
 
         if (slot >= 0)

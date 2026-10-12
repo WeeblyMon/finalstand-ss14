@@ -23,6 +23,7 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private FSPerkMasterySystem _mastery = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -389,6 +390,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             Levels = new Dictionary<string, int>(perks.Levels),
             Slots = (string[])perks.Slots.Clone(),
             Loadouts = perks.Loadouts,
+            Mastery = new Dictionary<string, int>(_mastery.GetMastery(session.UserId)),
         }, Filter.SinglePlayer(session));
     }
 

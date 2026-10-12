@@ -126,6 +126,8 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
 
+        mult *= FSArchetypeSystem.Bonus(augs).Speed;
+
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.ModifySpeed(mult, mult);
     }

@@ -11,9 +11,13 @@ using Content.Shared.Mind;
 using Content.Shared.Players.PlayTimeTracking;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.Onboarding;
+
+[ByRefEvent]
+public readonly record struct FSRookieFirstRoundEvent(NetUserId Rookie);
 
 public sealed partial class FSOnboardingSystem : EntitySystem
 {
@@ -160,6 +164,8 @@ public sealed partial class FSOnboardingSystem : EntitySystem
         _titles.Grant(session.UserId, FSRookieRules.FirstRoundTitle);
         _chat.DispatchServerMessage(session, Loc.GetString("fs-onboarding-first-round",
             ("points", FSRookieRules.FirstRoundPerkPoints)));
+        var firstRound = new FSRookieFirstRoundEvent(session.UserId);
+        RaiseLocalEvent(ref firstRound);
         return true;
     }
 }

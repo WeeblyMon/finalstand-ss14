@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.Respawn;
 using Content.Shared._FinalStand.WaveHud;
@@ -51,6 +52,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
+        SubscribeNetworkEvent<FSWaveObjectiveStateEvent>(OnObjectiveState);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
@@ -106,6 +108,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         UpdateAlertsAnchor(overlay);
         UpdateChatClearance(overlay);
         UpdateTriage(overlay);
+        UpdateObjective(overlay);
 
         if (!overlay.IsDarkWave)
             return;
@@ -129,6 +132,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _perkBuffs = new();
+        _objective = null;
         if (_overlay != null)
             _overlay.IsRespawnOfferVisible = false;
     }

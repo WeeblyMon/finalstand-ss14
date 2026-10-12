@@ -142,6 +142,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         PpLabel.Text = ev.PerkPoints.ToString("N0");
         InvestedLabel.Text = $"{Invested(ev.Levels)} PP invested";
         EquippedCountLabel.Text = $"{ev.Slots.Count(s => !string.IsNullOrEmpty(s))} / {FSPerkDef.SlotCount}";
+        RefreshArchetype(ev);
         RebuildLoadouts();
         RebuildSlots();
         RebuildGrid();

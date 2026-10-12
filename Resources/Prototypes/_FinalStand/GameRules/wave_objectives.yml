@@ -1,0 +1,31 @@
+- type: fsWaveObjective
+  id: FSObjectiveCullTheHerd
+  name: fs-objective-cull-name
+  description: fs-objective-cull-desc
+  kind: KillQuota
+  count: 25
+  countPerExtraPlayer: 8
+  seconds: 60
+  credits: 300
+  creditsPerWave: 30
+  minWave: 3
+
+- type: fsWaveObjective
+  id: FSObjectiveNobodyFalls
+  name: fs-objective-nobody-falls-name
+  description: fs-objective-nobody-falls-desc
+  kind: NoDowns
+  credits: 400
+  creditsPerWave: 40
+  minWave: 4
+
+- type: fsWaveObjective
+  id: FSObjectiveBlitz
+  name: fs-objective-blitz-name
+  description: fs-objective-blitz-desc
+  kind: ClearInTime
+  seconds: 120
+  credits: 350
+  creditsPerWave: 35
+  minWave: 3
+  weight: 0.8

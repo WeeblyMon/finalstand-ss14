@@ -1,0 +1,26 @@
+fs-tutorial-welcome-title = Welcome to Final Stand
+fs-tutorial-welcome-body = Zombies come in waves. Your job: keep the Central Command Console standing and stay alive. Make it to wave 30 and the round is won.
+fs-tutorial-prep-title = Prep phase
+fs-tutorial-prep-body = Spend credits at the wall shops for guns, armour and grenades. The Perk Machine turns perk points into upgrades. Ready up when you're set, or the timer starts the wave.
+fs-tutorial-first-wave-title = Here they come
+fs-tutorial-first-wave-body = Hold together near the console and watch the lanes. Out of ammo? Use an Ammo Resupply Box once per wave. Every kill pays credits.
+fs-tutorial-downed-title = You're down
+fs-tutorial-downed-body = A teammate can patch you up, or you can pay credits to revive now. Medics earn credits for every heal, so don't be shy about calling for one.
+fs-tutorial-perks-title = Wave cleared
+fs-tutorial-perks-body = You're earning XP and perk points. Visit the Perk Machine: one-click starter builds are a quick way to get a solid loadout.
+fs-tutorial-dark-wave-title = Dark wave
+fs-tutorial-dark-wave-body = The power's out. Survive until the timer runs out instead of killing everything. Stay together and light the way.
+fs-tutorial-boss-wave-title = Boss wave
+fs-tutorial-boss-wave-body = Every fifth wave brings something big. Focus fire on it and keep moving; killing it pays perk points to everyone.
+fs-tutorial-dismiss = Got it
+fs-tutorial-footer = Type "tutorial off" in the console to hide these tips.
+
+cmd-tutorial-desc = Turns the new-player tips on or off, or replays them.
+cmd-tutorial-help = Usage: tutorial [on|off|replay]
+cmd-tutorial-hint = on, off or replay
+cmd-tutorial-no-player = Only players get tutorial tips.
+cmd-tutorial-on = Tutorial tips are on.
+cmd-tutorial-off = Tutorial tips are off.
+cmd-tutorial-replay = Tutorial tips will show again from the start.
+cmd-tutorial-status-on = Tutorial tips are on. Use "tutorial off" to hide them.
+cmd-tutorial-status-off = Tutorial tips are off. Use "tutorial on" to see them.

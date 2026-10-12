@@ -47,6 +47,7 @@ public sealed class FSPerkTargetDamageSystem : EntitySystem
             mult *= 1f + specLevel * FSPerkBonusConstants.SpecialisedKillingPerLevel;
 
         mult *= _underdog.GetMultiplier(attacker, perks);
+        mult *= FSArchetypeSystem.Bonus(perks).Damage;
 
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.Damage *= mult;

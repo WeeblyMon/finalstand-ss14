@@ -163,6 +163,10 @@ public sealed partial class WaveHudOverlay : Overlay
 
     public int MedicalFund;
 
+    public string? ObjectiveLabel;
+    public string ObjectiveValue = string.Empty;
+    public Color ObjectiveColor = FSPalette.Warn;
+
     public float DirectiveFlash;
     public Color DirectiveFlashColour = FSPalette.Ok;
 
@@ -477,6 +481,9 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
         }
+
+        if (ObjectiveLabel != null)
+            y = DrawRow(_iconTimer, ObjectiveLabel, ObjectiveValue, ObjectiveColor, _labelFont);
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {

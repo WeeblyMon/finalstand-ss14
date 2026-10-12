@@ -26,6 +26,7 @@ public sealed class FSPerksStateEvent : EntityEventArgs
     public Dictionary<string, int> Levels = new();
     public string[] Slots = new string[FSPerkDef.SlotCount];
     public FSPerkLoadout[] Loadouts = [new(), new(), new()];
+    public Dictionary<string, int> Mastery = new();
 }
 
 [Serializable, NetSerializable]
