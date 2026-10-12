@@ -28,6 +28,13 @@
                 </BoxContainer>
             </PanelContainer>
 
+            <PanelContainer Name="StarterBanner" Visible="False">
+                <BoxContainer Orientation="Horizontal" Margin="20 8" SeparationOverride="12">
+                    <Label Name="StarterBannerLabel" VerticalAlignment="Center" HorizontalExpand="True" />
+                    <Button Name="StarterBannerButton" MinHeight="30" />
+                </BoxContainer>
+            </PanelContainer>
+
             <BoxContainer Name="BodyBox" Orientation="Horizontal" HorizontalExpand="True" VerticalExpand="True">
 
                 <BoxContainer Orientation="Vertical" HorizontalExpand="True" VerticalExpand="True" Margin="20 14 20 0">
@@ -82,6 +89,7 @@
                 <BoxContainer Orientation="Horizontal" Margin="20 8" SeparationOverride="10">
                     <Label Name="LoadoutsTitle" Text="LOADOUTS" VerticalAlignment="Center" Margin="0 0 6 0" />
                     <BoxContainer Name="LoadoutRow" Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="8" />
+                    <Button Name="StarterBuildsButton" VerticalAlignment="Center" MinHeight="32" />
                     <Button Name="RespecButton" Text="RESPEC…" VerticalAlignment="Center" MinHeight="32" />
                 </BoxContainer>
             </PanelContainer>

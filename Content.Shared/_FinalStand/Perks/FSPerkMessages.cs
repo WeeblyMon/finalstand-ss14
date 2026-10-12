@@ -81,3 +81,9 @@ public sealed class FSInterestPayoutEvent : EntityEventArgs
     public string PerkId = "";
     public int Amount;
 }
+
+[Serializable, NetSerializable]
+public sealed class FSApplyStarterBuildMessage : EntityEventArgs
+{
+    public string BuildId = "";
+}

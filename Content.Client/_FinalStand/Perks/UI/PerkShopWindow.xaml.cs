@@ -65,6 +65,7 @@ public sealed partial class PerkShopWindow : FancyWindow
     public event Action<FSLoadLoadoutMessage>? OnLoadLoadout;
     public event Action? OnRespecRequested;
     public event Action? OnPrestigeRequested;
+    public event Action<FSApplyStarterBuildMessage>? OnApplyStarterBuild;
 
     public PerkShopWindow()
     {
@@ -129,6 +130,8 @@ public sealed partial class PerkShopWindow : FancyWindow
 
         PrestigeButton.OnPressed += _ => ShowPrestigeConfirmation();
 
+        InitStarterBuilds();
+
         ApplyLayout(false);
         RefreshInfo();
     }
@@ -143,6 +146,7 @@ public sealed partial class PerkShopWindow : FancyWindow
         RebuildSlots();
         RebuildGrid();
         RefreshInfo();
+        RefreshStarterBuilds();
     }
 
     public void UpdateLeveling(int level, int prestige)
@@ -345,6 +349,7 @@ public sealed partial class PerkShopWindow : FancyWindow
     {
         base.Dispose(disposing);
         if (!disposing) return;
+        _starterDialog?.Dispose();
         foreach (var tex in _iconCache.Values)
             tex.Dispose();
         _iconCache.Clear();
