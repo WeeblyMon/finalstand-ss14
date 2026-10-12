@@ -22,8 +22,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
-using Content.Server.Players.PlayTimeTracking;
-using Content.Shared.Players.PlayTimeTracking;
+using Content.Server._FinalStand.Onboarding;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Power.EntitySystems;
@@ -55,15 +54,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private PoweredLightSystem _poweredLight = default!;
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private ApcSystem _apc = default!;
-    [Dependency] private PlayTimeTrackingManager _playTime = default!;
+    [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
-    private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
-
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan VictoryRoundEndCountdown = TimeSpan.FromSeconds(45);
     private const float CreditsPerSecondSkipped = 2.0f;
 
     private const float DefaultFlickerMin = 0.7f;
@@ -93,6 +91,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     protected override void ActiveTick(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, float frameTime)
     {
+        if (comp.Victory)
+            return;
+
         var now = Timing.CurTime;
         TickDarkWaveOmen(comp, frameTime);
         TickBlackoutEnforcement(comp, frameTime);
@@ -179,6 +180,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         base.AppendRoundEndText(uid, comp, gameRule, ref args);
         _wallet.SaveAll();
+        if (comp.Victory)
+            args.AddLine(Loc.GetString("fs-wave-victory-round-end", ("wave", comp.WaveNumber)));
         args.AddLine(Loc.GetString("final-stand-round-end",
             ("wave", comp.WavesCompleted),
             ("killed", comp.TotalEnemiesKilled)));
@@ -391,8 +394,38 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
         comp.WavesCompleted++;
+
+        if (IsVictoryWave(comp.WaveNumber, comp.VictoryWave))
+        {
+            ClaimVictory(comp);
+            return;
+        }
+
         comp.WaveNumber++;
         StartPrepPhase(uid, comp);
+    }
+
+    public static bool IsVictoryWave(int wave, int victoryWave) => victoryWave > 0 && wave >= victoryWave;
+
+    private void ClaimVictory(WaveGameRuleComponent comp)
+    {
+        comp.Victory = true;
+        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} cleared. The round is won.");
+
+        if (comp.VictoryPerkReward > 0)
+            _wallet.DistributePerkPoints(comp.VictoryPerkReward);
+
+        _chatManager.DispatchServerAnnouncement(
+            Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", comp.VictoryPerkReward)),
+            Color.FromHex("#FFD700"));
+
+        if (comp.WaveEndSound != null)
+            _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
+
+        var victory = new FSRoundVictoryEvent(comp.WaveNumber);
+        RaiseLocalEvent(ref victory);
+
+        _roundEnd.EndRound(VictoryRoundEndCountdown);
     }
 
     private void AwardBossReward(WaveGameRuleComponent comp)
@@ -454,12 +487,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     }
 
     private bool IsNewPlayer(ICommonSession session)
-    {
-        if (!_playTime.TryGetTrackerTimes(session, out var times))
-            return false;
-
-        return times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall) < NewPlayerScalingExemption;
-    }
+        => _onboarding.IsRookie(session);
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
 
@@ -618,6 +646,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out var uid, out var comp, out _))
         {
             shell.WriteError("WaveGameRule is not active.");
+            return;
+        }
+
+        if (comp.Victory)
+        {
+            shell.WriteError("The round is already won.");
             return;
         }
 

@@ -12,3 +12,6 @@ fs-lobby-wave-prep = Wave { $wave } is preparing
 fs-lobby-wave-combat = Wave { $wave } in progress
 fs-hub-wave-suffix = (Wave { $wave })
 fs-wave-team-wiped = Every defender has fallen. The station is lost.
+
+fs-wave-victory = Wave {$wave} cleared. The station holds! Every defender earns {$points} perk points.
+fs-wave-victory-round-end = [color=#FFD700][bold]VICTORY[/bold][/color]: the station held through wave {$wave}.

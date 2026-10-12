@@ -9,6 +9,7 @@ public sealed class FSLevelingUpdatedEvent : EntityEventArgs
     public int Experience;
     public int XpToNextLevel;
     public int PrestigeLevel;
+    public bool CatchUp;
 }
 
 [Serializable, NetSerializable]

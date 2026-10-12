@@ -1,0 +1,17 @@
+- type: fsTitle
+  id: FSTitleFreshMeat
+  name: fs-title-fresh-meat-name
+  description: fs-title-fresh-meat-desc
+  color: "#8FD16A"
+
+- type: fsTitle
+  id: FSTitleSurvivor
+  name: fs-title-survivor-name
+  description: fs-title-survivor-desc
+  color: "#5FB0E8"
+
+- type: fsTitle
+  id: FSTitleStationHeld
+  name: fs-title-station-held-name
+  description: fs-title-station-held-desc
+  color: "#FFD700"

@@ -146,8 +146,11 @@ public sealed partial class FSXpHudController : UIController
             ? (float) ev.Experience / ev.XpToNextLevel
             : 0f;
 
-        _label.Text = ev.PrestigeLevel > 0
-            ? $"P{ev.PrestigeLevel}  LVL {ev.Level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP"
-            : $"LVL {ev.Level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP";
+        var level = ev.PrestigeLevel > 0
+            ? $"P{ev.PrestigeLevel}  LVL {ev.Level}"
+            : $"LVL {ev.Level}";
+        var next = Loc.GetString("fs-xp-hud-next-reward", ("points", FSLevelingRules.PerkPointsForReaching(ev.Level + 1)));
+        var catchUp = ev.CatchUp ? Loc.GetString("fs-xp-hud-catch-up") : string.Empty;
+        _label.Text = $"{level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP  —  {next}{catchUp}";
     }
 }

@@ -194,6 +194,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
         TryMigrateOldSchema();
         TryRenameLegacyColumns(db);
+        InitProgressSchema(db);
 
         Log.Debug("[FSWallet] Prestige database opened.");
     }

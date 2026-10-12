@@ -6,3 +6,6 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 
 [ByRefEvent]
 public readonly record struct WaveEndedEvent(int WaveNumber);
+
+[ByRefEvent]
+public readonly record struct FSRoundVictoryEvent(int WaveNumber);

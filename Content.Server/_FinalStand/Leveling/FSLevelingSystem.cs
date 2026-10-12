@@ -10,6 +10,7 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Leaderboard;
+using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -272,7 +273,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             return;
 
-        var amount = (int)(rawAmount * lvl.XpMultiplier);
+        var amount = (int)(rawAmount * lvl.XpMultiplier * lvl.CatchUpMultiplier);
         lvl.Experience += amount;
 
         _roundStats.TryGetValue(mindId, out var stats);
@@ -291,7 +292,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             lvl.Experience -= lvl.XpToNextLevel;
             lvl.Level++;
             lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
-            var ap = lvl.Level % 5 == 0 ? 5 : 1;
+            var ap = FSLevelingRules.PerkPointsForReaching(lvl.Level);
             _wallet.AddPerkPoints(mindId, ap);
             totalAp += ap;
             RaiseLocalEvent(mindId, new FSLevelUpEvent
@@ -361,8 +362,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
             Experience = lvl.Experience,
             XpToNextLevel = lvl.XpToNextLevel,
             PrestigeLevel = lvl.PrestigeLevel,
+            CatchUp = lvl.CatchUpMultiplier > 1f,
         }, Filter.SinglePlayer(session));
     }
+
+    public (int Xp, int Kills, int Assists) GetRoundStats(EntityUid mindId)
+        => _roundStats.GetValueOrDefault(mindId);
 
     public FSLeaderboardEntry[] GetLeaderboardSnapshot()
     {
@@ -384,6 +389,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
                         + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + walletCredits;
 
+            TryComp<FSPlayerBadgeComponent>(mind.CurrentEntity, out var badge);
+
             entries.Add(new FSLeaderboardEntry(
                 mind.CharacterName ?? "Unknown",
                 stats.Kills,
@@ -393,7 +400,9 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 lvl.Level,
                 lvl.PrestigeLevel,
                 walletCredits,
-                score));
+                score,
+                badge?.Rookie ?? false,
+                badge?.Title?.Id));
         }
 
         return FSLeaderboardEntry.Sort(entries);

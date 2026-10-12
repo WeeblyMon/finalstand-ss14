@@ -11,4 +11,5 @@ public sealed partial class FSPlayerLevelComponent : Component
     public int XpToNextLevel = FSLevelingSystem.XpToNextLevel(1);
     public int PrestigeLevel = 0;
     public float XpMultiplier = 1f;
+    public float CatchUpMultiplier = 1f;
 }

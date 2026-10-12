@@ -2,11 +2,13 @@ using System.Numerics;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._FinalStand.Leaderboard;
+using Content.Shared._FinalStand.Titles;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Localization;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Leaderboard;
 
@@ -115,6 +117,8 @@ public sealed class FSLeaderboardWindow : FancyWindow
 
         private readonly Label _rank;
         private readonly Label _name;
+        private readonly Label _title;
+        private readonly Label _rookie;
         private readonly Label _level;
         private readonly Label _kills;
         private readonly Label _assists;
@@ -125,7 +129,21 @@ public sealed class FSLeaderboardWindow : FancyWindow
         public Row()
         {
             _rank = Make(42, Label.AlignMode.Center, FSUiPalette.TextPrimary);
-            _name = Make(220, Label.AlignMode.Left, FSUiPalette.TextPrimary, expand: true, clip: true);
+            _name = Make(0, Label.AlignMode.Left, FSUiPalette.TextPrimary, clip: true);
+            _title = Make(0, Label.AlignMode.Left, FSUiPalette.Currency);
+            _rookie = Make(0, Label.AlignMode.Left, FSUiPalette.StatePositive);
+            _rookie.Text = Loc.GetString("fs-badge-leaderboard-rookie");
+
+            var nameCell = new BoxContainer
+            {
+                Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                MinWidth = 220,
+                HorizontalExpand = true,
+                SeparationOverride = 8,
+            };
+            nameCell.AddChild(_name);
+            nameCell.AddChild(_title);
+            nameCell.AddChild(_rookie);
             _level = Make(90, Label.AlignMode.Center, FSUiPalette.TextPrimary);
             _kills = Make(80, Label.AlignMode.Center, FSUiPalette.TextPrimary);
             _assists = Make(90, Label.AlignMode.Center, FSUiPalette.TextPrimary);
@@ -141,7 +159,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
             };
 
             grid.AddChild(_rank);
-            grid.AddChild(_name);
+            grid.AddChild(nameCell);
             grid.AddChild(_level);
             grid.AddChild(_kills);
             grid.AddChild(_assists);
@@ -161,6 +179,15 @@ public sealed class FSLeaderboardWindow : FancyWindow
         {
             _rank.Text = rank.ToString();
             _name.Text = entry.Name;
+            _rookie.Visible = entry.Rookie;
+            _title.Visible = false;
+            if (entry.Title != null
+                && IoCManager.Resolve<IPrototypeManager>().TryIndex<FSTitlePrototype>(entry.Title, out var title))
+            {
+                _title.Text = Loc.GetString("fs-badge-leaderboard-title", ("title", Loc.GetString(title.Name)));
+                _title.FontColorOverride = title.Color;
+                _title.Visible = true;
+            }
             _level.Text = entry.Level.ToString();
             _kills.Text = entry.Kills.ToString();
             _assists.Text = entry.Assists.ToString();

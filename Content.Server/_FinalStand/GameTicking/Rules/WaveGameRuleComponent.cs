@@ -149,6 +149,10 @@ public sealed partial class WaveGameRuleComponent : Component
 
     [DataField] public int GuaranteedDarkWave = 8;
 
+    [DataField] public int VictoryWave = 30;
+    [DataField] public int VictoryPerkReward = 5;
+    public bool Victory;
+
     [DataField] public float DarkWaveWarningDelay = 30f;
     public float DarkWaveWarningAccum;
     public bool DarkWaveWarningFired;
