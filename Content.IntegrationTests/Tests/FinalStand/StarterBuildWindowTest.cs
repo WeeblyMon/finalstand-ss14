@@ -16,10 +16,11 @@ public sealed class StarterBuildWindowTest : GameTest
         {
             var window = new PerkShopWindow();
             var banner = window.FindControl<PanelContainer>("StarterBanner");
-            var footerButton = window.FindControl<Button>("StarterBuildsButton");
+            var headerButton = window.FindControl<Button>("StarterBuildsButton");
 
             window.UpdateState(new FSPerksStateEvent { PerkPoints = 5 });
             Assert.That(banner.Visible, Is.True, "a player with no perks is offered a starter build up front");
+            Assert.That(headerButton.Visible, Is.False, "one starter builds button at a time");
 
             window.UpdateState(new FSPerksStateEvent
             {
@@ -29,8 +30,8 @@ public sealed class StarterBuildWindowTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(banner.Visible, Is.False, "the banner gets out of the way once the player has a build");
-                Assert.That(footerButton.Visible, Is.True, "starter builds stay reachable from the footer");
-                Assert.That(footerButton.Text, Is.Not.Empty);
+                Assert.That(headerButton.Visible, Is.True, "starter builds stay reachable from the header");
+                Assert.That(headerButton.Text, Is.Not.Empty);
             });
 
             window.Dispose();

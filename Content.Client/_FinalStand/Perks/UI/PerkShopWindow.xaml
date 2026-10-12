@@ -24,6 +24,7 @@
                             <Label Name="PpUnitLabel" Text="PP" VerticalAlignment="Bottom" Margin="0 0 0 3" />
                         </BoxContainer>
                         <Label Name="InvestedLabel" Text="" HorizontalAlignment="Right" />
+                        <Button Name="StarterBuildsButton" HorizontalAlignment="Right" MinHeight="26" Margin="0 6 0 0" />
                     </BoxContainer>
                 </BoxContainer>
             </PanelContainer>
@@ -89,7 +90,6 @@
                 <BoxContainer Orientation="Horizontal" Margin="20 8" SeparationOverride="10">
                     <Label Name="LoadoutsTitle" Text="LOADOUTS" VerticalAlignment="Center" Margin="0 0 6 0" />
                     <BoxContainer Name="LoadoutRow" Orientation="Horizontal" HorizontalExpand="True" SeparationOverride="8" />
-                    <Button Name="StarterBuildsButton" VerticalAlignment="Center" MinHeight="32" />
                     <Button Name="RespecButton" Text="RESPEC…" VerticalAlignment="Center" MinHeight="32" />
                 </BoxContainer>
             </PanelContainer>

@@ -129,7 +129,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
         public Row()
         {
             _rank = Make(42, Label.AlignMode.Center, FSUiPalette.TextPrimary);
-            _name = Make(0, Label.AlignMode.Left, FSUiPalette.TextPrimary, clip: true);
+            _name = Make(0, Label.AlignMode.Left, FSUiPalette.TextPrimary, expand: true, clip: true);
             _title = Make(0, Label.AlignMode.Left, FSUiPalette.Currency);
             _rookie = Make(0, Label.AlignMode.Left, FSUiPalette.StatePositive);
             _rookie.Text = Loc.GetString("fs-badge-leaderboard-rookie");

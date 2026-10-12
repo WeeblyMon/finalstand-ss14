@@ -31,6 +31,7 @@ public sealed partial class PerkShopWindow
     private void RefreshStarterBuilds()
     {
         StarterBanner.Visible = _state != null && _state.Levels.Values.All(level => level <= 0);
+        StarterBuildsButton.Visible = !StarterBanner.Visible;
 
         if (_starterDialog is { Disposed: false, IsOpen: true })
             ShowStarterBuilds();
