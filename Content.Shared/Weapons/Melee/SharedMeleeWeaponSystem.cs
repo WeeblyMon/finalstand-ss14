@@ -608,7 +608,7 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
 
         var userPos = TransformSystem.GetWorldPosition(userXform);
         var direction = targetMap.Position - userPos;
-        var distance = Math.Min(component.Range, direction.Length());
+        var distance = component.Angle.Theta >= Math.Tau - 0.01 ? component.Range : Math.Min(component.Range, direction.Length()); // FINALSTAND: full-circle swings reach their whole range
 
         var damage = GetDamage(meleeUid, user, component);
         var resistanceBypass = GetResistanceBypass(meleeUid, user, component);

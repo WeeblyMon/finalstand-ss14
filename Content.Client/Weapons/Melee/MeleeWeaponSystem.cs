@@ -192,7 +192,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
 
         var userPos = TransformSystem.GetWorldPosition(userXform);
         var direction = targetMap.Position - userPos;
-        var distance = MathF.Min(component.Range, direction.Length());
+        var distance = component.Angle.Theta >= Math.Tau - 0.01 ? component.Range : Math.Min(component.Range, direction.Length()); // FINALSTAND: full-circle swings reach their whole range
 
         // This should really be improved. GetEntitiesInArc uses pos instead of bounding boxes.
         // Server will validate it with InRangeUnobstructed.
