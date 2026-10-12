@@ -45,3 +45,10 @@ fs-title-station-held-desc = Was there when wave 30 fell.
 
 fs-xp-hud-next-reward = next level +{$points} PP
 fs-xp-hud-catch-up = {"  "}·  2× XP
+
+fs-title-iron-wall-name = Iron Wall
+fs-title-iron-wall-desc = Won a round on Hard or harder.
+fs-title-nightmare-breaker-name = Nightmare Breaker
+fs-title-nightmare-breaker-desc = Won a round on Nightmare.
+fs-title-beyond-the-wall-name = Beyond the Wall
+fs-title-beyond-the-wall-desc = Won the round, kept going, and cleared wave 40 in endless.

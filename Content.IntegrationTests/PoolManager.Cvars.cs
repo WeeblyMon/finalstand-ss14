@@ -35,6 +35,10 @@ public static partial class PoolManager
         (CCVars.MovementMobPushing.Name, "false"),
         (CCVars.ResourceUploadingStoreDeletionDays.Name, "0"),
         (CCVars.FSAutoStart.Name, "false"),
+        (CCVars.FSDifficultyVoteSeconds.Name, "0"),
+        (CCVars.FSRoundModifierCount.Name, "0"),
+        (CCVars.FSEndlessVoteSeconds.Name, "0"),
+        (CCVars.FSWaveObjectiveChance.Name, "0"),
         (CCVars.StaticStorageUI.Name, "true"),
     };
 }

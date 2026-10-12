@@ -6,6 +6,7 @@ using Content.Server._FinalStand.Onboarding;
 using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.Player;
@@ -25,6 +26,10 @@ public sealed partial class FSRecordsSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
 
     public const string VictoryTitle = "FSTitleStationHeld";
+    public const string HardVictoryTitle = "FSTitleIronWall";
+    public const string NightmareVictoryTitle = "FSTitleNightmareBreaker";
+    public const string EndlessTitle = "FSTitleBeyondTheWall";
+    public const int EndlessTitleWave = 40;
 
     public enum RecordKind : byte
     {
@@ -42,6 +47,19 @@ public sealed partial class FSRecordsSystem : EntitySystem
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => VictoryThisRound = false);
         SubscribeLocalEvent<FSRoundVictoryEvent>(OnVictory);
+        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+    }
+
+    private void OnWaveEnded(ref WaveEndedEvent args)
+    {
+        if (args.WaveNumber < EndlessTitleWave || !VictoryThisRound)
+            return;
+
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity != null && _mind.TryGetMind(session, out _, out _))
+                _titles.Grant(session.UserId, EndlessTitle);
+        }
     }
 
     private void OnVictory(ref FSRoundVictoryEvent args)
@@ -53,6 +71,10 @@ public sealed partial class FSRecordsSystem : EntitySystem
                 continue;
 
             _titles.Grant(session.UserId, VictoryTitle);
+            if (args.Difficulty >= FSDifficulty.Hard)
+                _titles.Grant(session.UserId, HardVictoryTitle);
+            if (args.Difficulty >= FSDifficulty.Nightmare)
+                _titles.Grant(session.UserId, NightmareVictoryTitle);
         }
     }
 

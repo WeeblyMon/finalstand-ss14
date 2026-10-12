@@ -1,3 +1,5 @@
+using Content.Shared._FinalStand.GameTicking;
+
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
 
@@ -8,4 +10,4 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 public readonly record struct WaveEndedEvent(int WaveNumber);
 
 [ByRefEvent]
-public readonly record struct FSRoundVictoryEvent(int WaveNumber);
+public readonly record struct FSRoundVictoryEvent(int WaveNumber, FSDifficulty Difficulty);

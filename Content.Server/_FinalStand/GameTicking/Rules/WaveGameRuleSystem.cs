@@ -23,6 +23,7 @@ using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
 using Content.Server._FinalStand.Onboarding;
+using Content.Server._FinalStand.Perks;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Power.EntitySystems;
@@ -56,6 +57,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private ApcSystem _apc = default!;
     [Dependency] private FSOnboardingSystem _onboarding = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
+    [Dependency] private FSArchetypeSystem _archetypes = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
@@ -85,13 +87,24 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
         _friendlyFire.AssignFactionToAllPlayers();
+        RollModifiers(comp);
         StartPrepPhase(uid, comp);
+        StartDifficultyVote(comp);
+    }
+
+    protected override void Ended(EntityUid uid, WaveGameRuleComponent comp,
+        GameRuleComponent gameRule, GameRuleEndedEvent args)
+    {
+        base.Ended(uid, comp, gameRule, args);
+        CancelDifficultyVote();
+        CancelRerollVote();
+        CancelEndlessVote();
     }
 
     protected override void ActiveTick(EntityUid uid, WaveGameRuleComponent comp,
         GameRuleComponent gameRule, float frameTime)
     {
-        if (comp.Victory)
+        if (comp.Victory && !comp.Endless)
             return;
 
         var now = Timing.CurTime;
@@ -180,8 +193,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         base.AppendRoundEndText(uid, comp, gameRule, ref args);
         _wallet.SaveAll();
-        if (comp.Victory)
+        if (comp.Endless)
+            args.AddLine(Loc.GetString("fs-endless-round-end", ("victory", comp.VictoryWave), ("wave", comp.WavesCompleted)));
+        else if (comp.Victory)
             args.AddLine(Loc.GetString("fs-wave-victory-round-end", ("wave", comp.WaveNumber)));
+        args.AddLine(Loc.GetString("fs-difficulty-round-end",
+            ("name", Loc.GetString(FSDifficultyRules.NameLocId(comp.Difficulty)))));
+        var modifiers = GetModifiers(comp).Select(m => Loc.GetString(m.Name)).ToList();
+        if (modifiers.Count > 0)
+            args.AddLine(Loc.GetString("fs-modifier-round-end", ("modifiers", string.Join(", ", modifiers))));
         args.AddLine(Loc.GetString("final-stand-round-end",
             ("wave", comp.WavesCompleted),
             ("killed", comp.TotalEnemiesKilled)));
@@ -211,7 +231,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownActive = false;
         comp.VoteCountdownSoundPlayed = false;
         comp.VoteCountdownSoundTime = TimeSpan.Zero;
-        comp.PhaseEndTime = Timing.CurTime + comp.PrepDuration;
+        comp.PhaseEndTime = Timing.CurTime + PrepDuration(comp);
         comp.PrepEndUnshaved = comp.PhaseEndTime;
         comp.IsDarkWaveUpcoming = false;
         comp.LightFlickerAccum = 0f;
@@ -246,7 +266,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
-        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
+        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {PrepDuration(comp).TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
@@ -256,18 +276,20 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
         comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
         comp.NextTimerBroadcastTime = Timing.CurTime;
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float) PrepDuration(comp).TotalSeconds, true), Filter.Broadcast());
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
         RaiseLocalEvent(new WavePrepStartedEvent());
     }
 
-    private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
+    private int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
     {
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? players * comp.PlayerEnemyBonus
             : 0;
-        var total = Math.Min((int)((4 * comp.WaveNumber + 10 + playerBonus) * 1.5f), comp.MaxEnemyCap);
+        var total = Math.Min((int)((4 * comp.WaveNumber + 10 + playerBonus) * 1.5f
+            * FSDifficultyRules.CountMultiplier(comp.Difficulty)
+            * ModifierFactor(comp, m => m.EnemyCount)), comp.MaxEnemyCap);
         if (comp.WaveNumber >= 5 && primarySpawners == 1)
             total = Math.Min(total * 2, comp.MaxEnemyCap);
         return total;
@@ -287,6 +309,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
     {
         comp.Phase = WavePhase.Combat;
+        LockDifficulty(comp);
 
         if (comp.SpawnerEntities.Count == 0)
             _spawning.SelectSpawners(comp, CountScalingPlayers());
@@ -395,13 +418,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.GiantApAwarded = false;
         comp.WavesCompleted++;
 
-        if (IsVictoryWave(comp.WaveNumber, comp.VictoryWave))
+        if (!comp.Endless && IsVictoryWave(comp.WaveNumber, comp.VictoryWave))
         {
             ClaimVictory(comp);
             return;
         }
 
         comp.WaveNumber++;
+        if (comp.Endless)
+            EscalateEndless(comp);
         StartPrepPhase(uid, comp);
     }
 
@@ -412,20 +437,21 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.Victory = true;
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} cleared. The round is won.");
 
-        if (comp.VictoryPerkReward > 0)
-            _wallet.DistributePerkPoints(comp.VictoryPerkReward);
+        var points = comp.VictoryPerkReward + FSDifficultyRules.VictoryBonusPerkPoints(comp.Difficulty);
+        if (points > 0)
+            _wallet.DistributePerkPoints(points);
 
         _chatManager.DispatchServerAnnouncement(
-            Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", comp.VictoryPerkReward)),
+            Loc.GetString("fs-wave-victory", ("wave", comp.WaveNumber), ("points", points)),
             Color.FromHex("#FFD700"));
 
         if (comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
 
-        var victory = new FSRoundVictoryEvent(comp.WaveNumber);
+        var victory = new FSRoundVictoryEvent(comp.WaveNumber, comp.Difficulty);
         RaiseLocalEvent(ref victory);
 
-        _roundEnd.EndRound(VictoryRoundEndCountdown);
+        OfferEndless(comp);
     }
 
     private void AwardBossReward(WaveGameRuleComponent comp)
@@ -543,13 +569,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
             ? enemyVal.KillCredits
             : comp.KillReward;
-        var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f);
+        var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f
+            * RewardMultiplier(comp));
 
         EntityUid? killerMind = null;
         if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
         {
             killerMind = mindId;
-            _wallet.GiveCredits(mindId, killCredits);
+            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits));
 
             if (IsSecurityRole(mindId))
                 _wallet.GiveCredits(mindId, comp.SecKillBonus);
@@ -649,7 +676,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             return;
         }
 
-        if (comp.Victory)
+        if (comp.Victory && !comp.Endless)
         {
             shell.WriteError("The round is already won.");
             return;

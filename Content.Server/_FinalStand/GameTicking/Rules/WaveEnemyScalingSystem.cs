@@ -19,9 +19,9 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
     // The boss is tuned for this many players; below it the fight gets shorter and less frantic.
     private const int BossFullScalePlayers = 7;
 
-    public void ScaleEnemyHp(EntityUid enemy, int wave, int playerCount)
+    public void ScaleEnemyHp(EntityUid enemy, int wave, int playerCount, float difficulty = 1f)
     {
-        var multiplier = GetHpMultiplier(wave);
+        var multiplier = GetHpMultiplier(wave) * difficulty;
         if (HasComp<FSGiantAbilitiesComponent>(enemy))
             multiplier *= GetBossHpBonus(wave) * GetBossPlayerHpFactor(playerCount);
 
@@ -33,13 +33,13 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
             _mobThresholds.SetMobStateThreshold(enemy, damage * multiplier, state, thresholds);
     }
 
-    private static float GetHpMultiplier(int wave)
+    public static float GetHpMultiplier(int wave)
     {
         if (wave <= 1) return 1f;
         if (wave <= 10) return 1f + (wave - 1) * 0.2f;
         if (wave <= 20) return 2.8f + (wave - 10) * 0.27f;
         if (wave <= 30) return 5.5f + (wave - 20) * 0.35f;
-        return 9f;
+        return 9f + (wave - 30) * 0.45f;
     }
 
     // On top of the shared curve above, so the boss keeps outscaling the trash around it.
@@ -63,20 +63,20 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
             armor.RegenRate *= Math.Min(1f, (float) Math.Max(1, playerCount) / BossFullScalePlayers);
     }
 
-    public void ScaleEnemySpeed(EntityUid enemy, int wave)
+    public void ScaleEnemySpeed(EntityUid enemy, int wave, float modifier = 1f)
     {
-        if (wave <= 1) return;
+        if (wave <= 1 && modifier == 1f) return;
         if (!TryComp<MovementSpeedModifierComponent>(enemy, out var move))
             return;
         const float MaxSpeedMultiplier = 2.5f;
-        var multiplier = Math.Min(1f + (wave - 1) * 0.0096f, MaxSpeedMultiplier);
+        var multiplier = Math.Min(1f + (Math.Max(1, wave) - 1) * 0.0096f, MaxSpeedMultiplier) * modifier;
         _movementSpeed.ChangeBaseSpeed(enemy, move.BaseWalkSpeed * multiplier, move.BaseSprintSpeed * multiplier, move.Acceleration, move);
     }
 
-    public void ScaleEnemyDamage(EntityUid enemy, int wave, int playerCount)
+    public void ScaleEnemyDamage(EntityUid enemy, int wave, int playerCount, float difficulty = 1f)
     {
         var scalingPlayers = Math.Max(1, playerCount);
-        var multiplier = MathF.Min(1f + wave * (0.035f + (scalingPlayers - 1) * 0.007f), 3.5f);
+        var multiplier = MathF.Min(1f + wave * (0.035f + (scalingPlayers - 1) * 0.007f), 3.5f) * difficulty;
         if (multiplier <= 1f)
             return;
 

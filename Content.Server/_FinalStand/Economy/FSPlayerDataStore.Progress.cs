@@ -1,3 +1,5 @@
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Ladder;
 using Microsoft.Data.Sqlite;
 
 namespace Content.Server._FinalStand.Economy;
@@ -26,12 +28,53 @@ public sealed partial class FSPlayerDataStore
                 first_round_paid INTEGER NOT NULL DEFAULT 0,
                 graduated        INTEGER NOT NULL DEFAULT 0
             );
+            CREATE TABLE IF NOT EXISTS fs_tutorial (
+                user_id TEXT NOT NULL,
+                tip     TEXT NOT NULL,
+                PRIMARY KEY (user_id, tip)
+            );
             CREATE TABLE IF NOT EXISTS fs_titles (
                 user_id   TEXT NOT NULL,
                 title_id  TEXT NOT NULL,
                 earned_at TEXT NOT NULL,
                 PRIMARY KEY (user_id, title_id)
             );
+            CREATE TABLE IF NOT EXISTS fs_runs (
+                id               INTEGER PRIMARY KEY AUTOINCREMENT,
+                ended_at         TEXT NOT NULL,
+                difficulty       INTEGER NOT NULL,
+                bracket          INTEGER NOT NULL,
+                waves            INTEGER NOT NULL,
+                victory          INTEGER NOT NULL,
+                duration_seconds INTEGER NOT NULL,
+                kills            INTEGER NOT NULL,
+                players          TEXT NOT NULL,
+                weekly           TEXT NULL
+            );
+            CREATE INDEX IF NOT EXISTS fs_runs_weekly ON fs_runs (weekly, victory DESC, waves DESC, duration_seconds ASC);
+            CREATE TABLE IF NOT EXISTS fs_weekly_rewards (
+                user_id  TEXT NOT NULL,
+                week_key TEXT NOT NULL,
+                PRIMARY KEY (user_id, week_key)
+            );
+            CREATE TABLE IF NOT EXISTS fs_mastery (
+                user_id TEXT NOT NULL,
+                perk_id TEXT NOT NULL,
+                kills   INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (user_id, perk_id)
+            );
+            CREATE TABLE IF NOT EXISTS fs_mentor (
+                user_id     TEXT PRIMARY KEY,
+                total       INTEGER NOT NULL DEFAULT 0,
+                balance     INTEGER NOT NULL DEFAULT 0,
+                week_key    TEXT NOT NULL DEFAULT '',
+                week_points INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS fs_meta (
+                key   TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS fs_runs_ladder ON fs_runs (difficulty, bracket, victory DESC, waves DESC, duration_seconds ASC);
             CREATE TABLE IF NOT EXISTS fs_profile (
                 user_id          TEXT PRIMARY KEY,
                 equipped_title   TEXT NULL,
@@ -184,12 +227,249 @@ public sealed partial class FSPlayerDataStore
     {
         if (!DbReady("progress delete")) return;
 
-        foreach (var table in new[] { "fs_onboarding", "fs_titles", "fs_profile" })
+        foreach (var table in new[] { "fs_onboarding", "fs_titles", "fs_profile", "fs_mastery", "fs_weekly_rewards", "fs_mentor", "fs_tutorial" })
         {
             using var cmd = DbCommand();
             cmd.CommandText = $"DELETE FROM {table} WHERE user_id = $id";
             cmd.Parameters.AddWithValue("$id", userId.ToString());
             TryExecute(cmd, $"{table} delete for {userId}");
         }
+    }
+
+    public void InsertRun(FSRunRecord run)
+    {
+        if (!DbReady("run save")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            INSERT INTO fs_runs (ended_at, difficulty, bracket, waves, victory, duration_seconds, kills, players, weekly)
+            VALUES ($at, $difficulty, $bracket, $waves, $victory, $duration, $kills, $players, $weekly)
+            """;
+        cmd.Parameters.AddWithValue("$at", run.EndedAtUtc.ToString("O"));
+        cmd.Parameters.AddWithValue("$difficulty", (int) run.Difficulty);
+        cmd.Parameters.AddWithValue("$bracket", (int) run.Bracket);
+        cmd.Parameters.AddWithValue("$waves", run.Waves);
+        cmd.Parameters.AddWithValue("$victory", run.Victory ? 1 : 0);
+        cmd.Parameters.AddWithValue("$duration", run.DurationSeconds);
+        cmd.Parameters.AddWithValue("$kills", run.Kills);
+        cmd.Parameters.AddWithValue("$players", run.Players);
+        cmd.Parameters.AddWithValue("$weekly", (object?) run.Weekly ?? DBNull.Value);
+        TryExecute(cmd, "run save");
+    }
+
+    public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket bracket, int limit)
+        => TryRead($"ladder load for {difficulty}/{bracket}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = """
+                SELECT players, waves, victory, duration_seconds, kills, ended_at
+                FROM fs_runs
+                WHERE difficulty = $difficulty AND bracket = $bracket AND weekly IS NULL
+                ORDER BY victory DESC, waves DESC, duration_seconds ASC, ended_at ASC
+                LIMIT $limit
+                """;
+            cmd.Parameters.AddWithValue("$difficulty", (int) difficulty);
+            cmd.Parameters.AddWithValue("$bracket", (int) bracket);
+            cmd.Parameters.AddWithValue("$limit", limit);
+            using var r = cmd.ExecuteReader();
+            var runs = new List<FSRunRecord>();
+            while (r.Read())
+            {
+                runs.Add(new FSRunRecord(
+                    r.GetString(0),
+                    difficulty,
+                    bracket,
+                    r.GetInt32(1),
+                    r.GetInt32(2) != 0,
+                    r.GetInt32(3),
+                    r.GetInt32(4),
+                    DateTime.Parse(r.GetString(5), null, System.Globalization.DateTimeStyles.RoundtripKind)));
+            }
+            return runs;
+        }, new List<FSRunRecord>());
+
+    public void DeleteAllRuns()
+    {
+        if (!DbReady("run wipe")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = "DELETE FROM fs_runs";
+        TryExecute(cmd, "run wipe");
+    }
+
+    public int CountKnownPlayers()
+        => TryRead("player count", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM (SELECT user_id FROM prestige UNION SELECT user_id FROM fs_profile)";
+            return Convert.ToInt32(cmd.ExecuteScalar());
+        }, 0);
+
+    public List<FSRunRecord> GetWeeklyTopRuns(string weekKey, int limit)
+        => TryRead($"weekly ladder load for {weekKey}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = """
+                SELECT players, waves, victory, duration_seconds, kills, ended_at, difficulty, bracket
+                FROM fs_runs
+                WHERE weekly = $week
+                ORDER BY victory DESC, waves DESC, duration_seconds ASC, ended_at ASC
+                LIMIT $limit
+                """;
+            cmd.Parameters.AddWithValue("$week", weekKey);
+            cmd.Parameters.AddWithValue("$limit", limit);
+            using var r = cmd.ExecuteReader();
+            var runs = new List<FSRunRecord>();
+            while (r.Read())
+            {
+                runs.Add(new FSRunRecord(
+                    r.GetString(0),
+                    (FSDifficulty) r.GetInt32(6),
+                    (FSPlayerBracket) r.GetInt32(7),
+                    r.GetInt32(1),
+                    r.GetInt32(2) != 0,
+                    r.GetInt32(3),
+                    r.GetInt32(4),
+                    DateTime.Parse(r.GetString(5), null, System.Globalization.DateTimeStyles.RoundtripKind),
+                    weekKey));
+            }
+            return runs;
+        }, new List<FSRunRecord>());
+
+    public bool TryClaimWeeklyReward(Guid userId, string weekKey)
+    {
+        if (!DbReady("weekly reward claim")) return false;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            INSERT INTO fs_weekly_rewards (user_id, week_key) VALUES ($id, $week)
+            ON CONFLICT(user_id, week_key) DO NOTHING
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$week", weekKey);
+        return TryExecuteCounted(cmd, $"weekly reward claim for {userId}") > 0;
+    }
+
+    public string? GetMeta(string key)
+        => TryRead($"meta load {key}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = "SELECT value FROM fs_meta WHERE key = $key";
+            cmd.Parameters.AddWithValue("$key", key);
+            return cmd.ExecuteScalar() as string;
+        }, null);
+
+    public void SetMeta(string key, string value)
+    {
+        if (!DbReady("meta save")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            INSERT INTO fs_meta (key, value) VALUES ($key, $value)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+            """;
+        cmd.Parameters.AddWithValue("$key", key);
+        cmd.Parameters.AddWithValue("$value", value);
+        TryExecute(cmd, $"meta save {key}");
+    }
+
+    public Dictionary<string, int> GetMastery(Guid userId)
+        => TryRead($"mastery load for {userId}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = "SELECT perk_id, kills FROM fs_mastery WHERE user_id = $id";
+            cmd.Parameters.AddWithValue("$id", userId.ToString());
+            using var r = cmd.ExecuteReader();
+            var result = new Dictionary<string, int>();
+            while (r.Read())
+                result[r.GetString(0)] = r.GetInt32(1);
+            return result;
+        }, new Dictionary<string, int>());
+
+    public void SaveMastery(Guid userId, string perkId, int kills)
+    {
+        if (!DbReady("mastery save")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            INSERT INTO fs_mastery (user_id, perk_id, kills) VALUES ($id, $perk, $kills)
+            ON CONFLICT(user_id, perk_id) DO UPDATE SET kills = excluded.kills
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$perk", perkId);
+        cmd.Parameters.AddWithValue("$kills", kills);
+        TryExecute(cmd, $"mastery save {perkId} for {userId}");
+    }
+
+    public record struct MentorRecord(int Total, int Balance, string WeekKey, int WeekPoints);
+
+    public MentorRecord GetMentor(Guid userId)
+        => TryRead($"mentor load for {userId}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = "SELECT total, balance, week_key, week_points FROM fs_mentor WHERE user_id = $id";
+            cmd.Parameters.AddWithValue("$id", userId.ToString());
+            using var r = cmd.ExecuteReader();
+            return r.Read()
+                ? new MentorRecord(r.GetInt32(0), r.GetInt32(1), r.GetString(2), r.GetInt32(3))
+                : new MentorRecord(0, 0, string.Empty, 0);
+        }, new MentorRecord(0, 0, string.Empty, 0));
+
+    public void SaveMentor(Guid userId, MentorRecord record)
+    {
+        if (!DbReady("mentor save")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            INSERT INTO fs_mentor (user_id, total, balance, week_key, week_points)
+            VALUES ($id, $total, $balance, $week, $weekPoints)
+            ON CONFLICT(user_id) DO UPDATE SET
+                total = excluded.total,
+                balance = excluded.balance,
+                week_key = excluded.week_key,
+                week_points = excluded.week_points
+            """;
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$total", record.Total);
+        cmd.Parameters.AddWithValue("$balance", record.Balance);
+        cmd.Parameters.AddWithValue("$week", record.WeekKey);
+        cmd.Parameters.AddWithValue("$weekPoints", record.WeekPoints);
+        TryExecute(cmd, $"mentor save for {userId}");
+    }
+
+    public HashSet<string> GetTutorialFlags(Guid userId)
+        => TryRead($"tutorial load for {userId}", () =>
+        {
+            using var cmd = DbCommand();
+            cmd.CommandText = "SELECT tip FROM fs_tutorial WHERE user_id = $id";
+            cmd.Parameters.AddWithValue("$id", userId.ToString());
+            using var r = cmd.ExecuteReader();
+            var flags = new HashSet<string>();
+            while (r.Read())
+                flags.Add(r.GetString(0));
+            return flags;
+        }, new HashSet<string>());
+
+    public void SetTutorialFlag(Guid userId, string flag, bool on)
+    {
+        if (!DbReady("tutorial save")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = on
+            ? "INSERT INTO fs_tutorial (user_id, tip) VALUES ($id, $tip) ON CONFLICT(user_id, tip) DO NOTHING"
+            : "DELETE FROM fs_tutorial WHERE user_id = $id AND tip = $tip";
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        cmd.Parameters.AddWithValue("$tip", flag);
+        TryExecute(cmd, $"tutorial flag {flag} for {userId}");
+    }
+
+    public void ClearTutorial(Guid userId)
+    {
+        if (!DbReady("tutorial reset")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = "DELETE FROM fs_tutorial WHERE user_id = $id";
+        cmd.Parameters.AddWithValue("$id", userId.ToString());
+        TryExecute(cmd, $"tutorial reset for {userId}");
     }
 }

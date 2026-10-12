@@ -15,3 +15,75 @@
   name: fs-title-station-held-name
   description: fs-title-station-held-desc
   color: "#FFD700"
+
+- type: fsTitle
+  id: FSTitleIronWall
+  name: fs-title-iron-wall-name
+  description: fs-title-iron-wall-desc
+  color: "#FF7043"
+
+- type: fsTitle
+  id: FSTitleNightmareBreaker
+  name: fs-title-nightmare-breaker-name
+  description: fs-title-nightmare-breaker-desc
+  color: "#D32F2F"
+
+- type: fsTitle
+  id: FSTitleWeeklyChampion
+  name: fs-title-weekly-champion-name
+  description: fs-title-weekly-champion-desc
+  color: "#FFB300"
+
+- type: fsTitle
+  id: FSTitlePerkMaster
+  name: fs-title-perk-master-name
+  description: fs-title-perk-master-desc
+  color: "#FFD700"
+
+- type: fsTitle
+  id: FSTitleMasteryRed
+  name: fs-title-mastery-offense-name
+  description: fs-title-mastery-offense-desc
+  color: "#E53935"
+
+- type: fsTitle
+  id: FSTitleMasteryBlue
+  name: fs-title-mastery-defense-name
+  description: fs-title-mastery-defense-desc
+  color: "#1E88E5"
+
+- type: fsTitle
+  id: FSTitleMasteryGreen
+  name: fs-title-mastery-utility-name
+  description: fs-title-mastery-utility-desc
+  color: "#43A047"
+
+- type: fsTitle
+  id: FSTitleMasteryYellow
+  name: fs-title-mastery-economy-name
+  description: fs-title-mastery-economy-desc
+  color: "#FDD835"
+
+- type: fsTitle
+  id: FSTitleMasteryPurple
+  name: fs-title-mastery-hybrid-name
+  description: fs-title-mastery-hybrid-desc
+  color: "#8E24AA"
+
+- type: fsTitle
+  id: FSTitleMentor
+  name: fs-title-mentor-name
+  description: fs-title-mentor-desc
+  color: "#4DB6AC"
+
+- type: fsTitle
+  id: FSTitleGuardianAngel
+  name: fs-title-guardian-angel-name
+  description: fs-title-guardian-angel-desc
+  color: "#E1F5FE"
+
+- type: fsTitle
+  id: FSTitleBeyondTheWall
+  name: fs-title-beyond-the-wall-name
+  description: fs-title-beyond-the-wall-desc
+  color: "#FF7043"
