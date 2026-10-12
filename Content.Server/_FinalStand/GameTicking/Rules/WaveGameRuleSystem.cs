@@ -287,7 +287,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? players * comp.PlayerEnemyBonus
             : 0;
-        var total = Math.Min((int)((4 * comp.WaveNumber + 10 + playerBonus) * 1.5f
+        var total = Math.Min((int)((4.4f * comp.WaveNumber + 7 + playerBonus) * 1.5f
             * FSDifficultyRules.CountMultiplier(comp.Difficulty)
             * ModifierFactor(comp, m => m.EnemyCount)), comp.MaxEnemyCap);
         if (comp.WaveNumber >= 5 && primarySpawners == 1)

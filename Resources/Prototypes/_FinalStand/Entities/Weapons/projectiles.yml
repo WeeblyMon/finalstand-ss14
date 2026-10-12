@@ -172,7 +172,7 @@
     count: 6
     spread: 15
 
-# ── Energy shotgun laser ───────────────────────────────────────────────────
+# ── Energy shotgun laser (+100% vs BulletLaser Heat 13 → 40) ─────────────────
 - type: entity
   id: FSBulletLaserShotgun
   parent: BulletLaser
@@ -298,7 +298,7 @@
       types:
         Piercing: 30
 
-# ── Hydra grenade projectile — FSFragGrenadeExplosion blocks struct/player damage ──
+# ── Hydra grenade projectile — FSHydraExplosion blocks struct/player damage ──
 - type: entity
   parent: BulletGrenadeFrag
   id: FSBulletGrenadeFrag
@@ -308,7 +308,7 @@
     tags:
     - WeaponExplosive
   - type: Explosive
-    explosionType: FSFragGrenadeExplosion
+    explosionType: FSHydraExplosion
     maxIntensity: 2.5
     intensitySlope: 3
     totalIntensity: 10
@@ -389,7 +389,7 @@
   - type: FSTeslaArc
     arcInterval: 0.4
     arcRange: 6
-    maxArcs: 4
+    maxArcs: 5
     maxTotalArcs: 8
     damage:
       types:
@@ -400,6 +400,16 @@
     radius: 3.0
     energy: 7.0
 
+
+- type: entity
+  parent: BulletMinigun
+  id: FSBulletMinigun
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 12
 
 # ── X-Ray laser — uses FSXrayRaycast to pierce walls and hit zombies only ──────
 - type: entity

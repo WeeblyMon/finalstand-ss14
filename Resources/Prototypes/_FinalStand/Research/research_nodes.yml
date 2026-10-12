@@ -173,3 +173,51 @@
   - FSResearchQuantumLeaping
   bonusDescription: Unlocks the hand teleporter at the protolathe. Holds 2 charges, one per portal pair, recharging every 2 minutes. Portals close after 60 seconds of combat; the timer holds during prep.
   vanillaTechnologyId: FSHandTeleportation
+
+- type: fsTechNode
+  id: FSResearchDamageBeaconSpareCasing
+  name: Spare Beacon Casing
+  icon:
+    sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
+    state: icon
+  branch: Research
+  tier: 1
+  cost: 3000
+  bonusDescription: Carry one more Damage Beacon charge.
+
+- type: fsTechNode
+  id: FSResearchDamageBeaconWideBandTargeting
+  name: Wide-Band Targeting
+  icon:
+    sprite: _FinalStand/Objects/Devices/DamageBeacon.rsi
+    state: base
+  branch: Research
+  tier: 2
+  cost: 4000
+  prerequisites:
+  - FSResearchDamageBeaconSpareCasing
+  bonusDescription: Widens the Damage Beacon's amplification radius by one and a half tiles.
+
+- type: fsTechNode
+  id: FSResearchNullFieldSpareCore
+  name: Spare Field Core
+  icon:
+    sprite: _FinalStand/Objects/Devices/NullField.rsi
+    state: icon
+  branch: Research
+  tier: 1
+  cost: 3000
+  bonusDescription: Carry one more Null Field Emitter charge.
+
+- type: fsTechNode
+  id: FSResearchNullFieldGeometryTuning
+  name: Field Geometry Tuning
+  icon:
+    sprite: _FinalStand/Objects/Devices/NullField.rsi
+    state: base
+  branch: Research
+  tier: 2
+  cost: 4000
+  prerequisites:
+  - FSResearchNullFieldSpareCore
+  bonusDescription: Widens the Null Field Emitter's stasis radius by one and a half tiles.

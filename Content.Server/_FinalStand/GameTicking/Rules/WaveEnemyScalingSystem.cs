@@ -33,13 +33,32 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
             _mobThresholds.SetMobStateThreshold(enemy, damage * multiplier, state, thresholds);
     }
 
+    private static readonly (int Wave, float Multiplier)[] HpCurve =
+    [
+        (1, 1f),
+        (10, 2.8f),
+        (20, 5.5f),
+        (30, 9f),
+    ];
+
     public static float GetHpMultiplier(int wave)
     {
-        if (wave <= 1) return 1f;
-        if (wave <= 10) return 1f + (wave - 1) * 0.2f;
-        if (wave <= 20) return 2.8f + (wave - 10) * 0.27f;
-        if (wave <= 30) return 5.5f + (wave - 20) * 0.35f;
-        return 9f + (wave - 30) * 0.45f;
+        if (wave <= HpCurve[0].Wave)
+            return HpCurve[0].Multiplier;
+
+        for (var i = 1; i < HpCurve.Length; i++)
+        {
+            var (hiWave, hiMult) = HpCurve[i];
+            if (wave > hiWave)
+                continue;
+
+            var (loWave, loMult) = HpCurve[i - 1];
+            var t = (wave - loWave) / (float) (hiWave - loWave);
+            return loMult + (hiMult - loMult) * t;
+        }
+
+        var last = HpCurve[^1];
+        return last.Multiplier + (wave - last.Wave) * 0.35f;
     }
 
     // On top of the shared curve above, so the boss keeps outscaling the trash around it.

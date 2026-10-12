@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   name: BaseWeaponSniper
   parent: BaseItem
   id: BaseWeaponSniper
@@ -129,8 +129,8 @@
     capacity: 5
     proto: FSCartridgeAntiMateriel
   - type: SpeedModifiedOnWield
-    walkModifier: 0.75
-    sprintModifier: 0.75
+    walkModifier: 0.8
+    sprintModifier: 0.8
   - type: CursorOffsetRequiresWield
   - type: EyeCursorOffset
     maxOffset: 6

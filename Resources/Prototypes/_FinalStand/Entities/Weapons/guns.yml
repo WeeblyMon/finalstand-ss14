@@ -910,6 +910,19 @@
   - type: Tag
     tags:
     - WeaponGunBallistic
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeMinigun
+    capacity: 1000
+
+- type: entity
+  parent: CartridgeMinigun
+  id: FSCartridgeMinigun
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletMinigun
+    deleteOnSpawn: true
 
 # ── RPG-7 FS override — tags for Ordnance launcher research bonuses ────────────
 - type: entity

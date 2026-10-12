@@ -226,13 +226,6 @@
       baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
-    - id: n1984-damage
-      name: Hollow Point
-      description: Enhanced rounds increase damage by 15% per level.
-      maxLevel: 5
-      baseCost: 1350
-      type: Damage
-      valuePerLevel: 0.15
     - id: n1984-extended-mag
       name: Extended Mag
       description: Adds 2 rounds to magazine capacity per level.
@@ -276,6 +269,13 @@
       baseCost: 2000
       type: Knockback
       valuePerLevel: 1
+    - id: n1984-hollow-point
+      name: Hollow Point
+      description: Enhanced rounds increase damage by 15% per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: Damage
+      valuePerLevel: 0.15
   - type: Sprite
     sprite: Objects/Weapons/Guns/Pistols/N1984.rsi
     state: base
@@ -502,20 +502,6 @@
       baseCost: 1350
       type: FireRate
       valuePerLevel: 0.5
-    - id: wt550-damage
-      name: Hollow Point
-      description: Enhanced rounds increase damage by 15% per level.
-      maxLevel: 5
-      baseCost: 1350
-      type: Damage
-      valuePerLevel: 0.15
-    - id: wt550-extended-mag
-      name: Extended Mag
-      description: Adds 5 rounds to magazine capacity per level.
-      maxLevel: 5
-      baseCost: 1350
-      type: MagazineSize
-      valuePerLevel: 5
     - id: wt550-speed-loader
       name: Speed Loader
       description: Faster reload per level.
@@ -537,6 +523,20 @@
       baseCost: 1350
       type: MovementSpeed
       valuePerLevel: 0.05
+    - id: wt550-hollow-point
+      name: Hollow Point
+      description: Enhanced rounds increase damage by 15% per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: Damage
+      valuePerLevel: 0.15
+    - id: wt550-extended-mag
+      name: Extended Mag
+      description: Adds 5 rounds to magazine capacity per level.
+      maxLevel: 5
+      baseCost: 1350
+      type: MagazineSize
+      valuePerLevel: 5
   - type: Sprite
     sprite: Objects/Weapons/Guns/SMGs/wt550.rsi
     state: base

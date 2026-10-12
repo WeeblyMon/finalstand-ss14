@@ -1,5 +1,6 @@
 // Recovers wave zombies that stop making progress: nudges the boxed-in, relocates the stranded.
 using System.Numerics;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
@@ -139,14 +140,10 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private void TryRelocateStranded(EntityUid uid, TransformComponent xform)
     {
         _spawnerBuffer.Clear();
-        var spawnerQuery = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
-        while (spawnerQuery.MoveNext(out _, out _, out var spXform))
-        {
-            if (spXform.GridUid is not { } spGrid)
-                continue;
-            if (_flow.IsReachable(spGrid, HordeFlowFieldSystem.ToTile(spXform.LocalPosition)))
-                _spawnerBuffer.Add(spXform.Coordinates);
-        }
+        CollectActiveSpawners();
+
+        if (_spawnerBuffer.Count == 0)
+            CollectAnySpawner();
 
         if (_spawnerBuffer.Count == 0)
         {
@@ -158,6 +155,37 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         _transform.SetCoordinates(uid, _random.Pick(_spawnerBuffer));
         ResetSteering(uid);
         Log.Info($"[FSStuckRecovery] Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
+    }
+
+    private void CollectActiveSpawners()
+    {
+        var ruleQuery = EntityQueryEnumerator<WaveGameRuleComponent>();
+        while (ruleQuery.MoveNext(out _, out var rule))
+        {
+            foreach (var spawner in rule.SpawnerEntities)
+            {
+                if (TerminatingOrDeleted(spawner) || !TryComp<TransformComponent>(spawner, out var spXform))
+                    continue;
+
+                TryAddSpawner(spXform);
+            }
+        }
+    }
+
+    private void CollectAnySpawner()
+    {
+        var spawnerQuery = EntityQueryEnumerator<WaveEnemySpawnerComponent, TransformComponent>();
+        while (spawnerQuery.MoveNext(out _, out _, out var spXform))
+            TryAddSpawner(spXform);
+    }
+
+    private void TryAddSpawner(TransformComponent spXform)
+    {
+        if (spXform.GridUid is not { } spGrid)
+            return;
+
+        if (_flow.IsReachable(spGrid, HordeFlowFieldSystem.ToTile(spXform.LocalPosition)))
+            _spawnerBuffer.Add(spXform.Coordinates);
     }
 
     private void TryRecover(EntityUid uid, TransformComponent xform, ref StuckState s, TimeSpan curTime)
