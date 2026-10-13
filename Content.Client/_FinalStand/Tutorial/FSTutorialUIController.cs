@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.Gameplay;
 using Content.Shared._FinalStand.Tutorial;
@@ -11,7 +12,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Tutorial;
 
-public sealed class FSTutorialUIController : UIController, IOnStateExited<GameplayState>
+public sealed class FSTutorialUIController : UIController, IOnStateExited<GameplayState>, IOnSystemChanged<FSUiEventRelaySystem>
 {
     private static readonly TimeSpan ShowTime = TimeSpan.FromSeconds(25);
     private const float MaxFrameStep = 0.25f;
@@ -24,11 +25,9 @@ public sealed class FSTutorialUIController : UIController, IOnStateExited<Gamepl
 
     public FSTutorialTip? Showing { get; private set; }
 
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeNetworkEvent<FSTutorialTipEvent>((ev, _) => Enqueue(ev.Tip));
-    }
+    public void OnSystemLoaded(FSUiEventRelaySystem system) => system.TutorialTip += Enqueue;
+
+    public void OnSystemUnloaded(FSUiEventRelaySystem system) => system.TutorialTip -= Enqueue;
 
     public void Enqueue(FSTutorialTip tip)
     {

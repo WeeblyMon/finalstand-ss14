@@ -81,6 +81,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
         SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeNetworkEvent<FSWaveHudRequestEvent>((_, args) => SendHudState(args.SenderSession));
         SubscribeLocalEvent<FSRevenantExecutedEvent>(OnRevenantExecuted);
     }
 
@@ -718,6 +719,26 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (args.Cancelled || args.Origin == null) return;
         if (_mind.TryGetMind(args.Origin.Value, out var mindId, out _))
             comp.AttackerMinds.Add(mindId);
+    }
+
+    private void SendHudState(ICommonSession session)
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _))
+            return;
+
+        var player = Filter.SinglePlayer(session);
+        if (comp.Phase == WavePhase.Prep)
+        {
+            var secs = Math.Max(0f, (float) (comp.PhaseEndTime - Timing.CurTime).TotalSeconds);
+            RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), player);
+            RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), player);
+            RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), player);
+            return;
+        }
+
+        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), player);
+        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), player);
+        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), player);
     }
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)

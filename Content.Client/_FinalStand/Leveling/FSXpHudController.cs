@@ -14,7 +14,7 @@ using Robust.Shared.Maths;
 
 namespace Content.Client._FinalStand.Leveling;
 
-public sealed partial class FSXpHudController : UIController
+public sealed partial class FSXpHudController : UIController, IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -30,10 +30,13 @@ public sealed partial class FSXpHudController : UIController
     private ProgressBar? _bar;
     private Label? _label;
 
+    public void OnSystemLoaded(FSUiEventRelaySystem system) => system.LevelingUpdated += OnLevelingUpdated;
+
+    public void OnSystemUnloaded(FSUiEventRelaySystem system) => system.LevelingUpdated -= OnLevelingUpdated;
+
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnLevelingUpdated);
 
         var screenLoad = UIManager.GetUIController<GameplayStateLoadController>();
         screenLoad.OnScreenLoad += OnScreenLoad;
@@ -132,7 +135,7 @@ public sealed partial class FSXpHudController : UIController
         _label = null;
     }
 
-    private void OnLevelingUpdated(FSLevelingUpdatedEvent ev, EntitySessionEventArgs _)
+    private void OnLevelingUpdated(FSLevelingUpdatedEvent ev)
     {
         _cached = ev;
         Apply(ev);

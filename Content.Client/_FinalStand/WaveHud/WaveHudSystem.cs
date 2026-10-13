@@ -340,6 +340,8 @@ public sealed partial class WaveHudSystem : EntitySystem
         RaiseNetworkEvent(new WalletRequestEvent());
         RaiseNetworkEvent(new FSPerkStateRequestMessage());
         RaiseNetworkEvent(new FSRespawnOfferRequestEvent());
+        RaiseNetworkEvent(new FSWaveHudRequestEvent());
+        RaiseNetworkEvent(new FSLevelingRequestMessage());
     }
 
     private WaveHudOverlay EnsureOverlay()

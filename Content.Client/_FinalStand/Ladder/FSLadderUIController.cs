@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Robust.Client.UserInterface.Controllers;
@@ -6,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Ladder;
 
-public sealed class FSLadderUIController : UIController
+public sealed class FSLadderUIController : UIController, IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IClientNetManager _net = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -17,11 +18,16 @@ public sealed class FSLadderUIController : UIController
     private (FSDifficulty Difficulty, FSPlayerBracket Bracket, bool Weekly)? _pending;
     private TimeSpan? _lastSent;
 
-    public override void Initialize()
+    public void OnSystemLoaded(FSUiEventRelaySystem system)
     {
-        base.Initialize();
-        SubscribeNetworkEvent<FSOpenLadderEvent>((_, _) => Open());
-        SubscribeNetworkEvent<FSLadderResponseEvent>(OnResponse);
+        system.LadderOpenRequested += Open;
+        system.LadderResponse += OnResponse;
+    }
+
+    public void OnSystemUnloaded(FSUiEventRelaySystem system)
+    {
+        system.LadderOpenRequested -= Open;
+        system.LadderResponse -= OnResponse;
     }
 
     public void Open()
@@ -70,7 +76,7 @@ public sealed class FSLadderUIController : UIController
         });
     }
 
-    private void OnResponse(FSLadderResponseEvent ev, EntitySessionEventArgs _)
+    private void OnResponse(FSLadderResponseEvent ev)
     {
         if (_window is { Disposed: false })
             _window.Populate(ev);

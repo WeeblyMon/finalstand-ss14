@@ -4,6 +4,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
@@ -53,7 +54,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(ev => SendState(Filter.SinglePlayer(ev.Player)));
+        SubscribeNetworkEvent<FSWaveHudRequestEvent>((_, args) => SendState(Filter.SinglePlayer(args.SenderSession)));
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Clear());
     }
 

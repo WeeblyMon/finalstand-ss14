@@ -23,6 +23,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
+        SubscribeNetworkEvent<FSWaveHudRequestEvent>(OnHudRequest);
         SubscribeNetworkEvent<FSReadyUpRequestMessage>(OnReadyUpRequest);
     }
 
@@ -41,18 +42,22 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         BroadcastState();
     }
 
-    private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
+    private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev) => SendPrepState(ev.Player, ev.Mob);
+
+    private void OnHudRequest(FSWaveHudRequestEvent ev, EntitySessionEventArgs args)
+        => SendPrepState(args.SenderSession, args.SenderSession.AttachedEntity ?? default);
+
+    private void SendPrepState(ICommonSession player, EntityUid mob)
     {
-        // Late-join: show the ready-up widget if still in prep and refresh the active count.
-        if (!_readyCheck.IsCombatPhase())
-        {
-            _readyCheck.SetTotalPlayers(CountActivePlayers());
-            RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
-            var isReady = ev.Mob != default && _readyCheck.IsPlayerReady(ev.Mob);
-            RaiseNetworkEvent(
-                new FSReadyUpStateEvent(_readyCheck.GetReadyCount(), _readyCheck.GetTotalCount(), isReady),
-                ev.Player);
-        }
+        if (!_waveRule.TryGetWaveStatus(out _, out var phase) || phase != WavePhase.Prep || _readyCheck.IsCombatPhase())
+            return;
+
+        _readyCheck.SetTotalPlayers(CountActivePlayers());
+        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(player));
+        var isReady = mob != default && _readyCheck.IsPlayerReady(mob);
+        RaiseNetworkEvent(
+            new FSReadyUpStateEvent(_readyCheck.GetReadyCount(), _readyCheck.GetTotalCount(), isReady),
+            player);
     }
 
     private void OnReadyUpRequest(FSReadyUpRequestMessage msg, EntitySessionEventArgs args)
