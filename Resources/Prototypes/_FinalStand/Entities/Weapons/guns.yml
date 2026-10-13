@@ -770,9 +770,26 @@
   parent: Chainsaw
   suffix: FinalStand
   components:
+  - type: FSMeleeJuice
+    light:
+      anticipation: 0
+      hitstop: 0
+      trauma: 0.15
+      shakeMode: Sustained
+      knockback: 0.5
+      flinchDuration: 0.3
+      flinchSpeed: 0.3
+      hitEmitter: FSMeleeChainsawSparks
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        path: /Audio/_FinalStand/Mobs/Devastator/chainsawattack.ogg
+      moveAnticipation: 0.6
+      moveImpact: 0.6
+      moveRecovery: 0.6
+      recoveryTime: 0.3
   - type: MeleeWeapon
     autoAttack: true
-    angle: 0
+    angle: 90
     wideAnimationRotation: -135
     attackRate: 4
     damage:
