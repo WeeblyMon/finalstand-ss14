@@ -15,7 +15,7 @@ using Robust.Shared.Network;
 using Robust.Shared.Player;
 
 namespace Content.Shared._Shitmed.Targeting;
-public abstract class SharedTargetingSystem : EntitySystem
+public abstract partial class SharedTargetingSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;
 
