@@ -43,6 +43,8 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
         "/Audio/_FinalStand/Weapons/",
     };
 
+    private const string EngineeringPrefix = "/Audio/_FinalStand/Engineering/";
+
     private static readonly string[] CrowdPrefixes =
     {
         "/Audio/Weapons/",
@@ -59,6 +61,7 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
     private EntityQuery<PhysicsComponent> _physicsQuery;
 
     private float _weaponDb;
+    private float _engineeringDb;
     private bool _dynamics;
     private float _headroom;
     private float _limiterDb;
@@ -77,6 +80,7 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
 
         Subs.CVar(_cfg, CCVars.FSWeaponsVolume, v => _weaponDb = MathF.Max(SharedAudioSystem.GainToVolume(v), -80f), true);
         Subs.CVar(_cfg, CCVars.FSAudioDynamics, v => _dynamics = v, true);
+        Subs.CVar(_cfg, CCVars.FSEngSfxVolume, v => _engineeringDb = MathF.Max(SharedAudioSystem.GainToVolume(v), -80f), true);
         Subs.CVar(_cfg, CCVars.FSWeaponsHeadroom, v => _headroom = MathF.Max(v, 0.01f), true);
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnPrototypesReloaded);
         LoadTrims();
@@ -149,6 +153,8 @@ public sealed partial class FSAudioMixerSystem : EntitySystem
 
         track.Weapon = HasPrefix(fileName, WeaponPrefixes);
         track.FixedDb = _trims.GetValueOrDefault(fileName);
+        if (fileName.StartsWith(EngineeringPrefix, StringComparison.Ordinal))
+            track.FixedDb += _engineeringDb;
 
         if (!_dynamics || !HasPrefix(fileName, CrowdPrefixes))
             return track;

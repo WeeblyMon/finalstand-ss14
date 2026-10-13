@@ -18,6 +18,7 @@ public sealed partial class MechEquipmentSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private VehicleSystem _vehicle = default!;
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechMountSystem _mounts = default!; // FS
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -46,6 +47,13 @@ public sealed partial class MechEquipmentSystem : EntitySystem
 
         if (_whitelistSystem.IsWhitelistFail(mechComp.EquipmentWhitelist, args.Used))
             return;
+
+        // FS
+        if (!_mounts.HasRoom(mech, args.Used))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-mech-mount-full"), mech, args.User);
+            return;
+        }
 
         _popup.PopupEntity(Loc.GetString("mech-equipment-begin-install", ("item", uid)), mech);
 

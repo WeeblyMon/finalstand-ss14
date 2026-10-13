@@ -7,7 +7,7 @@ using Robust.Shared.Physics.Systems;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSChargeShotEffectsSystem : EntitySystem
+public sealed partial class FSChargeShotEffectsSystem : EntitySystem
 {
     [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;

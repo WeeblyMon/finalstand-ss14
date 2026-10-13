@@ -12,7 +12,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.SmartReload;
 
-public sealed class FSAmmoWheel : EntitySystem
+public sealed partial class FSAmmoWheel : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;

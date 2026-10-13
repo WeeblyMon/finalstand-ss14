@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Stylesheets;
+using Content.Client._FinalStand.UI;
 using Content.Client.Research;
 using Content.Client.Stylesheets;
 using Content.Client.UserInterface.Controls;
@@ -93,6 +94,15 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         UpdateDetailPanel();
     }
 
+    private void ShrinkDetailDisc()
+    {
+        var disc = Math.Max(1, DetailDisc.PixelSize.X > 0 ? DetailDisc.PixelSize.X : 72);
+        var glow = Math.Max(1, DetailDiscGlow.PixelSize.X > 0 ? DetailDiscGlow.PixelSize.X : 92);
+        DetailDiscGlow.Texture = FSShapes.Shrunk(ResearchTexturesDir + "node_glow.png", glow);
+        DetailDiscFill.Texture = FSShapes.Shrunk(ResearchTexturesDir + "node_disc.png", disc);
+        DetailDiscRing.Texture = FSShapes.Shrunk(ResearchTexturesDir + "node_ring.png", disc);
+    }
+
     private void StyleChrome()
     {
         StatusBar.PanelOverride = Box(FSUiPalette.BgSurface, FSUiPalette.BgTrack, new Thickness(0, 0, 0, 1));
@@ -115,10 +125,9 @@ public sealed partial class FSResearchTreeMenu : FancyWindow
         LayoutContainer.SetGrowVertical(ZoomPanel, LayoutContainer.GrowDirection.Begin);
 
         BuildPlateFrame();
-        var disc = _resourceCache.GetResource<TextureResource>(ResearchTexturesDir + "node_disc.png").Texture;
-        DetailDiscGlow.Texture = _resourceCache.GetResource<TextureResource>(ResearchTexturesDir + "node_glow.png").Texture;
-        DetailDiscFill.Texture = disc;
-        DetailDiscRing.Texture = _resourceCache.GetResource<TextureResource>(ResearchTexturesDir + "node_ring.png").Texture;
+        ShrinkDetailDisc();
+        DetailDisc.OnResized += ShrinkDetailDisc;
+        DetailDiscGlow.OnResized += ShrinkDetailDisc;
         DetailDiscFill.Modulate = Color.FromHex("#1a1816");
         LayoutContainer.SetAnchorAndMarginPreset(DetailDiscGlow, LayoutContainer.LayoutPreset.Wide, margin: -10);
         LayoutContainer.SetAnchorPreset(DetailDiscFill, LayoutContainer.LayoutPreset.Wide);

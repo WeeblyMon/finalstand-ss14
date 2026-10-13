@@ -6,6 +6,11 @@
   suffix: Tesla
   name: tesla zombie
   components:
+  - type: FSMaterialDrop
+    materials:
+    - IngotSilver1
+    - IngotSilver1
+    - IngotGold1
   - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/teslazombie.png

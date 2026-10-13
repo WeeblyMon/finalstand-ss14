@@ -13,7 +13,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSRevenantOpacitySystem : EntitySystem
+public sealed partial class FSRevenantOpacitySystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _proto = default!;

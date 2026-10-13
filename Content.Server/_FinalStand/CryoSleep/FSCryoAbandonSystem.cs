@@ -7,7 +7,7 @@ using Content.Shared.Ghost.Components;
 namespace Content.Server._FinalStand.CryoSleep;
 
 // gives up the cryosleeping body and returns the player to the lobby; wipes the mind
-public sealed class FSCryoAbandonSystem : EntitySystem
+public sealed partial class FSCryoAbandonSystem : EntitySystem
 {
     [Dependency] private ISharedAdminLogManager _adminLog = default!;
     [Dependency] private GameTicker _gameTicker = default!;

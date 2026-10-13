@@ -9,7 +9,7 @@ namespace Content.Server._FinalStand.GameTicking;
 /// <summary>
 /// Publishes the current wave to the lobby and the hub status (preset line).
 /// </summary>
-public sealed class FSWaveStatusSystem : EntitySystem
+public sealed partial class FSWaveStatusSystem : EntitySystem
 {
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;

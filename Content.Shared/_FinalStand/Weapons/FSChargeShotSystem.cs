@@ -11,7 +11,7 @@ using Robust.Shared.Timing;
 namespace Content.Shared._FinalStand.Weapons;
 
 // holding the trigger builds charge; releasing fires one shot scaled by how long it was held
-public sealed class FSChargeShotSystem : EntitySystem
+public sealed partial class FSChargeShotSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;

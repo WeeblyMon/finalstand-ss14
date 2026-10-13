@@ -1,0 +1,4 @@
+- files: ["fire.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "Trimmed from Weapons/Guns/Gunshots/lmg.ogg for Final Stand so rapid fire doesn't run out of voices"
+  source: "https://github.com/discordia-space/CEV-Eris"

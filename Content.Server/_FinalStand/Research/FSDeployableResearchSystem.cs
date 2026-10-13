@@ -3,7 +3,7 @@ using Robust.Shared.Maths;
 
 namespace Content.Server._FinalStand.Research;
 
-public sealed class FSDeployableResearchSystem : EntitySystem
+public sealed partial class FSDeployableResearchSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
 

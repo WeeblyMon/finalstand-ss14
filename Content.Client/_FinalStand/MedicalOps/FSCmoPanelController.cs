@@ -20,7 +20,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-public sealed class FSCmoPanelController : UIController
+public sealed partial class FSCmoPanelController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;

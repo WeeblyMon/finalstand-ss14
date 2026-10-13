@@ -6,7 +6,7 @@ using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSDamageBeaconSystem : FSDeployableAuraSystem<FSDamageBeaconComponent>
+public sealed partial class FSDamageBeaconSystem : FSDeployableAuraSystem<FSDamageBeaconComponent>
 {
     [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
 

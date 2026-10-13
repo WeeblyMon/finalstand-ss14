@@ -11,7 +11,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSBuiltToLastSystem : EntitySystem
+public sealed partial class FSBuiltToLastSystem : EntitySystem
 {
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private DamageableSystem _damageable = default!;

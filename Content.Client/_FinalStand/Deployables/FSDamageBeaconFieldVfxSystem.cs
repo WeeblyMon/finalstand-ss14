@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
+public sealed partial class FSDamageBeaconFieldVfxSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IGameTiming _timing = default!;

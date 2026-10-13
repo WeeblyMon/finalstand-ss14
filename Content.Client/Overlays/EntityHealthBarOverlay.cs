@@ -97,6 +97,9 @@ public sealed class EntityHealthBarOverlay : Overlay
             if (statusIcon != null && !_statusIconSystem.IsVisible((uid, _entManager.GetComponent<MetaDataComponent>(uid)), statusIcon))
                 continue;
 
+            if (_entManager.HasComponent<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(uid)) // FS
+                continue; // FS
+
             if (!xformQuery.TryGetComponent(uid, out var xform) ||
                 xform.MapID != args.MapId)
                 continue;

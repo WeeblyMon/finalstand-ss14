@@ -6,7 +6,7 @@ using Robust.Shared.Containers;
 
 namespace Content.Client._FinalStand.Grenades;
 
-public sealed class FSThrowableWheel : EntitySystem
+public sealed partial class FSThrowableWheel : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;

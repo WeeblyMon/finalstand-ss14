@@ -257,6 +257,24 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         gun = default;
 
+        // FS: a mech pilot fires the mech's selected gun.
+        if (TryComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(entity, out var mechOperator)
+            && TryComp<Content.Shared.Mech.Components.MechComponent>(mechOperator.Vehicle, out var mech)
+            && mech.CurrentSelectedEquipment is { } equipment
+            && TryComp(equipment, out GunComponent? mechGun))
+        {
+            gun = (equipment, mechGun);
+            return true;
+        }
+
+        // FS: a gunner seated on an HMG fires the HMG, whatever they hold.
+        if (TryComp<Content.Shared._FinalStand.HMG.FSHMGGunnerComponent>(entity, out var gunner)
+            && TryComp(gunner.Hmg, out GunComponent? hmgGun))
+        {
+            gun = (gunner.Hmg, hmgGun);
+            return true;
+        }
+
         if (_hands.GetActiveItem(entity) is { } held)
         {
             if (TryComp(held, out GunComponent? gunComp))

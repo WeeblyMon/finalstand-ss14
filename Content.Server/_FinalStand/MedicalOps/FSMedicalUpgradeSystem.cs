@@ -10,7 +10,7 @@ using Content.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSMedicalUpgradeSystem : EntitySystem
+public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 {
     [Dependency] private FSMedicalResearchSystem _research = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;

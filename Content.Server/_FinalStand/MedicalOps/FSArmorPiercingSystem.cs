@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSArmorPiercingSystem : EntitySystem
+public sealed partial class FSArmorPiercingSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
 

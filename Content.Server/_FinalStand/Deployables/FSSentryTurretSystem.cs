@@ -4,6 +4,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Projectiles;
+using Content.Shared.Throwing;
 using Content.Shared.Weapons.Ranged.Systems;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Audio;
@@ -15,7 +16,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSSentryTurretSystem : EntitySystem
+public sealed partial class FSSentryTurretSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -26,30 +27,12 @@ public sealed class FSSentryTurretSystem : EntitySystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private FSDeployableAlertSystem _alerts = default!;
 
     private readonly ObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>> _enemyPool =
         new DefaultObjectPool<HashSet<Entity<WaveSpawnedTagComponent>>>(
             new SetPolicy<Entity<WaveSpawnedTagComponent>>());
-
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeLocalEvent<FSSentryTurretComponent, FSDeployableDeployedEvent>(OnDeployed);
-    }
-
-    private void OnDeployed(Entity<FSSentryTurretComponent> ent, ref FSDeployableDeployedEvent args)
-    {
-        if (TryComp<FSSentryTurretComponent>(args.Item, out var item))
-        {
-            ent.Comp.MaxAmmo = item.MaxAmmo;
-            ent.Comp.FireInterval = item.FireInterval;
-            ent.Comp.DamageMultiplier = item.DamageMultiplier;
-            ent.Comp.Range = item.Range;
-        }
-
-        ent.Comp.Ammo = ent.Comp.MaxAmmo;
-        Dirty(ent);
-    }
 
     public override void Update(float frameTime)
     {
@@ -119,6 +102,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
     private void Fire(EntityUid uid, FSSentryTurretComponent turret, TransformComponent xform, Vector2 direction)
     {
         var projectile = Spawn(turret.ProjectileProto, xform.Coordinates);
+        EnsureComp<FSDeployableProjectileComponent>(projectile);
 
         if (TryComp<ProjectileComponent>(projectile, out var proj))
             proj.Damage *= turret.DamageMultiplier;
@@ -138,6 +122,7 @@ public sealed class FSSentryTurretSystem : EntitySystem
 
         turret.Ammo--;
         Dirty(uid, turret);
+        _alerts.AmmoSpent(uid, turret);
 
         if (turret.Ammo <= 0)
             QueueDel(uid);
@@ -148,10 +133,10 @@ public sealed class FSSentryTurretSystem : EntitySystem
         if (turret.CasingProto is not { } proto)
             return;
 
-        var eject = direction.ToWorldAngle() + Angle.FromDegrees(_random.NextFloat(60f, 120f));
-        var offset = eject.ToVec() * _random.NextFloat(0.15f, 0.4f);
-
-        var casing = Spawn(proto, xform.Coordinates.Offset(offset));
+        var back = Angle.FromDegrees(_random.NextFloat(-25f, 25f)).RotateVec(-Vector2.Normalize(direction));
+        var casing = Spawn(proto, _transform.GetMapCoordinates(xform));
         _transform.SetWorldRotation(casing, _random.NextAngle());
+        _throwing.TryThrow(casing, back * _random.NextFloat(0.9f, 1.5f), baseThrowSpeed: 7f,
+            recoil: false, playSound: false, compensateFriction: true);
     }
 }

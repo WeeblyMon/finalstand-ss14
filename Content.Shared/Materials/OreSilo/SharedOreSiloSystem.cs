@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Materials;
 using Content.Shared.Power.EntitySystems;
 using JetBrains.Annotations;
 using Robust.Shared.Utility;
@@ -9,6 +10,7 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
     [Dependency] private SharedMaterialStorageSystem _materialStorage = default!;
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSSiloReachSystem _fsReach = default!; // FS
 
     [Dependency] private EntityQuery<OreSiloClientComponent> _clientQuery = default!;
 
@@ -143,6 +145,24 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
         UpdateOreSiloUi((ent.Comp.Silo.Value, silo));
     }
 
+    // FS
+    public void FSLinkClient(Entity<OreSiloComponent> pool, Entity<OreSiloClientComponent> client)
+    {
+        if (client.Comp.Silo == pool.Owner)
+            return;
+
+        if (client.Comp.Silo is { } old && TryComp<OreSiloComponent>(old, out var oldSilo))
+        {
+            oldSilo.Clients.Remove(client);
+            Dirty(old, oldSilo);
+        }
+
+        client.Comp.Silo = pool;
+        Dirty(client);
+        pool.Comp.Clients.Add(client);
+        Dirty(pool);
+    }
+
     /// <summary>
     /// Checks if a given client fulfills the criteria to link/receive materials from an ore silo.
     /// </summary>
@@ -151,6 +171,9 @@ public abstract partial class SharedOreSiloSystem : EntitySystem
     {
         if (!Resolve(silo, ref silo.Comp1, ref silo.Comp2))
             return false;
+
+        if (HasComp<FSSiloNetworkComponent>(silo.Owner)) // FS
+            return _fsReach.InReach(client);
 
         if (!_powerReceiver.IsPowered(silo.Owner))
             return false;

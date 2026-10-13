@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Upgrades.Effects;
 using System.Numerics;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Utility;
@@ -26,8 +27,7 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
-    [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SlowingUpgradeSystem _slow = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -156,10 +156,7 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
 
             if (comp.SlowRadius > 0f && dist <= comp.SlowRadius)
             {
-                var slow = EnsureComp<FSSlowedComponent>(targetUid);
-                slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(comp.SlowDuration);
-                slow.SlowFactor = comp.SlowAmount;
-                _movement.RefreshMovementSpeedModifiers(targetUid);
+                _slow.ApplySlow(targetUid, "bloater", comp.SlowAmount, TimeSpan.FromSeconds(comp.SlowDuration));
             }
         }
         _damageableSetPool.Return(inRange);

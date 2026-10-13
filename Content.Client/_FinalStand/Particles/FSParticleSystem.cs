@@ -71,9 +71,9 @@ public sealed partial class FSParticleSystem : EntitySystem
             _overlays.RemoveOverlay(_overlay);
     }
 
-    public void Burst(string emitterId, MapCoordinates at, Color? tint = null, float countScale = 1f)
+    public void Burst(ProtoId<FSParticleEmitterPrototype> emitterId, MapCoordinates at, Color? tint = null, float countScale = 1f)
     {
-        if (!_prototypes.TryIndex<FSParticleEmitterPrototype>(emitterId, out var emitter))
+        if (!_prototypes.TryIndex(emitterId, out var emitter))
             return;
 
         var count = (int) MathF.Round(emitter.Burst * countScale);
@@ -81,7 +81,7 @@ public sealed partial class FSParticleSystem : EntitySystem
             Spawn(emitter, at.MapId, at.Position, tint ?? Color.White);
     }
 
-    public void Burst(string emitterId, EntityUid at, Color? tint = null, float countScale = 1f)
+    public void Burst(ProtoId<FSParticleEmitterPrototype> emitterId, EntityUid at, Color? tint = null, float countScale = 1f)
     {
         if (!Exists(at))
             return;
@@ -89,9 +89,9 @@ public sealed partial class FSParticleSystem : EntitySystem
         Burst(emitterId, _xform.GetMapCoordinates(at), tint, countScale);
     }
 
-    public int Attach(string emitterId, EntityUid entity, Color? tint = null)
+    public int Attach(ProtoId<FSParticleEmitterPrototype> emitterId, EntityUid entity, Color? tint = null)
     {
-        if (!_prototypes.TryIndex<FSParticleEmitterPrototype>(emitterId, out var emitter))
+        if (!_prototypes.TryIndex(emitterId, out var emitter))
             return 0;
 
         var handle = _nextHandle++;

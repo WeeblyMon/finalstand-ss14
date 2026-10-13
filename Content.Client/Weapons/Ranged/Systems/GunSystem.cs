@@ -376,10 +376,15 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
         }
 
+        var fsFlash = new FSMuzzleFlashEffectEvent(message.Angle); // FS
+        RaiseLocalEvent(gunUid, ref fsFlash); // FS
+        if (fsFlash.Offset != Vector2.Zero) // FS
+            coordinates = TransformSystem.ToCoordinates(new MapCoordinates(TransformSystem.GetWorldPosition(gunXform) + fsFlash.Offset, gunXform.MapID)); // FS
+
         var ent = Spawn(message.Prototype, coordinates);
         TransformSystem.SetWorldRotationNoLerp(ent, message.Angle);
 
-        if (tracked != null)
+        if (tracked != null && fsFlash.Offset == Vector2.Zero) // FS
         {
             var track = EnsureComp<TrackUserComponent>(ent);
             track.User = tracked;
@@ -413,17 +418,16 @@ public sealed partial class GunSystem : SharedGunSystem
         };
 
         _animPlayer.Play(ent, anim, "muzzle-flash");
-        CreateMuzzleFlashLight(gunUid, message.Angle);
+        CreateMuzzleFlashLight(gunUid, message.Angle, coordinates); // FS
     }
 
     // FINALSTAND: cone light per shot so firing actually lights the corridor ahead. It lives on its
     // own entity because the cone follows transform rotation and the gun's does not track the shot.
-    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle)
+    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle, EntityCoordinates at)
     {
         const float lightDuration = 0.08f;
 
-        var xform = Transform(gunUid);
-        var ent = Spawn(MuzzleLightProto, xform.Coordinates);
+        var ent = Spawn(MuzzleLightProto, at);
         _xform.SetWorldRotation(ent, angle + Angle.FromDegrees(90));
 
         if (TryComp<FSMuzzleFlashColorComponent>(gunUid, out var flashColor))

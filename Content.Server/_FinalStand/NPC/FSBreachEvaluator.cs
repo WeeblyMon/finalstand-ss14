@@ -1,10 +1,12 @@
 using System.Numerics;
+using Content.Server._FinalStand.Fortifications;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
 using Content.Server.Destructible.Thresholds;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
@@ -35,6 +37,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     [Dependency] private SharedMapSystem _mapSystem = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSUpgradeSystem _upgrades = default!;
 
     // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
@@ -169,7 +172,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         foreach (var (candidate, _) in _destructibleBuffer)
         {
             if (HasComp<WaveSpawnedTagComponent>(candidate)) continue;
-            if (HasComp<DoorComponent>(candidate)) continue; // doors handled by pry/smash system
+            if (HasComp<DoorComponent>(candidate) && !HasComp<FSDeployedByComponent>(candidate)) continue; // doors handled by pry/smash system
             if (HasComp<MobStateComponent>(candidate) && !_mobState.IsDead(candidate)) continue;
             if (!HasComp<DamageableComponent>(candidate)) continue;
             if (TryComp<FSBreachCostOverrideComponent>(candidate, out var ov) && ov.Cost >= 999f) continue;
@@ -272,13 +275,14 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         }
     }
 
-    public bool IsAdjacentToSpace(EntityUid entity)
+    public bool IsAdjacentToSpace(EntityUid entity) => IsAdjacentToSpace(Transform(entity).Coordinates);
+
+    public bool IsAdjacentToSpace(EntityCoordinates coords)
     {
-        var xform = Transform(entity);
-        if (xform.GridUid is not { } gridUid) return false;
+        if (_transform.GetGrid(coords) is not { } gridUid) return false;
         if (!TryComp<MapGridComponent>(gridUid, out var gridComp)) return false;
 
-        var indices = _mapSystem.GetTileRef(gridUid, gridComp, xform.Coordinates).GridIndices;
+        var indices = _mapSystem.GetTileRef(gridUid, gridComp, coords).GridIndices;
 
         foreach (var offset in CardinalOffsets)
         {
@@ -335,7 +339,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
         if (TryComp<FSBreachCostOverrideComponent>(structure, out var overrideComp))
             return overrideComp.Cost;
 
-        return MathF.Max(1f, GetStructureMaxHp(structure) / baseDamage);
+        return MathF.Max(1f, GetStructureMaxHp(structure) / baseDamage * _upgrades.BreachMultiplier(structure));
     }
 
     private float GetStructureMaxHp(EntityUid structure)

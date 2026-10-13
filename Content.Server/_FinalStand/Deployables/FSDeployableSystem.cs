@@ -17,6 +17,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private FSPlacementRuleSystem _placementRules = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
@@ -98,6 +99,12 @@ public sealed partial class FSDeployableSystem : EntitySystem
             ? facing ?? Transform(deployer).LocalRotation.GetCardinalDir()
             : null;
 
+        if (!_placementRules.IsTileBuildable(coords, false))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-deployable-no-build"), deployer, deployer);
+            return false;
+        }
+
         if (IsOccupied(coords, facingDir))
         {
             _popup.PopupEntity(Loc.GetString("fs-deployable-occupied"), deployer, deployer);
@@ -133,7 +140,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         return true;
     }
 
-    private bool IsOccupied(EntityCoordinates coords, Direction? facing)
+    public bool IsOccupied(EntityCoordinates coords, Direction? facing)
     {
         if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
@@ -143,7 +150,8 @@ public sealed partial class FSDeployableSystem : EntitySystem
         var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
         while (anchored.MoveNext(out var other))
         {
-            if (TryComp<FSDeployedByComponent>(other, out var existing) && existing.Facing == facing)
+            if (TryComp<FSDeployedByComponent>(other, out var existing)
+                && (existing.Facing == null || facing == null || existing.Facing == facing))
                 return true;
         }
 

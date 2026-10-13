@@ -1,30 +1,3 @@
-# ── Sentry Turret - held item (planted via use-in-hand) ───────────────────────────────────────
-- type: entity
-  id: FSSentryTurretItem
-  parent: BaseItem
-  name: sentry turret
-  description: A crew-served autoturret in a carry case. Deploy it and it engages anything hostile in line of sight until the magazine runs dry.
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Item
-    size: Huge
-    shape:
-    - 0,0,2,2
-  - type: Sprite
-    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
-    state: icon
-  - type: FSSentryTurret
-  - type: FSDeployableItem
-    requiresScience: false
-    deployedProtoId: FSSentryTurretDeployed
-    stock: 1
-    maxStock: 1
-    regenPerWave: 1
-    wavesPerRegen: 2
-  - type: FSPlaceable
-    previewProtoId: FSSentryTurretDeployed
-    range: 6
-
 # ── Sentry Turret - deployed ─────────────────────────────────────────────────────────────────
 - type: entity
   id: FSSentryTurretDeployed
@@ -34,9 +7,17 @@
   placement:
     mode: SnapgridCenter
   components:
+  - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSModuleBelt, FSModuleBeltDouble, FSModuleServos, FSModuleOptics, FSModuleHardenedRounds, FSModuleUraniumRounds ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
   - type: Sprite
     drawdepth: Objects
-    noRot: true
+    noRot: false
     sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
     layers:
     - state: base
@@ -45,13 +26,11 @@
       map: [ "gun" ]
   - type: Appearance
   - type: FSSentryTurret
-    spriteAngleOffset: 340
-  - type: FSDeployableLifetime
-    lifetime: 600
-  - type: FSPackable
-    packedProtoId: FSSentryTurretItem
-    packTime: 3
-    medicalOnly: false
+    spriteAngleOffset: 0
+  - type: RCDDeconstructable
+    cost: 0
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Clickable
   - type: InteractionOutline
   - type: Physics
@@ -70,7 +49,6 @@
         - MachineMask
         layer:
         - MachineLayer
-  - type: Anchorable
   - type: Damageable
     damageModifierSet: Metallic
   - type: Injurable

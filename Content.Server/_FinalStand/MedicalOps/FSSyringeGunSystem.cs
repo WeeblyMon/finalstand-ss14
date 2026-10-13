@@ -9,7 +9,7 @@ using Robust.Shared.Spawners;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSSyringeGunSystem : EntitySystem
+public sealed partial class FSSyringeGunSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedContainerSystem _containers = default!;

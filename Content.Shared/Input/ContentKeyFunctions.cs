@@ -141,6 +141,8 @@ namespace Content.Shared.Input
         // FINALSTAND: sprint, overrides vanilla walk-toggle for FS players
         public static readonly BoundKeyFunction FSSprint = "FSSprint";
         public static readonly BoundKeyFunction FSUberCharge = "FSUberCharge";
+        public static readonly BoundKeyFunction FSPing = "FSPing";
+        public static readonly BoundKeyFunction FSPingWheel = "FSPingWheel";
 
         // Shitmed targeting key functions
         public static readonly BoundKeyFunction TargetHead = "TargetHead";

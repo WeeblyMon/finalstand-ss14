@@ -11,7 +11,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSChemCreditSystem : EntitySystem
+public sealed partial class FSChemCreditSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;

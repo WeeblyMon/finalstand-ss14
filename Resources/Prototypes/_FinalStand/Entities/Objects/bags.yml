@@ -4,7 +4,7 @@
   name: construction bag
   id: FSConstructionBag
   parent: BaseStorageItem
-  description: A reinforced bag for hauling building stock. Magnetises nearby materials when attached to a belt.
+  description: A reinforced bag for hauling building stock. Pulls in nearby materials while you carry it. Fits a pocket or belt.
   components:
   - type: MagnetPickup
     slotFlags: null
@@ -17,6 +17,7 @@
     quickEquip: false
     slots:
     - belt
+    - pocket
   - type: Item
     size: Ginormous
   - type: Storage

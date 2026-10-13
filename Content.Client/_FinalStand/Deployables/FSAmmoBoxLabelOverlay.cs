@@ -1,10 +1,14 @@
+using Content.Shared.CCVar;
+using Robust.Shared.Configuration;
 using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Deployables;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxComponent>
+public sealed partial class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxComponent>
 {
+    [Dependency] private IConfigurationManager _cfg = default!;
+
     protected override string Label => "0";
     protected override int FontSize => 8;
     protected override float VerticalOffset => 46f;
@@ -14,7 +18,7 @@ public sealed class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxCompone
     protected override bool Bob => false;
 
     protected override bool ShouldDraw(EntityUid uid, FSAmmoBoxComponent box, TransformComponent xform)
-        => xform.Anchored;
+        => xform.Anchored && !_cfg.GetCVar(CCVars.FSEngWorldChips);
 
     protected override string GetLabel(EntityUid uid, FSAmmoBoxComponent box)
     {

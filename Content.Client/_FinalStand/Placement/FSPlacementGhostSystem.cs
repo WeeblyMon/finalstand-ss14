@@ -8,7 +8,7 @@ using Robust.Shared.Enums;
 namespace Content.Client._FinalStand.Placement;
 
 // Mirrors RCDConstructionGhostSystem - shows a placement ghost while the held item is in FSPlaceableComponent.Placing mode.
-public sealed class FSPlacementGhostSystem : EntitySystem
+public sealed partial class FSPlacementGhostSystem : EntitySystem
 {
     private const string PlacementMode = nameof(AlignFSPlacement);
 
@@ -23,6 +23,12 @@ public sealed class FSPlacementGhostSystem : EntitySystem
         base.Update(frameTime);
 
         var placerEntity = _placementManager.CurrentPermission?.MobUid;
+        if (placerEntity != null && _placementManager.CurrentPermission?.PlacementOption == PlacementMode && Deleted(placerEntity))
+        {
+            _placementManager.Clear();
+            return;
+        }
+
         var placerIsFsPlaceable = HasComp<FSPlaceableComponent>(placerEntity);
 
         if (_placementManager.Eraser || (placerEntity != null && !placerIsFsPlaceable))
@@ -45,7 +51,8 @@ public sealed class FSPlacementGhostSystem : EntitySystem
             return;
         }
 
-        var directional = TryComp<FSDeployableItemComponent>(heldEntity, out var deployable)
+        var directional = placeable.Rotates
+                          || TryComp<FSDeployableItemComponent>(heldEntity, out var deployable)
                           && deployable.FaceDeployerDirection;
         var starting = heldEntity != placerEntity;
 

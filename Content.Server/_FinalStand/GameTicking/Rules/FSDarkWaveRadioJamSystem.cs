@@ -2,7 +2,7 @@ using Content.Server.Radio;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
-public sealed class FSDarkWaveRadioJamSystem : EntitySystem
+public sealed partial class FSDarkWaveRadioJamSystem : EntitySystem
 {
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
 

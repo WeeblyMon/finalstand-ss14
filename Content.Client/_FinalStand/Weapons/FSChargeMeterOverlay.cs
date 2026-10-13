@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._FinalStand.Weapons;
 
 // Vertical charge meter drawn beside the holder, filling from the bottom as the trigger is held.
-public sealed class FSChargeMeterOverlay : Overlay
+public sealed partial class FSChargeMeterOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IGameTiming _timing = default!;

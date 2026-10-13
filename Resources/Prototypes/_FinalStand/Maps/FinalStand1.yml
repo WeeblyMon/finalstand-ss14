@@ -19,8 +19,7 @@
           SecurityOfficer:   [ 20, 20 ]
           # engineering (7)
           ChiefEngineer:         [ 1, 1 ]
-          StationEngineer:       [ 4, 4 ]
-          AtmosphericTechnician: [ 2, 2 ]
+          StationEngineer:       [ 6, 6 ]
           # medical (8) - Combat Medic replaces the Paramedic
           ChiefMedicalOfficer: [ 1, 1 ]
           MedicalDoctor:       [ 2, 2 ]

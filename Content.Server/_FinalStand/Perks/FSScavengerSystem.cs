@@ -14,7 +14,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSScavengerSystem : EntitySystem
+public sealed partial class FSScavengerSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedMindSystem _mind = default!;

@@ -7,7 +7,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.UI;
 
-public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : IComponent
+public abstract partial class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : IComponent
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IResourceCache _resources = default!;
@@ -36,9 +36,9 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
 
     protected virtual string GetLabel(EntityUid uid, TMarker marker) => Label;
 
-    protected virtual float GetVerticalOffset(EntityUid uid, TMarker marker) => VerticalOffset;
-
     protected virtual bool ShouldDraw(EntityUid uid, TMarker marker, TransformComponent xform) => true;
+
+    protected virtual float Lift(EntityUid uid, TMarker marker, TransformComponent xform) => 0f;
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -85,7 +85,8 @@ public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : ICo
             var label = DynamicLabel ? GetLabel(uid, marker) : Label;
             var labelSize = DynamicLabel ? handle.GetDimensions(_font, label, 1f) : _constantLabelSize;
 
-            var labelPos = new Vector2(screenPos.X - labelSize.X / 2f, screenPos.Y - GetVerticalOffset(uid, marker) + bob);
+            var labelPos = new Vector2(screenPos.X - labelSize.X / 2f,
+                screenPos.Y - VerticalOffset - Lift(uid, marker, xform) + bob);
             DrawOutlined(handle, _font, labelPos, label);
 
             if (!ShowArrow)

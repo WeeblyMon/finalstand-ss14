@@ -142,6 +142,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public float PanelLeft = -1f;
     public float PanelTop = -1f;
     public float PanelWidth = 205f;
+    public float RightColumnBottom = -1f;
 
     public bool IsReadyUpVisible = false;
     public int  ReadyUpCount = 0;
@@ -488,7 +489,8 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawReadyUpBlock();
         screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
 
-        DrawTriage(screen, panelX, y + sepH + 10f);
+        var triageH = DrawTriage(screen, panelX, y + sepH + 10f);
+        RightColumnBottom = triageH > 0f ? y + sepH + 10f + triageH : y + sepH;
 
         var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
         var leftX = TopLeftX + TopLeftPad;

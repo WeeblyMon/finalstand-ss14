@@ -1,0 +1,133 @@
+# The Chief Engineer's Defensive Emplacement: a 3x3 sandbag ring, open at the back, with two fed sentry hardpoints and a resupply core.
+- type: entity
+  parent: BaseItem
+  id: FSEmplacementKit
+  name: defensive emplacement kit
+  description: Sandbags, two sentry mounts and a resupply crate, folded for carrying. Press Z to aim it, R to turn it, click to set it up. It folds back to you when the wave ends.
+  components:
+  - type: Item
+    size: Normal
+  - type: Sprite
+    sprite: _FinalStand/Objects/Devices/emplacement_kit.rsi
+    state: icon
+  - type: FSPlaceable
+    previewProtoId: FSEmplacementPreview
+    range: 4
+    rotates: true
+  - type: FSEmplacementKit
+    core: FSEmplacementCore
+    pieces:
+    - proto: FSEmplacementSandbag
+      offset: -1,-1
+      facing: South
+    - proto: FSEmplacementSandbag
+      offset: 0,-1
+      facing: South
+    - proto: FSEmplacementSandbag
+      offset: 1,-1
+      facing: South
+    - proto: FSEmplacementSandbag
+      offset: -1,0
+      facing: West
+    - proto: FSEmplacementSandbag
+      offset: 1,0
+      facing: East
+    - proto: FSEmplacementSandbag
+      offset: -1,1
+      facing: West
+    - proto: FSEmplacementSandbag
+      offset: 1,1
+      facing: East
+    - proto: FSEmplacementSentry
+      offset: -1,-1
+    - proto: FSEmplacementSentry
+      offset: 1,-1
+    researchHardpoint:
+      proto: FSEmplacementSentry
+      offset: 0,-1
+
+- type: entity
+  id: FSEmplacementPreview
+  name: defensive emplacement
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    layers:
+    - state: sandbag
+      offset: -1,-1
+    - state: sandbag
+      offset: 0,-1
+    - state: sandbag
+      offset: 1,-1
+    - state: sandbag
+      offset: -1,0
+      rotation: 270
+    - state: sandbag
+      offset: 1,0
+      rotation: 90
+    - state: sandbag
+      offset: -1,1
+      rotation: 270
+    - state: sandbag
+      offset: 1,1
+      rotation: 90
+    - sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+      state: base
+      offset: -1,-1
+    - sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
+      state: base
+      offset: 1,-1
+    - sprite: _FinalStand/Objects/Devices/AmmoBox.rsi
+      state: base
+
+- type: entity
+  parent: FSAmmoBoxDeployed
+  id: FSEmplacementCore
+  name: emplacement supply crate
+  description: Refills magazines and feeds the emplacement's sentries. The Chief Engineer can pack the whole emplacement up from here.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSAmmoBox
+    usesLeft: 4
+    maxUses: 4
+  - type: FSEmplacement
+    kit: FSEmplacementKit
+  - type: FSCoverZone
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 300
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSBarricadeSandbag
+  id: FSEmplacementSandbag
+  name: emplacement sandbags
+  description: Part of the Chief Engineer's emplacement. It comes down when the emplacement is packed.
+  categories: [ HideSpawnMenu ]
+
+- type: entity
+  parent: FSSentryTurretDeployed
+  id: FSEmplacementSentry
+  name: hardpoint sentry
+  description: A sentry on an emplacement mount. It reaches a tile further and the emplacement keeps its belt fed.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: FSSentryTurret
+    spriteAngleOffset: 0
+    range: 4
+
+- type: alert
+  id: FSEmplacementCover
+  icons:
+  - sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
+    state: sandbag
+  name: fs-alert-emplacement-cover
+  description: fs-alert-emplacement-cover-desc

@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSStaticDischargeSystem : EntitySystem
+public sealed partial class FSStaticDischargeSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;

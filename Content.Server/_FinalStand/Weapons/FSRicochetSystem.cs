@@ -20,7 +20,7 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Weapons;
 
 // budgets the bounces on a projectile the physics engine deflects for us
-public sealed class FSRicochetSystem : EntitySystem
+public sealed partial class FSRicochetSystem : EntitySystem
 {
     [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private IGameTiming _timing = default!;

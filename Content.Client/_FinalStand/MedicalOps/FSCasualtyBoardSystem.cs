@@ -6,7 +6,7 @@ using Robust.Shared.Map;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-public sealed class FSCasualtyBoardSystem : EntitySystem
+public sealed partial class FSCasualtyBoardSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IEyeManager _eye = default!;

@@ -7,7 +7,7 @@ using Robust.Server.GameObjects;
 
 namespace Content.Server._FinalStand.Bags;
 
-public sealed class FSBagShopSystem : EntitySystem
+public sealed partial class FSBagShopSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;

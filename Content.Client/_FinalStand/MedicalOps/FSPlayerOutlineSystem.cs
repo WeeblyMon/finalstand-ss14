@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-public sealed class FSPlayerOutlineSystem : EntitySystem
+public sealed partial class FSPlayerOutlineSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;

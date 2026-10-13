@@ -1,0 +1,56 @@
+# Material grades, Rust-style: each is poured into the structure with the Engineer's Hammer. Health is relative to steel.
+- type: fsUpgrade
+  id: FSGradeSteel
+  name: fs-grade-steel
+  description: fs-grade-steel-desc
+  slot: Grade
+  icon:
+    sprite: Objects/Materials/Sheets/metal.rsi
+    state: steel
+  hudColor: "#a9adb0"
+
+- type: fsUpgrade
+  id: FSGradePlasteel
+  name: fs-grade-plasteel
+  description: fs-grade-plasteel-desc
+  slot: Grade
+  icon:
+    sprite: Objects/Materials/Sheets/metal.rsi
+    state: plasteel
+  requires: FSGradeSteel
+  hudColor: "#7fb0d6"
+  cost:
+    Plasteel: 3
+  hits: 5
+  health: 2
+  plateMaterial: Plasteel
+  state: plasteel
+  cracks: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
+  foldingState: folding_plasteel
+  foldedState: folding_plasteel_closed
+  foldingCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  foldedCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi
+
+- type: fsUpgrade
+  id: FSGradeUranium
+  name: fs-grade-uranium
+  description: fs-grade-uranium-desc
+  slot: Grade
+  icon:
+    sprite: Objects/Materials/Sheets/other.rsi
+    state: uranium
+  requires: FSGradePlasteel
+  hudColor: "#b9f28c"
+  cost:
+    Uranium: 3
+  hits: 8
+  health: 3
+  repairDelay: 2
+  plateMaterial: Plasteel
+  state: plasteel
+  color: "#b9f28c"
+  cracks: _FinalStand/Structures/Walls/Barricades/plasteel_barricade_cracks.rsi
+  foldingState: folding_plasteel
+  foldedState: folding_plasteel_closed
+  foldingCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  foldedCracks: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi

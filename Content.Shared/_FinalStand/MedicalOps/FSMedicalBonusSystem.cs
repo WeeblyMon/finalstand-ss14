@@ -16,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-public sealed class FSMedicalBonusSystem : EntitySystem
+public sealed partial class FSMedicalBonusSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
