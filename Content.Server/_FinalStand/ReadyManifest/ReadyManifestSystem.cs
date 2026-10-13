@@ -16,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.ReadyManifest;
 
-public sealed class ReadyManifestSystem : EntitySystem
+public sealed partial class ReadyManifestSystem : EntitySystem
 {
     [Dependency] private EuiManager _euiManager = default!;
     [Dependency] private GameTicker _gameTicker = default!;

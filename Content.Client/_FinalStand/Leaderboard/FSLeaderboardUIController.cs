@@ -12,7 +12,7 @@ using Robust.Shared.Network;
 
 namespace Content.Client._FinalStand.Leaderboard;
 
-public sealed class FSLeaderboardUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>,
+public sealed partial class FSLeaderboardUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>,
     IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IInputManager _input = default!;

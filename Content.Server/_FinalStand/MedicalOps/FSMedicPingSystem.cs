@@ -28,7 +28,6 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
 
     private static readonly EntProtoId PingActionProto = "FSMedicPingAction";
-    private static readonly EntProtoId ChemRequestActionProto = "FSChemRequestAction";
     private const string ScreamEmote = "Scream";
 
     private static readonly SoundSpecifier MedicAlertSound =
@@ -45,20 +44,17 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSMedicPingActionEvent>(OnPingAction);
-        SubscribeLocalEvent<FSChemRequestActionEvent>(OnChemRequestAction);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
-    private void OnChemRequestAction(FSChemRequestActionEvent args)
+    public void RequestChems(EntityUid requester)
     {
-        args.Handled = true;
-
         RaiseNetworkEvent(
-            new FSMedicPingEvent(GetNetEntity(args.Performer), false, FSPingKind.Chem),
+            new FSMedicPingEvent(GetNetEntity(requester), false, FSPingKind.Chem),
             Filter.Broadcast());
 
-        _audio.PlayEntity(ChemRequestSound, _roster.MedicalFilter(), args.Performer, true);
+        _audio.PlayEntity(ChemRequestSound, _roster.MedicalFilter(), requester, true);
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -70,8 +66,6 @@ public sealed partial class FSMedicPingSystem : EntitySystem
         var actionEnt = _actions.AddAction(mob, PingActionProto);
         if (actionEnt != null)
             _grantedActions[mob] = actionEnt.Value;
-
-        _actions.AddAction(mob, ChemRequestActionProto);
     }
 
     private void OnPingAction(FSMedicPingActionEvent args)

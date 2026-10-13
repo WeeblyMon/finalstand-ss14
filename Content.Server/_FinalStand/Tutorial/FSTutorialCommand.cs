@@ -18,7 +18,7 @@ public sealed partial class FSTutorialCommand : LocalizedCommands
             return;
         }
 
-        var tutorial = _entMan.System<FSTutorialSystem>();
+        var tutorial = _entMan.System<FSNewPlayerTipSystem>();
         switch (args.Length == 0 ? string.Empty : args[0].ToLowerInvariant())
         {
             case "on":

@@ -3,9 +3,10 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTurretComponent>
+public sealed partial class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTurretComponent>
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string GunLayer = "gun";
 
@@ -17,7 +18,7 @@ public sealed class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTu
         var sprite = (uid, args.Sprite);
 
         if (AppearanceSystem.TryGetData<double>(uid, FSSentryTurretVisuals.Angle, out var theta, args.Component))
-            _sprite.LayerSetRotation(sprite, GunLayer, new Angle(theta));
+            _sprite.LayerSetRotation(sprite, GunLayer, new Angle(theta) - _transform.GetWorldRotation(uid));
 
         if (AppearanceSystem.TryGetData<bool>(uid, FSSentryTurretVisuals.Firing, out var firing, args.Component))
             _sprite.LayerSetRsiState(sprite, GunLayer, firing ? "fire" : "turret");

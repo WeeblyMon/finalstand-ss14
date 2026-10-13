@@ -1,0 +1,22 @@
+# Engineer upgrade tool: click a fortification to pick an upgrade, then hammer it in.
+- type: entity
+  parent: BaseItem
+  id: FSEngineerHammer
+  name: engineer's hammer
+  description: Click a fortification to choose an upgrade and hammer it in with materials from your pack. Doubles as a decent club, though it never hurts your own fortifications.
+  components:
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/sledgehammer.rsi
+    state: icon
+  - type: Item
+    size: Normal
+    sprite: Objects/Weapons/Melee/sledgehammer.rsi
+  - type: MeleeWeapon
+    wideAnimationRotation: -135
+    attackRate: 1.25
+    damage:
+      types:
+        Blunt: 12
+    soundHit:
+      collection: MetalThud
+  - type: FSEngineerHammer

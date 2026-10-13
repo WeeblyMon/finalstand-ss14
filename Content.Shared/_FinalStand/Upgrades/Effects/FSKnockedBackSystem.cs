@@ -5,7 +5,7 @@ using Content.Shared.Movement.Events;
 
 namespace Content.Shared._FinalStand.Upgrades.Effects;
 
-public sealed class FSKnockedBackSystem : EntitySystem
+public sealed partial class FSKnockedBackSystem : EntitySystem
 {
     [Dependency] private ActionBlockerSystem _blocker = default!;
 

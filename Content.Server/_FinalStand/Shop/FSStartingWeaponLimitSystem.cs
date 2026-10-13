@@ -7,7 +7,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Shop;
 
-public sealed class FSStartingWeaponLimitSystem : EntitySystem
+public sealed partial class FSStartingWeaponLimitSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSInventorySearchSystem _search = default!;

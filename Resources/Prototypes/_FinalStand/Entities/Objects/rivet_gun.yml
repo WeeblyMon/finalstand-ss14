@@ -1,0 +1,75 @@
+# Engineer sidearm: rivets patch the first fortification they hit, otherwise they hit zombies.
+- type: entity
+  parent: BaseItem
+  id: FSRivetGun
+  name: rivet gun
+  description: Fires steel rivets. A rivet patches up the first barricade it hits and stings any zombie it reaches. It feeds itself from the steel sheets you carry.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+    state: icon
+  - type: Item
+    size: Normal
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+  - type: Gun
+    fireRate: 3
+    projectileSpeed: 25
+    selectedMode: SemiAuto
+    availableModes:
+    - SemiAuto
+    soundGunshot:
+      path: /Audio/_FinalStand/Weapons/RivetGun/rivet_shot.ogg
+      params:
+        variation: 0.08
+  - type: BasicEntityAmmoProvider
+    proto: FSRivet
+    capacity: 6
+    count: 6
+  - type: AmmoCounter
+  - type: FSRivetGun
+  - type: FSFlatMoneyPerHit
+
+- type: entity
+  parent: BaseBullet
+  id: FSRivet
+  name: rivet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Objects/Tools/rivet_gun.rsi
+    layers:
+    - state: rivet
+  - type: Fixtures
+    fixtures:
+      projectile:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.1,-0.10,0.1,0.30"
+        hard: false
+        mask:
+        - Impassable
+        - MidImpassable
+        - BulletImpassable
+  - type: Projectile
+    damage:
+      types:
+        Piercing: 6
+  - type: FSRivet
+
+- type: entity
+  id: FSRivetSparks
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    drawdepth: Effects
+    layers:
+    - shader: unshaded
+      map: ["enum.EffectLayers.Unshaded"]
+      sprite: _FinalStand/Effects/rivet_sparks.rsi
+      state: sparks
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu

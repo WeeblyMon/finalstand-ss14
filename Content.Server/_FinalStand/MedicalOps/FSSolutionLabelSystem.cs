@@ -7,7 +7,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSSolutionLabelSystem : EntitySystem
+public sealed partial class FSSolutionLabelSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private LabelSystem _label = default!;

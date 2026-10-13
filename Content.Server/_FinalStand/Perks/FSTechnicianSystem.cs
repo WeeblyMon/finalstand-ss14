@@ -5,7 +5,7 @@ using Content.Shared.Mind;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSTechnicianSystem : EntitySystem
+public sealed partial class FSTechnicianSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
 

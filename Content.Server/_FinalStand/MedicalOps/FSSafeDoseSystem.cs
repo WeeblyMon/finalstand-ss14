@@ -12,7 +12,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSSafeDoseSystem : EntitySystem
+public sealed partial class FSSafeDoseSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

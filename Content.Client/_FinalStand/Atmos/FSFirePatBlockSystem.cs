@@ -4,7 +4,7 @@ using Content.Shared.Interaction;
 
 namespace Content.Client._FinalStand.Atmos;
 
-public sealed class FSFirePatBlockSystem : EntitySystem
+public sealed partial class FSFirePatBlockSystem : EntitySystem
 {
     [Dependency] private SharedAppearanceSystem _appearance = default!;
 

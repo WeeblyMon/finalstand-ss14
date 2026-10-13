@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Leaderboard;
 
-public sealed class FSLeaderboardSystem : EntitySystem
+public sealed partial class FSLeaderboardSystem : EntitySystem
 {
     [Dependency] private FSLevelingSystem _leveling = default!;
     [Dependency] private IGameTiming _timing = default!;

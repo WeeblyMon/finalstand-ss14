@@ -12,7 +12,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSMedicalRosterSystem : EntitySystem
+public sealed partial class FSMedicalRosterSystem : EntitySystem
 {
     [Dependency] private AccessReaderSystem _access = default!;
     [Dependency] private SharedJobSystem _jobs = default!;

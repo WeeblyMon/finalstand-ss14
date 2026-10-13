@@ -7,7 +7,7 @@ using Robust.Shared.Map;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSRevenantTrackerSystem : EntitySystem
+public sealed partial class FSRevenantTrackerSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private SharedTransformSystem _transform = default!;

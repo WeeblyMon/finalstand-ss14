@@ -11,7 +11,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSPerkTargetDamageSystem : EntitySystem
+public sealed partial class FSPerkTargetDamageSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;

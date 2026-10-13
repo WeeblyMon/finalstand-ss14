@@ -53,6 +53,14 @@
     {
       "name": "folding_plasteel_closed",
       "directions": 4
+    },
+    {
+      "name": "wire",
+      "directions": 4
+    },
+    {
+      "name": "plasteel_wire",
+      "directions": 4
     }
   ]
 }

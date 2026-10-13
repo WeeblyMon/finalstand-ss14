@@ -6,9 +6,9 @@ using Robust.Shared.GameStates;
 namespace Content.Client._FinalStand.Weapons;
 
 // scales a charged pellet to match how long its shot was held
-public sealed class FSChargeShotVisualizerSystem : EntitySystem
+public sealed partial class FSChargeShotVisualizerSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public override void Initialize()
     {

@@ -31,6 +31,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private FSResearchSystem _research = default!;
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private FSPerkEarningsSystem _earnings = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
@@ -158,8 +159,12 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
             || !_mind.TryGetMind(shooter.Value, out var mindId, out _))
             return;
 
+        var perkBonus = 0;
         if (perkId != null && TryComp<FSPerkLevelsComponent>(mindId, out var perks))
-            amount += perks.GetSlottedLevel(perkId);
+        {
+            perkBonus = perks.GetSlottedLevel(perkId);
+            amount += perkBonus;
+        }
 
         cap.ResearchGivenPerPlayer.TryGetValue(mindId, out var given);
         var grant = Math.Min(amount, cap.MaxMoneyPerPlayer / ResearchCapDivisor - given);
@@ -168,6 +173,9 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         cap.ResearchGivenPerPlayer[mindId] = given + grant;
         _research.GrantResearchPoints(grant, source, mindId);
+
+        if (perkId != null && perkBonus > 0)
+            _earnings.RecordResearch(mindId, perkId, Math.Min(perkBonus, grant));
     }
 
     public override void Update(float frameTime)

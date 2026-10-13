@@ -18,6 +18,8 @@ public sealed record FSLeaderboardEntry(
     bool Rookie = false,
     string? Title = null)
 {
+    public int Fortify { get; init; }
+
     public static FSLeaderboardEntry[] Sort(IEnumerable<FSLeaderboardEntry> entries)
     {
         return entries

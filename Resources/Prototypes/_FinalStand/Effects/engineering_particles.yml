@@ -1,0 +1,235 @@
+# Engineering flair: dust when things land, sparks when they're welded, debris when they break, smoke when a mech is hurt.
+- type: fsParticleEmitter
+  id: FSDustPuff
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 10
+  lifetime: 0.45, 0.8
+  speed: 0.3, 0.9
+  drag: 2
+  size: 0.35, 0.7
+  spawnRadius: 0.3
+  color: "#a89474"
+  fadeIn: 0
+  fadeOut: 0.7
+
+- type: fsParticleEmitter
+  id: FSDustRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.5, 0.5
+  size: 0.5, 3
+  color: "#c8b08a"
+  fadeIn: 0
+  fadeOut: 0.8
+
+- type: fsParticleEmitter
+  id: FSStompRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.6, 0.6
+  size: 0.6, 4.5
+  color: "#d9c39a"
+  fadeIn: 0
+  fadeOut: 0.8
+
+- type: fsParticleEmitter
+  id: FSDebris
+  texture: /Textures/_FinalStand/Effects/Particles/shard.png
+  burst: 6
+  lifetime: 0.4, 0.75
+  speed: 1.5, 3
+  drag: 3
+  size: 0.3, 0.2
+  spin: -540, 540
+  color: "#8a8f96"
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSUpgradeRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.45, 0.45
+  size: 0.4, 2.6
+  fadeIn: 0
+  fadeOut: 0.8
+
+- type: fsParticleEmitter
+  id: FSUpgradeGlints
+  texture: /Textures/_FinalStand/Effects/Particles/glint.png
+  burst: 12
+  lifetime: 0.4, 0.8
+  speed: 0.5, 1.5
+  drag: 2
+  size: 0.35, 0.05
+  spin: -180, 180
+  spawnRadius: 0.3
+  fadeIn: 0
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSWeldSparks
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 14
+  lifetime: 0.25, 0.5
+  speed: 2, 4
+  drag: 4
+  size: 0.25, 0.1
+  alignToVelocity: true
+  stretch: 2
+  color: "#ffd27a"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSWireShred
+  texture: /Textures/_FinalStand/Effects/Particles/shard.png
+  burst: 5
+  lifetime: 0.3, 0.5
+  speed: 1, 2.5
+  drag: 3
+  size: 0.2, 0.1
+  spin: -360, 360
+  color: "#b02a2a"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSSmokeBurst
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 16
+  lifetime: 0.8, 1.4
+  speed: 0.4, 1.2
+  drag: 1.5
+  size: 0.4, 1.1
+  spawnRadius: 0.35
+  color: "#3a3a3a"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.7
+
+- type: fsParticleEmitter
+  id: FSMechSmoke
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  rate: 5
+  lifetime: 0.9, 1.5
+  speed: 0.2, 0.45
+  direction: 90
+  spread: 40
+  size: 0.3, 0.9
+  spawnRadius: 0.25
+  color: "#3d3d3d"
+  tinted: false
+  fadeIn: 0.1
+  fadeOut: 0.6
+
+- type: fsParticleEmitter
+  id: FSMechSparks
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  rate: 3
+  lifetime: 0.2, 0.4
+  speed: 1, 2.5
+  drag: 4
+  size: 0.2, 0.05
+  alignToVelocity: true
+  stretch: 2
+  spawnRadius: 0.35
+  color: "#ffcf6b"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSSteamVent
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  burst: 9
+  lifetime: 0.5, 0.9
+  speed: 0.5, 1.1
+  drag: 2
+  size: 0.2, 0.75
+  color: "#d9e2ea"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.7
+
+- type: fsParticleEmitter
+  id: FSCasing
+  texture: /Textures/_FinalStand/Effects/Particles/shard.png
+  burst: 1
+  lifetime: 0.5, 0.7
+  speed: 1, 2
+  drag: 3
+  size: 0.14, 0.12
+  spin: -720, 720
+  color: "#c9a443"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.4
+
+- type: fsParticleEmitter
+  id: FSUraniumGlow
+  texture: /Textures/_FinalStand/Effects/Particles/glint.png
+  rate: 1.5
+  lifetime: 1, 1.5
+  speed: 0, 0.15
+  spawnRadius: 0.35
+  size: 0.3, 0
+  spin: -90, 90
+  color: "#9cff7a"
+  tinted: false
+  fadeIn: 0.3
+  fadeOut: 0.5
+
+- type: fsParticleEmitter
+  id: FSBayArc
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 12
+  lifetime: 0.25, 0.5
+  speed: 1.5, 3.5
+  drag: 4
+  size: 0.25, 0.1
+  alignToVelocity: true
+  stretch: 2
+  spawnRadius: 0.5
+  color: "#9fd8ff"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.5
+
+- type: entity
+  id: FSRubble
+  name: rubble
+  description: What's left of a fortification. It marks where the line broke.
+  categories: [ HideSpawnMenu ]
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    drawdepth: FloorObjects
+    sprite: _FinalStand/Structures/rubble.rsi
+    layers:
+    - state: rubble0
+      map: [ "base" ]
+  - type: RandomSprite
+    available:
+    - base:
+        rubble0: ""
+        rubble1: ""
+        rubble2: ""
+  - type: TimedDespawn
+    lifetime: 300
+
+- type: fsParticleEmitter
+  id: FSMissileTrail
+  texture: /Textures/_FinalStand/Effects/Particles/dot.png
+  rate: 40
+  lifetime: 0.25, 0.4
+  speed: 0, 0.2
+  spread: 360
+  size: 0.12, 0.3
+  color: "#b8b2a8aa"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.3

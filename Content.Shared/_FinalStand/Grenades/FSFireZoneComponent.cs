@@ -1,4 +1,5 @@
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Grenades;
 
@@ -9,8 +10,9 @@ namespace Content.Shared._FinalStand.Grenades;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSFireZoneComponent : Component
 {
-    [DataField, AutoNetworkedField] public float Radius = 2.0f;
+    [DataField, AutoNetworkedField] public float Radius = 2.5f;
     [DataField] public float IgniteStacksPerSecond = 5f;
+    [DataField] public EntProtoId FlameProtoId = "FSFireZoneFlame";
 
     public float Accumulator;
 }

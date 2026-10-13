@@ -13,6 +13,9 @@ public sealed partial class FSPlaceableComponent : Component
     [DataField]
     public float Range = 10f;
 
+    [DataField]
+    public bool Rotates;
+
     [DataField, AutoNetworkedField]
     public bool Placing;
 

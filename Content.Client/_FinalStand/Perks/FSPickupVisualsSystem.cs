@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Perks;
 
-public sealed class FSPickupVisualsSystem : EntitySystem
+public sealed partial class FSPickupVisualsSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IGameTiming _timing = default!;

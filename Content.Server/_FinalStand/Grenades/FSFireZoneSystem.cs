@@ -6,8 +6,10 @@ using Robust.Shared.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Spawners;
 using Microsoft.Extensions.ObjectPool;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+using System.Numerics;
 
 namespace Content.Server._FinalStand.Grenades;
 
@@ -63,6 +65,9 @@ public sealed partial class FSFireZoneSystem : EntitySystem
 public sealed partial class FSFireZoneOnTriggerSystem : XOnTriggerSystem<FSFireZoneOnTriggerComponent>
 {
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IRobustRandom _random = default!;
+
+    private const int MaxFlameExtent = 4;
 
     protected override void OnTrigger(Entity<FSFireZoneOnTriggerComponent> ent, EntityUid target, ref TriggerEvent args)
     {
@@ -77,7 +82,28 @@ public sealed partial class FSFireZoneOnTriggerSystem : XOnTriggerSystem<FSFireZ
             if (ent.Comp.DamageMultiplier != 1f)
                 fz.IgniteStacksPerSecond *= ent.Comp.DamageMultiplier;
             Dirty(fireZone, fz);
+            SpawnFlames(fireZone, fz, ent.Comp.BurnDuration);
         }
         args.Handled = true;
+    }
+
+    private void SpawnFlames(EntityUid zone, FSFireZoneComponent zoneComp, float lifetime)
+    {
+        var origin = Transform(zone).Coordinates;
+        var extent = Math.Min((int)MathF.Ceiling(zoneComp.Radius), MaxFlameExtent);
+
+        for (var x = -extent; x <= extent; x++)
+        {
+            for (var y = -extent; y <= extent; y++)
+            {
+                var offset = new Vector2(x, y);
+                if (offset.Length() > zoneComp.Radius)
+                    continue;
+
+                var jitter = new Vector2(_random.NextFloat(-0.25f, 0.25f), _random.NextFloat(-0.25f, 0.25f));
+                var flame = Spawn(zoneComp.FlameProtoId, origin.Offset(offset + jitter));
+                EnsureComp<TimedDespawnComponent>(flame).Lifetime = lifetime;
+            }
+        }
     }
 }

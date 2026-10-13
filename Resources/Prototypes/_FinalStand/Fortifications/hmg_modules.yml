@@ -1,0 +1,59 @@
+- type: fsUpgrade
+  id: FSHMGModuleHeavyRounds
+  name: fs-hmg-module-heavy
+  description: fs-hmg-module-heavy-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/anti_materiel.rsi
+    state: base
+  cost:
+    Plasteel: 2
+  hits: 4
+  hmg:
+    damage: 0.25
+
+- type: fsUpgrade
+  id: FSHMGModuleUraniumRounds
+  name: fs-hmg-module-uranium
+  description: fs-hmg-module-uranium-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/pistol.rsi
+    state: uranium
+  requires: FSHMGModuleHeavyRounds
+  cost:
+    Uranium: 1
+    Plasteel: 1
+  hits: 5
+  hmg:
+    damage: 0.35
+
+- type: fsUpgrade
+  id: FSHMGModuleBolt
+  name: fs-hmg-module-bolt
+  description: fs-hmg-module-bolt-desc
+  slot: Module
+  icon:
+    sprite: Objects/Misc/stock_parts.rsi
+    state: femto_mani
+  cost:
+    Steel: 2
+    Gold: 1
+  hits: 4
+  hmg:
+    fireRate: 1.25
+
+- type: fsUpgrade
+  id: FSHMGModuleBarrel
+  name: fs-hmg-module-barrel
+  description: fs-hmg-module-barrel-desc
+  slot: Module
+  icon:
+    sprite: Objects/Misc/stock_parts.rsi
+    state: hyperwave_filter
+  cost:
+    Steel: 2
+    Silver: 1
+  hits: 4
+  hmg:
+    heat: 0.6

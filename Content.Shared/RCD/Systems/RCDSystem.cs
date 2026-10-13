@@ -72,7 +72,8 @@ public sealed partial class RCDSystem : EntitySystem
         // On init, set the RCD to its first available recipe
         if (component.AvailablePrototypes.Count > 0)
         {
-            component.ProtoId = component.AvailablePrototypes.ElementAt(0);
+            if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+                component.ProtoId = component.AvailablePrototypes.ElementAt(0);
             Dirty(uid, component);
 
             return;
@@ -85,7 +86,7 @@ public sealed partial class RCDSystem : EntitySystem
     private void OnRCDSystemMessage(EntityUid uid, RCDComponent component, RCDSystemMessage args)
     {
         // Exit if the RCD doesn't actually know the supplied prototype
-        if (!component.AvailablePrototypes.Contains(args.ProtoId))
+        if (!component.AvailablePrototypes.Contains(args.ProtoId) && args.ProtoId != "Invalid")
             return;
 
         if (!ProtoMan.Resolve<RCDPrototype>(args.ProtoId, out var prototype))
@@ -124,12 +125,15 @@ public sealed partial class RCDSystem : EntitySystem
 
     private void OnAfterInteract(EntityUid uid, RCDComponent component, AfterInteractEvent args)
     {
-        if (args.Handled || !args.CanReach)
+        if (args.Handled || !args.CanReach && !HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)) // FS
             return;
 
         var user = args.User;
         var location = args.ClickLocation;
         var prototype = ProtoMan.Index(component.ProtoId);
+
+        if (prototype.Mode == RcdMode.Invalid)
+            return;
 
         // Initial validity checks
         if (!location.IsValid(EntityManager))
@@ -212,6 +216,10 @@ public sealed partial class RCDSystem : EntitySystem
 
         #endregion
 
+        var delayEv = new Content.Shared._FinalStand.RCD.FSRCDDelayEvent(user, location, delay); // FS
+        RaiseLocalEvent(uid, ref delayEv); // FS
+        delay = delayEv.Delay; // FS
+
         // Try to start the do after
         var effect = Spawn(effectPrototype, _mapSystem.ToCenterCoordinates(tile, mapGrid));
         var ev = new RCDDoAfterEvent(
@@ -229,7 +237,8 @@ public sealed partial class RCDSystem : EntitySystem
             BreakOnMove = true,
             AttemptFrequency = AttemptFrequency.EveryTick,
             CancelDuplicate = false,
-            BlockDuplicate = false
+            BlockDuplicate = false,
+            DistanceThreshold = Reach(uid) // FS
         };
 
         args.Handled = true;
@@ -302,7 +311,8 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Play audio and consume charges
         _audio.PlayPredicted(component.SuccessSound, uid, args.User);
-        _sharedCharges.AddCharges(uid, -args.Cost);
+        if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+            _sharedCharges.AddCharges(uid, -args.Cost);
     }
 
     private void OnRCDconstructionGhostRotationEvent(RCDConstructionGhostRotationEvent ev, EntitySessionEventArgs session)
@@ -328,6 +338,8 @@ public sealed partial class RCDSystem : EntitySystem
 
     #region Entity construction/deconstruction rule checks
 
+    public float Reach(EntityUid uid) => CompOrNull<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid)?.Reach ?? SharedInteractionSystem.InteractionRange; // FS
+
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
         return IsRCDOperationStillValid(uid, component, gridUid, mapGrid, tile, position, component.ConstructionDirection, target, user, popMsgs);
@@ -336,12 +348,13 @@ public sealed partial class RCDSystem : EntitySystem
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, Direction direction, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
         var prototype = ProtoMan.Index(component.ProtoId);
+        var materialCosts = HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid);
 
         // Check that the RCD has enough ammo to get the job done
         var charges = _sharedCharges.GetCurrentCharges(uid);
 
         // Both of these were messages were suppose to be predicted, but HasInsufficientCharges wasn't being checked on the client for some reason?
-        if (charges == 0)
+        if (!materialCosts && charges == 0)
         {
             if (popMsgs)
                 _popup.PopupEntity(Loc.GetString("rcd-component-no-ammo-message"), uid, user);
@@ -349,7 +362,7 @@ public sealed partial class RCDSystem : EntitySystem
             return false;
         }
 
-        if (prototype.Cost > charges)
+        if (!materialCosts && prototype.Cost > charges)
         {
             if (popMsgs)
                 _popup.PopupEntity(Loc.GetString("rcd-component-insufficient-ammo-message"), uid, user);
@@ -359,8 +372,8 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Exit if the target / target location is obstructed
         var unobstructed = (target == null)
-            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), popup: popMsgs)
-            : _interaction.InRangeUnobstructed(user, target.Value, popup: popMsgs);
+            ? _interaction.InRangeUnobstructed(user, _mapSystem.GridTileToWorld(gridUid, mapGrid, position), Reach(uid), popup: popMsgs) // FS
+            : _interaction.InRangeUnobstructed(user, target.Value, Reach(uid), popup: popMsgs); // FS
 
         if (!unobstructed)
             return false;
@@ -591,6 +604,8 @@ public sealed partial class RCDSystem : EntitySystem
                     return;
 
                 _tile.ReplaceTile(tile, (ContentTileDefinition)tileDef, gridUid, mapGrid);
+                var tileBuilt = new Content.Shared._FinalStand.RCD.FSRCDTileBuiltEvent(user, _mapSystem.GridTileToLocal(gridUid, mapGrid, position));
+                RaiseLocalEvent(uid, ref tileBuilt);
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to set grid: {gridUid} {position} to {prototype.Prototype}");
                 break;
 
@@ -614,6 +629,8 @@ public sealed partial class RCDSystem : EntitySystem
                 var ent = SpawnAttachedTo(prototype.Prototype, _mapSystem.GridTileToLocal(gridUid, mapGrid, position), rotation: rotation);
 
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to spawn {ToPrettyString(ent)} at {position} on grid {gridUid}");
+                var built = new Content.Shared._FinalStand.RCD.FSRCDBuiltEvent(user, ent, direction); // FS
+                RaiseLocalEvent(uid, ref built); // FS
                 break;
 
             case RcdMode.Deconstruct:

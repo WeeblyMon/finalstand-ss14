@@ -1,0 +1,129 @@
+# The Broadsword: a slow, heavily armoured combat mech built at the Mech Bay. Ported from Goob-Station's MechDurand onto vanilla's vehicle mechs.
+- type: damageModifierSet
+  id: FSMechArmor
+  coefficients:
+    Blunt: 0.6
+    Slash: 0.6
+    Piercing: 0.65
+    Shock: 1.4
+    Heat: 0.7
+  flatReductions:
+    Blunt: 8
+    Heat: 10
+
+- type: damageModifierSet
+  id: FSMechArmorSiege
+  coefficients:
+    Blunt: 0.35
+    Slash: 0.35
+    Piercing: 0.4
+    Shock: 1.2
+    Heat: 0.45
+  flatReductions:
+    Blunt: 12
+    Slash: 8
+    Heat: 12
+
+- type: entity
+  id: FSMechBroadsword
+  parent: BaseMech
+  name: Broadsword
+  description: A slow combat mech with heavy armour and hard punches. Plant it in siege mode to hold a lane.
+  components:
+  - type: Sprite
+    drawdepth: Mobs
+    noRot: true
+    sprite: _FinalStand/Objects/Mech/broadsword.rsi
+    layers:
+    - map: [ "enum.MechVisualLayers.Base" ]
+      state: broadsword
+  - type: FootstepModifier
+    footstepSoundCollection:
+      path: /Audio/Mecha/sound_mecha_powerloader_step.ogg
+  - type: Mech
+    baseState: broadsword
+    openState: broadsword-open
+    brokenState: broadsword-broken
+    maxIntegrity: 400
+    maxEquipmentAmount: 3
+    zoom: 1.3, 1.3
+    airtight: true
+    equipmentWhitelist:
+      tags:
+      - LightMechMount
+      - MediumMechMount
+      - HeavyMechMount
+  - type: Vehicle
+    transferDamage: false
+    operatorWhitelist:
+      components:
+        - HumanoidProfile
+  - type: MechAir
+    air:
+      volume: 70
+      moles:
+        Oxygen: 0.611
+        Nitrogen: 2.299
+      temperature: 293.15
+  - type: MeleeWeapon
+    hidden: true
+    attackRate: 1
+    damage:
+      types:
+        Blunt: 40
+        Structural: 60
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 1.5
+    baseSprintSpeed: 1.5
+  - type: Damageable
+    damageModifierSet: FSMechArmor
+  - type: CanMoveInAir
+  - type: MovementAlwaysTouching
+  - type: Repairable
+    fuelCost: 30
+    doAfterDelay: 8
+  - type: FSCombatMech
+    mountLimits:
+      HeavyMechMount: 1
+  - type: FSSiegeMode
+  - type: FSFriendlyFire
+  - type: Tag
+    tags:
+    - DoorBumpOpener
+    - FootstepSound
+    - Durand
+
+- type: entity
+  parent: BaseMechAction
+  id: FSActionMechSiege
+  name: Siege mode
+  description: Plant the Broadsword. Planted, it can't move, wears heavier armour and takes half damage from the front. Unplanting takes two seconds.
+  components:
+  - type: Action
+    useDelay: 3
+  - type: Sprite
+    sprite: Interface/Actions/actions_mecha.rsi
+    layers:
+    - state: mech_defense_mode_off
+  - type: InstantAction
+    event: !type:FSSiegeModeActionEvent
+
+- type: entity
+  id: FSMechBroadswordBattery
+  parent: FSMechBroadsword
+  suffix: Battery
+  components:
+  - type: ContainerFill
+    containers:
+      mech-battery-slot:
+      - FSMechPowerCell
+
+- type: entity
+  parent: PowerCellHigh
+  id: FSMechPowerCell
+  name: mech power cell
+  description: A heavy cell built to keep a combat mech fighting for a whole wave.
+  components:
+  - type: Battery
+    maxCharge: 4320
+    startingCharge: 4320

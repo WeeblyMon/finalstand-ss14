@@ -20,7 +20,7 @@ public readonly record struct FSWeaponKind(
     public bool HasGunTag => Ballistic || Energy || Launcher;
 }
 
-public sealed class FSWeaponClassifierSystem : EntitySystem
+public sealed partial class FSWeaponClassifierSystem : EntitySystem
 {
     [Dependency] private TagSystem _tags = default!;
 

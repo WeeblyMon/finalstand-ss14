@@ -171,6 +171,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public float PanelLeft = -1f;
     public float PanelTop = -1f;
     public float PanelWidth = 205f;
+    public float RightColumnBottom = -1f;
 
     public bool IsReadyUpVisible = false;
     public int  ReadyUpCount = 0;
@@ -226,14 +227,15 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
-    private readonly record struct InterestPopup(string PerkId, int Amount, float Life, float TotalLife);
-    private readonly List<InterestPopup> _interestPopups = new();
+    private readonly record struct EarningsPopup(List<FSPerkEarningsEntry> Entries, float Life, float TotalLife);
+    private readonly List<EarningsPopup> _earningsPopups = new();
     private float _creditsRowY;
 
-    public void AddInterestPopup(string PerkId, int amount)
+    public void AddEarningsPopup(List<FSPerkEarningsEntry> entries)
     {
-        const float life = 2.5f;
-        _interestPopups.Add(new InterestPopup(PerkId, amount, life, life));
+        const float life = 6f;
+        _earningsPopups.Clear();
+        _earningsPopups.Add(new EarningsPopup(entries, life, life));
     }
 
     public void AddHealPayout(int amount, bool diminished)
@@ -525,7 +527,8 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawReadyUpBlock();
         screen.DrawRect(new UIBox2(panelX + panelInset, y, panelX + panelW - panelInset, y + sepH), sepColor);
 
-        DrawTriage(screen, panelX, y + sepH + 10f);
+        var triageH = DrawTriage(screen, panelX, y + sepH + 10f);
+        RightColumnBottom = triageH > 0f ? y + sepH + 10f + triageH : y + sepH;
 
         var topLeftTop = _isSeparatedLayout ? TopLeftYSeparated : TopLeftY;
         var leftX = TopLeftX + TopLeftPad;
@@ -585,28 +588,44 @@ public sealed partial class WaveHudOverlay : Overlay
         }
 
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
-        for (var pi = 0; pi < _interestPopups.Count; pi++)
+        for (var pi = 0; pi < _earningsPopups.Count; pi++)
         {
-            var p = _interestPopups[pi];
+            var p = _earningsPopups[pi];
             var t = p.Life / p.TotalLife;
-            var alpha = MathF.Min(1f, t * 3f);
-            var floatOffset = (1f - t) * 40f;
-
-            var popupY = _creditsRowY - floatOffset;
-            var amtText = $"+${p.Amount:N0}";
-            var amtDim = screen.GetDimensions(_labelFont!, amtText, 1f);
+            var alpha = MathF.Min(1f, t * 6f);
+            var floatOffset = (1f - t) * 18f;
 
             var popupIconSz = augIconSz * 0.75f;
             var popupX = leftX + creditsW + 10f;
+            var rowY = _creditsRowY - floatOffset;
 
-            var tex = GetPerkIcon(p.PerkId);
-            if (tex != null)
-                screen.DrawTextureRect(tex,
-                    new UIBox2(popupX, popupY, popupX + popupIconSz, popupY + popupIconSz),
-                    Color.White.WithAlpha(alpha));
+            foreach (var entry in p.Entries)
+            {
+                var tex = GetPerkIcon(entry.PerkId);
+                if (tex != null)
+                    screen.DrawTextureRect(tex,
+                        new UIBox2(popupX, rowY, popupX + popupIconSz, rowY + popupIconSz),
+                        Color.White.WithAlpha(alpha));
 
-            var textPos = new Vector2(popupX + popupIconSz + 4f, popupY + (popupIconSz - amtDim.Y) * 0.5f);
-            screen.DrawString(_labelFont!, textPos, amtText, FSPalette.Money.WithAlpha(alpha));
+                var textX = popupX + popupIconSz + 4f;
+                if (entry.WaveCredits > 0)
+                {
+                    var text = $"+${entry.WaveCredits:N0}  (${entry.GameCredits:N0} total)";
+                    var dim = screen.GetDimensions(_labelFont!, text, 1f);
+                    screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
+                        text, FSPalette.Money.WithAlpha(alpha));
+                    textX += dim.X + 8f;
+                }
+                if (entry.WaveResearch > 0)
+                {
+                    var text = $"+{entry.WaveResearch:N0} RP  ({entry.GameResearch:N0} total)";
+                    var dim = screen.GetDimensions(_labelFont!, text, 1f);
+                    screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
+                        text, FSPalette.StaminaFill.WithAlpha(alpha));
+                }
+
+                rowY += popupIconSz + 2f;
+            }
         }
 
         if (DirectiveFlash > 0f)
@@ -720,14 +739,14 @@ public sealed partial class WaveHudOverlay : Overlay
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
-        for (var i = _interestPopups.Count - 1; i >= 0; i--)
+        for (var i = _earningsPopups.Count - 1; i >= 0; i--)
         {
-            var p = _interestPopups[i];
+            var p = _earningsPopups[i];
             var updated = p with { Life = p.Life - args.DeltaSeconds };
             if (updated.Life <= 0f)
-                _interestPopups.RemoveAt(i);
+                _earningsPopups.RemoveAt(i);
             else
-                _interestPopups[i] = updated;
+                _earningsPopups[i] = updated;
         }
 
         for (var i = _healPayouts.Count - 1; i >= 0; i--)

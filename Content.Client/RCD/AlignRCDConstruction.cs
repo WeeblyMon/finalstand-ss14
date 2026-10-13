@@ -77,9 +77,10 @@ public sealed partial class AlignRCDConstruction : PlacementMode
         if (!_entityManager.TryGetComponent<TransformComponent>(player, out var xform))
             return false;
 
-        if (!_transformSystem.InRange(xform.Coordinates, position, SharedInteractionSystem.InteractionRange))
+        var reach = _handsSystem.TryGetActiveItem(player.Value, out var reachRcd) ? _rcdSystem.Reach(reachRcd.Value) : SharedInteractionSystem.InteractionRange; // FS
+        if (!_transformSystem.InRange(xform.Coordinates, position, reach)) // FS
         {
-            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(0);
+            InvalidPlaceColor = InvalidPlaceColor.WithAlpha(PlaceColorBaseAlpha * 0.35f); // FS: faint, not invisible, so "Too far" has a ghost to sit under
             return false;
         }
 
@@ -112,6 +113,10 @@ public sealed partial class AlignRCDConstruction : PlacementMode
 
         // Determine if the RCD operation is valid or not
         if (!_rcdSystem.IsRCDOperationStillValid(heldEntity.Value, rcd, gridUid.Value, mapGrid, tile, posVector, target, player.Value, false))
+            return false;
+
+        // FS: the server's build rules (caps, materials, no-build zones) turn the ghost red too.
+        if (_entityManager.System<Content.Client._FinalStand.RCD.FSRCDGhostHintSystem>().Blocked)
             return false;
 
         return true;

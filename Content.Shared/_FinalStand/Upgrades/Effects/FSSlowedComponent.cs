@@ -3,6 +3,7 @@ namespace Content.Shared._FinalStand.Upgrades.Effects;
 [RegisterComponent]
 public sealed partial class FSSlowedComponent : Component
 {
-    [DataField] public TimeSpan EndTime;
-    [DataField] public float SlowFactor = 0.7f;
+    public readonly Dictionary<string, (float Factor, TimeSpan EndTime)> Slows = new();
+
+    public float Applied = 1f;
 }

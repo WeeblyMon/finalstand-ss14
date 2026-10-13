@@ -4,7 +4,7 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableFieldVisualsSystem : EntitySystem
+public sealed partial class FSDeployableFieldVisualsSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
 

@@ -9,7 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSLandmineSystem : EntitySystem
+public sealed partial class FSLandmineSystem : EntitySystem
 {
     [Dependency] private ItemToggleSystem _toggle = default!;
     [Dependency] private SharedExplosionSystem _explosion = default!;

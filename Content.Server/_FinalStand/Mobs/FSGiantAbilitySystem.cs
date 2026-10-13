@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Content.Server._FinalStand.Upgrades.Effects;
+using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
@@ -25,12 +26,12 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSGiantAbilitySystem : EntitySystem
+public sealed partial class FSGiantAbilitySystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
-    [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SlowingUpgradeSystem _slow = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCameraRecoilSystem _recoil = default!;
@@ -468,10 +469,7 @@ public sealed class FSGiantAbilitySystem : EntitySystem
 
     private void Slow(EntityUid target, float factor, float seconds)
     {
-        var slow = EnsureComp<FSSlowedComponent>(target);
-        slow.SlowFactor = factor;
-        slow.EndTime = _timing.CurTime + TimeSpan.FromSeconds(seconds);
-        _movement.RefreshMovementSpeedModifiers(target);
+        _slow.ApplySlow(target, "giant", factor, TimeSpan.FromSeconds(seconds));
     }
 
     private void ShakeArea(Vector2 origin, MapId mapId, float radius)

@@ -4,7 +4,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSArmingDelaySystem : EntitySystem
+public sealed partial class FSArmingDelaySystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private ItemToggleSystem _toggle = default!;

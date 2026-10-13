@@ -458,20 +458,32 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSFireZone
-    radius: 2.0
+    radius: 2.5
     igniteStacksPerSecond: 5
-  - type: Sprite
-    drawdepth: Effects
-    sprite: Effects/explosion.rsi
-    layers:
-    - state: explosionfast
-      shader: unshaded
-      color: "#FF6600"
   - type: PointLight
     enabled: true
-    radius: 5
-    energy: 3
+    radius: 7
+    energy: 4
     color: "#FF4400"
+  - type: TimedDespawn
+    lifetime: 5
+
+- type: entity
+  id: FSFireZoneFlame
+  name: flames
+  description: Burning fire!
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+    anchored: true
+  - type: Sprite
+    drawdepth: Effects
+    noRot: true
+    sprite: Effects/fire.rsi
+    scale: 1.2, 1.2
+    layers:
+    - state: "3"
+      shader: unshaded
   - type: TimedDespawn
     lifetime: 5
 

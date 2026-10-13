@@ -13,7 +13,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSPackableSystem : EntitySystem
+public sealed partial class FSPackableSystem : EntitySystem
 {
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedHandsSystem _hands = default!;

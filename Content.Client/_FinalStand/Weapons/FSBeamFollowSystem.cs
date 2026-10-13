@@ -4,7 +4,7 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Weapons;
 
-public sealed class FSBeamFollowSystem : EntitySystem
+public sealed partial class FSBeamFollowSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SpriteSystem _sprite = default!;

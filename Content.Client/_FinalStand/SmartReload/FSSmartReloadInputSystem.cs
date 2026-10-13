@@ -39,8 +39,7 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
     {
         base.Initialize();
         CommandBinds.Builder
-            .Bind(ContentKeyFunctions.ReloadWeapon,
-                InputCmdHandler.FromDelegate(OnReloadDown, OnReloadUp))
+            .Bind(ContentKeyFunctions.ReloadWeapon, new GunOnlyHandler(this))
             .Bind(ContentKeyFunctions.QuickGrenade,
                 InputCmdHandler.FromDelegate(OnGrenadeDown, OnGrenadeUp))
             .Register<FSSmartReloadInputSystem>();
@@ -122,6 +121,22 @@ public sealed partial class FSSmartReloadInputSystem : EntitySystem
             return;
 
         RaiseNetworkEvent(new FSSmartReloadMessage { Gun = GetNetEntity(gun) });
+    }
+
+    private sealed class GunOnlyHandler(FSSmartReloadInputSystem system) : InputCmdHandler
+    {
+        public override bool HandleCmdMessage(IEntityManager entManager, ICommonSession? session, IFullInputCmdMessage message)
+        {
+            if (system.ResolveActiveGun() == null)
+                return false;
+
+            if (message.State == BoundKeyState.Down)
+                system.OnReloadDown(session);
+            else if (message.State == BoundKeyState.Up)
+                system.OnReloadUp(session);
+
+            return true;
+        }
     }
 
     private EntityUid? ResolveActiveGun()

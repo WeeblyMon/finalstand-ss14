@@ -29,6 +29,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private MedicalOps.FSMedicalStatsSystem _medicalStats = default!;
+    [Dependency] private Engineering.FSEngineerStatsSystem _engineerStats = default!;
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 
@@ -369,6 +370,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
     public (int Xp, int Kills, int Assists) GetRoundStats(EntityUid mindId)
         => _roundStats.GetValueOrDefault(mindId);
 
+    public (int Kills, int Assists) KillsOf(EntityUid mindId)
+    {
+        var stats = _roundStats.GetValueOrDefault(mindId);
+        return (stats.Kills, stats.Assists);
+    }
+
     public FSLeaderboardEntry[] GetLeaderboardSnapshot()
     {
         var query = EntityQueryEnumerator<FSPlayerLevelComponent, MindComponent>();
@@ -385,9 +392,10 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
 
             var healing = _medicalStats.GetStats(mindId).HealingPoints;
+            var fortify = (int) _engineerStats.GetStats(mindId).Points;
 
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
-                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + walletCredits;
+                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + walletCredits;
 
             TryComp<FSPlayerBadgeComponent>(mind.CurrentEntity, out var badge);
 
@@ -402,7 +410,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 walletCredits,
                 score,
                 badge?.Rookie ?? false,
-                badge?.Title?.Id));
+                badge?.Title?.Id) { Fortify = fortify });
         }
 
         return FSLeaderboardEntry.Sort(entries);

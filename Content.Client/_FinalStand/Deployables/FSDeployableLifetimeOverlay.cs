@@ -1,13 +1,15 @@
+using Content.Shared.CCVar;
+using Robust.Shared.Configuration;
 using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.Deployables;
 using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableLifetimeOverlay : FSWorldLabelOverlay<FSDeployableLifetimeComponent>
+public sealed partial class FSDeployableLifetimeOverlay : FSWorldLabelOverlay<FSDeployableLifetimeComponent>
 {
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IEntityManager _entMan = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     protected override string Label => "0:00";
     protected override int FontSize => 8;
@@ -17,9 +19,8 @@ public sealed class FSDeployableLifetimeOverlay : FSWorldLabelOverlay<FSDeployab
     protected override bool ShowArrow => false;
     protected override bool Bob => false;
 
-    // Turrets already show their ammo count where the timer would go, so stack the timer above it.
-    protected override float GetVerticalOffset(EntityUid uid, FSDeployableLifetimeComponent marker)
-        => _entMan.HasComponent<FSSentryTurretComponent>(uid) ? 60f : VerticalOffset;
+    protected override bool ShouldDraw(EntityUid uid, FSDeployableLifetimeComponent marker, TransformComponent xform)
+        => !_cfg.GetCVar(CCVars.FSEngWorldChips);
 
     protected override string GetLabel(EntityUid uid, FSDeployableLifetimeComponent marker)
     {

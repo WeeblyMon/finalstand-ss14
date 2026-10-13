@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Ladder;
 
-public sealed class FSLadderUIController : UIController, IOnSystemChanged<FSUiEventRelaySystem>
+public sealed partial class FSLadderUIController : UIController, IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IClientNetManager _net = default!;
     [Dependency] private IGameTiming _timing = default!;

@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Broadsword parts from Monolith-Station (https://github.com/Monolith-Station/Monolith), based on tgstation mecha art; build-up frames and icons drawn for Final Stand from them",
+  "size": {
+    "x": 64,
+    "y": 64
+  },
+  "states": [
+    {
+      "name": "broadsword_chassis"
+    },
+    {
+      "name": "broadsword_l_leg"
+    },
+    {
+      "name": "broadsword_r_leg"
+    },
+    {
+      "name": "broadsword_l_arm"
+    },
+    {
+      "name": "broadsword_r_arm"
+    },
+    {
+      "name": "broadsword_harness"
+    },
+    {
+      "name": "broadsword_head"
+    },
+    {
+      "name": "broadsword_armor"
+    },
+    {
+      "name": "broadsword0"
+    },
+    {
+      "name": "broadsword1"
+    },
+    {
+      "name": "broadsword2"
+    },
+    {
+      "name": "broadsword3"
+    },
+    {
+      "name": "broadsword4"
+    },
+    {
+      "name": "broadsword5"
+    },
+    {
+      "name": "broadsword6"
+    },
+    {
+      "name": "broadsword7"
+    },
+    {
+      "name": "broadsword8"
+    },
+    {
+      "name": "broadsword9"
+    },
+    {
+      "name": "broadsword10"
+    },
+    {
+      "name": "broadsword11"
+    },
+    {
+      "name": "broadsword12"
+    },
+    {
+      "name": "broadsword13"
+    },
+    {
+      "name": "broadsword14"
+    },
+    {
+      "name": "broadsword15"
+    },
+    {
+      "name": "broadsword16"
+    },
+    {
+      "name": "broadsword17"
+    },
+    {
+      "name": "broadsword18"
+    }
+  ]
+}

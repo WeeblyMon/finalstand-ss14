@@ -21,7 +21,7 @@ public sealed class TutorialTest : GameTest
     {
         await Server.WaitAssertion(() =>
         {
-            var tutorial = SEntMan.System<FSTutorialSystem>();
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
             var store = SEntMan.System<FSPlayerDataStore>();
             var session = ServerSession!;
             store.DeleteProgress(session.UserId.UserId);
@@ -49,7 +49,7 @@ public sealed class TutorialTest : GameTest
     {
         await Server.WaitAssertion(() =>
         {
-            var tutorial = SEntMan.System<FSTutorialSystem>();
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
             var session = ServerSession!;
             SEntMan.System<FSPlayerDataStore>().DeleteProgress(session.UserId.UserId);
             SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundRestartCleanupEvent());
@@ -116,7 +116,7 @@ public sealed class EnemyTipTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
-            var tutorial = SEntMan.System<FSTutorialSystem>();
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
             var spawning = SEntMan.System<WaveEnemySpawningSystem>();
             var session = ServerSession!;
             SEntMan.System<FSPlayerDataStore>().DeleteProgress(session.UserId.UserId);

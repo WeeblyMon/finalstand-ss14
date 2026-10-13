@@ -14,13 +14,14 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSScavengerSystem : EntitySystem
+public sealed partial class FSScavengerSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private WaveAmmoBoxSystem _ammo = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPerkEarningsSystem _earnings = default!;
     [Dependency] private PvsOverrideSystem _pvsOverride = default!;
 
     private static readonly EntProtoId CacheProto = "FSScavengerCache";
@@ -77,7 +78,10 @@ public sealed class FSScavengerSystem : EntitySystem
                 break;
             default:
                 if (_mind.TryGetMind(user, out var mindId, out _))
+                {
                     _wallet.GiveCredits(mindId, FSPerkBonusConstants.ScavengerCredits);
+                    _earnings.RecordCredits(mindId, "Scavenger", FSPerkBonusConstants.ScavengerCredits);
+                }
                 (message, color) = ("fs-scavenger-credits", CreditsColor);
                 break;
         }

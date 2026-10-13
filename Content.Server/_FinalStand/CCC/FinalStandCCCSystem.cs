@@ -1,8 +1,10 @@
 using Content.Server.Destructible;
 using Content.Server.RoundEnd;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Destructible;
+using Content.Shared.FixedPoint;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -12,6 +14,7 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
 {
     [Dependency] private RoundEndSystem _roundEnd = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IGameTiming _timing = default!;
 
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(0.5);
@@ -25,6 +28,19 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
         SubscribeLocalEvent<FinalStandCCCComponent, MapInitEvent>(OnCCCMapInit);
         SubscribeLocalEvent<FinalStandCCCComponent, DestructionEventArgs>(OnCCCDestroyed);
         SubscribeLocalEvent<FinalStandCCCComponent, DamageChangedEvent>(OnCCCDamaged);
+        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+    }
+
+    private void OnWaveEnded(ref WaveEndedEvent ev)
+    {
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, FinalStandCCCTagComponent>();
+        while (query.MoveNext(out var uid, out var comp, out var tag))
+        {
+            if (comp.HealFractionPerWave <= 0f || tag.MaxHealth <= 0f)
+                continue;
+
+            _damageable.HealEvenly(uid, FixedPoint2.New(-tag.MaxHealth * comp.HealFractionPerWave));
+        }
     }
 
     private void OnCCCMapInit(EntityUid uid, FinalStandCCCComponent comp, MapInitEvent args)

@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 09/24/2026 22:48:49
-  entityCount: 11031
+  entityCount: 11025
 maps:
 - 259
 grids:
@@ -34767,34 +34767,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 16.5,9.5
-- proto: FSBarricadeShopMetal
-  entities:
-  - uid: 3181
-    components:
-    - type: Transform
-      parent: 1
-      pos: 23.5,10.5
-- proto: FSBarricadeShopMetalDoor
-  entities:
-  - uid: 10957
-    components:
-    - type: Transform
-      parent: 1
-      pos: 22.5,10.5
-- proto: FSBarricadeShopPlasteel
-  entities:
-  - uid: 2351
-    components:
-    - type: Transform
-      parent: 1
-      pos: -9.5,17.5
-- proto: FSBarricadeShopPlasteelDoor
-  entities:
-  - uid: 10959
-    components:
-    - type: Transform
-      parent: 1
-      pos: -9.5,16.5
 - proto: FSDeployableShopAmmoBox
   entities:
   - uid: 2246
@@ -34816,13 +34788,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -23.5,-1.5
-- proto: FSDeployableShopHeavySentry
-  entities:
-  - uid: 10960
-    components:
-    - type: Transform
-      parent: 1
-      pos: -11.5,17.5
 - proto: FSDeployableShopLandmine
   entities:
   - uid: 9706
@@ -34837,13 +34802,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 7.5,-2.5
-- proto: FSDeployableShopSentryTurret
-  entities:
-  - uid: 9705
-    components:
-    - type: Transform
-      parent: 1
-      pos: 22.5,7.5
 - proto: FSGachaCache
   entities:
   - uid: 241
@@ -58035,23 +57993,6 @@ entities:
     - type: Transform
       parent: 1
       pos: -5.5,-5.5
-- proto: SpawnPointAtmos
-  entities:
-  - uid: 975
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,12.5
-  - uid: 976
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,11.5
-  - uid: 977
-    components:
-    - type: Transform
-      parent: 1
-      pos: -10.5,10.5
 - proto: SpawnPointBartender
   entities:
   - uid: 7411
@@ -58346,6 +58287,21 @@ entities:
     - type: Transform
       parent: 1
       pos: -8.5,19.5
+  - uid: 975
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,12.5
+  - uid: 976
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,11.5
+  - uid: 977
+    components:
+    - type: Transform
+      parent: 1
+      pos: -10.5,10.5
 - proto: SpawnPointWarden
   entities:
   - uid: 9670

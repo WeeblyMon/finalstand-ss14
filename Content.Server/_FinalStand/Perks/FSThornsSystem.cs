@@ -6,7 +6,7 @@ using Content.Shared.Mind;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSThornsSystem : EntitySystem
+public sealed partial class FSThornsSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private DamageableSystem _damageable = default!;
