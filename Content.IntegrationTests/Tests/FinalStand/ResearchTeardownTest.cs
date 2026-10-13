@@ -24,6 +24,7 @@ public sealed class ResearchTeardownTest : GameTest
         var map = await Pair.CreateTestMap();
         await Server.WaitPost(() =>
         {
+            SEntMan.System<FSResearchSystem>().GetOrCreateStation();
             SEntMan.SpawnEntity(ServerProto, map.GridCoords);
             SEntMan.SpawnEntity(ConsoleProto, map.GridCoords);
             SEntMan.SpawnEntity(ConsoleProto, map.GridCoords);
@@ -35,7 +36,7 @@ public sealed class ResearchTeardownTest : GameTest
         {
             Assert.That(SEntMan.System<FSResearchSystem>().TryGetStation(out var station), Is.True);
             Assert.That(SEntMan.HasComponent<ResearchServerComponent>(station.Owner), Is.False,
-                "test precondition: the player joined before the server existed, so the research state lives on its own entity");
+                "test precondition: research started before the server existed, so the state lives on its own entity");
         });
 
         await Server.WaitPost(() => Server.ResolveDependency<IConsoleHost>().ExecuteCommand("entities delete"));
