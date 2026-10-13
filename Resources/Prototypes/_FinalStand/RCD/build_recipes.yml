@@ -81,3 +81,72 @@
   materials:
     Steel: 20
     Plasteel: 8
+
+- type: fsBuildRecipe
+  id: WallSolid
+  station: true
+  materials:
+    Steel: 2
+
+- type: fsBuildRecipe
+  id: FloorSteel
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Plating
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Catwalk
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Grille
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Window
+  station: true
+  materials:
+    Glass: 2
+
+- type: fsBuildRecipe
+  id: WindowDirectional
+  station: true
+  materials:
+    Glass: 1
+
+- type: fsBuildRecipe
+  id: WindowReinforcedDirectional
+  station: true
+  materials:
+    Glass: 1
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: ReinforcedWindow
+  station: true
+  materials:
+    Glass: 2
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Airlock
+  station: true
+  materials:
+    Steel: 4
+
+- type: fsBuildRecipe
+  id: AirlockGlass
+  station: true
+  materials:
+    Steel: 3
+    Glass: 2

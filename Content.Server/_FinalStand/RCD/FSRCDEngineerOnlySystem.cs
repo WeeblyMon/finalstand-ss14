@@ -40,6 +40,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, RCDDoAfterEvent>(OnDoAfter,
             after: [typeof(RCDSystem)]);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDBuiltEvent>(OnBuilt);
+        SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDTileBuiltEvent>(OnTileBuilt);
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDDelayEvent>(OnDelay);
         SubscribeNetworkEvent<FSRCDProbeRequestEvent>(OnProbe);
         SubscribeNetworkEvent<FSRCDBeltPickEvent>(OnBeltPick);
@@ -138,7 +139,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     private FSBuildRecipePrototype? RecipeFor(EntityUid rcd)
     {
         return TryComp<RCDComponent>(rcd, out var rcdComp)
-               && _proto.Index(rcdComp.ProtoId).Mode == RcdMode.ConstructObject
+               && _proto.Index(rcdComp.ProtoId).Mode is RcdMode.ConstructObject or RcdMode.ConstructTile
                && _proto.TryIndex<FSBuildRecipePrototype>(rcdComp.ProtoId.Id, out var recipe)
             ? recipe
             : null;

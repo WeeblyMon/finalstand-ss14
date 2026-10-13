@@ -73,7 +73,7 @@ public sealed partial class FSRCDEngineerOnlySystem
             return null;
 
         var rcdProto = _proto.Index(rcdComp.ProtoId);
-        if (rcdProto.Mode != RcdMode.ConstructObject)
+        if (rcdProto.Mode is not (RcdMode.ConstructObject or RcdMode.ConstructTile))
             return null;
 
         if (_placementRules.HasNoBuildMarker(location))
@@ -86,6 +86,9 @@ public sealed partial class FSRCDEngineerOnlySystem
 
         if (recipe.Research is { } node && !_research.Has(node))
             return Loc.GetString("fs-rcd-needs-research");
+
+        if (recipe.Station)
+            return MissingMaterials(user, recipe);
 
         if (!_placementRules.IsTileBuildable(location, blocksPath: true))
             return Loc.GetString("fs-rcd-in-the-way");
@@ -109,6 +112,11 @@ public sealed partial class FSRCDEngineerOnlySystem
                     ("group", Loc.GetString("fs-rcd-cap-group-" + group)), ("used", used), ("max", max));
         }
 
+        return MissingMaterials(user, recipe);
+    }
+
+    private string? MissingMaterials(EntityUid user, FSBuildRecipePrototype recipe)
+    {
         var missing = new List<string>();
         foreach (var (material, need) in recipe.Materials)
         {
@@ -164,14 +172,13 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         _telemetry.RecordSpend("rcd", recipe.Materials);
+        ShowSpent(recipe, Transform(args.Built).Coordinates, args.User);
+        if (recipe.Station)
+            return;
+
         _audio.PlayPvs(recipe.LandSound ?? PlacedSound, args.Built, AudioParams.Default.WithVariation(0.08f));
         _flair.Burst(DustPuff, args.Built);
         RaiseNetworkEvent(new FSBuildLandedEvent(GetNetEntity(args.Built)), Filter.Pvs(args.Built, entityManager: EntityManager));
-
-        var spent = new List<string>();
-        foreach (var (material, amount) in recipe.Materials)
-            spent.Add(Loc.GetString("fs-rcd-spent", ("amount", amount), ("name", Loc.GetString(_proto.Index(material).Name))));
-        _popup.PopupCoordinates(string.Join("  ", spent), Transform(args.Built).Coordinates, args.User, PopupType.Small);
 
         var directional = _proto.TryIndex<RCDPrototype>(protoId, out var rcdProto)
             && rcdProto.AllowMultiDirection;
@@ -186,6 +193,29 @@ public sealed partial class FSRCDEngineerOnlySystem
         deployedBy.Facing = directional ? args.Direction : null;
 
         RefreshUsage(ent, args.User);
+    }
+
+    private void OnTileBuilt(Entity<FSEngineerOnlyRCDComponent> ent, ref FSRCDTileBuiltEvent args)
+    {
+        if (RecipeFor(ent) is not { } recipe)
+            return;
+
+        if (!TryCommit(ent, args.User, recipe))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-rcd-materials-gone"), ent, args.User, PopupType.Medium);
+            return;
+        }
+
+        _telemetry.RecordSpend("rcd", recipe.Materials);
+        ShowSpent(recipe, args.Location, args.User);
+    }
+
+    private void ShowSpent(FSBuildRecipePrototype recipe, EntityCoordinates at, EntityUid user)
+    {
+        var spent = new List<string>();
+        foreach (var (material, amount) in recipe.Materials)
+            spent.Add(Loc.GetString("fs-rcd-spent", ("amount", amount), ("name", Loc.GetString(_proto.Index(material).Name))));
+        _popup.PopupCoordinates(string.Join("  ", spent), at, user, PopupType.Small);
     }
 
     public void RefreshUsage(Entity<FSEngineerOnlyRCDComponent> rcd, EntityUid user)

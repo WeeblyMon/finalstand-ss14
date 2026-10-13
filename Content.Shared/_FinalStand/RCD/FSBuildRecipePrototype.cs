@@ -22,4 +22,7 @@ public sealed partial class FSBuildRecipePrototype : IPrototype
 
     [DataField]
     public SoundSpecifier? LandSound;
+
+    [DataField]
+    public bool Station;
 }

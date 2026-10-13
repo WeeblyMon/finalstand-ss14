@@ -311,7 +311,8 @@ public sealed partial class RCDSystem : EntitySystem
 
         // Play audio and consume charges
         _audio.PlayPredicted(component.SuccessSound, uid, args.User);
-        _sharedCharges.AddCharges(uid, -args.Cost);
+        if (!HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid))
+            _sharedCharges.AddCharges(uid, -args.Cost);
     }
 
     private void OnRCDconstructionGhostRotationEvent(RCDConstructionGhostRotationEvent ev, EntitySessionEventArgs session)
@@ -347,12 +348,13 @@ public sealed partial class RCDSystem : EntitySystem
     public bool IsRCDOperationStillValid(EntityUid uid, RCDComponent component, EntityUid gridUid, MapGridComponent mapGrid, TileRef tile, Vector2i position, Direction direction, EntityUid? target, EntityUid user, bool popMsgs = true)
     {
         var prototype = ProtoMan.Index(component.ProtoId);
+        var materialCosts = HasComp<Content.Shared._FinalStand.RCD.FSEngineerOnlyRCDComponent>(uid);
 
         // Check that the RCD has enough ammo to get the job done
         var charges = _sharedCharges.GetCurrentCharges(uid);
 
         // Both of these were messages were suppose to be predicted, but HasInsufficientCharges wasn't being checked on the client for some reason?
-        if (charges == 0)
+        if (!materialCosts && charges == 0)
         {
             if (popMsgs)
                 _popup.PopupEntity(Loc.GetString("rcd-component-no-ammo-message"), uid, user);
@@ -360,7 +362,7 @@ public sealed partial class RCDSystem : EntitySystem
             return false;
         }
 
-        if (prototype.Cost > charges)
+        if (!materialCosts && prototype.Cost > charges)
         {
             if (popMsgs)
                 _popup.PopupEntity(Loc.GetString("rcd-component-insufficient-ammo-message"), uid, user);
@@ -602,6 +604,8 @@ public sealed partial class RCDSystem : EntitySystem
                     return;
 
                 _tile.ReplaceTile(tile, (ContentTileDefinition)tileDef, gridUid, mapGrid);
+                var tileBuilt = new Content.Shared._FinalStand.RCD.FSRCDTileBuiltEvent(user, _mapSystem.GridTileToLocal(gridUid, mapGrid, position));
+                RaiseLocalEvent(uid, ref tileBuilt);
                 _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to set grid: {gridUid} {position} to {prototype.Prototype}");
                 break;
 
