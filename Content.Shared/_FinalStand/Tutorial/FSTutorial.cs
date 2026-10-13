@@ -12,6 +12,13 @@ public enum FSTutorialTip : byte
     Perks,
     DarkWave,
     BossWave,
+    Runner,
+    Armoured,
+    Bloater,
+    Flamethrower,
+    Tesla,
+    Devastator,
+    Revenant,
 }
 
 public static class FSTutorialText
@@ -29,7 +36,26 @@ public static class FSTutorialText
         FSTutorialTip.Perks => "perks",
         FSTutorialTip.DarkWave => "dark-wave",
         FSTutorialTip.BossWave => "boss-wave",
+        FSTutorialTip.Runner => "runner",
+        FSTutorialTip.Armoured => "armoured",
+        FSTutorialTip.Bloater => "bloater",
+        FSTutorialTip.Flamethrower => "flamethrower",
+        FSTutorialTip.Tesla => "tesla",
+        FSTutorialTip.Devastator => "devastator",
+        FSTutorialTip.Revenant => "revenant",
         _ => "welcome",
+    };
+
+    public static FSTutorialTip? ForEnemy(string? prototype) => prototype switch
+    {
+        "FSZombieRunner" => FSTutorialTip.Runner,
+        "FSZombieArmoured" => FSTutorialTip.Armoured,
+        "FSZombieBloater" => FSTutorialTip.Bloater,
+        "FSZombieFlamethrower" => FSTutorialTip.Flamethrower,
+        "FSZombieTesla" => FSTutorialTip.Tesla,
+        "FSZombieDevastator" => FSTutorialTip.Devastator,
+        "FSZombieRevenant" => FSTutorialTip.Revenant,
+        _ => null,
     };
 }
 

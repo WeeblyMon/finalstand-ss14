@@ -24,6 +24,7 @@ public sealed partial class FSTutorialSystem : EntitySystem
     public const string OptInFlag = "_on";
 
     private readonly Dictionary<NetUserId, HashSet<string>> _cache = new();
+    private readonly HashSet<FSTutorialTip> _enemiesSeen = new();
 
     public override void Initialize()
     {
@@ -34,7 +35,12 @@ public sealed partial class FSTutorialSystem : EntitySystem
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _cache.Clear());
+        SubscribeLocalEvent<FSWaveEnemySpawnedEvent>(OnEnemySpawned);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _cache.Clear();
+            _enemiesSeen.Clear();
+        });
     }
 
     private HashSet<string> Flags(NetUserId user)
@@ -110,6 +116,12 @@ public sealed partial class FSTutorialSystem : EntitySystem
     }
 
     private void OnWaveEnded(ref WaveEndedEvent ev) => ShowToAll(FSTutorialTip.Perks);
+
+    private void OnEnemySpawned(ref FSWaveEnemySpawnedEvent ev)
+    {
+        if (FSTutorialText.ForEnemy(ev.Prototype) is { } tip && _enemiesSeen.Add(tip))
+            ShowToAll(tip);
+    }
 
     private void OnMobStateChanged(MobStateChangedEvent ev)
     {

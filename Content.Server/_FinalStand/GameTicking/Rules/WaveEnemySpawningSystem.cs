@@ -307,6 +307,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             FSDifficultyRules.DamageMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyDamage));
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
         RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
+        var spawned = new FSWaveEnemySpawnedEvent(enemy, proto);
+        RaiseLocalEvent(ref spawned);
         return enemy;
     }
 
@@ -469,3 +471,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return match?.EnemyPool ?? FallbackEnemyPool;
     }
 }
+
+[ByRefEvent]
+public readonly record struct FSWaveEnemySpawnedEvent(EntityUid Enemy, EntProtoId Prototype);
