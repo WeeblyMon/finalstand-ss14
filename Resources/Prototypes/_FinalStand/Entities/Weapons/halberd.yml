@@ -1,0 +1,63 @@
+- type: entity
+  id: FSWeaponUnholyHalberd
+  parent: UnholyHalberd
+  suffix: FinalStand
+  components:
+  - type: FSMeleeJuice
+    heavyRequiresWield: true
+    heavyIsSpin: true
+    light:
+      anticipation: 0.08
+      hitstop: 0.045
+      reach: 1.35
+      trauma: 0.2
+      knockback: 4.5
+      flinchDuration: 0.2
+      flinchSpeed: 0.3
+      hitEmitter: FSMeleeThrustStreak
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        path: /Audio/Weapons/star_hit.ogg
+      moveAnticipation: 0.85
+      moveImpact: 0.5
+      moveRecovery: 0.9
+      recoveryTime: 0.35
+      trailColor: "#8b1a1acc"
+      trailWidth: 0.06
+      trailDuration: 0.1
+    heavy:
+      anticipation: 0.12
+      hitstop: 0.07
+      reach: 1.1
+      trauma: 0.45
+      shakeMode: Radial
+      knockback: 6
+      knockbackDuration: 0.25
+      flinchDuration: 0.3
+      flinchSpeed: 0.25
+      hitEmitter: FSMeleeShards
+      killEmitter: FSMeleeShockRing
+      killSound:
+        path: /Audio/Effects/bone_rattle.ogg
+      moveAnticipation: 0.7
+      moveImpact: 0.5
+      moveRecovery: 0.85
+      recoveryTime: 0.55
+      trailColor: "#8b1a1acc"
+      trailWidth: 0.1
+      trailDuration: 0.22
+  - type: MeleeWeapon
+    range: 2
+    angle: 360
+    attackRate: 0.9
+    animation: WeaponArcThrust
+    wideAnimation: WeaponArcSlash
+    soundSwing:
+      path: /Audio/Effects/thudswoosh.ogg
+      params:
+        volume: -3
+        variation: 0.05
+    soundHit:
+      path: /Audio/Weapons/pierce.ogg
+  - type: Crit
+    baseCritChance: 0.05
