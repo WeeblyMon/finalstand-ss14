@@ -26,7 +26,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSGiantAbilitySystem : EntitySystem
+public sealed partial class FSGiantAbilitySystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;

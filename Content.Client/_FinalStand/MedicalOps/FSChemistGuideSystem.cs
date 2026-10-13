@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-public sealed class FSChemistGuideSystem : EntitySystem
+public sealed partial class FSChemistGuideSystem : EntitySystem
 {
     [Dependency] private GuidebookSystem _guidebook = default!;
 

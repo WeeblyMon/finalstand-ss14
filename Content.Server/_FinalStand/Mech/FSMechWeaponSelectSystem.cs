@@ -7,7 +7,7 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.Mech;
 
-public sealed class FSMechWeaponSelectSystem : EntitySystem
+public sealed partial class FSMechWeaponSelectSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
 

@@ -9,10 +9,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Chat;
 
-public sealed class FSJobIconTag : IMarkupTagHandler
+public sealed partial class FSJobIconTag : IMarkupTagHandler
 {
-    [Dependency] private readonly IPrototypeManager _prototype = default!;
-    [Dependency] private readonly IEntitySystemManager _entitySystem = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IEntitySystemManager _entitySystem = default!;
     private SpriteSystem? _spriteSystem;
 
     public string Name => "fsicon";

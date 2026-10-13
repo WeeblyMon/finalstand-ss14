@@ -6,7 +6,7 @@ using Content.Shared.Interaction.Events;
 
 namespace Content.Server._FinalStand.Placement;
 
-public sealed class FSPlacementSystem : EntitySystem
+public sealed partial class FSPlacementSystem : EntitySystem
 {
     [Dependency] private FSPlacementRuleSystem _rule = default!;
     [Dependency] private SharedHandsSystem _hands = default!;

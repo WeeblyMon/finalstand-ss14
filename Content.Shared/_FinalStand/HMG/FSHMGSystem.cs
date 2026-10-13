@@ -15,7 +15,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.HMG;
 
-public sealed class FSHMGSystem : EntitySystem
+public sealed partial class FSHMGSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;

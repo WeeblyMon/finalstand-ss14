@@ -2,7 +2,7 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableChipSystem : EntitySystem
+public sealed partial class FSDeployableChipSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
 

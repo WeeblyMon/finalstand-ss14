@@ -8,7 +8,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mech;
 
-public sealed class FSMechCycleSoundSystem : EntitySystem
+public sealed partial class FSMechCycleSoundSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;

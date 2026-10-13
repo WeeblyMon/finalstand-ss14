@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Materials;
 
-public sealed class FSCarriedMaterialSystem : EntitySystem
+public sealed partial class FSCarriedMaterialSystem : EntitySystem
 {
     [Dependency] private SharedStackSystem _stack = default!;
 

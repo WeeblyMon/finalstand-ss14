@@ -4,7 +4,7 @@ using Content.Shared._FinalStand.GameTicking;
 namespace Content.Server._FinalStand.Deployables;
 
 // Mirrors FSGrenadeRegenSystem - Stock regenerates at the start of each wave's prep phase.
-public sealed class FSDeployableRegenSystem : EntitySystem
+public sealed partial class FSDeployableRegenSystem : EntitySystem
 {
     [Dependency] private Perks.FSTechnicianSystem _technician = default!;
 

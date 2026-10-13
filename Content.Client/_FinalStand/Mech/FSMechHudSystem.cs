@@ -18,7 +18,7 @@ using Robust.Shared.Player;
 
 namespace Content.Client._FinalStand.Mech;
 
-public sealed class FSMechHudSystem : EntitySystem
+public sealed partial class FSMechHudSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IOverlayManager _overlays = default!;

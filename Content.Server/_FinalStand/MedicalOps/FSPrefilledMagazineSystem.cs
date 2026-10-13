@@ -5,7 +5,7 @@ using Content.Shared.Weapons.Ranged.Components;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSPrefilledMagazineSystem : EntitySystem
+public sealed partial class FSPrefilledMagazineSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 

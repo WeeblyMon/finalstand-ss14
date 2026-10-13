@@ -9,7 +9,7 @@ namespace Content.Shared._FinalStand.Fortifications;
 [Serializable, NetSerializable]
 public sealed partial class FSHammerDoAfterEvent : SimpleDoAfterEvent;
 
-public sealed class FSHammerSafetySystem : EntitySystem
+public sealed partial class FSHammerSafetySystem : EntitySystem
 {
     [Dependency] private SharedHandsSystem _hands = default!;
 

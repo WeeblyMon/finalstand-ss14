@@ -3,10 +3,10 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTurretComponent>
+public sealed partial class FSSentryTurretVisualizerSystem : VisualizerSystem<FSSentryTurretComponent>
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
-    [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private const string GunLayer = "gun";
 

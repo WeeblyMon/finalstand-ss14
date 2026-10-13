@@ -12,7 +12,7 @@ using Robust.Shared.Player;
 
 namespace Content.Client._FinalStand.RCD;
 
-public sealed class FSRCDClearSystem : EntitySystem
+public sealed partial class FSRCDClearSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;

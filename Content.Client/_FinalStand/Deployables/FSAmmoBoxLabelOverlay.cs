@@ -5,7 +5,7 @@ using Content.Shared._FinalStand.Deployables;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxComponent>
+public sealed partial class FSAmmoBoxLabelOverlay : FSWorldLabelOverlay<FSAmmoBoxComponent>
 {
     [Dependency] private IConfigurationManager _cfg = default!;
 

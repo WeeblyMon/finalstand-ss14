@@ -4,7 +4,7 @@ using Content.Shared.Mind;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSSpeedloadSystem : EntitySystem
+public sealed partial class FSSpeedloadSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
 

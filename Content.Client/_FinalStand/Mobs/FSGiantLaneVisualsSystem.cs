@@ -5,9 +5,9 @@ using Robust.Shared.GameStates;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSGiantLaneVisualsSystem : EntitySystem
+public sealed partial class FSGiantLaneVisualsSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public override void Initialize()
     {

@@ -7,7 +7,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-public sealed class FSUnderdogSystem : EntitySystem
+public sealed partial class FSUnderdogSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;

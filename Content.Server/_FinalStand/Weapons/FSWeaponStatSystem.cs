@@ -7,7 +7,7 @@ using Content.Shared.Weapons.Ranged.Events;
 
 namespace Content.Server._FinalStand.Weapons;
 
-public sealed class FSWeaponStatSystem : EntitySystem
+public sealed partial class FSWeaponStatSystem : EntitySystem
 {
     [Dependency] private FSPerkBuffSystem _perks = default!;
     [Dependency] private FSResearchBuffSystem _research = default!;

@@ -51,7 +51,7 @@ public sealed partial class FSApplyVulnerability : EntityEffectBase<FSApplyVulne
     public float Multiplier = 1.25f;
 }
 
-public sealed class FSChemDebuffSystem : EntitySystem
+public sealed partial class FSChemDebuffSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
 

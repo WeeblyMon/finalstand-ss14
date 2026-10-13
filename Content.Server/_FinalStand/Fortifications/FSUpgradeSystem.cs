@@ -37,7 +37,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Fortifications;
 
-public sealed class FSUpgradeSystem : SharedFSUpgradeSystem
+public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
 {
     [Dependency] private DestructibleSystem _destructible = default!;
     [Dependency] private FSStructureHealthSystem _health = default!;

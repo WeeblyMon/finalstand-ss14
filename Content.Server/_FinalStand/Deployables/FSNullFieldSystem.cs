@@ -3,7 +3,7 @@ using Content.Shared._FinalStand.Deployables;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSNullFieldSystem : FSDeployableAuraSystem<FSNullFieldComponent>
+public sealed partial class FSNullFieldSystem : FSDeployableAuraSystem<FSNullFieldComponent>
 {
     [Dependency] private SlowingUpgradeSystem _slow = default!;
 

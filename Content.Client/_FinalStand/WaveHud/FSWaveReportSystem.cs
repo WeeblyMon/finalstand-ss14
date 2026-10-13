@@ -5,7 +5,7 @@ using Robust.Shared.Configuration;
 
 namespace Content.Client._FinalStand.WaveHud;
 
-public sealed class FSWaveReportSystem : EntitySystem
+public sealed partial class FSWaveReportSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

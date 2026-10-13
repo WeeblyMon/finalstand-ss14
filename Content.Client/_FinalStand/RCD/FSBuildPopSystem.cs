@@ -8,7 +8,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.RCD;
 
-public sealed class FSBuildPopSystem : EntitySystem
+public sealed partial class FSBuildPopSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;

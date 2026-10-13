@@ -28,7 +28,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Engineering;
 
-public sealed class FSToolCardSystem : EntitySystem
+public sealed partial class FSToolCardSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

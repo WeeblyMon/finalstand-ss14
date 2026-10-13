@@ -23,7 +23,7 @@ public sealed partial class FSFiringStepComponent : Component
     public float MeleeDamage = 0.85f;
 }
 
-public sealed class FSFiringStepSystem : EntitySystem
+public sealed partial class FSFiringStepSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _map = default!;

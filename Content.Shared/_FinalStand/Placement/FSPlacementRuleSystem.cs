@@ -9,7 +9,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Shared._FinalStand.Placement;
 
-public sealed class FSPlacementRuleSystem : EntitySystem
+public sealed partial class FSPlacementRuleSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TurfSystem _turf = default!;

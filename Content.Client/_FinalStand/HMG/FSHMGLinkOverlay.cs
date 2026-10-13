@@ -10,7 +10,7 @@ using Robust.Shared.Enums;
 
 namespace Content.Client._FinalStand.HMG;
 
-public sealed class FSHMGLinkOverlay : Overlay
+public sealed partial class FSHMGLinkOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IPlayerManager _player = default!;

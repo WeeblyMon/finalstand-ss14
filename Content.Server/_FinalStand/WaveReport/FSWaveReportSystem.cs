@@ -13,7 +13,7 @@ using Robust.Shared.Enums;
 
 namespace Content.Server._FinalStand.WaveReport;
 
-public sealed class FSWaveReportSystem : EntitySystem
+public sealed partial class FSWaveReportSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private SharedMindSystem _mind = default!;

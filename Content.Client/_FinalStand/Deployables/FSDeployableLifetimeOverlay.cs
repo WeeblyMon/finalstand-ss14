@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableLifetimeOverlay : FSWorldLabelOverlay<FSDeployableLifetimeComponent>
+public sealed partial class FSDeployableLifetimeOverlay : FSWorldLabelOverlay<FSDeployableLifetimeComponent>
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

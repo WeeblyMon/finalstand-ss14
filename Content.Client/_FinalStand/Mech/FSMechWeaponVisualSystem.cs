@@ -9,7 +9,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Mech;
 
-public sealed class FSMechWeaponVisualSystem : EntitySystem
+public sealed partial class FSMechWeaponVisualSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private TagSystem _tags = default!;

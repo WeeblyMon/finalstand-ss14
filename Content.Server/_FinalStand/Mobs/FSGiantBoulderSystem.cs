@@ -11,7 +11,7 @@ using Robust.Shared.Physics.Events;
 
 namespace Content.Server._FinalStand.Mobs;
 
-public sealed class FSGiantBoulderSystem : EntitySystem
+public sealed partial class FSGiantBoulderSystem : EntitySystem
 {
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedAudioSystem _audio = default!;

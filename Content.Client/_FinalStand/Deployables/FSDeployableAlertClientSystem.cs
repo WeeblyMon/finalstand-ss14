@@ -18,7 +18,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDeployableAlertClientSystem : EntitySystem
+public sealed partial class FSDeployableAlertClientSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -99,7 +99,7 @@ public sealed class FSDeployableAlertClientSystem : EntitySystem
     }
 }
 
-public sealed class FSDeployableToastOverlay : Overlay
+public sealed partial class FSDeployableToastOverlay : Overlay
 {
     [Dependency] private IResourceCache _cache = default!;
     [Dependency] private IGameTiming _timing = default!;

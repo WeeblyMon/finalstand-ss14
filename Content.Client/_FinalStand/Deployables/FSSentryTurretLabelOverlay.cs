@@ -6,7 +6,7 @@ using Robust.Shared.Map;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSSentryTurretLabelOverlay : FSWorldLabelOverlay<FSSentryTurretComponent>
+public sealed partial class FSSentryTurretLabelOverlay : FSWorldLabelOverlay<FSSentryTurretComponent>
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entMan = default!;

@@ -17,7 +17,7 @@ using Robust.Shared.Enums;
 
 namespace Content.Server._FinalStand.Engineering;
 
-public sealed class FSEngineerStatsSystem : EntitySystem
+public sealed partial class FSEngineerStatsSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;

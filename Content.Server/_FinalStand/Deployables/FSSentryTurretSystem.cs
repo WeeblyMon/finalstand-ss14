@@ -16,7 +16,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSSentryTurretSystem : EntitySystem
+public sealed partial class FSSentryTurretSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;

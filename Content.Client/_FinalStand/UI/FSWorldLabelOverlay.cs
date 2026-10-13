@@ -7,7 +7,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.UI;
 
-public abstract class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : IComponent
+public abstract partial class FSWorldLabelOverlay<TMarker> : Overlay where TMarker : IComponent
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IResourceCache _resources = default!;

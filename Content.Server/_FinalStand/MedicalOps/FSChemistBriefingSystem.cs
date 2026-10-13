@@ -4,7 +4,7 @@ using Content.Shared.GameTicking;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSChemistBriefingSystem : EntitySystem
+public sealed partial class FSChemistBriefingSystem : EntitySystem
 {
     [Dependency] private IChatManager _chat = default!;
 

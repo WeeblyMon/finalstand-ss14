@@ -3,9 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSGiantBoulderSpinSystem : EntitySystem
+public sealed partial class FSGiantBoulderSpinSystem : EntitySystem
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     public override void FrameUpdate(float frameTime)
     {

@@ -16,7 +16,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSSplashFlaskSystem : EntitySystem
+public sealed partial class FSSplashFlaskSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SmokeSystem _smoke = default!;

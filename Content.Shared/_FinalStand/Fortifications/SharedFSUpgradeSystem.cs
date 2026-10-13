@@ -10,7 +10,7 @@ public enum FSUpgradeBlock : byte
     BranchTaken,
 }
 
-public abstract class SharedFSUpgradeSystem : EntitySystem
+public abstract partial class SharedFSUpgradeSystem : EntitySystem
 {
     [Dependency] protected IPrototypeManager Proto = default!;
 

@@ -12,7 +12,7 @@ using Robust.Shared.Configuration;
 
 namespace Content.Client._FinalStand.Engineering;
 
-public sealed class FSFirstUseHintSystem : EntitySystem
+public sealed partial class FSFirstUseHintSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IConfigurationManager _cfg = default!;

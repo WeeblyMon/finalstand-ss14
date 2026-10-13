@@ -9,7 +9,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Tutorial;
 
-public sealed class FSTutorialSystem : EntitySystem
+public sealed partial class FSTutorialSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSPlayerDataStore _store = default!;

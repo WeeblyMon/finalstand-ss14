@@ -17,7 +17,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSCasualtyPullSystem : EntitySystem
+public sealed partial class FSCasualtyPullSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
     [Dependency] private MobStateSystem _mobState = default!;

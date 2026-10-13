@@ -6,7 +6,7 @@ using Robust.Server.Player;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public sealed class FSDeployableAlertSystem : EntitySystem
+public sealed partial class FSDeployableAlertSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _players = default!;
 

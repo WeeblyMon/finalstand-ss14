@@ -3,9 +3,9 @@ using Robust.Client.GameObjects;
 
 namespace Content.Client._FinalStand.Mobs;
 
-public sealed class FSGiantAbilityVisualizerSystem : VisualizerSystem<FSGiantAbilitiesComponent>
+public sealed partial class FSGiantAbilityVisualizerSystem : VisualizerSystem<FSGiantAbilitiesComponent>
 {
-    [Dependency] private readonly SpriteSystem _sprite = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     protected override void OnAppearanceChange(EntityUid uid, FSGiantAbilitiesComponent component, ref AppearanceChangeEvent args)
     {

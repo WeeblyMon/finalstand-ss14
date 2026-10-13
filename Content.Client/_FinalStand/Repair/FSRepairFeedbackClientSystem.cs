@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Repair;
 
-public sealed class FSRepairFeedbackClientSystem : EntitySystem
+public sealed partial class FSRepairFeedbackClientSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;

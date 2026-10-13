@@ -11,7 +11,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.HMG;
 
-public sealed class FSHMGVisualSystem : EntitySystem
+public sealed partial class FSHMGVisualSystem : EntitySystem
 {
     [Dependency] private FSHMGSystem _hmg = default!;
     [Dependency] private SpriteSystem _sprite = default!;

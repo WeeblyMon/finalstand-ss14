@@ -16,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSSyringeFillerSystem : EntitySystem
+public sealed partial class FSSyringeFillerSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private ItemSlotsSystem _slots = default!;

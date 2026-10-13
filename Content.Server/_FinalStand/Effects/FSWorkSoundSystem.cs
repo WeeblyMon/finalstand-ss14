@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Effects;
 
-public sealed class FSWorkSoundSystem : EntitySystem
+public sealed partial class FSWorkSoundSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;

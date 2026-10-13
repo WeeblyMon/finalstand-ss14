@@ -3,7 +3,7 @@ using Content.Shared.Materials.OreSilo;
 
 namespace Content.Shared._FinalStand.Materials;
 
-public sealed class FSSiloReachSystem : EntitySystem
+public sealed partial class FSSiloReachSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
 

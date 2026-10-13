@@ -13,7 +13,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Loot;
 
-public sealed class FSGachaCacheSystem : EntitySystem
+public sealed partial class FSGachaCacheSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private IPrototypeManager _protoMan = default!;
