@@ -313,24 +313,6 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
                 stateDirty = true;
             }
 
-            // Collimator Flanges -> xray-accuracy, +2 degrees/level (damage penalty handled in Hook B).
-            if (TryComp<GunComponent>(weapon, out var xrayGun))
-            {
-                var dColl = Delta(tracker, "FSOrdnanceCollimatorFlanges",
-                    Unlocked("FSOrdnanceCollimatorFlanges") ? shopLevels.GetValueOrDefault("xray-accuracy", 0) : 0);
-                if (dColl != 0)
-                {
-                    var deg = 2.0 * dColl;
-#pragma warning disable RA0002
-                    xrayGun.MinAngle = Angle.FromDegrees(Math.Max(0.0, xrayGun.MinAngle.Degrees - deg * 0.5));
-                    xrayGun.MaxAngle = Angle.FromDegrees(Math.Max(xrayGun.MinAngle.Degrees, xrayGun.MaxAngle.Degrees - deg * 0.2));
-                    xrayGun.MinAngleModified = xrayGun.MinAngle;
-                    xrayGun.MaxAngleModified = xrayGun.MaxAngle;
-#pragma warning restore RA0002
-                    Dirty(weapon, xrayGun);
-                }
-            }
-
             // Focal Overdrive -> xray-damage, flat +5% once owned.
             var dFocal = Delta(tracker, "FSOrdnanceFocalOverdrive",
                 Unlocked("FSOrdnanceFocalOverdrive") && shopLevels.GetValueOrDefault("xray-damage", 0) >= 1 ? 1 : 0);

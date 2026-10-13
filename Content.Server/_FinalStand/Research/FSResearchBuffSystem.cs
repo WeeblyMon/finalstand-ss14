@@ -171,7 +171,6 @@ public sealed partial class FSResearchBuffSystem : EntitySystem
         {
             if (Unlocked("FSOrdnanceConcentratedLaserWeaponry")) mul *= 1.02f;
             if (Unlocked("FSOrdnanceFocusingCrystalPrisms")) mul *= 1.10f;
-            if (Unlocked("FSOrdnanceCollimatorFlanges")) mul *= 0.95f;
             if (Unlocked("FSOrdnanceXrayCannon")) mul *= 1.05f;
         }
         if (isTesla)

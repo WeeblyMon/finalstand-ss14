@@ -76,8 +76,17 @@ public sealed class FSOpenPerkShopEvent : EntityEventArgs { }
 public sealed class FSRespecPerkMessage : EntityEventArgs { }
 
 [Serializable, NetSerializable]
-public sealed class FSInterestPayoutEvent : EntityEventArgs
+public struct FSPerkEarningsEntry
 {
-    public string PerkId = "";
-    public int Amount;
+    public string PerkId;
+    public int WaveCredits;
+    public int GameCredits;
+    public int WaveResearch;
+    public int GameResearch;
+}
+
+[Serializable, NetSerializable]
+public sealed class FSPerkEarningsSummaryEvent : EntityEventArgs
+{
+    public List<FSPerkEarningsEntry> Entries = new();
 }

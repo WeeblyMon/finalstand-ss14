@@ -322,8 +322,10 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     {
         var converted = Spawn(result, Transform(player).Coordinates);
         var convertedState = EnsureComp<FSWeaponUpgradeStateComponent>(converted);
+        _upgrades.CopyUpgradeState(state, convertedState);
         convertedState.Levels[upgradeId] = 1;
         convertedState.TotalSpent = state.TotalSpent + cost;
+        Dirty(converted, convertedState);
 
         Del(weapon);
         TryGiveItemToPlayer(player, converted);

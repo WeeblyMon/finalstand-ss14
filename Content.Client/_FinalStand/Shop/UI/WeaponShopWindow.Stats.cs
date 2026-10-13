@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Power.Components;
 using Content.Shared.Projectiles;
@@ -48,8 +49,13 @@ public sealed partial class WeaponShopWindow
         GunComponent? gunProto = null;
         MeleeWeaponComponent? meleeProto = null;
         CritComponent? critProto = null;
-        if (shopComp.WeaponProtoId is { } weaponProtoId
-            && _proto.TryIndex<EntityPrototype>(weaponProtoId, out weaponProto))
+        var carriedProtoId = weapon.HasValue
+            ? entMan.GetComponent<MetaDataComponent>(weapon.Value).EntityPrototype?.ID
+            : null;
+        var protoId = carriedProtoId ?? shopComp.WeaponProtoId?.Id;
+
+        if (protoId != null
+            && _proto.TryIndex<EntityPrototype>(protoId, out weaponProto))
         {
             weaponProto.TryGetComponent<GunComponent>(out gunProto, entMan.ComponentFactory);
             weaponProto.TryGetComponent<MeleeWeaponComponent>(out meleeProto, entMan.ComponentFactory);
@@ -394,6 +400,8 @@ public sealed partial class WeaponShopWindow
                 damage = (float)proj.Damage.GetTotal();
             else if (projProto.TryGetComponent<HitscanBasicDamageComponent>(out var hitscan, entMan.ComponentFactory))
                 damage = (float)hitscan.Damage.GetTotal();
+            else if (projProto.TryGetComponent<FSHarvesterComponent>(out var harvester, entMan.ComponentFactory))
+                damage = harvester.Damage;
             if (projProto.TryGetComponent<ProjectileSpreadComponent>(out var spread, entMan.ComponentFactory))
                 pellets = spread.Count;
         }

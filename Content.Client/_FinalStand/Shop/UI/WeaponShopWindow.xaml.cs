@@ -213,15 +213,17 @@ public sealed partial class WeaponShopWindow : FancyWindow
             && _proto.TryIndex<EntityPrototype>(pid, out var wEntProto)
             && wEntProto.TryGetComponent<FSGrenadePackComponent>(out _, _entityManager.ComponentFactory);
 
-        var meta = entMan.GetComponent<MetaDataComponent>(shopEntity);
+        var shopClient = _entityManager.System<FSShopClientSystem>();
+        var carried = shopClient.FindOwnedWeapon(comp.WeaponProtoId, comp.WeaponProtoIdAliases);
+        var display = carried ?? shopEntity;
+        var meta = entMan.GetComponent<MetaDataComponent>(display);
         WeaponNameLabel.Text = Capitalize(meta.EntityName);
         PlateCategory.Text = comp.Category.ToUpperInvariant();
         DescLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
             $"[color={DescText.ToHex()}]{FormattedMessage.EscapeText(meta.EntityDescription)}[/color]"));
-        WeaponSprite.SetEntity(shopEntity);
+        WeaponSprite.SetEntity(display);
 
-        var shopClient = _entityManager.System<FSShopClientSystem>();
-        BuildStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), entMan);
+        BuildStatBars(comp, carried, entMan);
         RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         UpdateBalance(shopClient.CurrentCredits);
     }

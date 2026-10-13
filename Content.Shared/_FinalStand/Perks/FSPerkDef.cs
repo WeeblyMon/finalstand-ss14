@@ -97,7 +97,7 @@ public sealed class FSPerkDef
             new("Juggernaught", "Juggernaught",
                 "Take less damage from zombies.",
                 PerkCategory.Blue,
-                Pct("+{0}% Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
+                Pct("+{0} Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
 
             new("Lightweight", "Lightweight",
                 "Increases your movement speed.",
@@ -112,7 +112,7 @@ public sealed class FSPerkDef
             new("SwordAndShield", "Sword and Shield",
                 "Increases your melee damage and damage resistance while wielding a melee weapon.",
                 PerkCategory.Purple,
-                Pct("+{0}% Damage / +{1}% Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
+                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
 
             new("DeathAura", "Death Aura",
                 "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
@@ -132,8 +132,8 @@ public sealed class FSPerkDef
             new("Rampage", "Rampage",
                 "Melee kills increase resistance, health regen, and speed. 5 stacks max.",
                 PerkCategory.Purple,
-                ["+3% Resist/+0.2 Regen/+2% Speed", "+6%/+0.4/+4%",
-                 "+9%/+0.6/+6%", "+12%/+0.8/+8%"]),
+                ["+3 Resist/+0.2 Regen/+2% Speed", "+6/+0.4/+4%",
+                 "+9/+0.6/+6%", "+12/+0.8/+8%"]),
 
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
@@ -168,7 +168,7 @@ public sealed class FSPerkDef
             new("Pacifist", "Pacifist",
                 "Deal 25% less damage, but gain significant damage resistance.",
                 PerkCategory.Blue,
-                Pct("+{0}% Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
+                Pct("+{0} Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
 
             new("FieldMedic", "Field Medic",
                 "Bandages, ointments and medigun beams you apply heal more.",

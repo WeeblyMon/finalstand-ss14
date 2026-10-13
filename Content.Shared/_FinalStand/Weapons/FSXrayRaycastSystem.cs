@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -8,7 +9,6 @@ using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Physics;
-using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
@@ -18,9 +18,9 @@ namespace Content.Shared._FinalStand.Weapons;
 // letting X-Ray shots punch through solid matter to reach the first zombie in line.
 public sealed partial class FSXrayRaycastSystem : EntitySystem
 {
-    [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
+    [Dependency] private SharedFSLagCompensationSystem _lagCompensation = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
@@ -42,7 +42,7 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
         var shooter = args.Shooter ?? args.Gun;
         var mapCoords = _transform.ToMapCoordinates(args.FromCoordinates);
         var ray = new CollisionRay(mapCoords.Position, args.ShotDirection, (int) CollisionGroup.Opaque);
-        var results = _physics.IntersectRay(mapCoords.MapId, ray, ent.Comp.MaxDistance, shooter, false);
+        var results = _lagCompensation.IntersectRay(mapCoords.MapId, ray, ent.Comp.MaxDistance, shooter, args.Shooter);
 
         var isFriendly = args.Shooter != null && _ffQuery.HasComponent(args.Shooter.Value);
 
@@ -82,7 +82,7 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
             break;
         }
 
-        FireEffects(args.FromCoordinates, totalDist, args.ShotDirection.ToAngle(), ent.Owner);
+        FireEffects(args.FromCoordinates, totalDist, args.ShotDirection.ToAngle(), ent.Owner, args.Shooter);
 
         var data = new HitscanRaycastFiredData
         {
@@ -100,12 +100,12 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
         RaiseLocalEvent(ent, ref hitEvent);
     }
 
-    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, EntityUid hitscanUid)
+    private void FireEffects(EntityCoordinates fromCoordinates, float distance, Angle shotAngle, EntityUid hitscanUid, EntityUid? shooter)
     {
         if (distance == 0 || !_visualsQuery.TryGetComponent(hitscanUid, out var vizComp))
             return;
 
-        var sprites = new List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale)>();
+        var sprites = new List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier sprite, float scale, SharedGunSystem.HitscanPart part)>();
         (fromCoordinates, shotAngle) = _hitscanCoords.ToGridRelative(fromCoordinates, shotAngle);
 
         if (distance >= 1f)
@@ -113,25 +113,31 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
             if (vizComp.MuzzleFlash != null)
             {
                 var coords = fromCoordinates.Offset(shotAngle.ToVec().Normalized() / 2);
-                sprites.Add((GetNetCoordinates(coords), shotAngle, vizComp.MuzzleFlash, 1f));
+                sprites.Add((GetNetCoordinates(coords), shotAngle, vizComp.MuzzleFlash, 1f, SharedGunSystem.HitscanPart.Muzzle));
             }
 
             if (vizComp.TravelFlash != null)
             {
                 var coords = fromCoordinates.Offset(shotAngle.ToVec() * (distance + 0.5f) / 2);
-                sprites.Add((GetNetCoordinates(coords), shotAngle, vizComp.TravelFlash, distance - 1.5f));
+                sprites.Add((GetNetCoordinates(coords), shotAngle, vizComp.TravelFlash, distance - 1.5f, SharedGunSystem.HitscanPart.Travel));
             }
         }
 
         if (vizComp.ImpactFlash != null)
         {
             var coords = fromCoordinates.Offset(shotAngle.ToVec() * distance);
-            sprites.Add((GetNetCoordinates(coords), shotAngle.FlipPositive(), vizComp.ImpactFlash, 1f));
+            sprites.Add((GetNetCoordinates(coords), shotAngle.FlipPositive(), vizComp.ImpactFlash, 1f, SharedGunSystem.HitscanPart.Impact));
         }
 
         if (sprites.Count > 0)
         {
-            RaiseNetworkEvent(new SharedGunSystem.HitscanEvent { Sprites = sprites },
+            RaiseNetworkEvent(new SharedGunSystem.HitscanEvent
+                {
+                    Sprites = sprites,
+                    Shooter = shooter is { } user ? GetNetEntity(user) : null,
+                    Origin = GetNetCoordinates(fromCoordinates),
+                    Impact = GetNetCoordinates(fromCoordinates.Offset(shotAngle.ToVec() * distance)),
+                },
                 Filter.Pvs(fromCoordinates, entityMan: EntityManager));
         }
     }

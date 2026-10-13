@@ -325,7 +325,6 @@
       description: Boosts beam damage by 15% per level.
       maxLevel: 5
       baseCost: 12000
-      targetWeaponProtoId: WeaponHarvesterFS
       type: Damage
       valuePerLevel: 0.15
     - id: harvester-xray-conversion
@@ -339,22 +338,13 @@
       requiresResearch: FSOrdnanceXrayCannon
     - id: xray-self-charge
       name: Resonant Cell
-      description: Tuned resonator doubles self-recharge rate per level.
+      description: Tuned resonator more than triples self-recharge rate per level.
       maxLevel: 3
       baseCost: 11000
       targetWeaponProtoId: WeaponXrayCannonFS
       requiresResearch: FSOrdnanceXrayCannon
       type: SelfChargeSpeed
-      valuePerLevel: 2.0
-    - id: xray-accuracy
-      name: Collimator
-      description: Precision collimator tightens the beam by 10° per level.
-      maxLevel: 3
-      baseCost: 10000
-      targetWeaponProtoId: WeaponXrayCannonFS
-      requiresResearch: FSOrdnanceXrayCannon
-      type: Accuracy
-      valuePerLevel: 10.0
+      valuePerLevel: 3.2
     - id: xray-fire-rate
       name: Pulse Accelerator
       description: Faster charge cycling increases fire rate by 0.5/level.

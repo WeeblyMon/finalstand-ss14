@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Perks;
 using Content.Server.Power.EntitySystems;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems;
@@ -22,6 +23,7 @@ using Content.Shared.Wieldable;
 using Content.Shared.Wieldable.Components;
 using Content.Shared.Whitelist;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
@@ -45,6 +47,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSOverhealSystem _overheal = default!;
     [Dependency] private FSUberSystem _uber = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+
+    // How far from the cursor a click still counts as aiming at a player.
+    private const float ClickAssistRadius = 0.9f;
+
+    private readonly HashSet<Entity<FSFriendlyFireComponent>> _clickCandidates = new();
 
     private EntityQuery<BatteryComponent> _batteryQuery;
     private EntityQuery<DamageableComponent> _damageableQuery;
@@ -207,7 +215,7 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (args.Handled)
             return;
 
-        if (args.Target is not { } target || target == args.User)
+        if (ResolveTarget(args.Target, args.ClickLocation, args.User) is not { } target)
             return;
 
         if (!TryComp<WieldableComponent>(uid, out var wieldable) || !wieldable.Wielded)
@@ -233,9 +241,43 @@ public sealed partial class FSMediGunSystem : EntitySystem
         args.Handled = true;
     }
 
+    public static bool IsPatient(IEntityManager entMan, EntityUid uid) => entMan.HasComponent<FSFriendlyFireComponent>(uid);
+
+    // Only crew are patients; a miss near a player snaps onto them so fast-moving targets are clickable.
+    private EntityUid? ResolveTarget(EntityUid? clicked, EntityCoordinates click, EntityUid user)
+    {
+        if (clicked is { } direct && direct != user && IsPatient(EntityManager, direct))
+            return direct;
+
+        _clickCandidates.Clear();
+        _lookup.GetEntitiesInRange(click, ClickAssistRadius, _clickCandidates);
+
+        EntityUid? best = null;
+        var bestDistance = float.MaxValue;
+        var clickMap = _xform.ToMapCoordinates(click);
+
+        foreach (var candidate in _clickCandidates)
+        {
+            if (candidate.Owner == user)
+                continue;
+
+            var distance = (_xform.GetMapCoordinates(candidate).Position - clickMap.Position).LengthSquared();
+            if (distance >= bestDistance)
+                continue;
+
+            bestDistance = distance;
+            best = candidate.Owner;
+        }
+
+        return best;
+    }
+
     public void Link(Entity<FSMediGunComponent> ent, EntityUid target, EntityUid wielder)
     {
         var (uid, comp) = ent;
+
+        if (!IsPatient(EntityManager, target))
+            return;
 
         while (comp.HealedEntities.Count >= comp.MaxLinksAmount && comp.HealedEntities.Count > 0)
             DisableConnection(ent, comp.HealedEntities[0]);

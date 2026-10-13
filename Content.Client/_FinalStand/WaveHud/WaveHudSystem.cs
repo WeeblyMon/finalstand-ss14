@@ -43,7 +43,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
         SubscribeNetworkEvent<FSPerkTimedBuffsEvent>(ev => _perkBuffs = ev.Buffs);
-        SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
+        SubscribeNetworkEvent<FSPerkEarningsSummaryEvent>(OnPerkEarnings);
         SubscribeNetworkEvent<FSHealPayoutEvent>(OnHealPayout);
         SubscribeNetworkEvent<FSMedicalFundUpdatedEvent>(OnMedicalFund);
         SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
@@ -416,9 +416,9 @@ public sealed partial class WaveHudSystem : EntitySystem
         EnsureOverlay().PerkStacks[ev.PerkId] = ev.Stacks;
     }
 
-    private void OnInterestPayout(FSInterestPayoutEvent ev)
+    private void OnPerkEarnings(FSPerkEarningsSummaryEvent ev)
     {
-        EnsureOverlay().AddInterestPopup(ev.PerkId, ev.Amount);
+        EnsureOverlay().AddEarningsPopup(ev.Entries);
     }
 
     private void OnBonusSummary(FSPlayerBonusSummaryEvent ev)

@@ -145,11 +145,23 @@ public sealed partial class FSDeployableSystem : EntitySystem
         if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
 
-        var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, _map.TileIndicesFor(gridUid, grid, coords));
+        var tile = _map.TileIndicesFor(gridUid, grid, coords);
+
+        var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
         while (anchored.MoveNext(out var other))
         {
             if (TryComp<FSDeployedByComponent>(other, out var existing)
                 && (existing.Facing == null || facing == null || existing.Facing == facing))
+                return true;
+        }
+
+        var query = EntityQueryEnumerator<FSDeployedByComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var existing, out var xform))
+        {
+            if (xform.Anchored || existing.Facing != facing || xform.GridUid != gridUid)
+                continue;
+
+            if (_map.TileIndicesFor(gridUid, grid, xform.Coordinates) == tile)
                 return true;
         }
 

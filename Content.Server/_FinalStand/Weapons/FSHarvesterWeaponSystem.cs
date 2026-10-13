@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
+using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.Damage;
 using Content.Shared.GameTicking;
 using Content.Shared.Damage.Systems;
@@ -30,12 +31,13 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private FSResearchSystem _research = default!;
     [Dependency] private FSResearchBuffSystem _researchBuff = default!;
+    [Dependency] private FSPerkEarningsSystem _earnings = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSHitscanCoordSystem _hitscanCoords = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedFSLagCompensationSystem _lagCompensation = default!;
 
-    private const float BaseDamage = 2f;
     private const int RpPerHit = 10;
     private const int ResearchCapDivisor = 3;
     private const float DefaultRange = 7f;
@@ -108,8 +110,15 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         (fromCoords, shotAngle) = _hitscanCoords.ToGridRelative(fromCoords, shotAngle);
 
-        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords), (float)shotAngle.Theta, distance),
-            Filter.Pvs(fromCoords, entityMan: EntityManager));
+        var filter = Filter.Pvs(fromCoords, entityMan: EntityManager);
+        if (args.Data.Shooter is { } shooter && _lagCompensation.IsPredictedShot(shooter) && _lagCompensation.CanPredictHitscan(uid))
+            filter.RemoveWhereAttachedEntity(e => e == shooter);
+
+        RaiseNetworkEvent(new FSHarvesterBeamFiredEvent(GetNetCoordinates(fromCoords),
+                (float) shotAngle.Theta,
+                distance,
+                args.Data.Shooter is { } beamShooter ? GetNetEntity(beamShooter) : null),
+            filter);
 
         if (args.Data.HitEntity is not { } hit)
             return;
@@ -123,7 +132,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
             isHarvester: true);
 
         var dmg = new DamageSpecifier();
-        dmg.DamageDict["Radiation"] = FixedPoint2.New(BaseDamage * shopMultiplier * researchMultiplier);
+        dmg.DamageDict["Radiation"] = FixedPoint2.New(comp.Damage * shopMultiplier * researchMultiplier);
 
         if (!_damageable.TryChangeDamage(hit, dmg, out var dealt, origin: args.Data.Shooter ?? args.Data.Gun))
             return;
@@ -150,8 +159,12 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
             || !_mind.TryGetMind(shooter.Value, out var mindId, out _))
             return;
 
+        var perkBonus = 0;
         if (perkId != null && TryComp<FSPerkLevelsComponent>(mindId, out var perks))
-            amount += perks.GetSlottedLevel(perkId);
+        {
+            perkBonus = perks.GetSlottedLevel(perkId);
+            amount += perkBonus;
+        }
 
         cap.ResearchGivenPerPlayer.TryGetValue(mindId, out var given);
         var grant = Math.Min(amount, cap.MaxMoneyPerPlayer / ResearchCapDivisor - given);
@@ -160,6 +173,9 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
 
         cap.ResearchGivenPerPlayer[mindId] = given + grant;
         _research.GrantResearchPoints(grant, source, mindId);
+
+        if (perkId != null && perkBonus > 0)
+            _earnings.RecordResearch(mindId, perkId, Math.Min(perkBonus, grant));
     }
 
     public override void Update(float frameTime)

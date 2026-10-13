@@ -1,6 +1,7 @@
 using Content.Server.Administration.Logs;
 using Content.Server.Destructible;
 using Content.Server.Effects;
+using Content.Server._FinalStand.Weapons.Prediction;
 using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Camera;
@@ -23,6 +24,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
     [Dependency] private DestructibleSystem _destructibleSystem = default!;
     [Dependency] private GunSystem _guns = default!;
     [Dependency] private SharedCameraRecoilSystem _sharedCameraRecoil = default!;
+    [Dependency] private FSLagCompensationSystem _lagCompensation = default!; // fs
 
     public override void Initialize()
     {
@@ -66,12 +68,18 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
             && HasComp<FSFriendlyFireComponent>(target))
             return;
 
+        var hiddenViewer = _lagCompensation.GetHiddenViewer(uid); // fs
+
         if (_damageableSystem.TryChangeDamage((target, damageableComponent), ev.Damage, out var damage, component.IgnoreResistances, origin: component.Shooter) && Exists(component.Shooter))
 
         {
             if (!Deleted(target))
             {
-                _color.RaiseEffect(Color.Red, new List<EntityUid> { target }, Filter.Pvs(target, entityManager: EntityManager));
+                var flashFilter = Filter.Pvs(target, entityManager: EntityManager); // fs
+                if (hiddenViewer != null)
+                    flashFilter.RemovePlayer(hiddenViewer);
+
+                _color.RaiseEffect(Color.Red, new List<EntityUid> { target }, flashFilter);
             }
 
             _adminLogger.Add(LogType.BulletHit,
@@ -87,7 +95,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
 
         if (!Deleted(target))
         {
-            _guns.PlayImpactSound(target, damage, component.SoundHit, component.ForceSound);
+            _guns.PlayImpactSound(target, damage, component.SoundHit, component.ForceSound, hiddenViewer); // fs
 
             if (!args.OurBody.LinearVelocity.IsLengthZero())
                 _sharedCameraRecoil.KickCamera(target, args.OurBody.LinearVelocity.Normalized());
@@ -98,7 +106,11 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
 
         if (component.ImpactEffect != null && TryComp(uid, out TransformComponent? xform))
         {
-            RaiseNetworkEvent(new ImpactEffectEvent(component.ImpactEffect, GetNetCoordinates(xform.Coordinates)), Filter.Pvs(xform.Coordinates, entityMan: EntityManager));
+            var impactFilter = Filter.Pvs(xform.Coordinates, entityMan: EntityManager); // fs
+            if (hiddenViewer != null)
+                impactFilter.RemovePlayer(hiddenViewer);
+
+            RaiseNetworkEvent(new ImpactEffectEvent(component.ImpactEffect, GetNetCoordinates(xform.Coordinates)), impactFilter);
         }
     }
 

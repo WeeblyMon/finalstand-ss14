@@ -41,6 +41,7 @@
   - type: FSDamageBeacon
     radius: 4
     damageMultiplier: 1.5
+  - type: FSDeployableFieldVisuals
   - type: FSDeployableLifetime
     lifetime: 45
   - type: Physics

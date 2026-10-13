@@ -114,7 +114,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         if (_window == null || !EntMan.TryGetComponent<FSShopWeaponComponent>(Owner, out var comp))
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
-        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), EntMan);
+        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId, comp.WeaponProtoIdAliases), EntMan);
         _window.RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         _window.UpdateBalance(shopClient.CurrentCredits);
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);

@@ -46,13 +46,18 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     {
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
-        if (TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyShield(weapon, player, def, newLevel, spawnItems, state)) return;
-        TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
+        if (!TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyShield(weapon, player, def, newLevel, spawnItems, state))
+        {
+            TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
+        }
+
+        if (!TerminatingOrDeleted(weapon))
+            Dirty(weapon, state);
     }
 
     private void TryTransformToDualWieldEnergySword(EntityUid oldSword, EntityUid player,
@@ -65,6 +70,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         CopyUpgradeState(oldState, newState);
         newState.AttackSpeedMultiplier = oldState.AttackSpeedMultiplier + attackSpeedBonus;
         newState.DualWieldEnergySwordApplied = true;
+        Dirty(newSword, newState);
 
         var safeToDelete = true;
         var wasInHand = false;
@@ -86,7 +92,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _stash.Stash(player, newSword);
     }
 
-    private void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
+    public void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
     {
         _serialization.CopyTo(from, ref to, notNullableOverride: true);
     }

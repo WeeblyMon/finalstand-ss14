@@ -35,3 +35,10 @@ cmd-pausewavespawns-help = Usage: pausewavespawns
 cmd-startfinalstand-desc = Start a Final Stand round on FinalStandMap1.
 cmd-startfinalstand-help = Usage: startfinalstand
     Loads the FinalStand preset and map, then starts the round.
+
+cmd-fsnetlag-desc = Shows how far behind the server your view of other entities is.
+cmd-fsnetlag-help = Usage: fsnetlag
+cmd-fsnetlag-result = View lag {$ticks} ticks ({$ms} ms), ping {$ping} ms, shot prediction {$prediction}.
+cmd-fsnetlag-shot = Your last predicted bullet appeared {$ms} ms before the server's copy reached you.
+cmd-fsnetlag-on = on
+cmd-fsnetlag-off = off

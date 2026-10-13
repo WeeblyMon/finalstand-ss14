@@ -9,7 +9,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Weapons;
 
-// Shows FSHarvesterRpHudOverlay only while holding the Harvester; polls every frame instead of hand-change events so it also catches an already-held Harvester on reconnect/spawn.
+// Shows FSHarvesterRpHudOverlay while holding any research weapon; polls every frame instead of hand-change events so it also catches one already held on reconnect/spawn.
 public sealed partial class FSHarvesterRpHudSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
@@ -77,7 +77,7 @@ public sealed partial class FSHarvesterRpHudSystem : EntitySystem
         base.FrameUpdate(frameTime);
 
         var player = _player.LocalSession?.AttachedEntity;
-        var holding = player != null && IsHoldingHarvester(player.Value);
+        var holding = player != null && IsHoldingResearchWeapon(player.Value);
 
         if (holding)
         {
@@ -93,14 +93,14 @@ public sealed partial class FSHarvesterRpHudSystem : EntitySystem
         }
     }
 
-    private bool IsHoldingHarvester(EntityUid user)
+    private bool IsHoldingResearchWeapon(EntityUid user)
     {
         if (!HasComp<HandsComponent>(user))
             return false;
 
         foreach (var held in _hands.EnumerateHeld(user))
         {
-            if (HasComp<FSHarvesterComponent>(held))
+            if (HasComp<FSResearchHudComponent>(held))
                 return true;
         }
 

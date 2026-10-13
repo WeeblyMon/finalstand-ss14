@@ -31,27 +31,48 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
         if (!_mind.TryGetMind(uid, out var mindId, out _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
-        var juggLevel = augs.GetSlottedLevel("Juggernaught");
-        if (juggLevel > 0 && args.Origin != null && HasComp<FSZombieVisualsComponent>(args.Origin.Value))
-            args.Damage *= 1f - juggLevel * FSPerkBonusConstants.JuggernaughtPerLevel;
+        var fromZombie = args.Origin != null && HasComp<FSZombieVisualsComponent>(args.Origin.Value);
+        var holdingMelee = _hands.TryGetActiveItem(uid, out var activeHeld) && activeHeld.HasValue
+            && HasComp<MeleeWeaponComponent>(activeHeld.Value) && !HasComp<GunComponent>(activeHeld.Value);
 
-        var snsLevel = augs.GetSlottedLevel("SwordAndShield");
-        if (snsLevel > 0
-            && _hands.TryGetActiveItem(uid, out var activeHeld) && activeHeld.HasValue
-            && HasComp<MeleeWeaponComponent>(activeHeld.Value) && !HasComp<GunComponent>(activeHeld.Value))
+        args.Damage *= GetIncomingMultiplier(mindId, augs, fromZombie, holdingMelee);
+    }
+
+    public float GetIncomingMultiplier(EntityUid mindId, FSPerkLevelsComponent augs, bool fromZombie,
+        bool holdingMelee, List<(string PerkId, float Resist)>? sources = null)
+    {
+        var points = 0f;
+
+        void Resist(string perkId, float value)
         {
-            args.Damage *= 1f - snsLevel * FSPerkBonusConstants.SwordAndShieldResistPerLevel;
+            points += value;
+            sources?.Add((perkId, value));
         }
 
-        if (augs.GetSlottedLevel("GlassCannon") > 0)
-            args.Damage *= FSPerkBonusConstants.GlassCannonIncomingMultiplier;
+        var juggLevel = augs.GetSlottedLevel("Juggernaught");
+        if (juggLevel > 0 && fromZombie)
+            Resist("Juggernaught", juggLevel * FSPerkBonusConstants.JuggernaughtPerLevel);
+
+        var snsLevel = augs.GetSlottedLevel("SwordAndShield");
+        if (snsLevel > 0 && holdingMelee)
+            Resist("SwordAndShield", snsLevel * FSPerkBonusConstants.SwordAndShieldResistPerLevel);
 
         var pacifistLevel = augs.GetSlottedLevel("Pacifist");
         if (pacifistLevel > 0)
-            args.Damage *= 1f - pacifistLevel * FSPerkBonusConstants.PacifistResistPerLevel;
+            Resist("Pacifist", pacifistLevel * FSPerkBonusConstants.PacifistResistPerLevel);
 
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
-            args.Damage *= Math.Max(0f, 1f - ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageResistPerLevel);
+            Resist("Rampage", MathF.Min(1f, ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageResistPerLevel));
+
+        var taken = 1f / (points + 1f);
+
+        if (augs.GetSlottedLevel("GlassCannon") > 0)
+        {
+            taken += FSPerkBonusConstants.GlassCannonIncomingMultiplier - 1f;
+            sources?.Add(("GlassCannon", 1f - FSPerkBonusConstants.GlassCannonIncomingMultiplier));
+        }
+
+        return taken;
     }
 }

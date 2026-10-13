@@ -7,6 +7,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Shop.UI;
@@ -100,12 +101,33 @@ public sealed partial class WeaponShopWindow
             return;
         }
 
+        var targets = visible.Select(d => d.TargetWeaponProtoId?.Id).Distinct().ToList();
+        if (targets.Count > 1)
+        {
+            foreach (var target in targets)
+            {
+                UpgradesContainer.AddChild(BuildGroup(WeaponGroupTitle(target), "",
+                    visible.Where(d => d.TargetWeaponProtoId?.Id == target).ToList()));
+            }
+            return;
+        }
+
         var statUps = visible.Where(d => IsStatUpgrade(d.Type)).ToList();
         var special = visible.Where(d => !IsStatUpgrade(d.Type)).ToList();
         if (statUps.Count > 0)
             UpgradesContainer.AddChild(BuildGroup("STAT UPGRADES", "Hover to preview on the stat tiles", statUps));
         if (special.Count > 0)
             UpgradesContainer.AddChild(BuildGroup(statUps.Count > 0 ? "SPECIAL" : "UPGRADES", "", special));
+    }
+
+    private string WeaponGroupTitle(string? protoId)
+    {
+        if (protoId == null)
+            return "GENERAL UPGRADES";
+
+        return _proto.TryIndex<EntityPrototype>(protoId, out var proto)
+            ? $"{proto.Name.ToUpperInvariant()} UPGRADES"
+            : "UPGRADES";
     }
 
     private void RefreshProgress(int bought, int total)
@@ -146,6 +168,15 @@ public sealed partial class WeaponShopWindow
             string? lockedBy = null;
             if (def.RequiresResearch is { } node && !shopClient.IsResearchNodeUnlocked(node.Id))
                 lockedBy = _proto.TryIndex(node, out var nodeProto) ? nodeProto.Name : node.Id;
+
+            if (lockedBy == null
+                && def.TargetWeaponProtoId is { } target
+                && !shopClient.PlayerHasWeaponInInventory(shopClient.GetLocalPlayer(), target))
+            {
+                lockedBy = _proto.TryIndex<EntityPrototype>(target.Id, out var weaponProto)
+                    ? weaponProto.Name
+                    : target.Id;
+            }
 
             var discounted = def.DiscountResearch is { } discount && shopClient.IsResearchNodeUnlocked(discount.Id);
             group.AddChild(BuildRow(def, _levels.GetValueOrDefault(def.Id, 0), lockedBy, discounted));

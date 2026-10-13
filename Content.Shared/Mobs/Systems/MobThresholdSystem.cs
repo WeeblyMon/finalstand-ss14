@@ -9,6 +9,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Events;
 using Robust.Shared.GameStates;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared.Mobs.Systems;
@@ -320,8 +321,7 @@ public sealed partial class MobThresholdSystem : EntitySystem
 
         CheckThresholds(target, mobState, threshold, damageable);
 
-        if (_net.IsServer)
-            RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(target)), target);
+        NotifyThresholdChecked(target);
         UpdateAlerts(target, mobState.CurrentState, threshold, damageable);
     }
 
@@ -445,8 +445,7 @@ public sealed partial class MobThresholdSystem : EntitySystem
         if (!TryComp<MobStateComponent>(target, out var mobState))
             return;
         CheckThresholds(target, mobState, thresholds, args.Damageable, args.Origin);
-        if (_net.IsServer)
-            RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(target)), target);
+        NotifyThresholdChecked(target);
         UpdateAlerts(target, mobState.CurrentState, thresholds, args.Damageable);
     }
 
@@ -462,6 +461,14 @@ public sealed partial class MobThresholdSystem : EntitySystem
     {
         if (component.TriggersAlerts)
             _alerts.ClearAlertCategory(target, component.HealthAlertCategory);
+    }
+
+    public void NotifyThresholdChecked(EntityUid target)
+    {
+        if (!_net.IsServer || !TryComp<ActorComponent>(target, out var actor))
+            return;
+
+        RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(target)), actor.PlayerSession);
     }
 
     private void OnUpdateMobState(EntityUid target, MobThresholdsComponent component, ref UpdateMobStateEvent args)
@@ -480,10 +487,7 @@ public sealed partial class MobThresholdSystem : EntitySystem
     {
         var (_, thresholds, mobState, damageable) = ent;
         if (Resolve(ent, ref thresholds, ref mobState, ref damageable))
-        {
-            if (_net.IsServer)
-                RaiseNetworkEvent(new MobThresholdChecked(GetNetEntity(ent.Owner)), ent.Owner);
-        }
+            NotifyThresholdChecked(ent.Owner);
 
         UpdateAlerts(ent, currentState, thresholds, damageable);
     }

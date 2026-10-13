@@ -1507,26 +1507,6 @@
     -8% Charge Rate (X-Ray)
 
 - type: fsTechNode
-  id: FSOrdnanceCollimatorFlanges
-  name: Collimator Flanges
-  icon:
-    sprite: Objects/Materials/Shards/crystal.rsi
-    state: shard2
-  branch: Ordnance
-  tier: 7
-  cost: 3500
-  materialCost:
-    Steel: 130
-    Gold: 65
-  prerequisiteGroups:
-  - - FSOrdnanceLeadLinedEmitters
-    - FSOrdnanceIsotopeSynthesiser
-  exclusiveGroup: FSOrdnanceXrayCoolingChoice
-  bonusDescription: |-
-    +2° Accuracy per Collimator level (X-Ray)
-    -5% Damage (X-Ray)
-
-- type: fsTechNode
   id: FSOrdnanceFocalOverdrive
   name: Focal Overdrive
   icon:
@@ -1540,5 +1520,4 @@
     Gold: 80
   prerequisiteGroups:
   - - FSOrdnanceFocusingCrystalPrisms
-    - FSOrdnanceCollimatorFlanges
   bonusDescription: +5% Damage once Overloaded Emitter is owned (X-Ray)

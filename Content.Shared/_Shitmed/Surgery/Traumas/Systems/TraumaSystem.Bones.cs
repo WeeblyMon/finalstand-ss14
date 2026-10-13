@@ -120,7 +120,8 @@ public partial class TraumaSystem
             || bodyComp.Category == OrganCategories.FootLeft
             || bodyComp.Category == OrganCategories.FootRight)
         {
-            ProcessLegsState(bodyComp.Body.Value);
+            // FINALSTAND: this event fires before the new integrity is stored, so recomputing now read the old severity.
+            QueueLegUpdate(bodyComp.Body.Value);
         }
     }
 

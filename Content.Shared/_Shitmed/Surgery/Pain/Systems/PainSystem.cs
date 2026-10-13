@@ -5,6 +5,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Content.Shared._Shitmed.Targeting;
 using Content.Shared._Shitmed.CCVar;
 using Content.Shared._Shitmed.Medical.Surgery.Consciousness.Systems;
 using Content.Shared._Shitmed.Medical.Surgery.Pain.Components;
@@ -35,6 +36,8 @@ namespace Content.Shared._Shitmed.Medical.Surgery.Pain.Systems;
 public sealed partial class PainSystem : EntitySystem
 {
     [Dependency] private INetManager _net = default!;
+    [Dependency] private MobThresholdSystem _threshold = default!;
+    [Dependency] private SharedTargetingSystem _targeting = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IRobustRandom _random = default!;

@@ -37,6 +37,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSBloodloadSystem _bloodload = default!;
     [Dependency] private FSSpeedloadSystem _speedload = default!;
     [Dependency] private FSUnderdogSystem _underdog = default!;
+    [Dependency] private FSIncomingDamagePerkSystem _incomingPerks = default!;
     [Dependency] private FSPerkCritSystem _perkCrit = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
@@ -378,48 +379,46 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
     }
 
-    // Mirrors FSIncomingDamagePerkSystem: each source multiplies damage taken.
     private FSBonusCategory ComputeResistance(EntityUid mob, EntityUid mindId, FSPerkLevelsComponent? perks)
     {
         if (perks == null)
             return Empty;
 
-        var taken = 1f;
+        var holdingMelee = _hands.TryGetActiveItem(mob, out var active) && active is { } activeItem
+            && HasComp<MeleeWeaponComponent>(activeItem) && !HasComp<GunComponent>(activeItem);
+
+        var parts = new List<(string PerkId, float Resist)>();
+        var taken = _incomingPerks.GetIncomingMultiplier(mindId, perks, fromZombie: true, holdingMelee, parts);
+
         var sources = new List<string>();
-
-        void Add(string label, float multiplier)
+        var points = 0f;
+        foreach (var (perkId, resist) in parts)
         {
-            taken *= multiplier;
-            sources.Add(FormatPct(label, (1f - multiplier) * 100f));
+            sources.Add(FormatPct(ResistLabel(perkId), resist * 100f));
+            if (perkId != "GlassCannon")
+                points += resist;
         }
-
-        var jugg = perks.GetSlottedLevel("Juggernaught");
-        if (jugg > 0)
-            Add("Juggernaught (zombies)", 1f - jugg * FSPerkBonusConstants.JuggernaughtPerLevel);
-
-        var sns = perks.GetSlottedLevel("SwordAndShield");
-        if (sns > 0
-            && _hands.TryGetActiveItem(mob, out var active) && active is { } activeItem
-            && HasComp<MeleeWeaponComponent>(activeItem) && !HasComp<GunComponent>(activeItem))
-            Add("Sword & Shield", 1f - sns * FSPerkBonusConstants.SwordAndShieldResistPerLevel);
-
-        if (perks.GetSlottedLevel("GlassCannon") > 0)
-            Add("Glass Cannon", FSPerkBonusConstants.GlassCannonIncomingMultiplier);
-
-        var pacifist = perks.GetSlottedLevel("Pacifist");
-        if (pacifist > 0)
-            Add("Pacifist", 1f - pacifist * FSPerkBonusConstants.PacifistResistPerLevel);
-
-        var rampage = perks.GetSlottedLevel("Rampage");
-        if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
-            Add("Rampage", MathF.Max(0f, 1f - ramp.Stacks * rampage * FSPerkBonusConstants.RampageResistPerLevel));
 
         var underdog = _underdog.GetMultiplier(mob, perks);
         if (underdog > 1f)
-            Add("Underdog", 1f / underdog);
+        {
+            taken *= 1f / underdog;
+            sources.Add(FormatPct("Underdog", (1f - 1f / underdog) * 100f));
+        }
 
-        return sources.Count > 0 ? new FSBonusCategory((1f - taken) * 100f, sources.ToArray()) : Empty;
+        if (sources.Count == 0)
+            return Empty;
+
+        sources.Add($"= {(1f - taken) * 100f:0.#}% less damage taken");
+        return new FSBonusCategory(points * 100f, sources.ToArray());
     }
+
+    private static string ResistLabel(string perkId) => perkId switch
+    {
+        "Juggernaught" => "Juggernaught (zombies)",
+        "SwordAndShield" => "Sword & Shield",
+        _ => FSPerkDef.All.TryGetValue(perkId, out var def) ? def.Name : perkId,
+    };
 
     // Mirrors FSPerkBuffSystem.OnLightweight.
     private FSBonusCategory ComputeMoveSpeed(EntityUid mindId, FSPerkLevelsComponent? perks)
