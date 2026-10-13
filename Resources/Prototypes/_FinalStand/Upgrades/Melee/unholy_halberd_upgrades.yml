@@ -1,0 +1,43 @@
+# ── Unholy Halberd Shop ──────────────────────────────────────────────────────
+# Reach weapon. Long thrust on a click, a wielded 360° spin on a heavy swing.
+
+- type: entity
+  id: FSWeaponShopUnholyHalberd
+  parent: FSWeaponShopBase
+  name: Unholy Halberd
+  description: A poleaxe that keeps the horde at arm's length. Wield it to spin.
+  components:
+  - type: FSShopWeapon
+    weaponProtoId: FSWeaponUnholyHalberd
+    price: 3000
+    category: Melee Polearm
+    statDamage: 35
+    statFireRate: 35
+    statAccuracy: 0
+    statCapacity: 0
+    upgrades:
+    - id: halberd-honed
+      name: Honed Edge
+      description: +90% damage per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: Damage
+      valuePerLevel: 0.9
+    - id: halberd-balanced
+      name: Balanced Haft
+      description: Attack speed +15% per level.
+      maxLevel: 3
+      baseCost: 5000
+      type: AttackSpeed
+      valuePerLevel: 0.15
+    - id: halberd-impaler
+      name: Impaler
+      description: +10% crit chance per level.
+      maxLevel: 3
+      baseCost: 4000
+      type: CritChance
+      valuePerLevel: 0.1
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/cult_halberd.rsi
+    state: icon
+    scale: 1,1

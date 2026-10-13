@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/18/2026 20:40:10
-  entityCount: 11099
+  entityCount: 11100
 maps:
 - 259
 grids:
@@ -35727,6 +35727,14 @@ entities:
     - type: Transform
       parent: 1
       pos: 18.5,14.5
+- proto: FSWeaponShopUnholyHalberd
+  entities:
+  - uid: 11115
+    components:
+    - type: Transform
+      parent: 1
+      rot: -1.5707963267948966 rad
+      pos: 15.5,19.5
 - proto: FSWeaponShopViper
   entities:
   - uid: 10479
