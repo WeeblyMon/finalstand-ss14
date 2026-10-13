@@ -1008,7 +1008,10 @@ public sealed partial class WaveHudOverlay : Overlay
             _storagePanelControl = FindNamedControlRecursive(screen, "StoragePanel", 0);
         }
 
-        return _storagePanelControl == null ? null : _storagePanelControl.GlobalPixelRect.Top;
+        if (_storagePanelControl is not { VisibleInTree: true } panel || panel.GlobalPixelRect.Height <= 0)
+            return null;
+
+        return panel.GlobalPixelRect.Top;
     }
 
     private readonly record struct BonusRow(string Label, string ValueText, Color ValueColor, string[] Tooltip, string IconKey);
