@@ -14,6 +14,7 @@ public sealed partial class FSProfiteerKillSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSPerkEarningsSystem _earnings = default!;
 
     public override void Initialize()
     {
@@ -28,5 +29,6 @@ public sealed partial class FSProfiteerKillSystem : EntitySystem
 
         var amount = (int)(FSPerkBonusConstants.ProfiteerKillBase * level * FSPerkBonusConstants.ProfiteerFraction);
         _wallet.GiveCredits(ev.MindId, amount);
+        _earnings.RecordCredits(ev.MindId, "Profiteer", amount);
     }
 }
