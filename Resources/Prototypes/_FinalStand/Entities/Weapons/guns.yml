@@ -722,16 +722,43 @@
   - type: Crit
     baseCritChance: 0.05
 
-# Cutlass override — doubled base damage (16 → 32 Slash).
+# Cutlass override — 23 Slash plus a 40% follow-up strike, about the old 32 per swing.
 - type: entity
   id: FSWeaponCutlass
   parent: Cutlass
   suffix: FinalStand
   components:
+  - type: FSMeleeJuice
+    light:
+      anticipation: 0.05
+      hitstop: 0.03
+      reach: 1.1
+      trauma: 0.15
+      knockback: 1.5
+      flinchDuration: 0.15
+      flinchSpeed: 0.5
+      extraStrikes: 1
+      strikeInterval: 0.12
+      strikeDamageFraction: 0.4
+      strikeSound:
+        path: /Audio/Weapons/bladeslice.ogg
+      strikePitchStep: 0.12
+      hitEmitter: FSMeleeGlint
+      particleTint: "#ffd27a"
+      killEmitter: FSMeleeBlood
+      killSound:
+        path: /Audio/Weapons/slash.ogg
+      moveAnticipation: 0.9
+      moveImpact: 0.7
+      moveRecovery: 0.9
+      recoveryTime: 0.3
+      trailColor: "#9ec3ffaa"
+      trailWidth: 0.05
+      trailDuration: 0.11
   - type: MeleeWeapon
     damage:
       types:
-        Slash: 32
+        Slash: 23
     soundHit:
       path: /Audio/Weapons/bladeslice.ogg
   - type: Crit
