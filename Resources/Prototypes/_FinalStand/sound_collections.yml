@@ -25,3 +25,40 @@
     - /Audio/_FinalStand/Engineering/land_turret_1.ogg
     - /Audio/_FinalStand/Engineering/land_turret_2.ogg
     - /Audio/_FinalStand/Engineering/land_turret_3.ogg
+
+- type: soundCollection
+  id: FSMeleeSwishLight
+  files:
+  - /Audio/_FinalStand/Melee/swish_light1.ogg
+  - /Audio/_FinalStand/Melee/swish_light2.ogg
+  - /Audio/_FinalStand/Melee/swish_light3.ogg
+
+- type: soundCollection
+  id: FSMeleeSwishHeavy
+  files:
+  - /Audio/_FinalStand/Melee/swish_heavy1.ogg
+  - /Audio/_FinalStand/Melee/swish_heavy2.ogg
+  - /Audio/_FinalStand/Melee/swish_heavy3.ogg
+
+- type: soundCollection
+  id: FSMeleeBluntHit
+  files:
+  - /Audio/_FinalStand/Melee/blunt_hit1.ogg
+  - /Audio/_FinalStand/Melee/blunt_hit2.ogg
+  - /Audio/_FinalStand/Melee/blunt_hit3.ogg
+  - /Audio/_FinalStand/Melee/blunt_hit4.ogg
+
+- type: soundCollection
+  id: FSMeleeFleshSquish
+  files:
+  - /Audio/_FinalStand/Melee/flesh_squish1.ogg
+  - /Audio/_FinalStand/Melee/flesh_squish2.ogg
+  - /Audio/_FinalStand/Melee/flesh_squish3.ogg
+
+- type: soundCollection
+  id: FSMeleeBoneBreak
+  files:
+  - /Audio/_FinalStand/Melee/bone_break1.ogg
+  - /Audio/_FinalStand/Melee/bone_break2.ogg
+  - /Audio/_FinalStand/Melee/bone_break3.ogg
+  - /Audio/_FinalStand/Melee/bone_break4.ogg
