@@ -4,6 +4,28 @@
   id: FireAxe
   description: Truly, the weapon of a madman. Who would think to fight fire with an axe?
   components:
+  - type: FSMeleeJuice # FINALSTAND
+    light:
+      anticipation: 0.12
+      hitstop: 0.09
+      reach: 1.2
+      trauma: 0.55
+      shakeMode: Radial
+      knockback: 7
+      knockbackDuration: 0.3
+      flinchDuration: 0.4
+      flinchSpeed: 0.15
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      moveAnticipation: 0.6
+      moveImpact: 0.4
+      moveRecovery: 0.8
+      recoveryTime: 0.5
+      trailColor: "#b02020cc"
+      trailWidth: 0.12
+      trailDuration: 0.18
   - type: Tag
     tags:
     - FireAxe
@@ -13,6 +35,12 @@
     sprite: Objects/Weapons/Melee/fireaxe.rsi
     state: icon
   - type: MeleeWeapon
+    soundSwing: # FINALSTAND
+      path: /Audio/Effects/thudswoosh.ogg
+      params:
+        volume: -2
+        pitch: 0.8
+        variation: 0.04
     wideAnimationRotation: 135
     swingLeft: true
     attackRate: 0.75

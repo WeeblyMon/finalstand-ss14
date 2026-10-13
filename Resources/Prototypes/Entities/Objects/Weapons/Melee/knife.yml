@@ -110,6 +110,25 @@
   id: CombatKnife
   description: A deadly knife intended for melee confrontations.
   components:
+  - type: FSMeleeJuice # FINALSTAND
+    light:
+      anticipation: 0.03
+      hitstop: 0.035
+      trauma: 0.1
+      knockback: 1
+      flinchDuration: 0.12
+      flinchSpeed: 0.6
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        path: /Audio/Weapons/slash.ogg
+      moveAnticipation: 0.95
+      moveImpact: 0.9
+      moveRecovery: 0.95
+      recoveryTime: 0.2
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.08
   - type: Tag
     tags:
     - CombatKnife
