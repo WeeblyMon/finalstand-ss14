@@ -60,17 +60,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnPlayerAttached(PlayerAttachedEvent args)
     {
-        var station = GetOrCreateStation();
-        var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        var hasStation = TryGetStation(out var station);
+        var unlocked = hasStation ? station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet() : new HashSet<string>();
         unlocked.UnionWith(_medicalResearch.UnlockedNodeIds());
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.SinglePlayer(args.Player));
-        RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.SinglePlayer(args.Player));
+        RaiseNetworkEvent(new FSStationRpChangedEvent(hasStation ? station.Comp.Points : 0), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Entity)), Filter.SinglePlayer(args.Player));
 
-        var activeProgress = station.Comp.ActiveResearch is { } activeId
+        var active = hasStation ? station.Comp.ActiveResearch : null;
+        var activeProgress = active is { } activeId
             ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
             : 0;
-        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.SinglePlayer(args.Player));
+        RaiseNetworkEvent(new FSSharedResearchStateEvent(active, activeProgress), Filter.SinglePlayer(args.Player));
 
         if (_mind.TryGetMind(args.Player, out var mindId, out _))
             SendPersonalResearchState(mindId);
@@ -725,7 +726,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!TryComp<MindComponent>(mindId, out var mindComp) || !_playerManager.TryGetSessionById(mindComp.UserId, out var session))
             return;
 
-        var station = GetOrCreateStation();
+        if (!TryGetStation(out var station))
+        {
+            RaiseNetworkEvent(new FSPersonalResearchStateEvent(null, 0, new List<string>()), Filter.SinglePlayer(session));
+            return;
+        }
+
         ProtoId<FSTechNodePrototype>? nodeId = station.Comp.PersonalPicks.TryGetValue(mindId, out var picked) ? (ProtoId<FSTechNodePrototype>?)picked : null;
         var progress = nodeId is { } id ? station.Comp.NodeProgress.GetValueOrDefault(id.Id) : 0;
         var queue = station.Comp.PersonalQueues.TryGetValue(mindId, out var personalQueue)

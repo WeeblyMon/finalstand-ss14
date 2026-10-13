@@ -47,4 +47,31 @@ public sealed class ResearchTeardownTest : GameTest
                 "leftover: " + string.Join(", ", SEntMan.GetEntities().Select(e => SEntMan.ToPrettyString(e))));
         });
     }
+
+    [Test]
+    public async Task GhostingAPlayerDoesNotConjureResearchState()
+    {
+        await Server.WaitPost(() =>
+        {
+            var stations = SEntMan.EntityQuery<FSStationResearchComponent>(true).Select(c => c.Owner).ToList();
+            foreach (var station in stations)
+                SEntMan.DeleteEntity(station);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitPost(() =>
+        {
+            Assert.That(SEntMan.System<FSResearchSystem>().TryGetStation(out _), Is.False, "test precondition");
+            Assert.That(ServerSession!.AttachedEntity, Is.Not.Null, "test precondition");
+            SEntMan.DeleteEntity(ServerSession!.AttachedEntity!.Value);
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(ServerSession!.AttachedEntity, Is.Not.Null, "the player was moved into a ghost");
+            Assert.That(SEntMan.EntityQuery<FSStationResearchComponent>(true), Is.Empty,
+                "attaching a player only reads research state, it never creates it");
+        });
+    }
 }
