@@ -15,7 +15,7 @@ public sealed class FSLadderUIController : UIController
 
     private FSLadderWindow? _window;
     private (FSDifficulty Difficulty, FSPlayerBracket Bracket, bool Weekly)? _pending;
-    private TimeSpan _lastSent = TimeSpan.MinValue;
+    private TimeSpan? _lastSent;
 
     public override void Initialize()
     {
@@ -54,7 +54,7 @@ public sealed class FSLadderUIController : UIController
 
     private void TrySend()
     {
-        if (_pending is not { } pending || _timing.RealTime - _lastSent < SendInterval)
+        if (_pending is not { } pending || _lastSent is { } last && _timing.RealTime - last < SendInterval)
             return;
 
         _pending = null;

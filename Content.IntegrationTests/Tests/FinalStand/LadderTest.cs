@@ -1,10 +1,14 @@
+using System.Collections.Generic;
 using System.Linq;
+using Content.Client._FinalStand.Ladder;
 using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Ladder;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Server.Console;
 using Robust.Shared.GameObjects;
 
@@ -83,4 +87,50 @@ public sealed class LadderTest : GameTest
         });
     }
 
+    private static IEnumerable<Control> Descendants(Control control)
+    {
+        foreach (var child in control.Children)
+        {
+            yield return child;
+            foreach (var deeper in Descendants(child))
+                yield return deeper;
+        }
+    }
+
+    [Test]
+    public async Task OpeningTheWindowFetchesAndShowsTheRuns()
+    {
+        await Server.WaitPost(() =>
+        {
+            var store = SEntMan.System<FSPlayerDataStore>();
+            store.DeleteAllRuns();
+            var at = new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc);
+            SEntMan.System<FSLadderSystem>().RecordRun(
+                new FSRunRecord("Ada", FSDifficulty.Normal, FSPlayerBracket.Crew, 12, false, 3600, 400, at));
+        });
+
+        var ui = Client.ResolveDependency<IUserInterfaceManager>();
+        await Client.WaitPost(() => ui.GetUIController<FSLadderUIController>().Open());
+        await Pair.RunTicksSync(30);
+
+        await Client.WaitAssertion(() =>
+        {
+            var window = ui.WindowRoot.Children.OfType<FSLadderWindow>().Single();
+            var text = Descendants(window).OfType<Label>().Select(l => l.Text ?? "").ToList();
+            Assert.That(text, Has.Some.Contains("Ada"), "the first request goes out and its answer fills the window");
+
+            window.Select(FSDifficulty.Hard, FSPlayerBracket.Crew, false);
+            window.Select(FSDifficulty.Normal, FSPlayerBracket.Crew, false);
+        });
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        await Pair.RunTicksSync(30);
+
+        await Client.WaitAssertion(() =>
+        {
+            var window = ui.WindowRoot.Children.OfType<FSLadderWindow>().Single();
+            var text = Descendants(window).OfType<Label>().Select(l => l.Text ?? "").ToList();
+            Assert.That(text, Has.Some.Contains("Ada"), "quick tab switches settle on the last tab chosen");
+            window.Close();
+        });
+    }
 }
