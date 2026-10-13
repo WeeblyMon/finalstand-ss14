@@ -43,11 +43,7 @@ public sealed class ReconnectHudTest : GameTest
         return Descendants(root).OfType<Label>().Select(l => l.Text ?? "").Where(t => t.StartsWith("LVL") || t.Contains("LVL ")).ToList();
     }
 
-    private string? XpBarText()
-    {
-        var root = Client.ResolveDependency<IUserInterfaceManager>().RootControl;
-        return Descendants(root).OfType<Label>().Select(l => l.Text).FirstOrDefault(t => t != null && t.StartsWith("LVL") || t != null && t.Contains("LVL "));
-    }
+    private string XpBarText() => XpBars().FirstOrDefault() ?? string.Empty;
 
     private async Task Disconnect()
     {
