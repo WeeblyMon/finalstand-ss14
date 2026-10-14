@@ -1,0 +1,115 @@
+- type: entity
+  id: FSMeleeEffectBase
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.3
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/hits.rsi
+    drawdepth: Effects
+    noRot: true
+    shader: unshaded
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitSlashThin
+  components:
+  - type: Sprite
+    state: slash_thin
+    scale: 0.9, 0.9
+    color: "#ffffff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitBurst
+  components:
+  - type: Sprite
+    state: burst
+    scale: 0.8, 0.8
+    color: "#f0e2c8"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitHeavySlash
+  components:
+  - type: TimedDespawn
+    lifetime: 0.35
+  - type: Sprite
+    state: slash_heavy
+    color: "#ffd8c8"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitThrust
+  components:
+  - type: TimedDespawn
+    lifetime: 0.25
+  - type: Sprite
+    state: thrust
+    scale: 0.9, 0.9
+    color: "#f2dada"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitShatter
+  components:
+  - type: TimedDespawn
+    lifetime: 0.33
+  - type: Sprite
+    state: shatter
+    scale: 0.8, 0.8
+    color: "#f2dada"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSpinRing
+  components:
+  - type: TimedDespawn
+    lifetime: 0.28
+  - type: Sprite
+    state: ring
+    scale: 1.9, 1.9
+    color: "#c04848cc"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitCross
+  components:
+  - type: Sprite
+    state: cross
+    scale: 0.95, 0.95
+    color: "#d8e8ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitEnergy
+  components:
+  - type: Sprite
+    state: slash_clean
+    scale: 0.8, 0.8
+    color: "#5ce1ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeHitSparks
+  components:
+  - type: TimedDespawn
+    lifetime: 0.27
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/sparks.rsi
+    state: sparks
+    scale: 1.3, 1.3
+    color: "#ffc860"
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeKillBlood
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    state: blood

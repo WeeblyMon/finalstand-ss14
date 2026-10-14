@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
+using Content.Client.Animations;
 using Content.Client.Eye;
 using Content.Client.Weapons.Melee;
 using Content.Shared._FinalStand.Melee;
@@ -14,6 +15,7 @@ using Robust.Client.Player;
 using Robust.Shared.Animations;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Melee;
 
@@ -26,6 +28,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private FSParticleSystem _particles = default!;
     [Dependency] private MeleeWeaponSystem _melee = default!;
     [Dependency] private SharedEyeSystem _eye = default!;
+    [Dependency] private SpriteSystem _sprite = default!;
 
     private const string FlinchKey = "fs-melee-flinch";
     private const float MaxShake = 0.35f;
@@ -118,6 +121,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return;
 
         var profile = juice.Get(ev.Heavy);
+        SpawnEffect(profile.KillEffect, target.Value, Angle.Zero);
         if (profile.KillEmitter is { } emitter)
             _particles.Burst(emitter, target.Value, profile.ParticleTint, 1.5f);
 
@@ -142,11 +146,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         foreach (var target in targets)
         {
-            if (profile.HitEmitter is not { } emitter || _burstsThisFrame >= BurstBudget)
+            if (_burstsThisFrame >= BurstBudget)
                 break;
 
             _burstsThisFrame++;
-            _particles.Burst(emitter, target, profile.ParticleTint);
+            SpawnEffect(profile.HitEffect, target, dir.ToWorldAngle());
+            if (profile.HitEmitter is { } emitter)
+                _particles.Burst(emitter, target, profile.ParticleTint);
         }
 
         if (user != _player.LocalEntity)
@@ -161,6 +167,25 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (lethal)
             StartZoom(profile.KillZoom);
+    }
+
+    private void SpawnEffect(EntProtoId? proto, EntityUid at, Angle rotation)
+    {
+        if (proto == null || TerminatingOrDeleted(at))
+            return;
+
+        var effect = Spawn(proto.Value, Xform.GetMapCoordinates(at));
+        if (TryComp<SpriteComponent>(effect, out var sprite))
+            _sprite.SetRotation((effect, sprite), rotation);
+    }
+
+    public void PlaySwingEffect(EntityUid user, FSMeleeJuiceProfile profile)
+    {
+        if (profile.SwingEffect is not { } proto)
+            return;
+
+        var effect = Spawn(proto, Xform.GetMapCoordinates(user));
+        EnsureComp<TrackUserComponent>(effect).User = user;
     }
 
     private void ReplaySwing(EntityUid user, EntityUid weapon, MeleeWeaponComponent melee, Vector2 direction, bool heavy)

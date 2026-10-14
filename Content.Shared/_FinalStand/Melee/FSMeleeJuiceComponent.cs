@@ -66,6 +66,15 @@ public sealed partial class FSMeleeJuiceProfile
     public float HitStatusSpeed = 0.5f;
 
     [DataField]
+    public EntProtoId? HitEffect;
+
+    [DataField]
+    public EntProtoId? KillEffect;
+
+    [DataField]
+    public EntProtoId? SwingEffect;
+
+    [DataField]
     public ProtoId<FSParticleEmitterPrototype>? HitEmitter;
 
     [DataField]

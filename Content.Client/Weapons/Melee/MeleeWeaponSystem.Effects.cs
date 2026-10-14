@@ -106,7 +106,10 @@ public sealed partial class MeleeWeaponSystem
         }
 
         if (juice != null) // FINALSTAND
+        {
             _fsJuice.TrackTrail(animationUid, user, juice, length + anticipation + hold);
+            _fsJuice.PlaySwingEffect(user, juice);
+        }
     }
 
     /// <summary>
