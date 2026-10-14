@@ -3,11 +3,9 @@
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.HMG;
-using Content.Shared.CCVar;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
-using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 
 namespace Content.Client._FinalStand.HMG;
@@ -18,7 +16,6 @@ public sealed partial class FSHMGLinkOverlay : Overlay
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IEyeManager _eye = default!;
     [Dependency] private IInputManager _input = default!;
-    [Dependency] private IConfigurationManager _cfg = default!;
 
     private static readonly Color Belt = FSPalette.Money.WithAlpha(0.55f);
     private static readonly Color ArcEdge = FSPalette.TextBright.WithAlpha(0.45f);
@@ -40,7 +37,11 @@ public sealed partial class FSHMGLinkOverlay : Overlay
         var query = _entMan.EntityQueryEnumerator<FSHMGComponent, TransformComponent>();
         while (query.MoveNext(out var hmg, out var gunXform))
         {
-            if (gunXform.MapID == args.MapId && hmg.Gunner is { } gunner && gunner == _player.LocalEntity && _cfg.GetCVar(CCVars.FSHMGArc))
+            if (gunXform.MapID == args.MapId
+                && hmg.Gunner is { } gunner
+                && gunner == _player.LocalEntity
+                && _entMan.TryGetComponent<FSHMGGunnerComponent>(gunner, out var seat)
+                && seat.ShowArc)
                 DrawArc(args.WorldHandle, xform, hmg, gunXform);
 
             if (gunXform.MapID != args.MapId

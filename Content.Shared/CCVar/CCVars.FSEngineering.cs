@@ -44,8 +44,4 @@ public sealed partial class CCVars
         CVarDef.Create("fs.eng_tool_card", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
     public static readonly CVarDef<float> FSEngSfxVolume =
-        CVarDef.Create("fs.eng_sfx_volume", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
-
-    public static readonly CVarDef<bool> FSHMGArc =
-        CVarDef.Create("fs.hmg_arc", true, CVar.CLIENTONLY | CVar.ARCHIVE);
-}
+        CVarDef.Create("fs.eng_sfx_volume", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);}

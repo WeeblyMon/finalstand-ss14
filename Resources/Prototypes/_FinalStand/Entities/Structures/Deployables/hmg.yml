@@ -150,3 +150,18 @@
           collection: MetalBreak
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+
+- type: entity
+  id: FSActionToggleHMGArc
+  name: Toggle firing arc
+  description: Show or hide the arc the heavy machine gun can traverse.
+  components:
+  - type: Action
+    itemIconStyle: NoItem
+    checkCanInteract: false
+  - type: Sprite
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
+    layers:
+    - state: deployed
+  - type: InstantAction
+    event: !type:FSToggleHMGArcActionEvent
