@@ -190,7 +190,7 @@ public sealed partial class FSPingSystem : EntitySystem
     {
         if (target is { } t)
         {
-            if (HasComp<FSGiantAbilitiesComponent>(t) || HasComp<FSRevenantComponent>(t))
+            if ((HasComp<FSGiantAbilitiesComponent>(t) || HasComp<FSRevenantComponent>(t)) && !_mobState.IsDead(t))
                 return new Resolved(FSPingType.Boss, FSPingAudience.Everyone, Loc.GetString("fs-ping-boss", ("name", Name(t))), t,
                     CompOrNull<FSEnemyIconComponent>(t)?.IconPath, Lifetime: 15f);
 
