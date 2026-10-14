@@ -155,6 +155,8 @@
     materials:
     - SheetSteel1
     - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
     - SheetPlasteel1
     - SheetPlasteel1
     - SheetBrass1
@@ -214,6 +216,8 @@
     materials:
     - SheetSteel1
     - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
     - SheetPlasteel1
     - SheetPlasteel1
     - SheetBrass1
@@ -265,7 +269,7 @@
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
   - type: FSMaterialDrop
     dropChance: 1
-    rolls: 4
+    rolls: 12
     materials:
     - SheetPlasteel1
     - SheetPlasteel1
