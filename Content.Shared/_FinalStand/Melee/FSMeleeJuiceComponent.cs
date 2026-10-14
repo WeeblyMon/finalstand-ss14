@@ -68,6 +68,10 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public EntProtoId? HitEffect;
 
+    // Degrees added to the hit effect's rotation, for sprites not drawn pointing down.
+    [DataField]
+    public float HitEffectAngle;
+
     [DataField]
     public EntProtoId? KillEffect;
 

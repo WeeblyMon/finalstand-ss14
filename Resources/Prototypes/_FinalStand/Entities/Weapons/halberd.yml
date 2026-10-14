@@ -15,6 +15,7 @@
       flinchDuration: 0.2
       flinchSpeed: 0.3
       hitEffect: FSMeleeHitThrust
+      hitEffectAngle: 45
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeThrustStreak
       killEmitter: FSMeleeBloodBurst

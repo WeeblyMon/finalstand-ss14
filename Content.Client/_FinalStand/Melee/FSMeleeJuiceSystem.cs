@@ -3,6 +3,7 @@ using Content.Client._FinalStand.Particles;
 using Content.Client.Animations;
 using Content.Client.Eye;
 using Content.Client.Weapons.Melee;
+using Content.Client.Weapons.Melee.Components;
 using Content.Shared._FinalStand.Melee;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
@@ -29,6 +30,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private MeleeWeaponSystem _melee = default!;
     [Dependency] private SharedEyeSystem _eye = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private const string FlinchKey = "fs-melee-flinch";
     private const float MaxShake = 0.35f;
@@ -52,6 +54,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     }
 
     public readonly List<Trail> Trails = new();
+
+    private readonly record struct PendingImpact(float Due, EntityUid User, FSMeleeJuiceProfile Profile, List<EntityUid> Targets, Vector2 Direction, float Hold, bool Lethal);
+
+    private readonly List<PendingImpact> _impacts = new();
     public float RealTime => (float) Timing.RealTime.TotalSeconds;
 
     private readonly Dictionary<EntityUid, (float Hold, float Time)> _pendingHold = new();
@@ -141,19 +147,36 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         _pendingHold[user] = (hold, RealTime);
 
-        var dir = direction.Normalized();
+        if (user == _player.LocalEntity)
+        {
+            var now = RealTime;
+            _streak = weapon.Owner == _streakWeapon && now - _lastHit < FatigueReset ? _streak + 1 : 1;
+            _streakWeapon = weapon.Owner;
+            _lastHit = now;
+        }
+
+        // The hit lands on click, but the swing only reaches the target at its impact keyframe.
+        _impacts.Add(new PendingImpact(RealTime + ImpactDelay(weapon, profile, heavy), user, profile, targets, direction.Normalized(), hold, lethal));
+    }
+
+    private void Impact(PendingImpact impact)
+    {
+        var (_, user, profile, targets, dir, hold, lethal) = impact;
         for (var i = 0; i < targets.Count && i < MaxJitterTargets; i++)
         {
-            Jitter(targets[i], dir, hold + 0.06f, 0.05f + profile.Trauma * 0.1f);
+            if (!TerminatingOrDeleted(targets[i]))
+                Jitter(targets[i], dir, hold + 0.06f, 0.05f + profile.Trauma * 0.1f);
         }
 
         foreach (var target in targets)
         {
             if (_burstsThisFrame >= BurstBudget || !_cfg.GetCVar(CCVars.FSMeleeEffects))
                 break;
+            if (TerminatingOrDeleted(target))
+                continue;
 
             _burstsThisFrame++;
-            SpawnEffect(profile.HitEffect, target, dir.ToWorldAngle());
+            SpawnEffect(profile.HitEffect, target, dir.ToWorldAngle() + Angle.FromDegrees(profile.HitEffectAngle));
             if (profile.HitEmitter is { } emitter)
                 _particles.Burst(emitter, target, profile.ParticleTint);
         }
@@ -161,15 +184,31 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (user != _player.LocalEntity)
             return;
 
-        var now = RealTime;
-        _streak = weapon.Owner == _streakWeapon && now - _lastHit < FatigueReset ? _streak + 1 : 1;
-        _streakWeapon = weapon.Owner;
-        _lastHit = now;
-
         AddTrauma(user, profile.Trauma * Math.Min(1f + 0.25f * (targets.Count - 1), 2f), dir, profile.ShakeMode);
 
         if (lethal)
             StartZoom(profile.KillZoom);
+    }
+
+    private float ImpactDelay(Entity<FSMeleeJuiceComponent> weapon, FSMeleeJuiceProfile profile, bool heavy)
+    {
+        if (!TryComp<MeleeWeaponComponent>(weapon, out var melee) || melee.AttackRate <= 0f)
+            return 0f;
+
+        var length = 0.6f / melee.AttackRate;
+        if (heavy && weapon.Comp.HeavyIsSpin)
+            return profile.Anticipation + length * 0.35f;
+
+        var arc = heavy ? melee.WideAnimation : melee.Animation;
+        if (!_prototypes.Index(arc).TryGetComponent<WeaponArcVisualsComponent>(out var visuals, EntityManager.ComponentFactory))
+            return 0f;
+
+        return visuals.Animation switch
+        {
+            WeaponArcAnimation.Slash => profile.Anticipation + length * 0.25f,
+            WeaponArcAnimation.Thrust => profile.Anticipation + length * 0.3f,
+            _ => 0f,
+        };
     }
 
     private void SpawnEffect(EntProtoId? proto, EntityUid at, Angle rotation)
@@ -377,6 +416,17 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
             shake.Time += frameTime;
             shake.Trauma = Math.Max(0f, shake.Trauma - frameTime * (shake.Mode == FSMeleeShakeMode.Sustained ? 2.5f : 1.8f));
+        }
+
+        var now = RealTime;
+        for (var i = _impacts.Count - 1; i >= 0; i--)
+        {
+            if (_impacts[i].Due > now)
+                continue;
+
+            var impact = _impacts[i];
+            _impacts.RemoveAt(i);
+            Impact(impact);
         }
 
         UpdateTrails();
