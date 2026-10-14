@@ -16,11 +16,14 @@ public sealed partial class FSMaterialDropComponent : Component
     public float MaxChance = 0.45f;
 
     [DataField]
-    public int Rolls = 1;
+    public int Rolls = 3;
 
     [DataField]
     public List<EntProtoId> Materials = new()
     {
+        "SheetSteel1",
+        "SheetSteel1",
+        "SheetSteel1",
         "SheetSteel1",
         "SheetSteel1",
         "SheetSteel1",
