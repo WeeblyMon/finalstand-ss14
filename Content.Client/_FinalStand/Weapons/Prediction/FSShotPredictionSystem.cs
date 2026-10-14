@@ -222,10 +222,14 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         var friendly = _friendlyQuery.HasComp(user);
         var inContainer = _container.IsEntityOrParentInContainer(user);
+        EntityUid? vehicle = _container.TryGetContainingContainer(user, out var holder) ? holder.Owner : null;
         RayCastResults? hit = null;
 
         foreach (var result in results)
         {
+            if (result.HitEntity == vehicle)
+                continue;
+
             if (!inContainer)
             {
                 if (result.HitEntity != gun.Comp.Target && CompOrNull<RequireProjectileTargetComponent>(result.HitEntity)?.Active == true)
