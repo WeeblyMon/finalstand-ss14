@@ -1,5 +1,6 @@
 // Seats a gunner on the HMG, limits fire to its arc, and builds heat so sustained fire overheats it.
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.CombatMode;
@@ -11,6 +12,7 @@ using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
+using Robust.Shared.Physics.Events;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.HMG;
@@ -36,6 +38,7 @@ public sealed partial class FSHMGSystem : EntitySystem
         SubscribeLocalEvent<FSHMGComponent, GunShotEvent>(OnShot);
         SubscribeLocalEvent<FSHMGComponent, AmmoShotEvent>(OnAmmoShot);
         SubscribeLocalEvent<FSHMGComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
+        SubscribeLocalEvent<FSHMGComponent, PreventCollideEvent>(OnPreventCollide);
         SubscribeLocalEvent<FSHMGGunnerComponent, MobStateChangedEvent>(OnGunnerState);
     }
 
@@ -54,6 +57,12 @@ public sealed partial class FSHMGSystem : EntitySystem
         ent.Comp.UpgradeHeatMultiplier *= modifier.Heat;
         Dirty(ent);
         _gun.RefreshModifiers(ent.Owner);
+    }
+
+    private void OnPreventCollide(Entity<FSHMGComponent> ent, ref PreventCollideEvent args)
+    {
+        if (HasComp<FSFriendlyFireComponent>(args.OtherEntity))
+            args.Cancelled = true;
     }
 
     private void OnRefreshModifiers(Entity<FSHMGComponent> ent, ref GunRefreshModifiersEvent args)
