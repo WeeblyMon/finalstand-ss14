@@ -28,11 +28,11 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
             || mech.Broken)
             return;
 
-        var equipment = mech.EquipmentContainer.ContainedEntities;
-        if (ev.Index < 0 || ev.Index >= equipment.Count || mech.CurrentSelectedEquipment == equipment[ev.Index])
+        var weapon = GetEntity(ev.Weapon);
+        if (!mech.EquipmentContainer.Contains(weapon) || mech.CurrentSelectedEquipment == weapon)
             return;
 
-        mech.CurrentSelectedEquipment = equipment[ev.Index];
+        mech.CurrentSelectedEquipment = weapon;
         Dirty(vehicle, mech);
         _audio.PlayPvs(SelectSound, vehicle);
     }
