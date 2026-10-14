@@ -11,7 +11,7 @@
       hitstop: 0.045
       reach: 1.35
       trauma: 0.2
-      knockback: 4.5
+      knockback: 9
       flinchDuration: 0.2
       flinchSpeed: 0.3
       hitEffect: FSMeleeHitThrust
@@ -34,7 +34,7 @@
       reach: 1.1
       trauma: 0.45
       shakeMode: Radial
-      knockback: 6
+      knockback: 11
       knockbackDuration: 0.25
       flinchDuration: 0.3
       flinchSpeed: 0.25

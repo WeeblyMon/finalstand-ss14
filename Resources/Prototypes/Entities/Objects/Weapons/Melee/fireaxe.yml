@@ -11,7 +11,7 @@
       reach: 1.2
       trauma: 0.55
       shakeMode: Radial
-      knockback: 7
+      knockback: 15
       knockbackDuration: 0.3
       flinchDuration: 0.4
       flinchSpeed: 0.15

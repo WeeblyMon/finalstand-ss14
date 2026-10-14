@@ -9,7 +9,7 @@
       hitstop: 0.045
       reach: 1.05
       trauma: 0.2
-      knockback: 2
+      knockback: 5
       flinchDuration: 0.15
       flinchSpeed: 0.5
       hitStatus: FSMeleeSearSlowdown

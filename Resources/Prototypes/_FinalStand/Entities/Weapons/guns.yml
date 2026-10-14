@@ -734,7 +734,7 @@
       hitstop: 0.03
       reach: 1.1
       trauma: 0.15
-      knockback: 1.5
+      knockback: 4
       flinchDuration: 0.15
       flinchSpeed: 0.5
       extraStrikes: 1
@@ -783,7 +783,7 @@
       hitstop: 0
       trauma: 0.15
       shakeMode: Sustained
-      knockback: 0.5
+      knockback: 1
       flinchDuration: 0.3
       flinchSpeed: 0.3
       hitEffect: FSMeleeHitSparks

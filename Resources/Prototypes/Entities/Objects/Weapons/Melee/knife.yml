@@ -115,7 +115,7 @@
       anticipation: 0.03
       hitstop: 0.035
       trauma: 0.1
-      knockback: 1
+      knockback: 2
       flinchDuration: 0.12
       flinchSpeed: 0.6
       hitEffect: FSMeleeHitSlashThin

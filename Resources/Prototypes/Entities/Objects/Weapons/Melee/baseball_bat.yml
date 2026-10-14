@@ -10,7 +10,7 @@
       hitstop: 0.06
       reach: 1.1
       trauma: 0.3
-      knockback: 4
+      knockback: 9
       knockbackDuration: 0.2
       flinchDuration: 0.25
       flinchSpeed: 0.3
