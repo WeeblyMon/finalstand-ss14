@@ -2,6 +2,7 @@
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Research;
 using Content.Server.Chat.Managers;
+using Content.Shared.Chat;
 using Content.Shared._FinalStand.Research.Prototypes;
 using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
@@ -82,9 +83,10 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
             return;
 
         var message = Loc.GetString("fs-engineering-research-done", ("name", node.Name), ("bonus", node.BonusDescription));
+        var wrapped = Loc.GetString("chat-manager-server-wrap-message", ("message", message));
         foreach (var (uid, session) in _departments.Engineers())
         {
-            _chat.DispatchServerMessage(session, message);
+            _chat.ChatMessageToOne(ChatChannel.Server, message, wrapped, default, false, session.Channel);
             _popup.PopupEntity(Loc.GetString("fs-engineering-research-done-popup", ("name", node.Name)), uid, uid, PopupType.Medium);
         }
     }
