@@ -34,6 +34,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private FSFlairSystem _flair = default!;
     [Dependency] private FSSiegeModeSystem _siege = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> SmokeBurst = "FSSmokeBurst";
@@ -49,6 +50,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         SubscribeLocalEvent<FSCombatMechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
         SubscribeLocalEvent<FSCombatMechComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MechSystem)]);
         SubscribeLocalEvent<FSCombatMechComponent, BeforeDamageChangedEvent>(OnBeforeDamage);
+        SubscribeLocalEvent<VehicleOperatorComponent, BeforeDamageChangedEvent>(OnPilotDamage);
         SubscribeLocalEvent<FSSiegeModeComponent, FSSiegePlantedEvent>(OnPlanted);
         SubscribeLocalEvent<MechEquipmentComponent, FSMechGunChargeEvent>(OnCharge);
         SubscribeLocalEvent<MechEquipmentComponent, AmmoShotEvent>(OnAmmoShot);
@@ -106,6 +108,22 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     {
         if (TryComp<MechComponent>(ent, out var mech) && mech.Broken && args.Damage.AnyPositive())
             args.Cancelled = true;
+    }
+
+    private void OnPilotDamage(Entity<VehicleOperatorComponent> ent, ref BeforeDamageChangedEvent args)
+    {
+        if (args.Cancelled
+            || !args.Damage.AnyPositive()
+            || args.Origin is not { } origin
+            || origin == ent.Owner
+            || ent.Comp.Vehicle is not { } vehicle
+            || !HasComp<FSCombatMechComponent>(vehicle)
+            || !TryComp<MechComponent>(vehicle, out var mech)
+            || mech.Broken)
+            return;
+
+        args.Cancelled = true;
+        _damageable.TryChangeDamage(vehicle, args.Damage, origin: origin);
     }
 
     private void OnPlanted(Entity<FSSiegeModeComponent> ent, ref FSSiegePlantedEvent args)
