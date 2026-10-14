@@ -10,6 +10,7 @@ using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
 using Content.Shared.Stacks;
 using Robust.Server.GameStates;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Materials;
@@ -56,6 +57,31 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
             return ChoosePool(null);
         }
+    }
+
+    public EntityCoordinates EjectCoordinates(EntityUid storage, EntityUid user)
+    {
+        var at = Transform(storage).Coordinates;
+        if (!HasComp<FSSiloNetworkComponent>(storage))
+            return at;
+
+        var best = float.MaxValue;
+        var userPos = _transform.GetWorldPosition(user);
+        var query = EntityQueryEnumerator<FSSiloNetworkComponent, TransformComponent>();
+        while (query.MoveNext(out _, out _, out var xform))
+        {
+            if (xform.MapID != Transform(user).MapID)
+                continue;
+
+            var distance = (_transform.GetWorldPosition(xform) - userPos).LengthSquared();
+            if (distance >= best)
+                continue;
+
+            best = distance;
+            at = xform.Coordinates;
+        }
+
+        return at;
     }
 
     public EntityUid? PoolFor(EntityUid user) => Pool is { } pool && _reach.InReach(user) ? pool : null;

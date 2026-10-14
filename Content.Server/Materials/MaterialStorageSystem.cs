@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using Content.Server.Administration.Logs;
+using Content.Server._FinalStand.Materials;
+using Content.Shared._FinalStand.Materials;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Materials;
 using Content.Shared.Popups;
@@ -26,6 +28,7 @@ public sealed partial class MaterialStorageSystem : SharedMaterialStorageSystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private StackSystem _stackSystem = default!;
+    [Dependency] private FSSiloNetworkSystem _siloNetwork = default!;
 
     public override void Initialize()
     {
@@ -81,9 +84,10 @@ public sealed partial class MaterialStorageSystem : SharedMaterialStorageSystem
         if (volume <= 0 || !TryChangeMaterialAmount(uid, msg.Material, -volume))
             return;
 
-        var mats = SpawnMultipleFromMaterial(volume, material, Transform(uid).Coordinates, out _);
+        var mats = SpawnMultipleFromMaterial(volume, material, _siloNetwork.EjectCoordinates(uid, player), out _);
         foreach (var mat in mats.Where(mat => !TerminatingOrDeleted(mat)))
         {
+            EnsureComp<FSSiloEjectedComponent>(mat);
             _stackSystem.TryMergeToContacts(mat);
         }
     }
