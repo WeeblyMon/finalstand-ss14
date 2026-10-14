@@ -5,6 +5,7 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Server.Audio;
@@ -66,7 +67,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var status = TryComp<ItemToggleComponent>(weapon, out var toggle) && !toggle.Activated ? null : profile.HitStatus;
         foreach (var target in targets)
         {
-            if (TerminatingOrDeleted(target))
+            if (TerminatingOrDeleted(target) || !HasComp<MobStateComponent>(target))
                 continue;
 
             if (profile.Knockback > 0f)

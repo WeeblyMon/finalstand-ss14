@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Components;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mobs;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee.Events;
@@ -76,7 +77,8 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         foreach (var target in targets)
         {
             if (!TryComp<DamageableComponent>(target, out var damageable)
-                || !_thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold))
+                || !TryComp<MobThresholdsComponent>(target, out var thresholds)
+                || !_thresholds.TryGetThresholdForState(target, MobState.Dead, out var threshold, thresholds))
                 continue;
 
             if (damageable.TotalDamage + damage >= threshold)
