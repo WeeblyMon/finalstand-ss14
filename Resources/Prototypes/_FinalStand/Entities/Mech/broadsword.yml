@@ -37,6 +37,13 @@
     layers:
     - map: [ "enum.MechVisualLayers.Base" ]
       state: broadsword
+  - type: PointLight
+    radius: 7
+    energy: 2
+    color: "#fff1d6"
+    lightMask: ConeSingle
+    autoRot: true
+    netsync: false
   - type: FootstepModifier
     footstepSoundCollection:
       path: /Audio/Mecha/sound_mecha_powerloader_step.ogg
