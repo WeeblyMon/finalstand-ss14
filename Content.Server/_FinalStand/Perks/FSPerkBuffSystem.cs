@@ -32,6 +32,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private StaminaSystem _stamina = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSCombatMedicSystem _combatMedic = default!;
+    [Dependency] private FSBerserkerSystem _berserker = default!;
+    [Dependency] private FSUndyingSystem _undying = default!;
+    [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -40,7 +44,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
-        SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnDeepImpact);
+        SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnGunShot);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
@@ -58,7 +62,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             ev.AdditionalMultiplier *= 1f + spLevel * FSPerkBonusConstants.StoppingPowerPerLevel;
 
         var profLevel = augs.GetSlottedLevel("Profiteer");
-        if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target))
+        if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target) && !_undying.IsActive(ev.Shooter.Value))
             _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
@@ -73,6 +77,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
+
+        ev.AdditionalMultiplier *= _combatMedic.GetDamageMultiplier(mindId);
+        ev.AdditionalMultiplier *= _berserker.GetMultiplier(ev.Shooter.Value, augs, ranged: true);
 
         var kbLevel = augs.GetSlottedLevel("KnockbackBlast");
         if (kbLevel > 0 && ev.Weapon.HasValue && _tags.HasTag(ev.Weapon.Value, ShotgunTag) && ev.Shooter.HasValue)
@@ -123,12 +130,14 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             args.ModifySpeed(mult, mult);
     }
 
-    private void OnDeepImpact(EntityUid uid, GunComponent _, AmmoShotEvent args)
+    private void OnGunShot(EntityUid uid, GunComponent _, AmmoShotEvent args)
     {
         var holder = Transform(uid).ParentUid;
         if (!holder.IsValid()) return;
         if (!_mind.TryGetMind(holder, out var mindId, out MindComponent? _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
+
+        _perkAmmo.OnShot(uid, holder, augs);
 
         var level = augs.GetSlottedLevel("DeepImpact");
         if (level <= 0) return;
@@ -157,5 +166,8 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var gcLevel = augs.GetSlottedLevel("GlassCannon");
         if (gcLevel > 0)
             args.Damage *= 1f + gcLevel * FSPerkBonusConstants.GlassCannonPerLevel;
+
+        args.Damage *= _combatMedic.GetDamageMultiplier(mindId);
+        args.Damage *= _berserker.GetMultiplier(args.User, augs, ranged: false);
     }
 }

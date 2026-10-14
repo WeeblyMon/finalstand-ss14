@@ -1,0 +1,111 @@
+# Giant-dropped overclocks: each one reshapes a single bay-built mech gun. Use it on the gun, or on a mech carrying it.
+- type: entity
+  parent: BaseItem
+  id: FSBaseMechOverclock
+  abstract: true
+  components:
+  - type: Sprite
+    sprite: Objects/Misc/module.rsi
+    state: cyborg_upgrade3
+  - type: Item
+    size: Small
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockAutocannon
+  name: overclock (Big Bertha)
+  description: For the LAC-29 autocannon. Heavier shells, slower cycling.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponAutocannon
+    stats:
+      name: fs-overclock-big-bertha
+      fireRate: 0.6
+      damage: 1.7
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockRotary
+  name: overclock (Lead Storm)
+  description: For the RAC-6 rotary. Spins faster and sprays wider.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponRotary
+    stats:
+      name: fs-overclock-lead-storm
+      fireRate: 1.4
+      spread: 1.8
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockShotgun
+  name: overclock (Tight Choke)
+  description: For the SH-0.5 shotgun. A tighter pattern that hits harder.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponShotgun
+    stats:
+      name: fs-overclock-tight-choke
+      spread: 0.5
+      damage: 1.25
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockDMR
+  name: overclock (Hyper Propellant)
+  description: For the DMR-90mm. Shells fly much faster and hit harder, but it cycles slower.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponDMR
+    stats:
+      name: fs-overclock-hyper-propellant
+      projectileSpeed: 1.8
+      damage: 1.35
+      fireRate: 0.8
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockMetronome
+  name: overclock (Rolling Thunder)
+  description: For the Metronome. Five-round bursts, with a longer pause between them.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponMetronome
+    stats:
+      name: fs-overclock-rolling-thunder
+      burstBonus: 2
+      fireRate: 0.8
+
+- type: entity
+  parent: FSBaseMechOverclock
+  id: FSOverclockBazooka
+  name: overclock (Quick Loader)
+  description: For the R3 Bazooka. Reloads almost twice as fast, with smaller rockets.
+  components:
+  - type: FSMechOverclock
+    gun: FSMechWeaponBazooka
+    stats:
+      name: fs-overclock-quick-loader
+      fireRate: 1.8
+      damage: 0.7
+
+- type: entity
+  id: FSOverclockRandom
+  parent: MarkerBase
+  name: random mech overclock
+  components:
+  - type: Sprite
+    layers:
+    - state: red
+    - sprite: Objects/Misc/module.rsi
+      state: cyborg_upgrade3
+  - type: RandomSpawner
+    chance: 1
+    offset: 0.3
+    prototypes:
+    - FSOverclockAutocannon
+    - FSOverclockRotary
+    - FSOverclockShotgun
+    - FSOverclockDMR
+    - FSOverclockMetronome
+    - FSOverclockBazooka

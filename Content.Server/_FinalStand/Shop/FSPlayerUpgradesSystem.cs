@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.FixedPoint;
+using Content.Shared.Hands;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
@@ -38,19 +39,25 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSWeaponUpgradeStateComponent, EntInsertedIntoContainerMessage>(OnMagInsertedToGun);
+        SubscribeLocalEvent<GunComponent, GotEquippedHandEvent>(OnGunEquippedHand);
     }
 
     public void ApplySingleUpgrade(EntityUid weapon, EntityUid player, WeaponUpgradeDef def, int newLevel, bool spawnItems = true)
     {
         var state = EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
 
-        if (TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)) return;
-        if (TryApplyShield(weapon, player, def, newLevel, spawnItems, state)) return;
-        TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
+        if (!TryApplyGunStats(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyShotEffects(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyMelee(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyGrenades(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyEnergy(weapon, player, def, newLevel, spawnItems, state)
+            && !TryApplyShield(weapon, player, def, newLevel, spawnItems, state))
+        {
+            TryApplyPayload(weapon, player, def, newLevel, spawnItems, state);
+        }
+
+        if (!TerminatingOrDeleted(weapon))
+            Dirty(weapon, state);
     }
 
     private void TryTransformToDualWieldEnergySword(EntityUid oldSword, EntityUid player,
@@ -63,6 +70,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         CopyUpgradeState(oldState, newState);
         newState.AttackSpeedMultiplier = oldState.AttackSpeedMultiplier + attackSpeedBonus;
         newState.DualWieldEnergySwordApplied = true;
+        Dirty(newSword, newState);
 
         var safeToDelete = true;
         var wasInHand = false;
@@ -84,7 +92,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         _stash.Stash(player, newSword);
     }
 
-    private void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
+    public void CopyUpgradeState(FSWeaponUpgradeStateComponent from, FSWeaponUpgradeStateComponent to)
     {
         _serialization.CopyTo(from, ref to, notNullableOverride: true);
     }
@@ -108,18 +116,21 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
     private void OnMagInsertedToGun(EntityUid gun, FSWeaponUpgradeStateComponent state,
         EntInsertedIntoContainerMessage args)
     {
-        if (state.MagazineSizeBonus <= 0) return;
         if (!TryComp<BallisticAmmoProviderComponent>(args.Entity, out var bal)) return;
 
         var upgraded = EnsureComp<FSMagUpgradedComponent>(args.Entity);
         var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
-        if (diff <= 0) return;
-
+        if (diff > 0)
+        {
 #pragma warning disable RA0002
-        bal.Capacity += diff;
-        bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
+            bal.Capacity += diff;
+            bal.UnspawnedCount = Math.Min(bal.UnspawnedCount + diff, bal.Capacity);
 #pragma warning restore RA0002
-        upgraded.AppliedBonus = state.MagazineSizeBonus;
-        Dirty(args.Entity, bal);
+            upgraded.AppliedBonus = state.MagazineSizeBonus;
+            Dirty(args.Entity, bal);
+        }
+
+        var holder = Transform(gun).ParentUid;
+        ReconcileMagazinePercent(gun, HasComp<HandsComponent>(holder) ? holder : null);
     }
 }

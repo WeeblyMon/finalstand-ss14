@@ -3,6 +3,7 @@ using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
@@ -19,6 +20,7 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -28,6 +30,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeNetworkEvent<FSPerkStateRequestMessage>(OnStateRequested);
         SubscribeNetworkEvent<FSBuyPerkMessage>(OnBuyPerk);
         SubscribeNetworkEvent<FSEquipPerkMessage>(OnEquipPerk);
@@ -56,6 +59,29 @@ public sealed partial class FSPerkSystem : EntitySystem
         Log.Debug($"[FSPerk] OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
         SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
+        RaisePerksChanged(ev.Entity, mindId, perks);
+    }
+
+    private void RaisePerksChanged(EntityUid body, EntityUid mindId, FSPerkLevelsComponent perks)
+    {
+        var changed = new FSPerksChangedEvent(mindId, perks);
+        RaiseLocalEvent(body, ref changed);
+    }
+
+    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mindId, out var mind) || mind.UserId == null)
+            return;
+
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+        {
+            var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
+            perks = EnsureComp<FSPerkLevelsComponent>(mindId);
+            DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
+            SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
+        }
+
+        RaisePerksChanged(ev.Mob, mindId, perks);
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -158,6 +184,10 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
+            // An empty build would silently erase the saved loadout.
+            if (perks.Levels.Count == 0)
+                return false;
+
             var loadout = new FSPerkLoadout { Levels = new Dictionary<string, int>(perks.Levels) };
             Array.Copy(perks.Slots, loadout.Slots, FSPerkDef.SlotCount);
             perks.Loadouts[msg.LoadoutIndex] = loadout;
@@ -237,6 +267,9 @@ public sealed partial class FSPerkSystem : EntitySystem
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
+        if (session.AttachedEntity is { } attached && !_shopAccess.CanUse(attached))
+            return;
+
         if (_mind.TryGetMind(session, out var mindId, out var mind))
         {
             // In-round path: operate on the ECS component, creating it lazily if OnPlayerAttached missed it.
@@ -247,7 +280,10 @@ public sealed partial class FSPerkSystem : EntitySystem
             SaveToDb(mindId, perks);
             SendStateToClient(mindId, perks);
             if (mind?.CurrentEntity is { } playerEntity)
+            {
                 _movement.RefreshMovementSpeedModifiers(playerEntity);
+                RaisePerksChanged(playerEntity, mindId, perks);
+            }
             return;
         }
 

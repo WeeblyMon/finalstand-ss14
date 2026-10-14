@@ -20,6 +20,18 @@ namespace Content.Server.GameTicking
         [ViewVariables]
         private DateTime _roundStartDateTime;
 
+        // FS: appended to the hub "preset" line, e.g. "Final Stand (Wave 7)"
+        private string? _statusPresetSuffix;
+
+        // FS
+        public void SetStatusPresetSuffix(string? suffix)
+        {
+            lock (_statusShellLock)
+            {
+                _statusPresetSuffix = suffix;
+            }
+        }
+
         /// <summary>
         ///     For access to CVars in status responses.
         /// </summary>
@@ -51,7 +63,10 @@ namespace Content.Server.GameTicking
                 jObject["panic_bunker"] = _cfg.GetCVar(CCVars.PanicBunkerEnabled);
                 jObject["run_level"] = (int) _runLevel;
                 if (preset != null)
-                    jObject["preset"] = (Decoy == null) ? Loc.GetString(preset.ModeTitle) : Loc.GetString(Decoy.ModeTitle);
+                {
+                    var presetTitle = (Decoy == null) ? Loc.GetString(preset.ModeTitle) : Loc.GetString(Decoy.ModeTitle);
+                    jObject["preset"] = _statusPresetSuffix == null ? presetTitle : $"{presetTitle} {_statusPresetSuffix}"; // FS
+                }
                 if (_runLevel >= GameRunLevel.InRound)
                 {
                     jObject["round_start_time"] = _roundStartDateTime.ToString("o");

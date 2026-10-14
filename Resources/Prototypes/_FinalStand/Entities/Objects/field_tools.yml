@@ -1,0 +1,84 @@
+# Engineer field tools from the Field Tools research: faster versions of the advanced tools for repairing under pressure.
+- type: entity
+  parent: WelderExperimental
+  id: FSWelderArc
+  name: arc welder
+  description: Welds half again as fast as a standard welder and makes its own fuel quicker than the experimental one.
+  components:
+  - type: Sprite
+    color: "#ffc27a"
+  - type: Tool
+    speedModifier: 1.5
+  - type: SolutionRegeneration
+    generated:
+      reagents:
+      - ReagentId: Plasma
+        Quantity: 2
+
+- type: entity
+  parent: JawsOfLife
+  id: FSJawsHydraulic
+  name: hydraulic jaws
+  description: Jaws of life on a heavier hydraulic pump. Twice as fast.
+  components:
+  - type: Sprite
+    color: "#ffc27a"
+  - type: Tool
+    speedModifier: 2
+  - type: Prying
+    speedModifier: 3
+
+- type: entity
+  parent: PowerDrill
+  id: FSDrillImpact
+  name: impact drill
+  description: A power drill with an impact driver. Twice as fast.
+  components:
+  - type: Sprite
+    color: "#ffc27a"
+  - type: Tool
+    speedModifier: 3
+
+- type: latheRecipe
+  parent: BaseToolRecipe
+  id: FSWelderArc
+  result: FSWelderArc
+  completetime: 6
+  materials:
+    Steel: 800
+    Plasma: 300
+    Silver: 100
+
+- type: latheRecipe
+  parent: BaseToolRecipe
+  id: FSJawsHydraulic
+  result: FSJawsHydraulic
+  completetime: 6
+  materials:
+    Steel: 1000
+    Plasteel: 200
+    Silver: 100
+
+- type: latheRecipe
+  parent: BaseToolRecipe
+  id: FSDrillImpact
+  result: FSDrillImpact
+  completetime: 4
+  materials:
+    Steel: 600
+    Plastic: 200
+    Silver: 100
+
+- type: technology
+  id: FSFieldTools
+  name: research-technology-fs-field-tools
+  icon:
+    sprite: Objects/Tools/welder_experimental.rsi
+    state: icon
+  discipline: Industrial
+  tier: 3
+  cost: 10000
+  recipeUnlocks:
+  - FSWelderArc
+  - FSJawsHydraulic
+  - FSDrillImpact

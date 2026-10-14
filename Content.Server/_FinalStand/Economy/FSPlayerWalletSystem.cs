@@ -188,11 +188,15 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return true;
     }
 
+    public event Action<EntityUid, int>? CreditsGiven;
+
     public void GiveCredits(EntityUid mindId, int amount)
     {
         var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
         wallet.Credits += amount;
         MarkWalletDirty(mindId);
+        if (amount > 0)
+            CreditsGiven?.Invoke(mindId, amount);
     }
 
     public bool TryDeductCredits(EntityUid mindId, int amount)

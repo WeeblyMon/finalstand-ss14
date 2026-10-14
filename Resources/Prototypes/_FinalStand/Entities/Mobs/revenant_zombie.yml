@@ -4,6 +4,7 @@
   suffix: Revenant
   name: revenant zombie
   components:
+  - type: FSSpecialZombie
   - type: FSRevenant
   - type: FSNoHealthBar
   - type: HTN

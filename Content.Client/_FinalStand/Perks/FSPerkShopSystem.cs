@@ -2,11 +2,15 @@ using Content.Client._FinalStand.Perks.UI;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
+using Robust.Client.Player;
 
 namespace Content.Client._FinalStand.Perks;
 
-public sealed class FSPerkShopSystem : EntitySystem
+public sealed partial class FSPerkShopSystem : EntitySystem
 {
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
+
     private PerkShopWindow? _window;
     private FSPerksStateEvent? _cachedState;
     private int _cachedLevel = 1;
@@ -19,6 +23,17 @@ public sealed class FSPerkShopSystem : EntitySystem
         SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnLevelingUpdated);
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdated);
         SubscribeNetworkEvent<FSOpenPerkShopEvent>(_ => OpenWindow());
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+
+        if (_window is not { Disposed: false, IsOpen: true })
+            return;
+
+        if (_player.LocalEntity is { } local && !_shopAccess.CanUse(local))
+            _window.Close();
     }
 
     public void OpenWindow()

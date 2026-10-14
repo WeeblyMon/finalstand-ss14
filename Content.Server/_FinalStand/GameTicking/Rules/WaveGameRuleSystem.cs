@@ -9,6 +9,7 @@ using Content.Server._FinalStand.CCC;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
+using Content.Server.RoundEnd;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Light.Components;
@@ -55,12 +56,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private SharedPowerReceiverSystem _powerReceiver = default!;
     [Dependency] private ApcSystem _apc = default!;
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
+    [Dependency] private RoundEndSystem _roundEnd = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
     private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
 
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
     private const float CreditsPerSecondSkipped = 2.0f;
 
     private const float DefaultFlickerMin = 0.7f;
@@ -101,7 +104,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 if (comp.SpawnerEntities.Count == 0 && now >= comp.NextSpawnerRetryTime)
                 {
                     comp.NextSpawnerRetryTime = now + TimeSpan.FromSeconds(1);
-                    _spawning.SelectSpawners(comp);
+                    _spawning.SelectSpawners(comp, CountScalingPlayers());
                 }
                 if (comp.VoteCountdownActive && !comp.VoteCountdownSoundPlayed && now >= comp.VoteCountdownSoundTime)
                 {
@@ -152,6 +155,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
                 if (now >= comp.NextHeartbeatTime)
                 {
+                    if (comp.IsDarkWave && !comp.RoundLost && IsTeamWiped())
+                    {
+                        comp.RoundLost = true;
+                        Log.Info($"[WaveGameRule] Every player died during dark wave {comp.WaveNumber}. Ending round.");
+                        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-wave-team-wiped"), Color.Red);
+                        _roundEnd.EndRound(WipeRoundEndCountdown);
+                    }
+
                     var timeLeft = comp.PhaseEndTime - now;
                     Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} | " +
                              $"spawned {comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave} | " +
@@ -228,7 +239,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
         }
 
-        _spawning.SelectSpawners(comp);
+        _spawning.SelectSpawners(comp, CountScalingPlayers());
         if (comp.SpawnerEntities.Count == 0)
             Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
@@ -253,7 +264,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var playerBonus = comp.WaveNumber >= comp.PlayerBonusFromWave
             ? players * comp.PlayerEnemyBonus
             : 0;
-        var total = Math.Min((int)((4 * comp.WaveNumber + 4 + playerBonus) * 1.5f), comp.MaxEnemyCap);
+        var total = Math.Min((int)((4.4f * comp.WaveNumber + 7 + playerBonus) * 1.5f), comp.MaxEnemyCap);
         if (comp.WaveNumber >= 5 && primarySpawners == 1)
             total = Math.Min(total * 2, comp.MaxEnemyCap);
         return total;
@@ -275,7 +286,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.Phase = WavePhase.Combat;
 
         if (comp.SpawnerEntities.Count == 0)
-            _spawning.SelectSpawners(comp);
+            _spawning.SelectSpawners(comp, CountScalingPlayers());
 
         comp.CCCEntity = EntityUid.Invalid;
         var cq = EntityQueryEnumerator<FinalStandCCCComponent>();
@@ -408,6 +419,22 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             count++;
         }
         return count;
+    }
+
+    private bool IsTeamWiped()
+    {
+        var anyPlayer = false;
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity is not { } attached)
+                continue;
+
+            anyPlayer = true;
+            if (HasComp<MobStateComponent>(attached) && !_mobState.IsDead(attached))
+                return false;
+        }
+
+        return anyPlayer;
     }
 
     private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
@@ -571,13 +598,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (comp.WaveNumber >= special.FromWave)
                 types.Add(special.EnemyId.Id);
         }
-        var directions = comp.SpawnerEntities.Count == 0
-            ? "none"
-            : string.Join("/", comp.SpawnerEntities
-                .Select(s => TryComp<WaveEnemySpawnerComponent>(s, out var sc) ? sc.DirectionLabel : "?")
-                .Where(d => d.Length > 0)
-                .Distinct()
-                .Order());
+        var directions = _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
             comp.Phase,
@@ -863,6 +884,20 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public int GetWaveNumber()
     {
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
+    }
+
+    public bool TryGetWaveStatus(out int wave, out WavePhase phase)
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _))
+        {
+            wave = 0;
+            phase = WavePhase.Prep;
+            return false;
+        }
+
+        wave = comp.WaveNumber;
+        phase = comp.Phase;
+        return true;
     }
 
     public void ReducePrepTimeBy(double seconds)

@@ -1,4 +1,4 @@
-using System.Numerics;
+﻿using System.Numerics;
 using Content.Shared._FinalStand.Deployables;
 using Robust.Client.GameObjects;
 using Robust.Shared.Maths;
@@ -6,7 +6,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
+public sealed partial class FSDamageBeaconFieldVfxSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -17,6 +17,17 @@ public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
     private const float SpinRadiansPerSecond = 0.35f;
 
     private float _time;
+
+    private EntityQuery<FSDeployableFieldVisualsComponent> _fieldQuery;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _fieldQuery = GetEntityQuery<FSDeployableFieldVisualsComponent>();
+    }
+
+    private float GetFieldScale(EntityUid uid)
+        => _fieldQuery.TryGetComponent(Transform(uid).ParentUid, out var field) ? field.Scale : 1f;
 
     public override void Update(float frameTime)
     {
@@ -30,10 +41,11 @@ public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
         while (query.MoveNext(out var uid, out var comp, out var sprite))
         {
             sprite[0].Rotation = spin;
+            var scaled = pulse * GetFieldScale(uid);
 
             if (comp.Settled)
             {
-                sprite[0].Scale = new Vector2(pulse, pulse);
+                sprite[0].Scale = new Vector2(scaled, scaled);
                 continue;
             }
 
@@ -42,7 +54,7 @@ public sealed class FSDamageBeaconFieldVfxSystem : EntitySystem
                 comp.Settled = true;
                 sprite[0].AutoAnimated = false;
                 _sprite.LayerSetRsiState((uid, sprite), 0, "loop");
-                sprite[0].Scale = new Vector2(pulse, pulse);
+                sprite[0].Scale = new Vector2(scaled, scaled);
                 continue;
             }
 

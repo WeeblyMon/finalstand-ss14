@@ -21,7 +21,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
     protected override void Open()
     {
         base.Open();
-        _window = this.CreateWindowCenteredLeft<WeaponShopWindow>();
+        _window = this.CreateWindow<WeaponShopWindow>();
         _window.OnBuyPressed += OnBuyPressed;
         _window.OnUpgradePressed += OnUpgradePressed;
         _window.OnSellConfirmed += OnSellConfirmed;
@@ -36,6 +36,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         _onSellFailed = OnSellFailed;
         shopClient.CreditsChanged       += _onCreditsChanged;
         shopClient.UpgradeLevelsChanged += _onUpgradesChanged;
+        shopClient.ResearchNodesChanged += _onUpgradesChanged;
         shopClient.RefreshNeeded        += _onRefreshNeeded;
         shopClient.SellCompleted        += _onSellCompleted;
         shopClient.SellFailed           += _onSellFailed;
@@ -85,8 +86,8 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         var estimatedSpent = 0;
         foreach (var def in comp.Upgrades)
         {
-            var level = levels.GetValueOrDefault(def.Id, 0);
-            estimatedSpent += def.BaseCost * level * (level + 1) / 2;
+            for (var l = 1; l <= levels.GetValueOrDefault(def.Id, 0); l++)
+                estimatedSpent += def.LevelCost(l, false);
         }
         var raw = comp.Price * 0.40 + estimatedSpent * 0.40;
         return Math.Max(0, (int)Math.Round(raw / 50.0) * 50);
@@ -113,10 +114,10 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         if (_window == null || !EntMan.TryGetComponent<FSShopWeaponComponent>(Owner, out var comp))
             return;
         var shopClient = EntMan.System<FSShopClientSystem>();
+        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId, comp.WeaponProtoIdAliases), EntMan);
         _window.RefreshUpgrades(comp.Upgrades, shopClient.UpgradeLevels, shopClient.CurrentCredits);
         _window.UpdateBalance(shopClient.CurrentCredits);
         _window.UpdateWeaponTitle(shopClient.WeaponTitle);
-        _window.RefreshStatBars(comp, shopClient.FindOwnedWeapon(comp.WeaponProtoId), EntMan);
         _window.ResetConfirmation();
         UpdateSellButtonState();
     }
@@ -130,6 +131,7 @@ public sealed class FSShopWeaponBoundUserInterface : BoundUserInterface
         var shopClient = EntMan.System<FSShopClientSystem>();
         if (_onCreditsChanged  != null) shopClient.CreditsChanged       -= _onCreditsChanged;
         if (_onUpgradesChanged != null) shopClient.UpgradeLevelsChanged -= _onUpgradesChanged;
+        if (_onUpgradesChanged != null) shopClient.ResearchNodesChanged -= _onUpgradesChanged;
         if (_onRefreshNeeded   != null) shopClient.RefreshNeeded        -= _onRefreshNeeded;
         if (_onSellCompleted   != null) shopClient.SellCompleted        -= _onSellCompleted;
         if (_onSellFailed      != null) shopClient.SellFailed           -= _onSellFailed;

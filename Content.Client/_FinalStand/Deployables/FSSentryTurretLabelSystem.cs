@@ -2,7 +2,7 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Deployables;
 
-public sealed class FSSentryTurretLabelSystem : EntitySystem
+public sealed partial class FSSentryTurretLabelSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
 

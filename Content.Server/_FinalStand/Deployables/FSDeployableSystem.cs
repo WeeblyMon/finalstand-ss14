@@ -1,11 +1,14 @@
+using Content.Shared.LandMines;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Science;
+using Content.Server._FinalStand.Shop;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Mind;
 using Content.Shared.Throwing;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using System.Numerics;
 
@@ -14,11 +17,15 @@ namespace Content.Server._FinalStand.Deployables;
 public sealed partial class FSDeployableSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private FSPlacementRuleSystem _placementRules = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private Perks.FSTechnicianSystem _technician = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     public override void Initialize()
     {
@@ -68,6 +75,12 @@ public sealed partial class FSDeployableSystem : EntitySystem
             return false;
         }
 
+        if (!_binding.IsUsableBy(uid, deployer))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-shop-bound-not-yours"), deployer, deployer);
+            return false;
+        }
+
         if (comp.Stock <= 0)
         {
             _popup.PopupEntity(Loc.GetString("fs-deployable-no-stock"), deployer, deployer);
@@ -76,18 +89,35 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         var ownerMind = _mind.TryGetMind(deployer, out var mindId, out _) ? mindId : (EntityUid?) null;
 
-        if (comp.MaxDeployed > 0 && CountDeployed(ownerMind, comp.DeployedProtoId) >= comp.MaxDeployed)
+        var maxDeployed = comp.MaxDeployed > 0 ? comp.MaxDeployed + _technician.GetBonusForUser(deployer, comp) : 0;
+        if (maxDeployed > 0 && CountDeployed(ownerMind, comp.DeployedProtoId) >= maxDeployed)
         {
-            _popup.PopupEntity(Loc.GetString("fs-deployable-max-deployed", ("max", comp.MaxDeployed)), deployer, deployer);
+            _popup.PopupEntity(Loc.GetString("fs-deployable-max-deployed", ("max", maxDeployed)), deployer, deployer);
+            return false;
+        }
+
+        Direction? facingDir = comp.FaceDeployerDirection
+            ? facing ?? Transform(deployer).LocalRotation.GetCardinalDir()
+            : null;
+
+        if (!_placementRules.IsTileBuildable(coords, false))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-deployable-no-build"), deployer, deployer);
+            return false;
+        }
+
+        if (IsOccupied(coords, facingDir))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-deployable-occupied"), deployer, deployer);
             return false;
         }
 
         var deployed = Spawn(comp.DeployedProtoId, coords);
 
-        if (comp.FaceDeployerDirection)
-            _transform.SetLocalRotation(deployed, (facing ?? Transform(deployer).LocalRotation.GetCardinalDir()).ToAngle());
+        if (facingDir is { } dir)
+            _transform.SetLocalRotation(deployed, dir.ToAngle());
 
-        if (!_transform.AnchorEntity(deployed))
+        if (!Transform(deployed).Anchored && !_transform.AnchorEntity(deployed))
         {
             Del(deployed);
             _popup.PopupEntity(Loc.GetString("fs-deployable-no-anchor"), deployer, deployer);
@@ -99,6 +129,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         deployedBy.DeployedBy = deployer;
         deployedBy.SourceProto = comp.DeployedProtoId;
         deployedBy.SourceItem = uid;
+        deployedBy.Facing = facingDir;
 
         var ev = new FSDeployableDeployedEvent(uid, deployer);
         RaiseLocalEvent(deployed, ref ev);
@@ -108,6 +139,37 @@ public sealed partial class FSDeployableSystem : EntitySystem
 
         _popup.PopupEntity(Loc.GetString("fs-deployable-placed"), deployed, deployer);
         return true;
+    }
+
+    public bool IsOccupied(EntityCoordinates coords, Direction? facing, bool ignoreMines = false)
+    {
+        if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
+            return false;
+
+        var tile = _map.TileIndicesFor(gridUid, grid, coords);
+
+        var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
+        while (anchored.MoveNext(out var other))
+        {
+            if (ignoreMines && HasComp<LandMineComponent>(other))
+                continue;
+
+            if (TryComp<FSDeployedByComponent>(other, out var existing)
+                && (existing.Facing == null || facing == null || existing.Facing == facing))
+                return true;
+        }
+
+        var query = EntityQueryEnumerator<FSDeployedByComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var existing, out var xform))
+        {
+            if (xform.Anchored || existing.Facing != facing || xform.GridUid != gridUid)
+                continue;
+
+            if (_map.TileIndicesFor(gridUid, grid, xform.Coordinates) == tile)
+                return true;
+        }
+
+        return false;
     }
 
     public int CountDeployed(EntityUid? ownerMind, EntProtoId proto)

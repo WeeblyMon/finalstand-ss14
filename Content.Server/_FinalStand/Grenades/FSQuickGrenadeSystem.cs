@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Shop;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.SmartReload;
@@ -23,6 +24,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     private static readonly ProtoId<TagPrototype> HandGrenadeTag = "HandGrenade";
 
@@ -149,7 +151,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         {
             foreach (var item in cont.ContainedEntities)
             {
-                if (TryComp<FSGrenadePackComponent>(item, out var pack) && pack.PackType == type)
+                if (TryComp<FSGrenadePackComponent>(item, out var pack) && pack.PackType == type && _binding.IsUsableBy(item, user))
                     return item;
 
                 if (!TryComp<ContainerManagerComponent>(item, out var innerMgr))
@@ -158,7 +160,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
                 {
                     foreach (var innerItem in inner.ContainedEntities)
                     {
-                        if (TryComp<FSGrenadePackComponent>(innerItem, out var innerPack) && innerPack.PackType == type)
+                        if (TryComp<FSGrenadePackComponent>(innerItem, out var innerPack) && innerPack.PackType == type && _binding.IsUsableBy(innerItem, user))
                             return innerItem;
                     }
                 }

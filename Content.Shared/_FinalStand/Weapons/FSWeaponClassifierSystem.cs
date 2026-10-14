@@ -20,7 +20,7 @@ public readonly record struct FSWeaponKind(
     public bool HasGunTag => Ballistic || Energy || Launcher;
 }
 
-public sealed class FSWeaponClassifierSystem : EntitySystem
+public sealed partial class FSWeaponClassifierSystem : EntitySystem
 {
     [Dependency] private TagSystem _tags = default!;
 
@@ -34,6 +34,18 @@ public sealed class FSWeaponClassifierSystem : EntitySystem
     public const string XrayProto = "WeaponXrayCannonFS";
     public const string TeslaProto = "WeaponTeslaGunFS";
     public const string HarvesterProto = "WeaponHarvesterFS";
+
+    private static readonly HashSet<string> SemiAutoRifleProtos =
+    [
+        "WeaponSniperMosin",
+        "WeaponRifleEstoc",
+        "WeaponSniperHristov",
+    ];
+
+    public bool IsSemiAutoRifle(EntityUid uid)
+    {
+        return Prototype(uid)?.ID is { } id && SemiAutoRifleProtos.Contains(id);
+    }
 
     public FSWeaponKind Classify(EntityUid uid)
     {

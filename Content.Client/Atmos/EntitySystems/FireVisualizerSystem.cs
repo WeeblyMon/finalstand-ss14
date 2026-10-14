@@ -1,5 +1,6 @@
 using Content.Client.Atmos.Components;
 using Content.Client.DisplacementMap;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.Atmos;
 using Content.Shared.DisplacementMap;
 using Robust.Client.GameObjects;
@@ -25,6 +26,9 @@ public sealed partial class FireVisualizerSystem : VisualizerSystem<FireVisualsC
     // fires" instead of every light shrinking to nothing.
     private const float NearbyFireRadius = 6f;
     private const float MinDampenFactor = 0.2f;
+
+    private static readonly Color HealingTint = new(0.3f, 1f, 0.45f);
+    private static readonly Color HealingLight = Color.FromHex("#4cff7a");
 
     public override void Initialize()
     {
@@ -79,7 +83,9 @@ public sealed partial class FireVisualizerSystem : VisualizerSystem<FireVisualsC
         AppearanceSystem.TryGetData<bool>(uid, FireVisuals.OnFire, out var onFire, appearance);
         AppearanceSystem.TryGetData<float>(uid, FireVisuals.FireStacks, out var fireStacks, appearance);
         AppearanceSystem.TryGetData<string?>(uid, FireVisuals.FireDisplacement, out var fireDisplacement, appearance);
+        AppearanceSystem.TryGetData<bool>(uid, FSHealingFireVisuals.Healing, out var healing, appearance);
         SpriteSystem.LayerSetVisible((uid, sprite), index, onFire);
+        SpriteSystem.LayerSetColor((uid, sprite), index, healing ? HealingTint : Color.White);
 
         if (!onFire)
         {
@@ -110,7 +116,7 @@ public sealed partial class FireVisualizerSystem : VisualizerSystem<FireVisualsC
         component.LightEntity ??= Spawn(null, new EntityCoordinates(uid, default));
         var light = EnsureComp<PointLightComponent>(component.LightEntity.Value);
 
-        _lights.SetColor(component.LightEntity.Value, component.LightColor, light);
+        _lights.SetColor(component.LightEntity.Value, healing ? HealingLight : component.LightColor, light);
 
         var dampen = GetCrowdDampening(uid);
 

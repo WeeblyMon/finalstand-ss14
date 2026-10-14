@@ -2,7 +2,7 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Loot;
 
-public sealed class FSGachaLabelSystem : EntitySystem
+public sealed partial class FSGachaLabelSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlayManager = default!;
 

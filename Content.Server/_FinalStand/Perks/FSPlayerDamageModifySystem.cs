@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Owns (ActorComponent, DamageModifyEvent) — handles Untouchable and FieldMedic.
+// Owns (ActorComponent, DamageModifyEvent) for Untouchable and (ActorComponent, FSHealingPotencyEvent) for Field Medic.
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
@@ -23,6 +23,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<ActorComponent, DamageModifyEvent>(OnDamageModify);
+        SubscribeLocalEvent<ActorComponent, FSHealingPotencyEvent>(OnHealingPotency);
     }
 
     public override void Update(float frameTime)
@@ -73,16 +74,17 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
                 if (unt.NextChargeTime == default)
                     unt.NextChargeTime = _timing.CurTime + ChargeReloadTime;
                 SendChargesUpdate(uid, unt.CurrentCharges);
-                return;
             }
         }
+    }
 
-        // Field Medic: boost incoming healing (negative damage).
-        var medicLevel = augs.GetSlottedLevel("FieldMedic");
-        if (medicLevel > 0 && args.Damage.GetTotal().Float() < 0)
-        {
-            args.Damage *= 1f + medicLevel * FSPerkBonusConstants.FieldMedicPerLevel;
-        }
+    private void OnHealingPotency(EntityUid uid, ActorComponent comp, ref FSHealingPotencyEvent args)
+    {
+        if (!_mind.TryGetMind(uid, out var mindId, out MindComponent? _)
+            || !TryComp<FSPerkLevelsComponent>(mindId, out var augs))
+            return;
+
+        args.Multiplier *= 1f + augs.GetSlottedLevel("FieldMedic") * FSPerkBonusConstants.FieldMedicPerLevel;
     }
 
     private void SendChargesUpdate(EntityUid bodyUid, int charges)

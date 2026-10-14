@@ -1,0 +1,90 @@
+# Sentry modules, installed with the Engineer's Hammer. They replace the old sentry shop upgrades and are paid in drops.
+- type: fsUpgrade
+  id: FSModuleBelt
+  name: fs-module-belt
+  description: fs-module-belt-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/pistol.rsi
+    state: base
+  cost:
+    Steel: 3
+  hits: 3
+  sentry:
+    ammo: 60
+
+- type: fsUpgrade
+  id: FSModuleBeltDouble
+  name: fs-module-belt-double
+  description: fs-module-belt-double-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/pistol.rsi
+    state: mag-2
+  requires: FSModuleBelt
+  cost:
+    Steel: 3
+    Plasteel: 2
+  hits: 4
+  sentry:
+    ammo: 100
+
+- type: fsUpgrade
+  id: FSModuleServos
+  name: fs-module-servos
+  description: fs-module-servos-desc
+  slot: Module
+  icon:
+    sprite: Objects/Misc/stock_parts.rsi
+    state: nano_mani
+  cost:
+    Steel: 2
+    Gold: 1
+  hits: 4
+  sentry:
+    fireInterval: 0.75
+
+- type: fsUpgrade
+  id: FSModuleOptics
+  name: fs-module-optics
+  description: fs-module-optics-desc
+  slot: Module
+  icon:
+    sprite: Objects/Misc/stock_parts.rsi
+    state: adv_scan_module
+  cost:
+    Glass: 2
+    Silver: 1
+  hits: 4
+  sentry:
+    range: 1
+
+- type: fsUpgrade
+  id: FSModuleHardenedRounds
+  name: fs-module-hardened
+  description: fs-module-hardened-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/pistol.rsi
+    state: practice
+  cost:
+    Plasteel: 2
+  hits: 4
+  sentry:
+    damage: 0.25
+
+- type: fsUpgrade
+  id: FSModuleUraniumRounds
+  name: fs-module-uranium
+  description: fs-module-uranium-desc
+  slot: Module
+  icon:
+    sprite: Objects/Weapons/Guns/Ammunition/Boxes/pistol.rsi
+    state: uranium
+  requires: FSModuleHardenedRounds
+  cost:
+    Uranium: 1
+    Plasteel: 1
+  hits: 5
+  sentry:
+    damage: 0.35

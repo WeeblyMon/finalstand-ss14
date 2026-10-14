@@ -888,3 +888,10 @@ CrateEngineeringJetpack: CrateSpaceMiniJetpack
 CrateEngineeringMiniJetpack: CrateSpaceMiniJetpack
 CrateEngineeringShuttle: CrateSpaceShuttlePower
 CrateEngineeringThruster: CrateSpaceThruster
+
+# FS: the Durand became the Broadsword
+FSMechDurand: FSMechBroadsword
+FSMechDurandBattery: FSMechBroadswordBattery
+FSDurandControlModule: FSBroadswordControlModule
+FSDurandTargetingModule: FSBroadswordTargetingModule
+FSDurandBossPlate: FSBroadswordBossPlate

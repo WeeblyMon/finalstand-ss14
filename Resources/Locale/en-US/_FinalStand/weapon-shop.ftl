@@ -5,7 +5,17 @@ shop-upgrade-purchased = {$name} upgraded!
 shop-upgrade-max-level = Already at max level.
 shop-upgrade-hold-target = Hold the {$proto} to upgrade it, or keep it in a pocket.
 shop-upgrade-locked = Locked — buy the prerequisite upgrade first.
+shop-upgrade-locked-research = Locked — research {$node} first.
+shop-upgrade-research-label = LOCKED · {$node}
 
 grenade-pack-empty = No {$type} grenades left. Refills at the start of next prep phase.
 shop-grenade-already-owned = You already have this grenade type.
 shop-item-already-owned = You already have one of these.
+
+fs-starting-weapon-already-issued = Your job weapon was already issued this round.
+
+fs-shop-bound-examine-yours = [color=#7ec8ff]Bound to you.[/color]
+fs-shop-bound-examine-other = [color=orange]Bound to {$owner}.[/color] Only they can use it.
+fs-shop-bound-someone = someone else
+fs-shop-bound-not-yours = This belongs to someone else.
+shop-item-already-owned-elsewhere = You already own one. It isn't on you - go find it.

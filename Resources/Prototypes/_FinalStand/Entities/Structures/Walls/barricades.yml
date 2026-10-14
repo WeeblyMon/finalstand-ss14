@@ -11,8 +11,10 @@
   parent: BaseStructure
   id: FSBarricadeBase
   components:
+  - type: Tag
+    tags:
+    - FSBarricade
   - type: Rotatable
-  - type: Anchorable
   - type: Climbable
   - type: Appearance
   - type: InteractionOutline
@@ -47,6 +49,20 @@
   name: metal barricade
   description: A sturdy and easily assembled barricade made of metal plates, often used for quick fortifications.
   components:
+  - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSGradePlasteel, FSGradeUranium, FSBranchBulwark, FSBranchFiringStep, FSBranchFloodlit, FSAddonBarbedWire ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
+  - type: FSPlateRepair
+    material: Steel
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -73,11 +89,6 @@
         !type:DamageTrigger
         damage: 450
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetSteel1:
-            min: 2
-            max: 2
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -86,47 +97,20 @@
 
 - type: entity
   parent: FSBarricadeMetal
-  id: FSBarricadeMetalReinforced
-  suffix: Reinforced
-  components:
-  - type: Damageable
-    damageModifierSet: FSBruteBarricade
-
-- type: entity
-  parent: FSBarricadeMetal
-  id: FSBarricadeMetalBiohazard
-  suffix: Biohazard
-  components:
-  - type: Damageable
-    damageModifierSet: FSBurnBarricade
-  - type: Flammable
-    fireSpread: false
-    maximumFireStacks: 0.5
-    damage:
-      types:
-        Heat: 1.5
-
-- type: entity
-  parent: FSBarricadeMetal
-  id: FSBarricadeMetalComposite
-  suffix: Composite
-  components:
-  - type: ExplosionResistance
-    damageCoefficient: 0.5
-  - type: Flammable
-    fireSpread: false
-    maximumFireStacks: 0.5
-    damage:
-      types:
-        Heat: 1
-
-# ── Plasteel ──────────────────────────────────────────────────────────────────
-- type: entity
-  parent: FSBarricadeMetal
   id: FSBarricadePlasteel
   name: plasteel barricade
   description: A sturdy and easily assembled barricade made of reinforced plasteel plates, the pinnacle of strongpoints.
   components:
+  - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradePlasteel
+    options: [ FSGradeUranium, FSBranchBulwark, FSBranchFiringStep, FSBranchFloodlit, FSAddonBarbedWire ]
+  - type: FSPlateRepair
+    material: Plasteel
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -144,11 +128,6 @@
         !type:DamageTrigger
         damage: 900
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetPlasteel1:
-            min: 3
-            max: 3
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -156,48 +135,25 @@
         acts: [ "Destruction" ]
 
 - type: entity
-  parent: FSBarricadePlasteel
-  id: FSBarricadePlasteelReinforced
-  suffix: Reinforced
-  components:
-  - type: Damageable
-    damageModifierSet: FSBruteBarricade
-
-- type: entity
-  parent: FSBarricadePlasteel
-  id: FSBarricadePlasteelBiohazard
-  suffix: Biohazard
-  components:
-  - type: Damageable
-    damageModifierSet: FSBurnBarricade
-  - type: Flammable
-    fireSpread: false
-    maximumFireStacks: 0.5
-    damage:
-      types:
-        Heat: 2.8125
-
-- type: entity
-  parent: FSBarricadePlasteel
-  id: FSBarricadePlasteelComposite
-  suffix: Composite
-  components:
-  - type: ExplosionResistance
-    damageCoefficient: 0.5
-  - type: Flammable
-    fireSpread: false
-    maximumFireStacks: 0.5
-    damage:
-      types:
-        Heat: 1.875
-
-# ── Folding doors ─────────────────────────────────────────────────────────────
-- type: entity
   parent: FSBarricadeBase
   id: FSBarricadeMetalDoor
   name: folding metal barricade
   description: A folding metal barricade weaker than the non-folding counterpart. Able to be opened and closed at a moment's notice.
   components:
+  - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradeSteel
+    options: [ FSGradePlasteel, FSGradeUranium ]
+  - type: UserInterface
+    interfaces:
+      enum.FSUpgradeUiKey.Key:
+        type: FSUpgradeBoundUserInterface
+  - type: FSPlateRepair
+    material: Steel
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -210,6 +166,8 @@
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_metal_cracks.rsi
+  - type: FSFoldedDamageOverlay
+    folded: _FinalStand/Structures/Walls/Barricades/folding_metal_closed_cracks.rsi
   - type: AnimationPlayer
   - type: UseDelay
     delay: 0.3
@@ -245,11 +203,6 @@
         !type:DamageTrigger
         damage: 400
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetSteel1:
-            min: 3
-            max: 3
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
@@ -262,6 +215,16 @@
   name: folding plasteel barricade
   description: A tough folding plasteel barricade stronger than its metal counterpart. Can be closed and opened at a moment's notice.
   components:
+  - type: FSStructureHealth
+  - type: FSUpgradeable
+    grade: FSGradePlasteel
+    options: [ FSGradeUranium ]
+  - type: FSPlateRepair
+    material: Plasteel
+  - type: RCDDeconstructable
+    cost: 1
+    delay: 2
+    fx: EffectRCDDeconstruct2
   - type: Sprite
     sprite: _FinalStand/Structures/Walls/Barricades/barricade.rsi
     drawdepth: WallTops
@@ -274,6 +237,8 @@
     trackAllDamage: true
     damageOverlay:
       sprite: _FinalStand/Structures/Walls/Barricades/folding_plasteel_cracks.rsi
+  - type: FSFoldedDamageOverlay
+    folded: _FinalStand/Structures/Walls/Barricades/folding_plasteel_closed_cracks.rsi
   - type: Door
     openSpriteState: folding_plasteel_closed
     closedSpriteState: folding_plasteel
@@ -302,11 +267,6 @@
         !type:DamageTrigger
         damage: 800
       behaviors:
-      - !type:SpawnEntitiesBehavior
-        spawn:
-          SheetPlasteel1:
-            min: 4
-            max: 4
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak

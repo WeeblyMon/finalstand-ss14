@@ -25,8 +25,6 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         var gameplayStateLoad = UIManager.GetUIController<GameplayStateLoadController>();
         gameplayStateLoad.OnScreenLoad += OnScreenLoad;
         gameplayStateLoad.OnScreenUnload += OnScreenUnload;
-
-        InitializeFinalStandCryo();
     }
 
     private void OnScreenLoad()
@@ -47,6 +45,8 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         system.PlayerDetached += OnPlayerDetached;
         system.GhostWarpsResponse += OnWarpsResponse;
         system.GhostRoleCountUpdated += OnRoleCountUpdated;
+
+        SubscribeFinalStandCryo();
     }
 
     public void OnSystemUnloaded(GhostSystem system)
@@ -57,6 +57,8 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         system.PlayerDetached -= OnPlayerDetached;
         system.GhostWarpsResponse -= OnWarpsResponse;
         system.GhostRoleCountUpdated -= OnRoleCountUpdated;
+
+        UnsubscribeFinalStandCryo();
     }
 
     public void UpdateGui()
@@ -82,6 +84,8 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
 
     private void OnPlayerAttached(GhostComponent component)
     {
+        RequestFinalStandCryoStatus();
+
         if (Gui == null)
             return;
 
@@ -148,6 +152,7 @@ public sealed partial class GhostUIController : UIController, IOnSystemChanged<G
         Gui.TargetWindow.OnWarpToRandomClicked += OnWarpToRandomClicked;
 
         UpdateGui();
+        RequestFinalStandCryoStatus();
     }
 
     public void UnloadGui()

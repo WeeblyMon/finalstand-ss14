@@ -1,6 +1,7 @@
 using Content.Client._FinalStand.Perks;
 using Content.Client.Lobby.UI;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Leveling;
 
 namespace Content.Client.Lobby;
@@ -12,11 +13,32 @@ public sealed partial class LobbyUIController
     private int _fsPrestige;
     private int _fsExperience;
     private int _fsXpToNext = 500;
+    private int _fsWave;
+    private WavePhase _fsWavePhase;
 
     private void InitializeFinalStandWallet()
     {
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnFSWalletUpdated);
         SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnFSLevelingUpdated);
+        SubscribeNetworkEvent<FSWaveStatusEvent>(OnFSWaveStatus);
+    }
+
+    private void OnFSWaveStatus(FSWaveStatusEvent ev, EntitySessionEventArgs args)
+    {
+        _fsWave = ev.Wave;
+        _fsWavePhase = ev.Phase;
+        UpdateFSWaveStatus();
+    }
+
+    private void UpdateFSWaveStatus()
+    {
+        if (_stateManager.CurrentState is not LobbyState { Lobby: { } lobby })
+            return;
+
+        lobby.WaveStatus.Visible = _fsWave > 0;
+        lobby.WaveStatus.Text = Loc.GetString(
+            _fsWavePhase == WavePhase.Combat ? "fs-lobby-wave-combat" : "fs-lobby-wave-prep",
+            ("wave", _fsWave));
     }
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)
@@ -47,8 +69,10 @@ public sealed partial class LobbyUIController
     {
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new WalletRequestEvent());
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSLevelingRequestMessage());
+        EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSWaveStatusRequestEvent());
         UpdateFSPerkPoints();
         UpdateFSLevelDisplay();
+        UpdateFSWaveStatus();
     }
 
     // new panel instance = new lobby entry, so re-wire buttons

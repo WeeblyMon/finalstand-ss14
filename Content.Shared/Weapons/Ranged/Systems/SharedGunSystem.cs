@@ -14,6 +14,8 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory.VirtualItem;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
+using Content.Shared.Random.Helpers;
+using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.Tag;
 using Content.Shared.Throwing;
 using Content.Shared.Timing;
@@ -72,6 +74,8 @@ public abstract partial class SharedGunSystem : EntitySystem
     /// </summary>
     public const float ProjectileSpeed = 40f;
 
+    public const float MuzzleOffset = 0.15f; // fs
+
     /// <summary>
     ///     Name of the container slot used as the gun's chamber
     /// </summary>
@@ -83,6 +87,10 @@ public abstract partial class SharedGunSystem : EntitySystem
     public const string MagazineSlot = "gun_magazine";
 
     private static readonly ProtoId<TagPrototype> TrashTag = "Trash";
+
+    private const uint MaxShotTickDrift = 64; // fs
+
+    private GameTick _shotTick;
 
     private const float InteractNextFire = 0.3f;
     private const double SafetyNextFire = 0.5;
@@ -158,9 +166,60 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         gun.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
         gun.Comp.Target = GetEntity(msg.Target);
-        AttemptShoot(user.Value, gun);
+        _shotTick = ValidShotTick(msg.ShotTick); // fs
+        try
+        {
+            AttemptShoot(user.Value, gun);
+        }
+        finally
+        {
+            _shotTick = GameTick.Zero;
+        }
+
         if (msg.Continuous)
             gun.Comp.ShotCounter = 0;
+    }
+
+    public GameTick ValidShotTick(GameTick tick) // fs
+    {
+        var now = Timing.CurTick.Value;
+        if (tick == GameTick.Zero || tick.Value > now + MaxShotTickDrift || tick.Value + MaxShotTickDrift < now)
+            return Timing.CurTick;
+
+        return tick;
+    }
+
+    public GameTick CurrentShotTick => _shotTick == GameTick.Zero ? Timing.CurTick : _shotTick;
+
+    protected Angle GetRecoilAngle(TimeSpan curTime, Entity<GunComponent> gun, Angle direction)
+    {
+        var component = gun.Comp;
+        var timeSinceLastFire = (curTime - component.LastFire).TotalSeconds;
+        var newTheta = MathHelper.Clamp(component.CurrentAngle.Theta + component.AngleIncreaseModified.Theta - component.AngleDecayModified.Theta * timeSinceLastFire, component.MinAngleModified.Theta, component.MaxAngleModified.Theta);
+        component.CurrentAngle = new Angle(newTheta);
+        component.LastFire = component.NextFire;
+        DirtyField(gun.AsNullable(), nameof(GunComponent.CurrentAngle));
+        DirtyField(gun.AsNullable(), nameof(GunComponent.LastFire));
+
+        IRobustRandom random = new RobustRandom();
+        random.SetSeed(SharedRandomExtensions.HashCodeCombine((int) CurrentShotTick.Value, GetNetEntity(gun).Id));
+        var offset = random.NextFloat(-0.5f, 0.5f);
+        var spread = component.CurrentAngle.Theta * offset;
+        DebugTools.Assert(spread <= component.MaxAngleModified.Theta);
+        return new Angle(direction.Theta + spread);
+    }
+
+    public static Angle[] LinearSpread(Angle start, Angle end, int intervals)
+    {
+        var angles = new Angle[intervals];
+        DebugTools.Assert(intervals > 1);
+
+        for (var i = 0; i <= intervals - 1; i++)
+        {
+            angles[i] = new Angle(start + (end - start) * i / (intervals - 1));
+        }
+
+        return angles;
     }
 
     private void OnStopShootRequest(RequestStopShootEvent ev, EntitySessionEventArgs args)
@@ -197,6 +256,24 @@ public abstract partial class SharedGunSystem : EntitySystem
     public bool TryGetGun(EntityUid entity, out Entity<GunComponent> gun)
     {
         gun = default;
+
+        // FS: a mech pilot fires the mech's selected gun.
+        if (TryComp<Content.Shared.Vehicle.Components.VehicleOperatorComponent>(entity, out var mechOperator)
+            && TryComp<Content.Shared.Mech.Components.MechComponent>(mechOperator.Vehicle, out var mech)
+            && mech.CurrentSelectedEquipment is { } equipment
+            && TryComp(equipment, out GunComponent? mechGun))
+        {
+            gun = (equipment, mechGun);
+            return true;
+        }
+
+        // FS: a gunner seated on an HMG fires the HMG, whatever they hold.
+        if (TryComp<Content.Shared._FinalStand.HMG.FSHMGGunnerComponent>(entity, out var gunner)
+            && TryComp(gunner.Hmg, out GunComponent? hmgGun))
+        {
+            gun = (gunner.Hmg, hmgGun);
+            return true;
+        }
 
         if (_hands.GetActiveItem(entity) is { } held)
         {
@@ -478,6 +555,9 @@ public abstract partial class SharedGunSystem : EntitySystem
             Projectiles.SetShooter(uid, projectile, shooter.Value);
 
         TransformSystem.SetWorldRotation(uid, direction.ToWorldAngle() + projectile.Angle);
+
+        var launched = new FSProjectileLaunchedEvent(gunUid, shooter); // fs
+        RaiseLocalEvent(uid, ref launched);
     }
 
     /// <summary>
@@ -677,7 +757,19 @@ public abstract partial class SharedGunSystem : EntitySystem
     [Serializable, NetSerializable]
     public sealed class HitscanEvent : EntityEventArgs
     {
-        public List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier Sprite, float Distance)> Sprites = [];
+        public List<(NetCoordinates coordinates, Angle angle, SpriteSpecifier Sprite, float Distance, HitscanPart Part)> Sprites = [];
+
+        public NetEntity? Shooter;
+        public NetCoordinates? Origin;
+        public NetCoordinates? Impact;
+    }
+
+    [Serializable, NetSerializable]
+    public enum HitscanPart : byte
+    {
+        Muzzle,
+        Travel,
+        Impact,
     }
 
     /// <summary>

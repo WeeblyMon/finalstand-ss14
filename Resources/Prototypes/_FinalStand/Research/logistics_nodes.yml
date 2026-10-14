@@ -132,16 +132,3 @@
   prerequisites:
   - FSLogisticsHONKMech
   vanillaTechnologyId: PushHorn
-
-- type: fsTechNode
-  id: FSLogisticsQuantumFiberWeaving
-  name: Quantum Fiber Weaving
-  icon:
-    sprite: Clothing/Shoes/Boots/speedboots.rsi
-    state: icon
-  branch: Logistics
-  tier: 4
-  cost: 6000
-  prerequisites:
-  - FSLogisticsBluespaceCargoTransport
-  vanillaTechnologyId: QuantumFiberWeaving

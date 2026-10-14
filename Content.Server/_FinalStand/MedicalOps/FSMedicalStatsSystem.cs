@@ -3,6 +3,7 @@ using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Perks;
 using Content.Server._Shitmed.Body.Systems;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
@@ -34,6 +35,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private FSCombatMedicSystem _combatMedic = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -151,11 +153,20 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         }
 
         var healed = -(float)args.DamageDelta.GetTotal();
-        if (healed < 1f)
+        if (healed <= 0f)
             return;
 
         if (!TryGetPlayerMind(args.Origin, out var healerMind)
             && !_attribution.TryGetAttributedMedic(uid, out healerMind))
+            return;
+
+        if (!_mind.TryGetMind(uid, out var healedMind, out _) || healedMind != healerMind)
+        {
+            var allyHealed = new FSAllyHealedEvent(healerMind, uid, healed);
+            RaiseLocalEvent(ref allyHealed);
+        }
+
+        if (healed < 1f)
             return;
 
         var preHeal = (float)_damageable.GetTotalDamage(uid) + healed;
@@ -244,6 +255,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private void OnTopicalApplied(EntityUid uid, FSMedicalPatientComponent comp, ref FSTopicalAppliedEvent args)
     {
+        _combatMedic.OnHealedAlly(args.User, args.Target);
+
         if (args.User == args.Target
             || !_roster.IsMedical(args.User)
             || !TryGetPlayerMind(args.User, out var medicMind))

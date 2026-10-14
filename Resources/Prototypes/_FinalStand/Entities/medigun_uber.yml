@@ -1,0 +1,17 @@
+- type: entity
+  parent: BaseAction
+  id: FSActionMediGunUber
+  name: Deploy ÜberCharge
+  description: Spend a full ÜberCharge to make you and everyone on your beam invulnerable for a few seconds.
+  components:
+  - type: Action
+    useDelay: 1
+    checkCanInteract: false
+    itemIconStyle: BigAction
+  - type: Sprite
+    layers:
+    - sprite: _FinalStand/Interface/Actions/medigun_uber.rsi
+      state: activate
+      map: ["enum.ActionVisuals.Icon"]
+  - type: InstantAction
+    event: !type:FSMediGunUberActionEvent {}

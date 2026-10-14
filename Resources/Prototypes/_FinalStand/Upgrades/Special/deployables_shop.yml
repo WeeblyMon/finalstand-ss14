@@ -150,110 +150,33 @@
     state: base
     scale: 1,1
 
+# ── Medical Deployables ──────────────────────────────────────────────────────────────────────
 - type: entity
-  id: FSDeployableShopSentryTurret
+  id: FSDeployableShopMediDrone
   parent: FSWeaponShopBase
-  name: Sentry Turret
-  description: A deployable autoturret firing .35 auto. Engages hostiles in line of sight on its own and stays up until the magazine is empty.
+  name: Medi-Drone
+  description: A healing drone that follows you and beams wounded allies nearby up to half health. Burns out when its charge runs dry.
   components:
   - type: FSShopWeapon
-    weaponProtoId: FSSentryTurretItem
-    requiresScience: false
+    weaponProtoId: FSMediDroneItem
+    requiresResearch: FSMedicalMediDrone
+    requiresMedical: true
     singlePurchase: true
-    price: 15000
-    category: Support Deployable
-    statDamage: 20
-    statFireRate: 150
-    statAccuracy: 100
-    statCapacity: 200
+    price: 3000
+    category: Medical Deployable
+    statDamage: 0
+    statFireRate: 0
+    statAccuracy: 0
+    statCapacity: 0
     upgrades:
-    - id: sentry-ammo
-      name: Extended Belt
-      description: Forty more rounds per level.
-      maxLevel: 5
+    - id: medi-drone-capacity
+      name: Spare Drone
+      description: Carry one more Medi-Drone for when the first burns out.
+      maxLevel: 1
       baseCost: 3000
-      type: SentryAmmo
-      valuePerLevel: 40
-    - id: sentry-firerate
-      name: Cycling Servos
-      description: Each level cuts a quarter off the delay between shots.
-      maxLevel: 3
-      baseCost: 2500
-      type: SentryFireRate
-      valuePerLevel: 0.25
-    - id: sentry-damage
-      name: Hardened Rounds
-      description: Each level adds a quarter of the turret's base damage.
-      maxLevel: 3
-      baseCost: 4000
-      type: SentryDamage
-      valuePerLevel: 0.25
-    - id: sentry-range
-      name: Optics Package
-      description: One extra tile of engagement range.
-      maxLevel: 1
-      baseCost: 7500
-      type: SentryRange
-      valuePerLevel: 1
-    - id: sentry-capacity
-      name: Second Case
-      description: Carry one additional turret.
-      maxLevel: 1
-      baseCost: 10000
       type: DeployableCapacity
       valuePerLevel: 1
   - type: Sprite
-    sprite: _FinalStand/Objects/Devices/SentryTurret.rsi
-    state: icon
-    scale: 1,1
-
-- type: entity
-  id: FSDeployableShopHeavySentry
-  parent: FSWeaponShopBase
-  name: Heavy Sentry
-  description: An engineering-issue emplacement gun. Belt-fed and longer ranged than a sentry, it holds a corridor for as long as the belt lasts.
-  components:
-  - type: FSShopWeapon
-    weaponProtoId: FSHeavySentryItem
-    requiresScience: false
-    requiresEngineering: true
-    singlePurchase: true
-    price: 26000
-    category: Support Deployable
-    statDamage: 58
-    statFireRate: 200
-    statAccuracy: 100
-    statCapacity: 400
-    upgrades:
-    - id: heavy-sentry-ammo
-      name: Extended Belt
-      description: Forty more rounds per level.
-      maxLevel: 5
-      baseCost: 3000
-      type: SentryAmmo
-      valuePerLevel: 40
-    - id: heavy-sentry-damage
-      name: Hardened Rounds
-      description: Each level adds a quarter of the turret's base damage.
-      maxLevel: 5
-      baseCost: 4000
-      type: SentryDamage
-      valuePerLevel: 0.25
-    - id: heavy-sentry-range
-      name: Optics Package
-      description: One extra tile of engagement range.
-      maxLevel: 1
-      baseCost: 7500
-      type: SentryRange
-      valuePerLevel: 1
-    - id: heavy-sentry-capacity
-      name: Second Case
-      description: Carry one additional turret.
-      maxLevel: 1
-      baseCost: 10000
-      type: DeployableCapacity
-      valuePerLevel: 1
-  - type: Sprite
-    sprite: _FinalStand/Objects/Devices/HeavySentry.rsi
-    state: icon
+    sprite: _FinalStand/Objects/Medical/medidrone.rsi
+    state: full
     scale: 1,1

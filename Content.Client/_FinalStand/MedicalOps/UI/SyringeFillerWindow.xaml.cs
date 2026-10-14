@@ -12,7 +12,7 @@ namespace Content.Client._FinalStand.MedicalOps.UI;
 [GenerateTypedNameReferences]
 public sealed partial class SyringeFillerWindow : DefaultWindow
 {
-    [Dependency] private readonly IGameTiming _timing = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     public event Action? OnFill;
     public event Action? OnPurge;

@@ -187,6 +187,13 @@
       baseCost: 9200
       type: SetOnFire
       valuePerLevel: 1
+    - id: bulldog-powder-charge
+      name: Powder Charge
+      description: Hotter powder loads increase damage by 15% per level.
+      maxLevel: 5
+      baseCost: 5250
+      type: Damage
+      valuePerLevel: 0.15
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/bulldog.rsi
     state: base

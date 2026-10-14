@@ -1,4 +1,4 @@
-﻿using Content.Client._FinalStand.Interface;
+using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Perks;
@@ -10,6 +10,7 @@ using Robust.Client;
 using Robust.Client.Graphics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.GameTicking;
 using Robust.Client.Player;
 using Content.Client.UserInterface.Screens;
 using Robust.Client.UserInterface;
@@ -28,6 +29,7 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
+    private List<FSPerkTimedBuff> _perkBuffs = new();
 
     public override void Initialize()
     {
@@ -40,7 +42,8 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<WavePhaseChangedEvent>(OnPhaseChanged);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
-        SubscribeNetworkEvent<FSInterestPayoutEvent>(OnInterestPayout);
+        SubscribeNetworkEvent<FSPerkTimedBuffsEvent>(ev => _perkBuffs = ev.Buffs);
+        SubscribeNetworkEvent<FSPerkEarningsSummaryEvent>(OnPerkEarnings);
         SubscribeNetworkEvent<FSHealPayoutEvent>(OnHealPayout);
         SubscribeNetworkEvent<FSMedicalFundUpdatedEvent>(OnMedicalFund);
         SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
@@ -48,6 +51,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSDarkWaveStartedEvent>(OnDarkWaveStarted);
         SubscribeNetworkEvent<FSDarkWaveEndedEvent>(OnDarkWaveEnded);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
 
@@ -111,14 +115,22 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private const float DownedDim = 0.22f;
 
+    // A round can end while you're down, leaving the offer set as the lobby becomes the active screen.
     private void UpdateDownedDim(WaveHudOverlay overlay)
     {
         if (_ui.ActiveScreen is not { } screen)
             return;
 
-        screen.Modulate = overlay.IsRespawnOfferVisible
+        screen.Modulate = overlay.IsRespawnOfferVisible && screen is InGameScreen
             ? Color.White.WithAlpha(DownedDim)
             : Color.White;
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _perkBuffs = new();
+        if (_overlay != null)
+            _overlay.IsRespawnOfferVisible = false;
     }
 
     private Control? _alerts;
@@ -224,13 +236,24 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         overlay.MedicalBuffs.Clear();
 
+        var now = _timing.CurTime;
+        foreach (var buff in _perkBuffs)
+        {
+            if (now >= buff.EndTime)
+                continue;
+
+            overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
+                buff.Name,
+                WaveHudOverlay.PerkIconPrefix + buff.PerkId.ToLowerInvariant(),
+                (int) Math.Ceiling((buff.EndTime - now).TotalSeconds),
+                [Loc.GetString("fs-buff-source-perk")]));
+        }
+
         if (_player.LocalEntity is not { } player
             || !TryComp<FSMedicalBonusComponent>(player, out var bonus))
         {
             return;
         }
-
-        var now = _timing.CurTime;
 
         foreach (var (source, buff) in bonus.Active)
         {
@@ -257,7 +280,7 @@ public sealed partial class WaveHudSystem : EntitySystem
                 label,
                 chem ? BuffIconKey(source) : "buff_" + source,
                 seconds,
-                Loc.GetString(chem ? "fs-buff-source-chem" : "fs-buff-source-cmo")));
+                [Loc.GetString(chem ? "fs-buff-source-chem" : "fs-buff-source-cmo"), ..FSMedicalBonusText.Describe(buff.Bonuses)]));
         }
     }
 
@@ -393,9 +416,9 @@ public sealed partial class WaveHudSystem : EntitySystem
         EnsureOverlay().PerkStacks[ev.PerkId] = ev.Stacks;
     }
 
-    private void OnInterestPayout(FSInterestPayoutEvent ev)
+    private void OnPerkEarnings(FSPerkEarningsSummaryEvent ev)
     {
-        EnsureOverlay().AddInterestPopup(ev.PerkId, ev.Amount);
+        EnsureOverlay().AddEarningsPopup(ev.Entries);
     }
 
     private void OnBonusSummary(FSPlayerBonusSummaryEvent ev)

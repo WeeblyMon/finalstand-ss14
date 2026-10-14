@@ -4,14 +4,18 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared._Shitmed.Medical.Surgery;
 using Content.Shared.Medical;
+using Content.Shared.Power.Components;
+using Content.Shared.Power.EntitySystems;
 using Content.Shared.Timing;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSMedicalUpgradeSystem : EntitySystem
+public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 {
     [Dependency] private FSMedicalResearchSystem _research = default!;
     [Dependency] private UseDelaySystem _useDelay = default!;
+    [Dependency] private SharedBatterySystem _battery = default!;
+    [Dependency] private FSMediGunVariantSystem _variants = default!;
 
     public const string ExtendedOptics = "FSMedicalExtendedOptics";
     public const string HaemostaticBeam = "FSMedicalHaemostaticBeam";
@@ -21,6 +25,19 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     public const string CellEfficiency = "FSMedicalCellEfficiency";
     public const string FocusedNanites = "FSMedicalFocusedNanites";
     public const string DefibrillatorOutput = "FSMedicalDefibrillatorOutput";
+    public const string CellEfficiency2 = "FSMedicalCellEfficiency2";
+    public const string CapacitorBank = "FSMedicalCapacitorBank";
+    public const string RapidRecharge = "FSMedicalRapidRecharge";
+    public const string BoneKnitter = "FSMedicalBoneKnitter";
+    public const string LimbMender = "FSMedicalLimbMender";
+    public const string SplitBeamTuning = "FSMedicalSplitBeamTuning";
+    public const string BackfeederNanites = "FSMedicalBackfeederNanites";
+    public const string RefinedEmitters = "FSMedicalRefinedEmitters";
+    public const string UberCycling = "FSMedicalUberCycling";
+    public const string PerfectedEmitters = "FSMedicalPerfectedEmitters";
+    public const string PolishedEmitters = "FSMedicalPolishedEmitters";
+    public const string UltraCycling = "FSMedicalUltraCycling";
+    public const string EfficientCycling = "FSMedicalEfficientCycling";
 
     public const string AutoclaveKit = "FSMedicalAutoclaveKit";
     public const string ReinforcedCanvas = "FSMedicalReinforcedCanvas";
@@ -47,6 +64,8 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
     [
         ExtendedOptics, HaemostaticBeam, FocusedEmitters, RapidCycling, CapacitorRecovery,
         CellEfficiency, DefibrillatorOutput, FocusedNanites,
+        CellEfficiency2, CapacitorBank, RapidRecharge, BoneKnitter, LimbMender, SplitBeamTuning, BackfeederNanites,
+        RefinedEmitters, UberCycling, PerfectedEmitters, PolishedEmitters, UltraCycling, EfficientCycling,
         AutoclaveKit, ReinforcedCanvas, BoneWelder, RecoveryUplink, SterileField,
         VolatileSuspension, StabilisedAerosol,
         LongRangeCollectors, WideSpectrumRendering, CryoStowage, HighFlowManifold,
@@ -79,6 +98,9 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             return;
 
         ApplyToAll();
+
+        if (ev.NodeId is RefinedEmitters or UberCycling)
+            _variants.SwapAll();
     }
 
     private void ApplyToAll()
@@ -112,7 +134,11 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
             ApplyFiller((uid, filler));
     }
 
-    private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args) => ApplyMediGun(ent);
+    private void OnMediGunInit(Entity<FSMediGunComponent> ent, ref MapInitEvent args)
+    {
+        ApplyMediGun(ent);
+        _variants.QueueIfOutdated(ent);
+    }
     private void OnSatchelInit(Entity<FSHarvestSatchelComponent> ent, ref MapInitEvent args) => ApplySatchel(ent);
     private void OnFlaskInit(Entity<FSSplashFlaskComponent> ent, ref MapInitEvent args) => ApplyFlask(ent);
     private void OnStaplerInit(Entity<FSBoneStaplerComponent> ent, ref MapInitEvent args) => ApplyStapler(ent);
@@ -134,12 +160,56 @@ public sealed class FSMedicalUpgradeSystem : EntitySystem
         c.Frequency = c.BaseFrequency.Value * (Unlocked(RapidCycling) ? 0.7f : 1f);
 
         c.BaseBatteryWithdraw ??= c.BatteryWithdraw;
-        c.BatteryWithdraw = c.BaseBatteryWithdraw.Value * (Unlocked(CellEfficiency) ? 0.6f : 1f);
+        c.BatteryWithdraw = c.BaseBatteryWithdraw.Value
+                            * (Unlocked(CellEfficiency) ? 0.6f : 1f)
+                            * (Unlocked(CellEfficiency2) ? 0.75f : 1f);
 
         c.BaseSoftCapRatio ??= c.SoftCapRatio;
         c.SoftCapRatio = c.BaseSoftCapRatio.Value + (Unlocked(FocusedNanites) ? 0.1f : 0f);
 
+        c.BaseBoneRepairPerTick ??= c.BoneRepairPerTick;
+        c.BoneRepairPerTick = c.BaseBoneRepairPerTick.Value * (Unlocked(BoneKnitter) ? 2 : 1);
+
+        c.BaseLimbHealScale ??= c.LimbHealScale;
+        c.LimbHealScale = c.BaseLimbHealScale.Value * (Unlocked(LimbMender) ? 1.6f : 1f);
+
+        c.BaseSplitLinkScale ??= c.SplitLinkScale;
+        c.SplitLinkScale = c.BaseSplitLinkScale.Value * (Unlocked(SplitBeamTuning) ? 1.25f : 1f);
+
+        c.BaseOverhealRatio ??= c.OverhealRatio;
+        c.OverhealRatio = c.BaseOverhealRatio.Value * (Unlocked(PerfectedEmitters) ? 2f : 1f);
+
+        c.BaseOverhealDecay ??= c.OverhealDecay;
+        c.OverhealDecay = c.BaseOverhealDecay.Value * (Unlocked(PolishedEmitters) ? 0.5f : 1f);
+
+        c.BaseUberDuration ??= c.UberDuration;
+        c.UberDuration = c.BaseUberDuration.Value + (Unlocked(EfficientCycling) ? 3f : 0f);
+        c.UberInfiniteStamina = Unlocked(UltraCycling);
+
+        ApplyMediGunBattery(ent);
         Dirty(ent);
+    }
+
+    private void ApplyMediGunBattery(Entity<FSMediGunComponent> ent)
+    {
+        var c = ent.Comp;
+
+        if (TryComp<BatteryComponent>(ent, out var battery))
+        {
+            c.BaseMaxCharge ??= battery.MaxCharge;
+            _battery.SetMaxCharge((ent, battery), c.BaseMaxCharge.Value * (Unlocked(CapacitorBank) ? 1.5f : 1f));
+        }
+
+        if (!TryComp<BatterySelfRechargerComponent>(ent, out var recharger))
+            return;
+
+        c.BaseRechargeRate ??= recharger.AutoRechargeRate;
+        c.BaseRechargePause ??= recharger.AutoRechargePauseTime;
+
+        recharger.AutoRechargeRate = c.BaseRechargeRate.Value * (Unlocked(RapidRecharge) ? 1.5f : 1f);
+        recharger.AutoRechargePauseTime = Unlocked(BackfeederNanites) ? TimeSpan.Zero : c.BaseRechargePause.Value;
+        Dirty(ent, recharger);
+        _battery.RefreshChargeRate(ent.Owner);
     }
 
     private void ApplySatchel(Entity<FSHarvestSatchelComponent> ent)

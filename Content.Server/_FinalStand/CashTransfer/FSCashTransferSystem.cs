@@ -18,7 +18,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.CashTransfer;
 
-public sealed class FSCashTransferSystem : EntitySystem
+public sealed partial class FSCashTransferSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;

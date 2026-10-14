@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Made by TheFreyOfIt for Final Stand",
+    "size": {
+        "x": 32,
+        "y": 32
+    },
+    "states": [
+        {
+            "name": "full"
+        },
+        {
+            "name": "charge75"
+        },
+        {
+            "name": "charge50"
+        },
+        {
+            "name": "charge25"
+        },
+        {
+            "name": "empty"
+        }
+    ]
+}

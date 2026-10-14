@@ -3,7 +3,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Goobstation.Common.Barks;
 
-[Prototype("bark")]
+[Prototype]
 public sealed partial class BarkPrototype : IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;

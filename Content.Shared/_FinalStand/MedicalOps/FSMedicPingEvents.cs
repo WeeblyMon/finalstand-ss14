@@ -5,8 +5,6 @@ namespace Content.Shared._FinalStand.MedicalOps;
 
 public sealed partial class FSMedicPingActionEvent : InstantActionEvent { }
 
-public sealed partial class FSChemRequestActionEvent : InstantActionEvent { }
-
 [Serializable, NetSerializable]
 public enum FSPingKind : byte
 {

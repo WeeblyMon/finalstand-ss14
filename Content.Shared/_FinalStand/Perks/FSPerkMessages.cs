@@ -6,8 +6,9 @@ namespace Content.Shared._FinalStand.Perks;
 [Serializable, NetSerializable]
 public sealed class FSPerkLoadout
 {
-    public Dictionary<string, int> Levels = new();
-    public string[] Slots = new string[FSPerkDef.SlotCount];
+    // Properties, not fields: the DB copy goes through System.Text.Json, which skips fields entirely.
+    public Dictionary<string, int> Levels { get; set; } = new();
+    public string[] Slots { get; set; } = new string[FSPerkDef.SlotCount];
 
     public FSPerkLoadout()
     {
@@ -75,8 +76,17 @@ public sealed class FSOpenPerkShopEvent : EntityEventArgs { }
 public sealed class FSRespecPerkMessage : EntityEventArgs { }
 
 [Serializable, NetSerializable]
-public sealed class FSInterestPayoutEvent : EntityEventArgs
+public struct FSPerkEarningsEntry
 {
-    public string PerkId = "";
-    public int Amount;
+    public string PerkId;
+    public int WaveCredits;
+    public int GameCredits;
+    public int WaveResearch;
+    public int GameResearch;
+}
+
+[Serializable, NetSerializable]
+public sealed class FSPerkEarningsSummaryEvent : EntityEventArgs
+{
+    public List<FSPerkEarningsEntry> Entries = new();
 }

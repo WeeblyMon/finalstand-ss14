@@ -9,10 +9,52 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 using Content.Shared.Humanoid;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds;
+using Content.Shared._Shitmed.Targeting.Events;
+using Robust.Shared.Network;
+using Robust.Shared.Player;
 
 namespace Content.Shared._Shitmed.Targeting;
-public abstract class SharedTargetingSystem : EntitySystem
+public abstract partial class SharedTargetingSystem : EntitySystem
 {
+    [Dependency] private INetManager _net = default!;
+
+    public void UpdateBodyStatus(EntityUid body, Dictionary<TargetBodyPart, WoundableSeverity> status)
+    {
+        if (!TryComp<TargetingComponent>(body, out var targeting))
+            return;
+
+        if (!HasChanged(targeting.BodyStatus, status))
+            return;
+
+        targeting.BodyStatus = status;
+        Dirty(body, targeting);
+        NotifyTargetIntegrity(body);
+    }
+
+    private static bool HasChanged(Dictionary<TargetBodyPart, WoundableSeverity> current,
+        Dictionary<TargetBodyPart, WoundableSeverity> updated)
+    {
+        if (current.Count != updated.Count)
+            return true;
+
+        foreach (var (part, severity) in updated)
+        {
+            if (!current.TryGetValue(part, out var old) || old != severity)
+                return true;
+        }
+
+        return false;
+    }
+
+    public void NotifyTargetIntegrity(EntityUid body, bool refreshUi = true)
+    {
+        if (!_net.IsServer || !TryComp<ActorComponent>(body, out var actor))
+            return;
+
+        RaiseNetworkEvent(new TargetIntegrityChangeEvent(GetNetEntity(body), refreshUi), actor.PlayerSession);
+    }
+
     /// <summary>
     /// Returns all Valid target body parts as an array.
     /// </summary>

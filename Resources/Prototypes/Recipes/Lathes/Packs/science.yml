@@ -15,6 +15,8 @@
 - type: latheRecipePack
   id: ScienceEquipment
   recipes:
+  - FSBroadswordControlModule # FS
+  - FSBroadswordTargetingModule # FS
   - AnomalyScanner
   - NodeScanner
   - AnomalyLocator
@@ -24,6 +26,7 @@
   - DeviceDesynchronizer
   - ClothingBackpackHarmpack
   - TeleporterChipBlank
+  - FSHandTeleporter
 
 - type: latheRecipePack
   id: ScienceClothing
@@ -46,6 +49,11 @@
 - type: latheRecipePack
   id: ScienceWeapons
   recipes:
+  - FSMechWeaponFiredart # FS
+  - FSMechWeaponSolaris # FS
+  - FSMechWeaponPulseRifle # FS
+  - FSMechWeaponTesla # FS
+  - FSMechWeaponRavager # FS
   - WeaponPistolCHIMP
   - WeaponForceGun
   - WeaponProtoKineticAccelerator

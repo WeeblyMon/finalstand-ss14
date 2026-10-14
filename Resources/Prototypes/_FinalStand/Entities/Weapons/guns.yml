@@ -873,6 +873,8 @@
   suffix: FinalStand
   categories: [ HideSpawnMenu ]
   components:
+  - type: FSScienceOnly
+  - type: FSResearchHud
   - type: Tag
     tags:
     - WeaponGunEnergy
@@ -893,7 +895,7 @@
     proto: FSXrayLaser
     fireCost: 100
   - type: BatterySelfRecharger
-    autoRechargeRate: 20
+    autoRechargeRate: 30
     autoRechargePauseTime: 2
   - type: Crit
     baseCritChance: 0.05
@@ -908,6 +910,19 @@
   - type: Tag
     tags:
     - WeaponGunBallistic
+  - type: BallisticAmmoProvider
+    proto: FSCartridgeMinigun
+    capacity: 1000
+
+- type: entity
+  parent: CartridgeMinigun
+  id: FSCartridgeMinigun
+  suffix: FinalStand
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: CartridgeAmmo
+    proto: FSBulletMinigun
+    deleteOnSpawn: true
 
 # ── RPG-7 FS override — tags for Ordnance launcher research bonuses ────────────
 - type: entity
@@ -929,6 +944,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: FSHarvester
+  - type: FSResearchHud
   - type: FSScienceOnly
   - type: Tag
     tags:
@@ -945,7 +961,7 @@
     - Back
     - suitStorage
   - type: Gun
-    fireRate: 20
+    fireRate: 10
     minAngle: 0
     maxAngle: 0
     angleIncrease: 0
@@ -956,8 +972,11 @@
     minAngle: 0
     maxAngle: 0
   - type: Battery
-    maxCharge: 6000
-    startingCharge: 6000
+    maxCharge: 200
+    startingCharge: 200
   - type: BatteryAmmoProvider
     proto: FSHarvesterBeam
-    fireCost: 0
+    fireCost: 1
+  - type: BatterySelfRecharger
+    autoRechargeRate: 20
+    autoRechargePauseTime: 1.5

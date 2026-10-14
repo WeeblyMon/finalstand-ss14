@@ -10,7 +10,7 @@ using Robust.Shared.Audio.Systems;
 
 namespace Content.Server._FinalStand.MedicalOps;
 
-public sealed class FSHarvestSystem : EntitySystem
+public sealed partial class FSHarvestSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private SharedTransformSystem _xform = default!;

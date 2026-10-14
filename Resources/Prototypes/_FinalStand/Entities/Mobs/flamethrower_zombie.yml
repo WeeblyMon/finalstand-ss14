@@ -6,6 +6,14 @@
   suffix: Flamethrower
   name: flamethrower zombie
   components:
+  - type: FSMaterialDrop
+    materials:
+    - SheetPlasma1
+    - SheetPlasma1
+    - SheetPlastic1
+    - SheetPlastic1
+    - MaterialGunpowder
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/flamethrowerzombie.png
   - type: FSFlamethrower

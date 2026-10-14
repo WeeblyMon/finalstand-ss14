@@ -19,16 +19,24 @@ Tissue is the base ingredient for every field potion. No tissue, no potions - wh
 
 ## 2. Brew
 
-Every field potion is [bold]2 tissue + one reagent straight from the dispenser[/bold]. No sub-recipes, no heating step.
+<Box>
+<GuideEntityEmbed Entity="FSFieldKitStation"/>
+</Box>
+
+Brewing happens at the [bold]field kit station[/bold]. Use your satchel on it, or press Dump, and the tissue goes into its tank. The tank stays in the machine and every chemist on shift brews from it.
+
+Put a jug in, pick a batch size (a flask, a magazine or the whole jug), and press Brew on a potion. The station measures both parts and puts the finished potion in the jug.
+
+Every field potion is [bold]2 tissue + one reagent from the station's stock[/bold]. No sub-recipes, no heating step.
 
 - [bold]Combat Stim[/bold] - tissue + sugar. Hits harder, swings and shoots faster, moves quicker.
 - [bold]Corrosive[/bold] - tissue + sulfur. Leaves caustic damage on the ground.
 - [bold]Solvent[/bold] - tissue + fluorine. Stops armoured and giant zombies regrowing their plating.
 - [bold]Weakening Agent[/bold] - tissue + mercury. Everything in the cloud takes 25% more damage from every source.
 
-Two more, [bold]Etchant[/bold] and [bold]Coagulant Mist[/bold], need precursors the CMO unlocks on the medical research console.
+Two more, [bold]Etchant[/bold] and [bold]Coagulant Mist[/bold], need precursors the CMO unlocks on the medical research console. Print the precursor bottle at the lathe and load it into the station.
 
-The dispenser's Field Kit tab lists all of them with what you are still missing. Its Basics tab has the standard medical chems if a doctor asks for those instead.
+The station's Raw Dispense tab is a full chemical dispenser for anything else a doctor asks for.
 
 ## 3. Deliver
 
@@ -61,5 +69,7 @@ Buffing yourself in a corner earns nothing. Being where the squad is earns every
 
 [bold]ChemDrobe[/bold] - empty flasks, magazines and syringes. Vessels are free; contents are your job.
 
-[bold]Syringe filler[/bold] - insert a container and a magazine and it decants one into the other on its own. A jug fills a magazine in one go; beakers and bottles take several passes.
+[bold]Field kit station[/bold] - its Package tab loads a magazine straight from the jug and fills the empty flasks you have racked on it. Bottles and pills for doctors are there too.
+
+[bold]Syringe filler[/bold] - insert a container and a magazine and it decants one into the other on its own. Handy for a jug brewed somewhere else.
 </Document>

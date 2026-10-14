@@ -55,6 +55,14 @@ public sealed class FSPerkDef
             .ToArray();
     }
 
+    private static string[] Levels(string format, Func<int, object[]> args)
+        => Enumerable.Range(0, MaxLevel)
+            .Select(i => string.Format(CultureInfo.InvariantCulture, format, args(i)))
+            .ToArray();
+
+    private static string[] PctTable(string format, float[] perLevel) =>
+        Table(format, perLevel.Select(v => v * 100f).ToArray());
+
     private static string[] Rows(string format, float scale, float[] perLevel)
     {
         var rows = new string[MaxLevel];
@@ -89,7 +97,7 @@ public sealed class FSPerkDef
             new("Juggernaught", "Juggernaught",
                 "Take less damage from zombies.",
                 PerkCategory.Blue,
-                Pct("+{0}% Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
+                Pct("+{0} Resistance", FSPerkBonusConstants.JuggernaughtPerLevel)),
 
             new("Lightweight", "Lightweight",
                 "Increases your movement speed.",
@@ -104,7 +112,7 @@ public sealed class FSPerkDef
             new("SwordAndShield", "Sword and Shield",
                 "Increases your melee damage and damage resistance while wielding a melee weapon.",
                 PerkCategory.Purple,
-                Pct("+{0}% Damage / +{1}% Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
+                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.SwordAndShieldPerLevel, FSPerkBonusConstants.SwordAndShieldResistPerLevel)),
 
             new("DeathAura", "Death Aura",
                 "Kills grant stacks, increasing your damage by 2% per stack. Lose all stacks after 8s.",
@@ -124,8 +132,8 @@ public sealed class FSPerkDef
             new("Rampage", "Rampage",
                 "Melee kills increase resistance, health regen, and speed. 5 stacks max.",
                 PerkCategory.Purple,
-                ["+3% Resist/+0.2 Regen/+2% Speed", "+6%/+0.4/+4%",
-                 "+9%/+0.6/+6%", "+12%/+0.8/+8%"]),
+                ["+3 Resist/+0.2 Regen/+2% Speed", "+6/+0.4/+4%",
+                 "+9/+0.6/+6%", "+12/+0.8/+8%"]),
 
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
@@ -160,10 +168,10 @@ public sealed class FSPerkDef
             new("Pacifist", "Pacifist",
                 "Deal 25% less damage, but gain significant damage resistance.",
                 PerkCategory.Blue,
-                Pct("+{0}% Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
+                Pct("+{0} Resistance", FSPerkBonusConstants.PacifistResistPerLevel)),
 
             new("FieldMedic", "Field Medic",
-                "Increases the potency of your healing.",
+                "Bandages, ointments and medigun beams you apply heal more.",
                 PerkCategory.Blue,
                 Pct("+{0}% Healing", FSPerkBonusConstants.FieldMedicPerLevel)),
 
@@ -201,6 +209,115 @@ public sealed class FSPerkDef
                 "Increases research points gained per Harvester hit.",
                 PerkCategory.Yellow,
                 ["+1 RP/Hit", "+2 RP/Hit", "+3 RP/Hit", "+4 RP/Hit"]),
+
+            new("CombatMedic", "Combat Medic",
+                "Healing an ally grants you both increased damage for 15 seconds.",
+                PerkCategory.Blue,
+                Pct("+{0}% Damage", FSPerkBonusConstants.CombatMedicPerLevel)),
+
+            new("Ravage", "Ravage",
+                "Increases critical hit chance and attack speed with melee weapons.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance / +{1}% Attack Speed", FSPerkBonusConstants.RavageCritPerLevel, FSPerkBonusConstants.RavageAttackSpeedPerLevel)),
+
+            new("CriticalPlus", "Critical Plus",
+                "Increases your critical hit damage multiplier.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Damage", FSPerkBonusConstants.CriticalPlusPerLevel)),
+
+            new("Implosion", "Implosion",
+                "Increases your explosive damage, but your explosions are 25% smaller.",
+                PerkCategory.Red,
+                PctTable("+{0}% Explosive Damage", FSPerkBonusConstants.ImplosionDamage)),
+
+            new("Rifleman", "Rifleman",
+                "Increases crit chance and crit damage with the Mosin, Estoc and Hristov.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance/Damage", FSPerkBonusConstants.RiflemanPerLevel)),
+
+            new("Berserker", "Berserker",
+                "The lower your health, the more damage you deal. Halved for ranged damage.",
+                PerkCategory.Red,
+                Pct("Up to +{0}% Damage", FSPerkBonusConstants.BerserkerPerLevel)),
+
+            new("Undying", "Undying",
+                "Going down lets you keep fighting with unlimited ammo, then you die.",
+                PerkCategory.Blue,
+                Table("{0}s Duration", FSPerkBonusConstants.UndyingSeconds)),
+
+            new("ManOnFire", "The Man On Fire",
+                "Reduces fire damage taken. At max level, burning slowly heals you.",
+                PerkCategory.Blue,
+                PctTable("-{0}% Fire Damage", FSPerkBonusConstants.ManOnFireResist)),
+
+            new("Bandolier", "Bandolier",
+                "Increases the magazine size of your guns.",
+                PerkCategory.Green,
+                Pct("+{0}% Magazine Size", FSPerkBonusConstants.BandolierPerLevel)),
+
+            new("ShadowRounds", "Shadow Rounds",
+                "Shots have a chance to not consume ammo.",
+                PerkCategory.Red,
+                PctTable("{0}% Chance", FSPerkBonusConstants.ShadowRoundsChance)),
+
+            new("Bloodload", "Bloodload",
+                "Melee kills increase your reload speed for 12 seconds.",
+                PerkCategory.Green,
+                Pct("+{0}% Reload Speed", FSPerkBonusConstants.BloodloadPerLevel)),
+
+            new("Speedload", "Speedload",
+                "Increases your reload speed.",
+                PerkCategory.Red,
+                Pct("+{0}% Reload Speed", FSPerkBonusConstants.SpeedloadPerLevel)),
+
+            new("Executioner", "Executioner",
+                "Deal increased damage to zombies below 35% health.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.ExecutionerPerLevel)),
+
+            new("Shredder", "Shredder",
+                "Hits stack vulnerability on zombies, up to 10. Stacks fade 4s after the last hit.",
+                PerkCategory.Red,
+                PctTable("+{0}% Damage Taken per Stack", FSPerkBonusConstants.ShredderPerStack)),
+
+            new("SpecialisedKilling", "Specialised Killing",
+                "Deal increased damage to special zombies and bosses.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.SpecialisedKillingPerLevel)),
+
+            new("Thorns", "Thorns",
+                "Kills grant stacks. Taking zombie damage spends one and reflects it back.",
+                PerkCategory.Blue,
+                Levels("{0} Stacks / {1:0.##}% Reflect",
+                    i => [FSPerkBonusConstants.ThornsMaxStacks[i], FSPerkBonusConstants.ThornsReflect[i] * 100f])),
+
+            new("StaticDischarge", "Static Discharge",
+                "Getting hit by a zombie stuns the zombies around you. Specials for half as long.",
+                PerkCategory.Blue,
+                Levels("{0:0.##} Tile Radius / {1:0.##}s Cooldown",
+                    i => [FSPerkBonusConstants.StaticDischargeRadius[i], FSPerkBonusConstants.StaticDischargeCooldown[i]])),
+
+            new("BuiltToLast", "Built To Last",
+                "Your barricades take less damage. You heal when one of them breaks.",
+                PerkCategory.Blue,
+                Levels("-{0:0.##}% Barricade Damage / +{1:0.##} HP",
+                    i => [FSPerkBonusConstants.BuiltToLastPerLevel * (i + 1) * 100f, FSPerkBonusConstants.BuiltToLastHeal[i]])),
+
+            new("Technician", "Technician",
+                "+1 stock and cap on every deployable, more for mines and barricades. Refills each wave.",
+                PerkCategory.Green,
+                ["+1 All Deployables", "+2 Mines/Barricades / +1 Others", "+3 Mines/Barricades / +1 Others",
+                    "+4 Mines/Barricades / +1 Others"]),
+
+            new("Underdog", "Underdog",
+                "Gain damage and resistance for every zombie near you, up to 8.",
+                PerkCategory.Purple,
+                PctTable("+{0}% per Nearby Zombie", FSPerkBonusConstants.UnderdogPerZombie)),
+
+            new("Scavenger", "Scavenger",
+                "Kills can drop a supply cache holding ammo, a heal or credits.",
+                PerkCategory.Purple,
+                PctTable("{0}% Drop Chance", FSPerkBonusConstants.ScavengerChance)),
         ];
 
         All = list.ToDictionary(a => a.Id);

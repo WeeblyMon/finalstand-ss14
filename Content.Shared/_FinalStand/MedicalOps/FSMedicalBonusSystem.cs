@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Movement.Pulling.Components;
@@ -15,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-public sealed class FSMedicalBonusSystem : EntitySystem
+public sealed partial class FSMedicalBonusSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _net = default!;
@@ -109,8 +110,12 @@ public sealed class FSMedicalBonusSystem : EntitySystem
         }
     }
 
+    // Also applies perk melee speed, since this system owns the (MeleeWeaponComponent, GetMeleeAttackRateEvent) subscription.
     private void OnGetMeleeAttackRate(EntityUid uid, MeleeWeaponComponent comp, ref GetMeleeAttackRateEvent args)
     {
+        if (TryComp<FSPerkMeleeSpeedComponent>(args.User, out var perkSpeed))
+            args.Multipliers *= perkSpeed.Multiplier;
+
         if (!_bonusQuery.HasComp(args.User))
             return;
 

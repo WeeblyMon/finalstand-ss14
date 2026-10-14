@@ -14,7 +14,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
-public sealed class FSCasualtyPullController : UIController
+public sealed partial class FSCasualtyPullController : UIController
 {
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;

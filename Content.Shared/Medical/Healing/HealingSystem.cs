@@ -1,5 +1,6 @@
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Components;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared._Shitmed.Targeting;
@@ -94,7 +95,9 @@ public sealed partial class HealingSystem : EntitySystem
         if (healing.ModifyBloodLevel != 0 && bloodstream != null)
             _bloodstreamSystem.TryModifyBloodLevel((target.Owner, bloodstream), healing.ModifyBloodLevel);
 
-        var topicalHealing = healing.Damage * _damageable.UniversalTopicalsHealModifier;
+        var potency = new FSHealingPotencyEvent(1f); // FINALSTAND
+        RaiseLocalEvent(args.User, ref potency);
+        var topicalHealing = healing.Damage * (_damageable.UniversalTopicalsHealModifier * potency.Multiplier);
         var changedDamage = _damageable.TryChangeDamage(target.Owner, topicalHealing, out var healed, true, origin: args.Args.User);
 
         // FINALSTAND: mob damage floors at zero while limb wounds persist.

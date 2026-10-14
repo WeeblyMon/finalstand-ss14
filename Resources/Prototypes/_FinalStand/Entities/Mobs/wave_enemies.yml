@@ -151,6 +151,16 @@
   suffix: Armoured
   name: armoured zombie
   components:
+  - type: FSMaterialDrop
+    materials:
+    - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetBrass1
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/armoured-zombie.png
   - type: Sprite
@@ -202,6 +212,15 @@
   name: destroyer zombie
   abstract: true
   components:
+  - type: FSMaterialDrop
+    materials:
+    - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
+    - SheetSteel1
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetBrass1
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -245,8 +264,19 @@
   # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
   # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
   components:
+  - type: FSSpecialZombie
   - type: FSEnemyIcon
     iconPath: /Textures/_FinalStand/Mobs/ZombieIcons/giantzombie.png
+  - type: FSMaterialDrop
+    dropChance: 1
+    rolls: 12
+    materials:
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetPlasteel1
+    - SheetUranium1
+    - SheetUranium1
+    - MaterialDiamond1
   - type: FSKnockbackResist
     multiplier: 0.01
   - type: MobThresholds
@@ -268,6 +298,10 @@
       chance: 1.0
     - proto: FSResearchDisk
       chance: 0.0005
+    - proto: FSBroadswordBossPlate
+      chance: 1.0
+    - proto: FSOverclockRandom
+      chance: 0.5
   - type: FSArmor
     maxHPRatio: 0.6
     regenRate: 15

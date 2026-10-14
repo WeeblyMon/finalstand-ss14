@@ -19,6 +19,9 @@ public sealed partial class FSShopWeaponComponent : Component
     public bool RequiresEngineering;
 
     [DataField]
+    public bool RequiresMedical;
+
+    [DataField]
     public bool SinglePurchase;
 
     [DataField]

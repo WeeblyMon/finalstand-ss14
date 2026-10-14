@@ -24,7 +24,7 @@ public sealed partial class FSLandmineComponent : Component
     public float MaxIntensity = 4f;
 
     [DataField]
-    public float IntensityMultiplier = 10f;
+    public float IntensityMultiplier = 3f;
 
     [DataField]
     public bool HighExplosive;

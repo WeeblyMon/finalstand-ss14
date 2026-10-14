@@ -2,7 +2,9 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Animations;
 using Content.Client.Clickable;
+using Content.Client._FinalStand.Weapons;
 using Content.Client.Items;
+using Content.Client._FinalStand.Weapons.Prediction;
 using Content.Client.Weapons.Ranged.Components;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
@@ -22,6 +24,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
+using Robust.Client.Timing;
 using Robust.Shared.Animations;
 using Robust.Shared.Audio;
 using Robust.Shared.Configuration;
@@ -53,9 +56,12 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private SharedTransformSystem _xform = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SpriteTreeSystem _spriteTree = default!;
+    [Dependency] private FSShotPredictionSystem _shotPrediction = default!; // fs
+    [Dependency] private IClientGameTiming _clientTiming = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
     public static readonly EntProtoId MuzzleLightProto = "FSMuzzleFlashLight";
+
     private GunTargetEntityComparer _comparer = default!;
 
     public bool SpreadOverlay
@@ -96,7 +102,7 @@ public sealed partial class GunSystem : SharedGunSystem
         SubscribeAllEvent<MuzzleFlashEvent>(OnMuzzleFlash);
 
         // Plays animated effects on the client.
-        SubscribeNetworkEvent<HitscanEvent>(OnHitscan);
+        SubscribeAllEvent<HitscanEvent>(OnHitscan); // fs
 
         InitializeMagazineVisuals();
         InitializeSpentAmmo();
@@ -122,6 +128,9 @@ public sealed partial class GunSystem : SharedGunSystem
         // E.g., if a grid rotates while part of the beam is parented to the grid, and part of it is parented to the map.
         // Ideally, there should only be one entity, with one sprite that has multiple layers
         // Or at the very least, have the other entities parented to the same entity to make sure they stick together.
+        var shooter = ev.Shooter is { } netShooter ? GetEntity(netShooter) : (EntityUid?) null;
+        var impact = ev.Impact is { } netImpact ? GetCoordinates(netImpact) : (EntityCoordinates?) null;
+
         foreach (var a in ev.Sprites)
         {
             if (a.Sprite is not SpriteSpecifier.Rsi rsi)
@@ -133,6 +142,15 @@ public sealed partial class GunSystem : SharedGunSystem
                 continue;
 
             var ent = Spawn(HitscanProto, coords);
+
+            if (shooter is { } shooterUid && Exists(shooterUid) && impact is { } impactCoords)
+            {
+                var follow = EnsureComp<FSBeamFollowComponent>(ent);
+                follow.Shooter = shooterUid;
+                follow.Impact = impactCoords;
+                follow.Part = a.Part;
+            }
+
             if (!rsi.RsiState.StartsWith("muzzle"))
             {
                 var beamLight = Factory.GetComponent<PointLightComponent>();
@@ -235,6 +253,9 @@ public sealed partial class GunSystem : SharedGunSystem
             Coordinates = GetNetCoordinates(coordinates),
             Gun = GetNetEntity(gun),
             Continuous = _cfg.GetCVar(CCVars.ControlHoldToAttackRanged),
+            ViewTick = _clientTiming.LastRealTick, // fs
+            ShotTick = Timing.CurTick,
+            Predicted = _shotPrediction.CanPredict(gun),
         });
     }
 
@@ -248,6 +269,12 @@ public sealed partial class GunSystem : SharedGunSystem
         // This also means any ammo specific stuff can be grabbed as necessary.
         var direction = TransformSystem.ToMapCoordinates(fromCoordinates).Position - TransformSystem.ToMapCoordinates(toCoordinates).Position;
         var worldAngle = direction.ToAngle().Opposite();
+
+        var fromMap = TransformSystem.ToMapCoordinates(fromCoordinates); // fs
+        var aimAngle = (-direction).ToAngle();
+        var shotDirection = GetRecoilAngle(Timing.CurTime, gun, aimAngle).ToVec();
+        var predict = !throwItems && _shotPrediction.ShouldPredict(user, gun);
+        var shotTick = CurrentShotTick;
 
         foreach (var (ent, shootable) in ammo)
         {
@@ -267,6 +294,9 @@ public sealed partial class GunSystem : SharedGunSystem
                 case CartridgeAmmoComponent cartridge:
                     if (!cartridge.Spent)
                     {
+                        if (predict) // fs
+                            _shotPrediction.PredictProjectiles(gun, user!.Value, null, cartridge.Prototype, fromMap, aimAngle, shotDirection, shotTick);
+
                         SetCartridgeSpent(ent!.Value, cartridge, true);
                         MuzzleFlash(gun, cartridge, worldAngle, user);
                         Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
@@ -286,6 +316,9 @@ public sealed partial class GunSystem : SharedGunSystem
 
                     break;
                 case AmmoComponent newAmmo:
+                    if (predict && ent != null) // fs
+                        _shotPrediction.PredictProjectiles(gun, user!.Value, ent, null, fromMap, aimAngle, shotDirection, shotTick);
+
                     MuzzleFlash(gun, newAmmo, worldAngle, user);
                     Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
                     Recoil(user, direction, gun.Comp.CameraRecoilScalarModified);
@@ -295,6 +328,9 @@ public sealed partial class GunSystem : SharedGunSystem
                         RemoveShootable(ent.Value);
                     break;
                 case HitscanAmmoComponent:
+                    if (predict) // fs
+                        _shotPrediction.PredictHitscan(gun, ent, user!.Value, fromCoordinates, shotDirection);
+
                     Audio.PlayPredicted(gun.Comp.SoundGunshotModified, gun, user);
                     Recoil(user, direction, gun.Comp.CameraRecoilScalarModified);
                     break;
@@ -340,10 +376,15 @@ public sealed partial class GunSystem : SharedGunSystem
             return;
         }
 
+        var fsFlash = new FSMuzzleFlashEffectEvent(message.Angle); // FS
+        RaiseLocalEvent(gunUid, ref fsFlash); // FS
+        if (fsFlash.Offset != Vector2.Zero) // FS
+            coordinates = TransformSystem.ToCoordinates(new MapCoordinates(TransformSystem.GetWorldPosition(gunXform) + fsFlash.Offset, gunXform.MapID)); // FS
+
         var ent = Spawn(message.Prototype, coordinates);
         TransformSystem.SetWorldRotationNoLerp(ent, message.Angle);
 
-        if (tracked != null)
+        if (tracked != null && fsFlash.Offset == Vector2.Zero) // FS
         {
             var track = EnsureComp<TrackUserComponent>(ent);
             track.User = tracked;
@@ -377,17 +418,16 @@ public sealed partial class GunSystem : SharedGunSystem
         };
 
         _animPlayer.Play(ent, anim, "muzzle-flash");
-        CreateMuzzleFlashLight(gunUid, message.Angle);
+        CreateMuzzleFlashLight(gunUid, message.Angle, coordinates); // FS
     }
 
     // FINALSTAND: cone light per shot so firing actually lights the corridor ahead. It lives on its
     // own entity because the cone follows transform rotation and the gun's does not track the shot.
-    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle)
+    private void CreateMuzzleFlashLight(EntityUid gunUid, Angle angle, EntityCoordinates at)
     {
         const float lightDuration = 0.08f;
 
-        var xform = Transform(gunUid);
-        var ent = Spawn(MuzzleLightProto, xform.Coordinates);
+        var ent = Spawn(MuzzleLightProto, at);
         _xform.SetWorldRotation(ent, angle + Angle.FromDegrees(90));
 
         if (TryComp<FSMuzzleFlashColorComponent>(gunUid, out var flashColor))
@@ -552,4 +592,9 @@ public sealed partial class GunSystem : SharedGunSystem
     }
 
     public override void PlayImpactSound(EntityUid otherEntity, DamageSpecifier? modifiedDamage, SoundSpecifier? weaponSound, bool forceWeaponSound) { }
+
+    public void SetCosmeticTarget(EntityUid projectile, EntityUid target) // fs
+    {
+        EnsureComp<TargetedProjectileComponent>(projectile).Target = target;
+    }
 }

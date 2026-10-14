@@ -60,16 +60,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnPlayerAttached(PlayerAttachedEvent args)
     {
-        var station = GetOrCreateStation();
-        var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        var hasStation = TryGetStation(out var station);
+        var unlocked = hasStation ? station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet() : new HashSet<string>();
+        unlocked.UnionWith(_medicalResearch.UnlockedNodeIds());
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.SinglePlayer(args.Player));
-        RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.SinglePlayer(args.Player));
+        RaiseNetworkEvent(new FSStationRpChangedEvent(hasStation ? station.Comp.Points : 0), Filter.SinglePlayer(args.Player));
         RaiseNetworkEvent(new FSPlayerResearchAuthorityEvent(IsRdOrCaptain(args.Entity)), Filter.SinglePlayer(args.Player));
 
-        var activeProgress = station.Comp.ActiveResearch is { } activeId
+        var active = hasStation ? station.Comp.ActiveResearch : null;
+        var activeProgress = active is { } activeId
             ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
             : 0;
-        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.SinglePlayer(args.Player));
+        RaiseNetworkEvent(new FSSharedResearchStateEvent(active, activeProgress), Filter.SinglePlayer(args.Player));
 
         if (_mind.TryGetMind(args.Player, out var mindId, out _))
             SendPersonalResearchState(mindId);
@@ -134,7 +136,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
     {
         _station = null;
-        GetOrCreateStation();
+        if (TerminatingOrDeleted(uid))
+            return;
+
+        if (args.Server is { } server && !TerminatingOrDeleted(server))
+            GetOrCreateStation();
         SyncConsoles();
     }
 
@@ -179,8 +185,11 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
 
         var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
-        if (serverQuery.MoveNext(out var serverUid, out _))
+        while (serverQuery.MoveNext(out var serverUid, out _))
         {
+            if (TerminatingOrDeleted(serverUid))
+                continue;
+
             var comp = EnsureComp<FSStationResearchComponent>(serverUid);
             _station = serverUid;
             station = (serverUid, comp);
@@ -195,7 +204,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent, ResearchClientComponent>();
         while (query.MoveNext(out _, out _, out var client))
         {
-            if (client.Server is { } linked && Exists(linked) && HasComp<ResearchServerComponent>(linked))
+            if (client.Server is { } linked && !TerminatingOrDeleted(linked) && HasComp<ResearchServerComponent>(linked))
             {
                 server = linked;
                 return true;
@@ -622,10 +631,15 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
     }
 
+    public event Action<EntityUid, int>? PointsContributed;
+
     public void GrantResearchPoints(int amount, string source, EntityUid? contributorMindId = null)
     {
         if (amount <= 0)
             return;
+
+        if (contributorMindId is { } credited)
+            PointsContributed?.Invoke(credited, amount);
 
         var station = GetOrCreateStation();
 
@@ -726,12 +740,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         RaiseNetworkEvent(new FSPersonalResearchStateEvent(nodeId, progress, queue), Filter.SinglePlayer(session));
     }
 
-    private void BroadcastUnlockedNodes()
+    public void BroadcastUnlockedNodes()
     {
         if (!TryGetStation(out var station))
             return;
 
         var unlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        unlocked.UnionWith(_medicalResearch.UnlockedNodeIds());
         RaiseNetworkEvent(new FSResearchUnlocksChangedEvent(unlocked), Filter.Broadcast());
     }
 

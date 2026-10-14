@@ -139,8 +139,8 @@ public sealed class AllyProjectileTest : GameTest
             Assert.That(gear.Storage.TryGetValue("back", out var back), Is.True,
                 "the chemist must not have to go find their core tool");
             Assert.That(back, Does.Contain("LauncherSyringe"));
-            Assert.That(back!.FindAll(id => id.Id.StartsWith("FSSyringePack")), Has.Count.EqualTo(3),
-                "the chemist carries three prefilled magazines");
+            Assert.That(back!.FindAll(id => id.Id.StartsWith("FSSyringePack")), Has.Count.EqualTo(4),
+                "the chemist carries four prefilled magazines");
         });
     }
 

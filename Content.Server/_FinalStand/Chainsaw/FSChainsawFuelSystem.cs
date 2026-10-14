@@ -10,7 +10,7 @@ using Content.Shared.Weapons.Melee.Events;
 
 namespace Content.Server._FinalStand.Chainsaw;
 
-public sealed class FSChainsawFuelSystem : EntitySystem
+public sealed partial class FSChainsawFuelSystem : EntitySystem
 {
     [Dependency] private SharedSolutionContainerSystem _solution = default!;
     [Dependency] private SharedPopupSystem _popup = default!;

@@ -1,0 +1,80 @@
+using Content.Client._FinalStand.RCD;
+using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.Materials;
+using Content.Shared.Hands.EntitySystems;
+using Robust.Client.GameObjects;
+using Robust.Client.Input;
+using Robust.Client.Player;
+using Robust.Client.ResourceManagement;
+using Robust.Client.UserInterface;
+using Robust.Shared.Prototypes;
+
+namespace Content.Client._FinalStand.Fortifications;
+
+public sealed partial class FSUpgradeBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
+{
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private IUserInterfaceManager _ui = default!;
+    [Dependency] private IResourceCache _cache = default!;
+
+    private FSUpgradeRing? _ring;
+
+    protected override void Open()
+    {
+        base.Open();
+
+        if (!EntMan.TryGetComponent<FSUpgradeableComponent>(Owner, out var comp))
+            return;
+
+        var sprite = EntMan.System<SpriteSystem>();
+        var rules = EntMan.System<FSUpgradeSystem>();
+        var carried = EntMan.System<FSCarriedMaterialSystem>().CountAll(_player.LocalEntity);
+        if (EntMan.TryGetComponent<FSEngineerHammerComponent>(HeldHammer(), out var hammer))
+        {
+            foreach (var (stack, sheets) in hammer.SiloStock)
+                carried[stack] = carried.GetValueOrDefault(stack) + sheets;
+        }
+
+        var entries = new List<FSUpgradeEntry>();
+        foreach (var id in comp.Options)
+        {
+            var upgrade = _proto.Index(id);
+            var affordable = true;
+            foreach (var (stack, need) in upgrade.Cost)
+            {
+                if (carried.GetValueOrDefault(stack) < need)
+                    affordable = false;
+            }
+
+            var block = rules.Check(comp, upgrade);
+            entries.Add(new FSUpgradeEntry(upgrade, sprite.Frame0(upgrade.Icon), block, comp.Pending == id, !affordable,
+                rules.BlockText(block, upgrade)));
+        }
+
+        _ring = new FSUpgradeRing(new FSRCDLook(_cache, _proto, sprite), carried, comp, entries, _input.MouseScreenPosition.Position);
+        _ring.OnPick += entry =>
+        {
+            SendMessage(new FSUpgradeSelectMessage(entry.Upgrade.ID));
+            Close();
+        };
+        _ring.OnDismiss += Close;
+        _ring.StillValid = () => EntMan.HasComponent<FSEngineerHammerComponent>(HeldHammer());
+        _ui.PopupRoot.AddChild(_ring);
+    }
+
+    private EntityUid? HeldHammer()
+    {
+        return _player.LocalEntity is { } local && EntMan.System<SharedHandsSystem>().TryGetActiveItem(local, out var held)
+            ? held
+            : null;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        _ring?.Orphan();
+        _ring = null;
+    }
+}

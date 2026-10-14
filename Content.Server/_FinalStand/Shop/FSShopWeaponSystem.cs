@@ -29,6 +29,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private FSItemStashSystem _stash = default!;
     [Dependency] private FSInventorySearchSystem _search = default!;
     [Dependency] private FSResearchSystem _fsResearch = default!;
+    [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
+    [Dependency] private MedicalOps.FSMedicalRosterSystem _roster = default!;
     [Dependency] private FSResearchStaticGrantSystem _researchStaticGrant = default!;
     [Dependency] private FSScienceOnlySystem _science = default!;
     [Dependency] private FSDepartmentAccessSystem _engineering = default!;
@@ -40,6 +42,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private FSShopBindingSystem _binding = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
@@ -78,7 +81,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     // Research and department locks. Every entry point checks this, not just the UI open.
     private bool TryAccess(EntityUid uid, FSShopWeaponComponent comp, EntityUid player, bool silent = false)
     {
-        if (comp.RequiresResearch is { } required && !_fsResearch.IsNodeUnlocked(required))
+        if (comp.RequiresResearch is { } required && !IsResearched(required))
         {
             if (!silent)
                 _popup.PopupEntity(Loc.GetString("shop-weapon-locked-research"), uid, player);
@@ -99,8 +102,18 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return false;
         }
 
+        if (comp.RequiresMedical && !_roster.IsMedical(player))
+        {
+            if (!silent)
+                _popup.PopupEntity(Loc.GetString("fs-medical-only"), uid, player);
+            return false;
+        }
+
         return true;
     }
+
+    private bool IsResearched(string nodeId) =>
+        _fsResearch.IsNodeUnlocked(nodeId) || _medicalResearch.IsNodeUnlocked(nodeId);
 
     private void OnOpenAttempt(EntityUid uid, FSShopWeaponComponent comp, ActivatableUIOpenAttemptEvent args)
     {
@@ -168,6 +181,13 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        var bindable = IsBindable(comp);
+        if (bindable && _binding.OwnsAny(mindId, ShopProtoIds(comp)))
+        {
+            _popup.PopupEntity(Loc.GetString("shop-item-already-owned-elsewhere"), uid, player);
+            return;
+        }
+
         if (!_wallet.TryDeductCredits(mindId, comp.Price))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
@@ -177,6 +197,8 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         var weapon = Spawn(comp.WeaponProtoId.Value, Transform(player).Coordinates);
 
         EnsureComp<FSWeaponUpgradeStateComponent>(weapon);
+        if (bindable)
+            _binding.Bind(weapon, mindId);
 
         TryGiveItemToPlayer(player, weapon);
 
@@ -241,6 +263,13 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
+        if (def.RequiresResearch is { } requiredNode && !IsResearched(requiredNode))
+        {
+            var nodeName = _protoManager.TryIndex(requiredNode, out var node) ? node.Name : requiredNode.Id;
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-locked-research", ("node", nodeName)), uid, player);
+            return;
+        }
+
         if (def.RequiresUpgrade != null)
         {
             var shopWeapon = _search.FindFirst(player, ShopProtoIds(comp));
@@ -255,13 +284,21 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             }
         }
 
-        var cost = GetUpgradeLevelCost(def, currentLevel + 1);
-        if (def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode))
-            cost = (int)MathF.Round(cost * def.DiscountMultiplier);
+        var cost = def.LevelCost(currentLevel + 1,
+            def.DiscountResearch is { } discountNode && _fsResearch.IsNodeUnlocked(discountNode));
 
         if (!_wallet.TryDeductCredits(mindId, cost))
         {
             _popup.PopupEntity(Loc.GetString("shop-weapon-insufficient-funds"), uid, player);
+            return;
+        }
+
+        if (def.Type == WeaponUpgradeType.ConvertWeapon && def.SpawnProtoId is { } result)
+        {
+            ConvertWeapon(player, weapon, state, result, def.Id, cost);
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
+            var (convAcc, convNextAcc) = ComputeAccuracy(player, comp);
+            SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), convAcc, convNextAcc);
             return;
         }
 
@@ -278,6 +315,32 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
         var (upAcc, upNextAcc) = ComputeAccuracy(player, comp);
         SendWeaponLevels(mindId, CollectShopLevels(player, comp), ComputeWeaponTitle(player, comp), upAcc, upNextAcc);
+    }
+
+    private void ConvertWeapon(EntityUid player, EntityUid weapon, FSWeaponUpgradeStateComponent state,
+        EntProtoId result, string upgradeId, int cost)
+    {
+        var converted = Spawn(result, Transform(player).Coordinates);
+        var convertedState = EnsureComp<FSWeaponUpgradeStateComponent>(converted);
+        _upgrades.CopyUpgradeState(state, convertedState);
+        convertedState.Levels[upgradeId] = 1;
+        convertedState.TotalSpent = state.TotalSpent + cost;
+        Dirty(converted, convertedState);
+
+        Del(weapon);
+        TryGiveItemToPlayer(player, converted);
+        _researchStaticGrant.Reconcile(converted);
+    }
+
+    private bool IsBindable(FSShopWeaponComponent comp)
+    {
+        if (comp.SinglePurchase)
+            return true;
+
+        return comp.WeaponProtoId is { } id
+            && _protoManager.TryIndex(id, out var proto)
+            && (proto.HasComp<FSGrenadePackComponent>(EntityManager.ComponentFactory)
+                || proto.HasComp<FSDeployableItemComponent>(EntityManager.ComponentFactory));
     }
 
     // Every prototype this shop considers "its" weapon: the weapon, its aliases, and any upgrade retarget.
@@ -503,16 +566,6 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             if (Exists(item.Uid))
                 QueueDel(item.Uid);
         }
-    }
-
-    private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
-
-    private static int GetUpgradeLevelCost(WeaponUpgradeDef def, int level)
-    {
-        var mult = level > 0 && level <= LevelCostMults.Length
-            ? LevelCostMults[level - 1]
-            : 3.6f + (level - LevelCostMults.Length) * 1.2f;
-        return (int)MathF.Round(def.BaseCost * mult);
     }
 
     private void SendWeaponLevels(EntityUid mindId, Dictionary<string, int> levels, string title = "",

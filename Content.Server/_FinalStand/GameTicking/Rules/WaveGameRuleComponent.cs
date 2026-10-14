@@ -66,6 +66,9 @@ public sealed partial class WaveGameRuleComponent : Component
     public int PlayerBonusFromWave = 1;
 
     [DataField]
+    public List<int> MaxLanesByPlayers = new() { 2, 2, 3, 3 };
+
+    [DataField]
     public int KillReward = 100;
 
     [DataField]
@@ -144,7 +147,7 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public int AccumulatedSurvivalBonus = 0;
 
-    [DataField] public int GuaranteedDarkWave = 6;
+    [DataField] public int GuaranteedDarkWave = 8;
 
     [DataField] public float DarkWaveWarningDelay = 30f;
     public float DarkWaveWarningAccum;
@@ -157,6 +160,7 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField] public int DarkWaveEnemyCap = 30;
 
     public bool IsDarkWave = false;
+    public bool RoundLost;
     public bool IsDarkWaveUpcoming = false;
     public bool ForceDarkWave = false;
     public int WavesSinceLastDarkWave = 999;

@@ -1,0 +1,18 @@
+- type: shader
+  id: FSAdditive
+  kind: canvas
+  light_mode: unshaded
+  blend_mode: Add
+
+- type: shader
+  id: FSUberChrome
+  kind: source
+  path: "/Textures/Shaders/_FinalStand/uber_chrome.swsl"
+  params:
+    tint: "#FF6A3D"
+    strength: 1.0
+
+- type: shader
+  id: FSShockwave
+  kind: source
+  path: "/Textures/Shaders/_FinalStand/shockwave.swsl"

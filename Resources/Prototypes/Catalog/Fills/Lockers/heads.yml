@@ -267,7 +267,6 @@
     - id: ClothingBeltUtilityFilled
     - id: ClothingHeadsetAltScience
     - id: DoorRemoteResearch
-    - id: HandTeleporter
     - id: RubberStampRd
     - id: PlushieLizardJobResearchdirector
       prob: 0.02

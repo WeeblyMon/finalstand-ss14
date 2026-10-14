@@ -1,0 +1,74 @@
+# Barricade branches: picked for where the barricade stands, not for which zombie is coming. One per barricade.
+- type: fsUpgrade
+  id: FSBranchBulwark
+  name: fs-branch-bulwark
+  description: fs-branch-bulwark-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: bulwark
+  cost:
+    Plasteel: 2
+    Steel: 2
+  hits: 6
+  health: 1.35
+  breach: 1.5
+  repairDelay: 1.5
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: bulwark
+
+- type: fsUpgrade
+  id: FSBranchFiringStep
+  name: fs-branch-firing-step
+  description: fs-branch-firing-step-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  cost:
+    Steel: 3
+    Plastic: 2
+  hits: 5
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  components:
+  - type: FSFiringStep
+
+- type: alert
+  id: FSFiringStep
+  icons:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: firing_step
+  name: fs-alert-firing-step
+  description: fs-alert-firing-step-desc
+- type: fsUpgrade
+  id: FSBranchFloodlit
+  name: fs-branch-floodlit
+  description: fs-branch-floodlit-desc
+  slot: Branch
+  icon:
+    sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit
+  cost:
+    Steel: 1
+    Glass: 1
+    Silver: 1
+    Plasma: 1
+  hits: 4
+  layers:
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit
+  - sprite: _FinalStand/Structures/Walls/Barricades/branches.rsi
+    state: floodlit_lens
+    shader: unshaded
+  components:
+  - type: PointLight
+    radius: 8
+    energy: 2.2
+    softness: 1
+    color: "#fff1c4"
+    lightMask: ConeSingle
+    autoRot: true
+    castShadows: true

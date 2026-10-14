@@ -148,6 +148,7 @@ ui-options-function-move-left = Move Left
 ui-options-function-move-down = Move Down
 ui-options-function-move-right = Move Right
 ui-options-function-fs-sprint = Sprint
+ui-options-function-fs-uber-charge = Deploy ÜberCharge
 ui-options-function-walk = Walk
 ui-options-function-toggle-knockdown = Toggle Crawling
 
@@ -458,3 +459,5 @@ ui-options-function-target-left-leg = Target Left Leg
 ui-options-function-target-right-leg = Target Right Leg
 ui-options-function-target-left-foot = Target Left Foot
 ui-options-function-target-right-foot = Target Right Foot
+ui-options-function-fs-ping = Ping (tap) / ping wheel (hold)
+ui-options-function-fs-ping-wheel = Ping wheel (click to pick)

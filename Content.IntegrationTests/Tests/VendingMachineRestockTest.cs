@@ -10,6 +10,7 @@ using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.EntityTable;
 using Content.Shared.Prototypes;
+using Content.Shared.Research.Prototypes;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.VendingMachines;
 using Content.Shared.VendingMachines.Components;
@@ -180,6 +181,13 @@ namespace Content.IntegrationTests.Tests
                         entitiesWhichSpawnRestocks.Remove(proto.Product.Id);
                     }
                 }
+                // FS: restocks printed at a lathe are obtainable too.
+                foreach (var recipe in prototypeManager.EnumeratePrototypes<LatheRecipePrototype>())
+                {
+                    if (recipe.Result is { } result)
+                        restockEntities.Remove(result.Id);
+                }
+
                 // Any entities left in restockEntities are restocks which can't be bought from Cargo.
 
                 Assert.Multiple(() =>

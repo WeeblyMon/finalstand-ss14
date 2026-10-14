@@ -39,11 +39,23 @@ public sealed class FSPlayerBonusSummaryEvent : EntityEventArgs
     public readonly FSBonusCategory ExplosiveDamage;
     public readonly FSBonusCategory ReloadSpeed;
     public readonly FSBonusCategory MagazineSize;
+    public readonly FSBonusCategory CritChance;
+    public readonly FSBonusCategory CritDamage;
+    public readonly FSBonusCategory AttackSpeed;
+    public readonly FSBonusCategory Resistance;
+    public readonly FSBonusCategory MoveSpeed;
 
     public FSPlayerBonusSummaryEvent(FSBonusCategory gunDamage, FSBonusCategory fireRate,
         FSBonusCategory meleeDamage, FSBonusCategory explosiveDamage,
-        FSBonusCategory reloadSpeed, FSBonusCategory magazineSize)
+        FSBonusCategory reloadSpeed, FSBonusCategory magazineSize,
+        FSBonusCategory critChance, FSBonusCategory critDamage, FSBonusCategory attackSpeed,
+        FSBonusCategory resistance, FSBonusCategory moveSpeed)
     {
+        CritChance = critChance;
+        CritDamage = critDamage;
+        AttackSpeed = attackSpeed;
+        Resistance = resistance;
+        MoveSpeed = moveSpeed;
         GunDamage = gunDamage;
         FireRate = fireRate;
         MeleeDamage = meleeDamage;
@@ -59,6 +71,11 @@ public sealed class FSPlayerBonusSummaryEvent : EntityEventArgs
                && MeleeDamage.Matches(other.MeleeDamage)
                && ExplosiveDamage.Matches(other.ExplosiveDamage)
                && ReloadSpeed.Matches(other.ReloadSpeed)
-               && MagazineSize.Matches(other.MagazineSize);
+               && MagazineSize.Matches(other.MagazineSize)
+               && CritChance.Matches(other.CritChance)
+               && CritDamage.Matches(other.CritDamage)
+               && AttackSpeed.Matches(other.AttackSpeed)
+               && Resistance.Matches(other.Resistance)
+               && MoveSpeed.Matches(other.MoveSpeed);
     }
 }

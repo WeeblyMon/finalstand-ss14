@@ -1,0 +1,152 @@
+# Materials the RCD takes from your inventory. IDs match the RCD prototype and the entity it builds.
+- type: fsBuildRecipe
+  id: FSBarricadeMetal
+  landSound:
+    collection: FSEngLandSteel
+  capGroup: barricade
+  materials:
+    Steel: 4
+
+- type: fsBuildRecipe
+  id: FSBarricadePlasteel
+  landSound:
+    collection: FSEngLandPlasteel
+  capGroup: barricade
+  materials:
+    Plasteel: 3
+    Steel: 2
+
+- type: fsBuildRecipe
+  id: FSBarricadeMetalDoor
+  landSound:
+    collection: FSEngLandSteel
+  capGroup: barricade
+  materials:
+    Steel: 5
+
+- type: fsBuildRecipe
+  id: FSBarricadePlasteelDoor
+  landSound:
+    collection: FSEngLandPlasteel
+  capGroup: barricade
+  materials:
+    Plasteel: 4
+    Steel: 2
+
+- type: fsBuildRecipe
+  id: FSSentryTurretDeployed
+  landSound:
+    collection: FSEngLandTurret
+  capGroup: sentry
+  materials:
+    Steel: 6
+    Glass: 2
+    Silver: 1
+
+- type: fsBuildRecipe
+  id: FSHeavySentryDeployed
+  landSound:
+    collection: FSEngLandTurret
+  capGroup: heavy
+  materials:
+    Plasteel: 4
+    Steel: 6
+    Gold: 1
+
+- type: fsBuildRecipe
+  id: FSHMGDeployed
+  landSound:
+    collection: FSEngLandTurret
+  capGroup: hmg
+  materials:
+    Steel: 6
+    Plasteel: 3
+
+- type: fsBuildRecipe
+  id: FSAmmoCrate
+  landSound:
+    path: /Audio/Effects/box_deploy.ogg
+  capGroup: crate
+  materials:
+    Steel: 3
+    Brass: 2
+    Gunpowder: 1
+
+- type: fsBuildRecipe
+  id: FSMechBay
+  landSound:
+    collection: FSEngLandPlasteel
+  capGroup: mechbay
+  research: FSEngineeringMechBay
+  materials:
+    Steel: 20
+    Plasteel: 8
+
+- type: fsBuildRecipe
+  id: WallSolid
+  station: true
+  materials:
+    Steel: 2
+
+- type: fsBuildRecipe
+  id: FloorSteel
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Plating
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Catwalk
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Grille
+  station: true
+  materials:
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Window
+  station: true
+  materials:
+    Glass: 2
+
+- type: fsBuildRecipe
+  id: WindowDirectional
+  station: true
+  materials:
+    Glass: 1
+
+- type: fsBuildRecipe
+  id: WindowReinforcedDirectional
+  station: true
+  materials:
+    Glass: 1
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: ReinforcedWindow
+  station: true
+  materials:
+    Glass: 2
+    Steel: 1
+
+- type: fsBuildRecipe
+  id: Airlock
+  station: true
+  materials:
+    Steel: 4
+
+- type: fsBuildRecipe
+  id: AirlockGlass
+  station: true
+  materials:
+    Steel: 3
+    Glass: 2

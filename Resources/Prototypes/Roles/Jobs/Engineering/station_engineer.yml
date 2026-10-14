@@ -1,7 +1,7 @@
 - type: job
   id: StationEngineer
-  name: job-name-engineer
-  description: job-description-engineer
+  name: job-name-combat-engineer # FS
+  description: job-description-combat-engineer # FS
   playTimeTracker: JobStationEngineer
   requirements:
     - !type:DepartmentTimeRequirement
@@ -24,9 +24,11 @@
     belt: ClothingBeltUtilityEngineering
     ears: ClothingHeadsetEngineering
     pocket1: FlashlightSeclite
-  #storage:
-    #back:
-    #- Stuff
+  storage: # FS
+    back:
+    - RCD
+    - FSRivetGun # FS
+    - FSEngineerHammer # FS
 
 - type: chameleonOutfit
   id: StationEngineerChameleonOutfit

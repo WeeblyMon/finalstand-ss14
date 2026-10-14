@@ -15,10 +15,16 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    private readonly HashSet<(EntityUid, Vector2i)> _reachable = new();
+    private HashSet<(EntityUid, Vector2i)> _reachable = new();
+    private HashSet<(EntityUid, Vector2i)> _building = new();
     private readonly Queue<Vector2i> _frontier = new();
     private readonly HashSet<Vector2i> _visited = new();
     private readonly Dictionary<EntityUid, List<Vector2i>> _seedsByGrid = new();
+    private readonly List<EntityUid> _gridQueue = new();
+
+    private EntityUid? _fillGrid;
+    private MapGridComponent? _fillGridComp;
+    private bool _fillTruncated;
 
     private float _rebuildTimer;
     private bool _enabled;
@@ -28,6 +34,8 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     private const float RebuildInterval = 5f;
 
     private const int MaxTilesPerGrid = 100_000;
+
+    private const int TilesPerTick = 2500;
 
     public override void Initialize()
     {
@@ -43,7 +51,16 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        if (!_enabled || !_dirty)
+        if (!_enabled)
+            return;
+
+        if (IsFilling)
+        {
+            StepFill(TilesPerTick);
+            return;
+        }
+
+        if (!_dirty)
             return;
 
         _rebuildTimer += frameTime;
@@ -52,8 +69,10 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
 
         _rebuildTimer = 0f;
         _dirty = false;
-        Rebuild();
+        BeginRebuild();
     }
+
+    private bool IsFilling => _fillGrid != null || _gridQueue.Count > 0;
 
     private void OnTileChanged(ref TileChangedEvent args) => MarkDirty();
 
@@ -69,11 +88,14 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     /// <summary>False while the field is empty or untrustworthy — callers must not act on it.</summary>
     public bool HasField => !_truncated && _reachable.Count > 0;
 
-    private void Rebuild()
+    private void BeginRebuild()
     {
-        _reachable.Clear();
+        _building.Clear();
         _seedsByGrid.Clear();
-        _truncated = false;
+        _gridQueue.Clear();
+        _fillGrid = null;
+        _fillGridComp = null;
+        _fillTruncated = false;
 
         var cccQuery = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
         while (cccQuery.MoveNext(out _, out _, out var xform))
@@ -82,40 +104,48 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
                 continue;
 
             if (!_seedsByGrid.TryGetValue(gridUid, out var seeds))
+            {
                 _seedsByGrid[gridUid] = seeds = new List<Vector2i>();
+                _gridQueue.Add(gridUid);
+            }
 
             seeds.Add(ToTile(xform.LocalPosition));
         }
 
-        foreach (var (gridUid, seeds) in _seedsByGrid)
-            FloodFill(gridUid, seeds);
+        if (_gridQueue.Count == 0)
+            PublishField();
     }
 
     // Breadth-first fill over non-space tiles. Each tile is tested exactly once.
-    private void FloodFill(EntityUid gridUid, List<Vector2i> seeds)
+    private void StepFill(int budget)
     {
-        if (!TryComp<MapGridComponent>(gridUid, out var mapGrid))
-            return;
-
-        _frontier.Clear();
-        _visited.Clear();
-
-        foreach (var seed in seeds)
+        while (budget > 0)
         {
-            if (_visited.Add(seed))
-                _frontier.Enqueue(seed);
-        }
-
-        while (_frontier.TryDequeue(out var current))
-        {
-            if (_visited.Count > MaxTilesPerGrid)
+            if (_fillGrid is not { } grid || _fillGridComp is not { } gridComp)
             {
-                _truncated = true;
-                Log.Error($"[HordeFlowField] Fill on grid {gridUid} exceeded {MaxTilesPerGrid} tiles — field discarded.");
+                if (TryStartNextGrid())
+                    continue;
+
+                PublishField();
                 return;
             }
 
-            _reachable.Add((gridUid, current));
+            if (!_frontier.TryDequeue(out var current))
+            {
+                EndGrid();
+                continue;
+            }
+
+            if (_visited.Count > MaxTilesPerGrid)
+            {
+                _fillTruncated = true;
+                Log.Error($"[HordeFlowField] Fill on grid {grid} exceeded {MaxTilesPerGrid} tiles - field discarded.");
+                EndGrid();
+                continue;
+            }
+
+            budget--;
+            _building.Add((grid, current));
 
             for (var dx = -1; dx <= 1; dx++)
             {
@@ -128,11 +158,55 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
                     if (!_visited.Add(neighbor))
                         continue;
 
-                    if (IsWalkable(gridUid, mapGrid, neighbor))
+                    if (IsWalkable(grid, gridComp, neighbor))
                         _frontier.Enqueue(neighbor);
                 }
             }
         }
+    }
+
+    private void EndGrid()
+    {
+        _frontier.Clear();
+        _fillGrid = null;
+        _fillGridComp = null;
+    }
+
+    private bool TryStartNextGrid()
+    {
+        while (_gridQueue.Count > 0)
+        {
+            var gridUid = _gridQueue[^1];
+            _gridQueue.RemoveAt(_gridQueue.Count - 1);
+
+            if (!TryComp<MapGridComponent>(gridUid, out var mapGrid)
+                || !_seedsByGrid.TryGetValue(gridUid, out var seeds))
+                continue;
+
+            _fillGrid = gridUid;
+            _fillGridComp = mapGrid;
+            _frontier.Clear();
+            _visited.Clear();
+
+            foreach (var seed in seeds)
+            {
+                if (_visited.Add(seed))
+                    _frontier.Enqueue(seed);
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void PublishField()
+    {
+        (_reachable, _building) = (_building, _reachable);
+        _truncated = _fillTruncated;
+        _building.Clear();
+        _frontier.Clear();
+        _visited.Clear();
     }
 
     private bool IsWalkable(EntityUid gridUid, MapGridComponent mapGrid, Vector2i tile)

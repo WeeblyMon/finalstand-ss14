@@ -1,0 +1,94 @@
+// Sends engineers a few short "what's next" lines: Mech Bay progress, a low silo, and an emplacement nobody has set up.
+using Content.Server._FinalStand.Departments;
+using Content.Server._FinalStand.Emplacement;
+using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Shared._FinalStand.Emplacement;
+using Content.Shared._FinalStand.Engineering;
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Mech;
+using System.Linq;
+using Robust.Shared.Timing;
+
+namespace Content.Server._FinalStand.Engineering;
+
+public sealed partial class FSEngineeringObjectiveSystem : EntitySystem
+{
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSDepartmentAccessSystem _departments = default!;
+    [Dependency] private WaveGameRuleSystem _waves = default!;
+    [Dependency] private FSSiloSupplySystem _silo = default!;
+
+    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan Resend = TimeSpan.FromSeconds(10);
+
+    private TimeSpan _next;
+    private TimeSpan _resendAt;
+    private List<string> _last = new();
+
+    public override void Update(float frameTime)
+    {
+        if (_timing.CurTime < _next)
+            return;
+
+        _next = _timing.CurTime + Interval;
+        var ev = Build();
+        if (ev.Lines.SequenceEqual(_last) && _timing.CurTime < _resendAt)
+            return;
+
+        _last = ev.Lines;
+        _resendAt = _timing.CurTime + Resend;
+        foreach (var (_, session) in _departments.Engineers())
+            RaiseNetworkEvent(ev, session);
+    }
+
+    private FSEngineeringObjectiveEvent Build()
+    {
+        var ev = new FSEngineeringObjectiveEvent(new List<string>());
+        void Add(FSObjectiveKind kind, string text, int stage = 0, int total = 0, bool science = false)
+        {
+            ev.Lines.Add(text);
+            ev.Kinds.Add(kind);
+            ev.Stages.Add(stage);
+            ev.Totals.Add(total);
+            ev.Science.Add(science);
+        }
+
+        var bays = EntityQueryEnumerator<FSMechBayComponent>();
+        while (bays.MoveNext(out var bay))
+        {
+            if (bay.Ready)
+            {
+                Add(FSObjectiveKind.BayReady, Loc.GetString("fs-objective-bay-ready"), bay.Slots.Count, bay.Slots.Count);
+                continue;
+            }
+
+            if (bay.Installed.Count == 0 || bay.Next() is not { } slot)
+                continue;
+
+            Add(FSObjectiveKind.Bay, Loc.GetString("fs-objective-bay",
+                ("name", Loc.GetString(slot.Name)),
+                ("role", Loc.GetString(slot.Role == FSMechBayRole.Engineering ? "fs-mech-bay-role-engineering" : "fs-mech-bay-role-science"))),
+                bay.Installed.Count, bay.Slots.Count, slot.Role != FSMechBayRole.Engineering);
+        }
+
+        if (_silo.TryGetSteelSheets(out var sheets) && sheets < FSSiloSupplySystem.LowSteelSheets)
+            Add(FSObjectiveKind.Silo, Loc.GetString("fs-objective-silo-low", ("sheets", sheets)));
+
+        if (_waves.TryGetWaveStatus(out _, out var phase) && KitWaiting())
+            Add(FSObjectiveKind.Emplacement, Loc.GetString(phase == WavePhase.Combat ? "fs-objective-emplacement-down" : "fs-objective-emplacement-prep"));
+
+        return ev;
+    }
+
+    private bool KitWaiting()
+    {
+        var cores = EntityQueryEnumerator<FSEmplacementComponent>();
+        while (cores.MoveNext(out _, out var core))
+        {
+            if (!core.Packed)
+                return false;
+        }
+
+        return EntityQueryEnumerator<FSEmplacementKitComponent>().MoveNext(out _, out _);
+    }
+}

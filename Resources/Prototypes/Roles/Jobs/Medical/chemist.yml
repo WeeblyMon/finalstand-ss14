@@ -20,6 +20,7 @@
   equipment:
     id: ChemistryPDA
     ears: ClothingHeadsetMedical
+    eyes: ClothingEyesGlassesChemical # FINALSTAND
     pocket1: FlashlightSeclite
   storage:
     back:

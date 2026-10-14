@@ -25,6 +25,14 @@ public sealed class FSLevelUpNumberEvent : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
+public sealed class FSFloatingTextEvent : EntityEventArgs
+{
+    public NetEntity Target;
+    public string Text = string.Empty;
+    public Color Color;
+}
+
+[Serializable, NetSerializable]
 public sealed class FSHealNumberEvent : EntityEventArgs
 {
     public NetEntity Target;

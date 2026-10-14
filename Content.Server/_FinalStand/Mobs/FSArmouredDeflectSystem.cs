@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Explosion.Components;
 using Content.Shared.Projectiles;
 using Content.Shared.Trigger.Components.Effects;
@@ -9,6 +10,7 @@ using Robust.Server.GameObjects;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Spawners;
 
@@ -22,8 +24,10 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private const float ShrapnelSpeed = 18f;
+    private static readonly ProtoId<DamageGroupPrototype> GeneticGroup = "Genetic";
 
     public override void Initialize()
     {
@@ -78,6 +82,7 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
         if (comp.ShrapnelCount <= 0)
             return;
 
+        var genetic = _prototypes.Index(GeneticGroup).DamageTypes;
         var coords = _transform.GetMapCoordinates(zombie);
         var lifetime = comp.ShrapnelRange / ShrapnelSpeed;
         var spin = _random.NextFloat(0f, MathF.Tau);
@@ -93,7 +98,10 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
             {
                 proj.Damage = new DamageSpecifier();
                 foreach (var (type, amount) in damage.DamageDict)
-                    proj.Damage.DamageDict[type] = amount * comp.ShrapnelDamageFraction;
+                {
+                    if (!genetic.Contains(type))
+                        proj.Damage.DamageDict[type] = amount * comp.ShrapnelDamageFraction;
+                }
 
                 proj.Shooter = zombie;
                 proj.IgnoreShooter = true;

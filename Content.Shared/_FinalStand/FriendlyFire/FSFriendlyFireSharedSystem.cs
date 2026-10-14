@@ -1,3 +1,5 @@
+using Content.Shared._FinalStand.Mech;
+using Content.Shared._FinalStand.Repair;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mobs.Components;
@@ -30,13 +32,14 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
 
     private void OnBeforeStructureDamage(EntityUid uid, FSPlayerDamageImmuneComponent _, ref BeforeDamageChangedEvent args)
     {
-        if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value))
+        if (args.Origin != null && HasComp<FSFriendlyFireComponent>(args.Origin.Value) && args.Damage.AnyPositive())
             args.Cancelled = true;
     }
 
     private void OnPlayerPreventCollide(EntityUid uid, FSFriendlyFireComponent _, ref PreventCollideEvent args)
     {
         if (HasComp<FSAllyProjectileComponent>(args.OtherEntity)) return;
+        if (HasComp<FSRivetComponent>(args.OtherEntity) && TryComp<FSSiegeModeComponent>(uid, out var siege) && siege.Planted) return;
         if (!TryComp<ProjectileComponent>(args.OtherEntity, out var proj)) return;
         if (proj.Shooter == null) return;
         if (HasComp<FSFriendlyFireComponent>(proj.Shooter.Value))
@@ -74,6 +77,13 @@ public sealed class FSFriendlyFireSharedSystem : EntitySystem
         }
 
         if (others > 0 && allPlayers)
+        {
             args.Handled = true;
+            return;
+        }
+
+        // Relayed because this system owns the (MeleeWeaponComponent, MeleeHitEvent) subscription.
+        if (args.IsHit && others > 0)
+            RaiseLocalEvent(new FSPlayerMeleeHitEvent(args));
     }
 }

@@ -19,12 +19,10 @@
           SecurityOfficer:   [ -1, -1 ] #Infinite, not counted
           # engineering (7)
           ChiefEngineer:         [ 1, 1 ]
-          StationEngineer:       [ 4, 4 ]
-          AtmosphericTechnician: [ 2, 2 ]
+          StationEngineer:       [ 6, 6 ]
           # medical (8) - Combat Medic replaces the Paramedic
           ChiefMedicalOfficer: [ 1, 1 ]
           MedicalDoctor:       [ 2, 2 ]
-          Paramedic:           [ 0, 0 ]
           CombatMedic:         [ 2, 2 ]
           Chemist:             [ 2, 2 ]
           # science (5)

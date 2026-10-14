@@ -60,7 +60,7 @@ public sealed partial class GunComponent : Component
     /// Last time the gun fired.
     /// Used for recoil purposes.
     /// </summary>
-    [DataField]
+    [DataField, AutoNetworkedField] // fs
     public TimeSpan LastFire = TimeSpan.Zero;
 
     /// <summary>

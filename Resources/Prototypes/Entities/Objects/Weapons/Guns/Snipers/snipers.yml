@@ -1,4 +1,4 @@
-- type: entity
+﻿- type: entity
   name: BaseWeaponSniper
   parent: BaseItem
   id: BaseWeaponSniper
@@ -113,7 +113,7 @@
     sprite: Objects/Weapons/Guns/Snipers/heavy_sniper.rsi
   - type: GunRequiresWield
   - type: Gun
-    fireRate: 0.4
+    fireRate: 1.6
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
@@ -129,8 +129,8 @@
     capacity: 5
     proto: FSCartridgeAntiMateriel
   - type: SpeedModifiedOnWield
-    walkModifier: 0.25
-    sprintModifier: 0.25
+    walkModifier: 0.8
+    sprintModifier: 0.8
   - type: CursorOffsetRequiresWield
   - type: EyeCursorOffset
     maxOffset: 6

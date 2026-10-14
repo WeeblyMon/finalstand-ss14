@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using Content.Shared._FinalStand.Research.Prototypes;
-using Content.Shared.Research.Prototypes;
-using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Research.UI;
 
@@ -14,59 +11,37 @@ public enum FSResearchNodeState
     ExclusivelyBlocked,
 }
 
-// One shape for both vanilla and FS nodes, so the graph and detail panel render generically.
 public sealed class FSResearchNodeView
 {
-    public required string Id;
-    public required string Name;
-    public required SpriteSpecifier Icon;
+    public FSTechNodePrototype Proto { get; }
+    public List<string> AllPrerequisiteIds { get; } = new();
+    public HashSet<string> OrPrerequisiteIds { get; } = new();
 
-    public required string GroupId;
-
-    public required int Tier;
-    public required int Cost;
-
-    public required List<string> Prerequisites;
-
-    public List<List<string>> PrerequisiteGroups = new();
-
-    public required FSResearchNodeState State;
-
+    public FSResearchNodeState State = FSResearchNodeState.Locked;
     public bool IsActiveResearch;
     public bool IsMyPersonalPick;
     public int Progress;
-
     public int QueuePosition;
-
-    // Includes yourself if IsMyPersonalPick.
     public int PersonalContributorCount;
 
-    // One color-slot index per contributor, join order - used to draw one ring per contributor.
-    public List<int> ContributorSlots = new();
-
-    public TechnologyPrototype? Vanilla;
-    public FSTechNodePrototype? FsNode;
-
-    // Materialised once instead of re-running the LINQ chain per access.
-    public List<string> AllPrerequisiteIds = new();
-
-    // The PrerequisiteGroups subset, so an "or" edge is a single lookup.
-    public HashSet<string> OrPrerequisiteIds = new();
-
-    public void BuildPrerequisiteIndex()
+    public FSResearchNodeView(FSTechNodePrototype proto)
     {
-        AllPrerequisiteIds.Clear();
-        OrPrerequisiteIds.Clear();
-
-        AllPrerequisiteIds.AddRange(Prerequisites);
-
-        foreach (var group in PrerequisiteGroups)
+        Proto = proto;
+        AllPrerequisiteIds.AddRange(proto.Prerequisites);
+        foreach (var group in proto.PrerequisiteGroups)
         {
-            foreach (var id in group)
-            {
-                AllPrerequisiteIds.Add(id);
-                OrPrerequisiteIds.Add(id);
-            }
+            AllPrerequisiteIds.AddRange(group);
+            OrPrerequisiteIds.UnionWith(group);
         }
     }
+
+    public string Id => Proto.ID;
+    public string Name => Proto.Name;
+    public string GroupId => Proto.Branch.Id;
+    public int Tier => Proto.Tier;
+    public int Cost => Proto.Cost;
+    public bool IsCapstone => Proto.WeaponShopUnlock != null;
+    public bool IsDone => State == FSResearchNodeState.Unlocked;
+    public bool IsActive => !IsDone && (IsActiveResearch || IsMyPersonalPick);
+    public float ProgressFraction => Cost > 0 ? Math.Clamp((float) Progress / Cost, 0f, 1f) : 0f;
 }

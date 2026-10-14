@@ -1,0 +1,13 @@
+fs-field-kit-slot-jug = Jug
+fs-field-kit-slot-magazine = Syringe magazine
+fs-field-kit-dumped = Emptied {$amount}u of tissue into the tank.
+fs-field-kit-no-satchel = You have no tissue to empty. Carry your harvest satchel.
+fs-field-kit-satchel-empty = The satchel is empty.
+fs-field-kit-tank-full = The tissue tank is full.
+fs-field-kit-rack-not-empty = Only empty flasks go on the rack.
+fs-field-kit-rack-full = The flask rack is full.
+fs-field-kit-unpowered = The station has no power.
+fs-field-kit-no-jug = Put a jug or beaker in the station first.
+fs-field-kit-jug-full = There is no room left in the jug.
+fs-field-kit-short = {$amount}u of {$reagent} short.
+fs-field-kit-no-magazine = Put a syringe magazine in the station first.

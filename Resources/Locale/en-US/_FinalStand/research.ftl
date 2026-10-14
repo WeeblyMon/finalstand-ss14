@@ -13,3 +13,8 @@ fs-research-queued = Queued: {$name}
 fs-research-already-queued = Already queued.
 fs-research-queue-full = Queue is full ({$max} maximum).
 fs-research-payout = Research grant: +{$credits} credits for {$node}.
+
+research-technology-fs-hand-teleportation = Hand Teleportation
+research-technology-fs-field-tools = Field Tools
+fs-engineering-research-done = [color=#c08a3e]Engineering research done:[/color] [bold]{$name}[/bold]. {$bonus}
+fs-engineering-research-done-popup = Research done: {$name}

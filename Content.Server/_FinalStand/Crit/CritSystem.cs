@@ -1,4 +1,5 @@
 ﻿using Content.Server._FinalStand.NPC;
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.FriendlyFire;
@@ -17,6 +18,7 @@ public sealed partial class CritSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private FSZombieRetaliationSystem _retaliation = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSPerkCritSystem _perkCrit = default!;
     private readonly HashSet<(EntityUid, EntityUid)> _pendingCrits = [];
 
     public override void Initialize()
@@ -55,9 +57,10 @@ public sealed partial class CritSystem : EntitySystem
         multiplier = 1f;
         if (HasComp<CritImmuneComponent>(target))
             return false;
-        if (_random.NextFloat() >= CalculateCritChance(gun))
+        var chance = FSPerkCritSystem.CombineChance(CalculateCritChance(gun), _perkCrit.GetCritChanceBonus(shooter, gun, melee: false));
+        if (_random.NextFloat() >= chance)
             return false;
-        multiplier = CalculateCritMultiplier(gun);
+        multiplier = CalculateCritMultiplier(gun) + _perkCrit.GetCritMultiplierBonus(shooter, gun);
         return true;
     }
 

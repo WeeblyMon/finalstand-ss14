@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.FixedPoint;
 using Content.Shared.Mobs;
@@ -15,13 +16,16 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
     [Dependency] private MobThresholdSystem _mobThresholds = default!;
     [Dependency] private MovementSpeedModifierSystem _movementSpeed = default!;
 
-    public void ScaleEnemyHp(EntityUid enemy, int wave)
+    // The boss is tuned for this many players; below it the fight gets shorter and less frantic.
+    private const int BossFullScalePlayers = 7;
+
+    public void ScaleEnemyHp(EntityUid enemy, int wave, int playerCount)
     {
         var multiplier = GetHpMultiplier(wave);
         if (HasComp<FSGiantAbilitiesComponent>(enemy))
-            multiplier *= GetBossHpBonus(wave);
+            multiplier *= GetBossHpBonus(wave) * GetBossPlayerHpFactor(playerCount);
 
-        if (multiplier <= 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
+        if (multiplier == 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
             return;
 
         var snapshot = new List<(FixedPoint2 damage, MobState state)>(thresholds.Thresholds.Select(kv => (kv.Key, kv.Value)));
@@ -29,17 +33,54 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
             _mobThresholds.SetMobStateThreshold(enemy, damage * multiplier, state, thresholds);
     }
 
+    private static readonly (int Wave, float Multiplier)[] HpCurve =
+    [
+        (1, 1f),
+        (10, 2.8f),
+        (20, 5.5f),
+        (30, 9f),
+    ];
+
     private static float GetHpMultiplier(int wave)
     {
-        if (wave < 10) return 1f;
-        if (wave < 20) return 2.8f;
-        if (wave < 30) return 5.5f;
-        return 9f;
+        if (wave <= HpCurve[0].Wave)
+            return HpCurve[0].Multiplier;
+
+        for (var i = 1; i < HpCurve.Length; i++)
+        {
+            var (hiWave, hiMult) = HpCurve[i];
+            if (wave > hiWave)
+                continue;
+
+            var (loWave, loMult) = HpCurve[i - 1];
+            var t = (wave - loWave) / (float) (hiWave - loWave);
+            return loMult + (hiMult - loMult) * t;
+        }
+
+        var last = HpCurve[^1];
+        return last.Multiplier + (wave - last.Wave) * 0.35f;
     }
 
     // On top of the shared curve above, so the boss keeps outscaling the trash around it.
     private static float GetBossHpBonus(int wave)
         => MathF.Min(1f + wave * 0.06f, 3f);
+
+    public static float GetBossPlayerHpFactor(int playerCount)
+        => Math.Clamp(0.35f + 0.65f * Math.Max(1, playerCount) / BossFullScalePlayers, 0.45f, 1f);
+
+    public static float GetBossCooldownFactor(int playerCount)
+        => 1f + 0.15f * Math.Max(0, BossFullScalePlayers - Math.Max(1, playerCount));
+
+    public void ScaleBossForPlayers(EntityUid enemy, int playerCount)
+    {
+        if (!TryComp<FSGiantAbilitiesComponent>(enemy, out var giant))
+            return;
+
+        giant.CooldownMultiplier = GetBossCooldownFactor(playerCount);
+
+        if (TryComp<FSArmorComponent>(enemy, out var armor))
+            armor.RegenRate *= Math.Min(1f, (float) Math.Max(1, playerCount) / BossFullScalePlayers);
+    }
 
     public void ScaleEnemySpeed(EntityUid enemy, int wave)
     {

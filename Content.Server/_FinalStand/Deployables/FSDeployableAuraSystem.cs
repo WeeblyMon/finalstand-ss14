@@ -5,7 +5,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Server._FinalStand.Deployables;
 
-public abstract class FSDeployableAuraSystem<TAura> : EntitySystem where TAura : IComponent
+public abstract partial class FSDeployableAuraSystem<TAura> : EntitySystem where TAura : IComponent
 {
     [Dependency] protected EntityLookupSystem Lookup = default!;
     [Dependency] protected SharedTransformSystem XformSystem = default!;

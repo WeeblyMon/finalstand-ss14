@@ -54,9 +54,9 @@ public static class FSResearchStatBonusTable
         },
         ["WeaponXrayCannonFS"] = new()
         {
-            [Damage] = ["FSOrdnanceWeaponizedLaserManipulation", "FSOrdnanceConcentratedLaserWeaponry", "FSOrdnanceFocusingCrystalPrisms", "FSOrdnanceCollimatorFlanges", "FSOrdnanceFocalOverdrive", "FSOrdnanceXrayCannon"],
-            [FireRate] = ["FSOrdnanceFrequencySync"],
-            [Accuracy] = ["FSOrdnanceCollimatorFlanges"],
+            [Damage] = ["FSOrdnanceWeaponizedLaserManipulation", "FSOrdnanceConcentratedLaserWeaponry", "FSOrdnanceFocusingCrystalPrisms", "FSOrdnanceFocalOverdrive", "FSOrdnanceXrayCannon"],
+            [FireRate] = [],
+            [Accuracy] = [],
             [Capacity] = ["FSOrdnanceHighOutputCapacitors", "FSOrdnanceCryogenicCoolingPumps", "FSOrdnanceFocusingCrystalPrisms", "FSOrdnanceXrayCannon"],
         },
         ["WeaponTeslaGunFS"] = new()

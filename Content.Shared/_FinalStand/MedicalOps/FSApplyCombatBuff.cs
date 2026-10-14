@@ -1,5 +1,6 @@
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.EntityEffects;
+using Content.Shared.Popups;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Timing;
@@ -11,6 +12,7 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     [Dependency] private FSMedicalBonusSystem _bonus = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private static readonly TimeSpan FlashDuration = TimeSpan.FromSeconds(2);
 
@@ -39,6 +41,15 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
             effect.Bonuses,
             duration,
             effect.Name is { } name ? Loc.GetString(name) : null);
+
+        if (!refreshing)
+        {
+            _popup.PopupEntity(Loc.GetString("fs-buff-landed",
+                    ("name", effect.Name is { } label ? Loc.GetString(label) : Loc.GetString("fs-buff-status")),
+                    ("effects", string.Join(", ", FSMedicalBonusText.Describe(effect.Bonuses))),
+                    ("seconds", (int) duration.TotalSeconds)),
+                entity, entity, PopupType.Medium);
+        }
 
         _audio.PlayPvs(refreshing ? Refreshed : Landed, entity,
             AudioParams.Default.WithVolume(refreshing ? -8f : -2f));

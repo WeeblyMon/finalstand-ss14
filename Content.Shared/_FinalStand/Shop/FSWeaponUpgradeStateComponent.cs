@@ -32,7 +32,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool FlechetteEnabled = false;
     [DataField] public bool SplinterImpactEnabled = false;
     [DataField] public bool OverchargeShotEnabled = false;
-    [DataField] public float PelletSpreadMultiplier = 1.0f;
+    [DataField, AutoNetworkedField] public float PelletSpreadMultiplier = 1.0f;
 
     [DataField] public int OverkillLevel = 0;
     [DataField, AutoNetworkedField] public bool ExecutionEnabled = false;
@@ -45,6 +45,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool AftershockEnabled = false;
 
     [DataField] public int MagazineSizeBonus = 0;
+    [DataField] public float ResearchMagazinePercent = 0f;
     [DataField] public float BatteryFireCostReduction = 0f;
 
     [DataField] public float AttackSpeedMultiplier = 1f;
@@ -83,6 +84,6 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float RadiationCoatingResearchBonus = 0f;
 
     [DataField] public int OverloadRoundLevel = 0;
-    [DataField] public int HomingLevel = 0;
+    [DataField, AutoNetworkedField] public int HomingLevel = 0;
     [DataField] public int MultishotLevel = 0;
 }

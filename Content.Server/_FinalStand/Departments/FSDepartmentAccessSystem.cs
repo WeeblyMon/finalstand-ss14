@@ -6,7 +6,9 @@ using Content.Shared.Inventory.Events;
 using Content.Shared.Mind;
 using Content.Shared.Roles;
 using Content.Shared.Roles.Components;
+using Content.Shared.Roles.Jobs;
 using Robust.Server.Player;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -21,12 +23,16 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedRoleSystem _roles = default!;
+    [Dependency] private SharedJobSystem _jobs = default!;
 
     private static readonly ProtoId<DepartmentPrototype> ScienceDept = "Science";
     private static readonly ProtoId<DepartmentPrototype> EngineeringDept = "Engineering";
+    private static readonly ProtoId<DepartmentPrototype> MedicalDept = "Medical";
 
     private static readonly ProtoId<AccessLevelPrototype>[] ScienceAccess = ["Research", "ResearchDirector"];
     private static readonly ProtoId<AccessLevelPrototype>[] EngineeringAccess = ["Engineering", "ChiefEngineer"];
+    private static readonly ProtoId<AccessLevelPrototype>[] ChiefEngineerAccess = ["ChiefEngineer"];
+    private static readonly ProtoId<JobPrototype> ChiefEngineerJob = "ChiefEngineer";
 
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(5);
 
@@ -82,6 +88,23 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
 
     public bool IsEngineering(EntityUid user) => IsInDepartment(user, EngineeringDept, EngineeringAccess);
 
+    public bool IsMedical(EntityUid user) => HasJobIn(user, MedicalDept);
+
+    public bool IsChiefEngineer(EntityUid user)
+    {
+        return HasAccess(user, ChiefEngineerAccess)
+               || _mind.TryGetMind(user, out var mindId, out _) && _jobs.MindHasJobWithId(mindId, ChiefEngineerJob);
+    }
+
+    public IEnumerable<(EntityUid Uid, ICommonSession Session)> Engineers()
+    {
+        foreach (var session in _player.Sessions)
+        {
+            if (session.AttachedEntity is { } mob && IsEngineering(mob))
+                yield return (mob, session);
+        }
+    }
+
     public void Refresh(EntityUid user)
     {
         if (TerminatingOrDeleted(user))
@@ -90,12 +113,14 @@ public sealed partial class FSDepartmentAccessSystem : EntitySystem
         var comp = EnsureComp<FSDepartmentAccessComponent>(user);
         var science = IsScience(user);
         var engineering = IsEngineering(user);
+        var medical = HasJobIn(user, MedicalDept);
 
-        if (comp.Science == science && comp.Engineering == engineering)
+        if (comp.Science == science && comp.Engineering == engineering && comp.Medical == medical)
             return;
 
         comp.Science = science;
         comp.Engineering = engineering;
+        comp.Medical = medical;
         Dirty(user, comp);
     }
 

@@ -36,7 +36,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
 
         var headerGrid = new GridContainer
         {
-            Columns = 8,
+            Columns = 9,
             HorizontalExpand = true,
             Margin = new Thickness(10, 8),
         };
@@ -47,6 +47,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
         headerGrid.AddChild(Cell("final-stand-leaderboard-kills", 80, Label.AlignMode.Center, FSUiPalette.TextMuted));
         headerGrid.AddChild(Cell("final-stand-leaderboard-assists", 90, Label.AlignMode.Center, FSUiPalette.TextMuted));
         headerGrid.AddChild(Cell("final-stand-leaderboard-healing", 90, Label.AlignMode.Center, FSUiPalette.TextMuted));
+        headerGrid.AddChild(Cell("final-stand-leaderboard-fortify", 90, Label.AlignMode.Center, FSUiPalette.TextMuted));
         headerGrid.AddChild(Cell("final-stand-leaderboard-credits", 110, Label.AlignMode.Center, FSUiPalette.TextMuted));
         headerGrid.AddChild(Cell("final-stand-leaderboard-score", 120, Label.AlignMode.Right, FSUiPalette.TextMuted));
 
@@ -119,6 +120,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
         private readonly Label _kills;
         private readonly Label _assists;
         private readonly Label _healing;
+        private readonly Label _fortify;
         private readonly Label _credits;
         private readonly Label _score;
 
@@ -130,12 +132,13 @@ public sealed class FSLeaderboardWindow : FancyWindow
             _kills = Make(80, Label.AlignMode.Center, FSUiPalette.TextPrimary);
             _assists = Make(90, Label.AlignMode.Center, FSUiPalette.TextPrimary);
             _healing = Make(90, Label.AlignMode.Center, FSUiPalette.StatePositive);
+            _fortify = Make(90, Label.AlignMode.Center, FSUiPalette.StatePositive);
             _credits = Make(110, Label.AlignMode.Center, FSUiPalette.Currency);
             _score = Make(120, Label.AlignMode.Right, FSUiPalette.AccentBrand);
 
             var grid = new GridContainer
             {
-                Columns = 8,
+                Columns = 9,
                 HorizontalExpand = true,
                 Margin = new Thickness(10, 5),
             };
@@ -146,6 +149,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
             grid.AddChild(_kills);
             grid.AddChild(_assists);
             grid.AddChild(_healing);
+            grid.AddChild(_fortify);
             grid.AddChild(_credits);
             grid.AddChild(_score);
 
@@ -165,6 +169,7 @@ public sealed class FSLeaderboardWindow : FancyWindow
             _kills.Text = entry.Kills.ToString();
             _assists.Text = entry.Assists.ToString();
             _healing.Text = entry.Healing.ToString("N0");
+            _fortify.Text = entry.Fortify.ToString("N0");
             _credits.Text = entry.Credits.ToString("N0");
             _score.Text = entry.Score.ToString("N0");
         }

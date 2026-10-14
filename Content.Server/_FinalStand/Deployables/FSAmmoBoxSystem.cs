@@ -9,7 +9,7 @@ using Content.Shared.Verbs;
 namespace Content.Server._FinalStand.Deployables;
 
 // deployed ammo crate: a shared pool of uses, and its owner can lock it to themselves
-public sealed class FSAmmoBoxSystem : EntitySystem
+public sealed partial class FSAmmoBoxSystem : EntitySystem
 {
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;

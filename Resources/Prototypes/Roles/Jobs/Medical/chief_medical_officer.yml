@@ -40,6 +40,7 @@
     ears: ClothingHeadsetCMO
     belt: ClothingBeltMedicalFilled # KS14
     pocket1: FlashlightSeclite
+    pocket2: FSEmergencyDefibrillator
   storage:
     back:
     - Flash

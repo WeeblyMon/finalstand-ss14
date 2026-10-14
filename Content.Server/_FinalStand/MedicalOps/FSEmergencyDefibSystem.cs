@@ -25,15 +25,26 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
         if (!TryComp<FSEmergencyDefibComponent>(args.Defibrillator.Owner, out var emergency))
             return;
 
+        if (_mobState.IsDead(patient))
+        {
+            StabilizeToward(patient, damageable, MobState.Dead, emergency.ReviveHealthFraction);
+            return;
+        }
+
         if (!_mobState.IsCritical(patient))
             return;
 
-        if (!_thresholds.TryGetThresholdForState(patient, MobState.Critical, out var threshold)
-            || threshold is not { } critThreshold
-            || critThreshold <= 0)
+        StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction);
+    }
+
+    private void StabilizeToward(EntityUid patient, DamageableComponent damageable, MobState state, float reviveHealthFraction)
+    {
+        if (!_thresholds.TryGetThresholdForState(patient, state, out var threshold)
+            || threshold is not { } stateThreshold
+            || stateThreshold <= 0)
             return;
 
-        var target = critThreshold.Float() * (1f - emergency.ReviveHealthFraction);
+        var target = stateThreshold.Float() * (1f - reviveHealthFraction);
         var current = (float)_damageable.GetTotalDamage((patient, damageable));
 
         if (current <= target)

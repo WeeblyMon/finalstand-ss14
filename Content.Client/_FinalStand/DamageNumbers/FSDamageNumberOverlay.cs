@@ -21,10 +21,15 @@ public sealed partial class FSDamageNumberOverlay : Overlay
     private const float RiseSpeed = 1.1f;   // world units per second
     private const float CullMargin = 64f;
     private const int MaxNumbers = 80;
+    private const float MergeWindow = 0.45f;
+    private const float MergeMaxLife = 1.2f;
 
     // Oldest is overwritten at the cap; shifting the whole list on every spawn was the alternative.
     public void Add(in DamageNumber number)
     {
+        if (TryMerge(number))
+            return;
+
         if (Numbers.Count < MaxNumbers)
         {
             Numbers.Add(number);
@@ -41,12 +46,44 @@ public sealed partial class FSDamageNumberOverlay : Overlay
         Numbers[oldest] = number;
     }
 
+    private bool TryMerge(in DamageNumber number)
+    {
+        if (!number.Mergeable)
+            return false;
+
+        for (var i = 0; i < Numbers.Count; i++)
+        {
+            var existing = Numbers[i];
+            if (!existing.Mergeable
+                || existing.Target != number.Target
+                || existing.IsCrit != number.IsCrit
+                || existing.IsArmor != number.IsArmor
+                || existing.IsHeal != number.IsHeal
+                || existing.Age > MergeWindow
+                || existing.TotalAge > MergeMaxLife)
+                continue;
+
+            existing.Amount += number.Amount;
+            existing.Text = existing.IsHeal
+                ? $"+{(int) MathF.Round(existing.Amount)}"
+                : ((int) MathF.Round(existing.Amount)).ToString();
+            existing.Size = Vector2.Zero;
+            existing.Age = 0f;
+            existing.OriginWorldPos = number.OriginWorldPos;
+            Numbers[i] = existing;
+            return true;
+        }
+
+        return false;
+    }
+
     public void Age(float frameTime)
     {
         for (var i = Numbers.Count - 1; i >= 0; i--)
         {
             var n = Numbers[i];
             n.Age += frameTime;
+            n.TotalAge += frameTime;
 
             var lifetime = n.Lifetime > 0f ? n.Lifetime : Lifetime;
             if (n.Age >= lifetime)
@@ -110,7 +147,12 @@ public sealed partial class FSDamageNumberOverlay : Overlay
             alpha = Math.Clamp(alpha, 0f, 1f);
 
             Color fg, outline;
-            if (num.IsHeal)
+            if (num.CustomColor is { } custom)
+            {
+                fg      = custom.WithAlpha(alpha);
+                outline = new Color(custom.R * 0.3f, custom.G * 0.3f, custom.B * 0.3f, alpha * 0.9f);
+            }
+            else if (num.IsHeal)
             {
                 fg      = HealFg.WithAlpha(alpha);
                 outline = HealOutline.WithAlpha(alpha * 0.9f);
@@ -158,6 +200,8 @@ public sealed partial class FSDamageNumberOverlay : Overlay
 
     public struct DamageNumber
     {
+        public EntityUid Target;
+        public bool Mergeable;
         public Vector2 OriginWorldPos;
         public MapId MapId;
         public float Amount;
@@ -166,7 +210,9 @@ public sealed partial class FSDamageNumberOverlay : Overlay
         public bool IsLevelUp;
         public bool IsHeal;
         public int LevelUpAp;
+        public Color? CustomColor;
         public float Age;
+        public float TotalAge;
         public float Lifetime;
 
         // Fixed for the number's whole life; built at spawn, measured on first draw.
