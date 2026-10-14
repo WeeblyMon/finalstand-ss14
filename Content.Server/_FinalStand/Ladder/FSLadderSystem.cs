@@ -4,6 +4,7 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Onboarding;
 using Content.Server.GameTicking;
+using Content.Server.GameTicking.Events;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Content.Shared.Examine;
@@ -45,6 +46,39 @@ public sealed partial class FSLadderSystem : EntitySystem
         SubscribeNetworkEvent<FSLadderRequestEvent>(OnLadderRequest);
         SubscribeLocalEvent<FSLadderBoardComponent, ActivateInWorldEvent>(OnBoardActivated);
         SubscribeLocalEvent<FSLadderBoardComponent, ExaminedEvent>(OnBoardExamined);
+        SubscribeLocalEvent<FSLadderBoardComponent, MapInitEvent>((uid, board, _) => RefreshBoard((uid, board)));
+        SubscribeLocalEvent<FSRunRecordedEvent>((ref FSRunRecordedEvent _) => RefreshBoards());
+        SubscribeLocalEvent<RoundStartingEvent>(_ => RefreshBoards());
+    }
+
+    public void RefreshBoards()
+    {
+        var query = EntityQueryEnumerator<FSLadderBoardComponent>();
+        while (query.MoveNext(out var uid, out var board))
+            RefreshBoard((uid, board));
+    }
+
+    private void RefreshBoard(Entity<FSLadderBoardComponent> board)
+    {
+        string? weeklyName = null;
+        List<FSRunRecord> runs;
+        if (board.Comp.Weekly)
+        {
+            var utcNow = DateTime.UtcNow;
+            weeklyName = _weekly.GetChallenge(utcNow) is { } challenge ? Loc.GetString(challenge.Name) : null;
+            runs = _store.GetWeeklyTopRuns(FSWeeklyRules.WeekKey(utcNow), FSLadderBoardComponent.ShownRuns);
+        }
+        else
+        {
+            runs = GetTopRuns(board.Comp.Difficulty, board.Comp.Bracket, FSLadderBoardComponent.ShownRuns);
+        }
+
+        if (weeklyName == board.Comp.WeeklyName && runs.SequenceEqual(board.Comp.Runs))
+            return;
+
+        board.Comp.WeeklyName = weeklyName;
+        board.Comp.Runs = runs;
+        Dirty(board);
     }
 
     public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket bracket, int limit = FSLadder.PageSize)
@@ -162,9 +196,14 @@ public sealed partial class FSLadderSystem : EntitySystem
 
     private void OnBoardExamined(Entity<FSLadderBoardComponent> ent, ref ExaminedEvent args)
     {
-        var best = GetTopRuns(FSDifficulty.Normal, FSPlayerBracket.Crew, 1).FirstOrDefault();
-        args.PushMarkup(best == null
-            ? Loc.GetString("fs-ladder-board-examine-empty")
-            : Loc.GetString("fs-ladder-board-examine", ("players", best.Players), ("waves", best.Waves)));
+        var ladder = ent.Comp.Weekly
+            ? Loc.GetString("fs-ladder-weekly")
+            : Loc.GetString("fs-ladder-board-ladder",
+                ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(ent.Comp.Difficulty))),
+                ("bracket", Loc.GetString(FSLadder.BracketLocId(ent.Comp.Bracket))));
+
+        args.PushMarkup(ent.Comp.Runs.FirstOrDefault() is not { } best
+            ? Loc.GetString("fs-ladder-board-examine-empty", ("ladder", ladder))
+            : Loc.GetString("fs-ladder-board-examine", ("ladder", ladder), ("players", best.Players), ("waves", best.Waves)));
     }
 }

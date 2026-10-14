@@ -2,8 +2,14 @@ fs-ladder-bracket-solo = Solo
 fs-ladder-bracket-squad = 2-4 players
 fs-ladder-bracket-crew = 5+ players
 fs-ladder-new-record = [color=#FFD700][bold]NEW SERVER RECORD[/bold][/color] on {$difficulty}, {$bracket}!
-fs-ladder-board-examine-empty = No runs recorded yet. Be the first.
-fs-ladder-board-examine = Record to beat (Normal, 5+ players): {$players}, wave {$waves}.
+fs-ladder-board-examine-empty = {$ladder}: no runs recorded yet. Be the first.
+fs-ladder-board-examine = Record to beat ({$ladder}): {$players}, wave {$waves}.
+fs-ladder-board-ladder = {$difficulty}, {$bracket}
+fs-ladder-board-title = SERVER RECORDS
+fs-ladder-board-weekly-title = WEEKLY CHALLENGE
+fs-ladder-board-empty = No runs yet. Be the first!
+fs-ladder-board-row-victory = WON W{$waves}
+fs-ladder-board-row-wave = WAVE {$waves}
 fs-ladder-window-title = Server records
 fs-ladder-window-empty = No runs recorded here yet.
 fs-ladder-window-loading = Loading records…

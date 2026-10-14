@@ -29,3 +29,44 @@
     - state: noticeboard
     - state: notice-5
   - type: FSLadderBoard
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardSolo
+  suffix: Solo
+  components:
+  - type: FSLadderBoard
+    bracket: Solo
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardCrew
+  suffix: Crew
+  components:
+  - type: FSLadderBoard
+    bracket: Crew
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardHard
+  suffix: Hard
+  components:
+  - type: FSLadderBoard
+    difficulty: Hard
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardNightmare
+  suffix: Nightmare
+  components:
+  - type: FSLadderBoard
+    difficulty: Nightmare
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardWeekly
+  name: weekly challenge board
+  description: This week's challenge and the crews who went furthest in it. Use it to see the full ladder.
+  components:
+  - type: FSLadderBoard
+    weekly: true

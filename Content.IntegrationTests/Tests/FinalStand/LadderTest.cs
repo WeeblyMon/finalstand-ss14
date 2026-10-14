@@ -87,6 +87,73 @@ public sealed class LadderTest : GameTest
         });
     }
 
+    [Test]
+    public async Task BoardsShowTheirOwnLadderToEveryoneAndUpdateLive()
+    {
+        var map = await Pair.CreateTestMap();
+        var normal = EntityUid.Invalid;
+        var hard = EntityUid.Invalid;
+        var weekly = EntityUid.Invalid;
+        var week = string.Empty;
+
+        await Server.WaitPost(() =>
+        {
+            var store = SEntMan.System<FSPlayerDataStore>();
+            store.DeleteAllRuns();
+            week = FSWeeklyRules.WeekKey(DateTime.UtcNow);
+            var at = new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc);
+            store.InsertRun(new FSRunRecord("Ada", FSDifficulty.Normal, FSPlayerBracket.Squad, 12, false, 3600, 400, at));
+            store.InsertRun(new FSRunRecord("Bo", FSDifficulty.Normal, FSPlayerBracket.Crew, 20, false, 3600, 400, at));
+
+            normal = SEntMan.SpawnEntity("FSLadderBoard", map.GridCoords);
+            hard = SEntMan.SpawnEntity("FSLadderBoardHard", map.GridCoords);
+            weekly = SEntMan.SpawnEntity("FSLadderBoardWeekly", map.GridCoords);
+            if (ServerSession!.AttachedEntity is { } player)
+                SEntMan.System<SharedTransformSystem>().SetCoordinates(player, map.GridCoords);
+        });
+        await Pair.RunTicksSync(10);
+
+        await Client.WaitAssertion(() =>
+        {
+            var board = CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(normal));
+            Assert.Multiple(() =>
+            {
+                Assert.That(board.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Ada" }),
+                    "a freshly placed board already shows its ladder, and only its ladder");
+                Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(hard)).Runs, Is.Empty);
+                Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(weekly)).Runs, Is.Empty);
+            });
+        });
+
+        await Server.WaitPost(() =>
+        {
+            var ladder = SEntMan.System<FSLadderSystem>();
+            var at = DateTime.UtcNow;
+            ladder.RecordRun(new FSRunRecord("Cy", FSDifficulty.Normal, FSPlayerBracket.Squad, 30, true, 5000, 900, at));
+            ladder.RecordRun(new FSRunRecord("Di", FSDifficulty.Hard, FSPlayerBracket.Squad, 4, false, 900, 80, at));
+            ladder.RecordRun(new FSRunRecord("Ed", FSDifficulty.Normal, FSPlayerBracket.Squad, 6, false, 900, 80, at, week));
+            for (var i = 0; i < FSLadderBoardComponent.ShownRuns + 2; i++)
+                ladder.RecordRun(new FSRunRecord($"Filler {i}", FSDifficulty.Normal, FSPlayerBracket.Squad, 1, false, 60, 1, at));
+        });
+        await Pair.RunTicksSync(10);
+
+        await Client.WaitAssertion(() =>
+        {
+            var board = CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(normal));
+            var weeklyBoard = CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(weekly));
+            Assert.Multiple(() =>
+            {
+                Assert.That(board.Runs, Has.Count.EqualTo(FSLadderBoardComponent.ShownRuns), "the board keeps to its top rows");
+                Assert.That(board.Runs.Take(2).Select(r => r.Players), Is.EqualTo(new[] { "Cy", "Ada" }),
+                    "a new record goes straight to the top without anyone touching the board");
+                Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(hard)).Runs.Select(r => r.Players),
+                    Is.EqualTo(new[] { "Di" }));
+                Assert.That(weeklyBoard.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Ed" }));
+                Assert.That(weeklyBoard.WeeklyName, Is.Not.Null.And.Not.Empty, "the weekly board names this week's challenge");
+            });
+        });
+    }
+
     private static IEnumerable<Control> Descendants(Control control)
     {
         foreach (var child in control.Children)
