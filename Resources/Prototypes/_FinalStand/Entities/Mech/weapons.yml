@@ -357,8 +357,8 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 192
-        Structural: 240
+        Piercing: 960
+        Structural: 1200
   - type: TimedDespawn
     lifetime: 3
 
@@ -371,7 +371,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 66
+        Piercing: 330
   - type: TimedDespawn
     lifetime: 2
 
@@ -387,7 +387,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 96
+        Piercing: 480
 
 - type: entity
   id: FSMechPelletSpread
@@ -408,7 +408,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 300
+        Piercing: 1500
   - type: Sprite
     sprite: _FinalStand/Objects/Mech/mech_shell.rsi
     layers:
@@ -436,8 +436,8 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 270
-        Blunt: 180
+        Piercing: 1350
+        Blunt: 900
   - type: Sprite
     sprite: _FinalStand/Objects/Mech/mech_shell.rsi
     layers:
@@ -460,8 +460,8 @@
   - type: Projectile
     damage:
       types:
-        Blunt: 480
-        Heat: 240
+        Blunt: 2400
+        Heat: 1200
   - type: Explosive
     explosionType: Default
     maxIntensity: 15
@@ -485,7 +485,7 @@
   - type: Projectile
     damage:
       types:
-        Heat: 270
+        Heat: 1350
   - type: PointLight
     radius: 2
     energy: 1
@@ -552,12 +552,12 @@
   - type: Projectile
     damage:
       types:
-        Blunt: 60
-        Heat: 48
+        Blunt: 300
+        Heat: 240
   - type: FSSkyfallMissile
     splashDamage:
       types:
-        Heat: 36
+        Heat: 180
   - type: TimedDespawn
     lifetime: 3
 
@@ -593,7 +593,7 @@
   - type: HitscanBasicDamage
     damage:
       types:
-        Heat: 84
+        Heat: 420
 
 - type: entity
   parent: RedMediumLaser
@@ -603,7 +603,7 @@
   - type: HitscanBasicDamage
     damage:
       types:
-        Heat: 102
+        Heat: 510
 
 - type: entity
   parent: Pulse
@@ -613,7 +613,7 @@
   - type: HitscanBasicDamage
     damage:
       types:
-        Heat: 210
+        Heat: 1050
 
 - type: entity
   parent: TeslaGunBullet
@@ -624,6 +624,6 @@
     deleteOnCollide: false
     damage:
       types:
-        Piercing: 84
+        Piercing: 420
     soundHit:
       path: /Audio/Weapons/Guns/Hits/bullet_hit.ogg
