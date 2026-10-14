@@ -121,9 +121,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return;
 
         var profile = juice.Get(ev.Heavy);
-        SpawnEffect(profile.KillEffect, target.Value, Angle.Zero);
-        if (profile.KillEmitter is { } emitter)
-            _particles.Burst(emitter, target.Value, profile.ParticleTint, 1.5f);
+        if (_cfg.GetCVar(CCVars.FSMeleeEffects))
+        {
+            SpawnEffect(profile.KillEffect, target.Value, Angle.Zero);
+            if (profile.KillEmitter is { } emitter)
+                _particles.Burst(emitter, target.Value, profile.ParticleTint, 1.5f);
+        }
 
         if (TryGetEntity(ev.User, out var user) && user == _player.LocalEntity && RealTime - _zoomStart > 0.3f)
             StartZoom(profile.KillZoom);
@@ -146,7 +149,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         foreach (var target in targets)
         {
-            if (_burstsThisFrame >= BurstBudget)
+            if (_burstsThisFrame >= BurstBudget || !_cfg.GetCVar(CCVars.FSMeleeEffects))
                 break;
 
             _burstsThisFrame++;
@@ -181,7 +184,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     public void PlaySwingEffect(EntityUid user, FSMeleeJuiceProfile profile)
     {
-        if (profile.SwingEffect is not { } proto)
+        if (profile.SwingEffect is not { } proto || !_cfg.GetCVar(CCVars.FSMeleeEffects))
             return;
 
         var effect = Spawn(proto, Xform.GetMapCoordinates(user));
@@ -304,7 +307,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     public void TrackTrail(EntityUid arc, EntityUid user, FSMeleeJuiceProfile profile, float swingLength)
     {
-        if (profile.TrailDuration <= 0f)
+        if (profile.TrailDuration <= 0f || !_cfg.GetCVar(CCVars.FSMeleeEffects))
             return;
 
         var opacity = user == _player.LocalEntity && _streak >= FatigueHits ? 0.5f : 1f;
