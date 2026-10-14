@@ -1,3 +1,4 @@
+using Content.Shared.LandMines;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Science;
 using Content.Server._FinalStand.Shop;
@@ -140,7 +141,7 @@ public sealed partial class FSDeployableSystem : EntitySystem
         return true;
     }
 
-    public bool IsOccupied(EntityCoordinates coords, Direction? facing)
+    public bool IsOccupied(EntityCoordinates coords, Direction? facing, bool ignoreMines = false)
     {
         if (_transform.GetGrid(coords) is not { } gridUid || !TryComp<MapGridComponent>(gridUid, out var grid))
             return false;
@@ -150,6 +151,9 @@ public sealed partial class FSDeployableSystem : EntitySystem
         var anchored = _map.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
         while (anchored.MoveNext(out var other))
         {
+            if (ignoreMines && HasComp<LandMineComponent>(other))
+                continue;
+
             if (TryComp<FSDeployedByComponent>(other, out var existing)
                 && (existing.Facing == null || facing == null || existing.Facing == facing))
                 return true;

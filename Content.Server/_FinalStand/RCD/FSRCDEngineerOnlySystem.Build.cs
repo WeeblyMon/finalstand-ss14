@@ -96,7 +96,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (_breach.IsAdjacentToSpace(location))
             return Loc.GetString("fs-rcd-next-to-space");
 
-        if (_deployable.IsOccupied(location, facing))
+        if (_deployable.IsOccupied(location, facing, ignoreMines: true))
             return Loc.GetString("fs-deployable-occupied");
 
         var built = CountBuilt();
