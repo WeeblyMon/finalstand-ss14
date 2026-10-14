@@ -9,3 +9,4 @@ fs-hud-hmg-no-crate = No crate linked · heat {$heat}%
 fs-hud-hmg-overheated = OVERHEATED · cooling
 fs-hud-mech-no-weapon = {$mech} · no gun fitted
 fs-hud-rivet-steel = {$count} steel left
+ui-options-show-hmg-arc = Show the HMG firing arc while gunning
