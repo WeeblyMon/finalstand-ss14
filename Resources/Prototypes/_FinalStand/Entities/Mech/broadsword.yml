@@ -80,8 +80,8 @@
         Blunt: 40
         Structural: 60
   - type: MovementSpeedModifier
-    baseWalkSpeed: 1.5
-    baseSprintSpeed: 1.5
+    baseWalkSpeed: 4.5
+    baseSprintSpeed: 4.5
   - type: Damageable
     damageModifierSet: FSMechArmor
   - type: CanMoveInAir
