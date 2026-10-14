@@ -118,10 +118,12 @@
       knockback: 1
       flinchDuration: 0.12
       flinchSpeed: 0.6
+      hitEffect: FSMeleeHitSlashThin
+      killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeSlashSparks
       killEmitter: FSMeleeBlood
       killSound:
-        path: /Audio/Weapons/slash.ogg
+        collection: FSMeleeFleshSquish
       moveAnticipation: 0.95
       moveImpact: 0.9
       moveRecovery: 0.95
@@ -137,6 +139,11 @@
     sprite: Objects/Weapons/Melee/combat_knife.rsi
     state: icon
   - type: MeleeWeapon
+    soundSwing: # FINALSTAND
+      collection: FSMeleeSwishLight
+      params:
+        volume: -6
+        variation: 0.06
     wideAnimationRotation: -135
     attackRate: 1.5
     damage:

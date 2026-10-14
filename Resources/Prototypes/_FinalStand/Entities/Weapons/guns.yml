@@ -743,11 +743,13 @@
       strikeSound:
         path: /Audio/Weapons/bladeslice.ogg
       strikePitchStep: 0.12
+      hitEffect: FSMeleeHitCross
+      killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeGlint
       particleTint: "#ffd27a"
       killEmitter: FSMeleeBlood
       killSound:
-        path: /Audio/Weapons/slash.ogg
+        collection: FSMeleeFleshSquish
       moveAnticipation: 0.9
       moveImpact: 0.7
       moveRecovery: 0.9
@@ -759,6 +761,11 @@
     damage:
       types:
         Slash: 23
+    soundSwing:
+      collection: FSMeleeSwishLight
+      params:
+        volume: -5
+        variation: 0.06
     soundHit:
       path: /Audio/Weapons/bladeslice.ogg
   - type: Crit
@@ -779,6 +786,8 @@
       knockback: 0.5
       flinchDuration: 0.3
       flinchSpeed: 0.3
+      hitEffect: FSMeleeHitSparks
+      killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeChainsawSparks
       killEmitter: FSMeleeBloodBurst
       killSound:

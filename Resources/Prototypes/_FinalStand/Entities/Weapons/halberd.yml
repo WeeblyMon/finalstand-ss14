@@ -14,6 +14,8 @@
       knockback: 4.5
       flinchDuration: 0.2
       flinchSpeed: 0.3
+      hitEffect: FSMeleeHitThrust
+      killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeThrustStreak
       killEmitter: FSMeleeBloodBurst
       killSound:
@@ -35,10 +37,13 @@
       knockbackDuration: 0.25
       flinchDuration: 0.3
       flinchSpeed: 0.25
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      swingEffect: FSMeleeSpinRing
       hitEmitter: FSMeleeShards
       killEmitter: FSMeleeShockRing
       killSound:
-        path: /Audio/Effects/bone_rattle.ogg
+        collection: FSMeleeBoneBreak
       moveAnticipation: 0.7
       moveImpact: 0.5
       moveRecovery: 0.85
@@ -53,9 +58,9 @@
     animation: WeaponArcThrust
     wideAnimation: WeaponArcSlash
     soundSwing:
-      path: /Audio/Effects/thudswoosh.ogg
+      collection: FSMeleeSwishHeavy
       params:
-        volume: -3
+        volume: -4
         variation: 0.05
     soundHit:
       path: /Audio/Weapons/pierce.ogg

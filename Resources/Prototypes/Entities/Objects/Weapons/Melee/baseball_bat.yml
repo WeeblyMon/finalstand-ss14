@@ -14,10 +14,12 @@
       knockbackDuration: 0.2
       flinchDuration: 0.25
       flinchSpeed: 0.3
+      hitEffect: FSMeleeHitBurst
+      killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeBluntDust
       killEmitter: FSMeleeBloodBurst
       killSound:
-        path: /Audio/Effects/bone_rattle.ogg
+        collection: FSMeleeBoneBreak
       moveAnticipation: 0.85
       moveImpact: 0.65
       moveRecovery: 0.9
@@ -30,16 +32,19 @@
     state: icon
   - type: MeleeWeapon
     soundSwing: # FINALSTAND
-      path: /Audio/Effects/thudswoosh.ogg
+      collection: FSMeleeSwishHeavy
       params:
-        volume: -4
+        volume: -5
         variation: 0.05
     wideAnimationRotation: -135
     damage:
       types:
         Blunt: 10
-    soundHit:
-      collection: MetalThud
+    soundHit: # FINALSTAND
+      collection: FSMeleeBluntHit
+      params:
+        volume: -3
+        variation: 0.06
   - type: Wieldable
   - type: IncreaseDamageOnWield
     damage:

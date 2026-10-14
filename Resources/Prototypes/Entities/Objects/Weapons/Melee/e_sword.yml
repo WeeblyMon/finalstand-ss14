@@ -15,6 +15,7 @@
       hitStatus: FSMeleeSearSlowdown
       hitStatusDuration: 1.2
       hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergy
       hitEmitter: FSMeleeEnergyHit
       killEmitter: FSMeleeShockRing
       killSound:
