@@ -49,6 +49,9 @@ public sealed partial class FSHMGComponent : Component
     [DataField]
     public float LinkRange = 1.5f;
 
+    [DataField]
+    public float LookPvsIncrease = 0.6f;
+
     public float LinkBonus;
 
     [DataField]

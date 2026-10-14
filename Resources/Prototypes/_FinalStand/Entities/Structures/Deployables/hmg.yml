@@ -50,6 +50,8 @@
     capacity: 100
     count: 100
   - type: FSHMG
+  - type: EyeCursorOffset
+    maxOffset: 6
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradeSteel

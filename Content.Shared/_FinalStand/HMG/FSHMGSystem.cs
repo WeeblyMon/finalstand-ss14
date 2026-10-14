@@ -3,8 +3,10 @@ using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Camera;
 using Content.Shared.CombatMode;
 using Content.Shared.Mobs;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Components;
@@ -26,6 +28,7 @@ public sealed partial class FSHMGSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedContentEyeSystem _contentEye = default!;
 
     private static readonly SoundSpecifier OverheatSound = new SoundPathSpecifier("/Audio/Items/hiss.ogg");
 
@@ -40,6 +43,7 @@ public sealed partial class FSHMGSystem : EntitySystem
         SubscribeLocalEvent<FSHMGComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
         SubscribeLocalEvent<FSHMGComponent, PreventCollideEvent>(OnPreventCollide);
         SubscribeLocalEvent<FSHMGGunnerComponent, MobStateChangedEvent>(OnGunnerState);
+        SubscribeLocalEvent<FSHMGGunnerComponent, GetEyePvsScaleEvent>(OnGunnerPvsScale);
     }
 
     public float CurrentHeat(FSHMGComponent comp)
@@ -94,6 +98,7 @@ public sealed partial class FSHMGSystem : EntitySystem
         Dirty(gunner, seat);
         _combat.SetInCombatMode(gunner, true);
         _transform.SetLocalRotation(gunner, Angle.Zero);
+        _contentEye.UpdatePvsScale(gunner);
     }
 
     private void OnUnstrapped(Entity<FSHMGComponent> ent, ref UnstrappedEvent args)
@@ -108,6 +113,13 @@ public sealed partial class FSHMGSystem : EntitySystem
             _combat.SetInCombatMode(args.Buckle.Owner, false);
 
         RemComp<FSHMGGunnerComponent>(args.Buckle.Owner);
+        _contentEye.UpdatePvsScale(args.Buckle.Owner);
+    }
+
+    private void OnGunnerPvsScale(Entity<FSHMGGunnerComponent> ent, ref GetEyePvsScaleEvent args)
+    {
+        if (TryComp<FSHMGComponent>(ent.Comp.Hmg, out var hmg))
+            args.Scale += hmg.LookPvsIncrease;
     }
 
     private void OnGunnerState(Entity<FSHMGGunnerComponent> ent, ref MobStateChangedEvent args)
