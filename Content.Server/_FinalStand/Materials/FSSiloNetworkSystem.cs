@@ -2,6 +2,7 @@
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
+using Content.Shared._NF.Storage.Components;
 using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
@@ -29,6 +30,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     private EntityUid? _pool;
     private bool _dirty;
     private bool _moving;
+    private const float MagnetRange = 1.25f;
 
     public override void Initialize()
     {
@@ -61,6 +63,9 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     private void OnSiloInit(Entity<OreSiloComponent> ent, ref MapInitEvent args)
     {
         EnsureComp<FSSiloNetworkComponent>(ent);
+        var magnet = EnsureComp<MaterialStorageMagnetPickupComponent>(ent);
+        magnet.MagnetEnabled = true;
+        magnet.Range = MagnetRange;
         _dirty = true;
     }
 
