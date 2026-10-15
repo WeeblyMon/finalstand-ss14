@@ -1,0 +1,353 @@
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorRoad
+  name: fs-tile-road
+  sprite: /Textures/_FinalStand/Tiles/Road/road.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorRoadLines3
+  name: fs-tile-road-lines-3
+  sprite: /Textures/_FinalStand/Tiles/Road/lines-3.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorRoadLines4
+  name: fs-tile-road-lines-4
+  sprite: /Textures/_FinalStand/Tiles/Road/lines-4.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorRoadHazardRed
+  name: fs-tile-road-hazard-red
+  sprite: /Textures/_FinalStand/Tiles/Road/hazard-red.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorRoadHazardYellow
+  name: fs-tile-road-hazard-yellow
+  sprite: /Textures/_FinalStand/Tiles/Road/hazard-yellow.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkKerbN
+  name: fs-tile-walk-kerb-n
+  sprite: /Textures/_FinalStand/Tiles/Walk/kerb-n.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkKerbS
+  name: fs-tile-walk-kerb-s
+  sprite: /Textures/_FinalStand/Tiles/Walk/kerb-s.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkKerbW
+  name: fs-tile-walk-kerb-w
+  sprite: /Textures/_FinalStand/Tiles/Walk/kerb-w.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkKerbE
+  name: fs-tile-walk-kerb-e
+  sprite: /Textures/_FinalStand/Tiles/Walk/kerb-e.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalk
+  name: fs-tile-walk-sidewalk
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkS
+  name: fs-tile-walk-sidewalk-s
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-s.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkN
+  name: fs-tile-walk-sidewalk-n
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-n.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkE
+  name: fs-tile-walk-sidewalk-e
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-e.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkW
+  name: fs-tile-walk-sidewalk-w
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-w.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkSE
+  name: fs-tile-walk-sidewalk-se
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-se.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkSW
+  name: fs-tile-walk-sidewalk-sw
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-sw.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkNE
+  name: fs-tile-walk-sidewalk-ne
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-ne.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkNW
+  name: fs-tile-walk-sidewalk-nw
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-nw.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkCornerNE
+  name: fs-tile-walk-sidewalk-corner-ne
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-corner-ne.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkCornerNW
+  name: fs-tile-walk-sidewalk-corner-nw
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-corner-nw.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkCornerSE
+  name: fs-tile-walk-sidewalk-corner-se
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-corner-se.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorWalkSidewalkCornerSW
+  name: fs-tile-walk-sidewalk-corner-sw
+  sprite: /Textures/_FinalStand/Tiles/Walk/sidewalk-corner-sw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingCementFlat
+  name: fs-tile-paving-cement-flat
+  sprite: /Textures/_FinalStand/Tiles/Paving/cement-flat.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingRampN
+  name: fs-tile-paving-ramp-n
+  sprite: /Textures/_FinalStand/Tiles/Paving/ramp-n.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingRampE
+  name: fs-tile-paving-ramp-e
+  sprite: /Textures/_FinalStand/Tiles/Paving/ramp-e.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingRampS
+  name: fs-tile-paving-ramp-s
+  sprite: /Textures/_FinalStand/Tiles/Paving/ramp-s.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingRampW
+  name: fs-tile-paving-ramp-w
+  sprite: /Textures/_FinalStand/Tiles/Paving/ramp-w.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingStripeRedN
+  name: fs-tile-paving-stripe-red-n
+  sprite: /Textures/_FinalStand/Tiles/Paving/stripe-red-n.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingStripeRedS
+  name: fs-tile-paving-stripe-red-s
+  sprite: /Textures/_FinalStand/Tiles/Paving/stripe-red-s.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingStripeRedE
+  name: fs-tile-paving-stripe-red-e
+  sprite: /Textures/_FinalStand/Tiles/Paving/stripe-red-e.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingStripeRedW
+  name: fs-tile-paving-stripe-red-w
+  sprite: /Textures/_FinalStand/Tiles/Paving/stripe-red-w.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingNSPAEmblem
+  name: fs-tile-paving-nspaemblem
+  sprite: /Textures/_FinalStand/Tiles/Paving/nspaemblem.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingNSPAEmblemNW
+  name: fs-tile-paving-nspaemblem-nw
+  sprite: /Textures/_FinalStand/Tiles/Paving/nspaemblem-nw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingNSPAEmblemNE
+  name: fs-tile-paving-nspaemblem-ne
+  sprite: /Textures/_FinalStand/Tiles/Paving/nspaemblem-ne.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingNSPAEmblemSW
+  name: fs-tile-paving-nspaemblem-sw
+  sprite: /Textures/_FinalStand/Tiles/Paving/nspaemblem-sw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingNSPAEmblemSE
+  name: fs-tile-paving-nspaemblem-se
+  sprite: /Textures/_FinalStand/Tiles/Paving/nspaemblem-se.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingMarshallEmblem
+  name: fs-tile-paving-marshall-emblem
+  sprite: /Textures/_FinalStand/Tiles/Paving/marshall-emblem.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingMarshallEmblemNW
+  name: fs-tile-paving-marshall-emblem-nw
+  sprite: /Textures/_FinalStand/Tiles/Paving/marshall-emblem-nw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingMarshallEmblemNE
+  name: fs-tile-paving-marshall-emblem-ne
+  sprite: /Textures/_FinalStand/Tiles/Paving/marshall-emblem-ne.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingMarshallEmblemSW
+  name: fs-tile-paving-marshall-emblem-sw
+  sprite: /Textures/_FinalStand/Tiles/Paving/marshall-emblem-sw.png
+
+- type: tile
+  parent: FSTileBaseFloor
+  id: FSFloorPavingMarshallEmblemSE
+  name: fs-tile-paving-marshall-emblem-se
+  sprite: /Textures/_FinalStand/Tiles/Paving/marshall-emblem-se.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorPavingCement
+  name: fs-tile-paving-cement
+  sprite: /Textures/_FinalStand/Tiles/Paving/cement.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorPavingCement2
+  name: fs-tile-paving-cement-2
+  sprite: /Textures/_FinalStand/Tiles/Paving/cement-2.png
+
+- type: tile
+  parent: FSTileBaseGroundPaved
+  id: FSFloorPavingCement3
+  name: fs-tile-paving-cement-3
+  sprite: /Textures/_FinalStand/Tiles/Paving/cement-3.png
+
+- type: tile
+  parent: FSTileBaseGroundRaw
+  id: FSFloorGroundDirt
+  name: fs-tile-ground-dirt
+  sprite: /Textures/_FinalStand/Tiles/Ground/dirt.png
+  variants: 8
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+
+- type: tile
+  parent: FSTileBaseGroundRaw
+  id: FSFloorGroundShale
+  name: fs-tile-ground-shale
+  sprite: /Textures/_FinalStand/Tiles/Ground/shale.png
+  variants: 8
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+
+- type: tile
+  parent: FSTileBaseGroundRaw
+  id: FSFloorGroundShale2
+  name: fs-tile-ground-shale-2
+  sprite: /Textures/_FinalStand/Tiles/Ground/shale-2.png
+  variants: 8
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  edgeSpritePriority: 0
+  edgeSprites:
+    SouthEast: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    NorthEast: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    NorthWest: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    SouthWest: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    South: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    East: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    North: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    West: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+
+- type: tile
+  parent: FSTileBaseGroundRaw
+  id: FSFloorGroundShale3
+  name: fs-tile-ground-shale-3
+  sprite: /Textures/_FinalStand/Tiles/Ground/shale-3.png
+  variants: 8
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  edgeSpritePriority: 0
+  edgeSprites:
+    SouthEast: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    NorthEast: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    NorthWest: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    SouthWest: /Textures/_FinalStand/Tiles/Ground/edge-single.png
+    South: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    East: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    North: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+    West: /Textures/_FinalStand/Tiles/Ground/edge-double.png
+
+- type: tile
+  parent: FSTileBaseGroundRaw
+  id: FSFloorGroundUnderfloor
+  name: fs-tile-ground-underfloor
+  sprite: /Textures/_FinalStand/Tiles/Ground/underfloor.png
