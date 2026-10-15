@@ -33,14 +33,14 @@
   - type: Paintable
     group: Locker
   - type: Damageable
-    damageModifierSet: StructuralMetallic
+    damageModifierSet: NoResistance # FINALSTAND: StructuralMetallic blocked all zombie damage
   - type: Injurable
     damageContainer: StructuralInorganic
   - type: Destructible
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 150
+        damage: 30 # FINALSTAND: three zombie hits, was 150
       behaviors:
       - !type:DoActsBehavior
         acts: ["Destruction"]

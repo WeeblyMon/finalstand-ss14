@@ -219,6 +219,23 @@ public sealed partial class PathfindingSystem
         }
     }
 
+    // Loose furniture is cheap to break but quick to walk around, so a short detour should win.
+    private const float LooseObstacleCostScale = 10f;
+
+    /// <summary>
+    /// Anchored structures block paths, and so does loose breakable furniture like lockers and crates.
+    /// Loose items, debris and bodies do not.
+    /// </summary>
+    public bool IsPathObstacle(EntityUid uid, TransformComponent xform)
+    {
+        if (xform.Anchored)
+            return true;
+
+        return _destructibleQuery.HasComponent(uid)
+               && !_itemQuery.HasComponent(uid)
+               && !_mobStateQuery.HasComponent(uid);
+    }
+
     private bool IsBodyRelevant(FixturesComponent fixtures)
     {
         foreach (var fixture in fixtures.Fixtures.Values)
@@ -452,9 +469,7 @@ public sealed partial class PathfindingSystem
                         continue;
                     }
 
-                    // Skip non-anchored entities (loose items, debris) — only structural
-                    // obstacles like walls, doors, and furniture should affect pathfinding.
-                    if (!xform.Anchored)
+                    if (!IsPathObstacle(ent, xform))
                         continue;
 
                     tileEntities.Add((ent, fixtures));
@@ -575,7 +590,8 @@ public sealed partial class PathfindingSystem
                             if (!_climbableQuery.HasComponent(ent) &&
                                 _destructibleQuery.TryGetComponent(ent, out var damageable))
                             {
-                                damage += _destructible.DestroyedAt(ent, damageable).Float();
+                                var destroyedAt = _destructible.DestroyedAt(ent, damageable).Float();
+                                damage += xform.Anchored ? destroyedAt : destroyedAt * LooseObstacleCostScale;
                             }
                         }
 

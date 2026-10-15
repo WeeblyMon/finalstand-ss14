@@ -2,6 +2,7 @@ using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Timing;
 
@@ -44,7 +45,9 @@ public sealed partial class FSBerserkerSystem : EntitySystem
         if (_undying.IsActive(body))
             return 1f;
 
-        if (!_thresholds.TryGetIncapThreshold(body, out var threshold) || threshold.Value <= 0)
+        if (!TryComp<MobThresholdsComponent>(body, out var thresholds)
+            || !_thresholds.TryGetIncapThreshold(body, out var threshold, thresholds)
+            || threshold.Value <= 0)
             return 0f;
 
         return Math.Clamp(_damageable.GetTotalDamage(body).Float() / threshold.Value.Float(), 0f, 1f);
