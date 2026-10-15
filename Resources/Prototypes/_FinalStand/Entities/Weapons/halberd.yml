@@ -39,8 +39,7 @@
       lunge: 1.0
       flinchDuration: 0.2
       flinchSpeed: 0.3
-      hitEffect: FSMeleeHitThrust
-      hitEffectAngle: 45
+      hitEffect: FSMeleeHitShatter
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeThrustStreak
       killEmitter: FSMeleeBloodBurst

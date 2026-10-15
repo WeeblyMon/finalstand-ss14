@@ -95,6 +95,15 @@
 
 - type: entity
   parent: FSMeleeEffectBase
+  id: FSMeleeHitEnergyCross
+  components:
+  - type: Sprite
+    state: cross
+    scale: 1.05, 1.05
+    color: "#5ce1ff"
+
+- type: entity
+  parent: FSMeleeEffectBase
   id: FSMeleeHitSparks
   components:
   - type: TimedDespawn
