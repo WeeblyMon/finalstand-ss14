@@ -115,7 +115,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         Play(user.Value, (weaponUid.Value, juice), targets, ev.Direction, ev.Heavy, ev.Finisher, ev.Strike, ev.Lethal);
 
-        if (ev.Strike > 0 && TryComp<MeleeWeaponComponent>(weaponUid, out var melee))
+        if (ev.Strike > 0 && HasComp<SpriteComponent>(user) && TryComp<MeleeWeaponComponent>(weaponUid, out var melee))
             ReplaySwing(user.Value, weaponUid.Value, melee, ev.Direction, ev.Heavy);
     }
 
