@@ -19,7 +19,24 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public bool HeavyIsSpin;
 
-    public FSMeleeJuiceProfile Get(bool heavy) => heavy && Heavy != null ? Heavy : Light;
+    // Replaces the light profile on the hit after ComboHits light hits in a row.
+    [DataField]
+    public FSMeleeJuiceProfile? Finisher;
+
+    [DataField]
+    public int ComboHits = 2;
+
+    // Seconds after the weapon's cooldown before the combo resets.
+    [DataField]
+    public float ComboWindow = 0.6f;
+
+    public FSMeleeJuiceProfile Get(bool heavy, bool finisher = false)
+    {
+        if (finisher && Finisher != null)
+            return Finisher;
+
+        return heavy && Heavy != null ? Heavy : Light;
+    }
 }
 
 [DataDefinition]
@@ -42,6 +59,27 @@ public sealed partial class FSMeleeJuiceProfile
 
     [DataField]
     public FSMeleeShakeMode ShakeMode = FSMeleeShakeMode.Directional;
+
+    [DataField]
+    public float DamageMultiplier = 1f;
+
+    // Extra mobs behind the target hit in a line.
+    [DataField]
+    public int Pierce;
+
+    [DataField]
+    public float PierceRange = 1.5f;
+
+    // Mobs this close to the target are knocked back and flinch too.
+    [DataField]
+    public float StaggerRadius;
+
+    [DataField]
+    public float Bleed;
+
+    // Extra damage, as a fraction of the hit, against a target that is already flinching.
+    [DataField]
+    public float FlinchedBonus = 0.25f;
 
     [DataField]
     public float Knockback;

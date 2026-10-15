@@ -26,7 +26,7 @@ public sealed partial class MeleeWeaponSystem
 
         // FINALSTAND: per-weapon anticipation, impact hold, reach, spin and trail
         var juiceHeavy = animation != null && TryComp(weapon, out MeleeWeaponComponent? juiceMelee) && animation == juiceMelee.WideAnimation && animation != juiceMelee.Animation;
-        var juice = _fsJuice.GetProfile(weapon, juiceHeavy);
+        var juice = _fsJuice.GetProfile(user, weapon, juiceHeavy);
         var anticipation = juice?.Anticipation ?? 0f;
         var hold = _fsJuice.TakeHold(user);
 

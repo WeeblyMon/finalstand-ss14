@@ -35,3 +35,16 @@ public sealed partial class FSMeleeFlinchComponent : Component
     [AutoNetworkedField]
     public float Speed = 1f;
 }
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+public sealed partial class FSMeleeComboComponent : Component
+{
+    [AutoNetworkedField]
+    public EntityUid? Weapon;
+
+    [AutoNetworkedField]
+    public int Hits;
+
+    [AutoNetworkedField]
+    public TimeSpan Expire;
+}

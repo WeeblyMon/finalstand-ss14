@@ -7,6 +7,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Network;
@@ -26,7 +27,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
-    private const float LungeFriction = 20f;
+    protected const float MobFriction = 20f;
 
     private readonly List<EntityUid> _expired = new();
 
@@ -41,7 +42,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeFlinchComponent, AttackAttemptEvent>(OnFlinchAttack);
     }
 
-    protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool lethal, MeleeHitEvent args);
+    protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args);
 
     private void OnAttemptMelee(Entity<FSMeleeJuiceComponent> ent, ref AttemptMeleeEvent args)
     {
@@ -61,9 +62,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             return;
 
         var heavy = args.Direction != null;
-        var profile = ent.Comp.Get(heavy);
-        StartSwing(args.User, profile);
-
         var targets = new List<EntityUid>();
         foreach (var hit in args.HitEntities)
         {
@@ -71,8 +69,15 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
                 targets.Add(hit);
         }
 
+        var finisher = !heavy && targets.Count > 0 && AdvanceCombo(args.User, ent);
+        var profile = ent.Comp.Get(heavy, finisher);
+        StartSwing(args.User, profile);
+
         if (targets.Count == 0)
             return;
+
+        if (!MathHelper.CloseTo(profile.DamageMultiplier, 1f))
+            args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
 
         var userPos = Xform.GetWorldPosition(args.User);
         var direction = args.Direction ?? Xform.GetWorldPosition(targets[0]) - userPos;
@@ -82,7 +87,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (profile.Lunge > 0f)
             Lunge(args.User, ent, Xform.GetWorldPosition(targets[0]) - userPos, profile.Lunge);
 
-        var damage = args.BaseDamage.GetTotal();
+        var damage = (args.BaseDamage + args.BonusDamage).GetTotal();
         var lethal = false;
         foreach (var target in targets)
         {
@@ -98,7 +103,26 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             }
         }
 
-        OnHit(ent, args.User, targets, direction, heavy, lethal, args);
+        OnHit(ent, args.User, targets, direction, heavy, finisher, lethal, args);
+    }
+
+    private bool AdvanceCombo(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    {
+        if (weapon.Comp.Finisher == null)
+            return false;
+
+        var now = Timing.CurTime;
+        var combo = EnsureComp<FSMeleeComboComponent>(user);
+        if (combo.Weapon != weapon.Owner || now > combo.Expire)
+            combo.Hits = 0;
+
+        var finisher = combo.Hits >= weapon.Comp.ComboHits;
+        combo.Weapon = weapon.Owner;
+        combo.Hits = finisher ? 0 : combo.Hits + 1;
+        var cooldown = TryComp<MeleeWeaponComponent>(weapon, out var melee) && melee.AttackRate > 0f ? 1f / melee.AttackRate : 0f;
+        combo.Expire = now + TimeSpan.FromSeconds(cooldown + weapon.Comp.ComboWindow);
+        Dirty(user, combo);
+        return finisher;
     }
 
     private void Lunge(EntityUid user, EntityUid weapon, Vector2 toTarget, float distance)
@@ -112,7 +136,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (distance <= 0f)
             return;
 
-        _physics.SetLinearVelocity(user, Vector2.Normalize(toTarget) * distance * LungeFriction, body: body);
+        _physics.SetLinearVelocity(user, Vector2.Normalize(toTarget) * distance * MobFriction, body: body);
     }
 
     private void StartSwing(EntityUid user, FSMeleeJuiceProfile profile)

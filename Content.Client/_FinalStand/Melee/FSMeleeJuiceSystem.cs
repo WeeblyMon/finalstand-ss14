@@ -60,7 +60,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private readonly List<PendingImpact> _impacts = new();
     public float RealTime => (float) Timing.RealTime.TotalSeconds;
 
-    private readonly Dictionary<EntityUid, (float Hold, float Time)> _pendingHold = new();
+    private readonly Dictionary<EntityUid, (float Hold, float Time, EntityUid Weapon, FSMeleeJuiceProfile Profile)> _pending = new();
     private int _burstsThisFrame;
     private int _streak;
     private float _lastHit;
@@ -91,12 +91,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _overlays.RemoveOverlay(_overlay);
     }
 
-    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool lethal, MeleeHitEvent args)
+    protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args)
     {
         if (!Timing.IsFirstTimePredicted)
             return;
 
-        Play(user, weapon, targets, direction, heavy, 0, lethal);
+        Play(user, weapon, targets, direction, heavy, finisher, 0, lethal);
     }
 
     private void OnHitEvent(FSMeleeHitJuiceEvent ev)
@@ -113,7 +113,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 targets.Add(target.Value);
         }
 
-        Play(user.Value, (weaponUid.Value, juice), targets, ev.Direction, ev.Heavy, ev.Strike, ev.Lethal);
+        Play(user.Value, (weaponUid.Value, juice), targets, ev.Direction, ev.Heavy, ev.Finisher, ev.Strike, ev.Lethal);
 
         if (ev.Strike > 0 && TryComp<MeleeWeaponComponent>(weaponUid, out var melee))
             ReplaySwing(user.Value, weaponUid.Value, melee, ev.Direction, ev.Heavy);
@@ -126,7 +126,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             || !TryComp<FSMeleeJuiceComponent>(weapon, out var juice))
             return;
 
-        var profile = juice.Get(ev.Heavy);
+        var profile = juice.Get(ev.Heavy, ev.Finisher);
         if (_cfg.GetCVar(CCVars.FSMeleeEffects))
         {
             SpawnEffect(profile.KillEffect, target.Value, Angle.Zero);
@@ -138,14 +138,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             StartZoom(profile.KillZoom);
     }
 
-    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, int strike, bool lethal)
+    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal)
     {
-        var profile = weapon.Comp.Get(heavy);
+        var profile = weapon.Comp.Get(heavy, finisher);
         var hold = profile.Hitstop + (lethal ? profile.KillHitstopBonus : 0f);
         if (strike > 0)
             hold *= 0.6f;
 
-        _pendingHold[user] = (hold, RealTime);
+        _pending[user] = (hold, RealTime, weapon.Owner, profile);
 
         if (user == _player.LocalEntity)
         {
@@ -328,14 +328,17 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     public float TakeHold(EntityUid user)
     {
-        if (!_pendingHold.Remove(user, out var pending) || RealTime - pending.Time > HoldWindow)
+        if (!_pending.Remove(user, out var pending) || RealTime - pending.Time > HoldWindow)
             return 0f;
 
         return pending.Hold;
     }
 
-    public FSMeleeJuiceProfile? GetProfile(EntityUid weapon, bool heavy)
+    public FSMeleeJuiceProfile? GetProfile(EntityUid user, EntityUid weapon, bool heavy)
     {
+        if (_pending.TryGetValue(user, out var pending) && pending.Weapon == weapon && RealTime - pending.Time <= HoldWindow)
+            return pending.Profile;
+
         return TryComp<FSMeleeJuiceComponent>(weapon, out var juice) ? juice.Get(heavy) : null;
     }
 
