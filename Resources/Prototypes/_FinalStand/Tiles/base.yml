@@ -1,0 +1,42 @@
+- type: tile
+  abstract: true
+  id: FSTileBaseFloor
+  baseTurf: Plating
+  isSubfloor: false
+  deconstructTools: [ Prying ]
+  footstepSounds:
+    collection: FootstepFloor
+  itemDrop: FloorTileItemSteel
+  heatCapacity: 10000
+
+- type: tile
+  abstract: true
+  parent: FSTileBaseFloor
+  id: FSTileBaseWood
+  footstepSounds:
+    collection: FootstepWood
+  barestepSounds:
+    collection: BarestepWood
+  itemDrop: FloorTileItemWood
+
+- type: tile
+  abstract: true
+  id: FSTileBaseGroundPaved
+  isSubfloor: true
+  deconstructTools: [ ]
+  footstepSounds:
+    collection: FootstepFloor
+  heatCapacity: 10000
+  weather: true
+  indestructible: true
+
+- type: tile
+  abstract: true
+  id: FSTileBaseGroundRaw
+  isSubfloor: true
+  deconstructTools: [ ]
+  footstepSounds:
+    collection: FootstepGrass
+  heatCapacity: 10000
+  weather: true
+  indestructible: true
