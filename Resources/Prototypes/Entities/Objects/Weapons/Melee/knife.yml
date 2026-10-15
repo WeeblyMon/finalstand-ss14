@@ -131,6 +131,32 @@
       trailColor: "#e8f0ffaa"
       trailWidth: 0.04
       trailDuration: 0.08
+    comboHits: 3
+    finisher:
+      anticipation: 0.06
+      hitstop: 0.06
+      trauma: 0.25
+      knockback: 6
+      flinchDuration: 0.3
+      flinchSpeed: 0.6
+      hitEffect: FSMeleeHitThrust
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      moveAnticipation: 0.95
+      moveImpact: 0.9
+      moveRecovery: 0.95
+      recoveryTime: 0.2
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.08
+      reach: 1.25
+      damageMultiplier: 1.6
+      bleed: 2
+      lunge: 0.3
+      hitEffectAngle: 45
   - type: Tag
     tags:
     - CombatKnife

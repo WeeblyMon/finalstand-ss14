@@ -29,6 +29,32 @@
       trailColor: "#8b1a1acc"
       trailWidth: 0.06
       trailDuration: 0.1
+    comboHits: 2
+    finisher:
+      anticipation: 0.12
+      hitstop: 0.07
+      reach: 1.6
+      trauma: 0.35
+      knockback: 11
+      lunge: 1.0
+      flinchDuration: 0.2
+      flinchSpeed: 0.3
+      hitEffect: FSMeleeHitThrust
+      hitEffectAngle: 45
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeThrustStreak
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        path: /Audio/Weapons/star_hit.ogg
+      moveAnticipation: 0.85
+      moveImpact: 0.5
+      moveRecovery: 0.9
+      recoveryTime: 0.35
+      trailColor: "#8b1a1acc"
+      trailWidth: 0.06
+      trailDuration: 0.1
+      damageMultiplier: 1.3
+      pierce: 2
     heavy:
       anticipation: 0.12
       hitstop: 0.07

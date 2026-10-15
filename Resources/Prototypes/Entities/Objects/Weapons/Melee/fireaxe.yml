@@ -28,6 +28,32 @@
       trailColor: "#b02020cc"
       trailWidth: 0.12
       trailDuration: 0.18
+    comboHits: 2
+    finisher:
+      anticipation: 0.2
+      hitstop: 0.12
+      reach: 1.2
+      trauma: 0.8
+      shakeMode: Radial
+      knockback: 15
+      knockbackDuration: 0.3
+      flinchDuration: 0.6
+      flinchSpeed: 0.15
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      moveAnticipation: 0.6
+      moveImpact: 0.4
+      moveRecovery: 0.8
+      recoveryTime: 0.5
+      trailColor: "#b02020cc"
+      trailWidth: 0.12
+      trailDuration: 0.18
+      damageMultiplier: 1.4
+      staggerRadius: 1.6
   - type: Tag
     tags:
     - FireAxe

@@ -786,6 +786,7 @@
       knockback: 1
       flinchDuration: 0.3
       flinchSpeed: 0.3
+      flinchedBonus: 0
       hitEffect: FSMeleeHitSparks
       killEffect: FSMeleeKillBlood
       hitEmitter: FSMeleeChainsawSparks

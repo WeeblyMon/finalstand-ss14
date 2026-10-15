@@ -27,6 +27,30 @@
       trailColor: "#c8c0b088"
       trailWidth: 0.07
       trailDuration: 0.12
+    comboHits: 2
+    finisher:
+      anticipation: 0.12
+      hitstop: 0.1
+      reach: 1.2
+      trauma: 0.55
+      knockback: 18
+      knockbackDuration: 0.2
+      flinchDuration: 0.5
+      flinchSpeed: 0.2
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBluntDust
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: FSMeleeBoneBreak
+      moveAnticipation: 0.85
+      moveImpact: 0.65
+      moveRecovery: 0.9
+      recoveryTime: 0.35
+      trailColor: "#c8c0b088"
+      trailWidth: 0.07
+      trailDuration: 0.12
+      damageMultiplier: 1.5
   - type: Sprite
     sprite: Objects/Weapons/Melee/baseball_bat.rsi
     state: icon

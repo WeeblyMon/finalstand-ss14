@@ -27,6 +27,31 @@
       trailColor: "#5ce1ffdd"
       trailWidth: 0.07
       trailDuration: 0.16
+    comboHits: 2
+    finisher:
+      anticipation: 0.04
+      hitstop: 0.06
+      reach: 1.05
+      trauma: 0.3
+      knockback: 5
+      lunge: 0.8
+      flinchDuration: 0.15
+      flinchSpeed: 0.5
+      hitStatus: FSMeleeSearSlowdown
+      hitStatusDuration: 2.5
+      hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergy
+      hitEmitter: FSMeleeEnergyHit
+      killEmitter: FSMeleeShockRing
+      killSound:
+        collection: sparks
+      moveAnticipation: 0.95
+      moveImpact: 0.85
+      recoveryTime: 0.25
+      trailColor: "#5ce1ffdd"
+      trailWidth: 0.07
+      trailDuration: 0.16
+      damageMultiplier: 1.4
   - type: EnergySword
   - type: ItemToggle
     soundActivate:
