@@ -792,7 +792,7 @@
       hitEmitter: FSMeleeChainsawSparks
       killEmitter: FSMeleeBloodBurst
       killSound:
-        path: /Audio/_FinalStand/Mobs/Devastator/chainsawattack.ogg
+        collection: gib
       moveAnticipation: 0.6
       moveImpact: 0.6
       moveRecovery: 0.6
