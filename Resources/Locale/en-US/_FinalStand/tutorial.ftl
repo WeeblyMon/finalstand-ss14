@@ -38,15 +38,15 @@ fs-tutorial-eng-6-text = You earn credits when your structures soak wave damage 
     Ask Science for the Engineering research branch: faster rivets, cooler HMGs, razor wire and the field tools all come from there.
 
 fs-tutorial-welcome-title = Welcome to Final Stand
-fs-tutorial-welcome-body = Zombies come in waves. Your job: keep the Central Command Console standing and stay alive. Make it to wave 30 and the round is won.
+fs-tutorial-welcome-body = Zombies come in waves. Your job: keep the [bold]Central Command Console[/bold] standing and stay alive. Make it to wave 30 and the round is won.
 fs-tutorial-prep-title = Prep phase
-fs-tutorial-prep-body = Spend credits at the wall shops for guns, armour and grenades. The Perk Machine turns perk points into upgrades. Ready up when you're set, or the timer starts the wave.
+fs-tutorial-prep-body = Spend credits at the wall shops like this one for guns, armour and grenades. Ready up when you're set, or the timer starts the wave.
 fs-tutorial-first-wave-title = Here they come
-fs-tutorial-first-wave-body = Hold together near the console and watch the lanes. Out of ammo? Use an Ammo Resupply Box once per wave. Every kill pays credits.
+fs-tutorial-first-wave-body = Hold together near the console and watch the lanes. Press [bold]{$reload}[/bold] to reload. Running low? The [bold]Ammo Resupply Box[/bold] refills your magazines once per wave. Every kill pays credits.
 fs-tutorial-downed-title = You're down
 fs-tutorial-downed-body = A teammate can patch you up, or you can pay credits to revive now. Medics earn credits for every heal, so don't be shy about calling for one.
 fs-tutorial-perks-title = Wave cleared
-fs-tutorial-perks-body = You're earning XP and perk points. Visit the Perk Machine: one-click starter builds are a quick way to get a solid loadout.
+fs-tutorial-perks-body = You're earning XP and perk points. Spend them at the [bold]Perk Machine[/bold] before the next wave.
 fs-tutorial-dark-wave-title = Dark wave
 fs-tutorial-dark-wave-body = The power's out. Survive until the timer runs out instead of killing everything. Stay together and light the way.
 fs-tutorial-boss-wave-title = Boss wave
@@ -65,6 +65,19 @@ fs-tutorial-devastator-title = Devastator
 fs-tutorial-devastator-body = The more you hurt it, the faster and harder it hits. It shrugs off stuns and heals on every hit, so focus it down in one push.
 fs-tutorial-revenant-title = Revenant
 fs-tutorial-revenant-body = Revenants hunt players who stray from the group, phase through cover and drag their prey away. Stay together and cover anyone it marks.
+fs-tutorial-controls-title = Controls
+fs-tutorial-controls-body =
+    Press [bold]{$reload}[/bold] to reload from the ammo you carry.
+    Press [bold]{$suit}[/bold] to stow or draw your suit storage item.
+    Press [bold]{$grenade}[/bold] to throw a live grenade at your cursor.
+    Press [bold]{$ping}[/bold] to ping a spot for your team.
+fs-tutorial-perk-shop-title = The Perk Machine
+fs-tutorial-perk-shop-body = Perk points from levelling up buy permanent upgrades here. Not sure what to pick? A starter build buys and slots a full set in one click.
+fs-tutorial-grenades-title = Grenades
+fs-tutorial-grenades-body = You've got grenades. Press [bold]{$grenade}[/bold] to throw one live at your cursor, no need to take it out first. Use the grenade action to switch type.
+fs-tutorial-ccc-attacked-title = The console is under attack
+fs-tutorial-ccc-attacked-body = Zombies are hitting the [bold]Central Command Console[/bold]. If it's destroyed, the round is lost. Kill whatever is on it first. It heals a little after each wave.
+fs-tutorial-unbound = unbound
 fs-tutorial-dismiss = Got it
 fs-tutorial-footer = Type "tutorial off" in the console to hide these tips.
 

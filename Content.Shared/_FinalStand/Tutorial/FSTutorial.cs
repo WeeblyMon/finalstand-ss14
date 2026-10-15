@@ -1,3 +1,4 @@
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Tutorial;
@@ -19,6 +20,10 @@ public enum FSTutorialTip : byte
     Tesla,
     Devastator,
     Revenant,
+    Controls,
+    PerkShop,
+    Grenades,
+    CccAttacked,
 }
 
 public static class FSTutorialText
@@ -43,7 +48,33 @@ public static class FSTutorialText
         FSTutorialTip.Tesla => "tesla",
         FSTutorialTip.Devastator => "devastator",
         FSTutorialTip.Revenant => "revenant",
+        FSTutorialTip.Controls => "controls",
+        FSTutorialTip.PerkShop => "perk-shop",
+        FSTutorialTip.Grenades => "grenades",
+        FSTutorialTip.CccAttacked => "ccc-attacked",
         _ => "welcome",
+    };
+
+    public static EntProtoId? Icon(FSTutorialTip tip) => tip switch
+    {
+        FSTutorialTip.Welcome => "FinalStandCCC",
+        FSTutorialTip.CccAttacked => "FinalStandCCC",
+        FSTutorialTip.Prep => "FSWeaponShopViper",
+        FSTutorialTip.PerkShop => "FSPerkShop",
+        FSTutorialTip.Perks => "FSPerkShop",
+        FSTutorialTip.FirstWave => "WaveAmmoBox",
+        FSTutorialTip.Grenades => "FSGrenadeFrag",
+        FSTutorialTip.Downed => "FSEmergencyDefibrillator",
+        FSTutorialTip.DarkWave => "FlashlightLantern",
+        FSTutorialTip.BossWave => "FSZombieGiant",
+        FSTutorialTip.Runner => "FSZombieRunner",
+        FSTutorialTip.Armoured => "FSZombieArmoured",
+        FSTutorialTip.Bloater => "FSZombieBloater",
+        FSTutorialTip.Flamethrower => "FSZombieFlamethrower",
+        FSTutorialTip.Tesla => "FSZombieTesla",
+        FSTutorialTip.Devastator => "FSZombieDevastator",
+        FSTutorialTip.Revenant => "FSZombieRevenant",
+        _ => null,
     };
 
     public static FSTutorialTip? ForEnemy(string? prototype) => prototype switch

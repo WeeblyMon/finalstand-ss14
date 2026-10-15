@@ -1,8 +1,10 @@
 using System.Linq;
+using Content.Server._FinalStand.CCC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Onboarding;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Tutorial;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
@@ -31,11 +33,17 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned,
             after: new[] { typeof(FSOnboardingSystem) });
-        SubscribeLocalEvent<WavePrepStartedEvent>(_ => ShowToAll(FSTutorialTip.Prep));
+        SubscribeLocalEvent<WavePrepStartedEvent>(_ =>
+        {
+            ShowToAll(FSTutorialTip.Prep);
+            ShowToAll(FSTutorialTip.PerkShop);
+        });
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<FSWaveEnemySpawnedEvent>(OnEnemySpawned);
+        SubscribeLocalEvent<FSCccDamagedEvent>((ref FSCccDamagedEvent _) => ShowToAll(FSTutorialTip.CccAttacked));
+        SubscribeLocalEvent<FSActiveGrenadeComponent, ComponentStartup>(OnGrenadeReady);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
         {
             _cache.Clear();
@@ -98,11 +106,23 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
             TryShow(session, tip);
     }
 
-    private void OnSpawned(PlayerSpawnCompleteEvent ev)
+    private void OnSpawned(PlayerSpawnCompleteEvent ev) => ShowSpawnTips(ev.Player);
+
+    public void ShowSpawnTips(ICommonSession session)
     {
-        TryShow(ev.Player, FSTutorialTip.Welcome);
+        TryShow(session, FSTutorialTip.Welcome);
+        TryShow(session, FSTutorialTip.Controls);
         if (_waveRule.TryGetWaveStatus(out _, out var phase) && phase == WavePhase.Prep)
-            TryShow(ev.Player, FSTutorialTip.Prep);
+        {
+            TryShow(session, FSTutorialTip.Prep);
+            TryShow(session, FSTutorialTip.PerkShop);
+        }
+    }
+
+    private void OnGrenadeReady(Entity<FSActiveGrenadeComponent> ent, ref ComponentStartup args)
+    {
+        if (TryComp<ActorComponent>(ent, out var actor))
+            TryShow(actor.PlayerSession, FSTutorialTip.Grenades);
     }
 
     private void OnCombatStarted(WaveCombatStartedEvent ev)

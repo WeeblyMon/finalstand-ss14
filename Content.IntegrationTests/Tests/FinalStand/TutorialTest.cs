@@ -4,10 +4,16 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.GameTicking;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Tutorial;
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Tutorial;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
+using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
@@ -101,6 +107,8 @@ public sealed class EnemyTipTest : GameTest
                 {
                     Assert.That(loc.HasString(FSTutorialText.TitleLocId(tip)), Is.True, $"{tip} has no title");
                     Assert.That(loc.HasString(FSTutorialText.BodyLocId(tip)), Is.True, $"{tip} has no body");
+                    if (FSTutorialText.Icon(tip) is { } icon)
+                        Assert.That(SProtoMan.HasIndex(icon), Is.True, $"{tip} shows {icon}, which doesn't exist");
                 }
 
                 var keys = Enum.GetValues<FSTutorialTip>().Select(FSTutorialText.Key).ToList();
@@ -138,6 +146,64 @@ public sealed class EnemyTipTest : GameTest
 }
 
 [TestFixture]
+public sealed class GameplayTipTest : GameTest
+{
+    private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true, DummyTicker = false };
+
+    [Test]
+    public async Task TheConsoleAndGrenadeTipsShowWhenTheyMatter()
+    {
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
+            var session = ServerSession!;
+            tutorial.Replay(session.UserId);
+            Assert.That(session.AttachedEntity, Is.Not.Null, "test precondition");
+            Assert.That(tutorial.WantsTips(session), Is.True, "test precondition");
+
+            var ccc = SEntMan.SpawnEntity("FinalStandCCC", map.GridCoords);
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.CccAttacked), Is.False, "placing the console says nothing");
+            var damage = new DamageSpecifier(SProtoMan.Index(Blunt), 10);
+            SEntMan.System<DamageableSystem>().TryChangeDamage(ccc, damage, ignoreResistances: true);
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.CccAttacked), Is.True);
+
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.Grenades), Is.False, "test precondition");
+            SEntMan.EnsureComponent<FSActiveGrenadeComponent>(session.AttachedEntity!.Value);
+            Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.Grenades), Is.True,
+                "picking up a grenade pack explains the throw key");
+        });
+    }
+
+    [Test]
+    public async Task SpawningExplainsTheGoalAndTheControls()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var tutorial = SEntMan.System<FSNewPlayerTipSystem>();
+            var session = ServerSession!;
+            tutorial.Replay(session.UserId);
+            Assert.That(SEntMan.System<GameTicker>().StartGameRule(FSTestRules.WaveSurvival), Is.True);
+            Assert.That(SEntMan.System<WaveGameRuleSystem>().TryGetWaveStatus(out _, out var phase), Is.True);
+            Assert.That(phase, Is.EqualTo(WavePhase.Prep), "test precondition");
+
+            tutorial.ShowSpawnTips(session);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.Welcome), Is.True);
+                Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.Controls), Is.True);
+                Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.Prep), Is.True, "the round starts in prep");
+                Assert.That(tutorial.HasSeen(session.UserId, FSTutorialTip.PerkShop), Is.True);
+            });
+        });
+    }
+}
+
+[TestFixture]
 public sealed class TutorialCardTest : GameTest
 {
     [Test]
@@ -159,6 +225,32 @@ public sealed class TutorialCardTest : GameTest
 
             ui.Dismiss();
             Assert.That(ui.Showing, Is.Null, "a duplicate tip is not queued twice");
+        });
+    }
+
+    [Test]
+    public async Task CardsShowTheThingTheyTalkAboutAndTheRealKeys()
+    {
+        await Client.WaitAssertion(() =>
+        {
+            var ui = Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>()
+                .GetUIController<Content.Client._FinalStand.Tutorial.FSTutorialUIController>();
+            ui.Reset();
+
+            ui.Enqueue(FSTutorialTip.PerkShop);
+            Assert.That(ui.ShowingIcon?.Id, Is.EqualTo("FSPerkShop"));
+            ui.Dismiss();
+
+            ui.Enqueue(FSTutorialTip.Controls);
+            Assert.Multiple(() =>
+            {
+                Assert.That(ui.ShowingIcon, Is.Null, "the controls card has no picture");
+                Assert.That(ui.ShowingBody, Does.Not.Contain("{$"), "every key name is filled in");
+                Assert.That(ui.ShowingBody, Does.Contain("[bold]R[/bold]"), "reload shows the bound key");
+                Assert.That(ui.ShowingBody, Does.Contain("[bold]G[/bold]"));
+                Assert.That(ui.ShowingBody, Does.Contain("[bold]F[/bold]"));
+            });
+            ui.Reset();
         });
     }
 }
