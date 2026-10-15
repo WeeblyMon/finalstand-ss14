@@ -46,6 +46,10 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public float Knockback;
 
+    // Tiles the attacker steps toward the target on a hit.
+    [DataField]
+    public float Lunge;
+
     [DataField]
     public float KnockbackDuration = 0.15f;
 

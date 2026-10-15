@@ -12,6 +12,7 @@
       reach: 1.35
       trauma: 0.2
       knockback: 9
+      lunge: 0.6
       flinchDuration: 0.2
       flinchSpeed: 0.3
       hitEffect: FSMeleeHitThrust

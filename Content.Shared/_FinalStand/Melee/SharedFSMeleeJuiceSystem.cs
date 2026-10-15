@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Components;
 using Content.Shared.Interaction.Events;
+using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -9,6 +10,8 @@ using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
 using Robust.Shared.Network;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Melee;
@@ -20,6 +23,10 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
+
+    // Mob movement friction on a normal tile; a push of v travels about v / friction.
+    private const float LungeFriction = 20f;
 
     private readonly List<EntityUid> _expired = new();
 
@@ -72,6 +79,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (direction == Vector2.Zero)
             direction = Vector2.UnitY;
 
+        if (profile.Lunge > 0f)
+            Lunge(args.User, ent, Xform.GetWorldPosition(targets[0]) - userPos, profile.Lunge);
+
         var damage = args.BaseDamage.GetTotal();
         var lethal = false;
         foreach (var target in targets)
@@ -89,6 +99,20 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         }
 
         OnHit(ent, args.User, targets, direction, heavy, lethal, args);
+    }
+
+    private void Lunge(EntityUid user, EntityUid weapon, Vector2 toTarget, float distance)
+    {
+        if (TryComp<ItemToggleComponent>(weapon, out var toggle) && !toggle.Activated
+            || !TryComp<PhysicsComponent>(user, out var body))
+            return;
+
+        // Stop short of the target instead of walking into it.
+        distance = Math.Min(distance, toTarget.Length() - 0.8f);
+        if (distance <= 0f)
+            return;
+
+        _physics.SetLinearVelocity(user, Vector2.Normalize(toTarget) * distance * LungeFriction, body: body);
     }
 
     private void StartSwing(EntityUid user, FSMeleeJuiceProfile profile)
