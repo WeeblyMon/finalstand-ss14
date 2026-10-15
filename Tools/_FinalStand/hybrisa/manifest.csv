@@ -1,0 +1,181 @@
+rmc_id,group,group_label,fs_id,loc,human,base,tex_src,tex_dst,outfile
+RMCPlanetHybrisaDirt,ground_raw,Ground/Raw,FSFloorGroundDirt,fs-tile-ground-dirt,dirt,FSTileBaseGroundRaw,hybrisa_0.png,Ground/dirt.png,hybrisa_ground.yml
+RMCPlanetHybrisaShale,ground_raw,Ground/Raw,FSFloorGroundShale,fs-tile-ground-shale,shale,FSTileBaseGroundRaw,hybrisa_1.png,Ground/shale.png,hybrisa_ground.yml
+RMCPlanetHybrisaShale2,ground_raw,Ground/Raw,FSFloorGroundShale2,fs-tile-ground-shale-2,shale 2,FSTileBaseGroundRaw,hybrisa_2.png,Ground/shale-2.png,hybrisa_ground.yml
+RMCPlanetHybrisaShale3,ground_raw,Ground/Raw,FSFloorGroundShale3,fs-tile-ground-shale-3,shale 3,FSTileBaseGroundRaw,hybrisa_3.png,Ground/shale-3.png,hybrisa_ground.yml
+RMCPlanetHybrisaUnderground,ground_raw,Ground/Raw,FSFloorGroundUnderfloor,fs-tile-ground-underfloor,underfloor,FSTileBaseGroundRaw,underground.png,Ground/underfloor.png,hybrisa_ground.yml
+RMCFloorHybrisaCementFlat,ground_paving,Ground/Paving,FSFloorPavingCementFlat,fs-tile-paving-cement-flat,cement flat,FSTileBaseFloor,cementflat.png,Paving/cement-flat.png,hybrisa_ground.yml
+RMCFloorHybrisaRampNorth,ground_paving,Ground/Paving,FSFloorPavingRampN,fs-tile-paving-ramp-n,ramp north,FSTileBaseFloor,rampsmaller_north.png,Paving/ramp-n.png,hybrisa_ground.yml
+RMCFloorHybrisaRampEast,ground_paving,Ground/Paving,FSFloorPavingRampE,fs-tile-paving-ramp-e,ramp east,FSTileBaseFloor,rampsmaller_east.png,Paving/ramp-e.png,hybrisa_ground.yml
+RMCFloorHybrisaRampSouth,ground_paving,Ground/Paving,FSFloorPavingRampS,fs-tile-paving-ramp-s,ramp south,FSTileBaseFloor,rampsmaller_south.png,Paving/ramp-s.png,hybrisa_ground.yml
+RMCFloorHybrisaRampWest,ground_paving,Ground/Paving,FSFloorPavingRampW,fs-tile-paving-ramp-w,ramp west,FSTileBaseFloor,rampsmaller_west.png,Paving/ramp-w.png,hybrisa_ground.yml
+RMCFloorHybrisaStripeRedNorth,ground_paving,Ground/Paving,FSFloorPavingStripeRedN,fs-tile-paving-stripe-red-n,stripe red north,FSTileBaseFloor,stripe_red_north.png,Paving/stripe-red-n.png,hybrisa_ground.yml
+RMCFloorHybrisaStripeRedSouth,ground_paving,Ground/Paving,FSFloorPavingStripeRedS,fs-tile-paving-stripe-red-s,stripe red south,FSTileBaseFloor,stripe_red_south.png,Paving/stripe-red-s.png,hybrisa_ground.yml
+RMCFloorHybrisaStripeRedEast,ground_paving,Ground/Paving,FSFloorPavingStripeRedE,fs-tile-paving-stripe-red-e,stripe red east,FSTileBaseFloor,stripe_red_east.png,Paving/stripe-red-e.png,hybrisa_ground.yml
+RMCFloorHybrisaStripeRedWest,ground_paving,Ground/Paving,FSFloorPavingStripeRedW,fs-tile-paving-stripe-red-w,stripe red west,FSTileBaseFloor,stripe_red_west.png,Paving/stripe-red-w.png,hybrisa_ground.yml
+RMCFloorHybrisaNSPAEmblem,ground_paving,Ground/Paving,FSFloorPavingNSPAEmblem,fs-tile-paving-nspaemblem,nspa emblem,FSTileBaseFloor,NSPAemblem.png,Paving/nspaemblem.png,hybrisa_ground.yml
+RMCFloorHybrisaNSPAEmblem64A,ground_paving,Ground/Paving,FSFloorPavingNSPAEmblemNW,fs-tile-paving-nspaemblem-nw,nspa emblem north-west,FSTileBaseFloor,NSPA_emblem_concrete_2x2_a.png,Paving/nspaemblem-nw.png,hybrisa_ground.yml
+RMCFloorHybrisaNSPAEmblem64B,ground_paving,Ground/Paving,FSFloorPavingNSPAEmblemNE,fs-tile-paving-nspaemblem-ne,nspa emblem north-east,FSTileBaseFloor,NSPA_emblem_concrete_2x2_b.png,Paving/nspaemblem-ne.png,hybrisa_ground.yml
+RMCFloorHybrisaNSPAEmblem64C,ground_paving,Ground/Paving,FSFloorPavingNSPAEmblemSW,fs-tile-paving-nspaemblem-sw,nspa emblem south-west,FSTileBaseFloor,NSPA_emblem_concrete_2x2_c.png,Paving/nspaemblem-sw.png,hybrisa_ground.yml
+RMCFloorHybrisaNSPAEmblem64D,ground_paving,Ground/Paving,FSFloorPavingNSPAEmblemSE,fs-tile-paving-nspaemblem-se,nspa emblem south-east,FSTileBaseFloor,NSPA_emblem_concrete_2x2_d.png,Paving/nspaemblem-se.png,hybrisa_ground.yml
+RMCFloorHybrisaMarshallEmblem,ground_paving,Ground/Paving,FSFloorPavingMarshallEmblem,fs-tile-paving-marshall-emblem,marshall emblem,FSTileBaseFloor,marshallsemblem.png,Paving/marshall-emblem.png,hybrisa_ground.yml
+RMCFloorHybrisaMarshallEmblem64A,ground_paving,Ground/Paving,FSFloorPavingMarshallEmblemNW,fs-tile-paving-marshall-emblem-nw,marshall emblem north-west,FSTileBaseFloor,marshallsemblem_concrete_2x2_a.png,Paving/marshall-emblem-nw.png,hybrisa_ground.yml
+RMCFloorHybrisaMarshallEmblem64B,ground_paving,Ground/Paving,FSFloorPavingMarshallEmblemNE,fs-tile-paving-marshall-emblem-ne,marshall emblem north-east,FSTileBaseFloor,marshallsemblem_concrete_2x2_b.png,Paving/marshall-emblem-ne.png,hybrisa_ground.yml
+RMCFloorHybrisaMarshallEmblem64C,ground_paving,Ground/Paving,FSFloorPavingMarshallEmblemSW,fs-tile-paving-marshall-emblem-sw,marshall emblem south-west,FSTileBaseFloor,marshallsemblem_concrete_2x2_c.png,Paving/marshall-emblem-sw.png,hybrisa_ground.yml
+RMCFloorHybrisaMarshallEmblem64D,ground_paving,Ground/Paving,FSFloorPavingMarshallEmblemSE,fs-tile-paving-marshall-emblem-se,marshall emblem south-east,FSTileBaseFloor,marshallsemblem_concrete_2x2_d.png,Paving/marshall-emblem-se.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphalt,ground_road,Ground/Road,FSFloorRoad,fs-tile-road,road,FSTileBaseGroundPaved,asphalt_old.png,Road/road.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltLines3,ground_road,Ground/Road,FSFloorRoadLines3,fs-tile-road-lines-3,road lines 3,FSTileBaseGroundPaved,asphalt_old_roadlines3.png,Road/lines-3.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltLines4,ground_road,Ground/Road,FSFloorRoadLines4,fs-tile-road-lines-4,road lines 4,FSTileBaseGroundPaved,asphalt_old_roadlines4.png,Road/lines-4.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltLinesRed,ground_road,Ground/Road,FSFloorRoadHazardRed,fs-tile-road-hazard-red,road hazard red,FSTileBaseGroundPaved,warning_red_floor.png,Road/hazard-red.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltLinesYellow,ground_road,Ground/Road,FSFloorRoadHazardYellow,fs-tile-road-hazard-yellow,road hazard yellow,FSTileBaseGroundPaved,warning_yellow_floor.png,Road/hazard-yellow.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltSidewalkNorth,ground_walk,Ground/Walk,FSFloorWalkKerbN,fs-tile-walk-kerb-n,kerb north,FSTileBaseGroundPaved,sidewalkcenter_1.png,Walk/kerb-n.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltSidewalkSouth,ground_walk,Ground/Walk,FSFloorWalkKerbS,fs-tile-walk-kerb-s,kerb south,FSTileBaseGroundPaved,sidewalkcenter_2.png,Walk/kerb-s.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltSidewalkWest,ground_walk,Ground/Walk,FSFloorWalkKerbW,fs-tile-walk-kerb-w,kerb west,FSTileBaseGroundPaved,sidewalkcenter_3.png,Walk/kerb-w.png,hybrisa_ground.yml
+RMCPlanetHybrisaAsphaltSidewalkEast,ground_walk,Ground/Walk,FSFloorWalkKerbE,fs-tile-walk-kerb-e,kerb east,FSTileBaseGroundPaved,sidewalkcenter_4.png,Walk/kerb-e.png,hybrisa_ground.yml
+RMCPlanetHybrisaCement,ground_paving,Ground/Paving,FSFloorPavingCement,fs-tile-paving-cement,cement,FSTileBaseGroundPaved,cement1.png,Paving/cement.png,hybrisa_ground.yml
+RMCPlanetHybrisaCement2,ground_paving,Ground/Paving,FSFloorPavingCement2,fs-tile-paving-cement-2,cement 2,FSTileBaseGroundPaved,cement2.png,Paving/cement-2.png,hybrisa_ground.yml
+RMCPlanetHybrisaCement3,ground_paving,Ground/Paving,FSFloorPavingCement3,fs-tile-paving-cement-3,cement 3,FSTileBaseGroundPaved,cement3.png,Paving/cement-3.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalk,ground_walk,Ground/Walk,FSFloorWalkSidewalk,fs-tile-walk-sidewalk,sidewalk,FSTileBaseGroundPaved,sidewalkfull.png,Walk/sidewalk.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkSouth,ground_walk,Ground/Walk,FSFloorWalkSidewalkS,fs-tile-walk-sidewalk-s,sidewalk south,FSTileBaseGroundPaved,sidewalk_1.png,Walk/sidewalk-s.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkNorth,ground_walk,Ground/Walk,FSFloorWalkSidewalkN,fs-tile-walk-sidewalk-n,sidewalk north,FSTileBaseGroundPaved,sidewalk_2.png,Walk/sidewalk-n.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkEast,ground_walk,Ground/Walk,FSFloorWalkSidewalkE,fs-tile-walk-sidewalk-e,sidewalk east,FSTileBaseGroundPaved,sidewalk_3.png,Walk/sidewalk-e.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkWest,ground_walk,Ground/Walk,FSFloorWalkSidewalkW,fs-tile-walk-sidewalk-w,sidewalk west,FSTileBaseGroundPaved,sidewalk_4.png,Walk/sidewalk-w.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkSouthEast,ground_walk,Ground/Walk,FSFloorWalkSidewalkSE,fs-tile-walk-sidewalk-se,sidewalk south-east,FSTileBaseGroundPaved,sidewalk_5.png,Walk/sidewalk-se.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkSouthWest,ground_walk,Ground/Walk,FSFloorWalkSidewalkSW,fs-tile-walk-sidewalk-sw,sidewalk south-west,FSTileBaseGroundPaved,sidewalk_6.png,Walk/sidewalk-sw.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkNorthEast,ground_walk,Ground/Walk,FSFloorWalkSidewalkNE,fs-tile-walk-sidewalk-ne,sidewalk north-east,FSTileBaseGroundPaved,sidewalk_7.png,Walk/sidewalk-ne.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkNorthWest,ground_walk,Ground/Walk,FSFloorWalkSidewalkNW,fs-tile-walk-sidewalk-nw,sidewalk north-west,FSTileBaseGroundPaved,sidewalk_8.png,Walk/sidewalk-nw.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkCornerNorthEast,ground_walk,Ground/Walk,FSFloorWalkSidewalkCornerNE,fs-tile-walk-sidewalk-corner-ne,sidewalk corner north-east,FSTileBaseGroundPaved,sidewalkcorner_1.png,Walk/sidewalk-corner-ne.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkCornerNorthWest,ground_walk,Ground/Walk,FSFloorWalkSidewalkCornerNW,fs-tile-walk-sidewalk-corner-nw,sidewalk corner north-west,FSTileBaseGroundPaved,sidewalkcorner_2.png,Walk/sidewalk-corner-nw.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkCornerSouthEast,ground_walk,Ground/Walk,FSFloorWalkSidewalkCornerSE,fs-tile-walk-sidewalk-corner-se,sidewalk corner south-east,FSTileBaseGroundPaved,sidewalkcorner_3.png,Walk/sidewalk-corner-se.png,hybrisa_ground.yml
+RMCPlanetHybrisaSidewalkCornerSouthWest,ground_walk,Ground/Walk,FSFloorWalkSidewalkCornerSW,fs-tile-walk-sidewalk-corner-sw,sidewalk corner south-west,FSTileBaseGroundPaved,sidewalkcorner_4.png,Walk/sidewalk-corner-sw.png,hybrisa_ground.yml
+RMCFloorHybrisaEngineerShip,hull_engineer,Hull/Engineer,FSPlatingEngineer,fs-tile-engineer,engineer ship deck,FSTileBaseFloor,floor.png,Engineer/engineer.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPlating,hull_engineer,Hull/Engineer,FSPlatingEngineerPlating,fs-tile-engineer-plating,engineer ship underplating,FSTileBaseFloor,plating.png,Engineer/plating.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShip1,hull_engineer,Hull/Engineer,FSPlatingEngineerFloor1,fs-tile-engineer-floor-1,engineer floor 1,FSTileBaseFloor,engineer_metalfloor_1.png,Engineer/floor-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShip2,hull_engineer,Hull/Engineer,FSPlatingEngineerFloor2,fs-tile-engineer-floor-2,engineer floor 2,FSTileBaseFloor,engineer_metalfloor_2.png,Engineer/floor-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShip3,hull_engineer,Hull/Engineer,FSPlatingEngineerFloor3,fs-tile-engineer-floor-3,engineer floor 3,FSTileBaseFloor,engineer_metalfloor_3.png,Engineer/floor-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShip4,hull_engineer,Hull/Engineer,FSPlatingEngineerFloor4,fs-tile-engineer-floor-4,engineer floor 4,FSTileBaseFloor,engineer_metalfloor_4.png,Engineer/floor-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShip5,hull_engineer,Hull/Engineer,FSPlatingEngineerFloor5,fs-tile-engineer-floor-5,engineer floor 5,FSTileBaseFloor,engineer_floor_5.png,Engineer/floor-5.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull1,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull1,fs-tile-engineer-outer-hull-1,engineer outer hull 1,FSTileBaseFloor,outerhull_1.png,Engineer/outer-hull-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull2,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull2,fs-tile-engineer-outer-hull-2,engineer outer hull 2,FSTileBaseFloor,outerhull_2.png,Engineer/outer-hull-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull3,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull3,fs-tile-engineer-outer-hull-3,engineer outer hull 3,FSTileBaseFloor,outerhull_3.png,Engineer/outer-hull-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull4,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull4,fs-tile-engineer-outer-hull-4,engineer outer hull 4,FSTileBaseFloor,outerhull_4.png,Engineer/outer-hull-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull5,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull5,fs-tile-engineer-outer-hull-5,engineer outer hull 5,FSTileBaseFloor,outerhull_5.png,Engineer/outer-hull-5.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull6,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull6,fs-tile-engineer-outer-hull-6,engineer outer hull 6,FSTileBaseFloor,outerhull_6.png,Engineer/outer-hull-6.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull7,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull7,fs-tile-engineer-outer-hull-7,engineer outer hull 7,FSTileBaseFloor,outerhull_7.png,Engineer/outer-hull-7.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipOuterHull8,hull_engineer,Hull/Engineer,FSPlatingEngineerOuterHull8,fs-tile-engineer-outer-hull-8,engineer outer hull 8,FSTileBaseFloor,outerhull_8.png,Engineer/outer-hull-8.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarN1,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarN1,fs-tile-engineer-pillar-n-1,engineer pillar north 1,FSTileBaseFloor,eng_pillar1.png,Engineer/pillar-n-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarN2,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarN2,fs-tile-engineer-pillar-n-2,engineer pillar north 2,FSTileBaseFloor,eng_pillar2.png,Engineer/pillar-n-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarN3,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarN3,fs-tile-engineer-pillar-n-3,engineer pillar north 3,FSTileBaseFloor,eng_pillar3.png,Engineer/pillar-n-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarN4,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarN4,fs-tile-engineer-pillar-n-4,engineer pillar north 4,FSTileBaseFloor,eng_pillar4.png,Engineer/pillar-n-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarS1,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarS1,fs-tile-engineer-pillar-s-1,engineer pillar south 1,FSTileBaseFloor,eng_pillarsouth1.png,Engineer/pillar-s-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarS2,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarS2,fs-tile-engineer-pillar-s-2,engineer pillar south 2,FSTileBaseFloor,eng_pillarsouth2.png,Engineer/pillar-s-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarS3,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarS3,fs-tile-engineer-pillar-s-3,engineer pillar south 3,FSTileBaseFloor,eng_pillarsouth3.png,Engineer/pillar-s-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarS4,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarS4,fs-tile-engineer-pillar-s-4,engineer pillar south 4,FSTileBaseFloor,eng_pillarsouth4.png,Engineer/pillar-s-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarE1,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarE1,fs-tile-engineer-pillar-e-1,engineer pillar east 1,FSTileBaseFloor,eng_pillareast1.png,Engineer/pillar-e-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarE2,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarE2,fs-tile-engineer-pillar-e-2,engineer pillar east 2,FSTileBaseFloor,eng_pillareast2.png,Engineer/pillar-e-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarE3,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarE3,fs-tile-engineer-pillar-e-3,engineer pillar east 3,FSTileBaseFloor,eng_pillareast3.png,Engineer/pillar-e-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarE4,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarE4,fs-tile-engineer-pillar-e-4,engineer pillar east 4,FSTileBaseFloor,eng_pillareast4.png,Engineer/pillar-e-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarW1,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarW1,fs-tile-engineer-pillar-w-1,engineer pillar west 1,FSTileBaseFloor,eng_pillarwest1.png,Engineer/pillar-w-1.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarW2,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarW2,fs-tile-engineer-pillar-w-2,engineer pillar west 2,FSTileBaseFloor,eng_pillarwest2.png,Engineer/pillar-w-2.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarW3,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarW3,fs-tile-engineer-pillar-w-3,engineer pillar west 3,FSTileBaseFloor,eng_pillarwest3.png,Engineer/pillar-w-3.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipPillarW4,hull_engineer,Hull/Engineer,FSPlatingEngineerPillarW4,fs-tile-engineer-pillar-w-4,engineer pillar west 4,FSTileBaseFloor,eng_pillarwest4.png,Engineer/pillar-w-4.png,hybrisa_plating.yml
+RMCFloorHybrisaEngineerShipLight,hull_engineer,Hull/Engineer,FSPlatingEngineerLight,fs-tile-engineer-light,engineer light,FSTileBaseFloor,engineerlight.png,Engineer/light.png,hybrisa_plating.yml
+RMCFloorHybrisaBeige,floor_metal,Floors/Metal,FSFloorTileBeige,fs-tile-floor-beige,beige floor,FSTileBaseFloor,tilebeige.png,Floor/beige.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeCheck,floor_metal,Floors/Metal,FSFloorTileBeigeCheck,fs-tile-floor-beige-check,beige check floor,FSTileBaseFloor,tilebeigecheck.png,Floor/beige-check.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeCheckAlt,floor_metal,Floors/Metal,FSFloorTileBeigeCheckAlt,fs-tile-floor-beige-check-alt,beige check alt floor,FSTileBaseFloor,tilebeigecheckalt.png,Floor/beige-check-alt.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeLight,floor_metal,Floors/Metal,FSFloorTileBeigeLight,fs-tile-floor-beige-light,beige light floor,FSTileBaseFloor,tilelightbeige.png,Floor/beige-light.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeBig,floor_metal,Floors/Metal,FSFloorTileBeigeBig,fs-tile-floor-beige-big,beige big floor,FSTileBaseFloor,beige_bigtile.png,Floor/beige-big.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeBigLight,floor_metal,Floors/Metal,FSFloorTileBeigeBigLight,fs-tile-floor-beige-big-light,beige big light floor,FSTileBaseFloor,lightbeige_bigtile.png,Floor/beige-big-light.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeSupermart,floor_metal,Floors/Metal,FSFloorTileBeigeSupermart,fs-tile-floor-beige-supermart,beige supermart floor,FSTileBaseFloor,supermartfloor2.png,Floor/beige-supermart.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeCarpet,floor_soft,Floors/Soft,FSFloorSoftBeigeCarpet,fs-tile-soft-beige-carpet,beige carpet,FSTileBaseFloor,carpetbeige.png,Soft/beige-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBeigeCarpetDeco,floor_soft,Floors/Soft,FSFloorSoftBeigeCarpetDeco,fs-tile-soft-beige-carpet-deco,beige carpet deco,FSTileBaseFloor,carpetbeige_deco.png,Soft/beige-carpet-deco.png,hybrisa_floors.yml
+RMCFloorHybrisaBrownPatternCarpet,floor_soft,Floors/Soft,FSFloorSoftBrownPatternCarpet,fs-tile-soft-brown-pattern-carpet,brown pattern carpet,FSTileBaseFloor,carpetpatternbrown.png,Soft/brown-pattern-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBlack,floor_metal,Floors/Metal,FSFloorTileBlack,fs-tile-floor-black,black floor,FSTileBaseFloor,tileblack.png,Floor/black.png,hybrisa_floors.yml
+RMCFloorHybrisaGrey,floor_metal,Floors/Metal,FSFloorTileGrey,fs-tile-floor-grey,grey floor,FSTileBaseFloor,tilegrey.png,Floor/grey.png,hybrisa_floors.yml
+RMCFloorHybrisaBlackAlt,floor_metal,Floors/Metal,FSFloorTileBlackAlt,fs-tile-floor-black-alt,black alt floor,FSTileBaseFloor,tileblack2.png,Floor/black-alt.png,hybrisa_floors.yml
+RMCFloorHybrisaDarkGrey,floor_metal,Floors/Metal,FSFloorTileDarkGrey,fs-tile-floor-dark-grey,dark grey floor,FSTileBaseFloor,darkgrey_bigtile.png,Floor/dark-grey.png,hybrisa_floors.yml
+RMCFloorHybrisaBlackShiny,floor_metal,Floors/Metal,FSFloorTileBlackShiny,fs-tile-floor-black-shiny,black shiny floor,FSTileBaseFloor,blacktileshiny.png,Floor/black-shiny.png,hybrisa_floors.yml
+RMCFloorHybrisaBlackCarpet,floor_soft,Floors/Soft,FSFloorSoftBlackCarpet,fs-tile-soft-black-carpet,black carpet,FSTileBaseFloor,carpetblack.png,Soft/black-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBlackCarpetDeco,floor_soft,Floors/Soft,FSFloorSoftBlackCarpetDeco,fs-tile-soft-black-carpet-deco,black carpet deco,FSTileBaseFloor,carpetblack_deco.png,Soft/black-carpet-deco.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueFull,floor_metal,Floors/Metal,FSFloorTileBlueFull,fs-tile-floor-blue-full,blue full floor,FSTileBaseFloor,bluemetalfull.png,Floor/blue-full.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueTile,floor_metal,Floors/Metal,FSFloorTileBlue,fs-tile-floor-blue,blue floor,FSTileBaseFloor,tileblue.png,Floor/blue.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueTileCheck,floor_metal,Floors/Metal,FSFloorTileBlueCheck,fs-tile-floor-blue-check,blue check floor,FSTileBaseFloor,tilebluecheck.png,Floor/blue-check.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueSupermart,floor_metal,Floors/Metal,FSFloorTileBlueSupermart,fs-tile-floor-blue-supermart,blue supermart floor,FSTileBaseFloor,supermartfloor1.png,Floor/blue-supermart.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueSouth,floor_metal,Floors/Metal,FSFloorTileBlueS,fs-tile-floor-blue-s,blue south floor,FSTileBaseFloor,bluemetal_1.png,Floor/blue-s.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueNorth,floor_metal,Floors/Metal,FSFloorTileBlueN,fs-tile-floor-blue-n,blue north floor,FSTileBaseFloor,bluemetal_2.png,Floor/blue-n.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueEast,floor_metal,Floors/Metal,FSFloorTileBlueE,fs-tile-floor-blue-e,blue east floor,FSTileBaseFloor,bluemetal_3.png,Floor/blue-e.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueWest,floor_metal,Floors/Metal,FSFloorTileBlueW,fs-tile-floor-blue-w,blue west floor,FSTileBaseFloor,bluemetal_4.png,Floor/blue-w.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueSouthEast,floor_metal,Floors/Metal,FSFloorTileBlueSE,fs-tile-floor-blue-se,blue south-east floor,FSTileBaseFloor,bluemetal_5.png,Floor/blue-se.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueSouthWest,floor_metal,Floors/Metal,FSFloorTileBlueSW,fs-tile-floor-blue-sw,blue south-west floor,FSTileBaseFloor,bluemetal_6.png,Floor/blue-sw.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueNorthEast,floor_metal,Floors/Metal,FSFloorTileBlueNE,fs-tile-floor-blue-ne,blue north-east floor,FSTileBaseFloor,bluemetal_7.png,Floor/blue-ne.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueNorthWest,floor_metal,Floors/Metal,FSFloorTileBlueNW,fs-tile-floor-blue-nw,blue north-west floor,FSTileBaseFloor,bluemetal_8.png,Floor/blue-nw.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCornerSouthEast,floor_metal,Floors/Metal,FSFloorTileBlueCornerSE,fs-tile-floor-blue-corner-se,blue corner south-east floor,FSTileBaseFloor,bluemetalcorner_1.png,Floor/blue-corner-se.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCornerNorthEast,floor_metal,Floors/Metal,FSFloorTileBlueCornerNE,fs-tile-floor-blue-corner-ne,blue corner north-east floor,FSTileBaseFloor,bluemetalcorner_2.png,Floor/blue-corner-ne.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCornerNorthWest,floor_metal,Floors/Metal,FSFloorTileBlueCornerNW,fs-tile-floor-blue-corner-nw,blue corner north-west floor,FSTileBaseFloor,bluemetalcorner_3.png,Floor/blue-corner-nw.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCornerSouthWest,floor_metal,Floors/Metal,FSFloorTileBlueCornerSW,fs-tile-floor-blue-corner-sw,blue corner south-west floor,FSTileBaseFloor,bluemetalcorner_4.png,Floor/blue-corner-sw.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCarpet,floor_soft,Floors/Soft,FSFloorSoftBlueCarpet,fs-tile-soft-blue-carpet,blue carpet,FSTileBaseFloor,carpetblue.png,Soft/blue-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueDarkerCarpet,floor_soft,Floors/Soft,FSFloorSoftBlueDarkerCarpet,fs-tile-soft-blue-darker-carpet,blue darker carpet,FSTileBaseFloor,carpetdarkerblue.png,Soft/blue-darker-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueCarpetDeco,floor_soft,Floors/Soft,FSFloorSoftBlueCarpetDeco,fs-tile-soft-blue-carpet-deco,blue carpet deco,FSTileBaseFloor,carpetblue_deco.png,Soft/blue-carpet-deco.png,hybrisa_floors.yml
+RMCFloorHybrisaBluePatternCarpet,floor_soft,Floors/Soft,FSFloorSoftBluePatternCarpet,fs-tile-soft-blue-pattern-carpet,blue pattern carpet,FSTileBaseFloor,carpetpatternblue.png,Soft/blue-pattern-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaBlueSpacePort1,hull_deck,Hull/Deck,FSPlatingDeckSpaceport1,fs-tile-deck-spaceport-1,spaceport 1,FSTileBaseFloor,spaceport1.png,Deck/spaceport-1.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueSpacePort2,hull_deck,Hull/Deck,FSPlatingDeckSpaceport2,fs-tile-deck-spaceport-2,spaceport 2,FSTileBaseFloor,spaceport2.png,Deck/spaceport-2.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropship1,hull_deck,Hull/Deck,FSPlatingDeckDropship1,fs-tile-deck-dropship-1,dropship 1,FSTileBaseFloor,dropshipfloor1.png,Deck/dropship-1.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropship2,hull_deck,Hull/Deck,FSPlatingDeckDropship2,fs-tile-deck-dropship-2,dropship 2,FSTileBaseFloor,dropshipfloor2.png,Deck/dropship-2.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropship3,hull_deck,Hull/Deck,FSPlatingDeckDropship3,fs-tile-deck-dropship-3,dropship 3,FSTileBaseFloor,dropshipfloor3.png,Deck/dropship-3.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropship4,hull_deck,Hull/Deck,FSPlatingDeckDropship4,fs-tile-deck-dropship-4,dropship 4,FSTileBaseFloor,dropshipfloor4.png,Deck/dropship-4.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropshipCorner1,hull_deck,Hull/Deck,FSPlatingDeckDropshipCorner1,fs-tile-deck-dropship-corner-1,dropship corner 1,FSTileBaseFloor,dropshipfloorcorner1.png,Deck/dropship-corner-1.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropshipCorner2,hull_deck,Hull/Deck,FSPlatingDeckDropshipCorner2,fs-tile-deck-dropship-corner-2,dropship corner 2,FSTileBaseFloor,dropshipfloorcorner2.png,Deck/dropship-corner-2.png,hybrisa_plating.yml
+RMCFloorHybrisaBlueDropshipFull,hull_deck,Hull/Deck,FSPlatingDeckDropshipFull,fs-tile-deck-dropship-full,dropship full,FSTileBaseFloor,dropshipfloorfull.png,Deck/dropship-full.png,hybrisa_plating.yml
+RMCFloorHybrisaBrown,floor_metal,Floors/Metal,FSFloorTileBrown,fs-tile-floor-brown,brown floor,FSTileBaseFloor,zbrownfloorfull1.png,Floor/brown.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown1,floor_metal,Floors/Metal,FSFloorTileBrown1,fs-tile-floor-brown-1,brown 1 floor,FSTileBaseFloor,zbrownfloor_1.png,Floor/brown-1.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown2,floor_metal,Floors/Metal,FSFloorTileBrown2,fs-tile-floor-brown-2,brown 2 floor,FSTileBaseFloor,zbrownfloor_2.png,Floor/brown-2.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown3,floor_metal,Floors/Metal,FSFloorTileBrown3,fs-tile-floor-brown-3,brown 3 floor,FSTileBaseFloor,zbrownfloor_3.png,Floor/brown-3.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown4,floor_metal,Floors/Metal,FSFloorTileBrown4,fs-tile-floor-brown-4,brown 4 floor,FSTileBaseFloor,zbrownfloor_4.png,Floor/brown-4.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown5,floor_metal,Floors/Metal,FSFloorTileBrown5,fs-tile-floor-brown-5,brown 5 floor,FSTileBaseFloor,zbrownfloor_5.png,Floor/brown-5.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown6,floor_metal,Floors/Metal,FSFloorTileBrown6,fs-tile-floor-brown-6,brown 6 floor,FSTileBaseFloor,zbrownfloor_6.png,Floor/brown-6.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown7,floor_metal,Floors/Metal,FSFloorTileBrown7,fs-tile-floor-brown-7,brown 7 floor,FSTileBaseFloor,zbrownfloor_7.png,Floor/brown-7.png,hybrisa_floors.yml
+RMCFloorHybrisaBrown8,floor_metal,Floors/Metal,FSFloorTileBrown8,fs-tile-floor-brown-8,brown 8 floor,FSTileBaseFloor,zbrownfloor_8.png,Floor/brown-8.png,hybrisa_floors.yml
+RMCFloorHybrisaBrownCorner1,floor_metal,Floors/Metal,FSFloorTileBrownCorner1,fs-tile-floor-brown-corner-1,brown corner 1 floor,FSTileBaseFloor,zbrownfloorcorner_1.png,Floor/brown-corner-1.png,hybrisa_floors.yml
+RMCFloorHybrisaBrownCorner2,floor_metal,Floors/Metal,FSFloorTileBrownCorner2,fs-tile-floor-brown-corner-2,brown corner 2 floor,FSTileBaseFloor,zbrownfloorcorner_2.png,Floor/brown-corner-2.png,hybrisa_floors.yml
+RMCFloorHybrisaBrownCorner3,floor_metal,Floors/Metal,FSFloorTileBrownCorner3,fs-tile-floor-brown-corner-3,brown corner 3 floor,FSTileBaseFloor,zbrownfloorcorner_3.png,Floor/brown-corner-3.png,hybrisa_floors.yml
+RMCFloorHybrisaBrownCorner4,floor_metal,Floors/Metal,FSFloorTileBrownCorner4,fs-tile-floor-brown-corner-4,brown corner 4 floor,FSTileBaseFloor,zbrownfloorcorner_4.png,Floor/brown-corner-4.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal,floor_metal,Floors/Metal,FSFloorTileGreenMetal,fs-tile-floor-green-metal,green metal floor,FSTileBaseFloor,greenmetalfull.png,Floor/green-metal.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenTile,floor_metal,Floors/Metal,FSFloorTileGreen,fs-tile-floor-green,green floor,FSTileBaseFloor,tilegreen.png,Floor/green.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal1,floor_metal,Floors/Metal,FSFloorTileGreenMetal1,fs-tile-floor-green-metal-1,green metal 1 floor,FSTileBaseFloor,greenmetal1.png,Floor/green-metal-1.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal2,floor_metal,Floors/Metal,FSFloorTileGreenMetal2,fs-tile-floor-green-metal-2,green metal 2 floor,FSTileBaseFloor,greenmetal2.png,Floor/green-metal-2.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal3,floor_metal,Floors/Metal,FSFloorTileGreenMetal3,fs-tile-floor-green-metal-3,green metal 3 floor,FSTileBaseFloor,greenmetal3.png,Floor/green-metal-3.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal4,floor_metal,Floors/Metal,FSFloorTileGreenMetal4,fs-tile-floor-green-metal-4,green metal 4 floor,FSTileBaseFloor,greenmetal4.png,Floor/green-metal-4.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal5,floor_metal,Floors/Metal,FSFloorTileGreenMetal5,fs-tile-floor-green-metal-5,green metal 5 floor,FSTileBaseFloor,greenmetal5.png,Floor/green-metal-5.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal6,floor_metal,Floors/Metal,FSFloorTileGreenMetal6,fs-tile-floor-green-metal-6,green metal 6 floor,FSTileBaseFloor,greenmetal6.png,Floor/green-metal-6.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal7,floor_metal,Floors/Metal,FSFloorTileGreenMetal7,fs-tile-floor-green-metal-7,green metal 7 floor,FSTileBaseFloor,greenmetal7.png,Floor/green-metal-7.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenMetal8,floor_metal,Floors/Metal,FSFloorTileGreenMetal8,fs-tile-floor-green-metal-8,green metal 8 floor,FSTileBaseFloor,greenmetal8.png,Floor/green-metal-8.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenCarpet,floor_soft,Floors/Soft,FSFloorSoftGreenCarpet,fs-tile-soft-green-carpet,green carpet,FSTileBaseFloor,carpetgreen.png,Soft/green-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenCarpetDeco,floor_soft,Floors/Soft,FSFloorSoftGreenCarpetDeco,fs-tile-soft-green-carpet-deco,green carpet deco,FSTileBaseFloor,carpetgreen_deco.png,Soft/green-carpet-deco.png,hybrisa_floors.yml
+RMCFloorHybrisaGreenDingy,floor_soft,Floors/Soft,FSFloorSoftGreenCarpetGrimy,fs-tile-soft-green-carpet-grimy,green carpet grimy,FSTileBaseFloor,grimy.png,Soft/green-carpet-grimy.png,hybrisa_floors.yml
+RMCFloorHybrisaRedMetal,floor_metal,Floors/Metal,FSFloorTileRedMetal,fs-tile-floor-red-metal,red metal floor,FSTileBaseFloor,tilered.png,Floor/red-metal.png,hybrisa_floors.yml
+RMCFloorHybrisaRedMetalCuppaJoe,floor_metal,Floors/Metal,FSFloorTileRedMetalCafe,fs-tile-floor-red-metal-cafe,red metal cafe floor,FSTileBaseFloor,cuppafloor.png,Floor/red-metal-cafe.png,hybrisa_floors.yml
+RMCFloorHybrisaRedCarpet,floor_soft,Floors/Soft,FSFloorSoftRedCarpet,fs-tile-soft-red-carpet,red carpet,FSTileBaseFloor,carpetred.png,Soft/red-carpet.png,hybrisa_floors.yml
+RMCFloorHybrisaRedCarpetDeco,floor_soft,Floors/Soft,FSFloorSoftRedCarpetDeco,fs-tile-soft-red-carpet-deco,red carpet deco,FSTileBaseFloor,carpetred_deco.png,Soft/red-carpet-deco.png,hybrisa_floors.yml
+RMCFloorHybrisaRedCarpetFaded,floor_soft,Floors/Soft,FSFloorSoftRedCarpetFaded,fs-tile-soft-red-carpet-faded,red carpet faded,FSTileBaseFloor,carpetfadedred.png,Soft/red-carpet-faded.png,hybrisa_floors.yml
+RMCFloorHybrisaRedCarpetOrange,floor_soft,Floors/Soft,FSFloorSoftRedCarpetOrange,fs-tile-soft-red-carpet-orange,red carpet orange,FSTileBaseFloor,carpetorangered.png,Soft/red-carpet-orange.png,hybrisa_floors.yml
+RMCFloorHybrisaRedCarpetPink,floor_soft,Floors/Soft,FSFloorSoftRedCarpetPink,fs-tile-soft-red-carpet-pink,red carpet pink,FSTileBaseFloor,carpet_deco_pink.png,Soft/red-carpet-pink.png,hybrisa_floors.yml
+RMCFloorHybrisaWhite,floor_metal,Floors/Metal,FSFloorTileWhite,fs-tile-floor-white,white floor,FSTileBaseFloor,tilewhite.png,Floor/white.png,hybrisa_floors.yml
+RMCFloorHybrisaWhiteCheck,floor_metal,Floors/Metal,FSFloorTileWhiteCheck,fs-tile-floor-white-check,white check floor,FSTileBaseFloor,tilewhitecheck.png,Floor/white-check.png,hybrisa_floors.yml
+RMCFloorHybrisaWhiteFull,floor_metal,Floors/Metal,FSFloorTileWhiteFull,fs-tile-floor-white-full,white full floor,FSTileBaseFloor,metalwhitefull.png,Floor/white-full.png,hybrisa_floors.yml
+RMCFloorHybrisaWood,floor_soft,Floors/Soft,FSFloorSoftWood,fs-tile-soft-wood,wood,FSTileBaseWood,darkerwood.png,Soft/wood.png,hybrisa_floors.yml
+RMCFloorHybrisaWoodGrey,floor_soft,Floors/Soft,FSFloorSoftWoodGrey,fs-tile-soft-wood-grey,wood grey,FSTileBaseWood,greywood.png,Soft/wood-grey.png,hybrisa_floors.yml
+RMCFloorHybrisaWoodRed,floor_soft,Floors/Soft,FSFloorSoftWoodRed,fs-tile-soft-wood-red,wood red,FSTileBaseWood,redwood.png,Soft/wood-red.png,hybrisa_floors.yml
+RMCFloorHybrisaWoodBlack,floor_soft,Floors/Soft,FSFloorSoftWoodBlack,fs-tile-soft-wood-black,wood black,FSTileBaseWood,blackwood.png,Soft/wood-black.png,hybrisa_floors.yml
+RMCFloorHybrisaYellow,floor_metal,Floors/Metal,FSFloorTileYellow,fs-tile-floor-yellow,yellow floor,FSTileBaseFloor,yellow_bigtile.png,Floor/yellow.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine1,floor_metal,Floors/Metal,FSFloorTileOrangeLine1,fs-tile-floor-orange-line-1,orange line 1 floor,FSTileBaseFloor,orangeline_1.png,Floor/orange-line-1.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine2,floor_metal,Floors/Metal,FSFloorTileOrangeLine2,fs-tile-floor-orange-line-2,orange line 2 floor,FSTileBaseFloor,orangeline_2.png,Floor/orange-line-2.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine3,floor_metal,Floors/Metal,FSFloorTileOrangeLine3,fs-tile-floor-orange-line-3,orange line 3 floor,FSTileBaseFloor,orangeline_3.png,Floor/orange-line-3.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine4,floor_metal,Floors/Metal,FSFloorTileOrangeLine4,fs-tile-floor-orange-line-4,orange line 4 floor,FSTileBaseFloor,orangeline_4.png,Floor/orange-line-4.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine5,floor_metal,Floors/Metal,FSFloorTileOrangeLine5,fs-tile-floor-orange-line-5,orange line 5 floor,FSTileBaseFloor,orangeline_5.png,Floor/orange-line-5.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine6,floor_metal,Floors/Metal,FSFloorTileOrangeLine6,fs-tile-floor-orange-line-6,orange line 6 floor,FSTileBaseFloor,orangeline_6.png,Floor/orange-line-6.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine7,floor_metal,Floors/Metal,FSFloorTileOrangeLine7,fs-tile-floor-orange-line-7,orange line 7 floor,FSTileBaseFloor,orangeline_7.png,Floor/orange-line-7.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLine8,floor_metal,Floors/Metal,FSFloorTileOrangeLine8,fs-tile-floor-orange-line-8,orange line 8 floor,FSTileBaseFloor,orangeline_8.png,Floor/orange-line-8.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLineCorner1,floor_metal,Floors/Metal,FSFloorTileOrangeLineCorner1,fs-tile-floor-orange-line-corner-1,orange line corner 1 floor,FSTileBaseFloor,orangelinecorner_1.png,Floor/orange-line-corner-1.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLineCorner2,floor_metal,Floors/Metal,FSFloorTileOrangeLineCorner2,fs-tile-floor-orange-line-corner-2,orange line corner 2 floor,FSTileBaseFloor,orangelinecorner_2.png,Floor/orange-line-corner-2.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLineCorner3,floor_metal,Floors/Metal,FSFloorTileOrangeLineCorner3,fs-tile-floor-orange-line-corner-3,orange line corner 3 floor,FSTileBaseFloor,orangelinecorner_3.png,Floor/orange-line-corner-3.png,hybrisa_floors.yml
+RMCFloorHybrisaOrangeLineCorner4,floor_metal,Floors/Metal,FSFloorTileOrangeLineCorner4,fs-tile-floor-orange-line-corner-4,orange line corner 4 floor,FSTileBaseFloor,orangelinecorner_4.png,Floor/orange-line-corner-4.png,hybrisa_floors.yml
