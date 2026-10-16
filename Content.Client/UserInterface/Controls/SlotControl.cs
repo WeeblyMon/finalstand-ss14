@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Content.Client.Cooldown;
 using Content.Client.UserInterface.Systems.Inventory.Controls;
@@ -17,7 +18,7 @@ namespace Content.Client.UserInterface.Controls
     public abstract class SlotControl : Control, IEntityControl
     {
         // FINALSTAND: 32 to match the HUD's grid; hands override themselves back up to a clean 2x.
-        public static int DefaultButtonSize = 32;
+        public static int DefaultButtonSize => FSClassicHud.Enabled ? 64 : 32;
         private const float SourceArtSize = 32f;
 
         public TextureRect ButtonRect { get; }
