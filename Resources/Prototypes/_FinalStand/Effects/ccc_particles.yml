@@ -1,0 +1,26 @@
+- type: fsParticleEmitter
+  id: FSCCCLifeLostRing
+  texture: /Textures/_FinalStand/Effects/Particles/ring.png
+  burst: 1
+  lifetime: 0.9, 0.9
+  size: 1, 14
+  color: "#e4512f"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.9
+
+- type: fsParticleEmitter
+  id: FSCCCLifeLostSparks
+  texture: /Textures/_FinalStand/Effects/Particles/spark.png
+  burst: 48
+  lifetime: 0.5, 1
+  speed: 3, 7
+  drag: 2.5
+  size: 0.35, 0.15
+  spawnRadius: 1
+  alignToVelocity: true
+  stretch: 2.5
+  color: "#ff8a4c"
+  tinted: false
+  fadeIn: 0
+  fadeOut: 0.6
