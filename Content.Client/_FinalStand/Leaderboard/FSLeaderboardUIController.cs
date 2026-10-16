@@ -105,7 +105,7 @@ public sealed partial class FSLeaderboardUIController : UIController, IOnStateEn
             return;
         }
 
-        _window.OpenCenteredRight();
+        _window.OpenCentered();
         _window.MoveToFront();
     }
 
