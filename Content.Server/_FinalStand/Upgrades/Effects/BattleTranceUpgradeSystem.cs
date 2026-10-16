@@ -61,6 +61,7 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
         battleTrance.Stacks++;
         battleTrance.CurrentBonus = battleTrance.Stacks * battleTrance.BonusPerStack;
         state.DamageMultiplier += battleTrance.CurrentBonus;
+        Dirty(gun, state);
         BroadcastState(battleTrance);
     }
 
@@ -84,9 +85,10 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
     private void OnWaveEnd(ref WaveEndedEvent args)
     {
         var query = EntityQueryEnumerator<FSBattleTranceComponent, FSWeaponUpgradeStateComponent>();
-        while (query.MoveNext(out _, out var battleTrance, out var state))
+        while (query.MoveNext(out var gun, out var battleTrance, out var state))
         {
             state.DamageMultiplier -= battleTrance.CurrentBonus;
+            Dirty(gun, state);
             battleTrance.Stacks = 0;
             battleTrance.CurrentBonus = 0f;
             BroadcastZero(battleTrance);
