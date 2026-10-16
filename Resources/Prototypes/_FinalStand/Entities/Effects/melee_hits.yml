@@ -125,24 +125,104 @@
 
 - type: entity
   parent: FSMeleeEffectBase
-  id: FSMeleeSlashSmear
+  id: FSMeleeSlashWarriorCrossTinted
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_cross_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorArcTinted
+  components:
+  - type: TimedDespawn
+    lifetime: 0.29
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_arc_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorBurst
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_burst
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorBurstTinted
+  components:
+  - type: TimedDespawn
+    lifetime: 0.32
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_burst_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashWarriorCleave
+  components:
+  - type: TimedDespawn
+    lifetime: 0.23
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: warrior_cleave
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashRogueCrescent
+  components:
+  - type: TimedDespawn
+    lifetime: 0.29
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: rogue_crescent
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashRogueDoubleTinted
+  components:
+  - type: TimedDespawn
+    lifetime: 0.2
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: rogue_double_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashRogueStarTinted
+  components:
+  - type: TimedDespawn
+    lifetime: 0.29
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
+    state: rogue_star_gray
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeStabEnergy
   components:
   - type: TimedDespawn
     lifetime: 0.26
   - type: Sprite
-    sprite: _FinalStand/Effects/Melee/slashes.rsi
-    state: slash
+    sprite: _FinalStand/Effects/Melee/stabs.rsi
+    state: esword
 
 - type: entity
-  parent: FSMeleeSlashSmear
-  id: FSMeleeSlashSmearHeavy
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabHalberd
   components:
   - type: Sprite
-    state: slash_heavy
+    state: halberd
 
 - type: entity
-  parent: FSMeleeSlashSmear
-  id: FSMeleeThrustSmear
+  parent: FSMeleeStabEnergy
+  id: FSMeleeStabKnife
   components:
   - type: Sprite
-    state: thrust
+    state: knife

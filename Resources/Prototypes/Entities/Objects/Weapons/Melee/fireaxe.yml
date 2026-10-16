@@ -24,13 +24,14 @@
       trailColor: "#b02020cc"
       trailWidth: 0.12
       trailDuration: 0.18
-      slashEffect: FSMeleeSlashSmearHeavy
-      slashColor: "#ff9a90"
-      slashScale: 1.26
       fleshSound:
         collection: FSMeleeBladeFlesh
         params:
           volume: 2
+      slashEffect: FSMeleeSlashWarriorCleave
+      slashColor: "#ffffff"
+      slashScale: 0.95
+      slashTravel: 0.35
     comboHits: 2
     finisher:
       anticipation: 0.2
@@ -53,13 +54,14 @@
       trailDuration: 0.18
       damageMultiplier: 1.4
       staggerRadius: 1.6
-      slashEffect: FSMeleeSlashSmearHeavy
-      slashColor: "#ffb0a0"
-      slashScale: 1.44
       fleshSound:
         collection: FSMeleeBladeFlesh
         params:
           volume: 3
+      slashEffect: FSMeleeSlashWarriorBurst
+      slashColor: "#ffffff"
+      slashScale: 1.1
+      slashGrow: 1.35
   - type: Tag
     tags:
     - FireAxe

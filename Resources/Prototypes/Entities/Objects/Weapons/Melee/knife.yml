@@ -127,11 +127,13 @@
       trailColor: "#e8f0ffaa"
       trailWidth: 0.04
       trailDuration: 0.08
-      slashEffect: FSMeleeSlashSmear
-      slashColor: "#eef4ff"
-      slashScale: 0.98
       fleshSound:
         collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeSlashRogueCrescent
+      slashColor: "#ffffff"
+      slashScale: 0.7
+      slashOffset: 0.45
+      slashTravel: 0.35
     comboHits: 3
     finisher:
       anticipation: 0.06
@@ -154,13 +156,15 @@
       bleed: 2
       lunge: 0.3
       hitEffectAngle: 45
-      slashEffect: FSMeleeThrustSmear
-      slashColor: "#eef4ff"
-      slashScale: 1.26
       fleshSound:
         collection: FSMeleeBladeFlesh
         params:
           volume: 2
+      slashEffect: FSMeleeStabKnife
+      slashScale: 0.5
+      slashOffset: 0.95
+      slashTravel: 0.3
+      slashGrow: 1.1
   - type: Tag
     tags:
     - CombatKnife

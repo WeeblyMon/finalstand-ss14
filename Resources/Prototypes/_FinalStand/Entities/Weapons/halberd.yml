@@ -25,11 +25,13 @@
       trailColor: "#8b1a1acc"
       trailWidth: 0.06
       trailDuration: 0.1
-      slashEffect: FSMeleeThrustSmear
-      slashColor: "#ffb4b4"
-      slashScale: 1.72
       fleshSound:
         collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeStabHalberd
+      slashScale: 0.8
+      slashOffset: 1.4
+      slashTravel: 0.3
+      slashGrow: 1.1
     comboHits: 2
     finisher:
       anticipation: 0.12
@@ -51,13 +53,15 @@
       trailDuration: 0.1
       damageMultiplier: 1.3
       pierce: 2
-      slashEffect: FSMeleeThrustSmear
-      slashColor: "#ffd0d0"
-      slashScale: 2.01
       fleshSound:
         collection: FSMeleeBladeFlesh
         params:
           volume: 2
+      slashEffect: FSMeleeStabHalberd
+      slashScale: 0.95
+      slashOffset: 1.6
+      slashTravel: 0.45
+      slashGrow: 1.15
     heavy:
       anticipation: 0.12
       hitstop: 0.07

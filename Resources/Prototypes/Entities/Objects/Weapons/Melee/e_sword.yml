@@ -24,9 +24,9 @@
       trailColor: "#5ce1ffdd"
       trailWidth: 0.07
       trailDuration: 0.16
-      slashEffect: FSMeleeSlashSmear
+      slashEffect: FSMeleeSlashWarriorArcTinted
       slashColor: "#7ff0ff"
-      slashScale: 1.15
+      slashScale: 0.85
     comboHits: 2
     finisher:
       anticipation: 0.04
@@ -49,9 +49,11 @@
       trailWidth: 0.07
       trailDuration: 0.16
       damageMultiplier: 1.4
-      slashEffect: FSMeleeSlashSmearHeavy
-      slashColor: "#9ff6ff"
-      slashScale: 1.32
+      slashEffect: FSMeleeStabEnergy
+      slashScale: 0.6
+      slashOffset: 1.1
+      slashTravel: 0.35
+      slashGrow: 1.1
   - type: EnergySword
   - type: ItemToggle
     soundActivate:

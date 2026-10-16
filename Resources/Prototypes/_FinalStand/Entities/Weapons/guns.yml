@@ -753,11 +753,11 @@
       trailColor: "#9ec3ffaa"
       trailWidth: 0.05
       trailDuration: 0.11
-      slashEffect: FSMeleeSlashSmear
-      slashColor: "#dde9ff"
-      slashScale: 1.15
       fleshSound:
         collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeSlashRogueDoubleTinted
+      slashColor: "#dde9ff"
+      slashScale: 0.8
   - type: MeleeWeapon
     damage:
       types:
@@ -794,13 +794,16 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: gib
-      slashEffect: FSMeleeSlashSmear
-      slashColor: "#ffc860"
-      slashScale: 1.03
       fleshSound:
         collection: FSMeleeBladeFlesh
         params:
           volume: -5
+      slashEffect: FSMeleeSlashRogueStarTinted
+      slashColor: "#ffc860"
+      slashScale: 0.55
+      slashOffset: 0.55
+      slashTravel: 0.15
+      slashGrow: 1.1
   - type: MeleeWeapon
     autoAttack: true
     angle: 90
