@@ -4,6 +4,7 @@ using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.Economy;
@@ -23,6 +24,7 @@ namespace Content.Server._FinalStand.Leveling;
 public sealed partial class FSLevelingSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -274,7 +276,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             return;
 
-        var amount = (int)(rawAmount * lvl.XpMultiplier * lvl.CatchUpMultiplier);
+        var amount = (int)(rawAmount * lvl.XpMultiplier * lvl.CatchUpMultiplier * _titleBuffs.ForMind(mindId).Xp);
         lvl.Experience += amount;
 
         _roundStats.TryGetValue(mindId, out var stats);

@@ -23,6 +23,8 @@ public sealed partial class FSPlayerBadgeSystem : EntitySystem
                 args.PushMarkup(Loc.GetString("fs-badge-examine-title",
                     ("color", title.Color.ToHex()),
                     ("title", Loc.GetString(title.Name))));
+                if (title.BuffDescription is { } buff)
+                    args.PushMarkup(Loc.GetString("fs-badge-examine-title-buff", ("buff", Loc.GetString(buff))));
             }
 
             if (ent.Comp.Rookie)

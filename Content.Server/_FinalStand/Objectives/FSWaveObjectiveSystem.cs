@@ -1,6 +1,7 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
@@ -24,6 +25,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
 {
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chat = default!;
@@ -171,7 +173,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
 
         current.Result = FSWaveObjectiveResult.Completed;
         var reward = RewardFor(current);
-        _wallet.DistributeCredits(reward);
+        _wallet.DistributeCredits(reward, mindId => _titleBuffs.ForMind(mindId).ObjectiveCredits);
         _chat.DispatchServerAnnouncement(Loc.GetString("fs-objective-complete",
             ("name", Loc.GetString(current.Prototype.Name)), ("credits", reward)), AnnounceColor);
         SendState(Filter.Broadcast());

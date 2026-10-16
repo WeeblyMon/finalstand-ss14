@@ -135,7 +135,9 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return _cachedUsernames.TryGetValue(userId, out var cached) ? cached : "unknown";
     }
 
-    public void DistributeCredits(int amount)
+    public void DistributeCredits(int amount) => DistributeCredits(amount, _ => 1f);
+
+    public void DistributeCredits(int amount, Func<EntityUid, float> scale)
     {
         var count = 0;
         foreach (var session in _playerManager.Sessions)
@@ -144,7 +146,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
                 continue;
 
             var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
-            wallet.Credits += amount;
+            wallet.Credits += (int) MathF.Round(amount * scale(mindId));
             MarkWalletDirty(mindId);
             count++;
         }

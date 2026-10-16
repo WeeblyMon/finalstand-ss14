@@ -28,7 +28,7 @@ fs-lobby-mentor-button = Mentor
 
 fs-titles-window-title = Titles
 fs-titles-heading = YOUR TITLES
-fs-titles-summary = {$owned} of {$total} unlocked. Your equipped title shows on the scoreboard and when people examine you.
+fs-titles-summary = {$owned} of {$total} unlocked. Your equipped title shows on the scoreboard and when people examine you, and gives a small bonus.
 fs-titles-equip = Equip
 fs-titles-equipped = Equipped
 fs-titles-unequip = Unequip
@@ -57,3 +57,21 @@ fs-mentor-shop-heading = Mentor shop
 fs-mentor-shop-title = {$title} title
 fs-mentor-shop-buy = Buy ({$cost})
 fs-mentor-shop-owned-label = Owned
+
+fs-title-buff-fresh-meat = +5% XP
+fs-title-buff-survivor = +5 max health
+fs-title-buff-station-held = +3% credits from kills
+fs-title-buff-iron-wall = 3% less damage taken
+fs-title-buff-nightmare-breaker = +3% damage to bosses
+fs-title-buff-beyond-the-wall = +3% damage in endless waves
+fs-title-buff-weekly-champion = +5% bonus objective rewards
+fs-title-buff-perk-master = +2% XP and +2% credits from kills
+fs-title-buff-offense = +2% damage
+fs-title-buff-defense = 2% less damage taken
+fs-title-buff-utility = +2% move speed
+fs-title-buff-economy = +4% credits from kills and bonus objectives
+fs-title-buff-hybrid = +1% damage, 1% less damage taken, +1% move speed
+fs-title-buff-mentor = +10% healing you do
+fs-title-buff-guardian-angel = +15% healing on downed teammates, so your revives land faster
+fs-titles-buff-line = Equipped bonus: {$buff}
+fs-badge-examine-title-buff = [color=#96938d]Title bonus: {$buff}[/color]

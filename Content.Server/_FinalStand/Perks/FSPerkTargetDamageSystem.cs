@@ -1,5 +1,6 @@
 // Perks that depend on who is being hit, applied on the zombie so bullets, melee and explosions all count.
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Titles;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Components;
@@ -14,6 +15,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSPerkTargetDamageSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private FSUnderdogSystem _underdog = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -48,6 +50,7 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
 
         mult *= _underdog.GetMultiplier(attacker, perks);
         mult *= FSArchetypeSystem.Bonus(perks).Damage;
+        mult *= _titleBuffs.DamageAgainst(attacker, ent);
 
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.Damage *= mult;

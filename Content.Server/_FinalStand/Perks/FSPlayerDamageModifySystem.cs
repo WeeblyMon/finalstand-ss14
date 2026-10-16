@@ -7,6 +7,7 @@ using Content.Shared.Players;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using Content.Server._FinalStand.Titles;
 
 namespace Content.Server._FinalStand.Perks;
 
@@ -14,6 +15,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
@@ -77,7 +79,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
             }
         }
 
-        var taken = FSArchetypeSystem.Bonus(augs).DamageTaken;
+        var taken = FSArchetypeSystem.Bonus(augs).DamageTaken * _titleBuffs.ForBody(uid).DamageTaken;
         if (Math.Abs(taken - 1f) > 0.0001f && args.Damage.GetTotal() > 0)
             args.Damage *= taken;
     }
@@ -89,6 +91,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
             return;
 
         args.Multiplier *= 1f + augs.GetSlottedLevel("FieldMedic") * FSPerkBonusConstants.FieldMedicPerLevel;
+        args.Multiplier *= _titleBuffs.HealingFor(uid, args.Target);
     }
 
     private void SendChargesUpdate(EntityUid bodyUid, int charges)

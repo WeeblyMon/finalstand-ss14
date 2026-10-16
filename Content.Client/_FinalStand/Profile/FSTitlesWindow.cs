@@ -87,6 +87,9 @@ public sealed class FSTitlesWindow : FancyWindow
         var text = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
         text.AddChild(Text(Loc.GetString(title.Name), _bold, owned ? title.Color : FSUiPalette.TextMuted));
         text.AddChild(Wrapped(Loc.GetString(title.Description), owned ? FSUiPalette.TextPrimary : FSUiPalette.TextMuted, 360));
+        if (title.BuffDescription is { } buff)
+            text.AddChild(Text(Loc.GetString("fs-titles-buff-line", ("buff", Loc.GetString(buff))), _small,
+                owned ? FSUiPalette.StatePositive : FSUiPalette.TextMuted));
 
         var line = new BoxContainer
         {

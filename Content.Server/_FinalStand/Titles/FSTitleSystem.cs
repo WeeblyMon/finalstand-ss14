@@ -17,6 +17,7 @@ public sealed partial class FSTitleSystem : EntitySystem
 {
     [Dependency] private FSPlayerDataStore _store = default!;
     [Dependency] private FSPlayerBadgeSystem _badge = default!;
+    [Dependency] private FSTitleBuffSystem _buffs = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -111,5 +112,6 @@ public sealed partial class FSTitleSystem : EntitySystem
     {
         var badge = EnsureComp<FSPlayerBadgeComponent>(body);
         _badge.SetBadge(body, badge.Rookie, GetEquipped(userId));
+        _buffs.Apply(body);
     }
 }

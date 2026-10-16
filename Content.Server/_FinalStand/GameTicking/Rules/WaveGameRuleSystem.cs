@@ -24,6 +24,7 @@ using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
 using Content.Server._FinalStand.Onboarding;
 using Content.Server._FinalStand.Perks;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Power.EntitySystems;
@@ -42,6 +43,7 @@ namespace Content.Server._FinalStand.GameTicking.Rules;
 public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComponent>
 {
     [Dependency] private IPlayerManager _playerManager = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
@@ -584,7 +586,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
         {
             killerMind = mindId;
-            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits));
+            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits
+                * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurityRole(mindId))
                 _wallet.GiveCredits(mindId, comp.SecKillBonus);
@@ -976,6 +979,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
     }
+
+    public bool IsBoss(EntityUid uid)
+        => uid.IsValid() && TryGetActiveRule(out _, out var comp, out _) && comp.GiantEntity == uid;
 
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
     {
