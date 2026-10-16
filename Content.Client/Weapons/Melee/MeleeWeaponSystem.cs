@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Numerics;
 using Content.Client._FinalStand.Melee;
 using Content.Client.Gameplay;
 using Content.Shared.CCVar;
@@ -214,19 +215,52 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     {
         var attackerPos = TransformSystem.GetMapCoordinates(attacker);
 
-        if (mousePos.MapId != attackerPos.MapId || (attackerPos.Position - mousePos.Position).Length() > meleeComponent.Range)
+        if (mousePos.MapId != attackerPos.MapId)
             return;
 
+        // FINALSTAND: swing toward the cursor at any distance and aim at the nearest mob when nothing is clicked
+        var direction = mousePos.Position - attackerPos.Position;
         EntityUid? target = null;
 
-        if (_stateManager.CurrentState is GameplayStateBase screen)
+        if (direction.Length() <= meleeComponent.Range && _stateManager.CurrentState is GameplayStateBase screen)
             target = screen.GetClickedEntity(mousePos);
 
         // Don't light-attack if interaction will be handling this instead
         if (Interaction.CombatModeCanHandInteract(attacker, target))
             return;
 
+        if (target == null && direction != Vector2.Zero && FindLightTarget(attacker, attackerPos, direction, meleeComponent.Range) is { } assisted)
+        {
+            target = assisted;
+            coordinates = Transform(assisted).Coordinates;
+        }
+        else if (direction.Length() > meleeComponent.Range)
+        {
+            coordinates = TransformSystem.ToCoordinates(TransformSystem.GetMap(attacker) ?? EntityUid.Invalid,
+                new MapCoordinates(attackerPos.Position + direction.Normalized() * meleeComponent.Range, attackerPos.MapId));
+        }
+
         RaisePredictiveEvent(new LightAttackEvent(GetNetEntity(target), GetNetEntity(weaponUid), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
+    }
+
+    private EntityUid? FindLightTarget(EntityUid attacker, MapCoordinates attackerPos, Vector2 direction, float range)
+    {
+        EntityUid? best = null;
+        var bestDistance = float.MaxValue;
+        foreach (var uid in ArcRayCast(attackerPos.Position, direction.ToWorldAngle(), Angle.FromDegrees(70), range, attackerPos.MapId, attacker))
+        {
+            if (!HasComp<MobStateComponent>(uid) || MobState.IsDead(uid))
+                continue;
+
+            var distance = (TransformSystem.GetWorldPosition(uid) - attackerPos.Position).LengthSquared();
+            if (distance >= bestDistance)
+                continue;
+
+            best = uid;
+            bestDistance = distance;
+        }
+
+        return best;
     }
 
     private void OnMeleeLunge(MeleeLungeEvent ev)
