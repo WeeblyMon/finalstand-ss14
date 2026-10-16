@@ -89,7 +89,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 40
+        Piercing: 300
   - type: FSFlatMoneyProjectile
 
 - type: entity
