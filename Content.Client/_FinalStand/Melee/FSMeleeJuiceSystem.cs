@@ -5,6 +5,7 @@ using Content.Client.Eye;
 using Content.Client.Weapons.Melee;
 using Content.Client.Weapons.Melee.Components;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared.Body.Components;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
 using Content.Shared.Weapons.Melee;
@@ -14,6 +15,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Animations;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
@@ -26,6 +28,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private AnimationPlayerSystem _animation = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSParticleSystem _particles = default!;
     [Dependency] private MeleeWeaponSystem _melee = default!;
     [Dependency] private SharedEyeSystem _eye = default!;
@@ -36,6 +39,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float MaxShake = 0.35f;
     private const int BurstBudget = 8;
     private const int MaxJitterTargets = 6;
+    private const int MaxFleshSounds = 2;
     private const int FatigueHits = 10;
     private const float FatigueReset = 1.5f;
     private const float ZoomDuration = 0.1f;
@@ -183,6 +187,18 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             SpawnEffect(profile.HitEffect, target, dir.ToWorldAngle() + Angle.FromDegrees(profile.HitEffectAngle));
             if (profile.HitEmitter is { } emitter)
                 _particles.Burst(emitter, target, profile.ParticleTint);
+        }
+
+        var squelches = 0;
+        foreach (var target in targets)
+        {
+            if (squelches >= MaxFleshSounds || profile.FleshSound == null)
+                break;
+            if (TerminatingOrDeleted(target) || !HasComp<BloodstreamComponent>(target))
+                continue;
+
+            squelches++;
+            _audio.PlayLocal(profile.FleshSound, target, user, profile.FleshSound.Params.WithVariation(0.12f));
         }
 
         if (user != _player.LocalEntity)

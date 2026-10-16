@@ -130,6 +130,8 @@
       slashEffect: FSMeleeSlashSmear
       slashColor: "#eef4ff"
       slashScale: 0.98
+      fleshSound:
+        collection: FSMeleeBladeFlesh
     comboHits: 3
     finisher:
       anticipation: 0.06
@@ -155,6 +157,10 @@
       slashEffect: FSMeleeThrustSmear
       slashColor: "#eef4ff"
       slashScale: 1.26
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
   - type: Tag
     tags:
     - CombatKnife

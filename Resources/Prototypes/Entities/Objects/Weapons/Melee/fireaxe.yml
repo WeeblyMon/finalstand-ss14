@@ -27,6 +27,10 @@
       slashEffect: FSMeleeSlashSmearHeavy
       slashColor: "#ff9a90"
       slashScale: 1.26
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
     comboHits: 2
     finisher:
       anticipation: 0.2
@@ -52,6 +56,10 @@
       slashEffect: FSMeleeSlashSmearHeavy
       slashColor: "#ffb0a0"
       slashScale: 1.44
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 3
   - type: Tag
     tags:
     - FireAxe

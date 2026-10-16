@@ -756,6 +756,8 @@
       slashEffect: FSMeleeSlashSmear
       slashColor: "#dde9ff"
       slashScale: 1.15
+      fleshSound:
+        collection: FSMeleeBladeFlesh
   - type: MeleeWeapon
     damage:
       types:
@@ -795,6 +797,10 @@
       slashEffect: FSMeleeSlashSmear
       slashColor: "#ffc860"
       slashScale: 1.03
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: -5
   - type: MeleeWeapon
     autoAttack: true
     angle: 90

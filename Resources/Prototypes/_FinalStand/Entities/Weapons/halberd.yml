@@ -28,6 +28,8 @@
       slashEffect: FSMeleeThrustSmear
       slashColor: "#ffb4b4"
       slashScale: 1.72
+      fleshSound:
+        collection: FSMeleeBladeFlesh
     comboHits: 2
     finisher:
       anticipation: 0.12
@@ -52,6 +54,10 @@
       slashEffect: FSMeleeThrustSmear
       slashColor: "#ffd0d0"
       slashScale: 2.01
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: 2
     heavy:
       anticipation: 0.12
       hitstop: 0.07
@@ -72,6 +78,8 @@
       trailColor: "#8b1a1acc"
       trailWidth: 0.1
       trailDuration: 0.22
+      fleshSound:
+        collection: FSMeleeBladeFlesh
   - type: MeleeWeapon
     range: 2
     angle: 360

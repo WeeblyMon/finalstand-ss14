@@ -56,6 +56,18 @@
   - /Audio/_FinalStand/Melee/flesh_squish3.ogg
 
 - type: soundCollection
+  id: FSMeleeBladeFlesh
+  files:
+  - /Audio/_FinalStand/Melee/flesh_squish1.ogg
+  - /Audio/_FinalStand/Melee/flesh_squish2.ogg
+  - /Audio/_FinalStand/Melee/flesh_squish3.ogg
+  - /Audio/Weapons/Xeno/alien_claw_flesh1.ogg
+  - /Audio/Weapons/Xeno/alien_claw_flesh2.ogg
+  - /Audio/Weapons/Xeno/alien_claw_flesh3.ogg
+  - /Audio/Weapons/Guns/Hits/bullet_meat3.ogg
+  - /Audio/Weapons/Guns/Hits/bullet_meat4.ogg
+
+- type: soundCollection
   id: FSMeleeBoneBreak
   files:
   - /Audio/_FinalStand/Melee/bone_break1.ogg

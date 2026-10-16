@@ -142,6 +142,10 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public SoundSpecifier? KillSound;
 
+    // Played where the swing lands on anything that bleeds.
+    [DataField]
+    public SoundSpecifier? FleshSound;
+
     [DataField]
     public int ExtraStrikes;
 
