@@ -20,6 +20,12 @@ public sealed partial class MenuButton : ContainerButton
     private static readonly Color ColorHovered = FSPalette.TextBright;
     private static readonly Color ColorPressed = FSPalette.TextDim;
 
+    private static readonly Color ClassicNormal = Color.FromHex("#99a7b3");
+    private static readonly Color ClassicHovered = Color.FromHex("#acbac6");
+    private static readonly Color ClassicPressed = Color.FromHex("#75838e");
+
+    private readonly bool _classic = FSClassicHud.Enabled;
+
     private const float VertPad = 0f;
 
     // FINALSTAND: the vanilla chips are a nine-patch texture on the old palette.
@@ -65,20 +71,20 @@ public sealed partial class MenuButton : ContainerButton
         // FINALSTAND: the bar is keybind chips, not icon buttons - the icon is what forced it tall.
         _buttonIcon = new TextureRect()
         {
-            TextureScale = new Vector2(0.35f, 0.35f),
+            TextureScale = _classic ? new Vector2(0.5f, 0.5f) : new Vector2(0.35f, 0.35f),
             HorizontalAlignment = HAlignment.Center,
             VerticalAlignment = VAlignment.Center,
             VerticalExpand = true,
-            Margin = new Thickness(0, VertPad),
-            ModulateSelfOverride = ColorNormal,
+            Margin = new Thickness(0, _classic ? 4f : VertPad),
+            ModulateSelfOverride = _classic ? ClassicNormal : ColorNormal,
             Stretch = TextureRect.StretchMode.KeepCentered,
-            Visible = false
+            Visible = _classic
         };
         _buttonLabel = new Label
         {
             Text = "",
             HorizontalAlignment = HAlignment.Center,
-            ModulateSelfOverride = ColorNormal,
+            ModulateSelfOverride = _classic ? ClassicNormal : ColorNormal,
             StyleClasses = {StyleClassLabelTopButton}
         };
         _root = new BoxContainer
@@ -92,7 +98,8 @@ public sealed partial class MenuButton : ContainerButton
         };
         AddChild(_root);
         ToggleMode = true;
-        StyleBoxOverride = ChipNormal;
+        if (!_classic)
+            StyleBoxOverride = ChipNormal;
     }
 
     protected override void EnteredTree()
@@ -134,6 +141,12 @@ public sealed partial class MenuButton : ContainerButton
     private void UpdateChildColors()
     {
         if (_buttonIcon == null || _buttonLabel == null) return;
+        if (_classic)
+        {
+            UpdateClassicColors();
+            return;
+        }
+
         switch (DrawMode)
         {
             case DrawModeEnum.Normal:
@@ -157,6 +170,22 @@ public sealed partial class MenuButton : ContainerButton
             case DrawModeEnum.Disabled:
                 break;
         }
+    }
+
+    private void UpdateClassicColors()
+    {
+        if (DrawMode == DrawModeEnum.Disabled)
+            return;
+
+        var color = DrawMode switch
+        {
+            DrawModeEnum.Pressed => ClassicPressed,
+            DrawModeEnum.Hover => ClassicHovered,
+            _ => ClassicNormal,
+        };
+
+        _buttonIcon!.ModulateSelfOverride = color;
+        _buttonLabel!.ModulateSelfOverride = color;
     }
 
     protected override void DrawModeChanged()

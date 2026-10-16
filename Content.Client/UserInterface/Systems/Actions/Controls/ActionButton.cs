@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Client.Actions;
 using Content.Client.Actions.UI;
@@ -29,6 +30,7 @@ public sealed class ActionButton : Control, IEntityControl
     // one scale without either widget reaching into the other's layout constants.
     public const int SlotSize = WaveHudOverlay.HudSlotSize;
     private const int SourceArtSize = 32;
+    private const int ClassicSlotSize = 64;
     private const float ArtScale = SlotSize / (float) SourceArtSize;
 
     private IEntityManager _entities;
@@ -83,20 +85,27 @@ public sealed class ActionButton : Control, IEntityControl
 
         MouseFilter = MouseFilterMode.Pass;
 
-        MinSize = new Vector2(SlotSize, SlotSize);
-        SetSize = new Vector2(SlotSize, SlotSize);
-        MaxSize = new Vector2(SlotSize, SlotSize);
-        RectClipContent = true;
+        var classic = FSClassicHud.Enabled;
+        var slotSize = classic ? ClassicSlotSize : SlotSize;
+        var artScale = slotSize / (float) SourceArtSize;
+
+        if (!classic)
+        {
+            MinSize = new Vector2(SlotSize, SlotSize);
+            SetSize = new Vector2(SlotSize, SlotSize);
+            MaxSize = new Vector2(SlotSize, SlotSize);
+            RectClipContent = true;
+        }
 
         Button = new TextureRect
         {
             Name = "Button",
-            TextureScale = new Vector2(ArtScale, ArtScale)
+            TextureScale = new Vector2(artScale, artScale)
         };
         HighlightRect = new PanelContainer
         {
             StyleClasses = { StyleClassActionHighlightRect },
-            MinSize = new Vector2(SlotSize, SlotSize),
+            MinSize = classic ? new Vector2(32, 32) : new Vector2(slotSize, slotSize),
             Visible = false
         };
         _bigActionIcon = new SpriteView
@@ -104,8 +113,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Action Icon",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(ArtScale, ArtScale),
-            SetSize = new Vector2(SlotSize, SlotSize),
+            Scale = new Vector2(artScale, artScale),
+            SetSize = new Vector2(slotSize, slotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -118,17 +127,25 @@ public sealed class ActionButton : Control, IEntityControl
             OverrideDirection = Direction.South,
         };
         // FINALSTAND: bottom-left, with a hard black shadow.
-        Label = new Label
-        {
-            Name = "Label",
-            HorizontalAlignment = HAlignment.Left,
-            VerticalAlignment = VAlignment.Bottom,
-            Margin = new Thickness(2, 0, 0, 0),
-            FontColorOverride = Color.White,
-            FontColorShadowOverride = Color.Black,
-            ShadowOffsetXOverride = 1,
-            ShadowOffsetYOverride = 1,
-        };
+        Label = classic
+            ? new Label
+            {
+                Name = "Label",
+                HorizontalAlignment = HAlignment.Left,
+                VerticalAlignment = VAlignment.Top,
+                Margin = new Thickness(5, 0, 0, 0),
+            }
+            : new Label
+            {
+                Name = "Label",
+                HorizontalAlignment = HAlignment.Left,
+                VerticalAlignment = VAlignment.Bottom,
+                Margin = new Thickness(2, 0, 0, 0),
+                FontColorOverride = Color.White,
+                FontColorShadowOverride = Color.Black,
+                ShadowOffsetXOverride = 1,
+                ShadowOffsetYOverride = 1,
+            };
         _chargesLabel = new Label
         {
             Name = "ChargesLabel",
@@ -142,8 +159,8 @@ public sealed class ActionButton : Control, IEntityControl
             Name = "Big Sprite",
             HorizontalExpand = true,
             VerticalExpand = true,
-            Scale = new Vector2(ArtScale, ArtScale),
-            SetSize = new Vector2(SlotSize, SlotSize),
+            Scale = new Vector2(artScale, artScale),
+            SetSize = new Vector2(slotSize, slotSize),
             Visible = false,
             OverrideDirection = Direction.South,
         };
@@ -160,11 +177,11 @@ public sealed class ActionButton : Control, IEntityControl
             Orientation = LayoutOrientation.Horizontal,
             HorizontalExpand = true,
             VerticalExpand = true,
-            MinSize = new Vector2(SlotSize, SlotSize)
+            MinSize = new Vector2(slotSize, slotSize)
         };
         paddingBoxItemIcon.AddChild(new Control()
         {
-            MinSize = new Vector2(SlotSize / 2, SlotSize / 2),
+            MinSize = new Vector2(slotSize / 2, slotSize / 2),
         });
         paddingBoxItemIcon.AddChild(new Control
         {
