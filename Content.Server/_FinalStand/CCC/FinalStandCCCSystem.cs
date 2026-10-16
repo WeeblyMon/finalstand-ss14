@@ -1,17 +1,12 @@
-using System.Numerics;
 using Content.Server.Chat.Systems;
 using Content.Server.Destructible;
 using Content.Server._FinalStand.Effects;
-using Content.Server._FinalStand.Spawners;
 using Content.Server.RoundEnd;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Destructible;
 using Content.Shared.FixedPoint;
-using Content.Shared.Mobs.Systems;
-using Content.Shared.Stunnable;
-using Content.Shared.Throwing;
 using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio;
 using Robust.Shared.Player;
@@ -28,26 +23,18 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private FSFlairSystem _flair = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private SharedStunSystem _stun = default!;
-    [Dependency] private ThrowingSystem _throwing = default!;
-    [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private WaveGameRuleSystem _waves = default!;
 
     private static readonly TimeSpan BroadcastInterval = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan RoundEndCountdown = TimeSpan.FromSeconds(30);
 
     private static readonly TimeSpan ShieldTime = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan ShockwaveStun = TimeSpan.FromSeconds(3);
-    private const float ShockwaveRange = 7f;
-    private const float ShockwavePush = 3f;
     private static readonly Color AlarmColor = Color.FromHex("#e4512f");
     private static readonly SoundSpecifier LifeLostSound = new SoundPathSpecifier("/Audio/Misc/redalert.ogg");
     private static readonly SoundSpecifier LastLifeSound = new SoundPathSpecifier("/Audio/Announcements/bloblarm.ogg");
     private static readonly ProtoId<FSParticleEmitterPrototype> LifeLostRing = "FSCCCLifeLostRing";
     private static readonly ProtoId<FSParticleEmitterPrototype> LifeLostSparks = "FSCCCLifeLostSparks";
 
-    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _zombies = new();
     private TimeSpan _nextBroadcast;
 
     public override void Initialize()
@@ -126,34 +113,16 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
         Dirty(uid, tag);
         _damageable.ClearAllDamage(uid);
 
-        PushZombiesBack(uid);
         _flair.Burst(LifeLostRing, uid, kick: 2.5f);
         _flair.Burst(LifeLostSparks, uid);
+        var wave = _waves.FailWave() ?? 0;
 
         var last = tag.LivesLeft == 1;
         _chat.DispatchGlobalAnnouncement(
-            Loc.GetString(last ? "fs-ccc-last-life" : "fs-ccc-life-lost", ("left", tag.LivesLeft)),
+            Loc.GetString(last ? "fs-ccc-last-life" : "fs-ccc-life-lost", ("left", tag.LivesLeft), ("wave", wave)),
             Loc.GetString("fs-ccc-announcer"),
             announcementSound: last ? LastLifeSound : LifeLostSound,
             colorOverride: AlarmColor);
         RaiseNetworkEvent(new FSCCCLifeLostEvent(GetNetEntity(uid), tag.LivesLeft, tag.Lives), Filter.Broadcast());
-    }
-
-    private void PushZombiesBack(EntityUid ccc)
-    {
-        var center = _transform.GetWorldPosition(ccc);
-        _zombies.Clear();
-        _lookup.GetEntitiesInRange(Transform(ccc).Coordinates, ShockwaveRange, _zombies);
-        foreach (var zombie in _zombies)
-        {
-            if (_mobState.IsDead(zombie))
-                continue;
-
-            _stun.TryUpdateParalyzeDuration(zombie, ShockwaveStun);
-            var away = _transform.GetWorldPosition(zombie) - center;
-            if (away.LengthSquared() < 0.01f)
-                away = Vector2.UnitX;
-            _throwing.TryThrow(zombie, away.Normalized() * ShockwavePush, 8f);
-        }
     }
 }

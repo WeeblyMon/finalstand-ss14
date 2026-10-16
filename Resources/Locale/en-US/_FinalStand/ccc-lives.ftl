@@ -1,9 +1,9 @@
 fs-ccc-announcer = Central Command Console
-fs-ccc-life-lost = CORE BREACH. Emergency reboot engaged. The console has {$left} {$left ->
+fs-ccc-life-lost = CORE BREACH. Emergency reboot engaged. The horde is pushed back: regroup and prepare for wave {$wave} again. The console has {$left} {$left ->
     [one] life
    *[other] lives
 } left.
-fs-ccc-last-life = CORE BREACH. Emergency reboot engaged. This is the last life. If the console falls again, the station is lost.
+fs-ccc-last-life = CORE BREACH. Emergency reboot engaged. The horde is pushed back: regroup and prepare for wave {$wave} again. This is the last life. If the console falls again, the station is lost.
 fs-ccc-lives-banner-title = CCC REBOOTED
 fs-ccc-lives-banner-left = {$left} {$left ->
     [one] LIFE

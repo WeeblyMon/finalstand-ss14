@@ -360,19 +360,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
         Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
-        foreach (var enemy in comp.AliveEnemies)
-            QueueDel(enemy);
-        comp.AliveEnemies.Clear();
-
-        if (comp.IsDarkWave)
-        {
-            comp.IsDarkWave = false;
-            comp.MaxEnemyCap = comp.SavedMaxEnemyCap;
-            RestoreStation(comp);
-            RepowerDoors(comp);
-            StopDarkWaveAmbience(comp);
-            RaiseNetworkEvent(new FSDarkWaveEndedEvent(), Filter.Broadcast());
-        }
+        ClearCombat(comp);
 
         if (!isForced)
         {
@@ -393,6 +381,36 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.WavesCompleted++;
         comp.WaveNumber++;
         StartPrepPhase(uid, comp);
+    }
+
+    public int? FailWave()
+    {
+        if (!TryGetActiveRule(out var uid, out var comp, out _) || comp.Phase != WavePhase.Combat)
+            return null;
+
+        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
+        ClearCombat(comp);
+        comp.GiantEntity = EntityUid.Invalid;
+        comp.GiantApAwarded = false;
+        StartPrepPhase(uid, comp);
+        return comp.WaveNumber;
+    }
+
+    private void ClearCombat(WaveGameRuleComponent comp)
+    {
+        foreach (var enemy in comp.AliveEnemies)
+            QueueDel(enemy);
+        comp.AliveEnemies.Clear();
+
+        if (!comp.IsDarkWave)
+            return;
+
+        comp.IsDarkWave = false;
+        comp.MaxEnemyCap = comp.SavedMaxEnemyCap;
+        RestoreStation(comp);
+        RepowerDoors(comp);
+        StopDarkWaveAmbience(comp);
+        RaiseNetworkEvent(new FSDarkWaveEndedEvent(), Filter.Broadcast());
     }
 
     private void AwardBossReward(WaveGameRuleComponent comp)
