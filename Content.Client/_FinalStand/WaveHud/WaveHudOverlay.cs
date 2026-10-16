@@ -172,6 +172,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public float PanelTop = -1f;
     public float PanelWidth = 205f;
     public float RightColumnBottom = -1f;
+    public float LeftColumnBottom = -1f;
 
     public bool IsReadyUpVisible = false;
     public int  ReadyUpCount = 0;
@@ -579,12 +580,14 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
             FSPalette.Money);
 
+        LeftColumnBottom = _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y;
         if (ShowMedicalFund)
         {
             var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
             DrawShadowed(screen, _labelFont!,
-                new Vector2(leftX, _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y + 2f),
+                new Vector2(leftX, LeftColumnBottom + 2f),
                 fundText, FSPalette.Ok);
+            LeftColumnBottom += 2f + screen.GetDimensions(_labelFont!, fundText, 1f).Y;
         }
 
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
