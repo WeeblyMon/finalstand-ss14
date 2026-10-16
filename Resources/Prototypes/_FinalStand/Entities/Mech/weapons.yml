@@ -244,7 +244,7 @@
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: BatteryAmmoProvider
-    proto: RedLaser
+    proto: FSMechRedLaser
     fireCost: 2
 
 - type: entity
@@ -266,7 +266,7 @@
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser.ogg
   - type: BatteryAmmoProvider
-    proto: RedMediumLaser
+    proto: FSMechRedMediumLaser
     fireCost: 5
 
 - type: entity
@@ -287,7 +287,7 @@
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/laser3.ogg
   - type: BatteryAmmoProvider
-    proto: Pulse
+    proto: FSMechPulse
     fireCost: 7
 
 - type: entity
@@ -311,7 +311,7 @@
       params:
         variation: 0.2
   - type: BatteryAmmoProvider
-    proto: TeslaGunBullet
+    proto: FSMechTeslaBullet
     fireCost: 16
   - type: FSMechCycleSound
     sound:
@@ -357,8 +357,8 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 32
-        Structural: 40
+        Piercing: 960
+        Structural: 1200
   - type: TimedDespawn
     lifetime: 3
 
@@ -371,7 +371,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 11
+        Piercing: 330
   - type: TimedDespawn
     lifetime: 2
 
@@ -387,7 +387,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 16
+        Piercing: 480
 
 - type: entity
   id: FSMechPelletSpread
@@ -408,7 +408,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 50
+        Piercing: 1500
   - type: Sprite
     sprite: _FinalStand/Objects/Mech/mech_shell.rsi
     layers:
@@ -436,8 +436,8 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 45
-        Blunt: 30
+        Piercing: 1350
+        Blunt: 900
   - type: Sprite
     sprite: _FinalStand/Objects/Mech/mech_shell.rsi
     layers:
@@ -460,8 +460,8 @@
   - type: Projectile
     damage:
       types:
-        Blunt: 80
-        Heat: 40
+        Blunt: 2400
+        Heat: 1200
   - type: Explosive
     explosionType: Default
     maxIntensity: 15
@@ -485,7 +485,7 @@
   - type: Projectile
     damage:
       types:
-        Heat: 45
+        Heat: 1350
   - type: PointLight
     radius: 2
     energy: 1
@@ -552,12 +552,12 @@
   - type: Projectile
     damage:
       types:
-        Blunt: 10
-        Heat: 8
+        Blunt: 300
+        Heat: 240
   - type: FSSkyfallMissile
     splashDamage:
       types:
-        Heat: 6
+        Heat: 180
   - type: TimedDespawn
     lifetime: 3
 
@@ -584,3 +584,46 @@
         variation: 0.15
   - type: TimedDespawn
     lifetime: 0.48
+
+- type: entity
+  parent: RedLaser
+  id: FSMechRedLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HitscanBasicDamage
+    damage:
+      types:
+        Heat: 420
+
+- type: entity
+  parent: RedMediumLaser
+  id: FSMechRedMediumLaser
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HitscanBasicDamage
+    damage:
+      types:
+        Heat: 510
+
+- type: entity
+  parent: Pulse
+  id: FSMechPulse
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HitscanBasicDamage
+    damage:
+      types:
+        Heat: 1050
+
+- type: entity
+  parent: TeslaGunBullet
+  id: FSMechTeslaBullet
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Projectile
+    deleteOnCollide: false
+    damage:
+      types:
+        Piercing: 420
+    soundHit:
+      path: /Audio/Weapons/Guns/Hits/bullet_hit.ogg

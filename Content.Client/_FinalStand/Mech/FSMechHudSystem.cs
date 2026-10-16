@@ -87,6 +87,14 @@ public sealed partial class FSMechHudSystem : EntitySystem
         _actions.TriggerAction((action, actionComp));
     }
 
+    public void SelectWeapon(int index)
+    {
+        if (Piloted() is not { } mech || index >= mech.Comp.EquipmentContainer.ContainedEntities.Count)
+            return;
+
+        RaiseNetworkEvent(new FSMechSelectWeaponEvent(GetNetEntity(mech.Comp.EquipmentContainer.ContainedEntities[index])));
+    }
+
     public Entity<MechComponent>? Piloted()
     {
         if (_player.LocalEntity is not { } local
@@ -106,7 +114,7 @@ public sealed partial class FSMechHudSystem : EntitySystem
                 return false;
 
             if (message.State == BoundKeyState.Down)
-                system.RaiseNetworkEvent(new FSMechSelectWeaponEvent(index));
+                system.SelectWeapon(index);
 
             return true;
         }

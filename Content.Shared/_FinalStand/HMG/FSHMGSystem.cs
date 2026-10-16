@@ -1,9 +1,13 @@
 // Seats a gunner on the HMG, limits fire to its arc, and builds heat so sustained fire overheats it.
 using Content.Shared._FinalStand.Fortifications;
+using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared.Actions;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Camera;
 using Content.Shared.CombatMode;
 using Content.Shared.Mobs;
+using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Components;
@@ -11,6 +15,8 @@ using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
+using Robust.Shared.Physics.Events;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.HMG;
@@ -24,7 +30,10 @@ public sealed partial class FSHMGSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedCombatModeSystem _combat = default!;
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private SharedContentEyeSystem _contentEye = default!;
+    [Dependency] private SharedActionsSystem _actions = default!;
 
+    private static readonly EntProtoId ArcAction = "FSActionToggleHMGArc";
     private static readonly SoundSpecifier OverheatSound = new SoundPathSpecifier("/Audio/Items/hiss.ogg");
 
     public override void Initialize()
@@ -36,7 +45,10 @@ public sealed partial class FSHMGSystem : EntitySystem
         SubscribeLocalEvent<FSHMGComponent, GunShotEvent>(OnShot);
         SubscribeLocalEvent<FSHMGComponent, AmmoShotEvent>(OnAmmoShot);
         SubscribeLocalEvent<FSHMGComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
+        SubscribeLocalEvent<FSHMGComponent, PreventCollideEvent>(OnPreventCollide);
         SubscribeLocalEvent<FSHMGGunnerComponent, MobStateChangedEvent>(OnGunnerState);
+        SubscribeLocalEvent<FSHMGGunnerComponent, GetEyePvsScaleEvent>(OnGunnerPvsScale);
+        SubscribeLocalEvent<FSHMGGunnerComponent, FSToggleHMGArcActionEvent>(OnToggleArc);
     }
 
     public float CurrentHeat(FSHMGComponent comp)
@@ -54,6 +66,12 @@ public sealed partial class FSHMGSystem : EntitySystem
         ent.Comp.UpgradeHeatMultiplier *= modifier.Heat;
         Dirty(ent);
         _gun.RefreshModifiers(ent.Owner);
+    }
+
+    private void OnPreventCollide(Entity<FSHMGComponent> ent, ref PreventCollideEvent args)
+    {
+        if (HasComp<FSFriendlyFireComponent>(args.OtherEntity))
+            args.Cancelled = true;
     }
 
     private void OnRefreshModifiers(Entity<FSHMGComponent> ent, ref GunRefreshModifiersEvent args)
@@ -85,6 +103,10 @@ public sealed partial class FSHMGSystem : EntitySystem
         Dirty(gunner, seat);
         _combat.SetInCombatMode(gunner, true);
         _transform.SetLocalRotation(gunner, Angle.Zero);
+        _contentEye.UpdatePvsScale(gunner);
+        _actions.AddAction(gunner, ref seat.ArcAction, ArcAction);
+        _actions.SetToggled(seat.ArcAction, seat.ShowArc);
+        Dirty(gunner, seat);
     }
 
     private void OnUnstrapped(Entity<FSHMGComponent> ent, ref UnstrappedEvent args)
@@ -95,10 +117,33 @@ public sealed partial class FSHMGSystem : EntitySystem
             Dirty(ent);
         }
 
-        if (TryComp<FSHMGGunnerComponent>(args.Buckle.Owner, out var seat) && !seat.WasInCombatMode)
-            _combat.SetInCombatMode(args.Buckle.Owner, false);
+        if (TryComp<FSHMGGunnerComponent>(args.Buckle.Owner, out var seat))
+        {
+            if (!seat.WasInCombatMode)
+                _combat.SetInCombatMode(args.Buckle.Owner, false);
+
+            _actions.RemoveAction(args.Buckle.Owner, seat.ArcAction);
+        }
 
         RemComp<FSHMGGunnerComponent>(args.Buckle.Owner);
+        _contentEye.UpdatePvsScale(args.Buckle.Owner);
+    }
+
+    private void OnToggleArc(Entity<FSHMGGunnerComponent> ent, ref FSToggleHMGArcActionEvent args)
+    {
+        if (args.Handled)
+            return;
+
+        args.Handled = true;
+        ent.Comp.ShowArc = !ent.Comp.ShowArc;
+        _actions.SetToggled(ent.Comp.ArcAction, ent.Comp.ShowArc);
+        Dirty(ent);
+    }
+
+    private void OnGunnerPvsScale(Entity<FSHMGGunnerComponent> ent, ref GetEyePvsScaleEvent args)
+    {
+        if (TryComp<FSHMGComponent>(ent.Comp.Hmg, out var hmg))
+            args.Scale += hmg.LookPvsIncrease;
     }
 
     private void OnGunnerState(Entity<FSHMGGunnerComponent> ent, ref MobStateChangedEvent args)

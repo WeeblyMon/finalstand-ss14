@@ -37,7 +37,11 @@ public sealed partial class FSHMGLinkOverlay : Overlay
         var query = _entMan.EntityQueryEnumerator<FSHMGComponent, TransformComponent>();
         while (query.MoveNext(out var hmg, out var gunXform))
         {
-            if (gunXform.MapID == args.MapId && hmg.Gunner is { } gunner && gunner == _player.LocalEntity)
+            if (gunXform.MapID == args.MapId
+                && hmg.Gunner is { } gunner
+                && gunner == _player.LocalEntity
+                && _entMan.TryGetComponent<FSHMGGunnerComponent>(gunner, out var seat)
+                && seat.ShowArc)
                 DrawArc(args.WorldHandle, xform, hmg, gunXform);
 
             if (gunXform.MapID != args.MapId

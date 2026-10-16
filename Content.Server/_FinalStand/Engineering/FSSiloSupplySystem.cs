@@ -1,4 +1,5 @@
 // Stocks the silo network's pool at the first prep and tops it up at each one after, and warns engineers when steel runs low.
+using Content.Shared.Chat;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Materials;
 using Content.Server.Chat.Managers;
@@ -70,8 +71,9 @@ public sealed partial class FSSiloSupplySystem : EntitySystem
 
         _warnedLow = true;
         var message = Loc.GetString("fs-silo-low", ("sheets", sheets));
+        var wrapped = Loc.GetString("chat-manager-server-wrap-message", ("message", message));
         foreach (var (_, session) in _departments.Engineers())
-            _chat.DispatchServerMessage(session, message);
+            _chat.ChatMessageToOne(ChatChannel.Server, message, wrapped, default, false, session.Channel);
     }
 
     public bool TryGetSteelSheets(out int sheets)

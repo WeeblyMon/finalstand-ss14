@@ -45,6 +45,13 @@ public sealed partial class FSSentryTurretSystem : EntitySystem
             if (!xform.Anchored || now < turret.NextFire)
                 continue;
 
+            if (turret.Ammo <= 0)
+            {
+                turret.HasTarget = false;
+                _appearance.SetData(uid, FSSentryTurretVisuals.Firing, false);
+                continue;
+            }
+
             turret.NextFire = now + TimeSpan.FromSeconds(turret.FireInterval);
 
             var origin = _transform.GetWorldPosition(xform);
@@ -123,9 +130,6 @@ public sealed partial class FSSentryTurretSystem : EntitySystem
         turret.Ammo--;
         Dirty(uid, turret);
         _alerts.AmmoSpent(uid, turret);
-
-        if (turret.Ammo <= 0)
-            QueueDel(uid);
     }
 
     private void EjectCasing(FSSentryTurretComponent turret, TransformComponent xform, Vector2 direction)

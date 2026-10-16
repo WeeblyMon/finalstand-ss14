@@ -50,6 +50,8 @@
     capacity: 100
     count: 100
   - type: FSHMG
+  - type: EyeCursorOffset
+    maxOffset: 6
   - type: FSStructureHealth
   - type: FSUpgradeable
     grade: FSGradeSteel
@@ -141,10 +143,26 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
-        damage: 150
+        damage: 1500
       behaviors:
       - !type:PlaySoundBehavior
         sound:
           collection: MetalBreak
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+
+- type: entity
+  parent: BaseAction
+  id: FSActionToggleHMGArc
+  name: Toggle firing arc
+  description: Show or hide the arc the heavy machine gun can traverse.
+  components:
+  - type: Action
+    itemIconStyle: NoItem
+    checkCanInteract: false
+  - type: Sprite
+    sprite: _FinalStand/Structures/Deployables/hmg.rsi
+    layers:
+    - state: deployed
+  - type: InstantAction
+    event: !type:FSToggleHMGArcActionEvent

@@ -1,6 +1,7 @@
 // Links an ammo crate to the nearest HMG within reach and keeps that gun's belt topped up from it.
 // A crate being dragged feeds nothing; one crate feeds one gun.
 using Content.Server._FinalStand.Engineering;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared.Examine;
 using Content.Shared.Movement.Pulling.Components;
@@ -19,6 +20,7 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
     [Dependency] private FSEngineeringResearchSystem _engineering = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
+    private const float SentryFeedRange = 1.5f;
     private TimeSpan _next;
 
     public override void Initialize()
@@ -67,6 +69,35 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
             Dirty(crateUid, crate);
             UpdateVisuals((crateUid, crate));
         }
+
+        var sentries = EntityQueryEnumerator<FSSentryTurretComponent, TransformComponent>();
+        while (sentries.MoveNext(out var sentryUid, out var sentry, out var sentryXform))
+        {
+            if (!sentryXform.Anchored
+                || sentry.Ammo >= sentry.MaxAmmo
+                || StockedCrateInReach(sentryXform) is not { } crateUid
+                || !TryComp<FSAmmoCrateComponent>(crateUid, out var crate))
+                continue;
+
+            var feed = Math.Min(sentry.MaxAmmo - sentry.Ammo, crate.Rounds);
+            sentry.Ammo += feed;
+            Dirty(sentryUid, sentry);
+            crate.Rounds -= feed;
+            Dirty(crateUid, crate);
+            UpdateVisuals((crateUid, crate));
+        }
+    }
+
+    private EntityUid? StockedCrateInReach(TransformComponent sentryXform)
+    {
+        var crates = EntityQueryEnumerator<FSAmmoCrateComponent>();
+        while (crates.MoveNext(out var uid, out var crate))
+        {
+            if (crate.Rounds > 0 && Feedable(uid, sentryXform, SentryFeedRange))
+                return uid;
+        }
+
+        return null;
     }
 
     private bool StillLinked(EntityUid? crate, EntityUid gun, TransformComponent gunXform, float range)

@@ -10,6 +10,8 @@ using Content.Shared.Access.Components;
 using Content.Shared.Administration;
 using Content.Shared.Climbing.Components;
 using Content.Shared.Doors.Components;
+using Content.Shared.Item;
+using Content.Shared.Mobs.Components;
 using Content.Shared.NPC;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
@@ -55,6 +57,8 @@ namespace Content.Server.NPC.Pathfinding
 
         [Dependency] private EntityQuery<AccessReaderComponent> _accessReaderQuery = default!;
         [Dependency] private EntityQuery<DestructibleComponent> _destructibleQuery = default!;
+        [Dependency] private EntityQuery<ItemComponent> _itemQuery = default!;
+        [Dependency] private EntityQuery<MobStateComponent> _mobStateQuery = default!;
         [Dependency] private EntityQuery<DoorComponent> _doorQuery = default!;
         [Dependency] private EntityQuery<ClimbableComponent> _climbableQuery = default!;
         [Dependency] private EntityQuery<FixturesComponent> _fixturesQuery = default!;

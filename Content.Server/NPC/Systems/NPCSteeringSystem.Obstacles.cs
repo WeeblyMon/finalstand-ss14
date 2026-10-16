@@ -22,6 +22,7 @@ public sealed partial class NPCSteeringSystem
 {
     private EntityQuery<WaveSpawnedTagComponent> _waveTagQuery;
     private EntityQuery<StandingStateComponent> _standingQuery;
+    private readonly HashSet<EntityUid> _obstacleBuffer = new();
 
     /*
      * For any custom path handlers, e.g. destroying walls, opening airlocks, etc.
@@ -229,9 +230,15 @@ public sealed partial class NPCSteeringSystem
             return;
         }
 
-        foreach (var ent in _mapSystem.GetLocalAnchoredEntities(poly.GraphUid, grid, poly.Box))
+        _obstacleBuffer.Clear();
+        _lookup.GetLocalEntitiesIntersecting(poly.GraphUid, poly.Box, _obstacleBuffer, LookupFlags.Static | LookupFlags.Dynamic);
+
+        foreach (var ent in _obstacleBuffer)
         {
-            if (!_physicsQuery.TryGetComponent(ent, out var body) ||
+            if (!_xformQuery.TryGetComponent(ent, out var xform) ||
+                xform.ParentUid != poly.GraphUid ||
+                !_pathfindingSystem.IsPathObstacle(ent, xform) ||
+                !_physicsQuery.TryGetComponent(ent, out var body) ||
                 !body.Hard ||
                 !body.CanCollide ||
                 (body.CollisionMask & layer) == 0x0 && (body.CollisionLayer & mask) == 0x0)

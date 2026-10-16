@@ -2,6 +2,7 @@
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
+using Content.Shared._NF.Storage.Components;
 using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
@@ -9,6 +10,7 @@ using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
 using Content.Shared.Stacks;
 using Robust.Server.GameStates;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Materials;
@@ -29,6 +31,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
     private EntityUid? _pool;
     private bool _dirty;
     private bool _moving;
+    private const float MagnetRange = 1.25f;
 
     public override void Initialize()
     {
@@ -56,11 +59,39 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
         }
     }
 
+    public EntityCoordinates EjectCoordinates(EntityUid storage, EntityUid user)
+    {
+        var at = Transform(storage).Coordinates;
+        if (!HasComp<FSSiloNetworkComponent>(storage))
+            return at;
+
+        var best = float.MaxValue;
+        var userPos = _transform.GetWorldPosition(user);
+        var query = EntityQueryEnumerator<FSSiloNetworkComponent, TransformComponent>();
+        while (query.MoveNext(out _, out _, out var xform))
+        {
+            if (xform.MapID != Transform(user).MapID)
+                continue;
+
+            var distance = (_transform.GetWorldPosition(xform) - userPos).LengthSquared();
+            if (distance >= best)
+                continue;
+
+            best = distance;
+            at = xform.Coordinates;
+        }
+
+        return at;
+    }
+
     public EntityUid? PoolFor(EntityUid user) => Pool is { } pool && _reach.InReach(user) ? pool : null;
 
     private void OnSiloInit(Entity<OreSiloComponent> ent, ref MapInitEvent args)
     {
         EnsureComp<FSSiloNetworkComponent>(ent);
+        var magnet = EnsureComp<MaterialStorageMagnetPickupComponent>(ent);
+        magnet.MagnetEnabled = true;
+        magnet.Range = MagnetRange;
         _dirty = true;
     }
 

@@ -1,3 +1,4 @@
+using Content.Shared.Actions;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.HMG;
@@ -49,6 +50,9 @@ public sealed partial class FSHMGComponent : Component
     [DataField]
     public float LinkRange = 1.5f;
 
+    [DataField]
+    public float LookPvsIncrease = 0.6f;
+
     public float LinkBonus;
 
     [DataField]
@@ -64,7 +68,15 @@ public sealed partial class FSHMGGunnerComponent : Component
     public EntityUid Hmg;
 
     public bool WasInCombatMode;
+
+    [AutoNetworkedField]
+    public bool ShowArc = true;
+
+    [AutoNetworkedField]
+    public EntityUid? ArcAction;
 }
+
+public sealed partial class FSToggleHMGArcActionEvent : InstantActionEvent;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSAmmoCrateComponent : Component

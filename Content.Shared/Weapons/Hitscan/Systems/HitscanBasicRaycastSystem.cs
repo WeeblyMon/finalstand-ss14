@@ -65,8 +65,9 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
         //  2.) Hit the first entity that doesn't require you to aim at it specifically to be hit.
         //  3.) Skip friendly players (pass-through with no collision/VFX).
         //  4.) Skip entities marked for pierce pre-pass by FSHitscanPierceFriendlySystem.
+        EntityUid? vehicle = _container.TryGetContainingContainer(shooter, out var holder) ? holder.Owner : null;
         var result = _container.IsEntityOrParentInContainer(shooter)
-            ? rayCastResults.FirstOrNull()
+            ? rayCastResults.FirstOrNull(hit => hit.HitEntity != vehicle)
             : rayCastResults.FirstOrNull(hit =>
                 (hit.HitEntity == target || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true)
                 && !(isFriendlyShooter && _ffQuery.HasComponent(hit.HitEntity))
