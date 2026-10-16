@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server._FinalStand.Chat;
 using Content.Server.Voting;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared.CCVar;
@@ -33,7 +34,7 @@ public sealed partial class WaveGameRuleSystem
 
         foreach (var modifier in modifiers)
         {
-            _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-modifier-announce",
+            _chatManager.DispatchServerMarkupAnnouncement(Loc.GetString("fs-modifier-announce",
                 ("name", Loc.GetString(modifier.Name)),
                 ("description", Loc.GetString(modifier.Description))), Color.FromHex("#CE93D8"));
         }
@@ -162,7 +163,7 @@ public sealed partial class WaveGameRuleSystem
         comp.ModifiersRerolled = true;
         CancelDifficultyVote();
         CancelRerollVote();
-        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-weekly-started",
+        _chatManager.DispatchServerMarkupAnnouncement(Loc.GetString("fs-weekly-started",
             ("name", Loc.GetString(challenge.Name)), ("wave", challenge.ClearWave)), Color.FromHex("#FFB300"));
         return true;
     }
