@@ -203,7 +203,8 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             Mask = fixture.CollisionMask,
             ImpactEffect = projectile.ImpactEffect,
             SoundHit = projectile.SoundHit,
-            Start = _timing.RealTime,
+            Start = _timing.CurTime,
+            FiredAt = _timing.RealTime,
         };
     }
 
@@ -269,7 +270,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         if (_shots.Count == 0)
             return;
 
-        var now = _timing.RealTime;
+        var now = _timing.CurTime;
         var local = _player.LocalEntity;
 
         var twins = EntityQueryEnumerator<FSShotTwinComponent>();
@@ -453,7 +454,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     {
         shot.Ended = true;
         shot.EndDistance = distance;
-        shot.EndedAt = _timing.RealTime;
+        shot.EndedAt = _timing.CurTime;
 
         if (!TerminatingOrDeleted(shot.Cosmetic))
             QueueDel(shot.Cosmetic);
@@ -462,7 +463,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
     private void OnTwinSeen(PredictedShot shot, EntityUid twin, FSShotTwinComponent comp)
     {
         shot.Twin = twin;
-        LastServerBulletDelay = _timing.RealTime - shot.Start;
+        LastServerBulletDelay = _timing.RealTime - shot.FiredAt;
 
         if (comp.Hideable && Matches(shot, twin))
         {
@@ -624,6 +625,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         public EntProtoId? ImpactEffect;
         public SoundSpecifier? SoundHit;
         public TimeSpan Start;
+        public TimeSpan FiredAt;
         public float Traveled;
         public float? ForcedEnd;
         public bool Ended;
