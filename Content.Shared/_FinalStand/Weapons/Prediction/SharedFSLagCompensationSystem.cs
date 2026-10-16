@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Hitscan.Components;
@@ -30,7 +31,7 @@ public abstract partial class SharedFSLagCompensationSystem : EntitySystem
 
     public bool CanPredictShots(EntityUid gun)
     {
-        if (HasComp<FSChargeShotComponent>(gun))
+        if (HasComp<FSChargeShotComponent>(gun) || HasComp<FSSkyfallLauncherComponent>(gun))
             return false;
 
         return !TryComp<FSWeaponUpgradeStateComponent>(gun, out var state)
