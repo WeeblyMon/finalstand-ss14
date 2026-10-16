@@ -122,3 +122,27 @@
     lifetime: 0.32
   - type: Sprite
     state: blood
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashSmear
+  components:
+  - type: TimedDespawn
+    lifetime: 0.26
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/slashes.rsi
+    state: slash
+
+- type: entity
+  parent: FSMeleeSlashSmear
+  id: FSMeleeSlashSmearHeavy
+  components:
+  - type: Sprite
+    state: slash_heavy
+
+- type: entity
+  parent: FSMeleeSlashSmear
+  id: FSMeleeThrustSmear
+  components:
+  - type: Sprite
+    state: thrust

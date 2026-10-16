@@ -753,6 +753,9 @@
       trailColor: "#9ec3ffaa"
       trailWidth: 0.05
       trailDuration: 0.11
+      slashEffect: FSMeleeSlashSmear
+      slashColor: "#dde9ff"
+      slashScale: 1.15
   - type: MeleeWeapon
     damage:
       types:
@@ -789,6 +792,9 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: gib
+      slashEffect: FSMeleeSlashSmear
+      slashColor: "#ffc860"
+      slashScale: 1.03
   - type: MeleeWeapon
     autoAttack: true
     angle: 90

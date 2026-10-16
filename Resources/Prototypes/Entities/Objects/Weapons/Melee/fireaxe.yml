@@ -24,6 +24,9 @@
       trailColor: "#b02020cc"
       trailWidth: 0.12
       trailDuration: 0.18
+      slashEffect: FSMeleeSlashSmearHeavy
+      slashColor: "#ff9a90"
+      slashScale: 1.26
     comboHits: 2
     finisher:
       anticipation: 0.2
@@ -46,6 +49,9 @@
       trailDuration: 0.18
       damageMultiplier: 1.4
       staggerRadius: 1.6
+      slashEffect: FSMeleeSlashSmearHeavy
+      slashColor: "#ffb0a0"
+      slashScale: 1.44
   - type: Tag
     tags:
     - FireAxe

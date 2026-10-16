@@ -25,6 +25,9 @@
       trailColor: "#8b1a1acc"
       trailWidth: 0.06
       trailDuration: 0.1
+      slashEffect: FSMeleeThrustSmear
+      slashColor: "#ffb4b4"
+      slashScale: 1.72
     comboHits: 2
     finisher:
       anticipation: 0.12
@@ -46,6 +49,9 @@
       trailDuration: 0.1
       damageMultiplier: 1.3
       pierce: 2
+      slashEffect: FSMeleeThrustSmear
+      slashColor: "#ffd0d0"
+      slashScale: 2.01
     heavy:
       anticipation: 0.12
       hitstop: 0.07

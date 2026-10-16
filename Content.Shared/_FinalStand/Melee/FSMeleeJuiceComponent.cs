@@ -120,6 +120,16 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public EntProtoId? SwingEffect;
 
+    // Smear drawn along the swing, pointing down at rotation zero like the weapon arcs.
+    [DataField]
+    public EntProtoId? SlashEffect;
+
+    [DataField]
+    public Color SlashColor = Color.White;
+
+    [DataField]
+    public float SlashScale = 1f;
+
     [DataField]
     public ProtoId<FSParticleEmitterPrototype>? HitEmitter;
 

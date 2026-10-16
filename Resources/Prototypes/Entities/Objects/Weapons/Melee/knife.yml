@@ -127,6 +127,9 @@
       trailColor: "#e8f0ffaa"
       trailWidth: 0.04
       trailDuration: 0.08
+      slashEffect: FSMeleeSlashSmear
+      slashColor: "#eef4ff"
+      slashScale: 0.98
     comboHits: 3
     finisher:
       anticipation: 0.06
@@ -149,6 +152,9 @@
       bleed: 2
       lunge: 0.3
       hitEffectAngle: 45
+      slashEffect: FSMeleeThrustSmear
+      slashColor: "#eef4ff"
+      slashScale: 1.26
   - type: Tag
     tags:
     - CombatKnife

@@ -58,6 +58,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private readonly record struct PendingImpact(float Due, EntityUid User, FSMeleeJuiceProfile Profile, List<EntityUid> Targets, Vector2 Direction, float Hold, bool Lethal);
 
     private readonly List<PendingImpact> _impacts = new();
+
+    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, bool Mirror);
+
+    private readonly List<PendingSlash> _slashes = new();
     public float RealTime => (float) Timing.RealTime.TotalSeconds;
 
     private readonly Dictionary<EntityUid, (float Hold, float Time, EntityUid Weapon, FSMeleeJuiceProfile Profile)> _pending = new();
@@ -228,6 +232,28 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         var effect = Spawn(proto, Xform.GetMapCoordinates(user));
         EnsureComp<TrackUserComponent>(effect).User = user;
+    }
+
+    public void PlaySlash(EntityUid user, FSMeleeJuiceProfile profile, Angle rotation, bool mirror, float delay)
+    {
+        if (profile.SlashEffect != null && _cfg.GetCVar(CCVars.FSMeleeEffects))
+            _slashes.Add(new PendingSlash(RealTime + delay, user, profile, rotation, mirror));
+    }
+
+    private void SpawnSlash(PendingSlash slash)
+    {
+        if (TerminatingOrDeleted(slash.User))
+            return;
+
+        var effect = Spawn(slash.Profile.SlashEffect, Xform.GetMapCoordinates(slash.User));
+        EnsureComp<TrackUserComponent>(effect).User = slash.User;
+        if (!TryComp<SpriteComponent>(effect, out var sprite))
+            return;
+
+        var scale = slash.Profile.SlashScale;
+        _sprite.SetRotation((effect, sprite), slash.Rotation);
+        _sprite.SetScale((effect, sprite), new Vector2(slash.Mirror ? -scale : scale, scale));
+        _sprite.SetColor((effect, sprite), slash.Profile.SlashColor);
     }
 
     private void ReplaySwing(EntityUid user, EntityUid weapon, MeleeWeaponComponent melee, Vector2 direction, bool heavy)
@@ -422,6 +448,16 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         var now = RealTime;
+        for (var i = _slashes.Count - 1; i >= 0; i--)
+        {
+            if (_slashes[i].Due > now)
+                continue;
+
+            var slash = _slashes[i];
+            _slashes.RemoveAt(i);
+            SpawnSlash(slash);
+        }
+
         for (var i = _impacts.Count - 1; i >= 0; i--)
         {
             if (_impacts[i].Due > now)
