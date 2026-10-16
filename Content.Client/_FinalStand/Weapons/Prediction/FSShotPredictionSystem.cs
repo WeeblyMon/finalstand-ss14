@@ -519,7 +519,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         if (shot.Ended)
         {
-            if (Along(shot, position.Position) > shot.EndDistance + ContinueSlack)
+            if (Stopped(twin) || Along(shot, position.Position) > shot.EndDistance + ContinueSlack)
                 SetTwinVisible(shot, true);
             else
                 SetTwinVisible(shot, false);
@@ -560,6 +560,15 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             shot.TwinLightHidden = false;
             _lights.SetEnabled(twin, true, light);
         }
+    }
+
+    private bool Stopped(EntityUid twin)
+    {
+        var xform = Transform(twin);
+        if (xform.ParentUid != xform.GridUid && xform.ParentUid != xform.MapUid)
+            return true;
+
+        return _physicsQuery.TryComp(twin, out var body) && body.LinearVelocity.LengthSquared() < 0.01f;
     }
 
     private static float Along(PredictedShot shot, Vector2 position)
