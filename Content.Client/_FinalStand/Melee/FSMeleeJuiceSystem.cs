@@ -40,6 +40,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const int BurstBudget = 8;
     private const int MaxJitterTargets = 6;
     private const int MaxFleshSounds = 2;
+    private const float SlashTravelTime = 0.2f;
     private const int FatigueHits = 10;
     private const float FatigueReset = 1.5f;
     private const float ZoomDuration = 0.1f;
@@ -63,9 +64,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private readonly List<PendingImpact> _impacts = new();
 
-    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, bool Mirror);
+    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, Vector2 Direction, bool Mirror);
+
+    private readonly record struct ActiveSlash(EntityUid Effect, EntityUid User, FSMeleeJuiceProfile Profile, Vector2 Direction, bool Mirror, float Start);
 
     private readonly List<PendingSlash> _slashes = new();
+    private readonly List<ActiveSlash> _activeSlashes = new();
     public float RealTime => (float) Timing.RealTime.TotalSeconds;
 
     private readonly Dictionary<EntityUid, (float Hold, float Time, EntityUid Weapon, FSMeleeJuiceProfile Profile)> _pending = new();
@@ -250,10 +254,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         EnsureComp<TrackUserComponent>(effect).User = user;
     }
 
-    public void PlaySlash(EntityUid user, FSMeleeJuiceProfile profile, Angle rotation, bool mirror, float delay)
+    public void PlaySlash(EntityUid user, FSMeleeJuiceProfile profile, Angle rotation, Vector2 direction, bool mirror, float delay)
     {
-        if (profile.SlashEffect != null && _cfg.GetCVar(CCVars.FSMeleeEffects))
-            _slashes.Add(new PendingSlash(RealTime + delay, user, profile, rotation, mirror));
+        if (profile.SlashEffect != null && direction != Vector2.Zero && _cfg.GetCVar(CCVars.FSMeleeEffects))
+            _slashes.Add(new PendingSlash(RealTime + delay, user, profile, rotation, direction.Normalized(), mirror));
     }
 
     private void SpawnSlash(PendingSlash slash)
@@ -261,15 +265,44 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (TerminatingOrDeleted(slash.User))
             return;
 
-        var effect = Spawn(slash.Profile.SlashEffect, Xform.GetMapCoordinates(slash.User));
-        EnsureComp<TrackUserComponent>(effect).User = slash.User;
+        var origin = Xform.GetMapCoordinates(slash.User);
+        var effect = Spawn(slash.Profile.SlashEffect, origin.Offset(slash.Direction * slash.Profile.SlashOffset));
         if (!TryComp<SpriteComponent>(effect, out var sprite))
             return;
 
-        var scale = slash.Profile.SlashScale;
         _sprite.SetRotation((effect, sprite), slash.Rotation);
-        _sprite.SetScale((effect, sprite), new Vector2(slash.Mirror ? -scale : scale, scale));
         _sprite.SetColor((effect, sprite), slash.Profile.SlashColor);
+        var active = new ActiveSlash(effect, slash.User, slash.Profile, slash.Direction, slash.Mirror, RealTime);
+        _activeSlashes.Add(active);
+        MoveSlash(active, sprite, 0f);
+    }
+
+    // Slashes launch from in front of the attacker and drive forward while they grow, easing out.
+    private void MoveSlash(ActiveSlash slash, SpriteComponent sprite, float t)
+    {
+        var ease = 1f - MathF.Pow(1f - t, 3f);
+        var profile = slash.Profile;
+        var distance = profile.SlashOffset + profile.SlashTravel * ease;
+        Xform.SetWorldPosition(slash.Effect, Xform.GetWorldPosition(slash.User) + slash.Direction * distance);
+
+        var scale = profile.SlashScale * (1f + (profile.SlashGrow - 1f) * ease);
+        _sprite.SetScale((slash.Effect, sprite), new Vector2(slash.Mirror ? -scale : scale, scale));
+    }
+
+    private void UpdateSlashes()
+    {
+        var now = RealTime;
+        for (var i = _activeSlashes.Count - 1; i >= 0; i--)
+        {
+            var slash = _activeSlashes[i];
+            if (TerminatingOrDeleted(slash.Effect) || TerminatingOrDeleted(slash.User) || !TryComp<SpriteComponent>(slash.Effect, out var sprite))
+            {
+                _activeSlashes.RemoveAt(i);
+                continue;
+            }
+
+            MoveSlash(slash, sprite, Math.Clamp((now - slash.Start) / SlashTravelTime, 0f, 1f));
+        }
     }
 
     private void ReplaySwing(EntityUid user, EntityUid weapon, MeleeWeaponComponent melee, Vector2 direction, bool heavy)
@@ -484,6 +517,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             Impact(impact);
         }
 
+        UpdateSlashes();
         UpdateTrails();
         UpdateZoom();
     }

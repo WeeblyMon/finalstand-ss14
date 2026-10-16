@@ -130,6 +130,17 @@ public sealed partial class FSMeleeJuiceProfile
     [DataField]
     public float SlashScale = 1f;
 
+    // Tiles in front of the attacker the slash starts at, and how far it then drives forward.
+    [DataField]
+    public float SlashOffset = 0.5f;
+
+    [DataField]
+    public float SlashTravel = 0.4f;
+
+    // Scale the slash grows to by the end of its travel.
+    [DataField]
+    public float SlashGrow = 1.2f;
+
     [DataField]
     public ProtoId<FSParticleEmitterPrototype>? HitEmitter;
 
