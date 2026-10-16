@@ -11,6 +11,9 @@ using Content.Server._FinalStand.Titles;
 
 namespace Content.Server._FinalStand.Perks;
 
+[ByRefEvent]
+public readonly record struct FSPlayerHurtEvent(EntityUid Player);
+
 // Owns (ActorComponent, DamageModifyEvent) for Untouchable and (ActorComponent, FSHealingPotencyEvent) for Field Medic.
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
@@ -54,6 +57,16 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
     }
 
     private void OnDamageModify(EntityUid uid, ActorComponent comp, DamageModifyEvent args)
+    {
+        ApplyDamageModifiers(uid, args);
+        if (args.Damage.GetTotal() <= 0)
+            return;
+
+        var hurt = new FSPlayerHurtEvent(uid);
+        RaiseLocalEvent(ref hurt);
+    }
+
+    private void ApplyDamageModifiers(EntityUid uid, DamageModifyEvent args)
     {
         if (!_mind.TryGetMind(uid, out var mindId, out MindComponent? _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;

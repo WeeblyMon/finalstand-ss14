@@ -50,8 +50,17 @@ public sealed partial class WaveHudSystem
 
         var progress = objective.Kind switch
         {
-            FSWaveObjectiveKind.KillQuota => $"{objective.Progress}/{objective.Target}",
-            FSWaveObjectiveKind.NoDowns => Loc.GetString("fs-hud-objective-holding"),
+            FSWaveObjectiveKind.KillQuota
+                or FSWaveObjectiveKind.HealQuota
+                or FSWaveObjectiveKind.Bounty
+                or FSWaveObjectiveKind.MeleeKills => $"{objective.Progress}/{objective.Target}",
+            FSWaveObjectiveKind.NoDowns
+                or FSWaveObjectiveKind.Fortress
+                or FSWaveObjectiveKind.NoSpending => Loc.GetString("fs-hud-objective-holding"),
+            FSWaveObjectiveKind.HoldTheLine => Loc.GetString("fs-hud-objective-ccc", ("lost", objective.Progress), ("limit", objective.Target)),
+            FSWaveObjectiveKind.Headhunter => Loc.GetString("fs-hud-objective-hunting"),
+            FSWaveObjectiveKind.SupplyRun => Loc.GetString("fs-hud-objective-distance", ("distance", objective.Progress)),
+            FSWaveObjectiveKind.Untouchable => Loc.GetString("fs-hud-objective-unhurt", ("unhurt", objective.Progress), ("needed", objective.Target)),
             _ => null,
         };
         var timer = seconds >= 0 ? $"{seconds / 60}:{seconds % 60:D2}" : null;

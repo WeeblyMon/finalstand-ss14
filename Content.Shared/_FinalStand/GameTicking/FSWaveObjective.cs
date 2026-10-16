@@ -9,6 +9,15 @@ public enum FSWaveObjectiveKind : byte
     KillQuota,
     NoDowns,
     ClearInTime,
+    HoldTheLine,
+    Headhunter,
+    Fortress,
+    HealQuota,
+    Bounty,
+    SupplyRun,
+    NoSpending,
+    MeleeKills,
+    Untouchable,
 }
 
 [Serializable, NetSerializable]
@@ -54,6 +63,9 @@ public sealed partial class FSWaveObjectivePrototype : IPrototype
 
     [DataField]
     public float Weight { get; private set; } = 1f;
+
+    [DataField]
+    public EntProtoId? Spawn { get; private set; }
 }
 
 public static class FSWaveObjectiveRules
@@ -66,6 +78,22 @@ public static class FSWaveObjectiveRules
 
     public static bool Eligible(int minWave, int wave, bool bossWave, bool darkWave)
         => !bossWave && !darkWave && wave >= minWave;
+
+    public static bool CompletesAtWaveEnd(FSWaveObjectiveKind kind) => kind switch
+    {
+        FSWaveObjectiveKind.NoDowns
+            or FSWaveObjectiveKind.ClearInTime
+            or FSWaveObjectiveKind.HoldTheLine
+            or FSWaveObjectiveKind.Fortress
+            or FSWaveObjectiveKind.NoSpending
+            or FSWaveObjectiveKind.Untouchable => true,
+        _ => false,
+    };
+
+    public static int UntouchedNeeded(int players) => (players + 1) / 2;
+
+    public static float PercentLost(float damageTaken, float maxHealth)
+        => maxHealth <= 0f ? 0f : Math.Max(0f, damageTaken) / maxHealth * 100f;
 
     public static T? Pick<T>(IReadOnlyList<T> pool, Func<T, float> weight, float roll) where T : class
     {

@@ -201,12 +201,16 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             CreditsGiven?.Invoke(mindId, amount);
     }
 
-    public bool TryDeductCredits(EntityUid mindId, int amount)
+    public event Action<EntityUid, int>? CreditsSpent;
+
+    public bool TryDeductCredits(EntityUid mindId, int amount, bool spending = true)
     {
         if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
         MarkWalletDirty(mindId);
+        if (spending && amount > 0)
+            CreditsSpent?.Invoke(mindId, amount);
         return true;
     }
 
@@ -222,6 +226,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
         wallet.Credits -= taken;
         MarkWalletDirty(mindId);
+        CreditsSpent?.Invoke(mindId, taken);
         return taken;
     }
 

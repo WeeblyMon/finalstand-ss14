@@ -37,6 +37,8 @@ using Robust.Shared.Physics.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
@@ -978,6 +980,33 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public int GetWaveNumber()
     {
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
+    }
+
+    public EntityUid? SpawnExtraEnemy(EntProtoId proto)
+    {
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Combat || comp.SpawnerEntities.Count == 0)
+            return null;
+
+        var spawner = RobustRandom.Pick(comp.SpawnerEntities);
+        var enemy = _spawning.SpawnWaveEnemy(proto, Transform(spawner).Coordinates, comp);
+        comp.AliveEnemies.Add(enemy);
+        comp.EnemyTotalThisWave++;
+        comp.EnemiesSpawnedThisWave++;
+        _spawning.PushEnemyCount(comp);
+        return enemy;
+    }
+
+    public IReadOnlyCollection<EntityUid> AliveEnemies()
+        => TryGetActiveRule(out _, out var comp, out _) ? comp.AliveEnemies : Array.Empty<EntityUid>();
+
+    public bool TryPickSpawnerCoords(out EntityCoordinates coords)
+    {
+        coords = default;
+        if (!TryGetActiveRule(out _, out var comp, out _) || comp.SpawnerEntities.Count == 0)
+            return false;
+
+        coords = Transform(RobustRandom.Pick(comp.SpawnerEntities)).Coordinates;
+        return true;
     }
 
     public bool IsBoss(EntityUid uid)

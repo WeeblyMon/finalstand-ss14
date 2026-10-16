@@ -29,3 +29,97 @@
   creditsPerWave: 35
   minWave: 3
   weight: 0.8
+
+- type: fsWaveObjective
+  id: FSObjectiveHoldTheLine
+  name: fs-objective-hold-the-line-name
+  description: fs-objective-hold-the-line-desc
+  kind: HoldTheLine
+  count: 10
+  credits: 350
+  creditsPerWave: 35
+  minWave: 5
+
+- type: fsWaveObjective
+  id: FSObjectiveHeadhunter
+  name: fs-objective-headhunter-name
+  description: fs-objective-headhunter-desc
+  kind: Headhunter
+  credits: 300
+  creditsPerWave: 30
+  minWave: 3
+
+- type: fsWaveObjective
+  id: FSObjectiveFortress
+  name: fs-objective-fortress-name
+  description: fs-objective-fortress-desc
+  kind: Fortress
+  credits: 350
+  creditsPerWave: 35
+  minWave: 5
+
+- type: fsWaveObjective
+  id: FSObjectiveMedicOnDuty
+  name: fs-objective-medic-on-duty-name
+  description: fs-objective-medic-on-duty-desc
+  kind: HealQuota
+  count: 200
+  countPerExtraPlayer: 50
+  credits: 300
+  creditsPerWave: 30
+  minWave: 4
+
+- type: fsWaveObjective
+  id: FSObjectiveBountySwarm
+  name: fs-objective-bounty-swarm-name
+  description: fs-objective-bounty-swarm-desc
+  kind: Bounty
+  spawn: FSZombieRunner
+  count: 3
+  countPerExtraPlayer: 1
+  seconds: 75
+  credits: 400
+  creditsPerWave: 40
+  minWave: 6
+  weight: 0.8
+
+- type: fsWaveObjective
+  id: FSObjectiveSupplyRun
+  name: fs-objective-supply-run-name
+  description: fs-objective-supply-run-desc
+  kind: SupplyRun
+  spawn: CrateGenericSteel
+  credits: 450
+  creditsPerWave: 45
+  minWave: 5
+  weight: 0.7
+
+- type: fsWaveObjective
+  id: FSObjectiveLeanWave
+  name: fs-objective-lean-wave-name
+  description: fs-objective-lean-wave-desc
+  kind: NoSpending
+  credits: 250
+  creditsPerWave: 25
+  minWave: 3
+
+- type: fsWaveObjective
+  id: FSObjectiveCloseQuarters
+  name: fs-objective-close-quarters-name
+  description: fs-objective-close-quarters-desc
+  kind: MeleeKills
+  count: 8
+  countPerExtraPlayer: 3
+  credits: 300
+  creditsPerWave: 30
+  minWave: 3
+
+- type: fsWaveObjective
+  id: FSObjectiveUntouchable
+  name: fs-objective-untouchable-name
+  description: fs-objective-untouchable-desc
+  kind: Untouchable
+  credits: 450
+  creditsPerWave: 45
+  minWave: 5
+  weight: 0.7

@@ -14,6 +14,7 @@ using Content.Shared.Mobs.Components;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -44,6 +45,12 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         public int Progress;
         public TimeSpan? EndTime { get; set; }
         public FSWaveObjectiveResult Result = FSWaveObjectiveResult.InProgress;
+        public int Players;
+        public readonly HashSet<EntityUid> Marked = new();
+        public readonly HashSet<NetUserId> Hurt = new();
+        public EntityUid? Ccc;
+        public float CccStartDamage;
+        public EntityUid? Supply;
     }
 
     public ActiveObjective? Current { get; private set; }
@@ -58,6 +65,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeNetworkEvent<FSWaveHudRequestEvent>((_, args) => SendState(Filter.SinglePlayer(args.SenderSession)));
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Clear());
+        InitializeKinds();
     }
 
     private void OnCombatStarted(WaveCombatStartedEvent ev)
@@ -89,13 +97,17 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         if (!_waveRule.TryGetActiveState(out var state) || state.Phase != WavePhase.Combat)
             return false;
 
+        Clear();
+        var players = CountPlayers();
         Current = new ActiveObjective
         {
             Prototype = objective,
             Wave = state.WaveNumber,
-            Target = FSWaveObjectiveRules.Target(objective.Count, objective.CountPerExtraPlayer, CountPlayers()),
+            Players = players,
+            Target = FSWaveObjectiveRules.Target(objective.Count, objective.CountPerExtraPlayer, players),
             EndTime = objective.Seconds > 0f ? _timing.CurTime + TimeSpan.FromSeconds(objective.Seconds) : null,
         };
+        SetUp(Current);
 
         _chat.DispatchServerAnnouncement(Loc.GetString("fs-objective-announce",
             ("name", Loc.GetString(objective.Name)),
@@ -117,17 +129,26 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        if (Current is not { Result: FSWaveObjectiveResult.InProgress, EndTime: { } end } || _timing.CurTime < end)
+        if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
             return;
 
-        Fail();
+        UpdateKinds(current);
+        if (current.Result == FSWaveObjectiveResult.InProgress && current.EndTime is { } end && _timing.CurTime >= end)
+            Fail();
     }
 
     private void OnEnemyDied(ref FSWaveEnemyDiedEvent args)
     {
-        if (Current is not { Result: FSWaveObjectiveResult.InProgress } current
-            || current.Prototype.Kind != FSWaveObjectiveKind.KillQuota
-            || args.Killer is not { } killer
+        if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
+            return;
+
+        if (current.Prototype.Kind != FSWaveObjectiveKind.KillQuota)
+        {
+            OnEnemyDiedKinds(current, args);
+            return;
+        }
+
+        if (args.Killer is not { } killer
             || !_mind.TryGetMind(killer, out _, out var mind) || mind.UserId == null)
             return;
 
@@ -154,16 +175,10 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         if (Current is not { Result: FSWaveObjectiveResult.InProgress } current)
             return;
 
-        switch (current.Prototype.Kind)
-        {
-            case FSWaveObjectiveKind.NoDowns:
-            case FSWaveObjectiveKind.ClearInTime:
-                Complete();
-                break;
-            default:
-                Fail();
-                break;
-        }
+        if (FSWaveObjectiveRules.CompletesAtWaveEnd(current.Prototype.Kind))
+            Complete();
+        else
+            Fail();
     }
 
     private void Complete()
@@ -172,6 +187,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
             return;
 
         current.Result = FSWaveObjectiveResult.Completed;
+        TearDown(current, completed: true);
         var reward = RewardFor(current);
         _wallet.DistributeCredits(reward, mindId => _titleBuffs.ForMind(mindId).ObjectiveCredits);
         _chat.DispatchServerAnnouncement(Loc.GetString("fs-objective-complete",
@@ -185,6 +201,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
             return;
 
         current.Result = FSWaveObjectiveResult.Failed;
+        TearDown(current, completed: false);
         _chat.DispatchServerAnnouncement(Loc.GetString("fs-objective-failed",
             ("name", Loc.GetString(current.Prototype.Name))), Color.Gray);
         SendState(Filter.Broadcast());
@@ -195,6 +212,7 @@ public sealed partial class FSWaveObjectiveSystem : EntitySystem
         if (Current == null)
             return;
 
+        TearDown(Current, completed: Current.Result == FSWaveObjectiveResult.Completed);
         Current = null;
         SendState(Filter.Broadcast());
     }
