@@ -167,7 +167,7 @@ public sealed partial class FSHarvesterWeaponSystem : EntitySystem
         }
 
         cap.ResearchGivenPerPlayer.TryGetValue(mindId, out var given);
-        var grant = Math.Min(amount, cap.MaxMoneyPerPlayer / ResearchCapDivisor - given);
+        var grant = Math.Min(amount, cap.MaxMoneyPerPlayer * cap.ResearchCapMultiplier / ResearchCapDivisor - given);
         if (grant <= 0)
             return;
 
