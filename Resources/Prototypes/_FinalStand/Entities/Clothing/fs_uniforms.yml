@@ -19,3 +19,58 @@
     sprite: _FinalStand/Clothing/Uniforms/supercreek.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Uniforms/supercreek.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitMachikaneTannhauser
+  name: Machikanetannhauser dress
+  description: A dress modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/machikanetannhauser.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/machikanetannhauser.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitTaninoGimlet
+  name: Tanino Gimlet racewear
+  description: Racewear modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/taninogimlet.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/taninogimlet.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitTracenSummer
+  name: Tracen summer uniform
+  description: A light summer school uniform from a certain racing academy.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/tracensummer.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/tracensummer.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: FSJumpsuitDoubleSupercharger
+  name: Double Supercharger outfit
+  description: An outfit modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Uniforms/doublesupercharger.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Uniforms/doublesupercharger.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: FSShoesDoubleSupercharger
+  name: Double Supercharger shoes
+  description: Shoes modeled after a certain racehorse's colors.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Clothing/Shoes/doublesupercharger.rsi
+  - type: Clothing
+    sprite: _FinalStand/Clothing/Shoes/doublesupercharger.rsi

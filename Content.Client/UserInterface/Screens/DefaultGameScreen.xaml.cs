@@ -43,6 +43,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
     private const float ChatMinWidth = 240f;
     private const float ChatMinHeight = 120f;
     private const float ChatToggleWidth = 20f;
+    private const float ClassicChatWidth = 465f;
+    private const float ClassicChatHeight = 225f;
     private const float ChatDockHeight = 34f;
 
     private Button? _chatDock;
@@ -58,9 +60,13 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
     private Vector2? _pendingChatSize;
 
+    private readonly bool _classic;
+
     public DefaultGameScreen()
     {
         RobustXamlLoader.Load(this);
+
+        _classic = FSClassicHud.Enabled;
 
         AutoscaleMaxResolution = new Vector2i(1080, 770);
 
@@ -75,6 +81,23 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetGrowVertical(Chat, GrowDirection.Constrain);
 
         SetupChatToggle();
+
+        Chat.OnChatResizeFinish += ChatOnResizeFinish;
+        Chat.OnChatRectFinish += rect =>
+        {
+            _chatRect = rect;
+            _chatMoved = true;
+            if (_classic)
+                ApplyChatState();
+            else
+                PlaceChatDock();
+        };
+
+        if (_classic)
+        {
+            ApplyClassicLayout();
+            return;
+        }
 
         // FINALSTAND: one question per screen region.
         SetAnchorPreset(Alerts, LayoutPreset.BottomLeft);
@@ -105,19 +128,34 @@ public sealed partial class DefaultGameScreen : InGameScreen
         SetMarginBottom(Actions, ActionBarTopMargin);
         SetGrowHorizontal(Actions, GrowDirection.Both);
         SetGrowVertical(Actions, GrowDirection.End);
+    }
 
-        Chat.OnChatResizeFinish += ChatOnResizeFinish;
-        Chat.OnChatRectFinish += rect =>
-        {
-            _chatRect = rect;
-            _chatMoved = true;
-            PlaceChatDock();
-        };
+    private void ApplyClassicLayout()
+    {
+        Inventory.Margin = new Thickness(0);
+        Hotbar.Margin = new Thickness(0);
+        SetAnchorAndMarginPreset(Inventory, LayoutPreset.BottomLeft, margin: 5);
+        SetAnchorAndMarginPreset(Hotbar, LayoutPreset.BottomWide, margin: 5);
+        SetAnchorAndMarginPreset(Alerts, LayoutPreset.TopRight, margin: 10);
+        SetAnchorPreset(Chat, LayoutPreset.TopRight);
+
+        Actions.Orphan();
+        TopLeft.AddChild(Actions);
+        Actions.HorizontalAlignment = HAlignment.Left;
+
+        MainViewport.OnResized += ResizeClassicActions;
+        Inventory.OnResized += ResizeClassicActions;
+    }
+
+    private void ResizeClassicActions()
+    {
+        var indent = Inventory.Size.Y + TopBar.Size.Y + 40;
+        Actions.ActionsContainer.MaxGridHeight = MainViewport.Size.Y - indent;
     }
 
     public void SetRightStackLift(float lift)
     {
-        if (MathF.Abs(lift - _rightStackLift) < 0.5f)
+        if (_classic || MathF.Abs(lift - _rightStackLift) < 0.5f)
             return;
 
         _rightStackLift = lift;
@@ -141,7 +179,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
             }
         }
 
-        PlaceInventoryBar();
+        if (!_classic)
+            PlaceInventoryBar();
     }
 
     // FINALSTAND: left of the storage row - stacking it above collided with the weapon module.
@@ -170,7 +209,8 @@ public sealed partial class DefaultGameScreen : InGameScreen
             return;
         }
 
-        _chatRect = _chatRect.Translated(Size - _chatScreenSize);
+        var shift = Size - _chatScreenSize;
+        _chatRect = _chatRect.Translated(_classic ? new Vector2(shift.X, 0f) : shift);
         ClampChatRect();
         _chatScreenSize = Size;
         ApplyChatState();
@@ -192,8 +232,15 @@ public sealed partial class DefaultGameScreen : InGameScreen
             return;
 
         var right = Size.X - ChatEdgeMargin;
-        var bottom = Size.Y - (BottomBandLift + _rightStackLift + 8f);
-        _chatRect = new UIBox2(right - ChatDefaultWidth, bottom - ChatDefaultHeight, right, bottom);
+        if (_classic)
+        {
+            _chatRect = new UIBox2(right - ClassicChatWidth, ChatEdgeMargin, right, ChatEdgeMargin + ClassicChatHeight);
+        }
+        else
+        {
+            var bottom = Size.Y - (BottomBandLift + _rightStackLift + 8f);
+            _chatRect = new UIBox2(right - ChatDefaultWidth, bottom - ChatDefaultHeight, right, bottom);
+        }
         _chatPlaced = true;
         _chatScreenSize = Size;
         ClampChatRect();
@@ -232,10 +279,30 @@ public sealed partial class DefaultGameScreen : InGameScreen
     {
         Chat.Visible = !_chatCollapsed;
 
+        if (_classic)
+        {
+            PinClassicChat();
+            PlaceChatDock();
+            return;
+        }
+
         if (!_chatCollapsed)
             Chat.ApplyRect(_chatRect);
 
         PlaceChatDock();
+    }
+
+    private void PinClassicChat()
+    {
+        var width = MathF.Max(_chatRect.Width, ClassicChatWidth);
+        var height = MathF.Max(_chatRect.Height, ClassicChatHeight);
+
+        SetMarginLeft(Chat, -(ChatEdgeMargin + width));
+        SetMarginRight(Chat, -ChatEdgeMargin);
+        SetMarginTop(Chat, ChatEdgeMargin);
+        SetMarginBottom(Chat, ChatEdgeMargin + height);
+
+        SetMarginTop(Alerts, _chatCollapsed ? ChatEdgeMargin : height + ChatEdgeMargin * 2);
     }
 
     private void PlaceChatDock()

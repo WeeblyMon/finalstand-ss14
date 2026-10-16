@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using System.Linq;
 using System.Numerics;
 using Content.Client.Actions;
@@ -68,6 +69,13 @@ public sealed partial class ActionUIController : UIController, IOnStateChanged<G
     {
         if (_actionsSystem == null || _container == null)
             return;
+
+        if (FSClassicHud.Enabled)
+        {
+            _page = 0;
+            _container.SetActionData(_actionsSystem, _actions.ToArray());
+            return;
+        }
 
         _page = Math.Clamp(_page, 0, PageCount - 1);
 

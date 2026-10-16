@@ -76,8 +76,24 @@ public sealed class FSCCCHealthBarOverlay : Overlay
             var darken = new Box2(new Vector2(0f, 3f) / ppm,
                                   new Vector2(xFill, 4f) / ppm).Translated(pos);
             handle.DrawRect(darken, Black.WithAlpha(128));
+
+            DrawLives(handle, tag, new Vector2(0f, pos.Y - 9f / ppm), ppm);
         }
 
         handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    private static void DrawLives(DrawingHandleWorld handle, FinalStandCCCTagComponent tag, Vector2 center, float ppm)
+    {
+        const float side = 6f;
+        const float gap = 3f;
+        var total = tag.Lives * side + (tag.Lives - 1) * gap;
+        for (var i = 0; i < tag.Lives; i++)
+        {
+            var left = -total / 2f + i * (side + gap);
+            handle.DrawRect(new Box2(new Vector2(left, 0f) / ppm, new Vector2(left + side, side) / ppm).Translated(center), Black.WithAlpha(200));
+            handle.DrawRect(new Box2(new Vector2(left + 1f, 1f) / ppm, new Vector2(left + side - 1f, side - 1f) / ppm).Translated(center),
+                i < tag.LivesLeft ? FromHex("#e4512f") : FromHex("#3a2a28"));
+        }
     }
 }

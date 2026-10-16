@@ -151,7 +151,7 @@ public sealed partial class WaveHudSystem : EntitySystem
             _alerts = FindByName(screen, "Alerts", 0);
         }
 
-        if (_alerts is null)
+        if (_alerts is null || FSClassicHud.Enabled)
             return;
 
         var lift = WaveHudOverlay.BottomBandLift + overlay.VitalsBlockHeight() + 6f;

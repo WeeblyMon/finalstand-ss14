@@ -18,14 +18,24 @@ public sealed partial class HotbarGui : UIWidget
 
     private Vector2i _lastScreenSize;
     private float _lastUIScale = -1f;
+    private readonly bool _classic;
 
     public HotbarGui()
     {
         RobustXamlLoader.Load(this);
+        _classic = FSClassicHud.Enabled;
         StatusPanelRight.SetSide(HandLocation.Right);
         StatusPanelLeft.SetSide(HandLocation.Left);
         StatusPanelRight.Visible = false;
         StatusPanelLeft.Visible = false;
+
+        if (_classic)
+        {
+            BuildClassicRow();
+            UserInterfaceManager.GetUIController<HotbarUIController>().Setup(HandContainer);
+            LayoutContainer.SetGrowVertical(this, LayoutContainer.GrowDirection.Begin);
+            return;
+        }
 
         HandsPanel.PanelOverride = FSHudStyle.ModulePanel();
         StoragePanel.PanelOverride = FSHudStyle.ModulePanel();
@@ -66,6 +76,9 @@ public sealed partial class HotbarGui : UIWidget
     {
         base.FrameUpdate(args);
 
+        if (_classic)
+            return;
+
         // Also polls UIScale directly - a HUD-layout switch builds a new HotbarGui, and UIScaleChanged doesn't reliably fire for that.
         var screenSize = _clyde.ScreenSize;
         if (screenSize != _lastScreenSize || MathF.Abs(UIScale - _lastUIScale) > 0.001f)
@@ -76,9 +89,54 @@ public sealed partial class HotbarGui : UIWidget
         }
     }
 
+    private void BuildClassicRow()
+    {
+        HorizontalAlignment = HAlignment.Center;
+        HorizontalExpand = false;
+        Hotbar.Visible = false;
+
+        var row = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            HorizontalAlignment = HAlignment.Center,
+        };
+
+        foreach (var grid in new[] { SecondHotbar, MainHotbar })
+        {
+            grid.Orphan();
+            grid.ExpandBackwards = true;
+            grid.VerticalAlignment = VAlignment.Bottom;
+        }
+
+        SecondHotbar.HorizontalAlignment = HAlignment.Right;
+        MainHotbar.HorizontalAlignment = HAlignment.Left;
+
+        StatusPanelRight.Orphan();
+        StatusPanelRight.Margin = new Thickness(0, 0, -2, 2);
+        StatusPanelRight.VerticalAlignment = VAlignment.Stretch;
+
+        StatusPanelLeft.Orphan();
+        StatusPanelLeft.Margin = new Thickness(-2, 0, 0, 2);
+        StatusPanelLeft.VerticalAlignment = VAlignment.Stretch;
+
+        HandContainer.Orphan();
+        HandContainer.VerticalAlignment = VAlignment.Stretch;
+
+        row.AddChild(SecondHotbar);
+        row.AddChild(StatusPanelRight);
+        row.AddChild(HandContainer);
+        row.AddChild(StatusPanelLeft);
+        row.AddChild(MainHotbar);
+
+        Hotbar.Parent!.AddChild(row);
+    }
+
     // A real Control already scales with UIScale, so only the window-size part needs matching.
     private void ApplyStorageWidth()
     {
+        if (_classic)
+            return;
+
         var scale = UIScale <= 0f ? 1f : UIScale;
         var resolutionFactor = WaveHudOverlay.GetResolutionFactor(_clyde.ScreenSize.X);
 
@@ -133,7 +191,7 @@ public sealed partial class HotbarGui : UIWidget
     // FINALSTAND: the wave HUD draws a single module for the active hand, so vanilla's per-hand panels stay hidden - two of them beside the hands read as a second pair of hands.
     public void UpdateStatusVisibility(bool left, bool right)
     {
-        StatusPanelLeft.Visible = false;
-        StatusPanelRight.Visible = false;
+        StatusPanelLeft.Visible = _classic && left;
+        StatusPanelRight.Visible = _classic && right;
     }
 }

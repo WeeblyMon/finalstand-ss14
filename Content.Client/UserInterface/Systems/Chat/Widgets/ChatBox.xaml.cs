@@ -1,3 +1,5 @@
+using System.Numerics;
+using Content.Client._FinalStand.Interface;
 using Content.Client.UserInterface.Systems.Chat.Controls;
 using Content.Shared.Chat;
 using Content.Shared.Input;
@@ -33,6 +35,13 @@ public partial class ChatBox : UIWidget
     {
         RobustXamlLoader.Load(this);
         _sawmill = _log.GetSawmill("chat");
+
+        if (FSClassicHud.Enabled)
+        {
+            MinSize = new Vector2(465, 225);
+            FSGrip.Visible = false;
+            Contents.Margin = new Thickness(8, 8, 8, 4);
+        }
 
         ChatInput.Input.OnTextEntered += OnTextEntered;
         ChatInput.Input.OnKeyBindDown += OnInputKeyBindDown;

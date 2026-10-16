@@ -17,7 +17,7 @@ public sealed partial class InventoryGui : UIWidget
         var inventoryUIController = UserInterfaceManager.GetUIController<InventoryUIController>();
         inventoryUIController.RegisterInventoryBarContainer(InventoryHotbar);
 
-        FSInventoryPanel.PanelOverride = new StyleBoxFlat
+        FSInventoryPanel.PanelOverride = FSClassicHud.Enabled ? new StyleBoxEmpty() : new StyleBoxFlat
         {
             BackgroundColor = FSPalette.PanelBack,
             BorderColor = FSPalette.PanelEdge,

@@ -248,8 +248,8 @@ public sealed partial class ChatUIController : UIController
         panel.PanelOverride = new StyleBoxFlat
         {
             BackgroundColor = color.WithAlpha(opacity),
-            BorderColor = FSHudStyle.PanelEdge,
-            BorderThickness = new Thickness(1),
+            BorderColor = FSClassicHud.Enabled ? Color.Transparent : FSHudStyle.PanelEdge,
+            BorderThickness = new Thickness(FSClassicHud.Enabled ? 0 : 1),
         };
     }
 

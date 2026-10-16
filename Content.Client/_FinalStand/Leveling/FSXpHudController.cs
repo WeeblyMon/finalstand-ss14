@@ -46,7 +46,7 @@ public sealed partial class FSXpHudController : UIController, IOnSystemChanged<F
     private void OnScreenLoad()
     {
         var screen = UIManager.ActiveScreen;
-        if (screen == null) return;
+        if (screen == null || _cfg.GetCVar(CCVars.FSClassicHud)) return;
 
         _root = new BoxContainer
         {
