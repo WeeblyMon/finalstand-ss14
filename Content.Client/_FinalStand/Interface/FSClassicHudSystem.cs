@@ -17,7 +17,7 @@ using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Interface;
 
-public sealed class FSClassicHudSystem : EntitySystem
+public sealed partial class FSClassicHudSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
 
