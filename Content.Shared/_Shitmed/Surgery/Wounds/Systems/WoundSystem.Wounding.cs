@@ -289,7 +289,8 @@ public sealed partial class WoundSystem
     {
         var delta = args.Overflow ?? args.NewSeverity - args.OldSeverity;
 
-        if (TerminatingOrDeleted(uid)
+        if (!_net.IsServer
+            || TerminatingOrDeleted(uid)
             || TerminatingOrDeleted(component.HoldingWoundable)
             // || !TryComp<TraumaInflicterComponent>(uid, out var traumaInflicter) // Goob edit
 
