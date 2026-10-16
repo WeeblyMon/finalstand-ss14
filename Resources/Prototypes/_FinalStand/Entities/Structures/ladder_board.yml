@@ -1,0 +1,72 @@
+- type: entity
+  id: FSLadderBoard
+  name: record board
+  description: The station's best defences, wave by wave. Use it to see the server records.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.3,-0.2,0.3,0.2"
+        density: 100
+        mask:
+        - ItemMask
+        layer:
+        - WallLayer
+  - type: Sprite
+    drawdepth: SmallObjects
+    sprite: Structures/Wallmounts/noticeboard.rsi
+    layers:
+    - state: noticeboard
+    - state: notice-5
+  - type: FSLadderBoard
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardSolo
+  suffix: Solo
+  components:
+  - type: FSLadderBoard
+    bracket: Solo
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardCrew
+  suffix: Crew
+  components:
+  - type: FSLadderBoard
+    bracket: Crew
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardHard
+  suffix: Hard
+  components:
+  - type: FSLadderBoard
+    difficulty: Hard
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardNightmare
+  suffix: Nightmare
+  components:
+  - type: FSLadderBoard
+    difficulty: Nightmare
+
+- type: entity
+  parent: FSLadderBoard
+  id: FSLadderBoardWeekly
+  name: weekly challenge board
+  description: This week's challenge and the crews who went furthest in it. Use it to see the full ladder.
+  components:
+  - type: FSLadderBoard
+    weekly: true

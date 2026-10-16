@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Content.Client.Stylesheets;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Systems;
@@ -21,6 +22,7 @@ namespace Content.Client.Voting.UI
         private readonly VoteManager.ActiveVote _vote;
         private readonly Button[] _voteButtons;
         private readonly NetEntity? _targetEntity;
+        private const int LongOptionLength = 18;
 
         public VotePopup(VoteManager.ActiveVote vote)
         {
@@ -38,6 +40,7 @@ namespace Content.Client.Voting.UI
             }
 
             Modulate = Color.White.WithAlpha(0.75f);
+            VoteOptionsContainer.Columns = vote.Entries.Any(e => e.Text.Length > LongOptionLength) ? 1 : 3;
             _voteButtons = new Button[vote.Entries.Length];
             var group = new ButtonGroup();
 
@@ -46,7 +49,8 @@ namespace Content.Client.Voting.UI
                 var button = new Button
                 {
                     ToggleMode = true,
-                    Group = group
+                    Group = group,
+                    HorizontalExpand = true
                 };
                 _voteButtons[i] = button;
                 VoteOptionsContainer.AddChild(button);

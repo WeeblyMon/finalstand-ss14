@@ -149,6 +149,25 @@ public sealed partial class WaveGameRuleComponent : Component
 
     [DataField] public int GuaranteedDarkWave = 8;
 
+    [DataField] public int VictoryWave = 30;
+    [DataField] public int VictoryPerkReward = 5;
+    public bool Victory;
+    public bool AwaitingEndless;
+    public bool AdminAssisted;
+    public bool Endless;
+    public int EndlessEscalations;
+    [DataField] public int EndlessEscalationInterval = 5;
+
+    [DataField] public bool DifficultyVote = true;
+    public FSDifficulty Difficulty = FSDifficulty.Normal;
+    public bool DifficultyLocked;
+
+    public readonly List<ProtoId<FSRoundModifierPrototype>> Modifiers = new();
+    public bool ModifiersRerolled;
+
+    public ProtoId<FSWeeklyChallengePrototype>? WeeklyChallenge;
+    public string? WeeklyKey;
+
     [DataField] public float DarkWaveWarningDelay = 30f;
     public float DarkWaveWarningAccum;
     public bool DarkWaveWarningFired;

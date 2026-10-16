@@ -8,6 +8,7 @@ using Content.Shared.Mind;
 using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
@@ -21,6 +22,8 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private FSPerkMasterySystem _mastery = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -38,6 +41,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         SubscribeNetworkEvent<FSSaveLoadoutMessage>(OnSaveLoadout);
         SubscribeNetworkEvent<FSLoadLoadoutMessage>(OnLoadLoadout);
         SubscribeNetworkEvent<FSRespecPerkMessage>(OnRespec);
+        SubscribeNetworkEvent<FSApplyStarterBuildMessage>(OnApplyStarterBuild);
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -243,6 +247,37 @@ public sealed partial class FSPerkSystem : EntitySystem
         });
     }
 
+    private void OnApplyStarterBuild(FSApplyStarterBuildMessage msg, EntitySessionEventArgs args)
+    {
+        ApplyStarterBuild(args.SenderSession, msg.BuildId);
+    }
+
+    public void ApplyStarterBuild(ICommonSession session, string buildId)
+    {
+        if (!_proto.TryIndex<FSStarterBuildPrototype>(buildId, out var build))
+        {
+            Log.Debug($"[FSPerk] ApplyStarterBuild: unknown build '{buildId}'");
+            return;
+        }
+
+        var points = GetPerkPoints(session);
+
+        DispatchPerkMutation(session, perks =>
+        {
+            var plan = FSStarterBuildPlanner.Make(perks.Levels, build.Perks, points);
+            var slots = FSStarterBuildPlanner.Slots(plan.Levels, build.Perks);
+            if (plan.Spent == 0 && slots.SequenceEqual(perks.Slots))
+                return false;
+
+            if (plan.Spent > 0)
+                _wallet.GivePerkPoints(session, -plan.Spent);
+
+            perks.Levels = plan.Levels;
+            Array.Copy(slots, perks.Slots, FSPerkDef.SlotCount);
+            return true;
+        });
+    }
+
     // Live component in round, database row in the lobby.
     private int GetPerkPoints(ICommonSession session)
     {
@@ -355,6 +390,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             Levels = new Dictionary<string, int>(perks.Levels),
             Slots = (string[])perks.Slots.Clone(),
             Loadouts = perks.Loadouts,
+            Mastery = new Dictionary<string, int>(_mastery.GetMastery(session.UserId)),
         }, Filter.SinglePlayer(session));
     }
 

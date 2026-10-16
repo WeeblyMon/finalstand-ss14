@@ -1,3 +1,4 @@
+using Content.Client._FinalStand.Interface;
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.MenuBar.Widgets;
@@ -11,7 +12,8 @@ using Robust.Shared.Network;
 
 namespace Content.Client._FinalStand.Leaderboard;
 
-public sealed partial class FSLeaderboardUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>
+public sealed partial class FSLeaderboardUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>,
+    IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IInputManager _input = default!;
     [Dependency] private IClientNetManager _net = default!;
@@ -20,11 +22,9 @@ public sealed partial class FSLeaderboardUIController : UIController, IOnStateEn
     private FSLeaderboardEntry[]? _lastEntries;
     private MenuButton? LeaderboardButton => UIManager.GetActiveUIWidgetOrNull<GameTopMenuBar>()?.LeaderboardButton;
 
-    public override void Initialize()
-    {
-        base.Initialize();
-        SubscribeNetworkEvent<FSLeaderboardUpdateEvent>(OnLeaderboardUpdate);
-    }
+    public void OnSystemLoaded(FSUiEventRelaySystem system) => system.LeaderboardUpdated += OnLeaderboardUpdate;
+
+    public void OnSystemUnloaded(FSUiEventRelaySystem system) => system.LeaderboardUpdated -= OnLeaderboardUpdate;
 
     public void OnStateEntered(GameplayState state)
     {
@@ -105,13 +105,13 @@ public sealed partial class FSLeaderboardUIController : UIController, IOnStateEn
             return;
         }
 
-        _window.OpenCenteredRight();
+        _window.OpenCentered();
         _window.MoveToFront();
     }
 
     // Kept even while closed: the server only broadcasts on change, so a dropped update would
     // leave the window empty until someone's score happened to move.
-    private void OnLeaderboardUpdate(FSLeaderboardUpdateEvent ev, EntitySessionEventArgs _)
+    private void OnLeaderboardUpdate(FSLeaderboardUpdateEvent ev)
     {
         _lastEntries = ev.Entries;
 
