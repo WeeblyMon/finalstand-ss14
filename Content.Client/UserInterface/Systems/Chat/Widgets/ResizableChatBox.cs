@@ -109,7 +109,7 @@ public sealed partial class ResizableChatBox : ChatBox
             else if (relativeMousePos.X > Size.X - DragMarginSize)
                 mode |= DragMode.Right;
 
-            if (mode == DragMode.None && relativeMousePos.Y <= GripBottom())
+            if (mode == DragMode.None && FSGrip.Visible && relativeMousePos.Y <= GripBottom())
                 mode = DragMode.Move;
 
             return mode;
