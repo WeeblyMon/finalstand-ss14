@@ -20,10 +20,6 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: FSMeleeBoneBreak
-      moveAnticipation: 0.85
-      moveImpact: 0.65
-      moveRecovery: 0.9
-      recoveryTime: 0.35
       trailColor: "#c8c0b088"
       trailWidth: 0.07
       trailDuration: 0.12
@@ -43,10 +39,6 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: FSMeleeBoneBreak
-      moveAnticipation: 0.85
-      moveImpact: 0.65
-      moveRecovery: 0.9
-      recoveryTime: 0.35
       trailColor: "#c8c0b088"
       trailWidth: 0.07
       trailDuration: 0.12

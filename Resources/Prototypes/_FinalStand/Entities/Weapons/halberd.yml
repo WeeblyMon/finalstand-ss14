@@ -22,10 +22,6 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         path: /Audio/Weapons/star_hit.ogg
-      moveAnticipation: 0.85
-      moveImpact: 0.5
-      moveRecovery: 0.9
-      recoveryTime: 0.35
       trailColor: "#8b1a1acc"
       trailWidth: 0.06
       trailDuration: 0.1
@@ -45,10 +41,6 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         path: /Audio/Weapons/star_hit.ogg
-      moveAnticipation: 0.85
-      moveImpact: 0.5
-      moveRecovery: 0.9
-      recoveryTime: 0.35
       trailColor: "#8b1a1acc"
       trailWidth: 0.06
       trailDuration: 0.1
@@ -71,10 +63,6 @@
       killEmitter: FSMeleeShockRing
       killSound:
         collection: FSMeleeBoneBreak
-      moveAnticipation: 0.7
-      moveImpact: 0.5
-      moveRecovery: 0.85
-      recoveryTime: 0.55
       trailColor: "#8b1a1acc"
       trailWidth: 0.1
       trailDuration: 0.22

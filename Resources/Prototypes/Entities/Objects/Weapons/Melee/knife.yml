@@ -124,10 +124,6 @@
       killEmitter: FSMeleeBlood
       killSound:
         collection: FSMeleeFleshSquish
-      moveAnticipation: 0.95
-      moveImpact: 0.9
-      moveRecovery: 0.95
-      recoveryTime: 0.2
       trailColor: "#e8f0ffaa"
       trailWidth: 0.04
       trailDuration: 0.08
@@ -145,10 +141,6 @@
       killEmitter: FSMeleeBlood
       killSound:
         collection: FSMeleeFleshSquish
-      moveAnticipation: 0.95
-      moveImpact: 0.9
-      moveRecovery: 0.95
-      recoveryTime: 0.2
       trailColor: "#e8f0ffaa"
       trailWidth: 0.04
       trailDuration: 0.08

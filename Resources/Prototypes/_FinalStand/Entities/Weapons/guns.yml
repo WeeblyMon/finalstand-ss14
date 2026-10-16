@@ -750,10 +750,6 @@
       killEmitter: FSMeleeBlood
       killSound:
         collection: FSMeleeFleshSquish
-      moveAnticipation: 0.9
-      moveImpact: 0.7
-      moveRecovery: 0.9
-      recoveryTime: 0.3
       trailColor: "#9ec3ffaa"
       trailWidth: 0.05
       trailDuration: 0.11
@@ -793,10 +789,6 @@
       killEmitter: FSMeleeBloodBurst
       killSound:
         collection: gib
-      moveAnticipation: 0.6
-      moveImpact: 0.6
-      moveRecovery: 0.6
-      recoveryTime: 0.3
   - type: MeleeWeapon
     autoAttack: true
     angle: 90

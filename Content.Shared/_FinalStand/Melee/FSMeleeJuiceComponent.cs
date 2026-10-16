@@ -148,18 +148,6 @@ public sealed partial class FSMeleeJuiceProfile
     public float StrikePitchStep = 0.12f;
 
     [DataField]
-    public float MoveAnticipation = 1f;
-
-    [DataField]
-    public float MoveImpact = 1f;
-
-    [DataField]
-    public float MoveRecovery = 1f;
-
-    [DataField]
-    public float RecoveryTime = 0.3f;
-
-    [DataField]
     public Color TrailColor = Color.White;
 
     [DataField]

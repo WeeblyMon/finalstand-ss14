@@ -37,7 +37,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         SubscribeLocalEvent<FSMeleeJuiceComponent, MeleeHitEvent>(OnMeleeHit, after: [typeof(FSFriendlyFireSharedSystem)]);
         SubscribeLocalEvent<FSMeleeJuiceComponent, AttemptMeleeEvent>(OnAttemptMelee);
-        SubscribeLocalEvent<FSMeleeSwingComponent, RefreshMovementSpeedModifiersEvent>(OnSwingSpeed);
         SubscribeLocalEvent<FSMeleeFlinchComponent, RefreshMovementSpeedModifiersEvent>(OnFlinchSpeed);
         SubscribeLocalEvent<FSMeleeFlinchComponent, AttackAttemptEvent>(OnFlinchAttack);
     }
@@ -71,7 +70,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         var finisher = !heavy && targets.Count > 0 && AdvanceCombo(args.User, ent);
         var profile = ent.Comp.Get(heavy, finisher);
-        StartSwing(args.User, profile);
 
         if (targets.Count == 0)
             return;
@@ -139,38 +137,6 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         _physics.SetLinearVelocity(user, Vector2.Normalize(toTarget) * distance * MobFriction, body: body);
     }
 
-    private void StartSwing(EntityUid user, FSMeleeJuiceProfile profile)
-    {
-        if (profile.MoveAnticipation >= 1f && profile.MoveImpact >= 1f && profile.MoveRecovery >= 1f)
-            return;
-
-        var now = Timing.CurTime;
-        var swing = EnsureComp<FSMeleeSwingComponent>(user);
-        swing.AnticipationEnd = now + TimeSpan.FromSeconds(profile.Anticipation);
-        swing.ImpactEnd = swing.AnticipationEnd + TimeSpan.FromSeconds(profile.Hitstop + 0.1f);
-        swing.RecoveryEnd = now + TimeSpan.FromSeconds(Math.Max(profile.RecoveryTime, profile.Anticipation + profile.Hitstop + 0.1f));
-        swing.MoveAnticipation = profile.MoveAnticipation;
-        swing.MoveImpact = profile.MoveImpact;
-        swing.MoveRecovery = profile.MoveRecovery;
-        Dirty(user, swing);
-    }
-
-    private float SwingMultiplier(FSMeleeSwingComponent swing, TimeSpan now)
-    {
-        if (now >= swing.RecoveryEnd)
-            return 1f;
-        if (now < swing.AnticipationEnd)
-            return swing.MoveAnticipation;
-        if (now < swing.ImpactEnd)
-            return swing.MoveImpact;
-        return swing.MoveRecovery;
-    }
-
-    private void OnSwingSpeed(Entity<FSMeleeSwingComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
-    {
-        args.ModifySpeed(ent.Comp.AppliedMultiplier);
-    }
-
     private void OnFlinchSpeed(Entity<FSMeleeFlinchComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
     {
         if (ent.Comp.LifeStage <= ComponentLifeStage.Running)
@@ -202,21 +168,10 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        var now = Timing.CurTime;
-        var swings = EntityQueryEnumerator<FSMeleeSwingComponent>();
-        while (swings.MoveNext(out var uid, out var swing))
-        {
-            var multiplier = SwingMultiplier(swing, now);
-            if (MathHelper.CloseTo(multiplier, swing.AppliedMultiplier))
-                continue;
-
-            swing.AppliedMultiplier = multiplier;
-            _movement.RefreshMovementSpeedModifiers(uid);
-        }
-
         if (!_net.IsServer)
             return;
 
+        var now = Timing.CurTime;
         _expired.Clear();
         var flinches = EntityQueryEnumerator<FSMeleeFlinchComponent>();
         while (flinches.MoveNext(out var uid, out var flinch))
