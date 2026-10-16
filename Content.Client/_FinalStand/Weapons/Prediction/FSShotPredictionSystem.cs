@@ -9,6 +9,7 @@ using Content.Shared.Effects;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
+using Content.Shared.Vehicle.Components;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Hitscan.Systems;
 using Content.Shared.Weapons.Ranged.Components;
@@ -191,6 +192,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
             Body = body,
             Fixture = fixture,
             Shooter = user,
+            Vehicle = CompOrNull<VehicleOperatorComponent>(user)?.Vehicle,
             Map = from.MapId,
             Origin = from.Position,
             Direction = direction,
@@ -364,7 +366,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         var results = _physics.IntersectRayWithPredicate(shot.Map,
             new CollisionRay(start, shot.Direction, shot.Mask),
             (this, shot),
-            static (ent, state) => ent == state.shot.Cosmetic || ent == state.shot.Shooter || state.Item1._mobQuery.HasComp(ent),
+            static (ent, state) => ent == state.shot.Cosmetic || ent == state.shot.Shooter || ent == state.shot.Vehicle || state.Item1._mobQuery.HasComp(ent),
             span,
             false);
 
@@ -392,7 +394,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         foreach (var mob in _mobs)
         {
-            if (mob.Owner == shot.Shooter || TerminatingOrDeleted(mob))
+            if (mob.Owner == shot.Shooter || mob.Owner == shot.Vehicle || TerminatingOrDeleted(mob))
                 continue;
 
             var position = _transform.GetMapCoordinates(mob);
@@ -601,6 +603,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         public PhysicsComponent Body = default!;
         public Fixture Fixture = default!;
         public EntityUid Shooter;
+        public EntityUid? Vehicle;
         public MapId Map;
         public Vector2 Origin;
         public Vector2 Direction;
