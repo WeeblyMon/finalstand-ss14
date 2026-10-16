@@ -126,6 +126,9 @@ namespace Content.Client.Gameplay
                 screenType = default;
             }
 
+            if (_configurationManager.GetCVar(CCVars.FSClassicHud))
+                screenType = ScreenType.Default;
+
             switch (screenType)
             {
                 case ScreenType.Default:
