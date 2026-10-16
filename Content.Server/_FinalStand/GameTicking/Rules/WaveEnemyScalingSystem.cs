@@ -24,6 +24,8 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
         var multiplier = GetHpMultiplier(wave) * difficulty;
         if (HasComp<FSGiantAbilitiesComponent>(enemy))
             multiplier *= GetBossHpBonus(wave) * GetBossPlayerHpFactor(playerCount);
+        else
+            multiplier *= GetPlayerHpFactor(playerCount);
 
         if (multiplier == 1f || !TryComp<MobThresholdsComponent>(enemy, out var thresholds))
             return;
@@ -64,6 +66,12 @@ public sealed partial class WaveEnemyScalingSystem : EntitySystem
     // On top of the shared curve above, so the boss keeps outscaling the trash around it.
     private static float GetBossHpBonus(int wave)
         => MathF.Min(1f + wave * 0.06f, 3f);
+
+    public const float HpPerExtraPlayer = 0.12f;
+    public const float MaxPlayerHpFactor = 2.5f;
+
+    public static float GetPlayerHpFactor(int playerCount)
+        => MathF.Min(1f + HpPerExtraPlayer * (Math.Max(1, playerCount) - 1), MaxPlayerHpFactor);
 
     public static float GetBossPlayerHpFactor(int playerCount)
         => Math.Clamp(0.35f + 0.65f * Math.Max(1, playerCount) / BossFullScalePlayers, 0.45f, 1f);
