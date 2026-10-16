@@ -46,6 +46,7 @@ namespace Content.Client.Gameplay
 
             LoadMainScreen();
             _configurationManager.OnValueChanged(CCVars.UILayout, ReloadMainScreenValueChange);
+            _configurationManager.OnValueChanged(CCVars.FSClassicHud, ReloadMainScreenClassicChange);
 
             // Add the hand-item overlay.
             _overlayManager.AddOverlay(new ShowHandItemOverlay());
@@ -86,10 +87,16 @@ namespace Content.Client.Gameplay
             _fpsCounter.Dispose();
             _uiManager.ClearWindows();
             _configurationManager.UnsubValueChanged(CCVars.UILayout, ReloadMainScreenValueChange);
+            _configurationManager.UnsubValueChanged(CCVars.FSClassicHud, ReloadMainScreenClassicChange);
             UnloadMainScreen();
         }
 
         private void ReloadMainScreenValueChange(string _)
+        {
+            ReloadMainScreen();
+        }
+
+        private void ReloadMainScreenClassicChange(bool _)
         {
             ReloadMainScreen();
         }
