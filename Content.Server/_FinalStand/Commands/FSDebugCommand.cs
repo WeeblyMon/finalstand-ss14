@@ -137,6 +137,20 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         out EntityUid mindId)
     {
         mindId = default;
+        if (!TryTargetSession(shell, args, index, out session))
+            return false;
+
+        if (!_minds.TryGetMind(session, out mindId, out _))
+        {
+            shell.WriteError($"{session.Name} has no mind yet. Join the round first.");
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryTargetSession(IConsoleShell shell, string[] args, int index, out ICommonSession session)
+    {
         session = default!;
 
         ICommonSession? found = shell.Player;
@@ -153,12 +167,6 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
         }
 
         session = found;
-        if (!_minds.TryGetMind(session, out mindId, out _))
-        {
-            shell.WriteError($"{session.Name} has no mind yet. Join the round first.");
-            return false;
-        }
-
         return true;
     }
 
@@ -327,7 +335,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
             return;
         }
 
-        if (!TryTarget(shell, args, 1, out var session, out _))
+        if (!TryTargetSession(shell, args, 1, out var session))
             return;
 
         shell.WriteLine(_titles.Grant(session.UserId, args[0])
@@ -354,7 +362,7 @@ public sealed partial class FSDebugCommand : LocalizedEntityCommands
 
     private void Mentor(IConsoleShell shell, string[] args)
     {
-        if (!TryInt(shell, args, 0, out var points) || !TryTarget(shell, args, 1, out var session, out _))
+        if (!TryInt(shell, args, 0, out var points) || !TryTargetSession(shell, args, 1, out var session))
             return;
 
         var record = _mentor.CurrentRecord(session.UserId.UserId);

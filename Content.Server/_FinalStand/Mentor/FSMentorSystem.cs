@@ -78,10 +78,21 @@ public sealed partial class FSMentorSystem : EntitySystem
 
     public bool IsEligibleMentor(ICommonSession session)
     {
-        return _playTime.TryGetTrackerTimes(session, out var times)
-               && _mind.TryGetMind(session, out var mindId, out _)
-               && TryComp<FSPlayerLevelComponent>(mindId, out var lvl)
-               && FSMentorRules.IsEligible(times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall), lvl.Level, lvl.PrestigeLevel);
+        var (playtime, level, prestige) = MentorStanding(session);
+        return FSMentorRules.IsEligible(playtime, level, prestige);
+    }
+
+    public (TimeSpan Playtime, int Level, int Prestige) MentorStanding(ICommonSession session)
+    {
+        var playtime = _playTime.TryGetTrackerTimes(session, out var times)
+            ? times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall)
+            : TimeSpan.Zero;
+
+        if (_mind.TryGetMind(session, out var mindId, out _) && TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+            return (playtime, lvl.Level, lvl.PrestigeLevel);
+
+        var record = _store.GetFullRecord(session.UserId.UserId);
+        return (playtime, record.Level, record.PrestigeLevel);
     }
 
     private bool TryGetPair(EntityUid mentorMind, EntityUid rookieBody,

@@ -1,5 +1,6 @@
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.Perks;
+using Content.Client._FinalStand.Profile;
 using Content.Client.Lobby.UI;
 using Robust.Client.UserInterface.Controllers;
 using Content.Shared._FinalStand.Economy;
@@ -79,6 +80,7 @@ public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelayS
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new WalletRequestEvent());
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSLevelingRequestMessage());
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSWaveStatusRequestEvent());
+        UIManager.GetUIController<FSProfileUIController>().RequestTitles();
         UpdateFSPerkPoints();
         UpdateFSLevelDisplay();
         UpdateFSWaveStatus();
@@ -98,6 +100,25 @@ public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelayS
 
         panel.PerkShopButtonControl.OnPressed += _ =>
             IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<FSPerkShopSystem>().OpenWindow();
+
+        var profile = UIManager.GetUIController<FSProfileUIController>();
+        panel.TitlesButtonControl.OnPressed += _ => profile.OpenTitles();
+        panel.MentorButtonControl.OnPressed += _ => profile.OpenMentor();
+
+        if (!_fsTitleHooked)
+        {
+            _fsTitleHooked = true;
+            profile.EquippedTitleChanged += UpdateFSTitle;
+        }
+        UpdateFSTitle();
+    }
+
+    private bool _fsTitleHooked;
+
+    private void UpdateFSTitle()
+    {
+        var (name, color) = UIManager.GetUIController<FSProfileUIController>().EquippedTitleDisplay();
+        PreviewPanel?.SetTitle(name == null ? null : Loc.GetString("fs-badge-leaderboard-title", ("title", name)), color);
     }
 
     private void UpdateFSLevelDisplay()

@@ -3,6 +3,7 @@ using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Content.Shared._FinalStand.Leaderboard;
 using Content.Shared._FinalStand.Leveling;
+using Content.Shared._FinalStand.Titles;
 using Content.Shared._FinalStand.Tutorial;
 
 namespace Content.Client._FinalStand.Interface;
@@ -16,6 +17,8 @@ public sealed class FSUiEventRelaySystem : EntitySystem
     public event Action? LadderOpenRequested;
     public event Action<FSLadderResponseEvent>? LadderResponse;
     public event Action<FSTutorialTip>? TutorialTip;
+    public event Action<FSTitlesStateEvent>? TitlesUpdated;
+    public event Action<FSMentorStateEvent>? MentorUpdated;
 
     public override void Initialize()
     {
@@ -27,5 +30,7 @@ public sealed class FSUiEventRelaySystem : EntitySystem
         SubscribeNetworkEvent<FSOpenLadderEvent>(_ => LadderOpenRequested?.Invoke());
         SubscribeNetworkEvent<FSLadderResponseEvent>(ev => LadderResponse?.Invoke(ev));
         SubscribeNetworkEvent<FSTutorialTipEvent>(ev => TutorialTip?.Invoke(ev.Tip));
+        SubscribeNetworkEvent<FSTitlesStateEvent>(ev => TitlesUpdated?.Invoke(ev));
+        SubscribeNetworkEvent<FSMentorStateEvent>(ev => MentorUpdated?.Invoke(ev));
     }
 }
