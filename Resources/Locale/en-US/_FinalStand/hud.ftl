@@ -10,6 +10,6 @@ fs-hud-dragging = Dragging: {$target}
 
 cmd-togglehud-desc = Switches between the Final Stand HUD and the classic vanilla layout.
 cmd-togglehud-help = Usage: togglehud
-cmd-togglehud-on = Classic HUD on.
-cmd-togglehud-off = Final Stand HUD on.
+cmd-togglehud-on = Classic HUD on. Restart the game to apply it.
+cmd-togglehud-off = Final Stand HUD on. Restart the game to apply it.
 cmd-togglehud-denied = Only admins can switch the HUD.

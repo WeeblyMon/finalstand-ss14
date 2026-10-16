@@ -5,5 +5,7 @@ namespace Content.Client._FinalStand.Interface;
 
 public static class FSClassicHud
 {
-    public static bool Enabled => IoCManager.Resolve<IConfigurationManager>().GetCVar(CCVars.FSClassicHud);
+    private static bool? _enabled;
+
+    public static bool Enabled => _enabled ??= IoCManager.Resolve<IConfigurationManager>().GetCVar(CCVars.FSClassicHud);
 }
