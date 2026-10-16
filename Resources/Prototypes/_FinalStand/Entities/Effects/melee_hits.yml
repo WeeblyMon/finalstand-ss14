@@ -195,16 +195,6 @@
 
 - type: entity
   parent: FSMeleeEffectBase
-  id: FSMeleeSlashRogueStarTinted
-  components:
-  - type: TimedDespawn
-    lifetime: 0.29
-  - type: Sprite
-    sprite: _FinalStand/Effects/Melee/frostwindz.rsi
-    state: rogue_star_gray
-
-- type: entity
-  parent: FSMeleeEffectBase
   id: FSMeleeStabEnergy
   components:
   - type: TimedDespawn
@@ -226,3 +216,13 @@
   components:
   - type: Sprite
     state: knife
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlashChainsaw
+  components:
+  - type: TimedDespawn
+    lifetime: 0.17
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/grind.rsi
+    state: chainsaw

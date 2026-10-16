@@ -62,6 +62,7 @@
       slashColor: "#ffffff"
       slashScale: 1.1
       slashGrow: 1.35
+      slashOffset: 0.9
   - type: Tag
     tags:
     - FireAxe

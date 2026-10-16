@@ -50,6 +50,7 @@
       slashColor: "#fff2d6"
       slashScale: 0.95
       slashGrow: 1.35
+      slashOffset: 0.9
   - type: Sprite
     sprite: Objects/Weapons/Melee/baseball_bat.rsi
     state: icon

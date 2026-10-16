@@ -757,7 +757,9 @@
         collection: FSMeleeBladeFlesh
       slashEffect: FSMeleeSlashRogueDoubleTinted
       slashColor: "#dde9ff"
-      slashScale: 0.8
+      slashScale: 1.05
+      slashOffset: 0.6
+      slashTravel: 0.45
   - type: MeleeWeapon
     damage:
       types:
@@ -798,10 +800,10 @@
         collection: FSMeleeBladeFlesh
         params:
           volume: -5
-      slashEffect: FSMeleeSlashRogueStarTinted
-      slashColor: "#ffc860"
-      slashScale: 0.55
-      slashOffset: 0.55
+      slashEffect: FSMeleeSlashChainsaw
+      slashColor: "#ffffff"
+      slashScale: 1.0
+      slashOffset: 0.6
       slashTravel: 0.15
       slashGrow: 1.1
   - type: MeleeWeapon

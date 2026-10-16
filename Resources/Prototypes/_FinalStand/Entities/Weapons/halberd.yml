@@ -29,7 +29,7 @@
         collection: FSMeleeBladeFlesh
       slashEffect: FSMeleeStabHalberd
       slashScale: 0.8
-      slashOffset: 1.4
+      slashOffset: 1.2
       slashTravel: 0.3
       slashGrow: 1.1
     comboHits: 2
