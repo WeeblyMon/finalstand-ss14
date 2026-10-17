@@ -44,11 +44,12 @@ public sealed partial class FSRevenantLightDrainSystem : EntitySystem
             return;
         _accum = 0f;
 
+        // The blackout already has them dark; hand the lights back so they come on when power returns.
         if (_waveRule.IsDarkWaveActive())
         {
             var stale = EntityQueryEnumerator<FSRevenantLightDrainComponent>();
             while (stale.MoveNext(out _, out var staleComp))
-                staleComp.Drained.Clear();
+                RestoreAll(staleComp);
             return;
         }
 
