@@ -70,14 +70,14 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
     private void OnPullRequest(FSCasualtyPullRequestEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } doctor
-            || !TryComp<FSCasualtyPullComponent>(doctor, out var pull)
-            || pull.ReadyAt > _timing.CurTime)
-        {
+        if (args.SenderSession.AttachedEntity is not { } doctor)
             return;
-        }
 
-        TryPull(doctor, GetEntity(ev.Patient), null);
+        Entity<ActionComponent>? action = null;
+        if (_granted.TryGetValue(doctor, out var granted) && TryComp<ActionComponent>(granted, out var actionComp))
+            action = (granted, actionComp);
+
+        TryPull(doctor, GetEntity(ev.Patient), action);
     }
 
     private void OnPull(FSCasualtyPullActionEvent args)
@@ -130,8 +130,16 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
     private bool TryPull(EntityUid doctor, EntityUid target, Entity<ActionComponent>? action)
     {
-        if (target == doctor || TerminatingOrDeleted(target))
+        if (target == doctor || TerminatingOrDeleted(target) || !HasComp<ActorComponent>(target))
             return false;
+
+        // The UI and the action share one cooldown, and a downed doctor can't pull anyone.
+        if (!TryComp<FSCasualtyPullComponent>(doctor, out var pullComp)
+            || pullComp.ReadyAt > _timing.CurTime
+            || _mobState.IsIncapacitated(doctor))
+        {
+            return false;
+        }
 
         if (!_mobState.IsCritical(target) && !_mobState.IsDead(target))
         {
@@ -164,11 +172,8 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         if (action is { } act)
             _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
 
-        if (TryComp<FSCasualtyPullComponent>(doctor, out var pullComp))
-        {
-            pullComp.ReadyAt = _timing.CurTime + cooldown;
-            Dirty(doctor, pullComp);
-        }
+        pullComp.ReadyAt = _timing.CurTime + cooldown;
+        Dirty(doctor, pullComp);
 
         var origin = _xform.GetMapCoordinates(target);
         Spawn(ArriveEffect, origin);
