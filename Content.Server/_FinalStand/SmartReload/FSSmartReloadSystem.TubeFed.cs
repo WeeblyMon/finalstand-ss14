@@ -200,25 +200,4 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             SetReloading(gun, false);
         }
     }
-
-    private void DumpAllTubeShells(EntityUid gun, BallisticAmmoProviderComponent comp)
-    {
-        var coords = Transform(gun).Coordinates;
-
-#pragma warning disable RA0002
-        foreach (var entity in comp.Entities.ToList())
-            _containers.Remove((entity, null, null), comp.Container, force: true);
-
-        comp.Entities.Clear();
-
-        if (comp.Proto != null)
-        {
-            for (var i = 0; i < comp.UnspawnedCount; i++)
-                Spawn(comp.Proto.Value, coords);
-        }
-
-        comp.UnspawnedCount = 0;
-#pragma warning restore RA0002
-        Dirty(gun, comp);
-    }
 }

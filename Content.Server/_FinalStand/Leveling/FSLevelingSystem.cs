@@ -288,12 +288,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var ap = lvl.Level % 5 == 0 ? 5 : 1;
             _wallet.AddPerkPoints(mindId, ap);
             totalAp += ap;
-            RaiseLocalEvent(mindId, new FSLevelUpEvent
-            {
-                MindId = mindId,
-                NewLevel = lvl.Level,
-                PrestigeLevel = lvl.PrestigeLevel,
-            });
         }
 
         if (lvl.Level > startLevel)

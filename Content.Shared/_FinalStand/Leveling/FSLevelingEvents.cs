@@ -17,10 +17,3 @@ public sealed class FSPrestigeRequestMessage : EntityEventArgs { }
 // Lobby has no mind to read leveling off, so it asks and the server falls back to the database.
 [Serializable, NetSerializable]
 public sealed class FSLevelingRequestMessage : EntityEventArgs { }
-
-public sealed class FSLevelUpEvent : EntityEventArgs
-{
-    public EntityUid MindId;
-    public int NewLevel;
-    public int PrestigeLevel;
-}
