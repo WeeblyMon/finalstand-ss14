@@ -54,6 +54,18 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
 
     private const int DashProbeSteps = 8;
 
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<FSGiantAbilitiesComponent, ComponentShutdown>(OnShutdown);
+    }
+
+    // Wave cleanup can delete the giant mid-ability, which would leave its telegraphs on the floor.
+    private void OnShutdown(Entity<FSGiantAbilitiesComponent> ent, ref ComponentShutdown args)
+    {
+        ClearMarkers(ent);
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
