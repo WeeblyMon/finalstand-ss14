@@ -1,8 +1,8 @@
-// Tracks fuel for the chainsaw. Drained per swing, refilled from welder/fuel tanks.
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Chainsaw;
 
+// Drained per swing, refilled from welders and fuel tanks.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSChainsawFuelComponent : Component
 {

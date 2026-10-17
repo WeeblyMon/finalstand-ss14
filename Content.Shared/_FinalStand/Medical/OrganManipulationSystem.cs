@@ -1,5 +1,3 @@
-// Inserting, removing and re-parenting organs. Replaces Goob's part/organ slot manipulation.
-
 using System.Linq;
 using Content.Shared.Body;
 using Robust.Shared.Containers;
@@ -8,6 +6,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Replaces Goob's part/organ slot manipulation.
 public sealed partial class OrganManipulationSystem : EntitySystem
 {
     [Dependency] private OrganLookupSystem _lookup = default!;

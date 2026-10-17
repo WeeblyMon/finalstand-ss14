@@ -1,6 +1,6 @@
 namespace Content.Shared._FinalStand.Upgrades.Effects;
 
-// placed on suppressed targets; no-refresh — only re-applied once expired
+// placed on suppressed targets; not refreshed, only re-applied once expired
 [RegisterComponent]
 public sealed partial class FSSuppressionComponent : Component
 {

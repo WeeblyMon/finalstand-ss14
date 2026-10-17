@@ -1,10 +1,9 @@
-// Blocks movement for the duration of a knockback, on both sides so prediction agrees.
-
 using Content.Shared.ActionBlocker;
 using Content.Shared.Movement.Events;
 
 namespace Content.Shared._FinalStand.Upgrades.Effects;
 
+// Runs on both sides so movement prediction agrees during a knockback.
 public sealed partial class FSKnockedBackSystem : EntitySystem
 {
     [Dependency] private ActionBlockerSystem _blocker = default!;

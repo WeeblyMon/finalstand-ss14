@@ -1,6 +1,6 @@
-// A Scavenger supply cache; only its owner can see or pick it up.
 namespace Content.Shared._FinalStand.Perks;
 
+// Only the owner can see or pick up their Scavenger cache.
 [RegisterComponent]
 public sealed partial class FSScavengerCacheComponent : Component
 {

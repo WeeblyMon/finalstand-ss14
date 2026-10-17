@@ -1,7 +1,7 @@
 namespace Content.Shared._FinalStand.Projectiles;
 
 /// <summary>
-///     Projectiles with this component will not deal damage to structures or objects —
+///     Projectiles with this component will not deal damage to structures or objects;
 ///     only entities with MobStateComponent (living mobs) take damage.
 /// </summary>
 [RegisterComponent]

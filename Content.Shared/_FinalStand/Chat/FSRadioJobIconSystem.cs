@@ -9,7 +9,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Chat;
 
-// Resolves the job icon shown next to a name in radio chat messages.
 public sealed partial class FSRadioJobIconSystem : EntitySystem
 {
     [Dependency] private AccessReaderSystem _accessReader = default!;

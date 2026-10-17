@@ -8,10 +8,10 @@ public sealed partial class FSOverclockedComponent : Component
     // upgrade level (1–3), set when the upgrade is purchased
     [DataField] public int Level = 1;
 
-    // normalized spool 0..1 — networked so the client can drive the glow
+    // normalized spool 0..1, networked so the client can drive the glow
     [AutoNetworkedField] public float Spool;
 
-    // Ordnance research ramp multiplier - recomputed each refresh, not accumulated.
+    // Ordnance research ramp multiplier, recomputed each refresh, not accumulated.
     public float ResearchRampMultiplier = 1f;
 
     // server-only timing, not networked

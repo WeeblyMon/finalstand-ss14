@@ -82,7 +82,7 @@ public sealed partial class FSBulkLoaderSystem : EntitySystem
 
             if (_whitelist.IsWhitelistFail(targetComp.Whitelist, ammoEnt.Value))
             {
-                // Doesn't fit this weapon after all — drop it back where the clip is instead of destroying it.
+                // Doesn't fit this weapon after all; drop it back where the clip is instead of destroying it.
                 _interaction.InteractUsing(user, ammoEnt.Value, source, Transform(source).Coordinates, checkCanInteract: false, checkCanUse: false);
                 continue;
             }

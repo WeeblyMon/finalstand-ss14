@@ -1,10 +1,9 @@
-// Passive wound healing for a body. Simple bodies (borgs, animals) simply do not carry this.
-
 using Content.Shared._Shitmed.Body;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Simple bodies (borgs, animals) don't carry this.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class BodyWoundHealingComponent : Component
 {

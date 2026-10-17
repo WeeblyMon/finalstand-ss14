@@ -4,8 +4,8 @@ namespace Content.Shared._FinalStand.NPC;
 public sealed partial class FSBreachCostOverrideComponent : Component
 {
     /// <summary>
-    /// Manual cost override. Set to 999f to make this structure untargetable by breach evaluator.
-    /// Used for edge cases only — automatic HP-based cost handles all normal cases.
+    /// Set to 999 to make the breach evaluator ignore this structure.
+    /// Edge cases only; the automatic HP-based cost covers normal ones.
     /// </summary>
     [DataField]
     public float Cost = 1f;

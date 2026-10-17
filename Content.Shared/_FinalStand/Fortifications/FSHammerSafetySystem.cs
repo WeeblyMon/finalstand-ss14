@@ -1,4 +1,3 @@
-// The Engineer's Hammer never damages a fortification, whatever the swing.
 using Content.Shared.Damage.Systems;
 using Content.Shared.DoAfter;
 using Content.Shared.Hands.EntitySystems;
@@ -6,6 +5,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Fortifications;
 
+// The Engineer's Hammer never damages a fortification, whatever the swing.
 [Serializable, NetSerializable]
 public sealed partial class FSHammerDoAfterEvent : SimpleDoAfterEvent;
 

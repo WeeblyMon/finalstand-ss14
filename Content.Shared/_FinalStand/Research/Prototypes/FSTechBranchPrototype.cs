@@ -3,7 +3,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Research.Prototypes;
 
-// FS-authored equivalent of TechDisciplinePrototype - tab/color grouping for FSTechNodePrototype content.
+// FS-authored equivalent of TechDisciplinePrototype: tab/color grouping for FSTechNodePrototype content.
 [Prototype("fsTechBranch")]
 public sealed partial class FSTechBranchPrototype : IPrototype
 {
@@ -19,7 +19,7 @@ public sealed partial class FSTechBranchPrototype : IPrototype
     [DataField]
     public SpriteSpecifier? Icon;
 
-    // Explicit tab order in the research console's discipline rail - prototype enumeration order isn't stable.
+    // Explicit tab order in the research console's discipline rail; prototype enumeration order isn't stable.
     [DataField]
     public int SortOrder;
 }

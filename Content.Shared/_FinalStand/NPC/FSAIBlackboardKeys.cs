@@ -1,4 +1,3 @@
-// Blackboard key constants shared across FS wave-zombie HTN operators and systems.
 namespace Content.Shared._FinalStand.NPC;
 
 public static class FSAIBlackboardKeys

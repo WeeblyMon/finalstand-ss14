@@ -1,8 +1,8 @@
-// Grid-relative conversion for hitscan effects, matching vanilla HitscanBasicRaycastSystem.
 using Robust.Shared.Map;
 
 namespace Content.Shared._FinalStand.Weapons;
 
+// Grid-relative conversion for hitscan effects, matching vanilla HitscanBasicRaycastSystem.
 public sealed partial class FSHitscanCoordSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;

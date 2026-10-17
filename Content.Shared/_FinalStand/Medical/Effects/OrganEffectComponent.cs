@@ -1,11 +1,10 @@
-// Components an organ grants to, or strips from, its body while attached.
-
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._FinalStand.Medical.Effects;
 
+// Components an organ grants to, or strips from, its body while attached.
 [RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentPause]
 public sealed partial class OrganEffectComponent : Component

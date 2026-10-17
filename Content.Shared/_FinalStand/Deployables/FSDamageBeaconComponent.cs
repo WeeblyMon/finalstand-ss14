@@ -2,7 +2,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Deployables;
 
-// On the placed Damage Beacon - see FSDamageBeaconSystem.
 [RegisterComponent]
 public sealed partial class FSDamageBeaconComponent : Component
 {

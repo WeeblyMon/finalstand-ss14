@@ -1,4 +1,3 @@
-// The rivet gun feeds itself a sheet at a time from the steel its holder is carrying.
 using Content.Shared._FinalStand.Materials;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
@@ -6,6 +5,7 @@ using Content.Shared.Weapons.Ranged.Systems;
 
 namespace Content.Shared._FinalStand.Repair;
 
+// The rivet gun feeds itself a sheet at a time from the steel its holder carries.
 public sealed partial class FSRivetGunSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;

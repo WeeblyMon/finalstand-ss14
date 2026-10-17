@@ -12,7 +12,7 @@ public sealed partial class FSTechNodePrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    // Literal display text, not a locale key - the YAML has always held English here.
+    // Literal display text, not a locale key; the YAML has always held English here.
     [DataField(required: true)]
     public string Name = string.Empty;
 

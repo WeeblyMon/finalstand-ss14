@@ -10,7 +10,7 @@ public sealed partial class FSMarksmansRhythmComponent : Component
     [DataField] public float DecaySeconds = 10f;
     [DataField] public float MissWindowSeconds = 2.5f;
 
-    // Runtime state — not serialized
+    // Runtime state, not serialized
     public int CurrentStacks = 0;
     public TimeSpan LastShotTime = TimeSpan.Zero;
     public TimeSpan LastHitTime = TimeSpan.Zero;

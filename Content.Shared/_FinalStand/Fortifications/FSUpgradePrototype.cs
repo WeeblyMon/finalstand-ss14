@@ -1,10 +1,10 @@
-// An in-place fortification upgrade: a grade (material tier) or a branch (positional role), poured in with the Engineer's Hammer.
 using Content.Shared.Stacks;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Fortifications;
 
+// A grade is a material tier, a branch a positional role; both are poured in with the Engineer's Hammer.
 public enum FSUpgradeSlot : byte
 {
     Grade,

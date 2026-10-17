@@ -1,6 +1,6 @@
-// Which drawn gun a mech weapon shows on the mech that carries it (a state prefix in broadsword_weapons.rsi).
 namespace Content.Shared._FinalStand.Mech;
 
+// A state prefix in broadsword_weapons.rsi for the gun drawn on the carrying mech.
 [RegisterComponent]
 public sealed partial class FSMechMountVisualComponent : Component
 {

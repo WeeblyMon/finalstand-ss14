@@ -1,9 +1,9 @@
-// Skyfall swarm pod: a burst of micro-missiles that climb out of reach, then dive onto zombies the mech can see.
 using Content.Shared.Damage;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// Skyfall micro-missiles climb out of reach, then dive onto zombies the mech can see.
 [RegisterComponent]
 public sealed partial class FSSkyfallLauncherComponent : Component
 {

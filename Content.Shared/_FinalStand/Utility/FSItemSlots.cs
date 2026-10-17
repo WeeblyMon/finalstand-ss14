@@ -1,9 +1,9 @@
-// TryGetSlot without the error log for entities that have no item slots at all.
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Containers.ItemSlots;
 
 namespace Content.Shared._FinalStand.Utility;
 
+// TryGetSlot without the error log for entities that have no item slots at all.
 public static class FSItemSlots
 {
     public static bool TryGetSlot(

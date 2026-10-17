@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Research.Components;
 
-// Server-wide singleton holding the shared research state - FSTechDatabaseComponent on each console is a synced mirror of this, see FSResearchSystem.
+// Server-wide singleton holding the shared research state. FSTechDatabaseComponent on each console is a synced mirror of it.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 [Access(typeof(SharedFSResearchSystem))]
 public sealed partial class FSStationResearchComponent : Component
@@ -33,18 +33,18 @@ public sealed partial class FSStationResearchComponent : Component
     [DataField]
     public int WaveTrickleAmount = 500;
 
-    // Server-only, never broadcast wholesale - each player learns only their own pick via FSPersonalResearchStateEvent.
+    // Server-only, never broadcast wholesale; each player learns only their own pick via FSPersonalResearchStateEvent.
     public Dictionary<EntityUid, ProtoId<FSTechNodePrototype>> PersonalPicks = new();
 
     public Dictionary<EntityUid, List<ProtoId<FSTechNodePrototype>>> PersonalQueues = new();
 
-    // Mind of whichever RD/Captain most recently set the shared pick - gives them a contributor ring on it too.
+    // Mind of whichever RD/Captain most recently set the shared pick; gives them a contributor ring on it too.
     public EntityUid? ActiveResearchSetBy;
 
-    // First-come slot index per mind that's personally picked a node - only the index is ever networked, never the mind/name.
+    // First-come slot index per mind that's personally picked a node. Only the index is ever networked, never the mind/name.
     public Dictionary<EntityUid, int> ContributorColorSlots = new();
 
-    // Membership index - weapon effects probe this tens of times per projectile hit.
+    // Membership index; weapon effects probe this tens of times per projectile hit.
     [ViewVariables]
     public HashSet<string> UnlockedLookup = new();
 }

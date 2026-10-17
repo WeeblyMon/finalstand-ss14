@@ -1,4 +1,3 @@
-// Siege mode: the pilot plants the mech. Planted, it can't move, wears heavier armour and shrugs off hits from the front.
 using Content.Shared.Actions;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.DoAfter;
@@ -8,6 +7,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// Planted, the mech can't move, wears heavier armour and shrugs off hits from the front.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSSiegeModeComponent : Component
 {

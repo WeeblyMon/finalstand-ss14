@@ -1,9 +1,9 @@
-// Whether something can reach the silo network (any networked silo on its grid within that silo's range, power ignored), and which silo holds the pool.
 using Content.Shared.Materials.OreSilo;
 using Robust.Shared.Containers;
 
 namespace Content.Shared._FinalStand.Materials;
 
+// Reach means any networked silo on the grid within that silo's range; power is ignored.
 public sealed partial class FSSiloReachSystem : EntitySystem
 {
     [Dependency] private SharedTransformSystem _transform = default!;

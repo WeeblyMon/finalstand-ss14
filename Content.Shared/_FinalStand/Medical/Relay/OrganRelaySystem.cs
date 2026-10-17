@@ -1,5 +1,3 @@
-// Raises events on a body's organs, selected by organ category.
-
 using Content.Shared.Body;
 
 namespace Content.Shared._FinalStand.Medical.Relay;

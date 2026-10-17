@@ -1,4 +1,3 @@
-// A paged role tutorial: shown the first time a player spawns as one of its jobs, reopenable from the escape menu.
 using Content.Shared.Roles;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
@@ -6,6 +5,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Shared._FinalStand.Tutorial;
 
+// Shown the first time a player spawns as one of its jobs; reopenable from the escape menu.
 [Prototype("fsTutorial")]
 public sealed partial class FSTutorialPrototype : IPrototype
 {

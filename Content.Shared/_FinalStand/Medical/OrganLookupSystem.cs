@@ -1,5 +1,3 @@
-// Queries over a body's organ graph: by category, and by parent/child relation.
-
 using System.Linq;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body;

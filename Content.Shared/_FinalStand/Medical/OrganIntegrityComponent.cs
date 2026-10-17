@@ -1,5 +1,3 @@
-// Organ condition. Kept off vanilla's OrganComponent so the body layer stays upstream-clean.
-
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
@@ -7,6 +5,7 @@ using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Kept off vanilla's OrganComponent so the body layer stays upstream-clean.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class OrganIntegrityComponent : Component
 {

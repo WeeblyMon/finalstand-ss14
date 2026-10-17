@@ -3,7 +3,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Placement;
 
-// Generic "hold item, Z toggles a ghost-preview placement mode, click a spot to confirm" component - reusable by any FS placeable item.
+// Hold the item, Z toggles a ghost preview, click a spot to confirm. Reusable by any FS placeable item.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
 public sealed partial class FSPlaceableComponent : Component
 {

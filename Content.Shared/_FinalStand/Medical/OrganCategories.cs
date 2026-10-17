@@ -1,11 +1,10 @@
-// Well-known organ category ids and the groupings that replace Goob's (BodyPartType, Symmetry) pairs.
-
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Category groupings that replace Goob's (BodyPartType, Symmetry) pairs.
 public static class OrganCategories
 {
     public static readonly ProtoId<OrganCategoryPrototype> Torso = "Torso";

@@ -10,7 +10,7 @@ public sealed partial class FSBoomOnDeathComponent : Component
     [DataField] public float ToxinDamage = 39f;
     [DataField] public float SlowRadius = 3f;
     [DataField] public float SlowDuration = 5f;
-    [DataField] public float SlowAmount = 0.775f;     // ~22.5% speed reduction (was 75%)
+    [DataField] public float SlowAmount = 0.775f;     // ~22.5% speed reduction
     [DataField] public int FlashCount = 2;
     [DataField] public float FlashInterval = 0.3f;
     [DataField] public float AggroVisionRadius = 20f;

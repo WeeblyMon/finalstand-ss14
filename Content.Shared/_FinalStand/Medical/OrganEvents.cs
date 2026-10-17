@@ -1,9 +1,8 @@
-// Organ enable/disable. Limbs are organs here, so this replaces Goob's split part and organ pairs.
-
 using Content.Shared.Body;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Limbs are organs here, so these replace Goob's split part and organ pairs.
 [ByRefEvent]
 public readonly record struct OrganEnableChangedEvent(bool Enabled);
 

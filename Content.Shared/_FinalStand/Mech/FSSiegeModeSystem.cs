@@ -1,4 +1,3 @@
-// Plants and unplants a mech in siege mode. Planted, it is anchored, so the breach AI treats it as part of the line.
 using Content.Shared.Actions;
 using Content.Shared.Damage.Systems;
 using Content.Shared.DoAfter;
@@ -11,6 +10,7 @@ using Robust.Shared.Network;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// A planted mech is anchored, so the breach AI treats it as part of the line.
 public sealed partial class FSSiegeModeSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;

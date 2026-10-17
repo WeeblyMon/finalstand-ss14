@@ -5,7 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Research.Systems;
 
-// Base for the server FSResearchSystem - shared logic so client and server can't drift.
+// Shared so client and server research logic can't drift.
 public abstract partial class SharedFSResearchSystem : EntitySystem
 {
     [Dependency] protected IPrototypeManager PrototypeManager = default!;

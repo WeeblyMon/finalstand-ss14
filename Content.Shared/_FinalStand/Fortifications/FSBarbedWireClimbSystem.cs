@@ -1,4 +1,3 @@
-// Barbed wire barricades refuse anyone trying to vault them, and say so on examine.
 using Content.Shared.Climbing.Events;
 using Content.Shared.Examine;
 using Content.Shared.Popups;

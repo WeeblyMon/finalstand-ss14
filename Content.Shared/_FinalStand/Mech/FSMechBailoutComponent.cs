@@ -1,10 +1,10 @@
-// A pilot thrown out of a wrecked mech gets a few seconds of extra speed to get clear.
 using Content.Shared.Movement.Systems;
 using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// A pilot thrown out of a wrecked mech gets a few seconds of extra speed to get clear.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class FSMechBailoutComponent : Component
 {

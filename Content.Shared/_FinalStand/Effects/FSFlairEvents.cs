@@ -1,4 +1,3 @@
-// One-off visual moments the server tells nearby clients about; the client draws them with its particle system.
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;
 

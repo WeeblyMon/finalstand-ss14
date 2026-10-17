@@ -1,4 +1,3 @@
-// A 3x3 gantry where a Broadsword is assembled part by part, and where a parked one recharges.
 using System.Linq;
 using Content.Shared.Stacks;
 using Robust.Shared.GameStates;
@@ -7,6 +6,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Mech;
 
+// A 3x3 gantry where a Broadsword is assembled part by part, and where a parked one recharges.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class FSMechBayComponent : Component
 {

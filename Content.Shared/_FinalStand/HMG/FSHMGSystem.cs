@@ -1,4 +1,3 @@
-// Seats a gunner on the HMG, limits fire to its arc, and builds heat so sustained fire overheats it.
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Actions;

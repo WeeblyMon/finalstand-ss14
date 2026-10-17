@@ -1,10 +1,9 @@
-// One place that decides what kind of weapon an entity is, for the systems that apply research.
-
 using Content.Shared.Tag;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Weapons;
 
+// The single place that decides what kind of weapon an entity is, for the systems that apply research.
 public readonly record struct FSWeaponKind(
     bool Ballistic,
     bool Energy,

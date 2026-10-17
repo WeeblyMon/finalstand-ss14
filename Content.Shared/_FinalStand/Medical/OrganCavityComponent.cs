@@ -1,10 +1,9 @@
-// An organ that can hold a small item inside it, used by cavity insertion surgery.
-
 using Content.Shared.Containers.ItemSlots;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._FinalStand.Medical;
 
+// Used by cavity insertion surgery.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class OrganCavityComponent : Component
 {

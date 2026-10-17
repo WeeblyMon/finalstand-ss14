@@ -1,5 +1,3 @@
-// Applies an organ's granted components to its body, refreshing them so removal can't be missed.
-
 using Content.Shared.Body;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager;
@@ -7,6 +5,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.Medical.Effects;
 
+// Refreshes granted components rather than tracking them, so a removal can't be missed.
 public sealed partial class OrganEffectSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;

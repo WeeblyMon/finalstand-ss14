@@ -1,4 +1,3 @@
-// Where an emplacement may unfold: every tile of its footprint must be placeable. Shared so the ghost and the server agree.
 using System.Numerics;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Maps;
@@ -8,6 +7,7 @@ using Robust.Shared.Map.Components;
 
 namespace Content.Shared._FinalStand.Emplacement;
 
+// Every footprint tile must be placeable. Shared so the ghost and the server agree.
 public sealed partial class FSEmplacementRuleSystem : EntitySystem
 {
     [Dependency] private FSPlacementRuleSystem _rules = default!;
