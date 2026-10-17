@@ -66,6 +66,9 @@ public static class FSPerkBonusConstants
     public const float ConcealedCarryPerLevel = 0.04f;
     public const float GunslingerDamagePerLevel = 0.06f;   // reversed for two-handed guns
     public const float GunslingerFireRatePerLevel = 0.10f;
+    public const float LoneWolfDamagePerLevel = 0.03f;
+    public const float LoneWolfRegenPerLevel = 0.5f;   // HP/s
+    public const float LoneWolfRadius = 10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

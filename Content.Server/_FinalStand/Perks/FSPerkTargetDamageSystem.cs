@@ -22,6 +22,7 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSPerkBuffSystem _perkBuff = default!;
+    [Dependency] private FSLoneWolfSystem _loneWolf = default!;
 
     private readonly List<(EntityUid Target, int Level)> _pendingShred = [];
 
@@ -56,6 +57,7 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
             mult *= 1f + _perkBuff.GunslingerSign(held, perks) * slingLevel * FSPerkBonusConstants.GunslingerDamagePerLevel;
 
         mult *= _underdog.GetMultiplier(attacker, perks);
+        mult *= _loneWolf.GetMultiplier(attacker, perks);
         mult *= FSArchetypeSystem.Bonus(perks).Damage;
         mult *= _titleBuffs.DamageAgainst(attacker, ent);
 

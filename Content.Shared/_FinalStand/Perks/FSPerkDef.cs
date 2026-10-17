@@ -329,6 +329,12 @@ public sealed class FSPerkDef
                 PerkCategory.Red,
                 Pct("+{0}% Pistol Damage / +{1}% Pistol Fire Rate",
                     FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
+
+            new("LoneWolf", "Lone Wolf",
+                "With no teammate within 10 tiles, deal more damage and regenerate health.",
+                PerkCategory.Purple,
+                Pct("+{0}% Damage / +{1} HP/s", FSPerkBonusConstants.LoneWolfDamagePerLevel,
+                    FSPerkBonusConstants.LoneWolfRegenPerLevel / 100f)),
         ];
 
         All = list.ToDictionary(a => a.Id);

@@ -42,6 +42,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private FSPerkBuffSystem _perkBuff = default!;
+    [Dependency] private FSLoneWolfSystem _loneWolf = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -334,6 +335,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             total += underdog;
             sources.Add(FormatPct("Underdog", underdog));
+        }
+
+        var loneWolf = (_loneWolf.GetMultiplier(mob, perks) - 1f) * 100f;
+        if (loneWolf > 0f)
+        {
+            total += loneWolf;
+            sources.Add(FormatPct("Lone Wolf", loneWolf));
         }
     }
 
