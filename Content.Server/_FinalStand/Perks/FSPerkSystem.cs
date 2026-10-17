@@ -136,7 +136,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             }
         }
 
-        // lobby: no mind yet — load from db and send so the shop window populates
+        // lobby: no mind yet; load from db and send so the shop window populates
         var userId = args.SenderSession.UserId.UserId;
         var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(userId);
         var tempPerks = new FSPerkLevelsComponent();
@@ -286,7 +286,6 @@ public sealed partial class FSPerkSystem : EntitySystem
         return total;
     }
 
-    // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
         if (session.AttachedEntity is { } attached && !_shopAccess.CanUse(attached))
@@ -309,7 +308,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             return;
         }
 
-        // Lobby path: no mind yet — operate on DB directly
+        // Lobby path: no mind yet, so operate on the DB directly.
         var userId = session.UserId.UserId;
         var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
         var lobbyPerks = new FSPerkLevelsComponent();
@@ -380,7 +379,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         }, Filter.SinglePlayer(session));
     }
 
-    private const int MaxJsonBytes = 65_536; // 64 KB — any legitimate perk payload is <1 KB
+    private const int MaxJsonBytes = 65_536; // 64 KB; any legitimate perk payload is <1 KB
 
     private void DeserializeInto(FSPerkLevelsComponent perks,
         string levelsJson, string slotsJson, string loadoutsJson)

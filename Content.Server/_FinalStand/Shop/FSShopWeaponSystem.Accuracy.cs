@@ -1,13 +1,13 @@
-// The shop's 0-100 accuracy figure — computed here since AngleIncrease isn't networked to the client.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Shop;
 
+// The shop's accuracy figure is computed server-side since AngleIncrease isn't networked.
 public sealed partial class FSShopWeaponSystem
 {
-    // Mirrors FSPlayerUpgradesSystem.GunStats — keep both in sync.
+    // Mirrors FSPlayerUpgradesSystem.GunStats; keep both in sync.
     private static (double Min, double Max, double Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
     {
         WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5, def.ValuePerLevel * 0.2, def.ValuePerLevel * 0.3),

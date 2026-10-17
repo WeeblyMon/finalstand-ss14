@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: what a shot or hit does on top of its damage.
 using Content.Shared._FinalStand.Shop;
 using Content.Server._FinalStand.Upgrades;
 using Content.Shared._FinalStand.Upgrades.Effects;

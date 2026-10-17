@@ -1,4 +1,3 @@
-// Tells a repairer how much they fixed, summed per structure, and when a rivet bounced off the repair cap.
 using Content.Shared._FinalStand.Repair;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;

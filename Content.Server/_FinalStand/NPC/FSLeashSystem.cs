@@ -25,7 +25,7 @@ public sealed partial class FSLeashSystem : EntitySystem
     private static readonly TimeSpan LosTimeout = TimeSpan.FromSeconds(3);
 
     private float _accumulator;
-    private const float TickInterval = 0.25f; // 4 Hz — cheap, LOS raycasts amortised
+    private const float TickInterval = 0.25f; // 4 Hz keeps the LOS raycasts cheap
 
     public override void Update(float frameTime)
     {

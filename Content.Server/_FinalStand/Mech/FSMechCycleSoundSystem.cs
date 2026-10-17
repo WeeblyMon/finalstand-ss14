@@ -1,4 +1,3 @@
-// Plays a mech gun's reload or recharge sound at the mech, so the pilot and anyone nearby hear when it's coming back.
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;

@@ -65,7 +65,7 @@ public sealed partial class FSAdrenalineSystem : EntitySystem
         var newEnd = _timing.CurTime + duration;
 
         var adr = EnsureComp<FSAdrenalineComponent>(ev.Killer);
-        // Don't let kills stack duration beyond the base — only refresh if almost expired.
+        // Don't let kills stack duration beyond the base; only refresh if almost expired.
         if (newEnd > adr.EndTime)
         {
             adr.EndTime = newEnd;

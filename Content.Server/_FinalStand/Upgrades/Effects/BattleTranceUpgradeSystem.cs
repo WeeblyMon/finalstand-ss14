@@ -64,7 +64,7 @@ public sealed partial class BattleTranceUpgradeSystem : EntitySystem
         BroadcastState(battleTrance);
     }
 
-    // Stacks live on the weapon and survive being dropped — only the wave end clears them.
+    // Stacks live on the weapon and survive being dropped; only the wave end clears them.
     // Picking it back up has to restore the readout, or it shows zero until the next kill.
     private void OnEquipped(EntityUid uid, FSBattleTranceComponent battleTrance, GotEquippedHandEvent args)
     {

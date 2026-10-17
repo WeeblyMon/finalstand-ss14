@@ -85,7 +85,7 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
     /// <summary>Force a rebuild on the next interval (e.g. hull breach, CCC moved).</summary>
     public void MarkDirty() => _dirty = true;
 
-    /// <summary>False while the field is empty or untrustworthy — callers must not act on it.</summary>
+    /// <summary>False while the field is empty or untrustworthy; callers must not act on it.</summary>
     public bool HasField => !_truncated && _reachable.Count > 0;
 
     private void BeginRebuild()

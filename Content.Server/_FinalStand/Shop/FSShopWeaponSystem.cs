@@ -491,7 +491,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     private void TryGiveItemToPlayer(EntityUid player, EntityUid item)
     {
-        // Grenade packs are pocket items — they must stay in inventory, never in hand.
+        // Grenade packs are pocket items; they must stay in inventory, never in hand.
         if (HasComp<FSGrenadePackComponent>(item))
         {
             _stash.Stash(player, item);

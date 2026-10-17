@@ -1,5 +1,3 @@
-// Request pings become tasks for one department. Tasks can be claimed, close themselves when the job is done, and expire.
-// Badly damaged player-built fortifications raise their own repair task, a few at most.
 using System.Linq;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Repair;

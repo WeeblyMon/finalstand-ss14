@@ -1,4 +1,3 @@
-// Counts which jobs readied-up players have on High, for the pre-round lobby Ready Manifest (ported from Moffstation).
 using System.Linq;
 using Content.Server.EUI;
 using Content.Server.GameTicking;
@@ -16,6 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.ReadyManifest;
 
+// Ported from Moffstation.
 public sealed partial class ReadyManifestSystem : EntitySystem
 {
     [Dependency] private EuiManager _euiManager = default!;

@@ -40,7 +40,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private const int RescanEveryTicks = 10;
     private float _baseZombieDamage = 10f;
 
-    // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
+    // Reused across ticks; these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<MobStateComponent>> _mobBuffer = new();
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _doorBuffer = new();
 

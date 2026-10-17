@@ -27,7 +27,7 @@ public sealed partial class StaminaStealUpgradeSystem : EntitySystem
         if (ev.State is not { } state || state.StaminaStealLevel <= 0)
             return;
 
-        // Drain stamina from target — they stagger briefly, but their high regen means it doesn't last.
+        // Drain stamina from target. They stagger briefly, but their high regen means it doesn't last.
         if (HasComp<StaminaComponent>(ev.Target))
             _stamina.TakeStaminaDamage(ev.Target, state.StaminaStealLevel * DrainPerLevel, source: ev.Shooter);
 

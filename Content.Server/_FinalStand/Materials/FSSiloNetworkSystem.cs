@@ -1,4 +1,3 @@
-// Every silo shares one pool: the silo nearest the CCC holds it, the others pass deposits on, and anything near a silo draws from it.
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.Materials;
@@ -15,6 +14,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Materials;
 
+// All silos share one pool, held by the silo nearest the CCC; the others pass deposits on.
 public sealed partial class FSSiloNetworkSystem : EntitySystem
 {
     [Dependency] private SharedMaterialStorageSystem _storage = default!;

@@ -1,4 +1,3 @@
-// Hand teleporter portals close after a lifetime that only counts down during combat.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Teleportation;
 using Content.Shared._FinalStand.Teleportation;

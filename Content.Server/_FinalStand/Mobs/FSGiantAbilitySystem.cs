@@ -324,8 +324,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
         Finish(ent, now);
     }
 
-    // Same wave/player scaling WaveEnemyScalingSystem already applies to melee - the ability kit
-    // rode a flat number before this, so it fell behind trash mobs at high waves.
+    // Same wave/player scaling WaveEnemyScalingSystem applies to melee, so abilities keep up with trash mobs at high waves.
     private float GetDamageMultiplier(EntityUid ent)
         => TryComp<FSWaveDamageScaleComponent>(ent, out var scale) ? scale.MeleeDamageMultiplier : 1f;
 

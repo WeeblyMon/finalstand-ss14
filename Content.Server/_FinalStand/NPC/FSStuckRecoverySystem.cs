@@ -1,4 +1,3 @@
-// Recovers wave zombies that stop making progress: nudges the boxed-in, relocates the stranded.
 using System.Numerics;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;

@@ -15,7 +15,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.Research;
 
-// Handles every Ordnance node effect that isn't a GunRefreshModifiersEvent field; applied idempotently via FSResearchAppliedComponent.
+// Ordnance node effects that aren't GunRefreshModifiersEvent fields, applied idempotently via FSResearchAppliedComponent.
 public sealed partial class FSResearchStaticGrantSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;

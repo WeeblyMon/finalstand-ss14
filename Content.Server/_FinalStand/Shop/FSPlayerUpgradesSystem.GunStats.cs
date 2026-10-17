@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: gun statistics: rate of fire, spread, capacity, reload, firing mode.
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Weapons.Ranged;
 using Content.Shared.Weapons.Ranged.Components;
@@ -51,7 +50,7 @@ public sealed partial class FSPlayerUpgradesSystem
 #pragma warning restore RA0002
                     Dirty(weapon, gunAcc);
                 }
-                // WieldBonus is intentionally left unchanged — scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
+                // WieldBonus stays unchanged; scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
                 _gun.RefreshModifiers(weapon);
                 {
                     state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);

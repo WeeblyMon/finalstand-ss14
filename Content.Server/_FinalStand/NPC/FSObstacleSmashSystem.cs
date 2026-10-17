@@ -1,5 +1,3 @@
-// Wave zombies attack loose furniture they are pushing against. Lockers and crates are not anchored, so the
-// pathfinder, steering smash and breach targeting all ignore them and the zombie just walks into them forever.
 using System.Numerics;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Destructible;
@@ -18,6 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
 
+// Lockers and crates aren't anchored, so pathing and breach targeting ignore them and zombies would push into them forever.
 public sealed partial class FSObstacleSmashSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;

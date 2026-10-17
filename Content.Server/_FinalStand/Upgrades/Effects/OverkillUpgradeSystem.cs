@@ -76,7 +76,7 @@ public sealed partial class OverkillUpgradeSystem : EntitySystem
         var nearby = _entSetPool.Get();
         _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(new MapCoordinates(targetPos, mapId), range, nearby);
 
-        // Nearest, not first — the set is unordered.
+        // Nearest, not first; the set is unordered.
         EntityUid? nearest = null;
         var nearestDistSq = float.MaxValue;
         foreach (var candidate in nearby)

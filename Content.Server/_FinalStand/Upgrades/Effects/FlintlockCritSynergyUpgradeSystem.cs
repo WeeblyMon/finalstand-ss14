@@ -1,4 +1,3 @@
-// Pirate cross-family crit: kill with cutlass arms flintlock; kill with flintlock arms cutlass. Consumed on use, dropped weapons untag, 5s expiry.
 using Content.Server._FinalStand.Crit;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;

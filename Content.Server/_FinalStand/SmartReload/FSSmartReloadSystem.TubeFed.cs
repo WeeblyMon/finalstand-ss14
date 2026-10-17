@@ -176,7 +176,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         {
             _activeShellInserts.Remove(gun);
             SetReloading(gun, false);
-            return; // insert failed — stop chain
+            return;
         }
 
         if (comp.Count >= comp.Capacity)

@@ -68,7 +68,7 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
         }
     }
 
-    // Physics-free sprites only — BeamSystem spawns physics entities that cancel primary damage.
+    // Physics-free sprites only; BeamSystem spawns physics entities that cancel primary damage.
     private void DrawChainBeam(EntityUid from, EntityUid to)
     {
         var fromMapCoords = _transform.GetMapCoordinates(from);

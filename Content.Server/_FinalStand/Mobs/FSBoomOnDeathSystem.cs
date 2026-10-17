@@ -51,7 +51,6 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
             if (comp.Exploded)
                 continue;
 
-            // Proximity countdown in progress
             if (comp.PendingExplosion)
             {
                 comp.ExplosionTimer -= frameTime;
@@ -79,7 +78,6 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
                 continue;
             }
 
-            // Alive — check if player within proximity range
             if (comp.ProximityRange <= 0f)
                 continue;
 

@@ -10,7 +10,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Owns (ActorComponent, DamageModifyEvent) for Untouchable and (ActorComponent, FSHealingPotencyEvent) for Field Medic.
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;

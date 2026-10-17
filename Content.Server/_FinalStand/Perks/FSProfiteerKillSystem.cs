@@ -7,9 +7,8 @@ using Content.Shared.Mobs;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Profiteer's on-kill bonus. Same broadcast pattern as every other kill-stack perk (FSAdrenalineSystem,
-// FSDeathAuraSystem, FSMartyrSystem, FSRampageSystem, FSSpeedDemonSystem) — FSZombieVisualsComponent
-// already owns the one directed (component, event) subscription Robust allows on MobStateChangedEvent.
+// Broadcast like the other kill-stack perks: FSZombieVisualsComponent already owns the one directed
+// subscription Robust allows on MobStateChangedEvent.
 public sealed partial class FSProfiteerKillSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;

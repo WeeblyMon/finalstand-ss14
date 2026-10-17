@@ -1,4 +1,3 @@
-// Server half of the lobby Ready Manifest window, ported from Moffstation.
 using Content.Server.EUI;
 using Content.Shared._FinalStand.ReadyManifest;
 using Content.Shared.Roles;
@@ -6,6 +5,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.ReadyManifest;
 
+// Ported from Moffstation.
 public sealed class ReadyManifestEui(ReadyManifestSystem readyManifest) : BaseEui
 {
     public override ReadyManifestEuiState GetNewState()

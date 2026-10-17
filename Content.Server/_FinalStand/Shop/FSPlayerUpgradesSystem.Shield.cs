@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: riot shield.
 using Content.Shared._FinalStand.Shop;
 
 using Content.Shared._FinalStand.RiotShield;

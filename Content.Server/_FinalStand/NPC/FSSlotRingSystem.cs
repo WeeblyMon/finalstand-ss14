@@ -1,4 +1,3 @@
-// Assigns each wave zombie a unique angular slot around the CCC.
 using System.Numerics;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -33,7 +32,7 @@ public sealed partial class FSSlotRingSystem : EntitySystem
     }
 
     // Corpses linger until the cleanup cap evicts them. Without this they hold their ring slot
-    // the whole time, and the rings only hold 48 — the horde outgrows them and later zombies
+    // the whole time, and the rings only hold 48, so the horde outgrows them and later zombies
     // all fall back to the same offset.
     private void OnSlotMobStateChanged(EntityUid uid, FSSlotClaimComponent _, MobStateChangedEvent args)
     {

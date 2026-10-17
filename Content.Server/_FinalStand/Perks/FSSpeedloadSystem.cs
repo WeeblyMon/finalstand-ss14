@@ -1,4 +1,3 @@
-// Speedload perk: a flat reload speed bonus for every reload path.
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mind;
 

@@ -14,7 +14,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
 
-// Owns FSWhistleActionEvent — officer whistle action buffs nearby allies.
 public sealed partial class FSOfficerSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;

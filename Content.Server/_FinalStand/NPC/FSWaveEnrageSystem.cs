@@ -1,5 +1,3 @@
-// Boosts wave zombie speed once a wave's combat phase has run long: 1.25x after Stage1Elapsed,
-// 1.375x total after Stage2Elapsed. Restores when combat ends.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.HTN;

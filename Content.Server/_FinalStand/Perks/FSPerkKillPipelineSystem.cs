@@ -1,6 +1,3 @@
-// Resolves "a player killed a wave zombie" once per death and hands the answer to every
-// kill-driven perk. Five systems used to subscribe to broadcast MobStateChangedEvent and repeat
-// the same five-line prelude, so one death cost five mind lookups and five component fetches.
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Visuals;
 using Content.Shared.GameTicking;
@@ -10,7 +7,6 @@ using Content.Shared.Mobs;
 namespace Content.Server._FinalStand.Perks;
 
 /// <param name="Killer">The killer's body, not the mind.</param>
-/// <param name="WasMeleeKill">The killing blow was a melee swing.</param>
 [ByRefEvent]
 public readonly record struct FSZombieKilledByPlayerEvent(
     EntityUid Zombie,
@@ -19,6 +15,7 @@ public readonly record struct FSZombieKilledByPlayerEvent(
     FSPerkLevelsComponent Perks,
     bool WasMeleeKill);
 
+// Resolves each zombie kill once, so kill-driven perks don't each repeat the mind and component lookups.
 public sealed partial class FSPerkKillPipelineSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;

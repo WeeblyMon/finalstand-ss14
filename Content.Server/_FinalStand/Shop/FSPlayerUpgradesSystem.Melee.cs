@@ -1,4 +1,3 @@
-// Part of FSPlayerUpgradesSystem: melee weapons and effects carried by the holder.
 using Content.Shared._FinalStand.Shop;
 using Content.Server._FinalStand.Leveling;
 using Content.Shared.Weapons.Ranged.Components;

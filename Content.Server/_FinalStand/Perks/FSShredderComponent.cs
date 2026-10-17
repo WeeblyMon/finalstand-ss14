@@ -1,6 +1,6 @@
-// Shredder vulnerability on a zombie: every stack raises the damage it takes from anyone.
 namespace Content.Server._FinalStand.Perks;
 
+// On a zombie; every stack raises the damage it takes from anyone.
 [RegisterComponent]
 public sealed partial class FSShredderComponent : Component
 {

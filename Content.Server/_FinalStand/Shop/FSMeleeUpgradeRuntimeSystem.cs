@@ -21,7 +21,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Shop;
 
-// melee upgrade effects; all on directed (FSWeaponUpgradeStateComponent, MeleeHitEvent) — undirected MeleeHitEvent is dead
+// All on directed (FSWeaponUpgradeStateComponent, MeleeHitEvent); undirected MeleeHitEvent is dead.
 public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 {
     [Dependency] private IRobustRandom _random = default!;

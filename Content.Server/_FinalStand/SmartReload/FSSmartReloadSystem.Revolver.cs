@@ -39,7 +39,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (_activeChamberFills.ContainsKey(gun))
             return;
 
-        // TryRevolverInsert only accepts null chambers — eject spent cases first.
+        // TryRevolverInsert only accepts null chambers, so eject spent cases first.
         if (empty == 0 && spent > 0)
             _gunSystem.EmptyRevolver((gun, comp), user);
 

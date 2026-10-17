@@ -1,4 +1,3 @@
-// Runs Skyfall missiles: no collision while they climb, then a dive onto the nearest zombie in the mech's sight, and a small splash.
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Mech;

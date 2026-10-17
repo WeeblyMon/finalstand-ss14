@@ -25,7 +25,7 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
         base.Initialize();
         _mobQuery = GetEntityQuery<MobStateComponent>();
         SubscribeLocalEvent<FSXrayRaycastComponent, HitscanRaycastFiredEvent>(OnXRayHit);
-        // DamageModifyEvent is a class event (EntityEventArgs) — no ref keyword.
+        // DamageModifyEvent is a class event (EntityEventArgs), so no ref keyword.
         SubscribeLocalEvent<FSRadiationMarkComponent, DamageModifyEvent>(OnDamageModify);
     }
 

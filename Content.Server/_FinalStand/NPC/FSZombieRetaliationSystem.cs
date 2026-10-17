@@ -1,4 +1,3 @@
-// Retaliates against off-screen attackers; alerts nearby allies with attenuated duration.
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;

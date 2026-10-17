@@ -1,4 +1,3 @@
-// Lets FS shop upgrades stun targets that carry StunImmune (zombies). Vanilla stun sources stay blocked.
 using Content.Shared.Stunnable;
 using Content.Shared.Tag;
 using Robust.Shared.Prototypes;
@@ -6,6 +5,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Upgrades.Effects;
 
+// Lets shop upgrades stun StunImmune zombies; vanilla stun sources stay blocked.
 public sealed partial class FSStunOverrideSystem : EntitySystem
 {
     [Dependency] private SharedStunSystem _stun = default!;

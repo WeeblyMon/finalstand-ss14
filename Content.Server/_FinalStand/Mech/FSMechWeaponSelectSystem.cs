@@ -1,4 +1,3 @@
-// Lets a pilot jump straight to a mounted weapon by slot instead of cycling through them.
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;

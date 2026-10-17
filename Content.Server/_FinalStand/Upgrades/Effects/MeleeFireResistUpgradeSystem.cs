@@ -57,7 +57,7 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
             }
         }
 
-        // Actively clamp body temperature for fire-immune players — catches any path that
+        // Clamp body temperature for fire-immune players. Catches any path that
         // bypasses ModifyChangedTemperatureEvent (e.g. ignoreHeatResistance: true callers).
         var tempQuery = EntityQueryEnumerator<HandsComponent, TemperatureComponent>();
         while (tempQuery.MoveNext(out var tUid, out var tHands, out var temp))
@@ -104,7 +104,7 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
 
     private void OnWielderDamageModify(EntityUid uid, HandsComponent hands, DamageModifyEvent args)
     {
-        // single directed (HandsComponent, DamageModifyEvent) subscription — Robust forbids two on same pair globally
+        // single directed (HandsComponent, DamageModifyEvent) subscription; Robust forbids two on the same pair globally
         var bestFireResist = 0f;
         var bestWielderResist = 0f;
         foreach (var held in _hands.EnumerateHeld((uid, hands)))

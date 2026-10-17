@@ -1,4 +1,3 @@
-// Sends a role's tutorial on that player's first spawn as the job, and again whenever they ask for it.
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Tutorial;
 using Content.Shared.GameTicking;

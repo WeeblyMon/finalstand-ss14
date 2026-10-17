@@ -13,7 +13,7 @@ public sealed partial class FlechetteRoundsUpgradeSystem : EntitySystem
         if (!state.FlechetteEnabled || args.FiredProjectiles.Count == 0)
             return;
 
-        // Spawn one extra per original pellet — doubling the total count, all with pierce-1.
+        // One extra per original pellet, doubling the total count, all with pierce-1.
         _pellets.SpawnExtraPellets(uid, args.FiredProjectiles, args.FiredProjectiles.Count, addPierce: true);
     }
 }

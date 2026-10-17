@@ -1,5 +1,3 @@
-// The RCD's second material source: the silo network, when any silo is in reach. Inventory is spent first; the network's
-// share of a build is reserved when the build starts so two engineers can't both spend the same stock.
 using Content.Server._FinalStand.Materials;
 using Content.Server.Administration.Logs;
 using Content.Shared._FinalStand.RCD;
@@ -10,6 +8,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.RCD;
 
+// The network's share of a build is reserved at start so two engineers can't spend the same stock.
 public sealed partial class FSRCDEngineerOnlySystem
 {
     [Dependency] private FSSiloNetworkSystem _silo = default!;

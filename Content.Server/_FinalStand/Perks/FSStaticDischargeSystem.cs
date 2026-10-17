@@ -1,4 +1,3 @@
-// Static Discharge perk: a zombie hit stuns every living zombie around the player, on a cooldown.
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Grenades;

@@ -42,7 +42,7 @@ public sealed partial class FSDevastatorSystem : EntitySystem
 
     private void OnDamageModify(EntityUid uid, FSDevastatorComponent comp, DamageModifyEvent args)
     {
-        // 0% resistance at full HP, 63% at near-death — scales linearly with BerserkRatio
+        // 0% resistance at full HP, 63% at near-death, linear in BerserkRatio
         var multiplier = 1f - 0.63f * comp.BerserkRatio;
         args.Damage *= multiplier;
     }
@@ -66,7 +66,6 @@ public sealed partial class FSDevastatorSystem : EntitySystem
         // Lifesteal
         _damageable.HealEvenly(uid, FixedPoint2.New(-comp.LifestealAmount));
 
-        // Apply bonus damage based on berserk multiplier
         if (comp.CurrentDamageMultiplier > 1f)
         {
             var bonus = args.BaseDamage * (comp.CurrentDamageMultiplier - 1f);

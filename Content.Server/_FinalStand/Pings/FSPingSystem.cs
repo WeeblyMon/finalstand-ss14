@@ -1,4 +1,3 @@
-// Turns a ping request into a ping: works out what was pinged, rate-limits the sender, tells everyone, and opens a task for requests.
 using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Server._FinalStand.Repair;

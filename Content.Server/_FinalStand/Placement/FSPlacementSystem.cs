@@ -1,4 +1,3 @@
-// Generic "use item toggles ghost placement mode, click a spot to confirm" plumbing shared by any FS placeable item.
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;

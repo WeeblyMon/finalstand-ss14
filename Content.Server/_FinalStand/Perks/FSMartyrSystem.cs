@@ -26,7 +26,6 @@ public sealed partial class FSMartyrSystem : EntitySystem
 
     private void OnMobStateChanged(MobStateChangedEvent args)
     {
-        // Trigger when the player goes into critical (downed) state.
         if (args.NewMobState != MobState.Critical || args.OldMobState == MobState.Critical) return;
         if (HasComp<FSZombieVisualsComponent>(args.Target)) return;
         if (!HasComp<ActorComponent>(args.Target)) return;

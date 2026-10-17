@@ -39,7 +39,7 @@ public sealed partial class FSBreachEvaluator : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSUpgradeSystem _upgrades = default!;
 
-    // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
+    // Reused across ticks; these queries run at 10 Hz per zombie and must not allocate.
     private readonly HashSet<Entity<DestructibleComponent>> _destructibleBuffer = new();
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
 

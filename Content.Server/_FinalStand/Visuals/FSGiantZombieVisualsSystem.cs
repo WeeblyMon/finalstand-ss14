@@ -1,4 +1,3 @@
-// Giant zombie body-part removal: hide sprite layers and spawn floor debris as HP drops; gib on death.
 using System.Numerics;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._FinalStand.Visuals;
