@@ -458,7 +458,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             _deployable.ClearDeployed(mindId, deployable.DeployedProtoId);
 
         QueueDel(weapon);
-        CleanupAmmoForWeapon(player, comp);
+        CleanupAmmoForWeapon(player, comp, ws);
         _wallet.GiveCredits(mindId, totalRefund);
 
         _popup.PopupEntity($"Sold for ${totalRefund:N0}.", shopUid, player);
@@ -565,26 +565,36 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     private static string Capitalize(string s) =>
         s.Length == 0 ? s : char.ToUpper(s[0]) + s[1..];
 
-    private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp)
+    // Takes back what this copy came with, not every matching item: another copy or gun may share the ammo.
+    private void CleanupAmmoForWeapon(EntityUid player, FSShopWeaponComponent shopComp, FSWeaponUpgradeStateComponent? state)
     {
-        var ammoProtos = new HashSet<string>();
-        if (shopComp.StarterAmmoProtoId != null)
-            ammoProtos.Add(shopComp.StarterAmmoProtoId.Value.Id);
+        var budget = new Dictionary<string, int>();
+        if (shopComp.StarterAmmoProtoId is { } starter)
+            budget[starter.Id] = shopComp.StarterAmmoCount;
+
         foreach (var upgrade in shopComp.Upgrades)
         {
-            if (upgrade.Type == WeaponUpgradeType.SpawnItem && upgrade.SpawnProtoId != null)
-                ammoProtos.Add(upgrade.SpawnProtoId.Value.Id);
+            if (upgrade.Type != WeaponUpgradeType.SpawnItem || upgrade.SpawnProtoId is not { } spawned)
+                continue;
+
+            var level = state?.Levels.GetValueOrDefault(upgrade.Id) ?? 0;
+            budget[spawned.Id] = budget.GetValueOrDefault(spawned.Id) + level * upgrade.SpawnCountPerLevel;
         }
-        if (ammoProtos.Count == 0)
+
+        if (budget.Count == 0)
             return;
 
-        var toDelete = new List<CarriedItem>();
-        _search.Collect(player, ammoProtos, toDelete);
+        var carried = new List<CarriedItem>();
+        _search.Collect(player, budget.Keys.ToHashSet(), carried);
 
-        foreach (var item in toDelete)
+        foreach (var item in carried)
         {
-            if (Exists(item.Uid))
-                QueueDel(item.Uid);
+            var proto = MetaData(item.Uid).EntityPrototype?.ID;
+            if (proto == null || budget.GetValueOrDefault(proto) <= 0)
+                continue;
+
+            budget[proto]--;
+            QueueDel(item.Uid);
         }
     }
 
