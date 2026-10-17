@@ -335,6 +335,12 @@ public sealed class FSPerkDef
                 PerkCategory.Purple,
                 Pct("+{0}% Damage / +{1} HP/s", FSPerkBonusConstants.LoneWolfDamagePerLevel,
                     FSPerkBonusConstants.LoneWolfRegenPerLevel / 100f)),
+
+            new("BunkeredDown", "Bunkered Down",
+                "Deal more damage and take less within 12 tiles of the CCC.",
+                PerkCategory.Purple,
+                Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.BunkeredDownDamagePerLevel,
+                    FSPerkBonusConstants.BunkeredDownResistPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

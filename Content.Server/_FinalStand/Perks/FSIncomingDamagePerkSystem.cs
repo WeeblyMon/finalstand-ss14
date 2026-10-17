@@ -16,6 +16,7 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
 
     public override void Initialize()
     {
@@ -64,6 +65,10 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             Resist("Rampage", MathF.Min(1f, ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageResistPerLevel));
+
+        var bunker = _bunkeredDown.GetResist(mindId, augs);
+        if (bunker > 0f)
+            Resist("BunkeredDown", bunker);
 
         var taken = 1f / (points + 1f);
 

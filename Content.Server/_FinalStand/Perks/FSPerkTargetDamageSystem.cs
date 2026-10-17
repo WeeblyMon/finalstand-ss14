@@ -23,6 +23,7 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSPerkBuffSystem _perkBuff = default!;
     [Dependency] private FSLoneWolfSystem _loneWolf = default!;
+    [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
 
     private readonly List<(EntityUid Target, int Level)> _pendingShred = [];
 
@@ -58,6 +59,7 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
 
         mult *= _underdog.GetMultiplier(attacker, perks);
         mult *= _loneWolf.GetMultiplier(attacker, perks);
+        mult *= _bunkeredDown.GetDamageMultiplier(mindId, perks);
         mult *= FSArchetypeSystem.Bonus(perks).Damage;
         mult *= _titleBuffs.DamageAgainst(attacker, ent);
 

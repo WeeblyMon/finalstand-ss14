@@ -69,6 +69,9 @@ public static class FSPerkBonusConstants
     public const float LoneWolfDamagePerLevel = 0.03f;
     public const float LoneWolfRegenPerLevel = 0.5f;   // HP/s
     public const float LoneWolfRadius = 10f;
+    public const float BunkeredDownDamagePerLevel = 0.05f;
+    public const float BunkeredDownResistPerLevel = 0.10f;
+    public const float BunkeredDownRadius = 12f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

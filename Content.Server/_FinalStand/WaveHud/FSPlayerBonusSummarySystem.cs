@@ -43,6 +43,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
     [Dependency] private FSPerkBuffSystem _perkBuff = default!;
     [Dependency] private FSLoneWolfSystem _loneWolf = default!;
+    [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -342,6 +343,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             total += loneWolf;
             sources.Add(FormatPct("Lone Wolf", loneWolf));
+        }
+
+        var bunker = (_bunkeredDown.GetDamageMultiplier(mindId, perks) - 1f) * 100f;
+        if (bunker > 0f)
+        {
+            total += bunker;
+            sources.Add(FormatPct("Bunkered Down", bunker));
         }
     }
 
