@@ -71,7 +71,6 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private void OnCCCClosed(EntityUid uid, FinalStandCCCComponent comp, BoundUIClosedEvent args)
     {
         _openActors.Remove(args.Actor);
-        _lastBroadcastTime.Remove(args.Actor);
     }
 
     private void SendCanStartWave(EntityUid actor)
