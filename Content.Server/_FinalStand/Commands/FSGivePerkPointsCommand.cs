@@ -1,4 +1,4 @@
-﻿using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Economy;
 using Content.Server.Administration;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
@@ -9,6 +9,7 @@ namespace Content.Server._FinalStand.Commands;
 [AdminCommand(AdminFlags.Debug)]
 public sealed partial class FSGivePerkPointsCommand : IConsoleCommand
 {
+    [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private ISharedPlayerManager _playerManager = default!;
 
     public string Command => "fsgiveap";
@@ -42,7 +43,7 @@ public sealed partial class FSGivePerkPointsCommand : IConsoleCommand
             }
         }
 
-        IoCManager.Resolve<IEntityManager>().System<FSPlayerWalletSystem>().GivePerkPoints(session, amount);
+        _entMan.System<FSPlayerWalletSystem>().GivePerkPoints(session, amount);
 
         var verb = amount >= 0 ? $"Gave +{amount}" : $"Took {amount}";
         shell.WriteLine($"{verb} perk points to {session.Name}.");
