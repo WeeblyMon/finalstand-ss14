@@ -35,6 +35,9 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
 
     private const float TickInterval = 0.1f;
     private float _accumulator;
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
+    private int _tick;
+    private const int RescanEveryTicks = 10;
     private float _baseZombieDamage = 10f;
 
     // Reused across ticks — these queries run at 10 Hz per zombie and must not allocate.
@@ -100,10 +103,10 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             return;
 
         var epicenter = new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID);
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
-        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(epicenter, DoorOpenReplanRadius, nearby);
+        _waveMobBuffer.Clear();
+        _lookup.GetEntitiesInRange(epicenter, DoorOpenReplanRadius, _waveMobBuffer);
 
-        foreach (var (npcUid, _) in nearby)
+        foreach (var (npcUid, _) in _waveMobBuffer)
         {
             if (TryComp<HTNComponent>(npcUid, out var htn))
             {
@@ -122,6 +125,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         _accumulator += frameTime;
         if (_accumulator < TickInterval) return;
         _accumulator -= TickInterval;
+        _tick++;
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
             Tick(uid, htn, TickInterval);
@@ -198,7 +202,9 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
             return;
         }
 
-        if (!bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
+        // Looking for a better target means two area lookups, so each zombie only does it every few ticks, staggered.
+        if ((uid.Id + _tick) % RescanEveryTicks != 0
+            || !bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
             return;
 
         var baseDamage = GetBaseZombieDamage();
