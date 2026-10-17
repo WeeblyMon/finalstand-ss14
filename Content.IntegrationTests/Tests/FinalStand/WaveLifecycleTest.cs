@@ -43,7 +43,7 @@ public sealed class WaveLifecycleTest : GameTest
             Assert.That(wave, Is.EqualTo(1));
             Assert.That(phase, Is.EqualTo(WavePhase.Prep));
 
-            entMan.EventBus.RaiseEvent(EventSource.Local, new WaveStartRequestEvent());
+            waves.RequestWaveStart();
             Assert.That(entMan.GetComponent<WaveGameRuleComponent>(rule).VoteCountdownActive);
         });
 

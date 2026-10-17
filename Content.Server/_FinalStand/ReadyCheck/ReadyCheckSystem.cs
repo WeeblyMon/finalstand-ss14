@@ -1,6 +1,5 @@
 using Content.Server._FinalStand.CCC;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.ReadyCheck;
+using Content.Server._FinalStand.GameTicking.Rules;
 
 namespace Content.Server._FinalStand.ReadyCheck;
 
@@ -38,21 +37,21 @@ public sealed class ReadyCheckSystem : EntitySystem
         return null;
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var rc = FindCCCReadyCheck();
         if (rc == null) return;
         rc.IsCombatPhase = false;
         rc.ReadiedPlayers.Clear();
-        RaiseLocalEvent(new ReadyCheckUpdatedEvent());
+        RaiseUpdated();
     }
 
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
     {
         var rc = FindCCCReadyCheck();
         if (rc == null) return;
         rc.IsCombatPhase = true;
-        RaiseLocalEvent(new ReadyCheckUpdatedEvent());
+        RaiseUpdated();
     }
 
     public void SetPlayerReady(EntityUid player, bool ready)
@@ -63,7 +62,7 @@ public sealed class ReadyCheckSystem : EntitySystem
             rc.ReadiedPlayers.Add(player);
         else
             rc.ReadiedPlayers.Remove(player);
-        RaiseLocalEvent(new ReadyCheckUpdatedEvent());
+        RaiseUpdated();
     }
 
     public void SetTotalPlayers(int count)
@@ -85,4 +84,10 @@ public sealed class ReadyCheckSystem : EntitySystem
     public int GetTotalCount() => FindCCCReadyCheck()?.TotalPlayers ?? 0;
     public bool HasMajority() => FindCCCReadyCheck()?.HasMajority ?? false;
     public bool IsPlayerReady(EntityUid player) => FindCCCReadyCheck()?.ReadiedPlayers.Contains(player) ?? false;
+
+    private void RaiseUpdated()
+    {
+        var ev = new ReadyCheckUpdatedEvent();
+        RaiseLocalEvent(ref ev);
+    }
 }

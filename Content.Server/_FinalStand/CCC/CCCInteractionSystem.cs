@@ -3,8 +3,6 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.ReadyCheck;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Mind;
@@ -91,16 +89,16 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             SendCanStartWave(actor);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
-    private void OnCombatStarted(WaveCombatStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
-    private void OnReadyCheckUpdated(ReadyCheckUpdatedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
+    private void OnPrepStarted(ref WavePrepStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); _lastBroadcastTime.Clear(); }
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
+    private void OnReadyCheckUpdated(ref ReadyCheckUpdatedEvent ev) { PushCCCState(); BroadcastCanStartWave(); }
 
     private void OnStartWave(EntityUid uid, FinalStandCCCComponent comp, CCCStartWaveMessage args)
     {
         if (_readyCheck.IsCombatPhase()) return;
         var jobId = GetJobId(args.Actor);
         if (jobId == null || !ReadyCheckDepts.IsCaptain(jobId)) return;
-        RaiseLocalEvent(new WaveStartRequestEvent());
+        _waveRule.RequestWaveStart();
     }
 
     private string? GetJobId(EntityUid player)

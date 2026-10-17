@@ -1,4 +1,4 @@
-using Content.Shared._FinalStand.GameTicking;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.RiotShield;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Blocking;
@@ -85,7 +85,7 @@ public sealed partial class FSRiotShieldSystem : EntitySystem
         }
     }
 
-    private void OnWavePrepStarted(WavePrepStartedEvent _)
+    private void OnWavePrepStarted(ref WavePrepStartedEvent _)
     {
         var query = EntityQueryEnumerator<FSRiotShieldComponent>();
         while (query.MoveNext(out var uid, out var comp))

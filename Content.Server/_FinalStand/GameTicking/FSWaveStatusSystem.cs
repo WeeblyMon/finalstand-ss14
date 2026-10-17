@@ -20,11 +20,15 @@ public sealed partial class FSWaveStatusSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WavePrepStartedEvent>(_ => Refresh());
-        SubscribeLocalEvent<WaveCombatStartedEvent>(_ => Refresh());
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+        SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Set(0, WavePhase.Prep));
         SubscribeNetworkEvent<FSWaveStatusRequestEvent>(OnRequest);
     }
+
+    private void OnPrepStarted(ref WavePrepStartedEvent ev) => Refresh();
+
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev) => Refresh();
 
     private void Refresh()
     {

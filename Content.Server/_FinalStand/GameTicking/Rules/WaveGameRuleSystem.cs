@@ -77,7 +77,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
-        SubscribeLocalEvent<WaveStartRequestEvent>(OnWaveStartRequest);
         SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
         SubscribeLocalEvent<FSRevenantExecutedEvent>(OnRevenantExecuted);
@@ -256,7 +255,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
-        RaiseLocalEvent(new WavePrepStartedEvent());
+        var prepStarted = new WavePrepStartedEvent();
+        RaiseLocalEvent(ref prepStarted);
     }
 
     private static int CalcEnemyTotal(WaveGameRuleComponent comp, int players, int primarySpawners)
@@ -354,7 +354,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var startSound = comp.IsDarkWave ? comp.DarkWaveStartSound : comp.WaveStartSound;
         if (startSound != null)
             _audio.PlayGlobal(startSound, Filter.Broadcast(), true);
-        RaiseLocalEvent(new WaveCombatStartedEvent());
+        var combatStarted = new WaveCombatStartedEvent();
+        RaiseLocalEvent(ref combatStarted);
     }
 
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
@@ -575,7 +576,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         CheckWaveComplete(ruleUid, ruleComp);
     }
 
-    private void OnWaveStartRequest(WaveStartRequestEvent ev)
+    // The Captain hit Start, or most of the crew readied up.
+    public void RequestWaveStart()
     {
         if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;

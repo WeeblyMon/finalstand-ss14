@@ -1,5 +1,4 @@
 using Content.Server._FinalStand.GameTicking.Rules;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
@@ -26,7 +25,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         SubscribeNetworkEvent<FSReadyUpRequestMessage>(OnReadyUpRequest);
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _hasContributed.Clear();
         _readyCheck.ResetReadyStates();
@@ -35,7 +34,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         BroadcastState();
     }
 
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
     {
         RaiseNetworkEvent(new WavePhaseChangedEvent(false), Filter.Broadcast());
         BroadcastState();
@@ -74,7 +73,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         BroadcastState();
 
         if (_readyCheck.HasMajority())
-            RaiseLocalEvent(new WaveStartRequestEvent());
+            _waveRule.RequestWaveStart();
     }
 
     private void BroadcastState()

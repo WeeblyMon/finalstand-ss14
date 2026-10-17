@@ -12,7 +12,6 @@ using Content.Server.Popups;
 using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Fortifications;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Materials;
 using Content.Shared._FinalStand.Repair;
@@ -174,7 +173,7 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         }
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent args)
+    private void OnPrepStarted(ref WavePrepStartedEvent args)
     {
         var multiplier = WaveMultiplier();
         var raised = false;

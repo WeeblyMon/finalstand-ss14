@@ -1,6 +1,6 @@
 ﻿using Content.IntegrationTests.Fixtures;
+using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.MedicalOps;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Robust.Shared.Prototypes;
 using Content.Shared.Damage;
@@ -141,7 +141,8 @@ public sealed class MedicalScoringTest : GameTest
             Assert.That(f.Points, Is.EqualTo(exhausted),
                 "hostile damage must not reset diminishing returns either");
 
-            entMan.EventBus.RaiseEvent(EventSource.Local, new WavePrepStartedEvent());
+            var prepStarted = new WavePrepStartedEvent();
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref prepStarted);
             f.HealBy(f.MedicBody, 40f);
 
             Assert.That(f.Points, Is.GreaterThan(exhausted),

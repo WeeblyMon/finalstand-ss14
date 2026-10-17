@@ -7,7 +7,6 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Deployables;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Server.GameTicking;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -60,7 +59,7 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
         _unpaid.Clear();
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _absorbedThisWave.Clear();
         _repairedThisWave.Clear();

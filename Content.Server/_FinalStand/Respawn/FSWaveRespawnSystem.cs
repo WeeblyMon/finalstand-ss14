@@ -1,7 +1,6 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.MedicalOps;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Respawn;
 using Content.Shared.Administration.Systems;
 using Content.Shared.Buckle;
@@ -69,9 +68,9 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private bool IsPrep() => _waveRule.GetPrepComponent() != null;
 
-    private void OnPrepStarted(WavePrepStartedEvent ev) => PushOfferToAll();
+    private void OnPrepStarted(ref WavePrepStartedEvent ev) => PushOfferToAll();
 
-    private void OnCombatStarted(WaveCombatStartedEvent ev)
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
         => RaiseNetworkEvent(new FSRespawnOfferEvent(false, 0), Filter.Broadcast());
 
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev) => PushOffer(ev.Player);

@@ -5,7 +5,6 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Perks;
 using Content.Server._Shitmed.Body.Systems;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
@@ -116,7 +115,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _recoveriesPaid.Clear();
     }
 
-    private void OnPrepStarted(WavePrepStartedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSMedicalPatientComponent>();
         while (query.MoveNext(out _, out var comp))
