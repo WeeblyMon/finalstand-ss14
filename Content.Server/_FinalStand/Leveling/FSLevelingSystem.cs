@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using Content.Server._FinalStand.Economy;
@@ -15,7 +14,9 @@ using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Robust.Server.Player;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Leveling;
 
@@ -29,11 +30,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private MedicalOps.FSMedicalStatsSystem _medicalStats = default!;
     [Dependency] private Engineering.FSEngineerStatsSystem _engineerStats = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
+    private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
-
-    private long _saveTicks;
-    private int _saveCount;
 
     private const int HealingScoreWeight = 10;
 
@@ -90,14 +92,6 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnWaveEnded(ref WaveEndedEvent args)
     {
-        if (_saveCount > 0)
-        {
-            var ms = _saveTicks * 1000.0 / Stopwatch.Frequency;
-            Log.Info($"[FSLevel] wave {args.WaveNumber}: {_saveCount} leveling writes, {ms:F1} ms total, {ms / _saveCount:F3} ms each");
-            _saveTicks = 0;
-            _saveCount = 0;
-        }
-
         var xp = WaveCompletionXpPerWave * args.WaveNumber;
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
@@ -194,11 +188,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         TryComp<FSPrestigeBuffsComponent>(mindId, out var buffs);
 
-        var start = Stopwatch.GetTimestamp();
         _store.UpsertLeveling(mind.UserId.Value.UserId, level, experience, prestigeLevel,
             SerializePrestigeBuffs(buffs));
-        _saveTicks += Stopwatch.GetTimestamp() - start;
-        _saveCount++;
     }
 
     private static string SerializePrestigeBuffs(FSPrestigeBuffsComponent? buffs)
@@ -227,6 +218,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _roundStats.Clear();
+        _lastLobbyRequest.Clear();
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
@@ -340,6 +332,11 @@ public sealed partial class FSLevelingSystem : EntitySystem
             SendLevelingUpdate(mindId, lvl);
             return;
         }
+
+        var now = _timing.CurTime;
+        if (_lastLobbyRequest.TryGetValue(session.UserId, out var last) && now - last < LobbyRequestInterval)
+            return;
+        _lastLobbyRequest[session.UserId] = now;
 
         var record = _store.GetFullRecord(session.UserId.UserId);
         RaiseNetworkEvent(new FSLevelingUpdatedEvent

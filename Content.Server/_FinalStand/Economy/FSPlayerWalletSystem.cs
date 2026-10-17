@@ -10,6 +10,7 @@ using Robust.Shared.Console;
 using Robust.Server.Player;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Economy;
 
@@ -18,8 +19,12 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
 
     private readonly Dictionary<NetUserId, string> _cachedUsernames = new();
+    private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
 
     private readonly HashSet<EntityUid> _dirtyWallets = new();
     private float _notifyAccumulator;
@@ -64,6 +69,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
+        _lastLobbyRequest.Clear();
         SaveAll();
         _dirtyWallets.Clear();
 
@@ -320,6 +326,12 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
                 Filter.SinglePlayer(session));
             return;
         }
+
+        // Lobby players have no mind, so this goes to the database.
+        var now = _timing.CurTime;
+        if (_lastLobbyRequest.TryGetValue(session.UserId, out var last) && now - last < LobbyRequestInterval)
+            return;
+        _lastLobbyRequest[session.UserId] = now;
 
         RaiseNetworkEvent(new WalletUpdatedEvent(0, _store.GetPerkPoints(session.UserId.UserId)),
             Filter.SinglePlayer(session));
