@@ -33,8 +33,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSBreachEvaluator _evaluator = default!;
 
-    private const float TickInterval = 0.1f;
-    private float _accumulator;
+    private const int TickBuckets = 3;
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
     private int _tick;
     private const int RescanEveryTicks = 10;
@@ -122,13 +121,17 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _accumulator += frameTime;
-        if (_accumulator < TickInterval) return;
-        _accumulator -= TickInterval;
+        // Each zombie is ticked every TickBuckets server ticks, a different slice each tick, so the work
+        // is spread evenly instead of the whole horde landing on one tick.
         _tick++;
+        var bucket = _tick % TickBuckets;
+        var dt = frameTime * TickBuckets;
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
-            Tick(uid, htn, TickInterval);
+        {
+            if (uid.Id % TickBuckets == bucket)
+                Tick(uid, htn, dt);
+        }
     }
 
     private void Tick(EntityUid uid, HTNComponent htn, float dt)
@@ -203,7 +206,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         }
 
         // Looking for a better target means two area lookups, so each zombie only does it every few ticks, staggered.
-        if ((uid.Id + _tick) % RescanEveryTicks != 0
+        if ((uid.Id / TickBuckets + _tick / TickBuckets) % RescanEveryTicks != 0
             || !bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
             return;
 
@@ -255,18 +258,19 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         if (steering.CurrentPath.Count < directDist * MazePathRatio)
             return;
 
+        var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, timer);
+        if (timer < MazeCheckInterval)
+            return;
+        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, 0f);
+
+        // A door nearby means the long path is probably just the way round it, not a maze.
         var mapId = Transform(uid).MapID;
         var zombieEpicenter = new MapCoordinates(zombiePos, mapId);
         _doorBuffer.Clear();
         _lookup.GetEntitiesInRange(zombieEpicenter, 2.5f, _doorBuffer);
         if (_doorBuffer.Count > 0)
             return;
-
-        var timer = bb.TryGetValue<float>(FSAIBlackboardKeys.MazeCheckTimer, out var mt, EntityManager) ? mt + dt : dt;
-        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, timer);
-        if (timer < MazeCheckInterval)
-            return;
-        bb.SetValue(FSAIBlackboardKeys.MazeCheckTimer, 0f);
 
         ApplyEvaluation(uid, htn, bb, zombiePos, mapId, mazeTargetPos: targetPos);
     }
