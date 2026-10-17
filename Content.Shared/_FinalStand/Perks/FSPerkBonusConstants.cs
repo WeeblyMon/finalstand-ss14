@@ -64,6 +64,8 @@ public static class FSPerkBonusConstants
     public const float ScavengerHeal = 15f;
     public const int ScavengerCredits = 150;
     public const float ConcealedCarryPerLevel = 0.04f;
+    public const float GunslingerDamagePerLevel = 0.06f;   // reversed for two-handed guns
+    public const float GunslingerFireRatePerLevel = 0.10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

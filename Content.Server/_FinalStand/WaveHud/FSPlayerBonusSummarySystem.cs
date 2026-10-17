@@ -41,6 +41,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSPerkCritSystem _perkCrit = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSMedicalBonusSystem _medicalBonus = default!;
+    [Dependency] private FSPerkBuffSystem _perkBuff = default!;
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -179,6 +180,15 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             dmgSources.Add(FormatPct("Glass Cannon", pct));
         }
 
+        var slingSign = perks == null ? 0 : _perkBuff.GunslingerSign(heldUid, perks);
+        var slingLevel = perks?.GetSlottedLevel("Gunslinger") ?? 0;
+        if (slingSign != 0)
+        {
+            var pct = slingSign * slingLevel * FSPerkBonusConstants.GunslingerDamagePerLevel * 100f;
+            dmgPct += pct;
+            dmgSources.Add(FormatPct("Gunslinger", pct));
+        }
+
         if (deathAuraStacks > 0)
         {
             var pct = deathAuraStacks * FSPerkBonusConstants.DeathAuraPerStack * 100f;
@@ -220,6 +230,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var pct = bsLevel * FSPerkBonusConstants.BulletStormPerLevel * 100f;
             frPct += pct;
             frSources.Add(FormatPct("Bullet Storm", pct));
+        }
+
+        if (slingSign != 0)
+        {
+            var pct = slingSign * slingLevel * FSPerkBonusConstants.GunslingerFireRatePerLevel * 100f;
+            frPct += pct;
+            frSources.Add(FormatPct("Gunslinger", pct));
         }
         fireRate = new FSBonusCategory(frPct, frSources.ToArray());
 

@@ -7,6 +7,7 @@ using Content.Server._FinalStand.Titles;
 using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -38,6 +39,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
+    [Dependency] private FSWeaponClassifierSystem _classifier = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -104,9 +106,20 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
         var level = augs.GetSlottedLevel("BulletStorm");
-        if (level <= 0) return;
+        if (level > 0)
+            args.FireRate *= 1f + level * FSPerkBonusConstants.BulletStormPerLevel;
 
-        args.FireRate *= 1f + level * FSPerkBonusConstants.BulletStormPerLevel;
+        args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
+            * FSPerkBonusConstants.GunslingerFireRatePerLevel;
+    }
+
+    public int GunslingerSign(EntityUid gun, FSPerkLevelsComponent perks)
+    {
+        if (perks.GetSlottedLevel("Gunslinger") <= 0)
+            return 0;
+        if (_classifier.IsPistol(gun))
+            return 1;
+        return _classifier.IsTwoHandedGun(gun) ? -1 : 0;
     }
 
     private void OnLightweight(EntityUid uid, MobMoverComponent mover, RefreshMovementSpeedModifiersEvent args)

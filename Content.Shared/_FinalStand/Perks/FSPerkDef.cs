@@ -323,6 +323,12 @@ public sealed class FSPerkDef
                 "More crit chance with guns. Halved for large guns, none for huge ones.",
                 PerkCategory.Red,
                 Pct("+{0}% Crit Chance", FSPerkBonusConstants.ConcealedCarryPerLevel)),
+
+            new("Gunslinger", "Gunslinger",
+                "Pistols hit harder and fire faster. Two-handed guns get the reverse.",
+                PerkCategory.Red,
+                Pct("+{0}% Pistol Damage / +{1}% Pistol Fire Rate",
+                    FSPerkBonusConstants.GunslingerDamagePerLevel, FSPerkBonusConstants.GunslingerFireRatePerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
