@@ -1,7 +1,6 @@
 using System.Numerics;
 using Content.Server._FinalStand.Mobs;
 using Content.Shared._FinalStand.Deployables;
-using Content.Shared._FinalStand.Mobs;
 using Robust.Shared.Map;
 
 namespace Content.Server._FinalStand.Deployables;
@@ -39,7 +38,6 @@ public sealed partial class FSDamageBeaconSystem : FSDeployableAuraSystem<FSDama
 
     protected override void ApplyTo(EntityUid target, EntityUid source, FSDamageBeaconComponent aura)
     {
-        _vulnerability.Apply(target, RefreshDuration);
-        EnsureComp<FSDamageVulnerabilityComponent>(target).DamageMultiplier = aura.DamageMultiplier;
+        _vulnerability.Apply(target, RefreshDuration, aura.DamageMultiplier);
     }
 }
