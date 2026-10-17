@@ -1,8 +1,8 @@
 ﻿- type: entity
-  id: FSZombieRevenant
   parent: FSZombieFootsoldierBase
-  suffix: Revenant
+  id: FSZombieRevenant
   name: revenant zombie
+  suffix: Revenant
   components:
   - type: FSSpecialZombie
   - type: FSRevenant
@@ -69,8 +69,8 @@
 # Dark wave variant: several of these are alive at once and they respawn for the whole wave,
 # so they trade the normal revenant's fragility for twice a giant's 800 HP.
 - type: entity
-  id: FSZombieRevenantDark
   parent: FSZombieRevenant
+  id: FSZombieRevenantDark
   suffix: Revenant, Dark Wave
   components:
   - type: MobThresholds

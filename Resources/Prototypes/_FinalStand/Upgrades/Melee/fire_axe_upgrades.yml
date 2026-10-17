@@ -2,8 +2,8 @@
 # Heavy chopper. Big damage + fire synergies (Axtinguish / Fireman / Fire Man).
 
 - type: entity
-  id: FSWeaponShopFireAxe
   parent: FSWeaponShopBase
+  id: FSWeaponShopFireAxe
   name: Fire Axe
   description: Truly, the weapon of a madman. Fight fire with steel.
   components:

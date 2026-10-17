@@ -22,9 +22,9 @@
 
 - type: entity
   id: SmallSprintAnimation
+  categories: [ HideSpawnMenu ]
   name: Small dust cloud
   description: Whoa, watch out!
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: WallMountedItems
@@ -40,9 +40,9 @@
 
 - type: entity
   id: TinySprintAnimation
+  categories: [ HideSpawnMenu ]
   name: Tiny dust cloud
   description: Whoa, watch out!
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     drawdepth: WallMountedItems

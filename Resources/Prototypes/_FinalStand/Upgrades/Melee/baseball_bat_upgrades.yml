@@ -2,8 +2,8 @@
 # Crowd-control bruiser. Stun-on-attack via the concussion line.
 
 - type: entity
-  id: FSWeaponShopBaseballBat
   parent: FSWeaponShopBase
+  id: FSWeaponShopBaseballBat
   name: Baseball Bat
   description: A robust wooden bat. Turns enemies into pulp with the right upgrades.
   components:

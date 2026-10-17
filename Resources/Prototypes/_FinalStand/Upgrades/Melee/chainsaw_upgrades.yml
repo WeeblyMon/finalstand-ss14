@@ -1,8 +1,8 @@
 # Chainsaw shop entry. Top-tier melee.
 
 - type: entity
-  id: FSWeaponShopChainsaw
   parent: FSWeaponShopBase
+  id: FSWeaponShopChainsaw
   name: Chainsaw
   description: A very large chainsaw. Requires fuel and a steady hand.
   components:

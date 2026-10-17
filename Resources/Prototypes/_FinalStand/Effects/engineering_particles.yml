@@ -200,9 +200,9 @@
 
 - type: entity
   id: FSRubble
+  categories: [ HideSpawnMenu ]
   name: rubble
   description: What's left of a fortification. It marks where the line broke.
-  categories: [ HideSpawnMenu ]
   placement:
     mode: SnapgridCenter
   components:

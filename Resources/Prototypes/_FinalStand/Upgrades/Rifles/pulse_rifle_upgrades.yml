@@ -2,8 +2,8 @@
 # The Crowd Clearer. Everything hits multiple enemies. Sustained fire overwhelms groups.
 
 - type: entity
-  id: FSWeaponShopPulseRifle
   parent: FSWeaponShopBase
+  id: FSWeaponShopPulseRifle
   name: Pulse Rifle
   description: Full-auto energy rifle with enormous battery capacity. Built for clearing dense crowds. No ammo required.
   components:

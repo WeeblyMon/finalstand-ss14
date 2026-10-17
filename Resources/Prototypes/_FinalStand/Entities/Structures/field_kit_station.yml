@@ -1,6 +1,6 @@
 - type: entity
-  id: FSFieldKitStation
   parent: BaseMachinePowered
+  id: FSFieldKitStation
   name: field kit station
   description: The chemist's bench. Empty your satchel into its tissue tank, pick a potion and it brews the batch straight into your jug. Packages flasks, magazines, bottles and pills too.
   placement:

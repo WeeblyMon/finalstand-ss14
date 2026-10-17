@@ -1,7 +1,6 @@
 # FinalStand station — same as StandardNanotrasenStation but without BaseStationArrivals.
 # Players spawn exclusively via cryo pods.
 - type: entity
-  id: FinalStandStation
   parent:
     - BaseStation
     - BaseStationNews
@@ -19,4 +18,5 @@
     - BaseStationAllEventsEligible
     - BaseStationNanotrasen
     - BaseStationDeliveries
+  id: FinalStandStation
   categories: [ HideSpawnMenu ]

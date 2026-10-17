@@ -3,9 +3,9 @@
 - type: entity
   parent: [ BaseRepairableShield, BaseSecurityContraband ]
   id: FSRiotShield
+  categories: [ HideSpawnMenu ]
   name: riot shield
   description: A large tower shield. Good for controlling crowds.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Blocking
     passiveBlockModifier:

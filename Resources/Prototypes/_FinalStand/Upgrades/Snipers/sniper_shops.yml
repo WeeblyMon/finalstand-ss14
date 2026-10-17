@@ -1,8 +1,8 @@
 ﻿# ── Sniper Shops ──────────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSWeaponShopMosin
   parent: FSWeaponShopBase
+  id: FSWeaponShopMosin
   name: Kardashev-Mosin
   description: A legendary bolt-action relic. Hits hard and hits true. Uses .30 light rifle rounds.
   components:
@@ -88,8 +88,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopEstoc
   parent: FSWeaponShopBase
+  id: FSWeaponShopEstoc
   name: Estoc DMR
   description: Precision burst-fire DMR. Three rounds, one target, zero survivors. Uses .20 rifle magazines.
   components:
@@ -160,8 +160,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopHristov
   parent: FSWeaponShopBase
+  id: FSWeaponShopHristov
   name: Hristov
   description: Anti-materiel precision rifle. Makes anything regret existing. Uses .60 anti-materiel rounds.
   components:

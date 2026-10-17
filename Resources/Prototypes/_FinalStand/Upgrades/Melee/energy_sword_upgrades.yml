@@ -3,8 +3,8 @@
 # copying the upgrade state across (handled in FSPlayerUpgradesSystem.DualWieldEnergySword case).
 
 - type: entity
-  id: FSWeaponShopEnergySword
   parent: FSWeaponShopBase
+  id: FSWeaponShopEnergySword
   name: Energy Sword
   description: A concentrated-plasma blade. Carves through unarmored targets like butter.
   components:

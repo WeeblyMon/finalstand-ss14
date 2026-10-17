@@ -2,8 +2,8 @@
 # The Aggressor. Gets scarier the more enemies it kills. Rewards aggressive play.
 
 - type: entity
-  id: FSWeaponShopAkms
   parent: FSWeaponShopBase
+  id: FSWeaponShopAkms
   name: AKMS
   description: Battered but reliable combat rifle. Earns its keep through sustained aggression. Uses .30 rifle magazines.
   components:

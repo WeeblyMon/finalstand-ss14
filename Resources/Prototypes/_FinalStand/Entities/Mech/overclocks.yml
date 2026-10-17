@@ -1,8 +1,8 @@
 # Giant-dropped overclocks: each one reshapes a single bay-built mech gun. Use it on the gun, or on a mech carrying it.
 - type: entity
+  abstract: true
   parent: BaseItem
   id: FSBaseMechOverclock
-  abstract: true
   components:
   - type: Sprite
     sprite: Objects/Misc/module.rsi
@@ -90,8 +90,8 @@
       damage: 0.7
 
 - type: entity
-  id: FSOverclockRandom
   parent: MarkerBase
+  id: FSOverclockRandom
   name: random mech overclock
   components:
   - type: Sprite

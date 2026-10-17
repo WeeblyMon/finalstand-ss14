@@ -1,6 +1,6 @@
 - type: entity
-  id: WaveAmmoBox
   parent: BaseWallmountMachine
+  id: WaveAmmoBox
   name: Ammo Resupply Box
   description: Interact to refill your magazines once per wave.
   components:

@@ -1,9 +1,9 @@
 ﻿# ── FSZombie types ──────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSZombieBase
-  parent: SimpleSpaceMobBase
   abstract: true
+  parent: SimpleSpaceMobBase
+  id: FSZombieBase
   suffix: FinalStand
   components:
   - type: Body
@@ -96,9 +96,9 @@
 # Shared stat base for foot-soldier tier zombies — no FSVaporiseWeak here so that
 # only Normal and Runner (which add it explicitly) are vaporisable.
 - type: entity
-  id: FSZombieFootsoldierBase
-  parent: FSZombieBase
   abstract: true
+  parent: FSZombieBase
+  id: FSZombieFootsoldierBase
   components:
   - type: MobThresholds
     thresholds:
@@ -111,18 +111,18 @@
     killCredits: 150
 
 - type: entity
-  id: FSZombieNormal
   parent: FSZombieFootsoldierBase
-  suffix: Normal
+  id: FSZombieNormal
   name: zombie
+  suffix: Normal
   components:
   - type: FSVaporiseWeak
 
 - type: entity
-  id: FSZombieRunner
   parent: FSZombieFootsoldierBase
-  suffix: Runner
+  id: FSZombieRunner
   name: runner zombie
+  suffix: Runner
   components:
   - type: FSVaporiseWeak
   - type: FSEnemyIcon
@@ -146,10 +146,10 @@
     killCredits: 180
 
 - type: entity
-  id: FSZombieArmoured
   parent: FSZombieFootsoldierBase
-  suffix: Armoured
+  id: FSZombieArmoured
   name: armoured zombie
+  suffix: Armoured
   components:
   - type: FSMaterialDrop
     materials:
@@ -206,11 +206,11 @@
 # TODO(finalstand): add ArmorComponent when FSZombieDestroyer is implemented
 # maxHPRatio: 0.7, regenRate: 10 (tankier by design — targets infrastructure)
 - type: entity
-  id: FSZombieDestroyer
-  parent: FSZombieBase
-  suffix: Destroyer
-  name: destroyer zombie
   abstract: true
+  parent: FSZombieBase
+  id: FSZombieDestroyer
+  name: destroyer zombie
+  suffix: Destroyer
   components:
   - type: FSMaterialDrop
     materials:
@@ -237,11 +237,11 @@
 # maxHPRatio: 0.2, regenRate: 10 (light armor — enrage mechanic is the real threat)
 # NOTE: Berserker enrages at 50% HP regardless of armor state.
 - type: entity
-  id: FSZombieBerserker
-  parent: FSZombieBase
-  suffix: Berserker
-  name: berserker zombie
   abstract: true
+  parent: FSZombieBase
+  id: FSZombieBerserker
+  name: berserker zombie
+  suffix: Berserker
   components:
   - type: MobThresholds
     thresholds:
@@ -256,10 +256,10 @@
     maxMoneyPerPlayer: 1500
 
 - type: entity
-  id: FSZombieGiant
   parent: FSZombieBase
-  suffix: Giant
+  id: FSZombieGiant
   name: giant zombie
+  suffix: Giant
   # HP scaling: ScaleEnemyHp is called explicitly in WaveGameRuleSystem.StartCombatPhase
   # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
   # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
@@ -349,8 +349,8 @@
 # ── Giant zombie debris — spawned on floor when parts are blown off ──────────
 
 - type: entity
-  id: FSGiantZombieGibBase
   abstract: true
+  id: FSGiantZombieGibBase
   categories: [ HideSpawnMenu ]
   components:
   - type: Physics
@@ -367,8 +367,8 @@
     lifetime: 8.0
 
 - type: entity
-  id: FSGiantZombieArmFloor
   parent: FSGiantZombieGibBase
+  id: FSGiantZombieArmFloor
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -376,8 +376,8 @@
     state: arm_removed
 
 - type: entity
-  id: FSGiantZombieHeadFloor
   parent: FSGiantZombieGibBase
+  id: FSGiantZombieHeadFloor
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -385,8 +385,8 @@
     state: head_removed
 
 - type: entity
-  id: FSGiantZombieLegFloor
   parent: FSGiantZombieGibBase
+  id: FSGiantZombieLegFloor
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -394,8 +394,8 @@
     state: leg_removed
 
 - type: entity
-  id: FSGiantZombieTorsoFloor
   parent: FSGiantZombieGibBase
+  id: FSGiantZombieTorsoFloor
   categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
@@ -408,8 +408,8 @@
 # No Prying component — these mobs smash obstacles, they do not pry.
 
 - type: entity
-  id: FSMobXeno
   parent: MobXeno
+  id: FSMobXeno
   suffix: FinalStand
   components:
   - type: HTN
@@ -438,8 +438,8 @@
         - MobLayer
 
 - type: entity
-  id: FSMobXenoRunner
   parent: MobXenoRunner
+  id: FSMobXenoRunner
   suffix: FinalStand
   components:
   - type: HTN
@@ -457,8 +457,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobXenoDrone
   parent: MobXenoDrone
+  id: FSMobXenoDrone
   suffix: FinalStand
   components:
   - type: HTN
@@ -476,8 +476,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobXenoPraetorian
   parent: MobXenoPraetorian
+  id: FSMobXenoPraetorian
   suffix: FinalStand
   components:
   - type: HTN
@@ -495,8 +495,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobSpiderSpace
   parent: MobSpiderSpace
+  id: FSMobSpiderSpace
   suffix: FinalStand
   components:
   - type: HTN
@@ -514,8 +514,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobFleshJared
   parent: MobFleshJared
+  id: FSMobFleshJared
   suffix: FinalStand
   components:
   - type: HTN
@@ -533,8 +533,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobHivebotRanged
   parent: MobHivebotRanged
+  id: FSMobHivebotRanged
   suffix: FinalStand
   components:
   - type: HTN
@@ -552,8 +552,8 @@
   - type: FSWaveDamageScale
 
 - type: entity
-  id: FSMobSyndicateFootsoldier
   parent: MobSyndicateFootsoldier
+  id: FSMobSyndicateFootsoldier
   suffix: FinalStand
   components:
   - type: HTN

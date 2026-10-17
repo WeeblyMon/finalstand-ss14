@@ -2,8 +2,8 @@
 # Pirate sabre. Slash-and-stamina playstyle, plus flintlock crit synergy via Pirate.
 
 - type: entity
-  id: FSWeaponShopCutlass
   parent: FSWeaponShopBase
+  id: FSWeaponShopCutlass
   name: Cutlass
   description: A wickedly curved blade. Pairs well with flintlocks and a sense of dread.
   components:

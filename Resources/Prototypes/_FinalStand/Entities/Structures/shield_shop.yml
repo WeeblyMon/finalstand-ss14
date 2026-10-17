@@ -1,6 +1,6 @@
 - type: entity
-  id: FSWeaponShopRiotShield
   parent: FSWeaponShopBase
+  id: FSWeaponShopRiotShield
   name: Riot Shield
   description: A heavy riot shield. Blocks incoming damage and repairs itself between waves.
   components:

@@ -1,8 +1,8 @@
 # ── Damage Beacon floor VFX - visual-only child entity, separate from the beacon's own sprite. ──
 - type: entity
   id: FSDamageBeaconFieldVfx
-  name: damage field
   categories: [ HideSpawnMenu ]
+  name: damage field
   components:
   - type: FSDamageBeaconFieldVfx
   - type: Sprite
@@ -16,8 +16,8 @@
 
 - type: entity
   id: FSDamageBeaconDestroyVfx
-  name: damage field burst
   categories: [ HideSpawnMenu ]
+  name: damage field burst
   components:
   - type: TimedDespawn
     lifetime: 0.3

@@ -2,8 +2,8 @@
 # The starter melee. Free. Designed for early-wave economy.
 
 - type: entity
-  id: FSWeaponShopSurvivalKnife
   parent: FSWeaponShopBase
+  id: FSWeaponShopSurvivalKnife
   name: Survival Knife
   description: A basic carp-killer. Free to take and cheap to improve.
   components:

@@ -1,7 +1,7 @@
 # ── Giant boss VFX and projectile ────────────────────────────────────────────────────────────
 - type: entity
-  id: FSGiantEffectBase
   abstract: true
+  id: FSGiantEffectBase
   categories: [ HideSpawnMenu ]
   components:
   - type: Transform
@@ -10,10 +10,10 @@
     lifetime: 1
 
 - type: entity
-  id: FSEffectGiantLaunchSmoke
   parent: FSGiantEffectBase
-  name: dust cloud
+  id: FSEffectGiantLaunchSmoke
   categories: [ HideSpawnMenu ]
+  name: dust cloud
   components:
   - type: Sprite
     drawdepth: Effects
@@ -25,10 +25,10 @@
     lifetime: 0.65
 
 - type: entity
-  id: FSEffectGiantImpact
   parent: FSGiantEffectBase
-  name: impact wave
+  id: FSEffectGiantImpact
   categories: [ HideSpawnMenu ]
+  name: impact wave
   components:
   - type: Sprite
     drawdepth: Effects
@@ -40,10 +40,10 @@
     lifetime: 0.66
 
 - type: entity
-  id: FSEffectBoulderImpact
   parent: FSGiantEffectBase
-  name: wall dust
+  id: FSEffectBoulderImpact
   categories: [ HideSpawnMenu ]
+  name: wall dust
   components:
   - type: Sprite
     drawdepth: Effects
@@ -55,10 +55,10 @@
     lifetime: 0.55
 
 - type: entity
-  id: FSGiantTelegraphRing
   parent: FSGiantEffectBase
-  name: impact zone
+  id: FSGiantTelegraphRing
   categories: [ HideSpawnMenu ]
+  name: impact zone
   components:
   - type: Sprite
     drawdepth: FloorObjects
@@ -70,10 +70,10 @@
     lifetime: 2.5
 
 - type: entity
-  id: FSGiantLaneMarker
   parent: FSGiantEffectBase
-  name: danger lane
+  id: FSGiantLaneMarker
   categories: [ HideSpawnMenu ]
+  name: danger lane
   components:
   - type: Sprite
     drawdepth: FloorObjects
@@ -84,10 +84,10 @@
     lifetime: 1.2
 
 - type: entity
-  id: FSGiantFist
   parent: FSGiantEffectBase
-  name: cocked fist
+  id: FSGiantFist
   categories: [ HideSpawnMenu ]
+  name: cocked fist
   components:
   - type: Sprite
     drawdepth: Mobs
@@ -99,8 +99,8 @@
 
 - type: entity
   id: FSGiantBoulder
-  name: hurled debris
   categories: [ HideSpawnMenu ]
+  name: hurled debris
   components:
   - type: Sprite
     drawdepth: Mobs

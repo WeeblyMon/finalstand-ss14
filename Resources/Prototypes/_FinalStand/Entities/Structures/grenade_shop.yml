@@ -1,8 +1,8 @@
 # ─── Grenade Shop Structures ───────────────────────────────────────────────────
 
 - type: entity
-  id: FSGrenadeShopFrag
   parent: FSWeaponShopBase
+  id: FSGrenadeShopFrag
   name: Frag Grenade Shop
   description: High-explosive fragmentation grenades. Shreds zombie clusters.
   components:
@@ -57,8 +57,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSGrenadeShopIncendiary
   parent: FSWeaponShopBase
+  id: FSGrenadeShopIncendiary
   name: Incendiary Grenade Shop
   description: Incendiary grenades that create persistent fire zones.
   components:
@@ -112,8 +112,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSGrenadeShopFlash
   parent: FSWeaponShopBase
+  id: FSGrenadeShopFlash
   name: Flash Grenade Shop
   description: Flash grenades that stun zombies in a wide radius.
   components:
@@ -167,8 +167,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSGrenadeShopPipe
   parent: FSWeaponShopBase
+  id: FSGrenadeShopPipe
   name: Pipe Bomb Shop
   description: Pipe bombs that create a bait decoy and small explosion to attract zombies.
   components:

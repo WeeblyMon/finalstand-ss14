@@ -1,6 +1,6 @@
 - type: entity
-  id: FSWeaponShopBase
   abstract: true
+  id: FSWeaponShopBase
   placement:
     mode: SnapgridCenter
   components:
@@ -31,8 +31,8 @@
         type: FSShopWeaponBoundUserInterface
 
 - type: entity
-  id: FSWeaponShopViper
   parent: FSWeaponShopBase
+  id: FSWeaponShopViper
   name: Viper
   description: A Syndicate-modified 9mm pistol. Semi-auto and full-auto.
   components:
@@ -81,8 +81,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMateba
   parent: FSWeaponShopBase
+  id: FSWeaponShopMateba
   name: Mateba
   description: Nanotrasen Death Squad revolver. High fire rate, .45 magnum.
   components:
@@ -146,8 +146,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMk58
   parent: FSWeaponShopBase
+  id: FSWeaponShopMk58
   name: MK 58
   description: A reliable .35 semi-auto service pistol. Easy to use, easy to upgrade.
   components:
@@ -203,8 +203,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopN1984
   parent: FSWeaponShopBase
+  id: FSWeaponShopN1984
   name: Desert Eagle
   description: The Lord's caliber in a 9-round package. Semi-auto .45 magnum hand cannon.
   components:
@@ -282,8 +282,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopAdvancedLaser
   parent: FSWeaponShopBase
+  id: FSWeaponShopAdvancedLaser
   name: Adv. Laser Pistol
   description: Self-recharging laser pistol. No ammo needed, just point and melt.
   components:
@@ -351,8 +351,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopEnergyMagnum
   parent: FSWeaponShopBase
+  id: FSWeaponShopEnergyMagnum
   name: Energy Magnum
   description: High-yield energy pistol with a self-recharging cell. Hits as hard as it sounds.
   components:
@@ -422,8 +422,8 @@
 # ── SMG Shops ────────────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSWeaponShopAtreides
   parent: FSWeaponShopBase
+  id: FSWeaponShopAtreides
   name: Atreides
   description: A sleek .35 auto SMG. Fast, reliable, and punishes hesitation. Full-auto capable.
   components:
@@ -479,8 +479,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopWt550
   parent: FSWeaponShopBase
+  id: FSWeaponShopWt550
   name: WT550
   description: A precision burst SMG with a distinctive top-mounted magazine. Accurate and punishing in short bursts.
   components:
@@ -543,8 +543,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopDrozd
   parent: FSWeaponShopBase
+  id: FSWeaponShopDrozd
   name: Drozd
   description: A heavy burst SMG built for punching through armor. Slow between bursts, devastating during them.
   components:
@@ -600,8 +600,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopC20r
   parent: FSWeaponShopBase
+  id: FSWeaponShopC20r
   name: C-20r
   description: A burst-capable SMG with a well-earned reputation. Reliable at any range, terrifying with upgrades.
   components:

@@ -1,6 +1,6 @@
 - type: entity
-  id: WaveSurvivalZombie
   parent: BaseGameRule
+  id: WaveSurvivalZombie
   components:
   - type: FSDarkWaveRule
   - type: FSWaveRewards

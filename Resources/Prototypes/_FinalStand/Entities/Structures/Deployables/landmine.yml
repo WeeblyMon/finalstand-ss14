@@ -1,10 +1,10 @@
 # ── Landmine - held item (planted via use-in-hand) ────────────────────────────────────────────
 - type: entity
-  id: FSLandmineItem
   parent: BaseItem
+  id: FSLandmineItem
+  categories: [ HideSpawnMenu ]
   name: landmine
   description: A proximity mine. Plant it and stand well clear - it arms a few seconds after deployment and detonates once. Harmless to the station itself.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Item
     size: Small
@@ -24,11 +24,11 @@
 
 # ── Landmine - planted ────────────────────────────────────────────────────────────────────────
 - type: entity
-  id: FSLandmineDeployed
   parent: BaseLandMine
+  id: FSLandmineDeployed
+  categories: [ HideSpawnMenu ]
   name: landmine
   description: An armed proximity mine. Do not step on it.
-  categories: [ HideSpawnMenu ]
   components:
   - type: FSLandmine
   - type: FSArmingDelay

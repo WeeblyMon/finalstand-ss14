@@ -1,8 +1,8 @@
 # ── Shotgun Shops ─────────────────────────────────────────────────────────────
 
 - type: entity
-  id: FSWeaponShopBlunderbuss
   parent: FSWeaponShopBase
+  id: FSWeaponShopBlunderbuss
   name: Blunderbuss
   description: A pirate's room-clearer. Single-shot, but devastating at close range. Uses .50 shotgun shells.
   components:
@@ -72,8 +72,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopKammerer
   parent: FSWeaponShopBase
+  id: FSWeaponShopKammerer
   name: Kammerer
   description: An old pump-action workhorse. Reliable, punishing, and loves armor shredding upgrades. Uses .50 shotgun shells.
   components:
@@ -136,8 +136,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopBulldog
   parent: FSWeaponShopBase
+  id: FSWeaponShopBulldog
   name: Bulldog
   description: A full-auto mag-fed shotgun. Kicks like a mule; kills like one too. Uses .50 shotgun drum magazines.
   components:
@@ -200,8 +200,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopDoubleBarrel
   parent: FSWeaponShopBase
+  id: FSWeaponShopDoubleBarrel
   name: Double Barrel
   description: Two barrels of pure regret. High burst damage — make both shots count. Uses .50 shotgun shells.
   components:
@@ -257,8 +257,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopHushpup
   parent: FSWeaponShopBase
+  id: FSWeaponShopHushpup
   name: Hushpup
   description: Suppressed and surgical. Silent entries, wide patterns, zero witnesses. Uses .50 shotgun shells.
   components:
@@ -328,8 +328,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopEnergyShotgun
   parent: FSWeaponShopBase
+  id: FSWeaponShopEnergyShotgun
   name: Energy Shotgun
   description: A prototype energy weapon. Hold the trigger to charge - a longer hold means bigger, harder-hitting bolts that punch through more targets. Self-powered, no ammo needed.
   components:

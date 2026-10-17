@@ -2,8 +2,8 @@
 # Top-tier end-game weapons. Significantly more expensive than snipers.
 
 - type: entity
-  id: FSWeaponShopL6Saw
   parent: FSWeaponShopBase
+  id: FSWeaponShopL6Saw
   name: L6 SAW
   description: Waffle Corp's answer to every problem. 300 rounds of suppressive .30 fire. It doesn't stop.
   components:
@@ -67,8 +67,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopHydra
   parent: FSWeaponShopBase
+  id: FSWeaponShopHydra
   name: Hydra
   description: Six-chamber rotary grenade launcher. Load it, spin it, pray. Uses standard grenades.
   components:
@@ -125,8 +125,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopRpg
   parent: FSWeaponShopBase
+  id: FSWeaponShopRpg
   name: RPG-7
   description: Ancient. Loud. Devastating. One rocket, one problem solved. Uses rocket cartridges.
   components:
@@ -183,8 +183,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopTeslaGun
   parent: FSWeaponShopBase
+  id: FSWeaponShopTeslaGun
   name: Tesla Gun
   description: The power of the primordial element of lightning in your hands. Self-recharging energy weapon.
   components:
@@ -239,8 +239,8 @@
     scale: 1,1
 
 - type: entity
-  id: FSWeaponShopMinigun
   parent: FSWeaponShopBase
+  id: FSWeaponShopMinigun
   name: Minigun
   description: Vzzzzzt! Rahrahrahrah! Vrrrrr! 1000 rounds of .10 rifle. Nothing survives the spin-up.
   components:
@@ -303,8 +303,8 @@
 
 # No requiresResearch - the Harvester is the RP source that feeds the research tree itself.
 - type: entity
-  id: FSWeaponShopHarvester
   parent: FSWeaponShopBase
+  id: FSWeaponShopHarvester
   name: Harvester
   description: An experimental purple energy weapon that harvests residual bio-radiation from its targets, feeding it back to the station's research systems.
   components:

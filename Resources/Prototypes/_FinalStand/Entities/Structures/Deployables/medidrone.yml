@@ -1,9 +1,9 @@
 - type: entity
-  id: FSMediDroneItem
   parent: BaseItem
+  id: FSMediDroneItem
+  categories: [ HideSpawnMenu ]
   name: medi-drone
   description: A folded healing drone. Deploy it and it follows you, peeling off to heal wounded allies nearby up to half health. It burns out when its charge runs dry. Press Z to aim a placement, click to deploy - or throw it (Ctrl+Q).
-  categories: [ HideSpawnMenu ]
   components:
   - type: Item
     size: Small
@@ -23,9 +23,9 @@
 
 - type: entity
   id: FSMediDroneDeployed
+  categories: [ HideSpawnMenu ]
   name: medi-drone
   description: A small healing drone. It sticks to the medic who launched it and beams wounded allies back up to half health.
-  categories: [ HideSpawnMenu ]
   components:
   - type: Sprite
     sprite: _FinalStand/Objects/Medical/medidrone.rsi

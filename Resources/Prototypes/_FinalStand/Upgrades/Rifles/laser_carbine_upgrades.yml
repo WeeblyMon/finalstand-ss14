@@ -2,8 +2,8 @@
 # Full-auto energy rifle. Sprays laser bolts, drains its cell fast, full of tricks.
 
 - type: entity
-  id: FSWeaponShopLaserCarbine
   parent: FSWeaponShopBase
+  id: FSWeaponShopLaserCarbine
   name: Laser Carbine
   description: Full-automatic energy rifle. Self-powered and full of tricks, but sustained fire drains the cell fast. No ammo required.
   components:
