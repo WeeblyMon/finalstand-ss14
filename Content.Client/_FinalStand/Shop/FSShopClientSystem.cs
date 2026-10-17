@@ -12,6 +12,7 @@ using Content.Shared.Inventory;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Ranged.Components;
+using Robust.Shared.Timing;
 using Robust.Client;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -27,6 +28,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
     [Dependency] private IBaseClient _client = default!;
     [Dependency] private IPrototypeManager _prototypeManager = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resourceCache = default!;
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -83,6 +85,9 @@ public sealed partial class FSShopClientSystem : EntitySystem
         _lockTexture = _resourceCache.GetResource<TextureResource>("/Textures/_FinalStand/Interface/Shop/lock_icon.png").Texture;
     }
 
+    private static readonly TimeSpan GlowRefreshInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _nextGlowRefresh;
+
     public override void Shutdown()
     {
         base.Shutdown();
@@ -93,6 +98,11 @@ public sealed partial class FSShopClientSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
+        // Glow only changes with credits, research or what you're carrying; a few refreshes a second is plenty.
+        if (_timing.RealTime < _nextGlowRefresh)
+            return;
+
+        _nextGlowRefresh = _timing.RealTime + GlowRefreshInterval;
         var player = _player.LocalSession?.AttachedEntity;
 
         var science = false;
