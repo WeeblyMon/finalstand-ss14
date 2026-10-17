@@ -79,6 +79,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (augs.GetSlottedLevel("Pacifist") > 0)
             ev.AdditionalMultiplier *= 1f - FSPerkBonusConstants.PacifistPenalty;
 
+        if (ev.Weapon is { } weapon)
+            ev.AdditionalMultiplier *= 1f + GunslingerSign(weapon, augs) * augs.GetSlottedLevel("Gunslinger")
+                * FSPerkBonusConstants.GunslingerDamagePerLevel;
+
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
 

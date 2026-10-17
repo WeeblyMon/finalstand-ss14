@@ -5,7 +5,6 @@ using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
@@ -20,8 +19,6 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private FSUnderdogSystem _underdog = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private SharedHandsSystem _hands = default!;
-    [Dependency] private FSPerkBuffSystem _perkBuff = default!;
     [Dependency] private FSLoneWolfSystem _loneWolf = default!;
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
 
@@ -52,10 +49,6 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
         var specLevel = perks.GetSlottedLevel("SpecialisedKilling");
         if (specLevel > 0 && HasComp<FSSpecialZombieComponent>(ent))
             mult *= 1f + specLevel * FSPerkBonusConstants.SpecialisedKillingPerLevel;
-
-        var slingLevel = perks.GetSlottedLevel("Gunslinger");
-        if (slingLevel > 0 && _hands.GetActiveItem(attacker) is { } held)
-            mult *= 1f + _perkBuff.GunslingerSign(held, perks) * slingLevel * FSPerkBonusConstants.GunslingerDamagePerLevel;
 
         mult *= _underdog.GetMultiplier(attacker, perks);
         mult *= _loneWolf.GetMultiplier(attacker, perks);
