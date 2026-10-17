@@ -2,7 +2,6 @@ using Content.Server._FinalStand.Spawners;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
-using Robust.Shared.GameObjects;
 
 namespace Content.Server._FinalStand.Cleanup;
 
@@ -13,6 +12,7 @@ public sealed partial class FSCorpseCleanupSystem : EntitySystem
     private const int MaxZombieCorpses = 50;
 
     private readonly Queue<EntityUid> _zombieCorpses = new();
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _nearby = new();
 
     public override void Initialize()
     {
@@ -46,13 +46,13 @@ public sealed partial class FSCorpseCleanupSystem : EntitySystem
 
     private void DeleteNearbyCorpses(EntityUid corpse)
     {
-        var nearby = new HashSet<Entity<WaveSpawnedTagComponent>>();
-        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(Transform(corpse).Coordinates, 1.5f, nearby);
-        foreach (var ent in nearby)
+        _nearby.Clear();
+        _lookup.GetEntitiesInRange(Transform(corpse).Coordinates, 1.5f, _nearby);
+        foreach (var ent in _nearby)
         {
             if (ent.Owner == corpse)
                 continue;
-            if (TryComp<MobStateComponent>(ent.Owner, out var ms) && ms.CurrentState != MobState.Dead)
+            if (!TryComp<MobStateComponent>(ent.Owner, out var ms) || ms.CurrentState != MobState.Dead)
                 continue;
             QueueDel(ent.Owner);
         }
