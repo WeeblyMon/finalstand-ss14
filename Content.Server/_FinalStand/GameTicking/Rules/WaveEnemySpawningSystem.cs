@@ -1,5 +1,4 @@
-﻿using Content.Server._FinalStand.CCC;
-using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
@@ -185,9 +184,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (proto == RevenantProto && CountAliveRevenants() >= MaxAliveRevenants)
                 proto = _random.Pick(pool);
 
-            if (TryGetRevenantSpawn(proto, comp.WaveNumber, out var flank))
-                coords = flank;
-
             var enemy = SpawnWaveEnemy(proto, coords, comp);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -227,45 +223,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         return count;
-    }
-
-    private bool TryGetRevenantSpawn(EntProtoId proto, int waveNumber, out EntityCoordinates coords)
-    {
-        coords = default;
-
-        if (proto != RevenantProto)
-            return false;
-
-        _spawnerBuffer.Clear();
-        var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-        while (query.MoveNext(out var uid, out var spawner))
-        {
-            if (waveNumber >= spawner.FromWave)
-                _spawnerBuffer.Add(uid);
-        }
-
-        if (_spawnerBuffer.Count == 0)
-            return false;
-
-        var chosen = _random.Pick(_spawnerBuffer);
-        coords = Transform(chosen).Coordinates;
-
-        if (!TryComp<FSRevenantSpawnerComponent>(chosen, out var chosenComp) || chosenComp.SpawnRadius <= 0f)
-            return true;
-
-        for (var attempt = 0; attempt < 8; attempt++)
-        {
-            var angle = _random.NextFloat() * MathF.Tau;
-            var radius = MathF.Sqrt(_random.NextFloat()) * chosenComp.SpawnRadius;
-            var candidate = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
-            if (IsSpawnClear(candidate))
-            {
-                coords = candidate;
-                break;
-            }
-        }
-
-        return true;
     }
 
     // Shared by the boss spawn and the regular batch spawn so the two paths can't drift apart.
@@ -405,46 +362,10 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 labels.Add(spawner.DirectionLabel);
         }
 
-        if (RevenantPossible(comp))
-        {
-            var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-            while (query.MoveNext(out var uid, out var spawner))
-            {
-                if (comp.WaveNumber >= spawner.FromWave && TryGetCompassLabel(uid, out var label))
-                    labels.Add(label);
-            }
-        }
-
         if (labels.Count == 0)
             return comp.SpawnerEntities.Count == 0 ? "none" : "?";
 
         return string.Join("/", labels);
-    }
-
-    private bool RevenantPossible(WaveGameRuleComponent comp)
-    {
-        foreach (var special in comp.SpecialEnemyPool)
-        {
-            if (special.EnemyId == RevenantProto && comp.WaveNumber >= special.FromWave)
-                return true;
-        }
-
-        return GetDirectorPool(comp).Contains(RevenantProto);
-    }
-
-    private bool TryGetCompassLabel(EntityUid uid, out string label)
-    {
-        label = string.Empty;
-
-        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
-        if (!query.MoveNext(out var cccUid, out _))
-            return false;
-
-        var delta = _transform.GetWorldPosition(uid) - _transform.GetWorldPosition(cccUid);
-        label = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
-            ? delta.X > 0 ? "E" : "W"
-            : delta.Y > 0 ? "N" : "S";
-        return true;
     }
 
     public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)

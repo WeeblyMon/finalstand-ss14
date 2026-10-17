@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/14/2026 22:27:15
-  entityCount: 11081
+  entityCount: 11074
 maps:
 - 259
 grids:
@@ -35470,43 +35470,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 21.5,22.5
-- proto: FSRevenantSpawner
-  entities:
-  - uid: 10818
-    components:
-    - type: Transform
-      parent: 1
-      pos: 6.5,43.5
-  - uid: 10819
-    components:
-    - type: Transform
-      parent: 1
-      pos: -3.5,52.5
-  - uid: 10823
-    components:
-    - type: Transform
-      parent: 1
-      pos: 22.5,-13.5
-  - uid: 10824
-    components:
-    - type: Transform
-      parent: 1
-      pos: -3.5,-42.5
-  - uid: 10825
-    components:
-    - type: Transform
-      parent: 1
-      pos: -4.5,-25.5
-  - uid: 10826
-    components:
-    - type: Transform
-      parent: 1
-      pos: -28.5,-0.5
-  - uid: 10828
-    components:
-    - type: Transform
-      parent: 1
-      pos: -51.5,14.5
 - proto: FSSyringeFiller
   entities:
   - uid: 742
