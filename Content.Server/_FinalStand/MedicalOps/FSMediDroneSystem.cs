@@ -80,6 +80,7 @@ public sealed partial class FSMediDroneSystem : EntitySystem
             {
                 _mediGun.DisableAllConnections((uid, gun));
                 _explosion.TriggerExplosive(uid, user: owner);
+                QueueDel(uid);
                 continue;
             }
 
