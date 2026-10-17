@@ -245,7 +245,18 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             ? new HashSet<string> { retarget.Id }
             : ShopProtoIds(comp);
 
-        var found = _search.FindFirst(player, targetIds);
+        CarriedItem? found = null;
+        var carried = new List<CarriedItem>();
+        _search.Collect(player, targetIds, carried);
+        foreach (var item in carried)
+        {
+            if (!_binding.IsUsableBy(item.Uid, player))
+                continue;
+
+            found = item;
+            break;
+        }
+
         if (found == null)
         {
             var label = def.TargetWeaponProtoId?.Id ?? comp.WeaponProtoId.Value.Id;
@@ -404,6 +415,12 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         CleanRecentSells(now);
         var candidates = new List<CarriedItem>();
         _search.Collect(player, ShopProtoIds(comp), candidates, requireUpgradeState: true);
+        for (var i = candidates.Count - 1; i >= 0; i--)
+        {
+            if (!_binding.IsUsableBy(candidates[i].Uid, player))
+                candidates.RemoveAt(i);
+        }
+
         if (candidates.Count == 0)
         {
             SendSellResponse(userId, success: false, "No copy of this weapon found in inventory.");
