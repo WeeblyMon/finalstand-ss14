@@ -143,7 +143,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
             : 0;
 
-        var cccMax = TryComp<FinalStandCCCTagComponent>(cccUid, out var tag) ? (int)tag.MaxHealth : 0;
+        var cccMax = TryComp<FinalStandCCCComponent>(cccUid, out var ccc) ? (int) ccc.MaxHealth : 0;
 
         var (ready, crew) = _readyUp.Count();
         var state = new CCCBoundUserInterfaceState(

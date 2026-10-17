@@ -29,7 +29,7 @@ public sealed partial class FSRivetSystem : EntitySystem
     private void OnRivetHit(Entity<FSRivetComponent> ent, ref ProjectileHitEvent args)
     {
         var planted = TryComp<FSSiegeModeComponent>(args.Target, out var siege) && siege.Planted;
-        if (!HasComp<FSPlateRepairComponent>(args.Target) && !planted && !HasComp<FinalStandCCCTagComponent>(args.Target)
+        if (!HasComp<FSPlateRepairComponent>(args.Target) && !planted && !HasComp<FinalStandCCCComponent>(args.Target)
             || !TryComp<DamageableComponent>(args.Target, out var damageable))
             return;
 

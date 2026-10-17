@@ -1,11 +1,11 @@
 ﻿using Content.Server._FinalStand.Cleanup;
+using Content.Shared._FinalStand.CCC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.FriendlyFire;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
 using Content.Server._FinalStand.Mobs;
 using Content.Server._FinalStand.Spawners;
-using Content.Server._FinalStand.CCC;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;

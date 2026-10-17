@@ -1,4 +1,5 @@
 ﻿using Content.Server._FinalStand.CCC;
+using Content.Shared._FinalStand.CCC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;

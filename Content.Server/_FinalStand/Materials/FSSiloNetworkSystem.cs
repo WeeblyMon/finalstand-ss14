@@ -209,7 +209,7 @@ public sealed partial class FSSiloNetworkSystem : EntitySystem
 
     private Robust.Shared.Map.MapCoordinates? CccPosition()
     {
-        var query = EntityQueryEnumerator<FinalStandCCCTagComponent, TransformComponent>();
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
         return query.MoveNext(out var uid, out _, out _) ? _transform.GetMapCoordinates(uid) : null;
     }
 

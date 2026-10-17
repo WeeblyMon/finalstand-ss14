@@ -1,5 +1,5 @@
+using Content.Shared._FinalStand.CCC;
 using System.Numerics;
-using Content.Server._FinalStand.CCC;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.Maps;

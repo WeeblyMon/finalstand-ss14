@@ -37,7 +37,7 @@ public sealed class FSCCCHealthBarOverlay : Overlay
         var xformQuery = _entMan.GetEntityQuery<TransformComponent>();
         var spriteQuery = _entMan.GetEntityQuery<SpriteComponent>();
 
-        var query = _entMan.AllEntityQueryEnumerator<FinalStandCCCTagComponent, DamageableComponent>();
+        var query = _entMan.AllEntityQueryEnumerator<FinalStandCCCComponent, DamageableComponent>();
         while (query.MoveNext(out var uid, out var tag, out var dmg))
         {
             if (tag.MaxHealth <= 0f) continue;
@@ -83,7 +83,7 @@ public sealed class FSCCCHealthBarOverlay : Overlay
         handle.SetTransform(Matrix3x2.Identity);
     }
 
-    private static void DrawLives(DrawingHandleWorld handle, FinalStandCCCTagComponent tag, Vector2 center, float ppm)
+    private static void DrawLives(DrawingHandleWorld handle, FinalStandCCCComponent tag, Vector2 center, float ppm)
     {
         const float side = 6f;
         const float gap = 3f;

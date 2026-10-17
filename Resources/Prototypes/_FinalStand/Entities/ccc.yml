@@ -6,7 +6,6 @@
     mode: SnapgridCenter
   components:
   - type: FinalStandCCC
-  - type: FinalStandCCCTag
   - type: FSPlayerDamageImmune
   - type: FSBreachCostOverride
     cost: 999  # FINALSTAND: exclude CCC from breach target selection. MobState filter already handles this but belt-and-suspenders.
