@@ -67,6 +67,9 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private const int TopicalsPaidPerPatientPerWave = 6;
 
+    // Revives and stabilises share one cap, so bouncing a patient across crit can't be farmed.
+    private const int RecoveriesPaidPerPatientPerWave = 3;
+
     private static readonly TimeSpan MinSurvivalForSave = TimeSpan.FromSeconds(60);
 
     public readonly record struct FSMedicalRoundStats(
@@ -76,6 +79,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
     private readonly Dictionary<(EntityUid Surgeon, EntityUid Patient), (int Wave, int Count)> _surgeriesPaid = new();
     private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _topicalsPaid = new();
+    private readonly Dictionary<(EntityUid Medic, EntityUid Patient), (int Wave, int Count)> _recoveriesPaid = new();
 
     public FSMedicalRoundStats GetStats(EntityUid mindId) => _roundStats.GetValueOrDefault(mindId);
 
@@ -109,6 +113,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         _roundStats.Clear();
         _surgeriesPaid.Clear();
         _topicalsPaid.Clear();
+        _recoveriesPaid.Clear();
     }
 
     private void OnPrepStarted(WavePrepStartedEvent ev)
@@ -229,20 +234,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Surgeon == args.Patient || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
             return;
 
-        var wave = _waveRule.GetWaveNumber();
-        var key = (surgeonMind, args.Patient);
-
-        if (_surgeriesPaid.TryGetValue(key, out var record) && record.Wave == wave)
-        {
-            if (record.Count >= SurgeriesPaidPerPatientPerWave)
-                return;
-
-            _surgeriesPaid[key] = (wave, record.Count + 1);
-        }
-        else
-        {
-            _surgeriesPaid[key] = (wave, 1);
-        }
+        if (!TryCountPayout(_surgeriesPaid, surgeonMind, args.Patient, SurgeriesPaidPerPatientPerWave))
+            return;
 
         Award(surgeonMind, "surgery",
             points: SurgeryPoints,
@@ -262,20 +255,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             || !TryGetPlayerMind(args.User, out var medicMind))
             return;
 
-        var wave = _waveRule.GetWaveNumber();
-        var key = (medicMind, args.Target);
-
-        if (_topicalsPaid.TryGetValue(key, out var record) && record.Wave == wave)
-        {
-            if (record.Count >= TopicalsPaidPerPatientPerWave)
-                return;
-
-            _topicalsPaid[key] = (wave, record.Count + 1);
-        }
-        else
-        {
-            _topicalsPaid[key] = (wave, 1);
-        }
+        if (!TryCountPayout(_topicalsPaid, medicMind, args.Target, TopicalsPaidPerPatientPerWave))
+            return;
 
         Award(medicMind, "topical",
             points: TopicalPoints,
@@ -295,7 +276,12 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (args.Origin == uid || !TryGetPlayerMind(args.Origin, out var healerMind))
             return;
 
-        if (args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive)
+        var recovered = args.OldMobState == MobState.Dead && args.NewMobState is MobState.Critical or MobState.Alive
+            || args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive;
+        if (!recovered || !TryCountPayout(_recoveriesPaid, healerMind, uid, RecoveriesPaidPerPatientPerWave))
+            return;
+
+        if (args.OldMobState == MobState.Dead)
         {
             Award(healerMind, "revive", points: RevivePoints, revives: 1,
                 credits: ReviveCredits, fund: ReviveFund);
@@ -309,14 +295,25 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             return;
         }
 
-        if (args.OldMobState == MobState.Critical && args.NewMobState == MobState.Alive)
-        {
-            Award(healerMind, "stabilise", points: StabilisePoints, stabilises: 1,
-                credits: StabiliseCredits, fund: StabiliseFund);
+        Award(healerMind, "stabilise", points: StabilisePoints, stabilises: 1,
+            credits: StabiliseCredits, fund: StabiliseFund);
 
-            _adminLogger.Add(LogType.Healed, LogImpact.Low,
-                $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {StabiliseCredits} credits");
-        }
+        _adminLogger.Add(LogType.Healed, LogImpact.Low,
+            $"{ToPrettyString(healerMind):healer} stabilised {ToPrettyString(uid):patient} for {StabiliseCredits} credits");
+    }
+
+    private bool TryCountPayout(Dictionary<(EntityUid, EntityUid), (int Wave, int Count)> paid,
+        EntityUid medicMind, EntityUid patient, int cap)
+    {
+        var wave = _waveRule.GetWaveNumber();
+        var key = (medicMind, patient);
+
+        var count = paid.TryGetValue(key, out var record) && record.Wave == wave ? record.Count : 0;
+        if (count >= cap)
+            return false;
+
+        paid[key] = (wave, count + 1);
+        return true;
     }
 
     private void OnWaveEnded(ref WaveEndedEvent args)
