@@ -31,6 +31,8 @@ public sealed partial class FSArmorSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileFlagsComponent, ProjectileHitEvent>(OnFlaggedProjectileHit);
     }
 
+    private const float RegenSyncFraction = 0.05f;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -51,8 +53,13 @@ public sealed partial class FSArmorSystem : EntitySystem
 
             armor.CurrentArmor = MathF.Min(armor.CurrentArmor + armor.RegenRate * frameTime, armor.MaxArmor);
 
-            if (MathF.Abs(armor.CurrentArmor - armor.LastSyncedArmor) > 0.5f)
-                SyncArmor(uid, armor);
+            // Regen ticks every frame on every armoured enemy; only resend once it's moved a visible amount.
+            if (armor.CurrentArmor >= armor.MaxArmor
+                || MathF.Abs(armor.CurrentArmor - armor.LastSyncedArmor) >= armor.MaxArmor * RegenSyncFraction)
+            {
+                armor.LastSyncedArmor = armor.CurrentArmor;
+                DirtyField(uid, armor, nameof(FSArmorComponent.CurrentArmor));
+            }
         }
 
         _pendingFlags.Clear();
