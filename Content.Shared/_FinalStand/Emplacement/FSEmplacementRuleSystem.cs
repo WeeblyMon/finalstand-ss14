@@ -51,13 +51,18 @@ public sealed partial class FSEmplacementRuleSystem : EntitySystem
 
         foreach (var tile in Footprint(center, facing, kit))
         {
-            if (!_turf.TryGetTileRef(tile, out var tileRef)
-                || _turf.IsSpace(tileRef.Value)
-                || _turf.IsTileBlocked(tileRef.Value, CollisionGroup.Impassable)
-                || !_rules.IsTileBuildable(tile, blocksPath: true))
+            if (!IsTileFree(tile))
                 return false;
         }
 
         return true;
+    }
+
+    public bool IsTileFree(EntityCoordinates tile)
+    {
+        return _turf.TryGetTileRef(tile, out var tileRef)
+               && !_turf.IsSpace(tileRef.Value)
+               && !_turf.IsTileBlocked(tileRef.Value, CollisionGroup.Impassable)
+               && _rules.IsTileBuildable(tile, blocksPath: true);
     }
 }

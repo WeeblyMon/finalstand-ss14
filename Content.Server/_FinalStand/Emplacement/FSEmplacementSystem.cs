@@ -155,11 +155,19 @@ public sealed partial class FSEmplacementSystem : EntitySystem
                 return Loc.GetString("fs-rcd-next-to-space");
         }
 
-        foreach (var piece in kit.Comp.Pieces)
+        foreach (var piece in Pieces(kit.Comp))
         {
             var tile = FSEmplacementRuleSystem.TileOf(center, piece.Offset, facing);
             if (_deployable.IsOccupied(tile, FSEmplacementRuleSystem.RotationOf(piece, facing).GetCardinalDir()))
                 return Loc.GetString("fs-deployable-occupied");
+        }
+
+        // The research hardpoint is server-only, so the shared footprint check never saw its tile.
+        if (kit.Comp.ResearchHardpoint is { } hardpoint
+            && _research.Has(FSEngineeringNodes.ThirdHardpoint)
+            && !_rules.IsTileFree(FSEmplacementRuleSystem.TileOf(center, hardpoint.Offset, facing)))
+        {
+            return Loc.GetString("fs-emplacement-no-room");
         }
 
         return null;
