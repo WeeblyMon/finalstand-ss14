@@ -1,7 +1,6 @@
 // Hand teleporter portals close after a lifetime that only counts down during combat.
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.Teleportation;
-using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Teleportation;
 using Content.Shared.Teleportation.Components;
 using Robust.Server.Audio;
@@ -26,7 +25,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
 
         var left = TimeSpan.FromSeconds(lifetime);
         ent.Comp.PortalsExpireAt = _timing.CurTime + left;
-        ent.Comp.PortalsPausedLeft = IsPrep() ? left : null;
+        ent.Comp.PortalsPausedLeft = _wave.IsPrep() ? left : null;
         Sync(ent);
     }
 
@@ -52,11 +51,6 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
         Dirty(portal.Value, comp);
     }
 
-    private bool IsPrep()
-    {
-        return _wave.TryGetWaveStatus(out _, out var phase) && phase == WavePhase.Prep;
-    }
-
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -69,7 +63,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
             if (teleporter.PortalsExpireAt is not { } expiresAt)
                 continue;
 
-            prep ??= IsPrep();
+            prep ??= _wave.IsPrep();
             if (prep.Value)
             {
                 if (teleporter.PortalsPausedLeft != null)

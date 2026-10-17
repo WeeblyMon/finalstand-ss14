@@ -64,10 +64,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         // Each player may only shave time once per prep phase, even if they toggle ready/unready.
         if (msg.IsReady && _hasContributed.Add(player))
         {
-            var prepComp = _waveRule.GetPrepComponent();
-            var total = _readyCheck.GetTotalCount();
-            if (prepComp != null && total > 0)
-                _waveRule.ReducePrepTimeBy(prepComp.PrepDuration.TotalSeconds / total);
+            _waveRule.ShavePrepTime(_readyCheck.GetTotalCount());
         }
 
         BroadcastState();

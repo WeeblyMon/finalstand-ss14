@@ -186,21 +186,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             ("killed", comp.TotalEnemiesKilled)));
     }
 
-    private bool TryGetActiveRule(out EntityUid uid, out WaveGameRuleComponent comp, out GameRuleComponent gameRule)
+    private bool TryGetActiveRule(out EntityUid uid, out WaveGameRuleComponent comp)
     {
-        var query = EntityQueryEnumerator<WaveGameRuleComponent, GameRuleComponent>();
-        while (query.MoveNext(out var foundUid, out var foundComp, out var foundGameRule))
-        {
-            if (!GameTicker.IsGameRuleActive(foundUid, foundGameRule))
-                continue;
-            uid = foundUid;
-            comp = foundComp;
-            gameRule = foundGameRule;
+        var query = QueryActiveRules();
+        if (query.MoveNext(out uid, out _, out comp!, out _))
             return true;
-        }
+
         uid = EntityUid.Invalid;
-        comp = default!;
-        gameRule = default!;
         return false;
     }
 
@@ -389,7 +381,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     public int? FailWave()
     {
-        if (!TryGetActiveRule(out var uid, out var comp, out _) || comp.Phase != WavePhase.Combat)
+        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Combat)
             return null;
 
         Log.Info($"Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
@@ -526,7 +518,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             }
         }
 
-        if (!TryGetActiveRule(out var uid, out var comp, out _) || !comp.AliveEnemies.Remove(ent.Owner))
+        if (!TryGetActiveRule(out var uid, out var comp) || !comp.AliveEnemies.Remove(ent.Owner))
             return;
 
         comp.TotalEnemiesKilled++;
@@ -572,7 +564,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void OnWaveEnemyShutdown(EntityUid uid, WaveSpawnedTagComponent comp, ComponentShutdown args)
     {
-        if (!TryGetActiveRule(out var ruleUid, out var ruleComp, out _) || !ruleComp.AliveEnemies.Remove(uid))
+        if (!TryGetActiveRule(out var ruleUid, out var ruleComp) || !ruleComp.AliveEnemies.Remove(uid))
             return;
 
         _spawning.PushEnemyCount(ruleComp);
@@ -582,7 +574,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     // The Captain hit Start, or most of the crew readied up.
     public void RequestWaveStart()
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
+        if (!TryGetActiveRule(out _, out var comp) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
 
         AwardPrepSkipBonus(comp);
@@ -609,7 +601,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public bool TryGetActiveState(out CCCStateData data)
     {
         data = default;
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
             return false;
 
         var pool = WaveEnemySpawningSystem.GetDirectorPool(comp);
@@ -639,7 +631,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     // Returns the wave the rule is on afterwards, or null if no wave rule is running.
     public int? ForceNextWave(int? targetWave = null)
     {
-        if (!TryGetActiveRule(out var uid, out var comp, out _))
+        if (!TryGetActiveRule(out var uid, out var comp))
             return null;
 
         if (targetWave.HasValue)
@@ -674,7 +666,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
-        if (!TryGetActiveRule(out _, out var comp, out _)) return;
+        if (!TryGetActiveRule(out _, out var comp)) return;
         if (!comp.PaidCatchUpMinds.Add(mindId)) return;
 
         var wavesMissed = comp.WaveNumber - 1;
@@ -832,11 +824,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     }
 
     public bool IsDarkWaveActive()
-        => TryGetActiveRule(out _, out var comp, out _) && comp.IsDarkWave;
+        => TryGetActiveRule(out _, out var comp) && comp.IsDarkWave;
 
     public void FlickerAllLightsOnce()
     {
-        if (!TryGetActiveRule(out _, out var comp, out _) || comp.LightsFlickeredOff)
+        if (!TryGetActiveRule(out _, out var comp) || comp.LightsFlickeredOff)
             return;
 
         FlickerLights(comp);
@@ -875,7 +867,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public bool TryForceDarkWave(out bool armedNow)
     {
         armedNow = false;
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
             return false;
 
         if (comp.Phase != WavePhase.Prep)
@@ -892,19 +884,19 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return true;
     }
 
-    public WaveGameRuleComponent? GetPrepComponent()
+    public bool IsPrep()
     {
-        return TryGetActiveRule(out _, out var comp, out _) && comp.Phase == WavePhase.Prep ? comp : null;
+        return TryGetActiveRule(out _, out var comp) && comp.Phase == WavePhase.Prep;
     }
 
     public int GetWaveNumber()
     {
-        return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
+        return TryGetActiveRule(out _, out var comp) ? comp.WaveNumber : 0;
     }
 
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
         {
             wave = 0;
             phase = WavePhase.Prep;
@@ -916,12 +908,18 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return true;
     }
 
-    public void ReducePrepTimeBy(double seconds)
+    // Each crew member readying up takes their share of the prep time off the clock.
+    public void ShavePrepTime(int crewCount)
     {
-        if (!TryGetActiveRule(out _, out var comp, out _)) return;
-        if (comp.Phase != WavePhase.Prep) return;
-        if (comp.VoteCountdownActive) return;
-        comp.PhaseEndTime -= TimeSpan.FromSeconds(seconds);
+        if (crewCount <= 0
+            || !TryGetActiveRule(out _, out var comp)
+            || comp.Phase != WavePhase.Prep
+            || comp.VoteCountdownActive)
+        {
+            return;
+        }
+
+        comp.PhaseEndTime -= comp.PrepDuration / crewCount;
         if (comp.PhaseEndTime < Timing.CurTime)
             comp.PhaseEndTime = Timing.CurTime;
     }
@@ -929,7 +927,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public bool TryToggleSpawnPause(out bool paused)
     {
         paused = false;
-        if (!TryGetActiveRule(out _, out var comp, out _))
+        if (!TryGetActiveRule(out _, out var comp))
             return false;
 
         comp.SpawnPaused = !comp.SpawnPaused;

@@ -66,8 +66,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
             _lastRequest.Remove(mind.UserId.Value);
     }
 
-    private bool IsPrep() => _waveRule.GetPrepComponent() != null;
-
     private void OnPrepStarted(ref WavePrepStartedEvent ev) => PushOfferToAll();
 
     private void OnCombatStarted(ref WaveCombatStartedEvent ev)
@@ -79,7 +77,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private void OnMobStateChanged(EntityUid uid, MindContainerComponent mindContainer, ref MobStateChangedEvent args)
     {
-        if (!IsPrep())
+        if (!_waveRule.IsPrep())
             return;
 
         if (!_mind.TryGetMind(uid, out _, out var mind) || mind.UserId == null)
@@ -97,7 +95,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
 
     private void PushOffer(ICommonSession session)
     {
-        if (!IsPrep() || !TryGetRespawnTarget(session, out var mindId, out _))
+        if (!_waveRule.IsPrep() || !TryGetRespawnTarget(session, out var mindId, out _))
         {
             RaiseNetworkEvent(new FSRespawnOfferEvent(false, 0), session);
             return;
@@ -145,7 +143,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
             return;
         _lastRequest[session.UserId] = _timing.CurTime;
 
-        if (!IsPrep() || !TryGetRespawnTarget(session, out var mindId, out var body))
+        if (!_waveRule.IsPrep() || !TryGetRespawnTarget(session, out var mindId, out var body))
         {
             PushOffer(session);
             return;
