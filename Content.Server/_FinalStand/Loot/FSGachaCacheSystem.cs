@@ -28,16 +28,7 @@ public sealed partial class FSGachaCacheSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSGachaCacheComponent, InteractHandEvent>(OnInteractHand);
         SubscribeLocalEvent<FSGachaCacheComponent, ActivateInWorldEvent>(OnActivate);
-    }
-
-    private void OnInteractHand(Entity<FSGachaCacheComponent> ent, ref InteractHandEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Handled = TryBuy(ent, args.User);
     }
 
     private void OnActivate(Entity<FSGachaCacheComponent> ent, ref ActivateInWorldEvent args)
