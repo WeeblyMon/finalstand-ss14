@@ -1,0 +1,131 @@
+- type: entity
+  parent: BlastDoor
+  id: FSPodDoorHybrisaWhite
+  name: podlock
+  description: That looks like it doesn't open easily. Maybe look for a button, or bring something heavy.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Doors/Shutters/whitepoddoor.rsi
+    layers:
+    - state: closed
+      map: ["enum.DoorVisualLayers.Base"]
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 400
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          SheetSteel1:
+            min: 2
+            max: 4
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSPodDoorHybrisaWhite
+  id: FSPodDoorHybrisaWhiteOpen
+  suffix: Open
+  components:
+  - type: Door
+    state: Open
+  - type: Occluder
+    enabled: false
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false
+
+- type: entity
+  parent: BlastDoor
+  id: FSPodDoorHybrisaRed
+  name: reinforced podlock
+  description: A heavier lockdown shutter. It would take a serious effort to get through.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Doors/Shutters/redpoddoor.rsi
+    layers:
+    - state: closed
+      map: ["enum.DoorVisualLayers.Base"]
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 600
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          SheetSteel1:
+            min: 3
+            max: 5
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSPodDoorHybrisaRed
+  id: FSPodDoorHybrisaRedOpen
+  suffix: Open
+  components:
+  - type: Door
+    state: Open
+  - type: Occluder
+    enabled: false
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false
+
+- type: entity
+  parent: BlastDoor
+  id: FSPodDoorHybrisaUltra
+  name: ultra reinforced podlock
+  description: The heaviest lockdown shutter the colony had. Nothing short of sustained demolition will shift it.
+  components:
+  - type: Sprite
+    sprite: _FinalStand/Structures/Doors/Shutters/ultra_reinforced.rsi
+    layers:
+    - state: closed
+      map: ["enum.DoorVisualLayers.Base"]
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 900
+      behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          collection: MetalBreak
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          SheetSteel1:
+            min: 4
+            max: 6
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+
+- type: entity
+  parent: FSPodDoorHybrisaUltra
+  id: FSPodDoorHybrisaUltraOpen
+  suffix: Open
+  components:
+  - type: Door
+    state: Open
+  - type: Occluder
+    enabled: false
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false
