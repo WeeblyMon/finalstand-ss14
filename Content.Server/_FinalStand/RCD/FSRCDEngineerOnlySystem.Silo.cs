@@ -63,6 +63,7 @@ public sealed partial class FSRCDEngineerOnlySystem
 
     private void Release(EntityUid rcd)
     {
+        _reservedAt.Remove(rcd);
         if (_rcdReservations.Remove(rcd, out var reservations))
             Abandon(reservations);
     }

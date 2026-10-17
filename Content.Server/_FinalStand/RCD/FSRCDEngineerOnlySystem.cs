@@ -74,10 +74,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         }
 
         foreach (var rcd in _expired)
-        {
             Release(rcd);
-            _reservedAt.Remove(rcd);
-        }
 
         _expired.Clear();
         int? station = null;
