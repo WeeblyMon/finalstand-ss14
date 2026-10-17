@@ -9,7 +9,7 @@ namespace Content.Server._FinalStand.Shop;
 
 public sealed partial class FSPlayerUpgradesSystem
 {
-    private bool TryApplyMelee(EntityUid weapon, EntityUid player, WeaponUpgradeDef def,
+    private bool TryApplyMelee(ref EntityUid weapon, EntityUid player, WeaponUpgradeDef def,
         int newLevel, bool spawnItems, FSWeaponUpgradeStateComponent state)
     {
         switch (def.Type)
@@ -106,7 +106,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     if (oldState.DualWieldEnergySwordApplied)
                         break;
                     oldState.DualWieldEnergySwordApplied = true;
-                    TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
+                    weapon = TryTransformToDualWieldEnergySword(weapon, player, oldState, def.ValuePerLevel);
                     break;
                 }
 

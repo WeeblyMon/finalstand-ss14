@@ -317,7 +317,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         var isFirstUpgradeEver = state.Levels.Count == 0;
         state.Levels[def.Id] = newLevel;
         state.TotalSpent += cost;
-        _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
+        weapon = _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
         _researchStaticGrant.Reconcile(weapon);
 
         if (isFirstUpgradeEver)
