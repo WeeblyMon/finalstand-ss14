@@ -3,6 +3,7 @@ using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.SmartReload;
 using Content.Shared.Explosion.Components;
+using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mobs.Systems;
@@ -138,6 +139,11 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         var dir = cursorWorldPos - playerWorldPos;
         if (dir.LengthSquared() < 0.01f)
             dir = _transform.GetWorldRotation(user).ToWorldVec();
+
+        // Cursor position comes from the client, so cap it like a normal hand throw.
+        var range = CompOrNull<HandsComponent>(user)?.ThrowRange ?? 8f;
+        if (dir.Length() > range)
+            dir = dir.Normalized() * range;
 
         _throwing.TryThrow(grenade, dir, 10f, user);
     }
