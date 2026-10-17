@@ -234,7 +234,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
 
     public void SyncConsoles()
     {
-        var state = GetOrCreateState();
+        TryGetState(out var state);
         var balance = _fund.GetBalance();
 
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
@@ -244,7 +244,8 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
                 continue;
 
             console.UnlockedNodes.Clear();
-            console.UnlockedNodes.AddRange(state.Comp.UnlockedNodes);
+            if (state.Comp != null)
+                console.UnlockedNodes.AddRange(state.Comp.UnlockedNodes);
 
             console.Points = balance;
 
