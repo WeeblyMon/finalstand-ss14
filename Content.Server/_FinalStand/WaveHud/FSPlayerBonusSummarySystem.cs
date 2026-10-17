@@ -325,7 +325,8 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     {
         var state = CompOrNull<FSWeaponUpgradeStateComponent>(weapon);
         var weaponChance = melee ? state?.CritChance ?? 0f : _crit.CalculateCritChance(weapon);
-        var perkChance = _perkCrit.GetCritChanceBonus(mob, weapon, melee);
+        var perkSources = new List<(string PerkId, float Chance)>();
+        var perkChance = _perkCrit.GetCritChanceBonus(mob, weapon, melee, perkSources);
         var chance = FSPerkCritSystem.CombineChance(weaponChance, perkChance);
 
         critChance = Empty;
@@ -336,8 +337,8 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var chanceSources = new List<string>();
         if (weaponChance > 0f)
             chanceSources.Add(FormatPct("Weapon", weaponChance * 100f));
-        if (perkChance > 0f)
-            chanceSources.Add(FormatPct(melee ? "Ravage" : "Rifleman", perkChance * 100f));
+        foreach (var (perkId, perkPart) in perkSources)
+            chanceSources.Add(FormatPct(FSPerkDef.All[perkId].Name, perkPart * 100f));
         critChance = new FSBonusCategory(chance * 100f, chanceSources.ToArray());
 
         // Melee weapons without their own crit use the perk crit multiplier.

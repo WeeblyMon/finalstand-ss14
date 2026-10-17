@@ -318,6 +318,11 @@ public sealed class FSPerkDef
                 "Kills can drop a supply cache holding ammo, a heal or credits.",
                 PerkCategory.Purple,
                 PctTable("{0}% Drop Chance", FSPerkBonusConstants.ScavengerChance)),
+
+            new("ConcealedCarry", "Concealed Carry",
+                "More crit chance with guns. Halved for large guns, none for huge ones.",
+                PerkCategory.Red,
+                Pct("+{0}% Crit Chance", FSPerkBonusConstants.ConcealedCarryPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

@@ -63,6 +63,7 @@ public static class FSPerkBonusConstants
     public const int UnderdogMaxZombies = 8;
     public const float ScavengerHeal = 15f;
     public const int ScavengerCredits = 150;
+    public const float ConcealedCarryPerLevel = 0.04f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
