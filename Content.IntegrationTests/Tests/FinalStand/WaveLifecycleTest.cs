@@ -21,7 +21,7 @@ public sealed class WaveLifecycleTest : GameTest
 
     private static readonly EntProtoId WaveRule = "WaveSurvivalZombie";
 
-    // Prep -> requested start -> countdown -> combat -> CCC life lost -> prep again -> rule ended.
+    // Prep -> forced dark wave -> countdown -> dark combat -> CCC life lost -> prep again -> rule ended.
     [Test]
     public async Task WaveRuleRunsThroughItsPhases()
     {
@@ -29,6 +29,7 @@ public sealed class WaveLifecycleTest : GameTest
         var entMan = server.ResolveDependency<IEntityManager>();
         var ticker = entMan.System<GameTicker>();
         var waves = entMan.System<WaveGameRuleSystem>();
+        var darkWaves = entMan.System<FSDarkWaveSystem>();
         var timing = server.ResolveDependency<IGameTiming>();
 
         EntityUid rule = default;
@@ -43,6 +44,9 @@ public sealed class WaveLifecycleTest : GameTest
             Assert.That(wave, Is.EqualTo(1));
             Assert.That(phase, Is.EqualTo(WavePhase.Prep));
 
+            Assert.That(darkWaves.TryForce(out var armedNow));
+            Assert.That(armedNow, "forcing during prep should arm the coming wave");
+
             waves.RequestWaveStart();
             Assert.That(entMan.GetComponent<WaveGameRuleComponent>(rule).VoteCountdownActive);
         });
@@ -54,11 +58,13 @@ public sealed class WaveLifecycleTest : GameTest
             Assert.That(waves.TryGetWaveStatus(out var wave, out var phase));
             Assert.That(phase, Is.EqualTo(WavePhase.Combat));
             Assert.That(wave, Is.EqualTo(1));
+            Assert.That(darkWaves.IsDarkWaveActive());
 
             Assert.That(waves.FailWave(), Is.EqualTo(1));
             Assert.That(waves.TryGetWaveStatus(out wave, out phase));
             Assert.That(phase, Is.EqualTo(WavePhase.Prep), "losing a CCC life sends the round back to prep");
             Assert.That(wave, Is.EqualTo(1), "the failed wave is replayed, not skipped");
+            Assert.That(darkWaves.IsDarkWaveActive(), Is.False, "leaving combat has to lift the blackout");
         });
 
         await Pair.RunTicksSync(timing.TickRate * 2);

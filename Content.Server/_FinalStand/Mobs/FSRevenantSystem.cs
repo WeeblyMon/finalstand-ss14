@@ -34,7 +34,7 @@ public sealed partial class FSRevenantSystem : EntitySystem
     [Dependency] private FSRevenantEffectSystem _effects = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IRobustRandom _random = default!;
-    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private FSDarkWaveSystem _darkWave = default!;
 
     private int _combosOpened;
     private int _combosCompleted;
@@ -360,7 +360,7 @@ public sealed partial class FSRevenantSystem : EntitySystem
                 _cccEntity = ccc;
         }
 
-        return _waveRule.IsDarkWaveActive();
+        return _darkWave.IsDarkWaveActive();
     }
 
     private void BeginChannel(EntityUid uid)

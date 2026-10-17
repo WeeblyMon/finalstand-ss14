@@ -95,17 +95,6 @@ public sealed partial class WaveGameRuleComponent : Component
     [DataField]
     public SoundSpecifier? WaveVoteCountdownSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/vote_countdown.ogg");
 
-    [DataField]
-    public SoundSpecifier? DarkWaveWarningSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_warning.ogg");
-
-    [DataField]
-    public SoundSpecifier? DarkWaveStartSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_start.ogg");
-
-    [DataField]
-    public SoundSpecifier? DarkWaveAmbienceSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/darkwave_ambience.ogg");
-
-    public EntityUid? DarkWaveAmbienceStream;
-
     // Set to true when a majority vote has triggered the 10-second countdown; reset each prep phase.
     public bool VoteCountdownActive = false;
     public bool VoteCountdownSoundPlayed = false;
@@ -147,34 +136,7 @@ public sealed partial class WaveGameRuleComponent : Component
 
     public int AccumulatedSurvivalBonus = 0;
 
-    [DataField] public int GuaranteedDarkWave = 8;
-
-    [DataField] public float DarkWaveWarningDelay = 30f;
-    public float DarkWaveWarningAccum;
-    public bool DarkWaveWarningFired;
-
-    [DataField] public float DarkWaveChance = 0.05f;
-    [DataField] public int DarkWaveCooldownWaves = 5;
-    [DataField] public float DarkWaveDuration = 120f;
-    [DataField] public float DarkWaveSpawnInterval = 2.0f;
-    [DataField] public int DarkWaveEnemyCap = 30;
-
-    public bool IsDarkWave = false;
     public bool RoundLost;
-    public bool IsDarkWaveUpcoming = false;
-    public bool ForceDarkWave = false;
-    public int WavesSinceLastDarkWave = 999;
-    public int SavedMaxEnemyCap = 130;
-    public float LightFlickerAccum = 0f;
-    public float LightFlickerInterval = 1.2f;
-    public float LightFlickerIntervalMin = 0.7f;
-    public float LightFlickerIntervalMax = 2.2f;
-    public bool LightsFlickeredOff = false;
-    public readonly List<EntityUid> FlickeredLights = new();
-    public readonly List<EntityUid> DepoweredDoors = new();
-    public readonly List<EntityUid> CutApcs = new();
-    public float BlackoutEnforceAccum;
-    public float LightFlickerRestoreAccum = 0f;
 }
 
 [RegisterComponent]

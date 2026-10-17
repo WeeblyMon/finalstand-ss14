@@ -11,7 +11,7 @@ namespace Content.Server._FinalStand.Mobs;
 public sealed partial class FSRevenantLightDrainSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private FSDarkWaveSystem _darkWave = default!;
     [Dependency] private PoweredLightSystem _poweredLight = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -45,7 +45,7 @@ public sealed partial class FSRevenantLightDrainSystem : EntitySystem
         _accum = 0f;
 
         // The blackout already has them dark; hand the lights back so they come on when power returns.
-        if (_waveRule.IsDarkWaveActive())
+        if (_darkWave.IsDarkWaveActive())
         {
             var stale = EntityQueryEnumerator<FSRevenantLightDrainComponent>();
             while (stale.MoveNext(out _, out var staleComp))

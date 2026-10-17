@@ -2,6 +2,7 @@
   id: WaveSurvivalZombie
   parent: BaseGameRule
   components:
+  - type: FSDarkWaveRule
   - type: WaveGameRule
     maxEnemyCap: 800
     killReward: 300

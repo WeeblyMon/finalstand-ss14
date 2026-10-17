@@ -141,9 +141,9 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
     public void SpawnNextBatch(EntityUid uid, WaveGameRuleComponent comp)
     {
-        if (comp.IsDarkWave)
+        if (TryComp<FSDarkWaveRuleComponent>(uid, out var dark) && dark.Active)
         {
-            SpawnDarkWaveBatch(comp);
+            SpawnDarkWaveBatch(comp, dark);
             return;
         }
 
@@ -330,11 +330,11 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
     private readonly List<EntityCoordinates> _darkWavePlayerBuffer = new();
 
-    private void SpawnDarkWaveBatch(WaveGameRuleComponent comp)
+    private void SpawnDarkWaveBatch(WaveGameRuleComponent comp, FSDarkWaveRuleComponent dark)
     {
-        if (comp.AliveEnemies.Count >= comp.MaxEnemyCap)
+        comp.NextSpawnTime = _timing.CurTime + dark.SpawnInterval;
+        if (comp.AliveEnemies.Count >= dark.MaxAlive)
         {
-            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
             PushEnemyCount(comp);
             return;
         }
@@ -350,22 +350,12 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         if (_darkWavePlayerBuffer.Count == 0)
-        {
-            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
             return;
-        }
-
-        var cap = MaxAliveRevenants;
-        if (comp.AliveEnemies.Count >= cap)
-        {
-            comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
-            PushEnemyCount(comp);
-            return;
-        }
 
         for (var i = 0; i < comp.SpawnBatchSize; i++)
         {
-            if (comp.AliveEnemies.Count >= cap) break;
+            if (comp.AliveEnemies.Count >= dark.MaxAlive)
+                break;
 
             var playerCoords = _darkWavePlayerBuffer[_random.Next(_darkWavePlayerBuffer.Count)];
             var spawnCoords = FindSpawnNearPlayer(playerCoords);
@@ -376,7 +366,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             comp.EnemiesSpawnedThisWave++;
         }
 
-        comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(comp.DarkWaveSpawnInterval);
         PushEnemyCount(comp);
     }
 
@@ -396,8 +385,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
     public string GetSpawnDirections(WaveGameRuleComponent comp)
     {
-        if (comp.IsDarkWave)
-            return "all";
 
         var labels = new SortedSet<string>();
         foreach (var spawnerUid in comp.SpawnerEntities)

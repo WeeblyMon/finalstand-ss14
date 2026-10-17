@@ -8,13 +8,13 @@ namespace Content.Server._FinalStand.Commands;
 [AdminCommand(AdminFlags.Round)]
 public sealed partial class ForceDarkWaveCommand : LocalizedEntityCommands
 {
-    [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private FSDarkWaveSystem _darkWave = default!;
 
     public override string Command => "forcedarkwave";
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        if (!_waveRule.TryForceDarkWave(out var armedNow))
+        if (!_darkWave.TryForce(out var armedNow))
         {
             shell.WriteError(Loc.GetString("cmd-wave-rule-not-active"));
             return;
