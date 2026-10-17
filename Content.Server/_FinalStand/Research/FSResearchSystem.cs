@@ -18,6 +18,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Research;
 
@@ -30,11 +31,18 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     [Dependency] private Science.FSScienceOnlySystem _scienceOnly = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
+    [Dependency] private IGameTiming _timing = default!;
 
     private static readonly ProtoId<AccessLevelPrototype> ResearchDirectorAccess = "ResearchDirector";
     private static readonly ProtoId<AccessLevelPrototype> CaptainAccess = "Captain";
 
     private EntityUid? _station;
+
+    // Weapons like the Harvester grant points on every hit, so plain progress is batched instead of synced per hit.
+    private static readonly TimeSpan ProgressSyncInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _nextProgressSync;
+    private bool _progressSyncPending;
+    private readonly HashSet<EntityUid> _personalSyncPending = new();
 
     public override void Initialize()
     {
@@ -91,6 +99,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent args)
     {
         _station = null;
+        _progressSyncPending = false;
+        _personalSyncPending.Clear();
         var query = EntityQueryEnumerator<FSStationResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -215,8 +225,26 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         return false;
     }
 
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        if (!_progressSyncPending && _personalSyncPending.Count == 0 || _timing.CurTime < _nextProgressSync)
+            return;
+
+        _nextProgressSync = _timing.CurTime + ProgressSyncInterval;
+        if (_progressSyncPending)
+            SyncConsoles();
+
+        foreach (var mind in _personalSyncPending)
+            SendPersonalResearchState(mind);
+
+        _personalSyncPending.Clear();
+    }
+
     public void SyncConsoles()
     {
+        _progressSyncPending = false;
         if (!TryGetStation(out var station))
             return;
 
@@ -665,7 +693,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         {
             station.Comp.Points += amount;
             Dirty(station);
-            SyncConsoles();
+            _progressSyncPending = true;
             return;
         }
 
@@ -686,12 +714,17 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         Dirty(station);
 
         if (station.Comp.NodeProgress[id.Id] >= node.Cost)
+        {
             CompleteResearch(station, node, discounted, contributorMindId);
+            SyncConsoles();
+            if (!discounted && contributorMindId is { } finisher)
+                SendPersonalResearchState(finisher);
+            return;
+        }
 
-        SyncConsoles();
-
+        _progressSyncPending = true;
         if (!discounted && contributorMindId is { } cid)
-            SendPersonalResearchState(cid);
+            _personalSyncPending.Add(cid);
     }
 
     private void CompleteResearch(Entity<FSStationResearchComponent> station, FSTechNodePrototype node, bool wasShared, EntityUid? contributorMindId)
