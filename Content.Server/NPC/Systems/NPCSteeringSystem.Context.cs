@@ -655,157 +655,110 @@ public sealed partial class NPCSteeringSystem
 
     #endregion
 
-    #region Wave Zombie Peer Yield
+    #region Wave Zombie Spacing
 
-    // Three-case peer avoidance for wave zombies:
-    //   Case 1 — near-peer separation (symmetric): any peer within 1.2 tiles is pushed away,
-    //            strongest at zero distance. Prevents physical overlap / smooshing.
-    //   Case 2 — forward yield (asymmetric): peer in front + same direction. Only the higher-UID
-    //            (trailing) zombie slows and steps aside. Prevents mirror-jink oscillation.
-    //   Case 3 — lateral spread (symmetric): peer beside + same direction. Both push away from
-    //            each other so they spread across corridor width without oscillating.
-    private void WaveZombiePeerYield(
+    // FINALSTAND: one neighbour lookup per wave zombie, used for three things:
+    //   - spacing from other zombies so they don't stack (symmetric, strongest at contact);
+    //   - yielding to a zombie ahead going the same way (only the trailing one brakes, so they don't mirror-jink);
+    //   - spreading out from a zombie alongside going the same way, so lanes fill the corridor width;
+    // and standing off from living, standing non-zombies (players, the CCC) so they settle at melee range.
+    private void WaveZombieSpacing(
         EntityUid uid,
         Angle offsetRot,
         Vector2 worldPos,
         Span<float> danger)
     {
-        if (!_waveTagQuery.HasComponent(uid)) return;
-        if (!_inputMoverQuery.TryGetComponent(uid, out var myMover)) return;
-        var myDir = myMover.CurTickSprintMovement;
-        var isMoving = myDir != Vector2.Zero;
-
-        const float SeparationRadius    = 1.2f;
         const float PeerYieldRadius     = 2.0f;
-        const float SeparationWeight    = 0.6f;
+        const float PeerSpacingRadius   = 1.2f;
+        const float PeerSpacingWeight   = 0.6f;
         const float ForwardYieldWeight  = 0.45f;
         const float LateralYieldWeight  = 0.35f;
         const float LateralSpreadWeight = 0.45f;
 
-        var myDirNorm  = isMoving ? myDir.Normalized() : Vector2.Zero;
-        var preferLeft = ((int)uid & 1) == 0;
+        // Starts at melee range; weight above 1 so it beats seek interest up close.
+        const float StandOffRadius = 1.0f;
+        const float StandOffWeight = 2.5f;
+
+        var isMoving = false;
+        var myDirNorm = Vector2.Zero;
+        if (_inputMoverQuery.TryGetComponent(uid, out var myMover) && myMover.CurTickSprintMovement != Vector2.Zero)
+        {
+            isMoving = true;
+            myDirNorm = myMover.CurTickSprintMovement.Normalized();
+        }
+
+        var preferLeft = ((int) uid & 1) == 0;
 
         var ents = _entSetPool.Get();
         _lookup.GetEntitiesInRange(uid, PeerYieldRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
 
         foreach (var ent in ents)
         {
-            if (ent == uid || !_waveTagQuery.HasComponent(ent)) continue;
+            if (ent == uid)
+                continue;
 
-            var peerPos   = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
-            var toPeer    = peerPos - worldPos;
-            var dist      = toPeer.Length();
-            if (dist < 0.01f || dist > PeerYieldRadius) continue;
-            var toPeerDir = toPeer / dist;
+            var toOther = _transform.GetWorldPosition(_xformQuery.GetComponent(ent)) - worldPos;
+            var dist = toOther.Length();
+            if (dist < 0.01f || dist > PeerYieldRadius)
+                continue;
 
-            // Case 1: near-peer separation — symmetric, fires for any peer within SeparationRadius.
-            // Weight is highest at contact (dist=0) and falls to zero at SeparationRadius.
-            if (dist < SeparationRadius)
+            var toOtherDir = toOther / dist;
+            var towardLocal = offsetRot.RotateVec(toOtherDir);
+
+            if (!_waveTagQuery.HasComponent(ent))
             {
-                var sepWeight   = SeparationWeight * (1f - dist / SeparationRadius);
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
+                // A downed or dead body is walked over, otherwise every crit player becomes a wall.
+                if (dist > StandOffRadius
+                    || !TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState != MobState.Alive
+                    || _standingQuery.TryGetComponent(ent, out var standing) && !standing.Standing)
                 {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * sepWeight);
+                    continue;
                 }
+
+                AddDanger(danger, towardLocal, StandOffWeight * (1f - dist / StandOffRadius));
+                continue;
             }
 
-            // Cases 2+3 only apply when we're moving and the peer is heading the same general direction.
-            if (!isMoving) continue;
-            if (!_inputMoverQuery.TryGetComponent(ent, out var peerMover)) continue;
+            if (dist < PeerSpacingRadius)
+                AddDanger(danger, towardLocal, PeerSpacingWeight * (1f - dist / PeerSpacingRadius));
+
+            if (!isMoving || !_inputMoverQuery.TryGetComponent(ent, out var peerMover))
+                continue;
+
             var peerDir = peerMover.CurTickSprintMovement;
-            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f) continue;
+            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f)
+                continue;
 
-            var forwardDot = Vector2.Dot(myDirNorm, toPeerDir);
-
-            if (forwardDot > 0.4f)
+            if (Vector2.Dot(myDirNorm, toOtherDir) <= 0.4f)
             {
-                // Case 2: peer is in front and moving the same way. Only the higher-UID zombie
-                // yields so only one side brakes — prevents the mirror-jink swap loop.
-                if ((int)ent >= (int)uid) continue;
-
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * ForwardYieldWeight);
-                }
-
-                // Lateral component: bias to a stable side so the zombie commits to one pass lane.
-                var lateralWorld = preferLeft
-                    ? new Vector2(-toPeerDir.Y,  toPeerDir.X)
-                    : new Vector2( toPeerDir.Y, -toPeerDir.X);
-                var lateralLocal = offsetRot.RotateVec(-lateralWorld);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(lateralLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * LateralYieldWeight);
-                }
+                AddDanger(danger, towardLocal, LateralSpreadWeight);
+                continue;
             }
-            else
-            {
-                // Case 3: peer is beside us (forwardDot ≤ 0.4), same direction. Symmetric push
-                // away from each other — both diverge outward so they spread across the corridor.
-                var towardLocal = offsetRot.RotateVec(toPeerDir);
-                for (var i = 0; i < InterestDirections; i++)
-                {
-                    var dot = Vector2.Dot(towardLocal, Directions[i]);
-                    if (dot > 0f)
-                        danger[i] = MathF.Max(danger[i], dot * LateralSpreadWeight);
-                }
-            }
+
+            // Ahead of us and going our way. Only the higher-uid zombie yields.
+            if ((int) ent >= (int) uid)
+                continue;
+
+            AddDanger(danger, towardLocal, ForwardYieldWeight);
+
+            // Commit to a fixed side so the pass doesn't flip-flop.
+            var lateral = preferLeft
+                ? new Vector2(-toOtherDir.Y, toOtherDir.X)
+                : new Vector2(toOtherDir.Y, -toOtherDir.X);
+            AddDanger(danger, offsetRot.RotateVec(-lateral), LateralYieldWeight);
         }
 
         _entSetPool.Return(ents);
     }
 
-    // Prevents wave zombies from walking inside non-zombie entities (players, CCC).
-    // Adds danger toward any nearby non-wave physics body within 0.85 tiles so zombies
-    // settle just outside contact distance rather than overlapping their targets.
-    private void WaveZombieTargetSeparation(
-        EntityUid uid,
-        Angle offsetRot,
-        Vector2 worldPos,
-        Span<float> danger)
+    private static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)
     {
-        if (!_waveTagQuery.HasComponent(uid)) return;
-
-        // Radius starts at melee range so separation kicks in before contact.
-        // Weight > 1.0 so danger exceeds seek-interest at close range (final dir = interest - danger).
-        const float SeparationRadius = 1.0f;
-        const float SeparationWeight = 2.5f;
-
-        var ents = _entSetPool.Get();
-        _lookup.GetEntitiesInRange(uid, SeparationRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
-
-        foreach (var ent in ents)
+        for (var i = 0; i < InterestDirections; i++)
         {
-            if (ent == uid || _waveTagQuery.HasComponent(ent)) continue;
-            // Only stand off from someone still on their feet. A downed or dead body is walked
-            // over, otherwise every crit player becomes a wall the horde has to path around.
-            if (!TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState != MobState.Alive) continue;
-            if (_standingQuery.TryGetComponent(ent, out var standing) && !standing.Standing) continue;
-
-            var entPos = _transform.GetWorldPosition(_xformQuery.GetComponent(ent));
-            var toEnt = entPos - worldPos;
-            var dist = toEnt.Length();
-            if (dist < 0.01f || dist > SeparationRadius) continue;
-
-            var weight = SeparationWeight * (1f - dist / SeparationRadius);
-            var towardLocal = offsetRot.RotateVec(toEnt / dist);
-            for (var i = 0; i < InterestDirections; i++)
-            {
-                var dot = Vector2.Dot(towardLocal, Directions[i]);
-                if (dot > 0f)
-                    danger[i] = MathF.Max(danger[i], dot * weight);
-            }
+            var dot = Vector2.Dot(towardLocal, Directions[i]);
+            if (dot > 0f)
+                danger[i] = MathF.Max(danger[i], dot * weight);
         }
-
-        _entSetPool.Return(ents);
     }
 
     #endregion

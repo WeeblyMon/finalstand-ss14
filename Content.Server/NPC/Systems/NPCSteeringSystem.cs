@@ -381,9 +381,12 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
         DebugTools.Assert(!float.IsNaN(danger[0]));
 
-        Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
-        WaveZombiePeerYield(uid, offsetRot, worldPos, danger);
-        WaveZombieTargetSeparation(uid, offsetRot, worldPos, danger);
+        // FINALSTAND: wave zombies do their own peer and target spacing from a single lookup, which also covers
+        // what Separation does for them. Three neighbour queries per zombie per tick don't survive a 500+ horde.
+        if (_waveTagQuery.HasComponent(uid))
+            WaveZombieSpacing(uid, offsetRot, worldPos, danger);
+        else
+            Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
 
         // Blend last and current tick
         Blend(steering, frameTime, interest, danger);
