@@ -631,15 +631,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         }
     }
 
-    public event Action<EntityUid, int>? PointsContributed;
-
     public void GrantResearchPoints(int amount, string source, EntityUid? contributorMindId = null)
     {
         if (amount <= 0)
             return;
 
         if (contributorMindId is { } credited)
-            PointsContributed?.Invoke(credited, amount);
+        {
+            var contributed = new FSResearchContributedEvent(amount);
+            RaiseLocalEvent(credited, ref contributed);
+        }
 
         var station = GetOrCreateStation();
 

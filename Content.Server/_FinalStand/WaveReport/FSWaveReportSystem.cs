@@ -18,8 +18,6 @@ public sealed partial class FSWaveReportSystem : EntitySystem
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private FSDepartmentAccessSystem _departments = default!;
-    [Dependency] private FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private FSResearchSystem _research = default!;
     [Dependency] private FSLevelingSystem _leveling = default!;
     [Dependency] private FSMedicalStatsSystem _medical = default!;
     [Dependency] private FSEngineerStatsSystem _engineering = default!;
@@ -36,8 +34,18 @@ public sealed partial class FSWaveReportSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
-        _wallet.CreditsGiven += (mind, amount) => _earned[mind] = _earned.GetValueOrDefault(mind) + amount;
-        _research.PointsContributed += (mind, amount) => _points[mind] = _points.GetValueOrDefault(mind) + amount;
+        SubscribeLocalEvent<MindComponent, FSCreditsGivenEvent>(OnCreditsGiven);
+        SubscribeLocalEvent<MindComponent, FSResearchContributedEvent>(OnResearchContributed);
+    }
+
+    private void OnCreditsGiven(Entity<MindComponent> ent, ref FSCreditsGivenEvent args)
+    {
+        _earned[ent] = _earned.GetValueOrDefault(ent) + args.Amount;
+    }
+
+    private void OnResearchContributed(Entity<MindComponent> ent, ref FSResearchContributedEvent args)
+    {
+        _points[ent] = _points.GetValueOrDefault(ent) + args.Amount;
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
