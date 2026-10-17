@@ -81,6 +81,8 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
             mark.DotPerSecond = 8f * coatingLevel * (1f + coatingResearchBonus);
             mark.DotRemaining = (1.5f + coatingLevel) * mark.DotPerSecond;
         }
+
+        Dirty(target, mark);
     }
 
     private void OnDamageModify(EntityUid uid, FSRadiationMarkComponent comp, DamageModifyEvent args)
