@@ -3,18 +3,21 @@ using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
 using Robust.Server.Player;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.ReadyCheck;
 
+// Crew ready up during prep; each first ready-up shaves prep time and a majority starts the wave.
 public sealed partial class FSReadyUpSystem : EntitySystem
 {
-    [Dependency] private ReadyCheckSystem _readyCheck = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
-    // Players who have already shaved time this prep phase; cleared each new phase.
-    private readonly HashSet<EntityUid> _hasContributed = [];
+    private readonly HashSet<NetUserId> _ready = new();
+
+    // Only the first ready-up per prep shaves time, so toggling can't drain the clock.
+    private readonly HashSet<NetUserId> _shaved = new();
 
     public override void Initialize()
     {
@@ -22,14 +25,38 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeNetworkEvent<FSReadyUpRequestMessage>(OnReadyUpRequest);
+    }
+
+    // Counted against the live crew, so players who readied up and then left don't count.
+    public (int Ready, int Crew) Count()
+    {
+        var ready = 0;
+        var crew = 0;
+        foreach (var session in _playerManager.Sessions)
+        {
+            if (session.AttachedEntity == null)
+                continue;
+
+            crew++;
+            if (_ready.Contains(session.UserId))
+                ready++;
+        }
+
+        return (ready, crew);
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _ready.Clear();
+        _shaved.Clear();
     }
 
     private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
-        _hasContributed.Clear();
-        _readyCheck.ResetReadyStates();
-        _readyCheck.SetTotalPlayers(CountActivePlayers());
+        _ready.Clear();
+        _shaved.Clear();
         RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.Broadcast());
         BroadcastState();
     }
@@ -42,56 +69,44 @@ public sealed partial class FSReadyUpSystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        // Late-join: show the ready-up widget if still in prep and refresh the active count.
-        if (!_readyCheck.IsCombatPhase())
-        {
-            _readyCheck.SetTotalPlayers(CountActivePlayers());
-            RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
-            var isReady = ev.Mob != default && _readyCheck.IsPlayerReady(ev.Mob);
-            RaiseNetworkEvent(
-                new FSReadyUpStateEvent(_readyCheck.GetReadyCount(), _readyCheck.GetTotalCount(), isReady),
-                ev.Player);
-        }
+        if (!_waveRule.IsPrep())
+            return;
+
+        // Late joiners need the ready-up widget, and everyone else's total just grew.
+        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
+        BroadcastState();
     }
 
     private void OnReadyUpRequest(FSReadyUpRequestMessage msg, EntitySessionEventArgs args)
     {
-        if (_readyCheck.IsCombatPhase()) return;
-        if (args.SenderSession.AttachedEntity is not { } player) return;
+        var session = args.SenderSession;
+        if (!_waveRule.IsPrep() || session.AttachedEntity == null)
+            return;
 
-        _readyCheck.SetPlayerReady(player, msg.IsReady);
+        if (msg.IsReady)
+            _ready.Add(session.UserId);
+        else
+            _ready.Remove(session.UserId);
 
-        // Each player may only shave time once per prep phase, even if they toggle ready/unready.
-        if (msg.IsReady && _hasContributed.Add(player))
-        {
-            _waveRule.ShavePrepTime(_readyCheck.GetTotalCount());
-        }
+        var (ready, crew) = Count();
+        if (msg.IsReady && _shaved.Add(session.UserId))
+            _waveRule.ShavePrepTime(crew);
 
         BroadcastState();
 
-        if (_readyCheck.HasMajority())
+        if (ready > crew / 2)
             _waveRule.RequestWaveStart();
     }
 
     private void BroadcastState()
     {
-        _readyCheck.SetTotalPlayers(CountActivePlayers());
-        var readyCount = _readyCheck.GetReadyCount();
-        var totalCount = _readyCheck.GetTotalCount();
-
+        var (ready, crew) = Count();
         foreach (var session in _playerManager.Sessions)
         {
-            var isReady = session.AttachedEntity.HasValue &&
-                          _readyCheck.IsPlayerReady(session.AttachedEntity.Value);
-            RaiseNetworkEvent(new FSReadyUpStateEvent(readyCount, totalCount, isReady), session);
+            RaiseNetworkEvent(new FSReadyUpStateEvent(ready, crew, _ready.Contains(session.UserId)), session);
         }
-    }
 
-    private int CountActivePlayers()
-    {
-        var count = 0;
-        foreach (var session in _playerManager.Sessions)
-            if (session.AttachedEntity.HasValue) count++;
-        return count;
+        var ev = new ReadyCheckUpdatedEvent();
+        RaiseLocalEvent(ref ev);
     }
 }

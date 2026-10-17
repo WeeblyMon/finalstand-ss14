@@ -16,7 +16,7 @@ namespace Content.Server._FinalStand.CCC;
 public sealed partial class CCCInteractionSystem : EntitySystem
 {
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
-    [Dependency] private ReadyCheckSystem _readyCheck = default!;
+    [Dependency] private FSReadyUpSystem _readyUp = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private IChatManager _chatManager = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -74,7 +74,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private void SendCanStartWave(EntityUid actor)
     {
         var jobId = GetJobId(actor);
-        var canStart = !_readyCheck.IsCombatPhase()
+        var canStart = _waveRule.IsPrep()
             && jobId != null
             && ReadyCheckDepts.IsCaptain(jobId);
         if (!TryComp<ActorComponent>(actor, out var actorComp)) return;
@@ -95,7 +95,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
 
     private void OnStartWave(EntityUid uid, FinalStandCCCComponent comp, CCCStartWaveMessage args)
     {
-        if (_readyCheck.IsCombatPhase()) return;
+        if (!_waveRule.IsPrep()) return;
         var jobId = GetJobId(args.Actor);
         if (jobId == null || !ReadyCheckDepts.IsCaptain(jobId)) return;
         _waveRule.RequestWaveStart();
@@ -145,6 +145,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
 
         var cccMax = TryComp<FinalStandCCCTagComponent>(cccUid, out var tag) ? (int)tag.MaxHealth : 0;
 
+        var (ready, crew) = _readyUp.Count();
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
             estimatedEnemyCount: wave.TotalEnemies,
@@ -155,8 +156,8 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             secondsToPhaseEnd: wave.SecondsLeft,
             aliveEnemyCount: wave.AliveEnemies,
             activeSpawnerDirections: wave.SpawnerDirections,
-            readiedPlayerCount: _readyCheck.GetReadyCount(),
-            totalPlayerCount: _readyCheck.GetTotalCount(),
+            readiedPlayerCount: ready,
+            totalPlayerCount: crew,
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
             cccMaxHealth: cccMax,
