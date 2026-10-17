@@ -3,9 +3,10 @@
   parent: BaseGameRule
   components:
   - type: FSDarkWaveRule
+  - type: FSWaveRewards
+    killReward: 300
   - type: WaveGameRule
     maxEnemyCap: 800
-    killReward: 300
     bossWavePerkReward: 1
     bossPool:
     - FSZombieGiant

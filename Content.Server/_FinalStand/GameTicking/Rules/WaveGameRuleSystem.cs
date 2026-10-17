@@ -1,32 +1,27 @@
-﻿using Content.Server._FinalStand.Cleanup;
-using Content.Shared._FinalStand.CCC;
-using Content.Server._FinalStand.Economy;
-using Content.Server._FinalStand.FriendlyFire;
-using Content.Shared.Damage.Systems;
-using Content.Shared.GameTicking;
-using Content.Server._FinalStand.Spawners;
+using System.Linq;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
+using Content.Server.Players.PlayTimeTracking;
 using Content.Server.RoundEnd;
-using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.WaveHud;
+using Content.Server._FinalStand.Cleanup;
+using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.FriendlyFire;
+using Content.Server._FinalStand.Spawners;
+using Content.Shared.GameTicking;
 using Content.Shared.GameTicking.Components;
-using System.Linq;
-using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
-using Content.Shared.Roles;
-using Content.Shared.Roles.Jobs;
-using Content.Server.Players.PlayTimeTracking;
 using Content.Shared.Players.PlayTimeTracking;
+using Content.Shared._FinalStand.CCC;
+using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.WaveHud;
 using Robust.Server.GameObjects;
+using Robust.Server.Player;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Physics.Systems;
-using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
 
@@ -39,8 +34,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private FSCorpseCleanupSystem _corpseCleaner = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
-    [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private FSFriendlyFireSystem _friendlyFire = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
@@ -49,8 +42,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
 
-    private static readonly ProtoId<DepartmentPrototype> SecurityDepartment = "Security";
-
     private static readonly TimeSpan DarkWaveSpawnDelay = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
@@ -58,7 +49,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private static readonly TimeSpan VoteCountdown = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan WipeRoundEndCountdown = TimeSpan.FromSeconds(30);
-    private const float CreditsPerSecondSkipped = 2.0f;
 
 
     public override void Initialize()
@@ -66,8 +56,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
-        SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
@@ -303,10 +291,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var ended = new WaveEndedEvent(comp.WaveNumber);
             RaiseLocalEvent(ref ended);
         }
-        var waveBonus = GetCompletionBonus(comp.WaveNumber) + GetSurvivalBonus(comp.WaveNumber);
-        _wallet.DistributeCredits(waveBonus);
-        comp.AccumulatedSurvivalBonus += waveBonus;
-
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
             Log.Warning($"Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
@@ -383,22 +367,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return anyPlayer;
     }
 
-    private void AwardPrepSkipBonus(WaveGameRuleComponent comp)
-    {
-        var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
-        if (skipped <= TimeSpan.Zero)
-            return;
-
-        var bonus = (int)(skipped.TotalSeconds * CreditsPerSecondSkipped);
-        if (bonus <= 0)
-            return;
-
-        _wallet.DistributeCredits(bonus);
-        comp.AccumulatedSurvivalBonus += bonus;
-        _chatManager.DispatchServerAnnouncement(
-            Loc.GetString("fs-prep-skip-bonus", ("credits", bonus)), Color.FromHex("#44BB44"));
-    }
-
     private bool IsNewPlayer(ICommonSession session)
     {
         if (!_playTime.TryGetTrackerTimes(session, out var times))
@@ -409,19 +377,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private static bool IsBossWave(int wave) => wave % 5 == 0;
 
-    // TODO(finalstand): tune reward scaling tiers
-    private static float GetWaveKillMultiplier(int wave)
-    {
-        if (wave <= 5) return 1.00f;
-        if (wave <= 10) return 1.50f;
-        if (wave <= 15) return 2.00f;
-        if (wave <= 20) return 2.75f;
-        return 3.50f;
-    }
 
-    private static int GetCompletionBonus(int wave) => 100 + 100 * wave;
-
-    private static int GetSurvivalBonus(int wave) => 450 + 50 * wave;
 
     private void CheckWaveComplete(EntityUid uid, WaveGameRuleComponent comp)
     {
@@ -458,40 +414,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
             AwardBossReward(comp);
 
-        var baseCredits = TryComp<FSEnemyValueComponent>(ent.Owner, out var enemyVal)
-            ? enemyVal.KillCredits
-            : comp.KillReward;
-        var killCredits = (int)(baseCredits * GetWaveKillMultiplier(comp.WaveNumber) * 0.5f);
-
-        EntityUid? killerMind = null;
-        if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
-        {
-            killerMind = mindId;
-            _wallet.GiveCredits(mindId, killCredits);
-
-            if (IsSecurityRole(mindId))
-                _wallet.GiveCredits(mindId, comp.SecKillBonus);
-        }
-
-        if (TryComp<FSEnemyDamageTrackingComponent>(ent.Owner, out var tracking))
-        {
-            var assistCredits = (int)(killCredits * 2f / 3f);
-            foreach (var assistMind in tracking.AttackerMinds)
-            {
-                if (killerMind.HasValue && assistMind == killerMind.Value) continue;
-                _wallet.GiveCredits(assistMind, assistCredits);
-            }
-        }
-
         _spawning.PushEnemyCount(comp);
         CheckWaveComplete(uid, comp);
-    }
-
-    private bool IsSecurityRole(EntityUid mindId)
-    {
-        return _jobs.MindTryGetJob(mindId, out var job)
-            && _jobs.TryGetPrimaryDepartment(job.ID, out var dept)
-            && dept.ID == SecurityDepartment;
     }
 
     private void OnWaveEnemyShutdown(EntityUid uid, WaveSpawnedTagComponent comp, ComponentShutdown args)
@@ -509,7 +433,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out _, out var comp) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
 
-        AwardPrepSkipBonus(comp);
+        // The countdown itself doesn't count as time saved.
+        var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;
+        if (skipped > TimeSpan.Zero)
+        {
+            var skippedEv = new WavePrepSkippedEvent(skipped);
+            RaiseLocalEvent(ref skippedEv);
+        }
 
         comp.VoteCountdownActive = true;
         comp.VoteCountdownSoundPlayed = false;
@@ -588,27 +518,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
 
         return comp.WaveNumber;
-    }
-
-    private void OnEnemyBeforeDamage(EntityUid uid, FSEnemyDamageTrackingComponent comp, ref BeforeDamageChangedEvent args)
-    {
-        if (args.Cancelled || args.Origin == null) return;
-        if (_mind.TryGetMind(args.Origin.Value, out var mindId, out _))
-            comp.AttackerMinds.Add(mindId);
-    }
-
-    private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
-    {
-        if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
-        if (!TryGetActiveRule(out _, out var comp)) return;
-        if (!comp.PaidCatchUpMinds.Add(mindId)) return;
-
-        var wavesMissed = comp.WaveNumber - 1;
-        if (wavesMissed > 0)
-            _wallet.GiveCredits(mindId, 1000 * wavesMissed);
-
-        if (comp.AccumulatedSurvivalBonus > 0)
-            _wallet.GiveCredits(mindId, comp.AccumulatedSurvivalBonus);
     }
 
     public bool IsPrep()

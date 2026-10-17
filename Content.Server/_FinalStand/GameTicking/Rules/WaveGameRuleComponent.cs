@@ -69,12 +69,6 @@ public sealed partial class WaveGameRuleComponent : Component
     public List<int> MaxLanesByPlayers = new() { 2, 2, 3, 3 };
 
     [DataField]
-    public int KillReward = 100;
-
-    [DataField]
-    public int SecKillBonus = 50;
-
-    [DataField]
     public int BossWavePerkReward = 1;
 
     [DataField]
@@ -124,7 +118,6 @@ public sealed partial class WaveGameRuleComponent : Component
 
     // PhaseEndTime is pulled forward by every ready-up, so the payout needs the untouched deadline.
     public TimeSpan PrepEndUnshaved;
-    public readonly HashSet<EntityUid> PaidCatchUpMinds = new();
 
     [DataField]
     public float BaseZombieMeleeDamage = 10f;
@@ -134,13 +127,5 @@ public sealed partial class WaveGameRuleComponent : Component
     public EntityUid GiantEntity = EntityUid.Invalid;
     public bool GiantApAwarded = false;
 
-    public int AccumulatedSurvivalBonus = 0;
-
     public bool RoundLost;
-}
-
-[RegisterComponent]
-public sealed partial class FSEnemyDamageTrackingComponent : Component
-{
-    public readonly HashSet<EntityUid> AttackerMinds = new();
 }
