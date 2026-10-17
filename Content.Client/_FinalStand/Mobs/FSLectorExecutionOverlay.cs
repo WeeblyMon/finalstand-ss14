@@ -76,6 +76,11 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
                 continue;
             if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId)
                 continue;
+            // Most of a horde is healthy, so check health before the sprite bounds.
+            var ratio = CalcHealthRatio(uid, mobStateComp, dmg, thresholds);
+            if (ratio is not < 0.25f)
+                continue;
+
             if (!spriteQuery.TryGetComponent(uid, out var spriteComp))
                 continue;
 
@@ -83,10 +88,6 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
 
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
-                continue;
-
-            var ratio = CalcHealthRatio(uid, mobStateComp, dmg, thresholds);
-            if (ratio is not < 0.25f)
                 continue;
 
             var worldMatrix  = Matrix3Helpers.CreateTranslation(worldPos);
