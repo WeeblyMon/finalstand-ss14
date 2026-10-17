@@ -31,6 +31,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
+        SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPerkStateRequestMessage>(OnStateRequested);
         SubscribeNetworkEvent<FSBuyPerkMessage>(OnBuyPerk);
         SubscribeNetworkEvent<FSEquipPerkMessage>(OnEquipPerk);
@@ -60,6 +61,27 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
         RaisePerksChanged(ev.Entity, mindId, perks);
+    }
+
+    // The rows are already gone; clear the in-memory copy too or the next save writes it all back.
+    private void OnPrestigeWiped(ref FSPrestigeWipedEvent args)
+    {
+        var query = EntityQueryEnumerator<FSPerkLevelsComponent, MindComponent>();
+        while (query.MoveNext(out var mindId, out var perks, out var mind))
+        {
+            perks.Levels.Clear();
+            Array.Fill(perks.Slots, string.Empty);
+            for (var i = 0; i < perks.Loadouts.Length; i++)
+                perks.Loadouts[i] = new FSPerkLoadout();
+            perks.Invalidate();
+
+            SendStateToClient(mindId, perks);
+            if (mind.CurrentEntity is { } body)
+            {
+                _movement.RefreshMovementSpeedModifiers(body);
+                RaisePerksChanged(body, mindId, perks);
+            }
+        }
     }
 
     private void RaisePerksChanged(EntityUid body, EntityUid mindId, FSPerkLevelsComponent perks)

@@ -211,6 +211,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             lvl.XpToNextLevel = XpToNextLevel(1);
             lvl.PrestigeLevel = 0;
             lvl.XpMultiplier  = ComputeXpMultiplier(0);
+            RemComp<FSPrestigeBuffsComponent>(mindId);
             SendLevelingUpdate(mindId, lvl);
         }
     }
