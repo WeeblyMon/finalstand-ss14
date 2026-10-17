@@ -14,8 +14,10 @@ cmd-fsrevenant-help = Usage: fsrevenant <spawn [distance] | lock <name> | unlock
 
 cmd-forcedarkwave-desc = Arm the next wave to be a Dark Wave.
 cmd-forcedarkwave-help = Usage: forcedarkwave
-    Flags the upcoming wave as a Dark Wave. This takes effect at the next prep phase,
-    so follow it with forcenextwave to start that wave immediately.
+    During prep, the coming wave becomes a Dark Wave and its warning starts now.
+    During combat, the wave after this one is armed instead.
+cmd-forcedarkwave-now = Dark Wave armed for this prep. Use forcenextwave to start it early.
+cmd-forcedarkwave-next = Dark Wave armed for the next prep.
 
 cmd-fsdebugzombies-desc = Dump every wave zombie's AI state.
 cmd-fsdebugzombies-help = Usage: fsdebugzombies
@@ -27,10 +29,15 @@ cmd-forcenextwave-desc = End the current wave and start the next one immediately
 cmd-forcenextwave-help = Usage: forcenextwave [wave]
     With no argument, advances to the next wave. Pass a number to jump to that wave.
     Note this skips WaveEndedEvent, so per-wave payouts and resets do not fire.
+cmd-forcenextwave-done = Jumped to wave { $wave }.
 
 cmd-pausewavespawns-desc = Toggle wave enemy spawning on or off.
 cmd-pausewavespawns-help = Usage: pausewavespawns
     Toggles spawning. Enemies already alive are unaffected; the wave timer keeps running.
+cmd-pausewavespawns-paused = Wave spawning paused. Enemies already alive stay.
+cmd-pausewavespawns-resumed = Wave spawning resumed.
+
+cmd-wave-rule-not-active = No wave rule is running.
 
 cmd-startfinalstand-desc = Start a Final Stand round on FinalStandMap1.
 cmd-startfinalstand-help = Usage: startfinalstand

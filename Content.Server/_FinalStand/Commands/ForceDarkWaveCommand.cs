@@ -14,6 +14,12 @@ public sealed partial class ForceDarkWaveCommand : LocalizedEntityCommands
 
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
-        _waveRule.ForceDarkWave(shell);
+        if (!_waveRule.TryForceDarkWave(out var armedNow))
+        {
+            shell.WriteError(Loc.GetString("cmd-wave-rule-not-active"));
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString(armedNow ? "cmd-forcedarkwave-now" : "cmd-forcedarkwave-next"));
     }
 }

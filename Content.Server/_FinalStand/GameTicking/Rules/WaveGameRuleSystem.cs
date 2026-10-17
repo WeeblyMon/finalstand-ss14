@@ -19,6 +19,7 @@ using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Roles;
 using Content.Shared.Roles.Jobs;
 using Content.Server.Light.EntitySystems;
 using Content.Server.Power.Components;
@@ -30,8 +31,8 @@ using Content.Shared.Power.EntitySystems;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
-using Robust.Shared.Console;
 using Robust.Shared.Physics;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Physics.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -57,6 +58,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private ApcSystem _apc = default!;
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
+
+    private static readonly ProtoId<DepartmentPrototype> SecurityDepartment = "Security";
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
@@ -564,7 +567,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     {
         return _jobs.MindTryGetJob(mindId, out var job)
             && _jobs.TryGetPrimaryDepartment(job.ID, out var dept)
-            && dept.ID == "Security";
+            && dept.ID == SecurityDepartment;
     }
 
     private void OnWaveEnemyShutdown(EntityUid uid, WaveSpawnedTagComponent comp, ComponentShutdown args)
@@ -633,13 +636,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return true;
     }
 
-    public void ForceNextWave(IConsoleShell shell, int? targetWave = null)
+    // Returns the wave the rule is on afterwards, or null if no wave rule is running.
+    public int? ForceNextWave(int? targetWave = null)
     {
         if (!TryGetActiveRule(out var uid, out var comp, out _))
-        {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
+            return null;
 
         if (targetWave.HasValue)
         {
@@ -660,7 +661,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             StartCombatPhase(uid, comp);
         }
 
-        shell.WriteLine($"Jumped to wave {comp.WaveNumber}.");
+        return comp.WaveNumber;
     }
 
     private void OnEnemyBeforeDamage(EntityUid uid, FSEnemyDamageTrackingComponent comp, ref BeforeDamageChangedEvent args)
@@ -870,30 +871,25 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.FlickeredLights.Clear();
     }
 
-    public void ForceDarkWave(IConsoleShell shell)
+    // In prep the dark wave arms straight away; mid-combat it arms for the next prep.
+    public bool TryForceDarkWave(out bool armedNow)
     {
+        armedNow = false;
         if (!TryGetActiveRule(out _, out var comp, out _))
+            return false;
+
+        if (comp.Phase != WavePhase.Prep)
         {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
-        comp.ForceDarkWave = true;
-
-        if (comp.Phase == WavePhase.Prep)
-        {
-            comp.ForceDarkWave = false;
-            comp.IsDarkWaveUpcoming = true;
-            comp.LightFlickerAccum = 0f;
-
-            comp.DarkWaveWarningAccum = comp.DarkWaveWarningDelay;
-            comp.DarkWaveWarningFired = false;
-
-            shell.WriteLine("Dark Wave armed for this prep — warning and flicker start now. " +
-                            "Prep runs its normal length; use forcenextwave to start it early.");
-            return;
+            comp.ForceDarkWave = true;
+            return true;
         }
 
-        shell.WriteLine("Dark Wave forced — arms at the next prep phase.");
+        comp.IsDarkWaveUpcoming = true;
+        comp.LightFlickerAccum = 0f;
+        comp.DarkWaveWarningAccum = comp.DarkWaveWarningDelay;
+        comp.DarkWaveWarningFired = false;
+        armedNow = true;
+        return true;
     }
 
     public WaveGameRuleComponent? GetPrepComponent()
@@ -930,17 +926,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.PhaseEndTime = Timing.CurTime;
     }
 
-    public void ToggleSpawnPause(IConsoleShell shell)
+    public bool TryToggleSpawnPause(out bool paused)
     {
+        paused = false;
         if (!TryGetActiveRule(out _, out var comp, out _))
-        {
-            shell.WriteError("WaveGameRule is not active.");
-            return;
-        }
+            return false;
 
         comp.SpawnPaused = !comp.SpawnPaused;
-        shell.WriteLine(comp.SpawnPaused
-            ? "Wave spawning PAUSED. Existing enemies remain. Use 'pausewavespawns' again to resume."
-            : "Wave spawning RESUMED.");
+        paused = comp.SpawnPaused;
+        return true;
     }
 }
