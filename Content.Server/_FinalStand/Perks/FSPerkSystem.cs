@@ -45,19 +45,19 @@ public sealed partial class FSPerkSystem : EntitySystem
     {
         if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind))
         {
-            Log.Debug($"[FSPerk] OnPlayerAttached: TryGetMind failed for entity={ev.Entity} — skipping ECS component setup");
+            Log.Debug($"OnPlayerAttached: TryGetMind failed for entity={ev.Entity} — skipping ECS component setup");
             return;
         }
         if (mind.UserId == null)
         {
-            Log.Debug($"[FSPerk] OnPlayerAttached: mind={mindId} has no UserId — skipping");
+            Log.Debug($"OnPlayerAttached: mind={mindId} has no UserId — skipping");
             return;
         }
 
         var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
         var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
         DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
-        Log.Debug($"[FSPerk] OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
+        Log.Debug($"OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
         SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
         RaisePerksChanged(ev.Entity, mindId, perks);
@@ -150,7 +150,7 @@ public sealed partial class FSPerkSystem : EntitySystem
     {
         if (!FSPerkDef.All.ContainsKey(msg.PerkId))
         {
-            Log.Debug($"[FSPerk] OnBuyPerk: unknown perk id '{msg.PerkId}'");
+            Log.Debug($"OnBuyPerk: unknown perk id '{msg.PerkId}'");
             return;
         }
 
@@ -339,7 +339,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         var (lj, sj, oj) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
         var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
         DeserializeInto(perks, lj, sj, oj);
-        Log.Debug($"[FSPerk] EnsurePerkComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
+        Log.Debug($"EnsurePerkComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
         return perks;
     }
 
@@ -389,7 +389,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         if (levelsJson.Length > MaxJsonBytes || slotsJson.Length > MaxJsonBytes || loadoutsJson.Length > MaxJsonBytes)
         {
-            Log.Error($"[FSPerk] Oversized JSON in perk data (levels={levelsJson.Length} slots={slotsJson.Length} loadouts={loadoutsJson.Length}) — discarding all.");
+            Log.Error($"Oversized JSON in perk data (levels={levelsJson.Length} slots={slotsJson.Length} loadouts={loadoutsJson.Length}) — discarding all.");
             return;
         }
 
@@ -407,7 +407,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize perk levels JSON: {e.Message}\nJSON was: {levelsJson}");
+                Log.Error($"Failed to deserialize perk levels JSON: {e.Message}\nJSON was: {levelsJson}");
             }
         }
 
@@ -423,7 +423,7 @@ public sealed partial class FSPerkSystem : EntitySystem
                         if (!string.IsNullOrEmpty(slots[i]) &&
                             (!FSPerkDef.All.ContainsKey(slots[i]) || perks.GetLevel(slots[i]) <= 0))
                         {
-                            Log.Warning($"[FSPerk] Slot {i} contained invalid/unowned perk '{slots[i]}' — clearing.");
+                            Log.Warning($"Slot {i} contained invalid/unowned perk '{slots[i]}' — clearing.");
                             slots[i] = string.Empty;
                         }
                     }
@@ -431,12 +431,12 @@ public sealed partial class FSPerkSystem : EntitySystem
                 }
                 else if (slots != null)
                 {
-                    Log.Warning($"[FSPerk] Slot JSON had {slots.Length} entries but SlotCount is {FSPerkDef.SlotCount} — discarding slots (SlotCount may have changed).");
+                    Log.Warning($"Slot JSON had {slots.Length} entries but SlotCount is {FSPerkDef.SlotCount} — discarding slots (SlotCount may have changed).");
                 }
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize perk slots JSON: {e.Message}\nJSON was: {slotsJson}");
+                Log.Error($"Failed to deserialize perk slots JSON: {e.Message}\nJSON was: {slotsJson}");
             }
         }
 
@@ -454,7 +454,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
                         if (loadout.Slots.Length != FSPerkDef.SlotCount)
                         {
-                            Log.Warning($"[FSPerk] Loadout {i} had {loadout.Slots.Length} slots — discarding (SlotCount mismatch).");
+                            Log.Warning($"Loadout {i} had {loadout.Slots.Length} slots — discarding (SlotCount mismatch).");
                             continue;
                         }
 
@@ -470,7 +470,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             }
             catch (Exception e)
             {
-                Log.Error($"[FSPerk] Failed to deserialize perk loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
+                Log.Error($"Failed to deserialize perk loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
             }
         }
     }
@@ -493,11 +493,11 @@ public sealed partial class FSPerkSystem : EntitySystem
                 perks.Loadouts[i] = loadout;
             }
 
-            Log.Info("[FSPerk] Migrated legacy slot-only loadouts; levels were not stored in that format.");
+            Log.Info("Migrated legacy slot-only loadouts; levels were not stored in that format.");
         }
         catch (Exception e)
         {
-            Log.Error($"[FSPerk] Failed to deserialize legacy perk loadouts JSON: {e.Message}");
+            Log.Error($"Failed to deserialize legacy perk loadouts JSON: {e.Message}");
         }
     }
 }

@@ -723,7 +723,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
 
-        Log.Info($"[FSResearch] Completed node {node.ID}");
+        Log.Info($"Completed node {node.ID}");
     }
 
     private void SendPersonalResearchState(EntityUid mindId)

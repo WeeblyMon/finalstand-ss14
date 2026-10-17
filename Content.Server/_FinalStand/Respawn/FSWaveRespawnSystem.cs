@@ -155,7 +155,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         var points = CollectPoints();
         if (points.Count == 0)
         {
-            Log.Error("[FSRespawn] No FSRespawnPoint markers on the map — respawn is impossible.");
+            Log.Error("No FSRespawnPoint markers on the map — respawn is impossible.");
             return;
         }
 
@@ -178,6 +178,6 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("fs-respawn-charged", ("cost", charged)), body, session);
         PushOffer(session);
 
-        Log.Info($"[FSRespawn] {session.Name} respawned for {charged} credits (quoted {cost}).");
+        Log.Info($"{session.Name} respawned for {charged} credits (quoted {cost}).");
     }
 }

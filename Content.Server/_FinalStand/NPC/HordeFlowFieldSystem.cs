@@ -139,7 +139,7 @@ public sealed partial class HordeFlowFieldSystem : EntitySystem
             if (_visited.Count > MaxTilesPerGrid)
             {
                 _fillTruncated = true;
-                Log.Error($"[HordeFlowField] Fill on grid {grid} exceeded {MaxTilesPerGrid} tiles - field discarded.");
+                Log.Error($"Fill on grid {grid} exceeded {MaxTilesPerGrid} tiles - field discarded.");
                 EndGrid();
                 continue;
             }

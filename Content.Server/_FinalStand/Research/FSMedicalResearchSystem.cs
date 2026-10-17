@@ -199,7 +199,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         var announcement = Loc.GetString("fs-medical-research-announcement", ("name", tag));
         _radio.SendRadioMessage(player, announcement, MedicalChannel, player, escapeMarkup: false);
 
-        Log.Info($"[FSMedResearch] {ToPrettyString(player)} bought {node.ID} for {node.Cost}");
+        Log.Info($"{ToPrettyString(player)} bought {node.ID} for {node.Cost}");
     }
 
     private static string TagSafe(string text) =>

@@ -42,7 +42,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSDataStore] {what} failed and was rolled back: {e.Message}");
+            Log.Error($"{what} failed and was rolled back: {e.Message}");
         }
         finally
         {
@@ -94,7 +94,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] {what} failed: {e.Message}");
+            Log.Error($"{what} failed: {e.Message}");
             return -1;
         }
     }
@@ -103,7 +103,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
     {
         if (_db == null)
         {
-            Log.Error($"[FSWallet] {what}: database is not open");
+            Log.Error($"{what}: database is not open");
             return fallback;
         }
 
@@ -113,7 +113,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] {what} failed: {e.Message}");
+            Log.Error($"{what} failed: {e.Message}");
             return fallback;
         }
     }
@@ -123,7 +123,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         if (_db != null)
             return true;
 
-        Log.Error($"[FSWallet] {what}: database is not open, change kept in memory only");
+        Log.Error($"{what}: database is not open, change kept in memory only");
         return false;
     }
 
@@ -146,7 +146,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         var rootDir = _res.UserData.RootDir;
         if (rootDir == null)
         {
-            Log.Warning("[FSWallet] UserData has no root dir — using in-memory DB.");
+            Log.Warning("UserData has no root dir — using in-memory DB.");
             _db = new SqliteConnection("Data Source=:memory:");
         }
         else
@@ -162,7 +162,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] Could not open the prestige database — progression will NOT be saved this session: {e}");
+            Log.Error($"Could not open the prestige database — progression will NOT be saved this session: {e}");
             _db?.Dispose();
             _db = null;
         }
@@ -201,7 +201,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         TryMigrateOldSchema();
         TryRenameLegacyColumns(db);
 
-        Log.Debug("[FSWallet] Prestige database opened.");
+        Log.Debug("Prestige database opened.");
     }
 
     private void TryRenameLegacyColumns(SqliteConnection db)
@@ -223,7 +223,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             using var cmd = db.CreateCommand();
             cmd.CommandText = $"ALTER TABLE prestige RENAME COLUMN {oldName} TO {newName}";
             cmd.ExecuteNonQuery();
-            Log.Info($"[FSDataStore] Renamed legacy column {oldName} to {newName}.");
+            Log.Info($"Renamed legacy column {oldName} to {newName}.");
         }
     }
 
@@ -245,7 +245,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         if (!IsOldSchema())
             return;
 
-        Log.Info("[FSWallet] Old schema detected — migrating to new schema...");
+        Log.Info("Old schema detected — migrating to new schema...");
 
         var rows = new List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,
             string LevelsJson, string SlotsJson, string LoadoutsJson, int StoppingPower, int BulletStorm)>();
@@ -285,7 +285,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"[FSWallet] Schema migration failed and was rolled back — database untouched: {e}");
+            Log.Error($"Schema migration failed and was rolled back — database untouched: {e}");
             throw;
         }
         finally
@@ -293,7 +293,7 @@ public sealed partial class FSPlayerDataStore : EntitySystem
             _activeTx = null;
         }
 
-        Log.Info($"[FSWallet] Migration complete — {rows.Count} row(s) moved to new schema.");
+        Log.Info($"Migration complete — {rows.Count} row(s) moved to new schema.");
     }
 
     private void MigrateRowsInto(List<(string UserId, string Username, int Ap, int Level, int Xp, int Prestige,

@@ -79,7 +79,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             wallet.Credits = 0;
             wallet.Loaded = false;
         }
-        Log.Debug("[FSWallet] Round restart — saved all players, cleared credits.");
+        Log.Debug("Round restart — saved all players, cleared credits.");
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -115,7 +115,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         wallet.Loaded = true;
         MarkWalletDirty(mindId);
 
-        Log.Info($"[FSWallet] Loaded {ev.Player.Name} — perkPoints={wallet.PerkPoints}");
+        Log.Debug($"Loaded {ev.Player.Name} — perkPoints={wallet.PerkPoints}");
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -154,7 +154,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             MarkWalletDirty(mindId);
             count++;
         }
-        Log.Info($"[FSWallet] DistributeCredits +{amount} → {count} player(s)");
+        Log.Debug($"DistributeCredits +{amount} → {count} player(s)");
     }
 
     public void DistributePerkPoints(int amount)
@@ -171,7 +171,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             _store.UpsertPerkPoints(session.UserId.UserId, session.Name, wallet.PerkPoints);
             count++;
         }
-        Log.Info($"[FSWallet] DistributePerkPoints +{amount} → {count} player(s)");
+        Log.Debug($"DistributePerkPoints +{amount} → {count} player(s)");
     }
 
     public void AddPerkPoints(EntityUid mindId, int amount)
@@ -249,7 +249,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             }
         });
 
-        Log.Info($"[FSWallet] SaveAll flushed {count} player(s)");
+        Log.Debug($"SaveAll flushed {count} player(s)");
     }
 
     public int GetStoredPerkPoints(Guid userId)
@@ -297,7 +297,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         var wiped = new FSPrestigeWipedEvent();
         RaiseLocalEvent(ref wiped);
 
-        Log.Warning($"[FSWallet] WipeAllPrestige — deleted {deleted} row(s) and reset all connected players.");
+        Log.Warning($"WipeAllPrestige — deleted {deleted} row(s) and reset all connected players.");
         return deleted;
     }
 

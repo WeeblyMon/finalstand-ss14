@@ -56,7 +56,7 @@ public sealed partial class FSRevenantSystem
 
         _effects.SpawnAttached(FSRevenantEffect.Scythe, target);
 
-        Log.Debug($"[FSRevenant] {ToPrettyString(uid)} began execute on {ToPrettyString(target)} at {hpFraction:P0} hp");
+        Log.Debug($"{ToPrettyString(uid)} began execute on {ToPrettyString(target)} at {hpFraction:P0} hp");
         return true;
     }
 
@@ -133,7 +133,7 @@ public sealed partial class FSRevenantSystem
         if (targetPos.MapId != myPos.MapId
             || Vector2.Distance(myPos.Position, targetPos.Position) > comp.MeleeRange + comp.ExecuteEscapeTolerance)
         {
-            Log.Debug($"[FSRevenant] {ToPrettyString(uid)} execute aborted, {ToPrettyString(target)} escaped");
+            Log.Debug($"{ToPrettyString(uid)} execute aborted, {ToPrettyString(target)} escaped");
             Replan(uid);
             return;
         }
@@ -174,7 +174,7 @@ public sealed partial class FSRevenantSystem
         _effects.SpawnEffect(FSRevenantEffect.Bind, _transform.GetMapCoordinates(target));
         _effects.PlayBind(target);
 
-        Log.Debug($"[FSRevenant] {ToPrettyString(uid)} bound {ToPrettyString(target)}");
+        Log.Debug($"{ToPrettyString(uid)} bound {ToPrettyString(target)}");
         return true;
     }
 
@@ -267,7 +267,7 @@ public sealed partial class FSRevenantSystem
 
         _effects.PlayGrab(target);
 
-        Log.Debug($"[FSRevenant] {ToPrettyString(uid)} grabbed {ToPrettyString(target)} " +
+        Log.Debug($"{ToPrettyString(uid)} grabbed {ToPrettyString(target)} " +
                   $"(marked={comp.MarkedTarget == target})");
         return true;
     }
@@ -301,7 +301,7 @@ public sealed partial class FSRevenantSystem
         if (Vector2.Distance(myPos.Position, victimPos.Position) > comp.GrabRange
             || !_examine.InRangeUnOccluded(uid, victim, comp.GrabRange, null))
         {
-            Log.Debug($"[FSRevenant] {ToPrettyString(uid)} lost the grab on {ToPrettyString(victim)}");
+            Log.Debug($"{ToPrettyString(uid)} lost the grab on {ToPrettyString(victim)}");
             return;
         }
 
@@ -344,7 +344,7 @@ public sealed partial class FSRevenantSystem
             _physics.SetLinearVelocity(bolt, dir * comp.BoltSpeed);
         }
 
-        Log.Debug($"[FSRevenant] {ToPrettyString(uid)} fired {comp.BoltCount} bolts at {ToPrettyString(target)}");
+        Log.Debug($"{ToPrettyString(uid)} fired {comp.BoltCount} bolts at {ToPrettyString(target)}");
         return true;
     }
 

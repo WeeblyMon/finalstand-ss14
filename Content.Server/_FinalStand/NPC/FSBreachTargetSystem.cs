@@ -60,7 +60,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         }
         else
         {
-            Logger.Warning("[FSBreachTargetSystem] Could not read BaseZombieMeleeDamage from FSZombieNormal prototype — using default 10f");
+            Log.Warning($"Couldn't read melee damage from {ZombieNormalProto}, using the default {_baseZombieDamage}");
         }
     }
 

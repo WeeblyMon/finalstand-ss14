@@ -57,6 +57,6 @@ public sealed partial class FSResearchPayoutSystem : EntitySystem
         }
 
         if (paid > 0)
-            Log.Info($"[FSResearch] Node {node.ID} paid {payout} credits to {paid} science player(s)");
+            Log.Info($"Node {node.ID} paid {payout} credits to {paid} science player(s)");
     }
 }

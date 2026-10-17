@@ -147,14 +147,14 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (_spawnerBuffer.Count == 0)
         {
-            Log.Info($"[FSStuckRecovery] Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
+            Log.Info($"Deleting stranded {ToPrettyString(uid)}: no reachable spawner");
             QueueDel(uid);
             return;
         }
 
         _transform.SetCoordinates(uid, _random.Pick(_spawnerBuffer));
         ResetSteering(uid);
-        Log.Info($"[FSStuckRecovery] Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
+        Log.Info($"Relocated stranded {ToPrettyString(uid)} to reachable spawner.");
     }
 
     private void CollectActiveSpawners()
@@ -192,7 +192,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     {
         if (s.NudgeCount >= _nudgeLimit)
         {
-            Log.Info($"[FSStuckRecovery] Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
+            Log.Info($"Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
             QueueDel(uid);
             return;
         }
@@ -202,7 +202,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (xform.GridUid is not { } gridUid)
         {
-            Log.Info($"[FSStuckRecovery] Deleting wave zombie {ToPrettyString(uid)} — off-map.");
+            Log.Info($"Deleting wave zombie {ToPrettyString(uid)} — off-map.");
             QueueDel(uid);
             return;
         }
@@ -259,7 +259,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         if (target == null)
         {
             s = s with { LastNudge = TimeSpan.Zero, NudgeCount = s.NudgeCount + 1 };
-            Log.Info($"[FSStuckRecovery] Wave zombie {ToPrettyString(uid)} at {myTile} fully boxed in (attempt {s.NudgeCount}/{_nudgeLimit}).");
+            Log.Info($"Wave zombie {ToPrettyString(uid)} at {myTile} fully boxed in (attempt {s.NudgeCount}/{_nudgeLimit}).");
             return;
         }
 
@@ -268,7 +268,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         var newWorldPos = _transform.GetWorldPosition(xform);
         s = s with { LastPos = newWorldPos, LastMoveTime = curTime, LastNudge = curTime, NudgeCount = s.NudgeCount + 1 };
-        Log.Info($"[FSStuckRecovery] Nudged wave zombie {ToPrettyString(uid)} from {myTile} (nudge {s.NudgeCount}/{_nudgeLimit}).");
+        Log.Info($"Nudged wave zombie {ToPrettyString(uid)} from {myTile} (nudge {s.NudgeCount}/{_nudgeLimit}).");
     }
 
     private void ResetSteering(EntityUid uid)

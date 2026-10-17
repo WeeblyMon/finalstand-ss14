@@ -116,7 +116,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 {
                     if (!comp.VoteCountdownActive)
                     {
-                        Log.Info($"[WaveGameRule] Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
+                        Log.Info($"Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
                         comp.VoteCountdownActive = true;
                         comp.VoteCountdownSoundPlayed = false;
                         comp.PhaseEndTime = now + TimeSpan.FromSeconds(10);
@@ -125,7 +125,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     }
                     else
                     {
-                        Log.Info($"[WaveGameRule] Countdown ended for wave {comp.WaveNumber}, starting combat.");
+                        Log.Info($"Countdown ended for wave {comp.WaveNumber}, starting combat.");
                         StartCombatPhase(uid, comp);
                     }
                     break;
@@ -141,7 +141,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             case WavePhase.Combat:
                 if (now >= comp.PhaseEndTime)
                 {
-                    Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} fallback timer expired. Forcing end.");
+                    Log.Warning($"Wave {comp.WaveNumber} fallback timer expired. Forcing end.");
                     // TODO: delete or quarantine stuck enemies here.
                     EndCombatPhase(uid, comp);
                     break;
@@ -158,13 +158,13 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     if (comp.IsDarkWave && !comp.RoundLost && IsTeamWiped())
                     {
                         comp.RoundLost = true;
-                        Log.Info($"[WaveGameRule] Every player died during dark wave {comp.WaveNumber}. Ending round.");
+                        Log.Info($"Every player died during dark wave {comp.WaveNumber}. Ending round.");
                         _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-wave-team-wiped"), Color.Red);
                         _roundEnd.EndRound(WipeRoundEndCountdown);
                     }
 
                     var timeLeft = comp.PhaseEndTime - now;
-                    Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} | " +
+                    Log.Debug($"Wave {comp.WaveNumber} | " +
                              $"spawned {comp.EnemiesSpawnedThisWave}/{comp.EnemyTotalThisWave} | " +
                              $"alive {comp.AliveEnemies.Count} | " +
                              $"fallback in {timeLeft.TotalSeconds:F0}s");
@@ -222,12 +222,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             comp.ForceDarkWave = false;
             comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave forced for wave {comp.WaveNumber}.");
+            Log.Info($"Dark Wave forced for wave {comp.WaveNumber}.");
         }
         else if (comp.WaveNumber == comp.GuaranteedDarkWave)
         {
             comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave guaranteed for wave {comp.WaveNumber}.");
+            Log.Info($"Dark Wave guaranteed for wave {comp.WaveNumber}.");
         }
         else if (comp.WaveNumber > 5 && !IsBossWave(comp.WaveNumber))
         {
@@ -235,15 +235,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (comp.WavesSinceLastDarkWave >= comp.DarkWaveCooldownWaves && RobustRandom.NextFloat() < comp.DarkWaveChance)
             {
                 comp.IsDarkWaveUpcoming = true;
-                Log.Info($"[WaveGameRule] Dark Wave selected for wave {comp.WaveNumber}.");
+                Log.Info($"Dark Wave selected for wave {comp.WaveNumber}.");
             }
         }
 
         _spawning.SelectSpawners(comp, CountScalingPlayers());
         if (comp.SpawnerEntities.Count == 0)
-            Log.Warning($"[WaveGameRule] No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
+            Log.Warning($"No WaveEnemySpawner entities found! Wave {comp.WaveNumber} will be empty.");
 
-        Log.Info($"[WaveGameRule] Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
+        Log.Info($"Prep phase started. Wave {comp.WaveNumber} begins in {comp.PrepDuration.TotalSeconds}s. " +
                  $"Pre-selected {comp.SpawnerEntities.Count} spawner(s).");
 
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
@@ -294,7 +294,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.CCCEntity = cccUid;
 
         if (!comp.CCCEntity.IsValid())
-            Log.Warning("[WaveGameRule] No FinalStandCCC entity found — enemies will not beeline to objective.");
+            Log.Warning("No FinalStandCCC entity found — enemies will not beeline to objective.");
 
         // Fixed for the wave. Sessions alone would count the lobby, ghosts and admins.
         comp.ScalingPlayersThisWave = CountScalingPlayers();
@@ -314,7 +314,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             comp.GiantEntity = giant;
             comp.EnemyTotalThisWave++;
             comp.EnemiesSpawnedThisWave++;
-            Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
+            Log.Info($"Boss wave {comp.WaveNumber}: spawned {bossProto} ({giant}) at spawner {spawnerUid}.");
         }
         comp.PhaseEndTime = Timing.CurTime + comp.MaxCombatDuration;
         comp.NextSpawnTime = Timing.CurTime;
@@ -323,7 +323,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         {
             comp.ForceDarkWave = false;
             comp.IsDarkWaveUpcoming = true;
-            Log.Info($"[WaveGameRule] Dark Wave forced directly into combat for wave {comp.WaveNumber}.");
+            Log.Info($"Dark Wave forced directly into combat for wave {comp.WaveNumber}.");
         }
 
         if (comp.IsDarkWaveUpcoming)
@@ -340,11 +340,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             DepowerAllDoors(comp);
             StartDarkWaveAmbience(comp);
             RaiseNetworkEvent(new FSDarkWaveStartedEvent(comp.DarkWaveDuration), Filter.Broadcast());
-            Log.Info($"[WaveGameRule] Dark Wave started for wave {comp.WaveNumber}. Cap={comp.DarkWaveEnemyCap}, duration={comp.DarkWaveDuration}s.");
+            Log.Info($"Dark Wave started for wave {comp.WaveNumber}. Cap={comp.DarkWaveEnemyCap}, duration={comp.DarkWaveDuration}s.");
         }
 
         var pool = WaveEnemySpawningSystem.GetDirectorPool(comp);
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
+        Log.Info($"Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
         RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
@@ -359,7 +359,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void EndCombatPhase(EntityUid uid, WaveGameRuleComponent comp, bool isForced = false)
     {
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
+        Log.Info($"Wave {comp.WaveNumber} complete. Moving to prep for wave {comp.WaveNumber + 1}.");
         ClearCombat(comp);
 
         if (!isForced)
@@ -373,7 +373,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
         {
-            Log.Warning($"[WaveGameRule] Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
+            Log.Warning($"Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
             AwardBossReward(comp);
         }
         comp.GiantEntity = EntityUid.Invalid;
@@ -388,7 +388,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out var uid, out var comp, out _) || comp.Phase != WavePhase.Combat)
             return null;
 
-        Log.Info($"[WaveGameRule] Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
+        Log.Info($"Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
         ClearCombat(comp);
         comp.GiantEntity = EntityUid.Invalid;
         comp.GiantApAwarded = false;
@@ -420,7 +420,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             return;
 
         _wallet.DistributePerkPoints(comp.BossWavePerkReward);
-        Log.Info($"[WaveGameRule] Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
+        Log.Info($"Boss wave {comp.WaveNumber}: awarded {comp.BossWavePerkReward} PP.");
     }
 
     private int CountScalingPlayers()

@@ -169,7 +169,7 @@ public sealed partial class FSRevenantSystem : EntitySystem
                 if (comp.LastLockedOutcome != lockFired)
                 {
                     comp.LastLockedOutcome = lockFired;
-                    Log.Info($"[FSRevenant] {ToPrettyString(uid)} locked to {locked}: " +
+                    Log.Info($"{ToPrettyString(uid)} locked to {locked}: " +
                              $"{(lockFired ? "firing" : $"refused at {dist:F1} tiles")}");
                 }
 

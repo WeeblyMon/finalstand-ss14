@@ -59,7 +59,7 @@ public sealed partial class FSRevenantSystem
 
         _popup.PopupEntity(Loc.GetString("fs-revenant-marked"), isolated.Value, isolated.Value, PopupType.LargeCaution);
 
-        Log.Debug($"[FSRevenant] {ToPrettyString(uid)} marked {ToPrettyString(isolated.Value)}");
+        Log.Debug($"{ToPrettyString(uid)} marked {ToPrettyString(isolated.Value)}");
     }
 
     private EntityUid? FindMarkTarget(EntityUid seeker, FSRevenantComponent comp)

@@ -74,7 +74,7 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
 
     private void OnCCCDestroyed(EntityUid uid, FinalStandCCCComponent comp, DestructionEventArgs args)
     {
-        Log.Info("[FinalStand] Central Command Console destroyed. Ending round.");
+        Log.Info("Central Command Console destroyed. Ending round.");
         _roundEnd.EndRound(RoundEndCountdown);
     }
 
