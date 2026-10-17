@@ -89,6 +89,9 @@ public sealed partial class WaveHudSystem : EntitySystem
         overlay.DarkWaveSecondsRemaining = 0f;
     }
 
+    private static readonly TimeSpan DataRefreshInterval = TimeSpan.FromSeconds(0.05);
+    private TimeSpan _nextDataRefresh;
+
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
@@ -96,16 +99,22 @@ public sealed partial class WaveHudSystem : EntitySystem
         if (_overlay is not { } overlay)
             return;
 
-        UpdateCasualtyStatus(overlay);
-        UpdateBuffStatus(overlay);
-        UpdateHarvestStatus(overlay);
-        UpdateVitals(overlay);
-        UpdateWeapon(overlay);
-        UpdateThrowables(overlay);
+        // Gathering these walks inventories and queries entities, so it runs at a fixed rate rather than every frame.
+        if (_timing.RealTime >= _nextDataRefresh)
+        {
+            _nextDataRefresh = _timing.RealTime + DataRefreshInterval;
+            UpdateCasualtyStatus(overlay);
+            UpdateBuffStatus(overlay);
+            UpdateHarvestStatus(overlay);
+            UpdateVitals(overlay);
+            UpdateWeapon(overlay);
+            UpdateThrowables(overlay);
+            UpdateTriage(overlay);
+        }
+
         UpdateDownedDim(overlay);
         UpdateAlertsAnchor(overlay);
         UpdateChatClearance(overlay);
-        UpdateTriage(overlay);
 
         if (!overlay.IsDarkWave)
             return;
