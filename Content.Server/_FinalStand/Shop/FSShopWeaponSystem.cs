@@ -338,7 +338,10 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         convertedState.TotalSpent = state.TotalSpent + cost;
         Dirty(converted, convertedState);
 
-        Del(weapon);
+        if (TryComp<FSShopBoundComponent>(weapon, out var bound))
+            _binding.Bind(converted, bound.OwnerMind);
+
+        QueueDel(weapon);
         TryGiveItemToPlayer(player, converted);
         _researchStaticGrant.Reconcile(converted);
     }
