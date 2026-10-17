@@ -1,7 +1,5 @@
 using Content.Server._FinalStand.Crit;
-using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Perks;
-using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Atmos.EntitySystems;
@@ -15,7 +13,6 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
-using Content.Shared.Mind;
 using Content.Shared.Popups;
 using Content.Shared.Stunnable;
 using Content.Shared.Weapons.Melee.Events;
@@ -32,13 +29,10 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private StaminaSystem _stamina = default!;
     [Dependency] private FlammableSystem _flammable = default!;
-    [Dependency] private FSPlayerWalletSystem _wallet = default!;
-    [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private CritSystem _crit = default!;
     [Dependency] private FSStunOverrideSystem _fsStun = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private FSPerkCritSystem _perkCrit = default!;
-    [Dependency] private FSUndyingSystem _undying = default!;
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 
@@ -144,8 +138,6 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 bonus.MoneyBonus = state.MoneyGainBonusPerKill;
             }
 
-            if (state.MoneyPerHitBonus > 0 && HasComp<WaveSpawnedTagComponent>(target) && !_undying.IsActive(user) && _mind.TryGetMind(user, out var mindId, out _))
-                _wallet.GiveCredits(mindId, state.MoneyPerHitBonus);
         }
 
         if (state.LifeStealPercent > 0f && totalBaseDamage > 0f)
