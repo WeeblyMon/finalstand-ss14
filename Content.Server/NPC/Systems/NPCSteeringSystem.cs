@@ -225,6 +225,11 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         RemComp<NPCSteeringComponent>(uid);
     }
 
+    // FINALSTAND
+    private const int WaveZombieSteerEvery = 2;
+    private int _steerTick;
+    private readonly List<(EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent, float)> _steerBuffer = new();
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -232,17 +237,29 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         if (!_enabled)
             return;
 
-        // Not every mob has the modifier component so do it as a separate query.
-        var npcs = new (EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent)[Count<ActiveNPCComponent>()];
+        // FINALSTAND: reuse the buffer, and steer wave zombies on alternate ticks with double the frame time.
+        // Their move input persists in between, and a full horde steering every tick blew the tick budget.
+        _steerTick++;
+        var npcs = _steerBuffer;
+        npcs.Clear();
 
         var query = EntityQueryEnumerator<ActiveNPCComponent, NPCSteeringComponent, InputMoverComponent, TransformComponent>();
-        var index = 0;
 
         while (query.MoveNext(out var uid, out _, out var steering, out var mover, out var xform))
         {
-            npcs[index] = (uid, steering, mover, xform);
-            index++;
+            if (_waveTagQuery.HasComponent(uid))
+            {
+                if ((uid.Id + _steerTick) % WaveZombieSteerEvery != 0)
+                    continue;
+
+                npcs.Add((uid, steering, mover, xform, frameTime * WaveZombieSteerEvery));
+                continue;
+            }
+
+            npcs.Add((uid, steering, mover, xform, frameTime));
         }
+
+        var index = npcs.Count;
 
         // Dependency issues across threads.
         var options = new ParallelOptions
@@ -255,8 +272,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         Parallel.For(0, index, options, i =>
         {
-            var (uid, steering, mover, xform) = npcs[i];
-            Steer(uid, steering, mover, xform, frameTime, curTime);
+            var (uid, steering, mover, xform, steerFrameTime) = npcs[i];
+            Steer(uid, steering, mover, xform, steerFrameTime, curTime);
         });
 
         ActiveSteeringGauge.Set(_activeSteeringCount);
@@ -267,7 +284,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
             for (var i = 0; i < index; i++)
             {
-                var (uid, steering, mover, _) = npcs[i];
+                var (uid, steering, mover, _, _) = npcs[i];
 
                 data.Add(new NPCSteeringDebugData(
                     GetNetEntity(uid),

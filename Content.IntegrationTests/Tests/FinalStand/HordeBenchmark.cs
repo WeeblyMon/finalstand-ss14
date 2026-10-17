@@ -33,7 +33,8 @@ public sealed class HordeBenchmark : GameTest
 
     private const int Wave = 30;
     private const int WarmupTicks = 120;
-    private const int MeasuredTicks = 300;
+    private const int MeasuredTicks = 500;
+    private const int Chunks = 5;
 
     private static readonly Regex SumLine = new(@"^robust_entity_systems_update_usage_sum\{system=""([^""]+)""\} (\S+)$", RegexOptions.Multiline);
 
@@ -73,15 +74,21 @@ public sealed class HordeBenchmark : GameTest
 
         await Pair.RunTicksSync(WarmupTicks);
 
+        // Median of several chunks, since GC pauses and the client thread make single runs noisy.
         var before = await ReadSystemTotals();
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        await Pair.RunTicksSync(MeasuredTicks);
-        stopwatch.Stop();
+        var chunks = new List<double>();
+        for (var i = 0; i < Chunks; i++)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            await Pair.RunTicksSync(MeasuredTicks / Chunks);
+            chunks.Add(stopwatch.Elapsed.TotalMilliseconds / (MeasuredTicks / Chunks));
+        }
         var after = await ReadSystemTotals();
 
-        var perTick = stopwatch.Elapsed.TotalMilliseconds / MeasuredTicks;
+        chunks.Sort();
         var budget = 1000.0 / timing.TickRate;
-        TestContext.Out.WriteLine($"{count} zombies, wave {Wave}: {perTick:F2} ms/tick (budget {budget:F1} ms at {timing.TickRate} TPS)");
+        TestContext.Out.WriteLine($"{count} zombies, wave {Wave}: median {chunks[Chunks / 2]:F2} ms/tick, " +
+                                  $"best {chunks[0]:F2}, worst {chunks[^1]:F2} (budget {budget:F1} ms at {timing.TickRate} TPS)");
 
         var deltas = after
             .Select(kv => (System: kv.Key, Ms: (kv.Value - before.GetValueOrDefault(kv.Key)) * 1000.0 / MeasuredTicks))
