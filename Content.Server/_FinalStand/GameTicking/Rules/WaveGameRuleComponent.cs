@@ -33,8 +33,6 @@ public sealed partial class WaveEnemyConfig
 [RegisterComponent, Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
 public sealed partial class WaveGameRuleComponent : Component
 {
-    // adjustable timers
-
     [DataField]
     public TimeSpan PrepDuration = TimeSpan.FromSeconds(600);
 
@@ -94,7 +92,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public bool VoteCountdownSoundPlayed = false;
     public TimeSpan VoteCountdownSoundTime = TimeSpan.Zero;
 
-    // ── Runtime state
+    // Runtime state
 
     public int WaveNumber = 1;
     public WavePhase Phase = WavePhase.Prep;

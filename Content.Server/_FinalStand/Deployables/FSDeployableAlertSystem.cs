@@ -1,4 +1,3 @@
-// Tells a sentry's owner when it runs low, runs dry, or is destroyed.
 using Content.Shared.Destructible;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared.Mind;

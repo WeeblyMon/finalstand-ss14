@@ -1,6 +1,3 @@
-// Engineer income and stats: pays owners for wave damage their structures soak and for repairing that damage,
-// counts equipment kills, sends each engineer a report card when a wave ends, and writes the engineering block of the
-// round-end summary.
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;

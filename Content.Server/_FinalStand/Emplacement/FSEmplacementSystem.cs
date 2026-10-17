@@ -1,4 +1,3 @@
-// The Chief Engineer's Defensive Emplacement: unfolds whole, feeds its hardpoint sentries, covers whoever stands inside, and folds back to the CE when the wave ends.
 using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Effects;

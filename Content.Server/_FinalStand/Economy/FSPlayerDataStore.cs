@@ -1,4 +1,3 @@
-// Owns the prestige database: connection, schema, migration, and typed row access.
 using System.IO;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;

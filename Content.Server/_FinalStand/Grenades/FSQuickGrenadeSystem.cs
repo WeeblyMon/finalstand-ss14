@@ -120,7 +120,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
             return;
         }
 
-        // Yank directly out of whatever container it's in (pocket, bag, belt) — no hand needed.
+        // Yank directly out of whatever container it's in (pocket, bag, belt); no hand needed.
         if (_containers.TryGetContainingContainer(fallback.Value, out var container))
             _containers.Remove(fallback.Value, container, destination: Transform(user.Value).Coordinates);
 

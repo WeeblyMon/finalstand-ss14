@@ -1,4 +1,3 @@
-// Sends engineers a few short "what's next" lines: Mech Bay progress, a low silo, and an emplacement nobody has set up.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Emplacement;
 using Content.Server._FinalStand.GameTicking.Rules;

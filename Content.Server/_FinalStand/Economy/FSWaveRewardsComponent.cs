@@ -1,6 +1,5 @@
 namespace Content.Server._FinalStand.Economy;
 
-// Credit payouts for a wave rule: kills, assists, wave clears, skipped prep and late-join catch-up.
 [RegisterComponent, Access(typeof(FSWaveRewardsSystem))]
 public sealed partial class FSWaveRewardsComponent : Component
 {

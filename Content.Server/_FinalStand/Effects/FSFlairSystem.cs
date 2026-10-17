@@ -1,4 +1,3 @@
-// Sends one-off visual moments to the players who can see them, and leaves rubble where a fortification is destroyed.
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.Destructible;

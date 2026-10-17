@@ -22,7 +22,6 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.GameTicking.Rules;
 
-// Picks spawners, places and configures wave enemies, and selects which prototype spawns next.
 public sealed partial class WaveEnemySpawningSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
@@ -72,7 +71,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         if (_spawnerBuffer.Count == 0)
             return;
 
-        // spawner set as the one before it, so single-corridor can't chain indefinitely.
+        // Reroll if this wave would get the same spawner set as the one before it, so single-corridor can't chain indefinitely.
         const int maxAttempts = 20;
         var lanes = Math.Min(_spawnerBuffer.Count, MaxLanes(comp, players));
         for (var attempt = 0; attempt < maxAttempts; attempt++)
@@ -289,7 +288,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (comp.CCCEntity.IsValid())
                 htn.Blackboard.SetValue(NPCBlackboard.CurrentOrderedTarget, comp.CCCEntity);
 
-            // FINALSTAND: Bloater has higher aggro radius to prioritise player hunting over CCC beeline
+            // Bloater has higher aggro radius to prioritise player hunting over CCC beeline
             if (TryComp<FSBoomOnDeathComponent>(enemy, out var boom))
             {
                 htn.Blackboard.SetValue("AggroVisionRadius", boom.AggroVisionRadius);
@@ -301,7 +300,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
         _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
-        RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
+        RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // Armor system recalculates MaxArmor after HP scale
         return enemy;
     }
 

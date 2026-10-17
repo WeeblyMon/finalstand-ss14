@@ -8,7 +8,6 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Server._FinalStand.GameTicking;
 
-// activates FinalStand preset and map on every round reset — no admin command needed
 public sealed partial class FSAutoStartSystem : EntitySystem
 {
     [Dependency] private GameTicker _ticker = default!;
@@ -48,7 +47,7 @@ public sealed partial class FSAutoStartSystem : EntitySystem
         }
 
         _cfg.SetCVar(CCVars.GameMap, Map.Id);
-        _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // FINALSTAND: arrivals shuttle not used, players spawn via cryo
+        _cfg.SetCVar(CCVars.ArrivalsShuttles, false); // Arrivals shuttle not used, players spawn via cryo
         _ticker.SetGamePreset(preset);
         Log.Info("FinalStand preset and map applied. Waiting for startround.");
     }

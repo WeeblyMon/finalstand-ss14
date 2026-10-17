@@ -1,5 +1,3 @@
-// Links an ammo crate to the nearest HMG within reach and keeps that gun's belt topped up from it.
-// A crate being dragged feeds nothing; one crate feeds one gun.
 using Content.Server._FinalStand.Engineering;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.HMG;
@@ -11,6 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.HMG;
 
+// A crate being dragged feeds nothing; one crate feeds one gun.
 public sealed partial class FSAmmoCrateSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;

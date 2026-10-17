@@ -1,4 +1,3 @@
-// Players standing on or right behind a Firing Step barricade shoot tighter and take less melee damage.
 using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Alert;

@@ -12,7 +12,6 @@ using Robust.Shared.Player;
 
 namespace Content.Server._FinalStand.CryoSleep;
 
-// entering cryosleep, and the record of who has a body waiting
 public sealed partial class FSCryoSleepSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;

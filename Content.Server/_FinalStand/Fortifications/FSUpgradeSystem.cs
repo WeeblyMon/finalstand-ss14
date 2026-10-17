@@ -1,4 +1,3 @@
-// Click a fortification with the Engineer's Hammer to pick an upgrade, then hammer it in: each hit pours in materials.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Engineering;
 using Content.Server._FinalStand.Materials;

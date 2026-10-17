@@ -1,4 +1,3 @@
-// Engineering research nodes: answers "is it unlocked" for the systems that check inline, and pushes the rest onto HMGs, crates and rivet guns, built or not.
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Research;
 using Content.Server.Chat.Managers;

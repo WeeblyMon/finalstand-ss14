@@ -1,4 +1,3 @@
-// Stocks the silo network's pool at the first prep and tops it up at each one after, and warns engineers when steel runs low.
 using Content.Shared.Chat;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Materials;
