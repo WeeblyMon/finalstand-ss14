@@ -72,7 +72,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (args.Chosen is { } chosenNet)
         {
             var chosen = GetEntity(chosenNet);
-            if (chosen.IsValid() && !TerminatingOrDeleted(chosen))
+            if (chosen.IsValid() && !TerminatingOrDeleted(chosen) && _transform.ContainsEntity(args.User, chosen))
                 newMag = chosen;
         }
 

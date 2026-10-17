@@ -33,6 +33,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
     [Dependency] private ItemSlotsSystem _slots = default!;
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedStorageSystem _storage = default!;
@@ -148,7 +149,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
             return;
 
         var chosen = GetEntity(msg.Magazine);
-        if (!chosen.IsValid() || TerminatingOrDeleted(chosen))
+        if (!chosen.IsValid() || TerminatingOrDeleted(chosen) || !_transform.ContainsEntity(user, chosen))
             return;
 
         if (!FSItemSlots.TryGetSlot(EntityManager, _slots, gun, SharedGunSystem.MagazineSlot, out var magSlot)
