@@ -4,6 +4,7 @@ using Content.Shared.Bed.Cryostorage;
 using Content.Shared.CCVar;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -18,6 +19,7 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private GhostSystem _ghost = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     private bool _rejoinEnabled;
 
@@ -91,6 +93,9 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
 
     private bool TryEnterPod(Entity<CryostorageComponent> pod, EntityUid user)
     {
+        if (!HasComp<CanEnterCryostorageComponent>(user) || _mobState.IsIncapacitated(user))
+            return false;
+
         if (!_container.TryGetContainer(pod.Owner, pod.Comp.ContainerId, out var container))
             return false;
 
