@@ -1,5 +1,3 @@
-// A thin brass line from each HMG to the crate feeding it, and for the gunner the arc the gun can traverse,
-// edged red while the cursor is outside it.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.HMG;

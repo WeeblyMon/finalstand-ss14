@@ -1,5 +1,3 @@
-// Your own sentries: a low one pulses its chip and chirps once; an empty or destroyed one posts a short toast with
-// how far away it was and which way.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

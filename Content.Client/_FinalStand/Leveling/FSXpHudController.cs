@@ -72,7 +72,6 @@ public sealed partial class FSXpHudController : UIController
             Value = 0f,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
-        // FINALSTAND: palette-matched to the rest of the HUD.
         _bar.ForegroundStyleBoxOverride = new StyleBoxFlat { BackgroundColor = FSPalette.Warn };
         _bar.BackgroundStyleBoxOverride = new StyleBoxFlat
         {

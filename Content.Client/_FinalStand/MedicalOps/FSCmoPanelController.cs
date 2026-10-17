@@ -312,7 +312,7 @@ public sealed partial class FSCmoPanelController : UIController
         if (_frame == null || _hotbar == null || _directiveRow == null || _abilityRow == null)
             return;
 
-        // FINALSTAND: the hotbar widget spans the whole band now, so its Position.X is 0 and the old "gap between inventory and hotbar" arithmetic produced a negative width.
+        // The hotbar widget spans the whole band, so its Position.X is 0 and can't be used to find the gap.
         var screenW = _frame.Parent?.Size.X ?? 0f;
         if (screenW <= 0f)
             return;

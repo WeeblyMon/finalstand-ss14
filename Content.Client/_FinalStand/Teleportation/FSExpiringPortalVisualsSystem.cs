@@ -1,4 +1,3 @@
-// Portals flicker faster as they near collapse, then shrink away.
 using System.Numerics;
 using Content.Client.Items;
 using Content.Shared._FinalStand.Teleportation;

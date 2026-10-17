@@ -1,4 +1,3 @@
-// Item-status fuel gauge for the chainsaw, displayed under the active hand like the welder's.
 using Content.Client.Items.UI;
 using Content.Client.Message;
 using Content.Client.Stylesheets;

@@ -1,4 +1,3 @@
-// Resolves the local player's health and stamina for the vitals block on the wave HUD.
 using Content.Shared._Shitmed.Medical.Surgery.Traumas;
 using Content.Shared._Shitmed.Medical.Surgery.Traumas.Components;
 using Content.Shared.Body.Components;

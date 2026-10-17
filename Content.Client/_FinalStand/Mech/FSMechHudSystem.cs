@@ -1,5 +1,3 @@
-// The pilot's HUD and weapon keys: while you're in a mech, 1/2/3 jump to that mounted weapon instead of the action bar,
-// and a combat button above the weapon cards stands in for the combat toggle those keys cover.
 using Content.Client.Actions;
 using Content.Client.UserInterface.Systems.Actions;
 using Content.Shared.Actions.Components;

@@ -1,4 +1,3 @@
-// Feeds the throwable selector: which pack is active, its stock, and cycling between carried types.
 using Content.Shared._FinalStand.Grenades;
 using Robust.Shared.Containers;
 

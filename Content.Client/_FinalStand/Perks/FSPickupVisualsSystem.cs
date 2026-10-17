@@ -1,4 +1,3 @@
-// Drives FSPickupVisuals: a slow spin plus a sine bob, phase-offset per entity.
 using System.Numerics;
 using Content.Shared._FinalStand.Perks;
 using Robust.Client.GameObjects;

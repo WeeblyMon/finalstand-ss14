@@ -1,4 +1,3 @@
-// Shows a repairer's summed "+N" over the structure, and ticks and pulses the cap marker when a rivet hits the cap.
 using Content.Client._FinalStand.DamageNumbers;
 using Content.Shared._FinalStand.Repair;
 using Content.Shared.CCVar;

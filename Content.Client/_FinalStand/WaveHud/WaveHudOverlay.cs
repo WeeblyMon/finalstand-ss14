@@ -883,7 +883,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private static Control? FindNamedControlRecursive(Control root, string name, int depth)
     {
-        // StoragePanel sits 6 levels under the screen - the old cap of 5 cut off one level short.
+        // StoragePanel sits 6 levels under the screen.
         if (depth > 8)
             return null;
         foreach (var child in root.Children)

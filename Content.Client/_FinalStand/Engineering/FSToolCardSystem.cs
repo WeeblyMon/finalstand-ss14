@@ -1,6 +1,3 @@
-// A card above the hands for the engineer's tools, in the mech HUD's style: the RCD's piece, how many you can build
-// and its cap (Ring layout only; the Belt already shows this), the rivet gun's steel and repair cap, and the hammer's
-// grade materials plus the grade and pour progress of the barricade under the cursor.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.RCD;
@@ -28,6 +25,7 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._FinalStand.Engineering;
 
+// RCD counts show only in Ring layout; the Belt already shows them.
 public sealed partial class FSToolCardSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;

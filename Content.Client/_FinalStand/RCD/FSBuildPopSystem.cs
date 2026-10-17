@@ -1,4 +1,3 @@
-// A freshly built piece lands with a quick squash and overshoot instead of just appearing.
 using System.Numerics;
 using Content.Shared._FinalStand.RCD;
 using Content.Shared.CCVar;

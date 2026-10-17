@@ -43,7 +43,7 @@ public sealed partial class FSBattleTranceHudSystem : EntitySystem
     }
 
     // The server can only zero the HUD by messaging the shooter, and on a round restart that
-    // entity is already deleted — so the client has to clear itself or the counter survives into
+    // entity is already deleted, so the client has to clear itself or the counter survives into
     // the next round showing a buff that no longer exists.
     private void OnRoundRestart(RoundRestartCleanupEvent ev) => RemoveOverlay();
 

@@ -1,5 +1,3 @@
-// World-space flair that is also information: build holograms filling in, the planted Broadsword's frontal barrier,
-// the emplacement's cover zone, a faint line from each sentry to what it's shooting at, and a mech's low-power blink.
 using System.Numerics;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;

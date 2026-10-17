@@ -1,8 +1,3 @@
-// Smooth discs and rings for screen UI. Each size is rendered once into a texture at its exact pixel size, with
-// supersampled coverage, then drawn 1:1 so nothing is scaled or resampled. Shrunk does the same for a PNG: a one-off
-// high-quality resize to the size it is shown at, standing in for the mipmaps the engine doesn't have.
-// Shapes that follow the world zoom (big discs, rings and arcs) snap to a few baked sizes and stretch the last few
-// percent, so zooming doesn't bake a new texture every frame.
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Shared.ContentPack;
@@ -16,6 +11,7 @@ using Image = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba3
 
 namespace Content.Client._FinalStand.UI;
 
+// Baked at the exact pixel size and drawn 1:1, since the engine has no mipmaps to resample with.
 public static class FSShapes
 {
     private const int Samples = 4;

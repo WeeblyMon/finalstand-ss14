@@ -1,4 +1,3 @@
-// Shared look for the Build Ring and Build Belt: palette, fonts at UI scale, circles, icons and the cost block.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

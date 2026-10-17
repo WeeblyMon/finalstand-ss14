@@ -1,6 +1,3 @@
-// The pilot HUD, drawn around the mech in the style of Mecha Break: segmented hull and power gauges with guide rails,
-// slanted weapon cards with key badges, ammo and a cooldown sweep, and siege or low-power callouts underneath.
-// It boots up when you climb in, flinches on hull hits, slides the card you swap to, and powers down when you leave.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

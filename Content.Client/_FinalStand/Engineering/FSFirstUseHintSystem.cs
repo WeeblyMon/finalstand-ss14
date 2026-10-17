@@ -1,5 +1,3 @@
-// The first time you pick up an engineering tool or take an HMG seat, one line tells you how it works. Each hint shows
-// once per account.
 using Content.Client.Hands.Systems;
 using Content.Shared._FinalStand.Emplacement;
 using Content.Shared._FinalStand.Fortifications;

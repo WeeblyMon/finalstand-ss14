@@ -1,4 +1,3 @@
-// Holds the latest engineering "what's next" lines from the server for the HUD to draw.
 using Content.Shared._FinalStand.Engineering;
 
 namespace Content.Client._FinalStand.Engineering;

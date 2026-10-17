@@ -1,4 +1,3 @@
-// Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;

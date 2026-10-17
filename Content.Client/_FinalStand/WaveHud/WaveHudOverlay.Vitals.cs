@@ -1,4 +1,3 @@
-// Draws the bottom-left vitals panel: health figure and bar, stamina bar, then status pills.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;

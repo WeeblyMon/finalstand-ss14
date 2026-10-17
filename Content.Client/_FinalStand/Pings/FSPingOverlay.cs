@@ -1,5 +1,3 @@
-// Draws pings in the world (pop-in, ripple, label, distance), arrows at the screen edge for off-screen pings,
-// a red ring and edge flash for bosses, a ghost of the piece for "build here", and the role task panel.
 using System.Numerics;
 using Content.Client._FinalStand.Engineering;
 using Content.Client._FinalStand.Interface;

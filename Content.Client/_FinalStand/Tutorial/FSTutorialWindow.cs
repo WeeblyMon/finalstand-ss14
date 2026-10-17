@@ -1,4 +1,3 @@
-// One page at a time: a picture, a title and a short text, with page dots, Back/Next and "Don't show again".
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client.Message;

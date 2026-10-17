@@ -1,4 +1,3 @@
-// Registers the chainsaw's hand-HUD fuel gauge.
 using Content.Client.Items;
 using Content.Shared._FinalStand.Chainsaw;
 

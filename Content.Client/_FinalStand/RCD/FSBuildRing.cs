@@ -1,4 +1,3 @@
-// The Build Ring: round RCD slots around a disc that shows what the hovered piece costs against what you carry.
 using System.Numerics;
 using Content.Client._FinalStand.UI;
 using Content.Shared._FinalStand.RCD;

@@ -1,4 +1,3 @@
-// Draws the throwable selector above the weapon module: prev arrow, active pack, next arrow.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;

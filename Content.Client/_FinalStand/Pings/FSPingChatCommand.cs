@@ -1,4 +1,3 @@
-// Turns the grey [Ping] chat lines on or off.
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;

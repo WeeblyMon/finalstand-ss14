@@ -1,5 +1,3 @@
-// The eight-slice ping wheel. Opened by holding the ping key it follows the mouse direction and sends on release;
-// opened by the wheel key it waits for a click.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

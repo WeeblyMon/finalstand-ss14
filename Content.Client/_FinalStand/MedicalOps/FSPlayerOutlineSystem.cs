@@ -1,4 +1,3 @@
-// Single owner of player sprite post-shaders: Über chrome, then the medic's target outline, then buff flashes.
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
@@ -10,6 +9,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.MedicalOps;
 
+// Sole owner of player sprite post-shaders so their order stays fixed: Über chrome, target outline, buff flashes.
 public sealed partial class FSPlayerOutlineSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;

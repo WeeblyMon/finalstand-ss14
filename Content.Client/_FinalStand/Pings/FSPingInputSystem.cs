@@ -1,6 +1,3 @@
-// The ping key: tap for a smart ping on whatever is under the cursor, double-tap for danger alone, hold or drag for the wheel.
-// A single tap waits out the double-tap window before it is sent.
-// The wheel key opens the same wheel and waits for a click.
 using System.Numerics;
 using Content.Client.Gameplay;
 using Content.Shared._FinalStand.Pings;
@@ -18,6 +15,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.Pings;
 
+// A single tap waits out the double-tap window before it is sent.
 public sealed partial class FSPingInputSystem : EntitySystem
 {
     [Dependency] private IInputManager _input = default!;

@@ -1,4 +1,3 @@
-// Draws the active-item module: one panel for what is in the active hand, replacing vanilla's pair.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;

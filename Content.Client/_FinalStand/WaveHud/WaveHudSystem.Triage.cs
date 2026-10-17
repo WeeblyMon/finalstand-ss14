@@ -1,4 +1,3 @@
-// Feeds the triage panel from the casualty board's pushed list.
 using System.Numerics;
 using Content.Client._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.MedicalOps;

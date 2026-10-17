@@ -1,5 +1,3 @@
-// One chip style over deployables: sentry ammo, ammo-box uses, HMG crate rounds and time left. Full chips up close or
-// with a build tool in hand, a bare bar from further away.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.UI;

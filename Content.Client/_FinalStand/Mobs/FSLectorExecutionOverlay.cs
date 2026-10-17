@@ -102,7 +102,6 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
 
             var barOrigin = new Vector2(-widthOfMob / ppm / 2, yOffset / ppm);
 
-            // Red border around the health bar area
             var borderBox = new Box2(
                 new Vector2(barLeft - 1f, -1f) / ppm,
                 new Vector2(barRight + 1f, 4f) / ppm
@@ -110,7 +109,6 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
             handle.DrawRect(borderBox, BorderColor.WithAlpha(0.35f));
             DrawBorder(handle, borderBox, BorderColor, 1f / ppm);
 
-            // Skull icon centered above the bar
             if (_skullIcon != null)
             {
                 const float iconPx = 10f;

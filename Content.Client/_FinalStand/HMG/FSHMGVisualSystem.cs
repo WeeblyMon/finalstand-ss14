@@ -1,4 +1,3 @@
-// The barrel glows orange, red, then white as the HMG heats up; each shot flashes at the barrel tip and throws a casing, it vents steam once it cools, and the gun draws over its gunner.
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.HMG;

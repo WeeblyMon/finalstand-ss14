@@ -1,8 +1,8 @@
-// The one place HUD colour is defined.
 using Robust.Client.Graphics;
 
 namespace Content.Client._FinalStand.Interface;
 
+// The one place HUD colour is defined.
 public static class FSPalette
 {
     public static readonly Color PanelBack = Color.FromHex("#121010").WithAlpha(0.84f);

@@ -1,5 +1,3 @@
-// Missile lock reticles: red corner brackets snap in around each zombie a Skyfall missile is chasing, then hold and pulse.
-// Before launch the pilot sees dim brackets on what the swarm would take, and a reload bar by the cursor while it reloads.
 using System.Numerics;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared.Interaction;

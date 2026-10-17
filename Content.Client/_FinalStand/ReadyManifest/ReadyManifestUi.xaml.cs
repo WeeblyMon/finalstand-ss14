@@ -1,4 +1,3 @@
-// Lobby Ready Manifest window: per department, how many readied players have each job on High.
 using System.Linq;
 using Content.Client._FinalStand.ReadyManifest.UI;
 using Content.Shared.Roles;

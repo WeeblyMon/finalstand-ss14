@@ -1,4 +1,3 @@
-// Shows the half-built mech on the Mech Bay pad, further along with each part fitted.
 using Content.Shared._FinalStand.Mech;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;

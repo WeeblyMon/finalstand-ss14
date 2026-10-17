@@ -1,4 +1,3 @@
-// The Build Belt: a card that explains the selected piece over a row of slots, each showing how many you can build now.
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.RCD;

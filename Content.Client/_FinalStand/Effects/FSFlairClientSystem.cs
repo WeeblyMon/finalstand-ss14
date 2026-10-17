@@ -1,4 +1,3 @@
-// Plays the one-off moments the server sends (with their delays and camera kicks) and keeps build holograms for the overlay.
 using System.Numerics;
 using Content.Client._FinalStand.Particles;
 using Content.Shared._FinalStand.Effects;

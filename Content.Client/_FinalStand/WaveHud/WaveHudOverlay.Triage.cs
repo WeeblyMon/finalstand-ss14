@@ -1,4 +1,3 @@
-// Draws the medical triage panel on the right edge.
 using Content.Client._FinalStand.Interface;
 using System.Numerics;
 using Robust.Client.Graphics;
