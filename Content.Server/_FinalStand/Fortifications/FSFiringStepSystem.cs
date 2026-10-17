@@ -37,6 +37,7 @@ public sealed partial class FSFiringStepSystem : EntitySystem
     private const float MeleeRange = 1.5f;
 
     private readonly Dictionary<EntityUid, FSFiringStepComponent> _onStep = new();
+    private readonly List<(EntityUid Player, EntityUid? Gun)> _offStep = new();
     private readonly Dictionary<(EntityUid Grid, Vector2i Tile), FSFiringStepComponent> _stepTiles = new();
     private TimeSpan _next;
 
@@ -97,15 +98,19 @@ public sealed partial class FSFiringStepSystem : EntitySystem
             }
         }
 
+        _offStep.Clear();
         var buffed = EntityQueryEnumerator<FSFiringStepBuffComponent>();
         while (buffed.MoveNext(out var uid, out var buff))
         {
             if (!_onStep.ContainsKey(uid))
-            {
-                RemComp<FSFiringStepBuffComponent>(uid);
-                _alerts.ClearAlert(uid, Alert);
-                Refresh(buff.Gun);
-            }
+                _offStep.Add((uid, buff.Gun));
+        }
+
+        foreach (var (player, gun) in _offStep)
+        {
+            RemComp<FSFiringStepBuffComponent>(player);
+            _alerts.ClearAlert(player, Alert);
+            Refresh(gun);
         }
 
         foreach (var (player, step) in _onStep)

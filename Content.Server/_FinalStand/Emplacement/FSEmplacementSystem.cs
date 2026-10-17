@@ -66,6 +66,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
 
     private readonly Dictionary<(EntityUid Grid, Vector2i Tile), FSEmplacementComponent> _coverTiles = new();
     private readonly Dictionary<EntityUid, float> _covered = new();
+    private readonly List<EntityUid> _uncovered = new();
     private TimeSpan _next;
     private float _feedCarry;
 
@@ -352,12 +353,16 @@ public sealed partial class FSEmplacementSystem : EntitySystem
             }
         }
 
+        _uncovered.Clear();
         var buffed = EntityQueryEnumerator<FSEmplacementCoverComponent>();
         while (buffed.MoveNext(out var uid, out _))
         {
-            if (_covered.ContainsKey(uid))
-                continue;
+            if (!_covered.ContainsKey(uid))
+                _uncovered.Add(uid);
+        }
 
+        foreach (var uid in _uncovered)
+        {
             RemComp<FSEmplacementCoverComponent>(uid);
             _alerts.ClearAlert(uid, CoverAlert);
         }
