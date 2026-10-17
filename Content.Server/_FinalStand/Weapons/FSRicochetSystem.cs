@@ -203,7 +203,7 @@ public sealed partial class FSRicochetSystem : EntitySystem
                 _fixtures.DestroyFixture(fragment, BounceFixture);
             }
 
-            _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + fragProj?.Angle ?? Angle.Zero);
+            _transform.SetWorldRotation(fragment, direction.ToWorldAngle() + (fragProj?.Angle ?? Angle.Zero));
 
             if (TryComp<PhysicsComponent>(fragment, out var fragBody))
             {
