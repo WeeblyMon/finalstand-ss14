@@ -11,6 +11,18 @@ public static class FSHudLayoutMigration
     {
         MigrateLayout(cfg);
         MigrateUiScale(cfg);
+        MigrateChatSize(cfg);
+    }
+
+    private static void MigrateChatSize(IConfigurationManager cfg)
+    {
+        if (cfg.GetCVar(CCVars.FSChatSizeMigrated))
+            return;
+
+        cfg.SetCVar(CCVars.FSChatSizeMigrated, true);
+        cfg.SetCVar(CCVars.FSChatSize, cfg.GetCVar(CCVars.DefaultScreenChatSize));
+        cfg.SetCVar(CCVars.DefaultScreenChatSize, "");
+        cfg.SaveToFile();
     }
 
     private static void MigrateLayout(IConfigurationManager cfg)

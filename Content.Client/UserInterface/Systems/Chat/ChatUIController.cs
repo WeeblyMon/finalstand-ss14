@@ -267,7 +267,7 @@ public sealed partial class ChatUIController : UIController
         {
             case DefaultGameScreen defaultScreen:
                 chatBox = defaultScreen.ChatBox;
-                chatSizeRaw = _config.GetCVar(CCVars.DefaultScreenChatSize);
+                chatSizeRaw = _config.GetCVar(CCVars.FSChatSize);
                 SetChatSizing(chatSizeRaw, defaultScreen, setting);
                 break;
             case SeparatedChatGameScreen separatedScreen:
@@ -322,7 +322,7 @@ public sealed partial class ChatUIController : UIController
         switch (UIManager.ActiveScreen)
         {
             case DefaultGameScreen _:
-                _config.SetCVar(CCVars.DefaultScreenChatSize, stringSize);
+                _config.SetCVar(CCVars.FSChatSize, stringSize);
                 break;
             case SeparatedChatGameScreen _:
                 _config.SetCVar(CCVars.SeparatedScreenChatSize, stringSize);

@@ -23,6 +23,12 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSUiScaleMigrated =
         CVarDef.Create("fs.ui_scale_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    public static readonly CVarDef<string> FSChatSize =
+        CVarDef.Create("fs.chat_size", "", CVar.CLIENTONLY | CVar.ARCHIVE);
+
+    public static readonly CVarDef<bool> FSChatSizeMigrated =
+        CVarDef.Create("fs.chat_size_migrated", false, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     public static readonly CVarDef<bool> FSClassicHud =
         CVarDef.Create("fs.classic_hud", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 
