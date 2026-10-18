@@ -224,8 +224,8 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         var results = _physics.IntersectRay(from.MapId, ray, raycast.MaxDistance, user, false);
 
         var friendly = _friendlyQuery.HasComp(user);
-        var inContainer = _container.IsEntityOrParentInContainer(user);
         EntityUid? vehicle = _container.TryGetContainingContainer(user, out var holder) ? holder.Owner : null;
+        var inContainer = _container.IsEntityOrParentInContainer(user) && !HasComp<VehicleComponent>(vehicle);
         RayCastResults? hit = null;
 
         foreach (var result in results)
