@@ -22,8 +22,8 @@ public sealed partial class FSSiegeModeSystem : EntitySystem
     [Dependency] private INetManager _net = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
-    private static readonly SoundSpecifier PlantSound = new SoundPathSpecifier("/Audio/Effects/hydraulic_press.ogg");
-    private static readonly SoundSpecifier UnplantSound = new SoundPathSpecifier("/Audio/Machines/boltsup.ogg");
+    private static readonly SoundSpecifier PlantSound = new SoundPathSpecifier("/Audio/Machines/boltsdown.ogg", AudioParams.Default.WithVolume(-3f));
+    private static readonly SoundSpecifier UnplantSound = new SoundPathSpecifier("/Audio/Machines/boltsup.ogg", AudioParams.Default.WithVolume(-3f));
 
     public override void Initialize()
     {
