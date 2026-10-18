@@ -1,4 +1,5 @@
-﻿using Content.Server._FinalStand.Spawners;
+﻿using Content.Server._FinalStand.CCC;
+using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
@@ -39,6 +40,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly List<EntityUid> _secondaryBuffer = new();
     private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
+    private readonly HashSet<string> _activeSides = new();
+    private System.Numerics.Vector2? _cccPosition;
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
     public void SelectSpawners(WaveGameRuleComponent comp, int players)
@@ -87,23 +90,21 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         // Secondaries only support a lane that's already active this wave, never an unlisted one.
+        _activeSides.Clear();
+        foreach (var primary in comp.SpawnerEntities)
+        {
+            if (TryGetSide(primary, out var side))
+                _activeSides.Add(side);
+        }
+
         foreach (var secondary in _secondaryBuffer)
         {
-            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner))
+            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner)
+                || !TryGetSide(secondary, out var side)
+                || !_activeSides.Contains(side))
                 continue;
 
-            var supported = false;
-            foreach (var primary in comp.SpawnerEntities)
-            {
-                if (TryComp<WaveEnemySpawnerComponent>(primary, out var primarySpawner) &&
-                    primarySpawner.DirectionLabel == spawner.DirectionLabel)
-                {
-                    supported = true;
-                    break;
-                }
-            }
-
-            if (supported && _random.NextFloat() < spawner.ActivationChance)
+            if (_random.NextFloat() < spawner.ActivationChance)
                 comp.SpawnerEntities.Add(secondary);
         }
     }
@@ -358,14 +359,32 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         var labels = new SortedSet<string>();
         foreach (var spawnerUid in comp.SpawnerEntities)
         {
-            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) && spawner.DirectionLabel.Length > 0)
-                labels.Add(spawner.DirectionLabel);
+            if (TryGetSide(spawnerUid, out var side))
+                labels.Add(side);
         }
 
         if (labels.Count == 0)
             return comp.SpawnerEntities.Count == 0 ? "none" : "?";
 
         return string.Join("/", labels);
+    }
+
+    public bool TryGetSide(EntityUid spawner, out string side)
+    {
+        side = string.Empty;
+
+        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
+        if (query.MoveNext(out var ccc, out _))
+            _cccPosition = _transform.GetWorldPosition(ccc);
+
+        if (_cccPosition is not { } cccPosition)
+            return false;
+
+        var delta = _transform.GetWorldPosition(spawner) - cccPosition;
+        side = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
+            ? delta.X > 0 ? "E" : "W"
+            : delta.Y > 0 ? "N" : "S";
+        return true;
     }
 
     public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)

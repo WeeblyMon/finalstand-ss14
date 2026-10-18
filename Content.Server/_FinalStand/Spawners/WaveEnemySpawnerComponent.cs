@@ -11,9 +11,6 @@ public sealed partial class WaveEnemySpawnerComponent : Component
     [DataField]
     public float SpawnRadius = 2.0f;
 
-    [DataField]
-    public string DirectionLabel = string.Empty;
-
     // Support spawners: rolled independently of the main selection and fed a smaller batch.
     [DataField]
     public bool Secondary;

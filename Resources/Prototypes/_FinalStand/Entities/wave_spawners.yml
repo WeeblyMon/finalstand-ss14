@@ -19,7 +19,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 1
-    directionLabel: N
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -34,7 +33,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 4
-    directionLabel: E
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -49,7 +47,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 7
-    directionLabel: S
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -64,7 +61,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 10
-    directionLabel: W
   - type: Sprite
     drawdepth: Overdoors
     sprite: Markers/cross.rsi
@@ -79,7 +75,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 1
-    directionLabel: N
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -95,7 +90,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 4
-    directionLabel: E
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -111,7 +105,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 7
-    directionLabel: S
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
@@ -127,7 +120,6 @@
   components:
   - type: WaveEnemySpawner
     fromWave: 10
-    directionLabel: W
     secondary: true
   - type: Sprite
     drawdepth: Overdoors
