@@ -97,6 +97,8 @@ public static class FSPerkBonusConstants
     public static readonly float[] BuiltToLastHeal = [5f, 10f, 15f, 20f];
     public static readonly float[] UnderdogPerZombie = [0.02f, 0.03f, 0.04f, 0.05f];
     public static readonly float[] ScavengerChance = [0.03f, 0.05f, 0.075f, 0.10f];
+    public static readonly float[] WiseguyPerWave = [0.01f, 0.015f, 0.02f, 0.025f];
+    public static readonly float[] WiseguyCap = [0.10f, 0.12f, 0.14f, 0.16f];
 
     public static int TechnicianBonus(int level, int baseMaxStock)
         => level <= 0 ? 0 : baseMaxStock >= 2 ? level : 1;

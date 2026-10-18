@@ -361,6 +361,12 @@ public sealed class FSPerkDef
                 "Deal more damage while a lit cigarette, cigar or pipe is in your mouth.",
                 PerkCategory.Red,
                 Pct("+{0}% Damage", FSPerkBonusConstants.SmokingKillsPerLevel)),
+
+            new("Wiseguy", "Wiseguy",
+                "Each wave you finish without going down raises your income. Going down resets it.",
+                PerkCategory.Yellow,
+                Levels("+{0:0.#}% Money/Wave (Max {1:0}%)",
+                    i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f, FSPerkBonusConstants.WiseguyCap[i] * 100f])),
         ];
 
         All = list.ToDictionary(a => a.Id);
