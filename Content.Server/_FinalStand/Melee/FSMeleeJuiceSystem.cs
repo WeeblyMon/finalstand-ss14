@@ -5,6 +5,7 @@ using Content.Shared.Body.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -26,6 +27,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MovementModStatusSystem _movementStatus = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
@@ -150,7 +152,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _lookup.GetEntitiesInRange(map.Offset(dir * step), 0.4f, _nearby);
             foreach (var mob in _nearby)
             {
-                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || HasComp<ActorComponent>(mob) || IsAlly(user, mob))
+                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || !CanSpill(user, targets[0], mob, profile.PierceRange))
                     continue;
 
                 pierced.Add(mob);
@@ -179,13 +181,22 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
         foreach (var mob in _nearby)
         {
-            if (mob.Owner == user || targets.Contains(mob) || HasComp<ActorComponent>(mob) || IsAlly(user, mob))
+            if (mob.Owner == user || targets.Contains(mob) || !CanSpill(user, targets[0], mob, profile.StaggerRadius))
                 continue;
 
             var push = Xform.GetWorldPosition(mob) - center.Position;
             _knockback.Push(mob, push, profile.Knockback * 0.6f, TimeSpan.FromSeconds(profile.KnockbackDuration));
             Flinch(mob, profile.FlinchDuration, profile.FlinchSpeed);
         }
+    }
+
+    // Pierce and stagger reach past the struck target, but not into teammates, corpses or behind walls.
+    private bool CanSpill(EntityUid user, EntityUid struck, Entity<MobStateComponent> mob, float range)
+    {
+        return mob.Comp.CurrentState != MobState.Dead
+            && !HasComp<ActorComponent>(mob)
+            && !IsAlly(user, mob)
+            && _interaction.InRangeUnobstructed(struck, mob.Owner, range + 0.5f, overlapCheck: false);
     }
 
     private void OnMobStateChanged(MobStateChangedEvent args)

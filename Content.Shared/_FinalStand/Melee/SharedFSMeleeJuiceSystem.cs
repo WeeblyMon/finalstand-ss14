@@ -109,11 +109,13 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         OnHit(ent, args.User, targets, direction, heavy, finisher, lethal, args);
     }
 
-    // Damage between players is already blocked, but knockback and flinch would still land on teammates.
+    // Players can't damage teammates or the console, but knockback and flinch would still land on them.
     public bool IsAlly(EntityUid user, EntityUid target)
     {
-        return HasComp<FSFriendlyFireComponent>(user) && HasComp<FSFriendlyFireComponent>(target);
+        return HasComp<FSFriendlyFireComponent>(user)
+            && (HasComp<FSFriendlyFireComponent>(target) || HasComp<FSPlayerDamageImmuneComponent>(target));
     }
+
 
     private bool AdvanceCombo(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
     {
