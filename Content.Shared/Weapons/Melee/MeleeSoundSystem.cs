@@ -2,6 +2,9 @@ using Content.Shared.Weapons.Melee.Components;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Network;
+using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Shared.Weapons.Melee;
 
@@ -11,8 +14,21 @@ namespace Content.Shared.Weapons.Melee;
 public sealed partial class MeleeSoundSystem : EntitySystem
 {
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private INetManager _net = default!; // FINALSTAND
+    [Dependency] private IGameTiming _timing = default!; // FINALSTAND
 
     public const float DamagePitchVariation = 0.05f;
+
+    // FINALSTAND: a crowd clawing one target sent hundreds of networked sounds a second. The server
+    // plays at most one hit sound per target per interval; the attacker's own predicted sound is unaffected.
+    private static readonly TimeSpan HitSoundInterval = TimeSpan.FromSeconds(0.15);
+    private const int HitSoundPruneAt = 256;
+    private readonly Dictionary<EntityUid, TimeSpan> _nextHitSound = new();
+
+    // FINALSTAND: same for NPC swings, which mostly whiff in a crowd. Gated per 2x2 tile area instead of
+    // per attacker, since each NPC only swings about once a second.
+    private const float SwingCellSize = 2f;
+    private readonly Dictionary<(EntityUid, Vector2i), TimeSpan> _nextSwingSound = new();
 
     /// <summary>
     /// Plays the SwingSound from a weapon component
@@ -21,6 +37,10 @@ public sealed partial class MeleeSoundSystem : EntitySystem
     /// </summary>
     public void PlaySwingSound(EntityUid userUid, EntityUid weaponUid, MeleeWeaponComponent weaponComponent)
     {
+        // FINALSTAND
+        if (_net.IsServer && !HasComp<ActorComponent>(userUid) && !TryReserveSwingSound(userUid))
+            return;
+
         _audio.PlayPredicted(weaponComponent.SwingSound, weaponUid, userUid);
     }
 
@@ -39,6 +59,10 @@ public sealed partial class MeleeSoundSystem : EntitySystem
         var playedSound = false;
 
         if (Deleted(targetUid))
+            return;
+
+        // FINALSTAND
+        if (_net.IsServer && !TryReserveHitSound(targetUid))
             return;
 
         // hitting can obv destroy an entity so we play at coords and not following them
@@ -104,6 +128,51 @@ public sealed partial class MeleeSoundSystem : EntitySystem
                     break;
             }
         }
+    }
+
+    // FINALSTAND
+    private bool TryReserveHitSound(EntityUid target)
+    {
+        var now = _timing.CurTime;
+        if (_nextHitSound.TryGetValue(target, out var next) && now < next)
+            return false;
+
+        if (_nextHitSound.Count >= HitSoundPruneAt)
+        {
+            foreach (var (uid, until) in _nextHitSound)
+            {
+                if (until <= now)
+                    _nextHitSound.Remove(uid);
+            }
+        }
+
+        _nextHitSound[target] = now + HitSoundInterval;
+        return true;
+    }
+
+    // FINALSTAND
+    private bool TryReserveSwingSound(EntityUid user)
+    {
+        var xform = Transform(user);
+        if (xform.ParentUid is not { Valid: true } parent)
+            return true;
+
+        var key = (parent, (xform.LocalPosition / SwingCellSize).Floored());
+        var now = _timing.CurTime;
+        if (_nextSwingSound.TryGetValue(key, out var next) && now < next)
+            return false;
+
+        if (_nextSwingSound.Count >= HitSoundPruneAt)
+        {
+            foreach (var (cell, until) in _nextSwingSound)
+            {
+                if (until <= now)
+                    _nextSwingSound.Remove(cell);
+            }
+        }
+
+        _nextSwingSound[key] = now + HitSoundInterval;
+        return true;
     }
 
 }
