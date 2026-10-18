@@ -31,9 +31,6 @@
       - Material
       tags:
       - CableCoil
-    blacklist:
-      components:
-      - Tool
   - type: Dumpable
 
 - type: entity
