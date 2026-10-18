@@ -44,6 +44,7 @@ namespace Content.Shared.Weapons.Ranged.Systems;
 public abstract partial class SharedGunSystem : EntitySystem
 {
     [Dependency] private ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechWeaponSelectSystem _mechWeapons = default!;
     [Dependency] private EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private INetManager _netManager = default!;
     [Dependency] private ItemSlotsSystem _slots = default!;
@@ -154,14 +155,11 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         var user = args.SenderSession.AttachedEntity;
 
-        if (user == null ||
-            !_combatMode.IsInCombatMode(user) ||
-            !TryGetGun(user.Value, out var gun))
-        {
+        if (user == null || !_combatMode.IsInCombatMode(user))
             return;
-        }
 
-        if (gun.Owner != GetEntity(msg.Gun))
+        if (!_mechWeapons.TryGetPilotGun(user.Value, GetEntity(msg.Gun), out var gun)
+            && (!TryGetGun(user.Value, out gun) || gun.Owner != GetEntity(msg.Gun)))
             return;
 
         gun.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
@@ -226,14 +224,19 @@ public abstract partial class SharedGunSystem : EntitySystem
     {
         var gunUid = GetEntity(ev.Gun);
 
-        if (args.SenderSession.AttachedEntity == null ||
-            !TryComp<GunComponent>(gunUid, out var gun) ||
-            !TryGetGun(args.SenderSession.AttachedEntity.Value, out var userGun))
+        if (args.SenderSession.AttachedEntity is not { } user ||
+            !TryComp<GunComponent>(gunUid, out var gun))
         {
             return;
         }
 
-        if (userGun != (gunUid, gun))
+        if (_mechWeapons.TryGetPilotGun(user, gunUid, out var pilotGun))
+        {
+            StopShooting(pilotGun);
+            return;
+        }
+
+        if (!TryGetGun(user, out var userGun) || userGun != (gunUid, gun))
             return;
 
         StopShooting(userGun);

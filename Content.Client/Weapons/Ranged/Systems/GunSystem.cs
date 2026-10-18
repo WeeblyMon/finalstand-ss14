@@ -45,6 +45,9 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private IEyeManager _eyeManager = default!;
     [Dependency] private IInputManager _inputManager = default!;
     [Dependency] private InputSystem _inputSystem = default!;
+    [Dependency] private Content.Shared._FinalStand.Mech.FSMechWeaponSelectSystem _mechWeapons = default!;
+
+    private readonly List<Entity<GunComponent>> _pilotGuns = new();
     [Dependency] private IOverlayManager _overlayManager = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -212,11 +215,23 @@ public sealed partial class GunSystem : SharedGunSystem
 
         var entity = entityNull.Value;
 
+        if (_mechWeapons.TryGetArmedGuns(entity, _pilotGuns))
+        {
+            foreach (var pilotGun in _pilotGuns)
+                UpdateShooting(entity, pilotGun);
+            return;
+        }
+
         if (!TryGetGun(entity, out var gun))
         {
             return;
         }
 
+        UpdateShooting(entity, gun);
+    }
+
+    private void UpdateShooting(EntityUid entity, Entity<GunComponent> gun)
+    {
         var useKey = gun.Comp.UseKey ? EngineKeyFunctions.Use : EngineKeyFunctions.UseSecondary;
 
         if (_inputSystem.CmdStates.GetState(useKey) != BoundKeyState.Down && !gun.Comp.BurstActivated)
