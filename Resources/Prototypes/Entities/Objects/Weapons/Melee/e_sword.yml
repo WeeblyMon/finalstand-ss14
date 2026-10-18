@@ -35,7 +35,7 @@
       trauma: 0.3
       knockback: 5
       lunge: 0.8
-      flinchDuration: 0.15
+      flinchDuration: 1.15
       flinchSpeed: 0.5
       hitStatus: FSMeleeSearSlowdown
       hitStatusDuration: 2.5

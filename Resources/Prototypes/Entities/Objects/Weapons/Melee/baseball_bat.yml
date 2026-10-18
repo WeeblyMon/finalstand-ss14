@@ -34,7 +34,7 @@
       trauma: 0.55
       knockback: 18
       knockbackDuration: 0.2
-      flinchDuration: 0.5
+      flinchDuration: 1.15
       flinchSpeed: 0.2
       hitEffect: FSMeleeHitShatter
       killEffect: FSMeleeKillBlood

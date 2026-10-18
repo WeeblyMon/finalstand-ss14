@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage.Components;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item.ItemToggle.Components;
@@ -28,6 +29,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
     protected const float MobFriction = 20f;
+
+    // Specials and bosses shrug off most of a stagger, so long finisher flinches can't lock them down.
+    private const float SpecialFlinchScale = 0.4f;
 
     private readonly List<EntityUid> _expired = new();
 
@@ -150,6 +154,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     public void Flinch(EntityUid target, float duration, float speed)
     {
+        if (HasComp<FSSpecialZombieComponent>(target))
+            duration *= SpecialFlinchScale;
+
         if (duration <= 0f)
             return;
 

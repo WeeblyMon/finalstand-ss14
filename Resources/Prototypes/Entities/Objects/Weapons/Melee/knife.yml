@@ -140,7 +140,7 @@
       hitstop: 0.06
       trauma: 0.25
       knockback: 6
-      flinchDuration: 0.3
+      flinchDuration: 0.8
       flinchSpeed: 0.6
       hitEffect: FSMeleeHitThrust
       killEffect: FSMeleeKillBlood
