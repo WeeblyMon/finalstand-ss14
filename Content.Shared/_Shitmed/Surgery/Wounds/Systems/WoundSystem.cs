@@ -120,7 +120,8 @@ public sealed partial class WoundSystem : EntitySystem
         base.Update(frameTime);
         _woundJobQueue.Process();
 
-        if (!_timing.IsFirstTimePredicted)
+        // FINALSTAND: healing only applies on the server, so the client was scanning every body for nothing.
+        if (!_net.IsServer || !_timing.IsFirstTimePredicted)
             return;
 
         // If this still causes lag, we go with the nuclear option of also checking for ConsciousnessComponent :niceportrait:
