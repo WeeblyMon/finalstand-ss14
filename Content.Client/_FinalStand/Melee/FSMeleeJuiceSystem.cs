@@ -375,7 +375,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private void StartZoom(float amount)
     {
-        if (amount <= 0f)
+        if (amount <= 0f || _cfg.GetCVar(CCVars.ReducedMotion))
             return;
 
         _zoomPunch = amount;
