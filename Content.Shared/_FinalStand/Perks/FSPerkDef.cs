@@ -367,6 +367,11 @@ public sealed class FSPerkDef
                 PerkCategory.Yellow,
                 Levels("+{0:0.#}% Money/Wave (Max {1:0}%)",
                     i => [FSPerkBonusConstants.WiseguyPerWave[i] * 100f, FSPerkBonusConstants.WiseguyCap[i] * 100f])),
+
+            new("LookingThin", "Looking Thin",
+                "Move faster with no armour on. Light armour halves it, heavy armour removes it.",
+                PerkCategory.Green,
+                Pct("+{0}% Speed", FSPerkBonusConstants.LookingThinPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

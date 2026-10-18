@@ -12,6 +12,9 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Upgrades.Effects;
+using Content.Shared.Armor;
+using Content.Shared.Inventory;
+using Content.Shared.Inventory.Events;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Damage.Components;
@@ -44,6 +47,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -54,6 +58,8 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnProjectileHit);
         SubscribeLocalEvent<GunComponent, AmmoShotEvent>(OnGunShot);
         SubscribeLocalEvent<MobMoverComponent, RefreshMovementSpeedModifiersEvent>(OnLightweight);
+        SubscribeLocalEvent<MobMoverComponent, DidEquipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
+        SubscribeLocalEvent<MobMoverComponent, DidUnequipEvent>((uid, _, _) => RefreshIfLookingThin(uid));
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
 
@@ -148,6 +154,28 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             * FSPerkBonusConstants.OlReliablePerSentryPerLevel;
     }
 
+    public float LookingThinFactor(EntityUid body)
+    {
+        if (!_inventory.TryGetSlotEntity(body, "outerClothing", out var outer)
+            || !TryComp<ArmorComponent>(outer, out var armor))
+            return 1f;
+
+        var coefficients = armor.Modifiers.Coefficients;
+        var average = (coefficients.GetValueOrDefault("Blunt", 1f)
+                       + coefficients.GetValueOrDefault("Slash", 1f)
+                       + coefficients.GetValueOrDefault("Piercing", 1f)) / 3f;
+        return Math.Clamp((average - FSPerkBonusConstants.LookingThinNoBonusArmor)
+                          / (1f - FSPerkBonusConstants.LookingThinNoBonusArmor), 0f, 1f);
+    }
+
+    private void RefreshIfLookingThin(EntityUid body)
+    {
+        if (_mind.TryGetMind(body, out var mindId, out _)
+            && TryComp<FSPerkLevelsComponent>(mindId, out var perks)
+            && perks.GetSlottedLevel("LookingThin") > 0)
+            _movement.RefreshMovementSpeedModifiers(body);
+    }
+
     public static float DeadlyGearMultiplier(FSPerkLevelsComponent perks)
         => 1f + perks.GetSlottedLevel("DeadlyGear") * FSPerkBonusConstants.DeadlyGearPerLevel;
 
@@ -183,6 +211,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
+
+        var thinLevel = augs.GetSlottedLevel("LookingThin");
+        if (thinLevel > 0)
+            mult *= 1f + thinLevel * FSPerkBonusConstants.LookingThinPerLevel * LookingThinFactor(uid);
 
         mult *= FSArchetypeSystem.Bonus(augs).Speed;
         mult *= _titleBuffs.ForBody(uid).Speed;

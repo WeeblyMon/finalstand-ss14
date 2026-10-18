@@ -80,6 +80,8 @@ public static class FSPerkBonusConstants
     public const float StylePointsRampSeconds = 5f;    // idle time from empty to full
     public const float StylePointsDrainSeconds = 5f;   // firing time from full to empty
     public const float SmokingKillsPerLevel = 0.04f;
+    public const float LookingThinPerLevel = 0.04f;       // speed with no armour, scaled down by armour strength
+    public const float LookingThinNoBonusArmor = 0.4f;    // average brute multiplier at which the bonus is gone
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

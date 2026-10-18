@@ -513,6 +513,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             Add("Rampage", ramp.Stacks * rampage * FSPerkBonusConstants.RampageSpeedPerLevel);
 
+        var thin = perks.GetSlottedLevel("LookingThin");
+        if (thin > 0 && CompOrNull<MindComponent>(mindId)?.CurrentEntity is { } body)
+        {
+            var bonus = thin * FSPerkBonusConstants.LookingThinPerLevel * _perkBuff.LookingThinFactor(body);
+            if (bonus > 0f)
+                Add("Looking Thin", bonus);
+        }
+
         return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
     }
 
