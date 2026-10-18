@@ -14,6 +14,7 @@
   parent: BaseMechEquipment
   abstract: true
   components:
+  - type: MultiHandedItem
   - type: Battery
     maxCharge: 100
     startingCharge: 100
