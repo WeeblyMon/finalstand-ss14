@@ -98,6 +98,20 @@ public sealed class ProfileUiTest : GameTest
         });
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<FSTitleSystem>().GetOwned(user).Select(t => t.Id), Does.Contain("FSTitleMentor")));
+
+        var perkPoints = 0;
+        await Server.WaitPost(() => perkPoints = SEntMan.System<FSPlayerDataStore>().GetPerkPoints(user.UserId));
+        await Send(new FSMentorBuyEvent { Item = "perkpoint" });
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(state.Balance, Is.EqualTo(10), "20 mentor points buys one perk point");
+            Assert.That(state.Shop.Single(s => s.Id == "perkpoint").PerkPoints, Is.EqualTo(1));
+        });
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<FSPlayerDataStore>().GetPerkPoints(user.UserId), Is.EqualTo(perkPoints + 1)));
+
+        await Send(new FSMentorBuyEvent { Item = "perkpoint" });
+        await Client.WaitAssertion(() => Assert.That(state.Balance, Is.EqualTo(10), "can't go below zero"));
     }
 
     [Test]

@@ -28,7 +28,7 @@ public sealed class FSMentorBuyEvent : EntityEventArgs
 }
 
 [Serializable, NetSerializable]
-public sealed record FSMentorShopEntry(string Id, int Cost, string Title, bool Owned);
+public sealed record FSMentorShopEntry(string Id, int Cost, string? Title, bool Owned, int PerkPoints = 0);
 
 [Serializable, NetSerializable]
 public sealed class FSMentorStateEvent : EntityEventArgs

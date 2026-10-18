@@ -39,10 +39,15 @@ public sealed partial class FSMentorCommand : LocalizedCommands
 
         foreach (var item in FSMentorSystem.Shop)
         {
-            shell.WriteLine(Loc.GetString("cmd-mentor-shop-row",
-                ("id", item.Id),
-                ("cost", item.Cost),
-                ("title", Loc.GetString(_proto.Index<FSTitlePrototype>(item.Title).Name))));
+            shell.WriteLine(item.Title is { } title
+                ? Loc.GetString("cmd-mentor-shop-row",
+                    ("id", item.Id),
+                    ("cost", item.Cost),
+                    ("title", Loc.GetString(_proto.Index<FSTitlePrototype>(title).Name)))
+                : Loc.GetString("cmd-mentor-shop-perk-row",
+                    ("id", item.Id),
+                    ("cost", item.Cost),
+                    ("points", item.PerkPoints)));
         }
     }
 }

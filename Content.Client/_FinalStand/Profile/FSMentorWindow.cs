@@ -148,12 +148,22 @@ public sealed class FSMentorWindow : FancyWindow
 
         foreach (var item in state.Shop)
         {
-            var proto = _proto.TryIndex<FSTitlePrototype>(item.Title, out var title) ? title : null;
             var text = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-            text.AddChild(Text(Loc.GetString("fs-mentor-shop-title", ("title", proto != null ? Loc.GetString(proto.Name) : item.Title)),
-                _bold, proto?.Color ?? FSUiPalette.Currency));
-            if (proto != null)
-                text.AddChild(Text(Loc.GetString(proto.Description), _small, FSUiPalette.TextMuted));
+            if (item.Title == null)
+            {
+                text.AddChild(Text(Loc.GetString("fs-mentor-shop-perk-points", ("points", item.PerkPoints)), _bold, FSUiPalette.Currency));
+                text.AddChild(Text(Loc.GetString("fs-mentor-shop-perk-desc"), _small, FSUiPalette.TextMuted));
+            }
+            else
+            {
+                var proto = _proto.TryIndex<FSTitlePrototype>(item.Title, out var title) ? title : null;
+                text.AddChild(Text(Loc.GetString("fs-mentor-shop-title", ("title", proto != null ? Loc.GetString(proto.Name) : item.Title)),
+                    _bold, proto?.Color ?? FSUiPalette.Currency));
+                if (proto != null)
+                    text.AddChild(Text(Loc.GetString(proto.Description), _small, FSUiPalette.TextMuted));
+                if (proto?.BuffDescription is { } buffText)
+                    text.AddChild(Text(Loc.GetString("fs-titles-buff-line", ("buff", Loc.GetString(buffText))), _small, FSUiPalette.StatePositive));
+            }
 
             var line = new BoxContainer
             {

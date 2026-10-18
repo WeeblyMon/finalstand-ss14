@@ -27,6 +27,7 @@ public sealed partial class FSWaveObjectiveSystem
     private const string TargetLabel = "fs-objective-marker-target";
     private const string BountyLabel = "fs-objective-marker-bounty";
     private const string SupplyLabel = "fs-objective-marker-supplies";
+    public static readonly Color BountyTint = Color.FromHex("#FFD24A");
 
     private TimeSpan _nextSupplyCheck;
 
@@ -74,7 +75,7 @@ public sealed partial class FSWaveObjectiveSystem
                     for (var i = 0; i < current.Target; i++)
                     {
                         if (_waveRule.SpawnExtraEnemy(bountyProto) is { } bounty)
-                            Mark(current, bounty, BountyLabel);
+                            Mark(current, bounty, BountyLabel, BountyTint);
                     }
                 }
                 current.Target = Math.Max(1, current.Marked.Count);
@@ -116,10 +117,11 @@ public sealed partial class FSWaveObjectiveSystem
         current.Supply = null;
     }
 
-    private void Mark(ActiveObjective current, EntityUid uid, string label)
+    private void Mark(ActiveObjective current, EntityUid uid, string label, Color? tint = null)
     {
         var marker = EnsureComp<FSObjectiveMarkerComponent>(uid);
         marker.Label = label;
+        marker.Tint = tint;
         Dirty(uid, marker);
         current.Marked.Add(uid);
     }

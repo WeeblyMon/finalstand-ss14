@@ -253,4 +253,38 @@ public sealed class TutorialCardTest : GameTest
             ui.Reset();
         });
     }
+
+    [Test]
+    public async Task TheReadyUpCardPointsAtTheWaveHudButton()
+    {
+        await Client.WaitAssertion(() =>
+        {
+            var overlays = Client.ResolveDependency<Robust.Client.Graphics.IOverlayManager>();
+            if (!overlays.TryGetOverlay<Content.Client._FinalStand.WaveHud.WaveHudOverlay>(out var hud))
+            {
+                hud = new Content.Client._FinalStand.WaveHud.WaveHudOverlay();
+                overlays.AddOverlay(hud);
+            }
+            hud.IsReadyUpVisible = true;
+            hud.ReadyUpPlayerIsReady = false;
+            hud.ReadyUpYesBounds = new Robust.Shared.Maths.UIBox2(1200, 300, 1260, 320);
+
+            var ui = Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>()
+                .GetUIController<Content.Client._FinalStand.Tutorial.FSTutorialUIController>();
+            ui.Reset();
+            ui.Enqueue(FSTutorialTip.ReadyUp);
+            ui.FrameUpdate(new Robust.Shared.Timing.FrameEventArgs(0.016f));
+            Assert.That(ui.ShowingArrow, Is.True, "an arrow points at the YES button");
+
+            hud.ReadyUpPlayerIsReady = true;
+            ui.FrameUpdate(new Robust.Shared.Timing.FrameEventArgs(0.016f));
+            Assert.Multiple(() =>
+            {
+                Assert.That(ui.Showing, Is.Null, "the card goes away once you ready up");
+                Assert.That(ui.ShowingArrow, Is.False);
+            });
+            hud.IsReadyUpVisible = false;
+            hud.ReadyUpPlayerIsReady = false;
+        });
+    }
 }

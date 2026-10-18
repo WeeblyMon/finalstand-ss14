@@ -129,6 +129,37 @@
     downedHealing: 1.15
 
 - type: fsTitle
+  id: FSTitleShepherd
+  name: fs-title-shepherd-name
+  description: fs-title-shepherd-desc
+  color: "#AED581"
+  buffDescription: fs-title-buff-shepherd
+  buff:
+    xp: 1.03
+    killCredits: 1.03
+
+- type: fsTitle
+  id: FSTitleLighthouse
+  name: fs-title-lighthouse-name
+  description: fs-title-lighthouse-desc
+  color: "#FFE082"
+  buffDescription: fs-title-buff-lighthouse
+  buff:
+    speed: 1.02
+    healing: 1.05
+
+- type: fsTitle
+  id: FSTitleLivingLegend
+  name: fs-title-living-legend-name
+  description: fs-title-living-legend-desc
+  color: "#FF8A65"
+  buffDescription: fs-title-buff-living-legend
+  buff:
+    damage: 1.02
+    damageTaken: 0.98
+    maxHealth: 3
+
+- type: fsTitle
   id: FSTitleBeyondTheWall
   name: fs-title-beyond-the-wall-name
   description: fs-title-beyond-the-wall-desc

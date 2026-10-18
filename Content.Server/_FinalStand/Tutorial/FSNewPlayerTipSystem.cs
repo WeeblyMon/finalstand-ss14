@@ -37,6 +37,7 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         {
             ShowToAll(FSTutorialTip.Prep);
             ShowToAll(FSTutorialTip.PerkShop);
+            ShowToAll(FSTutorialTip.ReadyUp);
         });
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
@@ -116,6 +117,7 @@ public sealed partial class FSNewPlayerTipSystem : EntitySystem
         {
             TryShow(session, FSTutorialTip.Prep);
             TryShow(session, FSTutorialTip.PerkShop);
+            TryShow(session, FSTutorialTip.ReadyUp);
         }
     }
 

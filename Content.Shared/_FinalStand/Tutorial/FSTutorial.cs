@@ -24,6 +24,7 @@ public enum FSTutorialTip : byte
     PerkShop,
     Grenades,
     CccAttacked,
+    ReadyUp,
 }
 
 public static class FSTutorialText
@@ -52,6 +53,7 @@ public static class FSTutorialText
         FSTutorialTip.PerkShop => "perk-shop",
         FSTutorialTip.Grenades => "grenades",
         FSTutorialTip.CccAttacked => "ccc-attacked",
+        FSTutorialTip.ReadyUp => "ready-up",
         _ => "welcome",
     };
 

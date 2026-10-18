@@ -65,7 +65,7 @@ public sealed partial class FSProfileUiSystem : EntitySystem
             MinHours = FSMentorRules.MinPlaytime.TotalHours,
             Level = level,
             MinLevel = FSMentorRules.MinLevel,
-            Shop = FSMentorSystem.Shop.Select(i => new FSMentorShopEntry(i.Id, i.Cost, i.Title, owned.Contains(i.Title))).ToList(),
+            Shop = FSMentorSystem.Shop.Select(i => new FSMentorShopEntry(i.Id, i.Cost, i.Title, i.Title != null && owned.Contains(i.Title), i.PerkPoints)).ToList(),
             Message = message,
         }, session);
     }

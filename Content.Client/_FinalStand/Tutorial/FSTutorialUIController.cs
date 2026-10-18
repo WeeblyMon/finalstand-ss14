@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.Stylesheets;
 using Content.Client.Gameplay;
+using Content.Client._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Tutorial;
 using Content.Shared.Input;
 using Robust.Client.GameObjects;
@@ -20,8 +21,11 @@ namespace Content.Client._FinalStand.Tutorial;
 public sealed partial class FSTutorialUIController : UIController, IOnStateExited<GameplayState>, IOnSystemChanged<FSUiEventRelaySystem>
 {
     [Dependency] private IInputManager _input = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private static readonly TimeSpan ShowTime = TimeSpan.FromSeconds(25);
+    private static readonly TimeSpan ReadyUpShowTime = TimeSpan.FromSeconds(40);
+    private const float ArrowGap = 4f;
     private const float MaxFrameStep = 0.25f;
     private const float IconSize = 64f;
     private const float BodyWidth = 420f;
@@ -32,6 +36,7 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
     private RichTextLabel? _body;
     private TextureRect? _icon;
     private PanelContainer? _iconFrame;
+    private FSTutorialArrow? _arrow;
     private float _remaining;
 
     public FSTutorialTip? Showing { get; private set; }
@@ -39,6 +44,8 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
     public string? ShowingBody { get; private set; }
 
     public EntProtoId? ShowingIcon => Showing is { } tip ? FSTutorialText.Icon(tip) : null;
+
+    public bool ShowingArrow => _arrow is { Visible: true };
 
     public void OnSystemLoaded(FSUiEventRelaySystem system) => system.TutorialTip += Enqueue;
 
@@ -61,28 +68,61 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
             return;
 
         _remaining -= Math.Min(args.DeltaSeconds, MaxFrameStep);
-        if (_remaining <= 0f)
+        if (_remaining <= 0f || Showing == FSTutorialTip.ReadyUp && !UpdateArrow())
             Dismiss();
     }
 
     public void OnStateExited(GameplayState state) => Reset();
+
+    private bool UpdateArrow()
+    {
+        if (!_overlays.TryGetOverlay<WaveHudOverlay>(out var hud) || hud.ReadyUpPlayerIsReady)
+            return false;
+
+        var arrow = EnsureArrow();
+        arrow.Visible = hud.IsReadyUpVisible && hud.ReadyUpYesBounds.Left > 0f;
+        if (!arrow.Visible)
+            return true;
+
+        var scale = UIManager.PopupRoot.UIScale;
+        var target = hud.ReadyUpYesBounds;
+        LayoutContainer.SetPosition(arrow, new Vector2(
+            target.Left / scale - arrow.SetSize.X - ArrowGap,
+            (target.Top + target.Bottom) / 2f / scale - arrow.SetSize.Y / 2f));
+        return true;
+    }
+
+    private FSTutorialArrow EnsureArrow()
+    {
+        if (_arrow is not { Disposed: false })
+            _arrow = new FSTutorialArrow();
+        if (_arrow.Parent == null)
+            UIManager.PopupRoot.AddChild(_arrow);
+        return _arrow;
+    }
 
     public void Reset()
     {
         _queue.Clear();
         Showing = null;
         ShowingBody = null;
-        if (_card != null)
-            _card.Visible = false;
+        Hide();
     }
 
     public void Dismiss()
     {
         Showing = null;
         ShowingBody = null;
+        Hide();
+        ShowNext();
+    }
+
+    private void Hide()
+    {
         if (_card != null)
             _card.Visible = false;
-        ShowNext();
+        if (_arrow != null)
+            _arrow.Visible = false;
     }
 
     private void ShowNext()
@@ -92,7 +132,7 @@ public sealed partial class FSTutorialUIController : UIController, IOnStateExite
 
         EnsureCard();
         Showing = tip;
-        _remaining = (float) ShowTime.TotalSeconds;
+        _remaining = (float) (tip == FSTutorialTip.ReadyUp ? ReadyUpShowTime : ShowTime).TotalSeconds;
         _title!.Text = Loc.GetString(FSTutorialText.TitleLocId(tip));
         ShowingBody = Loc.GetString(FSTutorialText.BodyLocId(tip),
             ("reload", Key(ContentKeyFunctions.ReloadWeapon)),

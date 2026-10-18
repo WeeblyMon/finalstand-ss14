@@ -46,12 +46,17 @@ public sealed partial class FSMentorSystem : EntitySystem
     public const int FirstRoundMp = 5;
     public static readonly TimeSpan ReviveCooldown = TimeSpan.FromSeconds(120);
 
-    public readonly record struct ShopItem(string Id, int Cost, string Title);
+    public readonly record struct ShopItem(string Id, int Cost, string? Title = null, int PerkPoints = 0);
 
     public static readonly ShopItem[] Shop =
     {
+        new("perkpoint", 20, PerkPoints: 1),
+        new("perkpoints", 90, PerkPoints: 5),
         new("mentor", 50, "FSTitleMentor"),
+        new("shepherd", 150, "FSTitleShepherd"),
+        new("lighthouse", 250, "FSTitleLighthouse"),
         new("guardian", 400, "FSTitleGuardianAngel"),
+        new("legend", 600, "FSTitleLivingLegend"),
     };
 
     private readonly FSMentorLedger _ledger = new();
@@ -248,9 +253,16 @@ public sealed partial class FSMentorSystem : EntitySystem
             return false;
         }
 
-        if (_titles.GetOwned(user).Any(t => t.Id == item.Title))
+        if (item.Title != null && _titles.GetOwned(user).Any(t => t.Id == item.Title))
         {
             message = Loc.GetString("fs-mentor-shop-owned");
+            return false;
+        }
+
+        ICommonSession? session = null;
+        if (item.PerkPoints > 0 && !_playerManager.TryGetSessionById(user, out session))
+        {
+            message = Loc.GetString("fs-mentor-shop-offline");
             return false;
         }
 
@@ -262,7 +274,10 @@ public sealed partial class FSMentorSystem : EntitySystem
         }
 
         _store.SaveMentor(user.UserId, record with { Balance = record.Balance - item.Cost });
-        _titles.Grant(user, item.Title);
+        if (item.Title != null)
+            _titles.Grant(user, item.Title);
+        if (session != null)
+            _wallet.GivePerkPoints(session, item.PerkPoints);
         message = Loc.GetString("fs-mentor-shop-bought", ("cost", item.Cost));
         return true;
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Fixtures;
@@ -187,13 +188,28 @@ public sealed class WaveObjectiveKindsTest : GameTest
             Assert.That(bounties, Has.Count.EqualTo(3), "one runner per bounty, spawned at the zombie spawns");
             Assert.That(SEntMan.System<WaveGameRuleSystem>().AliveEnemies(), Is.SupersetOf(bounties),
                 "they count as wave enemies");
+            Assert.That(bounties.Select(b => SEntMan.GetComponent<FSObjectiveMarkerComponent>(b).Tint),
+                Is.All.EqualTo(FSWaveObjectiveSystem.BountyTint), "bounties are painted gold");
+        });
+        await Pair.RunTicksSync(5);
 
-            foreach (var bounty in bounties)
+        List<EntityUid> caught = null;
+        await Server.WaitPost(() => caught = Objectives.Current!.Marked.ToList());
+        await Client.WaitAssertion(() =>
+        {
+            var sprite = CEntMan.GetComponent<Robust.Client.GameObjects.SpriteComponent>(CEntMan.GetEntity(SEntMan.GetNetEntity(caught[0])));
+            Assert.That(sprite.Color, Is.EqualTo(FSWaveObjectiveSystem.BountyTint), "the client sees them gold");
+        });
+
+        await Server.WaitAssertion(() =>
+        {
+            var current = Objectives.Current!;
+            var body = ServerSession!.AttachedEntity!.Value;
+            foreach (var bounty in caught)
                 Died(bounty, body);
             Assert.That(current.Result, Is.EqualTo(FSWaveObjectiveResult.Completed));
 
             current = Start("FSObjectiveBountySwarm");
-            bounties = current.Marked.ToList();
             current.EndTime = TimeSpan.Zero;
         });
         await Pair.RunTicksSync(5);
