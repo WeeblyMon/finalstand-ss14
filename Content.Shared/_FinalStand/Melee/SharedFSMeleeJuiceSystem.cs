@@ -68,7 +68,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         var targets = new List<EntityUid>();
         foreach (var hit in args.HitEntities)
         {
-            if (hit != args.User)
+            if (hit != args.User && !IsAlly(args.User, hit))
                 targets.Add(hit);
         }
 
@@ -106,6 +106,12 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         }
 
         OnHit(ent, args.User, targets, direction, heavy, finisher, lethal, args);
+    }
+
+    // Damage between players is already blocked, but knockback and flinch would still land on teammates.
+    public bool IsAlly(EntityUid user, EntityUid target)
+    {
+        return HasComp<FSFriendlyFireComponent>(user) && HasComp<FSFriendlyFireComponent>(target);
     }
 
     private bool AdvanceCombo(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)

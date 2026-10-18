@@ -150,7 +150,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _lookup.GetEntitiesInRange(map.Offset(dir * step), 0.4f, _nearby);
             foreach (var mob in _nearby)
             {
-                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || HasComp<ActorComponent>(mob))
+                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || HasComp<ActorComponent>(mob) || IsAlly(user, mob))
                     continue;
 
                 pierced.Add(mob);
@@ -179,7 +179,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
         foreach (var mob in _nearby)
         {
-            if (mob.Owner == user || targets.Contains(mob) || HasComp<ActorComponent>(mob))
+            if (mob.Owner == user || targets.Contains(mob) || HasComp<ActorComponent>(mob) || IsAlly(user, mob))
                 continue;
 
             var push = Xform.GetWorldPosition(mob) - center.Position;

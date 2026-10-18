@@ -197,7 +197,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
 
         // This should really be improved. GetEntitiesInArc uses pos instead of bounding boxes.
         // Server will validate it with InRangeUnobstructed.
-        var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).OrderByDescending(HasComp<MobStateComponent>).ToList()); // FINALSTAND: mobs take the target slots before walls and furniture
+        var entities = GetNetEntityList(ArcRayCast(userPos, direction.ToWorldAngle(), component.Angle, distance, userXform.MapID, user).OrderByDescending(e => IsEnemy(user, e)).ToList()); // FINALSTAND: living enemies take the target slots before corpses, teammates and walls
         RaisePredictiveEvent(new HeavyAttackEvent(GetNetEntity(meleeUid), entities.GetRange(0, Math.Min(MaxTargets, entities.Count)), GetNetCoordinates(coordinates)) { ViewTick = _clientTiming.LastRealTick }); // fs
     }
 
@@ -218,7 +218,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (mousePos.MapId != attackerPos.MapId)
             return;
 
-        // FINALSTAND: swing toward the cursor at any distance and aim at the nearest mob when nothing is clicked
+        // FINALSTAND: swing toward the cursor at any distance and aim at the nearest enemy unless one was clicked
         var direction = mousePos.Position - attackerPos.Position;
         EntityUid? target = null;
 
@@ -229,7 +229,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (Interaction.CombatModeCanHandInteract(attacker, target))
             return;
 
-        if (target == null && direction != Vector2.Zero && FindLightTarget(attacker, attackerPos, direction, meleeComponent.Range) is { } assisted)
+        if ((target == null || !IsEnemy(attacker, target.Value)) && direction != Vector2.Zero && FindLightTarget(attacker, attackerPos, direction, meleeComponent.Range) is { } assisted)
         {
             target = assisted;
             coordinates = Transform(assisted).Coordinates;
@@ -249,7 +249,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         var bestDistance = float.MaxValue;
         foreach (var uid in ArcRayCast(attackerPos.Position, direction.ToWorldAngle(), Angle.FromDegrees(70), range, attackerPos.MapId, attacker))
         {
-            if (!HasComp<MobStateComponent>(uid) || MobState.IsDead(uid))
+            if (!IsEnemy(attacker, uid))
                 continue;
 
             var distance = (TransformSystem.GetWorldPosition(uid) - attackerPos.Position).LengthSquared();
@@ -261,6 +261,11 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         }
 
         return best;
+    }
+
+    private bool IsEnemy(EntityUid attacker, EntityUid uid)
+    {
+        return HasComp<MobStateComponent>(uid) && !MobState.IsDead(uid) && !_fsJuice.IsAlly(attacker, uid);
     }
 
     private void OnMeleeLunge(MeleeLungeEvent ev)
