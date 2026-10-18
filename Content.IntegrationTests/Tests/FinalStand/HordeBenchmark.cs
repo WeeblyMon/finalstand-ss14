@@ -106,6 +106,10 @@ public sealed class HordeBenchmark : GameTest
         }
         entMan.EntityInitialized += CountSpawn;
 
+        var allocatedBefore = System.GC.GetTotalAllocatedBytes();
+        var gen0Before = System.GC.CollectionCount(0);
+        var gen2Before = System.GC.CollectionCount(2);
+
         var serverChunks = new List<double>();
         var clientChunks = new List<double>();
         const int perChunk = MeasuredTicks / Chunks;
@@ -127,6 +131,9 @@ public sealed class HordeBenchmark : GameTest
         }
         var after = await ReadSystemTotals();
         entMan.EntityInitialized -= CountSpawn;
+        var allocatedPerTick = (System.GC.GetTotalAllocatedBytes() - allocatedBefore) / (double) MeasuredTicks / 1024;
+        var gen0 = System.GC.CollectionCount(0) - gen0Before;
+        var gen2 = System.GC.CollectionCount(2) - gen2Before;
 
         serverChunks.Sort();
         clientChunks.Sort();
@@ -134,6 +141,7 @@ public sealed class HordeBenchmark : GameTest
         TestContext.Out.WriteLine($"{count} zombies, {defenders} defenders, wave {Wave}: server median {serverChunks[Chunks / 2]:F2} ms/tick " +
                                   $"(best {serverChunks[0]:F2}, worst {serverChunks[^1]:F2}, budget {budget:F1} ms at {timing.TickRate} TPS), " +
                                   $"client median {clientChunks[Chunks / 2]:F2} ms/tick");
+        TestContext.Out.WriteLine($"Allocated {allocatedPerTick:F0} KiB/tick (server and client), GCs: {gen0} gen0, {gen2} gen2");
 
         var deltas = after
             .Select(kv => (System: kv.Key, Ms: (kv.Value - before.GetValueOrDefault(kv.Key)) * 1000.0 / MeasuredTicks))
