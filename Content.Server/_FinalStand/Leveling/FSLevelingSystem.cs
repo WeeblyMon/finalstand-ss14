@@ -4,12 +4,14 @@ using System.Text.Json;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared._FinalStand.Leaderboard;
+using Content.Shared._FinalStand.Onboarding;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
@@ -22,6 +24,7 @@ namespace Content.Server._FinalStand.Leveling;
 public sealed partial class FSLevelingSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private FSPlayerDataStore _store = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private SharedMindSystem _mind = default!;
@@ -69,7 +72,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         _waveRule.TryGetActiveState(out var wave);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
-        var waveMult = GetXpMultiplier(wave.WaveNumber);
+        var waveMult = GetXpMultiplier(wave.WaveNumber) * _waveRule.GetRewardMultiplier();
         var killXp = (int)(baseXp * waveMult);
         var assistXp = (int)(baseXp * 0.5f * waveMult);
 
@@ -98,7 +101,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             _saveCount = 0;
         }
 
-        var xp = WaveCompletionXpPerWave * args.WaveNumber;
+        var xp = (int) (WaveCompletionXpPerWave * args.WaveNumber * _waveRule.GetRewardMultiplier());
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
@@ -112,7 +115,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private void OnRoundEnd(RoundEndTextAppendEvent args)
     {
         if (!_waveRule.TryGetActiveState(out var wave)) return;
-        var xp = RoundEndXpPerWave * wave.WaveNumber;
+        var xp = (int) (RoundEndXpPerWave * wave.WaveNumber * _waveRule.GetRewardMultiplier());
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
@@ -273,7 +276,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
             return;
 
-        var amount = (int)(rawAmount * lvl.XpMultiplier);
+        var amount = (int)(rawAmount * lvl.XpMultiplier * lvl.CatchUpMultiplier * _titleBuffs.ForMind(mindId).Xp);
         lvl.Experience += amount;
 
         _roundStats.TryGetValue(mindId, out var stats);
@@ -292,7 +295,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             lvl.Experience -= lvl.XpToNextLevel;
             lvl.Level++;
             lvl.XpToNextLevel = XpToNextLevel(lvl.Level);
-            var ap = lvl.Level % 5 == 0 ? 5 : 1;
+            var ap = FSLevelingRules.PerkPointsForReaching(lvl.Level);
             _wallet.AddPerkPoints(mindId, ap);
             totalAp += ap;
             RaiseLocalEvent(mindId, new FSLevelUpEvent
@@ -362,8 +365,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
             Experience = lvl.Experience,
             XpToNextLevel = lvl.XpToNextLevel,
             PrestigeLevel = lvl.PrestigeLevel,
+            CatchUp = lvl.CatchUpMultiplier > 1f,
         }, Filter.SinglePlayer(session));
     }
+
+    public (int Xp, int Kills, int Assists) GetRoundStats(EntityUid mindId)
+        => _roundStats.GetValueOrDefault(mindId);
 
     public (int Kills, int Assists) KillsOf(EntityUid mindId)
     {
@@ -392,6 +399,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
                         + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + walletCredits;
 
+            TryComp<FSPlayerBadgeComponent>(mind.CurrentEntity, out var badge);
+
             entries.Add(new FSLeaderboardEntry(
                 mind.CharacterName ?? "Unknown",
                 stats.Kills,
@@ -401,7 +410,9 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 lvl.Level,
                 lvl.PrestigeLevel,
                 walletCredits,
-                score) { Fortify = fortify });
+                score,
+                badge?.Rookie ?? false,
+                badge?.Title?.Id) { Fortify = fortify });
         }
 
         return FSLeaderboardEntry.Sort(entries);

@@ -7,13 +7,18 @@ using Content.Shared.Players;
 using Robust.Server.Player;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using Content.Server._FinalStand.Titles;
 
 namespace Content.Server._FinalStand.Perks;
+
+[ByRefEvent]
+public readonly record struct FSPlayerHurtEvent(EntityUid Player);
 
 // Owns (ActorComponent, DamageModifyEvent) for Untouchable and (ActorComponent, FSHealingPotencyEvent) for Field Medic.
 public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
 
@@ -53,6 +58,16 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
 
     private void OnDamageModify(EntityUid uid, ActorComponent comp, DamageModifyEvent args)
     {
+        ApplyDamageModifiers(uid, args);
+        if (args.Damage.GetTotal() <= 0)
+            return;
+
+        var hurt = new FSPlayerHurtEvent(uid);
+        RaiseLocalEvent(ref hurt);
+    }
+
+    private void ApplyDamageModifiers(EntityUid uid, DamageModifyEvent args)
+    {
         if (!_mind.TryGetMind(uid, out var mindId, out MindComponent? _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
@@ -76,6 +91,10 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }
+
+        var taken = FSArchetypeSystem.Bonus(augs).DamageTaken * _titleBuffs.ForBody(uid).DamageTaken;
+        if (Math.Abs(taken - 1f) > 0.0001f && args.Damage.GetTotal() > 0)
+            args.Damage *= taken;
     }
 
     private void OnHealingPotency(EntityUid uid, ActorComponent comp, ref FSHealingPotencyEvent args)
@@ -85,6 +104,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
             return;
 
         args.Multiplier *= 1f + augs.GetSlottedLevel("FieldMedic") * FSPerkBonusConstants.FieldMedicPerLevel;
+        args.Multiplier *= _titleBuffs.HealingFor(uid, args.Target);
     }
 
     private void SendChargesUpdate(EntityUid bodyUid, int charges)

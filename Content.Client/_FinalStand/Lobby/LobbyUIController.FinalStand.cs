@@ -1,12 +1,15 @@
+using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.Perks;
+using Content.Client._FinalStand.Profile;
 using Content.Client.Lobby.UI;
+using Robust.Client.UserInterface.Controllers;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Leveling;
 
 namespace Content.Client.Lobby;
 
-public sealed partial class LobbyUIController
+public sealed partial class LobbyUIController : IOnSystemChanged<FSUiEventRelaySystem>
 {
     private int _FSPerkPoints;
     private int _fsLevel = 1;
@@ -16,14 +19,21 @@ public sealed partial class LobbyUIController
     private int _fsWave;
     private WavePhase _fsWavePhase;
 
-    private void InitializeFinalStandWallet()
+    public void OnSystemLoaded(FSUiEventRelaySystem system)
     {
-        SubscribeNetworkEvent<WalletUpdatedEvent>(OnFSWalletUpdated);
-        SubscribeNetworkEvent<FSLevelingUpdatedEvent>(OnFSLevelingUpdated);
-        SubscribeNetworkEvent<FSWaveStatusEvent>(OnFSWaveStatus);
+        system.WalletUpdated += OnFSWalletUpdated;
+        system.LevelingUpdated += OnFSLevelingUpdated;
+        system.WaveStatusUpdated += OnFSWaveStatus;
     }
 
-    private void OnFSWaveStatus(FSWaveStatusEvent ev, EntitySessionEventArgs args)
+    public void OnSystemUnloaded(FSUiEventRelaySystem system)
+    {
+        system.WalletUpdated -= OnFSWalletUpdated;
+        system.LevelingUpdated -= OnFSLevelingUpdated;
+        system.WaveStatusUpdated -= OnFSWaveStatus;
+    }
+
+    private void OnFSWaveStatus(FSWaveStatusEvent ev)
     {
         _fsWave = ev.Wave;
         _fsWavePhase = ev.Phase;
@@ -41,13 +51,13 @@ public sealed partial class LobbyUIController
             ("wave", _fsWave));
     }
 
-    private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)
+    private void OnFSWalletUpdated(WalletUpdatedEvent ev)
     {
         _FSPerkPoints = ev.PerkPoints;
         UpdateFSPerkPoints();
     }
 
-    private void OnFSLevelingUpdated(FSLevelingUpdatedEvent ev, EntitySessionEventArgs args)
+    private void OnFSLevelingUpdated(FSLevelingUpdatedEvent ev)
     {
         _fsLevel = ev.Level;
         _fsPrestige = ev.PrestigeLevel;
@@ -70,6 +80,7 @@ public sealed partial class LobbyUIController
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new WalletRequestEvent());
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSLevelingRequestMessage());
         EntityManager.EntityNetManager?.SendSystemNetworkMessage(new FSWaveStatusRequestEvent());
+        UIManager.GetUIController<FSProfileUIController>().RequestTitles();
         UpdateFSPerkPoints();
         UpdateFSLevelDisplay();
         UpdateFSWaveStatus();
@@ -89,6 +100,25 @@ public sealed partial class LobbyUIController
 
         panel.PerkShopButtonControl.OnPressed += _ =>
             IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<FSPerkShopSystem>().OpenWindow();
+
+        var profile = UIManager.GetUIController<FSProfileUIController>();
+        panel.TitlesButtonControl.OnPressed += _ => profile.OpenTitles();
+        panel.MentorButtonControl.OnPressed += _ => profile.OpenMentor();
+
+        if (!_fsTitleHooked)
+        {
+            _fsTitleHooked = true;
+            profile.EquippedTitleChanged += UpdateFSTitle;
+        }
+        UpdateFSTitle();
+    }
+
+    private bool _fsTitleHooked;
+
+    private void UpdateFSTitle()
+    {
+        var (name, color) = UIManager.GetUIController<FSProfileUIController>().EquippedTitleDisplay();
+        PreviewPanel?.SetTitle(name == null ? null : Loc.GetString("fs-badge-leaderboard-title", ("title", name)), color);
     }
 
     private void UpdateFSLevelDisplay()

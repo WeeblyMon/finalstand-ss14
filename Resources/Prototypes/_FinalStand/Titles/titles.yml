@@ -1,0 +1,169 @@
+- type: fsTitle
+  id: FSTitleFreshMeat
+  name: fs-title-fresh-meat-name
+  description: fs-title-fresh-meat-desc
+  color: "#8FD16A"
+  buffDescription: fs-title-buff-fresh-meat
+  buff:
+    xp: 1.05
+
+- type: fsTitle
+  id: FSTitleSurvivor
+  name: fs-title-survivor-name
+  description: fs-title-survivor-desc
+  color: "#5FB0E8"
+  buffDescription: fs-title-buff-survivor
+  buff:
+    maxHealth: 5
+
+- type: fsTitle
+  id: FSTitleStationHeld
+  name: fs-title-station-held-name
+  description: fs-title-station-held-desc
+  color: "#FFD700"
+  buffDescription: fs-title-buff-station-held
+  buff:
+    killCredits: 1.03
+
+- type: fsTitle
+  id: FSTitleIronWall
+  name: fs-title-iron-wall-name
+  description: fs-title-iron-wall-desc
+  color: "#FF7043"
+  buffDescription: fs-title-buff-iron-wall
+  buff:
+    damageTaken: 0.97
+
+- type: fsTitle
+  id: FSTitleNightmareBreaker
+  name: fs-title-nightmare-breaker-name
+  description: fs-title-nightmare-breaker-desc
+  color: "#D32F2F"
+  buffDescription: fs-title-buff-nightmare-breaker
+  buff:
+    bossDamage: 1.03
+
+- type: fsTitle
+  id: FSTitleWeeklyChampion
+  name: fs-title-weekly-champion-name
+  description: fs-title-weekly-champion-desc
+  color: "#FFB300"
+  buffDescription: fs-title-buff-weekly-champion
+  buff:
+    objectiveCredits: 1.05
+
+- type: fsTitle
+  id: FSTitlePerkMaster
+  name: fs-title-perk-master-name
+  description: fs-title-perk-master-desc
+  color: "#FFD700"
+  buffDescription: fs-title-buff-perk-master
+  buff:
+    xp: 1.02
+    killCredits: 1.02
+
+- type: fsTitle
+  id: FSTitleMasteryRed
+  name: fs-title-mastery-offense-name
+  description: fs-title-mastery-offense-desc
+  color: "#E53935"
+  buffDescription: fs-title-buff-offense
+  buff:
+    damage: 1.02
+
+- type: fsTitle
+  id: FSTitleMasteryBlue
+  name: fs-title-mastery-defense-name
+  description: fs-title-mastery-defense-desc
+  color: "#1E88E5"
+  buffDescription: fs-title-buff-defense
+  buff:
+    damageTaken: 0.98
+
+- type: fsTitle
+  id: FSTitleMasteryGreen
+  name: fs-title-mastery-utility-name
+  description: fs-title-mastery-utility-desc
+  color: "#43A047"
+  buffDescription: fs-title-buff-utility
+  buff:
+    speed: 1.02
+
+- type: fsTitle
+  id: FSTitleMasteryYellow
+  name: fs-title-mastery-economy-name
+  description: fs-title-mastery-economy-desc
+  color: "#FDD835"
+  buffDescription: fs-title-buff-economy
+  buff:
+    killCredits: 1.04
+    objectiveCredits: 1.04
+
+- type: fsTitle
+  id: FSTitleMasteryPurple
+  name: fs-title-mastery-hybrid-name
+  description: fs-title-mastery-hybrid-desc
+  color: "#8E24AA"
+  buffDescription: fs-title-buff-hybrid
+  buff:
+    damage: 1.01
+    damageTaken: 0.99
+    speed: 1.01
+
+- type: fsTitle
+  id: FSTitleMentor
+  name: fs-title-mentor-name
+  description: fs-title-mentor-desc
+  color: "#4DB6AC"
+  buffDescription: fs-title-buff-mentor
+  buff:
+    healing: 1.1
+
+- type: fsTitle
+  id: FSTitleGuardianAngel
+  name: fs-title-guardian-angel-name
+  description: fs-title-guardian-angel-desc
+  color: "#E1F5FE"
+  buffDescription: fs-title-buff-guardian-angel
+  buff:
+    downedHealing: 1.15
+
+- type: fsTitle
+  id: FSTitleShepherd
+  name: fs-title-shepherd-name
+  description: fs-title-shepherd-desc
+  color: "#AED581"
+  buffDescription: fs-title-buff-shepherd
+  buff:
+    xp: 1.03
+    killCredits: 1.03
+
+- type: fsTitle
+  id: FSTitleLighthouse
+  name: fs-title-lighthouse-name
+  description: fs-title-lighthouse-desc
+  color: "#FFE082"
+  buffDescription: fs-title-buff-lighthouse
+  buff:
+    speed: 1.02
+    healing: 1.05
+
+- type: fsTitle
+  id: FSTitleLivingLegend
+  name: fs-title-living-legend-name
+  description: fs-title-living-legend-desc
+  color: "#FF8A65"
+  buffDescription: fs-title-buff-living-legend
+  buff:
+    damage: 1.02
+    damageTaken: 0.98
+    maxHealth: 3
+
+- type: fsTitle
+  id: FSTitleBeyondTheWall
+  name: fs-title-beyond-the-wall-name
+  description: fs-title-beyond-the-wall-desc
+  color: "#FF7043"
+  buffDescription: fs-title-buff-beyond-the-wall
+  buff:
+    endlessDamage: 1.03

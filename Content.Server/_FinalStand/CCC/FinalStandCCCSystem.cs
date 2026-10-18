@@ -15,6 +15,9 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.CCC;
 
+[ByRefEvent]
+public readonly record struct FSCccDamagedEvent(EntityUid Ccc);
+
 public sealed partial class FinalStandCCCSystem : EntitySystem
 {
     [Dependency] private RoundEndSystem _roundEnd = default!;
@@ -88,6 +91,9 @@ public sealed partial class FinalStandCCCSystem : EntitySystem
     {
         if (!args.DamageIncreased)
             return;
+
+        var damaged = new FSCccDamagedEvent(uid);
+        RaiseLocalEvent(ref damaged);
 
         if (TryComp<FinalStandCCCTagComponent>(uid, out var tag)
             && tag.MaxHealth > 0f

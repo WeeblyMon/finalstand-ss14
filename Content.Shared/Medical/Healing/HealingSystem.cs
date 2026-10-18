@@ -95,7 +95,7 @@ public sealed partial class HealingSystem : EntitySystem
         if (healing.ModifyBloodLevel != 0 && bloodstream != null)
             _bloodstreamSystem.TryModifyBloodLevel((target.Owner, bloodstream), healing.ModifyBloodLevel);
 
-        var potency = new FSHealingPotencyEvent(1f); // FINALSTAND
+        var potency = new FSHealingPotencyEvent(1f, target.Owner); // FINALSTAND
         RaiseLocalEvent(args.User, ref potency);
         var topicalHealing = healing.Damage * (_damageable.UniversalTopicalsHealModifier * potency.Multiplier);
         var changedDamage = _damageable.TryChangeDamage(target.Owner, topicalHealing, out var healed, true, origin: args.Args.User);

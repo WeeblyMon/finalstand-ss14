@@ -5,3 +5,6 @@ namespace Content.Server._FinalStand.MedicalOps;
 /// </summary>
 [ByRefEvent]
 public readonly record struct FSAllyHealedEvent(EntityUid HealerMind, EntityUid Patient, float Amount);
+
+[ByRefEvent]
+public readonly record struct FSAllyRevivedEvent(EntityUid HealerMind, EntityUid Patient);

@@ -1,0 +1,29 @@
+fs-modifier-announce = Round modifier: [bold]{$name}[/bold]. {$description}
+fs-modifier-bonus = Modifiers this round add +{$percent}% to XP and credits. Type "rerollmodifiers" before wave 1 to vote for a reroll.
+fs-modifier-round-end = Modifiers: {$modifiers}
+fs-modifier-reroll-title = Reroll this round's modifiers?
+fs-modifier-reroll-yes = Yes, reroll
+fs-modifier-reroll-no = No, keep them
+fs-modifier-reroll-no-round = There's no wave survival round running.
+fs-modifier-reroll-too-late = Modifiers are locked once wave 1 starts.
+fs-modifier-reroll-used = The modifiers have already been put to a reroll vote this round.
+
+fs-modifier-swarm-name = Swarm
+fs-modifier-swarm-desc = Twice as many zombies, each with half the health. Area damage and piercing shine.
+fs-modifier-juggernauts-name = Juggernauts
+fs-modifier-juggernauts-desc = Zombies have 50% more health but move 15% slower. Focus fire.
+fs-modifier-frenzy-name = Frenzy
+fs-modifier-frenzy-desc = Zombies move 25% faster and hit 15% harder. Keep your lines tight.
+fs-modifier-night-shift-name = Night Shift
+fs-modifier-night-shift-desc = Prep time between waves is halved. Plan builds early.
+fs-modifier-elite-pack-name = Elite Pack
+fs-modifier-elite-pack-desc = Special zombies show up three times as often once they're unlocked.
+fs-modifier-regenerators-name = Regenerators
+fs-modifier-regenerators-desc = Zombies slowly heal. Sustained fire beats burst.
+
+cmd-rerollmodifiers-desc = Starts a vote to reroll this round's modifiers (once per round, before wave 1).
+cmd-rerollmodifiers-help = Usage: rerollmodifiers
+cmd-setmodifiers-desc = Sets this round's modifiers before wave 1 starts. No arguments clears them.
+cmd-setmodifiers-help = Usage: setmodifiers [modifier id ...]
+cmd-setmodifiers-unknown = Unknown modifier id.
+cmd-setmodifiers-refused = Modifiers can't be set now: no round, wave 1 already started, or the modifiers conflict.

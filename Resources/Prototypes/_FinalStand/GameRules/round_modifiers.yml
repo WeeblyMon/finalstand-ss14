@@ -1,0 +1,60 @@
+- type: fsRoundModifier
+  id: FSModifierSwarm
+  name: fs-modifier-swarm-name
+  description: fs-modifier-swarm-desc
+  tier: Mutation
+  rewardBonus: 0.15
+  enemyCount: 2
+  enemyHealth: 0.5
+
+- type: fsRoundModifier
+  id: FSModifierJuggernauts
+  name: fs-modifier-juggernauts-name
+  description: fs-modifier-juggernauts-desc
+  tier: Mutation
+  rewardBonus: 0.2
+  enemyHealth: 1.5
+  enemySpeed: 0.85
+  incompatible:
+  - FSModifierSwarm
+
+- type: fsRoundModifier
+  id: FSModifierFrenzy
+  name: fs-modifier-frenzy-name
+  description: fs-modifier-frenzy-desc
+  tier: Mutation
+  rewardBonus: 0.25
+  enemySpeed: 1.25
+  enemyDamage: 1.15
+
+- type: fsRoundModifier
+  id: FSModifierNightShift
+  name: fs-modifier-night-shift-name
+  description: fs-modifier-night-shift-desc
+  tier: Environmental
+  rewardBonus: 0.15
+  prepDuration: 0.5
+
+- type: fsRoundModifier
+  id: FSModifierElitePack
+  name: fs-modifier-elite-pack-name
+  description: fs-modifier-elite-pack-desc
+  tier: Mutation
+  rewardBonus: 0.3
+  specialChance: 3
+
+- type: fsRoundModifier
+  id: FSModifierRegenerators
+  name: fs-modifier-regenerators-name
+  description: fs-modifier-regenerators-desc
+  tier: Mutation
+  rewardBonus: 0.2
+  enemyComponents:
+  - type: PassiveDamage
+    allowedStates:
+    - Alive
+    interval: 1
+    damage:
+      groups:
+        Brute: -1.5
+        Burn: -1.5

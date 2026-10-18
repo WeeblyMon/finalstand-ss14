@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
+using Content.Server._FinalStand.Titles;
 using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
@@ -26,6 +27,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSPerkBuffSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSTitleBuffSystem _titleBuffs = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
@@ -125,6 +127,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var rampLevel = augs.GetSlottedLevel("Rampage");
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             mult *= 1f + ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageSpeedPerLevel;
+
+        mult *= FSArchetypeSystem.Bonus(augs).Speed;
+        mult *= _titleBuffs.ForBody(uid).Speed;
 
         if (Math.Abs(mult - 1f) > 0.0001f)
             args.ModifySpeed(mult, mult);

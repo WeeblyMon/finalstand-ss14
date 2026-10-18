@@ -62,6 +62,35 @@ public sealed partial class WaveHudOverlay : Overlay
     private float _hudScale = 1f;
     private float _hudResolutionFactor = 1f;
 
+    private readonly Dictionary<(string Text, Font Font, int Width), string> _fitCache = new();
+
+    private string FitText(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    {
+        var key = (text, font, (int) maxWidth);
+        if (_fitCache.TryGetValue(key, out var cached))
+            return cached;
+
+        if (_fitCache.Count > 256)
+            _fitCache.Clear();
+
+        return _fitCache[key] = TrimToWidth(screen, font, text, maxWidth);
+    }
+
+    private static string TrimToWidth(DrawingHandleScreen screen, Font font, string text, float maxWidth)
+    {
+        if (maxWidth <= 0f || screen.GetDimensions(font, text, 1f).X <= maxWidth)
+            return text;
+
+        for (var length = text.Length - 1; length > 0; length--)
+        {
+            var trimmed = text[..length].TrimEnd() + "…";
+            if (screen.GetDimensions(font, trimmed, 1f).X <= maxWidth)
+                return trimmed;
+        }
+
+        return string.Empty;
+    }
+
     public static float GetResolutionFactor(float screenWidth)
     {
         const float refWidth = 1920f;
@@ -143,6 +172,7 @@ public sealed partial class WaveHudOverlay : Overlay
     public float PanelTop = -1f;
     public float PanelWidth = 205f;
     public float RightColumnBottom = -1f;
+    public float LeftColumnBottom = -1f;
 
     public bool IsReadyUpVisible = false;
     public int  ReadyUpCount = 0;
@@ -163,6 +193,10 @@ public sealed partial class WaveHudOverlay : Overlay
     public readonly List<MedicalBuffRow> MedicalBuffs = new();
 
     public int MedicalFund;
+
+    public string? ObjectiveLabel;
+    public string ObjectiveValue = string.Empty;
+    public Color ObjectiveColor = FSPalette.Warn;
 
     public float DirectiveFlash;
     public Color DirectiveFlashColour = FSPalette.Ok;
@@ -312,6 +346,7 @@ public sealed partial class WaveHudOverlay : Overlay
             totalH += sepH + rowPad + labelH + 2f + labelH + 3f + btnH + rowPad;
         if (IsPrepPhase && PrepSecondsRemaining >= 0f) totalH += sepH + rowH;
         if (IsDarkWave || EnemiesTotal > 0) totalH += sepH + rowH;
+        if (ObjectiveLabel != null) totalH += sepH + rowH;
         totalH += sepH + rowH;
 
         var layoutRaw = _cfg.GetCVar(CCVars.UILayout);
@@ -462,8 +497,9 @@ public sealed partial class WaveHudOverlay : Overlay
             var textX = panelX + panelInset + rowIconSz + iconGap;
             var textBlockH = labelH + 4f + thisValueH;
             var textStartY = innerY + (rowContentH - textBlockH) / 2f;
-            screen.DrawString(_labelFont!, new Vector2(textX, textStartY), label, muted);
-            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), value, valueColor);
+            var textW = panelX + panelW - panelInset - textX;
+            screen.DrawString(_labelFont!, new Vector2(textX, textStartY), FitText(screen, _labelFont!, label, textW), muted);
+            screen.DrawString(font, new Vector2(textX, textStartY + labelH + 4f), FitText(screen, font, value, textW), valueColor);
             return y + sepH + rowH;
         }
 
@@ -479,6 +515,9 @@ public sealed partial class WaveHudOverlay : Overlay
         {
             y = DrawRow(_iconEnemies, "ENEMIES LEFT", _enemiesText, FSPalette.DangerSoft, _midFont);
         }
+
+        if (ObjectiveLabel != null)
+            y = DrawRow(_iconTimer, ObjectiveLabel, ObjectiveValue, ObjectiveColor, _labelFont);
 
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
@@ -541,12 +580,14 @@ public sealed partial class WaveHudOverlay : Overlay
         DrawShadowed(screen, _valueFont!, new Vector2(leftX, _creditsRowY), _creditsText,
             FSPalette.Money);
 
+        LeftColumnBottom = _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y;
         if (ShowMedicalFund)
         {
             var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
             DrawShadowed(screen, _labelFont!,
-                new Vector2(leftX, _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y + 2f),
+                new Vector2(leftX, LeftColumnBottom + 2f),
                 fundText, FSPalette.Ok);
+            LeftColumnBottom += 2f + screen.GetDimensions(_labelFont!, fundText, 1f).Y;
         }
 
         var creditsW = screen.GetDimensions(_valueFont!, _creditsText, 1f).X;
@@ -989,7 +1030,10 @@ public sealed partial class WaveHudOverlay : Overlay
             _storagePanelControl = FindNamedControlRecursive(screen, "StoragePanel", 0);
         }
 
-        return _storagePanelControl == null ? null : _storagePanelControl.GlobalPixelRect.Top;
+        if (_storagePanelControl is not { VisibleInTree: true } panel || panel.GlobalPixelRect.Height <= 0)
+            return null;
+
+        return panel.GlobalPixelRect.Top;
     }
 
     private readonly record struct BonusRow(string Label, string ValueText, Color ValueColor, string[] Tooltip, string IconKey);

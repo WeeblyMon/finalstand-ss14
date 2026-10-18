@@ -3,6 +3,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.Armor;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Ghost;
@@ -28,6 +29,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
+    [Dependency] private WaveGameRuleSystem _waveRule = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
 
     private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
@@ -252,12 +254,19 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
                 htn.Blackboard.SetValue("VisionRadius", boom.AggroVisionRadius);
             }
         }
-        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
+        foreach (var modifier in _waveRule.GetModifiers(comp))
+            EntityManager.AddComponents(enemy, modifier.EnemyComponents);
+
+        _scaling.ScaleEnemyHp(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave,
+            FSDifficultyRules.HealthMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyHealth));
         _scaling.ScaleBossForPlayers(enemy, comp.ScalingPlayersThisWave);
-        _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
-        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
+        _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber, _waveRule.ModifierFactor(comp, m => m.EnemySpeed));
+        _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave,
+            FSDifficultyRules.DamageMultiplier(comp.Difficulty) * _waveRule.ModifierFactor(comp, m => m.EnemyDamage));
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
         RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // FINALSTAND: armor system recalculates MaxArmor after HP scale
+        var spawned = new FSWaveEnemySpawnedEvent(enemy, proto);
+        RaiseLocalEvent(ref spawned);
         return enemy;
     }
 
@@ -275,7 +284,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     {
         foreach (var special in comp.SpecialEnemyPool)
         {
-            if (comp.WaveNumber >= special.FromWave && _random.NextFloat() < special.SpawnChance)
+            if (comp.WaveNumber >= special.FromWave
+                && _random.NextFloat() < special.SpawnChance * _waveRule.ModifierFactor(comp, m => m.SpecialChance))
                 return special.EnemyId;
         }
         return _random.Pick(pool);
@@ -406,3 +416,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return match?.EnemyPool ?? FallbackEnemyPool;
     }
 }
+
+[ByRefEvent]
+public readonly record struct FSWaveEnemySpawnedEvent(EntityUid Enemy, EntProtoId Prototype);
