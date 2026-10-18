@@ -22,6 +22,9 @@ using Content.Shared._FinalStand.Particles;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Audio;
 using Robust.Shared.Map;
+using Robust.Shared.Physics;
+using Robust.Shared.Map.Components;
+using Content.Shared.Physics;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -42,6 +45,8 @@ public sealed partial class FSRCDEngineerOnlySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MobStateSystem _mobState = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private Content.Shared.Maps.TurfSystem _turf = default!;
     [Dependency] private FSBreachEvaluator _breach = default!;
     [Dependency] private FSCarriedMaterialSystem _materials = default!;
     [Dependency] private ISharedPlayerManager _player = default!;
@@ -90,7 +95,7 @@ public sealed partial class FSRCDEngineerOnlySystem
         if (recipe.Station)
             return MissingMaterials(user, recipe);
 
-        if (!_placementRules.IsTileBuildable(location, blocksPath: true))
+        if (!_placementRules.IsTileBuildable(location, blocksPath: true) || FootprintBlocked(rcdProto, location))
             return Loc.GetString("fs-rcd-in-the-way");
 
         if (_breach.IsAdjacentToSpace(location))
@@ -113,6 +118,57 @@ public sealed partial class FSRCDEngineerOnlySystem
         }
 
         return MissingMaterials(user, recipe);
+    }
+
+    private bool FootprintBlocked(RCDPrototype piece, EntityCoordinates location)
+    {
+        if (piece.Prototype is not { } protoId
+            || !_proto.TryIndex<EntityPrototype>(protoId, out var proto)
+            || !proto.TryGetComponent<FixturesComponent>(out var fixtures, EntityManager.ComponentFactory)
+            || fixtures.Fixtures.Count == 0)
+            return false;
+
+        Box2? bounds = null;
+        foreach (var fixture in fixtures.Fixtures.Values)
+        {
+            var aabb = fixture.Shape.ComputeAABB(Robust.Shared.Physics.Transform.Empty, 0);
+            bounds = bounds is { } existing ? existing.Union(aabb) : aabb;
+        }
+
+        if (bounds is not { } box || box.Width <= 1.1f && box.Height <= 1.1f)
+            return false;
+
+        if (_transform.GetGrid(location) is not { } grid || !TryComp<MapGridComponent>(grid, out var gridComp))
+            return true;
+
+        var center = _mapSystem.TileIndicesFor(grid, gridComp, location);
+        var reachX = (int) MathF.Floor(box.Width / 2f + 0.05f);
+        var reachY = (int) MathF.Floor(box.Height / 2f + 0.05f);
+        for (var dx = -reachX; dx <= reachX; dx++)
+        {
+            for (var dy = -reachY; dy <= reachY; dy++)
+            {
+                var tile = center + new Vector2i(dx, dy);
+                if (!_mapSystem.TryGetTileRef(grid, gridComp, tile, out var tileRef)
+                    || tileRef.Tile.IsEmpty
+                    || _turf.IsTileBlocked(grid, tile, CollisionGroup.Impassable | CollisionGroup.HighImpassable, gridComp)
+                    || !_placementRules.IsTileBuildable(_mapSystem.GridTileToLocal(grid, gridComp, tile), blocksPath: true))
+                    return true;
+            }
+        }
+
+        var here = _transform.ToMapCoordinates(location).Position;
+        foreach (var other in _lookup.GetEntitiesInRange(location, MathF.Max(box.Width, box.Height)))
+        {
+            if (MetaData(other).EntityPrototype?.ID != protoId)
+                continue;
+
+            var delta = _transform.GetWorldPosition(other) - here;
+            if (MathF.Abs(delta.X) < box.Width && MathF.Abs(delta.Y) < box.Height)
+                return true;
+        }
+
+        return false;
     }
 
     private string? MissingMaterials(EntityUid user, FSBuildRecipePrototype recipe)
