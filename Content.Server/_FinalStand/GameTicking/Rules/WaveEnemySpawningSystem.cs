@@ -41,7 +41,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
     private readonly HashSet<string> _activeSides = new();
-    private System.Numerics.Vector2? _cccPosition;
+    private (EntityUid Grid, System.Numerics.Vector2 Local)? _cccAnchor;
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
     public void SelectSpawners(WaveGameRuleComponent comp, int players)
@@ -373,18 +373,23 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     {
         side = string.Empty;
 
-        var query = EntityQueryEnumerator<FinalStandCCCComponent>();
-        if (query.MoveNext(out var ccc, out _))
-            _cccPosition = _transform.GetWorldPosition(ccc);
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, TransformComponent>();
+        if (query.MoveNext(out var ccc, out _, out var cccXform) && cccXform.GridUid is { } grid)
+            _cccAnchor = (grid, GridLocal(grid, ccc));
 
-        if (_cccPosition is not { } cccPosition)
+        if (_cccAnchor is not { } anchor || !Exists(anchor.Grid))
             return false;
 
-        var delta = _transform.GetWorldPosition(spawner) - cccPosition;
+        var delta = GridLocal(anchor.Grid, spawner) - anchor.Local;
         side = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
             ? delta.X > 0 ? "E" : "W"
             : delta.Y > 0 ? "N" : "S";
         return true;
+    }
+
+    private System.Numerics.Vector2 GridLocal(EntityUid grid, EntityUid ent)
+    {
+        return System.Numerics.Vector2.Transform(_transform.GetWorldPosition(ent), _transform.GetInvWorldMatrix(grid));
     }
 
     public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)
