@@ -1,5 +1,6 @@
 using Content.Server.Popups;
 using Content.Server._Shitmed.DelayedDeath;
+using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -23,6 +24,17 @@ public sealed partial class FSUndyingSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSUndyingComponent, UpdateMobStateEvent>(OnUpdateMobState, after: [typeof(MobThresholdSystem)]);
         SubscribeLocalEvent<FSUndyingComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
+    }
+
+    private void OnPrepStarted(WavePrepStartedEvent ev)
+    {
+        var query = EntityQueryEnumerator<FSUndyingComponent>();
+        while (query.MoveNext(out _, out var undying))
+        {
+            if (undying.EndTime == null)
+                undying.Used = false;
+        }
     }
 
     public bool IsActive(EntityUid uid)
