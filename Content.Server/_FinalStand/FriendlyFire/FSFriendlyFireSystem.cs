@@ -6,6 +6,7 @@ using Content.Server.Lightning.Components;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared.Electrocution;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Projectiles;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;
 using Content.Shared.Ghost.Systems;
@@ -34,7 +35,7 @@ public sealed partial class FSFriendlyFireSystem : EntitySystem
 
     private void OnElectrocutionAttempt(EntityUid uid, FSFriendlyFireComponent _, ElectrocutionAttemptEvent args)
     {
-        if (args.SourceUid is { } source && HasComp<LightningComponent>(source))
+        if (args.SourceUid is { } source && (HasComp<LightningComponent>(source) || HasComp<ProjectileComponent>(source)))
             args.Cancel();
     }
 
