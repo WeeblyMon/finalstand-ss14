@@ -7,6 +7,7 @@ using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server._FinalStand.Titles;
 using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Weapons;
@@ -88,6 +89,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid) || HasComp<FSHMGComponent>(ev.Weapon))
             ev.AdditionalMultiplier *= DeadlyGearMultiplier(augs);
 
+        if (ev.Weapon is { } shotgun && _tags.HasTag(shotgun, ShotgunTag))
+            ev.AdditionalMultiplier *= OlReliableMultiplier(mindId, augs);
+
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
 
@@ -120,6 +124,24 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
             * FSPerkBonusConstants.GunslingerFireRatePerLevel;
+    }
+
+    public float OlReliableMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
+    {
+        var level = perks.GetSlottedLevel("OlReliable");
+        if (level <= 0)
+            return 1f;
+
+        var sentries = 0;
+        var query = EntityQueryEnumerator<FSSentryTurretComponent, FSDeployedByComponent>();
+        while (query.MoveNext(out var uid, out _, out var deployed))
+        {
+            if (deployed.OwnerMind == mindId && !TerminatingOrDeleted(uid))
+                sentries++;
+        }
+
+        return 1f + Math.Min(sentries, FSPerkBonusConstants.OlReliableMaxSentries) * level
+            * FSPerkBonusConstants.OlReliablePerSentryPerLevel;
     }
 
     public static float DeadlyGearMultiplier(FSPerkLevelsComponent perks)

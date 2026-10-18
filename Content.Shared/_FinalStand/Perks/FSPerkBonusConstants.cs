@@ -73,6 +73,8 @@ public static class FSPerkBonusConstants
     public const float BunkeredDownResistPerLevel = 0.10f;
     public const float BunkeredDownRadius = 12f;
     public const float DeadlyGearPerLevel = 0.05f;   // sentries, HMG and mines
+    public const float OlReliablePerSentryPerLevel = 0.02f;   // shotguns, per own sentry standing
+    public const int OlReliableMaxSentries = 5;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

@@ -44,6 +44,9 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSPerkBuffSystem _perkBuff = default!;
     [Dependency] private FSLoneWolfSystem _loneWolf = default!;
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
+    [Dependency] private TagSystem _tags = default!;
+
+    private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
     private static readonly FSBonusCategory Empty = new(0f, Array.Empty<string>());
 
@@ -196,6 +199,16 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var pct = deathAuraStacks * FSPerkBonusConstants.DeathAuraPerStack * 100f;
             dmgPct += pct;
             dmgSources.Add(FormatPct("Death Aura", pct));
+        }
+
+        if (perks != null && _tags.HasTag(heldUid, ShotgunTag) && _mind.TryGetMind(mob, out var reliableMind, out _))
+        {
+            var pct = (_perkBuff.OlReliableMultiplier(reliableMind, perks) - 1f) * 100f;
+            if (pct > 0f)
+            {
+                dmgPct += pct;
+                dmgSources.Add(FormatPct("Ol' Reliable", pct));
+            }
         }
 
         if (hasOfficer)
