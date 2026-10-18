@@ -161,14 +161,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var dmgPct = (dmgMul - 1f) * 100f;
         var dmgSources = new List<string>();
         if (dmgMul != 1f)
-            dmgSources.Add(FormatPct("Ordnance research", dmgPct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), dmgPct));
 
         var spLevel = perks?.GetSlottedLevel("StoppingPower") ?? 0;
         if (spLevel > 0 && !isLauncher)
         {
             var pct = spLevel * FSPerkBonusConstants.StoppingPowerPerLevel * 100f;
             dmgPct += pct;
-            dmgSources.Add(FormatPct("Stopping Power", pct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-stopping-power"), pct));
         }
 
         var gcLevel = perks?.GetSlottedLevel("GlassCannon") ?? 0;
@@ -176,28 +176,28 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             var pct = gcLevel * FSPerkBonusConstants.GlassCannonPerLevel * 100f;
             dmgPct += pct;
-            dmgSources.Add(FormatPct("Glass Cannon", pct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-glass-cannon"), pct));
         }
 
         if (deathAuraStacks > 0)
         {
             var pct = deathAuraStacks * FSPerkBonusConstants.DeathAuraPerStack * 100f;
             dmgPct += pct;
-            dmgSources.Add(FormatPct("Death Aura", pct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-death-aura"), pct));
         }
 
         if (hasOfficer)
         {
             var pct = officerLevel * FSPerkBonusConstants.OfficerBuffPerLevel * 100f;
             dmgPct += pct;
-            dmgSources.Add(FormatPct("Officer buff", pct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-officer-buff"), pct));
         }
 
         if ((perks?.GetSlottedLevel("Pacifist") ?? 0) > 0)
         {
             var pct = -FSPerkBonusConstants.PacifistPenalty * 100f;
             dmgPct += pct;
-            dmgSources.Add(FormatPct("Pacifist", pct));
+            dmgSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-pacifist"), pct));
         }
 
         AddPerkDamage(mob, perks, ranged: true, ref dmgPct, dmgSources);
@@ -212,28 +212,28 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var frPct = (fireRateMul - 1f) * 100f;
         var frSources = new List<string>();
         if (fireRateMul != 1f)
-            frSources.Add(FormatPct("Ordnance research", frPct));
+            frSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), frPct));
 
         var bsLevel = perks?.GetSlottedLevel("BulletStorm") ?? 0;
         if (bsLevel > 0)
         {
             var pct = bsLevel * FSPerkBonusConstants.BulletStormPerLevel * 100f;
             frPct += pct;
-            frSources.Add(FormatPct("Bullet Storm", pct));
+            frSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-bullet-storm"), pct));
         }
         fireRate = new FSBonusCategory(frPct, frSources.ToArray());
 
         var reloadTotal = reloadPct * 100f;
         var reloadSources = new List<string>();
         if (reloadPct != 0f)
-            reloadSources.Add(FormatPct("Ordnance research", reloadTotal));
+            reloadSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), reloadTotal));
 
         var bloodload = _bloodload.GetReloadTimeMultiplier(mob);
         if (bloodload < 1f)
         {
             var pct = (1f / bloodload - 1f) * 100f;
             reloadTotal += pct;
-            reloadSources.Add(FormatPct("Bloodload", pct));
+            reloadSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-bloodload"), pct));
         }
 
         var speedload = _speedload.GetReloadTimeMultiplier(mob);
@@ -241,21 +241,21 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             var pct = (1f / speedload - 1f) * 100f;
             reloadTotal += pct;
-            reloadSources.Add(FormatPct("Speedload", pct));
+            reloadSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-speedload"), pct));
         }
         reloadSpeed = reloadSources.Count > 0 ? new FSBonusCategory(reloadTotal, reloadSources.ToArray()) : Empty;
 
         var magPct = _researchStatic.GetMagazinePercentBonus(isBallistic, isL6, isMinigun, isHydra) * 100f;
         var magSources = new List<string>();
         if (magPct != 0f)
-            magSources.Add(FormatPct("Ordnance research", magPct));
+            magSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), magPct));
 
         var bandolierLevel = perks?.GetSlottedLevel("Bandolier") ?? 0;
         if (bandolierLevel > 0)
         {
             var pct = bandolierLevel * FSPerkBonusConstants.BandolierPerLevel * 100f;
             magPct += pct;
-            magSources.Add(FormatPct("Bandolier", pct));
+            magSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-bandolier"), pct));
         }
         magazineSize = magSources.Count > 0 ? new FSBonusCategory(magPct, magSources.ToArray()) : Empty;
     }
@@ -270,7 +270,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             var p = snsLevel * FSPerkBonusConstants.SwordAndShieldPerLevel * 100f;
             pct += p;
-            sources.Add(FormatPct("Sword & Shield", p));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-sword-and-shield"), p));
         }
 
         var gcLevel = perks?.GetSlottedLevel("GlassCannon") ?? 0;
@@ -278,14 +278,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             var p = gcLevel * FSPerkBonusConstants.GlassCannonPerLevel * 100f;
             pct += p;
-            sources.Add(FormatPct("Glass Cannon", p));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-glass-cannon"), p));
         }
 
         if ((perks?.GetSlottedLevel("Pacifist") ?? 0) > 0)
         {
             var p = -FSPerkBonusConstants.PacifistPenalty * 100f;
             pct += p;
-            sources.Add(FormatPct("Pacifist", p));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-pacifist"), p));
         }
 
         AddPerkDamage(mob, perks, ranged: false, ref pct, sources);
@@ -302,21 +302,21 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (medic > 0f)
         {
             total += medic;
-            sources.Add(FormatPct("Combat Medic", medic));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-combat-medic"), medic));
         }
 
         var berserker = (_berserker.GetMultiplier(mob, perks, ranged) - 1f) * 100f;
         if (berserker > 0.5f)
         {
             total += berserker;
-            sources.Add(FormatPct("Berserker", berserker));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-berserker"), berserker));
         }
 
         var underdog = (_underdog.GetMultiplier(mob, perks) - 1f) * 100f;
         if (underdog > 0f)
         {
             total += underdog;
-            sources.Add(FormatPct("Underdog", underdog));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-underdog"), underdog));
         }
     }
 
@@ -335,9 +335,9 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         var chanceSources = new List<string>();
         if (weaponChance > 0f)
-            chanceSources.Add(FormatPct("Weapon", weaponChance * 100f));
+            chanceSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-weapon"), weaponChance * 100f));
         if (perkChance > 0f)
-            chanceSources.Add(FormatPct(melee ? "Ravage" : "Rifleman", perkChance * 100f));
+            chanceSources.Add(FormatPct(Loc.GetString(melee ? "fs-hud-bonus-ravage" : "fs-hud-bonus-rifleman"), perkChance * 100f));
         critChance = new FSBonusCategory(chance * 100f, chanceSources.ToArray());
 
         // Melee weapons without their own crit use the perk crit multiplier.
@@ -346,9 +346,9 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             : _crit.CalculateCritMultiplier(weapon);
         var perkMultiplier = _perkCrit.GetCritMultiplierBonus(mob, weapon);
 
-        var damageSources = new List<string> { FormatPct("Weapon", (baseMultiplier - 1f) * 100f) };
+        var damageSources = new List<string> { FormatPct(Loc.GetString("fs-hud-bonus-weapon"), (baseMultiplier - 1f) * 100f) };
         if (perkMultiplier > 0f)
-            damageSources.Add(FormatPct("Perks", perkMultiplier * 100f));
+            damageSources.Add(FormatPct(Loc.GetString("fs-hud-bonus-perks"), perkMultiplier * 100f));
         critDamage = new FSBonusCategory((baseMultiplier + perkMultiplier - 1f) * 100f, damageSources.ToArray());
     }
 
@@ -360,20 +360,20 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (TryComp<FSPerkMeleeSpeedComponent>(mob, out var ravage) && ravage.Multiplier > 1f)
         {
             total *= ravage.Multiplier;
-            sources.Add(FormatPct("Ravage", (ravage.Multiplier - 1f) * 100f));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ravage"), (ravage.Multiplier - 1f) * 100f));
         }
 
         if (TryComp<FSWeaponUpgradeStateComponent>(weapon, out var state) && state.AttackSpeedMultiplier > 1f)
         {
             total *= state.AttackSpeedMultiplier;
-            sources.Add(FormatPct("Upgrades", (state.AttackSpeedMultiplier - 1f) * 100f));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-upgrades"), (state.AttackSpeedMultiplier - 1f) * 100f));
         }
 
         var medical = _medicalBonus.GetBonus(mob, FSMedicalBonusCategory.MeleeSpeed);
         if (medical > 0f)
         {
             total *= 1f + medical;
-            sources.Add(FormatPct("Medical buff", medical * 100f));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-medical-buff"), medical * 100f));
         }
 
         return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
@@ -403,20 +403,20 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (underdog > 1f)
         {
             taken *= 1f / underdog;
-            sources.Add(FormatPct("Underdog", (1f - 1f / underdog) * 100f));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-underdog"), (1f - 1f / underdog) * 100f));
         }
 
         if (sources.Count == 0)
             return Empty;
 
-        sources.Add($"= {(1f - taken) * 100f:0.#}% less damage taken");
+        sources.Add(Loc.GetString("fs-hud-bonus-resist-total", ("pct", ((1f - taken) * 100f).ToString("0.#"))));
         return new FSBonusCategory(points * 100f, sources.ToArray());
     }
 
-    private static string ResistLabel(string perkId) => perkId switch
+    private string ResistLabel(string perkId) => perkId switch
     {
-        "Juggernaught" => "Juggernaught (zombies)",
-        "SwordAndShield" => "Sword & Shield",
+        "Juggernaught" => Loc.GetString("fs-hud-bonus-juggernaught-zombies"),
+        "SwordAndShield" => Loc.GetString("fs-hud-bonus-sword-and-shield"),
         _ => FSPerkDef.All.TryGetValue(perkId, out var def) ? def.Name : perkId,
     };
 
@@ -437,20 +437,20 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         var lightweight = perks.GetSlottedLevel("Lightweight");
         if (lightweight > 0)
-            Add("Lightweight", lightweight * FSPerkBonusConstants.LightweightPerLevel);
+            Add(Loc.GetString("fs-hud-bonus-lightweight"), lightweight * FSPerkBonusConstants.LightweightPerLevel);
 
         var speedDemon = perks.GetSlottedLevel("SpeedDemon");
         if (speedDemon > 0 && TryComp<FSSpeedDemonComponent>(mindId, out var sd) && sd.Stacks > 0)
-            Add("Speed Demon", sd.Stacks * speedDemon * FSPerkBonusConstants.SpeedDemonPerLevel);
+            Add(Loc.GetString("fs-hud-bonus-speed-demon"), sd.Stacks * speedDemon * FSPerkBonusConstants.SpeedDemonPerLevel);
 
         var rampage = perks.GetSlottedLevel("Rampage");
         if (rampage > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
-            Add("Rampage", ramp.Stacks * rampage * FSPerkBonusConstants.RampageSpeedPerLevel);
+            Add(Loc.GetString("fs-hud-bonus-rampage"), ramp.Stacks * rampage * FSPerkBonusConstants.RampageSpeedPerLevel);
 
         return sources.Count > 0 ? new FSBonusCategory((total - 1f) * 100f, sources.ToArray()) : Empty;
     }
 
-    private static void AddImplosion(FSPerkLevelsComponent? perks, ref float total, List<string> sources)
+    private void AddImplosion(FSPerkLevelsComponent? perks, ref float total, List<string> sources)
     {
         var level = perks?.GetSlottedLevel("Implosion") ?? 0;
         if (level <= 0)
@@ -458,7 +458,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         var pct = FSPerkBonusConstants.ImplosionDamage[Math.Min(level, FSPerkDef.MaxLevel) - 1] * 100f;
         total += pct;
-        sources.Add(FormatPct("Implosion", pct));
+        sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-implosion"), pct));
     }
 
     private FSBonusCategory ComputeGrenadeExplosiveDamage(FSPerkLevelsComponent? perks)
@@ -470,14 +470,15 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         if (mul != 1f)
         {
             pct = (mul - 1f) * 100f;
-            sources.Add(FormatPct("Ordnance research", pct));
+            sources.Add(FormatPct(Loc.GetString("fs-hud-bonus-ordnance-research"), pct));
         }
 
         AddImplosion(perks, ref pct, sources);
         return sources.Count > 0 ? new FSBonusCategory(pct, sources.ToArray()) : Empty;
     }
 
-    private static string FormatPct(string label, float pct) => $"{label} {(pct >= 0 ? "+" : "")}{pct:0.#}%";
+    private string FormatPct(string label, float pct) =>
+        Loc.GetString("fs-hud-bonus-source", ("label", label), ("pct", $"{(pct >= 0 ? "+" : "")}{pct:0.#}"));
 
     // Debug-only, backs the fsdebugbonus console command.
     public string DescribeFor(EntityUid mob)

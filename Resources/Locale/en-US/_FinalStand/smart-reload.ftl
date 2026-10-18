@@ -1,0 +1,12 @@
+fs-smart-reload-self-recharges = This weapon self-recharges.
+fs-smart-reload-needs-recharger = Needs cell recharger.
+fs-smart-reload-no-cell = No power cell found.
+fs-smart-reload-no-magazine = No compatible magazine found.
+fs-smart-reload-magazines-empty = All magazines are empty.
+fs-smart-reload-cylinder-full = Cylinder is full.
+fs-smart-reload-cylinder-mixed = Mixed ammo in cylinder — reload manually.
+fs-smart-reload-no-ammo = No compatible ammo found.
+fs-smart-reload-minigun = Minigun can only be reloaded from ammo resupply.
+fs-smart-reload-already-full = Already full.
+fs-smart-reload-tube-mixed = Mixed ammo loaded — reload manually.
+fs-smart-reload-unavailable = No reload action available.

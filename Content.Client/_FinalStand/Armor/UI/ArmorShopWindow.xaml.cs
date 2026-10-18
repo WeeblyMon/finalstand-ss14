@@ -28,8 +28,17 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
     private static readonly string[] RankNumerals = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
-    private static readonly string[] DisplayOrder =
-        ["Blunt", "Slash", "Piercing", "Heat", "Radiation", "Caustic", "Shock", "Explosion"];
+    private static readonly (string Type, string Label)[] DisplayOrder =
+    [
+        ("Blunt", "fs-armor-shop-resist-blunt"),
+        ("Slash", "fs-armor-shop-resist-slash"),
+        ("Piercing", "fs-armor-shop-resist-piercing"),
+        ("Heat", "fs-armor-shop-resist-heat"),
+        ("Radiation", "fs-armor-shop-resist-radiation"),
+        ("Caustic", "fs-armor-shop-resist-caustic"),
+        ("Shock", "fs-armor-shop-resist-shock"),
+        ("Explosion", "fs-armor-shop-resist-explosion"),
+    ];
 
     public ArmorShopWindow()
     {
@@ -127,7 +136,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
         if (isEquipped)
         {
-            text.AddChild(new Label { Text = "EQUIPPED", Modulate = FSUiPalette.StatePositive });
+            text.AddChild(new Label { Text = Loc.GetString("fs-armor-shop-equipped"), Modulate = FSUiPalette.StatePositive });
         }
         else
         {
@@ -157,7 +166,8 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         }
 
         SelectedTierName.Text = tier.Name;
-        SelectedTierRank.Text = $"TIER {(index < RankNumerals.Length ? RankNumerals[index] : (index + 1).ToString())}";
+        SelectedTierRank.Text = Loc.GetString("fs-armor-shop-tier",
+            ("rank", index < RankNumerals.Length ? RankNumerals[index] : (index + 1).ToString()));
 
         PreviewContainer.DisposeAllChildren();
         var preview = new EntityPrototypeView { Scale = new Vector2(2f, 2f) };
@@ -175,17 +185,17 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
         var stats = FSArmorShopDefs.GetStats(tier, _protos, _factory);
 
-        StatsContainer.AddChild(SectionLabel("PROTECTION"));
+        StatsContainer.AddChild(SectionLabel(Loc.GetString("fs-armor-shop-protection")));
 
         var any = false;
-        foreach (var damageType in DisplayOrder)
+        foreach (var (damageType, labelKey) in DisplayOrder)
         {
             if (!stats.Resistances.TryGetValue(damageType, out var reduction) || reduction == 0f)
                 continue;
 
             any = true;
             StatsContainer.AddChild(BuildStatBar(
-                damageType,
+                Loc.GetString(labelKey),
                 reduction,
                 $"{reduction * 100:0}%",
                 FSUiPalette.StatePositive));
@@ -195,21 +205,21 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         {
             any = true;
             StatsContainer.AddChild(BuildStatBar(
-                "Stamina",
+                Loc.GetString("fs-armor-shop-stamina"),
                 stats.StaminaReduction,
                 $"{stats.StaminaReduction * 100:0}%",
                 FSUiPalette.StatePositive));
         }
 
         if (!any)
-            StatsContainer.AddChild(new Label { Text = "No protection.", Modulate = FSUiPalette.TextMuted });
+            StatsContainer.AddChild(new Label { Text = Loc.GetString("fs-armor-shop-no-protection"), Modulate = FSUiPalette.TextMuted });
 
         StatsContainer.AddChild(new Control { MinHeight = 10 });
-        StatsContainer.AddChild(SectionLabel("MOBILITY"));
+        StatsContainer.AddChild(SectionLabel(Loc.GetString("fs-armor-shop-mobility")));
 
         var speedPct = stats.SpeedMod * 100f;
         StatsContainer.AddChild(BuildStatBar(
-            "Speed",
+            Loc.GetString("fs-armor-shop-speed"),
             MathF.Abs(stats.SpeedMod),
             speedPct >= 0f ? $"+{speedPct:0}%" : $"{speedPct:0}%",
             stats.SpeedMod >= 0f ? FSUiPalette.StatePositive : FSUiPalette.StateNegative));
@@ -224,28 +234,28 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         var isEquipped = tier.Id == _state?.EquippedTierId;
         var canAfford = CanAffordTier(tier);
 
-        CostContainer.AddChild(CostRow("Price", $"${tier.Price:N0}", FSUiPalette.TextMuted));
+        CostContainer.AddChild(CostRow(Loc.GetString("fs-armor-shop-price"), $"${tier.Price:N0}", FSUiPalette.TextMuted));
 
         if (refund > 0 && !isEquipped)
-            CostContainer.AddChild(CostRow("Trade-in", $"-${refund:N0}", FSUiPalette.StatePositive));
+            CostContainer.AddChild(CostRow(Loc.GetString("fs-armor-shop-trade-in"), $"-${refund:N0}", FSUiPalette.StatePositive));
 
-        CostContainer.AddChild(CostRow("TOTAL", $"${net:N0}",
+        CostContainer.AddChild(CostRow(Loc.GetString("fs-armor-shop-total"), $"${net:N0}",
             canAfford || isEquipped ? FSUiPalette.Currency : FSUiPalette.StateNegative));
 
         if (isEquipped)
         {
-            BuyButton.Text = "EQUIPPED";
+            BuyButton.Text = Loc.GetString("fs-armor-shop-equipped");
             BuyButton.Disabled = true;
         }
         else if (!canAfford)
         {
             var short_ = net - (_state?.Credits ?? 0);
-            BuyButton.Text = $"NEED ${short_:N0} MORE";
+            BuyButton.Text = Loc.GetString("fs-armor-shop-need-more", ("amount", short_.ToString("N0")));
             BuyButton.Disabled = true;
         }
         else
         {
-            BuyButton.Text = $"BUY  —  ${net:N0}";
+            BuyButton.Text = Loc.GetString("fs-armor-shop-buy", ("price", net.ToString("N0")));
             BuyButton.Disabled = false;
         }
     }

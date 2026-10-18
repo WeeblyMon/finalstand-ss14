@@ -60,10 +60,11 @@ public sealed partial class FieldKitStationWindow
         var inventory = _state?.Inventory ?? new List<ReagentInventoryItem>();
 
         var tissue = new List<Control>();
-        if (Matches("Tissue"))
+        var tissueName = Loc.GetString("fs-field-kit-station-tissue");
+        if (Matches(tissueName))
         {
             var tank = _state?.Tank ?? FixedPoint2.Zero;
-            tissue.Add(ReagentTile("Tissue", Tissue, $"{tank}u in tank", OliveText, jugReady && tank > 0, true, () => OnDispense?.Invoke(null, _amount)));
+            tissue.Add(ReagentTile(tissueName, Tissue, Loc.GetString("fs-field-kit-station-raw-in-tank", ("amount", tank.ToString())), OliveText, jugReady && tank > 0, true, () => OnDispense?.Invoke(null, _amount)));
         }
 
         var kitTiles = new List<Control>();
@@ -75,7 +76,7 @@ public sealed partial class FieldKitStationWindow
                 continue;
 
             var location = item.StorageLocation;
-            var tile = ReagentTile(name, item.ReagentColor.WithAlpha(1f), $"{item.Quantity}u left", Dim,
+            var tile = ReagentTile(name, item.ReagentColor.WithAlpha(1f), Loc.GetString("fs-field-kit-station-raw-left", ("amount", item.Quantity.ToString())), Dim,
                 jugReady && item.Quantity > 0, false, () => OnDispense?.Invoke(location, _amount));
             (item.ReagentId != null && parts.Contains(item.ReagentId) ? kitTiles : otherTiles).Add(tile);
         }
@@ -85,15 +86,15 @@ public sealed partial class FieldKitStationWindow
         {
             var name = ReagentName(missing);
             if (Matches(name))
-                kitTiles.Add(ReagentTile(name, ReagentColor(missing), "print at the lathe", Research, false, false, () => { }));
+                kitTiles.Add(ReagentTile(name, ReagentColor(missing), Loc.GetString("fs-field-kit-station-raw-print"), Research, false, false, () => { }));
         }
 
-        AddGroup("TISSUE", "Straight from the station's tank", tissue);
-        AddGroup("FIELD KIT PARTS", "The second half of every potion", kitTiles);
-        AddGroup("ELEMENTS", "For doctors' chems and anything off-book", otherTiles);
+        AddGroup(Loc.GetString("fs-field-kit-station-raw-group-tissue"), Loc.GetString("fs-field-kit-station-raw-group-tissue-hint"), tissue);
+        AddGroup(Loc.GetString("fs-field-kit-station-raw-group-parts"), Loc.GetString("fs-field-kit-station-raw-group-parts-hint"), kitTiles);
+        AddGroup(Loc.GetString("fs-field-kit-station-raw-group-elements"), Loc.GetString("fs-field-kit-station-raw-group-elements-hint"), otherTiles);
 
         if (RawGroups.ChildCount == 0)
-            RawGroups.AddChild(Muted($"No reagent matches \"{filter}\"."));
+            RawGroups.AddChild(Muted(Loc.GetString("fs-field-kit-station-raw-no-match", ("filter", filter))));
     }
 
     private void AddGroup(string title, string hint, List<Control> tiles)
@@ -125,7 +126,7 @@ public sealed partial class FieldKitStationWindow
             Disabled = !enabled,
             Modulate = enabled ? Color.White : Color.White.WithAlpha(0.55f),
             StyleBoxOverride = Box(tank ? Color.FromHex("#1c2218") : FSUiPalette.BgSurface, tank ? Color.FromHex("#3e4a2f") : FSUiPalette.BgTrack, new Thickness(1), 6, 0),
-            ToolTip = enabled ? $"Dispense {_amount}u into the jug" : null,
+            ToolTip = enabled ? Loc.GetString("fs-field-kit-station-raw-dispense", ("amount", _amount)) : null,
         };
         var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10, VerticalAlignment = VAlignment.Center };
         row.AddChild(Swatch(color, 10, 26));

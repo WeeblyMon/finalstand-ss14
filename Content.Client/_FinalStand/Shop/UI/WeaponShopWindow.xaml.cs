@@ -252,14 +252,14 @@ public sealed partial class WeaponShopWindow : FancyWindow
         _sellRefund = refund;
         _owned = hasWeapon;
 
-        OwnedChipLabel.Text = hasWeapon ? "OWNED" : "NOT OWNED";
+        OwnedChipLabel.Text = hasWeapon ? Loc.GetString("fs-weapon-shop-owned") : Loc.GetString("fs-weapon-shop-not-owned");
         OwnedChipLabel.FontColorOverride = hasWeapon ? FSPerkPalette.Accent[PerkCategory.Green] : FSUiPalette.TextMuted;
         OwnedChip.PanelOverride = hasWeapon
             ? Box(FSPerkPalette.Background[PerkCategory.Green], FSPerkPalette.Edge[PerkCategory.Green], new Thickness(1))
             : Box(FSUiPalette.BgRecess, FSUiPalette.BorderNeutral, new Thickness(1));
 
         SellButton.Visible = hasWeapon;
-        NotOwnedLabel.Text = hasWeapon ? "" : "Buy and carry this weapon to upgrade it.";
+        NotOwnedLabel.Text = hasWeapon ? "" : Loc.GetString("fs-weapon-shop-not-owned-hint");
         if (!_inConfirmState)
             ExitConfirmState();
 
@@ -293,9 +293,9 @@ public sealed partial class WeaponShopWindow : FancyWindow
 
         var afford = _credits >= _price;
         BuyButton.Disabled = !afford;
-        BuyButton.Text = !afford ? $"BUY · {Money(_price)} ({Money(_price - _credits)} SHORT)"
-            : _owned ? $"BUY ANOTHER · {Money(_price)}"
-            : $"BUY · {Money(_price)}";
+        BuyButton.Text = !afford ? Loc.GetString("fs-weapon-shop-buy-short", ("price", Money(_price)), ("short", Money(_price - _credits)))
+            : _owned ? Loc.GetString("fs-weapon-shop-buy-another", ("price", Money(_price)))
+            : Loc.GetString("fs-weapon-shop-buy", ("price", Money(_price)));
 
         // Only the first purchase is the window's primary action.
         var primary = afford && !_owned;
@@ -309,7 +309,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
     {
         _inConfirmState = true;
         _confirmTimer = ConfirmTimeout;
-        SellButton.Text = $"CONFIRM SELL · {Money(_sellRefund)}";
+        SellButton.Text = Loc.GetString("fs-weapon-shop-sell-confirm", ("refund", Money(_sellRefund)));
         SellButton.StyleBoxOverride = Box(Color.FromHex("#b3402f"), FSUiPalette.StateNegative, new Thickness(1), 10, 0);
         SellButton.Label.FontColorOverride = Color.White;
         KeepButton.Visible = true;
@@ -319,10 +319,10 @@ public sealed partial class WeaponShopWindow : FancyWindow
     {
         _inConfirmState = false;
         _confirmTimer = 0f;
-        SellButton.Text = $"SELL · {Money(_sellRefund)}";
+        SellButton.Text = Loc.GetString("fs-weapon-shop-sell", ("refund", Money(_sellRefund)));
         SellButton.StyleBoxOverride = Box(FSUiPalette.BgDeep, FSUiPalette.BorderNeutral, new Thickness(1), 10, 0);
         SellButton.Label.FontColorOverride = FSUiPalette.TextMuted;
-        SellButton.ToolTip = "Refunds 40% of the price and 40% of what you spent upgrading it.";
+        SellButton.ToolTip = Loc.GetString("fs-weapon-shop-sell-tooltip");
         KeepButton.Visible = false;
     }
 

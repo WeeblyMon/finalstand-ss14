@@ -14,12 +14,12 @@ public sealed partial class FieldKitStationWindow
     private const int FillJug = -1;
     private const string DeliveryEither = "fs-field-kit-delivery-either";
 
-    private static readonly (int Volume, string Title, string Sub)[] Batches =
+    private static readonly (int Volume, string Title, string? Sub)[] Batches =
     {
-        (50, "FLASK", "50u"),
-        (100, "100u", "2 flasks"),
-        (200, "MAGAZINE", "200u"),
-        (FillJug, "FILL JUG", ""),
+        (50, "fs-field-kit-station-batch-flask", "fs-field-kit-station-batch-50u"),
+        (100, "fs-field-kit-station-batch-100u", "fs-field-kit-station-batch-two-flasks"),
+        (200, "fs-field-kit-station-batch-magazine", "fs-field-kit-station-batch-200u"),
+        (FillJug, "fs-field-kit-station-batch-fill-jug", null),
     };
 
     private int _batch = 200;
@@ -33,8 +33,8 @@ public sealed partial class FieldKitStationWindow
         BatchRow.RemoveAllChildren();
         foreach (var (volume, title, sub) in Batches)
         {
-            var label = volume == FillJug ? $"{FillVolume()}u" : sub;
-            BatchRow.AddChild(Option(title, label, _batch == volume, true, () =>
+            var label = volume == FillJug ? $"{FillVolume()}u" : sub == null ? "" : Loc.GetString(sub);
+            BatchRow.AddChild(Option(Loc.GetString(title), label, _batch == volume, true, () =>
             {
                 _batch = volume;
                 BuildBatchRow();
@@ -58,13 +58,17 @@ public sealed partial class FieldKitStationWindow
         var room = tankMax - tank;
         var dump = FixedPoint2.Min(satchel, room);
         var canDump = dump > 0;
-        DumpButton.Text = satchel <= 0 ? "SATCHEL EMPTY" : room <= 0 ? "TANK FULL" : $"DUMP {dump}u  →";
+        DumpButton.Text = satchel <= 0
+            ? Loc.GetString("fs-field-kit-station-satchel-empty")
+            : room <= 0
+                ? Loc.GetString("fs-field-kit-station-tank-full")
+                : Loc.GetString("fs-field-kit-station-dump", ("amount", dump.ToString()));
         DumpButton.Disabled = !canDump;
         DumpButton.StyleBoxOverride = canDump
             ? Box(Olive, OliveText, new Thickness(1), 14, 0)
             : Box(FSUiPalette.BgElevated, FSUiPalette.BgTrack, new Thickness(1), 14, 0);
         DumpButton.Label.FontColorOverride = canDump ? FSUiPalette.BgDeep : FSUiPalette.TextMuted;
-        DumpButton.ToolTip = "Empties every harvest satchel you are carrying. Using a satchel on the station does the same.";
+        DumpButton.ToolTip = Loc.GetString("fs-field-kit-station-dump-tooltip");
     }
 
     private int FillVolume()
@@ -107,20 +111,22 @@ public sealed partial class FieldKitStationWindow
                 if (!fromTank && have <= 0 && kit.Research)
                 {
                     locked = true;
-                    blocker = $"NEEDS {ReagentName(reagent).ToUpperInvariant()}";
+                    blocker = Loc.GetString("fs-field-kit-station-needs", ("reagent", ReagentName(reagent).ToUpperInvariant()));
                 }
                 else
                 {
-                    blocker ??= $"{need - have}u {(fromTank ? "TISSUE" : ReagentName(reagent).ToUpperInvariant())} SHORT";
+                    blocker ??= Loc.GetString("fs-field-kit-station-short",
+                        ("amount", (need - have).ToString()),
+                        ("reagent", (fromTank ? Loc.GetString("fs-field-kit-station-tissue") : ReagentName(reagent)).ToUpperInvariant()));
                 }
             }
 
             if (_state?.Jug == null)
-                blocker = "NO JUG";
+                blocker = Loc.GetString("fs-field-kit-station-no-jug");
             else if (batches < 1 || volume > JugFree.Float())
-                blocker = "JUG FULL";
+                blocker = Loc.GetString("fs-field-kit-station-jug-full");
             else if (_state is { Powered: false })
-                blocker = "NO POWER";
+                blocker = Loc.GetString("fs-field-kit-station-no-power");
 
             yield return new BrewPlan(kit, reaction, product != null ? ReagentColor(product) : Color.White,
                 (int) (yield.Float() * batches), parts, blocker, locked);
@@ -155,10 +161,12 @@ public sealed partial class FieldKitStationWindow
         var head = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8 };
         head.AddChild(Swatch(plan.Color, 12, 12));
         head.AddChild(new Label { Text = Loc.GetString(plan.Kit.Name), FontOverride = _title, FontColorOverride = FSUiPalette.TextPrimary, HorizontalExpand = true, ClipText = true });
-        foreach (var tag in plan.Kit.Delivery == DeliveryEither ? new[] { "DART", "FLASK" } : new[] { "FLASK" })
+        foreach (var tag in plan.Kit.Delivery == DeliveryEither
+                     ? new[] { "fs-field-kit-station-tag-dart", "fs-field-kit-station-tag-flask" }
+                     : new[] { "fs-field-kit-station-tag-flask" })
         {
             var chip = new PanelContainer { VerticalAlignment = VAlignment.Center, PanelOverride = Box(Color.Transparent, FSUiPalette.BorderNeutral, new Thickness(1), 4, 0) };
-            chip.AddChild(new Label { Text = tag, FontOverride = _caption, FontColorOverride = FSUiPalette.TextMuted });
+            chip.AddChild(new Label { Text = Loc.GetString(tag), FontOverride = _caption, FontColorOverride = FSUiPalette.TextMuted });
             head.AddChild(chip);
         }
         body.AddChild(head);
@@ -169,11 +177,16 @@ public sealed partial class FieldKitStationWindow
         {
             var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 8 };
             row.AddChild(Swatch(fromTank ? Tissue : ReagentColor(reagent), 8, 8));
-            row.AddChild(new Label { Text = $"{(fromTank ? "Tissue" : ReagentName(reagent))} {need}u", HorizontalExpand = true, ClipText = true });
+            row.AddChild(new Label { Text = Loc.GetString("fs-field-kit-station-part",
+                    ("name", fromTank ? Loc.GetString("fs-field-kit-station-tissue") : ReagentName(reagent)),
+                    ("amount", need.ToString())), HorizontalExpand = true, ClipText = true });
             var ok = have >= need;
             row.AddChild(new Label
             {
-                Text = fromTank ? $"tank {have}u" : have > 0 ? $"stock {have}u" : plan.ResearchLocked ? "research" : "none",
+                Text = fromTank ? Loc.GetString("fs-field-kit-station-part-tank", ("amount", have.ToString()))
+                    : have > 0 ? Loc.GetString("fs-field-kit-station-part-stock", ("amount", have.ToString()))
+                    : plan.ResearchLocked ? Loc.GetString("fs-field-kit-station-part-research")
+                    : Loc.GetString("fs-field-kit-station-part-none"),
                 FontOverride = _caption,
                 FontColorOverride = ok ? OliveText : plan.ResearchLocked ? Research : FSUiPalette.StateNegative,
             });
@@ -183,14 +196,15 @@ public sealed partial class FieldKitStationWindow
         var flasks = plan.Volume / 50;
         body.AddChild(new Label
         {
-            Text = $"→ {plan.Volume}u" + (plan.Volume >= 200 ? " · 1 magazine" : "") + $" · {flasks} flask{(flasks == 1 ? "" : "s")}",
+            Text = Loc.GetString(plan.Volume >= 200 ? "fs-field-kit-station-yield-magazine" : "fs-field-kit-station-yield",
+                ("volume", plan.Volume), ("flasks", flasks)),
             FontOverride = _caption,
             FontColorOverride = FSUiPalette.TextMuted,
         });
         if (plan.ResearchLocked)
-            body.AddChild(Wrapped("Research unlock: print the bottle at the lathe, then load it here.", Research, 220));
+            body.AddChild(Wrapped(Loc.GetString("fs-field-kit-station-research-unlock"), Research, 220));
 
-        var brew = ActionButton(plan.Blocker ?? $"BREW {plan.Volume}u", plan.Blocker == null, true);
+        var brew = ActionButton(plan.Blocker ?? Loc.GetString("fs-field-kit-station-brew", ("volume", plan.Volume)), plan.Blocker == null, true);
         brew.OnPressed += _ =>
         {
             OnBrew?.Invoke(plan.Kit.ID, plan.Volume);

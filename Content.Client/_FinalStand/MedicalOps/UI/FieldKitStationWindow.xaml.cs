@@ -74,9 +74,9 @@ public sealed partial class FieldKitStationWindow : FancyWindow
         _title = _res.NotoStack("Bold", 13);
         _big = _res.NotoStack("Bold", 17);
 
-        Tabs.SetTabTitle(0, "Brew");
-        Tabs.SetTabTitle(1, "Raw dispense");
-        Tabs.SetTabTitle(2, "Package");
+        Tabs.SetTabTitle(0, Loc.GetString("fs-field-kit-station-tab-brew"));
+        Tabs.SetTabTitle(1, Loc.GetString("fs-field-kit-station-tab-raw"));
+        Tabs.SetTabTitle(2, Loc.GetString("fs-field-kit-station-tab-package"));
         Tabs.OnTabChanged += _ => RefreshContext();
 
         foreach (var strip in new[] { BrewStrip, RawStrip, PackStrip })
@@ -104,7 +104,7 @@ public sealed partial class FieldKitStationWindow : FancyWindow
             button.Label.HorizontalAlignment = HAlignment.Center;
         }
         EmptyButton.OnPressed += _ => OnEmptyJug?.Invoke();
-        EmptyButton.ToolTip = "Tissue goes back to the tank; everything else is poured away.";
+        EmptyButton.ToolTip = Loc.GetString("fs-field-kit-station-empty-tooltip");
         EjectButton.OnPressed += _ => OnEject?.Invoke(false);
 
         SearchBox.OnTextChanged += _ => RefreshRaw();
@@ -171,17 +171,17 @@ public sealed partial class FieldKitStationWindow : FancyWindow
     private void RefreshSidebar()
     {
         var jug = _state?.Jug;
-        JugLabel.Text = jug == null ? "none" : $"{jug.CurrentVolume} / {jug.MaxVolume}u";
+        JugLabel.Text = jug == null ? Loc.GetString("fs-field-kit-station-jug-none") : $"{jug.CurrentVolume} / {jug.MaxVolume}u";
         FillBar(JugBar, jug, _preview);
 
         JugRows.RemoveAllChildren();
         if (jug == null)
         {
-            JugRows.AddChild(Muted("Put a jug or beaker in the station."));
+            JugRows.AddChild(Muted(Loc.GetString("fs-field-kit-station-jug-missing")));
         }
         else if (jug.Reagents is not { Count: > 0 } reagents)
         {
-            JugRows.AddChild(Muted("Empty."));
+            JugRows.AddChild(Muted(Loc.GetString("fs-field-kit-station-jug-contents-empty")));
         }
         else
         {
@@ -201,7 +201,7 @@ public sealed partial class FieldKitStationWindow : FancyWindow
         line.AddChild(Swatch(ReagentColor(reagent), 8, 8));
         line.AddChild(new Label { Text = ReagentName(reagent), HorizontalExpand = true, ClipText = true, VerticalAlignment = VAlignment.Center });
         line.AddChild(new Label { Text = $"{quantity}u", FontColorOverride = FSUiPalette.TextMuted, VerticalAlignment = VAlignment.Center });
-        var discard = new Button { Text = "✕", MinWidth = 24, StyleBoxOverride = new StyleBoxEmpty(), ToolTip = reagent == TissueReagent ? "Return to the tank" : "Pour away" };
+        var discard = new Button { Text = "✕", MinWidth = 24, StyleBoxOverride = new StyleBoxEmpty(), ToolTip = reagent == TissueReagent ? Loc.GetString("fs-field-kit-station-discard-tissue") : Loc.GetString("fs-field-kit-station-discard") };
         discard.Label.FontColorOverride = FSUiPalette.TextMuted;
         discard.OnPressed += _ => OnDiscard?.Invoke(reagent);
         line.AddChild(discard);
@@ -215,17 +215,17 @@ public sealed partial class FieldKitStationWindow : FancyWindow
         switch (Tabs.CurrentTab)
         {
             case BrewTab:
-                ContextTitle.Text = "NEXT STOP";
+                ContextTitle.Text = Loc.GetString("fs-field-kit-station-context-next-stop");
                 ContextBody.AddChild(Wrapped(NextStop(), Color.FromHex("#c2beb8")));
                 break;
             case RawTab:
-                ContextTitle.Text = "THE JUG CAN MAKE";
+                ContextTitle.Text = Loc.GetString("fs-field-kit-station-context-can-make");
                 PopulateCanMake();
                 break;
             default:
-                ContextTitle.Text = "MADE THIS SESSION";
+                ContextTitle.Text = Loc.GetString("fs-field-kit-station-context-made");
                 if (_log.Count == 0)
-                    ContextBody.AddChild(Muted("Finished items drop on the station."));
+                    ContextBody.AddChild(Muted(Loc.GetString("fs-field-kit-station-context-made-empty")));
                 foreach (var entry in _log)
                     ContextBody.AddChild(new Label { Text = entry, FontColorOverride = FSUiPalette.TextMuted });
                 break;
@@ -238,7 +238,7 @@ public sealed partial class FieldKitStationWindow : FancyWindow
         var held = _state?.Jug?.Reagents?.ToDictionary(r => r.Reagent.Prototype, r => r.Quantity) ?? new Dictionary<string, FixedPoint2>();
         if (held.Count == 0)
         {
-            ContextBody.AddChild(Muted("Dispense reagents to see what they react into."));
+            ContextBody.AddChild(Muted(Loc.GetString("fs-field-kit-station-context-can-make-empty")));
             return;
         }
 
@@ -253,11 +253,11 @@ public sealed partial class FieldKitStationWindow : FancyWindow
                 continue;
 
             var name = Content.Client.Chemistry.UI.FSFieldKitResolver.NameOf(reaction, _prototype);
-            lines.Add(missing.Count == 0 ? (name, true) : ($"{name}: add {ReagentName(missing[0]).ToLowerInvariant()}", false));
+            lines.Add(missing.Count == 0 ? (name, true) : (Loc.GetString("fs-field-kit-station-context-add", ("name", name), ("reagent", ReagentName(missing[0]).ToLowerInvariant())), false));
         }
 
         if (lines.Count == 0)
-            ContextBody.AddChild(Muted("Nothing this jug is close to making."));
+            ContextBody.AddChild(Muted(Loc.GetString("fs-field-kit-station-context-can-make-none")));
         foreach (var (text, ready) in lines.OrderByDescending(l => l.Ready).Take(8))
             ContextBody.AddChild(Wrapped(text, ready ? OliveText : Color.FromHex("#c2beb8")));
     }
@@ -266,12 +266,12 @@ public sealed partial class FieldKitStationWindow : FancyWindow
     {
         var volume = JugVolume;
         if (_state?.Jug == null)
-            return "Put a jug in the station. A large jug holds a full magazine.";
+            return Loc.GetString("fs-field-kit-station-next-stop-no-jug");
         if (volume <= 0)
-            return "Brew something. A 200u batch fills one syringe magazine.";
+            return Loc.GetString("fs-field-kit-station-next-stop-empty");
         if (volume >= 200)
-            return "Load a magazine or fill splash flasks under Package.";
-        return $"Split it into {(int) (volume.Float() / 50)} splash flasks under Package, or brew more to fill a magazine.";
+            return Loc.GetString("fs-field-kit-station-next-stop-full");
+        return Loc.GetString("fs-field-kit-station-next-stop-split", ("flasks", (int) (volume.Float() / 50)));
     }
 
     private void RecordMade(string entry)

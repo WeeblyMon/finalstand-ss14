@@ -116,7 +116,7 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         var fallback = FindGrenadeInInventory(user.Value);
         if (fallback == null)
         {
-            _popup.PopupEntity("No grenade found.", user.Value, user.Value);
+            _popup.PopupEntity(Loc.GetString("fs-quick-grenade-none"), user.Value, user.Value);
             return;
         }
 

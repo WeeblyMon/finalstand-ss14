@@ -135,7 +135,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
                 ReloadBattery(gun, user);
                 break;
             default:
-                _popup.PopupEntity("No reload action available.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-unavailable"), gun, user);
                 break;
         }
     }

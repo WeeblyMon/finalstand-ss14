@@ -25,14 +25,14 @@ public sealed partial class WeaponShopWindow
             {
                 var newDmg = _rangedCache.BaseDmgPerShot * (_rangedCache.DamageMultiplier + def.ValuePerLevel) * _rangedCache.AugDmgMult;
                 var pellets = _rangedCache.BasePellets + _rangedCache.ExtraPellets;
-                (stat, fill, text) = ("Damage", Math.Min(1f, newDmg * pellets / 100f),
+                (stat, fill, text) = ("fs-weapon-shop-stat-damage", Math.Min(1f, newDmg * pellets / 100f),
                     pellets > 1 ? $"{newDmg:0.#}×{pellets}" : $"{newDmg:0.#}");
                 return true;
             }
             case WeaponUpgradeType.FireRate when _rangedCache.IsRanged:
             {
                 var newFr = (_rangedCache.UnboostedFireRate + def.ValuePerLevel) * _rangedCache.BulletStormMult;
-                (stat, fill, text) = ("Fire Rate", Math.Min(1f, newFr / 10f), $"{(int)Math.Round(newFr * 60f)} RPM");
+                (stat, fill, text) = ("fs-weapon-shop-stat-fire-rate", Math.Min(1f, newFr / 10f), Rpm((int)Math.Round(newFr * 60f)));
                 return true;
             }
             case WeaponUpgradeType.Accuracy when _rangedCache.IsRanged:
@@ -41,25 +41,25 @@ public sealed partial class WeaponShopWindow
                 // The server replays one level through the same clamps the upgrade uses.
                 if (!_entityManager.System<FSShopClientSystem>().NextLevelAccuracy.TryGetValue(def.Id, out var newStat))
                     return false;
-                (stat, fill, text) = ("Accuracy", newStat / 100f, $"{newStat}");
+                (stat, fill, text) = ("fs-weapon-shop-stat-accuracy", newStat / 100f, $"{newStat}");
                 return true;
             }
             case WeaponUpgradeType.MagazineSize when _rangedCache.IsRanged && _rangedCache.Capacity >= 0:
             {
                 var newCap = _rangedCache.Capacity + (int)Math.Round(def.ValuePerLevel);
-                (stat, fill, text) = ("Capacity", Math.Min(1f, newCap / 30f), $"{newCap}");
+                (stat, fill, text) = ("fs-weapon-shop-stat-capacity", Math.Min(1f, newCap / 30f), $"{newCap}");
                 return true;
             }
             case WeaponUpgradeType.CritChance:
             {
                 var chance = Math.Min(1f, _rangedCache.BaseCritChance + _rangedCache.CritChanceBonus + def.ValuePerLevel);
-                (stat, fill, text) = ("Crit %", chance, $"{chance * 100f:F1}%");
+                (stat, fill, text) = ("fs-weapon-shop-stat-crit-chance", chance, $"{chance * 100f:F1}%");
                 return true;
             }
             case WeaponUpgradeType.CritDamage:
             {
                 var mult = _rangedCache.CritDamageMult + def.ValuePerLevel;
-                (stat, fill, text) = ("Crit DMG", Math.Min(1f, (mult - 1f) / 2f), $"{mult:F1}x");
+                (stat, fill, text) = ("fs-weapon-shop-stat-crit-damage", Math.Min(1f, (mult - 1f) / 2f), $"{mult:F1}x");
                 return true;
             }
         }

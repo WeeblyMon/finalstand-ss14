@@ -69,7 +69,9 @@ public sealed partial class PerkShopWindow
             {
                 SetSize = new Vector2(SlotSize, SlotSize),
                 StyleBoxOverride = box,
-                ToolTip = def == null ? $"Slot {i + 1}: empty" : $"Slot {i + 1}: {def.Name} (level {Level(def.Id)})",
+                ToolTip = def == null
+                    ? Loc.GetString("fs-perk-shop-slot-empty", ("slot", i + 1))
+                    : Loc.GetString("fs-perk-shop-slot-filled", ("slot", i + 1), ("perk", def.Name), ("level", Level(def.Id))),
             };
 
             var layers = new LayoutContainer();
@@ -139,10 +141,10 @@ public sealed partial class PerkShopWindow
                 VerticalAlignment = VAlignment.Center,
                 PanelOverride = new StyleBoxFlat { BackgroundColor = FSPerkPalette.Accent[cat] },
             });
-            header.AddChild(new Label { Text = CatLabel[cat], FontOverride = _fontSmallBold, FontColorOverride = FSPerkPalette.Accent[cat] });
+            header.AddChild(new Label { Text = Loc.GetString(CatLabel[cat]), FontOverride = _fontSmallBold, FontColorOverride = FSPerkPalette.Accent[cat] });
             header.AddChild(new Label
             {
-                Text = $"{inCat.Count(d => Level(d.Id) > 0)} of {inCat.Count} owned",
+                Text = Loc.GetString("fs-perk-shop-category-owned", ("owned", inCat.Count(d => Level(d.Id) > 0)), ("total", inCat.Count)),
                 FontColorOverride = FSUiPalette.TextMuted,
             });
             section.AddChild(header);
@@ -165,7 +167,7 @@ public sealed partial class PerkShopWindow
         {
             PerkGrid.AddChild(new Label
             {
-                Text = $"No perks match \"{_search}\".",
+                Text = Loc.GetString("fs-perk-shop-no-match", ("search", _search)),
                 FontColorOverride = FSUiPalette.TextMuted,
                 HorizontalAlignment = HAlignment.Center,
                 Margin = new Thickness(0, 40, 0, 0),
@@ -184,7 +186,9 @@ public sealed partial class PerkShopWindow
         var tile = new ContainerButton
         {
             SetSize = new Vector2(TileWidth, TileHeight),
-            ToolTip = def.Name + (locked ? " — not owned" : $" — level {level} of {FSPerkDef.MaxLevel}"),
+            ToolTip = locked
+                ? Loc.GetString("fs-perk-shop-tile-locked", ("perk", def.Name))
+                : Loc.GetString("fs-perk-shop-tile-level", ("perk", def.Name), ("level", level), ("max", FSPerkDef.MaxLevel)),
         };
 
         // Unowned tiles keep a muted wash of their category so the catalogue still reads by colour.
@@ -286,7 +290,7 @@ public sealed partial class PerkShopWindow
         {
             var cost = new Label
             {
-                Text = $"{FSPerkDef.CostForUpgrade(0)} PP",
+                Text = Loc.GetString("fs-perk-shop-pp", ("amount", FSPerkDef.CostForUpgrade(0).ToString())),
                 FontOverride = _fontSmallBold,
                 FontColorOverride = FSUiPalette.Currency,
             };

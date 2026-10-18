@@ -11,8 +11,8 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (!HasComp<ItemSlotsComponent>(gun) || !_slots.TryGetSlot(gun, "gun_cell", out _))
         {
             var msg = HasComp<BatterySelfRechargerComponent>(gun)
-                ? "This weapon self-recharges."
-                : "Needs cell recharger.";
+                ? Loc.GetString("fs-smart-reload-self-recharges")
+                : Loc.GetString("fs-smart-reload-needs-recharger");
             _popup.PopupEntity(msg, gun, user);
             return;
         }
@@ -22,7 +22,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         var newCell = FindBestPowerCell(user, currentCell);
         if (newCell == null)
         {
-            _popup.PopupEntity("No power cell found.", gun, user);
+            _popup.PopupEntity(Loc.GetString("fs-smart-reload-no-cell"), gun, user);
             return;
         }
 

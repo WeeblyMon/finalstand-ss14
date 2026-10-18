@@ -46,7 +46,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
-    private const string UpgradedSuffix = " (Upgraded)";
+    private string UpgradedSuffix => " " + Loc.GetString("fs-weapon-shop-upgraded-suffix");
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastSellTime = new();
     private readonly Dictionary<NetEntity, TimeSpan> _recentSells = new();
@@ -426,7 +426,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         if (candidates.Count == 0)
         {
-            SendSellResponse(userId, success: false, "No copy of this weapon found in inventory.");
+            SendSellResponse(userId, success: false, Loc.GetString("fs-weapon-shop-sell-none-found"));
             return;
         }
 
@@ -461,7 +461,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         CleanupAmmoForWeapon(player, comp, ws);
         _wallet.GiveCredits(mindId, totalRefund);
 
-        _popup.PopupEntity($"Sold for ${totalRefund:N0}.", shopUid, player);
+        _popup.PopupEntity(Loc.GetString("fs-weapon-shop-sold-for", ("amount", totalRefund.ToString("N0"))), shopUid, player);
         SendSellResponse(userId, success: true, "");
 
         SendWeaponLevels(mindId, new Dictionary<string, int>(), "");
@@ -507,8 +507,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     private void MarkAsUpgraded(EntityUid weapon)
     {
         var meta = MetaData(weapon);
-        if (!meta.EntityName.EndsWith(UpgradedSuffix))
-            _metaData.SetEntityName(weapon, meta.EntityName + UpgradedSuffix, meta);
+        var suffix = UpgradedSuffix;
+        if (!meta.EntityName.EndsWith(suffix))
+            _metaData.SetEntityName(weapon, meta.EntityName + suffix, meta);
     }
 
     private string ComputeWeaponTitle(EntityUid player, FSShopWeaponComponent comp)
@@ -522,16 +523,17 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return "";
 
         var rawName = MetaData(matches[0].Uid).EntityName;
-        var baseName = rawName.EndsWith(UpgradedSuffix)
-            ? rawName[..^UpgradedSuffix.Length]
+        var suffix = UpgradedSuffix;
+        var baseName = rawName.EndsWith(suffix)
+            ? rawName[..^suffix.Length]
             : rawName;
         baseName = Capitalize(baseName);
 
         var label = CarryLabel(player, matches[0]);
 
         return matches.Count == 1
-            ? $"{baseName} ({label})"
-            : $"{baseName} No. 1 ({label})";
+            ? Loc.GetString("fs-weapon-shop-title", ("name", baseName), ("where", label))
+            : Loc.GetString("fs-weapon-shop-title-first", ("name", baseName), ("where", label));
     }
 
     private string CarryLabel(EntityUid player, CarriedItem item)
@@ -541,24 +543,24 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             case CarryKind.Hand:
                 if (!TryComp<HandsComponent>(player, out var hands)
                     || !_hands.TryGetHand((player, hands), item.Where, out var hand))
-                    return "Hand";
+                    return Loc.GetString("fs-weapon-shop-carry-hand");
                 return hand.Value.Location switch
                 {
-                    HandLocation.Left  => "Left Hand",
-                    HandLocation.Right => "Right Hand",
-                    _                  => "Hand",
+                    HandLocation.Left  => Loc.GetString("fs-weapon-shop-carry-left-hand"),
+                    HandLocation.Right => Loc.GetString("fs-weapon-shop-carry-right-hand"),
+                    _                  => Loc.GetString("fs-weapon-shop-carry-hand"),
                 };
             case CarryKind.Equipped:
                 return item.Where switch
                 {
-                    "belt"        => "Belt",
-                    "suitstorage" => "Suit Storage",
-                    "pocket1"     => "Pocket 1",
-                    "pocket2"     => "Pocket 2",
+                    "belt"        => Loc.GetString("fs-weapon-shop-carry-belt"),
+                    "suitstorage" => Loc.GetString("fs-weapon-shop-carry-suit-storage"),
+                    "pocket1"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 1)),
+                    "pocket2"     => Loc.GetString("fs-weapon-shop-carry-pocket", ("number", 2)),
                     _             => Capitalize(item.Where),
                 };
             default:
-                return "Backpack";
+                return Loc.GetString("fs-weapon-shop-carry-backpack");
         }
     }
 

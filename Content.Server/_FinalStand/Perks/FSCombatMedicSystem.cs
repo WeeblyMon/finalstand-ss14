@@ -63,7 +63,7 @@ public sealed partial class FSCombatMedicSystem : EntitySystem
         buff.Level = Math.Max(buff.Level, level);
 
         if (fresh && TryComp<MindComponent>(mindId, out var mind) && mind.CurrentEntity is { } body)
-            _popup.PopupEntity("Combat Medic!", body, body, PopupType.Medium);
+            _popup.PopupEntity(Loc.GetString("fs-combat-medic-proc"), body, body, PopupType.Medium);
     }
 
     public override void Update(float frameTime)

@@ -43,7 +43,7 @@ public sealed partial class FSResearchTreeMenu
 
         if (node == null)
         {
-            SetPrimary("SELECT A TECHNOLOGY", false);
+            SetPrimary(Loc.GetString("fs-research-menu-select"), false);
             return;
         }
 
@@ -60,7 +60,11 @@ public sealed partial class FSResearchTreeMenu
         ProgressSection.Visible = !medical;
         ProgressBar.RemoveAllChildren();
         ProgressBar.AddChild(Bar(done ? 1f : node.ProgressFraction, done ? DoneOlive : node.IsActiveResearch ? Gold : OffWhite, 6));
-        ProgressLabel.Text = done ? "Complete" : string.Format(CultureInfo.InvariantCulture, "{0:N0} / {1:N0} RP", node.Progress, node.Cost);
+        ProgressLabel.Text = done
+            ? Loc.GetString("fs-research-menu-complete")
+            : Loc.GetString("fs-research-menu-progress-rp",
+                ("progress", node.Progress.ToString("N0", CultureInfo.InvariantCulture)),
+                ("cost", node.Cost.ToString("N0", CultureInfo.InvariantCulture)));
 
         if (medical)
         {
@@ -70,60 +74,60 @@ public sealed partial class FSResearchTreeMenu
 
         var others = node.PersonalContributorCount - (node.IsMyPersonalPick ? 1 : 0);
         var contribution = done ? ""
-            : node.IsActiveResearch ? "Everyone without a pick funds this at 2× speed."
-            : node.IsMyPersonalPick ? (others > 0 ? $"You and {others} other scientist{(others > 1 ? "s are" : " is")} funding this." : "You are funding this.")
-            : others > 0 ? $"{others} scientist{(others > 1 ? "s are" : " is")} researching this."
-            : available ? "No one is researching this yet." : "";
+            : node.IsActiveResearch ? Loc.GetString("fs-research-menu-contrib-shared")
+            : node.IsMyPersonalPick ? (others > 0 ? Loc.GetString("fs-research-menu-contrib-you-and-others", ("others", others)) : Loc.GetString("fs-research-menu-contrib-you"))
+            : others > 0 ? Loc.GetString("fs-research-menu-contrib-others", ("others", others))
+            : available ? Loc.GetString("fs-research-menu-contrib-none") : "";
         ContribLabel.Visible = contribution.Length > 0;
         ContribLabel.SetMessage(Markup(contribution, FSUiPalette.TextMuted));
 
         var rd = _fsResearch.IsRdOrCaptain;
         if (done)
-            SetPrimary("RESEARCHED", false);
+            SetPrimary(Loc.GetString("fs-research-menu-researched"), false);
         else if (blocked)
-            SetPrimary("LOCKED OUT", false);
+            SetPrimary(Loc.GetString("fs-research-menu-locked-out"), false);
         else if (!available)
-            SetPrimary("LOCKED — FINISH REQUIREMENTS", false);
+            SetPrimary(Loc.GetString("fs-research-menu-locked-requirements"), false);
         else if (node.IsMyPersonalPick && !rd)
         {
-            SetPrimary("RESEARCHING — YOUR PICK", false);
-            ShowClear("STOP MY PICK");
+            SetPrimary(Loc.GetString("fs-research-menu-researching-pick"), false);
+            ShowClear(Loc.GetString("fs-research-menu-stop-pick"));
         }
         else if (node.IsActiveResearch && rd)
         {
-            SetPrimary("CURRENT SHARED TARGET", false);
-            ShowClear("CLEAR SHARED TARGET");
+            SetPrimary(Loc.GetString("fs-research-menu-current-shared"), false);
+            ShowClear(Loc.GetString("fs-research-menu-clear-shared"));
         }
         else if (!hasMaterials)
-            SetPrimary("NEED MORE MATERIALS", false);
+            SetPrimary(Loc.GetString("fs-research-menu-need-materials"), false);
         else if (rd)
-            SetPrimary("SET AS SHARED TARGET", true);
+            SetPrimary(Loc.GetString("fs-research-menu-set-shared"), true);
         else if (node.IsActiveResearch)
-            SetPrimary("ALSO PICK THIS (FULL COST)", true);
+            SetPrimary(Loc.GetString("fs-research-menu-also-pick"), true);
         else
-            SetPrimary(others > 0 ? $"JOIN RESEARCH ({others} OTHER{(others > 1 ? "S" : "")})" : "RESEARCH THIS", true);
+            SetPrimary(others > 0 ? Loc.GetString("fs-research-menu-join", ("others", others)) : Loc.GetString("fs-research-menu-research-this"), true);
 
         if (available && !hasMaterials)
-            ShowWarning("Not enough materials in the console. Load more to start.");
+            ShowWarning(Loc.GetString("fs-research-menu-warn-materials"));
 
         UpdateQueueButton(node);
     }
 
     private void UpdatePlate(FSResearchNodeView node)
     {
-        var (stateText, stateColor) = node.IsDone ? ("RESEARCHED", Olive)
-            : node.State == FSResearchNodeState.ExclusivelyBlocked ? ("LOCKED OUT", Rust)
-            : node.IsActiveResearch ? ("RD TARGET", Gold)
-            : node.IsMyPersonalPick ? ("YOUR PICK", OffWhite)
-            : node.State == FSResearchNodeState.Available ? ("AVAILABLE", OffWhite)
-            : ("LOCKED", FSUiPalette.TextMuted);
+        var (stateText, stateColor) = node.IsDone ? (Loc.GetString("fs-research-menu-researched"), Olive)
+            : node.State == FSResearchNodeState.ExclusivelyBlocked ? (Loc.GetString("fs-research-menu-locked-out"), Rust)
+            : node.IsActiveResearch ? (Loc.GetString("fs-research-menu-state-rd-target"), Gold)
+            : node.IsMyPersonalPick ? (Loc.GetString("fs-research-menu-state-your-pick"), OffWhite)
+            : node.State == FSResearchNodeState.Available ? (Loc.GetString("fs-research-menu-state-available"), OffWhite)
+            : (Loc.GetString("fs-research-menu-state-locked"), FSUiPalette.TextMuted);
 
         DetailName.SetMessage(FormattedMessage.FromMarkupPermissive(
             $"[font size=14][bold][color={OffWhite.ToHex()}]{FormattedMessage.EscapeText(node.Name)}[/color][/bold][/font]"));
         StateChipLabel.Text = stateText;
         StateChipLabel.FontColorOverride = stateColor;
         StateChip.PanelOverride = Box(stateColor.WithAlpha(0.12f), stateColor.WithAlpha(0.45f), new Thickness(1));
-        TierChipLabel.Text = "TIER " + node.Tier;
+        TierChipLabel.Text = Loc.GetString("fs-research-menu-tier", ("tier", node.Tier));
         TierChipLabel.FontColorOverride = FSUiPalette.TextMuted;
         TierChip.PanelOverride = Box(Color.Transparent, FSUiPalette.BorderNeutral, new Thickness(1));
 
@@ -183,10 +187,10 @@ public sealed partial class FSResearchTreeMenu
         var lines = bonus.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
 
         if (proto.WeaponShopUnlock is { } shop && !lines.Any(l => l.Contains("shop", StringComparison.OrdinalIgnoreCase)))
-            lines.Insert(0, $"Unlocks the {(_prototype.TryIndex<EntityPrototype>(shop, out var shopProto) ? shopProto.Name : shop.Id)} shop");
+            lines.Insert(0, Loc.GetString("fs-research-menu-unlocks-shop", ("shop", _prototype.TryIndex<EntityPrototype>(shop, out var shopProto) ? shopProto.Name : shop.Id)));
 
         if (lines.Count == 0 && EffectList.ChildCount == 0)
-            lines.Add("No listed effect.");
+            lines.Add(Loc.GetString("fs-research-menu-no-effect"));
 
         foreach (var line in lines)
         {
@@ -204,12 +208,12 @@ public sealed partial class FSResearchTreeMenu
         if (group == null)
             return;
 
-        var names = string.Join(" or ", _prototype.EnumeratePrototypes<FSTechNodePrototype>()
+        var names = string.Join(Loc.GetString("fs-research-menu-or"), _prototype.EnumeratePrototypes<FSTechNodePrototype>()
             .Where(p => p.ExclusiveGroup == group && p.ID != node.Id)
             .Select(p => p.Name));
         ExclusiveNoteLabel.SetMessage(Markup(node.State == FSResearchNodeState.ExclusivelyBlocked
-            ? $"Locked out: {names} was researched instead."
-            : $"Choose one: researching this permanently locks out {names}.", OffWhite));
+            ? Loc.GetString("fs-research-menu-exclusive-blocked", ("names", names))
+            : Loc.GetString("fs-research-menu-exclusive-choose", ("names", names)), OffWhite));
     }
 
     private static bool IsDrawback(string line)
@@ -226,14 +230,15 @@ public sealed partial class FSResearchTreeMenu
         var proto = node.Proto;
         if (proto.Prerequisites.Count == 0 && proto.PrerequisiteGroups.Count == 0)
         {
-            RequiresList.AddChild(CheckRow(true, "Nothing: a starting technology"));
+            RequiresList.AddChild(CheckRow(true, Loc.GetString("fs-research-menu-requires-nothing")));
             return;
         }
 
         foreach (var id in proto.Prerequisites)
             RequiresList.AddChild(CheckRow(IsIdUnlocked(id), ResolveNodeName(id)));
         foreach (var group in proto.PrerequisiteGroups)
-            RequiresList.AddChild(CheckRow(group.Any(IsIdUnlocked), string.Join(" or ", group.Select(ResolveNodeName)) + "  (either one)"));
+            RequiresList.AddChild(CheckRow(group.Any(IsIdUnlocked),
+                Loc.GetString("fs-research-menu-requires-either", ("names", string.Join(Loc.GetString("fs-research-menu-or"), group.Select(ResolveNodeName))))));
     }
 
     private BoxContainer CheckRow(bool ok, string text)
@@ -250,20 +255,20 @@ public sealed partial class FSResearchTreeMenu
     private bool BuildCost(FSResearchNodeView node, bool medical)
     {
         CostGrid.RemoveAllChildren();
-        foreach (var header in new[] { "MATERIAL", "NEED", "IN STOCK" })
+        foreach (var header in new[] { "fs-research-menu-cost-material", "fs-research-menu-cost-need", "fs-research-menu-cost-stock" })
         {
-            var first = header == "MATERIAL";
-            CostGrid.AddChild(new Label { Text = header, FontOverride = _captionFont, FontColorOverride = Dim, HorizontalExpand = first, Align = first ? Label.AlignMode.Left : Label.AlignMode.Right, MinWidth = first ? 0 : 64 });
+            var first = header == "fs-research-menu-cost-material";
+            CostGrid.AddChild(new Label { Text = Loc.GetString(header), FontOverride = _captionFont, FontColorOverride = Dim, HorizontalExpand = first, Align = first ? Label.AlignMode.Left : Label.AlignMode.Right, MinWidth = first ? 0 : 64 });
         }
 
         if (medical)
         {
             var funds = Database?.Points ?? 0;
-            AddCostRow("Funds", Money(node.Cost), Money(funds), funds >= node.Cost ? Olive : Rust);
+            AddCostRow(Loc.GetString("fs-research-menu-cost-funds"), Money(node.Cost), Money(funds), funds >= node.Cost ? Olive : Rust);
         }
         else
         {
-            AddCostRow("Research", string.Format(CultureInfo.InvariantCulture, "{0:N0} RP", node.Cost), "", FSUiPalette.TextMuted);
+            AddCostRow(Loc.GetString("fs-research-menu-cost-research"), Loc.GetString("fs-research-menu-rp", ("amount", node.Cost.ToString("N0", CultureInfo.InvariantCulture))), "", FSUiPalette.TextMuted);
         }
 
         var materials = node.Proto.MaterialCost;
@@ -312,7 +317,7 @@ public sealed partial class FSResearchTreeMenu
         var queued = queue.IndexOf(node.Id);
         var full = queue.Count >= SharedFSResearchSystem.MaxQueueLength;
         QueueButton.Visible = true;
-        QueueButton.Text = queued >= 0 ? $"QUEUED #{queued + 1}" : full ? "QUEUE FULL" : "ADD TO QUEUE";
+        QueueButton.Text = queued >= 0 ? Loc.GetString("fs-research-menu-queued", ("position", queued + 1)) : full ? Loc.GetString("fs-research-menu-queue-full") : Loc.GetString("fs-research-menu-queue-add");
         QueueButton.Disabled = queued >= 0 || full;
     }
 
@@ -326,12 +331,13 @@ public sealed partial class FSResearchTreeMenu
             return;
 
         var queue = MyQueue();
-        QueueTitle.Text = $"{(_fsResearch.IsRdOrCaptain ? "SHARED QUEUE" : "MY QUEUE")} {queue.Count} / {SharedFSResearchSystem.MaxQueueLength}";
+        QueueTitle.Text = Loc.GetString(_fsResearch.IsRdOrCaptain ? "fs-research-menu-queue-shared" : "fs-research-menu-queue-mine",
+            ("count", queue.Count), ("max", SharedFSResearchSystem.MaxQueueLength));
 
         if (queue.Count == 0)
         {
             var empty = new RichTextLabel { MaxWidth = 296 };
-            empty.SetMessage(Markup("Nothing queued. Queued tech starts when the current one finishes.", Dim));
+            empty.SetMessage(Markup(Loc.GetString("fs-research-menu-queue-empty"), Dim));
             QueueList.AddChild(empty);
             return;
         }
@@ -350,7 +356,7 @@ public sealed partial class FSResearchTreeMenu
             nameButton.Label.ClipText = true;
             nameButton.OnPressed += _ => SelectById(id);
             line.AddChild(nameButton);
-            var remove = new Button { Text = "✕", MinWidth = 24, StyleBoxOverride = new StyleBoxEmpty(), ToolTip = "Remove from queue" };
+            var remove = new Button { Text = "✕", MinWidth = 24, StyleBoxOverride = new StyleBoxEmpty(), ToolTip = Loc.GetString("fs-research-menu-queue-remove") };
             remove.Label.FontColorOverride = FSUiPalette.TextMuted;
             remove.OnPressed += _ => OnFsNodeDequeued?.Invoke(id);
             line.AddChild(remove);

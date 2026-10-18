@@ -68,7 +68,7 @@ public sealed partial class CCCWindow : FancyWindow
         var enemyEst = state.IsDarkWave ? "∞" : state.EstimatedEnemyCount.ToString();
         EnemyEstLabel.Text = enemyEst;
 
-        PhaseLabel.Text = state.CurrentPhase == WavePhase.Prep ? "PREP" : "COMBAT";
+        PhaseLabel.Text = Loc.GetString(state.CurrentPhase == WavePhase.Prep ? "fs-ccc-window-phase-prep" : "fs-ccc-window-phase-combat");
         PhaseLabel.Modulate = state.CurrentPhase == WavePhase.Prep
             ? FSUiPalette.StatePositive
             : FSUiPalette.StateNegative;
@@ -88,11 +88,11 @@ public sealed partial class CCCWindow : FancyWindow
         var notPrep    = state.CurrentPhase != WavePhase.Prep;
         var notCaptain = !isCaptain;
         StartWaveButton.Disabled = notPrep || notCaptain;
-        StartWaveButton.ToolTip = (!notPrep && notCaptain) ? "Only the Captain can start the wave" : null;
+        StartWaveButton.ToolTip = (!notPrep && notCaptain) ? Loc.GetString("fs-ccc-window-captain-only") : null;
 
         ReadinessLabel.Text = state.TotalPlayerCount > 0
-            ? $"{state.ReadiedPlayerCount} / {state.TotalPlayerCount} players ready"
-            : "Waiting for players...";
+            ? Loc.GetString("fs-ccc-window-ready", ("ready", state.ReadiedPlayerCount), ("total", state.TotalPlayerCount))
+            : Loc.GetString("fs-ccc-window-waiting");
         ReadinessLabel.Modulate = state.ReadiedPlayerCount > 0
             ? FSUiPalette.StatePositive
             : FSUiPalette.TextMuted;

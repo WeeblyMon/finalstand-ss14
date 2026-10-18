@@ -18,21 +18,21 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (HasComp<FSMinigunComponent>(gun))
         {
             if (!isChainReload)
-                _popup.PopupEntity("Minigun can only be reloaded from ammo resupply.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-minigun"), gun, user);
             return;
         }
 
         if (comp.Count >= comp.Capacity)
         {
             if (!isChainReload)
-                _popup.PopupEntity("Already full.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-already-full"), gun, user);
             return;
         }
 
         if (HasMixedAmmoBallistic(comp))
         {
             if (!isChainReload)
-                _popup.PopupEntity("Mixed ammo loaded — reload manually.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-tube-mixed"), gun, user);
             return;
         }
 
@@ -40,7 +40,7 @@ public sealed partial class FSSmartReloadSystem : EntitySystem
         if (shell == null)
         {
             if (!isChainReload)
-                _popup.PopupEntity("No compatible ammo found.", gun, user);
+                _popup.PopupEntity(Loc.GetString("fs-smart-reload-no-ammo"), gun, user);
             return;
         }
 
