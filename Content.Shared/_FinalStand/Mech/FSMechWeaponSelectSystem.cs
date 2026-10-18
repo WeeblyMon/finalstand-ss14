@@ -1,11 +1,10 @@
 // Lets a pilot jump straight to a mounted weapon by slot instead of cycling through them.
-using Content.Shared._FinalStand.Mech;
 using Content.Shared.Mech.Components;
 using Content.Shared.Vehicle.Components;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 
-namespace Content.Server._FinalStand.Mech;
+namespace Content.Shared._FinalStand.Mech;
 
 public sealed partial class FSMechWeaponSelectSystem : EntitySystem
 {
@@ -16,7 +15,7 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeNetworkEvent<FSMechSelectWeaponEvent>(OnSelect);
+        SubscribeAllEvent<FSMechSelectWeaponEvent>(OnSelect);
     }
 
     private void OnSelect(FSMechSelectWeaponEvent ev, EntitySessionEventArgs args)
@@ -34,6 +33,6 @@ public sealed partial class FSMechWeaponSelectSystem : EntitySystem
 
         mech.CurrentSelectedEquipment = weapon;
         Dirty(vehicle, mech);
-        _audio.PlayPvs(SelectSound, vehicle);
+        _audio.PlayPredicted(SelectSound, vehicle, pilot);
     }
 }

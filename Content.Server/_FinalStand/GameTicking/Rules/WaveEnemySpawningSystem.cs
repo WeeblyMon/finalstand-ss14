@@ -42,6 +42,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly List<EntityUid> _secondaryBuffer = new();
     private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
+    private readonly HashSet<string> _activeSides = new();
+    private System.Numerics.Vector2? _cccPosition;
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
     public void SelectSpawners(WaveGameRuleComponent comp, int players)
@@ -90,23 +92,21 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         // Secondaries only support a lane that's already active this wave, never an unlisted one.
+        _activeSides.Clear();
+        foreach (var primary in comp.SpawnerEntities)
+        {
+            if (TryGetSide(primary, out var side))
+                _activeSides.Add(side);
+        }
+
         foreach (var secondary in _secondaryBuffer)
         {
-            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner))
+            if (!TryComp<WaveEnemySpawnerComponent>(secondary, out var spawner)
+                || !TryGetSide(secondary, out var side)
+                || !_activeSides.Contains(side))
                 continue;
 
-            var supported = false;
-            foreach (var primary in comp.SpawnerEntities)
-            {
-                if (TryComp<WaveEnemySpawnerComponent>(primary, out var primarySpawner) &&
-                    primarySpawner.DirectionLabel == spawner.DirectionLabel)
-                {
-                    supported = true;
-                    break;
-                }
-            }
-
-            if (supported && _random.NextFloat() < spawner.ActivationChance)
+            if (_random.NextFloat() < spawner.ActivationChance)
                 comp.SpawnerEntities.Add(secondary);
         }
     }
@@ -187,9 +187,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             if (proto == RevenantProto && CountAliveRevenants() >= MaxAliveRevenants)
                 proto = _random.Pick(pool);
 
-            if (TryGetRevenantSpawn(proto, comp.WaveNumber, out var flank))
-                coords = flank;
-
             var enemy = SpawnWaveEnemy(proto, coords, comp);
             comp.AliveEnemies.Add(enemy);
             comp.EnemiesSpawnedThisWave++;
@@ -229,45 +226,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         return count;
-    }
-
-    private bool TryGetRevenantSpawn(EntProtoId proto, int waveNumber, out EntityCoordinates coords)
-    {
-        coords = default;
-
-        if (proto != RevenantProto)
-            return false;
-
-        _spawnerBuffer.Clear();
-        var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-        while (query.MoveNext(out var uid, out var spawner))
-        {
-            if (waveNumber >= spawner.FromWave)
-                _spawnerBuffer.Add(uid);
-        }
-
-        if (_spawnerBuffer.Count == 0)
-            return false;
-
-        var chosen = _random.Pick(_spawnerBuffer);
-        coords = Transform(chosen).Coordinates;
-
-        if (!TryComp<FSRevenantSpawnerComponent>(chosen, out var chosenComp) || chosenComp.SpawnRadius <= 0f)
-            return true;
-
-        for (var attempt = 0; attempt < 8; attempt++)
-        {
-            var angle = _random.NextFloat() * MathF.Tau;
-            var radius = MathF.Sqrt(_random.NextFloat()) * chosenComp.SpawnRadius;
-            var candidate = coords.Offset(new System.Numerics.Vector2(MathF.Cos(angle) * radius, MathF.Sin(angle) * radius));
-            if (IsSpawnClear(candidate))
-            {
-                coords = candidate;
-                break;
-            }
-        }
-
-        return true;
     }
 
     // Shared by the boss spawn and the regular batch spawn so the two paths can't drift apart.
@@ -411,18 +369,8 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         var labels = new SortedSet<string>();
         foreach (var spawnerUid in comp.SpawnerEntities)
         {
-            if (TryComp<WaveEnemySpawnerComponent>(spawnerUid, out var spawner) && spawner.DirectionLabel.Length > 0)
-                labels.Add(spawner.DirectionLabel);
-        }
-
-        if (RevenantPossible(comp))
-        {
-            var query = EntityQueryEnumerator<FSRevenantSpawnerComponent>();
-            while (query.MoveNext(out var uid, out var spawner))
-            {
-                if (comp.WaveNumber >= spawner.FromWave && TryGetCompassLabel(uid, out var label))
-                    labels.Add(label);
-            }
+            if (TryGetSide(spawnerUid, out var side))
+                labels.Add(side);
         }
 
         if (labels.Count == 0)
@@ -431,27 +379,19 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return string.Join("/", labels);
     }
 
-    private bool RevenantPossible(WaveGameRuleComponent comp)
+    public bool TryGetSide(EntityUid spawner, out string side)
     {
-        foreach (var special in comp.SpecialEnemyPool)
-        {
-            if (special.EnemyId == RevenantProto && comp.WaveNumber >= special.FromWave)
-                return true;
-        }
-
-        return GetDirectorPool(comp).Contains(RevenantProto);
-    }
-
-    private bool TryGetCompassLabel(EntityUid uid, out string label)
-    {
-        label = string.Empty;
+        side = string.Empty;
 
         var query = EntityQueryEnumerator<FinalStandCCCComponent>();
-        if (!query.MoveNext(out var cccUid, out _))
+        if (query.MoveNext(out var ccc, out _))
+            _cccPosition = _transform.GetWorldPosition(ccc);
+
+        if (_cccPosition is not { } cccPosition)
             return false;
 
-        var delta = _transform.GetWorldPosition(uid) - _transform.GetWorldPosition(cccUid);
-        label = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
+        var delta = _transform.GetWorldPosition(spawner) - cccPosition;
+        side = MathF.Abs(delta.X) > MathF.Abs(delta.Y)
             ? delta.X > 0 ? "E" : "W"
             : delta.Y > 0 ? "N" : "S";
         return true;

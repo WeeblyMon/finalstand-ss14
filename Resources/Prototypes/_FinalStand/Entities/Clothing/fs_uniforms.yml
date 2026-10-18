@@ -30,6 +30,8 @@
     sprite: _FinalStand/Clothing/Uniforms/machikanetannhauser.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Uniforms/machikanetannhauser.rsi
+  - type: StaticPrice
+    price: 0
 
 - type: entity
   parent: ClothingUniformBase
@@ -41,6 +43,8 @@
     sprite: _FinalStand/Clothing/Uniforms/taninogimlet.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Uniforms/taninogimlet.rsi
+  - type: StaticPrice
+    price: 0
 
 - type: entity
   parent: ClothingUniformBase
@@ -52,6 +56,8 @@
     sprite: _FinalStand/Clothing/Uniforms/tracensummer.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Uniforms/tracensummer.rsi
+  - type: StaticPrice
+    price: 0
 
 - type: entity
   parent: ClothingUniformBase
@@ -63,6 +69,8 @@
     sprite: _FinalStand/Clothing/Uniforms/doublesupercharger.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Uniforms/doublesupercharger.rsi
+  - type: StaticPrice
+    price: 0
 
 - type: entity
   parent: ClothingShoesBase
@@ -74,3 +82,5 @@
     sprite: _FinalStand/Clothing/Shoes/doublesupercharger.rsi
   - type: Clothing
     sprite: _FinalStand/Clothing/Shoes/doublesupercharger.rsi
+  - type: StaticPrice
+    price: 0

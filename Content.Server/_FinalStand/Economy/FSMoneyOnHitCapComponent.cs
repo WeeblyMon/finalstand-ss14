@@ -4,6 +4,7 @@ namespace Content.Server._FinalStand.Economy;
 public sealed partial class FSMoneyOnHitCapComponent : Component
 {
     [DataField] public int MaxMoneyPerPlayer = 200;
+    [DataField] public int ResearchCapMultiplier = 1;
     public Dictionary<EntityUid, int> MoneyGivenPerPlayer = new();
     public Dictionary<EntityUid, int> ResearchGivenPerPlayer = new();
 }

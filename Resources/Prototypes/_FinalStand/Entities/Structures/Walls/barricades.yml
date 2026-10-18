@@ -175,6 +175,7 @@
     soundGroups:
       Brute:
         path: /Audio/_FinalStand/Structures/metalhit.ogg
+  - type: FSAutoCloseBarricade
   - type: Door
     openSpriteState: folding_metal_closed
     closedSpriteState: folding_metal
