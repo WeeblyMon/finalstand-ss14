@@ -4,7 +4,7 @@ meta:
   engineVersion: 288.1.0
   forkId: ""
   forkVersion: ""
-  time: 10/18/2026 20:38:34
+  time: 10/18/2026 20:40:10
   entityCount: 11099
 maps:
 - 259
@@ -3598,7 +3598,7 @@ entities:
       pos: 30.5,6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -89567.98
+      secondsUntilStateChange: -89662.234
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3692,7 +3692,7 @@ entities:
       pos: -13.5,2.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -23297.834
+      secondsUntilStateChange: -23392.094
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3836,7 +3836,7 @@ entities:
       pos: 6.5,-6.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -28895.398
+      secondsUntilStateChange: -28989.658
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3854,7 +3854,7 @@ entities:
       pos: 13.5,-3.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -114367.086
+      secondsUntilStateChange: -114461.34
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3871,7 +3871,7 @@ entities:
       pos: 11.5,-4.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -1569.9861
+      secondsUntilStateChange: -1664.246
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -3883,7 +3883,7 @@ entities:
       pos: 16.5,-1.5
     - type: Door
       state: Opening
-      secondsUntilStateChange: -6940.147
+      secondsUntilStateChange: -7034.407
     - type: DeviceLinkSource
       lastSignals:
         DoorStatus: True
@@ -61707,6 +61707,11 @@ entities:
     - type: Transform
       parent: 1
       pos: -19.5,1.5
+  - uid: 9742
+    components:
+    - type: Transform
+      parent: 1
+      pos: 6.5,35.5
   - uid: 10523
     components:
     - type: Transform
@@ -61719,11 +61724,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 19.5,22.5
-  - uid: 9742
-    components:
-    - type: Transform
-      parent: 1
-      pos: 6.5,35.5
 - proto: VendingMachineMediDrobe
   entities:
   - uid: 875
@@ -72769,7 +72769,7 @@ entities:
         DoorStatus: True
     - type: Door
       state: Opening
-      secondsUntilStateChange: -1400.5195
+      secondsUntilStateChange: -1494.7794
     - type: Airlock
       autoClose: False
   - uid: 1670
