@@ -19,9 +19,9 @@ public sealed partial class FSEngineeringTelemetrySystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => Clear());
     }
 
-    public void RecordDrop(EntProtoId proto)
+    public void RecordDrop(EntProtoId proto, int amount = 1)
     {
-        _dropped[proto.Id] = _dropped.GetValueOrDefault(proto.Id) + 1;
+        _dropped[proto.Id] = _dropped.GetValueOrDefault(proto.Id) + amount;
     }
 
     public void RecordSpend(string source, IReadOnlyDictionary<ProtoId<StackPrototype>, int> materials)

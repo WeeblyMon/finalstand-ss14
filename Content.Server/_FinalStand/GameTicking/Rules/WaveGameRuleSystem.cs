@@ -1030,6 +1030,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     public bool IsBoss(EntityUid uid)
         => uid.IsValid() && TryGetActiveRule(out _, out var comp, out _) && comp.GiantEntity == uid;
 
+    public int GetScalingPlayers()
+    {
+        return TryGetActiveRule(out _, out var comp, out _) ? comp.ScalingPlayersThisWave : 0;
+    }
+
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
     {
         if (!TryGetActiveRule(out _, out var comp, out _))

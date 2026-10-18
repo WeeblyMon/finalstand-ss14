@@ -1,8 +1,13 @@
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.Loot;
+using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
+using Content.Shared.Stacks;
+using Robust.Shared.Configuration;
 using Robust.Shared.Containers;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server._FinalStand.Loot;
@@ -13,6 +18,10 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private WaveGameRuleSystem _waves = default!;
     [Dependency] private Engineering.FSEngineeringTelemetrySystem _telemetry = default!;
+    [Dependency] private SharedStackSystem _stack = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
 
     private const int WavesUntilCleanup = 2;
 
@@ -21,6 +30,7 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
 
     private int _wavesEnded;
     private readonly Queue<EntityUid> _looseDropOrder = new();
+    private readonly HashSet<Entity<StackComponent>> _nearbyStacks = new();
 
     public override void Initialize()
     {
@@ -43,19 +53,66 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
 
         var chance = MathF.Min(ent.Comp.DropChance + ent.Comp.ChancePerWave * _waves.GetWaveNumber(),
             MathF.Max(ent.Comp.MaxChance, ent.Comp.DropChance));
+        var multiplier = GetAmountMultiplier(_waves.GetScalingPlayers(), _waves.GetWaveNumber());
+        var coords = _transform.GetMapCoordinates(ent);
         for (var i = 0; i < ent.Comp.Rolls; i++)
         {
             if (!_random.Prob(chance))
                 continue;
 
             var proto = _random.Pick(ent.Comp.Materials);
-            var drop = Spawn(proto, Transform(ent).Coordinates);
-            _telemetry.RecordDrop(proto);
-            EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
-            _looseDropOrder.Enqueue(drop);
+            var amount = (int) multiplier + (_random.Prob(multiplier % 1f) ? 1 : 0);
+            _telemetry.RecordDrop(proto, amount);
+            DropMaterial(proto, amount, coords);
         }
 
         TrimLooseDrops();
+    }
+
+    public float GetAmountMultiplier(int players, int wave)
+    {
+        var playerBonus = Math.Max(0, players - _cfg.GetCVar(CCVars.FSMatDropBasePlayers)) * _cfg.GetCVar(CCVars.FSMatDropPerPlayer);
+        var waveBonus = Math.Max(0, wave - _cfg.GetCVar(CCVars.FSMatDropBaseWave)) * _cfg.GetCVar(CCVars.FSMatDropPerWave);
+        return 1f + MathF.Min(playerBonus + waveBonus, _cfg.GetCVar(CCVars.FSMatDropBonusCap));
+    }
+
+    private void DropMaterial(EntProtoId proto, int amount, MapCoordinates coords)
+    {
+        var drop = Spawn(proto, coords);
+        if (!TryComp<StackComponent>(drop, out var stack))
+        {
+            Track(drop);
+            for (var i = 1; i < amount; i++)
+                Track(Spawn(proto, coords));
+            return;
+        }
+
+        _stack.SetCount((drop, stack), amount);
+
+        _nearbyStacks.Clear();
+        _lookup.GetEntitiesInRange(coords, _cfg.GetCVar(CCVars.FSMatDropMergeRange), _nearbyStacks, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var other in _nearbyStacks)
+        {
+            if (other.Owner == drop
+                || other.Comp.StackTypeId != stack.StackTypeId
+                || !TryComp<FSWaveLootComponent>(other, out var loot)
+                || _container.IsEntityInContainer(other))
+                continue;
+
+            if (_stack.TryMergeStacks((drop, stack), other.AsNullable(), out _))
+                loot.DroppedOnWave = _wavesEnded;
+
+            if (TerminatingOrDeleted(drop) || stack.Count <= 0)
+                return;
+        }
+
+        Track(drop);
+    }
+
+    private void Track(EntityUid drop)
+    {
+        EnsureComp<FSWaveLootComponent>(drop).DroppedOnWave = _wavesEnded;
+        _looseDropOrder.Enqueue(drop);
     }
 
     private void TrimLooseDrops()
