@@ -1,5 +1,6 @@
 // Combat mechs on the server: the pilot's factions ride with the mech so zombies go for it, guns refill from mech power,
 // and rounds fired from a mech don't hit it and pay a flat amount. A wreck unplants and takes no more damage, so it stays until repaired.
+using Content.Server.Destructible;
 using Content.Server.Mech.Systems;
 using Content.Server._FinalStand.Effects;
 using Content.Shared._FinalStand.HMG;
@@ -47,6 +48,7 @@ public sealed partial class FSCombatMechSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<FSCombatMechComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<FSCombatMechComponent, VehicleOperatorSetEvent>(OnOperatorSet);
         SubscribeLocalEvent<FSCombatMechComponent, DamageChangedEvent>(OnDamageChanged, after: [typeof(MechSystem)]);
         SubscribeLocalEvent<FSCombatMechComponent, BeforeDamageChangedEvent>(OnBeforeDamage);
@@ -54,6 +56,11 @@ public sealed partial class FSCombatMechSystem : EntitySystem
         SubscribeLocalEvent<FSSiegeModeComponent, FSSiegePlantedEvent>(OnPlanted);
         SubscribeLocalEvent<MechEquipmentComponent, FSMechGunChargeEvent>(OnCharge);
         SubscribeLocalEvent<MechEquipmentComponent, AmmoShotEvent>(OnAmmoShot);
+    }
+
+    private void OnMapInit(Entity<FSCombatMechComponent> ent, ref MapInitEvent args)
+    {
+        RemComp<DestructibleComponent>(ent);
     }
 
     private void OnOperatorSet(Entity<FSCombatMechComponent> ent, ref VehicleOperatorSetEvent args)
