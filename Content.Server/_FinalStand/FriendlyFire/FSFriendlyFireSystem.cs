@@ -2,7 +2,9 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.GameTicking;
+using Content.Server.Lightning.Components;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared.Electrocution;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;
@@ -27,6 +29,13 @@ public sealed partial class FSFriendlyFireSystem : EntitySystem
         SubscribeLocalEvent<ActorComponent, ComponentStartup>(OnActorStartup);
         SubscribeLocalEvent<FSFriendlyFireComponent, InteractUsingEvent>(OnInteractUsingFriendlyFire,
             before: new[] { typeof(FlammableSystem) });
+        SubscribeLocalEvent<FSFriendlyFireComponent, ElectrocutionAttemptEvent>(OnElectrocutionAttempt);
+    }
+
+    private void OnElectrocutionAttempt(EntityUid uid, FSFriendlyFireComponent _, ElectrocutionAttemptEvent args)
+    {
+        if (args.SourceUid is { } source && HasComp<LightningComponent>(source))
+            args.Cancel();
     }
 
     private void OnInteractUsingFriendlyFire(EntityUid uid, FSFriendlyFireComponent _, InteractUsingEvent args)
