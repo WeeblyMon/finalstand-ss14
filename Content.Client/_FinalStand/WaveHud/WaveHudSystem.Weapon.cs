@@ -1,6 +1,8 @@
 // Resolves the active hand's item and its ammo for the weapon module on the wave HUD.
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared.Chemistry.Components;
+using Robust.Shared.Utility;
 using Content.Shared._FinalStand.Grenades;
 using Content.Client._FinalStand.Engineering;
 using Content.Client._FinalStand.RCD;
@@ -186,6 +188,15 @@ public sealed partial class WaveHudSystem
 
         if (TryComp<BatteryComponent>(held, out var battery) && battery.MaxCharge > 0f)
             return $"{_battery.GetChargeLevel((held, battery)) * 100f:0}% charge";
+
+        if (TryComp<InjectorComponent>(held, out var injector)
+            && _solutions.TryGetSolution(held, injector.SolutionName, out _, out var injected)
+            && ProtoMan.Resolve(injector.ActiveModeProtoId, out var mode))
+        {
+            var modeName = FormattedMessage.RemoveMarkupPermissive(Loc.GetString(mode.Name));
+            var transfer = mode.TransferAmounts.Count > 1 && injector.CurrentTransferAmount is { } amount ? $" {amount}u" : string.Empty;
+            return $"{modeName}{transfer} - {injected.Volume:0}/{injected.MaxVolume:0}u";
+        }
 
         if (_solutions.TryGetDrainableSolution(held, out _, out var drainable))
             return $"{drainable.Volume:0}/{drainable.MaxVolume:0}u";
