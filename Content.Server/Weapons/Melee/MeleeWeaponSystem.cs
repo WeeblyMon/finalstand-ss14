@@ -1,5 +1,6 @@
 using Content.Server.Chat.Systems;
 using Content.Server.Movement.Systems;
+using Content.Shared._FinalStand.Effects;
 using Content.Shared.Chat;
 using Content.Shared.Effects;
 using Content.Shared.Speech.Components;
@@ -17,6 +18,13 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private LagCompensationSystem _lag = default!;
     [Dependency] private SharedColorFlashEffectSystem _color = default!;
+
+    // FINALSTAND: every NPC attack sent a lunge (and on the client, a spawned arc entity) plus a hit flash
+    // to everyone in range. Hordes are limited to one lunge per small area and one flash per target per interval.
+    private static readonly TimeSpan EffectInterval = TimeSpan.FromSeconds(0.15);
+    private readonly FSEffectThrottle<(EntityUid, Vector2i)> _npcLunges = new(EffectInterval);
+    private readonly FSEffectThrottle<EntityUid> _hitFlashes = new(EffectInterval);
+    private readonly List<EntityUid> _flashTargets = new();
 
     public override void Initialize()
     {
@@ -70,12 +78,28 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
 
     protected override void DoDamageEffect(List<EntityUid> targets, EntityUid? user, TransformComponent targetXform)
     {
+        // FINALSTAND
+        var now = Timing.CurTime;
+        _flashTargets.Clear();
+        foreach (var target in targets)
+        {
+            if (_hitFlashes.TryReserve(target, now))
+                _flashTargets.Add(target);
+        }
+
+        if (_flashTargets.Count == 0)
+            return;
+
         var filter = Filter.Pvs(targetXform.Coordinates, entityMan: EntityManager).RemoveWhereAttachedEntity(o => o == user);
-        _color.RaiseEffect(Color.Red, targets, filter);
+        _color.RaiseEffect(Color.Red, _flashTargets, filter);
     }
 
     public override void DoLunge(EntityUid user, EntityUid weapon, Angle angle, Vector2 localPos, string? animation, bool predicted = true)
     {
+        // FINALSTAND
+        if (!HasComp<ActorComponent>(user) && !_npcLunges.TryReserve(FSEffectArea.Key(Transform(user)), Timing.CurTime))
+            return;
+
         Filter filter;
 
         if (predicted)
