@@ -27,6 +27,10 @@
       slashColor: "#efe4cf"
       slashScale: 0.8
     comboHits: 2
+    comboReadySound:
+      path: /Audio/Effects/thudswoosh.ogg
+      params:
+        volume: -6
     finisher:
       anticipation: 0.12
       hitstop: 0.1
@@ -51,6 +55,10 @@
       slashScale: 0.95
       slashGrow: 1.35
       slashOffset: 0.9
+      impactSound:
+        collection: FSMeleeBoneBreak
+        params:
+          volume: 2
   - type: Sprite
     sprite: Objects/Weapons/Melee/baseball_bat.rsi
     state: icon

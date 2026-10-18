@@ -30,6 +30,10 @@ public sealed partial class FSMeleeJuiceComponent : Component
     [DataField]
     public float ComboWindow = 0.6f;
 
+    // Played to the attacker when their next hit will be the finisher.
+    [DataField]
+    public SoundSpecifier? ComboReadySound;
+
     public FSMeleeJuiceProfile Get(bool heavy, bool finisher = false)
     {
         if (finisher && Finisher != null)
@@ -156,6 +160,10 @@ public sealed partial class FSMeleeJuiceProfile
     // Played where the swing lands on anything that bleeds.
     [DataField]
     public SoundSpecifier? FleshSound;
+
+    // Played once where the swing lands, on top of the weapon's own hit sound.
+    [DataField]
+    public SoundSpecifier? ImpactSound;
 
     [DataField]
     public int ExtraStrikes;

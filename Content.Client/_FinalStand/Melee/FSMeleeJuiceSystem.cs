@@ -15,6 +15,7 @@ using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Animations;
+using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
@@ -60,7 +61,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     public readonly List<Trail> Trails = new();
 
-    private readonly record struct PendingImpact(float Due, EntityUid User, FSMeleeJuiceProfile Profile, List<EntityUid> Targets, Vector2 Direction, float Hold, bool Lethal);
+    private readonly record struct PendingImpact(float Due, EntityUid User, FSMeleeJuiceProfile Profile, List<EntityUid> Targets, Vector2 Direction, float Hold, bool Lethal, SoundSpecifier? Cue);
 
     private readonly List<PendingImpact> _impacts = new();
 
@@ -108,7 +109,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (!Timing.IsFirstTimePredicted)
             return;
 
-        Play(user, weapon, targets, direction, heavy, finisher, 0, lethal);
+        var cue = !heavy && !finisher && weapon.Comp.Finisher != null
+            && TryComp<FSMeleeComboComponent>(user, out var combo) && combo.Weapon == weapon.Owner && combo.Hits >= weapon.Comp.ComboHits
+            ? weapon.Comp.ComboReadySound
+            : null;
+        Play(user, weapon, targets, direction, heavy, finisher, 0, lethal, cue);
     }
 
     private void OnHitEvent(FSMeleeHitJuiceEvent ev)
@@ -150,7 +155,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             StartZoom(profile.KillZoom);
     }
 
-    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal)
+    private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, SoundSpecifier? cue = null)
     {
         var profile = weapon.Comp.Get(heavy, finisher);
         var hold = profile.Hitstop + (lethal ? profile.KillHitstopBonus : 0f);
@@ -168,12 +173,12 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         // The hit lands on click, but the swing only reaches the target at its impact keyframe.
-        _impacts.Add(new PendingImpact(RealTime + ImpactDelay(weapon, profile, heavy), user, profile, targets, direction.Normalized(), hold, lethal));
+        _impacts.Add(new PendingImpact(RealTime + ImpactDelay(weapon, profile, heavy), user, profile, targets, direction.Normalized(), hold, lethal, cue));
     }
 
     private void Impact(PendingImpact impact)
     {
-        var (_, user, profile, targets, dir, hold, lethal) = impact;
+        var (_, user, profile, targets, dir, hold, lethal, cue) = impact;
         for (var i = 0; i < targets.Count && i < MaxJitterTargets; i++)
         {
             if (!TerminatingOrDeleted(targets[i]))
@@ -193,6 +198,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 _particles.Burst(emitter, target, profile.ParticleTint);
         }
 
+        if (profile.ImpactSound != null && targets.Count > 0 && !TerminatingOrDeleted(targets[0]))
+            _audio.PlayLocal(profile.ImpactSound, targets[0], user, profile.ImpactSound.Params.WithVariation(0.08f));
+
         var squelches = 0;
         foreach (var target in targets)
         {
@@ -207,6 +215,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         if (user != _player.LocalEntity)
             return;
+
+        if (cue != null)
+            _audio.PlayLocal(cue, user, user, cue.Params);
 
         AddTrauma(user, profile.Trauma * Math.Min(1f + 0.25f * (targets.Count - 1), 2f), dir, profile.ShakeMode);
 

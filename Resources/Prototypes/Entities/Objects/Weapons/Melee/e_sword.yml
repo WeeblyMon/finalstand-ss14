@@ -28,6 +28,11 @@
       slashColor: "#7ff0ff"
       slashScale: 0.85
     comboHits: 2
+    comboReadySound:
+      path: /Audio/Weapons/ebladeon.ogg
+      params:
+        volume: -8
+        pitch: 1.3
     finisher:
       anticipation: 0.04
       hitstop: 0.06
@@ -54,6 +59,10 @@
       slashOffset: 1.1
       slashTravel: 0.35
       slashGrow: 1.1
+      impactSound:
+        collection: sparks
+        params:
+          volume: 2
   - type: EnergySword
   - type: ItemToggle
     soundActivate:

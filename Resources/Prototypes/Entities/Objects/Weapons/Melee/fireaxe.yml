@@ -33,6 +33,10 @@
       slashScale: 0.95
       slashTravel: 0.35
     comboHits: 2
+    comboReadySound:
+      path: /Audio/Items/unsheath.ogg
+      params:
+        volume: -6
     finisher:
       anticipation: 0.2
       hitstop: 0.12
@@ -63,6 +67,11 @@
       slashScale: 1.1
       slashGrow: 1.35
       slashOffset: 0.9
+      impactSound:
+        collection: FSMeleeBoneBreak
+        params:
+          volume: 3
+          pitch: 0.85
   - type: Tag
     tags:
     - FireAxe

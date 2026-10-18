@@ -33,6 +33,10 @@
       slashTravel: 0.3
       slashGrow: 1.1
     comboHits: 2
+    comboReadySound:
+      path: /Audio/Items/unsheath.ogg
+      params:
+        volume: -6
     finisher:
       anticipation: 0.12
       hitstop: 0.07
@@ -62,6 +66,11 @@
       slashOffset: 1.6
       slashTravel: 0.45
       slashGrow: 1.15
+      impactSound:
+        path: /Audio/Weapons/pierce.ogg
+        params:
+          volume: 3
+          pitch: 0.8
     heavy:
       anticipation: 0.12
       hitstop: 0.07
