@@ -53,6 +53,7 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
 
         var chance = MathF.Min(ent.Comp.DropChance + ent.Comp.ChancePerWave * _waves.GetWaveNumber(),
             MathF.Max(ent.Comp.MaxChance, ent.Comp.DropChance));
+        var multiplier = GetAmountMultiplier(_waves.GetScalingPlayers(), _waves.GetWaveNumber());
         var coords = _transform.GetMapCoordinates(ent);
         for (var i = 0; i < ent.Comp.Rolls; i++)
         {
@@ -60,11 +61,19 @@ public sealed partial class FSMaterialDropSystem : EntitySystem
                 continue;
 
             var proto = _random.Pick(ent.Comp.Materials);
-            _telemetry.RecordDrop(proto);
-            DropMaterial(proto, 1, coords);
+            var amount = (int) multiplier + (_random.Prob(multiplier % 1f) ? 1 : 0);
+            _telemetry.RecordDrop(proto, amount);
+            DropMaterial(proto, amount, coords);
         }
 
         TrimLooseDrops();
+    }
+
+    public float GetAmountMultiplier(int players, int wave)
+    {
+        var playerBonus = Math.Max(0, players - _cfg.GetCVar(CCVars.FSMatDropBasePlayers)) * _cfg.GetCVar(CCVars.FSMatDropPerPlayer);
+        var waveBonus = Math.Max(0, wave - _cfg.GetCVar(CCVars.FSMatDropBaseWave)) * _cfg.GetCVar(CCVars.FSMatDropPerWave);
+        return 1f + MathF.Min(playerBonus + waveBonus, _cfg.GetCVar(CCVars.FSMatDropBonusCap));
     }
 
     private void DropMaterial(EntProtoId proto, int amount, MapCoordinates coords)

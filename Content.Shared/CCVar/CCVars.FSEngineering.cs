@@ -46,6 +46,21 @@ public sealed partial class CCVars
     public static readonly CVarDef<float> FSEngSfxVolume =
         CVarDef.Create("fs.eng_sfx_volume", 1f, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    public static readonly CVarDef<int> FSMatDropBasePlayers =
+        CVarDef.Create("fs.mat_drop_base_players", 4, CVar.SERVERONLY);
+
+    public static readonly CVarDef<float> FSMatDropPerPlayer =
+        CVarDef.Create("fs.mat_drop_per_player", 0.15f, CVar.SERVERONLY);
+
+    public static readonly CVarDef<int> FSMatDropBaseWave =
+        CVarDef.Create("fs.mat_drop_base_wave", 5, CVar.SERVERONLY);
+
+    public static readonly CVarDef<float> FSMatDropPerWave =
+        CVarDef.Create("fs.mat_drop_per_wave", 0.04f, CVar.SERVERONLY);
+
+    public static readonly CVarDef<float> FSMatDropBonusCap =
+        CVarDef.Create("fs.mat_drop_bonus_cap", 1.5f, CVar.SERVERONLY);
+
     public static readonly CVarDef<float> FSMatDropMergeRange =
         CVarDef.Create("fs.mat_drop_merge_range", 1.5f, CVar.SERVERONLY);
 }

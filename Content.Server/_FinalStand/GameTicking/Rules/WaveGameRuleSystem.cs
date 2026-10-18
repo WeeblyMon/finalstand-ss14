@@ -904,6 +904,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         return TryGetActiveRule(out _, out var comp, out _) ? comp.WaveNumber : 0;
     }
 
+    public int GetScalingPlayers()
+    {
+        return TryGetActiveRule(out _, out var comp, out _) ? comp.ScalingPlayersThisWave : 0;
+    }
+
     public bool TryGetWaveStatus(out int wave, out WavePhase phase)
     {
         if (!TryGetActiveRule(out _, out var comp, out _))
