@@ -31,15 +31,16 @@ public sealed partial class FSHitscanEffectSystem : EntitySystem
         if (!TryComp<HitscanBasicDamageComponent>(uid, out var dmgComp))
             return;
 
-        var damage = dmgComp.Damage * _damageable.UniversalHitscanDamageModifier;
         var target = args.Data.HitEntity.Value;
 
         TryComp<FSWeaponUpgradeStateComponent>(args.Data.Gun, out var upgradeState);
 
+        var damage = dmgComp.Damage * _damageable.UniversalHitscanDamageModifier;
+        if (upgradeState != null)
+            damage *= FSWeaponUpgradeDamageSystem.Multiplier(upgradeState);
+
         // damage stays the vanilla-applied baseline for PayDelta; wantedDamage is what we actually owe.
         var wantedDamage = damage;
-        if (upgradeState is { DamageMultiplier: > 1.0f })
-            wantedDamage *= upgradeState.DamageMultiplier;
 
         var didCrit = false;
         var critMultiplier = 1f;

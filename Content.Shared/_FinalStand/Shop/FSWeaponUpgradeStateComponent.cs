@@ -8,7 +8,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 {
     [DataField] public float CritChance = 0f;
     [DataField] public float CritDamageMultiplier = 2f;
-    [DataField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
+    [DataField, AutoNetworkedField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
 
     [DataField] public Dictionary<string, int> Levels = new();
 
@@ -25,7 +25,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public bool SpeedLoaderEnabled = false;
     [DataField] public float LifeStealPercent = 0f;
     [DataField] public int StaminaStealLevel = 0;
-    [DataField] public float DamageMultiplier = 1.0f;
+    [DataField, AutoNetworkedField] public float DamageMultiplier = 1.0f;
     [DataField] public int ExtraPellets = 0;
     [DataField] public bool ScrapshotEnabled = false;
     [DataField] public int BleedLevel = 0;
@@ -48,7 +48,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
     [DataField] public float ResearchMagazinePercent = 0f;
     [DataField] public float BatteryFireCostReduction = 0f;
 
-    [DataField] public float AttackSpeedMultiplier = 1f;
+    [DataField, AutoNetworkedField] public float AttackSpeedMultiplier = 1f;
     [DataField] public int ConcussionClubStunMs = 0;
     [DataField] public bool CritVsStunned = false;
     [DataField] public int StunOnHitMs = 0;
