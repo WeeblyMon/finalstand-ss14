@@ -1,6 +1,7 @@
 fs-ladder-bracket-solo = Solo
 fs-ladder-bracket-squad = 2-4 players
 fs-ladder-bracket-crew = 5+ players
+fs-ladder-bracket-all = any crew size
 fs-ladder-new-record = [color=#FFD700][bold]NEW SERVER RECORD[/bold][/color] on {$difficulty}, {$bracket}!
 fs-ladder-board-examine-empty = {$ladder}: no runs recorded yet. Be the first.
 fs-ladder-board-examine = Record to beat ({$ladder}): {$players}, wave {$waves}.

@@ -131,6 +131,7 @@ public sealed class LadderTest : GameTest
             var at = DateTime.UtcNow;
             ladder.RecordRun(new FSRunRecord("Cy", FSDifficulty.Normal, FSPlayerBracket.Squad, 30, true, 5000, 900, at));
             ladder.RecordRun(new FSRunRecord("Di", FSDifficulty.Hard, FSPlayerBracket.Squad, 4, false, 900, 80, at));
+            ladder.RecordRun(new FSRunRecord("Gus", FSDifficulty.Hard, FSPlayerBracket.Crew, 9, false, 900, 80, at));
             ladder.RecordRun(new FSRunRecord("Ed", FSDifficulty.Normal, FSPlayerBracket.Squad, 6, false, 900, 80, at, week));
             for (var i = 0; i < FSLadderBoardComponent.ShownRuns + 2; i++)
                 ladder.RecordRun(new FSRunRecord($"Filler {i}", FSDifficulty.Normal, FSPlayerBracket.Squad, 1, false, 60, 1, at));
@@ -147,7 +148,7 @@ public sealed class LadderTest : GameTest
                 Assert.That(board.Runs.Take(2).Select(r => r.Players), Is.EqualTo(new[] { "Cy", "Ada" }),
                     "a new record goes straight to the top without anyone touching the board");
                 Assert.That(CEntMan.GetComponent<FSLadderBoardComponent>(Pair.ToClientUid(hard)).Runs.Select(r => r.Players),
-                    Is.EqualTo(new[] { "Di" }));
+                    Is.EqualTo(new[] { "Gus", "Di" }), "the Hard board shows every crew size");
                 Assert.That(weeklyBoard.Runs.Select(r => r.Players), Is.EqualTo(new[] { "Ed" }));
                 Assert.That(weeklyBoard.WeeklyName, Is.Not.Null.And.Not.Empty, "the weekly board names this week's challenge");
             });
