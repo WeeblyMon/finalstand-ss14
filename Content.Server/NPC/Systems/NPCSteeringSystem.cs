@@ -227,6 +227,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
     // FINALSTAND
     private const int WaveZombieSteerEvery = 2;
+    private const float StaticDangerReuseDistance = 0.1f;
+    private static readonly TimeSpan StaticDangerLifetime = TimeSpan.FromSeconds(1);
     private int _steerTick;
     private readonly List<(EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent, float)> _steerBuffer = new();
 
@@ -400,7 +402,30 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         }
 
         // Avoid static objects like walls
-        CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+        // FINALSTAND: a horde mostly stands in crowds, so wave zombies reuse their last wall check while they
+        // haven't moved. It still expires, so doors and barricades changing are picked up within a second.
+        if (_waveTagQuery.HasComponent(uid))
+        {
+            if (curTime < steering.StaticDangerUntil
+                && offsetRot == steering.StaticDangerRotation
+                && (worldPos - steering.StaticDangerPosition).LengthSquared() < StaticDangerReuseDistance * StaticDangerReuseDistance)
+            {
+                steering.StaticDanger.CopyTo(danger);
+            }
+            else
+            {
+                CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+                danger.CopyTo(steering.StaticDanger);
+                steering.StaticDangerPosition = worldPos;
+                steering.StaticDangerRotation = offsetRot;
+                steering.StaticDangerUntil = curTime + StaticDangerLifetime;
+            }
+        }
+        else
+        {
+            CollisionAvoidance(uid, offsetRot, worldPos, agentRadius, layer, mask, xform, danger);
+        }
+
         DebugTools.Assert(!float.IsNaN(danger[0]));
 
         // FINALSTAND: wave zombies do their own peer and target spacing from a single lookup, which also covers

@@ -37,6 +37,19 @@ public sealed partial class NPCSteeringComponent : Component
     // TODO: Update radius, also danger points debug only
     public readonly List<Vector2> DangerPoints = new();
 
+    // FINALSTAND: wall avoidance for wave zombies, reused while they stand still (see NPCSteeringSystem).
+    [ViewVariables]
+    public readonly float[] StaticDanger = new float[SharedNPCSteeringSystem.InterestDirections];
+
+    [ViewVariables]
+    public Vector2 StaticDangerPosition = new(float.NaN, float.NaN);
+
+    [ViewVariables]
+    public Angle StaticDangerRotation;
+
+    [ViewVariables]
+    public TimeSpan StaticDangerUntil;
+
     #endregion
 
     /// <summary>
