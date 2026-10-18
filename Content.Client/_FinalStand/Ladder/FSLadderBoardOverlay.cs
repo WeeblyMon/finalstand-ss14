@@ -82,7 +82,7 @@ public sealed partial class FSLadderBoardOverlay : Overlay
             ? board.WeeklyName ?? Loc.GetString("fs-ladder-weekly")
             : Loc.GetString("fs-ladder-board-ladder",
                 ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(board.Difficulty))),
-                ("bracket", Loc.GetString(FSLadder.BracketLocId(board.Bracket))));
+                ("bracket", Loc.GetString(board.AllBrackets ? "fs-ladder-bracket-all" : FSLadder.BracketLocId(board.Bracket))));
 
         var titleHeight = _title!.GetLineHeight(1f);
         var lineHeight = _body!.GetLineHeight(1f);

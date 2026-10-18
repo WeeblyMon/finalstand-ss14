@@ -236,15 +236,55 @@ public sealed partial class FSPlayerDataStore
         }
     }
 
-    public void InsertRun(FSRunRecord run)
+    public long? InsertRun(FSRunRecord run)
     {
-        if (!DbReady("run save")) return;
+        if (!DbReady("run save")) return null;
 
         using var cmd = DbCommand();
         cmd.CommandText = """
             INSERT INTO fs_runs (ended_at, difficulty, bracket, waves, victory, duration_seconds, kills, players, weekly)
             VALUES ($at, $difficulty, $bracket, $waves, $victory, $duration, $kills, $players, $weekly)
+            RETURNING id
             """;
+        AddRunParameters(cmd, run);
+        try
+        {
+            return cmd.ExecuteScalar() is long id ? id : null;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[FSWallet] run save failed: {e.Message}");
+            return null;
+        }
+    }
+
+    public void UpdateRun(long id, FSRunRecord run)
+    {
+        if (!DbReady("run update")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = """
+            UPDATE fs_runs SET ended_at = $at, difficulty = $difficulty, bracket = $bracket, waves = $waves,
+                victory = $victory, duration_seconds = $duration, kills = $kills, players = $players, weekly = $weekly
+            WHERE id = $id
+            """;
+        AddRunParameters(cmd, run);
+        cmd.Parameters.AddWithValue("$id", id);
+        TryExecute(cmd, "run update");
+    }
+
+    public void DeleteRun(long id)
+    {
+        if (!DbReady("run delete")) return;
+
+        using var cmd = DbCommand();
+        cmd.CommandText = "DELETE FROM fs_runs WHERE id = $id";
+        cmd.Parameters.AddWithValue("$id", id);
+        TryExecute(cmd, "run delete");
+    }
+
+    private static void AddRunParameters(SqliteCommand cmd, FSRunRecord run)
+    {
         cmd.Parameters.AddWithValue("$at", run.EndedAtUtc.ToString("O"));
         cmd.Parameters.AddWithValue("$difficulty", (int) run.Difficulty);
         cmd.Parameters.AddWithValue("$bracket", (int) run.Bracket);
@@ -254,22 +294,21 @@ public sealed partial class FSPlayerDataStore
         cmd.Parameters.AddWithValue("$kills", run.Kills);
         cmd.Parameters.AddWithValue("$players", run.Players);
         cmd.Parameters.AddWithValue("$weekly", (object?) run.Weekly ?? DBNull.Value);
-        TryExecute(cmd, "run save");
     }
 
-    public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket bracket, int limit)
+    public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket? bracket, int limit)
         => TryRead($"ladder load for {difficulty}/{bracket}", () =>
         {
             using var cmd = DbCommand();
             cmd.CommandText = """
-                SELECT players, waves, victory, duration_seconds, kills, ended_at
+                SELECT players, waves, victory, duration_seconds, kills, ended_at, bracket
                 FROM fs_runs
-                WHERE difficulty = $difficulty AND bracket = $bracket AND weekly IS NULL
+                WHERE difficulty = $difficulty AND ($bracket IS NULL OR bracket = $bracket) AND weekly IS NULL
                 ORDER BY victory DESC, waves DESC, duration_seconds ASC, ended_at ASC
                 LIMIT $limit
                 """;
             cmd.Parameters.AddWithValue("$difficulty", (int) difficulty);
-            cmd.Parameters.AddWithValue("$bracket", (int) bracket);
+            cmd.Parameters.AddWithValue("$bracket", bracket is { } b ? (int) b : DBNull.Value);
             cmd.Parameters.AddWithValue("$limit", limit);
             using var r = cmd.ExecuteReader();
             var runs = new List<FSRunRecord>();
@@ -278,7 +317,7 @@ public sealed partial class FSPlayerDataStore
                 runs.Add(new FSRunRecord(
                     r.GetString(0),
                     difficulty,
-                    bracket,
+                    (FSPlayerBracket) r.GetInt32(6),
                     r.GetInt32(1),
                     r.GetInt32(2) != 0,
                     r.GetInt32(3),

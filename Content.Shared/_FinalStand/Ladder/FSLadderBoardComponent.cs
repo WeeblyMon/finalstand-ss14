@@ -15,6 +15,9 @@ public sealed partial class FSLadderBoardComponent : Component
     public FSPlayerBracket Bracket = FSPlayerBracket.Squad;
 
     [DataField, AutoNetworkedField]
+    public bool AllBrackets;
+
+    [DataField, AutoNetworkedField]
     public bool Weekly;
 
     [AutoNetworkedField]
