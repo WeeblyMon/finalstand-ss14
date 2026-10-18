@@ -243,6 +243,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         var npcs = _steerBuffer;
         npcs.Clear();
 
+        _spacingWanted = false;
         var query = EntityQueryEnumerator<ActiveNPCComponent, NPCSteeringComponent, InputMoverComponent, TransformComponent>();
 
         while (query.MoveNext(out var uid, out _, out var steering, out var mover, out var xform))
@@ -253,6 +254,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
                     continue;
 
                 npcs.Add((uid, steering, mover, xform, frameTime * WaveZombieSteerEvery));
+                _spacingWanted = true;
                 continue;
             }
 
@@ -260,6 +262,9 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         }
 
         var index = npcs.Count;
+
+        if (_spacingWanted)
+            BuildSpacingIndex();
 
         // Dependency issues across threads.
         var options = new ParallelOptions
@@ -401,7 +406,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         // FINALSTAND: wave zombies do their own peer and target spacing from a single lookup, which also covers
         // what Separation does for them. Three neighbour queries per zombie per tick don't survive a 500+ horde.
         if (_waveTagQuery.HasComponent(uid))
-            WaveZombieSpacing(uid, offsetRot, worldPos, danger);
+            WaveZombieSpacing(uid, xform.MapID, offsetRot, worldPos, danger);
         else
             Separation(uid, offsetRot, worldPos, agentRadius, layer, mask, body, xform, danger);
 

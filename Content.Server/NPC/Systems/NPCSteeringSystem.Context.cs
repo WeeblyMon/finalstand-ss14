@@ -657,18 +657,66 @@ public sealed partial class NPCSteeringSystem
 
     #region Wave Zombie Spacing
 
-    // FINALSTAND: one neighbour lookup per wave zombie, used for three things:
+    // FINALSTAND: wave zombie spacing, used for three things:
     //   - spacing from other zombies so they don't stack (symmetric, strongest at contact);
     //   - yielding to a zombie ahead going the same way (only the trailing one brakes, so they don't mirror-jink);
     //   - spreading out from a zombie alongside going the same way, so lanes fill the corridor width;
-    // and standing off from living, standing non-zombies (players, the CCC) so they settle at melee range.
+    // and standing off from living, standing non-zombies (players) so they settle at melee range.
+    // Neighbours come from a grid of mob positions built once per tick. A broadphase query per zombie
+    // was over half the server tick once a horde piled onto its targets.
+    private const float PeerYieldRadius = 2.0f;
+
+    private readonly record struct SpacingEntry(EntityUid Uid, Vector2 Position, Vector2 Moving, bool IsWave);
+
+    private bool _spacingWanted;
+    private readonly List<SpacingEntry> _spacingEntries = new();
+    private readonly Dictionary<(MapId, Vector2i), List<int>> _spacingCells = new();
+
+    private void BuildSpacingIndex()
+    {
+        foreach (var cell in _spacingCells.Values)
+            cell.Clear();
+        _spacingEntries.Clear();
+
+        var query = EntityQueryEnumerator<MobStateComponent, PhysicsComponent, TransformComponent, MetaDataComponent>();
+        while (query.MoveNext(out var uid, out var mobState, out var body, out var xform, out var meta))
+        {
+            if (body.BodyType == BodyType.Static
+                || xform.MapID == MapId.Nullspace
+                || (meta.Flags & MetaDataFlags.InContainer) != 0)
+                continue;
+
+            var isWave = _waveTagQuery.HasComponent(uid);
+
+            // A downed or dead body is walked over, otherwise every crit player becomes a wall.
+            if (!isWave && (mobState.CurrentState != MobState.Alive
+                            || _standingQuery.TryGetComponent(uid, out var standing) && !standing.Standing))
+                continue;
+
+            var position = _transform.GetWorldPosition(xform);
+            var moving = isWave && _inputMoverQuery.TryGetComponent(uid, out var mover)
+                ? mover.CurTickSprintMovement
+                : Vector2.Zero;
+
+            var key = (xform.MapID, (position / PeerYieldRadius).Floored());
+            if (!_spacingCells.TryGetValue(key, out var list))
+            {
+                list = new List<int>();
+                _spacingCells[key] = list;
+            }
+
+            list.Add(_spacingEntries.Count);
+            _spacingEntries.Add(new SpacingEntry(uid, position, moving, isWave));
+        }
+    }
+
     private void WaveZombieSpacing(
         EntityUid uid,
+        MapId mapId,
         Angle offsetRot,
         Vector2 worldPos,
         Span<float> danger)
     {
-        const float PeerYieldRadius     = 2.0f;
         const float PeerSpacingRadius   = 1.2f;
         const float PeerSpacingWeight   = 0.6f;
         const float ForwardYieldWeight  = 0.45f;
@@ -688,67 +736,64 @@ public sealed partial class NPCSteeringSystem
         }
 
         var preferLeft = ((int) uid & 1) == 0;
+        var centre = (worldPos / PeerYieldRadius).Floored();
 
-        var ents = _entSetPool.Get();
-        _lookup.GetEntitiesInRange(uid, PeerYieldRadius, ents, LookupFlags.Dynamic | LookupFlags.Approximate);
-
-        foreach (var ent in ents)
+        for (var x = -1; x <= 1; x++)
         {
-            if (ent == uid)
-                continue;
-
-            var toOther = _transform.GetWorldPosition(_xformQuery.GetComponent(ent)) - worldPos;
-            var dist = toOther.Length();
-            if (dist < 0.01f || dist > PeerYieldRadius)
-                continue;
-
-            var toOtherDir = toOther / dist;
-            var towardLocal = offsetRot.RotateVec(toOtherDir);
-
-            if (!_waveTagQuery.HasComponent(ent))
+            for (var y = -1; y <= 1; y++)
             {
-                // A downed or dead body is walked over, otherwise every crit player becomes a wall.
-                if (dist > StandOffRadius
-                    || !TryComp<MobStateComponent>(ent, out var ms) || ms.CurrentState != MobState.Alive
-                    || _standingQuery.TryGetComponent(ent, out var standing) && !standing.Standing)
-                {
+                if (!_spacingCells.TryGetValue((mapId, centre + new Vector2i(x, y)), out var cell))
                     continue;
+
+                foreach (var i in cell)
+                {
+                    var other = _spacingEntries[i];
+                    if (other.Uid == uid)
+                        continue;
+
+                    var toOther = other.Position - worldPos;
+                    var dist = toOther.Length();
+                    if (dist < 0.01f || dist > PeerYieldRadius)
+                        continue;
+
+                    var toOtherDir = toOther / dist;
+                    var towardLocal = offsetRot.RotateVec(toOtherDir);
+
+                    if (!other.IsWave)
+                    {
+                        if (dist <= StandOffRadius)
+                            AddDanger(danger, towardLocal, StandOffWeight * (1f - dist / StandOffRadius));
+                        continue;
+                    }
+
+                    if (dist < PeerSpacingRadius)
+                        AddDanger(danger, towardLocal, PeerSpacingWeight * (1f - dist / PeerSpacingRadius));
+
+                    if (!isMoving
+                        || other.Moving == Vector2.Zero
+                        || Vector2.Dot(myDirNorm, other.Moving.Normalized()) <= 0.4f)
+                        continue;
+
+                    if (Vector2.Dot(myDirNorm, toOtherDir) <= 0.4f)
+                    {
+                        AddDanger(danger, towardLocal, LateralSpreadWeight);
+                        continue;
+                    }
+
+                    // Ahead of us and going our way. Only the higher-uid zombie yields.
+                    if ((int) other.Uid >= (int) uid)
+                        continue;
+
+                    AddDanger(danger, towardLocal, ForwardYieldWeight);
+
+                    // Commit to a fixed side so the pass doesn't flip-flop.
+                    var lateral = preferLeft
+                        ? new Vector2(-toOtherDir.Y, toOtherDir.X)
+                        : new Vector2(toOtherDir.Y, -toOtherDir.X);
+                    AddDanger(danger, offsetRot.RotateVec(-lateral), LateralYieldWeight);
                 }
-
-                AddDanger(danger, towardLocal, StandOffWeight * (1f - dist / StandOffRadius));
-                continue;
             }
-
-            if (dist < PeerSpacingRadius)
-                AddDanger(danger, towardLocal, PeerSpacingWeight * (1f - dist / PeerSpacingRadius));
-
-            if (!isMoving || !_inputMoverQuery.TryGetComponent(ent, out var peerMover))
-                continue;
-
-            var peerDir = peerMover.CurTickSprintMovement;
-            if (peerDir == Vector2.Zero || Vector2.Dot(myDirNorm, peerDir.Normalized()) <= 0.4f)
-                continue;
-
-            if (Vector2.Dot(myDirNorm, toOtherDir) <= 0.4f)
-            {
-                AddDanger(danger, towardLocal, LateralSpreadWeight);
-                continue;
-            }
-
-            // Ahead of us and going our way. Only the higher-uid zombie yields.
-            if ((int) ent >= (int) uid)
-                continue;
-
-            AddDanger(danger, towardLocal, ForwardYieldWeight);
-
-            // Commit to a fixed side so the pass doesn't flip-flop.
-            var lateral = preferLeft
-                ? new Vector2(-toOtherDir.Y, toOtherDir.X)
-                : new Vector2(toOtherDir.Y, -toOtherDir.X);
-            AddDanger(danger, offsetRot.RotateVec(-lateral), LateralYieldWeight);
         }
-
-        _entSetPool.Return(ents);
     }
 
     private static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)
