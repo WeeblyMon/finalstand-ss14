@@ -198,7 +198,8 @@ namespace Content.Client.Access.UI
                 jobIndex = _jobPrototypeIds.IndexOf(_defaultJob);
             }
 
-            JobPresetOptionButton.SelectId(jobIndex);
+            if (jobIndex >= 0)
+                JobPresetOptionButton.SelectId(jobIndex);
 
             _lastFullName = state.TargetIdFullName;
             _lastJobTitle = state.TargetIdJobTitle;
