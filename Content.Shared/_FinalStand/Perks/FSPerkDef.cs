@@ -351,6 +351,11 @@ public sealed class FSPerkDef
                 "Shotguns deal more damage for each of your sentries still standing, up to 5.",
                 PerkCategory.Red,
                 Pct("+{0}% Shotgun Damage per Sentry", FSPerkBonusConstants.OlReliablePerSentryPerLevel)),
+
+            new("StylePoints", "Style Points",
+                "A gun left unfired for 5s builds up bonus damage. Firing it drains the bonus.",
+                PerkCategory.Red,
+                Pct("Up to +{0}% Damage", FSPerkBonusConstants.StylePointsPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

@@ -75,6 +75,10 @@ public static class FSPerkBonusConstants
     public const float DeadlyGearPerLevel = 0.05f;   // sentries, HMG and mines
     public const float OlReliablePerSentryPerLevel = 0.02f;   // shotguns, per own sentry standing
     public const int OlReliableMaxSentries = 5;
+    public const float StylePointsPerLevel = 0.10f;
+    public const float StylePointsRestSeconds = 5f;    // idle before the bonus starts to build
+    public const float StylePointsRampSeconds = 5f;    // idle time from empty to full
+    public const float StylePointsDrainSeconds = 5f;   // firing time from full to empty
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

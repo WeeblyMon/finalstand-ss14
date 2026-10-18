@@ -45,6 +45,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSLoneWolfSystem _loneWolf = default!;
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
     [Dependency] private TagSystem _tags = default!;
+    [Dependency] private FSStylePointsSystem _stylePoints = default!;
 
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
@@ -199,6 +200,16 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var pct = deathAuraStacks * FSPerkBonusConstants.DeathAuraPerStack * 100f;
             dmgPct += pct;
             dmgSources.Add(FormatPct("Death Aura", pct));
+        }
+
+        if (perks != null && _mind.TryGetMind(mob, out var styleMind, out _))
+        {
+            var pct = (_stylePoints.GetReadyMultiplier(styleMind, perks, heldUid) - 1f) * 100f;
+            if (pct > 0.5f)
+            {
+                dmgPct += pct;
+                dmgSources.Add(FormatPct("Style Points", pct));
+            }
         }
 
         if (perks != null && _tags.HasTag(heldUid, ShotgunTag) && _mind.TryGetMind(mob, out var reliableMind, out _))

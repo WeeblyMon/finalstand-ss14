@@ -43,6 +43,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
+    [Dependency] private FSStylePointsSystem _stylePoints = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -91,6 +92,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         if (ev.Weapon is { } shotgun && _tags.HasTag(shotgun, ShotgunTag))
             ev.AdditionalMultiplier *= OlReliableMultiplier(mindId, augs);
+
+        if (ev.Weapon is { } styled && !HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid))
+            ev.AdditionalMultiplier *= _stylePoints.GetMultiplier(mindId, augs, styled);
 
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
@@ -195,6 +199,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var augs)) return;
 
         _perkAmmo.OnShot(uid, holder, augs);
+        _stylePoints.OnShot(mindId, augs, uid);
 
         var level = augs.GetSlottedLevel("DeepImpact");
         if (level <= 0) return;
