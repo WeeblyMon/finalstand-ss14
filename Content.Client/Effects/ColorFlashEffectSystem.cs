@@ -118,6 +118,9 @@ public sealed partial class ColorFlashEffectSystem : SharedColorFlashEffectSyste
             }
 
             _animation.Stop(ent, AnimationKey);
+            if (comp != null)
+                _sprite.SetColor((ent, sprite), comp.Color);
+
             var animation = GetDamageAnimation(ent, color, sprite);
 
             if (animation == null)
