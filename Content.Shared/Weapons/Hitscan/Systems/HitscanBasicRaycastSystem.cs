@@ -72,7 +72,7 @@ public sealed partial class HitscanBasicRaycastSystem : EntitySystem
             : rayCastResults.FirstOrNull(hit =>
                 hit.HitEntity != vehicle
                 && (hit.HitEntity == target || CompOrNull<RequireProjectileTargetComponent>(hit.HitEntity)?.Active != true)
-                && !(isFriendlyShooter && _ffQuery.HasComponent(hit.HitEntity))
+                && !(isFriendlyShooter && (_ffQuery.HasComponent(hit.HitEntity) || HasComp<Content.Shared._FinalStand.Repair.FSPlateRepairComponent>(hit.HitEntity)))
                 && !(skipComp != null && skipComp.Targets.Contains(hit.HitEntity)));
 
         var distanceTried = result?.Distance ?? ent.Comp.MaxDistance;
