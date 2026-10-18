@@ -39,6 +39,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private const float NudgeCooldown = 8f;
     private const float PurgeInterval = 30f;
     private const float NoPathGraceSeconds = 5f;
+    private const float QueueRange = 3f;
 
     // Stuck detection works on a 20s horizon, so sampling faster than 1 Hz buys nothing.
     private const float TickInterval = 1f;
@@ -114,6 +115,12 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
                 _state[uid] = s = s with { NoPathSince = TimeSpan.Zero };
             }
 
+            if (IsFighting(uid, worldPos))
+            {
+                _state[uid] = s with { LastPos = worldPos, LastMoveTime = curTime, NudgeCount = 0 };
+                continue;
+            }
+
             if ((worldPos - s.LastPos).LengthSquared() >= StuckDistance * StuckDistance)
             {
                 _state[uid] = s with { LastPos = worldPos, LastMoveTime = curTime, NudgeCount = 0 };
@@ -126,6 +133,21 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
             TryRecover(uid, xform, ref s, curTime);
             _state[uid] = s;
         }
+    }
+
+    // Standing at a target swinging, or queued just behind the ones that are, isn't being stuck.
+    // Without this, zombies holding the CCC got teleported around and then deleted.
+    private bool IsFighting(EntityUid uid, Vector2 worldPos)
+    {
+        if (!TryComp<NPCMeleeCombatComponent>(uid, out var melee))
+            return false;
+
+        if (melee.Status == CombatStatus.Normal)
+            return true;
+
+        return melee.Status == CombatStatus.TargetOutOfRange
+               && TryComp(melee.Target, out TransformComponent? targetXform)
+               && (_transform.GetWorldPosition(targetXform) - worldPos).LengthSquared() <= QueueRange * QueueRange;
     }
 
     private bool IsFlowReachable(TransformComponent xform)
