@@ -41,6 +41,12 @@ public sealed class MechBoundUserInterface : BoundUserInterface
         _menu?.UpdateEquipmentView();
     }
 
+    public void Refresh()
+    {
+        _menu?.UpdateMechStats();
+        _menu?.UpdateEquipmentView();
+    }
+
     public void UpdateEquipmentControls(MechBoundUiState state)
     {
         if (!EntMan.TryGetComponent<MechComponent>(Owner, out var mechComp))
