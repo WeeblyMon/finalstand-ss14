@@ -81,8 +81,12 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             args.BonusDamage += args.BaseDamage * (multiplier - 1f);
         }
 
+        var friendlyUser = _ffQuery.HasComponent(user);
         foreach (var target in args.HitEntities)
         {
+            if (friendlyUser && _ffQuery.HasComponent(target))
+                continue;
+
             // stun before CritVsStunned so the same swing can trigger both
             if (state.ConcussionClubStunMs > 0 && heavyAttack)
             {
