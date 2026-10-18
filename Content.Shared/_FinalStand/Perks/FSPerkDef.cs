@@ -341,6 +341,11 @@ public sealed class FSPerkDef
                 PerkCategory.Purple,
                 Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.BunkeredDownDamagePerLevel,
                     FSPerkBonusConstants.BunkeredDownResistPerLevel)),
+
+            new("DeadlyGear", "Deadly Gear",
+                "Your sentries, HMG fire and landmines deal more damage.",
+                PerkCategory.Red,
+                Pct("+{0}% Equipment Damage", FSPerkBonusConstants.DeadlyGearPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

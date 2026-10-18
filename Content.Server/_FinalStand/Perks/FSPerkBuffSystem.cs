@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Spawners;
@@ -7,6 +8,7 @@ using Content.Server._FinalStand.Titles;
 using Content.Server.Damage.Systems;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
@@ -83,6 +85,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
             ev.AdditionalMultiplier *= 1f + GunslingerSign(weapon, augs) * augs.GetSlottedLevel("Gunslinger")
                 * FSPerkBonusConstants.GunslingerDamagePerLevel;
 
+        if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid) || HasComp<FSHMGComponent>(ev.Weapon))
+            ev.AdditionalMultiplier *= DeadlyGearMultiplier(augs);
+
         if (TryComp<FSOfficerBuffComponent>(mindId, out var ob) && _timing.CurTime < ob.EndTime)
             ev.AdditionalMultiplier *= 1f + ob.Level * FSPerkBonusConstants.OfficerBuffPerLevel;
 
@@ -116,6 +121,14 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
             * FSPerkBonusConstants.GunslingerFireRatePerLevel;
     }
+
+    public static float DeadlyGearMultiplier(FSPerkLevelsComponent perks)
+        => 1f + perks.GetSlottedLevel("DeadlyGear") * FSPerkBonusConstants.DeadlyGearPerLevel;
+
+    public float DeadlyGearMultiplier(EntityUid body)
+        => _mind.TryGetMind(body, out var mindId, out _) && TryComp<FSPerkLevelsComponent>(mindId, out var perks)
+            ? DeadlyGearMultiplier(perks)
+            : 1f;
 
     public int GunslingerSign(EntityUid gun, FSPerkLevelsComponent perks)
     {
