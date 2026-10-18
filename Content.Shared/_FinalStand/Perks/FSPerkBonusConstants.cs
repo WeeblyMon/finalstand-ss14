@@ -79,6 +79,7 @@ public static class FSPerkBonusConstants
     public const float StylePointsRestSeconds = 5f;    // idle before the bonus starts to build
     public const float StylePointsRampSeconds = 5f;    // idle time from empty to full
     public const float StylePointsDrainSeconds = 5f;   // firing time from full to empty
+    public const float SmokingKillsPerLevel = 0.04f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

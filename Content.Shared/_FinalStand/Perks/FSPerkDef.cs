@@ -356,6 +356,11 @@ public sealed class FSPerkDef
                 "A gun left unfired for 5s builds up bonus damage. Firing it drains the bonus.",
                 PerkCategory.Red,
                 Pct("Up to +{0}% Damage", FSPerkBonusConstants.StylePointsPerLevel)),
+
+            new("SmokingKills", "Smoking Kills",
+                "Deal more damage while a lit cigarette, cigar or pipe is in your mouth.",
+                PerkCategory.Red,
+                Pct("+{0}% Damage", FSPerkBonusConstants.SmokingKillsPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

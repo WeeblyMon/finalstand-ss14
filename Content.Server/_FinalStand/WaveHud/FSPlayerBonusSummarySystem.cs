@@ -46,6 +46,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
+    [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
 
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
@@ -374,6 +375,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             total += bunker;
             sources.Add(FormatPct("Bunkered Down", bunker));
+        }
+
+        var smoking = (_smokingKills.GetMultiplier(mob, perks) - 1f) * 100f;
+        if (smoking > 0f)
+        {
+            total += smoking;
+            sources.Add(FormatPct("Smoking Kills", smoking));
         }
     }
 
