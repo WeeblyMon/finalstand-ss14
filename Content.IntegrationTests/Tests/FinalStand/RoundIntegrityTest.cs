@@ -1,3 +1,4 @@
+#pragma warning disable RA0002
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -135,6 +136,47 @@ public sealed class RoundIntegrityTest : GameTest
                 Assert.That(store.GetWeeklyTopRuns(summary.WeeklyKey!, 10), Is.Empty, "and never reaches the weekly ladder");
                 Assert.That(store.GetTopRuns(challenge.Difficulty, FSLadder.BracketFor(1), 10), Is.Empty);
             });
+        });
+    }
+
+    [Test]
+    public async Task AnEndlessRunAfterAWinIsRecordedWhenTheRoundEnds()
+    {
+        await OverrideCVar(Side.Server, CCVars.FSEndlessVoteSeconds, 600);
+        var map = await Pair.CreateTestMap();
+
+        await Server.WaitAssertion(() =>
+        {
+            var store = SEntMan.System<FSPlayerDataStore>();
+            var ticker = SEntMan.System<GameTicker>();
+            var waveRule = SEntMan.System<WaveGameRuleSystem>();
+            store.DeleteAllRuns();
+            EnsurePlayer(map.GridCoords);
+
+            Assert.That(ticker.StartGameRule(FSTestRules.WaveSurvival, out var ruleUid), Is.True);
+            var rule = SEntMan.GetComponent<WaveGameRuleComponent>(ruleUid);
+            var endCombat = typeof(WaveGameRuleSystem).GetMethod("EndCombatPhase",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+
+            rule.WaveNumber = rule.VictoryWave;
+            SetWavesCleared(rule.VictoryWave - 1);
+            List<FSRunRecord> Runs() => store.GetTopRuns(FSDifficulty.Normal, FSLadder.BracketFor(1), 10);
+
+            endCombat.Invoke(waveRule, new object[] { ruleUid, rule, false });
+            Assert.That(waveRule.IsAwaitingEndless(), Is.True, "test precondition");
+            Assert.That(Runs().Select(r => r.Waves), Is.EqualTo(new[] { rule.VictoryWave }),
+                "the win shows on the boards straight away, before the round ends");
+
+            Assert.That(waveRule.TryStartEndless(), Is.True);
+            endCombat.Invoke(waveRule, new object[] { ruleUid, rule, false });
+            Assert.That(Runs().Select(r => r.Waves), Is.EqualTo(new[] { rule.VictoryWave + 1 }),
+                "each endless wave updates the same entry");
+
+            ticker.EndRound();
+            var runs = Runs();
+            Assert.That(runs, Has.Count.EqualTo(1), "the endless run reaches the ladder");
+            Assert.That(runs[0].Victory, Is.True);
+            Assert.That(runs[0].Waves, Is.EqualTo(rule.VictoryWave + 1));
         });
     }
 

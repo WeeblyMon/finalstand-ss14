@@ -37,12 +37,23 @@ public sealed partial class FSLadderSystem : EntitySystem
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastRequest = new();
     private bool _recordedThisRound;
+    private long? _provisionalRun;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _recordedThisRound = false);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _recordedThisRound = false;
+            _provisionalRun = null;
+        });
+        SubscribeLocalEvent<FSRoundVictoryEvent>((ref FSRoundVictoryEvent _) => SaveProvisionalRun());
+        SubscribeLocalEvent<WavePrepStartedEvent>(_ =>
+        {
+            if (_provisionalRun != null)
+                SaveProvisionalRun();
+        });
         SubscribeNetworkEvent<FSLadderRequestEvent>(OnLadderRequest);
         SubscribeLocalEvent<FSLadderBoardComponent, ActivateInWorldEvent>(OnBoardActivated);
         SubscribeLocalEvent<FSLadderBoardComponent, ExaminedEvent>(OnBoardExamined);
@@ -70,7 +81,8 @@ public sealed partial class FSLadderSystem : EntitySystem
         }
         else
         {
-            runs = GetTopRuns(board.Comp.Difficulty, board.Comp.Bracket, FSLadderBoardComponent.ShownRuns);
+            runs = _store.GetTopRuns(board.Comp.Difficulty, board.Comp.AllBrackets ? null : board.Comp.Bracket,
+                FSLadderBoardComponent.ShownRuns);
         }
 
         if (weeklyName == board.Comp.WeeklyName && runs.SequenceEqual(board.Comp.Runs))
@@ -91,12 +103,43 @@ public sealed partial class FSLadderSystem : EntitySystem
             return;
 
         _recordedThisRound = true;
+        if (_provisionalRun is { } provisional)
+        {
+            _store.DeleteRun(provisional);
+            _provisionalRun = null;
+        }
+
         if (summary.Assisted)
         {
             args.AddLine(Loc.GetString("fs-ladder-assisted"));
             return;
         }
 
+        if (BuildCurrentRun(summary) is not { } run || !RecordRun(run))
+            return;
+
+        args.AddLine(run.Weekly != null
+            ? Loc.GetString("fs-ladder-new-weekly-record")
+            : Loc.GetString("fs-ladder-new-record",
+                ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(run.Difficulty))),
+                ("bracket", Loc.GetString(FSLadder.BracketLocId(run.Bracket)))));
+    }
+
+    private void SaveProvisionalRun()
+    {
+        if (_recordedThisRound || !_waveRule.TryGetRoundSummary(out var summary) || summary.Assisted
+            || !summary.Victory || BuildCurrentRun(summary) is not { } run)
+            return;
+
+        if (_provisionalRun is { } id)
+            _store.UpdateRun(id, run);
+        else
+            _provisionalRun = _store.InsertRun(run);
+        RefreshBoards();
+    }
+
+    private FSRunRecord? BuildCurrentRun(WaveGameRuleSystem.RoundSummary summary)
+    {
         var names = new List<string>();
         var seen = new HashSet<NetUserId>();
         var query = EntityQueryEnumerator<FSPlayerLevelComponent, MindComponent>();
@@ -107,18 +150,9 @@ public sealed partial class FSLadderSystem : EntitySystem
             names.Add(mind.CharacterName ?? "Unknown");
         }
 
-        if (names.Count == 0)
-            return;
-
-        var run = BuildRun(names, summary, (int) _ticker.RoundDuration().TotalSeconds, DateTime.UtcNow);
-        if (!RecordRun(run))
-            return;
-
-        args.AddLine(run.Weekly != null
-            ? Loc.GetString("fs-ladder-new-weekly-record")
-            : Loc.GetString("fs-ladder-new-record",
-                ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(run.Difficulty))),
-                ("bracket", Loc.GetString(FSLadder.BracketLocId(run.Bracket)))));
+        return names.Count == 0
+            ? null
+            : BuildRun(names, summary, (int) _ticker.RoundDuration().TotalSeconds, DateTime.UtcNow);
     }
 
     public static FSRunRecord BuildRun(IReadOnlyCollection<string> names, WaveGameRuleSystem.RoundSummary summary,
@@ -200,7 +234,7 @@ public sealed partial class FSLadderSystem : EntitySystem
             ? Loc.GetString("fs-ladder-weekly")
             : Loc.GetString("fs-ladder-board-ladder",
                 ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(ent.Comp.Difficulty))),
-                ("bracket", Loc.GetString(FSLadder.BracketLocId(ent.Comp.Bracket))));
+                ("bracket", Loc.GetString(ent.Comp.AllBrackets ? "fs-ladder-bracket-all" : FSLadder.BracketLocId(ent.Comp.Bracket))));
 
         args.PushMarkup(ent.Comp.Runs.FirstOrDefault() is not { } best
             ? Loc.GetString("fs-ladder-board-examine-empty", ("ladder", ladder))
