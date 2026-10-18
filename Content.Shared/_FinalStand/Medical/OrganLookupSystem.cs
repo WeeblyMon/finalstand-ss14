@@ -1,4 +1,3 @@
-using System.Linq;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared.Body;
 using Robust.Shared.Prototypes;
@@ -37,24 +36,51 @@ public sealed partial class OrganLookupSystem : EntitySystem
 
     public bool HasOrganOfCategory(Entity<BodyComponent?> body, ProtoId<OrganCategoryPrototype> category)
     {
-        using var enumerator = EnumerateOrgansOfCategory(body, category).GetEnumerator();
-        return enumerator.MoveNext();
+        return TryGetFirstOrganOfCategory(body, category, out _);
     }
 
     public int CountOrgansOfCategory(Entity<BodyComponent?> body, ProtoId<OrganCategoryPrototype>? category)
     {
-        return category is { } id ? EnumerateOrgansOfCategory(body, id).Count() : 0;
+        if (category is not { } id || !_bodyQuery.Resolve(body, ref body.Comp, false) || body.Comp.Organs is not { } organs)
+            return 0;
+
+        var count = 0;
+        var contained = organs.ContainedEntities;
+        for (var i = 0; i < contained.Count; i++)
+        {
+            if (_organQuery.TryComp(contained[i], out var comp) && comp.Category == id)
+                count++;
+        }
+
+        return count;
     }
 
     public bool TryGetRootOrgan(Entity<BodyComponent?> body, out Entity<OrganComponent> root)
     {
-        foreach (var organ in EnumerateOrgansOfCategory(body, OrganCategories.Torso))
+        return TryGetFirstOrganOfCategory(body, OrganCategories.Torso, out root);
+    }
+
+    // Called per body per tick by wounds, pain and the like, so no iterators here.
+    private bool TryGetFirstOrganOfCategory(
+        Entity<BodyComponent?> body,
+        ProtoId<OrganCategoryPrototype> category,
+        out Entity<OrganComponent> found)
+    {
+        found = default;
+        if (!_bodyQuery.Resolve(body, ref body.Comp, false) || body.Comp.Organs is not { } organs)
+            return false;
+
+        var contained = organs.ContainedEntities;
+        for (var i = 0; i < contained.Count; i++)
         {
-            root = organ;
-            return true;
+            var organ = contained[i];
+            if (_organQuery.TryComp(organ, out var comp) && comp.Category == category)
+            {
+                found = (organ, comp);
+                return true;
+            }
         }
 
-        root = default;
         return false;
     }
 
