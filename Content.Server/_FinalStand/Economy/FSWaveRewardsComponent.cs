@@ -39,9 +39,3 @@ public sealed partial class FSWaveRewardsComponent : Component
     public readonly HashSet<NetUserId> CaughtUpUsers = new();
 }
 
-// Minds that damaged a wave enemy, for assist credit.
-[RegisterComponent]
-public sealed partial class FSEnemyDamageTrackingComponent : Component
-{
-    public readonly HashSet<EntityUid> AttackerMinds = new();
-}

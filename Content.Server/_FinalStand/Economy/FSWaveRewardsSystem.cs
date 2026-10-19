@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.GameTicking.Rules;
+using Content.Server._FinalStand.Leveling;
 using Content.Server.Chat.Managers;
 using Content.Shared.Damage.Systems;
 using Content.Shared.GameTicking;
@@ -17,6 +18,9 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private WaveGameRuleSystem _waveRule = default!;
+    [Dependency] private FSEnemyDamageTrackerSystem _damageTracker = default!;
+
+    private readonly List<EntityUid> _assisters = new();
 
     private static readonly ProtoId<DepartmentPrototype> SecurityDepartment = "Security";
     private static readonly Color PrepSkipColor = Color.FromHex("#44BB44");
@@ -35,7 +39,6 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<FSEnemyDamageTrackingComponent, BeforeDamageChangedEvent>(OnEnemyBeforeDamage);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<WavePrepSkippedEvent>(OnPrepSkipped);
@@ -49,12 +52,6 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
             return true;
 
         return false;
-    }
-
-    private void OnEnemyBeforeDamage(Entity<FSEnemyDamageTrackingComponent> ent, ref BeforeDamageChangedEvent args)
-    {
-        if (!args.Cancelled && args.Origin is { } origin && _mind.TryGetMind(origin, out var mindId, out _))
-            ent.Comp.AttackerMinds.Add(mindId);
     }
 
     private void OnEnemyDied(ref FSWaveEnemyDiedEvent args)
@@ -77,13 +74,14 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
                 _wallet.GiveCredits(mindId, rewards.SecurityKillBonus);
         }
 
-        if (!TryComp<FSEnemyDamageTrackingComponent>(args.Enemy, out var tracking))
+        if (!TryComp<FSEnemyDamageTrackerComponent>(args.Enemy, out var tracker))
             return;
 
         var assistCredits = (int) (killCredits * rewards.AssistShare);
-        foreach (var assistMind in tracking.AttackerMinds)
+        _damageTracker.GetAssisters(tracker, args.Killer, _assisters);
+        foreach (var assister in _assisters)
         {
-            if (assistMind != killerMind)
+            if (_mind.TryGetMind(assister, out var assistMind, out _) && assistMind != killerMind)
                 _wallet.GiveCredits(assistMind, assistCredits);
         }
     }

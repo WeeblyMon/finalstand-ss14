@@ -272,7 +272,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     {
         var enemy = Spawn(proto, coords);
         EnsureComp<WaveSpawnedTagComponent>(enemy);
-        EnsureComp<FSEnemyDamageTrackingComponent>(enemy);
         if (TryComp<HTNComponent>(enemy, out var htn))
         {
             // LOS-filtered by NearbyHostilesQuery, so 15f sees down corridors but not through walls into rooms.

@@ -31,6 +31,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private MedicalOps.FSMedicalStatsSystem _medicalStats = default!;
     [Dependency] private Engineering.FSEngineerStatsSystem _engineerStats = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSEnemyDamageTrackerSystem _damageTracker = default!;
 
     private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
     private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
@@ -42,12 +43,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private const int WaveCompletionXpPerWave = 100;
     private const int RoundEndXpPerWave = 200;
     private const int PrestigeThreshold = 50;
-    private const float AssistMinContribution = 0.05f;
 
     // Kills and assists land hundreds of times a second in a big wave. XP is batched: the client hears about it
     // a few times a second and the database gets one transaction every few seconds, plus on detach and restart.
     private static readonly TimeSpan SendInterval = TimeSpan.FromSeconds(0.25);
     private static readonly TimeSpan SaveInterval = TimeSpan.FromSeconds(5);
+    private readonly List<EntityUid> _assisters = new();
     private readonly HashSet<EntityUid> _unsent = new();
     private readonly HashSet<EntityUid> _unsaved = new();
     private TimeSpan _nextSend;
@@ -140,16 +141,9 @@ public sealed partial class FSLevelingSystem : EntitySystem
         if (args.Origin.HasValue && args.Origin.Value.IsValid())
             GiveExperience(args.Origin.Value, killXp, "kill");
 
-        var totalTracked = tracker.DamageByPlayer.Values.Sum();
-        if (totalTracked > 0f)
-        {
-            foreach (var (playerEnt, dmg) in tracker.DamageByPlayer)
-            {
-                if (args.Origin.HasValue && playerEnt == args.Origin.Value) continue;
-                if (dmg / totalTracked < AssistMinContribution) continue;
-                GiveExperience(playerEnt, assistXp, "assist");
-            }
-        }
+        _damageTracker.GetAssisters(tracker, args.Origin, _assisters);
+        foreach (var assister in _assisters)
+            GiveExperience(assister, assistXp, "assist");
     }
 
     private void OnWaveEnded(ref WaveEndedEvent args)
