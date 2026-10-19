@@ -106,8 +106,12 @@ public sealed partial class HealingSystem : EntitySystem
         if (!changedDamage && !healedWounds && healing.BloodlossModifier != 0)
             return;
 
-        var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
-        RaiseLocalEvent(target.Owner, ref appliedEv);
+        // FINALSTAND: only treatment that landed counts (someone else may have healed them mid do-after).
+        if (changedDamage || healedWounds)
+        {
+            var appliedEv = new FSTopicalAppliedEvent(args.Args.User, target.Owner);
+            RaiseLocalEvent(target.Owner, ref appliedEv);
+        }
 
         var total = healed.GetTotal();
 
