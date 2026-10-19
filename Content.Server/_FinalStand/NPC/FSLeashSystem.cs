@@ -24,22 +24,22 @@ public sealed partial class FSLeashSystem : EntitySystem
     // TODO(finalstand): tune LOS timeout
     private static readonly TimeSpan LosTimeout = TimeSpan.FromSeconds(3);
 
-    private float _accumulator;
-    private const float TickInterval = 0.25f; // 4 Hz keeps the LOS raycasts cheap
+    // Each zombie is checked every few ticks, a slice per tick, so the LOS raycasts don't all land on one tick.
+    private const int TickBuckets = 8;
+    private int _tick;
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        _accumulator += frameTime;
-        if (_accumulator < TickInterval)
-            return;
-        _accumulator -= TickInterval;
-
+        var bucket = _tick++ % TickBuckets;
         var curTime = _timing.CurTime;
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
-            Tick(uid, htn, curTime);
+        {
+            if (uid.Id % TickBuckets == bucket)
+                Tick(uid, htn, curTime);
+        }
     }
 
     private void Tick(EntityUid uid, HTNComponent htn, TimeSpan curTime)
@@ -56,6 +56,11 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
+        // The objective is never given up on; leashing it made zombies drop the CCC partway there.
+        if (bb.TryGetValue<EntityUid>(NPCBlackboard.CurrentOrderedTarget, out var objective, EntityManager)
+            && objective == target)
+            return;
+
         if (!bb.TryGetValue<MapCoordinates>(FSAIBlackboardKeys.AggroOrigin, out var aggroOrigin, EntityManager))
         {
             aggroOrigin = _transform.GetMapCoordinates(uid);
@@ -64,23 +69,26 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
-            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
+        var graced = bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
+                     && curTime < graceUntil;
 
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.AggroGraceUntil, out var graceUntil, EntityManager)
-            && curTime < graceUntil)
-            return;
-
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
-            && curTime - lastSeen > LosTimeout)
+        // Distance is free; only raycast when it doesn't already decide.
+        var curPos = _transform.GetMapCoordinates(uid);
+        if (!graced && (curPos.MapId != aggroOrigin.MapId
+                        || (curPos.Position - aggroOrigin.Position).Length() > LeashDistance))
         {
             ClearTarget(htn, bb);
             return;
         }
 
-        var curPos = _transform.GetMapCoordinates(uid);
-        if (curPos.MapId != aggroOrigin.MapId ||
-            (curPos.Position - aggroOrigin.Position).Length() > LeashDistance)
+        if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
+            bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
+
+        if (graced)
+            return;
+
+        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
+            && curTime - lastSeen > LosTimeout)
         {
             ClearTarget(htn, bb);
         }
