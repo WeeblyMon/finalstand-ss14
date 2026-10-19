@@ -76,6 +76,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
     [Dependency] private EntityQuery<PhysicsComponent> _physicsQuery = default!;
     [Dependency] private EntityQuery<TransformComponent> _xformQuery = default!;
     [Dependency] private EntityQuery<InputMoverComponent> _inputMoverQuery = default!;
+    [Dependency] private EntityQuery<NPCSteeringComponent> _steeringQuery = default!; // FINALSTAND
 
     private ObjectPool<HashSet<EntityUid>> _entSetPool =
         new DefaultObjectPool<HashSet<EntityUid>>(new SetPolicy<EntityUid>());
@@ -186,6 +187,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         }
 
         ResetStuck(component, Transform(uid).Coordinates);
+        component.QueuedUntil = TimeSpan.Zero; // FINALSTAND
         component.Coordinates = coordinates;
         return component;
     }

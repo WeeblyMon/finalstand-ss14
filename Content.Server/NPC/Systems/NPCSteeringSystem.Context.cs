@@ -181,6 +181,22 @@ public sealed partial class NPCSteeringSystem
 
         var direction = targetMap.Position - ourMap.Position;
 
+        // FINALSTAND: a queued wave zombie (see stuck detection below) stands still until the one ahead moves on.
+        if (steering.QueuedUntil != TimeSpan.Zero)
+        {
+            if (_timing.CurTime < steering.QueuedUntil)
+                return false;
+
+            if (IsQueuedBehindWave(uid, steering, ourMap, direction))
+            {
+                steering.QueuedUntil = _timing.CurTime + QueueHold;
+                return false;
+            }
+
+            steering.QueuedUntil = TimeSpan.Zero;
+            ResetStuck(steering, ourCoordinates);
+        }
+
         // Need to be pretty close if it's just a node to make sure LOS for door bashes or the likes.
         bool arrived;
 
@@ -292,6 +308,18 @@ public sealed partial class NPCSteeringSystem
             var stuckTime = _timing.CurTime - steering.LastStuckTime;
             // Either 1 second or how long it takes to move the stuck distance + buffer if we're REALLY slow.
             var maxStuckTime = Math.Max(1, NPCSteeringComponent.StuckDistance / moveSpeed * 1.2f);
+
+            // FINALSTAND: a wave zombie waiting behind another one is queued, not stuck. A repath gives it the same
+            // path, failing the move had the back rows of a horde replanning every few seconds, and pushing on
+            // keeps the whole crowd awake in physics. It holds still instead and looks again shortly.
+            if (stuckTime.TotalSeconds > maxStuckTime
+                && _waveTagQuery.HasComponent(uid)
+                && IsQueuedBehindWave(uid, steering, ourMap, direction))
+            {
+                ResetStuck(steering, ourCoordinates);
+                steering.QueuedUntil = _timing.CurTime + QueueHold;
+                return false;
+            }
 
             if (stuckTime.TotalSeconds > maxStuckTime)
             {
@@ -796,6 +824,58 @@ public sealed partial class NPCSteeringSystem
                 }
             }
         }
+    }
+
+    private static readonly TimeSpan QueueHold = TimeSpan.FromSeconds(0.5);
+
+    // Another wave zombie close ahead and nearer our target means we're waiting our turn. One that is moving
+    // only counts if it's after the same target, so two zombies can never each be waiting on the other.
+    private bool IsQueuedBehindWave(EntityUid uid, NPCSteeringComponent steering, MapCoordinates ourMap, Vector2 direction)
+    {
+        const float QueueRadius = 1.0f;
+        const float AheadCos = 0.5f;
+
+        var length = direction.Length();
+        var target = steering.Coordinates.EntityId;
+        if (length < 0.01f
+            || !_xformQuery.TryGetComponent(target, out var targetXform)
+            || targetXform.MapID != ourMap.MapId)
+            return false;
+
+        var targetPos = _transform.GetWorldPosition(targetXform);
+        var ourDistSq = (ourMap.Position - targetPos).LengthSquared();
+        var heading = direction / length;
+        var centre = (ourMap.Position / PeerYieldRadius).Floored();
+
+        for (var x = -1; x <= 1; x++)
+        {
+            for (var y = -1; y <= 1; y++)
+            {
+                if (!_spacingCells.TryGetValue((ourMap.MapId, centre + new Vector2i(x, y)), out var cell))
+                    continue;
+
+                foreach (var i in cell)
+                {
+                    var other = _spacingEntries[i];
+                    if (!other.IsWave || other.Uid == uid)
+                        continue;
+
+                    var toOther = other.Position - ourMap.Position;
+                    var dist = toOther.Length();
+                    if (dist < 0.01f
+                        || dist > QueueRadius
+                        || Vector2.Dot(heading, toOther) <= AheadCos * dist
+                        || (other.Position - targetPos).LengthSquared() >= ourDistSq)
+                        continue;
+
+                    if (!_steeringQuery.TryGetComponent(other.Uid, out var otherSteering)
+                        || otherSteering.Coordinates.EntityId == target)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static void AddDanger(Span<float> danger, Vector2 towardLocal, float weight)

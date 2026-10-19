@@ -50,6 +50,10 @@ public sealed partial class NPCSteeringComponent : Component
     [ViewVariables]
     public TimeSpan StaticDangerUntil;
 
+    // FINALSTAND: a wave zombie queued behind another holds still until this, then looks again.
+    [ViewVariables, AutoPausedField]
+    public TimeSpan QueuedUntil;
+
     #endregion
 
     /// <summary>
