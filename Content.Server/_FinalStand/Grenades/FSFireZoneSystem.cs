@@ -1,8 +1,8 @@
+using Content.Server._FinalStand.Spawners;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Trigger;
-using Robust.Shared.Player;
 using Robust.Shared.Map;
 using Robust.Shared.Spawners;
 using Microsoft.Extensions.ObjectPool;
@@ -24,9 +24,17 @@ public sealed partial class FSFireZoneSystem : EntitySystem
     // a zone builds fire stacks.
     private const float TickInterval = 0.25f;
 
+    private EntityQuery<WaveSpawnedTagComponent> _waveQuery;
+
     private readonly ObjectPool<HashSet<Entity<FlammableComponent>>> _flammableSetPool =
         new DefaultObjectPool<HashSet<Entity<FlammableComponent>>>(
             new SetPolicy<Entity<FlammableComponent>>());
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _waveQuery = GetEntityQuery<WaveSpawnedTagComponent>();
+    }
 
     public override void Update(float frameTime)
     {
@@ -51,8 +59,11 @@ public sealed partial class FSFireZoneSystem : EntitySystem
 
             foreach (var (targetUid, flammable) in candidates)
             {
-                if (HasComp<ActorComponent>(targetUid))
+                // Only the horde burns. Skipping actors spared live players but not disconnected ones,
+                // allied mobs or flammable defences.
+                if (!_waveQuery.HasComp(targetUid))
                     continue;
+
                 flammable.FireStacks += zone.IgniteStacksPerSecond * elapsed;
                 _flammable.Ignite(targetUid, uid, flammable);
             }
