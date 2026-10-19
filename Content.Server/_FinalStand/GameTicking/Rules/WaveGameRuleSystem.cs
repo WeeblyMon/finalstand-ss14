@@ -111,7 +111,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                 if (now >= comp.PhaseEndTime)
                 {
                     Log.Warning($"Wave {comp.WaveNumber} fallback timer expired. Forcing end.");
-                    // TODO: delete or quarantine stuck enemies here.
+                    // ClearCombat deletes whatever is still alive (stuck enemies included).
                     EndCombatPhase(uid, comp);
                     break;
                 }
