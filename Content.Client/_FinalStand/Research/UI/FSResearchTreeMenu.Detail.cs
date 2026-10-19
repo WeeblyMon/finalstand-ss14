@@ -182,9 +182,7 @@ public sealed partial class FSResearchTreeMenu
             EffectList.AddChild(desc);
         }
 
-        var bonus = proto.BonusDescription.Length == 0 ? ""
-            : Loc.TryGetString(proto.BonusDescription, out var localised) ? localised : proto.BonusDescription;
-        var lines = bonus.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
+        var lines = proto.BonusDescription.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
 
         if (proto.WeaponShopUnlock is { } shop && !lines.Any(l => l.Contains("shop", StringComparison.OrdinalIgnoreCase)))
             lines.Insert(0, Loc.GetString("fs-research-menu-unlocks-shop", ("shop", _prototype.TryIndex<EntityPrototype>(shop, out var shopProto) ? shopProto.Name : shop.Id)));

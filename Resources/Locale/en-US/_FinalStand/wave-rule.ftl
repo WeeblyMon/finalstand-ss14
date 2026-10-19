@@ -12,3 +12,8 @@ fs-lobby-wave-prep = Wave { $wave } is preparing
 fs-lobby-wave-combat = Wave { $wave } in progress
 fs-hub-wave-suffix = (Wave { $wave })
 fs-wave-team-wiped = Every defender has fallen. The station is lost.
+
+## Game preset
+
+fs-preset-final-stand-title = Final Stand
+fs-preset-final-stand-desc = Wave-based co-op survival. Defend the Central Command Console at all costs.

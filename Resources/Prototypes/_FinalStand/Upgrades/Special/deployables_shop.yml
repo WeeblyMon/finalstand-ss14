@@ -17,8 +17,8 @@
     statCapacity: 0
     upgrades:
     - id: null-field-capacity
-      name: Extra Charge
-      description: Carry one additional Null Field charge.
+      name: fs-upgrade-null-field-capacity
+      description: fs-upgrade-null-field-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity
@@ -46,8 +46,8 @@
     statCapacity: 0
     upgrades:
     - id: damage-beacon-capacity
-      name: Extra Charge
-      description: Carry one additional Damage Beacon charge.
+      name: fs-upgrade-damage-beacon-capacity
+      description: fs-upgrade-damage-beacon-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity
@@ -75,36 +75,36 @@
     statCapacity: 30
     upgrades:
     - id: landmine-capacity
-      name: Extra Mines
-      description: Carry one additional mine per level.
+      name: fs-upgrade-landmine-capacity
+      description: fs-upgrade-landmine-capacity-desc
       maxLevel: 2
       baseCost: 4000
       type: DeployableCapacity
       valuePerLevel: 1
     - id: landmine-damage
-      name: Dense Filler
-      description: Each level adds a quarter of the mine's base blast damage.
+      name: fs-upgrade-landmine-damage
+      description: fs-upgrade-landmine-damage-desc
       maxLevel: 3
       baseCost: 5000
       type: LandmineDamage
       valuePerLevel: 2.5
     - id: landmine-detonations
-      name: Reusable Core
-      description: The mine re-arms itself after going off, one extra time per level.
+      name: fs-upgrade-landmine-detonations
+      description: fs-upgrade-landmine-detonations-desc
       maxLevel: 2
       baseCost: 3000
       type: LandmineDetonations
       valuePerLevel: 1
     - id: landmine-regen
-      name: Field Fabricator
-      description: Restock one more mine each wave.
+      name: fs-upgrade-landmine-regen
+      description: fs-upgrade-landmine-regen-desc
       maxLevel: 2
       baseCost: 4000
       type: DeployableRegen
       valuePerLevel: 1
     - id: landmine-he
-      name: High Explosive
-      description: Widens the blast to cover a three by three area.
+      name: fs-upgrade-landmine-he
+      description: fs-upgrade-landmine-he-desc
       maxLevel: 1
       baseCost: 10000
       type: LandmineHighExplosive
@@ -132,15 +132,15 @@
     statCapacity: 40
     upgrades:
     - id: ammo-box-uses
-      name: Deeper Stock
-      description: One extra resupply use per level.
+      name: fs-upgrade-ammo-box-uses
+      description: fs-upgrade-ammo-box-uses-desc
       maxLevel: 2
       baseCost: 4000
       type: AmmoBoxUses
       valuePerLevel: 1
     - id: ammo-box-speed
-      name: Quick Release
-      description: Cuts the time it takes to draw a resupply.
+      name: fs-upgrade-ammo-box-speed
+      description: fs-upgrade-ammo-box-speed-desc
       maxLevel: 3
       baseCost: 3000
       type: AmmoBoxSpeed
@@ -170,8 +170,8 @@
     statCapacity: 0
     upgrades:
     - id: medi-drone-capacity
-      name: Spare Drone
-      description: Carry one more Medi-Drone for when the first burns out.
+      name: fs-upgrade-medi-drone-capacity
+      description: fs-upgrade-medi-drone-capacity-desc
       maxLevel: 1
       baseCost: 3000
       type: DeployableCapacity

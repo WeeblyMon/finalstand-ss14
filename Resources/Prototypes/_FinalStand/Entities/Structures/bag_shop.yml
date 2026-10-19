@@ -30,24 +30,24 @@
   - type: FSBagShop
     catalog:
     - proto: OreBag
-      name: Ore Bag
-      description: Magnetises nearby ore into the bag.
+      name: fs-bag-shop-ore-bag
+      description: fs-bag-shop-ore-bag-desc
       price: 100
     - proto: FSConstructionBag
-      name: Construction Bag
-      description: Magnetises nearby sheets and cable.
+      name: fs-bag-shop-fs-construction-bag
+      description: fs-bag-shop-fs-construction-bag-desc
       price: 100
     - proto: OreBagOfHolding
-      name: Bluespace Ore Bag
-      description: Twice the reach, far more room.
+      name: fs-bag-shop-ore-bag-of-holding
+      description: fs-bag-shop-ore-bag-of-holding-desc
       price: 250
     - proto: FSConstructionBagOfHolding
-      name: Bluespace Construction Bag
-      description: Twice the reach, far more room.
+      name: fs-bag-shop-fs-construction-bag-of-holding
+      description: fs-bag-shop-fs-construction-bag-of-holding-desc
       price: 250
     - proto: ClothingBackpackHolding
-      name: Bluespace Bag
-      description: A backpack with vastly more room than it should have.
+      name: fs-bag-shop-clothing-backpack-holding
+      description: fs-bag-shop-clothing-backpack-holding-desc
       price: 500
   - type: UserInterface
     interfaces:

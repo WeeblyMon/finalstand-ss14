@@ -12,9 +12,10 @@ public sealed partial class FSTechNodePrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    // Literal display text, not a locale key; the YAML has always held English here.
-    [DataField(required: true)]
-    public string Name = string.Empty;
+    [DataField("name", required: true)]
+    public LocId NameKey;
+
+    public string Name => Loc.GetString(NameKey);
 
     [DataField(required: true)]
     public SpriteSpecifier Icon = default!;
@@ -40,8 +41,10 @@ public sealed partial class FSTechNodePrototype : IPrototype
     [DataField]
     public string? ExclusiveGroup;
 
-    [DataField]
-    public string BonusDescription = string.Empty;
+    [DataField("bonusDescription")]
+    public LocId? BonusDescriptionKey;
+
+    public string BonusDescription => BonusDescriptionKey is { } key ? Loc.GetString(key) : string.Empty;
 
     [DataField]
     public EntProtoId? WeaponShopUnlock;

@@ -18,50 +18,50 @@
     statCapacity: 10
     upgrades:
     - id: blunderbuss-damage
-      name: Powder Charge
-      description: Heavier load increases damage dealt by 15% per level.
+      name: fs-upgrade-blunderbuss-damage
+      description: fs-upgrade-blunderbuss-damage-desc
       maxLevel: 5
       baseCost: 1200
       type: Damage
       valuePerLevel: 0.15
     - id: blunderbuss-reload-speed
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-blunderbuss-reload-speed
+      description: fs-upgrade-blunderbuss-reload-speed-desc
       maxLevel: 5
       baseCost: 1200
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: blunderbuss-extra-pellets
-      name: Spread Shot
-      description: Adds 2 extra pellets per shot per level. More shot, more gore.
+      name: fs-upgrade-blunderbuss-extra-pellets
+      description: fs-upgrade-blunderbuss-extra-pellets-desc
       maxLevel: 3
       baseCost: 1200
       type: PelletCount
       valuePerLevel: 2
     - id: blunderbuss-stopping-power
-      name: Stopping Power
-      description: Blasts knock enemies back. Level 1 staggers; higher levels add increasing knockback.
+      name: fs-upgrade-blunderbuss-stopping-power
+      description: fs-upgrade-blunderbuss-stopping-power-desc
       maxLevel: 3
       baseCost: 2100
       type: Knockback
       valuePerLevel: 1
     - id: blunderbuss-scrapshot
-      name: Scrapshot
-      description: Load the barrel with scrap metal. Massively widens the spread and adds 3 extra pellets for brutal room-clearing.
+      name: fs-upgrade-blunderbuss-scrapshot
+      description: fs-upgrade-blunderbuss-scrapshot-desc
       maxLevel: 1
       baseCost: 2100
       type: Scrapshot
       valuePerLevel: 1
     - id: blunderbuss-dragonbreath
-      name: Dragon's Breath
-      description: Incendiary shells. Hits ignite targets on fire.
+      name: fs-upgrade-blunderbuss-dragonbreath
+      description: fs-upgrade-blunderbuss-dragonbreath-desc
       maxLevel: 1
       baseCost: 2100
       type: SetOnFire
       valuePerLevel: 1
     - id: blunderbuss-point-blank-crit
-      name: Point-Blank
-      description: Shots under 2 tiles always crit. Get in close.
+      name: fs-upgrade-blunderbuss-point-blank-crit
+      description: fs-upgrade-blunderbuss-point-blank-crit-desc
       maxLevel: 1
       baseCost: 3500
       type: PointBlankCrit
@@ -89,43 +89,43 @@
     statCapacity: 65
     upgrades:
     - id: kammerer-damage
-      name: Powder Charge
-      description: Heavier load increases damage dealt by 15% per level.
+      name: fs-upgrade-kammerer-damage
+      description: fs-upgrade-kammerer-damage-desc
       maxLevel: 5
       baseCost: 1950
       type: Damage
       valuePerLevel: 0.15
     - id: kammerer-reload-speed
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-kammerer-reload-speed
+      description: fs-upgrade-kammerer-reload-speed-desc
       maxLevel: 5
       baseCost: 1950
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: kammerer-tight-choke
-      name: Tight Choke
-      description: Narrows the choke by 1° per level. Tighter pattern at range.
+      name: fs-upgrade-kammerer-tight-choke
+      description: fs-upgrade-kammerer-tight-choke-desc
       maxLevel: 3
       baseCost: 1950
       type: AngleMax
       valuePerLevel: 1.0
     - id: kammerer-slamfire
-      name: Slam Fire
-      description: Rapid-cycling modification. Empties the tube fast, but devastates anything in the way.
+      name: fs-upgrade-kammerer-slamfire
+      description: fs-upgrade-kammerer-slamfire-desc
       maxLevel: 1
       baseCost: 5850
       type: SlamFire
       valuePerLevel: 1
     - id: kammerer-ap-slugs
-      name: AP Slugs
-      description: Armor-piercing ammunition. Slugs bypass enemy armor entirely.
+      name: fs-upgrade-kammerer-ap-slugs
+      description: fs-upgrade-kammerer-ap-slugs-desc
       maxLevel: 1
       baseCost: 3400
       type: APRounds
       valuePerLevel: 1
     - id: kammerer-bleed
-      name: Serrated Shot
-      description: Pellets cause bleeding on hit. Higher levels bleed harder.
+      name: fs-upgrade-kammerer-bleed
+      description: fs-upgrade-kammerer-bleed-desc
       maxLevel: 3
       baseCost: 3400
       type: Bleed
@@ -153,43 +153,43 @@
     statCapacity: 100
     upgrades:
     - id: bulldog-fire-rate
-      name: Hair Trigger
-      description: Tuned action increases fire rate by 0.5/level.
+      name: fs-upgrade-bulldog-fire-rate
+      description: fs-upgrade-bulldog-fire-rate-desc
       maxLevel: 3
       baseCost: 5250
       type: FireRate
       valuePerLevel: 0.5
     - id: bulldog-drum-capacity
-      name: High-Cap Drum
-      description: Adds 3 shells to drum magazine capacity per level.
+      name: fs-upgrade-bulldog-drum-capacity
+      description: fs-upgrade-bulldog-drum-capacity-desc
       maxLevel: 3
       baseCost: 5250
       type: MagazineSize
       valuePerLevel: 3
     - id: bulldog-recoil-comp
-      name: Recoil Compensator
-      description: Reduces max spread by 0.5° per level for tighter full-auto bursts.
+      name: fs-upgrade-bulldog-recoil-comp
+      description: fs-upgrade-bulldog-recoil-comp-desc
       maxLevel: 2
       baseCost: 5250
       type: AngleMax
       valuePerLevel: 0.5
     - id: bulldog-flechette
-      name: Flechette Rounds
-      description: Load flechettes. Each pellet pierces one extra target; pellet count doubles.
+      name: fs-upgrade-bulldog-flechette
+      description: fs-upgrade-bulldog-flechette-desc
       maxLevel: 1
       baseCost: 9200
       type: FlechetteRounds
       valuePerLevel: 1
     - id: bulldog-incendiary
-      name: Incendiary Shells
-      description: Pellets ignite targets on hit.
+      name: fs-upgrade-bulldog-incendiary
+      description: fs-upgrade-bulldog-incendiary-desc
       maxLevel: 1
       baseCost: 9200
       type: SetOnFire
       valuePerLevel: 1
     - id: bulldog-powder-charge
-      name: Powder Charge
-      description: Hotter powder loads increase damage by 15% per level.
+      name: fs-upgrade-bulldog-powder-charge
+      description: fs-upgrade-bulldog-powder-charge-desc
       maxLevel: 5
       baseCost: 5250
       type: Damage
@@ -217,36 +217,36 @@
     statCapacity: 15
     upgrades:
     - id: doublebar-damage
-      name: Powder Charge
-      description: Heavier load increases damage dealt by 15% per level.
+      name: fs-upgrade-doublebar-damage
+      description: fs-upgrade-doublebar-damage-desc
       maxLevel: 5
       baseCost: 3750
       type: Damage
       valuePerLevel: 0.15
     - id: doublebar-reload-speed
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-doublebar-reload-speed
+      description: fs-upgrade-doublebar-reload-speed-desc
       maxLevel: 5
       baseCost: 3750
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: doublebar-explosive-slugs
-      name: Explosive Slugs
-      description: Shells detonate on impact. AoE damage scales with gun damage × level.
+      name: fs-upgrade-doublebar-explosive-slugs
+      description: fs-upgrade-doublebar-explosive-slugs-desc
       maxLevel: 3
       baseCost: 6550
       type: ExplosiveShot
       valuePerLevel: 1
     - id: doublebar-knockback
-      name: Massive Knockback
-      description: Each barrel blast sends enemies flying. Level 1 staggers; Level 2 launches.
+      name: fs-upgrade-doublebar-knockback
+      description: fs-upgrade-doublebar-knockback-desc
       maxLevel: 2
       baseCost: 6550
       type: Knockback
       valuePerLevel: 1
     - id: doublebar-splinter
-      name: Splinter Impact
-      description: On hit, pellet fragments burst backward in a cone through the target for 40% bonus damage.
+      name: fs-upgrade-doublebar-splinter
+      description: fs-upgrade-doublebar-splinter-desc
       maxLevel: 1
       baseCost: 6550
       type: SplinterImpact
@@ -274,50 +274,50 @@
     statCapacity: 35
     upgrades:
     - id: hushpup-tight-pattern
-      name: Tight Pattern
-      description: Adjusts the suppressor geometry, tightening spread by 0.5° per level.
+      name: fs-upgrade-hushpup-tight-pattern
+      description: fs-upgrade-hushpup-tight-pattern-desc
       maxLevel: 3
       baseCost: 2700
       type: Accuracy
       valuePerLevel: 0.5
     - id: hushpup-extra-pellets
-      name: Frag Load
-      description: Adds 1 extra pellet per shot per level. More coverage, more damage.
+      name: fs-upgrade-hushpup-extra-pellets
+      description: fs-upgrade-hushpup-extra-pellets-desc
       maxLevel: 3
       baseCost: 2700
       type: PelletCount
       valuePerLevel: 1
     - id: hushpup-slowing
-      name: Slowing Shells
-      description: Hits slow enemies by 30% for 2 seconds. Perfect for a clean getaway.
+      name: fs-upgrade-hushpup-slowing
+      description: fs-upgrade-hushpup-slowing-desc
       maxLevel: 1
       baseCost: 4750
       type: Slowing
       valuePerLevel: 1
     - id: hushpup-reload-speed
-      name: Speed Loader
-      description: Faster reload per level.
+      name: fs-upgrade-hushpup-reload-speed
+      description: fs-upgrade-hushpup-reload-speed-desc
       maxLevel: 5
       baseCost: 2700
       type: ReloadSpeed
       valuePerLevel: 0.1
     - id: hushpup-damage
-      name: Powder Charge
-      description: Heavier load increases damage dealt by 10% per level.
+      name: fs-upgrade-hushpup-damage
+      description: fs-upgrade-hushpup-damage-desc
       maxLevel: 5
       baseCost: 2700
       type: Damage
       valuePerLevel: 0.1
     - id: hushpup-fire-rate
-      name: Hair Trigger
-      description: Faster cycling increases fire rate by 0.5/level.
+      name: fs-upgrade-hushpup-fire-rate
+      description: fs-upgrade-hushpup-fire-rate-desc
       maxLevel: 3
       baseCost: 2700
       type: FireRate
       valuePerLevel: 0.5
     - id: hushpup-execution-shot
-      name: First Strike
-      description: After each reload, your next shot is a guaranteed critical hit.
+      name: fs-upgrade-hushpup-execution-shot
+      description: fs-upgrade-hushpup-execution-shot-desc
       maxLevel: 1
       baseCost: 5500
       type: ExecutionShot
@@ -343,57 +343,57 @@
     statCapacity: 100
     upgrades:
     - id: eshottie-capacitor-coils
-      name: Capacitor Coils
-      description: Reaches full charge 25% faster per level.
+      name: fs-upgrade-eshottie-capacitor-coils
+      description: fs-upgrade-eshottie-capacitor-coils-desc
       maxLevel: 3
       baseCost: 8000
       type: ChargeSpeed
       valuePerLevel: 0.25
     - id: eshottie-ricochet-plating
-      name: Ricochet Plating
-      description: Fully charged bolts bounce one extra time per level.
+      name: fs-upgrade-eshottie-ricochet-plating
+      description: fs-upgrade-eshottie-ricochet-plating-desc
       maxLevel: 2
       baseCost: 11000
       type: BounceCount
       valuePerLevel: 1
     - id: eshottie-elastic-rounds
-      name: Elastic Rounds
-      description: Bolts keep 7% more damage and speed through every bounce, per level.
+      name: fs-upgrade-eshottie-elastic-rounds
+      description: fs-upgrade-eshottie-elastic-rounds-desc
       maxLevel: 2
       baseCost: 10000
       type: BounceRetention
       valuePerLevel: 0.07
     - id: eshottie-superconductor
-      name: Superconductor
-      description: Fully charged bolts punch through one extra target per level.
+      name: fs-upgrade-eshottie-superconductor
+      description: fs-upgrade-eshottie-superconductor-desc
       maxLevel: 2
       baseCost: 10500
       type: ChargePierce
       valuePerLevel: 1
     - id: eshottie-cell-regulator
-      name: Cell Regulator
-      description: Self-recharge rate x1.8 per level.
+      name: fs-upgrade-eshottie-cell-regulator
+      description: fs-upgrade-eshottie-cell-regulator-desc
       maxLevel: 2
       baseCost: 9000
       type: SelfChargeSpeed
       valuePerLevel: 1.8
     - id: eshottie-kinetic-feedback
-      name: Kinetic Feedback
-      description: Every bounced bolt that finds a target feeds a quarter of a shot back into the cell.
+      name: fs-upgrade-eshottie-kinetic-feedback
+      description: fs-upgrade-eshottie-kinetic-feedback-desc
       maxLevel: 1
       baseCost: 17000
       type: BounceRefund
       valuePerLevel: 1
     - id: eshottie-resonant-cascade
-      name: Resonant Cascade
-      description: A bolt that comes back around and strikes the same target again critically hits.
+      name: fs-upgrade-eshottie-resonant-cascade
+      description: fs-upgrade-eshottie-resonant-cascade-desc
       maxLevel: 1
       baseCost: 20000
       type: BounceCrit
       valuePerLevel: 1
     - id: eshottie-fracture-rounds
-      name: Fracture Rounds
-      description: On its final bounce a bolt shatters into two fragments instead of burning out.
+      name: fs-upgrade-eshottie-fracture-rounds
+      description: fs-upgrade-eshottie-fracture-rounds-desc
       maxLevel: 1
       baseCost: 32000
       type: FractureRounds

@@ -40,10 +40,10 @@ public sealed partial class BagShopWindow : DefaultWindow
             HorizontalExpand = true,
             VerticalAlignment = VAlignment.Center,
         };
-        text.AddChild(new Label { Text = entry.Name, StyleClasses = { "LabelHeading" } });
+        text.AddChild(new Label { Text = Loc.GetString(entry.Name), StyleClasses = { "LabelHeading" } });
 
-        if (!string.IsNullOrWhiteSpace(entry.Description))
-            text.AddChild(new Label { Text = entry.Description, StyleClasses = { "FSMuted" } });
+        if (entry.Description is { } description)
+            text.AddChild(new Label { Text = Loc.GetString(description), StyleClasses = { "FSMuted" } });
 
         row.AddChild(text);
 

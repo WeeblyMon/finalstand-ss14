@@ -2,8 +2,8 @@
   id: FinalStand
   alias:
     - finalstand
-  name: Final Stand
-  description: Wave-based co-op survival. Defend the Central Command Console at all costs.
+  name: fs-preset-final-stand-title
+  description: fs-preset-final-stand-desc
   showInVote: false
   supportedMaps: FinalStandMapPool
   rules:

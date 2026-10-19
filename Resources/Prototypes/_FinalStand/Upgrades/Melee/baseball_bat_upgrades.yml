@@ -17,29 +17,29 @@
     statCapacity: 0
     upgrades:
     - id: bat-heavy-club
-      name: Heavy Club
-      description: Reinforced barrel adds +80% damage per level.
+      name: fs-upgrade-bat-heavy-club
+      description: fs-upgrade-bat-heavy-club-desc
       maxLevel: 2
       baseCost: 2500
       type: Damage
       valuePerLevel: 0.80
     - id: bat-lucille
-      name: Lucille
-      description: Enemies hit bleed, slowing them and dealing damage over time. +150 bleed per level.
+      name: fs-upgrade-bat-lucille
+      description: fs-upgrade-bat-lucille-desc
       maxLevel: 3
       baseCost: 1000
       type: Bleed
       valuePerLevel: 1.5
     - id: bat-concussion
-      name: Concussion
-      description: All attacks stun enemies briefly. +2s stun.
+      name: fs-upgrade-bat-concussion
+      description: fs-upgrade-bat-concussion-desc
       maxLevel: 1
       baseCost: 16000
       type: StunOnHit
       valuePerLevel: 2
     - id: bat-heavy-concussion
-      name: Heavy Concussion
-      description: Critical hits against stunned enemies.
+      name: fs-upgrade-bat-heavy-concussion
+      description: fs-upgrade-bat-heavy-concussion-desc
       maxLevel: 1
       baseCost: 8000
       type: CritVsStunned

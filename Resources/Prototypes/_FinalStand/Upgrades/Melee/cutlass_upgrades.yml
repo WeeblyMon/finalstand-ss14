@@ -17,43 +17,43 @@
     statCapacity: 0
     upgrades:
     - id: cutlass-quick-slash
-      name: Quick Slash
-      description: Lighter blade increases attack speed by 20% per level.
+      name: fs-upgrade-cutlass-quick-slash
+      description: fs-upgrade-cutlass-quick-slash-desc
       maxLevel: 3
       baseCost: 6000
       type: AttackSpeed
       valuePerLevel: 0.2
     - id: cutlass-sharpened
-      name: Sharpened Blade
-      description: Hones the edge for +145% damage per level.
+      name: fs-upgrade-cutlass-sharpened
+      description: fs-upgrade-cutlass-sharpened-desc
       maxLevel: 3
       baseCost: 4750
       type: Damage
       valuePerLevel: 1.45
     - id: cutlass-plunder
-      name: Plunder
-      description: "Pirate's tax: +25% money on each kill."
+      name: fs-upgrade-cutlass-plunder
+      description: fs-upgrade-cutlass-plunder-desc
       maxLevel: 1
       baseCost: 5000
       type: MoneyGainBonus
       valuePerLevel: 0.25
     - id: cutlass-hyper-saber
-      name: Hyper Saber
-      description: Drains +10 stamina per hit.
+      name: fs-upgrade-cutlass-hyper-saber
+      description: fs-upgrade-cutlass-hyper-saber-desc
       maxLevel: 1
       baseCost: 5000
       type: StaminaSteal
       valuePerLevel: 10
     - id: cutlass-swashbuckler
-      name: Swashbuckler
-      description: A duelist's eye. +10% crit chance per level. Stacks with the Pirate crit-swap window.
+      name: fs-upgrade-cutlass-swashbuckler
+      description: fs-upgrade-cutlass-swashbuckler-desc
       maxLevel: 3
       baseCost: 4000
       type: CritChance
       valuePerLevel: 0.1
     - id: cutlass-pirate
-      name: Pirate
-      description: Crits with all flintlocks after a Cutlass kill (and vice versa). Spawns a flintlock. 5s crit window.
+      name: fs-upgrade-cutlass-pirate
+      description: fs-upgrade-cutlass-pirate-desc
       maxLevel: 1
       baseCost: 6500
       type: FlintlockCritSynergy
@@ -63,8 +63,8 @@
     # ── Flintlock upgrades (hidden until Pirate is bought; applied to the held Flintlock) ─────
     # Recovered from the removed FSWeaponShopFlintlock (commit 34e27bcbd9).
     - id: flintlock-extra-load
-      name: Extra Load
-      description: Expands the Flintlock's barrel capacity by 1 round per level. Up to 6 shots before reloading.
+      name: fs-upgrade-flintlock-extra-load
+      description: fs-upgrade-flintlock-extra-load-desc
       maxLevel: 5
       baseCost: 100
       type: MagazineSize
@@ -72,8 +72,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-ball-and-powder
-      name: Ball & Powder
-      description: Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
+      name: fs-upgrade-flintlock-ball-and-powder
+      description: fs-upgrade-flintlock-ball-and-powder-desc
       maxLevel: 5
       baseCost: 100
       type: SpawnItem
@@ -82,8 +82,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-steady-hand
-      name: Steady Hand
-      description: Reduces the Flintlock's max spread by 0.5° per level for that one perfect shot.
+      name: fs-upgrade-flintlock-steady-hand
+      description: fs-upgrade-flintlock-steady-hand-desc
       maxLevel: 5
       baseCost: 100
       type: Accuracy
@@ -91,8 +91,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-heavier-load
-      name: Heavier Load
-      description: Higher-grain ball ammunition increases Flintlock damage by 25% per level.
+      name: fs-upgrade-flintlock-heavier-load
+      description: fs-upgrade-flintlock-heavier-load-desc
       maxLevel: 3
       baseCost: 250
       type: Damage
@@ -100,8 +100,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-explosive-shot
-      name: Explosive Shot
-      description: Flintlock bullets detonate on impact. AoE damage scales with gun damage × level.
+      name: fs-upgrade-flintlock-explosive-shot
+      description: fs-upgrade-flintlock-explosive-shot-desc
       maxLevel: 3
       baseCost: 150
       type: ExplosiveShot
@@ -109,8 +109,8 @@
       requiresUpgrade: cutlass-pirate
       targetWeaponProtoId: WeaponPistolFlintlock
     - id: flintlock-payday
-      name: Payday (Flintlock)
-      description: +50 bonus credits per kill with the Flintlock per level.
+      name: fs-upgrade-flintlock-payday
+      description: fs-upgrade-flintlock-payday-desc
       maxLevel: 4
       baseCost: 100
       type: MoneyGainBonus

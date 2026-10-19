@@ -10,8 +10,10 @@ public sealed partial class FSTechBranchPrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
-    [DataField(required: true)]
-    public string Name = string.Empty;
+    [DataField("name", required: true)]
+    public LocId NameKey;
+
+    public string Name => Loc.GetString(NameKey);
 
     [DataField(required: true)]
     public Color Color;

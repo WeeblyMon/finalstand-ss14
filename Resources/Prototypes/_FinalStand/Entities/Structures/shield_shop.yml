@@ -14,36 +14,36 @@
     statCapacity: 0
     upgrades:
     - id: shield-thorns
-      name: Thorns
-      description: Reflects 10% of absorbed damage back to the attacker per level.
+      name: fs-upgrade-shield-thorns
+      description: fs-upgrade-shield-thorns-desc
       maxLevel: 2
       baseCost: 4000
       type: Thorns
       valuePerLevel: 0.1
     - id: shield-vampire
-      name: Vampire
-      description: Heals you for 2.5% of damage absorbed by the shield per level.
+      name: fs-upgrade-shield-vampire
+      description: fs-upgrade-shield-vampire-desc
       maxLevel: 2
       baseCost: 4500
       type: ShieldVampire
       valuePerLevel: 0.025
     - id: shield-fortification
-      name: Fortification
-      description: Reduces damage taken while wielding the shield by 15% per level.
+      name: fs-upgrade-shield-fortification
+      description: fs-upgrade-shield-fortification-desc
       maxLevel: 3
       baseCost: 4000
       type: WielderResistance
       valuePerLevel: 0.15
     - id: shield-melee-damage
-      name: Melee Damage
-      description: Increases shield bash damage by 10% per level.
+      name: fs-upgrade-shield-melee-damage
+      description: fs-upgrade-shield-melee-damage-desc
       maxLevel: 3
       baseCost: 3500
       type: Damage
       valuePerLevel: 0.1
     - id: shield-durability
-      name: Durability
-      description: Doubles the shield's hit point threshold before it breaks.
+      name: fs-upgrade-shield-durability
+      description: fs-upgrade-shield-durability-desc
       maxLevel: 3
       baseCost: 2500
       type: ShieldDurability

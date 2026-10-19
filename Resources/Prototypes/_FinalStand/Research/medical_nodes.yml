@@ -2,31 +2,31 @@
 
 - type: fsTechNode
   id: FSMedicalBiochemicalStasis
-  name: Biochemical Stasis
+  name: fs-tech-medical-biochemical-stasis
   icon:
     sprite: Structures/Machines/stasis_bed.rsi
     state: icon
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Unlocks stasis bed and cryo pod boards, plus cryostasis beakers and syringes that hold a mix without reacting.
+  bonusDescription: fs-tech-medical-biochemical-stasis-bonus
   vanillaTechnologyId: BiochemicalStasis
 
 - type: fsTechNode
   id: FSMedicalAdvancedTreatment
-  name: Advanced Treatment
+  name: fs-tech-medical-advanced-treatment
   icon:
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/e-scalpel.rsi
     state: e-scalpel-on
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Unlocks the compact defibrillator and the powered surgical set - energy scalpel, advanced retractor and omnimed tool.
+  bonusDescription: fs-tech-medical-advanced-treatment-bonus
   vanillaTechnologyId: AdvancedTreatment
 
 - type: fsTechNode
   id: FSMedicalMechanizedTreatment
-  name: Mechanized Treatment
+  name: fs-tech-medical-mechanized-treatment
   icon:
     sprite: Mobs/Silicon/chassis.rsi
     state: medical
@@ -35,12 +35,12 @@
   cost: 700
   prerequisites:
   - FSMedicalBiochemicalStasis
-  bonusDescription: Unlocks the advanced topical borg module.
+  bonusDescription: fs-tech-medical-mechanized-treatment-bonus
   vanillaTechnologyId: MechanizedTreatment
 
 - type: fsTechNode
   id: FSMedicalBasicCybernetics
-  name: Basic Cybernetics
+  name: fs-tech-medical-basic-cybernetics
   icon:
     sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
     state: eyes
@@ -49,12 +49,12 @@
   cost: 700
   prerequisites:
   - FSMedicalAdvancedTreatment
-  bonusDescription: Unlocks cybernetic arms and hands, so a lost limb can be replaced outright instead of reattached.
+  bonusDescription: fs-tech-medical-basic-cybernetics-bonus
   vanillaTechnologyId: BasicCybernetics
 
 - type: fsTechNode
   id: FSMedicalBluespaceChemistry
-  name: Bluespace Chemistry
+  name: fs-tech-medical-bluespace-chemistry
   icon:
     sprite: Objects/Specific/Chemistry/beaker_bluespace.rsi
     state: beakerbluespace
@@ -63,12 +63,12 @@
   cost: 1100
   prerequisites:
   - FSMedicalMechanizedTreatment
-  bonusDescription: Unlocks bluespace beakers and syringes - far more volume in the same glassware.
+  bonusDescription: fs-tech-medical-bluespace-chemistry-bonus
   vanillaTechnologyId: BluespaceChemistry
 
 - type: fsTechNode
   id: FSMedicalBasicAugmentation
-  name: Basic Augmentation
+  name: fs-tech-medical-basic-augmentation
   icon:
     sprite: _Shitmed/Objects/Augments/power.rsi
     state: cell
@@ -77,12 +77,12 @@
   cost: 1100
   prerequisites:
   - FSMedicalBasicCybernetics
-  bonusDescription: Unlocks augment power cell and recharger casings, the base for powered implants.
+  bonusDescription: fs-tech-medical-basic-augmentation-bonus
   vanillaTechnologyId: BasicAugmentation
 
 - type: fsTechNode
   id: FSMedicalAdvancedCybernetics
-  name: Advanced Cybernetics
+  name: fs-tech-medical-advanced-cybernetics
   icon:
     sprite: _Shitmed/Mobs/Species/Misc/Cybernetics/organs.rsi
     state: heart-u-on
@@ -91,12 +91,12 @@
   cost: 1600
   prerequisites:
   - FSMedicalBasicCybernetics
-  bonusDescription: Unlocks upgraded cybernetic hearts and lungs, and jaws-of-life arms.
+  bonusDescription: fs-tech-medical-advanced-cybernetics-bonus
   vanillaTechnologyId: AdvancedCybernetics
 
 - type: fsTechNode
   id: FSMedicalImplantedTools
-  name: Implanted Tools
+  name: fs-tech-medical-implanted-tools
   icon:
     sprite: _Shitmed/Objects/Augments/arm.rsi
     state: base
@@ -105,12 +105,12 @@
   cost: 1600
   prerequisites:
   - FSMedicalBasicAugmentation
-  bonusDescription: Unlocks tool, utility and botany augment panels - implanted kit that cannot be dropped.
+  bonusDescription: fs-tech-medical-implanted-tools-bonus
   vanillaTechnologyId: ImplantedTools
 
 - type: fsTechNode
   id: FSMedicalCombatAugmentation
-  name: Combat Augmentation
+  name: fs-tech-medical-combat-augmentation
   icon:
     sprite: _Shitmed/Objects/Augments/arm.rsi
     state: strength
@@ -119,12 +119,12 @@
   cost: 1600
   prerequisites:
   - FSMedicalBasicAugmentation
-  bonusDescription: Unlocks strength augment casings and electronics.
+  bonusDescription: fs-tech-medical-combat-augmentation-bonus
   vanillaTechnologyId: CombatAugmentation
 
 - type: fsTechNode
   id: FSMedicalHighEndSurgery
-  name: High-End Surgery
+  name: fs-tech-medical-high-end-surgery
   icon:
     sprite: _Shitmed/Clothing/Hands/surgery_gloves.rsi
     state: icon
@@ -133,25 +133,25 @@
   cost: 2200
   prerequisites:
   - FSMedicalAdvancedCybernetics
-  bonusDescription: Unlocks surgical gloves and opens the advanced cybernetics line.
+  bonusDescription: fs-tech-medical-high-end-surgery-bonus
   vanillaTechnologyId: HighEndSurgery
 
 # ── Line A: Field care (medigun, defibrillator) ───────────────────────────────────────────────
 
 - type: fsTechNode
   id: FSMedicalExtendedOptics
-  name: Extended Optics
+  name: fs-tech-medical-extended-optics
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Medical beam gun reaches 3 metres further.
+  bonusDescription: fs-tech-medical-extended-optics-bonus
 
 - type: fsTechNode
   id: FSMedicalHaemostaticBeam
-  name: Haemostatic Beam
+  name: fs-tech-medical-haemostatic-beam
   icon:
     sprite: Objects/Specific/Medical/medical.rsi
     state: bloodpack
@@ -160,11 +160,11 @@
   cost: 700
   prerequisites:
   - FSMedicalExtendedOptics
-  bonusDescription: The beam restores blood far faster while it is attached.
+  bonusDescription: fs-tech-medical-haemostatic-beam-bonus
 
 - type: fsTechNode
   id: FSMedicalFocusedEmitters
-  name: Focused Emitters
+  name: fs-tech-medical-focused-emitters
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -174,11 +174,11 @@
   prerequisites:
   - FSMedicalHaemostaticBeam
   exclusiveGroup: FSMedicalBeamDoctrine
-  bonusDescription: Hold two patients on the beam at once. Excludes Rapid Cycling.
+  bonusDescription: fs-tech-medical-focused-emitters-bonus
 
 - type: fsTechNode
   id: FSMedicalRapidCycling
-  name: Rapid Cycling
+  name: fs-tech-medical-rapid-cycling
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -188,11 +188,11 @@
   prerequisites:
   - FSMedicalHaemostaticBeam
   exclusiveGroup: FSMedicalBeamDoctrine
-  bonusDescription: The beam heals one patient far faster. Excludes Focused Emitters.
+  bonusDescription: fs-tech-medical-rapid-cycling-bonus
 
 - type: fsTechNode
   id: FSMedicalCapacitorRecovery
-  name: Capacitor Recovery
+  name: fs-tech-medical-capacitor-recovery
   icon:
     sprite: Objects/Specific/Medical/defib.rsi
     state: icon
@@ -201,11 +201,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalRecoveryUplink
-  bonusDescription: Emergency defibrillators recharge a third faster.
+  bonusDescription: fs-tech-medical-capacitor-recovery-bonus
 
 - type: fsTechNode
   id: FSMedicalMediDrone
-  name: Medi-Drone
+  name: fs-tech-medical-medi-drone
   icon:
     sprite: _FinalStand/Objects/Medical/medidrone.rsi
     state: full
@@ -214,13 +214,13 @@
   cost: 1100
   prerequisites:
   - FSMedicalHaemostaticBeam
-  bonusDescription: Medical staff can buy a Medi-Drone at the drone shop. It follows its medic and heals wounded allies nearby up to half health until its charge runs out.
+  bonusDescription: fs-tech-medical-medi-drone-bonus
 
 # ── Line B: Trauma (field hospital, casualty recovery, bone stapler) ──────────────────────────
 
 - type: fsTechNode
   id: FSMedicalAutoclaveKit
-  name: Autoclave Kit
+  name: fs-tech-medical-autoclave-kit
   icon:
     sprite: Structures/Furniture/Tables/optable.rsi
     state: operating_table
@@ -228,11 +228,11 @@
   tier: 2
   cost: 700
   exclusiveGroup: FSMedicalTentDoctrine
-  bonusDescription: The field hospital pitches in half the time. Excludes Reinforced Canvas.
+  bonusDescription: fs-tech-medical-autoclave-kit-bonus
 
 - type: fsTechNode
   id: FSMedicalReinforcedCanvas
-  name: Reinforced Canvas
+  name: fs-tech-medical-reinforced-canvas
   icon:
     sprite: Structures/Furniture/Tables/optable.rsi
     state: operating_table
@@ -240,11 +240,11 @@
   tier: 2
   cost: 700
   exclusiveGroup: FSMedicalTentDoctrine
-  bonusDescription: The field hospital stands for twice as long. Excludes Autoclave Kit.
+  bonusDescription: fs-tech-medical-reinforced-canvas-bonus
 
 - type: fsTechNode
   id: FSMedicalBoneWelder
-  name: Bone Welder
+  name: fs-tech-medical-bone-welder
   icon:
     sprite: _Shitmed/Objects/Specific/Medical/Surgery/bonesetter.rsi
     state: bonesetter
@@ -253,22 +253,22 @@
   cost: 1100
   prerequisiteGroups:
   - [ FSMedicalAutoclaveKit, FSMedicalReinforcedCanvas ]
-  bonusDescription: Bone staplers recharge a third faster. Still a partial mend.
+  bonusDescription: fs-tech-medical-bone-welder-bonus
 
 - type: fsTechNode
   id: FSMedicalRecoveryUplink
-  name: Recovery Uplink
+  name: fs-tech-medical-recovery-uplink
   icon:
     sprite: Objects/Specific/Medical/medical.rsi
     state: bloodpack
   branch: Medical
   tier: 3
   cost: 1100
-  bonusDescription: Casualty Recovery recharges in 80 seconds instead of 120.
+  bonusDescription: fs-tech-medical-recovery-uplink-bonus
 
 - type: fsTechNode
   id: FSMedicalForwardAidStation
-  name: Forward Aid Station
+  name: fs-tech-medical-forward-aid-station
   icon:
     sprite: Structures/Furniture/Tables/optable.rsi
     state: operating_table
@@ -277,26 +277,26 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneWelder
-  bonusDescription: Unlocks the field hospital kit at the medical lathe, so the department can run a second tent.
+  bonusDescription: fs-tech-medical-forward-aid-station-bonus
   vanillaTechnologyId: FSForwardAidStation
 
 # ── Line C: Pharmacology (flasks, potions) ────────────────────────────────────────────────────
 
 - type: fsTechNode
   id: FSMedicalHeavyGlassware
-  name: Heavy Glassware
+  name: fs-tech-medical-heavy-glassware
   icon:
     sprite: Objects/Specific/Chemistry/beaker.rsi
     state: beaker
   branch: Medical
   tier: 2
   cost: 700
-  bonusDescription: Unlocks the heavy splash flask - 75u instead of 50u, same burst.
+  bonusDescription: fs-tech-medical-heavy-glassware-bonus
   vanillaTechnologyId: FSHeavyGlassware
 
 - type: fsTechNode
   id: FSMedicalVolatileSuspension
-  name: Volatile Suspension
+  name: fs-tech-medical-volatile-suspension
   icon:
     sprite: Objects/Specific/Chemistry/beaker.rsi
     state: beaker
@@ -306,11 +306,11 @@
   prerequisites:
   - FSMedicalHeavyGlassware
   exclusiveGroup: FSMedicalCloudDoctrine
-  bonusDescription: Potion clouds spread half again as wide. Excludes Stabilised Aerosol.
+  bonusDescription: fs-tech-medical-volatile-suspension-bonus
 
 - type: fsTechNode
   id: FSMedicalStabilisedAerosol
-  name: Stabilised Aerosol
+  name: fs-tech-medical-stabilised-aerosol
   icon:
     sprite: Objects/Specific/Chemistry/beaker.rsi
     state: beaker
@@ -320,11 +320,11 @@
   prerequisites:
   - FSMedicalHeavyGlassware
   exclusiveGroup: FSMedicalCloudDoctrine
-  bonusDescription: Potion clouds linger almost twice as long. Excludes Volatile Suspension.
+  bonusDescription: fs-tech-medical-stabilised-aerosol-bonus
 
 - type: fsTechNode
   id: FSMedicalAdrenalChemistry
-  name: Adrenal Chemistry
+  name: fs-tech-medical-adrenal-chemistry
   icon:
     sprite: Objects/Specific/Chemistry/bottle.rsi
     state: bottle-3
@@ -333,12 +333,12 @@
   cost: 1600
   prerequisiteGroups:
   - [ FSMedicalVolatileSuspension, FSMedicalStabilisedAerosol ]
-  bonusDescription: Unlocks adrenal concentrate, the base for adrenal surge - crew move faster and are far harder to interrupt.
+  bonusDescription: fs-tech-medical-adrenal-chemistry-bonus
   vanillaTechnologyId: FSAdrenalChemistry
 
 - type: fsTechNode
   id: FSMedicalAnalgesicChemistry
-  name: Analgesic Chemistry
+  name: fs-tech-medical-analgesic-chemistry
   icon:
     sprite: Objects/Specific/Chemistry/bottle.rsi
     state: bottle-4
@@ -347,25 +347,25 @@
   cost: 2200
   prerequisites:
   - FSMedicalAdrenalChemistry
-  bonusDescription: Unlocks analgesic base, for battle analgesic - dosed crew drag casualties far faster and treat them quicker.
+  bonusDescription: fs-tech-medical-analgesic-chemistry-bonus
   vanillaTechnologyId: FSAnalgesicChemistry
 
 # ── Line D: Logistics (harvest, magazines, dispenser) ─────────────────────────────────────────
 
 - type: fsTechNode
   id: FSMedicalLongRangeCollectors
-  name: Long-Range Collectors
+  name: fs-tech-medical-long-range-collectors
   icon:
     sprite: Objects/Specific/Chemistry/beaker.rsi
     state: beaker
   branch: Medical
   tier: 1
   cost: 400
-  bonusDescription: Harvest satchels draw 4 metres further, so the chemist can stand further back.
+  bonusDescription: fs-tech-medical-long-range-collectors-bonus
 
 - type: fsTechNode
   id: FSMedicalWideSpectrumRendering
-  name: Wide-Spectrum Rendering
+  name: fs-tech-medical-wide-spectrum-rendering
   icon:
     sprite: Objects/Specific/Chemistry/jug.rsi
     state: icon_empty
@@ -374,11 +374,11 @@
   cost: 700
   prerequisites:
   - FSMedicalLongRangeCollectors
-  bonusDescription: Each wave enemy yields half again as much harvested tissue.
+  bonusDescription: fs-tech-medical-wide-spectrum-rendering-bonus
 
 - type: fsTechNode
   id: FSMedicalCryoStowage
-  name: Cryo-Stowage
+  name: fs-tech-medical-cryo-stowage
   icon:
     sprite: Objects/Specific/Chemistry/beaker_cryostasis.rsi
     state: beakernoreact
@@ -387,11 +387,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: The per-wave harvest ceiling rises by half. Still capped.
+  bonusDescription: fs-tech-medical-cryo-stowage-bonus
 
 - type: fsTechNode
   id: FSMedicalExtendedMagazines
-  name: Extended Magazines
+  name: fs-tech-medical-extended-magazines
   icon:
     sprite: Objects/Specific/Chemistry/syringe.rsi
     state: syringe_base0
@@ -400,12 +400,12 @@
   cost: 1100
   prerequisites:
   - FSMedicalWideSpectrumRendering
-  bonusDescription: Unlocks the extended syringe magazine - 240 darts instead of 200, and a full jug fills either.
+  bonusDescription: fs-tech-medical-extended-magazines-bonus
   vanillaTechnologyId: FSExtendedMagazines
 
 - type: fsTechNode
   id: FSMedicalFieldLogistics
-  name: Field Logistics
+  name: fs-tech-medical-field-logistics
   icon:
     sprite: Objects/Specific/Service/vending_machine_restock.rsi
     state: base
@@ -414,25 +414,25 @@
   cost: 700
   prerequisites:
   - FSMedicalLongRangeCollectors
-  bonusDescription: Unlocks ChemDrobe restock boxes, so the dispenser can be refilled mid-round.
+  bonusDescription: fs-tech-medical-field-logistics-bonus
   vanillaTechnologyId: FSFieldLogistics
 
 # ── Line E: Command (CMO abilities, department-wide) ──────────────────────────────────────────
 
 - type: fsTechNode
   id: FSMedicalStandingOrders
-  name: Standing Orders
+  name: fs-tech-medical-standing-orders
   icon:
     sprite: Structures/Machines/stasis_bed.rsi
     state: icon
   branch: Medical
   tier: 2
   cost: 700
-  bonusDescription: Every Medical Command directive lands a quarter stronger.
+  bonusDescription: fs-tech-medical-standing-orders-bonus
 
 - type: fsTechNode
   id: FSMedicalRapidMobilisation
-  name: Rapid Mobilisation
+  name: fs-tech-medical-rapid-mobilisation
   icon:
     sprite: Structures/Machines/stasis_bed.rsi
     state: icon
@@ -441,11 +441,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalStandingOrders
-  bonusDescription: Medical Mobilisation returns after 180 seconds instead of 260.
+  bonusDescription: fs-tech-medical-rapid-mobilisation-bonus
 
 - type: fsTechNode
   id: FSMedicalExtendedProtocol
-  name: Extended Protocol
+  name: fs-tech-medical-extended-protocol
   icon:
     sprite: Structures/Machines/stasis_bed.rsi
     state: icon
@@ -454,11 +454,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalRapidMobilisation
-  bonusDescription: Mass Casualty Protocol runs for 70 seconds instead of 45.
+  bonusDescription: fs-tech-medical-extended-protocol-bonus
 
 - type: fsTechNode
   id: FSMedicalTriageDoctrine
-  name: Triage Doctrine
+  name: fs-tech-medical-triage-doctrine
   icon:
     sprite: Objects/Specific/Medical/medical.rsi
     state: gauze
@@ -467,11 +467,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalStandingOrders
-  bonusDescription: Standing department-wide bonus - every medic treats 10% faster, with no order given.
+  bonusDescription: fs-tech-medical-triage-doctrine-bonus
 
 - type: fsTechNode
   id: FSMedicalMassCasualtyReadiness
-  name: Mass Casualty Readiness
+  name: fs-tech-medical-mass-casualty-readiness
   icon:
     sprite: Structures/Machines/stasis_bed.rsi
     state: icon
@@ -480,11 +480,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalExtendedProtocol
-  bonusDescription: Mass Casualty Protocol returns after 80 seconds instead of 120.
+  bonusDescription: fs-tech-medical-mass-casualty-readiness-bonus
 
 - type: fsTechNode
   id: FSMedicalCellEfficiency
-  name: Cell Efficiency
+  name: fs-tech-medical-cell-efficiency
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: high
@@ -493,11 +493,11 @@
   cost: 700
   prerequisites:
   - FSMedicalExtendedOptics
-  bonusDescription: The medical beam gun draws 40% less charge, so one cell holds the line far longer.
+  bonusDescription: fs-tech-medical-cell-efficiency-bonus
 
 - type: fsTechNode
   id: FSMedicalDefibrillatorOutput
-  name: Defibrillator Output
+  name: fs-tech-medical-defibrillator-output
   icon:
     sprite: Objects/Specific/Medical/defib.rsi
     state: icon
@@ -506,11 +506,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalCapacitorRecovery
-  bonusDescription: Emergency defibrillators bring a patient back at 35% health instead of 20%.
+  bonusDescription: fs-tech-medical-defibrillator-output-bonus
 
 - type: fsTechNode
   id: FSMedicalSterileField
-  name: Sterile Field
+  name: fs-tech-medical-sterile-field
   icon:
     sprite: _FinalStand/Structures/field_hospital.rsi
     state: tent
@@ -519,11 +519,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneWelder
-  bonusDescription: Surgery inside the field hospital runs half again as fast. Only on the tent.
+  bonusDescription: fs-tech-medical-sterile-field-bonus
 
 - type: fsTechNode
   id: FSMedicalHighFlowManifold
-  name: High-Flow Manifold
+  name: fs-tech-medical-high-flow-manifold
   icon:
     sprite: Objects/Specific/Chemistry/jug.rsi
     state: icon_empty
@@ -532,11 +532,11 @@
   cost: 700
   prerequisites:
   - FSMedicalLongRangeCollectors
-  bonusDescription: The syringe filler decants more than twice as fast - a full magazine in seconds.
+  bonusDescription: fs-tech-medical-high-flow-manifold-bonus
 
 - type: fsTechNode
   id: FSMedicalDepartmentDividend
-  name: Department Dividend
+  name: fs-tech-medical-department-dividend
   icon:
     sprite: Objects/Economy/cash.rsi
     state: cash_10
@@ -545,11 +545,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalMassCasualtyReadiness
-  bonusDescription: The end of the Command line. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.
+  bonusDescription: fs-tech-medical-department-dividend-bonus
 
 - type: fsTechNode
   id: FSMedicalFocusedNanites
-  name: Focused Nanites
+  name: fs-tech-medical-focused-nanites
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -558,11 +558,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalLimbMender
-  bonusDescription: The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.
+  bonusDescription: fs-tech-medical-focused-nanites-bonus
 
 - type: fsTechNode
   id: FSMedicalCellEfficiency2
-  name: Cell Efficiency II
+  name: fs-tech-medical-cell-efficiency2
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: hyper
@@ -571,11 +571,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalCellEfficiency
-  bonusDescription: The medical beam gun draws another 25% less charge on top of Cell Efficiency.
+  bonusDescription: fs-tech-medical-cell-efficiency2-bonus
 
 - type: fsTechNode
   id: FSMedicalCapacitorBank
-  name: Capacitor Bank
+  name: fs-tech-medical-capacitor-bank
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: high
@@ -584,11 +584,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalCellEfficiency
-  bonusDescription: Medical beam gun cells hold 50% more charge.
+  bonusDescription: fs-tech-medical-capacitor-bank-bonus
 
 - type: fsTechNode
   id: FSMedicalRapidRecharge
-  name: Rapid Recharge
+  name: fs-tech-medical-rapid-recharge
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: hyper
@@ -597,11 +597,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalCapacitorBank
-  bonusDescription: Medical beam guns recharge 50% faster.
+  bonusDescription: fs-tech-medical-rapid-recharge-bonus
 
 - type: fsTechNode
   id: FSMedicalBoneKnitter
-  name: Bone-Knitter Beam
+  name: fs-tech-medical-bone-knitter
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -610,11 +610,11 @@
   cost: 1100
   prerequisites:
   - FSMedicalHaemostaticBeam
-  bonusDescription: The beam mends broken bones twice as fast.
+  bonusDescription: fs-tech-medical-bone-knitter-bonus
 
 - type: fsTechNode
   id: FSMedicalLimbMender
-  name: Limb-Mender Lattice
+  name: fs-tech-medical-limb-mender
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -623,11 +623,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalBoneKnitter
-  bonusDescription: The beam heals limb wounds 60% faster.
+  bonusDescription: fs-tech-medical-limb-mender-bonus
 
 - type: fsTechNode
   id: FSMedicalSplitBeamTuning
-  name: Split-Beam Tuning
+  name: fs-tech-medical-split-beam-tuning
   icon:
     sprite: _FinalStand/Objects/Medical/medigun.rsi
     state: icon
@@ -636,11 +636,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalFocusedEmitters
-  bonusDescription: "Holding two patients costs less: each gets 75% of the healing instead of 60%."
+  bonusDescription: fs-tech-medical-split-beam-tuning-bonus
 
 - type: fsTechNode
   id: FSMedicalRefinedEmitters
-  name: Refined Emitters
+  name: fs-tech-medical-refined-emitters
   icon:
     sprite: _FinalStand/Objects/Medical/overhealer.rsi
     state: icon
@@ -649,11 +649,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalFocusedEmitters
-  bonusDescription: Every medical beam gun becomes an OverHealer. Healing a patient past the beam's limit builds a shield of up to half their health that soaks damage and fades over time.
+  bonusDescription: fs-tech-medical-refined-emitters-bonus
 
 - type: fsTechNode
   id: FSMedicalUberCycling
-  name: Über Cycling
+  name: fs-tech-medical-uber-cycling
   icon:
     sprite: _FinalStand/Objects/Medical/ubercharger.rsi
     state: icon
@@ -662,11 +662,11 @@
   cost: 1600
   prerequisites:
   - FSMedicalRapidCycling
-  bonusDescription: Every medical beam gun becomes an UberCharger. Healing builds an ÜberCharge that makes the medic and their patient invulnerable for 10 seconds.
+  bonusDescription: fs-tech-medical-uber-cycling-bonus
 
 - type: fsTechNode
   id: FSMedicalBackfeederNanites
-  name: Backfeeder Nanites
+  name: fs-tech-medical-backfeeder-nanites
   icon:
     sprite: Objects/Power/power_cells.rsi
     state: microreactor
@@ -675,11 +675,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalRapidRecharge
-  bonusDescription: Medical beam guns keep recharging while beaming instead of pausing for 8 seconds.
+  bonusDescription: fs-tech-medical-backfeeder-nanites-bonus
 
 - type: fsTechNode
   id: FSMedicalPerfectedEmitters
-  name: Perfected Emitters
+  name: fs-tech-medical-perfected-emitters
   icon:
     sprite: _FinalStand/Objects/Medical/overhealer.rsi
     state: icon
@@ -688,11 +688,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalRefinedEmitters
-  bonusDescription: OverHealer shields can grow to a patient's full health instead of half.
+  bonusDescription: fs-tech-medical-perfected-emitters-bonus
 
 - type: fsTechNode
   id: FSMedicalPolishedEmitters
-  name: Polished Emitters
+  name: fs-tech-medical-polished-emitters
   icon:
     sprite: _FinalStand/Objects/Medical/overhealer.rsi
     state: icon
@@ -701,11 +701,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalRefinedEmitters
-  bonusDescription: OverHealer shields fade half as fast once the beam lets go.
+  bonusDescription: fs-tech-medical-polished-emitters-bonus
 
 - type: fsTechNode
   id: FSMedicalUltraCycling
-  name: Ultra Cycling
+  name: fs-tech-medical-ultra-cycling
   icon:
     sprite: _FinalStand/Objects/Medical/ubercharger.rsi
     state: icon
@@ -714,11 +714,11 @@
   cost: 2200
   prerequisites:
   - FSMedicalUberCycling
-  bonusDescription: Anyone under an ÜberCharge also has unlimited stamina.
+  bonusDescription: fs-tech-medical-ultra-cycling-bonus
 
 - type: fsTechNode
   id: FSMedicalEfficientCycling
-  name: Efficient Cycling
+  name: fs-tech-medical-efficient-cycling
   icon:
     sprite: _FinalStand/Objects/Medical/ubercharger.rsi
     state: icon
@@ -727,4 +727,4 @@
   cost: 2200
   prerequisites:
   - FSMedicalUberCycling
-  bonusDescription: ÜberCharges last 13 seconds instead of 10.
+  bonusDescription: fs-tech-medical-efficient-cycling-bonus

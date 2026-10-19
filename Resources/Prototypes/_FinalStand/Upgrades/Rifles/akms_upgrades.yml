@@ -19,50 +19,50 @@
     statCapacity: 65
     upgrades:
     - id: akms-damage
-      name: Heavier Load
-      description: Higher-grain ammunition increases damage dealt by 15% per level.
+      name: fs-upgrade-akms-damage
+      description: fs-upgrade-akms-damage-desc
       maxLevel: 5
       baseCost: 4500
       type: Damage
       valuePerLevel: 0.15
     - id: akms-fire-rate
-      name: Hair Trigger
-      description: Lightened trigger group increases fire rate by 0.5/level.
+      name: fs-upgrade-akms-fire-rate
+      description: fs-upgrade-akms-fire-rate-desc
       maxLevel: 3
       baseCost: 4500
       type: FireRate
       valuePerLevel: 0.5
     - id: akms-recoil
-      name: Reduced Recoil
-      description: Muzzle brake tightens spread by 0.5° per level.
+      name: fs-upgrade-akms-recoil
+      description: fs-upgrade-akms-recoil-desc
       maxLevel: 3
       baseCost: 4500
       type: Accuracy
       valuePerLevel: 0.5
     - id: akms-incendiary
-      name: Incendiary Rounds
-      description: Bullets ignite targets on hit.
+      name: fs-upgrade-akms-incendiary
+      description: fs-upgrade-akms-incendiary-desc
       maxLevel: 1
       baseCost: 7900
       type: SetOnFire
       valuePerLevel: 1
     - id: akms-battle-trance
-      name: Battle Trance
-      description: Each kill increases damage by 2%/4%/6% per stack, up to 15/30/50 stacks. Resets between waves.
+      name: fs-upgrade-akms-battle-trance
+      description: fs-upgrade-akms-battle-trance-desc
       maxLevel: 3
       baseCost: 13500
       type: BattleTrance
       valuePerLevel: 1
     - id: akms-suppression
-      name: Suppression
-      description: Every hit slows the target briefly. Level 2 increases slow magnitude. Does not affect bosses.
+      name: fs-upgrade-akms-suppression
+      description: fs-upgrade-akms-suppression-desc
       maxLevel: 2
       baseCost: 7900
       type: Suppression
       valuePerLevel: 1
     - id: akms-pierce
-      name: Steel Tip
-      description: Armor-piercing rounds pierce enemies. Each level adds a target; damage halves per hit.
+      name: fs-upgrade-akms-pierce
+      description: fs-upgrade-akms-pierce-desc
       maxLevel: 4
       baseCost: 6000
       type: Pierce

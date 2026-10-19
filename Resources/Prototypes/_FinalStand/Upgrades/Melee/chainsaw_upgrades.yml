@@ -16,50 +16,50 @@
     statCapacity: 0
     upgrades:
     - id: chainsaw-overclock
-      name: Overclock
-      description: Higher RPM increases attack speed by 25% per level.
+      name: fs-upgrade-chainsaw-overclock
+      description: fs-upgrade-chainsaw-overclock-desc
       maxLevel: 2
       baseCost: 17000
       type: AttackSpeed
       valuePerLevel: 0.25
     - id: chainsaw-lucky-chains
-      name: Lucky Chains
-      description: +5% critical hit chance.
+      name: fs-upgrade-chainsaw-lucky-chains
+      description: fs-upgrade-chainsaw-lucky-chains-desc
       maxLevel: 1
       baseCost: 11000
       type: CritChance
       valuePerLevel: 0.05
     - id: chainsaw-steel-chains
-      name: Steel Chains
-      description: Hardened links add +75% damage per level.
+      name: fs-upgrade-chainsaw-steel-chains
+      description: fs-upgrade-chainsaw-steel-chains-desc
       maxLevel: 3
       baseCost: 12500
       type: Damage
       valuePerLevel: 0.75
     - id: chainsaw-hungry-chains
-      name: Hungry Chains
-      description: Saw drinks back +0.5 lifesteal per hit.
+      name: fs-upgrade-chainsaw-hungry-chains
+      description: fs-upgrade-chainsaw-hungry-chains-desc
       maxLevel: 1
       baseCost: 22000
       type: LifeSteal
       valuePerLevel: 0.5
     - id: chainsaw-fuel-efficiency
-      name: Fuel Efficiency
-      description: Reduces fuel taken per swing by 0.25 per level.
+      name: fs-upgrade-chainsaw-fuel-efficiency
+      description: fs-upgrade-chainsaw-fuel-efficiency-desc
       maxLevel: 2
       baseCost: 9000
       type: FuelEfficiency
       valuePerLevel: 0.25
     - id: chainsaw-fuel-capacity
-      name: Fuel Capacity
-      description: Tank holds +25% more fuel per level.
+      name: fs-upgrade-chainsaw-fuel-capacity
+      description: fs-upgrade-chainsaw-fuel-capacity-desc
       maxLevel: 2
       baseCost: 17000
       type: FuelCapacity
       valuePerLevel: 0.25
     - id: chainsaw-protective-saw
-      name: Protective Saw
-      description: While wielded, take 20% less damage.
+      name: fs-upgrade-chainsaw-protective-saw
+      description: fs-upgrade-chainsaw-protective-saw-desc
       maxLevel: 1
       baseCost: 22000
       type: WielderResistance
