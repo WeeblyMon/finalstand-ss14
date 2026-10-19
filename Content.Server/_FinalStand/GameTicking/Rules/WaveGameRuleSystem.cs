@@ -153,7 +153,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         var dark = _darkWave.IsActive(uid);
         var wave = comp.Phase == WavePhase.Prep ? comp.WavesCompleted : comp.WaveNumber;
-        var endsAt = comp.Phase == WavePhase.Prep || dark ? comp.PhaseEndTime : TimeSpan.Zero;
+        var endsAt = comp.PhaseEndTime;
         var alive = comp.Phase == WavePhase.Combat ? comp.AliveEnemies.Count : 0;
         var total = comp.Phase == WavePhase.Combat && !dark ? comp.EnemyTotalThisWave : 0;
 
@@ -486,15 +486,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     public record struct CCCStateData(
         int WaveNumber,
-        WavePhase Phase,
-        float SecondsLeft,
-        int AliveEnemies,
         int TotalEnemies,
         string SpawnerDirections,
         bool IsBossWave,
         string FactionDisplay,
-        List<string> NextWaveEnemyTypes,
-        bool IsDarkWave);
+        List<string> NextWaveEnemyTypes);
 
     public bool TryGetActiveState(out CCCStateData data)
     {
@@ -516,15 +512,11 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         var directions = dark ? "all" : _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
-            comp.Phase,
-            Math.Max(0f, (float)(comp.PhaseEndTime - Timing.CurTime).TotalSeconds),
-            comp.AliveEnemies.Count,
             comp.EnemyTotalThisWave,
             directions,
             IsBossWave(comp.WaveNumber),
             comp.FactionDisplay,
-            types,
-            dark);
+            types);
         return true;
     }
 

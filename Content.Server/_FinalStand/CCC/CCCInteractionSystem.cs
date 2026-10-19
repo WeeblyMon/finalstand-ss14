@@ -27,7 +27,10 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     private const int BroadcastMaxLength = 500;
     private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);
 
-    private float _stateTimer;
+    // The CCC can be hit many times a second; an open console only needs to see that twice a second.
+    private static readonly TimeSpan DamageCheckInterval = TimeSpan.FromSeconds(0.5);
+    private TimeSpan _nextDamageCheck;
+    private readonly Dictionary<EntityUid, int> _shownDamage = new();
     private readonly HashSet<EntityUid> _openActors = new();
     private readonly Dictionary<EntityUid, TimeSpan> _lastBroadcastTime = new();
     private Predicate<EntityUid> _actorGone = default!;
@@ -53,10 +56,21 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        _stateTimer += frameTime;
-        if (_stateTimer < 2f) return;
-        _stateTimer = 0f;
-        PushCCCState();
+        if (_openActors.Count == 0 || _timing.CurTime < _nextDamageCheck)
+            return;
+
+        _nextDamageCheck = _timing.CurTime + DamageCheckInterval;
+        var query = EntityQueryEnumerator<FinalStandCCCComponent, DamageableComponent>();
+        while (query.MoveNext(out var uid, out _, out var damageable))
+        {
+            if (_shownDamage.GetValueOrDefault(uid, -1) != GetDamage((uid, damageable)))
+                PushCCCStateTo(uid);
+        }
+    }
+
+    private int GetDamage(Entity<DamageableComponent> ccc)
+    {
+        return (int) _damageable.GetTotalDamage((ccc.Owner, ccc.Comp)).Float();
     }
 
     private void OnCCCOpened(EntityUid uid, FinalStandCCCComponent comp, BoundUIOpenedEvent args)
@@ -140,8 +154,9 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             return;
 
         var cccDmg = TryComp<DamageableComponent>(cccUid, out var dmgComp)
-            ? (int)_damageable.GetTotalDamage((cccUid, dmgComp)).Float()
+            ? GetDamage((cccUid, dmgComp))
             : 0;
+        _shownDamage[cccUid] = cccDmg;
 
         var cccMax = TryComp<FinalStandCCCComponent>(cccUid, out var ccc) ? (int) ccc.MaxHealth : 0;
 
@@ -151,17 +166,12 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             estimatedEnemyCount: wave.TotalEnemies,
             factionDisplay: wave.FactionDisplay,
             isBossWave: wave.IsBossWave,
-            waveModifier: wave.IsDarkWave ? "DARK WAVE" : wave.IsBossWave ? "BOSS WAVE" : "Normal",
-            currentPhase: wave.Phase,
-            secondsToPhaseEnd: wave.SecondsLeft,
-            aliveEnemyCount: wave.AliveEnemies,
             activeSpawnerDirections: wave.SpawnerDirections,
             readiedPlayerCount: ready,
             totalPlayerCount: crew,
             nextWaveEnemyTypes: wave.NextWaveEnemyTypes,
             cccCurrentDamage: cccDmg,
-            cccMaxHealth: cccMax,
-            isDarkWave: wave.IsDarkWave);
+            cccMaxHealth: cccMax);
 
         _ui.SetUiState(cccUid, CCCUiKey.Key, state);
     }

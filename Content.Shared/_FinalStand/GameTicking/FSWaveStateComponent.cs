@@ -15,7 +15,8 @@ public sealed partial class FSWaveStateComponent : Component
     [DataField, AutoNetworkedField]
     public WavePhase Phase;
 
-    // End of prep (or of the start countdown), or of a dark wave. Clients count down to it themselves.
+    // End of the current phase: prep, the start countdown, a dark wave, or combat's fallback limit.
+    // Clients count down to it themselves.
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoNetworkedField, AutoPausedField]
     public TimeSpan PhaseEndsAt;
 

@@ -10,6 +10,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._FinalStand.CCC.UI;
 
@@ -21,7 +22,17 @@ public sealed partial class CCCWindow : FancyWindow
 
     private readonly IPrototypeManager _protos;
     private readonly IResourceCache _cache;
+    private readonly IEntityManager _entMan;
+    private readonly IGameTiming _timing;
     private readonly List<string> _shownIconTypes = new();
+
+    private bool _isCaptain;
+    private bool _bossWave;
+    private string _enemyEstimate = "0";
+    private int _shownSeconds = -1;
+    private WavePhase? _shownPhase;
+    private bool? _shownDark;
+    private int _shownAlive = -1;
 
     public CCCWindow()
     {
@@ -32,6 +43,8 @@ public sealed partial class CCCWindow : FancyWindow
             IoCManager.Resolve<IResourceCache>());
         _protos = IoCManager.Resolve<IPrototypeManager>();
         _cache = IoCManager.Resolve<IResourceCache>();
+        _entMan = IoCManager.Resolve<IEntityManager>();
+        _timing = IoCManager.Resolve<IGameTiming>();
         StartWaveButton.OnPressed += _ => OnStartWavePressed?.Invoke();
         BroadcastButton.OnPressed += _ =>
         {
@@ -60,35 +73,19 @@ public sealed partial class CCCWindow : FancyWindow
 
     public void UpdateState(CCCBoundUserInterfaceState state, bool isCaptain)
     {
+        _isCaptain = isCaptain;
+        _bossWave = state.IsBossWave;
+        _enemyEstimate = state.EstimatedEnemyCount.ToString();
+        _shownPhase = null;
+        _shownDark = null;
+
         WaveNumberLabel.Text = state.WaveNumber.ToString();
         FactionLabel.Text = state.FactionDisplay;
-        ModifierLabel.Text = state.WaveModifier;
-
-
-        var enemyEst = state.IsDarkWave ? "∞" : state.EstimatedEnemyCount.ToString();
-        EnemyEstLabel.Text = enemyEst;
-
-        PhaseLabel.Text = Loc.GetString(state.CurrentPhase == WavePhase.Prep ? "fs-ccc-window-phase-prep" : "fs-ccc-window-phase-combat");
-        PhaseLabel.Modulate = state.CurrentPhase == WavePhase.Prep
-            ? FSUiPalette.StatePositive
-            : FSUiPalette.StateNegative;
-
-        var mins = (int)state.SecondsToPhaseEnd / 60;
-        var secs = (int)state.SecondsToPhaseEnd % 60;
-        CountdownLabel.Text = $"{mins}:{secs:D2}";
-
-        AliveLabel.Text = state.AliveEnemyCount.ToString();
-        TotalLabel.Text = enemyEst;
         SpawnersLabel.Text = state.ActiveSpawnerDirections;
 
         var cccHp = Math.Max(0, state.CCCMaxHealth - state.CCCCurrentDamage);
         var cccPct = state.CCCMaxHealth > 0 ? (int)(100f * cccHp / state.CCCMaxHealth) : 0;
         CCCHealthLabel.Text = $"{cccHp} / {state.CCCMaxHealth} ({cccPct}%)";
-
-        var notPrep    = state.CurrentPhase != WavePhase.Prep;
-        var notCaptain = !isCaptain;
-        StartWaveButton.Disabled = notPrep || notCaptain;
-        StartWaveButton.ToolTip = (!notPrep && notCaptain) ? Loc.GetString("fs-ccc-window-captain-only") : null;
 
         ReadinessLabel.Text = state.TotalPlayerCount > 0
             ? Loc.GetString("fs-ccc-window-ready", ("ready", state.ReadiedPlayerCount), ("total", state.TotalPlayerCount))
@@ -98,6 +95,55 @@ public sealed partial class CCCWindow : FancyWindow
             : FSUiPalette.TextMuted;
 
         RebuildZombieIcons(state.NextWaveEnemyTypes);
+        UpdateLive();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        UpdateLive();
+    }
+
+    // Phase, countdown and alive count come from the networked wave state, so they tick without server pushes.
+    private void UpdateLive()
+    {
+        var query = _entMan.EntityQueryEnumerator<FSWaveStateComponent>();
+        if (!query.MoveNext(out var wave))
+            return;
+
+        if (_shownPhase != wave.Phase || _shownDark != wave.DarkWave)
+        {
+            _shownPhase = wave.Phase;
+            _shownDark = wave.DarkWave;
+            var prep = wave.Phase == WavePhase.Prep;
+
+            PhaseLabel.Text = Loc.GetString(prep ? "fs-ccc-window-phase-prep" : "fs-ccc-window-phase-combat");
+            PhaseLabel.Modulate = prep ? FSUiPalette.StatePositive : FSUiPalette.StateNegative;
+
+            ModifierLabel.Text = Loc.GetString(wave.DarkWave ? "fs-ccc-window-modifier-dark"
+                : _bossWave ? "fs-ccc-window-modifier-boss"
+                : "fs-ccc-window-modifier-normal");
+
+            var estimate = wave.DarkWave ? "∞" : _enemyEstimate;
+            EnemyEstLabel.Text = estimate;
+            TotalLabel.Text = estimate;
+
+            StartWaveButton.Disabled = !prep || !_isCaptain;
+            StartWaveButton.ToolTip = prep && !_isCaptain ? Loc.GetString("fs-ccc-window-captain-only") : null;
+        }
+
+        var seconds = Math.Max(0, (int) (wave.PhaseEndsAt - _timing.CurTime).TotalSeconds);
+        if (seconds != _shownSeconds)
+        {
+            _shownSeconds = seconds;
+            CountdownLabel.Text = $"{seconds / 60}:{seconds % 60:D2}";
+        }
+
+        if (wave.EnemiesAlive != _shownAlive)
+        {
+            _shownAlive = wave.EnemiesAlive;
+            AliveLabel.Text = wave.EnemiesAlive.ToString();
+        }
     }
 
     private const int IconsPerRow = 4;
@@ -106,7 +152,7 @@ public sealed partial class CCCWindow : FancyWindow
 
     private void RebuildZombieIcons(List<string> types)
     {
-        // State arrives twice a second; the enemy list changes once a wave.
+        // The enemy list only changes once a wave.
         if (_shownIconTypes.SequenceEqual(types))
             return;
 
