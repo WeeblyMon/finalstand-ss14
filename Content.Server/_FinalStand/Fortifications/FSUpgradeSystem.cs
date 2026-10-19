@@ -401,6 +401,29 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         Dirty(ent);
     }
 
+    public FSUpgradeSnapshot Snapshot(FSUpgradeableComponent comp)
+    {
+        return new FSUpgradeSnapshot(comp.Grade, comp.Branch, new List<ProtoId<FSUpgradePrototype>>(comp.Modules),
+            comp.Pending, comp.Poured);
+    }
+
+    // Replays onto a fresh structure. Grades carry no stats of their own, so the final one is enough.
+    public void Restore(Entity<FSUpgradeableComponent> ent, FSUpgradeSnapshot snapshot)
+    {
+        if (snapshot.Grade != ent.Comp.Grade)
+            Apply(ent, Proto.Index(snapshot.Grade));
+
+        if (snapshot.Branch is { } branch)
+            Apply(ent, Proto.Index(branch));
+
+        foreach (var module in snapshot.Modules)
+            Apply(ent, Proto.Index(module));
+
+        ent.Comp.Pending = snapshot.Pending;
+        ent.Comp.Poured = snapshot.Poured;
+        Dirty(ent);
+    }
+
     public void SetWaveMultiplier(Entity<FSUpgradeableComponent> ent, float multiplier)
     {
         ent.Comp.WaveMultiplier = multiplier;

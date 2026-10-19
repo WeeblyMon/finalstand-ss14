@@ -2,11 +2,13 @@ using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Departments;
 using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Engineering;
+using Content.Server._FinalStand.Fortifications;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.NPC;
 using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.Emplacement;
+using Content.Shared._FinalStand.Fortifications;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Placement;
 using Content.Shared.Alert;
@@ -51,6 +53,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
     [Dependency] private FSEngineeringResearchSystem _research = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSFlairSystem _flair = default!;
+    [Dependency] private FSUpgradeSystem _upgrades = default!;
 
     private static readonly ProtoId<FSParticleEmitterPrototype> DustPuff = "FSDustPuff";
     private static readonly ProtoId<FSParticleEmitterPrototype> DustRing = "FSDustRing";
@@ -99,16 +102,29 @@ public sealed partial class FSEmplacementSystem : EntitySystem
 
         var core = Spawn(kit.Comp.Core, center);
         _transform.SetLocalRotation(core, args.Direction.ToAngle());
+        if (!Transform(core).Anchored)
+            _transform.AnchorEntity(core);
+
         var comp = Comp<FSEmplacementComponent>(core);
         comp.Deployed = true;
         comp.OwnerMind = _mind.TryGetMind(args.User, out var mindId, out _) ? mindId : null;
 
+        TryComp<FSPackedEmplacementComponent>(kit, out var packed);
         foreach (var piece in Pieces(kit.Comp))
         {
             var uid = Spawn(piece.Proto, FSEmplacementRuleSystem.TileOf(center, piece.Offset, args.Direction));
             _transform.SetLocalRotation(uid, FSEmplacementRuleSystem.RotationOf(piece, args.Direction));
             if (!Transform(uid).Anchored)
                 _transform.AnchorEntity(uid);
+
+            var index = comp.Pieces.Count;
+            if (packed != null
+                && index < packed.Pieces.Count
+                && packed.Pieces[index] is { } snapshot
+                && TryComp<FSUpgradeableComponent>(uid, out var upgradeable))
+            {
+                _upgrades.Restore((uid, upgradeable), snapshot);
+            }
 
             EnsureComp<FSEmplacementPieceComponent>(uid).Core = core;
             var deployedBy = EnsureComp<FSDeployedByComponent>(uid);
@@ -225,8 +241,16 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         ent.Comp.Packed = true;
         var kit = Spawn(ent.Comp.Kit, _transform.GetMapCoordinates(ent));
         _audio.PlayPvs(FoldSound, kit);
+
+        // It packs up every wave, so without this the hardpoints' upgrades were lost each time.
+        var packed = EnsureComp<FSPackedEmplacementComponent>(kit);
         foreach (var piece in ent.Comp.Pieces)
+        {
+            packed.Pieces.Add(!TerminatingOrDeleted(piece) && TryComp<FSUpgradeableComponent>(piece, out var upgradeable)
+                ? _upgrades.Snapshot(upgradeable)
+                : null);
             QueueDel(piece);
+        }
 
         if (!TerminatingOrDeleted(ent))
             QueueDel(ent);
