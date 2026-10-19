@@ -156,7 +156,7 @@ public sealed class FSPerkDef
                 ["+1 Max Charge", "+2 Max Charges", "+3 Max Charges", "+4 Max Charges"]),
 
             new("Martyr", "Martyr",
-                "Going down triggers an explosion at your feet.",
+                "Going down triggers an explosion at your feet. 20 second cooldown.",
                 PerkCategory.Red,
                 ["Small Explosion", "Medium Explosion", "Large Explosion", "Max Explosion"]),
 
