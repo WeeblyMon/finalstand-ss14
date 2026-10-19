@@ -92,6 +92,9 @@ public static class FSPerkBonusConstants
     public const float StunningStrikesSeconds = 1.2f;
     public const float StunningStrikesSpecialFactor = 0.5f;
     public const float StunningStrikesSpecialCooldown = 10f;
+    public const float BulwarkDurabilityPerLevel = 0.25f;
+    public const float BulwarkRepairPerKillPerLevel = 0.005f;   // of max durability, melee kills
+    public const float BulwarkTauntRadius = 4f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

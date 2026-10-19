@@ -387,6 +387,12 @@ public sealed class FSPerkDef
                 "Riot shield hits can stun zombies for 1.2s. Specials: half as long, once per 10s.",
                 PerkCategory.Green,
                 Pct("{0}% Stun Chance", FSPerkBonusConstants.StunningStrikesChancePerLevel)),
+
+            new("Bulwark", "Bulwark",
+                "Tougher riot shield. Blocking draws zombies to you, melee kills mend the shield.",
+                PerkCategory.Blue,
+                Pct("+{0}% Shield Durability / +{1}% Mend per Kill", FSPerkBonusConstants.BulwarkDurabilityPerLevel,
+                    FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
