@@ -151,6 +151,9 @@ public abstract partial class SharedWieldableSystem : EntitySystem
         if (HasComp<GunRequiresWieldComponent>(uid))
             return;
 
+        if (TryComp<GunComponent>(uid, out var gun) && gun.MinAngle <= Angle.Zero && gun.MaxAngle <= Angle.Zero)
+            return;
+
         if (component.WieldBonusExamineMessage != null)
             args.PushText(Loc.GetString(component.WieldBonusExamineMessage));
     }
