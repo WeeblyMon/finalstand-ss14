@@ -50,6 +50,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
     private readonly Dictionary<NetUserId, TimeSpan> _lastSellTime = new();
     private readonly Dictionary<NetEntity, TimeSpan> _recentSells = new();
+    private readonly List<CarriedItem> _prerequisiteCandidates = new();
 
     public override void Initialize()
     {
@@ -281,18 +282,12 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             return;
         }
 
-        if (def.RequiresUpgrade != null)
+        // The prerequisite lives on the shop's own weapon (the cutlass unlocks flintlock upgrades), and has to be
+        // on a copy this player may use, not one bound to someone else.
+        if (def.RequiresUpgrade is { } required && !HasUsableUpgrade(player, ShopProtoIds(comp), required))
         {
-            var shopWeapon = _search.FindFirst(player, ShopProtoIds(comp));
-            var shopState = shopWeapon != null
-                ? CompOrNull<FSWeaponUpgradeStateComponent>(shopWeapon.Value.Uid)
-                : null;
-            if (shopState == null
-                || shopState.Levels.GetValueOrDefault(def.RequiresUpgrade, 0) <= 0)
-            {
-                _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
-                return;
-            }
+            _popup.PopupEntity(Loc.GetString("shop-upgrade-locked"), uid, player);
+            return;
         }
 
         var cost = def.LevelCost(currentLevel + 1,
@@ -610,5 +605,20 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         RaiseNetworkEvent(
             new UpgradeLevelsUpdatedEvent(new Dictionary<string, int>(levels), title, accuracy, nextAccuracy),
             Filter.SinglePlayer(session));
+    }
+
+    private bool HasUsableUpgrade(EntityUid player, IReadOnlySet<string> protoIds, string upgradeId)
+    {
+        _prerequisiteCandidates.Clear();
+        _search.Collect(player, protoIds, _prerequisiteCandidates);
+        foreach (var item in _prerequisiteCandidates)
+        {
+            if (_binding.IsUsableBy(item.Uid, player)
+                && TryComp<FSWeaponUpgradeStateComponent>(item.Uid, out var state)
+                && state.Levels.GetValueOrDefault(upgradeId, 0) > 0)
+                return true;
+        }
+
+        return false;
     }
 }
