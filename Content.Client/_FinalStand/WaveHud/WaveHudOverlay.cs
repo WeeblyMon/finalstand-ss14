@@ -644,12 +644,13 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var level = PerkLevels.GetValueOrDefault(id, 0);
             var levelText = Loc.GetString("fs-hud-perk-level", ("level", level), ("max", FSPerkDef.MaxLevel));
-            var effectText = level > 0 ? def.LevelEffects[level - 1] : _labelNotUpgraded;
+            var effectText = level > 0 ? def.LevelEffect(level - 1) : _labelNotUpgraded;
+            var name = def.Name;
 
             const float tipPad = 8f;
             const float tipW = 200f;
 
-            var nameDims = screen.GetDimensions(_tooltipNameFont!, def.Name, 1f);
+            var nameDims = screen.GetDimensions(_tooltipNameFont!, name, 1f);
             var levelDims = screen.GetDimensions(_tooltipBodyFont!, levelText, 1f);
             var effectDims = screen.GetDimensions(_tooltipBodyFont!, effectText, 1f);
 
@@ -668,7 +669,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
             var tx = tipX + tipPad;
             var ty = tipY + tipPad;
-            screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), def.Name, Color.White);
+            screen.DrawString(_tooltipNameFont!, new Vector2(tx, ty), name, Color.White);
             ty += nameDims.Y + 4f;
             screen.DrawString(_tooltipBodyFont!, new Vector2(tx, ty), levelText, FSPalette.Money);
             ty += levelDims.Y + 4f;

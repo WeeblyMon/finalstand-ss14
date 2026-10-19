@@ -103,7 +103,7 @@ public sealed partial class PerkShopWindow
         var text = new RichTextLabel { HorizontalExpand = true, MaxWidth = 190 };
         var color = owned || next ? FSUiPalette.TextPrimary : FSUiPalette.TextMuted;
         text.SetMessage(FormattedMessage.FromMarkupPermissive(
-            $"[color={color.ToHex()}]{FormattedMessage.EscapeText(def.LevelEffects[index])}[/color]"));
+            $"[color={color.ToHex()}]{FormattedMessage.EscapeText(def.LevelEffect(index))}[/color]"));
         box.AddChild(text);
 
         var tag = owned ? Loc.GetString("fs-perk-shop-ladder-owned")
