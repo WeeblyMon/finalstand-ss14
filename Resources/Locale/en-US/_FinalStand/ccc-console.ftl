@@ -6,3 +6,5 @@ fs-ccc-window-waiting = Waiting for players...
 fs-ccc-window-modifier-dark = DARK WAVE
 fs-ccc-window-modifier-boss = BOSS WAVE
 fs-ccc-window-modifier-normal = Normal
+fs-ccc-spawners-none = none
+fs-ccc-spawners-all = all

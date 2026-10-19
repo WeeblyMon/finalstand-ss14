@@ -369,7 +369,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
     public string GetSpawnDirections(WaveGameRuleComponent comp)
     {
-
         var labels = new SortedSet<string>();
         foreach (var spawnerUid in comp.SpawnerEntities)
         {
@@ -388,7 +387,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         }
 
         if (labels.Count == 0)
-            return comp.SpawnerEntities.Count == 0 ? "none" : "?";
+            return comp.SpawnerEntities.Count == 0 ? Loc.GetString("fs-ccc-spawners-none") : "?";
 
         return string.Join("/", labels);
     }

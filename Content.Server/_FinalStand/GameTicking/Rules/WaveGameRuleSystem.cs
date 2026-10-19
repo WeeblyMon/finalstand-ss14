@@ -509,7 +509,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             if (comp.WaveNumber >= special.FromWave)
                 types.Add(special.EnemyId.Id);
         }
-        var directions = dark ? "all" : _spawning.GetSpawnDirections(comp);
+        var directions = dark ? Loc.GetString("fs-ccc-spawners-all") : _spawning.GetSpawnDirections(comp);
         data = new CCCStateData(
             comp.WaveNumber,
             comp.EnemyTotalThisWave,
