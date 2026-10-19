@@ -265,6 +265,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     private void StartCombatPhase(EntityUid uid, WaveGameRuleComponent comp)
     {
         comp.Phase = WavePhase.Combat;
+        comp.CombatStartTime = Timing.CurTime;
 
         if (comp.SpawnerEntities.Count == 0)
             _spawning.SelectSpawners(comp, CountScalingPlayers());

@@ -97,6 +97,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public int WaveNumber = 1;
     public WavePhase Phase = WavePhase.Prep;
     public TimeSpan PhaseEndTime = TimeSpan.Zero;
+    public TimeSpan CombatStartTime = TimeSpan.Zero;
     public TimeSpan NextSpawnTime = TimeSpan.Zero;
     public int EnemyTotalThisWave = 0;
     public int EnemiesSpawnedThisWave = 0;

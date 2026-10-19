@@ -70,10 +70,10 @@ public sealed partial class FSWaveEnrageSystem : EntitySystem
         {
             if (rule.Phase != WavePhase.Combat)
                 continue;
-            var remaining = rule.PhaseEndTime - _timing.CurTime;
-            if (remaining <= TimeSpan.Zero)
+            // Measured from the start: dark waves shorten PhaseEndTime, which made them look 28 minutes old.
+            if (rule.PhaseEndTime <= _timing.CurTime)
                 continue;
-            var elapsed = rule.MaxCombatDuration - remaining;
+            var elapsed = _timing.CurTime - rule.CombatStartTime;
 
             if (elapsed >= Stage2Elapsed)
                 stage = Math.Max(stage, 2);
