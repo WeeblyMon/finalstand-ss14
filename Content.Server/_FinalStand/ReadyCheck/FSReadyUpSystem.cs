@@ -67,8 +67,11 @@ public sealed partial class FSReadyUpSystem : EntitySystem
 
         _readyCheck.SetPlayerReady(player, msg.IsReady);
 
+        _readyCheck.SetTotalPlayers(CountActivePlayers());
+        var majority = _readyCheck.HasMajority();
+
         // Each player may only shave time once per prep phase, even if they toggle ready/unready.
-        if (msg.IsReady && _hasContributed.Add(player))
+        if (msg.IsReady && !majority && _hasContributed.Add(player))
         {
             var prepComp = _waveRule.GetPrepComponent();
             var total = _readyCheck.GetTotalCount();
@@ -78,7 +81,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
 
         BroadcastState();
 
-        if (_readyCheck.HasMajority())
+        if (majority)
             RaiseLocalEvent(new WaveStartRequestEvent());
     }
 
