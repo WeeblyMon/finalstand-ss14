@@ -23,6 +23,9 @@ public sealed class PathPoly : IEquatable<PathPoly>
     [ViewVariables]
     public readonly HashSet<PathPoly> Neighbors;
 
+    // FINALSTAND: everything hashed is readonly, and A* hashes polys several times per expansion.
+    private readonly int _hashCode;
+
     public PathPoly(EntityUid graphUid, Vector2i chunkOrigin, byte tileIndex, Box2 vertices, PathfindingData data, HashSet<PathPoly> neighbors)
     {
         GraphUid = graphUid;
@@ -31,6 +34,7 @@ public sealed class PathPoly : IEquatable<PathPoly>
         Box = vertices;
         Data = data;
         Neighbors = neighbors;
+        _hashCode = HashCode.Combine(GraphUid, ChunkOrigin, TileIndex, Box);
     }
 
     public bool IsValid()
@@ -54,6 +58,10 @@ public sealed class PathPoly : IEquatable<PathPoly>
 
     public bool Equals(PathPoly? other)
     {
+        // FINALSTAND: the same instance is by far the common case in A*'s dictionaries.
+        if (ReferenceEquals(this, other))
+            return true;
+
         return other != null &&
                GraphUid.Equals(other.GraphUid) &&
                ChunkOrigin.Equals(other.ChunkOrigin) &&
@@ -69,6 +77,6 @@ public sealed class PathPoly : IEquatable<PathPoly>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(GraphUid, ChunkOrigin, TileIndex, Box);
+        return _hashCode;
     }
 }
