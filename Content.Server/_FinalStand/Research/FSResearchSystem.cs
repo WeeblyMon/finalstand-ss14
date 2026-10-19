@@ -48,6 +48,12 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private bool _reinvestPending;
     private readonly HashSet<EntityUid> _personalSyncPending = new();
 
+    // Last values broadcast to every client; late joiners get theirs on attach.
+    private int? _sentPoints;
+    private bool _sentShared;
+    private ProtoId<FSTechNodePrototype>? _sentActive;
+    private int _sentActiveProgress;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -105,6 +111,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         _station = null;
         _progressSyncPending = false;
         _personalSyncPending.Clear();
+        _sentPoints = null;
+        _sentShared = false;
         var query = EntityQueryEnumerator<FSStationResearchComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -283,30 +291,104 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         var query = EntityQueryEnumerator<FSTechDatabaseComponent>();
         while (query.MoveNext(out var uid, out var console))
         {
-            if (console.Track != FSResearchTrack.Science)
-                continue;
-
-            console.UnlockedNodes.Clear();
-            console.UnlockedNodes.AddRange(station.Comp.UnlockedNodes);
-            console.ActiveResearch = station.Comp.ActiveResearch;
-            console.SharedQueue.Clear();
-            console.SharedQueue.AddRange(station.Comp.SharedQueue);
-            console.NodeProgress.Clear();
-            foreach (var (id, amount) in station.Comp.NodeProgress)
-                console.NodeProgress[id] = amount;
-            console.Points = station.Comp.Points;
-            console.PersonalContributorSlots.Clear();
-            foreach (var (id, slots) in contributorSlots)
-                console.PersonalContributorSlots[id] = new List<int>(slots);
-            Dirty(uid, console);
+            if (console.Track == FSResearchTrack.Science)
+                SyncConsole((uid, console), station.Comp, contributorSlots);
         }
 
-        RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
+        // Clients already hold the last values; resending them at the progress rate is pure traffic.
+        if (_sentPoints != station.Comp.Points)
+        {
+            _sentPoints = station.Comp.Points;
+            RaiseNetworkEvent(new FSStationRpChangedEvent(station.Comp.Points), Filter.Broadcast());
+        }
 
         var activeProgress = station.Comp.ActiveResearch is { } activeId
             ? station.Comp.NodeProgress.GetValueOrDefault(activeId.Id)
             : 0;
-        RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.Broadcast());
+        if (!_sentShared || _sentActive != station.Comp.ActiveResearch || _sentActiveProgress != activeProgress)
+        {
+            _sentShared = true;
+            _sentActive = station.Comp.ActiveResearch;
+            _sentActiveProgress = activeProgress;
+            RaiseNetworkEvent(new FSSharedResearchStateEvent(station.Comp.ActiveResearch, activeProgress), Filter.Broadcast());
+        }
+    }
+
+    // Field by field: progress moves several times a second, the unlocked list and queue hardly ever.
+    private void SyncConsole(Entity<FSTechDatabaseComponent> console, FSStationResearchComponent station,
+        Dictionary<string, List<int>> contributorSlots)
+    {
+        var comp = console.Comp;
+
+        if (!comp.UnlockedNodes.SequenceEqual(station.UnlockedNodes))
+        {
+            comp.UnlockedNodes.Clear();
+            comp.UnlockedNodes.AddRange(station.UnlockedNodes);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.UnlockedNodes));
+        }
+
+        if (comp.ActiveResearch != station.ActiveResearch)
+        {
+            comp.ActiveResearch = station.ActiveResearch;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.ActiveResearch));
+        }
+
+        if (!comp.SharedQueue.SequenceEqual(station.SharedQueue))
+        {
+            comp.SharedQueue.Clear();
+            comp.SharedQueue.AddRange(station.SharedQueue);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.SharedQueue));
+        }
+
+        if (!SameProgress(comp.NodeProgress, station.NodeProgress))
+        {
+            comp.NodeProgress.Clear();
+            foreach (var (id, amount) in station.NodeProgress)
+                comp.NodeProgress[id] = amount;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.NodeProgress));
+        }
+
+        if (comp.Points != station.Points)
+        {
+            comp.Points = station.Points;
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.Points));
+        }
+
+        if (!SameSlots(comp.PersonalContributorSlots, contributorSlots))
+        {
+            comp.PersonalContributorSlots.Clear();
+            foreach (var (id, slots) in contributorSlots)
+                comp.PersonalContributorSlots[id] = new List<int>(slots);
+            DirtyField(console, comp, nameof(FSTechDatabaseComponent.PersonalContributorSlots));
+        }
+    }
+
+    private static bool SameProgress(Dictionary<string, int> shown, Dictionary<string, int> actual)
+    {
+        if (shown.Count != actual.Count)
+            return false;
+
+        foreach (var (id, amount) in actual)
+        {
+            if (!shown.TryGetValue(id, out var have) || have != amount)
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool SameSlots(Dictionary<string, List<int>> shown, Dictionary<string, List<int>> actual)
+    {
+        if (shown.Count != actual.Count)
+            return false;
+
+        foreach (var (id, slots) in actual)
+        {
+            if (!shown.TryGetValue(id, out var have) || !have.SequenceEqual(slots))
+                return false;
+        }
+
+        return true;
     }
 
     private static int GetOrAssignColorSlot(Entity<FSStationResearchComponent> station, EntityUid mindId)
