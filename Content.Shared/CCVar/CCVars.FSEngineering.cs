@@ -62,5 +62,5 @@ public sealed partial class CCVars
         CVarDef.Create("fs.mat_drop_bonus_cap", 1.5f, CVar.SERVERONLY);
 
     public static readonly CVarDef<float> FSMatDropMergeRange =
-        CVarDef.Create("fs.mat_drop_merge_range", 1.5f, CVar.SERVERONLY);
+        CVarDef.Create("fs.mat_drop_merge_range", 3f, CVar.SERVERONLY);
 }
