@@ -27,20 +27,23 @@ public sealed partial class FSOverhealSystem : EntitySystem
         SubscribeLocalEvent<FSOverhealComponent, MobStateChangedEvent>(OnMobStateChanged);
     }
 
-    public void Feed(EntityUid patient, FSMediGunComponent gun, float amount)
+    // Returns whether the shield grew; a full one is only kept from decaying.
+    public bool Feed(EntityUid patient, FSMediGunComponent gun, float amount)
     {
         if (gun.OverhealRatio <= 0f
             || !_thresholds.TryGetThresholdForState(patient, MobState.Critical, out var threshold)
             || threshold is not { } crit)
-            return;
+            return false;
 
         var shield = EnsureComp<FSOverhealComponent>(patient);
+        var before = shield.Amount;
         shield.Max = MathF.Max(shield.Max, crit.Float() * gun.OverhealRatio);
         shield.Amount = MathF.Min(shield.Max, shield.Amount + amount);
         shield.DecayPerSecond = gun.OverhealDecay;
         shield.SourceColor = gun.BeamColor;
         shield.LastFed = _timing.CurTime;
         Dirty(patient, shield);
+        return shield.Amount > before;
     }
 
     public override void Update(float frameTime)

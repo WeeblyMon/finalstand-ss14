@@ -129,8 +129,6 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         // Ungated by the soft cap below: that measures the HP bar, limb wounds are a separate pool.
         var mendedWounds = _wounds.TryHealWoundsOnOwner(healed, comp.Healing * (comp.LimbHealScale * potency.Multiplier));
-        if (mendedWounds || damageable.TotalDamage > 0)
-            _combatMedic.OnHealedAlly(wielder, healed);
 
         var scale = GetHealScale((healed, damageable), comp);
 
@@ -145,9 +143,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         _uber.Cover(ent, healed);
 
+        // Combat Medic counts healing that landed, not a beam held on someone it can't help.
         if (scale <= 0f)
         {
-            _overheal.Feed(healed, comp, comp.OverhealPerTick * potency.Multiplier);
+            if (_overheal.Feed(healed, comp, comp.OverhealPerTick * potency.Multiplier) || mendedWounds)
+                _combatMedic.OnHealedAlly(wielder, healed);
+
             _uber.AddCharge(ent, comp.UberChargeWhileCapped);
             return true;
         }
@@ -169,6 +170,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
         var restored = before - _damageable.GetTotalDamage((healed, damageable)).Float();
         _uber.AddCharge(ent, restored * comp.UberChargePerHp);
+
+        if (restored > 0f || mendedWounds)
+            _combatMedic.OnHealedAlly(wielder, healed);
 
         _bloodstream.TryModifyBloodLevel(healed, comp.BleedingAmountModifier);
         return true;
