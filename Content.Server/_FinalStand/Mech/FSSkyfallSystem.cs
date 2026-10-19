@@ -60,7 +60,9 @@ public sealed partial class FSSkyfallSystem : EntitySystem
 
     private void OnShot(Entity<FSSkyfallLauncherComponent> ent, ref AmmoShotEvent args)
     {
-        var shooter = CompOrNull<MechEquipmentComponent>(ent)?.EquipmentOwner;
+        var owner = CompOrNull<MechEquipmentComponent>(ent)?.EquipmentOwner;
+        var now = _timing.CurTime;
+        var targeted = false;
         var index = 0;
         foreach (var projectile in args.FiredProjectiles)
         {
@@ -68,9 +70,17 @@ public sealed partial class FSSkyfallSystem : EntitySystem
                 continue;
 
             missile.Launcher = ent;
-            missile.Shooter = shooter;
-            missile.Launched = _timing.CurTime;
-            Visible(missile, Transform(projectile));
+            // The pilot fired it. The mech has no mind, so crediting it paid nobody for splash kills.
+            missile.Shooter = CompOrNull<ProjectileComponent>(projectile)?.Shooter ?? owner;
+            missile.Launched = now;
+
+            // The whole salvo leaves from the same spot, so one search spreads it over the nearest targets.
+            if (!targeted)
+            {
+                Visible(missile, Transform(projectile), args.FiredProjectiles.Count);
+                targeted = true;
+            }
+
             missile.LockedOn = _visible.Count > 0 ? _visible[index++ % _visible.Count].Target : null;
             Dirty(projectile, missile);
         }
@@ -106,11 +116,12 @@ public sealed partial class FSSkyfallSystem : EntitySystem
 
     private EntityUid? FindTarget(FSSkyfallMissileComponent missile, TransformComponent xform)
     {
-        Visible(missile, xform);
+        Visible(missile, xform, 1);
         return _visible.Count > 0 ? _visible[0].Target : null;
     }
 
-    private void Visible(FSSkyfallMissileComponent missile, TransformComponent xform)
+    // Nearest first, raycasting only until there are enough; a raycast per zombie in range was most of a salvo's cost.
+    private void Visible(FSSkyfallMissileComponent missile, TransformComponent xform, int wanted)
     {
         var here = _transform.GetMapCoordinates(xform);
         var shooter = missile.Shooter is { } s && Exists(s) ? s : (EntityUid?) null;
@@ -123,15 +134,20 @@ public sealed partial class FSSkyfallSystem : EntitySystem
         _visible.Clear();
         foreach (var zombie in _nearby)
         {
-            if (_mobState.IsDead(zombie))
-                continue;
-
-            var at = _transform.GetMapCoordinates(zombie);
-            if (_interaction.InRangeUnobstructed(eye, at, 0f, CollisionGroup.Opaque, ignore))
-                _visible.Add((zombie, (at.Position - here.Position).LengthSquared()));
+            if (!_mobState.IsDead(zombie))
+                _visible.Add((zombie, (_transform.GetWorldPosition(zombie) - here.Position).LengthSquared()));
         }
 
         _visible.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+
+        var found = 0;
+        for (var i = 0; i < _visible.Count && found < wanted; i++)
+        {
+            if (_interaction.InRangeUnobstructed(eye, _transform.GetMapCoordinates(_visible[i].Target), 0f, CollisionGroup.Opaque, ignore))
+                _visible[found++] = _visible[i];
+        }
+
+        _visible.RemoveRange(found, _visible.Count - found);
     }
 
     private void OnPreventCollide(Entity<FSSkyfallMissileComponent> ent, ref PreventCollideEvent args)
