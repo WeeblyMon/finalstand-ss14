@@ -313,6 +313,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private static bool IsOtherTrack(FSTechDatabaseComponent comp)
         => comp.Track != FSResearchTrack.Science;
 
+    // The console only researches its own branches; a crafted message could otherwise buy medical nodes with RP.
+    private static bool ServesBranch(FSTechDatabaseComponent comp, FSTechNodePrototype node)
+        => comp.Branches.Count == 0 || comp.Branches.Contains(node.Branch);
+
     private void OnSelectResearchNode(EntityUid uid, FSTechDatabaseComponent comp, FSSelectResearchNodeMessage args)
     {
         if (comp.Track == FSResearchTrack.Medical)
@@ -328,7 +332,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node) || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();
@@ -413,7 +417,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node) || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();
