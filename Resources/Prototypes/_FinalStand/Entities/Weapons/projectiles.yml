@@ -180,6 +180,9 @@
   components:
   - type: Appearance
   - type: FSNoStructureDamage
+  - type: Physics
+    bodyType: Dynamic
+    fixedRotation: true
   # Second hard fixture so walls actually deflect it; FSRicochetSystem vetoes it against mobs.
   - type: Fixtures
     fixtures:
@@ -194,8 +197,8 @@
         - BulletImpassable
       bounce:
         shape:
-          !type:PhysShapeAabb
-          bounds: "-0.15,-0.3,0.15,0.3"
+          !type:PhysShapeCircle
+          radius: 0.15
         hard: true
         restitution: 1
         friction: 0
