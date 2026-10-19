@@ -42,6 +42,18 @@ public sealed partial class FSPerkBodySystem : EntitySystem
         else
             RemComp<FSManOnFireComponent>(body);
 
+        var deepImpact = perks.GetSlottedLevel("DeepImpact");
+        if (deepImpact > 0)
+        {
+            var pierce = EnsureComp<FSPerkPierceComponent>(body);
+            pierce.Level = deepImpact;
+            Dirty(body, pierce);
+        }
+        else
+        {
+            RemComp<FSPerkPierceComponent>(body);
+        }
+
         _upgrades.ReconcileHeldMagazines(body);
     }
 }

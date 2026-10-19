@@ -1,6 +1,8 @@
 using System.Numerics;
 using Content.Client.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.FriendlyFire;
+using Content.Shared._FinalStand.Perks;
+using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Weapons;
 using Content.Shared._FinalStand.Weapons.Prediction;
 using Content.Shared.CCVar;
@@ -227,6 +229,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         EntityUid? vehicle = _container.TryGetContainingContainer(user, out var holder) ? holder.Owner : null;
         var inContainer = _container.IsEntityOrParentInContainer(user) && !HasComp<VehicleComponent>(vehicle);
         RayCastResults? hit = null;
+        var pierce = inContainer ? 0 : GetHitscanPierce(gun, user);
 
         foreach (var result in results)
         {
@@ -240,6 +243,12 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
                 if (friendly && _friendlyQuery.HasComp(result.HitEntity))
                     continue;
+
+                if (pierce > 0 && _mobQuery.HasComp(result.HitEntity) && !_friendlyQuery.HasComp(result.HitEntity))
+                {
+                    pierce--;
+                    continue;
+                }
             }
 
             hit = result;
@@ -261,6 +270,15 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
 
         if (_hitscanRaycast.BuildEffects(fromCoordinates, distance, direction.ToAngle(), hitscan, user) is { } effects)
             RaiseLocalEvent(effects);
+    }
+
+    private int GetHitscanPierce(EntityUid gun, EntityUid user)
+    {
+        var shop = TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgrade)
+            ? (int) Math.Round(upgrade.PierceThreshold.Float())
+            : 0;
+        var perk = CompOrNull<FSPerkPierceComponent>(user)?.Level ?? 0;
+        return Math.Max(shop, perk);
     }
 
     public override void FrameUpdate(float frameTime)
