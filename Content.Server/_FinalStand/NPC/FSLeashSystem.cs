@@ -24,6 +24,9 @@ public sealed partial class FSLeashSystem : EntitySystem
     // TODO(finalstand): tune LOS timeout
     private static readonly TimeSpan LosTimeout = TimeSpan.FromSeconds(3);
 
+    // A target seen more recently than this can't time out before a later check, so the raycast waits.
+    private static readonly TimeSpan LosRecheck = TimeSpan.FromSeconds(1);
+
     // Each zombie is checked every few ticks, a slice per tick, so the LOS raycasts don't all land on one tick.
     private const int TickBuckets = 8;
     private int _tick;
@@ -81,17 +84,20 @@ public sealed partial class FSLeashSystem : EntitySystem
             return;
         }
 
-        if (_examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
+        var hasSeen = bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager);
+        if ((!hasSeen || curTime - lastSeen >= LosRecheck)
+            && _examine.InRangeUnOccluded(uid, target, LeashDistance + 5f, null))
+        {
+            hasSeen = true;
+            lastSeen = curTime;
             bb.SetValue(FSAIBlackboardKeys.TargetLastSeen, curTime);
+        }
 
         if (graced)
             return;
 
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.TargetLastSeen, out var lastSeen, EntityManager)
-            && curTime - lastSeen > LosTimeout)
-        {
+        if (hasSeen && curTime - lastSeen > LosTimeout)
             ClearTarget(htn, bb);
-        }
     }
 
     private void ClearTarget(HTNComponent htn, NPCBlackboard bb)
