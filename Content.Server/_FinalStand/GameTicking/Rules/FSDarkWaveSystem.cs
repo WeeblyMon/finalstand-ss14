@@ -67,7 +67,8 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
 
         comp.Upcoming = false;
         comp.WarningAt = null;
-        comp.FlickerRestoreAt = null;
+        // A flicker still in its off window (a revenant execution right before prep) would leave those lights dark.
+        RestoreFlickeredLights(comp);
 
         if (comp.Forced)
         {
