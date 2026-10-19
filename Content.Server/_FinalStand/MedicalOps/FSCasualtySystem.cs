@@ -162,8 +162,10 @@ public sealed partial class FSCasualtySystem : EntitySystem
         _finished.Clear();
         foreach (var (patient, call) in _calls)
         {
+            // A player who is still down keeps their call (and its responder) however long it takes;
+            // the lifetime only ends hurt pings and bodies whose player has left.
             if (TerminatingOrDeleted(patient)
-                || call.Expires <= now
+                || call.Expires <= now && !StillDown(patient)
                 || (call.CalledHurt && IsRecovered(patient)))
             {
                 _finished.Add(patient);
@@ -232,6 +234,11 @@ public sealed partial class FSCasualtySystem : EntitySystem
             return FSCasualtyState.Dead;
 
         return _mobState.IsCritical(patient) ? FSCasualtyState.Critical : FSCasualtyState.Hurt;
+    }
+
+    private bool StillDown(EntityUid patient)
+    {
+        return HasComp<ActorComponent>(patient) && (_mobState.IsCritical(patient) || _mobState.IsDead(patient));
     }
 
     private bool IsRecovered(EntityUid patient)
