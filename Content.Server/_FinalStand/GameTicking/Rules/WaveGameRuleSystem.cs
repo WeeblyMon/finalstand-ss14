@@ -527,14 +527,15 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out var uid, out var comp))
             return null;
 
-        if (targetWave.HasValue)
-        {
-            comp.WaveNumber = targetWave.Value;
-            comp.WavesCompleted = targetWave.Value - 1;
-        }
-
         if (comp.Phase == WavePhase.Combat)
         {
+            // Ending combat moves on a wave, so aim one short to land in prep for the target.
+            if (targetWave is { } next)
+            {
+                comp.WaveNumber = next - 1;
+                comp.WavesCompleted = next - 2;
+            }
+
             foreach (var enemy in comp.AliveEnemies)
                 QueueDel(enemy);
             comp.AliveEnemies.Clear();
@@ -543,6 +544,14 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         }
         else
         {
+            if (targetWave is { } wave && wave != comp.WaveNumber)
+            {
+                comp.WaveNumber = wave;
+                comp.WavesCompleted = wave - 1;
+                // The dark wave was rolled for the wave we skipped.
+                _darkWave.Roll(uid, wave, IsBossWave(wave));
+            }
+
             StartCombatPhase(uid, comp);
         }
 
