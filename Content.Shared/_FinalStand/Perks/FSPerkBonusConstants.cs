@@ -88,6 +88,10 @@ public static class FSPerkBonusConstants
     public const float AggravatorRadiusPerStack = 0.5f;   // tiles of zombies taunted on each kill
     public const float AggravatorTauntSeconds = 3f;
     public const float AggravatorDecaySeconds = 5f;
+    public const float StunningStrikesChancePerLevel = 0.10f;   // riot shield hits
+    public const float StunningStrikesSeconds = 1.2f;
+    public const float StunningStrikesSpecialFactor = 0.5f;
+    public const float StunningStrikesSpecialCooldown = 10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

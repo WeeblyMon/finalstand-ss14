@@ -382,6 +382,11 @@ public sealed class FSPerkDef
                 "Kills stack +1% damage and draw nearby zombies to you. Lose a stack every 5s.",
                 PerkCategory.Purple,
                 Flat("+{0} Max Stacks", FSPerkBonusConstants.AggravatorStacksPerLevel)),
+
+            new("StunningStrikes", "Stunning Strikes",
+                "Riot shield hits can stun zombies for 1.2s. Specials: half as long, once per 10s.",
+                PerkCategory.Green,
+                Pct("{0}% Stun Chance", FSPerkBonusConstants.StunningStrikesChancePerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
