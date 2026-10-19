@@ -1,4 +1,5 @@
 using Content.Server._FinalStand.Economy;
+using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Mind;
@@ -26,11 +27,18 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         if (ev.State is not { } state)
             return;
 
-        if (state.MoneyGainBonusPerKill > 0)
-        {
-            var bonus = EnsureComp<FSPendingKillBonusComponent>(ev.Target);
-            bonus.MoneyBonus = state.MoneyGainBonusPerKill;
-        }
+        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill);
+    }
+
+    // The latest hitter's weapon decides the bonus, and only they collect it.
+    public void Mark(EntityUid target, EntityUid? owner, int bonus)
+    {
+        if (bonus <= 0 || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
+            return;
+
+        var pending = EnsureComp<FSPendingKillBonusComponent>(target);
+        pending.MoneyBonus = bonus;
+        pending.Payee = owner;
     }
 
     private void OnEnemyDied(EntityUid uid, FSPendingKillBonusComponent bonus, ref MobStateChangedEvent args)
@@ -39,7 +47,7 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
             return;
         if (bonus.MoneyBonus <= 0)
             return;
-        if (args.Origin == null || !_mind.TryGetMind(args.Origin.Value, out var mindId, out var mindComp))
+        if (args.Origin is not { } killer || killer != bonus.Payee || !_mind.TryGetMind(killer, out var mindId, out _))
             return;
 
         _wallet.GiveCredits(mindId, bonus.MoneyBonus);
