@@ -372,6 +372,12 @@ public abstract partial class SharedMeleeWeaponSystem : EntitySystem
         return AttemptAttack(user, weaponUid, weapon, new DisarmAttackEvent(GetNetEntity(target), GetNetCoordinates(targetXform.Coordinates)), null);
     }
 
+    // FINALSTAND: wide swings from server code and tests
+    public bool AttemptHeavyAttack(EntityUid user, EntityUid weaponUid, MeleeWeaponComponent weapon, List<EntityUid> targets, EntityCoordinates coordinates)
+    {
+        return AttemptAttack(user, weaponUid, weapon, new HeavyAttackEvent(GetNetEntity(weaponUid), GetNetEntityList(targets), GetNetCoordinates(coordinates)), null);
+    }
+
     /// <summary>
     /// Called when a windup is finished and an attack is tried.
     /// </summary>

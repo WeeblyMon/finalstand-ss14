@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item.ItemToggle.Components;
@@ -49,6 +50,10 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
     protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args);
 
+    protected virtual void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
+    {
+    }
+
     private void OnAttemptMelee(Entity<FSMeleeJuiceComponent> ent, ref AttemptMeleeEvent args)
     {
         if (!args.IsHeavyAttack || !ent.Comp.HeavyRequiresWield)
@@ -76,6 +81,19 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
 
         var finisher = !heavy && targets.Count > 0 && AdvanceCombo(args.User, ent);
         var profile = ent.Comp.Get(heavy, finisher);
+
+        if (heavy)
+        {
+            Recover(args.User, ent);
+            if (profile.MaxTargets > 0 && targets.Count > profile.MaxTargets)
+                KeepClosest(args, targets, profile.MaxTargets);
+
+            if (profile.Dash > 0f && args.Direction is { } aim && aim != Vector2.Zero)
+                Lunge(args.User, ent, ClosestOffset(args.User, targets) ?? aim, profile.Dash);
+
+            if (targets.Count == 0 && args.Direction is { } missed && missed != Vector2.Zero)
+                OnHeavyMiss(ent, args.User, missed, profile, args.BaseDamage + args.BonusDamage);
+        }
 
         if (targets.Count == 0)
             return;
@@ -115,6 +133,50 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     {
         return HasComp<FSFriendlyFireComponent>(user)
             && (HasComp<FSFriendlyFireComponent>(target) || HasComp<FSPlayerDamageImmuneComponent>(target));
+    }
+
+    // Heavy attacks trade the next swing for their reach, so they hold off the weapon's next attack.
+    private void Recover(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
+    {
+        if (weapon.Comp.HeavyRecovery <= 0f || !TryComp<MeleeWeaponComponent>(weapon, out var melee))
+            return;
+
+        var rate = Melee.GetAttackRate(weapon, user, melee);
+        if (rate <= 0f)
+            return;
+
+        var next = Timing.CurTime + TimeSpan.FromSeconds(weapon.Comp.HeavyRecovery * melee.AttackRate / rate);
+        if (next <= melee.NextAttack)
+            return;
+
+        melee.NextAttack = next;
+        DirtyField(weapon, melee, nameof(MeleeWeaponComponent.NextAttack));
+    }
+
+    private Vector2? ClosestOffset(EntityUid user, List<EntityUid> targets)
+    {
+        var userPos = Xform.GetWorldPosition(user);
+        Vector2? best = null;
+        foreach (var target in targets)
+        {
+            var offset = Xform.GetWorldPosition(target) - userPos;
+            if (best == null || offset.LengthSquared() < best.Value.LengthSquared())
+                best = offset;
+        }
+
+        return best;
+    }
+
+    // Drops all but the closest mobs from the swing so it lands on them alone.
+    private void KeepClosest(MeleeHitEvent args, List<EntityUid> targets, int count)
+    {
+        var userPos = Xform.GetWorldPosition(args.User);
+        targets.Sort((a, b) => (Xform.GetWorldPosition(a) - userPos).LengthSquared().CompareTo((Xform.GetWorldPosition(b) - userPos).LengthSquared()));
+        var dropped = targets.GetRange(count, targets.Count - count);
+        targets.RemoveRange(count, targets.Count - count);
+
+        if (args.HitEntities is List<EntityUid> hits)
+            hits.RemoveAll(dropped.Contains);
     }
 
     // A combo pointing at a deleted weapon can't be sent to clients.

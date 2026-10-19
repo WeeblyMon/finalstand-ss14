@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._FinalStand.Melee;
+using Content.Shared._FinalStand.Melee;
 using Content.Client.Animations;
 using Content.Client.Weapons.Melee.Components;
 using Content.Shared.Weapons.Melee;
@@ -79,10 +80,13 @@ public sealed partial class MeleeWeaponSystem
             case WeaponArcAnimation.Slash:
                 track = EnsureComp<TrackUserComponent>(animationUid);
                 track.User = user;
-                // FINALSTAND: full-circle wide attacks spin instead of slashing
-                var slash = _fsJuice.IsSpin(weapon, juiceHeavy) && Math.Abs(angle.Theta) >= Math.Tau - 0.01
+                // FINALSTAND: full-circle wide attacks spin and overhead ones slam instead of slashing
+                var style = _fsJuice.GetStyle(weapon, juiceHeavy);
+                var slash = style == FSMeleeHeavyStyle.Spin && Math.Abs(angle.Theta) >= Math.Tau - 0.01
                     ? _fsJuice.GetSpinAnimation((animationUid, sprite), spriteRotation, length, offset, anticipation, hold, angle.Theta < 0)
-                    : GetSlashAnimation((animationUid, sprite), angle, spriteRotation, length, offset, anticipation, hold);
+                    : style == FSMeleeHeavyStyle.Slam
+                        ? _fsJuice.GetSlamAnimation((animationUid, sprite), spriteRotation, length, offset, anticipation, hold, angle.Theta < 0)
+                        : GetSlashAnimation((animationUid, sprite), angle, spriteRotation, length, offset, anticipation, hold);
                 _animation.Play(animationUid, slash, SlashAnimationKey);
                 if (arcComponent.Fadeout)
                     _animation.Play(animationUid, GetFadeAnimation(sprite, length * 0.5f + anticipation + hold, length + 0.15f + anticipation + hold), FadeAnimationKey);
@@ -109,8 +113,8 @@ public sealed partial class MeleeWeaponSystem
         {
             _fsJuice.TrackTrail(animationUid, user, juice, length + anticipation + hold);
             _fsJuice.PlaySwingEffect(user, juice);
-            if (!_fsJuice.IsSpin(weapon, juiceHeavy))
-                _fsJuice.PlaySlash(user, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft, anticipation);
+            if (_fsJuice.GetStyle(weapon, juiceHeavy) != FSMeleeHeavyStyle.Spin)
+                _fsJuice.PlaySlash(user, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft, anticipation + _fsJuice.StrikeDelay(weapon, juiceHeavy, length));
         }
     }
 

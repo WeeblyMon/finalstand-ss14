@@ -5,7 +5,8 @@
   components:
   - type: FSMeleeJuice
     heavyRequiresWield: true
-    heavyIsSpin: true
+    heavyStyle: Spin
+    heavyRecovery: 1.4
     light:
       anticipation: 0.08
       hitstop: 0.045

@@ -47,6 +47,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float ZoomDuration = 0.1f;
     private const float KillZoomCooldown = 1f;
     private const float HoldWindow = 0.25f;
+    private const float SlamSmash = 0.2f;
 
     public sealed class Trail
     {
@@ -232,8 +233,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return 0f;
 
         var length = 0.6f / melee.AttackRate;
-        if (heavy && weapon.Comp.HeavyIsSpin)
+        if (heavy && weapon.Comp.HeavyStyle == FSMeleeHeavyStyle.Spin)
             return profile.Anticipation + length * 0.35f;
+
+        if (heavy && weapon.Comp.HeavyStyle == FSMeleeHeavyStyle.Slam)
+            return profile.Anticipation + length * SlamSmash;
 
         var arc = heavy ? melee.WideAnimation : melee.Animation;
         if (!_prototypes.Index(arc).TryGetComponent<WeaponArcVisualsComponent>(out var visuals, EntityManager.ComponentFactory))
@@ -432,9 +436,15 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         return TryComp<FSMeleeJuiceComponent>(weapon, out var juice) ? juice.Get(heavy) : null;
     }
 
-    public bool IsSpin(EntityUid weapon, bool heavy)
+    public FSMeleeHeavyStyle GetStyle(EntityUid weapon, bool heavy)
     {
-        return heavy && TryComp<FSMeleeJuiceComponent>(weapon, out var juice) && juice.HeavyIsSpin;
+        return heavy && TryComp<FSMeleeJuiceComponent>(weapon, out var juice) ? juice.HeavyStyle : FSMeleeHeavyStyle.Swing;
+    }
+
+    // Seconds after the anticipation until the swing reaches its target.
+    public float StrikeDelay(EntityUid weapon, bool heavy, float length)
+    {
+        return GetStyle(weapon, heavy) == FSMeleeHeavyStyle.Slam ? length * SlamSmash : 0f;
     }
 
     public void TrackTrail(EntityUid arc, EntityUid user, FSMeleeJuiceProfile profile, float swingLength)
@@ -493,6 +503,52 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         {
             Length = TimeSpan.FromSeconds(anticipation + spin + hold + length * 0.3f),
             AnimationTracks = { rotation, position },
+        };
+    }
+
+    // Overhead chop: lift the weapon back over the shoulder, bring it down in front and hold on the impact.
+    public Animation GetSlamAnimation(Entity<SpriteComponent> sprite, Angle spriteRotation, float length, float offset, float anticipation, float hold, bool reverse)
+    {
+        var sign = reverse ? -1 : 1;
+        var aim = sprite.Comp.Rotation;
+        var raised = aim + Math.PI - sign * 0.6;
+        var smash = length * SlamSmash;
+        var recover = length * 0.35f;
+
+        var rotation = new AnimationTrackComponentProperty
+        {
+            ComponentType = typeof(SpriteComponent),
+            Property = nameof(SpriteComponent.Rotation),
+        };
+        var position = new AnimationTrackComponentProperty
+        {
+            ComponentType = typeof(SpriteComponent),
+            Property = nameof(SpriteComponent.Offset),
+        };
+        var scale = new AnimationTrackComponentProperty
+        {
+            ComponentType = typeof(SpriteComponent),
+            Property = nameof(SpriteComponent.Scale),
+        };
+
+        void Key(Angle angle, float reach, float size, float delta, Func<float, float>? easing = null)
+        {
+            rotation.KeyFrames.Add(new AnimationTrackProperty.KeyFrame(angle + spriteRotation, delta, easing));
+            position.KeyFrames.Add(new AnimationTrackProperty.KeyFrame(angle.RotateVec(new Vector2(0f, -offset * reach)), delta, easing));
+            scale.KeyFrames.Add(new AnimationTrackProperty.KeyFrame(new Vector2(size), delta, easing));
+        }
+
+        // Raised toward the camera reads as overhead from above, so the weapon grows as it lifts and shrinks as it lands.
+        Key(raised + sign * 0.4, 0.35f, 1f, 0f);
+        Key(raised, 0.5f, 1.35f, anticipation, Easings.OutQuad);
+        Key(aim, 1.15f, 0.9f, smash, Easings.InQuad);
+        Key(aim, 1.1f, 0.95f, hold);
+        Key(aim - sign * 0.15, 0.9f, 1f, recover, Easings.OutQuart);
+
+        return new Animation
+        {
+            Length = TimeSpan.FromSeconds(anticipation + smash + hold + recover),
+            AnimationTracks = { rotation, position, scale },
         };
     }
 

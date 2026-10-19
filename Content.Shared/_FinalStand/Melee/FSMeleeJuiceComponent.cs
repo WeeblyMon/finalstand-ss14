@@ -17,7 +17,11 @@ public sealed partial class FSMeleeJuiceComponent : Component
     public bool HeavyRequiresWield;
 
     [DataField]
-    public bool HeavyIsSpin;
+    public FSMeleeHeavyStyle HeavyStyle = FSMeleeHeavyStyle.Swing;
+
+    // Seconds at the weapon's base attack rate before anything else can be swung after a heavy attack.
+    [DataField]
+    public float HeavyRecovery;
 
     // Replaces the light profile on the hit after ComboHits light hits in a row.
     [DataField]
@@ -66,6 +70,18 @@ public sealed partial class FSMeleeJuiceProfile
 
     [DataField]
     public float DamageMultiplier = 1f;
+
+    // Only the closest few mobs in a wide swing are hit; zero hits everything the swing reaches.
+    [DataField]
+    public int MaxTargets;
+
+    // Tiles the attacker dashes toward the cursor on a heavy attack, hit or miss.
+    [DataField]
+    public float Dash;
+
+    // A target knocked back by this hit damages mobs it flies into, as a fraction of the hit.
+    [DataField]
+    public float Launch;
 
     // Extra mobs behind the target hit in a line.
     [DataField]
@@ -191,6 +207,13 @@ public sealed partial class FSMeleeJuiceProfile
 
     [DataField]
     public float KillZoom = 0.05f;
+}
+
+public enum FSMeleeHeavyStyle : byte
+{
+    Swing,
+    Spin,
+    Slam,
 }
 
 public enum FSMeleeShakeMode : byte
