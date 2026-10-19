@@ -27,17 +27,19 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
 
         if (_mobState.IsDead(patient))
         {
-            StabilizeToward(patient, damageable, MobState.Dead, emergency.ReviveHealthFraction);
+            StabilizeToward(patient, damageable, MobState.Dead, emergency.ReviveHealthFraction, args.User);
             return;
         }
 
         if (!_mobState.IsCritical(patient))
             return;
 
-        StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction);
+        StabilizeToward(patient, damageable, MobState.Critical, emergency.ReviveHealthFraction, args.User);
     }
 
-    private void StabilizeToward(EntityUid patient, DamageableComponent damageable, MobState state, float reviveHealthFraction)
+    // The medic who used the defib is the heal's origin, so it's credited to them rather than whoever treated last.
+    private void StabilizeToward(EntityUid patient, DamageableComponent damageable, MobState state, float reviveHealthFraction,
+        EntityUid medic)
     {
         if (!_thresholds.TryGetThresholdForState(patient, state, out var threshold)
             || threshold is not { } stateThreshold
@@ -51,6 +53,6 @@ public sealed partial class FSEmergencyDefibSystem : EntitySystem
             return;
 
         var heal = new DamageSpecifier(damageable.Damage) * -((current - target) / current);
-        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true);
+        _damageable.TryChangeDamage(patient, heal, ignoreResistances: true, origin: medic);
     }
 }

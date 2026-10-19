@@ -6,6 +6,7 @@ using Content.Server._FinalStand.Leveling;
 using Content.Server._FinalStand.Perks;
 using Content.Server._Shitmed.Body.Systems;
 using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
@@ -35,6 +36,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
+    [Dependency] private WoundSystem _wound = default!;
 
     private const float DrFullBudget = 60f;
     private const float DrHalfBudget = 150f;
@@ -160,6 +162,10 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (healed <= 0f)
             return;
 
+        // The body healing itself isn't anyone's treatment, however recently a medic touched it.
+        if (args.Origin == null && _wound.IsRegenerating)
+            return;
+
         if (!TryGetPlayerMind(args.Origin, out var healerMind)
             && !_attribution.TryGetAttributedMedic(uid, out healerMind))
             return;
@@ -184,7 +190,11 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
 
         comp.HealedSinceReset[healerMind] = prior + healed;
 
-        if (_mind.TryGetMind(uid, out var patientMind, out _) && patientMind == healerMind)
+        if (_mind.TryGetMind(uid, out var patientMind, out var patient) && patientMind == healerMind)
+            return;
+
+        // A body whose player has left the server is just a heal sponge.
+        if (patient?.UserId is { } patientUser && !_players.TryGetSessionById(patientUser, out _))
             return;
 
         var points = (int)MathF.Round(paid);

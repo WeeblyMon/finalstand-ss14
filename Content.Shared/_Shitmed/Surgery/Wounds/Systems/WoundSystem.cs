@@ -147,6 +147,9 @@ public sealed partial class WoundSystem : EntitySystem
         }
     }
 
+    // FINALSTAND: true while natural regen is applying its heal.
+    public bool IsRegenerating { get; private set; }
+
     private void ProcessHealing(Entity<WoundableComponent> woundable, EntityUid bodyEnt)
     {
         if (TerminatingOrDeleted(woundable) || TerminatingOrDeleted(bodyEnt))
@@ -185,10 +188,19 @@ public sealed partial class WoundSystem : EntitySystem
         if (!anythingToHeal)
             return;
 
-        _damageable.TryChangeDamage(bodyEnt,
-            damageSpecifier,
-            ignoreResistances: false,
-            targetPart: _lookup.GetTarget(woundable.Owner));
+        // FINALSTAND: flagged so heal payouts can tell natural regen from a medic's chems; both have no origin.
+        IsRegenerating = true;
+        try
+        {
+            _damageable.TryChangeDamage(bodyEnt,
+                damageSpecifier,
+                ignoreResistances: false,
+                targetPart: _lookup.GetTarget(woundable.Owner));
+        }
+        finally
+        {
+            IsRegenerating = false;
+        }
     }
 
     private void OnWoundComponentGet(EntityUid uid, WoundComponent comp, ref ComponentGetState args)
