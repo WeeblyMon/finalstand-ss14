@@ -50,7 +50,7 @@ public sealed partial class OrganEffectSystem : EntitySystem
             AddComponents(args.Target, ent, onAdd);
 
         if (ent.Comp.OnRemove is { } onRemove)
-            RemoveComponents(args.Target, ent, onRemove);
+            StripComponents(args.Target, ent, onRemove);
     }
 
     private void OnRemoved(Entity<OrganEffectComponent> ent, ref OrganGotRemovedEvent args)
@@ -59,22 +59,25 @@ public sealed partial class OrganEffectSystem : EntitySystem
             RemoveComponents(args.Target, ent, onAdd);
 
         if (ent.Comp.OnRemove is { } onRemove)
-            AddComponents(args.Target, ent, onRemove);
+            RestoreComponents(args.Target, ent, onRemove);
     }
 
     public void AddComponents(EntityUid body, Entity<OrganEffectComponent> organ, ComponentRegistry registry)
     {
         foreach (var (key, entry) in registry)
         {
-            organ.Comp.Active[key] = entry;
+            var type = entry.Component.GetType();
+            if (HasComp(body, type))
+            {
+                if (!organ.Comp.Active.ContainsKey(key))
+                    organ.Comp.Preexisting.Add(key);
 
-            if (HasComp(body, entry.Component.GetType()))
+                organ.Comp.Active[key] = entry;
                 continue;
+            }
 
-            var comp = (Component) _serManager.CreateCopy(entry.Component, notNullableOverride: true);
-#pragma warning disable RA0045
-            EntityManager.AddComponent(body, comp, true);
-#pragma warning restore RA0045
+            organ.Comp.Active[key] = entry;
+            AddCopy(body, entry.Component);
         }
     }
 
@@ -82,8 +85,35 @@ public sealed partial class OrganEffectSystem : EntitySystem
     {
         foreach (var (key, entry) in registry)
         {
-            RemComp(body, entry.Component.GetType());
             organ.Comp.Active.Remove(key);
+            if (!organ.Comp.Preexisting.Remove(key))
+                RemComp(body, entry.Component.GetType());
         }
+    }
+
+    private void StripComponents(EntityUid body, Entity<OrganEffectComponent> organ, ComponentRegistry registry)
+    {
+        foreach (var (key, entry) in registry)
+        {
+            if (RemComp(body, entry.Component.GetType()))
+                organ.Comp.Stripped.Add(key);
+        }
+    }
+
+    private void RestoreComponents(EntityUid body, Entity<OrganEffectComponent> organ, ComponentRegistry registry)
+    {
+        foreach (var (key, entry) in registry)
+        {
+            if (organ.Comp.Stripped.Remove(key) && !HasComp(body, entry.Component.GetType()))
+                AddCopy(body, entry.Component);
+        }
+    }
+
+    private void AddCopy(EntityUid body, IComponent component)
+    {
+        var comp = (Component) _serManager.CreateCopy(component, notNullableOverride: true);
+#pragma warning disable RA0045
+        EntityManager.AddComponent(body, comp, true);
+#pragma warning restore RA0045
     }
 }
