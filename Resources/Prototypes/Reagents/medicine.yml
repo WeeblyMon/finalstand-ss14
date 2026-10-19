@@ -944,7 +944,7 @@
   flavor: salty
   color: "#0064C8"
   metabolisms:
-    Drink:
+    Bloodstream:
       effects:
         - !type:Satiate
           satiationType: Thirst
