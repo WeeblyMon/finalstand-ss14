@@ -40,6 +40,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private const float PurgeInterval = 30f;
     private const float NoPathGraceSeconds = 5f;
     private const float QueueRange = 3f;
+    private const int CrowdedNeighbours = 4;
 
     // Stuck detection works on a 20s horizon, so sampling faster than 1 Hz buys nothing.
     private const float TickInterval = 1f;
@@ -211,6 +212,13 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
     private void TryRecover(EntityUid uid, TransformComponent xform, ref StuckState s, TimeSpan curTime)
     {
+        // Waiting in a crowd (the back rows at the CCC, a choke point) isn't being stuck.
+        if (xform.GridUid is { } crowdGrid && CountNeighbours(crowdGrid, xform) >= CrowdedNeighbours)
+        {
+            s = s with { LastPos = _transform.GetWorldPosition(xform), LastMoveTime = curTime, NudgeCount = 0 };
+            return;
+        }
+
         if (s.NudgeCount >= _nudgeLimit)
         {
             Log.Info($"Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
@@ -231,7 +239,6 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         var (ourLayer, ourMask) = _physics.GetHardCollision(uid);
         var localPos = xform.LocalPosition;
         var myTile = HordeFlowFieldSystem.ToTile(localPos);
-        BuildNeighborCrowd(gridUid, myTile);
 
         EntityCoordinates? goalCoords = null;
         if (TryComp<NPCSteeringComponent>(uid, out var steering))
@@ -279,7 +286,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (target == null)
         {
-            s = s with { LastNudge = TimeSpan.Zero, NudgeCount = s.NudgeCount + 1 };
+            s = s with { LastNudge = curTime, NudgeCount = s.NudgeCount + 1 };
             Log.Info($"Wave zombie {ToPrettyString(uid)} at {myTile} fully boxed in (attempt {s.NudgeCount}/{_nudgeLimit}).");
             return;
         }
@@ -302,6 +309,23 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         steering.FailedPathCount = 0;
         steering.PathfindToken?.Cancel();
         steering.PathfindToken = null;
+    }
+
+    // Builds the per-tile crowd around the zombie and returns how many other zombies are next to it.
+    private int CountNeighbours(EntityUid gridUid, TransformComponent xform)
+    {
+        var myTile = HordeFlowFieldSystem.ToTile(xform.LocalPosition);
+        BuildNeighborCrowd(gridUid, myTile);
+
+        var total = 0;
+        foreach (var (tile, count) in _neighborCrowd)
+        {
+            if (Math.Abs(tile.X - myTile.X) <= 1 && Math.Abs(tile.Y - myTile.Y) <= 1)
+                total += count;
+        }
+
+        // The zombie itself is in its own tile.
+        return total - 1;
     }
 
     // Counts wave zombies per surrounding tile so the nudge prefers the least crowded step out.
