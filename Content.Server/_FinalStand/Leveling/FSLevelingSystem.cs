@@ -44,6 +44,15 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private const int PrestigeThreshold = 50;
     private const float AssistMinContribution = 0.05f;
 
+    // Kills and assists land hundreds of times a second in a big wave. XP is batched: the client hears about it
+    // a few times a second and the database gets one transaction every few seconds, plus on detach and restart.
+    private static readonly TimeSpan SendInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan SaveInterval = TimeSpan.FromSeconds(5);
+    private readonly HashSet<EntityUid> _unsent = new();
+    private readonly HashSet<EntityUid> _unsaved = new();
+    private TimeSpan _nextSend;
+    private TimeSpan _nextSave;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -58,6 +67,59 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
         SubscribeNetworkEvent<FSLevelingRequestMessage>(OnLevelingRequest);
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        SaveDirty();
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        var now = _timing.CurTime;
+
+        if (now >= _nextSend && _unsent.Count > 0)
+        {
+            _nextSend = now + SendInterval;
+            foreach (var mindId in _unsent)
+            {
+                if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+                    SendLevelingUpdate(mindId, lvl);
+            }
+
+            _unsent.Clear();
+        }
+
+        if (now >= _nextSave)
+        {
+            _nextSave = now + SaveInterval;
+            SaveDirty();
+        }
+    }
+
+    private void MarkDirty(EntityUid mindId)
+    {
+        _unsent.Add(mindId);
+        _unsaved.Add(mindId);
+    }
+
+    private void SaveDirty()
+    {
+        if (_unsaved.Count == 0)
+            return;
+
+        _store.RunBatch("leveling", () =>
+        {
+            foreach (var mindId in _unsaved)
+            {
+                if (TryComp<FSPlayerLevelComponent>(mindId, out var lvl) && lvl.Loaded)
+                    SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+            }
+        });
+
+        _unsaved.Clear();
     }
 
     private void OnEnemyWaveTagInit(EntityUid uid, WaveSpawnedTagComponent _, ComponentInit args)
@@ -119,17 +181,22 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
         if (sorted.Count > 0)
         {
-            args.AddLine("══ XP EARNED THIS ROUND ══════════════════════");
+            args.AddLine(Loc.GetString("fs-leveling-round-xp-header"));
             foreach (var (mindId, stats) in sorted)
             {
                 if (!TryComp<MindComponent>(mindId, out var mind)) continue;
-                var name = mind.CharacterName ?? "Unknown";
+                var name = mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name");
                 var lvlText = TryComp<FSPlayerLevelComponent>(mindId, out var lvl)
-                    ? $"→ LVL {lvl.Level}"
+                    ? Loc.GetString("fs-leveling-round-xp-level", ("level", lvl.Level))
                     : "";
-                args.AddLine($"  {name,-16} {stats.Xp,7:N0} XP   {stats.Kills} kills  {stats.Assists} assists   {lvlText}");
+                args.AddLine(Loc.GetString("fs-leveling-round-xp-line",
+                    ("name", name.PadRight(16)),
+                    ("xp", stats.Xp.ToString("N0").PadLeft(7)),
+                    ("kills", stats.Kills),
+                    ("assists", stats.Assists),
+                    ("level", lvlText)));
             }
-            args.AddLine("══════════════════════════════════════════════");
+            args.AddLine(Loc.GetString("fs-leveling-round-xp-footer"));
         }
     }
 
@@ -179,6 +246,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             return;
 
         SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+        _unsaved.Remove(mindId);
     }
 
     public void SaveLeveling(EntityUid mindId, int level, int experience, int prestigeLevel)
@@ -218,6 +286,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
+        SaveDirty();
+        _unsent.Clear();
         _roundStats.Clear();
         _lastLobbyRequest.Clear();
 
@@ -241,11 +311,12 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SendLevelingUpdate(mindId, lvl);
         SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
 
-        var charName = TryComp<MindComponent>(mindId, out var mind)
-            ? mind.CharacterName ?? "Unknown"
-            : "Unknown";
+        var charName = TryComp<MindComponent>(mindId, out var mind) && mind.CharacterName is { } characterName
+            ? characterName
+            : Loc.GetString("fs-leveling-unknown-name");
         _chatManager.DispatchServerAnnouncement(
-            $"{charName} has prestiged! (Prestige {lvl.PrestigeLevel}) — XP bonus now +{lvl.PrestigeLevel * 20}%.",
+            Loc.GetString("fs-leveling-prestiged", ("name", charName), ("prestige", lvl.PrestigeLevel),
+                ("bonus", lvl.PrestigeLevel * 20)),
             Color.FromHex("#FFD700"));
     }
 
@@ -293,8 +364,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         if (lvl.Level > startLevel)
             AnnounceLevelUp(mindId, lvl, lvl.Level - startLevel, totalAp);
 
-        SendLevelingUpdate(mindId, lvl);
-        SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+        MarkDirty(mindId);
     }
 
     private void AnnounceLevelUp(EntityUid mindId, FSPlayerLevelComponent lvl, int levelsGained, int totalAp)
