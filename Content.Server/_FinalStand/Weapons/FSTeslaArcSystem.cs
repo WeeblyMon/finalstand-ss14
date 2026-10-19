@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Effects;
 using Content.Server._FinalStand.Spawners;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Weapons;
@@ -8,6 +9,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Projectiles;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Weapons;
@@ -18,13 +20,16 @@ public sealed partial class FSTeslaArcSystem : EntitySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSFlairSystem _flair = default!;
 
-    private const string BeamSegment = "FSTeslaGunBeamSegment";
+    private static readonly EntProtoId BeamSegment = "FSTeslaGunBeamSegment";
     private const string HitEffect = "FSTeslaGunHitEffect";
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
     private EntityQuery<WaveSpawnedTagComponent> _waveQuery;
     private EntityQuery<MobStateComponent> _mobQuery;
+
+    private readonly HashSet<Entity<WaveSpawnedTagComponent>> _candidates = new();
 
     public override void Initialize()
     {
@@ -61,11 +66,11 @@ public sealed partial class FSTeslaArcSystem : EntitySystem
     private void FireArcs(EntityUid uid, FSTeslaArcComponent comp)
     {
         var myPos = _transform.GetMapCoordinates(uid);
-        var candidates = new HashSet<Entity<WaveSpawnedTagComponent>>();
-        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(myPos, comp.ArcRange, candidates);
+        _candidates.Clear();
+        _lookup.GetEntitiesInRange<WaveSpawnedTagComponent>(myPos, comp.ArcRange, _candidates);
 
         var arcsLeft = comp.MaxArcs;
-        foreach (var (targetUid, _) in candidates)
+        foreach (var (targetUid, _) in _candidates)
         {
             if (arcsLeft <= 0) break;
             if (!_mobQuery.TryGetComponent(targetUid, out var mobState)) continue;
@@ -73,34 +78,9 @@ public sealed partial class FSTeslaArcSystem : EntitySystem
             if (_ffQuery.HasComponent(targetUid)) continue;
 
             _damageable.TryChangeDamage(targetUid, comp.Damage, ignoreResistances: false, origin: comp.Shooter ?? uid);
-            DrawBeam(uid, targetUid);
+            _flair.Beam(uid, targetUid, BeamSegment);
             Spawn(HitEffect, new EntityCoordinates(targetUid, Vector2.Zero));
             arcsLeft--;
-        }
-    }
-
-    private void DrawBeam(EntityUid from, EntityUid to)
-    {
-        var fromPos = _transform.GetMapCoordinates(from);
-        var toPos = _transform.GetMapCoordinates(to);
-
-        if (fromPos.MapId != toPos.MapId)
-            return;
-
-        var dir = toPos.Position - fromPos.Position;
-        if (dir.LengthSquared() < 0.01f)
-            return;
-
-        var distance = dir.Length();
-        var normalized = Vector2.Normalize(dir);
-        var angle = dir.ToAngle();
-        var segCount = Math.Max(1, (int) Math.Ceiling(distance));
-
-        for (var i = 0; i < segCount; i++)
-        {
-            var pos = new MapCoordinates(fromPos.Position + normalized * i, fromPos.MapId);
-            var seg = Spawn(BeamSegment, pos);
-            _transform.SetWorldRotation(seg, angle);
         }
     }
 }

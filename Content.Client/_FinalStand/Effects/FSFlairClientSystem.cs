@@ -33,6 +33,7 @@ public sealed partial class FSFlairClientSystem : EntitySystem
         base.Initialize();
         SubscribeNetworkEvent<FSFlairBurstEvent>(OnBurst);
         SubscribeNetworkEvent<FSBuildHologramEvent>(OnHologram);
+        SubscribeNetworkEvent<FSBeamEvent>(OnBeam);
         _overlays.AddOverlay(new FSFlairOverlay());
     }
 
@@ -57,6 +58,24 @@ public sealed partial class FSFlairClientSystem : EntitySystem
     {
         var now = _timing.RealTime;
         Holograms.Add(new FSHologram(GetCoordinates(ev.Coords), ev.Piece, now, now + TimeSpan.FromSeconds(ev.Duration), ev.Rotation));
+    }
+
+    // One sprite per tile along the line; the segment prototypes despawn themselves.
+    private void OnBeam(FSBeamEvent ev)
+    {
+        var delta = ev.To.Position - ev.From.Position;
+        var distance = delta.Length();
+        if (distance < 0.1f)
+            return;
+
+        var step = delta / distance;
+        var angle = delta.ToAngle();
+        var segments = Math.Max(1, (int) MathF.Ceiling(distance));
+        for (var i = 0; i < segments; i++)
+        {
+            var segment = Spawn(ev.Segment, new MapCoordinates(ev.From.Position + step * i, ev.From.MapId));
+            _transform.SetWorldRotation(segment, angle);
+        }
     }
 
     private void Play(FSFlairBurstEvent ev)

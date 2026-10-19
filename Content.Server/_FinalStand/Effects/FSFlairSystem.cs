@@ -43,6 +43,16 @@ public sealed partial class FSFlairSystem : EntitySystem
             Filter.Pvs(coords, entityMan: EntityManager));
     }
 
+    public void Beam(EntityUid from, EntityUid to, EntProtoId segment)
+    {
+        var fromPos = _transform.GetMapCoordinates(from);
+        var toPos = _transform.GetMapCoordinates(to);
+        if (fromPos.MapId != toPos.MapId || (toPos.Position - fromPos.Position).LengthSquared() < 0.01f)
+            return;
+
+        RaiseNetworkEvent(new FSBeamEvent(fromPos, toPos, segment), Filter.Pvs(fromPos));
+    }
+
     private void OnDestroyed(Entity<FSStructureHealthComponent> ent, ref DestructionEventArgs args)
     {
         var coords = _transform.GetMoverCoordinates(ent);
