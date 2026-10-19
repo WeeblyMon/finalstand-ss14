@@ -108,3 +108,7 @@ fs-research-menu-legend-available = Available
 fs-research-menu-legend-in-progress = In progress
 fs-research-menu-legend-locked = Locked
 fs-research-menu-legend-shop-unlock = Shop unlock
+
+fs-harvester-hud-rp = RP: { $points }
+fs-harvester-hud-personal = { $name }: { $progress }/{ $cost }
+fs-harvester-hud-shared = { $name }: { $progress }/{ $cost } (shared, 2x)
