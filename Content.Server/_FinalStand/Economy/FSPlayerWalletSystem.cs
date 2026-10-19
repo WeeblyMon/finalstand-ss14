@@ -27,6 +27,9 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
 
     private readonly HashSet<EntityUid> _dirtyWallets = new();
+
+    // Players who already got their starting credits this round. Per player, because a cryo return makes a new mind.
+    private readonly HashSet<NetUserId> _startingCreditsGiven = new();
     private float _notifyAccumulator;
     private const float NotifyInterval = 0.25f;
 
@@ -70,6 +73,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
     {
         _lastLobbyRequest.Clear();
+        _startingCreditsGiven.Clear();
         SaveAll();
         _dirtyWallets.Clear();
 
@@ -100,22 +104,25 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
         _cachedUsernames[ev.Player.UserId] = ev.Player.Name;
 
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var wallet = GetLoadedWallet(mindId, ev.Player.UserId);
+        if (_startingCreditsGiven.Add(ev.Player.UserId))
+            wallet.Credits += StartingCredits;
 
-        if (wallet.Loaded)
-        {
-            MarkWalletDirty(mindId);
-            return;
-        }
-
-        var row = _store.GetFullRecord(ev.Player.UserId.UserId);
-
-        wallet.PerkPoints = row.PerkPoints;
-        wallet.Credits += StartingCredits;
-        wallet.Loaded = true;
         MarkWalletDirty(mindId);
+    }
 
-        Log.Debug($"Loaded {ev.Player.Name} — perkPoints={wallet.PerkPoints}");
+    // Reads the saved row before anything touches the perk points. A wallet created by an early payout
+    // (an observer at a boss kill, a pay-out in the same spawn event) would otherwise save that payout
+    // over the player's real total.
+    private FSPlayerWalletComponent GetLoadedWallet(EntityUid mindId, NetUserId user)
+    {
+        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        if (wallet.Loaded)
+            return wallet;
+
+        wallet.PerkPoints = _store.GetFullRecord(user.UserId).PerkPoints;
+        wallet.Loaded = true;
+        return wallet;
     }
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
@@ -165,7 +172,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             if (!_mind.TryGetMind(session, out var mindId, out _))
                 continue;
 
-            var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.PerkPoints += amount;
             MarkWalletDirty(mindId);
             _store.UpsertPerkPoints(session.UserId.UserId, session.Name, wallet.PerkPoints);
@@ -176,11 +183,13 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     public void AddPerkPoints(EntityUid mindId, int amount)
     {
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId is not { } user)
+            return;
+
+        var wallet = GetLoadedWallet(mindId, user);
         wallet.PerkPoints += amount;
         MarkWalletDirty(mindId);
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
-        _store.UpsertPerkPoints(mind.UserId.Value.UserId, ResolveUsername(mind.UserId.Value), wallet.PerkPoints);
+        _store.UpsertPerkPoints(user.UserId, ResolveUsername(user), wallet.PerkPoints);
     }
 
     public bool TryDeductPerkPoints(EntityUid mindId, int cost)
