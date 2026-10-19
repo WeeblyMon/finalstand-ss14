@@ -1,4 +1,5 @@
 using Content.Shared.Body;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager;
 using Robust.Shared.Timing;
@@ -9,6 +10,7 @@ namespace Content.Shared._FinalStand.Medical.Effects;
 public sealed partial class OrganEffectSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private INetManager _net = default!;
     [Dependency] private ISerializationManager _serManager = default!;
 
     public override void Initialize()
@@ -22,6 +24,10 @@ public sealed partial class OrganEffectSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        // The refresh is a server-side safety net; the client gets the granted components from state.
+        if (_net.IsClient)
+            return;
 
         var now = _timing.CurTime;
         var query = EntityQueryEnumerator<OrganEffectComponent, OrganComponent>();
