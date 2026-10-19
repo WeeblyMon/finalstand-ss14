@@ -47,6 +47,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
     [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
+    [Dependency] private FSAggravatorSystem _aggravator = default!;
 
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
@@ -382,6 +383,13 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         {
             total += smoking;
             sources.Add(FormatPct("Smoking Kills", smoking));
+        }
+
+        var aggravator = (_aggravator.GetMultiplier(mindId, perks) - 1f) * 100f;
+        if (aggravator > 0f)
+        {
+            total += aggravator;
+            sources.Add(FormatPct("Aggravator", aggravator));
         }
     }
 

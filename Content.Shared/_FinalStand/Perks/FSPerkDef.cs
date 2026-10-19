@@ -377,6 +377,11 @@ public sealed class FSPerkDef
                 "Slowdowns from armour, heavy guns, wounds and the like hit you less.",
                 PerkCategory.Green,
                 Pct("-{0}% Speed Penalties", FSPerkBonusConstants.PackMulePerLevel)),
+
+            new("Aggravator", "Aggravator",
+                "Kills stack +1% damage and draw nearby zombies to you. Lose a stack every 5s.",
+                PerkCategory.Purple,
+                Flat("+{0} Max Stacks", FSPerkBonusConstants.AggravatorStacksPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

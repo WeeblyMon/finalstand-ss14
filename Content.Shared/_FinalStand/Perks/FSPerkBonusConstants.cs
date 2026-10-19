@@ -83,6 +83,11 @@ public static class FSPerkBonusConstants
     public const float LookingThinPerLevel = 0.04f;       // speed with no armour, scaled down by armour strength
     public const float LookingThinNoBonusArmor = 0.4f;    // average brute multiplier at which the bonus is gone
     public const float PackMulePerLevel = 0.20f;          // share of every slowdown removed
+    public const int AggravatorStacksPerLevel = 5;
+    public const float AggravatorDamagePerStack = 0.01f;
+    public const float AggravatorRadiusPerStack = 0.5f;   // tiles of zombies taunted on each kill
+    public const float AggravatorTauntSeconds = 3f;
+    public const float AggravatorDecaySeconds = 5f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
