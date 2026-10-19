@@ -29,7 +29,6 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
     private static readonly TimeSpan UsageRefreshInterval = TimeSpan.FromSeconds(0.5);
     private static readonly TimeSpan ReservationTimeout = TimeSpan.FromSeconds(30);
-    private readonly Dictionary<EntityUid, TimeSpan> _reservedAt = new();
     private readonly List<EntityUid> _expired = new();
     private TimeSpan _nextUsageRefresh;
 
@@ -51,15 +50,14 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
     // The silo drops its reservation totals on restart; releasing these later would subtract from the next round's.
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
-        _reservedAt.Clear();
-        _rcdReservations.Clear();
+        _pendingBuilds.Clear();
     }
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
     {
         _workSound.Stop(ent);
         if (args.Cancelled)
-            Release(ent);
+            ReleaseOldest(ent);
 
         if (!args.Cancelled && args.Args.Target is { } target && EntityManager.IsQueuedForDeletion(target))
         {
@@ -75,17 +73,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
 
         _nextUsageRefresh = _timing.CurTime + UsageRefreshInterval;
 
-        // A build that never started (vanilla refused it after us) would otherwise hold its silo stock forever.
-        foreach (var (rcd, at) in _reservedAt)
-        {
-            if (_timing.CurTime - at > ReservationTimeout)
-                _expired.Add(rcd);
-        }
-
-        foreach (var rcd in _expired)
-            Release(rcd);
-
-        _expired.Clear();
+        ExpireReservations();
         int? station = null;
         var query = EntityQueryEnumerator<FSEngineerOnlyRCDComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var comp, out var xform))
@@ -125,10 +113,7 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         {
             args.Handled = true;
             Deny(uid, args.User, Loc.GetString("fs-rcd-silo-busy"), args.ClickLocation);
-            return;
         }
-
-        _reservedAt[uid] = _timing.CurTime;
     }
 
     private void Deny(EntityUid rcd, EntityUid user, string text, EntityCoordinates at)
