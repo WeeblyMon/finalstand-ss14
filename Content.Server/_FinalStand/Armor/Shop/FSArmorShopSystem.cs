@@ -5,6 +5,7 @@ using Content.Shared._FinalStand.Economy;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
 using Content.Shared.Mind;
+using Content.Shared.Popups;
 using Content.Shared.Tag;
 using Robust.Server.GameObjects;
 using Robust.Shared.Prototypes;
@@ -19,6 +20,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly Dictionary<EntityUid, string> _purchasedTier = new();
 
@@ -57,10 +59,16 @@ public sealed partial class FSArmorShopSystem : EntitySystem
 
         // The trade-in only counts for the suit being handed back; one taken off and passed on earns nothing.
         var tradeIn = Wears(player, oldId) ? oldId : null;
+        if (oldId != null && tradeIn == null)
+            _popup.PopupEntity(Loc.GetString("fs-armor-shop-trade-in-missing"), uid, player);
+
         var netCost = FSArmorShopDefs.GetNetCost(tradeIn, tier);
 
         if (netCost > 0 && !_wallet.TryDeductCredits(mindId, netCost))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-armor-shop-cant-afford", ("price", netCost)), uid, player);
             return;
+        }
 
         if (!ApplyArmorToMob(player, tier))
         {

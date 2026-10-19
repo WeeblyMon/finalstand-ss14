@@ -18,6 +18,8 @@ fs-armor-shop-trade-in = Trade-in
 fs-armor-shop-total = TOTAL
 fs-armor-shop-need-more = NEED ${ $amount } MORE
 fs-armor-shop-buy = BUY  —  ${ $price }
+fs-armor-shop-trade-in-missing = Wear your current suit to trade it in.
+fs-armor-shop-cant-afford = You need ${ $price } for that.
 
 fs-armor-tier-security-hardsuit = Security Hardsuit
 fs-armor-tier-ert-security-hardsuit = ERT Security Hardsuit
