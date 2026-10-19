@@ -58,6 +58,16 @@ public sealed partial class FSPlayerUpgradesSystem
         if (diff == 0)
             return;
 
+        ResizeMagazine(bal, diff);
+        upgraded.AppliedPercentBonus = wanted;
+        Dirty(target, bal);
+        _gun.UpdateBallisticAppearance((target, bal));
+    }
+
+    // A full magazine stays full when it grows; nothing else gains rounds (an empty magazine used to fill up
+    // just by going into an upgraded gun), and shrinking drops whatever no longer fits.
+    private static void ResizeMagazine(BallisticAmmoProviderComponent bal, int diff)
+    {
         var wasFull = bal.Entities.Count + bal.UnspawnedCount >= bal.Capacity;
 #pragma warning disable RA0002
         bal.Capacity += diff;
@@ -65,9 +75,6 @@ public sealed partial class FSPlayerUpgradesSystem
             bal.UnspawnedCount += diff;
         bal.UnspawnedCount = Math.Clamp(bal.UnspawnedCount, 0, Math.Max(0, bal.Capacity - bal.Entities.Count));
 #pragma warning restore RA0002
-        upgraded.AppliedPercentBonus = wanted;
-        Dirty(target, bal);
-        _gun.UpdateBallisticAppearance((target, bal));
     }
 
     private float BandolierPercent(EntityUid? holder)
