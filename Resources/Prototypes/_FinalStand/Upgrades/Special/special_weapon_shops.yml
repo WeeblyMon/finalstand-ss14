@@ -366,7 +366,7 @@
     - id: xray-pierce
       name: Deep Penetration
       description: Beam punches through additional targets per level.
-      maxLevel: 3
+      maxLevel: 10
       baseCost: 13000
       targetWeaponProtoId: WeaponXrayCannonFS
       requiresResearch: FSOrdnanceXrayCannon
