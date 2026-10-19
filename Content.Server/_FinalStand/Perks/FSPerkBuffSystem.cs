@@ -1,6 +1,5 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
-using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Damage.Systems;
@@ -27,14 +26,12 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private TagSystem _tags = default!;
-    [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private StaminaSystem _stamina = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSBerserkerSystem _berserker = default!;
-    [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
     [Dependency] private FSPierceSystem _pierce = default!;
 
@@ -61,10 +58,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var spLevel = augs.GetSlottedLevel("StoppingPower");
         if (spLevel > 0 && !isLauncher)
             ev.AdditionalMultiplier *= 1f + spLevel * FSPerkBonusConstants.StoppingPowerPerLevel;
-
-        var profLevel = augs.GetSlottedLevel("Profiteer");
-        if (profLevel > 0 && HasComp<WaveSpawnedTagComponent>(ev.Target) && !_undying.IsActive(ev.Shooter.Value))
-            _wallet.GiveCredits(mindId, (int)(FSPerkBonusConstants.ProfiteerHitBase * profLevel * FSPerkBonusConstants.ProfiteerFraction));
 
         if (augs.GetSlottedLevel("DeathAura") > 0 && TryComp<FSDeathAuraComponent>(mindId, out var da) && da.Stacks > 0)
             ev.AdditionalMultiplier *= 1f + da.Stacks * FSPerkBonusConstants.DeathAuraPerStack;

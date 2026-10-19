@@ -28,7 +28,6 @@ public static class FSPerkBonusConstants
     public const float InvestorPerLevel = 0.005f;
     public const float MutualFundPerLevel = 0.0025f;
     public const float ProfiteerFraction = 0.014f;
-    public const float ProfiteerHitBase = 30f;  // per ranged hit that raises enemy damage
     public const float ProfiteerKillBase = 200f; // per zombie kill
 
     public const float FieldMedicPerLevel = 0.15f;
