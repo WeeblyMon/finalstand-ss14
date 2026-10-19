@@ -361,12 +361,14 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return null;
     }
 
+    private static readonly List<string> CompassOrder = ["N", "E", "S", "W"];
+
     public string GetSpawnDirections(WaveGameRuleComponent comp)
     {
         if (comp.IsDarkWave)
             return "all";
 
-        var labels = new SortedSet<string>();
+        var labels = new SortedSet<string>(Comparer<string>.Create((a, b) => CompassOrder.IndexOf(a).CompareTo(CompassOrder.IndexOf(b))));
         foreach (var spawnerUid in comp.SpawnerEntities)
         {
             if (TryGetSide(spawnerUid, out var side))
