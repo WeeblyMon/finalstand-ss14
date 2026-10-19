@@ -709,7 +709,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             targetId = activeId;
         }
 
-        if (targetId is not { } id || !PrototypeManager.TryIndex<FSTechNodePrototype>(id, out var node))
+        if (targetId is not { } id
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(id, out var node)
+            || IsExclusivelyBlocked(node, station.Comp.UnlockedLookup))
         {
             station.Comp.Points += amount;
             Dirty(station);
@@ -751,14 +753,16 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         MarkNodeUnlocked(station.Comp, node.ID);
 
-        if (wasShared)
+        // Picks that this unlock now rules out (the other half of an exclusive choice) are dropped with it,
+        // otherwise both halves kept earning and could both unlock.
+        if (wasShared || IsBlockedBy(station.Comp.ActiveResearch, station.Comp))
         {
             station.Comp.ActiveResearch = null;
             station.Comp.ActiveResearchSetBy = null;
         }
 
         var stale = station.Comp.PersonalPicks
-            .Where(kv => kv.Value.Id == node.ID)
+            .Where(kv => kv.Value.Id == node.ID || IsBlockedBy(kv.Value, station.Comp))
             .Select(kv => kv.Key)
             .ToList();
 
@@ -778,6 +782,13 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
 
         Log.Info($"Completed node {node.ID}");
+    }
+
+    private bool IsBlockedBy(ProtoId<FSTechNodePrototype>? pick, FSStationResearchComponent station)
+    {
+        return pick is { } id
+               && PrototypeManager.TryIndex(id, out var picked)
+               && IsExclusivelyBlocked(picked, station.UnlockedLookup);
     }
 
     private void SendPersonalResearchState(EntityUid mindId)
