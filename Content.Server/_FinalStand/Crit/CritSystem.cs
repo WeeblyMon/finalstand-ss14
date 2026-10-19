@@ -47,9 +47,7 @@ public sealed partial class CritSystem : EntitySystem
 
     public float CalculateCritMultiplier(EntityUid gun)
     {
-        if (TryComp<FSWeaponUpgradeStateComponent>(gun, out var upgradeState))
-            return upgradeState.CritDamageMultiplier;
-        return TryComp<CritComponent>(gun, out var critComp) ? critComp.CritMultiplier : 1.5f;
+        return FSCritMath.Multiplier(CompOrNull<CritComponent>(gun), CompOrNull<FSWeaponUpgradeStateComponent>(gun));
     }
 
     public bool TryRollCrit(EntityUid shooter, EntityUid gun, EntityUid target, out float multiplier)

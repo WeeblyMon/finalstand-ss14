@@ -72,7 +72,7 @@ public sealed partial class WeaponShopWindow
         var damageMultiplier = 1.0f;
         var extraPellets = 0;
         var critChanceBonus = 0f;
-        var critDamageMult = critComp?.CritMultiplier ?? critProto?.CritMultiplier ?? 1f;
+        var critDamageMult = FSCritMath.Multiplier(critComp ?? critProto, null);
         var attackSpeedMult = 1f;
 
         foreach (var def in shopComp.Upgrades)

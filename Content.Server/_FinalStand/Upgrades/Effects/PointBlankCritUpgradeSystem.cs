@@ -31,7 +31,7 @@ public sealed partial class PointBlankCritUpgradeSystem : EntitySystem
         if ((targetPos - shooterPos).Length() > PointBlankRange)
             return;
 
-        ev.AdditionalMultiplier *= state.CritDamageMultiplier;
+        ev.AdditionalMultiplier *= _crit.CalculateCritMultiplier(ev.Weapon.Value);
         _crit.MarkPendingCrit(ev.Shooter.Value, ev.Target);
     }
 }

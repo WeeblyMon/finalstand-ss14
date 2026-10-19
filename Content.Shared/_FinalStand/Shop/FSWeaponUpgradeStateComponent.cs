@@ -7,7 +7,8 @@ namespace Content.Shared._FinalStand.Shop;
 public sealed partial class FSWeaponUpgradeStateComponent : Component
 {
     [DataField] public float CritChance = 0f;
-    [DataField] public float CritDamageMultiplier = 2f;
+    // Added on top of the weapon's own crit multiplier (FSCritMath).
+    [DataField] public float CritDamageBonus;
     [DataField] public FixedPoint2 PierceThreshold = FixedPoint2.Zero;
 
     [DataField] public Dictionary<string, int> Levels = new();

@@ -37,7 +37,7 @@ public sealed partial class ExecutionShotUpgradeSystem : EntitySystem
             return;
         }
 
-        ev.AdditionalMultiplier *= state.CritDamageMultiplier;
+        ev.AdditionalMultiplier *= _crit.CalculateCritMultiplier(ev.Weapon.Value);
         _crit.MarkPendingCrit(ev.Shooter.Value, ev.Target);
         RemComp<FSExecutionReadyComponent>(ev.Weapon.Value);
     }

@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Crit;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Perks;
@@ -342,7 +343,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
 
         // Melee weapons without their own crit use the perk crit multiplier.
         var baseMultiplier = melee
-            ? weaponChance > 0f ? state!.CritDamageMultiplier : FSPerkBonusConstants.PerkMeleeCritMultiplier
+            ? weaponChance > 0f ? FSCritMath.Multiplier(CompOrNull<CritComponent>(weapon), state) : FSPerkBonusConstants.PerkMeleeCritMultiplier
             : _crit.CalculateCritMultiplier(weapon);
         var perkMultiplier = _perkCrit.GetCritMultiplierBonus(mob, weapon);
 

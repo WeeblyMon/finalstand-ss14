@@ -1,3 +1,4 @@
+using Content.Shared._FinalStand.Crit;
 using Content.Server._FinalStand.Crit;
 using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Upgrades;
@@ -74,7 +75,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             && _random.NextFloat() < FSPerkCritSystem.CombineChance(state.CritChance, _perkCrit.GetCritChanceBonus(user, weapon, melee: true)))
         {
             didCrit = true;
-            var multiplier = state.CritDamageMultiplier + _perkCrit.GetCritMultiplierBonus(user, weapon);
+            var multiplier = FSCritMath.Multiplier(CompOrNull<CritComponent>(weapon), state) + _perkCrit.GetCritMultiplierBonus(user, weapon);
             args.BonusDamage += args.BaseDamage * (multiplier - 1f);
         }
 

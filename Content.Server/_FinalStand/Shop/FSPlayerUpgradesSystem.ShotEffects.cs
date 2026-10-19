@@ -20,7 +20,7 @@ public sealed partial class FSPlayerUpgradesSystem
                 }
             case WeaponUpgradeType.CritDamage:
                 {
-                    state.CritDamageMultiplier += def.ValuePerLevel;
+                    state.CritDamageBonus += def.ValuePerLevel;
                     break;
                 }
             case WeaponUpgradeType.Pierce:
