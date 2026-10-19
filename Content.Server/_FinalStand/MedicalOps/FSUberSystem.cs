@@ -15,6 +15,7 @@ public sealed partial class FSUberSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private FSMedicalRosterSystem _roster = default!;
 
     public const float FullCharge = 100f;
 
@@ -28,6 +29,7 @@ public sealed partial class FSUberSystem : EntitySystem
         base.Initialize();
 
         SubscribeLocalEvent<FSMediGunComponent, FSMediGunUberActionEvent>(OnUberAction);
+        SubscribeLocalEvent<FSMediGunComponent, ComponentShutdown>(OnGunShutdown);
         SubscribeNetworkEvent<FSUberActivateMessage>(OnActivateMessage);
     }
 
@@ -40,6 +42,12 @@ public sealed partial class FSUberSystem : EntitySystem
             return;
 
         TryDeploy((held.Value, gun), user);
+    }
+
+    // The hum loops on the medic, so a gun deleted mid-uber would otherwise leave it playing.
+    private void OnGunShutdown(Entity<FSMediGunComponent> ent, ref ComponentShutdown args)
+    {
+        ent.Comp.UberLoop = _audio.Stop(ent.Comp.UberLoop);
     }
 
     public void AddCharge(Entity<FSMediGunComponent> gun, float amount)
@@ -89,6 +97,13 @@ public sealed partial class FSUberSystem : EntitySystem
         var comp = ent.Comp;
         if (comp.UberActive)
             return;
+
+        // Linking is medical-only; a charged gun handed to someone else can't be spent by them either.
+        if (HasComp<FSMedicalOnlyComponent>(ent) && !_roster.IsMedical(medic))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medical-only"), medic, medic, PopupType.Medium);
+            return;
+        }
 
         if (comp.UberCharge < FullCharge)
         {
