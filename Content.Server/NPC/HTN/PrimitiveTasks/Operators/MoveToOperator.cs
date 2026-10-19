@@ -161,6 +161,7 @@ public sealed partial class MoveToOperator : HTNOperator, IHtnConditionalShutdow
             }
 
             comp.CurrentPath = new Queue<PathPoly>(result.Path);
+            comp.PathPlannedFor = _transform.ToMapCoordinates(targetCoordinates); // FINALSTAND
         }
     }
 

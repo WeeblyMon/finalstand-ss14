@@ -409,10 +409,14 @@ public sealed partial class NPCSteeringSystem
             needsPath = steering.CurrentPath.Count > 0 && (steering.CurrentPath.Peek().Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0;
 
             // If the target has sufficiently moved.
-            var lastNode = GetCoordinates(steering.CurrentPath.Last());
+            // FINALSTAND: measured from where the destination was when the path was planned. Measuring from the
+            // path's last node repathed every tick whenever Range was wider than RepathRange, because the
+            // pathfinder stops at the first node within Range.
+            var destination = _transform.ToMapCoordinates(steering.Coordinates, logError: false);
 
-            if (lastNode.TryDistance(EntityManager, steering.Coordinates, out var lastDistance) &&
-                lastDistance > steering.RepathRange)
+            if (destination.MapId != MapId.Nullspace &&
+                destination.MapId == steering.PathPlannedFor.MapId &&
+                (destination.Position - steering.PathPlannedFor.Position).Length() > steering.RepathRange)
             {
                 needsPath = true;
             }

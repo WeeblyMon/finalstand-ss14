@@ -54,6 +54,10 @@ public sealed partial class NPCSteeringComponent : Component
     [ViewVariables, AutoPausedField]
     public TimeSpan QueuedUntil;
 
+    // FINALSTAND: where the destination was when CurrentPath was planned, to tell whether it has since moved.
+    [ViewVariables]
+    public MapCoordinates PathPlannedFor = MapCoordinates.Nullspace;
+
     #endregion
 
     /// <summary>

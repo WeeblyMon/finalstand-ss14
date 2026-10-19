@@ -509,10 +509,12 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         {
             steering.CurrentPath.Clear();
             steering.CurrentPath.Enqueue(targetPoly);
+            steering.PathPlannedFor = _transform.ToMapCoordinates(steering.Coordinates); // FINALSTAND
             return;
         }
 
         steering.PathfindToken = new CancellationTokenSource();
+        var plannedFor = _transform.ToMapCoordinates(steering.Coordinates); // FINALSTAND
 
         var flags = _pathfindingSystem.GetFlags(uid);
 
@@ -544,6 +546,7 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         PrunePath(uid, ourPos, targetPos.Position - ourPos.Position, result.Path);
         steering.CurrentPath = new Queue<PathPoly>(result.Path);
+        steering.PathPlannedFor = plannedFor; // FINALSTAND
     }
 
     // TODO: Move these to movercontroller
