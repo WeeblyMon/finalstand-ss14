@@ -48,10 +48,13 @@ public abstract partial class SharedFSUpgradeSystem : EntitySystem
         return Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant(), ("name", needed));
     }
 
+    // Far longer than any real chain; a requires-cycle in the YAML would otherwise hang both sides.
+    private const int MaxChain = 32;
+
     private bool HasReached(ProtoId<FSUpgradePrototype> current, ProtoId<FSUpgradePrototype> target)
     {
         ProtoId<FSUpgradePrototype>? step = current;
-        while (step is { } id)
+        for (var depth = 0; depth < MaxChain && step is { } id; depth++)
         {
             if (id == target)
                 return true;
