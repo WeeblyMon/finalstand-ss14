@@ -2,6 +2,8 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Shared._FinalStand.ReadyCheck;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.GameTicking;
+using Content.Shared.Ghost.Components;
+using Content.Shared.Mobs.Components;
 using Robust.Server.Player;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
@@ -36,7 +38,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         var crew = 0;
         foreach (var session in _playerManager.Sessions)
         {
-            if (session.AttachedEntity == null)
+            if (!IsCrew(session))
                 continue;
 
             crew++;
@@ -77,7 +79,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
     private void OnReadyUpRequest(FSReadyUpRequestMessage msg, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (!_waveRule.IsPrep() || session.AttachedEntity == null)
+        if (!_waveRule.IsPrep() || !IsCrew(session))
             return;
 
         if (msg.IsReady)
@@ -93,6 +95,14 @@ public sealed partial class FSReadyUpSystem : EntitySystem
 
         if (ready > crew / 2)
             _waveRule.RequestWaveStart();
+    }
+
+    // Someone in a body. Ghosts and observers can't ready up or hold the majority back.
+    private bool IsCrew(ICommonSession session)
+    {
+        return session.AttachedEntity is { } body
+               && HasComp<MobStateComponent>(body)
+               && !HasComp<GhostComponent>(body);
     }
 
     private void BroadcastState()
