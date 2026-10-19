@@ -372,6 +372,11 @@ public sealed class FSPerkDef
                 "Move faster with no armour on. Light armour halves it, heavy armour removes it.",
                 PerkCategory.Green,
                 Pct("+{0}% Speed", FSPerkBonusConstants.LookingThinPerLevel)),
+
+            new("PackMule", "Pack Mule",
+                "Slowdowns from armour, heavy guns, wounds and the like hit you less.",
+                PerkCategory.Green,
+                Pct("-{0}% Speed Penalties", FSPerkBonusConstants.PackMulePerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

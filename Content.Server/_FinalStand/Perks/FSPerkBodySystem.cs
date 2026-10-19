@@ -1,6 +1,7 @@
 using Content.Server._FinalStand.Shop;
 using Content.Shared._FinalStand.Perks;
 using Content.Shared.Mind.Components;
+using Content.Shared.Movement.Systems;
 
 namespace Content.Server._FinalStand.Perks;
 
@@ -8,6 +9,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSPerkBodySystem : EntitySystem
 {
     [Dependency] private FSPlayerUpgradesSystem _upgrades = default!;
+    [Dependency] private MovementSpeedModifierSystem _movement = default!;
 
     public override void Initialize()
     {
@@ -53,6 +55,15 @@ public sealed partial class FSPerkBodySystem : EntitySystem
         {
             RemComp<FSPerkPierceComponent>(body);
         }
+
+        var packMule = perks.GetSlottedLevel("PackMule");
+        var hadPackMule = TryComp<FSPackMuleComponent>(body, out var mule) ? mule.Level : 0;
+        if (packMule > 0)
+            EnsureComp<FSPackMuleComponent>(body).Level = packMule;
+        else
+            RemComp<FSPackMuleComponent>(body);
+        if (packMule != hadPackMule)
+            _movement.RefreshMovementSpeedModifiers(body);
 
         _upgrades.ReconcileHeldMagazines(body);
     }

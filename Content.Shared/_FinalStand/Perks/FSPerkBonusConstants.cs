@@ -82,6 +82,7 @@ public static class FSPerkBonusConstants
     public const float SmokingKillsPerLevel = 0.04f;
     public const float LookingThinPerLevel = 0.04f;       // speed with no armour, scaled down by armour strength
     public const float LookingThinNoBonusArmor = 0.4f;    // average brute multiplier at which the bonus is gone
+    public const float PackMulePerLevel = 0.20f;          // share of every slowdown removed
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
