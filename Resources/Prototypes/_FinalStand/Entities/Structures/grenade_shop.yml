@@ -80,11 +80,11 @@
       valuePerLevel: 0.25
     - id: incendiary-burn-duration
       name: Prolonged Burn
-      description: Fire zone lasts +5 seconds per level.
+      description: Fire zone lasts +3 seconds per level.
       maxLevel: 2
       baseCost: 5000
       type: GrenadeBurnDuration
-      valuePerLevel: 5
+      valuePerLevel: 3
     - id: incendiary-extra-charges
       name: Extra Charges
       description: +2 max grenades per level.
