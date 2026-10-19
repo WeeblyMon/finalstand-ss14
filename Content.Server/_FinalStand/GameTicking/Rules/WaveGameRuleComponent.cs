@@ -108,8 +108,6 @@ public sealed partial class WaveGameRuleComponent : Component
     public readonly HashSet<EntityUid> PreviousSpawnerEntities = new();
     public EntityUid CCCEntity = EntityUid.Invalid;
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
-    public TimeSpan NextTimerBroadcastTime = TimeSpan.Zero;
-    public TimeSpan NextEnemyCountBroadcast = TimeSpan.Zero;
     public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
 
     public int ScalingPlayersThisWave = 0;

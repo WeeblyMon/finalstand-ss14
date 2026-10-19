@@ -6,7 +6,6 @@ using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Radio;
 using Content.Shared._FinalStand.GameTicking;
-using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Doors.Components;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Light.Components;
@@ -131,7 +130,6 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
             _audio.PlayGlobal(comp.StartSound, Filter.Broadcast(), true);
 
         duration = comp.Duration;
-        RaiseNetworkEvent(new FSDarkWaveStartedEvent((float) duration.TotalSeconds), Filter.Broadcast());
         return true;
     }
 
@@ -143,7 +141,6 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         rule.Comp.Active = false;
         RestorePower(rule.Comp);
         StopAmbience(rule.Comp);
-        RaiseNetworkEvent(new FSDarkWaveEndedEvent(), Filter.Broadcast());
     }
 
     protected override void ActiveTick(EntityUid uid, FSDarkWaveRuleComponent comp, GameRuleComponent gameRule, float frameTime)
@@ -157,7 +154,6 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         {
             comp.WarningAt = null;
             comp.NextFlicker = now;
-            RaiseNetworkEvent(new FSDarkWaveWarningEvent(), Filter.Broadcast());
             _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-dark-wave-warning"), WarningColor);
             if (comp.WarningSound != null)
                 _audio.PlayGlobal(comp.WarningSound, Filter.Broadcast(), true);

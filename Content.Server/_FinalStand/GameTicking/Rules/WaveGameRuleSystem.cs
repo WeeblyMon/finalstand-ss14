@@ -18,6 +18,7 @@ using Content.Shared._FinalStand.CCC;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.WaveHud;
 using Robust.Server.GameObjects;
+using Robust.Server.GameStates;
 using Robust.Server.Player;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Physics;
@@ -41,9 +42,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     [Dependency] private FSDarkWaveSystem _darkWave = default!;
     [Dependency] private PlayTimeTrackingManager _playTime = default!;
     [Dependency] private RoundEndSystem _roundEnd = default!;
+    [Dependency] private PvsOverrideSystem _pvsOverride = default!;
 
     private static readonly TimeSpan DarkWaveSpawnDelay = TimeSpan.FromSeconds(5);
-    private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
 
     private static readonly TimeSpan NewPlayerScalingExemption = TimeSpan.FromHours(10);
 
@@ -62,7 +63,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         GameRuleComponent gameRule, GameRuleStartedEvent args)
     {
         _friendlyFire.AssignFactionToAllPlayers();
+        EnsureComp<FSWaveStateComponent>(uid);
+        _pvsOverride.AddGlobalOverride(uid);
         StartPrepPhase(uid, comp);
+        SyncState(uid, comp);
     }
 
     protected override void ActiveTick(EntityUid uid, WaveGameRuleComponent comp,
@@ -93,7 +97,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                         comp.VoteCountdownSoundPlayed = false;
                         comp.PhaseEndTime = now + TimeSpan.FromSeconds(10);
                         comp.VoteCountdownSoundTime = now + TimeSpan.FromSeconds(2);
-                        comp.NextTimerBroadcastTime = now;
                     }
                     else
                     {
@@ -101,12 +104,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                         StartCombatPhase(uid, comp);
                     }
                     break;
-                }
-                if (now >= comp.NextTimerBroadcastTime)
-                {
-                    var secs = Math.Max(0f, (float)(comp.PhaseEndTime - now).TotalSeconds);
-                    RaiseNetworkEvent(new FSPrepTimerUpdateEvent(secs, true), Filter.Broadcast());
-                    comp.NextTimerBroadcastTime = now + TimeSpan.FromSeconds(1);
                 }
                 break;
 
@@ -143,6 +140,57 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     comp.NextHeartbeatTime = now + TimeSpan.FromSeconds(5);
                 }
                 break;
+        }
+
+        SyncState(uid, comp);
+    }
+
+    // Copies what clients display onto the networked state, dirtying only fields that changed.
+    private void SyncState(EntityUid uid, WaveGameRuleComponent comp)
+    {
+        if (!TryComp<FSWaveStateComponent>(uid, out var state))
+            return;
+
+        var dark = _darkWave.IsActive(uid);
+        var wave = comp.Phase == WavePhase.Prep ? comp.WavesCompleted : comp.WaveNumber;
+        var endsAt = comp.Phase == WavePhase.Prep || dark ? comp.PhaseEndTime : TimeSpan.Zero;
+        var alive = comp.Phase == WavePhase.Combat ? comp.AliveEnemies.Count : 0;
+        var total = comp.Phase == WavePhase.Combat && !dark ? comp.EnemyTotalThisWave : 0;
+
+        if (state.Wave != wave)
+        {
+            state.Wave = wave;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.Wave));
+        }
+
+        if (state.Phase != comp.Phase)
+        {
+            state.Phase = comp.Phase;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.Phase));
+        }
+
+        if (state.PhaseEndsAt != endsAt)
+        {
+            state.PhaseEndsAt = endsAt;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.PhaseEndsAt));
+        }
+
+        if (state.EnemiesAlive != alive)
+        {
+            state.EnemiesAlive = alive;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.EnemiesAlive));
+        }
+
+        if (state.EnemiesTotal != total)
+        {
+            state.EnemiesTotal = total;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.EnemiesTotal));
+        }
+
+        if (state.DarkWave != dark)
+        {
+            state.DarkWave = dark;
+            DirtyField(uid, state, nameof(FSWaveStateComponent.DarkWave));
         }
     }
 
@@ -186,11 +234,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.EnemyTotalThisWave = CalcEnemyTotal(comp, CountScalingPlayers(), CountPrimarySpawners(comp));
         comp.EnemiesSpawnedThisWave = 0;
 
-        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WavesCompleted), Filter.Broadcast());
-        RaiseNetworkEvent(new FSEnemyCountEvent(0, 0), Filter.Broadcast());
-        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
-        comp.NextTimerBroadcastTime = Timing.CurTime;
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent((float)comp.PrepDuration.TotalSeconds, true), Filter.Broadcast());
         if (comp.WavesCompleted > 0 && comp.WaveEndSound != null)
             _audio.PlayGlobal(comp.WaveEndSound, Filter.Broadcast(), true);
         var prepStarted = new WavePrepStartedEvent();
@@ -271,10 +314,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"Wave {comp.WaveNumber} started. Spawning {comp.EnemyTotalThisWave} enemies " +
                  $"at {comp.SpawnerEntities.Count} spawners. Director pool: {pool.Count} type(s).");
 
-        RaiseNetworkEvent(new WaveCounterUpdateEvent(comp.WaveNumber), Filter.Broadcast());
-        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
-        comp.NextEnemyCountBroadcast = Timing.CurTime + EnemyCountBroadcastInterval;
-        RaiseNetworkEvent(new FSPrepTimerUpdateEvent(0f, false), Filter.Broadcast());
         if (!dark && comp.WaveStartSound != null)
             _audio.PlayGlobal(comp.WaveStartSound, Filter.Broadcast(), true);
         var combatStarted = new WaveCombatStartedEvent();
@@ -414,7 +453,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
             AwardBossReward(comp);
 
-        _spawning.PushEnemyCount(comp);
         CheckWaveComplete(uid, comp);
     }
 
@@ -423,7 +461,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (!TryGetActiveRule(out var ruleUid, out var ruleComp) || !ruleComp.AliveEnemies.Remove(uid))
             return;
 
-        _spawning.PushEnemyCount(ruleComp);
         CheckWaveComplete(ruleUid, ruleComp);
     }
 
@@ -445,7 +482,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.VoteCountdownSoundPlayed = false;
         comp.PhaseEndTime = Timing.CurTime + VoteCountdown;
         comp.VoteCountdownSoundTime = Timing.CurTime + TimeSpan.FromSeconds(2);
-        comp.NextTimerBroadcastTime = Timing.CurTime;
     }
 
     public record struct CCCStateData(

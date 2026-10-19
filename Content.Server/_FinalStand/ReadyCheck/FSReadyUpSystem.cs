@@ -57,13 +57,11 @@ public sealed partial class FSReadyUpSystem : EntitySystem
     {
         _ready.Clear();
         _shaved.Clear();
-        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.Broadcast());
         BroadcastState();
     }
 
     private void OnCombatStarted(ref WaveCombatStartedEvent ev)
     {
-        RaiseNetworkEvent(new WavePhaseChangedEvent(false), Filter.Broadcast());
         BroadcastState();
     }
 
@@ -72,8 +70,7 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         if (!_waveRule.IsPrep())
             return;
 
-        // Late joiners need the ready-up widget, and everyone else's total just grew.
-        RaiseNetworkEvent(new WavePhaseChangedEvent(true), Filter.SinglePlayer(ev.Player));
+        // Everyone else's total just grew.
         BroadcastState();
     }
 

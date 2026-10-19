@@ -31,7 +31,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
 
-    private static readonly TimeSpan EnemyCountBroadcastInterval = TimeSpan.FromSeconds(0.25);
     private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
     private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
 
@@ -196,7 +195,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
 
         var intervalSec = comp.MinSpawnInterval + _random.NextFloat() * (comp.MaxSpawnInterval - comp.MinSpawnInterval);
         comp.NextSpawnTime = _timing.CurTime + TimeSpan.FromSeconds(intervalSec);
-        PushEnemyCount(comp);
     }
 
     private void BuildSpawnPlan(WaveGameRuleComponent comp)
@@ -304,16 +302,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return enemy;
     }
 
-    public void PushEnemyCount(WaveGameRuleComponent comp)
-    {
-        var now = _timing.CurTime;
-        if (now < comp.NextEnemyCountBroadcast)
-            return;
-
-        comp.NextEnemyCountBroadcast = now + EnemyCountBroadcastInterval;
-        RaiseNetworkEvent(new FSEnemyCountEvent(comp.AliveEnemies.Count, comp.EnemyTotalThisWave), Filter.Broadcast());
-    }
-
     private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, List<EntProtoId> pool)
     {
         foreach (var special in comp.SpecialEnemyPool)
@@ -334,10 +322,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     {
         comp.NextSpawnTime = _timing.CurTime + dark.SpawnInterval;
         if (comp.AliveEnemies.Count >= dark.MaxAlive)
-        {
-            PushEnemyCount(comp);
             return;
-        }
 
         _darkWavePlayerBuffer.Clear();
         var playerQuery = EntityQueryEnumerator<ActorComponent, MobStateComponent>();
@@ -366,7 +351,6 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
             comp.EnemiesSpawnedThisWave++;
         }
 
-        PushEnemyCount(comp);
     }
 
     private EntityCoordinates? FindSpawnNearPlayer(EntityCoordinates playerCoords)
