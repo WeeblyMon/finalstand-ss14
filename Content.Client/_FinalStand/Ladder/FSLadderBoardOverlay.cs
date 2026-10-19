@@ -1,8 +1,11 @@
+using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.GameTicking;
 using Content.Shared._FinalStand.Ladder;
 using Robust.Client.Graphics;
+using Robust.Client.Input;
+using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.Utility;
@@ -13,6 +16,8 @@ public sealed partial class FSLadderBoardOverlay : Overlay
 {
     [Dependency] private IEntityManager _entMan = default!;
     [Dependency] private IResourceCache _resources = default!;
+    [Dependency] private IInputManager _input = default!;
+    [Dependency] private IPlayerManager _player = default!;
 
     private static readonly ResPath BoldPath = new("/Fonts/NotoSans/NotoSans-Bold.ttf");
     private static readonly ResPath RegularPath = new("/Fonts/NotoSans/NotoSans-Regular.ttf");
@@ -32,6 +37,14 @@ public sealed partial class FSLadderBoardOverlay : Overlay
     private const float WorldLift = 0.7f;
     private const float CullMargin = 160f;
     private const string Ellipsis = "…";
+    private const string Separator = ", ";
+    private const float TooltipPad = 6f;
+    private const float TooltipOffset = 14f;
+    private static readonly Color OwnName = Color.FromHex("#FFE45C");
+
+    private readonly List<string> _hoverNames = new();
+    private bool _hovering;
+    private string? _ownName;
 
     private Font? _title;
     private Font? _body;
@@ -57,6 +70,9 @@ public sealed partial class FSLadderBoardOverlay : Overlay
 
         var matrix = args.ViewportControl.GetWorldToScreenMatrix();
         var bounds = args.ViewportBounds;
+        var mouse = _input.MouseScreenPosition.Position;
+        _ownName = _player.LocalEntity is { } local ? _entMan.GetComponentOrNull<MetaDataComponent>(local)?.EntityName : null;
+        _hovering = false;
 
         var query = _entMan.EntityQueryEnumerator<FSLadderBoardComponent, TransformComponent>();
         while (query.MoveNext(out var board, out var xform))
@@ -69,11 +85,28 @@ public sealed partial class FSLadderBoardOverlay : Overlay
                 anchor.Y < bounds.Top - CullMargin || anchor.Y > bounds.Bottom + CullMargin * 2)
                 continue;
 
-            DrawBoard(handle, board, anchor);
+            DrawBoard(handle, board, anchor, mouse);
         }
+
+        if (_hovering)
+            DrawTooltip(handle, mouse, bounds);
     }
 
-    private void DrawBoard(DrawingHandleScreen handle, FSLadderBoardComponent board, Vector2 anchor)
+    public static List<string> CrewFor(string players, string? ownName)
+    {
+        var names = new List<string>(players.Split(Separator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        if (ownName != null && names.FindIndex(n => string.Equals(n, ownName, StringComparison.OrdinalIgnoreCase)) is var own and > 0)
+        {
+            var name = names[own];
+            names.RemoveAt(own);
+            names.Insert(0, name);
+        }
+        return names;
+    }
+
+    private bool IsOwn(string name) => _ownName != null && string.Equals(name, _ownName, StringComparison.OrdinalIgnoreCase);
+
+    private void DrawBoard(DrawingHandleScreen handle, FSLadderBoardComponent board, Vector2 anchor, Vector2 mouse)
     {
         var title = board.Weekly
             ? Loc.GetString("fs-ladder-board-weekly-title")
@@ -126,9 +159,72 @@ public sealed partial class FSLadderBoardOverlay : Overlay
                 TimeSpan.FromSeconds(run.DurationSeconds).ToString(@"h\:mm\:ss"), FSPalette.TextDim);
             x += TimeWidth;
 
-            handle.DrawString(_body, new Vector2(x, y), Fit(handle, _body, run.Players, nameWidth),
-                i == 0 ? FSPalette.TextBright : FSPalette.TextMuted);
+            var crew = CrewFor(run.Players, _ownName);
+            DrawCrew(handle, crew, new Vector2(x, y), nameWidth, i == 0 ? FSPalette.TextBright : FSPalette.TextMuted);
+
+            var row = new UIBox2(box.Left, y - RowGap / 2f, box.Right, y + lineHeight + RowGap / 2f);
+            if (!_hovering && row.Contains(mouse))
+            {
+                _hovering = true;
+                _hoverNames.Clear();
+                _hoverNames.AddRange(crew);
+                handle.DrawRect(row, FSPalette.Money.WithAlpha(0.08f));
+            }
             y += lineHeight + RowGap;
+        }
+    }
+
+    private void DrawCrew(DrawingHandleScreen handle, List<string> crew, Vector2 pos, float maxWidth, Color color)
+    {
+        if (crew.Count == 0)
+            return;
+
+        if (!IsOwn(crew[0]))
+        {
+            handle.DrawString(_body!, pos, Fit(handle, _body!, string.Join(Separator, crew), maxWidth), color);
+            return;
+        }
+
+        var own = Fit(handle, _body!, crew[0], maxWidth);
+        handle.DrawString(_body!, pos, own, OwnName);
+        if (crew.Count == 1 || own.EndsWith(Ellipsis))
+            return;
+
+        var used = handle.GetDimensions(_body!, own, 1f).X;
+        var rest = Separator + string.Join(Separator, crew.Skip(1));
+        if (maxWidth - used > 0f)
+            handle.DrawString(_body!, pos + new Vector2(used, 0f), Fit(handle, _body!, rest, maxWidth - used), color);
+    }
+
+    private void DrawTooltip(DrawingHandleScreen handle, Vector2 mouse, UIBox2 bounds)
+    {
+        var header = Loc.GetString("fs-ladder-board-crew", ("count", _hoverNames.Count));
+        var lineHeight = _body!.GetLineHeight(1f);
+        var width = handle.GetDimensions(_title!, header, 1f).X;
+        foreach (var name in _hoverNames)
+            width = MathF.Max(width, handle.GetDimensions(_body, name, 1f).X);
+        width += TooltipPad * 2f;
+        var height = TooltipPad * 2f + _title!.GetLineHeight(1f) + 2f + _hoverNames.Count * lineHeight;
+
+        var x = mouse.X + TooltipOffset;
+        var y = mouse.Y + TooltipOffset;
+        if (x + width > bounds.Right)
+            x = mouse.X - TooltipOffset - width;
+        if (y + height > bounds.Bottom)
+            y = MathF.Max(bounds.Top, bounds.Bottom - height);
+
+        var box = new UIBox2(x, y, x + width, y + height);
+        handle.DrawRect(box.Translated(new Vector2(2f, 3f)), FSPalette.PanelShadow);
+        handle.DrawRect(box, FSPalette.PanelDeep);
+        handle.DrawRect(box, FSPalette.PanelEdge, false);
+
+        var lineY = y + TooltipPad;
+        handle.DrawString(_title, new Vector2(x + TooltipPad, lineY), header, FSPalette.Money);
+        lineY += _title.GetLineHeight(1f) + 2f;
+        foreach (var name in _hoverNames)
+        {
+            handle.DrawString(_body, new Vector2(x + TooltipPad, lineY), name, IsOwn(name) ? OwnName : FSPalette.TextBright);
+            lineY += lineHeight;
         }
     }
 

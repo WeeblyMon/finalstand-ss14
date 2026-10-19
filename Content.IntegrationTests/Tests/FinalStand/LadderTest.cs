@@ -155,6 +155,18 @@ public sealed class LadderTest : GameTest
         });
     }
 
+    [Test]
+    public void YourOwnNameComesFirstInACrew()
+    {
+        var crew = "Ada, Bo, Cy";
+        Assert.Multiple(() =>
+        {
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, "cy"), Is.EqualTo(new[] { "Cy", "Ada", "Bo" }));
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, "Zed"), Is.EqualTo(new[] { "Ada", "Bo", "Cy" }));
+            Assert.That(Content.Client._FinalStand.Ladder.FSLadderBoardOverlay.CrewFor(crew, null), Is.EqualTo(new[] { "Ada", "Bo", "Cy" }));
+        });
+    }
+
     private static IEnumerable<Control> Descendants(Control control)
     {
         foreach (var child in control.Children)
