@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._FinalStand.Perks;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.Melee;
 using Content.Shared.Body.Systems;
@@ -27,6 +28,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private FSPerkKillPipelineSystem _killPipeline = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
     [Dependency] private MovementModStatusSystem _movementStatus = default!;
@@ -56,6 +58,9 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var profile = weapon.Comp.Get(heavy, finisher);
         var damage = args.BaseDamage + args.BonusDamage;
 
+        foreach (var target in targets)
+            _hitsThisTick[(user, target)] = (weapon, heavy, finisher);
+
         if (profile.FlinchedBonus > 0f)
         {
             foreach (var target in targets)
@@ -67,9 +72,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
         SendHit(user, weapon, targets, direction, heavy, finisher, 0, lethal, false);
         ApplyImpact(user, weapon, targets, profile);
-
-        foreach (var target in targets)
-            _hitsThisTick[(user, target)] = (weapon, heavy, finisher);
 
         if (profile.Pierce > 0)
             Pierce(user, weapon, targets, direction, heavy, finisher, profile, damage);
@@ -166,6 +168,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         foreach (var target in pierced)
         {
             _hitsThisTick[(user, target)] = (weapon, heavy, finisher);
+            _killPipeline.MarkMeleeHit(user, target);
             _damageable.ChangeDamage(target, damage, origin: user);
         }
 
@@ -242,6 +245,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         foreach (var target in strike.Targets)
         {
             _hitsThisTick[(strike.User, target)] = (strike.Weapon, strike.Heavy, strike.Finisher);
+            _killPipeline.MarkMeleeHit(strike.User, target);
             _damageable.ChangeDamage(target, strike.Damage, origin: strike.User);
         }
 
