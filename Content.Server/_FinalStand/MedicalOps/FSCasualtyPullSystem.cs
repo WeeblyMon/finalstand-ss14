@@ -169,8 +169,12 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
         var cooldown = TimeSpan.FromSeconds(_upgrades.Unlocked(FSMedicalUpgradeSystem.RecoveryUplink) ? 80 : 120);
 
+        // Started here too, so a pull from the board shows on the action button as well.
         if (action is { } act)
+        {
             _actions.SetUseDelay((act.Owner, act.Comp), cooldown);
+            _actions.StartUseDelay((act.Owner, act.Comp));
+        }
 
         pullComp.ReadyAt = _timing.CurTime + cooldown;
         Dirty(doctor, pullComp);
