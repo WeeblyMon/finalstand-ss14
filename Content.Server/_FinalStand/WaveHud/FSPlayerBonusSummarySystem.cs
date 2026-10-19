@@ -56,7 +56,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
     }
 
-    private void OnResearchNodeCompleted(FSResearchNodeCompletedEvent ev) => RecomputeAll();
+    private void OnResearchNodeCompleted(ref FSResearchNodeCompletedEvent ev) => RecomputeAll();
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
     {

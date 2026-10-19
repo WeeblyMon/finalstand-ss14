@@ -19,7 +19,7 @@ public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
         SubscribeLocalEvent<ResearchServerComponent, MapInitEvent>(OnServerInit);
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (!TryGetVanillaId(ev.NodeId, out var vanillaId))
             return;

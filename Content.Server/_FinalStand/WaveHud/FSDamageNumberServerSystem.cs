@@ -47,7 +47,7 @@ public sealed class FSDamageNumberServerSystem : EntitySystem
         }, actor.PlayerSession);
     }
 
-    private void OnCritLanded(EntityUid uid, WaveSpawnedTagComponent _, CritLandedEvent args)
+    private void OnCritLanded(EntityUid uid, WaveSpawnedTagComponent _, ref CritLandedEvent args)
     {
         if (!TryComp<ActorComponent>(args.Shooter, out var actor))
             return;
@@ -60,7 +60,7 @@ public sealed class FSDamageNumberServerSystem : EntitySystem
         }, actor.PlayerSession);
     }
 
-    private void OnArmorAbsorbed(EntityUid uid, WaveSpawnedTagComponent _, FSArmorAbsorbedEvent args)
+    private void OnArmorAbsorbed(EntityUid uid, WaveSpawnedTagComponent _, ref FSArmorAbsorbedEvent args)
     {
         if (args.Shooter == null || args.Absorbed <= 0f)
             return;

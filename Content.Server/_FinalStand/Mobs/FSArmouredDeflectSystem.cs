@@ -60,7 +60,7 @@ public sealed partial class FSArmouredDeflectSystem : EntitySystem
         }
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (!TryComp<FSArmouredDeflectComponent>(ev.Target, out var comp))
             return;

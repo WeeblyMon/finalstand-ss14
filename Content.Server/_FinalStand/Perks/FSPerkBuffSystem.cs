@@ -50,7 +50,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeDamageEvent>(OnSwordAndShieldDamage);
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Shooter == null) return;
         if (!_mind.TryGetMind(ev.Shooter.Value, out var mindId, out _)) return;

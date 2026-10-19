@@ -40,7 +40,7 @@ public sealed partial class PrismaticUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;

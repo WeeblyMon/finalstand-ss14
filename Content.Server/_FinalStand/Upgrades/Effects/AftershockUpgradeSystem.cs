@@ -34,7 +34,7 @@ public sealed partial class AftershockUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSAftershockTrackerComponent, MobStateChangedEvent>(OnKill);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

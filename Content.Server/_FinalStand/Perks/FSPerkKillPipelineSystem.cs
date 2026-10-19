@@ -37,7 +37,7 @@ public sealed partial class FSPerkKillPipelineSystem : EntitySystem
         _meleeHits.Clear();
     }
 
-    private void OnPlayerMeleeHit(FSPlayerMeleeHitEvent ev)
+    private void OnPlayerMeleeHit(ref FSPlayerMeleeHitEvent ev)
     {
         foreach (var target in ev.Hit.HitEntities)
             _meleeHits.Add((ev.Hit.User, target));

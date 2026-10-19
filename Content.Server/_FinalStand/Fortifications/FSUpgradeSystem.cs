@@ -121,7 +121,7 @@ public sealed partial class FSUpgradeSystem : SharedFSUpgradeSystem
         }
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId != FSEngineeringNodes.OverbuiltBulwark)
             return;

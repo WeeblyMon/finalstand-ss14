@@ -58,7 +58,7 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
 
     public bool Has(string node) => _research.IsNodeUnlocked(node);
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.Earned)
             AnnounceToEngineers(ev.NodeId);

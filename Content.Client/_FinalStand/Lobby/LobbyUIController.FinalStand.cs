@@ -8,7 +8,7 @@ namespace Content.Client.Lobby;
 
 public sealed partial class LobbyUIController
 {
-    private int _FSPerkPoints;
+    private int _fsPerkPoints;
     private int _fsLevel = 1;
     private int _fsPrestige;
     private int _fsExperience;
@@ -43,7 +43,7 @@ public sealed partial class LobbyUIController
 
     private void OnFSWalletUpdated(WalletUpdatedEvent ev, EntitySessionEventArgs args)
     {
-        _FSPerkPoints = ev.PerkPoints;
+        _fsPerkPoints = ev.PerkPoints;
         UpdateFSPerkPoints();
     }
 
@@ -59,7 +59,7 @@ public sealed partial class LobbyUIController
     private void UpdateFSPerkPoints()
     {
         HookLobbyButtons();
-        PreviewPanel?.SetPerkPointsText(_FSPerkPoints);
+        PreviewPanel?.SetPerkPointsText(_fsPerkPoints);
     }
 
     // The wallet is only pushed on request, and the lobby panel may not exist yet when the reply

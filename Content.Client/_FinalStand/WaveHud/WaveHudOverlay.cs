@@ -53,7 +53,7 @@ public sealed partial class WaveHudOverlay : Overlay
     private Control? _alertsControl;
     private Control? _alertsScreen;
 
-    private float panelW0 = 150f;
+    private float _panelW0 = 150f;
 
     private string _layoutRaw = "";
     private bool _isSeparatedLayout;
@@ -343,7 +343,7 @@ public sealed partial class WaveHudOverlay : Overlay
         PanelTop = y;
         PanelWidth = panelW;
 
-        panelW0 = panelW;
+        _panelW0 = panelW;
 
         var waveBox = new UIBox2(panelX, y, panelX + panelW, y + totalH);
         DrawPanel(screen, waveBox, VitalsBack, VitalsEdge, FSPalette.Danger);

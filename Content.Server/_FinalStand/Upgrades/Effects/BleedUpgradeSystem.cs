@@ -58,7 +58,7 @@ public sealed partial class BleedUpgradeSystem : EntitySystem
             RemComp<FSBleedingComponent>(uid);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

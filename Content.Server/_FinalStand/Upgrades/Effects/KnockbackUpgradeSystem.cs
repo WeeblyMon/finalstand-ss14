@@ -42,7 +42,7 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
         }
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null || ev.Shooter == null)
             return;

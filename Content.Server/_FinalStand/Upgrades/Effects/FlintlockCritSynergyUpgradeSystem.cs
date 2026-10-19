@@ -129,7 +129,7 @@ public sealed partial class FlintlockCritSynergyUpgradeSystem : EntitySystem
         CloseWindow(args.User);
     }
 
-    private void OnProjectileHitEffect(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHitEffect(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Shooter is not { } shooter || ev.Weapon is not { } weapon)
             return;

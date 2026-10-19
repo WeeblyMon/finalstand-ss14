@@ -861,7 +861,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         foreach (var mind in stale)
             SendPersonalResearchState(mind);
 
-        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID));
+        var completed = new FSResearchNodeCompletedEvent(node.ID);
+
+        RaiseLocalEvent(ref completed);
 
         Log.Info($"Completed node {node.ID}");
     }
@@ -917,7 +919,8 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
                 continue;
 
             MarkNodeUnlocked(station.Comp, node.ID);
-            RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+            var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+            RaiseLocalEvent(ref completed);
             count++;
         }
 

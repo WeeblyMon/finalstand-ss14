@@ -92,7 +92,7 @@ public sealed partial class FSMedicalUpgradeSystem : EntitySystem
 
     public bool Unlocked(string nodeId) => _research.IsNodeUnlocked(nodeId);
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (!NodeSet.Contains(ev.NodeId))
             return;

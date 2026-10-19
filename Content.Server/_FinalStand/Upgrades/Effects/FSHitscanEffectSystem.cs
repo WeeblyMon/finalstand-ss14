@@ -54,13 +54,8 @@ public sealed partial class FSHitscanEffectSystem : EntitySystem
 
         if (HasComp<WaveSpawnedTagComponent>(target) && args.Data.Shooter is { } shooter)
         {
-            RaiseLocalEvent(target, new CritLandedEvent
-            {
-                Target      = target,
-                Shooter     = shooter,
-                FinalDamage = finalDamage.GetTotal().Float(),
-                WasCrit     = didCrit,
-            });
+            var landed = new CritLandedEvent(target, shooter, finalDamage.GetTotal().Float(), didCrit);
+            RaiseLocalEvent(target, ref landed);
         }
 
         if (upgradeState == null)
@@ -69,16 +64,14 @@ public sealed partial class FSHitscanEffectSystem : EntitySystem
             return;
         }
 
-        var hitEffect = new FSProjectileHitEffectEvent
+        var hitEffect = new FSProjectileHitEffectEvent(target, finalDamage)
         {
-            Target  = target,
             Weapon  = args.Data.Gun,
             Shooter = args.Data.Shooter,
-            Damage  = finalDamage,
             State   = upgradeState,
             WasCrit = didCrit,
         };
-        RaiseLocalEvent(hitEffect);
+        RaiseLocalEvent(ref hitEffect);
 
         if (hitEffect.AdditionalMultiplier != 1f)
             finalDamage *= hitEffect.AdditionalMultiplier;

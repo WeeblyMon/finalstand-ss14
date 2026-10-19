@@ -51,7 +51,7 @@ public sealed partial class FSPerkCritSystem : EntitySystem
     public static float CombineChance(float a, float b) => MathF.Min(1f - (1f - a) * (1f - b), 1f);
 
     // Upgraded melee weapons with their own crit chance roll in FSMeleeUpgradeRuntimeSystem instead.
-    private void OnPlayerMeleeHit(FSPlayerMeleeHitEvent ev)
+    private void OnPlayerMeleeHit(ref FSPlayerMeleeHitEvent ev)
     {
         var hit = ev.Hit;
         if (TryComp<FSWeaponUpgradeStateComponent>(hit.Weapon, out var state) && state.CritChance > 0f)

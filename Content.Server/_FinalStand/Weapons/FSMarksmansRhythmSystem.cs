@@ -27,7 +27,7 @@ public sealed partial class FSMarksmansRhythmSystem : EntitySystem
         comp.LastShotTime = _timing.CurTime;
     }
 
-    private void OnProjectileHit(FSProjectileHitEffectEvent ev)
+    private void OnProjectileHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

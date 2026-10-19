@@ -227,7 +227,9 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
         state.Comp.UnlockedLookup.Add(node.ID);
         SyncConsoles();
 
-        RaiseLocalEvent(new FSResearchNodeCompletedEvent(node.ID, earned: false));
+        var completed = new FSResearchNodeCompletedEvent(node.ID, Earned: false);
+
+        RaiseLocalEvent(ref completed);
         _science.BroadcastUnlockedNodes();
         return true;
     }

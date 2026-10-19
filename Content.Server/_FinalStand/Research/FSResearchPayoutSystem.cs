@@ -27,7 +27,7 @@ public sealed partial class FSResearchPayoutSystem : EntitySystem
         SubscribeLocalEvent<FSResearchNodeCompletedEvent>(OnNodeCompleted);
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (!ev.Earned || !_proto.TryIndex<FSTechNodePrototype>(ev.NodeId, out var node))
             return;

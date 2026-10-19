@@ -38,7 +38,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         Reconcile(uid);
     }
 
-    private void OnNodeCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnNodeCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         var query = EntityQueryEnumerator<GunComponent>();
         while (query.MoveNext(out var uid, out _))

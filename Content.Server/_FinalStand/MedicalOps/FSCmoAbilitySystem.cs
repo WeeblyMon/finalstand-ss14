@@ -125,7 +125,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         SetActiveDirective(null);
     }
 
-    private void OnResearchCompleted(FSResearchNodeCompletedEvent ev)
+    private void OnResearchCompleted(ref FSResearchNodeCompletedEvent ev)
     {
         if (ev.NodeId == FSMedicalUpgradeSystem.DepartmentDividend)
         {

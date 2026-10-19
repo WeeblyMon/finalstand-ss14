@@ -297,7 +297,9 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         _scaling.ScaleEnemySpeed(enemy, comp.WaveNumber);
         _scaling.ScaleEnemyDamage(enemy, comp.WaveNumber, comp.ScalingPlayersThisWave);
         _scaling.ScaleEnemyFireRate(enemy, comp.WaveNumber);
-        RaiseLocalEvent(enemy, new FSEnemyHpScaledEvent()); // Armor system recalculates MaxArmor after HP scale
+        // Armor system recalculates MaxArmor after the HP scale.
+        var scaled = new FSEnemyHpScaledEvent();
+        RaiseLocalEvent(enemy, ref scaled);
         return enemy;
     }
 

@@ -84,17 +84,15 @@ public sealed partial class CritSystem : EntitySystem
             _pendingCrits.Add((comp.Shooter.Value, args.Target));
         }
 
-        var hitEffect = new FSProjectileHitEffectEvent
+        var hitEffect = new FSProjectileHitEffectEvent(args.Target, args.Damage)
         {
-            Target        = args.Target,
             Weapon        = comp.Weapon,
             Shooter       = comp.Shooter,
             ProjectileUid = uid,
-            Damage        = args.Damage,
             WasCrit       = didCrit,
             State         = CompOrNull<FSWeaponUpgradeStateComponent>(comp.Weapon.Value),
         };
-        RaiseLocalEvent(hitEffect);
+        RaiseLocalEvent(ref hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)
             args.Damage *= hitEffect.AdditionalMultiplier;
     }
@@ -113,12 +111,7 @@ public sealed partial class CritSystem : EntitySystem
             return;
 
         var wasCrit = _pendingCrits.Remove((args.Origin.Value, uid));
-        RaiseLocalEvent(uid, new CritLandedEvent
-        {
-            Target = uid,
-            Shooter = args.Origin.Value,
-            FinalDamage = amount,
-            WasCrit = wasCrit,
-        });
+        var landed = new CritLandedEvent(uid, args.Origin.Value, amount, wasCrit);
+        RaiseLocalEvent(uid, ref landed);
     }
 }

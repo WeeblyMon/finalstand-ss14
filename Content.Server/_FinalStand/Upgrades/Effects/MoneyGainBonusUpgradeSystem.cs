@@ -19,7 +19,7 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSPendingKillBonusComponent, MobStateChangedEvent>(OnEnemyDied);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;

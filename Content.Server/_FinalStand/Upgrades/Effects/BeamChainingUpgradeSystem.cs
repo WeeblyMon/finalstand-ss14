@@ -37,7 +37,7 @@ public sealed partial class BeamChainingUpgradeSystem : EntitySystem
         SubscribeLocalEvent<FSProjectileHitEffectEvent>(OnHit);
     }
 
-    private void OnHit(FSProjectileHitEffectEvent ev)
+    private void OnHit(ref FSProjectileHitEffectEvent ev)
     {
         if (ev.Weapon == null)
             return;
