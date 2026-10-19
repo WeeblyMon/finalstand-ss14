@@ -63,11 +63,12 @@ public sealed partial class FSManOnFireSystem : EntitySystem
             if (temp.Temperature > normalTemp)
                 _temperature.ChangeHeat((uid, temp), (normalTemp - temp.Temperature) * temp.HeatCapacity, ignoreHeatResistance: true);
 
-            if (resist > 1f && flammable.OnFire)
-            {
+            if (!flammable.OnFire)
+                continue;
+
+            _healingFire.MarkHealing(uid);
+            if (resist > 1f)
                 _damageable.HealEvenly(uid, FixedPoint2.New(-FSPerkBonusConstants.ManOnFireHealPerSecond));
-                _healingFire.MarkHealing(uid);
-            }
         }
     }
 }

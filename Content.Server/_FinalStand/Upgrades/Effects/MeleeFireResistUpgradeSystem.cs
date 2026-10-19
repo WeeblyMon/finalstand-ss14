@@ -75,6 +75,9 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
             if (!fireImmune)
                 continue;
 
+            if (TryComp<FlammableComponent>(tUid, out var burning) && burning.OnFire)
+                _healingFire.MarkHealing(tUid);
+
             var normalTemp = TryComp<ThermalRegulatorComponent>(tUid, out var regulator)
                 ? regulator.NormalBodyTemperature
                 : Atmospherics.T20C;
