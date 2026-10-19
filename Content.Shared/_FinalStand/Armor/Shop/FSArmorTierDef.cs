@@ -5,7 +5,12 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Armor.Shop;
 
-public sealed record FSArmorTierDef(string Id, string Name, int Price, string SpawnId);
+public sealed record FSArmorTierDef(string Id, int Price, string SpawnId)
+{
+    public string Name => Loc.GetString(NameKey);
+
+    public string NameKey => "fs-armor-tier-" + Id.Replace('_', '-');
+}
 
 // Read from the hardsuit prototype, so the shop cannot advertise numbers the item lacks.
 public sealed record FSArmorTierStats(
@@ -19,12 +24,12 @@ public static class FSArmorShopDefs
 
     public static readonly IReadOnlyList<FSArmorTierDef> Tiers = new FSArmorTierDef[]
     {
-        new("security_hardsuit",        "Security Hardsuit",             20_000, "FSArmorTierSecurityHardsuit"),
-        new("ert_security_hardsuit",    "ERT Security Hardsuit",         30_000, "FSArmorTierERTSecurityHardsuit"),
-        new("nukie_commander_hardsuit", "Nukie Commander Hardsuit",      40_000, "FSArmorTierNukieCommanderHardsuit"),
-        new("elite_hardsuit",           "Elite Hardsuit",                50_000, "FSArmorTierEliteHardsuit"),
-        new("cybersun_juggernaut",      "Cybersun Juggernaut Hardsuit",  70_000, "FSArmorTierCybersunJuggernaut"),
-        new("death_squad_hardsuit",     "Death Squad Hardsuit",         100_000, "FSArmorTierDeathSquadHardsuit"),
+        new("security_hardsuit",         20_000, "FSArmorTierSecurityHardsuit"),
+        new("ert_security_hardsuit",     30_000, "FSArmorTierERTSecurityHardsuit"),
+        new("nukie_commander_hardsuit",  40_000, "FSArmorTierNukieCommanderHardsuit"),
+        new("elite_hardsuit",            50_000, "FSArmorTierEliteHardsuit"),
+        new("cybersun_juggernaut",       70_000, "FSArmorTierCybersunJuggernaut"),
+        new("death_squad_hardsuit",     100_000, "FSArmorTierDeathSquadHardsuit"),
     };
 
     public static FSArmorTierDef? GetTier(string? id)

@@ -18,3 +18,10 @@ fs-armor-shop-trade-in = Trade-in
 fs-armor-shop-total = TOTAL
 fs-armor-shop-need-more = NEED ${ $amount } MORE
 fs-armor-shop-buy = BUY  —  ${ $price }
+
+fs-armor-tier-security-hardsuit = Security Hardsuit
+fs-armor-tier-ert-security-hardsuit = ERT Security Hardsuit
+fs-armor-tier-nukie-commander-hardsuit = Nukie Commander Hardsuit
+fs-armor-tier-elite-hardsuit = Elite Hardsuit
+fs-armor-tier-cybersun-juggernaut = Cybersun Juggernaut Hardsuit
+fs-armor-tier-death-squad-hardsuit = Death Squad Hardsuit
