@@ -14,7 +14,10 @@ public sealed partial class FSSingularityOnTriggerSystem : XOnTriggerSystem<FSSi
 
         if (TryComp<FSSingularityComponent>(singularity, out var sing))
         {
-            sing.Thrower = args.User;
+            // An impact fuse triggers with whatever it hit as the user, so the stored thrower wins.
+            sing.Thrower = TryComp<FSGrenadeOwnerComponent>(ent, out var owner) && owner.Thrower.IsValid()
+                ? owner.Thrower
+                : args.User;
             sing.Radius += ent.Comp.ExtraRadius;
             sing.LoopDuration += ent.Comp.ExtraDuration;
             sing.DamagePerSecond *= ent.Comp.DamageMultiplier;
