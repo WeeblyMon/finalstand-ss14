@@ -16,6 +16,7 @@ public sealed partial class FSUberSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSMedicalRosterSystem _roster = default!;
+    [Dependency] private FSUberSharedSystem _uberShared = default!;
 
     public const float FullCharge = 100f;
 
@@ -75,12 +76,7 @@ public sealed partial class FSUberSystem : EntitySystem
         if (gun.Comp.UberEndTime is not { } end)
             return;
 
-        var ubered = EnsureComp<FSUberedComponent>(patient);
-        ubered.EndTime = end;
-        ubered.Duration = gun.Comp.UberDuration;
-        ubered.SourceColor = gun.Comp.BeamColor;
-        ubered.InfiniteStamina = gun.Comp.UberInfiniteStamina;
-        Dirty(patient, ubered);
+        _uberShared.Cover(patient, end, gun.Comp.UberDuration, gun.Comp.BeamColor, gun.Comp.UberInfiniteStamina);
     }
 
     private void OnUberAction(Entity<FSMediGunComponent> ent, ref FSMediGunUberActionEvent args)

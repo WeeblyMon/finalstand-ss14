@@ -63,6 +63,7 @@ public sealed partial class FSHMGComponent : Component
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSHMGSystem))]
 public sealed partial class FSHMGGunnerComponent : Component
 {
     [AutoNetworkedField]

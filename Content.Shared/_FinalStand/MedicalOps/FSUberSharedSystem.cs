@@ -18,6 +18,16 @@ public sealed partial class FSUberSharedSystem : EntitySystem
     private static readonly SoundSpecifier BlockedSound = new SoundPathSpecifier("/Audio/Weapons/block_metal1.ogg");
     private static readonly TimeSpan TingInterval = TimeSpan.FromSeconds(0.2);
 
+    public void Cover(EntityUid patient, TimeSpan end, float duration, Color color, bool infiniteStamina)
+    {
+        var ubered = EnsureComp<FSUberedComponent>(patient);
+        ubered.EndTime = end;
+        ubered.Duration = duration;
+        ubered.SourceColor = color;
+        ubered.InfiniteStamina = infiniteStamina;
+        Dirty(patient, ubered);
+    }
+
     public override void Initialize()
     {
         base.Initialize();

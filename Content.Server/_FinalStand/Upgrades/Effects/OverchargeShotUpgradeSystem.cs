@@ -12,6 +12,7 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 
 // carries bolt damage + weapon/shooter so the shard cone on impact knows who fired it
 [RegisterComponent]
+[Access(typeof(OverchargeShotUpgradeSystem))]
 public sealed partial class FSOverchargeBoltComponent : Component
 {
     public DamageSpecifier BoltDamage = new();

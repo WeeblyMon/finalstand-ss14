@@ -7,6 +7,7 @@ namespace Content.Shared._FinalStand.Medical;
 
 // Kept off vanilla's OrganComponent so the body layer stays upstream-clean.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(Content.Shared._Shitmed.Medical.Surgery.Traumas.Systems.TraumaSystem))]
 public sealed partial class OrganIntegrityComponent : Component
 {
     [DataField("intCap"), AutoNetworkedField]

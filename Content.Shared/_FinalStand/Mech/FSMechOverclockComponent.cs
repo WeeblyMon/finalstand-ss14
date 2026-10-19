@@ -16,6 +16,7 @@ public sealed partial class FSMechOverclockComponent : Component
 }
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSMechOverclockSystem))]
 public sealed partial class FSMechOverclockedComponent : Component
 {
     [DataField, AutoNetworkedField]

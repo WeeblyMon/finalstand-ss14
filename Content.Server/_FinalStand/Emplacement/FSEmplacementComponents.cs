@@ -32,12 +32,14 @@ public sealed partial class FSEmplacementComponent : Component
 }
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementPieceComponent : Component
 {
     public EntityUid Core;
 }
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementCoverComponent : Component
 {
     public float MeleeDamage = 1f;

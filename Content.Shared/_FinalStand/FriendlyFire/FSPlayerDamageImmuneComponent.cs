@@ -7,4 +7,5 @@ namespace Content.Shared._FinalStand.FriendlyFire;
 ///     Enemies can still damage these structures normally.
 /// </summary>
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(FSFriendlyFireSharedSystem))]
 public sealed partial class FSPlayerDamageImmuneComponent : Component { }

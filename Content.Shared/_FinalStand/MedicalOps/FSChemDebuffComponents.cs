@@ -10,6 +10,7 @@ public sealed partial class FSArmorSuppressedComponent : Component
 }
 
 [RegisterComponent, NetworkedComponent]
+[Access(typeof(FSSuppressArmorRegenSystem), typeof(FSApplyVulnerabilitySystem))]
 public sealed partial class FSVulnerableComponent : Component
 {
     [DataField]
