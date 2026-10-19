@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._FinalStand.Deployables;
 using Content.Server._FinalStand.Upgrades.Effects;
 using Content.Server.Movement.Components;
 using Content.Server.Movement.Systems;
@@ -79,7 +80,11 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
 
     private void OnLaunched(Entity<ProjectileComponent> ent, ref FSProjectileLaunchedEvent args)
     {
-        if (args.Shooter is not { } shooter || !_actorQuery.TryComp(shooter, out var actor))
+        // A sentry credits its deployer as the shooter, but nobody aimed it: there's no client view to rewind to,
+        // and it mustn't join the deployer's shot window either.
+        if (args.Shooter is not { } shooter
+            || !_actorQuery.TryComp(shooter, out var actor)
+            || HasComp<FSDeployableProjectileComponent>(ent))
             return;
 
         if (_enabled)
