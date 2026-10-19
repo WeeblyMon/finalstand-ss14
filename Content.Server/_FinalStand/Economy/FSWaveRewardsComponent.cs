@@ -1,3 +1,4 @@
+using Robust.Shared.Network;
 namespace Content.Server._FinalStand.Economy;
 
 [RegisterComponent, Access(typeof(FSWaveRewardsSystem))]
@@ -33,8 +34,9 @@ public sealed partial class FSWaveRewardsComponent : Component
     [ViewVariables]
     public int CrewPaidSoFar;
 
+    // Keyed by player, not mind: leaving through cryo and rejoining makes a new mind.
     [ViewVariables]
-    public readonly HashSet<EntityUid> CaughtUpMinds = new();
+    public readonly HashSet<NetUserId> CaughtUpUsers = new();
 }
 
 // Minds that damaged a wave enemy, for assist credit.

@@ -114,7 +114,7 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
     {
         if (!TryGetRewards(out var rewards)
             || !_mind.TryGetMind(ev.Mob, out var mindId, out _)
-            || !rewards.CaughtUpMinds.Add(mindId))
+            || !rewards.CaughtUpUsers.Add(ev.Player.UserId))
         {
             return;
         }
