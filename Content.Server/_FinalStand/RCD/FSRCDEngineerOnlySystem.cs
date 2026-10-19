@@ -3,6 +3,7 @@ using Content.Server.Destructible;
 using Content.Server.Stack;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.RCD;
+using Content.Shared.GameTicking;
 using Content.Shared.RCD;
 using Content.Shared.Interaction;
 using Content.Shared.Popups;
@@ -44,6 +45,14 @@ public sealed partial class FSRCDEngineerOnlySystem : EntitySystem
         SubscribeLocalEvent<FSEngineerOnlyRCDComponent, FSRCDDelayEvent>(OnDelay);
         SubscribeNetworkEvent<FSRCDProbeRequestEvent>(OnProbe);
         SubscribeNetworkEvent<FSRCDBeltPickEvent>(OnBeltPick);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // The silo drops its reservation totals on restart; releasing these later would subtract from the next round's.
+    private void OnRoundRestart(RoundRestartCleanupEvent args)
+    {
+        _reservedAt.Clear();
+        _rcdReservations.Clear();
     }
 
     private void OnDoAfter(Entity<FSEngineerOnlyRCDComponent> ent, ref RCDDoAfterEvent args)
