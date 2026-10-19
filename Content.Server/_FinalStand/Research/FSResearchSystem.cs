@@ -42,6 +42,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     private static readonly TimeSpan ProgressSyncInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextProgressSync;
     private bool _progressSyncPending;
+
+    // Set when the shared queue starts a node, so banked RP (and overflow from the node that just finished)
+    // goes into it. Done next tick because the queue advances from inside the grant itself.
+    private bool _reinvestPending;
     private readonly HashSet<EntityUid> _personalSyncPending = new();
 
     public override void Initialize()
@@ -228,6 +232,17 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+
+        if (_reinvestPending)
+        {
+            _reinvestPending = false;
+            if (TryGetStation(out var station) && station.Comp.ActiveResearch != null && station.Comp.Points > 0)
+            {
+                var banked = station.Comp.Points;
+                station.Comp.Points = 0;
+                GrantResearchPoints(banked, "banked-rp-reinvest");
+            }
+        }
 
         if (!_progressSyncPending && _personalSyncPending.Count == 0 || _timing.CurTime < _nextProgressSync)
             return;
@@ -632,6 +647,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             station.Comp.SharedQueue.RemoveAt(0);
             station.Comp.NodeProgress.TryAdd(node.ID, 0);
             station.Comp.ActiveResearch = node.ID;
+            _reinvestPending = true;
             return;
         }
     }
