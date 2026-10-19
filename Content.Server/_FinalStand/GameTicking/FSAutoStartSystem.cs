@@ -14,8 +14,8 @@ public sealed partial class FSAutoStartSystem : EntitySystem
     [Dependency] private IGameMapManager _mapManager = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    private static readonly ProtoId<GamePresetPrototype> Preset = "FinalStand";
-    private static readonly ProtoId<GameMapPrototype> Map = "FinalStandMap1";
+    public static readonly ProtoId<GamePresetPrototype> Preset = "FinalStand";
+    public static readonly ProtoId<GameMapPrototype> Map = "FinalStandMap1";
 
     public override void Initialize()
     {

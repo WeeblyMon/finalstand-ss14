@@ -17,7 +17,7 @@ public sealed partial class FSChemistBriefingSystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId != FSMedicalRosterSystem.ChemistJob || ev.Silent)
+        if (ev.JobId != FSMedicalRosterSystem.ChemistJob.Id || ev.Silent)
             return;
 
         _chat.DispatchServerMessage(ev.Player, Loc.GetString("fs-chemist-objective"));

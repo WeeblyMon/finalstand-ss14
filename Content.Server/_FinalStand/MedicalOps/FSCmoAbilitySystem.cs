@@ -197,7 +197,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
     {
-        if (ev.JobId == FSMedicalRosterSystem.CmoJob)
+        if (ev.JobId == FSMedicalRosterSystem.CmoJob.Id)
         {
             var panel = EnsureComp<FSCmoPanelComponent>(ev.Mob);
             panel.ActiveDirective = _activeDirective;
