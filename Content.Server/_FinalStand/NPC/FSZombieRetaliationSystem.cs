@@ -1,10 +1,12 @@
 using Content.Server._FinalStand.Spawners;
+using Content.Shared._FinalStand.Effects;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC;
+using Robust.Shared.Map;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.NPC;
@@ -27,6 +29,11 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
     private float _accumulator;
 
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _peerBuffer = new();
+
+    // One pack alert per attacker per area per cooldown. Keying it on the zombie that was hit meant a weapon
+    // sweeping a dense horde ran a 10-tile lookup for every zombie it touched.
+    private readonly FSEffectThrottle<(EntityUid Attacker, MapId Map, Vector2i Cell)> _alerts =
+        new(TimeSpan.FromSeconds(AlertCooldown));
 
     public override void Update(float frameTime)
     {
@@ -81,18 +88,22 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
 
         var bb = htn.Blackboard;
         var curTime = _timing.CurTime;
+        var newAttacker = !bb.TryGetValue<EntityUid>(FSAIBlackboardKeys.LastAttacker, out var previous, EntityManager)
+                          || previous != attacker;
+
         bb.SetValue(FSAIBlackboardKeys.LastAttacker, attacker);
         bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, RetaliationDuration);
         bb.SetValue(FSAIBlackboardKeys.AggroGraceUntil, curTime + TimeSpan.FromSeconds(RetaliationDuration));
-        _htn.Replan(htn);
 
-        // Gates the 10-tile broadcast query itself, not just each peer's alert, so full-auto weapons don't spam it.
-        if (bb.TryGetValue<TimeSpan>(FSAIBlackboardKeys.PackAlertCooldown, out var ownCooldown, EntityManager)
-            && curTime < ownCooldown)
-            return;
+        // Every bullet from the same gun only refreshes the timers; replanning is for a change of target.
+        if (newAttacker)
+            _htn.Replan(htn);
 
         bb.SetValue(FSAIBlackboardKeys.PackAlertCooldown, curTime + TimeSpan.FromSeconds(AlertCooldown));
-        AlertNearby(uid, attacker);
+
+        var pos = _transform.GetMapCoordinates(uid);
+        if (_alerts.TryReserve((attacker, pos.MapId, (pos.Position / AlertRadius).Floored()), curTime))
+            AlertNearby(uid, attacker);
     }
 
     private void AlertNearby(EntityUid uid, EntityUid attacker)
@@ -102,7 +113,7 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
 
         foreach (var peer in _peerBuffer)
         {
-            if (peer.Owner == uid) continue;
+            if (peer.Owner == uid || !HasComp<ActiveNPCComponent>(peer.Owner)) continue;
             if (!TryComp<HTNComponent>(peer.Owner, out var peerHtn)) continue;
 
             var bb = peerHtn.Blackboard;
