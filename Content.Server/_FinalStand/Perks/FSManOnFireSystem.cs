@@ -31,9 +31,9 @@ public sealed partial class FSManOnFireSystem : EntitySystem
         return level <= 0 ? 0f : FSPerkBonusConstants.ManOnFireResist[Math.Min(level, FSPerkDef.MaxLevel) - 1];
     }
 
-    public bool IsHeatImmune(EntityUid uid)
+    public float GetHeatResist(EntityUid uid)
     {
-        return TryComp<FSManOnFireComponent>(uid, out var comp) && GetResist(comp.Level) >= 1f;
+        return TryComp<FSManOnFireComponent>(uid, out var comp) ? MathF.Min(GetResist(comp.Level), 1f) : 0f;
     }
 
     private void OnGetFireProtection(Entity<FSManOnFireComponent> ent, ref GetFireProtectionEvent args)

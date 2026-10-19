@@ -86,11 +86,9 @@ public sealed partial class MeleeFireResistUpgradeSystem : EntitySystem
 
     private void OnWielderHeatExchange(Entity<HandsComponent> ent, ref BeforeHeatExchangeEvent args)
     {
-        if (_manOnFire.IsHeatImmune(ent))
-        {
-            args.HeatTransferModifier = 0f;
+        args.HeatTransferModifier *= 1f - _manOnFire.GetHeatResist(ent);
+        if (args.HeatTransferModifier <= 0f)
             return;
-        }
 
         foreach (var held in _hands.EnumerateHeld((ent.Owner, ent.Comp)))
         {
