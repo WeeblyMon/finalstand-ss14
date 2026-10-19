@@ -69,3 +69,4 @@ fs-perk-shop-loadout-save = SAVE
 fs-perk-shop-loadout-save-empty = Your build is empty — nothing to save
 fs-perk-shop-loadout-overwrite = Overwrite with your current build
 fs-perk-shop-loadout-save-tooltip = Save your current build here
+fs-perk-undying-triggered = Undying!

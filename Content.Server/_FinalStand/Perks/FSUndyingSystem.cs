@@ -5,6 +5,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Rejuvenate;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Perks;
@@ -23,6 +24,14 @@ public sealed partial class FSUndyingSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<FSUndyingComponent, UpdateMobStateEvent>(OnUpdateMobState, after: [typeof(MobThresholdSystem)]);
         SubscribeLocalEvent<FSUndyingComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<FSUndyingComponent, RejuvenateEvent>(OnRejuvenate);
+    }
+
+    // A paid respawn revives the same body, so this is where a new life starts.
+    private void OnRejuvenate(EntityUid uid, FSUndyingComponent comp, RejuvenateEvent args)
+    {
+        comp.Used = false;
+        comp.EndTime = null;
     }
 
     public bool IsActive(EntityUid uid)
@@ -71,7 +80,7 @@ public sealed partial class FSUndyingSystem : EntitySystem
         RemComp<DelayedDeathComponent>(ent);
 
         _ammo.FillHeld(ent);
-        _popup.PopupEntity("Undying!", ent, PopupType.LargeCaution);
+        _popup.PopupEntity(Loc.GetString("fs-perk-undying-triggered"), ent, PopupType.LargeCaution);
         ent.Comp.ShownSeconds = (int) MathF.Ceiling(seconds);
         _notify.SendStacksToBody(ent, "Undying", ent.Comp.ShownSeconds);
         return true;
