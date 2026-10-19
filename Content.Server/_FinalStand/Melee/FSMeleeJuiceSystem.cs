@@ -13,9 +13,11 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Physics;
+using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Robust.Server.Audio;
 using Robust.Shared.Audio;
+using Robust.Shared.Map;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
@@ -41,6 +43,11 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float WallSlamFlinch = 0.8f;
     private const float WallSlamDamage = 8f;
     private const float StrikeRangeSlack = 0.5f;
+    private const float LaunchMinSpeed = 8f;
+    private const float SlamReach = 0.75f;
+    private const float LaunchRadius = 0.7f;
+    private const float LaunchKnockback = 0.5f;
+    private const float LaunchFlinch = 0.75f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
 
@@ -49,6 +56,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private readonly List<PendingStrike> _strikes = new();
     private readonly Dictionary<(EntityUid User, EntityUid Target), (EntityUid Weapon, bool Heavy, bool Finisher)> _hitsThisTick = new();
     private readonly HashSet<Entity<MobStateComponent>> _nearby = new();
+    private readonly List<EntityUid> _launched = new();
 
     public override void Initialize()
     {
@@ -74,13 +82,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, targets, direction, heavy, finisher, 0, lethal, false);
-        ApplyImpact(user, weapon, targets, profile);
+        ApplyImpact(user, weapon, targets, profile, damage);
 
         if (profile.Pierce > 0)
-            Pierce(user, weapon, targets, direction, heavy, finisher, profile, damage);
+            Pierce(user, weapon, targets, Xform.GetMapCoordinates(targets[0]), direction, profile.PierceRange, heavy, finisher, profile, damage);
 
         if (profile.StaggerRadius > 0f)
-            Stagger(user, targets, profile);
+            Stagger(user, targets, profile, SlamPoint(weapon, user, direction, heavy) ?? Xform.GetMapCoordinates(targets[0]));
 
         if (profile.ExtraStrikes <= 0)
             return;
@@ -102,10 +110,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         RaiseNetworkEvent(new FSMeleeHitJuiceEvent(GetNetEntity(user), GetNetEntity(weapon), GetNetEntityList(targets), direction, heavy, strike, lethal, finisher), filter);
     }
 
-    private void ApplyImpact(EntityUid user, EntityUid weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile)
+    private void ApplyImpact(EntityUid user, EntityUid weapon, List<EntityUid> targets, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
         var userPos = Xform.GetWorldPosition(user);
-        var active = !TryComp<ItemToggleComponent>(weapon, out var toggle) || toggle.Activated;
+        var active = IsActive(weapon);
         foreach (var target in targets)
         {
             if (TerminatingOrDeleted(target) || !HasComp<MobStateComponent>(target))
@@ -124,7 +132,83 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
             if (pushed >= WallSlamKnockback)
                 TryWallSlam(user, target, push, pushed);
+
+            if (profile.Launch > 0f && pushed >= LaunchMinSpeed)
+                Launch(user, weapon, target, push, damage * profile.Launch, profile);
         }
+    }
+
+    private void Launch(EntityUid user, EntityUid weapon, EntityUid target, Vector2 push, DamageSpecifier damage, FSMeleeJuiceProfile profile)
+    {
+        var launched = EnsureComp<FSMeleeLaunchedComponent>(target);
+        launched.User = user;
+        launched.Weapon = weapon;
+        launched.Damage = damage;
+        launched.Direction = Vector2.Normalize(push);
+        launched.Until = Timing.CurTime + TimeSpan.FromSeconds(profile.KnockbackDuration);
+        launched.Hit.Clear();
+    }
+
+    private void UpdateLaunched()
+    {
+        var now = Timing.CurTime;
+        _launched.Clear();
+        var query = EntityQueryEnumerator<FSMeleeLaunchedComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            _launched.Add(uid);
+        }
+
+        foreach (var uid in _launched)
+        {
+            if (!TryComp<FSMeleeLaunchedComponent>(uid, out var launched))
+                continue;
+
+            if (now >= launched.Until || TerminatingOrDeleted(launched.User) || !TryComp<FSMeleeJuiceComponent>(launched.Weapon, out var juice))
+            {
+                RemComp<FSMeleeLaunchedComponent>(uid);
+                continue;
+            }
+
+            CrashInto(uid, launched, juice.Get(true));
+        }
+    }
+
+    // Mobs in the launched body's path are bowled over and take part of the hit.
+    private void CrashInto(EntityUid body, FSMeleeLaunchedComponent launched, FSMeleeJuiceProfile profile)
+    {
+        var user = launched.User;
+        var center = Xform.GetMapCoordinates(body);
+        _nearby.Clear();
+        _lookup.GetEntitiesInRange(center, LaunchRadius, _nearby);
+
+        var struck = new List<EntityUid>();
+        foreach (var mob in _nearby)
+        {
+            if (mob.Owner == body || mob.Owner == user || launched.Hit.Contains(mob) || !CanSpill(user, center, mob, LaunchRadius))
+                continue;
+
+            launched.Hit.Add(mob);
+            struck.Add(mob);
+        }
+
+        if (struck.Count == 0)
+            return;
+
+        foreach (var mob in struck)
+        {
+            _hitsThisTick[(user, mob)] = (launched.Weapon, true, false);
+            _killPipeline.MarkMeleeHit(user, mob);
+            _damageable.ChangeDamage(mob, launched.Damage, origin: user);
+
+            var away = Xform.GetWorldPosition(mob) - center.Position;
+            var push = launched.Direction + (away == Vector2.Zero ? Vector2.Zero : Vector2.Normalize(away));
+            _knockback.Push(mob, push, profile.Knockback * LaunchKnockback, TimeSpan.FromSeconds(profile.KnockbackDuration));
+            Flinch(mob, profile.FlinchDuration * LaunchFlinch, profile.FlinchSpeed);
+        }
+
+        _audio.PlayPvs(WallSlamSound, body, AudioParams.Default.WithVariation(0.1f));
+        SendHit(user, launched.Weapon, struck, launched.Direction, true, false, 0, false, true);
     }
 
     private void TryWallSlam(EntityUid user, EntityUid target, Vector2 push, float knockback)
@@ -144,19 +228,24 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
     }
 
-    private void Pierce(EntityUid user, EntityUid weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, FSMeleeJuiceProfile profile, DamageSpecifier damage)
+    private bool IsActive(EntityUid weapon)
     {
-        var map = Xform.GetMapCoordinates(targets[0]);
+        return !TryComp<ItemToggleComponent>(weapon, out var toggle) || toggle.Activated;
+    }
+
+    // Hits up to the profile's pierce count of mobs along a line from the origin.
+    private void Pierce(EntityUid user, EntityUid weapon, List<EntityUid> targets, MapCoordinates map, Vector2 direction, float range, bool heavy, bool finisher, FSMeleeJuiceProfile profile, DamageSpecifier damage)
+    {
         var dir = Vector2.Normalize(direction);
         var pierced = new List<EntityUid>();
 
-        for (var step = 0.5f; step <= profile.PierceRange && pierced.Count < profile.Pierce; step += 0.5f)
+        for (var step = 0.5f; step <= range && pierced.Count < profile.Pierce; step += 0.5f)
         {
             _nearby.Clear();
             _lookup.GetEntitiesInRange(map.Offset(dir * step), 0.4f, _nearby);
             foreach (var mob in _nearby)
             {
-                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || !CanSpill(user, targets[0], mob, profile.PierceRange))
+                if (mob.Owner == user || targets.Contains(mob) || pierced.Contains(mob) || !CanSpill(user, map, mob, range))
                     continue;
 
                 pierced.Add(mob);
@@ -176,17 +265,34 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, pierced, direction, heavy, finisher, 0, false, true);
-        ApplyImpact(user, weapon, pierced, profile);
+        ApplyImpact(user, weapon, pierced, profile, damage);
     }
 
-    private void Stagger(EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile)
+    // A slam staggers around where it lands and a dash cuts through what it passes, even with nothing in reach of the swing.
+    protected override void OnHeavyMiss(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 aim, FSMeleeJuiceProfile profile, DamageSpecifier damage)
     {
-        var center = Xform.GetMapCoordinates(targets[0]);
+        if (profile.StaggerRadius > 0f && SlamPoint(weapon, user, aim, true) is { } point)
+            Stagger(user, new List<EntityUid>(), profile, point);
+
+        if (profile.Dash > 0f && profile.Pierce > 0 && IsActive(weapon) && TryComp<MeleeWeaponComponent>(weapon, out var melee))
+            Pierce(user, weapon, new List<EntityUid>(), Xform.GetMapCoordinates(user), aim, profile.Dash + melee.Range, true, false, profile, damage * profile.DamageMultiplier);
+    }
+
+    private MapCoordinates? SlamPoint(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, Vector2 direction, bool heavy)
+    {
+        if (!heavy || weapon.Comp.HeavyStyle != FSMeleeHeavyStyle.Slam || direction == Vector2.Zero || !TryComp<MeleeWeaponComponent>(weapon, out var melee))
+            return null;
+
+        return Xform.GetMapCoordinates(user).Offset(Vector2.Normalize(direction) * melee.Range * SlamReach);
+    }
+
+    private void Stagger(EntityUid user, List<EntityUid> targets, FSMeleeJuiceProfile profile, MapCoordinates center)
+    {
         _nearby.Clear();
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
         foreach (var mob in _nearby)
         {
-            if (mob.Owner == user || targets.Contains(mob) || !CanSpill(user, targets[0], mob, profile.StaggerRadius))
+            if (mob.Owner == user || targets.Contains(mob) || !CanSpill(user, center, mob, profile.StaggerRadius))
                 continue;
 
             var push = Xform.GetWorldPosition(mob) - center.Position;
@@ -195,13 +301,13 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
     }
 
-    // Pierce and stagger reach past the struck target, but not into teammates, corpses or behind walls.
-    private bool CanSpill(EntityUid user, EntityUid struck, Entity<MobStateComponent> mob, float range)
+    // Pierces, staggers and launched bodies reach past the struck target, but not into teammates, corpses or behind walls.
+    private bool CanSpill(EntityUid user, MapCoordinates from, Entity<MobStateComponent> mob, float range)
     {
         return mob.Comp.CurrentState != MobState.Dead
             && !HasComp<ActorComponent>(mob)
             && !IsAlly(user, mob)
-            && _interaction.InRangeUnobstructed(struck, mob.Owner, range + 0.5f, overlapCheck: false);
+            && _interaction.InRangeUnobstructed(from, mob.Owner, range + 0.5f);
     }
 
     private void OnMobStateChanged(MobStateChangedEvent args)
@@ -234,6 +340,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _strikes.RemoveAt(i);
             RunStrike(strike);
         }
+
+        UpdateLaunched();
     }
 
     private void RunStrike(PendingStrike strike)
@@ -261,6 +369,6 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var profile = juice.Get(strike.Heavy, strike.Finisher);
         _audio.PlayPvs(profile.StrikeSound, strike.Targets[0], profile.StrikeSound?.Params.WithPitchScale(1f + profile.StrikePitchStep * strike.Strike));
         SendHit(strike.User, strike.Weapon, strike.Targets, strike.Direction, strike.Heavy, strike.Finisher, strike.Strike, false, false);
-        ApplyImpact(strike.User, strike.Weapon, strike.Targets, profile);
+        ApplyImpact(strike.User, strike.Weapon, strike.Targets, profile, strike.Damage);
     }
 }
