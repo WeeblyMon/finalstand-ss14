@@ -79,7 +79,8 @@ public sealed partial class FSRevenantLightDrainSystem : EntitySystem
 
             foreach (var (lightUid, light) in _lightBuffer)
             {
-                if (!light.On || drain.Drained.Contains(lightUid))
+                // Includes lights we already drained that something else (a dark-wave flicker) turned back on.
+                if (!light.On)
                     continue;
 
                 _poweredLight.SetState(lightUid, false, light);
