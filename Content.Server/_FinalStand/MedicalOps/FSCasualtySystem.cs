@@ -40,6 +40,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     private readonly Dictionary<EntityUid, Call> _calls = new();
     private readonly List<EntityUid> _finished = new();
     private TimeSpan _nextBroadcast;
+    private bool _sentEmpty;
 
     public override void Initialize()
     {
@@ -67,6 +68,7 @@ public sealed partial class FSCasualtySystem : EntitySystem
     {
         _calls.Clear();
         _nextBroadcast = TimeSpan.Zero;
+        _sentEmpty = false;
     }
 
     private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
@@ -157,8 +159,6 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
         var now = _timing.CurTime;
 
-        SweepCasualties();
-
         _finished.Clear();
         foreach (var (patient, call) in _calls)
         {
@@ -178,20 +178,23 @@ public sealed partial class FSCasualtySystem : EntitySystem
             _calls.Remove(patient);
         }
 
-        if (_finished.Count > 0)
-        {
-            Broadcast();
+        if (_finished.Count == 0 && now < _nextBroadcast)
             return;
-        }
 
-        if (now >= _nextBroadcast)
-            Broadcast();
+        // Catches anyone who was already down when they got a body; the state-change hook never saw them.
+        SweepCasualties();
+        Broadcast();
     }
 
     private void Broadcast()
     {
         _nextBroadcast = _timing.CurTime + BroadcastInterval;
 
+        // Medics already hold the empty board sent when the last call cleared.
+        if (_calls.Count == 0 && _sentEmpty)
+            return;
+
+        _sentEmpty = _calls.Count == 0;
         var board = BuildBoard();
         foreach (var (session, _) in _roster.Medics())
             RaiseNetworkEvent(board, session);
