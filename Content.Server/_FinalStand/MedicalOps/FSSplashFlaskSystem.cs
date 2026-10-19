@@ -26,7 +26,6 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSChemCreditSystem _credit = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
-    [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
     private static readonly SoundSpecifier BurstSound =
@@ -70,7 +69,7 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         _smoke.StartSmoke(cloud, payload, ent.Comp.Duration, ent.Comp.SpreadAmount);
         _audio.PlayPvs(BurstSound, coords);
 
-        if (args.User is { } thrower && AppliesCombatBuff(payload))
+        if (args.User is { } thrower && _credit.AppliesCombatBuff(payload))
         {
             _crewBuffer.Clear();
             _lookup.GetEntitiesInRange(mapCoords, ent.Comp.SpreadAmount, _crewBuffer);
@@ -80,28 +79,5 @@ public sealed partial class FSSplashFlaskSystem : EntitySystem
         }
 
         QueueDel(ent);
-    }
-
-    private bool AppliesCombatBuff(Solution payload)
-    {
-        foreach (var quantity in payload.Contents)
-        {
-            if (!_prototypes.TryIndex(quantity.Reagent.Prototype, out ReagentPrototype? reagent))
-                continue;
-
-            if (reagent.ReactiveEffects == null)
-                continue;
-
-            foreach (var (_, reactive) in reagent.ReactiveEffects)
-            {
-                foreach (var effect in reactive.Effects)
-                {
-                    if (effect is FSApplyCombatBuff)
-                        return true;
-                }
-            }
-        }
-
-        return false;
     }
 }
