@@ -34,6 +34,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     [Dependency] private Engineering.FSEngineerStatsSystem _engineerStats = default!;
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
+    private readonly Dictionary<EntityUid, int> _roundEarned = new();
 
     private long _saveTicks;
     private int _saveCount;
@@ -59,6 +60,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
         SubscribeNetworkEvent<FSLevelingRequestMessage>(OnLevelingRequest);
+
+        _wallet.CreditsGiven += (mindId, amount) => _roundEarned[mindId] = _roundEarned.GetValueOrDefault(mindId) + amount;
     }
 
     private void OnEnemyWaveTagInit(EntityUid uid, WaveSpawnedTagComponent _, ComponentInit args)
@@ -230,6 +233,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
         _roundStats.Clear();
+        _roundEarned.Clear();
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
@@ -391,13 +395,13 @@ public sealed partial class FSLevelingSystem : EntitySystem
             var stats = _roundStats.TryGetValue(mindId, out var cur)
                 ? cur
                 : (Xp: 0, Kills: 0, Assists: 0);
-            var walletCredits = TryComp<FSPlayerWalletComponent>(mindId, out var wallet) ? wallet.Credits : 0;
+            var earned = _roundEarned.GetValueOrDefault(mindId);
 
             var healing = _medicalStats.GetStats(mindId).HealingPoints;
             var fortify = (int) _engineerStats.GetStats(mindId).Points;
 
             var score = lvl.Level * 1000 + lvl.PrestigeLevel * 2500 + stats.Xp / 5
-                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + walletCredits;
+                        + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + earned;
 
             TryComp<FSPlayerBadgeComponent>(mind.CurrentEntity, out var badge);
 
@@ -409,7 +413,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
                 stats.Xp,
                 lvl.Level,
                 lvl.PrestigeLevel,
-                walletCredits,
+                earned,
                 score,
                 badge?.Rookie ?? false,
                 badge?.Title?.Id) { Fortify = fortify });
