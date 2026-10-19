@@ -45,6 +45,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const int FatigueHits = 10;
     private const float FatigueReset = 1.5f;
     private const float ZoomDuration = 0.1f;
+    private const float KillZoomCooldown = 1f;
     private const float HoldWindow = 0.25f;
 
     public sealed class Trail
@@ -151,7 +152,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 _particles.Burst(emitter, target.Value, profile.ParticleTint, 1.5f);
         }
 
-        if (TryGetEntity(ev.User, out var user) && user == _player.LocalEntity && RealTime - _zoomStart > 0.3f)
+        if (TryGetEntity(ev.User, out var user) && user == _player.LocalEntity && RealTime - _zoomStart > KillZoomCooldown)
             StartZoom(profile.KillZoom);
     }
 
@@ -330,7 +331,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private void Jitter(EntityUid target, Vector2 dir, float duration, float amplitude)
     {
-        if (!TryComp<SpriteComponent>(target, out var sprite) || _animation.HasRunningAnimation(target, FlinchKey))
+        // Jittering mid-lunge would leave the sprite resting wherever the lunge was.
+        if (!TryComp<SpriteComponent>(target, out var sprite)
+            || _animation.HasRunningAnimation(target, FlinchKey)
+            || _animation.HasRunningAnimation(target, MeleeWeaponSystem.MeleeLungeKey))
             return;
 
         var origin = sprite.Offset;

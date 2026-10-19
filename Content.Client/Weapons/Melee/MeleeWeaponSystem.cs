@@ -40,7 +40,7 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
     [Dependency] private IClientGameTiming _clientTiming = default!; // fs
     [Dependency] private FSMeleeJuiceSystem _fsJuice = default!; // FINALSTAND
 
-    private const string MeleeLungeKey = "melee-lunge";
+    public const string MeleeLungeKey = "melee-lunge"; // FINALSTAND: public
 
     public override void Initialize()
     {

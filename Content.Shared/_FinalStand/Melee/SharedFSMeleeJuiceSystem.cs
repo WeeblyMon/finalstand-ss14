@@ -44,6 +44,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeJuiceComponent, AttemptMeleeEvent>(OnAttemptMelee);
         SubscribeLocalEvent<FSMeleeFlinchComponent, RefreshMovementSpeedModifiersEvent>(OnFlinchSpeed);
         SubscribeLocalEvent<FSMeleeFlinchComponent, AttackAttemptEvent>(OnFlinchAttack);
+        SubscribeLocalEvent<FSMeleeJuiceComponent, ComponentShutdown>(OnWeaponShutdown);
     }
 
     protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args);
@@ -116,6 +117,19 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
             && (HasComp<FSFriendlyFireComponent>(target) || HasComp<FSPlayerDamageImmuneComponent>(target));
     }
 
+    // A combo pointing at a deleted weapon can't be sent to clients.
+    private void OnWeaponShutdown(Entity<FSMeleeJuiceComponent> ent, ref ComponentShutdown args)
+    {
+        if (!_net.IsServer)
+            return;
+
+        var combos = EntityQueryEnumerator<FSMeleeComboComponent>();
+        while (combos.MoveNext(out var uid, out var combo))
+        {
+            if (combo.Weapon == ent.Owner)
+                RemCompDeferred<FSMeleeComboComponent>(uid);
+        }
+    }
 
     private bool AdvanceCombo(EntityUid user, Entity<FSMeleeJuiceComponent> weapon)
     {
