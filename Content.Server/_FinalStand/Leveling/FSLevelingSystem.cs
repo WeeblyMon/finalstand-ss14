@@ -69,9 +69,9 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead) return;
 
-        _waveRule.TryGetActiveState(out var wave);
+        _waveRule.TryGetWaveStatus(out var wave, out _);
         var baseXp = TryComp<FSEnemyValueComponent>(uid, out var val) ? val.KillCredits : 100;
-        var waveMult = GetXpMultiplier(wave.WaveNumber);
+        var waveMult = GetXpMultiplier(wave);
         var killXp = (int)(baseXp * waveMult);
         var assistXp = (int)(baseXp * 0.5f * waveMult);
 
@@ -105,8 +105,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnRoundEnd(RoundEndTextAppendEvent args)
     {
-        if (!_waveRule.TryGetActiveState(out var wave)) return;
-        var xp = RoundEndXpPerWave * wave.WaveNumber;
+        if (!_waveRule.TryGetWaveStatus(out var wave, out _)) return;
+        var xp = RoundEndXpPerWave * wave;
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out var mindId, out _))
