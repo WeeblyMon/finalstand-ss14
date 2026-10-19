@@ -129,6 +129,10 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
 
     private void Link(Entity<FSHMGComponent> gun, EntityUid? crate)
     {
+        // An HMG with no crate nearby is re-checked every interval; don't resend its state each time.
+        if (crate == null && gun.Comp.Crate == null)
+            return;
+
         if (gun.Comp.Crate is { } old && TryComp<FSAmmoCrateComponent>(old, out var oldComp) && oldComp.LinkedTo == gun.Owner)
         {
             oldComp.LinkedTo = null;
