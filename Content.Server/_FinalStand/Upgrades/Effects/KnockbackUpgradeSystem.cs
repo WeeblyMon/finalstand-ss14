@@ -58,21 +58,22 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
         Push(target, dir, VelocityByLevel[idx] * forceMultiplier, DurationByLevel[idx]);
     }
 
-    public void Push(EntityUid target, Vector2 direction, float speed, TimeSpan duration)
+    public float Push(EntityUid target, Vector2 direction, float speed, TimeSpan duration)
     {
         if (TryComp<FSKnockbackResistComponent>(target, out var resist))
             speed *= resist.Multiplier;
 
         if (speed <= 0f || direction == Vector2.Zero || HasComp<FSKnockedBackComponent>(target))
-            return;
+            return 0f;
 
         if (!TryComp<PhysicsComponent>(target, out var body))
-            return;
+            return 0f;
 
         _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(direction) * speed, body: body);
 
         var comp = EnsureComp<FSKnockedBackComponent>(target);
         comp.EndTime = _timing.CurTime + duration;
         Dirty(target, comp);
+        return speed;
     }
 }

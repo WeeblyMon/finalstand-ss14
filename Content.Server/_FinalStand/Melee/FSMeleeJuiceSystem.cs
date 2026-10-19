@@ -107,8 +107,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 continue;
 
             var push = Xform.GetWorldPosition(target) - userPos;
-            if (profile.Knockback > 0f)
-                _knockback.Push(target, push, profile.Knockback, TimeSpan.FromSeconds(profile.KnockbackDuration));
+            var pushed = profile.Knockback > 0f ? _knockback.Push(target, push, profile.Knockback, TimeSpan.FromSeconds(profile.KnockbackDuration)) : 0f;
 
             Flinch(target, profile.FlinchDuration, profile.FlinchSpeed);
 
@@ -118,8 +117,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             if (profile.Bleed > 0f)
                 _bloodstream.TryModifyBleedAmount(target, profile.Bleed);
 
-            if (profile.Knockback >= WallSlamKnockback)
-                TryWallSlam(user, target, push, profile.Knockback);
+            if (pushed >= WallSlamKnockback)
+                TryWallSlam(user, target, push, pushed);
         }
     }
 
