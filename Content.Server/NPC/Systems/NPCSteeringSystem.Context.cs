@@ -700,7 +700,8 @@ public sealed partial class NPCSteeringSystem
     // was over half the server tick once a horde piled onto its targets.
     private const float PeerYieldRadius = 2.0f;
 
-    private readonly record struct SpacingEntry(EntityUid Uid, Vector2 Position, Vector2 Moving, bool IsWave);
+    // Heading is the normalised move input, or zero when standing still.
+    private readonly record struct SpacingEntry(EntityUid Uid, Vector2 Position, Vector2 Heading, bool IsWave);
 
     private bool _spacingWanted;
     private readonly List<SpacingEntry> _spacingEntries = new();
@@ -740,7 +741,8 @@ public sealed partial class NPCSteeringSystem
             }
 
             list.Add(_spacingEntries.Count);
-            _spacingEntries.Add(new SpacingEntry(uid, position, moving, isWave));
+            var heading = moving == Vector2.Zero ? Vector2.Zero : moving.Normalized();
+            _spacingEntries.Add(new SpacingEntry(uid, position, heading, isWave));
         }
     }
 
@@ -786,10 +788,11 @@ public sealed partial class NPCSteeringSystem
                         continue;
 
                     var toOther = other.Position - worldPos;
-                    var dist = toOther.Length();
-                    if (dist < 0.01f || dist > PeerYieldRadius)
+                    var distSq = toOther.LengthSquared();
+                    if (distSq < 0.0001f || distSq > PeerYieldRadius * PeerYieldRadius)
                         continue;
 
+                    var dist = MathF.Sqrt(distSq);
                     var toOtherDir = toOther / dist;
                     var towardLocal = offsetRot.RotateVec(toOtherDir);
 
@@ -804,8 +807,8 @@ public sealed partial class NPCSteeringSystem
                         AddDanger(danger, towardLocal, PeerSpacingWeight * (1f - dist / PeerSpacingRadius));
 
                     if (!isMoving
-                        || other.Moving == Vector2.Zero
-                        || Vector2.Dot(myDirNorm, other.Moving.Normalized()) <= 0.4f)
+                        || other.Heading == Vector2.Zero
+                        || Vector2.Dot(myDirNorm, other.Heading) <= 0.4f)
                         continue;
 
                     if (Vector2.Dot(myDirNorm, toOtherDir) <= 0.4f)
