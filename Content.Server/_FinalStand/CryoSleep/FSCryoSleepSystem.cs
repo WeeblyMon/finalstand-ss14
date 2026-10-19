@@ -2,6 +2,7 @@ using Content.Server.Ghost;
 using Content.Shared._FinalStand.CryoSleep;
 using Content.Shared.Bed.Cryostorage;
 using Content.Shared.CCVar;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
 using Robust.Shared.Configuration;
@@ -18,6 +19,8 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private GhostSystem _ghost = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private ActionBlockerSystem _actionBlocker = default!;
 
     private bool _rejoinEnabled;
 
@@ -35,6 +38,7 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         SubscribeLocalEvent<CanEnterCryostorageComponent, EntGotInsertedIntoContainerMessage>(OnInsertedIntoPod);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
         SubscribeNetworkEvent<FSCryoStatusRequestEvent>(OnStatusRequest);
+        SubscribeNetworkEvent<FSCryoEnterConfirmEvent>(OnEnterConfirm);
     }
 
     // The client asks directly instead of only waiting on a push it might never get.
@@ -78,7 +82,7 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         if (args.Handled)
             return;
 
-        args.Handled = TryEnterPod(ent, args.User);
+        args.Handled = PromptOrEnter(ent, args.User);
     }
 
     private void OnPodActivate(Entity<CryostorageComponent> ent, ref ActivateInWorldEvent args)
@@ -86,7 +90,28 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         if (args.Handled)
             return;
 
-        args.Handled = TryEnterPod(ent, args.User);
+        args.Handled = PromptOrEnter(ent, args.User);
+    }
+
+    private bool PromptOrEnter(Entity<CryostorageComponent> pod, EntityUid user)
+    {
+        if (!TryComp<ActorComponent>(user, out var actor))
+            return TryEnterPod(pod, user);
+
+        RaiseNetworkEvent(new FSCryoEnterPromptEvent(GetNetEntity(pod)), actor.PlayerSession);
+        return true;
+    }
+
+    private void OnEnterConfirm(FSCryoEnterConfirmEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } user
+            || !TryGetEntity(ev.Pod, out var pod)
+            || !TryComp<CryostorageComponent>(pod, out var cryostorage)
+            || !_actionBlocker.CanInteract(user, pod)
+            || !_interaction.InRangeUnobstructed(user, pod.Value))
+            return;
+
+        TryEnterPod((pod.Value, cryostorage), user);
     }
 
     private bool TryEnterPod(Entity<CryostorageComponent> pod, EntityUid user)

@@ -15,3 +15,8 @@ fs-cryo-wakeup-result-no-cryopod = No free cryopod is available. Try again once 
 fs-cryo-wakeup-result-no-body = Your body is no longer in cryostorage.
 fs-cryo-wakeup-result-not-a-ghost = You can only return to your body as a ghost.
 fs-cryo-wakeup-result-disabled = Returning from cryosleep is disabled on this server.
+
+fs-cryo-enter-window-title = Enter Cryosleep
+fs-cryo-enter-window-prompt = Climb into the cryopod? You will leave the round as a ghost until you return from cryo.
+fs-cryo-enter-window-accept = Enter Cryo
+fs-cryo-enter-window-deny = Cancel
