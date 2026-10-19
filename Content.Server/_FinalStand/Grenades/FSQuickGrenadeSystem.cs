@@ -44,6 +44,10 @@ public sealed partial class FSQuickGrenadeSystem : EntitySystem
         if (user == null)
             return;
 
+        // The cursor comes from the client; NaN slips past the range clamp and poisons the throw's physics.
+        if (!float.IsFinite(msg.CursorWorldPos.X) || !float.IsFinite(msg.CursorWorldPos.Y))
+            return;
+
         if (_mobState.IsIncapacitated(user.Value))
             return;
 
