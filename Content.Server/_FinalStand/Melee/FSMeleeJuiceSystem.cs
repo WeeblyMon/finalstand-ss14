@@ -10,6 +10,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Physics;
 using Content.Shared.Weapons.Melee.Events;
@@ -31,6 +32,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private FSPerkKillPipelineSystem _killPipeline = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private KnockbackUpgradeSystem _knockback = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private MovementModStatusSystem _movementStatus = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -38,6 +40,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float WallSlamKnockback = 4f;
     private const float WallSlamFlinch = 0.8f;
     private const float WallSlamDamage = 8f;
+    private const float StrikeRangeSlack = 0.5f;
     private static readonly ProtoId<DamageTypePrototype> WallSlamType = "Blunt";
     private static readonly SoundSpecifier WallSlamSound = new SoundCollectionSpecifier("FSMeleeBluntHit");
 
@@ -235,10 +238,16 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private void RunStrike(PendingStrike strike)
     {
-        if (TerminatingOrDeleted(strike.User) || !TryComp<FSMeleeJuiceComponent>(strike.Weapon, out var juice))
+        if (TerminatingOrDeleted(strike.User)
+            || _mobState.IsIncapacitated(strike.User)
+            || !TryComp<FSMeleeJuiceComponent>(strike.Weapon, out var juice)
+            || !Melee.TryGetWeapon(strike.User, out var held, out var melee)
+            || held != strike.Weapon)
             return;
 
-        strike.Targets.RemoveAll(t => TerminatingOrDeleted(t));
+        var userPos = Xform.GetWorldPosition(strike.User);
+        var reach = melee.Range + StrikeRangeSlack;
+        strike.Targets.RemoveAll(t => TerminatingOrDeleted(t) || (Xform.GetWorldPosition(t) - userPos).Length() > reach);
         if (strike.Targets.Count == 0)
             return;
 

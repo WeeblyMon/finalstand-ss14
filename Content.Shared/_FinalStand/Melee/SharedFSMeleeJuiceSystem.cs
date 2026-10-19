@@ -26,7 +26,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
-    [Dependency] private SharedMeleeWeaponSystem _melee = default!;
+    [Dependency] protected SharedMeleeWeaponSystem Melee = default!;
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
     protected const float MobFriction = 20f;
@@ -130,7 +130,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         var finisher = combo.Hits >= weapon.Comp.ComboHits;
         combo.Weapon = weapon.Owner;
         combo.Hits = finisher ? 0 : combo.Hits + 1;
-        var rate = TryComp<MeleeWeaponComponent>(weapon, out var melee) ? _melee.GetAttackRate(weapon, user, melee) : 0f;
+        var rate = TryComp<MeleeWeaponComponent>(weapon, out var melee) ? Melee.GetAttackRate(weapon, user, melee) : 0f;
         var cooldown = rate > 0f ? 1f / rate : 0f;
         combo.Expire = now + TimeSpan.FromSeconds(cooldown + weapon.Comp.ComboWindow);
         Dirty(user, combo);
