@@ -48,8 +48,19 @@ public sealed partial class FSBaitAttractSystem : EntitySystem
         var query = EntityQueryEnumerator<FSBaitDecoyComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var xform))
         {
+            // Picked back up: it stops drawing the horde rather than leading it to whoever holds it.
             if (_container.IsEntityInContainer(uid))
+            {
+                if (TryComp<FSBaitAttractTrackerComponent>(uid, out var held) && held.ZombieToBait.Count > 0)
+                {
+                    foreach (var (npcUid, _) in held.ZombieToBait)
+                        ReleaseBait(npcUid, uid);
+
+                    held.ZombieToBait.Clear();
+                }
+
                 continue;
+            }
 
             var tracker = EnsureComp<FSBaitAttractTrackerComponent>(uid);
             var worldPos = _transform.GetWorldPosition(uid);
