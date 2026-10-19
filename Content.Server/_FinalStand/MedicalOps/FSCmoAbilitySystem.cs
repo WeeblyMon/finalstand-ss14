@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using Content.Server.Administration.Logs;
 using Content.Server._FinalStand.Economy;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Content.Server._FinalStand.Research;
 using Content.Shared.Database;
 using Content.Server.Radio.EntitySystems;
@@ -29,6 +30,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalFundSystem _fund = default!;
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
     private static readonly SoundSpecifier DirectiveSound =
         new SoundPathSpecifier("/Audio/_FinalStand/MedicalOps/directive.ogg");
@@ -154,7 +156,9 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
 
     private void OnPanelRequest(FSCmoAbilityRequestEvent ev, EntitySessionEventArgs args)
     {
-        if (args.SenderSession.AttachedEntity is not { } cmo || !HasComp<FSCmoPanelComponent>(cmo))
+        if (args.SenderSession.AttachedEntity is not { } cmo
+            || !HasComp<FSCmoPanelComponent>(cmo)
+            || _mobState.IsIncapacitated(cmo))
             return;
 
         switch (ev.Ability)
