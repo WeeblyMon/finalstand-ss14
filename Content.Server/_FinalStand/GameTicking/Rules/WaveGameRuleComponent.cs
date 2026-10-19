@@ -30,7 +30,8 @@ public sealed partial class WaveEnemyConfig
     public List<EntProtoId> EnemyPool = new() { "MobXeno" };
 }
 
-[RegisterComponent, Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
+[RegisterComponent, AutoGenerateComponentPause]
+[Access(typeof(WaveGameRuleSystem), typeof(WaveEnemySpawningSystem), typeof(WaveEnemyScalingSystem))]
 public sealed partial class WaveGameRuleComponent : Component
 {
     [DataField]
@@ -90,14 +91,18 @@ public sealed partial class WaveGameRuleComponent : Component
     // Set to true when a majority vote has triggered the 10-second countdown; reset each prep phase.
     public bool VoteCountdownActive = false;
     public bool VoteCountdownSoundPlayed = false;
+    [AutoPausedField]
     public TimeSpan VoteCountdownSoundTime = TimeSpan.Zero;
 
     // Runtime state
 
     public int WaveNumber = 1;
     public WavePhase Phase = WavePhase.Prep;
+    [AutoPausedField]
     public TimeSpan PhaseEndTime = TimeSpan.Zero;
+    [AutoPausedField]
     public TimeSpan CombatStartTime = TimeSpan.Zero;
+    [AutoPausedField]
     public TimeSpan NextSpawnTime = TimeSpan.Zero;
     public int EnemyTotalThisWave = 0;
     public int EnemiesSpawnedThisWave = 0;
@@ -108,12 +113,15 @@ public sealed partial class WaveGameRuleComponent : Component
     public readonly List<EntityUid> SpawnerEntities = new();
     public readonly HashSet<EntityUid> PreviousSpawnerEntities = new();
     public EntityUid CCCEntity = EntityUid.Invalid;
+    [AutoPausedField]
     public TimeSpan NextHeartbeatTime = TimeSpan.Zero;
+    [AutoPausedField]
     public TimeSpan NextSpawnerRetryTime = TimeSpan.Zero;
 
     public int ScalingPlayersThisWave = 0;
 
     // PhaseEndTime is pulled forward by every ready-up, so the payout needs the untouched deadline.
+    [AutoPausedField]
     public TimeSpan PrepEndUnshaved;
 
     [DataField]
