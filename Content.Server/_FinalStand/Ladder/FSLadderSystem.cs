@@ -81,8 +81,7 @@ public sealed partial class FSLadderSystem : EntitySystem
         }
         else
         {
-            runs = _store.GetTopRuns(board.Comp.Difficulty, board.Comp.AllBrackets ? null : board.Comp.Bracket,
-                FSLadderBoardComponent.ShownRuns);
+            runs = GetTopRuns(board.Comp.Difficulty, board.Comp.Bracket, FSLadderBoardComponent.ShownRuns);
         }
 
         if (weeklyName == board.Comp.WeeklyName && runs.SequenceEqual(board.Comp.Runs))
@@ -122,7 +121,7 @@ public sealed partial class FSLadderSystem : EntitySystem
             ? Loc.GetString("fs-ladder-new-weekly-record")
             : Loc.GetString("fs-ladder-new-record",
                 ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(run.Difficulty))),
-                ("bracket", Loc.GetString(FSLadder.BracketLocId(run.Bracket)))));
+                ("bracket", Loc.GetString(FSLadder.BracketLocId(FSPlayerBracket.Any)))));
     }
 
     private void SaveProvisionalRun()
@@ -170,7 +169,7 @@ public sealed partial class FSLadderSystem : EntitySystem
     {
         var holder = run.Weekly is { } week
             ? _store.GetWeeklyTopRuns(week, 1).FirstOrDefault()
-            : _store.GetTopRuns(run.Difficulty, run.Bracket, 1).FirstOrDefault();
+            : _store.GetTopRuns(run.Difficulty, FSPlayerBracket.Any, 1).FirstOrDefault();
         _store.InsertRun(run);
 
         var isRecord = FSLadder.Beats(run, holder);
@@ -234,7 +233,7 @@ public sealed partial class FSLadderSystem : EntitySystem
             ? Loc.GetString("fs-ladder-weekly")
             : Loc.GetString("fs-ladder-board-ladder",
                 ("difficulty", Loc.GetString(FSDifficultyRules.NameLocId(ent.Comp.Difficulty))),
-                ("bracket", Loc.GetString(ent.Comp.AllBrackets ? "fs-ladder-bracket-all" : FSLadder.BracketLocId(ent.Comp.Bracket))));
+                ("bracket", Loc.GetString(FSLadder.BracketLocId(ent.Comp.Bracket))));
 
         args.PushMarkup(ent.Comp.Runs.FirstOrDefault() is not { } best
             ? Loc.GetString("fs-ladder-board-examine-empty", ("ladder", ladder))

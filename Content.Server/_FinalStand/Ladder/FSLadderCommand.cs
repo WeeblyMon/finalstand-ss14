@@ -16,7 +16,7 @@ public sealed partial class FSLadderCommand : LocalizedEntityCommands
     public override void Execute(IConsoleShell shell, string argStr, string[] args)
     {
         var difficulty = FSDifficulty.Normal;
-        var bracket = FSPlayerBracket.Crew;
+        var bracket = FSPlayerBracket.Any;
 
         if (args.Length > 0 && !Enum.TryParse(args[0], true, out difficulty)
             || args.Length > 1 && !Enum.TryParse(args[1], true, out bracket)

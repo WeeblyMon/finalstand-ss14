@@ -34990,13 +34990,6 @@ entities:
     - type: Transform
       parent: 1
       pos: 26.5,23.5
-- proto: FSLadderBoardCrew
-  entities:
-  - uid: 1556
-    components:
-    - type: Transform
-      parent: 1
-      pos: 31.5,23.5
 - proto: FSLadderBoardHard
   entities:
   - uid: 10038
@@ -35017,7 +35010,7 @@ entities:
     components:
     - type: Transform
       parent: 1
-      pos: 36.5,23.5
+      pos: 31.5,23.5
 - proto: FSMedicalDispenser
   entities:
   - uid: 5048
