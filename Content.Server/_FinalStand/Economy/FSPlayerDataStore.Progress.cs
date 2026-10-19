@@ -296,7 +296,7 @@ public sealed partial class FSPlayerDataStore
         cmd.Parameters.AddWithValue("$weekly", (object?) run.Weekly ?? DBNull.Value);
     }
 
-    public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket? bracket, int limit)
+    public List<FSRunRecord> GetTopRuns(FSDifficulty difficulty, FSPlayerBracket bracket, int limit)
         => TryRead($"ladder load for {difficulty}/{bracket}", () =>
         {
             using var cmd = DbCommand();
@@ -308,7 +308,7 @@ public sealed partial class FSPlayerDataStore
                 LIMIT $limit
                 """;
             cmd.Parameters.AddWithValue("$difficulty", (int) difficulty);
-            cmd.Parameters.AddWithValue("$bracket", bracket is { } b ? (int) b : DBNull.Value);
+            cmd.Parameters.AddWithValue("$bracket", bracket == FSPlayerBracket.Any ? DBNull.Value : (int) bracket);
             cmd.Parameters.AddWithValue("$limit", limit);
             using var r = cmd.ExecuteReader();
             var runs = new List<FSRunRecord>();

@@ -12,10 +12,7 @@ public sealed partial class FSLadderBoardComponent : Component
     public FSDifficulty Difficulty = FSDifficulty.Normal;
 
     [DataField, AutoNetworkedField]
-    public FSPlayerBracket Bracket = FSPlayerBracket.Squad;
-
-    [DataField, AutoNetworkedField]
-    public bool AllBrackets;
+    public FSPlayerBracket Bracket = FSPlayerBracket.Any;
 
     [DataField, AutoNetworkedField]
     public bool Weekly;

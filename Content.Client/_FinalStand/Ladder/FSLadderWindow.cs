@@ -17,7 +17,7 @@ public sealed class FSLadderWindow : FancyWindow
     private readonly Dictionary<FSPlayerBracket, Button> _bracketButtons = new();
 
     public FSDifficulty Difficulty { get; private set; } = FSDifficulty.Normal;
-    public FSPlayerBracket Bracket { get; private set; } = FSPlayerBracket.Crew;
+    public FSPlayerBracket Bracket { get; private set; } = FSPlayerBracket.Any;
     public bool Weekly { get; private set; }
 
     private readonly Button _weeklyButton;
@@ -58,7 +58,7 @@ public sealed class FSLadderWindow : FancyWindow
 
         filters.AddChild(new Control { HorizontalExpand = true });
 
-        foreach (var bracket in Enum.GetValues<FSPlayerBracket>())
+        foreach (var bracket in new[] { FSPlayerBracket.Solo, FSPlayerBracket.Any })
         {
             var button = Toggle(Loc.GetString(FSLadder.BracketLocId(bracket)));
             button.OnPressed += _ => Select(Difficulty, bracket, false);

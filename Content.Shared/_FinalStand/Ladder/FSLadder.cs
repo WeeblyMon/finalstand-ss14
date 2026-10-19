@@ -9,6 +9,7 @@ public enum FSPlayerBracket : byte
     Solo,
     Squad,
     Crew,
+    Any,
 }
 
 [Serializable, NetSerializable]
@@ -38,6 +39,7 @@ public static class FSLadder
     {
         FSPlayerBracket.Squad => "fs-ladder-bracket-squad",
         FSPlayerBracket.Crew => "fs-ladder-bracket-crew",
+        FSPlayerBracket.Any => "fs-ladder-bracket-any",
         _ => "fs-ladder-bracket-solo",
     };
 

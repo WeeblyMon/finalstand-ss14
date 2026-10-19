@@ -40,20 +40,11 @@
 
 - type: entity
   parent: FSLadderBoard
-  id: FSLadderBoardCrew
-  suffix: Crew
-  components:
-  - type: FSLadderBoard
-    bracket: Crew
-
-- type: entity
-  parent: FSLadderBoard
   id: FSLadderBoardHard
   suffix: Hard
   components:
   - type: FSLadderBoard
     difficulty: Hard
-    allBrackets: true
 
 - type: entity
   parent: FSLadderBoard
@@ -62,7 +53,6 @@
   components:
   - type: FSLadderBoard
     difficulty: Nightmare
-    allBrackets: true
 
 - type: entity
   parent: FSLadderBoard
