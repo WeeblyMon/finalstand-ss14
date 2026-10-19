@@ -7,6 +7,12 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudOverlay
 {
     public string? ThrowableName;
+    public string QuickGrenadeKey = "G";
+
+    private readonly string _labelThrowableNone = Loc.GetString("fs-hud-throwable-none");
+    private readonly FSHudText<string> _throwHint = new(key => Loc.GetString("fs-hud-throw-hint", ("key", key)));
+    private readonly FSHudText<(string Name, int Stock)> _throwableText =
+        new(v => Loc.GetString("fs-hud-throwable-stock", ("name", v.Name.ToUpperInvariant()), ("stock", v.Stock)));
     public int ThrowableStock;
     public bool ThrowableHasChoice;
 
@@ -35,15 +41,14 @@ public sealed partial class WaveHudOverlay
 
     private float DrawThrowables(DrawingHandleScreen screen, float rightEdge, float bottom)
     {
-        var name = ThrowableName ?? "none";
         var empty = ThrowableName is null;
 
         var labelH = _cachedLabelH;
         var rowH = MathF.Max(ThrowSlot, labelH) + ThrowPad * 2f;
 
-        var hint = "[G] tap throw  -  hold to pick";
+        var hint = _throwHint.Get(QuickGrenadeKey);
         var hintW = screen.GetDimensions(_labelFont!, hint, 1f).X;
-        var nameText = empty ? "NONE" : $"{name.ToUpperInvariant()} x{ThrowableStock}";
+        var nameText = ThrowableName is { } name ? _throwableText.Get((name, ThrowableStock)) : _labelThrowableNone;
         var nameW = screen.GetDimensions(_labelFont!, nameText, 1f).X;
 
         var cellW = MathF.Max(ThrowSlot, nameW + 8f);

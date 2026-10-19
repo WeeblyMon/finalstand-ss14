@@ -1,3 +1,4 @@
+using Robust.Shared.Input;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._FinalStand.Grenades;
@@ -57,6 +58,7 @@ public sealed partial class WaveHudSystem
         overlay.WeaponTakesMagazines = false;
         overlay.ItemDetail = null;
         overlay.Uber = null;
+        overlay.ReloadKey = KeyText(ContentKeyFunctions.ReloadWeapon, "R");
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -156,15 +158,19 @@ public sealed partial class WaveHudSystem
                 : Loc.GetString("fs-hud-hmg-no-crate", ("heat", heat));
     }
 
+    // Hints name the player's own bindings; the fallback is the default when nothing is bound.
+    private string KeyText(BoundKeyFunction function, string fallback)
+    {
+        return _input.TryGetKeyBinding(function, out var binding) ? binding.GetKeyString() : fallback;
+    }
+
     private void UpdateUberMeter(WaveHudOverlay overlay, EntityUid held)
     {
         if (!TryComp<FSMediGunComponent>(held, out var gun) || gun.Variant != FSMediGunVariant.UberCharger)
             return;
 
         var left = gun.UberEndTime is { } end ? (float) Math.Max(0, (end - _timing.CurTime).TotalSeconds) : 0f;
-        var key = _input.TryGetKeyBinding(ContentKeyFunctions.FSUberCharge, out var binding)
-            ? binding.GetKeyString()
-            : "Alt+E";
+        var key = KeyText(ContentKeyFunctions.FSUberCharge, "Alt+E");
 
         overlay.Uber = new WaveHudOverlay.UberMeter(gun.UberCharge, gun.UberActive, left, gun.BeamColor, key);
     }

@@ -6,6 +6,9 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
+    private readonly string _labelTriage = Loc.GetString("fs-hud-triage");
+    private readonly string _labelNoCasualties = Loc.GetString("fs-hud-no-casualties");
+
     public readonly record struct TriageRow(string Name, string State, string Range, bool Critical,
         bool Responding, Vector2? Direction);
 
@@ -49,13 +52,13 @@ public sealed partial class WaveHudOverlay
         var innerRight = x + TriageWidth - TriagePad;
         var y = top + TriagePad;
 
-        screen.DrawString(_labelFont!, new Vector2(innerX, y), "TRIAGE", TriageMuted);
+        screen.DrawString(_labelFont!, new Vector2(innerX, y), _labelTriage, TriageMuted);
         y += labelH + 4f;
 
         if (TriageRows.Count == 0)
         {
             screen.DrawString(_labelFont!, new Vector2(innerX, y + (rowH - labelH) * 0.5f),
-                "NO CASUALTIES", PipResponding);
+                _labelNoCasualties, PipResponding);
             return panelH;
         }
 

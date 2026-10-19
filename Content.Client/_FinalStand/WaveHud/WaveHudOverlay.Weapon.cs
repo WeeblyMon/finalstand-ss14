@@ -7,6 +7,19 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudOverlay
 {
     public string? WeaponName;
+    public string ReloadKey = "R";
+
+    private readonly string _labelNoWeapon = Loc.GetString("fs-hud-no-weapon");
+    private readonly string _labelUbercharge = Loc.GetString("fs-hud-ubercharge");
+    private readonly string _labelUberReady = Loc.GetString("fs-hud-uber-ready");
+    private readonly string _labelUberActive = Loc.GetString("fs-hud-uber-active");
+    private readonly FSHudText<string> _weaponNameText = new(name => name.ToUpperInvariant());
+    private readonly FSHudText<(int Loaded, int Capacity)> _ammoText = new(v => $"{v.Loaded}/{v.Capacity}");
+    private readonly FSHudText<string> _ammoHint = new(key => Loc.GetString("fs-hud-ammo-type-hint", ("key", key)));
+    private readonly FSHudText<string> _uberHint = new(key => Loc.GetString("fs-hud-uber-deploy", ("key", key)));
+    private readonly FSHudText<int> _uberSecondsText =
+        new(tenths => Loc.GetString("fs-hud-uber-seconds", ("seconds", (tenths / 10f).ToString("0.0"))));
+    private readonly FSHudText<int> _uberChargeText = new(charge => Loc.GetString("fs-hud-uber-charge", ("charge", charge)));
     public int? WeaponLoaded;
     public int? WeaponCapacity;
     public int WeaponReserve;
@@ -60,7 +73,7 @@ public sealed partial class WaveHudOverlay
         var hasAmmo = WeaponLoaded is not null && WeaponCapacity is > 0;
         var hasDetail = !string.IsNullOrEmpty(ItemDetail);
 
-        var name = (WeaponName ?? "no weapon").ToUpperInvariant();
+        var name = _weaponNameText.Get(WeaponName ?? _labelNoWeapon);
 
         var panelW = WeaponPanelWidth * _hudScale;
         var panelPad = WeaponPanelPad * _hudScale;
@@ -98,7 +111,7 @@ public sealed partial class WaveHudOverlay
             var capacity = WeaponCapacity!.Value;
             var ammoColor = loaded == 0 || loaded <= capacity * 0.25f ? AmmoLow : AmmoFull;
 
-            screen.DrawString(_valueFont!, new Vector2(textX, ty), $"{loaded}/{capacity}", ammoColor);
+            screen.DrawString(_valueFont!, new Vector2(textX, ty), _ammoText.Get((loaded, capacity)), ammoColor);
 
             if (WeaponReserveText is { } reserve)
             {
@@ -124,7 +137,7 @@ public sealed partial class WaveHudOverlay
             return y;
 
         ty += 5f;
-        const string hint = "[R] hold - ammo type";
+        var hint = _ammoHint.Get(ReloadKey);
         var hintColor = HasAmmoChoice ? HintCyan : HintDim;
         var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + hintPadX * 2f;
         var chip = new UIBox2(innerRight - chipW, ty, innerRight, ty + hintH);
@@ -145,9 +158,11 @@ public sealed partial class WaveHudOverlay
         var colour = ready ? Color.InterpolateBetween(UberGold, Color.White, flash * 0.6f) : uber.Color;
 
         ty += 6f;
-        screen.DrawString(_labelFont!, new Vector2(left, ty), "ÜBERCHARGE", ready ? colour : WeaponText);
+        screen.DrawString(_labelFont!, new Vector2(left, ty), _labelUbercharge, ready ? colour : WeaponText);
 
-        var status = uber.Active ? $"{uber.SecondsLeft:0.0}s" : ready ? "READY" : $"{uber.Charge:0}%";
+        var status = uber.Active
+            ? _uberSecondsText.Get((int) MathF.Round(uber.SecondsLeft * 10f))
+            : ready ? _labelUberReady : _uberChargeText.Get((int) MathF.Round(uber.Charge));
         var statusW = screen.GetDimensions(_labelFont!, status, 1f).X;
         screen.DrawString(_labelFont!, new Vector2(right - statusW, ty), status, uber.Active || ready ? colour : AmmoFull);
         ty += labelH + 3f;
@@ -173,7 +188,7 @@ public sealed partial class WaveHudOverlay
 
         ty += segH + 5f;
 
-        var hint = uber.Active ? "ÜBER ACTIVE" : $"[{uber.Key}] deploy Über";
+        var hint = uber.Active ? _labelUberActive : _uberHint.Get(uber.Key);
         var hintColor = ready ? colour : HintDim;
         var chipW = screen.GetDimensions(_labelFont!, hint, 1f).X + hintPadX * 2f;
         var chip = new UIBox2(right - chipW, ty, right, ty + hintH);

@@ -6,6 +6,8 @@ namespace Content.Client._FinalStand.WaveHud;
 
 public sealed partial class WaveHudOverlay
 {
+    private readonly string _labelHealth = Loc.GetString("fs-hud-health");
+
     public float? HealthRatio;
     public bool HealthInCrit;
     public float? StaminaRatio;
@@ -195,13 +197,13 @@ public sealed partial class WaveHudOverlay
         var innerW = VitalsWidth - VitalsPadX * 2f;
         var y = top + VitalsPadY;
 
-        var hpText = HealthCurrent.ToString();
+        var hpText = NumberText(HealthCurrent);
         var hpDims = screen.GetDimensions(_valueFont!, hpText, 1f);
         var rowH = MathF.Max(hpDims.Y, HpBarH);
         screen.DrawString(_valueFont!, new Vector2(innerX, y + (rowH - hpDims.Y) * 0.5f), hpText,
             lowHp ? HpFillLow : FSPalette.TextBright);
 
-        const string healthWord = "HEALTH";
+        var healthWord = _labelHealth;
         var wordX = innerX + hpDims.X + 7f;
         screen.DrawString(_labelFont!, new Vector2(wordX, y + (rowH - _cachedLabelH) * 0.5f),
             healthWord, VitalsMuted);

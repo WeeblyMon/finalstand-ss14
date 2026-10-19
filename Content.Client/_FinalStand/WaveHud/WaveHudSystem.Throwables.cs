@@ -1,3 +1,4 @@
+using Content.Shared.Input;
 using Content.Shared._FinalStand.Grenades;
 using Robust.Shared.Containers;
 
@@ -6,12 +7,14 @@ namespace Content.Client._FinalStand.WaveHud;
 public sealed partial class WaveHudSystem
 {
     private readonly List<(GrenadeType Type, int Stock)> _carriedPacks = new();
+    private readonly Dictionary<GrenadeType, string> _throwableNames = new();
 
     private void UpdateThrowables(WaveHudOverlay overlay)
     {
         overlay.ThrowableName = null;
         overlay.ThrowableStock = 0;
         overlay.ThrowableHasChoice = false;
+        overlay.QuickGrenadeKey = KeyText(ContentKeyFunctions.QuickGrenade, "G");
 
         if (_player.LocalEntity is not { } player)
             return;
@@ -22,12 +25,22 @@ public sealed partial class WaveHudSystem
 
         var active = CompOrNull<FSActiveGrenadeComponent>(player)?.ActiveType ?? _carriedPacks[0].Type;
 
-        var index = _carriedPacks.FindIndex(p => p.Type == active);
-        if (index < 0)
-            index = 0;
+        var index = 0;
+        for (var i = 0; i < _carriedPacks.Count; i++)
+        {
+            if (_carriedPacks[i].Type != active)
+                continue;
 
-        overlay.ThrowableName = Loc.GetString($"fs-throwable-{_carriedPacks[index].Type.ToString().ToLowerInvariant()}");
-        overlay.ThrowableStock = _carriedPacks[index].Stock;
+            index = i;
+            break;
+        }
+
+        var (type, stock) = _carriedPacks[index];
+        if (!_throwableNames.TryGetValue(type, out var name))
+            _throwableNames[type] = name = Loc.GetString($"fs-throwable-{type.ToString().ToLowerInvariant()}");
+
+        overlay.ThrowableName = name;
+        overlay.ThrowableStock = stock;
         overlay.ThrowableHasChoice = _carriedPacks.Count > 1;
     }
 

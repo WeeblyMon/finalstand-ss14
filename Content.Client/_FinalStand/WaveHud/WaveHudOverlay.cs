@@ -194,24 +194,38 @@ public sealed partial class WaveHudOverlay : Overlay
 
     private readonly List<(UIBox2 Cell, string Label, string[] Tooltip)> _bonusRowCells = new();
 
-    private readonly record struct EarningsPopup(List<FSPerkEarningsEntry> Entries, float Life, float TotalLife);
+    private readonly record struct EarningsRow(string PerkId, string? Credits, string? Research);
+    private readonly record struct EarningsPopup(List<EarningsRow> Rows, float Life, float TotalLife);
     private readonly List<EarningsPopup> _earningsPopups = new();
     private float _creditsRowY;
 
     public void AddEarningsPopup(List<FSPerkEarningsEntry> entries)
     {
         const float life = 6f;
+        var rows = new List<EarningsRow>(entries.Count);
+        foreach (var entry in entries)
+        {
+            rows.Add(new EarningsRow(entry.PerkId,
+                entry.WaveCredits > 0
+                    ? Loc.GetString("fs-hud-earnings-credits", ("wave", entry.WaveCredits.ToString("N0")), ("game", entry.GameCredits.ToString("N0")))
+                    : null,
+                entry.WaveResearch > 0
+                    ? Loc.GetString("fs-hud-earnings-research", ("wave", entry.WaveResearch.ToString("N0")), ("game", entry.GameResearch.ToString("N0")))
+                    : null));
+        }
+
         _earningsPopups.Clear();
-        _earningsPopups.Add(new EarningsPopup(entries, life, life));
+        _earningsPopups.Add(new EarningsPopup(rows, life, life));
     }
 
     public void AddHealPayout(int amount, bool diminished)
     {
         const float life = 1.6f;
-        _healPayouts.Add(new HealPayout(amount, diminished, life, life));
+        var text = Loc.GetString("fs-hud-heal-payout", ("amount", amount.ToString("N0")));
+        _healPayouts.Add(new HealPayout(text, diminished, life, life));
     }
 
-    private readonly record struct HealPayout(int Amount, bool Diminished, float Life, float TotalLife);
+    private readonly record struct HealPayout(string Text, bool Diminished, float Life, float TotalLife);
     private readonly List<HealPayout> _healPayouts = new();
 
     private readonly string _labelWave = Loc.GetString("fs-hud-wave");
@@ -225,6 +239,33 @@ public sealed partial class WaveHudOverlay : Overlay
     private readonly string _labelDown = Loc.GetString("fs-hud-down");
     private readonly string _labelReviveNow = Loc.GetString("fs-hud-revive-now");
     private readonly string _labelNotUpgraded = Loc.GetString("fs-hud-perk-not-upgraded");
+
+    private readonly FSHudText<int> _surviveText = new(s => $"{s / 60}:{s % 60:D2}");
+    private readonly FSHudText<int> _prepText = new(s => $"{s / 60}:{s % 60:D2}");
+    private readonly FSHudText<int> _fundText = new(amount => Loc.GetString("fs-hud-medical-fund", ("amount", amount)));
+    private readonly FSHudText<int> _respawnText = new(cost => Loc.GetString("fs-hud-down-subline", ("cost", cost.ToString("N0"))));
+    private readonly FSHudText<(int Ready, int Total)> _readyText =
+        new(v => Loc.GetString("fs-hud-ready-count", ("ready", v.Ready), ("total", v.Total)));
+    private readonly FSHudText<int> _perkLevelText =
+        new(level => Loc.GetString("fs-hud-perk-level", ("level", level), ("max", FSPerkDef.MaxLevel)));
+    private readonly Dictionary<int, string> _numberText = new();
+    private readonly Dictionary<int, string> _secondsText = new();
+
+    private string NumberText(int value)
+    {
+        if (!_numberText.TryGetValue(value, out var text))
+            _numberText[value] = text = value.ToString();
+
+        return text;
+    }
+
+    private string SecondsText(int seconds)
+    {
+        if (!_secondsText.TryGetValue(seconds, out var text))
+            _secondsText[seconds] = text = Loc.GetString("fs-hud-seconds", ("seconds", seconds));
+
+        return text;
+    }
 
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
@@ -364,7 +405,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (IsRespawnOfferVisible)
         {
             var headline = _labelDown;
-            var subline = Loc.GetString("fs-hud-down-subline", ("cost", RespawnCost.ToString("N0")));
+            var subline = _respawnText.Get(RespawnCost);
 
             var headDims = screen.GetDimensions(_promptFont!, headline, 1f);
             var subDims = screen.GetDimensions(_promptSubFont!, subline, 1f);
@@ -429,7 +470,7 @@ public sealed partial class WaveHudOverlay : Overlay
             screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), _labelReadyUp, muted);
             y += labelH + 2f;
 
-            var countText  = ReadyUpTotal > 0 ? Loc.GetString("fs-hud-ready-count", ("ready", ReadyUpCount), ("total", ReadyUpTotal)) : "—";
+            var countText  = ReadyUpTotal > 0 ? _readyText.Get((ReadyUpCount, ReadyUpTotal)) : "—";
             var countColor = ReadyUpCount > 0 ? FSPalette.Ok : Color.White;
             screen.DrawString(_labelFont!, new Vector2(panelX + panelInset, y), countText, countColor);
             y += labelH + 3f;
@@ -484,7 +525,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (IsDarkWave)
         {
             var secs = Math.Max(0f, DarkWaveSecondsRemaining);
-            var survive = $"{(int) (secs / 60f):D1}:{(int) (secs % 60f):D2}";
+            var survive = _surviveText.Get((int) secs);
             y = DrawRow(_iconEnemies, _labelSurvive, survive, FSPalette.Warn, _midFont);
         }
         else if (EnemiesTotal > 0)
@@ -495,7 +536,7 @@ public sealed partial class WaveHudOverlay : Overlay
         if (IsPrepPhase && PrepSecondsRemaining >= 0f)
         {
             var secs = (int)MathF.Ceiling(PrepSecondsRemaining);
-            y = DrawRow(_iconTimer, _labelNext, $"{secs / 60}:{secs % 60:D2}", FSPalette.Warn, _midFont);
+            y = DrawRow(_iconTimer, _labelNext, _prepText.Get(secs), FSPalette.Warn, _midFont);
         }
 
         DrawReadyUpBlock();
@@ -534,7 +575,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
                 if (PerkStacks.TryGetValue(id, out var stacks) && stacks > 0)
                 {
-                    var stackStr = stacks.ToString();
+                    var stackStr = NumberText(stacks);
                     var stackDim = screen.GetDimensions(_labelFont!, stackStr, 1f);
                     var tx = cell.Right - stackDim.X - 1f;
                     var ty = cell.Bottom - stackDim.Y;
@@ -555,7 +596,7 @@ public sealed partial class WaveHudOverlay : Overlay
 
         if (ShowMedicalFund)
         {
-            var fundText = Loc.GetString("fs-hud-medical-fund", ("amount", MedicalFund));
+            var fundText = _fundText.Get(MedicalFund);
             DrawShadowed(screen, _labelFont!,
                 new Vector2(leftX, _creditsRowY + screen.GetDimensions(_valueFont!, _creditsText, 1f).Y + 2f),
                 fundText, FSPalette.Ok);
@@ -573,7 +614,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var popupX = leftX + creditsW + 10f;
             var rowY = _creditsRowY - floatOffset;
 
-            foreach (var entry in p.Entries)
+            foreach (var entry in p.Rows)
             {
                 var tex = GetPerkIcon(entry.PerkId);
                 if (tex != null)
@@ -582,22 +623,18 @@ public sealed partial class WaveHudOverlay : Overlay
                         Color.White.WithAlpha(alpha));
 
                 var textX = popupX + popupIconSz + 4f;
-                if (entry.WaveCredits > 0)
+                if (entry.Credits is { } text)
                 {
-                    var text = Loc.GetString("fs-hud-earnings-credits",
-                        ("wave", entry.WaveCredits.ToString("N0")), ("game", entry.GameCredits.ToString("N0")));
                     var dim = screen.GetDimensions(_labelFont!, text, 1f);
                     screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
                         text, FSPalette.Money.WithAlpha(alpha));
                     textX += dim.X + 8f;
                 }
-                if (entry.WaveResearch > 0)
+                if (entry.Research is { } research)
                 {
-                    var text = Loc.GetString("fs-hud-earnings-research",
-                        ("wave", entry.WaveResearch.ToString("N0")), ("game", entry.GameResearch.ToString("N0")));
-                    var dim = screen.GetDimensions(_labelFont!, text, 1f);
+                    var dim = screen.GetDimensions(_labelFont!, research, 1f);
                     screen.DrawString(_labelFont!, new Vector2(textX, rowY + (popupIconSz - dim.Y) * 0.5f),
-                        text, FSPalette.StaminaFill.WithAlpha(alpha));
+                        research, FSPalette.StaminaFill.WithAlpha(alpha));
                 }
 
                 rowY += popupIconSz + 2f;
@@ -626,7 +663,7 @@ public sealed partial class WaveHudOverlay : Overlay
             var h = _healPayouts[hi];
             var ht = h.Life / h.TotalLife;
             var halpha = MathF.Min(1f, ht * 4f);
-            var text = $"+${h.Amount:N0}";
+            var text = h.Text;
             var colour = h.Diminished ? FSPalette.TextDim : FSPalette.Ok;
 
             screen.DrawString(_labelFont!,
@@ -643,7 +680,7 @@ public sealed partial class WaveHudOverlay : Overlay
                 break;
 
             var level = PerkLevels.GetValueOrDefault(id, 0);
-            var levelText = Loc.GetString("fs-hud-perk-level", ("level", level), ("max", FSPerkDef.MaxLevel));
+            var levelText = _perkLevelText.Get(level);
             var effectText = level > 0 ? def.LevelEffect(level - 1) : _labelNotUpgraded;
             var name = def.Name;
 
@@ -852,7 +889,7 @@ public sealed partial class WaveHudOverlay : Overlay
                 if (icon != null)
                     screen.DrawTextureRect(icon, new UIBox2(margin, y, margin + iconSz, y + iconSz), Color.White);
 
-                var value = buff.SecondsRemaining >= 0 ? $"{buff.SecondsRemaining}s" : string.Empty;
+                var value = buff.SecondsRemaining >= 0 ? SecondsText(buff.SecondsRemaining) : string.Empty;
                 var valueDims = screen.GetDimensions(_tinyFont, value, 1f);
                 var valuePos = new Vector2(margin + iconSz + iconTextGap, y + (iconSz - valueDims.Y) * 0.5f);
                 screen.DrawString(_tinyFont, valuePos, value, MedicalBuffColour);
