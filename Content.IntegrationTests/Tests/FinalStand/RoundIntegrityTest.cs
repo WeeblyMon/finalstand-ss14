@@ -94,6 +94,7 @@ public sealed class RoundIntegrityTest : GameTest
             EndWave(1);
             SetWavesCleared(challenge.ClearWave);
 
+            SEntMan.RemoveComponent<FSPlayerLevelComponent>(mindId);
             var before = wallet.PerkPoints;
             SEntMan.EventBus.RaiseEvent(EventSource.Local, new RoundEndTextAppendEvent());
             Assert.That(wallet.PerkPoints - before, Is.EqualTo(FSWeeklyRules.ClearPerkPoints));
