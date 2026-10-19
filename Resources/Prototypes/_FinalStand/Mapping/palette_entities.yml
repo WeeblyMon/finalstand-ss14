@@ -1,0 +1,541 @@
+- type: fsMapPalette
+  id: FSPaletteStreet
+  name: fs-palette-street
+  root: true
+  order: 40
+  children:
+  - FSPaletteStreetLights
+  - FSPaletteStreetSignage
+  - FSPaletteStreetBillboards
+  - FSPaletteStreetVehicles
+
+- type: fsMapPalette
+  id: FSPaletteStreetLights
+  name: fs-palette-street-lights
+  order: 10
+  entities:
+  - FSEngineerShipLight
+  - FSFloodlightSealed
+  - FSFloodlightSmall
+  - FSFloodlightTall
+  - FSFloodlightTallBroken
+  - FSStreetlight
+  - FSStreetlightBroken
+
+- type: fsMapPalette
+  id: FSPaletteStreetSignage
+  name: fs-palette-street-signage
+  order: 20
+  entities:
+  - FSOverheadRoadsign
+  - FSOverheadRoadsign2
+  - FSOverheadRoadsign3
+  - FSOverheadRoadsign4
+  - FSOverheadRoadsignAlt1
+  - FSOverheadRoadsignAlt2
+  - FSOverheadRoadsignAlt3
+  - FSOverheadRoadsignAlt4
+
+- type: fsMapPalette
+  id: FSPaletteStreetBillboards
+  name: fs-palette-street-billboards
+  order: 30
+  children:
+  - FSPaletteStreetBillboardsBigger
+  - FSPaletteStreetBillboardsOther
+  - FSPaletteStreetBillboardsWallmount
+
+- type: fsMapPalette
+  id: FSPaletteStreetBillboardsBigger
+  name: fs-palette-street-billboards-bigger
+  order: 10
+  entities:
+  - FSOverheadBillboardBigger1
+  - FSOverheadBillboardBigger2
+  - FSOverheadBillboardBigger3
+  - FSOverheadBillboardBigger4
+  - FSOverheadBillboardBigger5
+  - FSOverheadBillboardBigger6
+  - FSOverheadBillboardBigger7
+  - FSOverheadBillboardBigger8
+
+- type: fsMapPalette
+  id: FSPaletteStreetBillboardsOther
+  name: fs-palette-street-billboards-other
+  order: 20
+  entities:
+  - FSOverheadBillboard1A
+  - FSOverheadBillboard1B
+  - FSOverheadBillboard1C
+  - FSOverheadBillboard1D
+  - FSOverheadBillboard1E
+  - FSOverheadBillboard1F
+  - FSOverheadBillboard1G
+  - FSOverheadBillboard1H
+  - FSOverheadBillboard2A
+  - FSOverheadBillboard2B
+  - FSOverheadBillboard2C
+  - FSOverheadBillboard2D
+  - FSOverheadBillboard2E
+  - FSOverheadBillboard2F
+  - FSOverheadBillboard2G
+  - FSOverheadBillboard2H
+  - FSOverheadBillboard3A
+  - FSOverheadBillboard3B
+  - FSOverheadBillboard3C
+  - FSOverheadBillboard3D
+  - FSOverheadBillboard3E
+  - FSOverheadBillboard3F
+  - FSOverheadBillboard3G
+  - FSOverheadBillboard3H
+  - FSOverheadBillboard4A
+  - FSOverheadBillboard4B
+  - FSOverheadBillboard4C
+  - FSOverheadBillboard4D
+  - FSOverheadBillboard4E
+  - FSOverheadBillboard4F
+  - FSOverheadBillboard4G
+  - FSOverheadBillboard4H
+  - FSOverheadBillboard5A
+  - FSOverheadBillboard5B
+  - FSOverheadBillboard5C
+  - FSOverheadBillboard5D
+  - FSOverheadBillboard5E
+  - FSOverheadBillboard5F
+  - FSOverheadBillboard5G
+  - FSOverheadBillboard5H
+
+- type: fsMapPalette
+  id: FSPaletteStreetBillboardsWallmount
+  name: fs-palette-street-billboards-wallmount
+  order: 30
+  entities:
+  - FSOverheadBillboardWallmount1
+  - FSOverheadBillboardWallmount10
+  - FSOverheadBillboardWallmount11
+  - FSOverheadBillboardWallmount12
+  - FSOverheadBillboardWallmount13
+  - FSOverheadBillboardWallmount14
+  - FSOverheadBillboardWallmount15
+  - FSOverheadBillboardWallmount16
+  - FSOverheadBillboardWallmount17
+  - FSOverheadBillboardWallmount18
+  - FSOverheadBillboardWallmount19
+  - FSOverheadBillboardWallmount2
+  - FSOverheadBillboardWallmount20
+  - FSOverheadBillboardWallmount21
+  - FSOverheadBillboardWallmount22
+  - FSOverheadBillboardWallmount23
+  - FSOverheadBillboardWallmount24
+  - FSOverheadBillboardWallmount25
+  - FSOverheadBillboardWallmount26
+  - FSOverheadBillboardWallmount27
+  - FSOverheadBillboardWallmount28
+  - FSOverheadBillboardWallmount3
+  - FSOverheadBillboardWallmount4
+  - FSOverheadBillboardWallmount5
+  - FSOverheadBillboardWallmount6
+  - FSOverheadBillboardWallmount7
+  - FSOverheadBillboardWallmount8
+  - FSOverheadBillboardWallmount9
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehicles
+  name: fs-palette-street-vehicles
+  order: 40
+  children:
+  - FSPaletteStreetVehiclesBlack
+  - FSPaletteStreetVehiclesBlue
+  - FSPaletteStreetVehiclesBlueOffset
+  - FSPaletteStreetVehiclesBrown
+  - FSPaletteStreetVehiclesCop
+  - FSPaletteStreetVehiclesDesatBlue
+  - FSPaletteStreetVehiclesGreen
+  - FSPaletteStreetVehiclesLightBlue
+  - FSPaletteStreetVehiclesOrange
+  - FSPaletteStreetVehiclesOther
+  - FSPaletteStreetVehiclesPink
+  - FSPaletteStreetVehiclesPurple
+  - FSPaletteStreetVehiclesRed
+  - FSPaletteStreetVehiclesRedOffset
+  - FSPaletteStreetVehiclesShell
+  - FSPaletteStreetVehiclesTaxi
+  - FSPaletteStreetVehiclesTurquoise
+  - FSPaletteStreetVehiclesTurquoiseOffset
+  - FSPaletteStreetVehiclesWY
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesBlack
+  name: fs-palette-street-vehicles-black
+  order: 10
+  entities:
+  - FSPropVehicleMonoSupronBlack
+  - FSPropVehicleMonoSupronBlackDamaged1
+  - FSPropVehicleMonoSupronBlackDamaged1Flipped
+  - FSPropVehicleMonoSupronBlackDamaged3
+  - FSPropVehicleMonoSupronBlackDamaged3Flipped
+  - FSPropVehicleMonoSupronBlackDamaged4
+  - FSPropVehicleMonoSupronBlackDamaged4Flipped
+  - FSPropVehicleMonoSupronBlackDamaged5
+  - FSPropVehicleMonoSupronBlackDamaged5Flipped
+  - FSPropVehicleMonoSupronBlackDestroyed
+  - FSPropVehicleMonoSupronBlackDestroyedFlipped
+  - FSPropVehicleMonoSupronBlackFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesBlue
+  name: fs-palette-street-vehicles-blue
+  order: 20
+  entities:
+  - FSPropVehicleMonoSupronBlue
+  - FSPropVehicleMonoSupronBlueDamaged1
+  - FSPropVehicleMonoSupronBlueDamaged1Flipped
+  - FSPropVehicleMonoSupronBlueDamaged3
+  - FSPropVehicleMonoSupronBlueDamaged3Flipped
+  - FSPropVehicleMonoSupronBlueDamaged4
+  - FSPropVehicleMonoSupronBlueDamaged4Flipped
+  - FSPropVehicleMonoSupronBlueDamaged5
+  - FSPropVehicleMonoSupronBlueDamaged5Flipped
+  - FSPropVehicleMonoSupronBlueDestroyed
+  - FSPropVehicleMonoSupronBlueDestroyedFlipped
+  - FSPropVehicleMonoSupronBlueFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesBlueOffset
+  name: fs-palette-street-vehicles-blueoffset
+  order: 30
+  entities:
+  - FSPropVehicleMonoSupronBlueOffset
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesBrown
+  name: fs-palette-street-vehicles-brown
+  order: 40
+  entities:
+  - FSPropVehicleMonoSupronBrown
+  - FSPropVehicleMonoSupronBrownDamaged1
+  - FSPropVehicleMonoSupronBrownDamaged1Flipped
+  - FSPropVehicleMonoSupronBrownDamaged3
+  - FSPropVehicleMonoSupronBrownDamaged3Flipped
+  - FSPropVehicleMonoSupronBrownDamaged4
+  - FSPropVehicleMonoSupronBrownDamaged4Flipped
+  - FSPropVehicleMonoSupronBrownDamaged5
+  - FSPropVehicleMonoSupronBrownDamaged5Flipped
+  - FSPropVehicleMonoSupronBrownDestroyed
+  - FSPropVehicleMonoSupronBrownDestroyedFlipped
+  - FSPropVehicleMonoSupronBrownFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesCop
+  name: fs-palette-street-vehicles-cop
+  order: 50
+  entities:
+  - FSPropVehicleMonoSupronCop
+  - FSPropVehicleMonoSupronCopDamaged1
+  - FSPropVehicleMonoSupronCopDamaged1Flipped
+  - FSPropVehicleMonoSupronCopDamaged3
+  - FSPropVehicleMonoSupronCopDamaged3Flipped
+  - FSPropVehicleMonoSupronCopDamaged4
+  - FSPropVehicleMonoSupronCopDamaged4Flipped
+  - FSPropVehicleMonoSupronCopDamaged5
+  - FSPropVehicleMonoSupronCopDamaged5Flipped
+  - FSPropVehicleMonoSupronCopDestroyed
+  - FSPropVehicleMonoSupronCopDestroyedFlipped
+  - FSPropVehicleMonoSupronCopFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesDesatBlue
+  name: fs-palette-street-vehicles-desatblue
+  order: 60
+  entities:
+  - FSPropVehicleMonoSupronDesatBlue
+  - FSPropVehicleMonoSupronDesatBlueDamaged1
+  - FSPropVehicleMonoSupronDesatBlueDamaged1Flipped
+  - FSPropVehicleMonoSupronDesatBlueDamaged3
+  - FSPropVehicleMonoSupronDesatBlueDamaged3Flipped
+  - FSPropVehicleMonoSupronDesatBlueDamaged4
+  - FSPropVehicleMonoSupronDesatBlueDamaged4Flipped
+  - FSPropVehicleMonoSupronDesatBlueDamaged5
+  - FSPropVehicleMonoSupronDesatBlueDamaged5Flipped
+  - FSPropVehicleMonoSupronDesatBlueDestroyed
+  - FSPropVehicleMonoSupronDesatBlueDestroyedFlipped
+  - FSPropVehicleMonoSupronDesatBlueFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesGreen
+  name: fs-palette-street-vehicles-green
+  order: 70
+  entities:
+  - FSPropVehicleMonoSupronGreen
+  - FSPropVehicleMonoSupronGreenDamaged1
+  - FSPropVehicleMonoSupronGreenDamaged1Flipped
+  - FSPropVehicleMonoSupronGreenDamaged3
+  - FSPropVehicleMonoSupronGreenDamaged3Flipped
+  - FSPropVehicleMonoSupronGreenDamaged4
+  - FSPropVehicleMonoSupronGreenDamaged4Flipped
+  - FSPropVehicleMonoSupronGreenDamaged5
+  - FSPropVehicleMonoSupronGreenDamaged5Flipped
+  - FSPropVehicleMonoSupronGreenDestroyed
+  - FSPropVehicleMonoSupronGreenDestroyedFlipped
+  - FSPropVehicleMonoSupronGreenFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesLightBlue
+  name: fs-palette-street-vehicles-lightblue
+  order: 80
+  entities:
+  - FSPropVehicleMonoSupronLightBlue
+  - FSPropVehicleMonoSupronLightBlueDamaged1
+  - FSPropVehicleMonoSupronLightBlueDamaged1Flipped
+  - FSPropVehicleMonoSupronLightBlueDamaged3
+  - FSPropVehicleMonoSupronLightBlueDamaged3Flipped
+  - FSPropVehicleMonoSupronLightBlueDamaged4
+  - FSPropVehicleMonoSupronLightBlueDamaged4Flipped
+  - FSPropVehicleMonoSupronLightBlueDamaged5
+  - FSPropVehicleMonoSupronLightBlueDamaged5Flipped
+  - FSPropVehicleMonoSupronLightBlueDestroyed
+  - FSPropVehicleMonoSupronLightBlueDestroyedFlipped
+  - FSPropVehicleMonoSupronLightBlueFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesOrange
+  name: fs-palette-street-vehicles-orange
+  order: 90
+  entities:
+  - FSPropVehicleMonoSupronOrange
+  - FSPropVehicleMonoSupronOrangeDamaged1
+  - FSPropVehicleMonoSupronOrangeDamaged1Flipped
+  - FSPropVehicleMonoSupronOrangeDamaged3
+  - FSPropVehicleMonoSupronOrangeDamaged3Flipped
+  - FSPropVehicleMonoSupronOrangeDamaged4
+  - FSPropVehicleMonoSupronOrangeDamaged4Flipped
+  - FSPropVehicleMonoSupronOrangeDamaged5
+  - FSPropVehicleMonoSupronOrangeDamaged5Flipped
+  - FSPropVehicleMonoSupronOrangeDestroyed
+  - FSPropVehicleMonoSupronOrangeDestroyedFlipped
+  - FSPropVehicleMonoSupronOrangeFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesOther
+  name: fs-palette-street-vehicles-other
+  order: 100
+  entities:
+  - FSCarPileup
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesPink
+  name: fs-palette-street-vehicles-pink
+  order: 110
+  entities:
+  - FSPropVehicleMonoSupronPink
+  - FSPropVehicleMonoSupronPinkDamaged1
+  - FSPropVehicleMonoSupronPinkDamaged1Flipped
+  - FSPropVehicleMonoSupronPinkDamaged3
+  - FSPropVehicleMonoSupronPinkDamaged3Flipped
+  - FSPropVehicleMonoSupronPinkDamaged4
+  - FSPropVehicleMonoSupronPinkDamaged4Flipped
+  - FSPropVehicleMonoSupronPinkDamaged5
+  - FSPropVehicleMonoSupronPinkDamaged5Flipped
+  - FSPropVehicleMonoSupronPinkDestroyed
+  - FSPropVehicleMonoSupronPinkDestroyedFlipped
+  - FSPropVehicleMonoSupronPinkFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesPurple
+  name: fs-palette-street-vehicles-purple
+  order: 120
+  entities:
+  - FSPropVehicleMonoSupronPurple
+  - FSPropVehicleMonoSupronPurpleDamaged1
+  - FSPropVehicleMonoSupronPurpleDamaged1Flipped
+  - FSPropVehicleMonoSupronPurpleDamaged3
+  - FSPropVehicleMonoSupronPurpleDamaged3Flipped
+  - FSPropVehicleMonoSupronPurpleDamaged4
+  - FSPropVehicleMonoSupronPurpleDamaged4Flipped
+  - FSPropVehicleMonoSupronPurpleDamaged5
+  - FSPropVehicleMonoSupronPurpleDamaged5Flipped
+  - FSPropVehicleMonoSupronPurpleDestroyed
+  - FSPropVehicleMonoSupronPurpleDestroyedFlipped
+  - FSPropVehicleMonoSupronPurpleFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesRed
+  name: fs-palette-street-vehicles-red
+  order: 130
+  entities:
+  - FSPropVehicleMonoSupronRed
+  - FSPropVehicleMonoSupronRedDamaged1
+  - FSPropVehicleMonoSupronRedDamaged1Flipped
+  - FSPropVehicleMonoSupronRedDamaged3
+  - FSPropVehicleMonoSupronRedDamaged3Flipped
+  - FSPropVehicleMonoSupronRedDamaged4
+  - FSPropVehicleMonoSupronRedDamaged4Flipped
+  - FSPropVehicleMonoSupronRedDamaged5
+  - FSPropVehicleMonoSupronRedDamaged5Flipped
+  - FSPropVehicleMonoSupronRedDestroyed
+  - FSPropVehicleMonoSupronRedDestroyedFlipped
+  - FSPropVehicleMonoSupronRedFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesRedOffset
+  name: fs-palette-street-vehicles-redoffset
+  order: 140
+  entities:
+  - FSPropVehicleMonoSupronRedOffset
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesShell
+  name: fs-palette-street-vehicles-shell
+  order: 150
+  entities:
+  - FSPropVehicleMonoSupronShell
+  - FSPropVehicleMonoSupronShellFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesTaxi
+  name: fs-palette-street-vehicles-taxi
+  order: 160
+  entities:
+  - FSPropVehicleMonoSupronTaxi
+  - FSPropVehicleMonoSupronTaxiDamaged1
+  - FSPropVehicleMonoSupronTaxiDamaged1Flipped
+  - FSPropVehicleMonoSupronTaxiDamaged3
+  - FSPropVehicleMonoSupronTaxiDamaged3Flipped
+  - FSPropVehicleMonoSupronTaxiDamaged4
+  - FSPropVehicleMonoSupronTaxiDamaged4Flipped
+  - FSPropVehicleMonoSupronTaxiDamaged5
+  - FSPropVehicleMonoSupronTaxiDamaged5Flipped
+  - FSPropVehicleMonoSupronTaxiDestroyed
+  - FSPropVehicleMonoSupronTaxiDestroyedFlipped
+  - FSPropVehicleMonoSupronTaxiFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesTurquoise
+  name: fs-palette-street-vehicles-turquoise
+  order: 170
+  entities:
+  - FSPropVehicleMonoSupronTurquoise
+  - FSPropVehicleMonoSupronTurquoiseDamaged1
+  - FSPropVehicleMonoSupronTurquoiseDamaged1Flipped
+  - FSPropVehicleMonoSupronTurquoiseDamaged3
+  - FSPropVehicleMonoSupronTurquoiseDamaged3Flipped
+  - FSPropVehicleMonoSupronTurquoiseDamaged4
+  - FSPropVehicleMonoSupronTurquoiseDamaged4Flipped
+  - FSPropVehicleMonoSupronTurquoiseDamaged5
+  - FSPropVehicleMonoSupronTurquoiseDamaged5Flipped
+  - FSPropVehicleMonoSupronTurquoiseDestroyed
+  - FSPropVehicleMonoSupronTurquoiseDestroyedFlipped
+  - FSPropVehicleMonoSupronTurquoiseFlipped
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesTurquoiseOffset
+  name: fs-palette-street-vehicles-turquoiseoffset
+  order: 180
+  entities:
+  - FSPropVehicleMonoSupronTurquoiseOffset
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehiclesWY
+  name: fs-palette-street-vehicles-wy
+  order: 190
+  entities:
+  - FSPropVehicleMonoSupronWY
+  - FSPropVehicleMonoSupronWYDamaged1
+  - FSPropVehicleMonoSupronWYDamaged1Flipped
+  - FSPropVehicleMonoSupronWYDamaged3
+  - FSPropVehicleMonoSupronWYDamaged3Flipped
+  - FSPropVehicleMonoSupronWYDamaged4
+  - FSPropVehicleMonoSupronWYDamaged4Flipped
+  - FSPropVehicleMonoSupronWYDamaged5
+  - FSPropVehicleMonoSupronWYDamaged5Flipped
+  - FSPropVehicleMonoSupronWYDestroyed
+  - FSPropVehicleMonoSupronWYDestroyedFlipped
+  - FSPropVehicleMonoSupronWYFlipped
+
+- type: fsMapPalette
+  id: FSPaletteBuilding
+  name: fs-palette-building
+  root: true
+  order: 50
+  children:
+  - FSPaletteBuildingWalls
+  - FSPaletteBuildingFrames
+  - FSPaletteBuildingWindows
+  - FSPaletteBuildingDoors
+  - FSPaletteBuildingBoundary
+
+- type: fsMapPalette
+  id: FSPaletteBuildingWalls
+  name: fs-palette-building-walls
+  order: 10
+  entities:
+  - FSWallEngineer
+  - FSWallHybrisa
+  - FSWallHybrisaEngi
+  - FSWallHybrisaEngiHull
+  - FSWallHybrisaEngiReinforced
+  - FSWallHybrisaHull
+  - FSWallHybrisaMedical
+  - FSWallHybrisaMedicalHull
+  - FSWallHybrisaMedicalReinforced
+  - FSWallHybrisaOffice
+  - FSWallHybrisaReinforced
+  - FSWallHybrisaResearch
+  - FSWallHybrisaResearchHull
+  - FSWallHybrisaResearchReinforced
+  - FSWallHybrisaRock
+  - FSWallHybrisaRockBorder
+  - FSWallHybrisaRockDestructible
+  - FSWallHybrisaSpacePort
+  - FSWallHybrisaSpacePortHull
+  - FSWallHybrisaSpacePortReinforced
+
+- type: fsMapPalette
+  id: FSPaletteBuildingFrames
+  name: fs-palette-building-frames
+  order: 20
+  entities:
+  - FSWindowFrameHybrisa
+  - FSWindowFrameHybrisaEngiReinforced
+  - FSWindowFrameHybrisaMedicalReinforced
+  - FSWindowFrameHybrisaOfficeReinforced
+  - FSWindowFrameHybrisaReinforced
+  - FSWindowFrameHybrisaResearchReinforced
+  - FSWindowFrameHybrisaSpacePort
+  - FSWindowFrameHybrisaSpacePortCell
+  - FSWindowFrameHybrisaSpacePortReinforced
+
+- type: fsMapPalette
+  id: FSPaletteBuildingWindows
+  name: fs-palette-building-windows
+  order: 30
+  entities:
+  - FSWindowHybrisa
+  - FSWindowHybrisaEngiReinforced
+  - FSWindowHybrisaHull
+  - FSWindowHybrisaMedicalReinforced
+  - FSWindowHybrisaOfficeReinforced
+  - FSWindowHybrisaReinforced
+  - FSWindowHybrisaResearchReinforced
+  - FSWindowHybrisaSpacePort
+  - FSWindowHybrisaSpacePortCell
+  - FSWindowHybrisaSpacePortReinforced
+
+- type: fsMapPalette
+  id: FSPaletteBuildingDoors
+  name: fs-palette-building-doors
+  order: 40
+  entities:
+  - FSPodDoorHybrisaRed
+  - FSPodDoorHybrisaRedOpen
+  - FSPodDoorHybrisaUltra
+  - FSPodDoorHybrisaUltraOpen
+  - FSPodDoorHybrisaWhite
+  - FSPodDoorHybrisaWhiteOpen
+
+- type: fsMapPalette
+  id: FSPaletteBuildingBoundary
+  name: fs-palette-building-boundary
+  order: 50
+  entities:
+  - FSFogWall
