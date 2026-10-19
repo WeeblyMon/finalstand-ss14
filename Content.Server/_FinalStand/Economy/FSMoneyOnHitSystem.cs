@@ -45,6 +45,15 @@ public sealed partial class FSMoneyOnHitSystem : EntitySystem
         SubscribeLocalEvent<FSFlatMoneyProjectileComponent, ProjectileHitEvent>(OnFlatHit);
     }
 
+    // A projectile hit and its damage happen in the same call. If the hit changed no damage (armour, a resisted
+    // hit) the flag would otherwise linger and mislabel someone else's next hit on that enemy.
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        _deployableHitTarget = null;
+        _flatHit = null;
+    }
+
     private void OnDeployableHit(Entity<FSDeployableProjectileComponent> ent, ref ProjectileHitEvent args)
     {
         _deployableHitTarget = args.Target;
