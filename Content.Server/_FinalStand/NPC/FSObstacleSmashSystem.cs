@@ -21,7 +21,6 @@ namespace Content.Server._FinalStand.NPC;
 public sealed partial class FSObstacleSmashSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedMeleeWeaponSystem _melee = default!;
@@ -29,15 +28,13 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
 
     private const float BlockedSeconds = 0.75f;
     private const float StalledSpeedSquared = 0.25f;
-    private const float ReachBeyondRadius = 0.45f;
 
-    // A slice of the horde per tick, so a stalled crowd doesn't do all its lookups at once.
+    // A slice of the horde per tick, so a stalled crowd doesn't do all its checks at once.
     private const int TickBuckets = 8;
     private int _tick;
 
     private readonly Dictionary<EntityUid, float> _blockedFor = new();
     private readonly List<EntityUid> _stale = new();
-    private readonly HashSet<EntityUid> _candidates = new();
 
     public override void Update(float frameTime)
     {
@@ -64,7 +61,7 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
             if (blocked < BlockedSeconds)
                 continue;
 
-            if (TryFindObstacle(uid, steering, out var obstacle))
+            if (TryFindObstacle(uid, steering.LastSteerDirection, out var obstacle))
                 Smash(uid, obstacle);
         }
 
@@ -82,22 +79,27 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         _stale.Clear();
     }
 
-    private bool TryFindObstacle(EntityUid uid, NPCSteeringComponent steering, out EntityUid obstacle)
+    // Whatever is holding a stalled zombie back is touching it, so its own contacts are enough. A range lookup
+    // per stalled zombie mostly turned up the rest of the crowd.
+    internal bool TryFindObstacle(EntityUid uid, Vector2 heading, out EntityUid obstacle)
     {
         obstacle = EntityUid.Invalid;
         var (ourLayer, ourMask) = _physics.GetHardCollision(uid);
-        var pos = _transform.GetMapCoordinates(uid);
-        var direction = steering.LastSteerDirection.Normalized();
+        var pos = _transform.GetWorldPosition(uid);
+        var direction = heading.Normalized();
 
         var best = -1f;
-        _candidates.Clear();
-        _lookup.GetEntitiesInRange(pos.MapId, pos.Position, steering.Radius + ReachBeyondRadius, _candidates, LookupFlags.Dynamic | LookupFlags.Static);
-        foreach (var candidate in _candidates)
+        var contacts = _physics.GetContacts(uid);
+        while (contacts.MoveNext(out var contact))
         {
-            if (candidate == uid || !IsSmashable(candidate, ourLayer, ourMask))
+            if (!contact.IsTouching || !contact.Hard)
                 continue;
 
-            var toCandidate = _transform.GetWorldPosition(candidate) - pos.Position;
+            var candidate = contact.OtherEnt(uid);
+            if (!IsSmashable(candidate, ourLayer, ourMask))
+                continue;
+
+            var toCandidate = _transform.GetWorldPosition(candidate) - pos;
             var facing = toCandidate.LengthSquared() > 0.0001f ? Vector2.Dot(direction, toCandidate.Normalized()) : 1f;
             if (facing <= 0f || facing <= best)
                 continue;
