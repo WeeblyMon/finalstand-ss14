@@ -217,7 +217,8 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     public bool TryDeductCredits(EntityUid mindId, int amount)
     {
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
+        // A negative charge would quietly pay out; callers refund through GiveCredits.
+        if (amount < 0 || !TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
         MarkWalletDirty(mindId);

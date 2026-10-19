@@ -55,16 +55,23 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         _purchasedTier.TryGetValue(mindId, out var oldId);
         if (oldId == tier.Id) return;
 
-        var netCost = FSArmorShopDefs.GetNetCost(oldId, tier);
+        // The trade-in only counts for the suit being handed back; one taken off and passed on earns nothing.
+        var tradeIn = Wears(player, oldId) ? oldId : null;
+        var netCost = FSArmorShopDefs.GetNetCost(tradeIn, tier);
 
-        if (!_wallet.TryDeductCredits(mindId, netCost))
+        if (netCost > 0 && !_wallet.TryDeductCredits(mindId, netCost))
             return;
 
         if (!ApplyArmorToMob(player, tier))
         {
-            _wallet.GiveCredits(mindId, netCost);
+            if (netCost > 0)
+                _wallet.GiveCredits(mindId, netCost);
             return;
         }
+
+        // A step down refunds the difference.
+        if (netCost < 0)
+            _wallet.GiveCredits(mindId, -netCost);
 
         _purchasedTier[mindId] = tier.Id;
         _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.Id, _wallet.GetCredits(mindId)), player);
@@ -81,6 +88,13 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!_purchasedTier.TryGetValue(mindId, out var tierId)) return;
         var tier = FSArmorShopDefs.GetTier(tierId);
         if (tier != null) ApplyArmorToMob(ev.Mob, tier);
+    }
+
+    private bool Wears(EntityUid mob, string? tierId)
+    {
+        return FSArmorShopDefs.GetTier(tierId) is { } tier
+               && _inventory.TryGetSlotEntity(mob, "outerClothing", out var worn)
+               && MetaData(worn.Value).EntityPrototype?.ID == tier.SpawnId;
     }
 
     private bool ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)
