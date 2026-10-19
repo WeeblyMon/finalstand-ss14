@@ -1,15 +1,15 @@
 using Content.Shared._Shitmed.Body;
-using Robust.Shared.GameStates;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._FinalStand.Medical;
 
-// Simple bodies (borgs, animals) don't carry this.
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+// Simple bodies (borgs, animals) don't carry this. Healing only runs on the server, so nothing here is networked.
+[RegisterComponent, AutoGenerateComponentPause]
 public sealed partial class BodyWoundHealingComponent : Component
 {
     [DataField]
     public BodyType BodyType = BodyType.Complex;
 
-    [ViewVariables, AutoNetworkedField]
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
     public TimeSpan HealAt;
 }

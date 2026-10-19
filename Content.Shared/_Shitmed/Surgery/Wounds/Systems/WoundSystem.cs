@@ -124,20 +124,23 @@ public sealed partial class WoundSystem : EntitySystem
         if (!_net.IsServer || !_timing.IsFirstTimePredicted)
             return;
 
-        // If this still causes lag, we go with the nuclear option of also checking for ConsciousnessComponent :niceportrait:
+        // FINALSTAND: cheapest checks first, and the next heal is scheduled from now. Adding to HealAt let anything
+        // spawned mid-round (HealAt still zero) heal every tick until it caught up with the clock.
+        var now = _timing.CurTime;
+        var interval = TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
         using var query = EntityQueryEnumerator<BodyWoundHealingComponent, DamageableComponent>();
         while (query.MoveNext(out var ent, out var healing, out var damageable))
         {
-            if (TerminatingOrDeleted(ent)
-                || Paused(ent)
+            if (now < healing.HealAt
                 || healing.BodyType == BodyType.Simple
-                || _timing.CurTime - damageable.LastModifiedTime < _minimumTimeBeforeHeal
-                || _timing.CurTime < healing.HealAt
+                || now - damageable.LastModifiedTime < _minimumTimeBeforeHeal
+                || TerminatingOrDeleted(ent)
+                || Paused(ent)
                 || _mobState.IsIncapacitated(ent)
                 || !_lookup.TryGetRootOrgan(ent, out var rootPart))
                 continue;
 
-            healing.HealAt += TimeSpan.FromSeconds(1f / _medicalHealingTickrate);
+            healing.HealAt = now + interval;
             foreach (var woundable in GetAllWoundableChildren(rootPart.Owner))
                 if (woundable.Comp.CanHealDamage || woundable.Comp.CanHealBleeds)
                     _woundJobQueue.EnqueueJob(new WoundJob(this, woundable, ent, WoundJobTime));
