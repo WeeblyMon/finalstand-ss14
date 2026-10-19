@@ -212,7 +212,7 @@
       valuePerLevel: 1
       altWhenUpgrade: pipe-singularity
       altName: Extra Cores
-      altDescription: +1 max gravaton bomb per level.
+      altDescription: No effect. Gravaton bombs are capped at 1.
     - id: pipe-faster-regen
       name: Faster Regen
       description: Refill +1 extra grenade each prep phase per level.
@@ -236,7 +236,7 @@
       altLabel: Pull Radius
     - id: pipe-singularity
       name: Singularity
-      description: Replaces the pipe bomb with a gravaton bomb. Instead of baiting, it collapses into a singularity that drags nearby enemies into its centre.
+      description: Replaces the pipe bomb with a gravaton bomb. Instead of baiting, it collapses into a singularity that drags nearby enemies into its centre. Holds only 1 bomb.
       maxLevel: 1
       baseCost: 20000
       type: GrenadeSingularity
