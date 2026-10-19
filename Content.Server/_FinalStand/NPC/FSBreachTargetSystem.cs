@@ -4,6 +4,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.GameTicking.Components;
 using Content.Shared.Ghost;
@@ -35,6 +36,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
 
     private const int TickBuckets = 3;
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
+    private readonly FSEffectThrottle<EntityUid> _doorReplans = new(TimeSpan.FromSeconds(1));
     private int _tick;
     private const int RescanEveryTicks = 10;
     private float _baseZombieDamage = 10f;
@@ -98,7 +100,11 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     private void ForceNearbyReplan(EntityUid doorUid)
     {
         var xform = Transform(doorUid);
-        if (xform.MapID == MapId.Nullspace)
+        if (xform.MapID == MapId.Nullspace || TerminatingOrDeleted(xform.MapUid))
+            return;
+
+        // A busy airlock cycles every few seconds; one replan of the local horde per door per second is plenty.
+        if (!_doorReplans.TryReserve(doorUid, _timing.CurTime))
             return;
 
         var epicenter = new MapCoordinates(_transform.GetWorldPosition(xform), xform.MapID);
