@@ -34,6 +34,7 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
     private readonly List<float> _scratch = new();
     private readonly List<string> _expired = new();
     private readonly List<(EntityUid Uid, FSMedicalBonusComponent Comp)> _pruning = new();
+    private readonly List<EntityUid> _holders = new();
 
     private EntityQuery<FSMedicalBonusComponent> _bonusQuery;
     private EntityQuery<PullerComponent> _pullerQuery;
@@ -210,6 +211,21 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
 
         _movement.RefreshMovementSpeedModifiers(uid);
         RefreshHeldGuns(uid);
+    }
+
+    // Every holder, not just bodies with a session: a medic who disconnects keeps their body and the buff on it.
+    public void RemoveBuffFromAll(string source)
+    {
+        _holders.Clear();
+        var query = EntityQueryEnumerator<FSMedicalBonusComponent>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (comp.Active.ContainsKey(source))
+                _holders.Add(uid);
+        }
+
+        foreach (var uid in _holders)
+            RemoveBuff(uid, source);
     }
 
     public bool HasBuff(EntityUid uid, string source)

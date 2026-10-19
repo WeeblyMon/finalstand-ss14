@@ -9,7 +9,6 @@ using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.GameTicking;
 using Content.Shared.Radio;
 using Content.Shared.Popups;
-using Robust.Server.Player;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -23,7 +22,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
     [Dependency] private FSMedicalRosterSystem _roster = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private RadioSystem _radio = default!;
-    [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private FSMedicalUpgradeSystem _upgrades = default!;
@@ -149,7 +147,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             return;
 
         if (_activeDirective == null)
-            RemoveFromDepartment(DoctrineSource);
+            _bonus.RemoveBuffFromAll(DoctrineSource);
         else
             ApplyToDepartment(DoctrineSource, DoctrineBonuses, name: Loc.GetString("fs-cmo-doctrine-short"));
     }
@@ -295,7 +293,7 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
         if (_activeDirective == directive)
         {
             SetActiveDirective(null);
-            RemoveFromDepartment(DirectiveSource);
+            _bonus.RemoveBuffFromAll(DirectiveSource);
             Announce(performer, "fs-cmo-directive-stand-down", standDown: true);
 
             if (panel != null)
@@ -333,14 +331,6 @@ public sealed partial class FSCmoAbilitySystem : EntitySystem
             _bonus.ApplyBuff(mob, source, bonuses, duration, name);
     }
 
-    private void RemoveFromDepartment(string source)
-    {
-        foreach (var session in _player.Sessions)
-        {
-            if (session.AttachedEntity is { } mob)
-                _bonus.RemoveBuff(mob, source);
-        }
-    }
 
     private void Announce(EntityUid performer, string key, bool standDown = false)
     {
