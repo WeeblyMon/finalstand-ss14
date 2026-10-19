@@ -23,6 +23,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSPlayerUpgradesSystem _playerUpgrades = default!;
+    [Dependency] private FSXrayRaycastSystem _xray = default!;
 
     public override void Initialize()
     {
@@ -162,10 +163,7 @@ public sealed partial class FSResearchStaticGrantSystem : EntitySystem
         {
             var d = Delta(tracker, "FSOrdnanceWaveParticleHarnessing", isXray && Unlocked("FSOrdnanceWaveParticleHarnessing") ? 1 : 0);
             if (d != 0)
-            {
-                xray.MaxDistance *= MathF.Pow(1.08f, d);
-                Dirty(weapon, xray);
-            }
+                _xray.ScaleRange((weapon, xray), MathF.Pow(1.08f, d));
         }
 
         var critDelta = 0f;

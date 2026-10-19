@@ -23,13 +23,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     }
                     else
                     {
-                        var bonus = EnsureComp<FSSpeedBonusComponent>(player);
-                        if (bonus.UpgradeLevels.GetValueOrDefault(def.Id) >= newLevel)
-                            break;
-
-                        bonus.UpgradeLevels[def.Id] = newLevel;
-                        bonus.SpeedMultiplier += def.ValuePerLevel;
-                        _movement.RefreshMovementSpeedModifiers(player);
+                        _speedBonus.Raise(player, def.Id, newLevel, def.ValuePerLevel);
                     }
                     break;
                 }

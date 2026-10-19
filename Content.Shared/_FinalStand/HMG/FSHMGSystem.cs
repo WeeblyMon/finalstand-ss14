@@ -67,6 +67,27 @@ public sealed partial class FSHMGSystem : EntitySystem
         _gun.RefreshModifiers(ent.Owner);
     }
 
+    // Engineering research bonuses; cheap to re-apply, it only dirties on a change.
+    public void SetResearchBonuses(Entity<FSHMGComponent> ent, float arcBonus, float heatMultiplier, float linkBonus)
+    {
+        ent.Comp.LinkBonus = linkBonus;
+        if (ent.Comp.ArcBonus.Equals(arcBonus) && ent.Comp.HeatMultiplier.Equals(heatMultiplier))
+            return;
+
+        ent.Comp.ArcBonus = arcBonus;
+        ent.Comp.HeatMultiplier = heatMultiplier;
+        Dirty(ent);
+    }
+
+    public void SetCrate(Entity<FSHMGComponent> ent, EntityUid? crate)
+    {
+        if (ent.Comp.Crate == crate)
+            return;
+
+        ent.Comp.Crate = crate;
+        Dirty(ent);
+    }
+
     private void OnPreventCollide(Entity<FSHMGComponent> ent, ref PreventCollideEvent args)
     {
         if (HasComp<FSFriendlyFireComponent>(args.OtherEntity))

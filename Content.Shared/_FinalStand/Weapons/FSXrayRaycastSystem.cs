@@ -27,6 +27,11 @@ public sealed partial class FSXrayRaycastSystem : EntitySystem
     private EntityQuery<HitscanBasicVisualsComponent> _visualsQuery;
     private EntityQuery<FSWeaponUpgradeStateComponent> _upgradeQuery;
 
+    public void ScaleRange(Entity<FSXrayRaycastComponent> ent, float factor)
+    {
+        ent.Comp.MaxDistance *= factor;
+    }
+
     public override void Initialize()
     {
         base.Initialize();

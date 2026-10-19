@@ -36,6 +36,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSBerserkerSystem _berserker = default!;
     [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
+    [Dependency] private FSPierceSystem _pierce = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -144,10 +145,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         foreach (var projUid in args.FiredProjectiles)
         {
-            if (!TryComp<ProjectileComponent>(projUid, out var proj)) continue;
-            proj.DeleteOnCollide = false;
-            var pierce = EnsureComp<FSPierceComponent>(projUid);
-            pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, level);
+            _pierce.GrantPierces(projUid, level);
         }
     }
 

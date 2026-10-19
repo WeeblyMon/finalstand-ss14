@@ -18,6 +18,21 @@ public sealed partial class FSRivetGunSystem : EntitySystem
         SubscribeLocalEvent<FSRivetGunComponent, GunRefreshModifiersEvent>(OnRefreshModifiers);
     }
 
+    public void SetResearchBonuses(Entity<FSRivetGunComponent> ent, float fireRateMultiplier, float repairCap)
+    {
+        if (ent.Comp.FireRateMultiplier.Equals(fireRateMultiplier) && ent.Comp.RepairCap.Equals(repairCap))
+            return;
+
+        ent.Comp.RepairCap = repairCap;
+        if (!ent.Comp.FireRateMultiplier.Equals(fireRateMultiplier))
+        {
+            ent.Comp.FireRateMultiplier = fireRateMultiplier;
+            _gun.RefreshModifiers(ent.Owner);
+        }
+
+        Dirty(ent);
+    }
+
     private void OnRefreshModifiers(Entity<FSRivetGunComponent> ent, ref GunRefreshModifiersEvent args)
     {
         args.FireRate *= ent.Comp.FireRateMultiplier;

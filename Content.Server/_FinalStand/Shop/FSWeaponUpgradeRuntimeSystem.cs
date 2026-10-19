@@ -17,6 +17,8 @@ public sealed partial class FSWeaponUpgradeRuntimeSystem : EntitySystem
     [Dependency] private MagEfficiencyUpgradeSystem _magEfficiency = default!;
     [Dependency] private OverloadRoundUpgradeSystem _overloadRound = default!;
     [Dependency] private MultishotUpgradeSystem _multishot = default!;
+    [Dependency] private FSPierceSystem _pierce = default!;
+    [Dependency] private FSHomingProjectileSystem _homing = default!;
 
     public override void Initialize()
     {
@@ -33,11 +35,7 @@ public sealed partial class FSWeaponUpgradeRuntimeSystem : EntitySystem
                 continue;
 
             if (comp.PierceThreshold > FixedPoint2.Zero)
-            {
-                proj.DeleteOnCollide = false;
-                var pierceComp = EnsureComp<FSPierceComponent>(projUid);
-                pierceComp.RemainingPierces = (int)Math.Round(comp.PierceThreshold.Float());
-            }
+                _pierce.GrantPierces(projUid, (int) Math.Round(comp.PierceThreshold.Float()), proj);
 
             if (comp.APRoundsEnabled || comp.ArmorShredMagnitude > 0f)
             {
@@ -50,24 +48,19 @@ public sealed partial class FSWeaponUpgradeRuntimeSystem : EntitySystem
             }
 
             if (comp.FlechetteEnabled)
-            {
-                proj.DeleteOnCollide = false;
-                var flechettePierce = EnsureComp<FSPierceComponent>(projUid);
-                flechettePierce.RemainingPierces = Math.Max(flechettePierce.RemainingPierces, 1);
-            }
+                _pierce.GrantPierces(projUid, 1, proj);
 
             if (comp.DamageMultiplier > 1.0f)
                 proj.Damage = proj.Damage * FixedPoint2.New(comp.DamageMultiplier);
 
             if (comp.HomingLevel > 0)
             {
-                var homing = EnsureComp<FSHomingProjectileComponent>(projUid);
-                homing.TurnRateDegrees = comp.HomingLevel switch
+                _homing.Home(projUid, comp.HomingLevel switch
                 {
                     1 => 90f,
                     2 => 180f,
                     _ => 320f,
-                };
+                });
             }
         }
 

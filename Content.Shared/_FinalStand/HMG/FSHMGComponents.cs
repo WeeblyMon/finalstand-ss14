@@ -5,6 +5,7 @@ namespace Content.Shared._FinalStand.HMG;
 
 // A crewed heavy machine gun: the gun lives on this entity and fires for whoever is buckled to it.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSHMGSystem))]
 public sealed partial class FSHMGComponent : Component
 {
     [AutoNetworkedField]

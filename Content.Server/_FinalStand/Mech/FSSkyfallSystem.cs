@@ -24,6 +24,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private FSHomingProjectileSystem _homing = default!;
 
     private static readonly EntProtoId Blast = "FSSkyfallBlast";
 
@@ -108,9 +109,7 @@ public sealed partial class FSSkyfallSystem : EntitySystem
             if (target == null)
                 continue;
 
-            var homing = EnsureComp<FSHomingProjectileComponent>(uid);
-            homing.TurnRateDegrees = missile.TurnRate;
-            homing.Target = target.Value;
+            _homing.Home(uid, missile.TurnRate, target.Value);
         }
     }
 

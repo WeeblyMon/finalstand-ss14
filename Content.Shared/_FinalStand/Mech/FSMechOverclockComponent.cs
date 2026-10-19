@@ -5,6 +5,7 @@ namespace Content.Shared._FinalStand.Mech;
 
 // A Giant-dropped overclock that reshapes one mech gun. One overclock per gun.
 [RegisterComponent]
+[Access(typeof(FSMechOverclockSystem))]
 public sealed partial class FSMechOverclockComponent : Component
 {
     [DataField(required: true)]

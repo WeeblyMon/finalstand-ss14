@@ -7,7 +7,6 @@ using Content.Shared.Popups;
 using Robust.Shared.Prototypes;
 using Content.Shared._FinalStand.HMG;
 using Content.Shared._FinalStand.Repair;
-using Content.Shared.Weapons.Ranged.Systems;
 
 namespace Content.Server._FinalStand.Engineering;
 
@@ -32,7 +31,8 @@ public static class FSEngineeringNodes
 public sealed partial class FSEngineeringResearchSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _research = default!;
-    [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private FSHMGSystem _hmg = default!;
+    [Dependency] private FSRivetGunSystem _rivets = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IChatManager _chat = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
@@ -92,15 +92,10 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
 
     private void ApplyHmg(Entity<FSHMGComponent> ent)
     {
-        var arc = Has(FSEngineeringNodes.TraverseGearing) ? TraverseArcBonus : 0f;
-        var heat = Has(FSEngineeringNodes.CoolingJacket) ? CoolingHeatMultiplier : 1f;
-        ent.Comp.LinkBonus = Has(FSEngineeringNodes.BeltFeed) ? BeltFeedRangeBonus : 0f;
-        if (ent.Comp.ArcBonus.Equals(arc) && ent.Comp.HeatMultiplier.Equals(heat))
-            return;
-
-        ent.Comp.ArcBonus = arc;
-        ent.Comp.HeatMultiplier = heat;
-        Dirty(ent);
+        _hmg.SetResearchBonuses(ent,
+            Has(FSEngineeringNodes.TraverseGearing) ? TraverseArcBonus : 0f,
+            Has(FSEngineeringNodes.CoolingJacket) ? CoolingHeatMultiplier : 1f,
+            Has(FSEngineeringNodes.BeltFeed) ? BeltFeedRangeBonus : 0f);
     }
 
     public void ApplyCrate(Entity<FSAmmoCrateComponent> ent)
@@ -117,18 +112,8 @@ public sealed partial class FSEngineeringResearchSystem : EntitySystem
 
     private void ApplyRivetGun(Entity<FSRivetGunComponent> ent)
     {
-        var rate = Has(FSEngineeringNodes.PneumaticRivets) ? PneumaticFireRate : 1f;
-        var cap = Has(FSEngineeringNodes.PrecisionRivets) ? PrecisionCap : BaseRivetCap;
-        if (ent.Comp.FireRateMultiplier.Equals(rate) && ent.Comp.RepairCap.Equals(cap))
-            return;
-
-        ent.Comp.RepairCap = cap;
-        if (!ent.Comp.FireRateMultiplier.Equals(rate))
-        {
-            ent.Comp.FireRateMultiplier = rate;
-            _gun.RefreshModifiers(ent.Owner);
-        }
-
-        Dirty(ent);
+        _rivets.SetResearchBonuses(ent,
+            Has(FSEngineeringNodes.PneumaticRivets) ? PneumaticFireRate : 1f,
+            Has(FSEngineeringNodes.PrecisionRivets) ? PrecisionCap : BaseRivetCap);
     }
 }

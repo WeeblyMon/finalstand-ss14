@@ -13,6 +13,15 @@ public sealed partial class FSExpiringPortalSystem : EntitySystem
         SubscribeLocalEvent<FSExpiringPortalComponent, ExaminedEvent>(OnExamined);
     }
 
+    public void SetExpiry(EntityUid portal, TimeSpan expiresAt, TimeSpan? pausedLeft, float lifetime)
+    {
+        var comp = EnsureComp<FSExpiringPortalComponent>(portal);
+        comp.ExpiresAt = expiresAt;
+        comp.PausedLeft = pausedLeft;
+        comp.Lifetime = lifetime;
+        Dirty(portal, comp);
+    }
+
     public float SecondsLeft(TimeSpan expiresAt, TimeSpan? pausedLeft)
     {
         var left = pausedLeft ?? expiresAt - _timing.CurTime;

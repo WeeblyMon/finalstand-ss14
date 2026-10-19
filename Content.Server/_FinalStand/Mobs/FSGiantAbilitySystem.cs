@@ -42,6 +42,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSKnockedBackSystem _knockedBack = default!;
 
     private readonly ObjectPool<HashSet<Entity<ActorComponent>>> _actorPool =
         new DefaultObjectPool<HashSet<Entity<ActorComponent>>>(new SetPolicy<Entity<ActorComponent>>());
@@ -473,9 +474,7 @@ public sealed partial class FSGiantAbilitySystem : EntitySystem
         _throwing.TryThrow(target, heading * distance, speed, compensateFriction: true,
             recoil: false, animated: false, playSound: false, doSpin: false);
 
-        var comp = EnsureComp<FSKnockedBackComponent>(target);
-        comp.EndTime = _timing.CurTime + TimeSpan.FromSeconds(distance / speed);
-        Dirty(target, comp);
+        _knockedBack.KnockBack(target, TimeSpan.FromSeconds(distance / speed));
     }
 
     private void Slow(EntityUid target, float factor, float seconds)

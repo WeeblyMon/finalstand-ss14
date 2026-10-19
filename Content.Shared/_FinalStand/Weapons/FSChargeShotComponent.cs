@@ -7,6 +7,7 @@ namespace Content.Shared._FinalStand.Weapons;
 
 // hold to charge: longer holds hit harder, fly faster, pierce further and bounce more
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSChargeShotSystem))]
 public sealed partial class FSChargeShotComponent : Component
 {
     // Upgrade-mutated stats need AutoNetworkedField: this system's charge ramp runs shared (both

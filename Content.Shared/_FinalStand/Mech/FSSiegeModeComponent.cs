@@ -9,6 +9,7 @@ namespace Content.Shared._FinalStand.Mech;
 
 // Planted, the mech can't move, wears heavier armour and shrugs off hits from the front.
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSSiegeModeSystem))]
 public sealed partial class FSSiegeModeComponent : Component
 {
     [DataField, AutoNetworkedField]

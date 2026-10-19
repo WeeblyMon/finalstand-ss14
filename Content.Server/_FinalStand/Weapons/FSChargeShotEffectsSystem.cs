@@ -11,6 +11,7 @@ public sealed partial class FSChargeShotEffectsSystem : EntitySystem
 {
     [Dependency] private FixtureSystem _fixtures = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private FSPierceSystem _pierce = default!;
 
     public override void Initialize()
     {
@@ -39,7 +40,7 @@ public sealed partial class FSChargeShotEffectsSystem : EntitySystem
             }
 
             if (pierce > 0)
-                EnsureComp<FSPierceComponent>(projUid).RemainingPierces = pierce;
+                _pierce.GrantPierces(projUid, pierce);
 
             if (bounces > 0)
             {

@@ -3,6 +3,7 @@ using Robust.Shared.GameStates;
 namespace Content.Shared._FinalStand.Mobs;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSRevenantBoundSystem))]
 public sealed partial class FSRevenantBoundComponent : Component
 {
     [DataField, AutoNetworkedField]

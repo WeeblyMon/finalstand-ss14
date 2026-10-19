@@ -4,6 +4,7 @@ using Robust.Shared.Map;
 namespace Content.Client._FinalStand.Weapons;
 
 [RegisterComponent]
+[Access(typeof(FSBeamFollowSystem))]
 public sealed partial class FSBeamFollowComponent : Component
 {
     public EntityUid Shooter;

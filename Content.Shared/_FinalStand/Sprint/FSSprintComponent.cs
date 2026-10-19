@@ -4,6 +4,7 @@ namespace Content.Shared._FinalStand.Sprint;
 
 // hold-to-sprint with stamina drain; exhaustion causes a slow instead of a crit stun
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(raiseAfterAutoHandleState: true)]
+[Access(typeof(SharedFSSprintSystem))]
 public sealed partial class FSSprintComponent : Component
 {
     [DataField, AutoNetworkedField]

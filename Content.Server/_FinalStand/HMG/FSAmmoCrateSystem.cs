@@ -17,6 +17,7 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
     [Dependency] private SharedGunSystem _gun = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private FSEngineeringResearchSystem _engineering = default!;
+    [Dependency] private FSHMGSystem _hmg = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
     private const float SentryFeedRange = 1.5f;
@@ -129,18 +130,14 @@ public sealed partial class FSAmmoCrateSystem : EntitySystem
 
     private void Link(Entity<FSHMGComponent> gun, EntityUid? crate)
     {
-        // An HMG with no crate nearby is re-checked every interval; don't resend its state each time.
-        if (crate == null && gun.Comp.Crate == null)
-            return;
-
         if (gun.Comp.Crate is { } old && TryComp<FSAmmoCrateComponent>(old, out var oldComp) && oldComp.LinkedTo == gun.Owner)
         {
             oldComp.LinkedTo = null;
             Dirty(old, oldComp);
         }
 
-        gun.Comp.Crate = crate;
-        Dirty(gun);
+        // A no-op when unchanged: an HMG with no crate nearby is re-checked every interval.
+        _hmg.SetCrate(gun, crate);
 
         if (crate is { } uid && TryComp<FSAmmoCrateComponent>(uid, out var comp))
         {

@@ -14,6 +14,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private HandTeleporterSystem _teleporter = default!;
     [Dependency] private WaveGameRuleSystem _wave = default!;
+    [Dependency] private FSExpiringPortalSystem _expiring = default!;
 
     private static readonly SoundSpecifier CollapseSound = new SoundCollectionSpecifier("sparks");
 
@@ -43,11 +44,7 @@ public sealed partial class FSPortalExpirySystem : EntitySystem
         if (Deleted(portal))
             return;
 
-        var comp = EnsureComp<FSExpiringPortalComponent>(portal.Value);
-        comp.ExpiresAt = expiresAt;
-        comp.PausedLeft = pausedLeft;
-        comp.Lifetime = lifetime;
-        Dirty(portal.Value, comp);
+        _expiring.SetExpiry(portal.Value, expiresAt, pausedLeft, lifetime);
     }
 
     public override void Update(float frameTime)

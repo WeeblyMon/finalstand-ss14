@@ -35,8 +35,10 @@ public sealed class EmplacementPackTest : GameTest
             var core = entMan.SpawnEntity(CoreProto, map.GridCoords);
             var sentry = entMan.SpawnEntity(SentryProto, map.GridCoords);
             var coreComp = entMan.GetComponent<FSEmplacementComponent>(core);
+#pragma warning disable RA0002
             coreComp.Deployed = true;
             coreComp.Pieces.Add(sentry);
+#pragma warning restore RA0002
 
             var upgradeable = entMan.GetComponent<FSUpgradeableComponent>(sentry);
             upgrades.Apply((sentry, upgradeable), protos.Index(Servos));

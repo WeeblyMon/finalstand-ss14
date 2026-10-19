@@ -12,6 +12,7 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private FSKnockedBackSystem _knockedBack = default!;
 
     private static readonly float[] VelocityByLevel = [5.5f, 9.9f, 15.4f];
     private static readonly TimeSpan[] DurationByLevel =
@@ -74,8 +75,6 @@ public sealed partial class KnockbackUpgradeSystem : EntitySystem
 
         _physics.SetLinearVelocity(target, body.LinearVelocity + Vector2.Normalize(dir) * speed, body: body);
 
-        var comp = EnsureComp<FSKnockedBackComponent>(target);
-        comp.EndTime = _timing.CurTime + duration;
-        Dirty(target, comp);
+        _knockedBack.KnockBack(target, duration);
     }
 }

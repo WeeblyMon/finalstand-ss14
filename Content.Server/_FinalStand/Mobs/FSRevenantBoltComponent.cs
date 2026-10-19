@@ -1,6 +1,7 @@
 namespace Content.Server._FinalStand.Mobs;
 
 [RegisterComponent]
+[Access(typeof(FSRevenantBoltSystem), typeof(FSRevenantSystem))]
 public sealed partial class FSRevenantBoltComponent : Component
 {
     [DataField] public float Damage = 16f;

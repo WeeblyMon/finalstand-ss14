@@ -6,6 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._FinalStand.Repair;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(FSRivetGunSystem))]
 public sealed partial class FSRivetGunComponent : Component
 {
     [DataField]

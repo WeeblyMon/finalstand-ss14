@@ -25,6 +25,8 @@ namespace Content.Server._FinalStand.Shop;
 public sealed partial class FSPlayerUpgradesSystem : EntitySystem
 {
     [Dependency] private SharedGunSystem _gun = default!;
+    [Dependency] private FSChargeShotSystem _chargeShot = default!;
+    [Dependency] private FSSpeedBonusSystem _speedBonus = default!;
     [Dependency] private FSGrenadeSelectActionSystem _grenadeSelect = default!;
     [Dependency] private SharedBatterySystem _battery = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;

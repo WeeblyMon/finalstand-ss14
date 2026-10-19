@@ -4,6 +4,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._FinalStand.Emplacement;
 
 [RegisterComponent]
+[Access(typeof(FSEmplacementSystem))]
 public sealed partial class FSEmplacementComponent : Component
 {
     [DataField(required: true)]

@@ -13,6 +13,17 @@ public sealed class FSPierceSystem : EntitySystem
         SubscribeLocalEvent<FSPierceComponent, StartCollideEvent>(OnCollide, after: [typeof(ProjectileSystem)]);
     }
 
+    // Lets a projectile carry on through at least this many wave enemies; separate sources don't stack, the highest wins.
+    public void GrantPierces(EntityUid projectile, int pierces, ProjectileComponent? proj = null)
+    {
+        if (pierces <= 0 || !Resolve(projectile, ref proj, false))
+            return;
+
+        proj.DeleteOnCollide = false;
+        var pierce = EnsureComp<FSPierceComponent>(projectile);
+        pierce.RemainingPierces = Math.Max(pierce.RemainingPierces, pierces);
+    }
+
     private void OnCollide(EntityUid uid, FSPierceComponent pierce, ref StartCollideEvent args)
     {
         if (args.OurFixtureId != SharedProjectileSystem.ProjectileFixture)

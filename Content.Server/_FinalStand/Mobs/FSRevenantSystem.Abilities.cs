@@ -162,12 +162,9 @@ public sealed partial class FSRevenantSystem
     {
         if (dist > comp.MeleeRange) return false;
         if (comp.BindAccum < comp.BindCooldown) return false;
-        if (HasComp<FSRevenantBoundComponent>(target)) return false;
+        if (!_bound.TryBind(target, TimeSpan.FromSeconds(comp.BindDuration))) return false;
 
         comp.BindAccum = 0f;
-        var bound = AddComp<FSRevenantBoundComponent>(target);
-        bound.ExpiresAt = _timing.CurTime + TimeSpan.FromSeconds(comp.BindDuration);
-        Dirty(target, bound);
 
         ApplyAbilityDamage(uid, comp, target, comp.BindDamage);
 

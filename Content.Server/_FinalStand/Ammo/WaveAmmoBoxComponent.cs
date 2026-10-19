@@ -1,6 +1,7 @@
 namespace Content.Server._FinalStand.Ammo;
 
 [RegisterComponent]
+[Access(typeof(WaveAmmoBoxSystem))]
 public sealed partial class WaveAmmoBoxComponent : Component
 {
     /// players that have already used this box this wave. Cleared on WaveEndedEvent.

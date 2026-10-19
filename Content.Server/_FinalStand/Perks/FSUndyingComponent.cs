@@ -1,6 +1,7 @@
 namespace Content.Server._FinalStand.Perks;
 
 [RegisterComponent]
+[Access(typeof(FSUndyingSystem), typeof(FSPerkBodySystem))]
 public sealed partial class FSUndyingComponent : Component
 {
     public int Level;

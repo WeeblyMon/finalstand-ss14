@@ -13,6 +13,7 @@ using Robust.Shared.Timing;
 namespace Content.Server._FinalStand.Fortifications;
 
 [RegisterComponent]
+[Access(typeof(FSFiringStepSystem))]
 public sealed partial class FSFiringStepComponent : Component
 {
     [DataField]

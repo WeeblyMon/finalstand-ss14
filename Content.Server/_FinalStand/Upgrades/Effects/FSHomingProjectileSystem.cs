@@ -28,6 +28,14 @@ public sealed partial class FSHomingProjectileSystem : EntitySystem
     // A bolt with nothing in range would otherwise run a radius query every tick for its whole life.
     private static readonly TimeSpan SearchInterval = TimeSpan.FromSeconds(0.2);
 
+    public void Home(EntityUid projectile, float turnRateDegrees, EntityUid? target = null)
+    {
+        var homing = EnsureComp<FSHomingProjectileComponent>(projectile);
+        homing.TurnRateDegrees = turnRateDegrees;
+        if (target != null)
+            homing.Target = target;
+    }
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);

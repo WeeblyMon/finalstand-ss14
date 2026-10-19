@@ -57,6 +57,7 @@ public sealed partial class GunSystem : SharedGunSystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SpriteTreeSystem _spriteTree = default!;
     [Dependency] private FSShotPredictionSystem _shotPrediction = default!; // fs
+    [Dependency] private FSBeamFollowSystem _beamFollow = default!; // fs
     [Dependency] private IClientGameTiming _clientTiming = default!;
 
     public static readonly EntProtoId HitscanProto = "HitscanEffect";
@@ -144,12 +145,7 @@ public sealed partial class GunSystem : SharedGunSystem
             var ent = Spawn(HitscanProto, coords);
 
             if (shooter is { } shooterUid && Exists(shooterUid) && impact is { } impactCoords)
-            {
-                var follow = EnsureComp<FSBeamFollowComponent>(ent);
-                follow.Shooter = shooterUid;
-                follow.Impact = impactCoords;
-                follow.Part = a.Part;
-            }
+                _beamFollow.Follow(ent, shooterUid, impactCoords, a.Part);
 
             if (!rsi.RsiState.StartsWith("muzzle"))
             {

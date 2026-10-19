@@ -1,6 +1,7 @@
 namespace Content.Server._FinalStand.Perks;
 
 [RegisterComponent]
+[Access(typeof(FSPerkEarningsSystem))]
 public sealed partial class FSPerkEarningsComponent : Component
 {
     public readonly Dictionary<string, FSPerkEarningsTotals> Entries = new();

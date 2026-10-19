@@ -7,6 +7,7 @@ namespace Content.Shared._FinalStand.Medical.Effects;
 // Components an organ grants to, or strips from, its body while attached.
 [RegisterComponent, NetworkedComponent]
 [AutoGenerateComponentPause]
+[Access(typeof(OrganEffectSystem), typeof(Content.Shared._Shitmed.Medical.Surgery.SharedSurgerySystem))]
 public sealed partial class OrganEffectComponent : Component
 {
     [DataField]

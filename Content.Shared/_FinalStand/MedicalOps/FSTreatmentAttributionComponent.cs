@@ -1,6 +1,7 @@
 namespace Content.Shared._FinalStand.MedicalOps;
 
 [RegisterComponent]
+[Access(typeof(FSTreatmentAttributionSystem))]
 public sealed partial class FSTreatmentAttributionComponent : Component
 {
     [ViewVariables]

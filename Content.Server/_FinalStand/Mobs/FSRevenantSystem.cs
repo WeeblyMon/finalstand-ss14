@@ -35,6 +35,7 @@ public sealed partial class FSRevenantSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private FSDarkWaveSystem _darkWave = default!;
+    [Dependency] private FSRevenantBoundSystem _bound = default!;
 
     private int _combosOpened;
     private int _combosCompleted;
