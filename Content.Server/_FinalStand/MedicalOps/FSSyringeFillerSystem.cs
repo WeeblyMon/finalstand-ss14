@@ -25,6 +25,7 @@ public sealed partial class FSSyringeFillerSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedAmbientSoundSystem _ambient = default!;
+    [Dependency] private FSTreatmentAttributionSystem _attribution = default!;
 
     public override void Initialize()
     {
@@ -191,6 +192,15 @@ public sealed partial class FSSyringeFillerSystem : EntitySystem
         _solutions.TryAddSolution(magSoln, drawn);
 
         _solutions.UpdateChemicals(magSoln);
+
+        // The chemist who brewed the jug supplied these darts.
+        if (FSItemSlots.TryGetSlot(EntityManager, _slots, ent, ent.Comp.SourceSlot, out var sourceSlot)
+            && sourceSlot.Item is { } jug
+            && FSItemSlots.TryGetSlot(EntityManager, _slots, ent, ent.Comp.MagazineSlot, out var magSlot)
+            && magSlot.Item is { } magazine)
+        {
+            _attribution.PropagateProducer(jug, magazine);
+        }
 
         _popup.PopupEntity(Loc.GetString("fs-syringe-filler-done"), ent);
         UpdateUi(ent);
