@@ -31,7 +31,6 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
         _cfg.OverrideDefault(CCVars.GameCryoSleepRejoining, true);
         Subs.CVar(_cfg, CCVars.GameCryoSleepRejoining, value => _rejoinEnabled = value, true);
 
-        SubscribeLocalEvent<CryostorageComponent, InteractHandEvent>(OnPodInteractHand);
         SubscribeLocalEvent<CryostorageComponent, ActivateInWorldEvent>(OnPodActivate);
         SubscribeLocalEvent<CanEnterCryostorageComponent, EntGotInsertedIntoContainerMessage>(OnInsertedIntoPod);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
@@ -72,14 +71,6 @@ public sealed partial class FSCryoSleepSystem : EntitySystem
     public void PushStatus(ICommonSession session)
     {
         RaiseNetworkEvent(new FSCryoStatusEvent(TryGetStoredBody(session.UserId, out _, out _)), session);
-    }
-
-    private void OnPodInteractHand(Entity<CryostorageComponent> ent, ref InteractHandEvent args)
-    {
-        if (args.Handled)
-            return;
-
-        args.Handled = TryEnterPod(ent, args.User);
     }
 
     private void OnPodActivate(Entity<CryostorageComponent> ent, ref ActivateInWorldEvent args)
