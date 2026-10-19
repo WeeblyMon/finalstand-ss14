@@ -55,6 +55,8 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
         }
     }
 
+    private const float AcquireRetryInterval = 0.25f;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
@@ -80,8 +82,12 @@ public sealed partial class FSTeslaZombieSystem : EntitySystem
             return;
         }
 
+        // The lookup and LOS raycast are too costly to retry every tick while nothing is in range.
         if (_targeting.AcquireTarget(uid, comp.DetectionRange) is not { } target)
+        {
+            comp.CooldownAccumulator = AcquireRetryInterval;
             return;
+        }
 
         var myPos = _transform.GetMapCoordinates(uid);
         var dir = _transform.GetMapCoordinates(target).Position - myPos.Position;
