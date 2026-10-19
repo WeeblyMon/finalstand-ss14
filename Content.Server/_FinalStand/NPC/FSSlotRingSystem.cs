@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Numerics;
+using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
@@ -16,14 +18,25 @@ public sealed partial class FSSlotRingSystem : EntitySystem
         (24, 1.9f),
     ];
 
+    private static readonly int SlotCount = Rings.Sum(r => r.Count);
+
     private readonly Dictionary<(EntityUid, int, int), EntityUid> _claimed = new();
     private readonly Dictionary<EntityUid, (EntityUid ccc, int ring, int slot)> _zombieSlot = new();
+    private readonly Dictionary<EntityUid, int> _claimedPerCcc = new();
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSSlotClaimComponent, ComponentShutdown>(OnSlotShutdown);
         SubscribeLocalEvent<FSSlotClaimComponent, MobStateChangedEvent>(OnSlotMobStateChanged);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _claimed.Clear();
+        _zombieSlot.Clear();
+        _claimedPerCcc.Clear();
     }
 
     private void OnSlotShutdown(EntityUid uid, FSSlotClaimComponent _, ComponentShutdown args)
@@ -51,6 +64,11 @@ public sealed partial class FSSlotRingSystem : EntitySystem
         var cccPos = _transform.GetWorldPosition(ccc);
         var mobPos = _transform.GetWorldPosition(zombie);
         var delta  = mobPos - cccPos;
+
+        // Rings full: approach from wherever we're coming from rather than all piling onto one fallback point.
+        if (_claimedPerCcc.GetValueOrDefault(ccc) >= SlotCount)
+            return delta.LengthSquared() > 0.001f ? delta : Vector2.UnitX;
+
         var approachAngle = delta.LengthSquared() > 0.001f
             ? MathF.Atan2(delta.Y, delta.X)
             : 0f;
@@ -80,6 +98,7 @@ public sealed partial class FSSlotRingSystem : EntitySystem
 
             _claimed[(ccc, r, bestSlot)] = zombie;
             _zombieSlot[zombie] = (ccc, r, bestSlot);
+            _claimedPerCcc[ccc] = _claimedPerCcc.GetValueOrDefault(ccc) + 1;
 
             if (!TryComp<FSSlotClaimComponent>(zombie, out var claim))
                 claim = AddComp<FSSlotClaimComponent>(zombie);
@@ -91,7 +110,7 @@ public sealed partial class FSSlotRingSystem : EntitySystem
             return SlotOffset(r, bestSlot);
         }
 
-        return Vector2.Zero;
+        return delta.LengthSquared() > 0.001f ? delta : Vector2.UnitX;
     }
 
     private void ReleaseSlot(EntityUid zombie)
@@ -100,7 +119,8 @@ public sealed partial class FSSlotRingSystem : EntitySystem
             return;
 
         _zombieSlot.Remove(zombie);
-        _claimed.Remove((info.ccc, info.ring, info.slot));
+        if (_claimed.Remove((info.ccc, info.ring, info.slot)))
+            _claimedPerCcc[info.ccc] = _claimedPerCcc.GetValueOrDefault(info.ccc) - 1;
     }
 
     private static Vector2 SlotOffset(int ring, int slot)
