@@ -915,6 +915,7 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
     {
         var station = GetOrCreateStation();
         var alreadyUnlocked = station.Comp.UnlockedNodes.Select(n => n.Id).ToHashSet();
+        var pickers = station.Comp.PersonalPicks.Keys.ToList();
 
         var count = 0;
         foreach (var node in PrototypeManager.EnumeratePrototypes<FSTechNodePrototype>())
@@ -937,6 +938,10 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         Dirty(station);
         SyncConsoles();
         BroadcastUnlockedNodes();
+
+        // Their picks were just cleared, so their personal panels need telling.
+        foreach (var mind in pickers)
+            SendPersonalResearchState(mind);
 
         return count;
     }

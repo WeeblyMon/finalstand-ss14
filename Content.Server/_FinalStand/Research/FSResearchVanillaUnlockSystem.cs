@@ -9,6 +9,7 @@ namespace Content.Server._FinalStand.Research;
 public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
 {
     [Dependency] private FSResearchSystem _fsResearch = default!;
+    [Dependency] private FSMedicalResearchSystem _medicalResearch = default!;
     [Dependency] private ResearchSystem _vanillaResearch = default!;
     [Dependency] private IPrototypeManager _prototype = default!;
 
@@ -27,16 +28,24 @@ public sealed partial class FSResearchVanillaUnlockSystem : EntitySystem
         GrantToAllServers(vanillaId);
     }
 
+    // A server built mid-round gets everything already researched, the medical branch included (it's bought
+    // through its own system, not station research).
     private void OnServerInit(Entity<ResearchServerComponent> ent, ref MapInitEvent args)
     {
-        if (!_fsResearch.TryGetStation(out var station))
-            return;
-
-        foreach (var nodeId in station.Comp.UnlockedNodes)
+        if (_fsResearch.TryGetStation(out var station))
         {
-            if (TryGetVanillaId(nodeId, out var vanillaId))
-                GrantToServer(ent.Owner, vanillaId);
+            foreach (var nodeId in station.Comp.UnlockedNodes)
+                GrantNode(ent.Owner, nodeId);
         }
+
+        foreach (var nodeId in _medicalResearch.UnlockedNodeIds())
+            GrantNode(ent.Owner, nodeId);
+    }
+
+    private void GrantNode(EntityUid server, string nodeId)
+    {
+        if (TryGetVanillaId(nodeId, out var vanillaId))
+            GrantToServer(server, vanillaId);
     }
 
     private void GrantToAllServers(string vanillaId)
