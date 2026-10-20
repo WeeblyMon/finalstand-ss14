@@ -429,7 +429,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node) || !ServesBranch(comp, node))
+        if (args.NodeId is null
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node)
+            || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();
@@ -514,7 +516,9 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
         if (!player.IsValid())
             return;
 
-        if (!PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node) || !ServesBranch(comp, node))
+        if (args.NodeId is null
+            || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node)
+            || !ServesBranch(comp, node))
             return;
 
         var station = GetOrCreateStation();

@@ -35,7 +35,7 @@ public sealed partial class FSTutorialSystem : EntitySystem
 
     private void OnSeen(FSTutorialSeenEvent ev, EntitySessionEventArgs args)
     {
-        if (_proto.HasIndex<FSTutorialPrototype>(ev.Tutorial))
+        if (ev.Tutorial is not null && _proto.HasIndex<FSTutorialPrototype>(ev.Tutorial))
             _store.MarkTutorialSeen(args.SenderSession.UserId.UserId, ev.Tutorial);
     }
 

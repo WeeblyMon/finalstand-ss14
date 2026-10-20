@@ -55,7 +55,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!player.IsValid()) return;
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
 
-        if (!_proto.TryIndex(args.Tier, out var tier))
+        if (args.Tier.Id is null || !_proto.TryIndex(args.Tier, out var tier))
             return;
 
         FSArmorTierPrototype? old = null;

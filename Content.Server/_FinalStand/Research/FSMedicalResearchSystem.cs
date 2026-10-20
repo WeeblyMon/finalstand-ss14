@@ -153,7 +153,7 @@ public sealed partial class FSMedicalResearchSystem : SharedFSResearchSystem
             return;
 
         var player = args.Actor;
-        if (!player.IsValid() || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
+        if (!player.IsValid() || args.NodeId is null || !PrototypeManager.TryIndex<FSTechNodePrototype>(args.NodeId, out var node))
             return;
 
         if (node.Branch != MedicalBranch)
