@@ -1,4 +1,5 @@
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.GameTicking;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -14,6 +15,16 @@ public sealed partial class FSRepairFeedbackSystem : EntitySystem
     private readonly Dictionary<(EntityUid Target, EntityUid User), (float Amount, TimeSpan Flush)> _pending = new();
     private readonly Dictionary<EntityUid, TimeSpan> _capSentAt = new();
     private readonly List<(EntityUid Target, EntityUid User)> _due = new();
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _pending.Clear();
+            _capSentAt.Clear();
+        });
+    }
 
     public void Repaired(EntityUid target, EntityUid? user, float amount)
     {

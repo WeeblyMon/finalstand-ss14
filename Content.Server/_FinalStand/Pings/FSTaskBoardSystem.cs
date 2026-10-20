@@ -6,6 +6,7 @@ using Content.Shared._FinalStand.Deployables;
 using Content.Shared._FinalStand.Mech;
 using Content.Shared._FinalStand.Pings;
 using Content.Shared._FinalStand.Repair;
+using Content.Shared.GameTicking;
 using Content.Shared.Mobs.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -65,11 +66,21 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
         SubscribeLocalEvent<PlayerAttachedEvent>(_ => _dirty = true);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     private void OnWaveEnded(ref WaveEndedEvent ev)
     {
         _autoRaised.Clear();
+    }
+
+    // Untargeted tasks outlive their map otherwise, and the board would send coordinates on a deleted grid.
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _board.Clear();
+        _autoRaised.Clear();
+        _autoTimes.Clear();
+        _dirty = false;
     }
 
     public void Open(FSPingType type, FSPingAudience audience, EntityCoordinates coords, EntityUid? target,

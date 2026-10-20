@@ -5,6 +5,7 @@ using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
 using Robust.Server.GameObjects;
@@ -43,6 +44,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
         SubscribeLocalEvent<ReadyCheckUpdatedEvent>(OnReadyCheckUpdated);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _shownDamage.Clear());
 
         Subs.BuiEvents<FinalStandCCCComponent>(CCCUiKey.Key, subs =>
         {
