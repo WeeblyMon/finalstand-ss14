@@ -39,6 +39,10 @@ public sealed partial class FSPingSystem : EntitySystem
     [Dependency] private FSStructureHealthSystem _health = default!;
 
     private const float MaxRange = 24f;
+
+    // The client sends whatever is under the cursor, so a target has to be at the ping. Slack covers clicking
+    // the edge of something big like a boss or the CCC.
+    private const float TargetSlack = 3f;
     private const float TaskPingLife = 60f;
     private const float RepairThreshold = 0.7f;
     private const float NearbyRepairRange = 3f;
@@ -86,7 +90,10 @@ public sealed partial class FSPingSystem : EntitySystem
             return;
 
         var target = GetEntity(ev.Target);
-        if (target is { } t && (!Exists(t) || _container.IsEntityInContainer(t)))
+        if (target is { } t
+            && (!Exists(t)
+                || _container.IsEntityInContainer(t)
+                || !_transform.InRange(Transform(t).Coordinates, coords, TargetSlack)))
             target = null;
 
         Ping(sender, coords, target, ev.Forced);
