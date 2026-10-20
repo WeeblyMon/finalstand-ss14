@@ -40,18 +40,10 @@ public sealed partial class WaveHudSystem
             if (overlay.TriageRows.Count >= MaxTriageRows)
                 break;
 
-            var state = entry.State switch
-            {
-                FSCasualtyState.Dead => "DOWN",
-                FSCasualtyState.Critical => "CRIT",
-                _ => "HURT",
-            };
-
             overlay.TriageRows.Add(new WaveHudOverlay.TriageRow(
                 entry.Name,
-                state,
+                entry.State,
                 range is { } r ? Loc.GetString("fs-hud-triage-range", ("range", (int) r)) : string.Empty,
-                entry.State == FSCasualtyState.Critical,
                 entry.Responder != null,
                 dir));
         }

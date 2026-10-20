@@ -1,4 +1,5 @@
 using Content.Client._FinalStand.Interface;
+using Content.Shared._FinalStand.MedicalOps;
 using System.Numerics;
 using Robust.Client.Graphics;
 
@@ -9,8 +10,8 @@ public sealed partial class WaveHudOverlay
     private readonly string _labelTriage = Loc.GetString("fs-hud-triage");
     private readonly string _labelNoCasualties = Loc.GetString("fs-hud-no-casualties");
 
-    public readonly record struct TriageRow(string Name, string State, string Range, bool Critical,
-        bool Responding, Vector2? Direction);
+    public readonly record struct TriageRow(string Name, FSCasualtyState State, string Range, bool Responding,
+        Vector2? Direction);
 
     public readonly List<TriageRow> TriageRows = new();
 
@@ -30,6 +31,7 @@ public sealed partial class WaveHudOverlay
     private static readonly Color TriageName = FSPalette.TextBright;
     private static readonly Color PipDead = FSPalette.Danger;
     private static readonly Color PipCrit = FSPalette.Warn;
+    private static readonly Color PipHurt = FSPalette.TextMuted;
     private static readonly Color PipResponding = FSPalette.Ok;
 
     private float DrawTriage(DrawingHandleScreen screen, float panelX, float top)
@@ -64,12 +66,18 @@ public sealed partial class WaveHudOverlay
 
         foreach (var row in TriageRows)
         {
-            var pipColor = row.Responding ? PipResponding : row.Critical ? PipCrit : PipDead;
+            var (pipColor, glyph) = row.Responding
+                ? (PipResponding, "+")
+                : row.State switch
+                {
+                    FSCasualtyState.Dead => (PipDead, "x"),
+                    FSCasualtyState.Critical => (PipCrit, "!"),
+                    _ => (PipHurt, "-"),
+                };
             var pip = new UIBox2(innerX, y + (rowH - PipSize) * 0.5f, innerX + PipSize,
                 y + (rowH - PipSize) * 0.5f + PipSize);
             DrawRounded(screen, pip, pipColor, 2f);
 
-            var glyph = row.Responding ? "+" : row.Critical ? "!" : "x";
             var glyphDims = screen.GetDimensions(_labelFont!, glyph, 1f);
             screen.DrawString(_labelFont!,
                 new Vector2(pip.Left + (PipSize - glyphDims.X) * 0.5f, pip.Top + (PipSize - glyphDims.Y) * 0.5f),
