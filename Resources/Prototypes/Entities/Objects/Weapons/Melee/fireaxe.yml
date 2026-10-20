@@ -4,9 +4,24 @@
   id: FireAxe
   description: Truly, the weapon of a madman. Who would think to fight fire with an axe?
   components:
+  - type: FSMeleeCharge # FINALSTAND
+    maxChargeTime: 1.4
+    minDamage: 0.7
+    maxDamage: 1.8
+    minForce: 0.5
+    maxForce: 1.4
+    chargeSound:
+      path: /Audio/Magic/rumble.ogg
+      params:
+        volume: -4
+    fullSound:
+      path: /Audio/Items/unsheath.ogg
+      params:
+        volume: -2
+        pitch: 0.8
   - type: FSMeleeJuice # FINALSTAND
     heavyStyle: Slam
-    heavyRecovery: 2
+    heavyRecovery: 1.2
     light:
       anticipation: 0.12
       hitstop: 0.09
@@ -35,7 +50,7 @@
       slashScale: 0.95
       slashTravel: 0.35
     heavy:
-      anticipation: 0.16
+      anticipation: 0.08
       hitstop: 0.12
       killHitstopBonus: 0.04
       reach: 1.15
