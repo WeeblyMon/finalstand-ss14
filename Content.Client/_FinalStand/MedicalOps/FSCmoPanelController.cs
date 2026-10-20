@@ -66,6 +66,7 @@ public sealed partial class FSCmoPanelController : UIController
     private InventoryGui? _inventory;
     private HotbarGui? _hotbar;
     private bool _narrow;
+    private Vector2? _shownPosition;
 
     private readonly Dictionary<FSCmoAbility, Button> _buttons = new();
     private readonly Dictionary<FSCmoAbility, string> _labels = new();
@@ -111,6 +112,7 @@ public sealed partial class FSCmoPanelController : UIController
         rows.AddChild(_directiveRow);
         rows.AddChild(_abilityRow);
 
+        _shownPosition = null;
         _frame = new PanelContainer
         {
             PanelOverride = new StyleBoxFlat
@@ -333,7 +335,13 @@ public sealed partial class FSCmoPanelController : UIController
         var x = MathF.Max(vitalsRightEdge + EdgePadding, gapCentre - size.X * 0.5f);
         var y = _hotbar.Position.Y + _hotbar.Size.Y - size.Y;
 
-        LayoutContainer.SetPosition(_frame, new Vector2(x, y));
+        // SetPosition relayouts the screen even when nothing moved.
+        var position = new Vector2(x, y);
+        if (_shownPosition == position)
+            return;
+
+        _shownPosition = position;
+        LayoutContainer.SetPosition(_frame, position);
     }
 
     private void SetNarrow(bool narrow)

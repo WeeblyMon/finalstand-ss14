@@ -73,9 +73,10 @@ public sealed partial class FSRevenantOpacitySystem : EntitySystem
         return instance;
     }
 
-    public override void Update(float frameTime)
+    // Visual only, so once per frame rather than once per predicted tick.
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
 
         var localEntity = _player.LocalSession?.AttachedEntity;
         if (localEntity == null)

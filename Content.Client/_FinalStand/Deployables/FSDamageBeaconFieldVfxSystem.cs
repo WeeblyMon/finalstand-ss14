@@ -29,9 +29,10 @@ public sealed partial class FSDamageBeaconFieldVfxSystem : EntitySystem
     private float GetFieldScale(EntityUid uid)
         => _fieldQuery.TryGetComponent(Transform(uid).ParentUid, out var field) ? field.Scale : 1f;
 
-    public override void Update(float frameTime)
+    // Visual only, so real frame time rather than once per predicted tick.
+    public override void FrameUpdate(float frameTime)
     {
-        base.Update(frameTime);
+        base.FrameUpdate(frameTime);
 
         _time += frameTime;
         var pulse = 1f + PulseAmount * MathF.Sin(_time * PulseSpeed);

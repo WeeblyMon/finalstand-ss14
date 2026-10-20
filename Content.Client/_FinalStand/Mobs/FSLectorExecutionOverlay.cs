@@ -2,10 +2,8 @@ using System.Numerics;
 using Content.Shared._FinalStand.Shop;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.FixedPoint;
 using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
-using Content.Shared.Mobs;
 using Robust.Shared.Player;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -27,7 +25,7 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
     private readonly IPlayerManager _player;
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobState;
-    private readonly MobThresholdSystem _mobThreshold;
+    private readonly FSMobThresholdCacheSystem _thresholdCache;
     private readonly SpriteSystem _sprite;
     private readonly DamageableSystem _damageable;
     private readonly SharedHandsSystem _handsSystem;
@@ -35,6 +33,9 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
     private Texture? _skullIcon;
 
     private static readonly Color BorderColor = new(0.82f, 0.16f, 0.17f, 0.9f);
+
+    // Margin for the position cull: covers the largest mob sprites, the exact bounds test comes later.
+    private const float CullMargin = 2f;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
 
@@ -45,7 +46,7 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
         _player      = player;
         _transform   = entManager.System<SharedTransformSystem>();
         _mobState    = entManager.System<MobStateSystem>();
-        _mobThreshold = entManager.System<MobThresholdSystem>();
+        _thresholdCache = entManager.System<FSMobThresholdCacheSystem>();
         _sprite      = entManager.System<SpriteSystem>();
         _damageable  = entManager.System<DamageableSystem>();
         _handsSystem = entManager.System<SharedHandsSystem>();
@@ -60,6 +61,9 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
         var rotation   = args.Viewport.Eye?.Rotation ?? Angle.Zero;
         var xformQuery = _entManager.GetEntityQuery<TransformComponent>();
         var spriteQuery = _entManager.GetEntityQuery<SpriteComponent>();
+        var thresholdsQuery = _entManager.GetEntityQuery<MobThresholdsComponent>();
+        var damageQuery = _entManager.GetEntityQuery<DamageableComponent>();
+        var cullBox = args.WorldAABB.Enlarged(CullMargin);
 
         const float scale = 1f;
         var scaleMatrix   = Matrix3Helpers.CreateScale(new Vector2(scale, scale));
@@ -67,16 +71,22 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
 
         _skullIcon ??= TryLoadIcon();
 
-        var query = _entManager.EntityQueryEnumerator<DamageableComponent, MobThresholdsComponent, MobStateComponent>();
-        while (query.MoveNext(out var uid, out var dmg, out var thresholds, out var mobStateComp))
+        var query = _entManager.EntityQueryEnumerator<MobStateComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var mobStateComp, out var xform))
         {
-            if (_mobState.IsDead(uid, mobStateComp))
+            if (xform.MapID != args.MapId || _mobState.IsDead(uid, mobStateComp))
                 continue;
-            if (_entManager.HasComponent<ActorComponent>(uid))
+
+            var worldPos = _transform.GetWorldPosition(xform, xformQuery);
+            if (!cullBox.Contains(worldPos))
                 continue;
-            if (!xformQuery.TryGetComponent(uid, out var xform) || xform.MapID != args.MapId)
+
+            if (_entManager.HasComponent<ActorComponent>(uid)
+                || !thresholdsQuery.TryGetComponent(uid, out var thresholds)
+                || !damageQuery.TryGetComponent(uid, out var dmg))
                 continue;
-            // Most of a horde is healthy, so check health before the sprite bounds.
+
+            // Most of a horde on screen is healthy, so check health before the sprite bounds.
             var ratio = CalcHealthRatio(uid, mobStateComp, dmg, thresholds);
             if (ratio is not < 0.25f)
                 continue;
@@ -84,9 +94,7 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
             if (!spriteQuery.TryGetComponent(uid, out var spriteComp))
                 continue;
 
-            var bounds   = _sprite.GetLocalBounds((uid, spriteComp));
-            var worldPos = _transform.GetWorldPosition(xform, xformQuery);
-
+            var bounds = _sprite.GetLocalBounds((uid, spriteComp));
             if (!bounds.Translated(worldPos).Intersects(args.WorldAABB))
                 continue;
 
@@ -149,21 +157,20 @@ public sealed partial class FSLectorExecutionOverlay : Overlay
     private float? CalcHealthRatio(EntityUid uid, MobStateComponent mobStateComp, DamageableComponent dmg, MobThresholdsComponent thresholds)
     {
         var total = _damageable.GetTotalDamage((uid, dmg));
+        _thresholdCache.GetIncapThresholds((uid, thresholds), out var critThreshold, out var deadThreshold);
 
         if (_mobState.IsAlive(uid, mobStateComp))
         {
-            if (!_mobThreshold.TryGetThresholdForState(uid, MobState.Critical, out var threshold, thresholds) &&
-                !_mobThreshold.TryGetThresholdForState(uid, MobState.Dead, out threshold, thresholds))
+            if ((critThreshold ?? deadThreshold) is not { } threshold)
                 return 1f;
-            return 1f - ((FixedPoint2)(total / threshold)).Float();
+            return 1f - (total / threshold).Float();
         }
 
         if (_mobState.IsCritical(uid, mobStateComp))
         {
-            if (!_mobThreshold.TryGetThresholdForState(uid, MobState.Critical, out var crit, thresholds) ||
-                !_mobThreshold.TryGetThresholdForState(uid, MobState.Dead, out var dead, thresholds))
+            if (critThreshold is not { } crit || deadThreshold is not { } dead)
                 return 0f;
-            return 1f - ((total - crit) / (dead - crit)).Value.Float();
+            return 1f - ((total - crit) / (dead - crit)).Float();
         }
 
         return null;

@@ -42,6 +42,9 @@ public sealed class ActionButton : Control, IEntityControl
     private bool _depressed;
     private bool _toggled;
     private Texture? _slotBackground;
+    // FINALSTAND: last drawn grenade highlight and counter, so FrameUpdate only restyles/remeasures on change.
+    private bool _grenadeHighlighted;
+    private int _shownCount = -1;
 
     public BoundKeyFunction? KeyBind
     {
@@ -378,6 +381,10 @@ public sealed class ActionButton : Control, IEntityControl
     {
         base.FrameUpdate(args);
 
+        // FINALSTAND: the green highlight follows the player's active grenade.
+        if (IsActiveGrenade() != _grenadeHighlighted)
+            DrawModeChanged();
+
         Cooldown.Visible = Action?.Comp.Cooldown != null;
         if (Action?.Comp is not {} action)
         {
@@ -397,7 +404,13 @@ public sealed class ActionButton : Control, IEntityControl
 
         if (_entities.TryGetComponent(Action!.Value.Owner, out FSActionCounterComponent? counter))
         {
-            _chargesLabel.Text = counter.Current.ToString();
+            // FINALSTAND: the Text setter always remeasures, so only write it when the count changes.
+            if (counter.Current != _shownCount)
+            {
+                _shownCount = counter.Current;
+                _chargesLabel.Text = counter.Current.ToString();
+            }
+
             _chargesLabel.Visible = true;
             _chargesLabel.FontColorOverride = counter.Current == 0 ? Color.Gray : Color.White;
             _bigActionIcon.Modulate = counter.Current == 0
@@ -409,9 +422,16 @@ public sealed class ActionButton : Control, IEntityControl
             _chargesLabel.Visible = false;
             _bigActionIcon.Modulate = iconColor;
         }
+    }
 
-        if (_entities.HasComponent<FSGrenadeSelectActionComponent>(Action!.Value.Owner))
-            DrawModeChanged();
+    // FINALSTAND
+    private bool IsActiveGrenade()
+    {
+        return Action is { } grenadeAction
+            && _entities.TryGetComponent(grenadeAction.Owner, out FSGrenadeSelectActionComponent? selectComp)
+            && _player.LocalEntity is { } localPlayer
+            && _entities.TryGetComponent(localPlayer, out FSActiveGrenadeComponent? activeGrenade)
+            && activeGrenade.ActiveType == selectComp.GrenadeType;
     }
 
     protected override void MouseEntered()
@@ -445,11 +465,9 @@ public sealed class ActionButton : Control, IEntityControl
         _controller ??= UserInterfaceManager.GetUIController<ActionUIController>();
         HighlightRect.Visible = _beingHovered && (Action != null || _controller.IsDragging);
 
-        if (Action is { } grenadeAction
-            && _entities.TryGetComponent(grenadeAction.Owner, out FSGrenadeSelectActionComponent? selectComp)
-            && _player.LocalEntity is { } localPlayer
-            && _entities.TryGetComponent(localPlayer, out FSActiveGrenadeComponent? activeGrenade)
-            && activeGrenade.ActiveType == selectComp.GrenadeType)
+        // FINALSTAND
+        _grenadeHighlighted = IsActiveGrenade();
+        if (_grenadeHighlighted)
         {
             HighlightRect.Visible = true;
             HighlightRect.Modulate = new Color(0f, 0.85f, 0.2f, 0.85f);

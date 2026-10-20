@@ -34,6 +34,7 @@ namespace Content.Client.UserInterface.Controls
 
         private readonly Label _chargesLabel;
         private IEntityManager? _entMan;
+        private int _shownStock = -1; // FINALSTAND
 
         public EntityUid? Entity => SpriteView.Entity;
 
@@ -294,23 +295,27 @@ namespace Content.Client.UserInterface.Controls
         {
             base.FrameUpdate(args);
 
+            // FINALSTAND: stock count for grenade packs and deployables
             _entMan ??= IoCManager.Resolve<IEntityManager>();
             if (Entity is { } ent && _entMan.TryGetComponent<FSGrenadePackComponent>(ent, out var pack))
-            {
-                _chargesLabel.Text = pack.Stock.ToString();
-                _chargesLabel.Visible = true;
-                _chargesLabel.FontColorOverride = pack.Stock == 0 ? Color.Gray : Color.White;
-            }
+                ShowStock(pack.Stock);
             else if (Entity is { } deployableEnt && _entMan.TryGetComponent<FSDeployableItemComponent>(deployableEnt, out var deployable))
-            {
-                _chargesLabel.Text = deployable.Stock.ToString();
-                _chargesLabel.Visible = true;
-                _chargesLabel.FontColorOverride = deployable.Stock == 0 ? Color.Gray : Color.White;
-            }
+                ShowStock(deployable.Stock);
             else
-            {
                 _chargesLabel.Visible = false;
+        }
+
+        // FINALSTAND: the Text setter always remeasures, so only write it when the count changes.
+        private void ShowStock(int stock)
+        {
+            if (stock != _shownStock)
+            {
+                _shownStock = stock;
+                _chargesLabel.Text = stock.ToString();
+                _chargesLabel.FontColorOverride = stock == 0 ? Color.Gray : Color.White;
             }
+
+            _chargesLabel.Visible = true;
         }
 
         public void ClearHover()

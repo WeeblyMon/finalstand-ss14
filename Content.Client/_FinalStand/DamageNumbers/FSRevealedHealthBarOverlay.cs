@@ -1,10 +1,10 @@
 using System.Numerics;
+using Content.Client._FinalStand.Mobs;
+using Content.Client.Overlays;
 using Content.Client.UserInterface.Systems;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
-using Content.Shared.FixedPoint;
-using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Robust.Client.GameObjects;
@@ -19,10 +19,11 @@ namespace Content.Client._FinalStand.DamageNumbers;
 public sealed class FSRevealedHealthBarOverlay : Overlay
 {
     private readonly IEntityManager _entManager;
+    private readonly IOverlayManager _overlayManager;
 
     private readonly SharedTransformSystem _transform;
     private readonly MobStateSystem _mobStateSystem;
-    private readonly MobThresholdSystem _mobThresholdSystem;
+    private readonly FSMobThresholdCacheSystem _thresholdCache;
     private readonly SpriteSystem _spriteSystem;
     private readonly DamageableSystem _damageable;
     private readonly ProgressColorSystem _progressColor;
@@ -33,12 +34,13 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
 
     private static readonly Color ArmorFg = new(0.2f, 0.55f, 1f, 1f);
 
-    public FSRevealedHealthBarOverlay(IEntityManager entManager)
+    public FSRevealedHealthBarOverlay(IEntityManager entManager, IOverlayManager overlayManager)
     {
         _entManager = entManager;
+        _overlayManager = overlayManager;
         _transform       = _entManager.System<SharedTransformSystem>();
         _mobStateSystem  = _entManager.System<MobStateSystem>();
-        _mobThresholdSystem = _entManager.System<MobThresholdSystem>();
+        _thresholdCache  = _entManager.System<FSMobThresholdCacheSystem>();
         _spriteSystem    = _entManager.System<SpriteSystem>();
         _damageable      = _entManager.System<DamageableSystem>();
         _progressColor   = _entManager.System<ProgressColorSystem>();
@@ -54,6 +56,9 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
         var xformQuery = _entManager.GetEntityQuery<TransformComponent>();
         var spriteQuery = _entManager.GetEntityQuery<SpriteComponent>();
 
+        // Containers the always-on bars already draw; those mobs only need the armor strip from here.
+        _overlayManager.TryGetOverlay<EntityHealthBarOverlay>(out var healthBars);
+
         const float scale = 1f;
         var scaleMatrix = Matrix3Helpers.CreateScale(new Vector2(scale, scale));
         var rotationMatrix = Matrix3Helpers.CreateRotation(-rotation);
@@ -64,6 +69,17 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
             if (!spriteQuery.TryGetComponent(uid, out var sprite)) continue;
             if (_entManager.HasComponent<FSNoHealthBarComponent>(uid)) continue;
             if (_entManager.HasComponent<VehicleOperatorComponent>(uid)) continue;
+
+            if (!_entManager.TryGetComponent(uid, out FSArmorComponent? armor) || armor.MaxArmor <= 0f)
+                armor = null;
+
+            var barCovered = healthBars != null
+                             && _entManager.TryGetComponent(uid, out InjurableComponent? injurable)
+                             && injurable.DamageContainer is { } container
+                             && healthBars.DamageContainers.Contains(container);
+
+            if (barCovered && armor == null)
+                continue;
 
             var bounds = _spriteSystem.GetLocalBounds((uid, sprite));
             var worldPos = _transform.GetWorldPosition(xform, xformQuery);
@@ -88,25 +104,29 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
 
             var position  = new Vector2(-widthOfMob / EyeManager.PixelsPerMeter / 2,
                                          yOffset      / EyeManager.PixelsPerMeter);
-            var color     = _progressColor.GetProgressColor(progress.inCrit ? 0f : progress.ratio);
 
             const float startX = 8f;
             var endX     = widthOfMob - 8f;
-            var xFill    = (endX - startX) * progress.ratio + startX;
 
-            var bgBox = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter,
-                                 new Vector2(endX,   3f) / EyeManager.PixelsPerMeter).Translated(position);
-            handle.DrawRect(bgBox, Black.WithAlpha(192));
+            if (!barCovered)
+            {
+                var color = _progressColor.GetProgressColor(progress.inCrit ? 0f : progress.ratio);
+                var xFill = (endX - startX) * progress.ratio + startX;
 
-            var fillBox = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter,
-                                   new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
-            handle.DrawRect(fillBox, color);
+                var bgBox = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter,
+                                     new Vector2(endX,   3f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(bgBox, Black.WithAlpha(192));
 
-            var darken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter,
-                                  new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
-            handle.DrawRect(darken, Black.WithAlpha(128));
+                var fillBox = new Box2(new Vector2(startX, 0f) / EyeManager.PixelsPerMeter,
+                                       new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(fillBox, color);
 
-            if (_entManager.TryGetComponent(uid, out FSArmorComponent? armor) && armor.MaxArmor > 0f)
+                var darken = new Box2(new Vector2(startX, 2f) / EyeManager.PixelsPerMeter,
+                                      new Vector2(xFill,  3f) / EyeManager.PixelsPerMeter).Translated(position);
+                handle.DrawRect(darken, Black.WithAlpha(128));
+            }
+
+            if (armor != null)
             {
                 var armorRatio = Math.Clamp(armor.CurrentArmor / armor.MaxArmor, 0f, 1f);
                 var armorFill  = (endX - startX) * armorRatio + startX;
@@ -135,24 +155,23 @@ public sealed class FSRevealedHealthBarOverlay : Overlay
         MobThresholdsComponent thresholds)
     {
         var totalDamage = _damageable.GetTotalDamage((uid, dmg));
+        _thresholdCache.GetIncapThresholds((uid, thresholds), out var critThreshold, out var deadThreshold);
 
         if (_mobStateSystem.IsAlive(uid, mobState))
         {
-            if (!_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Critical, out var threshold, thresholds) &&
-                !_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Dead,     out threshold,   thresholds))
+            if ((critThreshold ?? deadThreshold) is not { } threshold)
                 return (1f, false);
 
-            var ratio = 1f - ((FixedPoint2)(totalDamage / threshold)).Float();
+            var ratio = 1f - (totalDamage / threshold).Float();
             return (ratio, false);
         }
 
         if (_mobStateSystem.IsCritical(uid, mobState))
         {
-            if (!_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Critical, out var critThreshold, thresholds) ||
-                !_mobThresholdSystem.TryGetThresholdForState(uid, MobState.Dead,     out var deadThreshold, thresholds))
+            if (critThreshold is not { } crit || deadThreshold is not { } dead)
                 return (1f, true);
 
-            var ratio = 1f - ((totalDamage - critThreshold) / (deadThreshold - critThreshold)).Value.Float();
+            var ratio = 1f - ((totalDamage - crit) / (dead - crit)).Float();
             return (ratio, true);
         }
 

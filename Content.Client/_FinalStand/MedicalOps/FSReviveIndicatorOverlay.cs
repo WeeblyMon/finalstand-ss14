@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared.Humanoid;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Mind.Components;
@@ -53,8 +54,9 @@ public sealed class FSReviveIndicatorOverlay : Overlay
         var rotationMatrix = Matrix3Helpers.CreateRotation(-rotation);
         var time = (float)_timing.RealTime.TotalSeconds;
 
-        var query = _entManager.EntityQueryEnumerator<MobStateComponent, MindContainerComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var mobState, out var mindContainer, out var xform))
+        // Revive icons are for crew, who are all humanoid; starting from the profile keeps the horde out of this walk.
+        var query = _entManager.EntityQueryEnumerator<HumanoidProfileComponent, MobStateComponent, MindContainerComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var mobState, out var mindContainer, out var xform))
         {
             if (!mindContainer.HasMind || xform.MapID != args.MapId)
                 continue;
