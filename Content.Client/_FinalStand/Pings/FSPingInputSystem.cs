@@ -40,9 +40,10 @@ public sealed partial class FSPingInputSystem : EntitySystem
     private Vector2 _pressScreen;
     private EntityCoordinates _pressCoords;
     private EntityUid? _pressTarget;
+    private Vector2 _pressTargetPos;
     private TimeSpan _lastTap;
     private Vector2 _lastTapScreen;
-    private (EntityCoordinates Coords, EntityUid? Target, TimeSpan SendAt)? _pendingTap;
+    private (EntityCoordinates Coords, EntityUid? Target, Vector2 TargetPos, TimeSpan SendAt)? _pendingTap;
     private TimeSpan _quietUntil;
 
     public override void Initialize()
@@ -97,7 +98,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
             return;
         }
 
-        _pendingTap = (_pressCoords, _pressTarget, now + DoubleTap);
+        _pendingTap = (_pressCoords, _pressTarget, _pressTargetPos, now + DoubleTap);
     }
 
     private void OnWheelKey(ICommonSession? session)
@@ -124,6 +125,7 @@ public sealed partial class FSPingInputSystem : EntitySystem
 
         _pressCoords = _transform.ToCoordinates(map);
         _pressTarget = screen.GetClickedEntity(map);
+        _pressTargetPos = _pressTarget is { } target ? _transform.GetWorldPosition(target) : Vector2.Zero;
         return true;
     }
 
@@ -132,7 +134,18 @@ public sealed partial class FSPingInputSystem : EntitySystem
         if (_pendingTap is { } tap && _timing.RealTime >= tap.SendAt)
         {
             _pendingTap = null;
-            RaiseNetworkEvent(new FSPingRequestEvent(GetNetCoordinates(tap.Coords), tap.Target is { } target ? GetNetEntity(target) : null, null));
+            var coords = tap.Coords;
+
+            // The tap waited out the double-tap window, so carry the click along with a target that moved.
+            if (tap.Target is { } target && !TerminatingOrDeleted(target))
+            {
+                var map = _transform.ToMapCoordinates(coords);
+                var targetMap = _transform.GetMapCoordinates(target);
+                if (targetMap.MapId == map.MapId)
+                    coords = _transform.ToCoordinates(new MapCoordinates(map.Position + targetMap.Position - tap.TargetPos, map.MapId));
+            }
+
+            RaiseNetworkEvent(new FSPingRequestEvent(GetNetCoordinates(coords), tap.Target is { } t ? GetNetEntity(t) : null, null));
         }
 
         if (_wheel != null)

@@ -20,6 +20,7 @@ using Content.Shared.RCD.Components;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -41,8 +42,10 @@ public sealed partial class FSPingSystem : EntitySystem
     private const float MaxRange = 24f;
 
     // The client sends whatever is under the cursor, so a target has to be at the ping. Slack covers clicking
-    // the edge of something big like a boss or the CCC.
+    // the edge of something big like a boss or the CCC, plus how far a moving target gets between the client
+    // seeing it and the request landing: the round trip and the client's interpolation delay.
     private const float TargetSlack = 3f;
+    private const float ViewDelay = 0.25f;
     private const float TaskPingLife = 60f;
     private const float RepairThreshold = 0.7f;
     private const float NearbyRepairRange = 3f;
@@ -90,13 +93,22 @@ public sealed partial class FSPingSystem : EntitySystem
             return;
 
         var target = GetEntity(ev.Target);
-        if (target is { } t
-            && (!Exists(t)
-                || _container.IsEntityInContainer(t)
-                || !_transform.InRange(Transform(t).Coordinates, coords, TargetSlack)))
+        if (target is { } t && !IsTargetAtPing(t, coords, args.SenderSession.Ping))
             target = null;
 
         Ping(sender, coords, target, ev.Forced);
+    }
+
+    internal bool IsTargetAtPing(EntityUid target, EntityCoordinates coords, int pingMs)
+    {
+        if (!Exists(target) || _container.IsEntityInContainer(target))
+            return false;
+
+        var slack = TargetSlack;
+        if (TryComp<PhysicsComponent>(target, out var body))
+            slack += body.LinearVelocity.Length() * (pingMs / 1000f + ViewDelay);
+
+        return _transform.InRange(Transform(target).Coordinates, coords, slack);
     }
 
     public FSPingType Ping(EntityUid sender, EntityCoordinates coords, EntityUid? target, FSPingType? forced)
