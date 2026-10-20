@@ -21,6 +21,10 @@ public sealed partial class FSReadyUpSystem : EntitySystem
     // Only the first ready-up per prep shaves time, so toggling can't drain the clock.
     private readonly HashSet<NetUserId> _shaved = new();
 
+    // Crew changes are handled once a tick: a body swap is a detach and an attach inside one call, and a restart
+    // detaches everyone at once.
+    private bool _crewDirty;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -50,32 +54,14 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         return (ready, crew);
     }
 
-    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    public override void Update(float frameTime)
     {
-        _ready.Clear();
-        _shaved.Clear();
-    }
+        base.Update(frameTime);
 
-    private void OnPrepStarted(ref WavePrepStartedEvent ev)
-    {
-        _ready.Clear();
-        _shaved.Clear();
-        BroadcastState();
-    }
+        if (!_crewDirty)
+            return;
 
-    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
-    {
-        BroadcastState();
-    }
-
-    // Spawning, respawning, reconnecting, ghosting and leaving all change the crew. A reconnected client also
-    // starts with a blank HUD and needs its own ready state again.
-    private void OnPlayerAttached(PlayerAttachedEvent ev) => OnCrewChanged();
-
-    private void OnPlayerDetached(PlayerDetachedEvent ev) => OnCrewChanged();
-
-    private void OnCrewChanged()
-    {
+        _crewDirty = false;
         if (!_waveRule.IsPrep())
             return;
 
@@ -86,6 +72,32 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         if (ready > crew / 2)
             _waveRule.RequestWaveStart();
     }
+
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _ready.Clear();
+        _shaved.Clear();
+        _crewDirty = false;
+    }
+
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
+    {
+        _ready.Clear();
+        _shaved.Clear();
+        _crewDirty = false;
+        BroadcastState();
+    }
+
+    private void OnCombatStarted(ref WaveCombatStartedEvent ev)
+    {
+        BroadcastState();
+    }
+
+    // Spawning, respawning, reconnecting, ghosting and leaving all change the crew. A reconnected client also
+    // starts with a blank HUD and needs its own ready state again.
+    private void OnPlayerAttached(PlayerAttachedEvent ev) => _crewDirty = true;
+
+    private void OnPlayerDetached(PlayerDetachedEvent ev) => _crewDirty = true;
 
     private void OnReadyUpRequest(FSReadyUpRequestMessage msg, EntitySessionEventArgs args)
     {

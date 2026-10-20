@@ -84,4 +84,47 @@ public sealed class ReadyUpResyncTest : GameTest
             });
         });
     }
+
+    // Moving a mind straight into another body detaches and reattaches inside one call; the crew in between is one
+    // short, and that mustn't count as a majority.
+    [Test]
+    public async Task BodySwapDoesNotTipTheMajority()
+    {
+        var server = Pair.Server;
+        var sEntMan = server.ResolveDependency<IEntityManager>();
+        var cNet = Pair.Client.ResolveDependency<IEntityNetworkManager>();
+        var players = server.ResolveDependency<IPlayerManager>();
+        var ticker = sEntMan.System<GameTicker>();
+        var waves = sEntMan.System<WaveGameRuleSystem>();
+
+        await server.WaitPost(() => Assert.That(ticker.StartGameRule(WaveRule, out _)));
+        var dummy = (await server.AddDummySessions(1))[0];
+        await Pair.RunTicksSync(10);
+
+        await server.WaitPost(() =>
+        {
+            var coords = sEntMan.GetComponent<TransformComponent>(Pair.Player!.AttachedEntity!.Value).Coordinates;
+            players.SetAttachedEntity(dummy, sEntMan.SpawnEntity("MobHuman", coords));
+        });
+        await Pair.RunTicksSync(5);
+
+        // One ready of two crew: no majority.
+        await Pair.Client.WaitPost(() => cNet.SendSystemNetworkMessage(new FSReadyUpRequestMessage(true)));
+        await Pair.RunTicksSync(10);
+
+        await server.WaitPost(() =>
+        {
+            var coords = sEntMan.GetComponent<TransformComponent>(dummy.AttachedEntity!.Value).Coordinates;
+            players.SetAttachedEntity(dummy, sEntMan.SpawnEntity("MobHuman", coords), force: true);
+        });
+        await Pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(waves.IsPrep());
+            var query = sEntMan.EntityQueryEnumerator<WaveGameRuleComponent>();
+            Assert.That(query.MoveNext(out var rule));
+            Assert.That(rule!.VoteCountdownActive, Is.False, "a body swap started the wave countdown");
+        });
+    }
 }
