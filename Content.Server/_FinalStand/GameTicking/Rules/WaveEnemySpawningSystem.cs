@@ -48,16 +48,36 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         SubscribeLocalEvent<WaveEnemySpawnerComponent, ComponentShutdown>(OnSpawnerShutdown);
     }
 
-    // Spawners are picked at prep start; one deleted after that (admin, map edit) leaves the lists, and an
-    // emptied list picks again on the next batch.
+    // Spawners are picked at prep start; one deleted after that (admin, map edit) leaves the lists, taking with it
+    // any secondaries it was the last primary for, and an emptied list picks again on the next batch.
     private void OnSpawnerShutdown(Entity<WaveEnemySpawnerComponent> ent, ref ComponentShutdown args)
     {
         var query = EntityQueryEnumerator<WaveGameRuleComponent>();
         while (query.MoveNext(out var rule))
         {
-            rule.SpawnerEntities.Remove(ent.Owner);
             rule.PreviousSpawnerEntities.Remove(ent.Owner);
+            if (rule.SpawnerEntities.Remove(ent.Owner) && !ent.Comp.Secondary)
+                DropUnsupportedSecondaries(rule, ent.Comp.DirectionLabel);
         }
+    }
+
+    private void DropUnsupportedSecondaries(WaveGameRuleComponent rule, string lane)
+    {
+        _secondaryBuffer.Clear();
+        foreach (var uid in rule.SpawnerEntities)
+        {
+            if (!TryComp<WaveEnemySpawnerComponent>(uid, out var spawner) || spawner.DirectionLabel != lane)
+                continue;
+
+            // Another primary still holds the lane.
+            if (!spawner.Secondary)
+                return;
+
+            _secondaryBuffer.Add(uid);
+        }
+
+        foreach (var uid in _secondaryBuffer)
+            rule.SpawnerEntities.Remove(uid);
     }
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
