@@ -69,7 +69,9 @@ public sealed partial class CritSystem : EntitySystem
 
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
-        if (comp.Shooter == null || comp.Weapon == null)
+        // A bullet still in flight after its shooter was deleted keeps its base damage, but crits, perks and
+        // upgrade effects all work off the shooter's position and stats.
+        if (comp.Shooter == null || comp.Weapon == null || TerminatingOrDeleted(comp.Shooter.Value))
             return;
 
         if (HasComp<FSFriendlyFireComponent>(comp.Shooter.Value) && HasComp<FSFriendlyFireComponent>(args.Target))
