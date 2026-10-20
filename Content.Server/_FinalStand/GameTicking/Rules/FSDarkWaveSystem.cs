@@ -106,6 +106,8 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
             return true;
         }
 
+        // Forced too, so a re-roll in the same prep (forcenextwave to another wave) keeps it.
+        comp.Forced = true;
         comp.Upcoming = true;
         comp.WarningAt = Timing.CurTime;
         armedNow = true;
@@ -120,6 +122,7 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
             return false;
 
         comp.Upcoming = false;
+        comp.Forced = false;
         comp.Active = true;
         comp.WavesSinceLast = 0;
         comp.WarningAt = null;

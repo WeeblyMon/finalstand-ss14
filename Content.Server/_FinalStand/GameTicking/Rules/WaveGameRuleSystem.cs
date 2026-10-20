@@ -558,8 +558,9 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             {
                 comp.WaveNumber = wave;
                 comp.WavesCompleted = wave - 1;
-                // The dark wave was rolled for the wave we skipped.
+                // The dark wave and the lanes were picked for the wave we skipped.
                 _darkWave.Roll(uid, wave, IsBossWave(wave));
+                _spawning.SelectSpawners(comp, CountScalingPlayers());
             }
 
             StartCombatPhase(uid, comp);
