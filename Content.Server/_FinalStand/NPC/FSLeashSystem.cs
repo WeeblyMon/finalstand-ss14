@@ -24,7 +24,8 @@ public sealed partial class FSLeashSystem : EntitySystem
     // TODO(finalstand): tune LOS timeout
     private static readonly TimeSpan LosTimeout = TimeSpan.FromSeconds(3);
 
-    // A target seen more recently than this can't time out before a later check, so the raycast waits.
+    // A target in view is only re-checked this often, so the recorded sighting can trail the real last one by
+    // about this much; the timeout adds it back so ducking out of view still takes the full LosTimeout.
     private static readonly TimeSpan LosRecheck = TimeSpan.FromSeconds(1);
 
     // Each zombie is checked every few ticks, a slice per tick, so the LOS raycasts don't all land on one tick.
@@ -96,7 +97,7 @@ public sealed partial class FSLeashSystem : EntitySystem
         if (graced)
             return;
 
-        if (hasSeen && curTime - lastSeen > LosTimeout)
+        if (hasSeen && curTime - lastSeen > LosTimeout + LosRecheck)
             ClearTarget(htn, bb);
     }
 
