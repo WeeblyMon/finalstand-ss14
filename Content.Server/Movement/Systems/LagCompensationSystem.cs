@@ -33,6 +33,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
     private readonly Dictionary<NetUserId, GameTick> _viewTicks = new(); // fs
     private bool _enabled;
     private int _maxRewindMs;
+    private int _rewindSlackMs; // FINALSTAND
 
     public override void Initialize()
     {
@@ -47,6 +48,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
 
         Subs.CVar(_cfg, CCVars.FSLagCompensation, v => _enabled = v, true);
         Subs.CVar(_cfg, CCVars.FSLagCompensationMaxRewindMs, v => _maxRewindMs = v, true);
+        Subs.CVar(_cfg, CCVars.FSLagCompensationRewindSlackMs, v => _rewindSlackMs = v, true); // FINALSTAND
 
         _players.PlayerStatusChanged += OnPlayerStatusChanged;
     }
@@ -87,7 +89,10 @@ public sealed partial class LagCompensationSystem : EntitySystem
             return 0;
 
         var rewind = _timing.CurTick.Value - viewTick.Value + 0.5;
-        var max = _maxRewindMs / 1000.0 * _timing.TickRate;
+        // FINALSTAND: the view tick is the client's word, so cap it at what its measured latency explains.
+        // Otherwise a low-ping client could always claim the full window and shoot where enemies used to be.
+        var maxMs = Math.Min(_maxRewindMs, session.Channel.Ping + _rewindSlackMs);
+        var max = maxMs / 1000.0 * _timing.TickRate;
         return Math.Clamp(rewind, 0, max);
     }
 
