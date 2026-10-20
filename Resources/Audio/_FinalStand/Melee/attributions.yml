@@ -22,3 +22,18 @@
   license: "CC-BY-SA-3.0"
   copyright: "explosionsmallfar.ogg from vgstation at c5edbfd7179288080f081e2b8ac2496b7e4455db, trimmed and converted to mono"
   source: "https://github.com/vgstation-coders/vgstation13/tree/c5edbfd7179288080f081e2b8ac2496b7e4455db/sound/effects"
+
+- files: ["charge_bat.ogg", "charge_axe.ogg"]
+  license: "CC0-1.0"
+  copyright: "Anime Charge Sound by TheLittleCrow, trimmed, sped up, normalized and converted to mono"
+  source: "https://freesound.org/people/TheLittleCrow/sounds/676451/"
+
+- files: ["charge_full.ogg"]
+  license: "CC0-1.0"
+  copyright: "4 Metal Dings/Rings by StarNinjas, normalized and converted to mono"
+  source: "https://opengameart.org/content/4-metal-dingsrings"
+
+- files: ["crowd_cheer.ogg"]
+  license: "CC-BY-4.0"
+  copyright: "Free Crowd Cheering Sounds by Gregor Quendel, trimmed, faded, normalized and converted to mono"
+  source: "https://opengameart.org/content/free-crowd-cheering-sounds"
