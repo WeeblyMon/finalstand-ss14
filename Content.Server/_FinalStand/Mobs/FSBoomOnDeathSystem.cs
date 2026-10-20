@@ -7,6 +7,7 @@ using Content.Shared._FinalStand.Mobs;
 using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.Damage.Systems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Ghost;
@@ -18,12 +19,17 @@ using Content.Shared.Movement.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._FinalStand.Mobs;
 
 public sealed partial class FSBoomOnDeathSystem : EntitySystem
 {
+    private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
+    // "Toxin" is a damage group; a group key is silently dropped by the target's damage container.
+    private static readonly ProtoId<DamageTypePrototype> Poison = "Poison";
+
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private FSDamageVulnerabilitySystem _vulnerability = default!;
@@ -129,8 +135,8 @@ public sealed partial class FSBoomOnDeathSystem : EntitySystem
         _audio.PlayPvs(comp.ExplosionSound, coords, comp.ExplosionSound.Params);
 
         var blastDamage = new DamageSpecifier();
-        blastDamage.DamageDict["Blunt"] = FixedPoint2.New(comp.ExplosionDamage);
-        blastDamage.DamageDict["Toxin"] = FixedPoint2.New(comp.ToxinDamage);
+        blastDamage.DamageDict[Blunt] = FixedPoint2.New(comp.ExplosionDamage);
+        blastDamage.DamageDict[Poison] = FixedPoint2.New(comp.ToxinDamage);
 
         // One query at the wider radius; each effect then filters by its own.
         var searchRadius = MathF.Max(comp.ExplosionRadius, comp.SlowRadius);
