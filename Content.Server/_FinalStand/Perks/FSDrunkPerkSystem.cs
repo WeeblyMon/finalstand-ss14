@@ -1,8 +1,11 @@
 using Content.Server.Weapons.Ranged.Systems;
 using Content.Shared._FinalStand.Perks;
+using Content.Shared.Damage.Systems;
 using Content.Shared.Drunk;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.StatusEffectNew;
 using Content.Shared.StatusEffectNew.Components;
 using Content.Shared.Tag;
@@ -20,11 +23,14 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private GunSystem _gun = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
+    [Dependency] private MobStateSystem _mobState = default!;
 
-    public static readonly string[] DrunkPerks = ["DrunkenBerserker", "ExplosiveEngineering"];
+    public static readonly string[] DrunkPerks = ["DrunkenBerserker", "ExplosiveEngineering", "RagingAlcoholic"];
     private static readonly ProtoId<TagPrototype> TolerantTag = "FSAlcoholTolerant";
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.5);
     private TimeSpan _nextCheck;
+    private TimeSpan _nextRegen;
 
     public override void Initialize()
     {
@@ -66,6 +72,16 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
         return level > 0 && IsDrunk(body) ? level : 0;
     }
 
+    public float RegenPerSecond(EntityUid body, FSPerkLevelsComponent perks)
+    {
+        var level = perks.GetSlottedLevel("RagingAlcoholic");
+        if (level <= 0)
+            return 0f;
+
+        var drunkness = MathF.Min(DrunkSeconds(body) / FSPerkBonusConstants.RagingAlcoholicFullSeconds, 1f);
+        return drunkness * level * FSPerkBonusConstants.RagingAlcoholicRegenPerLevel;
+    }
+
     public float SentryMultiplier(EntityUid body, FSPerkLevelsComponent perks)
         => 1f + LevelIfDrunk(body, perks, "ExplosiveEngineering") * FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel;
 
@@ -86,6 +102,22 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
         return true;
     }
 
+    private void Regenerate()
+    {
+        var query = EntityQueryEnumerator<FSDrunkPerkComponent>();
+        while (query.MoveNext(out var body, out _))
+        {
+            if (!_mobState.IsAlive(body)
+                || !_mind.TryGetMind(body, out var mindId, out _)
+                || !TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+                continue;
+
+            var regen = RegenPerSecond(body, perks);
+            if (regen > 0f)
+                _damageable.HealEvenly(body, FixedPoint2.New(-regen));
+        }
+    }
+
     private void OnDrunk(Entity<FSDrunkPerkComponent> ent, ref SharedDrunkSystem.DrunkEvent args)
     {
         if (!_mind.TryGetMind(ent, out var mindId, out _) || !TryComp<FSPerkLevelsComponent>(mindId, out var perks))
@@ -101,6 +133,12 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
         base.Update(frameTime);
 
         var now = _timing.CurTime;
+        if (now >= _nextRegen)
+        {
+            _nextRegen = now + TimeSpan.FromSeconds(1);
+            Regenerate();
+        }
+
         if (now < _nextCheck)
             return;
         _nextCheck = now + CheckInterval;

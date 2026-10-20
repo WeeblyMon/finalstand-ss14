@@ -421,6 +421,11 @@ public sealed class FSPerkDef
                 PerkCategory.Red,
                 Pct("+{0}% Blast Radius / +{1}% Sentry Damage", FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
                     FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel)),
+
+            new("RagingAlcoholic", "Raging Alcoholic",
+                "No alcohol poisoning. The drunker you are, the faster you heal.",
+                PerkCategory.Blue,
+                Flat("Up to +{0} HP/s", FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
