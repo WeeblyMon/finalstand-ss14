@@ -67,6 +67,22 @@ public sealed partial class FSMediGunSystem : EntitySystem
         SubscribeLocalEvent<FSMediGunComponent, AfterInteractEvent>(OnActivate);
         SubscribeLocalEvent<FSMediGunComponent, EntParentChangedMessage>(OnParentChanged);
         SubscribeLocalEvent<FSMediGunComponent, ItemUnwieldedEvent>(OnUnwielded);
+        SubscribeLocalEvent<FSMediGunHealedComponent, EntityTerminatingEvent>(OnPatientTerminating);
+    }
+
+    // A patient deleted mid-beam (gibbed, cryo) drops off every gun healing it, so nothing reads a dead uid.
+    private void OnPatientTerminating(Entity<FSMediGunHealedComponent> ent, ref EntityTerminatingEvent args)
+    {
+        foreach (var source in ent.Comp.Sources)
+        {
+            if (!TryComp<FSMediGunComponent>(source, out var gun) || !gun.HealedEntities.Remove(ent.Owner))
+                continue;
+
+            if (gun.HealedEntities.Count == 0)
+                DisableAllConnections((source, gun));
+            else
+                Dirty(source, gun);
+        }
     }
 
     public override void Update(float frameTime)
