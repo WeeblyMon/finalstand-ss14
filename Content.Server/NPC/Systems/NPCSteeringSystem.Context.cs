@@ -721,12 +721,13 @@ public sealed partial class NPCSteeringSystem
                 || (meta.Flags & MetaDataFlags.InContainer) != 0)
                 continue;
 
-            var isWave = _waveTagQuery.HasComponent(uid);
-
-            // A downed or dead body is walked over, otherwise every crit player becomes a wall.
-            if (!isWave && (mobState.CurrentState != MobState.Alive
-                            || _standingQuery.TryGetComponent(uid, out var standing) && !standing.Standing))
+            // A downed or dead body is walked over, otherwise every crit player becomes a wall and every corpse
+            // a zombie to queue behind.
+            if (mobState.CurrentState != MobState.Alive
+                || _standingQuery.TryGetComponent(uid, out var standing) && !standing.Standing)
                 continue;
+
+            var isWave = _waveTagQuery.HasComponent(uid);
 
             var position = _transform.GetWorldPosition(xform);
             var moving = isWave && _inputMoverQuery.TryGetComponent(uid, out var mover)

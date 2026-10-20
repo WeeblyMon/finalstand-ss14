@@ -5,6 +5,8 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
+using Content.Shared.Mobs;
+using Content.Shared.Mobs.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
@@ -13,15 +15,17 @@ using Robust.Shared.Timing;
 namespace Content.IntegrationTests.Tests.FinalStand;
 
 // A wave zombie stuck behind another one on the way to the same target is queued, not lost: it holds still
-// instead of giving up on the move, and carries on once the way clears.
+// instead of giving up on the move, keeps its path, and carries on once the way clears. A corpse ahead
+// doesn't count as a zombie to wait for.
 [TestFixture]
 public sealed class QueuedZombieTest : GameTest
 {
     private const string Zombie = "FSZombieNormal";
     private const string Wall = "WallSolid";
 
-    [Test]
-    public async Task ZombieBehindAnotherHoldsThenMovesOn()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ZombieBehindAnotherHoldsThenMovesOn(bool killFront)
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
@@ -29,6 +33,7 @@ public sealed class QueuedZombieTest : GameTest
         var mapSystem = entMan.System<SharedMapSystem>();
         var htn = entMan.System<HTNSystem>();
         var steeringSystem = entMan.System<NPCSteeringSystem>();
+        var mobState = entMan.System<MobStateSystem>();
         var map = await Pair.CreateTestMap();
 
         EntityUid front = default;
@@ -74,9 +79,13 @@ public sealed class QueuedZombieTest : GameTest
                 Assert.That(steering.Status, Is.Not.EqualTo(SteeringStatus.NoPath), "the queued zombie gave up on its move");
                 Assert.That(steering.QueuedUntil, Is.GreaterThan(timing.CurTime - TimeSpan.FromSeconds(1)),
                     "the queued zombie isn't holding");
+                Assert.That(steering.CurrentPath, Is.Not.Empty, "holding threw the path away");
             });
 
-            entMan.DeleteEntity(front);
+            if (killFront)
+                mobState.ChangeMobState(front, MobState.Dead);
+            else
+                entMan.DeleteEntity(front);
         });
 
         await server.WaitRunTicks(150);

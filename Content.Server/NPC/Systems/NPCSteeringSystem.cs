@@ -386,7 +386,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
 
         if (steering.CanSeek && !TrySeek(uid, mover, steering, body, xform, offsetRot, moveSpeed, interest, frameTime, ref forceSteer))
         {
-            SetDirection(uid, mover, steering, Vector2.Zero);
+            // FINALSTAND: a queued zombie keeps its path for when the way clears.
+            SetDirection(uid, mover, steering, Vector2.Zero, clear: steering.QueuedUntil == TimeSpan.Zero);
             return;
         }
 
