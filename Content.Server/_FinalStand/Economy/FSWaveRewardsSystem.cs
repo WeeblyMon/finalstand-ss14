@@ -59,10 +59,7 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         if (!TryGetRewards(out var rewards))
             return;
 
-        var value = TryComp<FSEnemyValueComponent>(args.Enemy, out var enemyValue)
-            ? enemyValue.KillCredits
-            : rewards.KillReward;
-        var killCredits = (int) (value * KillMultiplier(_waveRule.GetWaveNumber()) * rewards.KillShare);
+        var killCredits = KillCredits(args.Enemy, rewards);
 
         EntityUid? killerMind = null;
         if (args.Killer is { } killer && _mind.TryGetMind(killer, out var mindId, out _))
@@ -134,6 +131,20 @@ public sealed partial class FSWaveRewardsSystem : EntitySystem
         return _jobs.MindTryGetJob(mindId, out var job)
                && _jobs.TryGetPrimaryDepartment(job.ID, out var department)
                && department.ID == SecurityDepartment;
+    }
+
+    // What killing this enemy pays its killer now; 0 outside a wave rule.
+    public int KillCredits(EntityUid enemy)
+    {
+        return TryGetRewards(out var rewards) ? KillCredits(enemy, rewards) : 0;
+    }
+
+    private int KillCredits(EntityUid enemy, FSWaveRewardsComponent rewards)
+    {
+        var value = TryComp<FSEnemyValueComponent>(enemy, out var enemyValue)
+            ? enemyValue.KillCredits
+            : rewards.KillReward;
+        return (int) (value * KillMultiplier(_waveRule.GetWaveNumber()) * rewards.KillShare);
     }
 
     private static float KillMultiplier(int wave)

@@ -9,9 +9,7 @@ public sealed partial class StaminaStealUpgradeSystem : EntitySystem
 {
     [Dependency] private StaminaSystem _stamina = default!;
 
-    // Stamina drained from enemy per hit per level.
-    private const float DrainPerLevel = 15f;
-    // Stamina restored to the shooter per hit per level (fuels sprint).
+    // Stamina restored to the shooter per hit per level (fuels sprint). The drain comes from the upgrade's YAML.
     private const float RestorePerLevel = 10f;
 
     public override void Initialize()
@@ -29,7 +27,7 @@ public sealed partial class StaminaStealUpgradeSystem : EntitySystem
 
         // Drain stamina from target. They stagger briefly, but their high regen means it doesn't last.
         if (HasComp<StaminaComponent>(ev.Target))
-            _stamina.TakeStaminaDamage(ev.Target, state.StaminaStealLevel * DrainPerLevel, source: ev.Shooter);
+            _stamina.TakeStaminaDamage(ev.Target, state.StaminaStealDrain, source: ev.Shooter);
 
         // Restore stamina to the shooter so they can keep sprinting.
         if (HasComp<StaminaComponent>(ev.Shooter.Value))

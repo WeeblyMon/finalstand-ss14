@@ -35,7 +35,7 @@
       description: fs-upgrade-knife-golden-desc
       maxLevel: 1
       baseCost: 500
-      type: MoneyGainBonus
+      type: MoneyGainBonusPercent
       valuePerLevel: 0.25
     - id: knife-bloodthirster
       name: fs-upgrade-knife-bloodthirster
@@ -43,7 +43,7 @@
       maxLevel: 2
       baseCost: 3000
       type: LifeSteal
-      valuePerLevel: 5
+      valuePerLevel: 0.05
   - type: Sprite
     sprite: Objects/Weapons/Melee/survival_knife.rsi
     state: icon

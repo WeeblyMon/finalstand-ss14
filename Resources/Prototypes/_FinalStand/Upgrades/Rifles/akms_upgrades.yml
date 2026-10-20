@@ -45,7 +45,7 @@
       maxLevel: 1
       baseCost: 7900
       type: SetOnFire
-      valuePerLevel: 1
+      valuePerLevel: 3
     - id: akms-battle-trance
       name: fs-upgrade-akms-battle-trance
       description: fs-upgrade-akms-battle-trance-desc

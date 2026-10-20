@@ -381,7 +381,7 @@ fs-upgrade-bat-heavy-club = Heavy Club
 fs-upgrade-bat-heavy-club-desc = Reinforced barrel adds +80% damage per level.
 
 fs-upgrade-bat-lucille = Lucille
-fs-upgrade-bat-lucille-desc = Enemies hit bleed, slowing them and dealing damage over time. +150 bleed per level.
+fs-upgrade-bat-lucille-desc = Enemies hit bleed for 3 seconds, taking 20% of the hit's damage each second per level.
 
 fs-upgrade-bat-concussion = Concussion
 fs-upgrade-bat-concussion-desc = All attacks stun enemies briefly. +2s stun.
@@ -420,7 +420,7 @@ fs-upgrade-cutlass-plunder = Plunder
 fs-upgrade-cutlass-plunder-desc = Pirate's tax: +25% money on each kill.
 
 fs-upgrade-cutlass-hyper-saber = Hyper Saber
-fs-upgrade-cutlass-hyper-saber-desc = Drains +10 stamina per hit.
+fs-upgrade-cutlass-hyper-saber-desc = Drains 15 stamina per hit.
 
 fs-upgrade-cutlass-swashbuckler = Swashbuckler
 fs-upgrade-cutlass-swashbuckler-desc = A duelist's eye. +10% crit chance per level. Stacks with the Pirate crit-swap window.
@@ -456,10 +456,10 @@ fs-upgrade-esword-energy-overflow = Energy Overflow Mobility
 fs-upgrade-esword-energy-overflow-desc = Excess plasma channeled to legs: +10% movement speed per level.
 
 fs-upgrade-esword-hyper-staminasteal = Hyper Sword Staminasteal
-fs-upgrade-esword-hyper-staminasteal-desc = Drains +10 stamina per hit.
+fs-upgrade-esword-hyper-staminasteal-desc = Drains 15 stamina per hit.
 
 fs-upgrade-esword-firebrand = Firebrand
-fs-upgrade-esword-firebrand-desc = Applies additional fire stacks on hit. +30 per level.
+fs-upgrade-esword-firebrand-desc = Sets targets on fire on hit. +3 fire stacks per level.
 
 fs-upgrade-esword-molecular-rupture = Molecular Rupture
 fs-upgrade-esword-molecular-rupture-desc = Blade phases through armor entirely.
@@ -489,7 +489,7 @@ fs-upgrade-knife-golden = Golden Blade
 fs-upgrade-knife-golden-desc = Gilded blade pays out +25% money on each kill.
 
 fs-upgrade-knife-bloodthirster = Blood Thirster
-fs-upgrade-knife-bloodthirster-desc = Drains +10 blood from the target on every hit.
+fs-upgrade-knife-bloodthirster-desc = Heals you for 5% of the damage you deal per level.
 
 fs-upgrade-akms-damage = Heavier Load
 fs-upgrade-akms-damage-desc = Higher-grain ammunition increases damage dealt by 15% per level.

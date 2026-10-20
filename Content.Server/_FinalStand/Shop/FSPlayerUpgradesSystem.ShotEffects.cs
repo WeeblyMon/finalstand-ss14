@@ -45,6 +45,11 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.MoneyGainBonus:
                 {
                     state.MoneyGainBonusPerKill += (int)def.ValuePerLevel;
+                    break;
+                }
+            case WeaponUpgradeType.MoneyGainBonusPercent:
+                {
+                    state.MoneyGainBonusFraction = newLevel * def.ValuePerLevel;
                     if (def.Id == "knife-golden" && newLevel >= def.MaxLevel)
                     {
                         state.KnifeGolden = true;
@@ -75,6 +80,7 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.SetOnFire:
                 {
                     state.SetOnFireEnabled = true;
+                    state.SetOnFireStacks = newLevel * def.ValuePerLevel;
                     break;
                 }
             case WeaponUpgradeType.APRounds:
@@ -95,6 +101,7 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.StaminaSteal:
                 {
                     state.StaminaStealLevel = newLevel;
+                    state.StaminaStealDrain = newLevel * def.ValuePerLevel;
                     break;
                 }
             case WeaponUpgradeType.Radius:
@@ -105,6 +112,7 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.Bleed:
                 {
                     state.BleedLevel = newLevel;
+                    state.BleedScale = newLevel * def.ValuePerLevel;
                     break;
                 }
             case WeaponUpgradeType.FlechetteRounds:

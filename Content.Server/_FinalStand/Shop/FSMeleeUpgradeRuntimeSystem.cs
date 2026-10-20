@@ -38,10 +38,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 
     private EntityQuery<FSFriendlyFireComponent> _ffQuery;
 
-    private const float StaminaDrainPerLevel = 15f;
     private const float StaminaRestorePerLevel = 10f;
-    private const float SetOnFireStacksPerHit = 3f;
-    private const float BleedScalePerLevel = 0.2f;
     private const float WhileBurningDamageMultiplier = 2.0f;
     private static readonly TimeSpan BleedDuration = TimeSpan.FromSeconds(3);
 
@@ -109,21 +106,21 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
 
             if (state.SetOnFireEnabled && !_ffQuery.HasComponent(target) && TryComp<FlammableComponent>(target, out var igniteFlammable))
             {
-                igniteFlammable.FireStacks += SetOnFireStacksPerHit;
+                igniteFlammable.FireStacks += state.SetOnFireStacks;
                 _flammable.Ignite(target, user, igniteFlammable, ignitionSourceUser: user);
             }
 
             if (state.StaminaStealLevel > 0)
             {
                 if (HasComp<StaminaComponent>(target))
-                    _stamina.TakeStaminaDamage(target, state.StaminaStealLevel * StaminaDrainPerLevel, source: user);
+                    _stamina.TakeStaminaDamage(target, state.StaminaStealDrain, source: user);
                 if (HasComp<StaminaComponent>(user))
                     _stamina.TakeStaminaDamage(user, -(state.StaminaStealLevel * StaminaRestorePerLevel));
             }
 
             if (state.BleedLevel > 0 && totalBaseDamage > 0f && !_ffQuery.HasComponent(target))
             {
-                var dps = totalBaseDamage * BleedScalePerLevel * state.BleedLevel;
+                var dps = totalBaseDamage * state.BleedScale;
                 if (dps > 0f)
                 {
                     var bleed = EnsureComp<FSBleedingComponent>(target);
@@ -134,7 +131,7 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
                 }
             }
 
-            _killBonus.Mark(target, user, state.MoneyGainBonusPerKill);
+            _killBonus.Mark(target, user, state.MoneyGainBonusPerKill, state.MoneyGainBonusFraction);
 
         }
 

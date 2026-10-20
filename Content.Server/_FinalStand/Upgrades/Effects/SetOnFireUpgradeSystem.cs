@@ -27,8 +27,7 @@ public sealed partial class SetOnFireUpgradeSystem : EntitySystem
         if (!TryComp<FlammableComponent>(ev.Target, out var flammable))
             return;
 
-        // TODO(finalstand): tune fire stacks / duration
-        flammable.FireStacks += 3f;
+        flammable.FireStacks += state.SetOnFireStacks;
         _flammable.Ignite(ev.Target, ev.Shooter ?? ev.Target, flammable, ignitionSourceUser: ev.Shooter);
     }
 }

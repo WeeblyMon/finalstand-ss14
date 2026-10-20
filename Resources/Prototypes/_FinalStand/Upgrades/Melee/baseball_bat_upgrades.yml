@@ -29,7 +29,7 @@
       maxLevel: 3
       baseCost: 1000
       type: Bleed
-      valuePerLevel: 1.5
+      valuePerLevel: 0.2
     - id: bat-concussion
       name: fs-upgrade-bat-concussion
       description: fs-upgrade-bat-concussion-desc

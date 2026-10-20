@@ -15,21 +15,26 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int ExplosiveShotLevel = 0;
     [DataField] public int MoneyGainBonusPerKill = 0;
+    [DataField] public float MoneyGainBonusFraction = 0f;
     [DataField] public int MoneyPerHitBonus = 0;
     [DataField] public bool SlowingEnabled = false;
     [DataField] public int BeamChainTargets = 0;
     [DataField] public int KnockbackLevel = 0;
     [DataField] public bool SetOnFireEnabled = false;
+    [DataField] public float SetOnFireStacks = 0f;
     [DataField] public bool APRoundsEnabled = false;
     [DataField] public float ArmorShredMagnitude = 0f;
     [DataField] public float ReloadSpeedMultiplier = 1.0f;
     [DataField] public bool SpeedLoaderEnabled = false;
     [DataField] public float LifeStealPercent = 0f;
     [DataField] public int StaminaStealLevel = 0;
+    [DataField] public float StaminaStealDrain = 0f;
     [DataField] public float DamageMultiplier = 1.0f;
     [DataField] public int ExtraPellets = 0;
     [DataField] public bool ScrapshotEnabled = false;
     [DataField] public int BleedLevel = 0;
+    // Bleed damage per second as a share of the hit's damage.
+    [DataField] public float BleedScale = 0f;
     [DataField] public bool FlechetteEnabled = false;
     [DataField] public bool SplinterImpactEnabled = false;
     [DataField] public bool OverchargeShotEnabled = false;

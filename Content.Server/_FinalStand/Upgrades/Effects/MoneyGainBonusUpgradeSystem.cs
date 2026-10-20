@@ -11,6 +11,7 @@ namespace Content.Server._FinalStand.Upgrades.Effects;
 public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
 {
     [Dependency] private FSPlayerWalletSystem _wallet = default!;
+    [Dependency] private FSWaveRewardsSystem _rewards = default!;
     [Dependency] private SharedMindSystem _mind = default!;
 
     public override void Initialize()
@@ -27,17 +28,18 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
         if (ev.State is not { } state)
             return;
 
-        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill);
+        Mark(ev.Target, ev.Shooter, state.MoneyGainBonusPerKill, state.MoneyGainBonusFraction);
     }
 
     // The latest hitter's weapon decides the bonus, and only they collect it.
-    public void Mark(EntityUid target, EntityUid? owner, int bonus)
+    public void Mark(EntityUid target, EntityUid? owner, int bonus, float fraction)
     {
-        if (bonus <= 0 || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
+        if ((bonus <= 0 && fraction <= 0f) || owner == null || !HasComp<WaveSpawnedTagComponent>(target))
             return;
 
         var pending = EnsureComp<FSPendingKillBonusComponent>(target);
         pending.MoneyBonus = bonus;
+        pending.MoneyFraction = fraction;
         pending.Payee = owner;
     }
 
@@ -45,11 +47,11 @@ public sealed partial class MoneyGainBonusUpgradeSystem : EntitySystem
     {
         if (args.NewMobState != MobState.Dead || args.OldMobState == MobState.Dead)
             return;
-        if (bonus.MoneyBonus <= 0)
-            return;
         if (args.Origin is not { } killer || killer != bonus.Payee || !_mind.TryGetMind(killer, out var mindId, out _))
             return;
 
-        _wallet.GiveCredits(mindId, bonus.MoneyBonus);
+        var credits = bonus.MoneyBonus + (int) MathF.Round(bonus.MoneyFraction * _rewards.KillCredits(uid));
+        if (credits > 0)
+            _wallet.GiveCredits(mindId, credits);
     }
 }

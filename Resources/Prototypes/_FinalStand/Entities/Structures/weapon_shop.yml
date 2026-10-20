@@ -323,7 +323,7 @@
       maxLevel: 1
       baseCost: 4750
       type: SetOnFire
-      valuePerLevel: 1
+      valuePerLevel: 3
     - id: advlaser-chain-beam
       name: fs-upgrade-advlaser-chain-beam
       description: fs-upgrade-advlaser-chain-beam-desc
@@ -472,7 +472,7 @@
       maxLevel: 3
       baseCost: 1300
       type: StaminaSteal
-      valuePerLevel: 1
+      valuePerLevel: 15
   - type: Sprite
     sprite: Objects/Weapons/Guns/SMGs/atreides.rsi
     state: base

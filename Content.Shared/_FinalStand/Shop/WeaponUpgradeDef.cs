@@ -114,6 +114,9 @@ public enum WeaponUpgradeType : byte
     Multishot,
 
     ConvertWeapon,
+
+    // A share of each kill's credits, unlike MoneyGainBonus's flat amount.
+    MoneyGainBonusPercent,
 }
 
 [DataDefinition]

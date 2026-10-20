@@ -35,7 +35,7 @@
       description: fs-upgrade-cutlass-plunder-desc
       maxLevel: 1
       baseCost: 5000
-      type: MoneyGainBonus
+      type: MoneyGainBonusPercent
       valuePerLevel: 0.25
     - id: cutlass-hyper-saber
       name: fs-upgrade-cutlass-hyper-saber
@@ -43,7 +43,7 @@
       maxLevel: 1
       baseCost: 5000
       type: StaminaSteal
-      valuePerLevel: 10
+      valuePerLevel: 15
     - id: cutlass-swashbuckler
       name: fs-upgrade-cutlass-swashbuckler
       description: fs-upgrade-cutlass-swashbuckler-desc

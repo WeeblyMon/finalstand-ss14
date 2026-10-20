@@ -58,7 +58,7 @@
       maxLevel: 1
       baseCost: 2100
       type: SetOnFire
-      valuePerLevel: 1
+      valuePerLevel: 3
     - id: blunderbuss-point-blank-crit
       name: fs-upgrade-blunderbuss-point-blank-crit
       description: fs-upgrade-blunderbuss-point-blank-crit-desc
@@ -129,7 +129,7 @@
       maxLevel: 3
       baseCost: 3400
       type: Bleed
-      valuePerLevel: 1
+      valuePerLevel: 0.2
   - type: Sprite
     sprite: Objects/Weapons/Guns/Shotguns/pump.rsi
     state: icon
@@ -186,7 +186,7 @@
       maxLevel: 1
       baseCost: 9200
       type: SetOnFire
-      valuePerLevel: 1
+      valuePerLevel: 3
     - id: bulldog-powder-charge
       name: fs-upgrade-bulldog-powder-charge
       description: fs-upgrade-bulldog-powder-charge-desc
