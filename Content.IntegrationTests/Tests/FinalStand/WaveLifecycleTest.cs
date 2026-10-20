@@ -2,6 +2,7 @@ using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared.GameTicking;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -79,6 +80,46 @@ public sealed class WaveLifecycleTest : GameTest
         await server.WaitAssertion(() =>
         {
             Assert.That(waves.TryGetWaveStatus(out _, out _), Is.False);
+        });
+    }
+
+    // A restart deletes every enemy while the rule is still active. The last one going mustn't clear the wave
+    // and start prep (spawning sounds and kits) in the middle of the entity flush.
+    [Test]
+    public async Task RestartCleanupDoesNotClearTheWave()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var ticker = entMan.System<GameTicker>();
+        var waves = entMan.System<WaveGameRuleSystem>();
+        var spawning = entMan.System<WaveEnemySpawningSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid enemy = default;
+        await server.WaitPost(() =>
+        {
+            Assert.That(ticker.StartGameRule(WaveRule, out var rule));
+            Assert.That(waves.ForceNextWave(), Is.EqualTo(1));
+
+            // The whole wave is out and one enemy is left standing.
+            var comp = entMan.GetComponent<WaveGameRuleComponent>(rule);
+#pragma warning disable RA0002
+            comp.EnemiesSpawnedThisWave = comp.EnemyTotalThisWave;
+            enemy = spawning.SpawnWaveEnemy("FSZombieNormal", map.GridCoords, comp);
+            comp.AliveEnemies.Add(enemy);
+#pragma warning restore RA0002
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(waves.TryGetWaveStatus(out _, out var phase));
+            Assert.That(phase, Is.EqualTo(WavePhase.Combat));
+
+            entMan.EventBus.RaiseEvent(EventSource.Local, new RoundRestartCleanupEvent());
+            entMan.DeleteEntity(enemy);
+
+            Assert.That(waves.TryGetWaveStatus(out _, out phase));
+            Assert.That(phase, Is.EqualTo(WavePhase.Combat), "the restart flush cleared the wave");
         });
     }
 }

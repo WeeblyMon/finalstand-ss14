@@ -57,6 +57,16 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         base.Initialize();
         SubscribeLocalEvent<WaveSpawnedTagComponent, MobStateChangedEvent>(OnWaveEnemyMobStateChanged);
         SubscribeLocalEvent<WaveSpawnedTagComponent, ComponentShutdown>(OnWaveEnemyShutdown);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // Raised before the entity flush. The rule is still active while every enemy is deleted, and the last one
+    // going would otherwise end the wave and start prep in the middle of the restart.
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        var query = QueryAllRules();
+        while (query.MoveNext(out _, out var comp, out _))
+            comp.AliveEnemies.Clear();
     }
 
     protected override void Started(EntityUid uid, WaveGameRuleComponent comp,
