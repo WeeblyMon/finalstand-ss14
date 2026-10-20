@@ -1,10 +1,13 @@
 using Content.Client.Administration.Managers;
+using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 using Robust.Shared.Console;
 
 namespace Content.Client._FinalStand.Interface;
 
+// Gated on being an active admin inside; without this only Host admins could reach that check.
+[AnyCommand]
 public sealed partial class FSToggleHudCommand : LocalizedCommands
 {
     [Dependency] private IConfigurationManager _cfg = default!;
