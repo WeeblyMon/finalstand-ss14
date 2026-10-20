@@ -133,9 +133,18 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SaveMind(mindId, mind.UserId.Value);
     }
 
+    // Every wallet a player can own is created loaded; this only skips ones reset at round restart.
+    private FSPlayerWalletComponent GetWallet(EntityUid mindId)
+    {
+        return TryComp<MindComponent>(mindId, out var mind) && mind.UserId is { } user
+            ? GetLoadedWallet(mindId, user)
+            : EnsureComp<FSPlayerWalletComponent>(mindId);
+    }
+
     private void SaveMind(EntityUid mindId, NetUserId userId)
     {
-        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+        // An unloaded wallet's perk points aren't the player's; saving them would overwrite the real total.
+        if (!TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || !wallet.Loaded)
             return;
 
         _store.UpsertPerkPoints(userId.UserId, ResolveUsername(userId), wallet.PerkPoints);
@@ -156,7 +165,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
             if (!_mind.TryGetMind(session, out var mindId, out _))
                 continue;
 
-            var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.Credits += amount;
             MarkWalletDirty(mindId);
             count++;
@@ -205,7 +214,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
 
     public void GiveCredits(EntityUid mindId, int amount)
     {
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var wallet = GetWallet(mindId);
         wallet.Credits += amount;
         MarkWalletDirty(mindId);
         if (amount <= 0)
@@ -230,7 +239,7 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         if (amount <= 0)
             return 0;
 
-        var wallet = EnsureComp<FSPlayerWalletComponent>(mindId);
+        var wallet = GetWallet(mindId);
         var taken = Math.Min(wallet.Credits, amount);
         if (taken <= 0)
             return 0;
@@ -266,20 +275,28 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
     public int GetStoredPerkPoints(Guid userId)
     {
         if (_playerManager.TryGetSessionById(new NetUserId(userId), out var session)
-            && _mind.TryGetMind(session, out var mindId, out _)
-            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            && _mind.TryGetMind(session, out var mindId, out _))
         {
-            return wallet.PerkPoints;
+            return GetPerkPoints(mindId, session.UserId);
         }
 
         return _store.GetPerkPoints(userId);
     }
 
+    // Live wallet in round, the saved row otherwise (or for a wallet that hasn't been loaded).
+    public int GetPerkPoints(EntityUid mindId, NetUserId user)
+    {
+        return TryComp<FSPlayerWalletComponent>(mindId, out var wallet) && wallet.Loaded
+            ? wallet.PerkPoints
+            : _store.GetPerkPoints(user.UserId);
+    }
+
     public void GivePerkPoints(ICommonSession session, int amount)
     {
         if (_mind.TryGetMind(session, out var mindId, out _)
-            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
+            && HasComp<FSPlayerWalletComponent>(mindId))
         {
+            var wallet = GetLoadedWallet(mindId, session.UserId);
             wallet.PerkPoints = Math.Max(0, wallet.PerkPoints + amount);
             MarkWalletDirty(mindId);
             _store.UpsertPerkPoints(session.UserId.UserId, session.Name, wallet.PerkPoints);

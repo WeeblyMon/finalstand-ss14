@@ -271,10 +271,6 @@ public sealed partial class FSPerkSystem : EntitySystem
     // Live component in round, database row in the lobby.
     private int GetPerkPoints(ICommonSession session)
     {
-        if (_mind.TryGetMind(session, out var mindId, out _)
-            && TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
-            return wallet.PerkPoints;
-
         return _wallet.GetStoredPerkPoints(session.UserId.UserId);
     }
 
@@ -361,13 +357,7 @@ public sealed partial class FSPerkSystem : EntitySystem
         if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null) return;
         if (!_playerManager.TryGetSessionById(mind.UserId.Value, out var session)) return;
 
-        int ap;
-        if (TryComp<FSPlayerWalletComponent>(mindId, out var wallet))
-            ap = wallet.PerkPoints;
-        else
-            ap = _wallet.GetStoredPerkPoints(mind.UserId.Value.UserId);
-
-        SendState(session, perks, ap);
+        SendState(session, perks, _wallet.GetPerkPoints(mindId, mind.UserId.Value));
     }
 
     // The payload is deep-copied: the component's arrays keep mutating after this returns.
