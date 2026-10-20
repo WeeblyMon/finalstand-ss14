@@ -393,6 +393,12 @@ public sealed class FSPerkDef
                 PerkCategory.Blue,
                 Pct("+{0}% Shield Durability / +{1}% Mend per Kill", FSPerkBonusConstants.BulwarkDurabilityPerLevel,
                     FSPerkBonusConstants.BulwarkRepairPerKillPerLevel)),
+
+            new("BeaconOfLight", "Beacon of Light",
+                "While blocking with a riot shield, nearby allies stop bleeding and slowly heal.",
+                PerkCategory.Blue,
+                Levels("{0:0} Tile Radius / +{1:0.##} HP/s",
+                    i => [FSPerkBonusConstants.BeaconOfLightRadius[i], FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
         ];
 
         All = list.ToDictionary(a => a.Id);
