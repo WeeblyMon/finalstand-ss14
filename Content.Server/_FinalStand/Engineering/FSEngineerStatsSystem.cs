@@ -41,6 +41,7 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<FSDeployedByComponent, DamageChangedEvent>(OnStructureDamageChanged);
+        SubscribeLocalEvent<FSDeployedByComponent, ComponentShutdown>(OnStructureShutdown);
         SubscribeLocalEvent<FSWaveEnemyDiedEvent>(OnEnemyDied);
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEnd, after: [typeof(FSLevelingSystem)]);
@@ -60,6 +61,12 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
     {
         _absorbedThisWave.Clear();
         _repairedThisWave.Clear();
+    }
+
+    // Outstanding damage outlives the wave on purpose (repairs land in prep), so it goes with the structure instead.
+    private void OnStructureShutdown(Entity<FSDeployedByComponent> ent, ref ComponentShutdown args)
+    {
+        _waveDamage.Remove(ent.Owner);
     }
 
     private void OnStructureDamageChanged(Entity<FSDeployedByComponent> ent, ref DamageChangedEvent args)
@@ -100,7 +107,10 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
 
         var outstanding = _waveDamage.GetValueOrDefault(structure);
         var eligible = MathF.Min(amount, outstanding);
-        _waveDamage[structure] = outstanding - eligible;
+        if (outstanding - eligible > 0f)
+            _waveDamage[structure] = outstanding - eligible;
+        else
+            _waveDamage.Remove(structure);
 
         var key = (mindId, structure);
         var prior = _repairedThisWave.GetValueOrDefault(key);
