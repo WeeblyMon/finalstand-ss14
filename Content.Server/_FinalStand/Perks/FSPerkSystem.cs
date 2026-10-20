@@ -148,7 +148,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
     private void OnBuyPerk(FSBuyPerkMessage msg, EntitySessionEventArgs args)
     {
-        if (!FSPerkDef.All.ContainsKey(msg.PerkId))
+        if (msg.PerkId is null || !FSPerkDef.All.ContainsKey(msg.PerkId))
         {
             Log.Debug($"OnBuyPerk: unknown perk id '{msg.PerkId}'");
             return;
@@ -176,7 +176,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
     private void OnEquipPerk(FSEquipPerkMessage msg, EntitySessionEventArgs args)
     {
-        if (!FSPerkDef.All.ContainsKey(msg.PerkId)) return;
+        if (msg.PerkId is null || !FSPerkDef.All.ContainsKey(msg.PerkId)) return;
         if (msg.SlotIndex < 0 || msg.SlotIndex >= FSPerkDef.SlotCount) return;
 
         DispatchPerkMutation(args.SenderSession, perks =>
@@ -195,6 +195,9 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
+            if (string.IsNullOrEmpty(perks.Slots[msg.SlotIndex]))
+                return false;
+
             perks.Slots[msg.SlotIndex] = string.Empty;
             return true;
         });
@@ -398,11 +401,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             {
                 var levels = JsonSerializer.Deserialize<Dictionary<string, int>>(levelsJson);
                 if (levels != null)
-                {
-                    foreach (var key in levels.Keys.Where(k => !FSPerkDef.All.ContainsKey(k)).ToList())
-                        levels.Remove(key);
-                    perks.Levels = levels;
-                }
+                    perks.Levels = SanitizeLevels(levels);
             }
             catch (Exception e)
             {
@@ -457,6 +456,13 @@ public sealed partial class FSPerkSystem : EntitySystem
                             continue;
                         }
 
+                        loadout.Levels = SanitizeLevels(loadout.Levels ?? new());
+                        for (var slot = 0; slot < loadout.Slots.Length; slot++)
+                        {
+                            if (loadout.Slots[slot] is not { } id || !FSPerkDef.All.ContainsKey(id))
+                                loadout.Slots[slot] = string.Empty;
+                        }
+
                         perks.Loadouts[i] = loadout;
                     }
                 }
@@ -472,6 +478,20 @@ public sealed partial class FSPerkSystem : EntitySystem
                 Log.Error($"Failed to deserialize perk loadouts JSON: {e.Message}\nJSON was: {loadoutsJson}");
             }
         }
+    }
+
+    // Stored levels are only as good as the row: unknown perks and anything outside 1..MaxLevel would index past
+    // the perk systems' per-level tables.
+    internal static Dictionary<string, int> SanitizeLevels(Dictionary<string, int> levels)
+    {
+        var clean = new Dictionary<string, int>(levels.Count);
+        foreach (var (id, level) in levels)
+        {
+            if (level >= 1 && FSPerkDef.All.ContainsKey(id))
+                clean[id] = Math.Min(level, FSPerkDef.MaxLevel);
+        }
+
+        return clean;
     }
 
     private void TryLoadLegacyLoadouts(string loadoutsJson, FSPerkLevelsComponent perks)
