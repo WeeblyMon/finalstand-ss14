@@ -97,6 +97,9 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid) || HasComp<FSHMGComponent>(ev.Weapon))
             ev.AdditionalMultiplier *= DeadlyGearMultiplier(augs);
 
+        if (HasComp<FSDeployableProjectileComponent>(ev.ProjectileUid))
+            ev.AdditionalMultiplier *= _drunk.SentryMultiplier(ev.Shooter.Value, augs);
+
         if (ev.Weapon is { } shotgun && _tags.HasTag(shotgun, ShotgunTag))
             ev.AdditionalMultiplier *= OlReliableMultiplier(mindId, augs);
 

@@ -12,6 +12,7 @@ namespace Content.Server._FinalStand.Perks;
 public sealed partial class FSImplosionSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     public readonly record struct Factors(float Max, float Slope, float Total);
 
@@ -39,8 +40,16 @@ public sealed partial class FSImplosionSystem : EntitySystem
         if (HasComp<FSImplosionAppliedComponent>(uid) || !TryComp<ExplosiveComponent>(uid, out var explosive))
             return;
 
-        if (!TryGetFactors(OwnerOf(uid) ?? triggerUser, out var factors))
+        var owner = OwnerOf(uid) ?? triggerUser;
+        var imploded = TryGetFactors(owner, out var factors);
+        var widened = _drunk.TryGetBlastFactors(owner, out var blast);
+        if (!imploded && !widened)
             return;
+
+        if (!imploded)
+            factors = new Factors(1f, 1f, 1f);
+        if (widened)
+            factors = new Factors(factors.Max * blast.Max, factors.Slope * blast.Slope, factors.Total * blast.Total);
 
         EnsureComp<FSImplosionAppliedComponent>(uid);
 #pragma warning disable RA0002

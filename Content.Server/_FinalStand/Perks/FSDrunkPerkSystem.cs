@@ -21,7 +21,7 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
     [Dependency] private GunSystem _gun = default!;
     [Dependency] private IGameTiming _timing = default!;
 
-    public static readonly string[] DrunkPerks = ["DrunkenBerserker"];
+    public static readonly string[] DrunkPerks = ["DrunkenBerserker", "ExplosiveEngineering"];
     private static readonly ProtoId<TagPrototype> TolerantTag = "FSAlcoholTolerant";
     private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(0.5);
     private TimeSpan _nextCheck;
@@ -64,6 +64,26 @@ public sealed partial class FSDrunkPerkSystem : EntitySystem
     {
         var level = perks.GetSlottedLevel(perkId);
         return level > 0 && IsDrunk(body) ? level : 0;
+    }
+
+    public float SentryMultiplier(EntityUid body, FSPerkLevelsComponent perks)
+        => 1f + LevelIfDrunk(body, perks, "ExplosiveEngineering") * FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel;
+
+    public bool TryGetBlastFactors(EntityUid? owner, out FSImplosionSystem.Factors factors)
+    {
+        factors = default;
+        if (owner is not { } body
+            || !_mind.TryGetMind(body, out var mindId, out _)
+            || !TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+            return false;
+
+        var level = LevelIfDrunk(body, perks, "ExplosiveEngineering");
+        if (level <= 0)
+            return false;
+
+        var radius = 1f + level * FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel;
+        factors = new FSImplosionSystem.Factors(1f, 1f / radius, radius * radius);
+        return true;
     }
 
     private void OnDrunk(Entity<FSDrunkPerkComponent> ent, ref SharedDrunkSystem.DrunkEvent args)

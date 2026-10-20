@@ -100,6 +100,8 @@ public static class FSPerkBonusConstants
     public const float MedievalistResistPerLevel = 0.10f;
     public const float SlushFundPerLevel = 0.05f;
     public const float DrunkenBerserkerPerLevel = 0.10f;
+    public const float ExplosiveEngineeringRadiusPerLevel = 0.05f;
+    public const float ExplosiveEngineeringSentryPerLevel = 0.10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

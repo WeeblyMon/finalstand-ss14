@@ -415,6 +415,12 @@ public sealed class FSPerkDef
                 "Drunk: more melee damage and fire rate, worse aim, stronger drinks. No alcohol poisoning.",
                 PerkCategory.Purple,
                 Pct("+{0}% Melee Damage / Fire Rate / Spread", FSPerkBonusConstants.DrunkenBerserkerPerLevel)),
+
+            new("ExplosiveEngineering", "Explosive Engineering",
+                "Drunk: bigger blasts from your grenades and rockets, harder-hitting sentries.",
+                PerkCategory.Red,
+                Pct("+{0}% Blast Radius / +{1}% Sentry Damage", FSPerkBonusConstants.ExplosiveEngineeringRadiusPerLevel,
+                    FSPerkBonusConstants.ExplosiveEngineeringSentryPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
