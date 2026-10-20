@@ -118,7 +118,8 @@ public sealed partial class FSCasualtySystem : EntitySystem
 
     public void Respond(EntityUid medic, EntityUid patient)
     {
-        if (!_calls.TryGetValue(patient, out var call) || TerminatingOrDeleted(patient))
+        // Already on the way: the popups, sound and broadcast would only repeat.
+        if (!_calls.TryGetValue(patient, out var call) || TerminatingOrDeleted(patient) || call.Responder == medic)
             return;
 
         call.Responder = medic;

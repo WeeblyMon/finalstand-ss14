@@ -82,10 +82,10 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         if (!_waveRule.IsPrep() || !IsCrew(session))
             return;
 
-        if (msg.IsReady)
-            _ready.Add(session.UserId);
-        else
-            _ready.Remove(session.UserId);
+        // A repeat press changes nothing, and each change goes out to every session.
+        var changed = msg.IsReady ? _ready.Add(session.UserId) : _ready.Remove(session.UserId);
+        if (!changed)
+            return;
 
         var (ready, crew) = Count();
         if (msg.IsReady && _shaved.Add(session.UserId))
