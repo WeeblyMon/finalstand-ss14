@@ -146,27 +146,21 @@ public sealed partial class NPCSteeringSystem
 
         // Grab the target position, either the next path node or our end goal..
         var targetCoordinates = GetTargetCoordinates(steering);
+        var needsPath = false;
+
+        // FINALSTAND: a node the grid invalidated (a barricade broken or built, a door changed) means a new path,
+        // not giving up the move. Vanilla returned NoPath before its own "get new ones" branch could run.
+        if (!targetCoordinates.IsValid(EntityManager) && DropInvalidPath(steering))
+        {
+            targetCoordinates = GetTargetCoordinates(steering);
+            needsPath = true;
+            ResetStuck(steering, ourCoordinates);
+        }
 
         if (!targetCoordinates.IsValid(EntityManager))
         {
             steering.Status = SteeringStatus.NoPath;
             return false;
-        }
-
-        var needsPath = false;
-
-        // If the next node is invalid then get new ones
-        if (!targetCoordinates.IsValid(EntityManager))
-        {
-            if (steering.CurrentPath.TryPeek(out var poly) &&
-                (poly.Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0)
-            {
-                steering.CurrentPath.Dequeue();
-                // Try to get the next node temporarily.
-                targetCoordinates = GetTargetCoordinates(steering);
-                needsPath = true;
-                ResetStuck(steering, ourCoordinates);
-            }
         }
 
         // Check if mapids match.
@@ -272,6 +266,13 @@ public sealed partial class NPCSteeringSystem
                 // Alright just adjust slightly and grab the next node so we don't stop moving for a tick.
                 // TODO: If it's the last node just grab the target instead.
                 targetCoordinates = GetTargetCoordinates(steering);
+
+                // FINALSTAND: same for the node after this one.
+                if (!targetCoordinates.IsValid(EntityManager) && DropInvalidPath(steering))
+                {
+                    targetCoordinates = GetTargetCoordinates(steering);
+                    needsPath = true;
+                }
 
                 if (!targetCoordinates.IsValid(EntityManager))
                 {
@@ -385,6 +386,16 @@ public sealed partial class NPCSteeringSystem
             ApplySeek(interest, norm, sameDirectionWeight);
         }
 
+        return true;
+    }
+
+    // FINALSTAND: the nodes after an invalidated one were planned around the old grid too, so the whole path goes.
+    private static bool DropInvalidPath(NPCSteeringComponent steering)
+    {
+        if (!steering.CurrentPath.TryPeek(out var poly) || poly.IsValid())
+            return false;
+
+        steering.CurrentPath.Clear();
         return true;
     }
 
