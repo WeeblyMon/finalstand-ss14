@@ -254,6 +254,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         if (snsLevel > 0)
             args.Damage *= 1f + snsLevel * FSPerkBonusConstants.SwordAndShieldPerLevel;
 
+        var medievalLevel = augs.GetSlottedLevel("Medievalist");
+        if (medievalLevel > 0)
+            args.Damage *= 1f + medievalLevel * FSPerkBonusConstants.MedievalistMeleePerLevel;
+
         if (augs.GetSlottedLevel("Pacifist") > 0)
             args.Damage *= 1f - FSPerkBonusConstants.PacifistPenalty;
 

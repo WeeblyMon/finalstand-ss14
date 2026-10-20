@@ -5,6 +5,7 @@ using Content.Shared._FinalStand.Perks;
 using Content.Shared._FinalStand.Economy;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using Content.Shared.Popups;
 using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -24,6 +25,8 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private FSPerkMasterySystem _mastery = default!;
+    [Dependency] private FSPerkLockSystem _locks = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
@@ -177,6 +180,7 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
+            if (LockedOut(args.SenderSession, perks.Slots[msg.SlotIndex])) return false;
             perks.Slots[msg.SlotIndex] = string.Empty;
             return true;
         });
@@ -213,6 +217,8 @@ public sealed partial class FSPerkSystem : EntitySystem
             var src = perks.Loadouts[msg.LoadoutIndex];
             if (src.IsEmpty)
                 return false;
+            if (!KeepsLocks(session, src.Slots))
+                return false;
 
             var refund = CalcRefund(perks);
             var cost = CalcCost(src.Levels);
@@ -238,6 +244,8 @@ public sealed partial class FSPerkSystem : EntitySystem
         DispatchPerkMutation(session, perks =>
         {
             if (perks.Levels.Count == 0)
+                return false;
+            if (!KeepsLocks(session, Array.Empty<string>()))
                 return false;
 
             _wallet.GivePerkPoints(session, CalcRefund(perks));
@@ -267,6 +275,8 @@ public sealed partial class FSPerkSystem : EntitySystem
             var plan = FSStarterBuildPlanner.Make(perks.Levels, build.Perks, points);
             var slots = FSStarterBuildPlanner.Slots(plan.Levels, build.Perks);
             if (plan.Spent == 0 && slots.SequenceEqual(perks.Slots))
+                return false;
+            if (!KeepsLocks(session, slots))
                 return false;
 
             if (plan.Spent > 0)
@@ -300,6 +310,26 @@ public sealed partial class FSPerkSystem : EntitySystem
     }
 
     // Handles both in-round (mind entity) and lobby (DB-direct) cases transparently.
+    private bool LockedOut(ICommonSession session, string perkId)
+    {
+        if (string.IsNullOrEmpty(perkId) || !_mind.TryGetMind(session, out var mindId, out _) || !_locks.IsLocked(mindId, perkId))
+            return false;
+
+        if (session.AttachedEntity is { } body)
+            _popup.PopupEntity(Loc.GetString("fs-perk-locked"), body, session);
+        return true;
+    }
+
+    private bool KeepsLocks(ICommonSession session, IReadOnlyCollection<string> slots)
+    {
+        if (!_mind.TryGetMind(session, out var mindId, out _) || _locks.KeepsLocked(mindId, slots))
+            return true;
+
+        if (session.AttachedEntity is { } body)
+            _popup.PopupEntity(Loc.GetString("fs-perk-locked"), body, session);
+        return false;
+    }
+
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
         if (session.AttachedEntity is { } attached && !_shopAccess.CanUse(attached))

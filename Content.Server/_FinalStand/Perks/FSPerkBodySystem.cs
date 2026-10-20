@@ -56,6 +56,11 @@ public sealed partial class FSPerkBodySystem : EntitySystem
             RemComp<FSPerkPierceComponent>(body);
         }
 
+        if (perks.GetSlottedLevel("Medievalist") > 0)
+            EnsureComp<FSMedievalistComponent>(body);
+        else
+            RemComp<FSMedievalistComponent>(body);
+
         var packMule = perks.GetSlottedLevel("PackMule");
         var hadPackMule = TryComp<FSPackMuleComponent>(body, out var mule) ? mule.Level : 0;
         if (packMule > 0)

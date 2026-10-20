@@ -318,6 +318,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             sources.Add(FormatPct("Sword & Shield", p));
         }
 
+        var medievalLevel = perks?.GetSlottedLevel("Medievalist") ?? 0;
+        if (medievalLevel > 0)
+        {
+            var p = medievalLevel * FSPerkBonusConstants.MedievalistMeleePerLevel * 100f;
+            pct += p;
+            sources.Add(FormatPct("Medievalist", p));
+        }
+
         var gcLevel = perks?.GetSlottedLevel("GlassCannon") ?? 0;
         if (gcLevel > 0)
         {

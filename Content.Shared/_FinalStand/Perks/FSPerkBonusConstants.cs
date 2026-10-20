@@ -96,6 +96,8 @@ public static class FSPerkBonusConstants
     public const float BulwarkRepairPerKillPerLevel = 0.005f;   // of max durability, melee kills
     public const float BulwarkTauntRadius = 4f;
     public const float BeaconOfLightHealPerLevel = 0.25f;   // HP/s to allies in range while blocking
+    public const float MedievalistMeleePerLevel = 0.20f;
+    public const float MedievalistResistPerLevel = 0.10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

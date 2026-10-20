@@ -66,6 +66,10 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
         if (rampLevel > 0 && TryComp<FSRampageComponent>(mindId, out var ramp) && ramp.Stacks > 0)
             Resist("Rampage", MathF.Min(1f, ramp.Stacks * rampLevel * FSPerkBonusConstants.RampageResistPerLevel));
 
+        var medievalLevel = augs.GetSlottedLevel("Medievalist");
+        if (medievalLevel > 0)
+            Resist("Medievalist", medievalLevel * FSPerkBonusConstants.MedievalistResistPerLevel);
+
         var bunker = _bunkeredDown.GetResist(mindId, augs);
         if (bunker > 0f)
             Resist("BunkeredDown", bunker);
