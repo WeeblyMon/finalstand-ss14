@@ -6,6 +6,7 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
 using Content.Shared.Damage.Systems;
 using Content.Shared.Examine;
+using Content.Shared.GameTicking;
 using Content.Shared.Ghost;
 using Content.Shared.Ghost.Components;
 using Content.Shared.Mobs;
@@ -62,6 +63,14 @@ public sealed partial class FSRevenantSystem : EntitySystem
         SubscribeLocalEvent<FSRevenantComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<FSRevenantComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<FSRevenantComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+    }
+
+    // The debug lock and telemetry are for one test round, not every round after it.
+    private void OnRoundRestart(RoundRestartCleanupEvent ev)
+    {
+        _debugLock = null;
+        ResetTelemetry();
     }
 
     private void OnMapInit(EntityUid uid, FSRevenantComponent comp, MapInitEvent args)
