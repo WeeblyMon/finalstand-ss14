@@ -48,6 +48,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
     [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
     [Dependency] private FSAggravatorSystem _aggravator = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
@@ -266,6 +267,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             frPct += pct;
             frSources.Add(FormatPct("Gunslinger", pct));
         }
+
+        var berserkGun = perks == null ? 0 : _drunk.LevelIfDrunk(mob, perks, "DrunkenBerserker");
+        if (berserkGun > 0)
+        {
+            var pct = berserkGun * FSPerkBonusConstants.DrunkenBerserkerPerLevel * 100f;
+            frPct += pct;
+            frSources.Add(FormatPct("Drunken Berserker", pct));
+        }
         fireRate = new FSBonusCategory(frPct, frSources.ToArray());
 
         var reloadTotal = reloadPct * 100f;
@@ -324,6 +333,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var p = medievalLevel * FSPerkBonusConstants.MedievalistMeleePerLevel * 100f;
             pct += p;
             sources.Add(FormatPct("Medievalist", p));
+        }
+
+        var berserkMelee = perks == null ? 0 : _drunk.LevelIfDrunk(mob, perks, "DrunkenBerserker");
+        if (berserkMelee > 0)
+        {
+            var p = berserkMelee * FSPerkBonusConstants.DrunkenBerserkerPerLevel * 100f;
+            pct += p;
+            sources.Add(FormatPct("Drunken Berserker", p));
         }
 
         var gcLevel = perks?.GetSlottedLevel("GlassCannon") ?? 0;

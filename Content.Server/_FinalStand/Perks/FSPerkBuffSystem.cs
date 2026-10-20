@@ -48,6 +48,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private FSWeaponClassifierSystem _classifier = default!;
     [Dependency] private FSStylePointsSystem _stylePoints = default!;
     [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     private static readonly ProtoId<TagPrototype> LauncherTag = "WeaponGunLauncher";
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
@@ -134,6 +135,14 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
             * FSPerkBonusConstants.GunslingerFireRatePerLevel;
+
+        var berserk = _drunk.LevelIfDrunk(holder, augs, "DrunkenBerserker") * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
+        if (berserk > 0f)
+        {
+            args.FireRate *= 1f + berserk;
+            args.MinAngle = new Angle(args.MinAngle.Theta * (1f + berserk));
+            args.MaxAngle = new Angle(args.MaxAngle.Theta * (1f + berserk));
+        }
     }
 
     public float OlReliableMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
@@ -257,6 +266,10 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         var medievalLevel = augs.GetSlottedLevel("Medievalist");
         if (medievalLevel > 0)
             args.Damage *= 1f + medievalLevel * FSPerkBonusConstants.MedievalistMeleePerLevel;
+
+        var berserkLevel = _drunk.LevelIfDrunk(args.User, augs, "DrunkenBerserker");
+        if (berserkLevel > 0)
+            args.Damage *= 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
 
         if (augs.GetSlottedLevel("Pacifist") > 0)
             args.Damage *= 1f - FSPerkBonusConstants.PacifistPenalty;

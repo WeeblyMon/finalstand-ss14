@@ -10,6 +10,7 @@ public sealed partial class FSPerkBodySystem : EntitySystem
 {
     [Dependency] private FSPlayerUpgradesSystem _upgrades = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     public override void Initialize()
     {
@@ -55,6 +56,8 @@ public sealed partial class FSPerkBodySystem : EntitySystem
         {
             RemComp<FSPerkPierceComponent>(body);
         }
+
+        _drunk.Sync(body, perks);
 
         if (perks.GetSlottedLevel("Medievalist") > 0)
             EnsureComp<FSMedievalistComponent>(body);

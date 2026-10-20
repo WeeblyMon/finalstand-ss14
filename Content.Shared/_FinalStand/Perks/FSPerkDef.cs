@@ -410,6 +410,11 @@ public sealed class FSPerkDef
                 "An extra share of what you earn goes into the Medical fund. Medical staff only.",
                 PerkCategory.Yellow,
                 Pct("+{0}% of Income to Fund", FSPerkBonusConstants.SlushFundPerLevel)),
+
+            new("DrunkenBerserker", "Drunken Berserker",
+                "Drunk: more melee damage and fire rate, worse aim, stronger drinks. No alcohol poisoning.",
+                PerkCategory.Purple,
+                Pct("+{0}% Melee Damage / Fire Rate / Spread", FSPerkBonusConstants.DrunkenBerserkerPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

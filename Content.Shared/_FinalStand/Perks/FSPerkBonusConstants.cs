@@ -99,6 +99,7 @@ public static class FSPerkBonusConstants
     public const float MedievalistMeleePerLevel = 0.20f;
     public const float MedievalistResistPerLevel = 0.10f;
     public const float SlushFundPerLevel = 0.05f;
+    public const float DrunkenBerserkerPerLevel = 0.10f;
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.
@@ -119,6 +120,7 @@ public static class FSPerkBonusConstants
     public static readonly float[] WiseguyPerWave = [0.01f, 0.015f, 0.02f, 0.025f];
     public static readonly float[] WiseguyCap = [0.10f, 0.12f, 0.14f, 0.16f];
     public static readonly float[] BeaconOfLightRadius = [3f, 4f, 5f, 6f];
+    public static readonly float[] DrunkenBerserkerBooze = [2f, 1.8f, 1.6f, 1.4f];
 
     public static int TechnicianBonus(int level, int baseMaxStock)
         => level <= 0 ? 0 : baseMaxStock >= 2 ? level : 1;
