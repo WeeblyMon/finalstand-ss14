@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Client._FinalStand.Melee;
 using Content.Client.Gameplay;
+using Content.Shared._FinalStand.Melee;
 using Content.Shared.CCVar;
 using Content.Shared.CombatMode;
 using Content.Shared.Effects;
@@ -76,6 +77,8 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
         if (!CombatMode.IsInCombatMode(entity) || !Blocker.CanAttack(entity, weapon: (weaponUid, weapon)))
         {
             weapon.Attacking = false;
+            if (TryComp<FSMeleeChargeComponent>(weaponUid, out var winding) && winding.ChargeStart != null) // FINALSTAND
+                RaisePredictiveEvent(new FSMeleeChargeEvent(GetNetEntity(weaponUid), false));
             return;
         }
 
@@ -137,6 +140,23 @@ public sealed partial class MeleeWeaponSystem : SharedMeleeWeaponSystem
             }
 
             return;
+        }
+
+        // FINALSTAND: charged heavies wind up while held and swing on release
+        if (TryComp<FSMeleeChargeComponent>(weaponUid, out var charge))
+        {
+            if (altDown == BoundKeyState.Down)
+            {
+                if (charge.ChargeStart == null)
+                    RaisePredictiveEvent(new FSMeleeChargeEvent(GetNetEntity(weaponUid), true));
+                return;
+            }
+
+            if (charge.ChargeStart != null)
+            {
+                ClientHeavyAttack(entity, coordinates, weaponUid, weapon);
+                return;
+            }
         }
 
         // Heavy attack.

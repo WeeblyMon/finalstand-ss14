@@ -207,6 +207,22 @@ public sealed partial class FSMeleeJuiceProfile
 
     [DataField]
     public float KillZoom = 0.05f;
+
+    // A copy for a charged swing: damage scales by one factor, and reach, force and feel by the other.
+    public FSMeleeJuiceProfile Charged(float damage, float force)
+    {
+        var profile = (FSMeleeJuiceProfile) MemberwiseClone();
+        profile.DamageMultiplier *= damage;
+        profile.Knockback *= force;
+        profile.FlinchDuration *= force;
+        profile.StaggerRadius *= force;
+        profile.Hitstop *= force;
+        profile.Trauma = Math.Min(1f, Trauma * force);
+        profile.KillZoom *= force;
+        profile.SlashScale *= Math.Clamp(force, 0.7f, 1.5f);
+        profile.SlashGrow = 1f + (SlashGrow - 1f) * force;
+        return profile;
+    }
 }
 
 public enum FSMeleeHeavyStyle : byte

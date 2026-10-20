@@ -19,6 +19,14 @@ public sealed class FSMeleeHitJuiceEvent(NetEntity user, NetEntity weapon, List<
     public bool Finisher = finisher;
 }
 
+// Sent by the attacker when they start or give up winding up a charged heavy attack.
+[Serializable, NetSerializable]
+public sealed class FSMeleeChargeEvent(NetEntity weapon, bool start) : EntityEventArgs
+{
+    public NetEntity Weapon = weapon;
+    public bool Start = start;
+}
+
 [Serializable, NetSerializable]
 public sealed class FSMeleeKillJuiceEvent(NetEntity user, NetEntity weapon, NetEntity target, bool heavy, bool finisher) : EntityEventArgs
 {

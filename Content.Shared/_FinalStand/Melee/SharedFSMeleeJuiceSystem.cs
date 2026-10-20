@@ -1,8 +1,11 @@
 using System.Numerics;
 using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Mobs;
+using Content.Shared.ActionBlocker;
+using Content.Shared.CombatMode;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Hands;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Item.ItemToggle.Components;
 using Content.Shared.Mobs;
@@ -12,6 +15,7 @@ using Content.Shared.Movement.Systems;
 using Content.Shared.Weapons.Melee;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Wieldable.Components;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
@@ -28,6 +32,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] protected SharedMeleeWeaponSystem Melee = default!;
+    [Dependency] private ActionBlockerSystem _blocker = default!;
+    [Dependency] private SharedAudioSystem _chargeAudio = default!;
+    [Dependency] private SharedCombatModeSystem _combat = default!;
 
     // Mob movement friction on a normal tile; a push of v travels about v / friction.
     protected const float MobFriction = 20f;
@@ -46,6 +53,82 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         SubscribeLocalEvent<FSMeleeFlinchComponent, RefreshMovementSpeedModifiersEvent>(OnFlinchSpeed);
         SubscribeLocalEvent<FSMeleeFlinchComponent, AttackAttemptEvent>(OnFlinchAttack);
         SubscribeLocalEvent<FSMeleeJuiceComponent, ComponentShutdown>(OnWeaponShutdown);
+        SubscribeAllEvent<FSMeleeChargeEvent>(OnChargeEvent);
+        SubscribeLocalEvent<FSMeleeChargeComponent, AttemptMeleeEvent>(OnChargeAttempt);
+        SubscribeLocalEvent<FSMeleeChargeComponent, GotUnequippedHandEvent>(OnChargeUnequipped);
+        SubscribeLocalEvent<FSMeleeChargeComponent, HandDeselectedEvent>(OnChargeDeselected);
+    }
+
+    // Heavy profiles grow with the charge behind them.
+    public FSMeleeJuiceProfile Profile(Entity<FSMeleeJuiceComponent> weapon, bool heavy, bool finisher = false)
+    {
+        var profile = weapon.Comp.Get(heavy, finisher);
+        return heavy && TryComp<FSMeleeChargeComponent>(weapon, out var charge) ? charge.Apply(profile) : profile;
+    }
+
+    private void OnChargeEvent(FSMeleeChargeEvent ev, EntitySessionEventArgs args)
+    {
+        if (args.SenderSession.AttachedEntity is not { } user
+            || !TryGetEntity(ev.Weapon, out var weapon)
+            || !TryComp<FSMeleeChargeComponent>(weapon, out var charge)
+            || !Melee.TryGetWeapon(user, out var held, out var melee)
+            || held != weapon)
+            return;
+
+        if (!ev.Start)
+        {
+            StopCharge((weapon.Value, charge));
+            return;
+        }
+
+        if (charge.ChargeStart != null
+            || melee.NextAttack > Timing.CurTime
+            || !_combat.IsInCombatMode(user)
+            || !_blocker.CanAttack(user, weapon: (weapon.Value, melee)))
+            return;
+
+        charge.ChargeStart = Timing.CurTime;
+        Dirty(weapon.Value, charge);
+
+        if (_net.IsServer)
+        {
+            charge.ChargeStream = _chargeAudio.Stop(charge.ChargeStream);
+            charge.ChargeStream = _chargeAudio.PlayPvs(charge.ChargeSound, user)?.Entity;
+        }
+    }
+
+    // Any swing ends the wind-up; a heavy one keeps how far it got.
+    private void OnChargeAttempt(Entity<FSMeleeChargeComponent> ent, ref AttemptMeleeEvent args)
+    {
+        if (args.IsHeavyAttack)
+        {
+            ent.Comp.LastCharge = ent.Comp.ChargeAt(Timing.CurTime);
+            Dirty(ent);
+        }
+
+        StopCharge(ent);
+    }
+
+    private void OnChargeUnequipped(EntityUid uid, FSMeleeChargeComponent charge, GotUnequippedHandEvent args)
+    {
+        StopCharge((uid, charge));
+    }
+
+    private void OnChargeDeselected(EntityUid uid, FSMeleeChargeComponent charge, HandDeselectedEvent args)
+    {
+        StopCharge((uid, charge));
+    }
+
+    private void StopCharge(Entity<FSMeleeChargeComponent> ent)
+    {
+        if (_net.IsServer)
+            ent.Comp.ChargeStream = _chargeAudio.Stop(ent.Comp.ChargeStream);
+
+        if (ent.Comp.ChargeStart == null)
+            return;
+
+        ent.Comp.ChargeStart = null;
+        Dirty(ent);
     }
 
     protected abstract void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args);
@@ -80,7 +163,7 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         }
 
         var finisher = !heavy && targets.Count > 0 && AdvanceCombo(args.User, ent);
-        var profile = ent.Comp.Get(heavy, finisher);
+        var profile = Profile(ent, heavy, finisher);
 
         if (heavy)
         {

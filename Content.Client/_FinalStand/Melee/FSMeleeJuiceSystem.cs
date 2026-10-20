@@ -5,6 +5,7 @@ using Content.Client.Eye;
 using Content.Client.Weapons.Melee;
 using Content.Client.Weapons.Melee.Components;
 using Content.Shared._FinalStand.Melee;
+using Content.Shared._FinalStand.Particles;
 using Content.Shared.Body.Components;
 using Content.Shared.Camera;
 using Content.Shared.CCVar;
@@ -48,6 +49,8 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private const float KillZoomCooldown = 1f;
     private const float HoldWindow = 0.25f;
     private const float SlamSmash = 0.2f;
+    private const float ChargeRumble = 0.25f;
+    private static readonly ProtoId<FSParticleEmitterPrototype> FullChargeGlint = "FSMeleeGlint";
 
     public sealed class Trail
     {
@@ -83,6 +86,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     private float _zoomPunch;
     private float _zoomStart = float.MinValue;
     private FSMeleeTrailOverlay? _overlay;
+    private EntityUid? _fullCharge;
 
     public override void Initialize()
     {
@@ -145,7 +149,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             || !TryComp<FSMeleeJuiceComponent>(weapon, out var juice))
             return;
 
-        var profile = juice.Get(ev.Heavy, ev.Finisher);
+        var profile = Profile((weapon.Value, juice), ev.Heavy, ev.Finisher);
         if (_cfg.GetCVar(CCVars.FSMeleeEffects))
         {
             SpawnEffect(profile.KillEffect, target.Value, Angle.Zero);
@@ -159,7 +163,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private void Play(EntityUid user, Entity<FSMeleeJuiceComponent> weapon, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, int strike, bool lethal, SoundSpecifier? cue = null)
     {
-        var profile = weapon.Comp.Get(heavy, finisher);
+        var profile = Profile(weapon, heavy, finisher);
         var hold = profile.Hitstop + (lethal ? profile.KillHitstopBonus : 0f);
         if (strike > 0)
             hold *= 0.6f;
@@ -433,7 +437,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (_pending.TryGetValue(user, out var pending) && pending.Weapon == weapon && RealTime - pending.Time <= HoldWindow)
             return pending.Profile;
 
-        return TryComp<FSMeleeJuiceComponent>(weapon, out var juice) ? juice.Get(heavy) : null;
+        return TryComp<FSMeleeJuiceComponent>(weapon, out var juice) ? Profile((weapon, juice), heavy) : null;
     }
 
     public FSMeleeHeavyStyle GetStyle(EntityUid weapon, bool heavy)
@@ -591,6 +595,30 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         UpdateSlashes();
         UpdateTrails();
         UpdateZoom();
+        UpdateCharge();
+    }
+
+    // The attacker feels the wind-up build and gets a cue the moment it is full.
+    private void UpdateCharge()
+    {
+        if (_player.LocalEntity is not { } local
+            || !_melee.TryGetWeapon(local, out var weapon, out _)
+            || !TryComp<FSMeleeChargeComponent>(weapon, out var charge)
+            || charge.ChargeStart == null)
+        {
+            _fullCharge = null;
+            return;
+        }
+
+        var level = charge.ChargeAt(Timing.CurTime);
+        AddTrauma(local, ChargeRumble * level, Vector2.Zero, FSMeleeShakeMode.Sustained);
+        if (level < 1f || _fullCharge == weapon)
+            return;
+
+        _fullCharge = weapon;
+        _audio.PlayLocal(charge.FullSound, local, local, charge.FullSound?.Params);
+        if (_cfg.GetCVar(CCVars.FSMeleeEffects))
+            _particles.Burst(FullChargeGlint, local, Color.White, 3f);
     }
 
     private void UpdateTrails()

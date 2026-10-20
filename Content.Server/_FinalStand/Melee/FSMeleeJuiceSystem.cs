@@ -66,7 +66,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     protected override void OnHit(Entity<FSMeleeJuiceComponent> weapon, EntityUid user, List<EntityUid> targets, Vector2 direction, bool heavy, bool finisher, bool lethal, MeleeHitEvent args)
     {
-        var profile = weapon.Comp.Get(heavy, finisher);
+        var profile = Profile(weapon, heavy, finisher);
         var damage = args.BaseDamage + args.BonusDamage;
 
         foreach (var target in targets)
@@ -170,7 +170,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
                 continue;
             }
 
-            CrashInto(uid, launched, juice.Get(true));
+            CrashInto(uid, launched, Profile((launched.Weapon, juice), true));
         }
     }
 
@@ -319,7 +319,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             || !TryComp<FSMeleeJuiceComponent>(hit.Weapon, out var juice))
             return;
 
-        var profile = juice.Get(hit.Heavy, hit.Finisher);
+        var profile = Profile((hit.Weapon, juice), hit.Heavy, hit.Finisher);
         _audio.PlayPvs(profile.KillSound, args.Target, profile.KillSound?.Params.WithVariation(0.08f));
         RaiseNetworkEvent(new FSMeleeKillJuiceEvent(GetNetEntity(user), GetNetEntity(hit.Weapon), GetNetEntity(args.Target), hit.Heavy, hit.Finisher),
             Filter.Pvs(args.Target, entityManager: EntityManager));
@@ -366,7 +366,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             _damageable.ChangeDamage(target, strike.Damage, origin: strike.User);
         }
 
-        var profile = juice.Get(strike.Heavy, strike.Finisher);
+        var profile = Profile((strike.Weapon, juice), strike.Heavy, strike.Finisher);
         _audio.PlayPvs(profile.StrikeSound, strike.Targets[0], profile.StrikeSound?.Params.WithPitchScale(1f + profile.StrikePitchStep * strike.Strike));
         SendHit(strike.User, strike.Weapon, strike.Targets, strike.Direction, strike.Heavy, strike.Finisher, strike.Strike, false, false);
         ApplyImpact(strike.User, strike.Weapon, strike.Targets, profile, strike.Damage);
