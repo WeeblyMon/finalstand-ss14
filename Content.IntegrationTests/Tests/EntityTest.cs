@@ -172,25 +172,45 @@ namespace Content.IntegrationTests.Tests
                 .Select(p => p.ID)
                 .ToList();
 
-            await server.WaitPost(() =>
+            // FINALSTAND: in batches. A map and grid per prototype for every prototype at once, all dirtied, took
+            // the shared server/client test process out of memory applying the client's game state with this fork's
+            // prototypes and Shitmed bodies. Every prototype is still spawned, dirtied and sent to the client.
+            const int batchSize = 1000;
+            var cEntMan = client.ResolveDependency<IEntityManager>();
+            for (var start = 0; start < protoIds.Count; start += batchSize)
             {
-                foreach (var protoId in protoIds)
+                var batch = protoIds.GetRange(start, Math.Min(batchSize, protoIds.Count - start));
+                var maps = new List<MapId>(batch.Count);
+
+                await server.WaitPost(() =>
                 {
-                    mapSys.CreateMap(out var mapId);
-                    var grid = mapSys.CreateGridEntity(mapId);
-                    var ent = sEntMan.SpawnEntity(protoId, new EntityCoordinates(grid.Owner, 0.5f, 0.5f));
-                    foreach (var (_, component) in sEntMan.GetNetComponents(ent))
+                    foreach (var protoId in batch)
                     {
-                        sEntMan.Dirty(ent, component);
+                        mapSys.CreateMap(out var mapId);
+                        maps.Add(mapId);
+                        var grid = mapSys.CreateGridEntity(mapId);
+                        var ent = sEntMan.SpawnEntity(protoId, new EntityCoordinates(grid.Owner, 0.5f, 0.5f));
+                        foreach (var (_, component) in sEntMan.GetNetComponents(ent))
+                        {
+                            sEntMan.Dirty(ent, component);
+                        }
                     }
-                }
-            });
+                });
 
-            await pair.RunUntilSynced();
+                await pair.RunUntilSynced();
 
-            // Make sure the client actually received the entities
-            // 500 is completely arbitrary. Note that the client & sever entity counts aren't expected to match.
-            Assert.That(client.ResolveDependency<IEntityManager>().EntityCount, Is.GreaterThan(500));
+                // Make sure the client actually received the entities: at least the map and grid per prototype,
+                // since some prototypes delete themselves. The client & server entity counts aren't expected to match.
+                Assert.That(cEntMan.EntityCount, Is.GreaterThanOrEqualTo(batch.Count * 2));
+
+                await server.WaitPost(() =>
+                {
+                    foreach (var mapId in maps)
+                        mapSys.DeleteMap(mapId);
+                });
+
+                await pair.RunUntilSynced();
+            }
 
             await server.WaitPost(() =>
             {
