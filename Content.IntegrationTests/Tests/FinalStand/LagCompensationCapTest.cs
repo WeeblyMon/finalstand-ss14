@@ -15,10 +15,11 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestOf(typeof(LagCompensationSystem))]
 public sealed class LagCompensationCapTest : GameTest
 {
+    // Destructive: the tests change the client's replicated net cvars, which recycling a pair doesn't reset.
     public override PoolSettings PoolSettings => new()
     {
         Connected = true,
-        Dirty = true,
+        Destructive = true,
     };
 
     [Test]
@@ -102,7 +103,5 @@ public sealed class LagCompensationCapTest : GameTest
             Assert.DoesNotThrow(() => rewind = lag.GetRewindTicks(session));
             Assert.That(rewind, Is.EqualTo(Math.Min(14.5, trusted + slack)).Within(1e-9));
         });
-
-        await client.WaitPost(() => cCfg.SetCVar(CVars.NetBufferSize, 0));
     }
 }

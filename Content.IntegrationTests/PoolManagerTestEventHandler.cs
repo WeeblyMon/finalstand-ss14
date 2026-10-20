@@ -4,7 +4,8 @@
 public sealed class PoolManagerTestEventHandler
 {
     // This value is completely arbitrary.
-    private static TimeSpan MaximumTotalTestingTimeLimit => TimeSpan.FromMinutes(20);
+    // FINALSTAND: 20 minutes cut off the fork's ~5.7k tests partway on a 4-core box, failing every test left.
+    private static TimeSpan MaximumTotalTestingTimeLimit => TimeSpan.FromMinutes(45);
     private static TimeSpan HardStopTimeLimit => MaximumTotalTestingTimeLimit.Add(TimeSpan.FromMinutes(1));
 
     [OneTimeSetUp]

@@ -18,9 +18,10 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestOf(typeof(FSReadyUpSystem))]
 public sealed class ReadyUpResyncTest : GameTest
 {
+    // Destructive: the body swap test adds a dummy session, which outlives a pair recycle.
     public override PoolSettings PoolSettings => new()
     {
-        Dirty = true,
+        Destructive = true,
         Connected = true,
         DummyTicker = false,
         Map = PoolManager.TestStation,
