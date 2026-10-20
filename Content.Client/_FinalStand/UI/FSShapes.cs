@@ -5,6 +5,7 @@ using Robust.Shared.Utility;
 using SixLabors.ImageSharp.Processing;
 using Robust.Client.Utility;
 using Robust.Shared.Graphics;
+using Robust.Shared.Timing;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
 using Image = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
@@ -23,6 +24,12 @@ public static class FSShapes
     private static readonly Dictionary<(int Radius, int Width), Texture> Cache = new();
     private static readonly Dictionary<(string Path, int Size), Texture> Shrinks = new();
     private static IClyde? _clyde;
+    private static IGameTiming? _timing;
+
+    // A texture dropped when a cache fills may already be queued for drawing this frame, and the renderer looks
+    // queued textures up by handle, so disposing it now would fail the frame. They go on a later frame instead.
+    private static readonly List<OwnedTexture> Retired = new();
+    private static uint _retiredOn;
 
     public static void Disc(DrawingHandleScreen handle, Vector2 center, float radius, Color color)
     {
@@ -34,11 +41,38 @@ public static class FSShapes
         Draw(handle, center, radius, MathF.Max(0.5f, width), color);
     }
 
+    private static void Retire(IEnumerable<Texture> textures)
+    {
+        foreach (var texture in textures)
+            Retire(texture);
+    }
+
+    private static void Retire(Texture texture)
+    {
+        if (texture is not OwnedTexture owned)
+            return;
+
+        _timing ??= IoCManager.Resolve<IGameTiming>();
+        Retired.Add(owned);
+        _retiredOn = _timing.CurFrame;
+    }
+
+    private static void DisposeRetired()
+    {
+        if (Retired.Count == 0 || _timing!.CurFrame == _retiredOn)
+            return;
+
+        foreach (var texture in Retired)
+            texture.Dispose();
+        Retired.Clear();
+    }
+
     private static void Draw(DrawingHandleScreen handle, Vector2 center, float radius, float width, Color color)
     {
         if (radius <= 0.5f || color.A <= 0f)
             return;
 
+        DisposeRetired();
         var scale = Snap(ref radius);
         width /= scale;
         var key = ((int) MathF.Round(radius * Step), (int) MathF.Round(width * Step));
@@ -46,8 +80,7 @@ public static class FSShapes
         {
             if (Cache.Count >= MaxCached)
             {
-                foreach (var old in Cache.Values)
-                    (old as OwnedTexture)?.Dispose();
+                Retire(Cache.Values);
                 Cache.Clear();
             }
             texture = Render(key.Item1 / Step, key.Item2 / Step);
@@ -183,12 +216,13 @@ public static class FSShapes
         if (color.A <= 0f)
             return;
 
+        DisposeRetired();
         if (!Baked.TryGetValue(key, out var baked))
         {
             if (Baked.Count >= MaxCached)
             {
                 foreach (var old in Baked.Values)
-                    (old.Texture as OwnedTexture)?.Dispose();
+                    Retire(old.Texture);
                 Baked.Clear();
             }
 
