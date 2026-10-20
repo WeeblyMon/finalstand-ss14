@@ -98,6 +98,7 @@ public static class FSPerkBonusConstants
     public const float BeaconOfLightHealPerLevel = 0.25f;   // HP/s to allies in range while blocking
     public const float MedievalistMeleePerLevel = 0.20f;
     public const float MedievalistResistPerLevel = 0.10f;
+    public const float SlushFundPerLevel = 0.05f;   // of earned credits, added to the Medical fund
 
 
     // Indexed by level - 1. These do not scale linearly, so they are tables rather than a rate.

@@ -405,6 +405,11 @@ public sealed class FSPerkDef
                 PerkCategory.Purple,
                 Pct("+{0}% Melee Damage / +{1} Resistance", FSPerkBonusConstants.MedievalistMeleePerLevel,
                     FSPerkBonusConstants.MedievalistResistPerLevel)),
+
+            new("SlushFund", "Slush Fund",
+                "An extra share of what you earn goes into the Medical fund. Medical staff only.",
+                PerkCategory.Yellow,
+                Pct("+{0}% of Income to Fund", FSPerkBonusConstants.SlushFundPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);
