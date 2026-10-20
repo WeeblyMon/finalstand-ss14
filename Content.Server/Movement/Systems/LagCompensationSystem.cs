@@ -42,6 +42,10 @@ public sealed partial class LagCompensationSystem : EntitySystem
     private const int ClientPredictTickBias = 1;
     private const double ClientPredictLagBias = 0.016;
 
+    // FINALSTAND: net.buffer_size is the client's word. Nobody honest runs more than a few states, and an absurd
+    // value mustn't overflow the cap or buy back the whole window.
+    private const int MaxTrustedBufferSize = 4;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -100,7 +104,8 @@ public sealed partial class LagCompensationSystem : EntitySystem
         // plus slack for jitter. Otherwise a low-ping client could always claim the full window and shoot where
         // enemies used to be.
         var tickRate = _timing.TickRate;
-        var max = Math.Min(_maxRewindMs / 1000.0 * tickRate, ViewLagTicks(session) + _rewindSlackMs / 1000.0 * tickRate);
+        var slack = _rewindSlackMs / 1000.0 * tickRate / _timing.TimeScale;
+        var max = Math.Max(0, Math.Min(_maxRewindMs / 1000.0 * tickRate, ViewLagTicks(session) + slack));
         return Math.Clamp(rewind, 0, max);
     }
 
@@ -112,10 +117,11 @@ public sealed partial class LagCompensationSystem : EntitySystem
         if (session.Channel is { } channel)
         {
             buffer = (_netCfg.GetClientCVar(channel, CVars.NetInterp) ? 2 : 1)
-                     + Math.Max(0, _netCfg.GetClientCVar(channel, CVars.NetBufferSize));
+                     + Math.Clamp(_netCfg.GetClientCVar(channel, CVars.NetBufferSize), 0, MaxTrustedBufferSize);
         }
 
-        var runAhead = Math.Ceiling(_timing.TickRate * (session.Ping / 1000.0 + ClientPredictLagBias));
+        // Counted in ticks of scaled game time, like the client's own run-ahead.
+        var runAhead = Math.Ceiling(_timing.TickRate * (session.Ping / 1000.0 + ClientPredictLagBias) / _timing.TimeScale);
         return buffer + runAhead + ClientPredictTickBias + 0.5;
     }
 

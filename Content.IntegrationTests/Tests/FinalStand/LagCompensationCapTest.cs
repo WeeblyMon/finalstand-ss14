@@ -73,4 +73,36 @@ public sealed class LagCompensationCapTest : GameTest
             });
         });
     }
+
+    // net.buffer_size is replicated as the client sends it, so an absurd value has to neither throw nor lift the cap.
+    [Test]
+    public async Task AnAbsurdClientBufferStaysCapped()
+    {
+        var server = Pair.Server;
+        var client = Pair.Client;
+        var lag = server.ResolveDependency<IEntityManager>().System<LagCompensationSystem>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+        var cCfg = client.ResolveDependency<IConfigurationManager>();
+
+        await client.WaitPost(() => cCfg.SetCVar(CVars.NetBufferSize, int.MaxValue));
+        await Pair.RunTicksSync(30);
+
+        await server.WaitAssertion(() =>
+        {
+            var session = Pair.Player!;
+            var tickRate = timing.TickRate;
+            var slack = cfg.GetCVar(CCVars.FSLagCompensationRewindSlackMs) / 1000.0 * tickRate;
+
+            // Interpolation on plus the most buffer trusted, the run-ahead and tick bias 1.
+            var trusted = 2 + 4 + Math.Ceiling(tickRate * (session.Ping / 1000.0 + 0.016)) + 1 + 0.5;
+
+            lag.SetViewTick(session, new GameTick(timing.CurTick.Value - 14));
+            var rewind = 0.0;
+            Assert.DoesNotThrow(() => rewind = lag.GetRewindTicks(session));
+            Assert.That(rewind, Is.EqualTo(Math.Min(14.5, trusted + slack)).Within(1e-9));
+        });
+
+        await client.WaitPost(() => cCfg.SetCVar(CVars.NetBufferSize, 0));
+    }
 }
