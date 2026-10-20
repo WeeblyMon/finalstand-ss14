@@ -31,6 +31,10 @@ public sealed partial class FSMeleeChargeComponent : Component
     [DataField]
     public SoundSpecifier? FullSound;
 
+    // Played where a fully charged swing connects.
+    [DataField]
+    public SoundSpecifier? FullHitSound;
+
     [AutoNetworkedField]
     public TimeSpan? ChargeStart;
 
@@ -39,6 +43,8 @@ public sealed partial class FSMeleeChargeComponent : Component
     public float LastCharge;
 
     public EntityUid? ChargeStream;
+
+    public bool WasFull => LastCharge >= 0.999f;
 
     public float ChargeAt(TimeSpan now)
     {

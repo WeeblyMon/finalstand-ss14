@@ -11,14 +11,17 @@
     minForce: 0.35
     maxForce: 1.25
     chargeSound:
-      path: /Audio/Weapons/drawbow2.ogg
+      path: /Audio/_FinalStand/Melee/charge_bat.ogg
       params:
-        volume: -2
+        volume: -4
     fullSound:
-      path: /Audio/Items/unsheath.ogg
+      path: /Audio/_FinalStand/Melee/charge_full.ogg
       params:
         volume: -2
-        pitch: 1.3
+    fullHitSound:
+      path: /Audio/_FinalStand/Melee/crowd_cheer.ogg
+      params:
+        volume: 2
   - type: FSMeleeJuice # FINALSTAND
     heavyRecovery: 1
     light:

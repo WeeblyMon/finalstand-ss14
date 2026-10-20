@@ -184,6 +184,9 @@ public abstract partial class SharedFSMeleeJuiceSystem : EntitySystem
         if (!MathHelper.CloseTo(profile.DamageMultiplier, 1f))
             args.BonusDamage += args.BaseDamage * (profile.DamageMultiplier - 1f);
 
+        if (heavy && TryComp<FSMeleeChargeComponent>(ent, out var charge) && charge.WasFull)
+            _chargeAudio.PlayPredicted(charge.FullHitSound, targets[0], args.User);
+
         var userPos = Xform.GetWorldPosition(args.User);
         var direction = args.Direction ?? Xform.GetWorldPosition(targets[0]) - userPos;
         if (direction == Vector2.Zero)

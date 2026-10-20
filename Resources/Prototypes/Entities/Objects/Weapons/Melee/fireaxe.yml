@@ -11,14 +11,14 @@
     minForce: 0.5
     maxForce: 1.4
     chargeSound:
-      path: /Audio/Magic/rumble.ogg
+      path: /Audio/_FinalStand/Melee/charge_axe.ogg
       params:
         volume: -4
     fullSound:
-      path: /Audio/Items/unsheath.ogg
+      path: /Audio/_FinalStand/Melee/charge_full.ogg
       params:
         volume: -2
-        pitch: 0.8
+        pitch: 0.85
   - type: FSMeleeJuice # FINALSTAND
     heavyStyle: Slam
     heavyRecovery: 1.2
