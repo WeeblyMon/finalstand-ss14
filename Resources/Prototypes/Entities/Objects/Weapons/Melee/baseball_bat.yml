@@ -5,6 +5,7 @@
   description: A robust baseball bat.
   components:
   - type: FSMeleeJuice # FINALSTAND
+    heavyRecovery: 1.8
     light:
       anticipation: 0.07
       hitstop: 0.06
@@ -26,6 +27,38 @@
       slashEffect: FSMeleeSlashWarriorArcTinted
       slashColor: "#efe4cf"
       slashScale: 0.8
+    heavy:
+      anticipation: 0.16
+      hitstop: 0.12
+      killHitstopBonus: 0.04
+      reach: 1.2
+      trauma: 0.6
+      knockback: 40
+      knockbackDuration: 0.4
+      flinchDuration: 1.2
+      flinchSpeed: 0.15
+      maxTargets: 1
+      damageMultiplier: 1.5
+      launch: 0.6
+      hitEffect: FSMeleeHitShatter
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBluntDust
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: FSMeleeBoneBreak
+      impactSound:
+        collection: FSMeleeBoneBreak
+        params:
+          volume: 3
+      trailColor: "#efe4cfbb"
+      trailWidth: 0.1
+      trailDuration: 0.2
+      slashEffect: FSMeleeSlashWarriorBurstTinted
+      slashColor: "#efe4cf"
+      slashScale: 1.0
+      slashOffset: 0.9
+      slashGrow: 1.4
+      killZoom: 0.07
     comboHits: 2
     comboReadySound:
       path: /Audio/Effects/thudswoosh.ogg

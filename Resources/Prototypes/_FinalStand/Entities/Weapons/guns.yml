@@ -729,6 +729,8 @@
   suffix: FinalStand
   components:
   - type: FSMeleeJuice
+    heavyStyle: Spin
+    heavyRecovery: 1.5
     light:
       anticipation: 0.05
       hitstop: 0.03
@@ -760,7 +762,37 @@
       slashScale: 1.05
       slashOffset: 0.6
       slashTravel: 0.45
+    heavy:
+      anticipation: 0.08
+      hitstop: 0.05
+      reach: 1.05
+      trauma: 0.35
+      shakeMode: Radial
+      knockback: 7
+      knockbackDuration: 0.2
+      flinchDuration: 0.3
+      flinchSpeed: 0.4
+      extraStrikes: 1
+      strikeInterval: 0.22
+      strikeDamageFraction: 0.6
+      strikeSound:
+        path: /Audio/Weapons/bladeslice.ogg
+      strikePitchStep: 0.15
+      hitEffect: FSMeleeHitCross
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeGlint
+      particleTint: "#ffd27a"
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      swingEffect: FSMeleeSpinRing
+      trailColor: "#9ec3ffcc"
+      trailWidth: 0.07
+      trailDuration: 0.18
+      fleshSound:
+        collection: FSMeleeBladeFlesh
   - type: MeleeWeapon
+    angle: 360
     damage:
       types:
         Slash: 23
@@ -806,6 +838,32 @@
       slashOffset: 0.6
       slashTravel: 0.15
       slashGrow: 1.1
+    heavy:
+      anticipation: 0
+      hitstop: 0
+      trauma: 0.25
+      shakeMode: Sustained
+      knockback: 0
+      flinchDuration: 0.35
+      flinchSpeed: 0.1
+      flinchedBonus: 0
+      maxTargets: 1
+      damageMultiplier: 1.3
+      hitEffect: FSMeleeHitSparks
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeBlood
+      killEmitter: FSMeleeBloodBurst
+      killSound:
+        collection: gib
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+        params:
+          volume: -2
+      slashEffect: FSMeleeSlashChainsaw
+      slashScale: 1.25
+      slashOffset: 0.55
+      slashTravel: 0.05
+      slashGrow: 1.05
   - type: MeleeWeapon
     autoAttack: true
     angle: 90

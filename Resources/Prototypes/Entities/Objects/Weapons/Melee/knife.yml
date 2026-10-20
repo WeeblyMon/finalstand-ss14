@@ -111,6 +111,7 @@
   description: A deadly knife intended for melee confrontations.
   components:
   - type: FSMeleeJuice # FINALSTAND
+    heavyRecovery: 1.1
     light:
       anticipation: 0.03
       hitstop: 0.035
@@ -134,6 +135,39 @@
       slashScale: 0.7
       slashOffset: 0.45
       slashTravel: 0.35
+    heavy:
+      anticipation: 0.02
+      hitstop: 0.03
+      trauma: 0.12
+      knockback: 1
+      flinchDuration: 0.2
+      flinchSpeed: 0.5
+      maxTargets: 2
+      extraStrikes: 2
+      strikeInterval: 0.1
+      strikeDamageFraction: 0.5
+      strikeSound:
+        path: /Audio/Weapons/bladeslice.ogg
+        params:
+          volume: -4
+      strikePitchStep: 0.1
+      hitEffect: FSMeleeHitThrust
+      hitEffectAngle: 45
+      killEffect: FSMeleeKillBlood
+      hitEmitter: FSMeleeSlashSparks
+      killEmitter: FSMeleeBlood
+      killSound:
+        collection: FSMeleeFleshSquish
+      trailColor: "#e8f0ffaa"
+      trailWidth: 0.04
+      trailDuration: 0.06
+      fleshSound:
+        collection: FSMeleeBladeFlesh
+      slashEffect: FSMeleeStabKnife
+      slashScale: 0.4
+      slashOffset: 0.8
+      slashTravel: 0.25
+      slashGrow: 1.05
     comboHits: 3
     comboReadySound:
       path: /Audio/Items/unsheath.ogg

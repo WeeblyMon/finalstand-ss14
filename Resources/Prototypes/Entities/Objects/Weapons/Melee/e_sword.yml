@@ -4,6 +4,7 @@
   abstract: true
   components:
   - type: FSMeleeJuice # FINALSTAND
+    heavyRecovery: 1.2
     light:
       anticipation: 0.04
       hitstop: 0.045
@@ -27,6 +28,38 @@
       slashEffect: FSMeleeSlashWarriorArcTinted
       slashColor: "#7ff0ff"
       slashScale: 0.85
+    heavy:
+      anticipation: 0.03
+      hitstop: 0.05
+      reach: 1.1
+      trauma: 0.3
+      knockback: 6
+      flinchDuration: 0.3
+      flinchSpeed: 0.4
+      dash: 2
+      pierce: 3
+      pierceRange: 2
+      damageMultiplier: 1.2
+      hitStatus: FSMeleeSearSlowdown
+      hitStatusDuration: 1.5
+      hitStatusSpeed: 0.5
+      hitEffect: FSMeleeHitEnergyCross
+      hitEmitter: FSMeleeEnergyHit
+      killEmitter: FSMeleeShockRing
+      killSound:
+        collection: sparks
+      impactSound:
+        collection: sparks
+        params:
+          volume: 2
+      trailColor: "#5ce1ffff"
+      trailWidth: 0.1
+      trailDuration: 0.3
+      slashEffect: FSMeleeStabEnergy
+      slashScale: 0.6
+      slashOffset: 0.3
+      slashTravel: 1.6
+      slashGrow: 1.2
     comboHits: 2
     comboReadySound:
       path: /Audio/Weapons/ebladeon.ogg
