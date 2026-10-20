@@ -1,10 +1,10 @@
+using Content.Server._FinalStand.Actions;
 using Content.Server._FinalStand.WaveHud;
 using Content.Server._FinalStand.Leveling;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Perks;
-using Content.Shared.Actions;
-using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -18,7 +18,7 @@ public sealed partial class FSOfficerSystem : EntitySystem
 {
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
-    [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private FSGrantedActionsSystem _grants = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
@@ -30,16 +30,12 @@ public sealed partial class FSOfficerSystem : EntitySystem
     private static readonly EntProtoId WhistleActionProto = "FSWhistleAction";
     private static readonly SoundSpecifier WhistleSound = new SoundCollectionSpecifier("TrenchWhistle");
 
-    // mob entity → granted action entity
-    private readonly Dictionary<EntityUid, EntityUid> _grantedActions = new();
-
     private TimeSpan _nextActionSync;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<FSWhistleActionEvent>(OnWhistleAction);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     public override void Update(float frameTime)
@@ -63,22 +59,13 @@ public sealed partial class FSOfficerSystem : EntitySystem
         {
             if (!TryComp<MindComponent>(mindId, out var mind) || !mind.CurrentEntity.HasValue) continue;
             var mob = mind.CurrentEntity.Value;
-            if (!TryComp<ActorComponent>(mob, out _)) continue;
+            // A ghost is the mind's current entity too, and mustn't get a whistle that buffs the living.
+            if (!HasComp<ActorComponent>(mob) || !HasComp<MobStateComponent>(mob)) continue;
 
-            var hasOfficer = augs.GetSlottedLevel("Officer") > 0;
-            var hasAction = _grantedActions.TryGetValue(mob, out var existing) && existing.IsValid();
-
-            if (hasOfficer && !hasAction)
-            {
-                var actionEnt = _actions.AddAction(mob, WhistleActionProto);
-                if (actionEnt != null)
-                    _grantedActions[mob] = actionEnt.Value;
-            }
-            else if (!hasOfficer && hasAction)
-            {
-                _actions.RemoveAction(mob, existing);
-                _grantedActions.Remove(mob);
-            }
+            if (augs.GetSlottedLevel("Officer") > 0)
+                _grants.Grant(mob, WhistleActionProto);
+            else
+                _grants.Revoke(mob, WhistleActionProto);
         }
     }
 
@@ -111,10 +98,5 @@ public sealed partial class FSOfficerSystem : EntitySystem
             if (TryComp<ActorComponent>(targetUid, out var actor))
                 _bonusSummary.RecomputeFor(targetUid, actor.PlayerSession);
         }
-    }
-
-    private void OnRoundRestart(RoundRestartCleanupEvent _)
-    {
-        _grantedActions.Clear();
     }
 }

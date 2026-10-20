@@ -1,3 +1,4 @@
+using Content.Server._FinalStand.Actions;
 using Content.Shared._FinalStand.MedicalOps;
 using Content.Shared.Actions;
 using Content.Shared.Actions.Components;
@@ -20,6 +21,7 @@ namespace Content.Server._FinalStand.MedicalOps;
 public sealed partial class FSCasualtyPullSystem : EntitySystem
 {
     [Dependency] private SharedActionsSystem _actions = default!;
+    [Dependency] private FSGrantedActionsSystem _grants = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
@@ -42,8 +44,6 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
 
     private const string DoctorJob = "MedicalDoctor";
 
-    private readonly Dictionary<EntityUid, EntityUid> _granted = new();
-
     public override void Initialize()
     {
         base.Initialize();
@@ -51,7 +51,6 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         SubscribeLocalEvent<FSCasualtyPullActionEvent>(OnPull);
         SubscribeNetworkEvent<FSCasualtyPullRequestEvent>(OnPullRequest);
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawn);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     private void OnSpawn(PlayerSpawnCompleteEvent ev)
@@ -59,12 +58,7 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         if (ev.JobId != DoctorJob)
             return;
 
-        if (_granted.TryGetValue(ev.Mob, out var existing) && existing.IsValid())
-            return;
-
-        if (_actions.AddAction(ev.Mob, PullActionProto) is { } action)
-            _granted[ev.Mob] = action;
-
+        _grants.Grant(ev.Mob, PullActionProto);
         EnsureComp<FSCasualtyPullComponent>(ev.Mob);
     }
 
@@ -74,7 +68,7 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
             return;
 
         Entity<ActionComponent>? action = null;
-        if (_granted.TryGetValue(doctor, out var granted) && TryComp<ActionComponent>(granted, out var actionComp))
+        if (_grants.TryGet(doctor, PullActionProto, out var granted) && TryComp<ActionComponent>(granted, out var actionComp))
             action = (granted, actionComp);
 
         TryPull(doctor, GetEntity(ev.Patient), action);
@@ -220,10 +214,5 @@ public sealed partial class FSCasualtyPullSystem : EntitySystem
         return _map.TryFindGridAt(mapCoords, out var gridUid, out var grid)
                && _map.TryGetTileRef(gridUid, grid, coords, out var tileRef)
                && !_turf.IsSpace(tileRef);
-    }
-
-    private void OnRoundRestart(RoundRestartCleanupEvent ev)
-    {
-        _granted.Clear();
     }
 }
