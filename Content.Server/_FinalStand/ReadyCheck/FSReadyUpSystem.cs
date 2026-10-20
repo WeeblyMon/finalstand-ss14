@@ -26,7 +26,8 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<WaveCombatStartedEvent>(OnCombatStarted);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawned);
+        SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
+        SubscribeLocalEvent<PlayerDetachedEvent>(OnPlayerDetached);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeNetworkEvent<FSReadyUpRequestMessage>(OnReadyUpRequest);
     }
@@ -67,13 +68,23 @@ public sealed partial class FSReadyUpSystem : EntitySystem
         BroadcastState();
     }
 
-    private void OnPlayerSpawned(PlayerSpawnCompleteEvent ev)
+    // Spawning, respawning, reconnecting, ghosting and leaving all change the crew. A reconnected client also
+    // starts with a blank HUD and needs its own ready state again.
+    private void OnPlayerAttached(PlayerAttachedEvent ev) => OnCrewChanged();
+
+    private void OnPlayerDetached(PlayerDetachedEvent ev) => OnCrewChanged();
+
+    private void OnCrewChanged()
     {
         if (!_waveRule.IsPrep())
             return;
 
-        // Everyone else's total just grew.
         BroadcastState();
+
+        // Someone not ready leaving can tip the rest into a majority.
+        var (ready, crew) = Count();
+        if (ready > crew / 2)
+            _waveRule.RequestWaveStart();
     }
 
     private void OnReadyUpRequest(FSReadyUpRequestMessage msg, EntitySessionEventArgs args)
