@@ -69,28 +69,31 @@ public sealed partial class CritSystem : EntitySystem
 
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
-        // A bullet still in flight after its shooter was deleted keeps its base damage, but crits, perks and
-        // upgrade effects all work off the shooter's position and stats.
-        if (comp.Shooter == null || comp.Weapon == null || TerminatingOrDeleted(comp.Shooter.Value))
+        if (comp.Shooter is not { } shooterUid || comp.Weapon is not { } weapon)
             return;
 
-        if (HasComp<FSFriendlyFireComponent>(comp.Shooter.Value) && HasComp<FSFriendlyFireComponent>(args.Target))
+        // A bullet still in flight after its shooter was deleted can't crit and skips the shooter's effects, but
+        // target and weapon effects (armoured deflect, research damage) still apply. With nobody left to ask,
+        // friendly fire goes by the target alone.
+        EntityUid? shooter = TerminatingOrDeleted(shooterUid) ? null : shooterUid;
+        if ((shooter == null || HasComp<FSFriendlyFireComponent>(shooterUid)) && HasComp<FSFriendlyFireComponent>(args.Target))
             return;
 
-        var didCrit = TryRollCrit(comp.Shooter.Value, comp.Weapon.Value, args.Target, out var multiplier);
-        if (didCrit)
+        var didCrit = false;
+        if (shooter is { } s && TryRollCrit(s, weapon, args.Target, out var multiplier))
         {
+            didCrit = true;
             args.Damage *= multiplier;
-            _pendingCrits.Add((comp.Shooter.Value, args.Target));
+            _pendingCrits.Add((s, args.Target));
         }
 
         var hitEffect = new FSProjectileHitEffectEvent(args.Target, args.Damage)
         {
-            Weapon        = comp.Weapon,
-            Shooter       = comp.Shooter,
+            Weapon        = weapon,
+            Shooter       = shooter,
             ProjectileUid = uid,
             WasCrit       = didCrit,
-            State         = CompOrNull<FSWeaponUpgradeStateComponent>(comp.Weapon.Value),
+            State         = CompOrNull<FSWeaponUpgradeStateComponent>(weapon),
         };
         RaiseLocalEvent(ref hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)
