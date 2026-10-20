@@ -37,10 +37,9 @@ public sealed partial class FSStaunchBleedingSystem : EntityEffectSystem<FSFrien
     }
 }
 
+// Halts every bleed on the body.
 public sealed partial class FSStaunchBleeding : EntityEffectBase<FSStaunchBleeding>
 {
-    [DataField]
-    public float Amount = 3f;
 }
 
 public sealed partial class FSApplyArmorPiercingSystem : EntityEffectSystem<FSFriendlyFireComponent, FSApplyArmorPiercing>

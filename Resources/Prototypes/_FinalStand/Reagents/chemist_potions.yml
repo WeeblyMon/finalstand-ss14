@@ -162,7 +162,6 @@
       methods: [ Touch ]
       effects:
       - !type:FSStaunchBleeding
-        amount: 3
 
 - type: reagent
   id: FSEtchant
