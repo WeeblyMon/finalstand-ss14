@@ -23,6 +23,10 @@ public sealed partial class FSPlacementSystem : EntitySystem
         if (args.SenderSession.AttachedEntity is not { } user)
             return;
 
+        // The placement ghost only ever turns between the four sides; anything else is a modified client.
+        if (msg.Direction is not (Direction.North or Direction.East or Direction.South or Direction.West))
+            return;
+
         var item = GetEntity(msg.Item);
         if (!TryComp<FSPlaceableComponent>(item, out var comp) || !_hands.IsHolding(user, item))
             return;
