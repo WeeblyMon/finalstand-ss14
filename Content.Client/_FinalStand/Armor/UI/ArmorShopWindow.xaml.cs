@@ -23,7 +23,8 @@ public sealed partial class ArmorShopWindow : DefaultWindow
     private FSArmorShopState? _state;
     private List<FSArmorTierPrototype> _tiers = new();
     private FSArmorTierPrototype? _equipped;
-    private FSArmorTierPrototype? _selected;
+    // By ID: a prototype reload swaps the instances under an open window.
+    private ProtoId<FSArmorTierPrototype>? _selected;
 
     private const float BarTrackWidth = 168f;
     private const float BarHeight = 12f;
@@ -61,8 +62,8 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
         BuyButton.OnPressed += _ =>
         {
-            if (_selected != null)
-                OnBuyPressed?.Invoke(_selected.ID);
+            if (_selected is { } selected)
+                OnBuyPressed?.Invoke(selected);
         };
     }
 
@@ -73,7 +74,11 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         _equipped = state.Equipped is { } equipped && _protos.TryIndex(equipped, out var tier) ? tier : null;
         CreditsLabel.Text = $"${state.Credits:N0}";
 
-        var toShow = _selected ?? _equipped ?? (_tiers.Count > 0 ? _tiers[0] : null);
+        FSArmorTierPrototype? selected = null;
+        if (_selected is { } selectedId)
+            _protos.TryIndex(selectedId, out selected);
+
+        var toShow = selected ?? _equipped ?? (_tiers.Count > 0 ? _tiers[0] : null);
         if (toShow != null)
             SelectTier(toShow);
         else
@@ -83,7 +88,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
     private Control BuildTierCard(FSArmorTierPrototype tier, int index)
     {
         var isEquipped = tier == _equipped;
-        var isSelected = tier == _selected;
+        var isSelected = _selected?.Id == tier.ID;
         var canAfford = CanAffordTier(tier);
 
         var accent = isEquipped ? FSUiPalette.StatePositive
@@ -155,7 +160,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
     private void SelectTier(FSArmorTierPrototype tier)
     {
-        _selected = tier;
+        _selected = tier.ID;
 
         var index = 0;
         for (var i = 0; i < _tiers.Count; i++)
