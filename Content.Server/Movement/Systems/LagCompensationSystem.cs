@@ -6,6 +6,7 @@ using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Server.Player;
+using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Map;
@@ -23,6 +24,7 @@ public sealed partial class LagCompensationSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IConfigurationManager _cfg = default!; // fs
+    [Dependency] private INetConfigurationManager _netCfg = default!; // FINALSTAND
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -34,6 +36,11 @@ public sealed partial class LagCompensationSystem : EntitySystem
     private bool _enabled;
     private int _maxRewindMs;
     private int _rewindSlackMs; // FINALSTAND
+
+    // FINALSTAND: client-only prediction settings the server can't read, at their defaults. The lag bias is the
+    // Windows one; Linux clients use 0, so it only ever allows them a tick more.
+    private const int ClientPredictTickBias = 1;
+    private const double ClientPredictLagBias = 0.016;
 
     public override void Initialize()
     {
@@ -89,11 +96,27 @@ public sealed partial class LagCompensationSystem : EntitySystem
             return 0;
 
         var rewind = _timing.CurTick.Value - viewTick.Value + 0.5;
-        // FINALSTAND: the view tick is the client's word, so cap it at what its measured latency explains.
-        // Otherwise a low-ping client could always claim the full window and shoot where enemies used to be.
-        var maxMs = Math.Min(_maxRewindMs, session.Channel.Ping + _rewindSlackMs);
-        var max = maxMs / 1000.0 * _timing.TickRate;
+        // FINALSTAND: the view tick is the client's word, so cap it at how far behind this client really views,
+        // plus slack for jitter. Otherwise a low-ping client could always claim the full window and shoot where
+        // enemies used to be.
+        var tickRate = _timing.TickRate;
+        var max = Math.Min(_maxRewindMs / 1000.0 * tickRate, ViewLagTicks(session) + _rewindSlackMs / 1000.0 * tickRate);
         return Math.Clamp(rewind, 0, max);
+    }
+
+    // FINALSTAND: how far an honest client's view tick trails the tick its input is handled on. Mirrors the
+    // client's prediction target: its state buffer, the run-ahead for its round trip, and the tick bias.
+    private double ViewLagTicks(ICommonSession session)
+    {
+        var buffer = 4; // interpolation on, net.buffer_size 2
+        if (session.Channel is { } channel)
+        {
+            buffer = (_netCfg.GetClientCVar(channel, CVars.NetInterp) ? 2 : 1)
+                     + Math.Max(0, _netCfg.GetClientCVar(channel, CVars.NetBufferSize));
+        }
+
+        var runAhead = Math.Ceiling(_timing.TickRate * (session.Ping / 1000.0 + ClientPredictLagBias));
+        return buffer + runAhead + ClientPredictTickBias + 0.5;
     }
 
     public override void Update(float frameTime)

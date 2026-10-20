@@ -10,9 +10,9 @@ public sealed partial class CCVars
     public static readonly CVarDef<int> FSLagCompensationMaxRewindMs =
         CVarDef.Create("fs.lagcomp_max_rewind_ms", 500, CVar.SERVER | CVar.REPLICATED);
 
-    // Rewind allowed on top of a player's measured round trip, for the client's interpolation buffer and jitter.
+    // Rewind allowed past how far a player's view should trail (buffer plus round trip), for jitter.
     public static readonly CVarDef<int> FSLagCompensationRewindSlackMs =
-        CVarDef.Create("fs.lagcomp_rewind_slack_ms", 150, CVar.SERVER);
+        CVarDef.Create("fs.lagcomp_rewind_slack_ms", 100, CVar.SERVER);
 
     public static readonly CVarDef<float> FSLagCompensationMargin =
         CVarDef.Create("fs.lagcomp_margin", 0.1f, CVar.SERVER | CVar.REPLICATED);
