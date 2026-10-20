@@ -1,3 +1,4 @@
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 
 namespace Content.Shared._FinalStand.Armor.Shop;
@@ -9,14 +10,14 @@ public enum FSArmorShopUiKey
 }
 
 [Serializable, NetSerializable]
-public sealed class FSArmorShopBuyMessage(string tierId) : BoundUserInterfaceMessage
+public sealed class FSArmorShopBuyMessage(ProtoId<FSArmorTierPrototype> tier) : BoundUserInterfaceMessage
 {
-    public readonly string TierId = tierId;
+    public readonly ProtoId<FSArmorTierPrototype> Tier = tier;
 }
 
 [Serializable, NetSerializable]
-public sealed class FSArmorShopState(string? equippedTierId, int credits) : BoundUserInterfaceMessage
+public sealed class FSArmorShopState(ProtoId<FSArmorTierPrototype>? equipped, int credits) : BoundUserInterfaceMessage
 {
-    public readonly string? EquippedTierId = equippedTierId;
+    public readonly ProtoId<FSArmorTierPrototype>? Equipped = equipped;
     public readonly int Credits = credits;
 }

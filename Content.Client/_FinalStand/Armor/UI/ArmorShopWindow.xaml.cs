@@ -15,13 +15,15 @@ namespace Content.Client._FinalStand.Armor.UI;
 [GenerateTypedNameReferences]
 public sealed partial class ArmorShopWindow : DefaultWindow
 {
-    public event Action<string>? OnBuyPressed;
+    public event Action<ProtoId<FSArmorTierPrototype>>? OnBuyPressed;
 
     private readonly IPrototypeManager _protos;
     private readonly IComponentFactory _factory;
 
     private FSArmorShopState? _state;
-    private string? _selectedTierId;
+    private List<FSArmorTierPrototype> _tiers = new();
+    private FSArmorTierPrototype? _equipped;
+    private FSArmorTierPrototype? _selected;
 
     private const float BarTrackWidth = 168f;
     private const float BarHeight = 12f;
@@ -59,32 +61,29 @@ public sealed partial class ArmorShopWindow : DefaultWindow
 
         BuyButton.OnPressed += _ =>
         {
-            if (_selectedTierId != null)
-                OnBuyPressed?.Invoke(_selectedTierId);
+            if (_selected != null)
+                OnBuyPressed?.Invoke(_selected.ID);
         };
     }
 
     public void Populate(FSArmorShopState state)
     {
         _state = state;
+        _tiers = FSArmorShopDefs.Tiers(_protos);
+        _equipped = state.Equipped is { } equipped && _protos.TryIndex(equipped, out var tier) ? tier : null;
         CreditsLabel.Text = $"${state.Credits:N0}";
 
-        TierListContainer.DisposeAllChildren();
-        for (var i = 0; i < FSArmorShopDefs.Tiers.Count; i++)
-            TierListContainer.AddChild(BuildTierCard(FSArmorShopDefs.Tiers[i], i));
-
-        var toShow = FSArmorShopDefs.GetTier(_selectedTierId)
-                     ?? FSArmorShopDefs.GetTier(state.EquippedTierId)
-                     ?? (FSArmorShopDefs.Tiers.Count > 0 ? FSArmorShopDefs.Tiers[0] : null);
-
+        var toShow = _selected ?? _equipped ?? (_tiers.Count > 0 ? _tiers[0] : null);
         if (toShow != null)
             SelectTier(toShow);
+        else
+            RefreshTierCards();
     }
 
-    private Control BuildTierCard(FSArmorTierDef tier, int index)
+    private Control BuildTierCard(FSArmorTierPrototype tier, int index)
     {
-        var isEquipped = tier.Id == _state?.EquippedTierId;
-        var isSelected = tier.Id == _selectedTierId;
+        var isEquipped = tier == _equipped;
+        var isSelected = tier == _selected;
         var canAfford = CanAffordTier(tier);
 
         var accent = isEquipped ? FSUiPalette.StatePositive
@@ -130,7 +129,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         };
         text.AddChild(new Label
         {
-            Text = tier.Name,
+            Text = Loc.GetString(tier.Name),
             Modulate = canAfford || isEquipped ? FSUiPalette.TextPrimary : FSUiPalette.TextMuted,
         });
 
@@ -140,7 +139,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         }
         else
         {
-            var net = FSArmorShopDefs.GetNetCost(_state?.EquippedTierId, tier);
+            var net = FSArmorShopDefs.GetNetCost(_equipped, tier);
             text.AddChild(new Label
             {
                 Text = $"${net:N0}",
@@ -154,24 +153,24 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         return button;
     }
 
-    private void SelectTier(FSArmorTierDef tier)
+    private void SelectTier(FSArmorTierPrototype tier)
     {
-        _selectedTierId = tier.Id;
+        _selected = tier;
 
         var index = 0;
-        for (var i = 0; i < FSArmorShopDefs.Tiers.Count; i++)
+        for (var i = 0; i < _tiers.Count; i++)
         {
-            if (FSArmorShopDefs.Tiers[i].Id == tier.Id)
+            if (_tiers[i] == tier)
                 index = i;
         }
 
-        SelectedTierName.Text = tier.Name;
+        SelectedTierName.Text = Loc.GetString(tier.Name);
         SelectedTierRank.Text = Loc.GetString("fs-armor-shop-tier",
             ("rank", index < RankNumerals.Length ? RankNumerals[index] : (index + 1).ToString()));
 
         PreviewContainer.DisposeAllChildren();
         var preview = new EntityPrototypeView { Scale = new Vector2(2f, 2f) };
-        preview.SetPrototype(tier.SpawnId);
+        preview.SetPrototype(tier.Spawn);
         PreviewContainer.AddChild(preview);
 
         BuildStats(tier);
@@ -179,7 +178,7 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         RefreshTierCards();
     }
 
-    private void BuildStats(FSArmorTierDef tier)
+    private void BuildStats(FSArmorTierPrototype tier)
     {
         StatsContainer.DisposeAllChildren();
 
@@ -225,13 +224,13 @@ public sealed partial class ArmorShopWindow : DefaultWindow
             stats.SpeedMod >= 0f ? FSUiPalette.StatePositive : FSUiPalette.StateNegative));
     }
 
-    private void BuildCost(FSArmorTierDef tier)
+    private void BuildCost(FSArmorTierPrototype tier)
     {
         CostContainer.DisposeAllChildren();
 
-        var refund = FSArmorShopDefs.GetRefund(_state?.EquippedTierId);
-        var net = FSArmorShopDefs.GetNetCost(_state?.EquippedTierId, tier);
-        var isEquipped = tier.Id == _state?.EquippedTierId;
+        var refund = FSArmorShopDefs.GetRefund(_equipped);
+        var net = FSArmorShopDefs.GetNetCost(_equipped, tier);
+        var isEquipped = tier == _equipped;
         var canAfford = CanAffordTier(tier);
 
         CostContainer.AddChild(CostRow(Loc.GetString("fs-armor-shop-price"), $"${tier.Price:N0}", FSUiPalette.TextMuted));
@@ -263,8 +262,8 @@ public sealed partial class ArmorShopWindow : DefaultWindow
     private void RefreshTierCards()
     {
         TierListContainer.DisposeAllChildren();
-        for (var i = 0; i < FSArmorShopDefs.Tiers.Count; i++)
-            TierListContainer.AddChild(BuildTierCard(FSArmorShopDefs.Tiers[i], i));
+        for (var i = 0; i < _tiers.Count; i++)
+            TierListContainer.AddChild(BuildTierCard(_tiers[i], i));
     }
 
     private static Label SectionLabel(string text) => new()
@@ -331,8 +330,8 @@ public sealed partial class ArmorShopWindow : DefaultWindow
         return row;
     }
 
-    private bool CanAffordTier(FSArmorTierDef tier)
+    private bool CanAffordTier(FSArmorTierPrototype tier)
     {
-        return _state != null && _state.Credits >= FSArmorShopDefs.GetNetCost(_state.EquippedTierId, tier);
+        return _state != null && _state.Credits >= FSArmorShopDefs.GetNetCost(_equipped, tier);
     }
 }

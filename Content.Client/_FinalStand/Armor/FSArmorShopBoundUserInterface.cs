@@ -1,6 +1,7 @@
 using Content.Client._FinalStand.Armor.UI;
 using Content.Shared._FinalStand.Armor.Shop;
 using Robust.Client.UserInterface;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Armor;
 
@@ -33,9 +34,9 @@ public sealed class FSArmorShopBoundUserInterface : BoundUserInterface
         _window?.Populate(armorState);
     }
 
-    private void OnBuyPressed(string tierId)
+    private void OnBuyPressed(ProtoId<FSArmorTierPrototype> tier)
     {
-        SendPredictedMessage(new FSArmorShopBuyMessage(tierId));
+        SendPredictedMessage(new FSArmorShopBuyMessage(tier));
     }
 
     protected override void Dispose(bool disposing)

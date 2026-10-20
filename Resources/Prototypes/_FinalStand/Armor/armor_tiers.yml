@@ -1,0 +1,37 @@
+# Hardsuits sold at the armor shop. Protection numbers come from the spawned item.
+
+- type: fsArmorTier
+  id: FSSecurityHardsuit
+  name: fs-armor-tier-security-hardsuit
+  price: 20000
+  spawn: FSArmorTierSecurityHardsuit
+
+- type: fsArmorTier
+  id: FSERTSecurityHardsuit
+  name: fs-armor-tier-ert-security-hardsuit
+  price: 30000
+  spawn: FSArmorTierERTSecurityHardsuit
+
+- type: fsArmorTier
+  id: FSNukieCommanderHardsuit
+  name: fs-armor-tier-nukie-commander-hardsuit
+  price: 40000
+  spawn: FSArmorTierNukieCommanderHardsuit
+
+- type: fsArmorTier
+  id: FSEliteHardsuit
+  name: fs-armor-tier-elite-hardsuit
+  price: 50000
+  spawn: FSArmorTierEliteHardsuit
+
+- type: fsArmorTier
+  id: FSCybersunJuggernaut
+  name: fs-armor-tier-cybersun-juggernaut
+  price: 70000
+  spawn: FSArmorTierCybersunJuggernaut
+
+- type: fsArmorTier
+  id: FSDeathSquadHardsuit
+  name: fs-armor-tier-death-squad-hardsuit
+  price: 100000
+  spawn: FSArmorTierDeathSquadHardsuit

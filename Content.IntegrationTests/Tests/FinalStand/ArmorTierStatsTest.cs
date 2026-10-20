@@ -19,22 +19,23 @@ public sealed class ArmorTierStatsTest : GameTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(FSArmorShopDefs.Tiers, Is.Not.Empty);
+            var tiers = FSArmorShopDefs.Tiers(prototypes);
+            Assert.That(tiers, Is.Not.Empty);
 
-            foreach (var tier in FSArmorShopDefs.Tiers)
+            foreach (var tier in tiers)
             {
-                Assert.That(prototypes.HasIndex<EntityPrototype>(tier.SpawnId), Is.True,
-                    $"{tier.Id} spawns '{tier.SpawnId}', which is not an entity prototype");
+                Assert.That(prototypes.HasIndex(tier.Spawn), Is.True,
+                    $"{tier.ID} spawns '{tier.Spawn}', which is not an entity prototype");
 
                 var stats = FSArmorShopDefs.GetStats(tier, prototypes, factory);
 
                 Assert.That(stats.Resistances, Is.Not.Empty,
-                    $"{tier.Id} shows no resistances - its hardsuit has no Armor component");
+                    $"{tier.ID} shows no resistances - its hardsuit has no Armor component");
 
                 foreach (var (damageType, reduction) in stats.Resistances)
                 {
                     Assert.That(reduction, Is.GreaterThan(0f).And.LessThanOrEqualTo(1f),
-                        $"{tier.Id} advertises a {reduction * 100:0}% {damageType} reduction");
+                        $"{tier.ID} advertises a {reduction * 100:0}% {damageType} reduction");
                 }
             }
         });
@@ -44,16 +45,18 @@ public sealed class ArmorTierStatsTest : GameTest
     public async Task NetCostRefundsHalfOfTheCurrentTier()
     {
         var server = Pair.Server;
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
 
         await server.WaitAssertion(() =>
         {
-            var cheap = FSArmorShopDefs.Tiers[0];
-            var dear = FSArmorShopDefs.Tiers[^1];
+            var tiers = FSArmorShopDefs.Tiers(prototypes);
+            var cheap = tiers[0];
+            var dear = tiers[^1];
 
             Assert.That(FSArmorShopDefs.GetNetCost(null, dear), Is.EqualTo(dear.Price),
                 "no current tier should mean no refund");
 
-            Assert.That(FSArmorShopDefs.GetNetCost(cheap.Id, dear),
+            Assert.That(FSArmorShopDefs.GetNetCost(cheap, dear),
                 Is.EqualTo(dear.Price - cheap.Price / 2),
                 "upgrading should refund half of what is already owned");
         });

@@ -47,13 +47,14 @@ public sealed class ShopTextTest : GameTest
     {
         var server = Pair.Server;
         var loc = server.ResolveDependency<ILocalizationManager>();
+        var protos = server.ResolveDependency<IPrototypeManager>();
 
         await server.WaitAssertion(() =>
         {
             Assert.Multiple(() =>
             {
-                foreach (var tier in FSArmorShopDefs.Tiers)
-                    Assert.That(loc.HasString(tier.NameKey), $"missing {tier.NameKey}");
+                foreach (var tier in FSArmorShopDefs.Tiers(protos))
+                    Assert.That(loc.HasString(tier.Name), $"{tier.ID}: missing {tier.Name}");
             });
         });
     }
