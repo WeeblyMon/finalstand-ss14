@@ -7,7 +7,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSRiotShield
     price: 2500
-    category: Riot Shield
+    category: fs-weapon-shop-category-riot-shield
     statDamage: 30
     statFireRate: 0
     statAccuracy: 0

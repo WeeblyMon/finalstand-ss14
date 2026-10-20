@@ -379,14 +379,19 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
         if (sorted.Count == 0)
             return;
 
-        args.AddLine("══ MEDICAL ═══════════════════════════════════");
+        args.AddLine(Loc.GetString("fs-medical-roundend-header"));
         foreach (var (mindId, stats) in sorted)
         {
             if (!TryComp<MindComponent>(mindId, out var mind)) continue;
-            var name = mind.CharacterName ?? "Unknown";
-            args.AddLine($"  {name,-16} {stats.HealingPoints,7:N0} HP   {stats.Revives} revives  {stats.Stabilises} stabilised  {stats.PatientsSaved} saved");
+            var name = mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name");
+            args.AddLine(Loc.GetString("fs-medical-roundend-line",
+                ("name", name.PadRight(16)),
+                ("hp", stats.HealingPoints.ToString("N0").PadLeft(7)),
+                ("revives", stats.Revives),
+                ("stabilised", stats.Stabilises),
+                ("saved", stats.PatientsSaved)));
         }
-        args.AddLine($"  Department funds earned: ${_medFund.GetLifetimeEarned():N0}");
-        args.AddLine("══════════════════════════════════════════════");
+        args.AddLine(Loc.GetString("fs-medical-roundend-funds", ("funds", _medFund.GetLifetimeEarned().ToString("N0"))));
+        args.AddLine(Loc.GetString("fs-medical-roundend-footer"));
     }
 }

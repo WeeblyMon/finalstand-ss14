@@ -31,7 +31,7 @@
       spawnChance: 0.03
     prepDuration: 420
     maxCombatDuration: 1800
-    factionDisplay: "Undead detected"
+    factionDisplay: fs-ccc-faction-undead
     waveStartSound: !type:SoundPathSpecifier
       path: /Audio/_FinalStand/WaveEvents/wave_start.ogg
     waveEndSound: !type:SoundPathSpecifier

@@ -27,3 +27,9 @@ fs-armor-tier-nukie-commander-hardsuit = Nukie Commander Hardsuit
 fs-armor-tier-elite-hardsuit = Elite Hardsuit
 fs-armor-tier-cybersun-juggernaut = Cybersun Juggernaut Hardsuit
 fs-armor-tier-death-squad-hardsuit = Death Squad Hardsuit
+
+fs-armor-shop-window-title = Armor Vendor
+fs-armor-shop-window-header = ARMOR VENDOR
+fs-armor-shop-window-credits = CREDITS{"  "}
+fs-armor-shop-window-select = SELECT ARMOR
+fs-armor-shop-window-buy = BUY

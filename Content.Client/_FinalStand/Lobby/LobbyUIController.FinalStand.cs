@@ -96,9 +96,12 @@ public sealed partial class LobbyUIController
         HookLobbyButtons();
         if (PreviewPanel == null) return;
 
-        var levelText = _fsPrestige > 0 ? $"{_fsPrestige}-{_fsLevel}" : $"LVL {_fsLevel}";
+        var levelText = _fsPrestige > 0
+            ? Loc.GetString("fs-lobby-level-prestige", ("prestige", _fsPrestige), ("level", _fsLevel))
+            : Loc.GetString("fs-lobby-level", ("level", _fsLevel));
         PreviewPanel.SetLevelText(levelText);
-        PreviewPanel.SetXpText($"{_fsExperience:N0} / {_fsXpToNext:N0} XP");
+        PreviewPanel.SetXpText(Loc.GetString("fs-lobby-xp",
+            ("xp", _fsExperience.ToString("N0")), ("next", _fsXpToNext.ToString("N0"))));
         PreviewPanel.SetPrestigeButtonVisible(_fsLevel >= 50);
     }
 }

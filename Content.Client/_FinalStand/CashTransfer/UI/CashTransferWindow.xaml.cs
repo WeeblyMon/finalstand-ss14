@@ -54,8 +54,8 @@ public sealed partial class CashTransferWindow : DefaultWindow
 
     public void UpdateState(FSCashTransferBuiState state)
     {
-        ToLabel.Text = $"To: {state.TargetName}";
-        BalanceLabel.Text = $"Balance: {state.SenderBalance} credits";
+        ToLabel.Text = Loc.GetString("fs-cash-transfer-window-to", ("name", state.TargetName));
+        BalanceLabel.Text = Loc.GetString("fs-cash-transfer-window-balance", ("balance", state.SenderBalance));
         ConfirmButton.Disabled = false;
     }
 }

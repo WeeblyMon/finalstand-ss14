@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: SurvivalKnife
     price: 0
-    category: Melee Knife
+    category: fs-weapon-shop-category-melee-knife
     statDamage: 15
     statFireRate: 60
     statAccuracy: 0

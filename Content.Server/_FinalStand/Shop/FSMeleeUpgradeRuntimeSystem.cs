@@ -82,12 +82,12 @@ public sealed partial class FSMeleeUpgradeRuntimeSystem : EntitySystem
             if (state.ConcussionClubStunMs > 0 && heavyAttack)
             {
                 if (_fsStun.TryForceStun(target, TimeSpan.FromMilliseconds(state.ConcussionClubStunMs)))
-                    _popup.PopupEntity("Stunned!", target, PopupType.SmallCaution);
+                    _popup.PopupEntity(Loc.GetString("fs-melee-stunned"), target, PopupType.SmallCaution);
             }
             if (state.StunOnHitMs > 0)
             {
                 if (_fsStun.TryForceStun(target, TimeSpan.FromMilliseconds(state.StunOnHitMs)))
-                    _popup.PopupEntity("Stunned!", target, PopupType.SmallCaution);
+                    _popup.PopupEntity(Loc.GetString("fs-melee-stunned"), target, PopupType.SmallCaution);
             }
 
             if (state.CritVsStunned && HasComp<StunnedComponent>(target))

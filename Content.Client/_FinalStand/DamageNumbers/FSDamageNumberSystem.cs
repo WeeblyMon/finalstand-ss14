@@ -111,6 +111,6 @@ public sealed partial class FSDamageNumberSystem : EntitySystem
         Spawn(ev.Target, ev.Text, 0f, 0f, lifetime: 1.6f, reveal: false, color: ev.Color);
 
     private void OnLevelUpNumber(FSLevelUpNumberEvent ev) =>
-        Spawn(ev.Target, $"LEVEL UP +{ev.ApGained}PP", 0f, 0f, isLevelUp: true, levelUpAp: ev.ApGained,
-            lifetime: 2.0f, reveal: false);
+        Spawn(ev.Target, Loc.GetString("fs-level-up-floater", ("points", ev.ApGained)), 0f, 0f, isLevelUp: true,
+            levelUpAp: ev.ApGained, lifetime: 2.0f, reveal: false);
 }

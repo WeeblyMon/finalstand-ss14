@@ -44,6 +44,9 @@ public abstract partial class SharedFSUpgradeSystem : EntitySystem
 
     public string BlockText(FSUpgradeBlock block, FSUpgradePrototype upgrade)
     {
+        if (block == FSUpgradeBlock.None)
+            return string.Empty;
+
         var needed = upgrade.Requires is { } id ? Loc.GetString(Proto.Index(id).Name) : string.Empty;
         return Loc.GetString("fs-upgrade-blocked-" + block.ToString().ToLowerInvariant(), ("name", needed));
     }

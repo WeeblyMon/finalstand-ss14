@@ -72,9 +72,28 @@ fs-hud-bonus-row-speed = Speed
 
 fs-hud-triage = TRIAGE
 fs-hud-no-casualties = NO CASUALTIES
+fs-hud-triage-range = { $range }m
+fs-hud-pill-bleeding = BLEEDING
+fs-hud-pill-broken-bones = { $count ->
+    [one] BROKEN BONE
+   *[other] { $count } BROKEN BONES
+}
 fs-hud-health = HEALTH
 fs-hud-no-weapon = no weapon
 fs-hud-ammo-type-hint = [{ $key }] hold - ammo type
+fs-hud-mags-reserve = { $count ->
+    [one] 1 mag in reserve
+   *[other] { $count } mags in reserve
+}
+fs-hud-tool-mode = { $mode } - [{ $key }] to switch
+fs-hud-item-charge = { $percent }% charge
+fs-hud-item-volume = { $volume }/{ $max }u
+fs-hud-item-stack = { $count } held
+fs-hud-item-charges = { $charges }/{ $max } charges
+fs-hud-item-storage = { $count ->
+    [one] 1 item
+   *[other] { $count } items
+}
 fs-hud-ubercharge = ÜBERCHARGE
 fs-hud-uber-ready = READY
 fs-hud-uber-active = ÜBER ACTIVE

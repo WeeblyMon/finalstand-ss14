@@ -218,7 +218,7 @@ public sealed partial class WeaponShopWindow : FancyWindow
         var display = carried ?? shopEntity;
         var meta = entMan.GetComponent<MetaDataComponent>(display);
         WeaponNameLabel.Text = Capitalize(meta.EntityName);
-        PlateCategory.Text = comp.Category.ToUpperInvariant();
+        PlateCategory.Text = comp.Category is { } category ? Loc.GetString(category).ToUpperInvariant() : string.Empty;
         DescLabel.SetMessage(FormattedMessage.FromMarkupPermissive(
             $"[color={DescText.ToHex()}]{FormattedMessage.EscapeText(meta.EntityDescription)}[/color]"));
         WeaponSprite.SetEntity(display);

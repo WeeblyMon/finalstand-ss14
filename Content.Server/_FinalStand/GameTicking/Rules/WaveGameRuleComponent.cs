@@ -77,7 +77,7 @@ public sealed partial class WaveGameRuleComponent : Component
     public List<SpecialEnemyConfig> SpecialEnemyPool = new();
 
     [DataField]
-    public string FactionDisplay = "Unknown hostiles detected";
+    public LocId FactionDisplay = "fs-ccc-faction-unknown";
 
     [DataField]
     public SoundSpecifier? WaveStartSound = new SoundPathSpecifier("/Audio/_FinalStand/WaveEvents/wave_start.ogg");

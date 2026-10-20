@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponLaserCarbine
     price: 45000
-    category: Self-Recharging Full-Auto Laser
+    category: fs-weapon-shop-category-self-recharging-full-auto-laser
     statDamage: 80
     statFireRate: 70
     statAccuracy: 65

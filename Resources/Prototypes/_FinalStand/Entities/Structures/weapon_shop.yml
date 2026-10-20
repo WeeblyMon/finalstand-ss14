@@ -41,7 +41,7 @@
     price: 500
     starterAmmoProtoId: MagazinePistolHighCapacity
     starterAmmoCount: 2
-    category: 9mm Semi/Full-Auto Pistol
+    category: fs-weapon-shop-category-9mm-semi-full-auto-pistol
     statDamage: 35
     statFireRate: 80
     statAccuracy: 55
@@ -91,7 +91,7 @@
     price: 500
     starterAmmoProtoId: MagazineBoxMagnum
     starterAmmoCount: 1
-    category: .45 Magnum Revolver
+    category: fs-weapon-shop-category-45-magnum-revolver
     statDamage: 70
     statFireRate: 55
     statAccuracy: 75
@@ -156,7 +156,7 @@
     price: 500
     starterAmmoProtoId: MagazinePistol
     starterAmmoCount: 2
-    category: .35 Semi-Auto Pistol
+    category: fs-weapon-shop-category-35-semi-auto-pistol
     statDamage: 40
     statFireRate: 45
     statAccuracy: 65
@@ -213,7 +213,7 @@
     price: 9000
     starterAmmoProtoId: FSMagazineMagnumN1984
     starterAmmoCount: 2
-    category: .45 Magnum Hand Cannon
+    category: fs-weapon-shop-category-45-magnum-hand-cannon
     statDamage: 75
     statFireRate: 45
     statAccuracy: 78
@@ -290,7 +290,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponAdvancedLaser
     price: 18000
-    category: Self-Recharging Energy Pistol
+    category: fs-weapon-shop-category-self-recharging-energy-pistol
     statDamage: 45
     statFireRate: 65
     statAccuracy: 75
@@ -359,7 +359,7 @@
   - type: FSShopWeapon
     weaponProtoId: WeaponEnergyMagnum
     price: 30000
-    category: High-Yield Energy Pistol
+    category: fs-weapon-shop-category-high-yield-energy-pistol
     statDamage: 85
     statFireRate: 35
     statAccuracy: 65
@@ -432,7 +432,7 @@
     price: 5000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto SMG
+    category: fs-weapon-shop-category-35-auto-smg
     statDamage: 35
     statFireRate: 75
     statAccuracy: 55
@@ -489,7 +489,7 @@
     price: 9000
     starterAmmoProtoId: FSMagazinePistolSMGTopMounted
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 45
     statFireRate: 60
     statAccuracy: 70
@@ -553,7 +553,7 @@
     price: 14000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 55
     statFireRate: 40
     statAccuracy: 60
@@ -610,7 +610,7 @@
     price: 20000
     starterAmmoProtoId: FSMagazinePistolSMG
     starterAmmoCount: 2
-    category: .35 Auto Burst SMG
+    category: fs-weapon-shop-category-35-auto-burst-smg
     statDamage: 55
     statFireRate: 65
     statAccuracy: 65

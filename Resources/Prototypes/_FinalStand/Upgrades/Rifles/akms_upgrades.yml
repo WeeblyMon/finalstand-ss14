@@ -12,7 +12,7 @@
     price: 30000
     starterAmmoProtoId: FSMagazineLightRifle
     starterAmmoCount: 2
-    category: .30 Full-Auto Rifle
+    category: fs-weapon-shop-category-30-full-auto-rifle
     statDamage: 65
     statFireRate: 65
     statAccuracy: 50

@@ -22,6 +22,8 @@ public sealed partial class FSPerkShopIndicatorOverlay : Overlay
     private static readonly Color Fg    = new(0.55f, 1f, 0.55f, 1f);
     private static readonly Color Black = new(0f, 0f, 0f, 0.9f);
 
+    private readonly string _label = Loc.GetString("fs-world-label-perks");
+
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     public FSPerkShopIndicatorOverlay()
@@ -51,7 +53,7 @@ public sealed partial class FSPerkShopIndicatorOverlay : Overlay
             var worldPos  = _xformSys.GetWorldPosition(xform);
             var screenPos = Vector2.Transform(worldPos, matrix);
 
-            const string label = "PERKS";
+            var label = _label;
             const string arrow = "▼";
             const float  o     = 1f;
 

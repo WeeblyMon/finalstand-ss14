@@ -9,7 +9,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponChainsaw
     price: 15000
-    category: Melee Power
+    category: fs-weapon-shop-category-melee-power
     statDamage: 70
     statFireRate: 70
     statAccuracy: 0

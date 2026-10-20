@@ -9,7 +9,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSGrenadePackFrag
     price: 5000
-    category: Grenades
+    category: fs-weapon-shop-category-grenades
     statDamage: 70
     statFireRate: 30
     statAccuracy: 60
@@ -65,7 +65,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSGrenadePackIncendiary
     price: 6000
-    category: Grenades
+    category: fs-weapon-shop-category-grenades
     statDamage: 60
     statFireRate: 20
     statAccuracy: 50
@@ -120,7 +120,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSGrenadePackFlash
     price: 6500
-    category: Grenades
+    category: fs-weapon-shop-category-grenades
     statDamage: 0
     statFireRate: 30
     statAccuracy: 80
@@ -175,7 +175,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSGrenadePackPipe
     price: 10000
-    category: Grenades
+    category: fs-weapon-shop-category-grenades
     statDamage: 40
     statFireRate: 10
     statAccuracy: 50

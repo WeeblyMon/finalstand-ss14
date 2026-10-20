@@ -67,22 +67,22 @@ public sealed partial class FSPerkTimedBuffNotifySystem : EntitySystem
         var buffs = new List<FSPerkTimedBuff>();
 
         if (TryComp<FSCombatMedicBuffComponent>(mindId, out var medic) && now < medic.EndTime)
-            buffs.Add(new FSPerkTimedBuff("CombatMedic",
-                $"Combat Medic: +{medic.Level * FSPerkBonusConstants.CombatMedicPerLevel * 100f:0.#}% damage", medic.EndTime));
+            buffs.Add(new FSPerkTimedBuff("CombatMedic", "fs-perk-combat-medic-buff",
+                medic.Level * FSPerkBonusConstants.CombatMedicPerLevel * 100f, medic.EndTime));
 
         if (TryComp<FSBloodloadComponent>(mindId, out var bloodload) && now < bloodload.EndTime)
-            buffs.Add(new FSPerkTimedBuff("Bloodload",
-                $"Bloodload: +{bloodload.Level * FSPerkBonusConstants.BloodloadPerLevel * 100f:0.#}% reload speed", bloodload.EndTime));
+            buffs.Add(new FSPerkTimedBuff("Bloodload", "fs-perk-bloodload-buff",
+                bloodload.Level * FSPerkBonusConstants.BloodloadPerLevel * 100f, bloodload.EndTime));
 
         if (TryComp<FSOfficerBuffComponent>(mindId, out var officer) && now < officer.EndTime)
-            buffs.Add(new FSPerkTimedBuff("Officer",
-                $"Officer: +{officer.Level * FSPerkBonusConstants.OfficerBuffPerLevel * 100f:0.#}% damage", officer.EndTime));
+            buffs.Add(new FSPerkTimedBuff("Officer", "fs-perk-officer-buff",
+                officer.Level * FSPerkBonusConstants.OfficerBuffPerLevel * 100f, officer.EndTime));
 
         if (mind.CurrentEntity is { } body
             && TryComp<FSUndyingComponent>(body, out var undying)
             && undying.EndTime is { } death
             && now < death)
-            buffs.Add(new FSPerkTimedBuff("Undying", "Undying: unlimited ammo, then you die", death));
+            buffs.Add(new FSPerkTimedBuff("Undying", "fs-perk-undying-buff", 0f, death));
 
         return buffs;
     }

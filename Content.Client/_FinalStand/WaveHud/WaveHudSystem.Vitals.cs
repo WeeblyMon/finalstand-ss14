@@ -16,6 +16,14 @@ public sealed partial class WaveHudSystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private DamageableSystem _damageable = default!;
 
+    private string? _bleedingText;
+    private FSHudText<int> _brokenBonesText = default!;
+
+    private void InitializeVitalsText()
+    {
+        _brokenBonesText = new(count => Loc.GetString("fs-hud-pill-broken-bones", ("count", count)));
+    }
+
     private void UpdateVitals(WaveHudOverlay overlay)
     {
         overlay.HealthRatio = null;
@@ -65,12 +73,12 @@ public sealed partial class WaveHudSystem
     private void UpdateStatusPills(EntityUid player, WaveHudOverlay overlay)
     {
         if (TryComp<BloodstreamComponent>(player, out var blood) && blood.BleedAmount > 0f)
-            overlay.StatusPills.Add(("BLEEDING", true));
+            overlay.StatusPills.Add((_bleedingText ??= Loc.GetString("fs-hud-pill-bleeding"), true));
 
         var broken = 0;
         CountBrokenBones(player, ref broken, 0);
         if (broken > 0)
-            overlay.StatusPills.Add((broken == 1 ? "BROKEN BONE" : $"{broken} BROKEN BONES", true));
+            overlay.StatusPills.Add((_brokenBonesText.Get(broken), true));
     }
 
     private void CountBrokenBones(EntityUid root, ref int broken, int depth)

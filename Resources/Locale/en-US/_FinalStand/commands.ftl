@@ -42,6 +42,9 @@ cmd-wave-rule-not-active = No wave rule is running.
 cmd-startfinalstand-desc = Start a Final Stand round on FinalStandMap1.
 cmd-startfinalstand-help = Usage: startfinalstand
     Loads the FinalStand preset and map, then starts the round.
+cmd-startfinalstand-no-preset = { $preset } preset not found. Is the prototype loaded?
+cmd-startfinalstand-no-map = { $map } not found. Is the prototype loaded?
+cmd-startfinalstand-starting = Final Stand round starting on { $map }.
 
 cmd-fsnetlag-desc = Shows how far behind the server your view of other entities is.
 cmd-fsnetlag-help = Usage: fsnetlag

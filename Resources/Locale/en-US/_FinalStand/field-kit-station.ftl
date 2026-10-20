@@ -120,3 +120,25 @@ fs-field-kit-station-next-stop-no-jug = Put a jug in the station. A large jug ho
 fs-field-kit-station-next-stop-empty = Brew something. A 200u batch fills one syringe magazine.
 fs-field-kit-station-next-stop-full = Load a magazine or fill splash flasks under Package.
 fs-field-kit-station-next-stop-split = Split it into { $flasks } splash flasks under Package, or brew more to fill a magazine.
+
+fs-field-kit-station-title = Field Kit Station
+fs-field-kit-station-satchel = SATCHEL
+fs-field-kit-station-satchel-hint = harvested tissue
+fs-field-kit-station-tank = TISSUE TANK
+fs-field-kit-station-tank-hint = Shared by every chemist.
+fs-field-kit-station-batch-size = BATCH SIZE
+fs-field-kit-station-search-placeholder = Search reagents
+fs-field-kit-station-dispense = DISPENSE
+fs-field-kit-station-from-jug = FROM THE JUG
+fs-field-kit-station-label = LABEL
+fs-field-kit-station-label-placeholder = Bottles and pills
+fs-field-kit-station-jug = JUG
+fs-field-kit-station-empty = EMPTY
+
+## Syringe filler window
+fs-syringe-filler-window-title = Syringe Filler
+fs-syringe-filler-window-source = SOURCE
+fs-syringe-filler-window-eject-source = Eject container
+fs-syringe-filler-window-magazine = MAGAZINE
+fs-syringe-filler-window-eject-magazine = Eject magazine
+fs-syringe-filler-window-fill = Fill

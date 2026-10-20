@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponPulseRifle
     price: 65000
-    category: Self-Recharging Full-Auto Pulse Rifle
+    category: fs-weapon-shop-category-self-recharging-full-auto-pulse-rifle
     statDamage: 75
     statFireRate: 35
     statAccuracy: 100

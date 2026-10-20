@@ -19,3 +19,10 @@ fs-bag-shop-fs-construction-bag-of-holding-desc = Twice the reach, far more room
 
 fs-bag-shop-clothing-backpack-holding = Bluespace Bag
 fs-bag-shop-clothing-backpack-holding-desc = A backpack with vastly more room than it should have.
+
+## Bag shop window
+
+fs-bag-shop-window-title = Bag Vendor
+fs-bag-shop-window-header = BAG VENDOR
+fs-bag-shop-window-credits = CREDITS{"  "}
+fs-bag-shop-window-stock = STOCK

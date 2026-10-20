@@ -68,9 +68,10 @@ public sealed partial class LobbyCharacterPreviewPanel : Control
         Summary.Text = value;
     }
 
-    public void SetPerkPointsText(int PerkPoints)
+    // FINALSTAND: perk points
+    public void SetPerkPointsText(int perkPoints)
     {
-        PerkPointsLabel.Text = $"Perk Points: {PerkPoints:N0}";
+        PerkPointsLabel.Text = Loc.GetString("fs-lobby-perk-points", ("points", perkPoints.ToString("N0")));
     }
 
     // FINALSTAND: leveling display

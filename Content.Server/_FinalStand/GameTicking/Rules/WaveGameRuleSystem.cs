@@ -500,7 +500,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         int TotalEnemies,
         string SpawnerDirections,
         bool IsBossWave,
-        string FactionDisplay,
+        LocId FactionDisplay,
         List<string> NextWaveEnemyTypes);
 
     public bool TryGetActiveState(out CCCStateData data)

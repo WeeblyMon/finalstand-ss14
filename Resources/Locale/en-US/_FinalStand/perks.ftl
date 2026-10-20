@@ -69,6 +69,16 @@ fs-perk-shop-loadout-save = SAVE
 fs-perk-shop-loadout-save-empty = Your build is empty — nothing to save
 fs-perk-shop-loadout-overwrite = Overwrite with your current build
 fs-perk-shop-loadout-save-tooltip = Save your current build here
+fs-perk-shop-title = Perk Shop
+fs-perk-shop-equipped = EQUIPPED
+fs-perk-shop-pp-unit = PP
+fs-perk-shop-filter-all = ALL
+fs-perk-shop-search = Search perks
+fs-perk-shop-loadouts = LOADOUTS
+fs-perk-shop-respec = RESPEC…
+fs-perk-shop-prestige-button = ✦  PRESTIGE  ✦
+fs-perk-shop-prestige-history = PRESTIGE HISTORY
+fs-perk-shop-prestige-history-empty = No prestiges yet.
 fs-perk-undying-triggered = Undying!
 
 ## Perk definitions (FSPerkDef)
@@ -189,6 +199,7 @@ fs-perk-deep-impact-level-4 = +4 Pierce
 fs-perk-officer-name = Officer
 fs-perk-officer-desc = Using a whistle near allies increases their damage for 8 seconds.
 fs-perk-officer-level = +{ $value }% Ally Damage
+fs-perk-officer-buff = Officer: +{ $value }% damage
 
 fs-perk-harvester-tuning-name = Harvester Tuning
 fs-perk-harvester-tuning-desc = Increases research points gained per Harvester hit.
@@ -200,6 +211,7 @@ fs-perk-harvester-tuning-level-4 = +4 RP/Hit
 fs-perk-combat-medic-name = Combat Medic
 fs-perk-combat-medic-desc = Healing an ally grants you both increased damage for 15 seconds.
 fs-perk-combat-medic-level = +{ $value }% Damage
+fs-perk-combat-medic-buff = Combat Medic: +{ $value }% damage
 
 fs-perk-ravage-name = Ravage
 fs-perk-ravage-desc = Increases critical hit chance and attack speed with melee weapons.
@@ -224,6 +236,7 @@ fs-perk-berserker-level = Up to +{ $value }% Damage
 fs-perk-undying-name = Undying
 fs-perk-undying-desc = Going down lets you keep fighting with unlimited ammo, then you die.
 fs-perk-undying-level = { $value }s Duration
+fs-perk-undying-buff = Undying: unlimited ammo, then you die
 
 fs-perk-man-on-fire-name = The Man On Fire
 fs-perk-man-on-fire-desc = Reduces fire damage taken. At max level, burning slowly heals you.
@@ -240,6 +253,7 @@ fs-perk-shadow-rounds-level = { $value }% Chance
 fs-perk-bloodload-name = Bloodload
 fs-perk-bloodload-desc = Melee kills increase your reload speed for 12 seconds.
 fs-perk-bloodload-level = +{ $value }% Reload Speed
+fs-perk-bloodload-buff = Bloodload: +{ $value }% reload speed
 
 fs-perk-speedload-name = Speedload
 fs-perk-speedload-desc = Increases your reload speed.

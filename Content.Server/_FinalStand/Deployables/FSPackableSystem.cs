@@ -63,7 +63,7 @@ public sealed partial class FSPackableSystem : EntitySystem
     {
         if (ent.Comp.MedicalOnly && !_medical.IsMedical(user))
         {
-            _popup.PopupEntity(Loc.GetString("fs-medical-only-use"), user, user);
+            _popup.PopupEntity(Loc.GetString("fs-medical-only"), user, user);
             return false;
         }
 

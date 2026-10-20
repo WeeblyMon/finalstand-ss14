@@ -18,7 +18,7 @@
     - FSEnergySwordDouble
     - EnergySwordDouble
     price: 25000
-    category: Melee Energy
+    category: fs-weapon-shop-category-melee-energy
     statDamage: 85
     statFireRate: 70
     statAccuracy: 0

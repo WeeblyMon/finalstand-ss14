@@ -11,7 +11,7 @@
     price: 10000
     starterAmmoProtoId: FSStripperClipMosin
     starterAmmoCount: 4
-    category: .30 Bolt-Action Sniper
+    category: fs-weapon-shop-category-30-bolt-action-sniper
     statDamage: 80
     statFireRate: 20
     statAccuracy: 85
@@ -98,7 +98,7 @@
     price: 70000
     starterAmmoProtoId: MagazineRifle
     starterAmmoCount: 2
-    category: .20 Burst-Fire DMR
+    category: fs-weapon-shop-category-20-burst-fire-dmr
     statDamage: 75
     statFireRate: 50
     statAccuracy: 80
@@ -170,7 +170,7 @@
     price: 90000
     starterAmmoProtoId: FSMagazineBoxAntiMateriel
     starterAmmoCount: 1
-    category: .60 Anti-Materiel Sniper
+    category: fs-weapon-shop-category-60-anti-materiel-sniper
     statDamage: 95
     statFireRate: 10
     statAccuracy: 90

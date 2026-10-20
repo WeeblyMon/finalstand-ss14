@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: BaseBallBat
     price: 1500
-    category: Melee Blunt
+    category: fs-weapon-shop-category-melee-blunt
     statDamage: 30
     statFireRate: 40
     statAccuracy: 0

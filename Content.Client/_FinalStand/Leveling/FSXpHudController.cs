@@ -82,7 +82,7 @@ public sealed partial class FSXpHudController : UIController
 
         _label = new Label
         {
-            Text = "LVL 1",
+            Text = Loc.GetString("fs-xp-bar-level", ("level", 1)),
             Align = Label.AlignMode.Center,
             Modulate = FSPalette.TextBright,
             MouseFilter = Control.MouseFilterMode.Ignore,
@@ -145,8 +145,11 @@ public sealed partial class FSXpHudController : UIController
             ? (float) ev.Experience / ev.XpToNextLevel
             : 0f;
 
+        var xp = ev.Experience.ToString("N0");
+        var next = ev.XpToNextLevel.ToString("N0");
         _label.Text = ev.PrestigeLevel > 0
-            ? $"P{ev.PrestigeLevel}  LVL {ev.Level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP"
-            : $"LVL {ev.Level}  —  {ev.Experience:N0} / {ev.XpToNextLevel:N0} XP";
+            ? Loc.GetString("fs-xp-bar-progress-prestige",
+                ("prestige", ev.PrestigeLevel), ("level", ev.Level), ("xp", xp), ("next", next))
+            : Loc.GetString("fs-xp-bar-progress", ("level", ev.Level), ("xp", xp), ("next", next));
     }
 }

@@ -13,7 +13,7 @@
     price: 140000
     starterAmmoProtoId: FSMagazineLightRifleBox
     starterAmmoCount: 2
-    category: .30 Light Machine Gun
+    category: fs-weapon-shop-category-30-light-machine-gun
     statDamage: 60
     statFireRate: 75
     statAccuracy: 45
@@ -78,7 +78,7 @@
     price: 160000
     starterAmmoProtoId: FSBoxHydraGrenade
     starterAmmoCount: 2
-    category: Rotary Grenade Launcher
+    category: fs-weapon-shop-category-rotary-grenade-launcher
     statDamage: 85
     statFireRate: 30
     statAccuracy: 60
@@ -136,7 +136,7 @@
     price: 150000
     starterAmmoProtoId: FSBoxRPGRocket
     starterAmmoCount: 2
-    category: Single-Shot Rocket Launcher
+    category: fs-weapon-shop-category-single-shot-rocket-launcher
     statDamage: 95
     statFireRate: 10
     statAccuracy: 70
@@ -192,7 +192,7 @@
     requiresResearch: FSOrdnanceTeslaCannon
     weaponProtoId: WeaponTeslaGunFS
     price: 175000
-    category: Self-Recharging Tesla Cannon
+    category: fs-weapon-shop-category-self-recharging-tesla-cannon
     statDamage: 70
     statFireRate: 25
     statAccuracy: 80
@@ -248,7 +248,7 @@
     requiresResearch: FSOrdnanceMinigun
     weaponProtoId: FSWeaponMinigun
     price: 200000
-    category: .10 Rotary Heavy Machine Gun
+    category: fs-weapon-shop-category-10-rotary-heavy-machine-gun
     statDamage: 55
     statFireRate: 90
     statAccuracy: 30
@@ -314,7 +314,7 @@
     - WeaponXrayCannonFS
     requiresScience: true
     price: 500
-    category: Sustained-Fire Bio-Radiation Beam
+    category: fs-weapon-shop-category-sustained-fire-bio-radiation-beam
     statDamage: 35
     statFireRate: 100
     statAccuracy: 90

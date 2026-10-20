@@ -93,7 +93,7 @@ public sealed partial class FSOfficerSystem : EntitySystem
             buff.EndTime = _timing.CurTime + BuffDuration;
             buff.Level = level;
 
-            _popup.PopupEntity("Buffed!", targetUid, Filter.Pvs(targetUid), true, PopupType.Medium);
+            _popup.PopupEntity(Loc.GetString("fs-officer-buffed"), targetUid, Filter.Pvs(targetUid), true, PopupType.Medium);
 
             if (TryComp<ActorComponent>(targetUid, out var actor))
                 _bonusSummary.RecomputeFor(targetUid, actor.PlayerSession);

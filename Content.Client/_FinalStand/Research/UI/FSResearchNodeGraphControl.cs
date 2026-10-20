@@ -46,6 +46,13 @@ public sealed partial class FSResearchNodeGraphControl : Control
     private readonly Texture _glowTexture;
     private readonly Dictionary<(FontResource, int), Font> _fonts = new();
     private readonly Dictionary<string, List<string>> _wrapCache = new();
+
+    // Node tags, shared by both looks
+    private readonly string _tagShared = Loc.GetString("fs-research-tag-shared");
+    private readonly string _tagMine = Loc.GetString("fs-research-tag-mine");
+    private readonly string _tagShop = Loc.GetString("fs-research-tag-shop");
+    private readonly string _tagOnline = Loc.GetString("fs-research-tag-online");
+
     private Font? _wrapFont;
 
     private EntityUid? _console;

@@ -50,7 +50,7 @@ public sealed partial class WaveHudSystem
             overlay.TriageRows.Add(new WaveHudOverlay.TriageRow(
                 entry.Name,
                 state,
-                range is { } r ? $"{(int) r}m" : string.Empty,
+                range is { } r ? Loc.GetString("fs-hud-triage-range", ("range", (int) r)) : string.Empty,
                 entry.State == FSCasualtyState.Critical,
                 entry.Responder != null,
                 dir));

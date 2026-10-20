@@ -13,7 +13,7 @@
     price: 20000
     starterAmmoProtoId: FSMagazineRifle
     starterAmmoCount: 2
-    category: .20 Full-Auto Rifle
+    category: fs-weapon-shop-category-20-full-auto-rifle
     statDamage: 85
     statFireRate: 55
     statAccuracy: 65

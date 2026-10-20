@@ -1,3 +1,4 @@
+using System.Globalization;
 using Content.Client._FinalStand.Interface;
 using Content.Shared._FinalStand.Leveling;
 using Content.Shared._FinalStand.MedicalOps;
@@ -30,16 +31,18 @@ public sealed partial class WaveHudSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     private WaveHudOverlay? _overlay;
-    private List<FSPerkTimedBuff> _perkBuffs = new();
+    private readonly List<(FSPerkTimedBuff Buff, string Label)> _perkBuffs = new();
 
     public override void Initialize()
     {
         base.Initialize();
+        InitializeWeaponText();
+        InitializeVitalsText();
         SubscribeNetworkEvent<WalletUpdatedEvent>(OnWalletUpdate);
         SubscribeNetworkEvent<FSPerksStateEvent>(OnPerksState);
         SubscribeNetworkEvent<FSReadyUpStateEvent>(OnReadyUpState);
         SubscribeNetworkEvent<FSPerkStacksUpdateEvent>(OnPerkStacksUpdate);
-        SubscribeNetworkEvent<FSPerkTimedBuffsEvent>(ev => _perkBuffs = ev.Buffs);
+        SubscribeNetworkEvent<FSPerkTimedBuffsEvent>(OnPerkTimedBuffs);
         SubscribeNetworkEvent<FSPerkEarningsSummaryEvent>(OnPerkEarnings);
         SubscribeNetworkEvent<FSHealPayoutEvent>(OnHealPayout);
         SubscribeNetworkEvent<FSMedicalFundUpdatedEvent>(OnMedicalFund);
@@ -55,6 +58,17 @@ public sealed partial class WaveHudSystem : EntitySystem
         var overlay = EnsureOverlay();
         overlay.DirectiveFlashColour = colour;
         overlay.DirectiveFlash = 1f;
+    }
+
+    // The server only sends when the set changes, so labels are built here rather than on every refresh.
+    private void OnPerkTimedBuffs(FSPerkTimedBuffsEvent ev)
+    {
+        _perkBuffs.Clear();
+        foreach (var buff in ev.Buffs)
+        {
+            var value = buff.Percent.ToString("0.#", CultureInfo.InvariantCulture);
+            _perkBuffs.Add((buff, Loc.GetString(buff.Label, ("value", value))));
+        }
     }
 
     private void OnHealPayout(FSHealPayoutEvent ev)
@@ -147,7 +161,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
     {
-        _perkBuffs = new();
+        _perkBuffs.Clear();
         if (_overlay != null)
             _overlay.IsRespawnOfferVisible = false;
     }
@@ -256,13 +270,13 @@ public sealed partial class WaveHudSystem : EntitySystem
         overlay.MedicalBuffs.Clear();
 
         var now = _timing.CurTime;
-        foreach (var buff in _perkBuffs)
+        foreach (var (buff, label) in _perkBuffs)
         {
             if (now >= buff.EndTime)
                 continue;
 
             overlay.MedicalBuffs.Add(new WaveHudOverlay.MedicalBuffRow(
-                buff.Name,
+                label,
                 WaveHudOverlay.PerkIconPrefix + buff.PerkId.ToLowerInvariant(),
                 (int) Math.Ceiling((buff.EndTime - now).TotalSeconds),
                 [Loc.GetString("fs-buff-source-perk")]));

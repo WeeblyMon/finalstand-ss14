@@ -12,7 +12,7 @@
             <BoxContainer Orientation="Horizontal" MinHeight="66">
                 <PanelContainer Name="PointsBlock" SetWidth="200">
                     <BoxContainer Orientation="Vertical" Margin="20 10" VerticalAlignment="Center">
-                        <Label Name="PointsTitle" Text="RP BANKED" />
+                        <Label Name="PointsTitle" Text="{Loc 'fs-research-menu-rp-banked'}" />
                         <Label Name="PointsLabel" Text="0" />
                         <Label Name="ContributionLabel" Visible="False" />
                     </BoxContainer>
@@ -30,13 +30,13 @@
 
             <PanelContainer Name="RailPanel" SetWidth="200">
                 <BoxContainer Orientation="Vertical" Margin="12 14" SeparationOverride="14">
-                    <LineEdit Name="SearchBox" PlaceHolder="Search tech" />
+                    <LineEdit Name="SearchBox" PlaceHolder="{Loc 'fs-research-menu-search-placeholder'}" />
                     <BoxContainer Orientation="Vertical" SeparationOverride="4">
-                        <Label Name="BranchesTitle" Text="BRANCHES" Margin="4 0 0 4" />
+                        <Label Name="BranchesTitle" Text="{Loc 'fs-research-menu-branches'}" Margin="4 0 0 4" />
                         <BoxContainer Name="BranchList" Orientation="Vertical" SeparationOverride="4" />
                     </BoxContainer>
                     <BoxContainer Orientation="Vertical" SeparationOverride="2" VerticalExpand="True">
-                        <Label Name="LinesTitle" Text="LINES" Margin="4 0 0 6" />
+                        <Label Name="LinesTitle" Text="{Loc 'fs-research-menu-lines'}" Margin="4 0 0 6" />
                         <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
                             <BoxContainer Name="LineList" Orientation="Vertical" SeparationOverride="2" />
                         </ScrollContainer>
@@ -60,10 +60,10 @@
                     </PanelContainer>
                     <PanelContainer Name="ZoomPanel">
                         <BoxContainer Orientation="Horizontal" SeparationOverride="2" Margin="4">
-                            <Button Name="ZoomOutButton" Text="−" SetSize="26 24" ToolTip="Zoom out" />
+                            <Button Name="ZoomOutButton" Text="−" SetSize="26 24" ToolTip="{Loc 'fs-research-menu-zoom-out'}" />
                             <Label Name="ZoomLabel" MinWidth="44" Align="Center" VerticalAlignment="Center" />
-                            <Button Name="ZoomInButton" Text="+" SetSize="26 24" ToolTip="Zoom in" />
-                            <Button Name="ResetViewButton" Text="RESET" MinHeight="24" Margin="4 0 0 0" ToolTip="Reset zoom and jump to the first node" />
+                            <Button Name="ZoomInButton" Text="+" SetSize="26 24" ToolTip="{Loc 'fs-research-menu-zoom-in'}" />
+                            <Button Name="ResetViewButton" Text="{Loc 'fs-research-menu-reset-view'}" MinHeight="24" Margin="4 0 0 0" ToolTip="{Loc 'fs-research-menu-reset-view-tooltip'}" />
                         </BoxContainer>
                     </PanelContainer>
                 </LayoutContainer>
@@ -73,7 +73,7 @@
                 <BoxContainer Orientation="Vertical">
                     <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
                         <BoxContainer Orientation="Vertical" Margin="20 18" SeparationOverride="16">
-                            <Label Name="EmptyStateLabel" Text="Select a technology on the graph." />
+                            <Label Name="EmptyStateLabel" Text="{Loc 'fs-research-menu-empty-state'}" />
                             <BoxContainer Name="DetailBody" Orientation="Vertical" SeparationOverride="16">
                                 <PanelContainer Name="DetailPlate" MinHeight="108">
                                     <BoxContainer Orientation="Horizontal" Margin="16 0" SeparationOverride="16" VerticalAlignment="Center">
@@ -94,7 +94,7 @@
                                 </PanelContainer>
 
                                 <BoxContainer Orientation="Vertical" SeparationOverride="6">
-                                    <Label Name="EffectTitle" Text="EFFECT" />
+                                    <Label Name="EffectTitle" Text="{Loc 'fs-research-menu-effect'}" />
                                     <BoxContainer Name="EffectList" Orientation="Vertical" SeparationOverride="4" />
                                     <PanelContainer Name="ExclusiveNote" Margin="0 4 0 0">
                                         <RichTextLabel Name="ExclusiveNoteLabel" Margin="10 8" MaxWidth="276" />
@@ -102,18 +102,18 @@
                                 </BoxContainer>
 
                                 <BoxContainer Orientation="Vertical" SeparationOverride="6">
-                                    <Label Name="RequiresTitle" Text="REQUIRES" />
+                                    <Label Name="RequiresTitle" Text="{Loc 'fs-research-menu-requires'}" />
                                     <BoxContainer Name="RequiresList" Orientation="Vertical" SeparationOverride="4" />
                                 </BoxContainer>
 
                                 <BoxContainer Name="CostSection" Orientation="Vertical" SeparationOverride="6">
-                                    <Label Name="CostTitle" Text="COST" />
+                                    <Label Name="CostTitle" Text="{Loc 'fs-research-menu-cost'}" />
                                     <GridContainer Name="CostGrid" Columns="3" HSeparationOverride="8" VSeparationOverride="4" />
                                 </BoxContainer>
 
                                 <BoxContainer Name="ProgressSection" Orientation="Vertical" SeparationOverride="6">
                                     <BoxContainer Orientation="Horizontal">
-                                        <Label Name="ResearchTitle" Text="RESEARCH" HorizontalExpand="True" />
+                                        <Label Name="ResearchTitle" Text="{Loc 'fs-research-menu-research'}" HorizontalExpand="True" />
                                         <Label Name="ProgressLabel" />
                                     </BoxContainer>
                                     <BoxContainer Name="ProgressBar" Orientation="Horizontal" />

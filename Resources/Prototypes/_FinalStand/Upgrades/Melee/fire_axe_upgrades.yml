@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: FireAxe
     price: 7000
-    category: Melee Heavy
+    category: fs-weapon-shop-category-melee-heavy
     statDamage: 55
     statFireRate: 30
     statAccuracy: 0

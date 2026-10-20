@@ -131,6 +131,7 @@ public sealed partial class PerkShopWindow : FancyWindow
 
         ApplyLayout(false);
         RefreshInfo();
+        RefreshPrestigeTab();
     }
 
     public void UpdateState(FSPerksStateEvent ev)

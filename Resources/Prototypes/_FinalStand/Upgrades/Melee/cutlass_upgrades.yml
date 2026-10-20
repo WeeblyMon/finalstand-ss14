@@ -10,7 +10,7 @@
   - type: FSShopWeapon
     weaponProtoId: FSWeaponCutlass
     price: 4000
-    category: Melee Sword
+    category: fs-weapon-shop-category-melee-sword
     statDamage: 40
     statFireRate: 55
     statAccuracy: 0

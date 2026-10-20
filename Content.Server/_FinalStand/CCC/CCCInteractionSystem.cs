@@ -3,8 +3,11 @@ using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.ReadyCheck;
 using Content.Server.Chat.Managers;
 using Content.Shared._FinalStand.CCC;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Chat;
 using Content.Shared.Damage.Components;
 using Content.Shared.Damage.Systems;
+using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
@@ -24,6 +27,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
     [Dependency] private SharedJobSystem _jobs = default!;
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const int BroadcastMaxLength = 500;
     private static readonly TimeSpan BroadcastCooldown = TimeSpan.FromSeconds(5);
@@ -136,8 +140,10 @@ public sealed partial class CCCInteractionSystem : EntitySystem
             return;
         _lastBroadcastTime[args.Actor] = now;
 
-        var text = args.Text.Length > BroadcastMaxLength ? args.Text[..BroadcastMaxLength] : args.Text;
-        _chatManager.DispatchServerAnnouncement($"[COMMAND] {text}", Color.FromHex("#66CCFF"));
+        // Same trimming and newline cap as the comms console; DispatchServerAnnouncement escapes markup.
+        var text = SharedChatSystem.SanitizeAnnouncement(args.Text, BroadcastMaxLength);
+        _adminLogger.Add(LogType.Chat, LogImpact.Medium, $"{ToPrettyString(args.Actor):player} sent a CCC broadcast: {text}");
+        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-ccc-broadcast", ("text", text)), Color.FromHex("#66CCFF"));
     }
 
     private void PushCCCState()
@@ -166,7 +172,7 @@ public sealed partial class CCCInteractionSystem : EntitySystem
         var state = new CCCBoundUserInterfaceState(
             waveNumber: wave.WaveNumber,
             estimatedEnemyCount: wave.TotalEnemies,
-            factionDisplay: wave.FactionDisplay,
+            factionDisplay: Loc.GetString(wave.FactionDisplay),
             isBossWave: wave.IsBossWave,
             activeSpawnerDirections: wave.SpawnerDirections,
             readiedPlayerCount: ready,

@@ -41,7 +41,8 @@ public sealed partial class FSThrowableWheel : EntitySystem
             options.Add(new RadialMenuActionOption<GrenadeType>(Select, chosen)
             {
                 IconSpecifier = RadialMenuIconSpecifier.With(pack.Uid),
-                ToolTip = $"{Name(pack.Uid)} ({pack.Stock})" + (type == active ? " - equipped" : string.Empty),
+                ToolTip = Loc.GetString(type == active ? "fs-throwable-wheel-option-equipped" : "fs-throwable-wheel-option",
+                    ("name", Name(pack.Uid)), ("stock", pack.Stock)),
             });
         }
 
