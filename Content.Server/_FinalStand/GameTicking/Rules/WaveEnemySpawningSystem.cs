@@ -1,4 +1,5 @@
-﻿using Content.Server._FinalStand.CCC;
+﻿using System.Linq;
+using Content.Server._FinalStand.CCC;
 using Content.Shared._FinalStand.CCC;
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Spawners;
@@ -31,7 +32,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     [Dependency] private WaveEnemyScalingSystem _scaling = default!;
     [Dependency] private MobThresholdSystem _thresholds = default!;
 
-    private static readonly List<EntProtoId> FallbackEnemyPool = new() { "MobXeno" };
+    private static readonly IReadOnlyList<EntProtoId> FallbackEnemyPool = new List<EntProtoId> { "MobXeno" };
     private static readonly EntProtoId RevenantProto = "FSZombieRevenant";
 
     private const int MaxAliveRevenants = 3;
@@ -40,6 +41,24 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
     private readonly List<EntityUid> _secondaryBuffer = new();
     private readonly List<EntityUid> _spawnPlan = new();
     private readonly HashSet<EntityUid> _spawnClearBuffer = new();
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<WaveEnemySpawnerComponent, ComponentShutdown>(OnSpawnerShutdown);
+    }
+
+    // Spawners are picked at prep start; one deleted after that (admin, map edit) leaves the lists, and an
+    // emptied list picks again on the next batch.
+    private void OnSpawnerShutdown(Entity<WaveEnemySpawnerComponent> ent, ref ComponentShutdown args)
+    {
+        var query = EntityQueryEnumerator<WaveGameRuleComponent>();
+        while (query.MoveNext(out var rule))
+        {
+            rule.SpawnerEntities.Remove(ent.Owner);
+            rule.PreviousSpawnerEntities.Remove(ent.Owner);
+        }
+    }
 
     // Picks a random non-empty subset of the spawners unlocked at the current wave number.
     public void SelectSpawners(WaveGameRuleComponent comp, int players)
@@ -303,7 +322,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return enemy;
     }
 
-    private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, List<EntProtoId> pool)
+    private EntProtoId SelectEnemyProto(WaveGameRuleComponent comp, IReadOnlyList<EntProtoId> pool)
     {
         foreach (var special in comp.SpecialEnemyPool)
         {
@@ -419,7 +438,7 @@ public sealed partial class WaveEnemySpawningSystem : EntitySystem
         return true;
     }
 
-    public static List<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)
+    public static IReadOnlyList<EntProtoId> GetDirectorPool(WaveGameRuleComponent comp)
     {
         WaveEnemyConfig? match = null;
         foreach (var config in comp.EnemyConfigs)
