@@ -83,9 +83,14 @@ public sealed class FSPerkDef
         var args = new (string, object)[values.Length];
         for (var i = 0; i < values.Length; i++)
         {
-            args[i] = (ArgNames[i], values[i] is float or double
-                ? Convert.ToDouble(values[i], CultureInfo.InvariantCulture).ToString("0.##", CultureInfo.InvariantCulture)
-                : Convert.ToString(values[i], CultureInfo.InvariantCulture)!);
+            // Not Convert: the client sandbox doesn't allow it.
+            args[i] = (ArgNames[i], values[i] switch
+            {
+                float f => ((double) f).ToString("0.##", CultureInfo.InvariantCulture),
+                double d => d.ToString("0.##", CultureInfo.InvariantCulture),
+                int n => n.ToString(CultureInfo.InvariantCulture),
+                var other => other.ToString() ?? string.Empty,
+            });
         }
 
         return args;
