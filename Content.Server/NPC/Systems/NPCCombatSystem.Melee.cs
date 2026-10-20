@@ -69,6 +69,7 @@ public sealed partial class NPCCombatSystem
     {
         component.Status = CombatStatus.Normal;
 
+        // FINALSTAND: body weapon first
         if (!TryGetBodyWeapon(uid, out var weaponUid, out var weapon)
             && !_melee.TryGetWeapon(uid, out weaponUid, out weapon))
         {

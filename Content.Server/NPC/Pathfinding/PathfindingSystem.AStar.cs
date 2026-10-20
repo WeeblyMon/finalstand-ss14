@@ -98,6 +98,7 @@ public sealed partial class PathfindingSystem
             (_, currentNode) = request.Frontier.Take();
 
             // If we're inside the required distance OR we're at the end node.
+            // FINALSTAND: range check via WithinRequestRange
             if ((request.Distance > 0f && WithinRequestRange(currentNode, request, rangeGraph, endInGraph)) ||
                 currentNode.Equals(endNode))
             {
@@ -119,7 +120,7 @@ public sealed partial class PathfindingSystem
                 // f = g + h
                 // gScore is distance to the start node
                 // hScore is distance to the end node
-                var gScore = currentCost + tileCost;
+                var gScore = currentCost + tileCost; // FINALSTAND
                 if (request.CostSoFar.TryGetValue(neighbor, out var nextValue) && gScore >= nextValue)
                 {
                     continue;

@@ -77,6 +77,6 @@ public sealed class PathPoly : IEquatable<PathPoly>
 
     public override int GetHashCode()
     {
-        return _hashCode;
+        return _hashCode; // FINALSTAND
     }
 }
