@@ -29,6 +29,9 @@
     damage:
       types:
         Slash: 14.4
+      # Redeclaring damage drops the base zombie's multiplier, which keeps hits under dismemberment severity.
+      woundSeverityMultipliers:
+        Slash: 0.05
   - type: FSEnemyValue
     killCredits: 600
   - type: FSMoneyOnHitCap
