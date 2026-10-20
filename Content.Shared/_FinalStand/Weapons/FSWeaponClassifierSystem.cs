@@ -43,12 +43,12 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
 
     public bool IsSemiAutoRifle(EntityUid uid)
     {
-        return Prototype(uid)?.ID is { } id && SemiAutoRifleProtos.Contains(id);
+        return PrototypeId(uid) is { } id && SemiAutoRifleProtos.Contains(id);
     }
 
     public FSWeaponKind Classify(EntityUid uid)
     {
-        var protoId = Prototype(uid)?.ID;
+        var protoId = PrototypeId(uid);
 
         return new FSWeaponKind(
             Ballistic: _tags.HasTag(uid, BallisticTag),
@@ -61,5 +61,11 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
             Xray: protoId == XrayProto,
             Tesla: protoId == TeslaProto,
             Harvester: protoId == HarvesterProto);
+    }
+
+    // A weapon can be gone by the time its bullet lands; that's no kind at all rather than an exception.
+    private string? PrototypeId(EntityUid uid)
+    {
+        return TryComp(uid, out MetaDataComponent? meta) ? meta.EntityPrototype?.ID : null;
     }
 }

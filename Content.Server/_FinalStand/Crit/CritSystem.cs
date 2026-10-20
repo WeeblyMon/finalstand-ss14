@@ -69,18 +69,19 @@ public sealed partial class CritSystem : EntitySystem
 
     private void OnProjectileHit(EntityUid uid, ProjectileComponent comp, ref ProjectileHitEvent args)
     {
-        if (comp.Shooter is not { } shooterUid || comp.Weapon is not { } weapon)
+        if (comp.Shooter is not { } shooterUid || comp.Weapon is not { } weaponUid)
             return;
 
-        // A bullet still in flight after its shooter was deleted can't crit and skips the shooter's effects, but
-        // target and weapon effects (armoured deflect, research damage) still apply. With nobody left to ask,
-        // friendly fire goes by the target alone.
+        // A bullet still in flight after its shooter or weapon was deleted (a giant's boulder when the wave is
+        // cleared, a packed sentry's rounds) can't crit and skips whatever needed them, but target effects
+        // (armoured deflect) still apply. With no shooter left to ask, friendly fire goes by the target alone.
         EntityUid? shooter = TerminatingOrDeleted(shooterUid) ? null : shooterUid;
+        EntityUid? weapon = TerminatingOrDeleted(weaponUid) ? null : weaponUid;
         if ((shooter == null || HasComp<FSFriendlyFireComponent>(shooterUid)) && HasComp<FSFriendlyFireComponent>(args.Target))
             return;
 
         var didCrit = false;
-        if (shooter is { } s && TryRollCrit(s, weapon, args.Target, out var multiplier))
+        if (shooter is { } s && weapon is { } w && TryRollCrit(s, w, args.Target, out var multiplier))
         {
             didCrit = true;
             args.Damage *= multiplier;
@@ -93,7 +94,7 @@ public sealed partial class CritSystem : EntitySystem
             Shooter       = shooter,
             ProjectileUid = uid,
             WasCrit       = didCrit,
-            State         = CompOrNull<FSWeaponUpgradeStateComponent>(weapon),
+            State         = weapon is { } live ? CompOrNull<FSWeaponUpgradeStateComponent>(live) : null,
         };
         RaiseLocalEvent(ref hitEffect);
         if (hitEffect.AdditionalMultiplier != 1f)
