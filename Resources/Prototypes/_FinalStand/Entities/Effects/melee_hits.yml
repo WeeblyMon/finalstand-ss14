@@ -226,3 +226,14 @@
   - type: Sprite
     sprite: _FinalStand/Effects/Melee/grind.rsi
     state: chainsaw
+
+- type: entity
+  parent: FSMeleeEffectBase
+  id: FSMeleeSlamShockwave
+  components:
+  - type: TimedDespawn
+    lifetime: 0.33
+  - type: Sprite
+    sprite: _FinalStand/Effects/Melee/slam.rsi
+    state: slam
+    drawdepth: FloorObjects

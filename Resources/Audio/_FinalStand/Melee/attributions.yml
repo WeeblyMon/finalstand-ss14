@@ -17,3 +17,8 @@
   license: "CC0-1.0"
   copyright: "Deep Bone Crack/Break SFX by Zane Little Music, trimmed, normalized and converted to mono"
   source: "https://opengameart.org/content/deep-bone-crackbreak-sfx"
+
+- files: ["slam_thud.ogg"]
+  license: "CC-BY-SA-3.0"
+  copyright: "explosionsmallfar.ogg from vgstation at c5edbfd7179288080f081e2b8ac2496b7e4455db, trimmed and converted to mono"
+  source: "https://github.com/vgstation-coders/vgstation13/tree/c5edbfd7179288080f081e2b8ac2496b7e4455db/sound/effects"

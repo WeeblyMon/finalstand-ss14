@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "license": "CC-BY-SA-3.0",
+    "copyright": "Created for FinalStand",
+    "size": {
+        "x": 96,
+        "y": 96
+    },
+    "states": [
+        {
+            "name": "slam",
+            "delays": [
+                [
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04,
+                    0.04
+                ]
+            ]
+        }
+    ]
+}
