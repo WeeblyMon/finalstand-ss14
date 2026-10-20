@@ -69,6 +69,13 @@ public sealed partial class FSCashTransferSystem : EntitySystem
         var query = EntityQueryEnumerator<FSCashTransferSessionComponent>();
         while (query.MoveNext(out var uid, out var session))
         {
+            // Either side gone (gibbed, cryo, deleted): deleting the session closes the window.
+            if (TerminatingOrDeleted(session.Target) || TerminatingOrDeleted(session.Opener))
+            {
+                QueueDel(uid);
+                continue;
+            }
+
             if (_uiSystem.IsUiOpen(uid, FSCashTransferUiKey.Key))
             {
                 SendState(uid, session.Opener, session.Target);
