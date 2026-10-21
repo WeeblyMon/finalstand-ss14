@@ -718,10 +718,19 @@ public sealed partial class NPCSteeringSystem
     private readonly List<SpacingEntry> _spacingEntries = new();
     private readonly Dictionary<(MapId, Vector2i), List<int>> _spacingCells = new();
 
+    // Cells filled this tick, the only ones that need clearing. The rest of the dictionary is ground nobody is standing
+    // on and maps from earlier rounds; it is dropped once it outgrows the live cells by this much.
+    private readonly List<List<int>> _spacingUsed = new();
+    private readonly List<(MapId, Vector2i)> _spacingStale = new();
+    private const int SpacingCellSlack = 4096;
+
+    internal int SpacingCellCount => _spacingCells.Count;
+
     private void BuildSpacingIndex()
     {
-        foreach (var cell in _spacingCells.Values)
+        foreach (var cell in _spacingUsed)
             cell.Clear();
+        _spacingUsed.Clear();
         _spacingEntries.Clear();
 
         var query = EntityQueryEnumerator<MobStateComponent, PhysicsComponent, TransformComponent, MetaDataComponent>();
@@ -752,10 +761,30 @@ public sealed partial class NPCSteeringSystem
                 _spacingCells[key] = list;
             }
 
+            if (list.Count == 0)
+                _spacingUsed.Add(list);
+
             list.Add(_spacingEntries.Count);
             var heading = moving == Vector2.Zero ? Vector2.Zero : moving.Normalized();
             _spacingEntries.Add(new SpacingEntry(uid, position, heading, isWave));
         }
+
+        if (_spacingCells.Count > _spacingUsed.Count + SpacingCellSlack)
+            PruneSpacingCells();
+    }
+
+    private void PruneSpacingCells()
+    {
+        foreach (var (key, cell) in _spacingCells)
+        {
+            if (cell.Count == 0)
+                _spacingStale.Add(key);
+        }
+
+        foreach (var key in _spacingStale)
+            _spacingCells.Remove(key);
+
+        _spacingStale.Clear();
     }
 
     private void WaveZombieSpacing(
