@@ -7,11 +7,11 @@ namespace Content.Client._FinalStand.MedicalOps;
 public sealed class FSBearingArrow : Control
 {
     private const float Radius = 7f;
-    private const float BackSweep = 0.8f;
-    private const float HalfWidth = 0.6f;
-    private const float Notch = 0.3f;
+    private const float HeadLength = 0.9f;
+    private const float HeadHalfWidth = 0.75f;
+    private const float ShaftHalfWidth = 0.2f;
 
-    private readonly Vector2[] _points = new Vector2[6];
+    private static readonly Vector2[] Points = new Vector2[9];
 
     private Vector2? _direction;
 
@@ -34,22 +34,28 @@ public sealed class FSBearingArrow : Control
         if (_direction is not { } dir)
             return;
 
-        var centre = PixelSize / 2f;
-        var scale = UIScale;
+        DrawArrow(handle, PixelSize / 2f, dir, Radius * UIScale, ArrowColor);
+    }
 
+    public static void DrawArrow(DrawingHandleScreen handle, Vector2 centre, Vector2 dir, float radius, Color color)
+    {
         var perp = new Vector2(-dir.Y, dir.X);
-        var apex = centre + dir * Radius * scale;
-        var back = centre - dir * Radius * BackSweep * scale;
-        var wing = perp * Radius * HalfWidth * scale;
-        var notch = centre - dir * Radius * Notch * scale;
+        var tip = centre + dir * radius;
+        var tail = centre - dir * radius;
+        var headBase = tip - dir * radius * HeadLength;
+        var head = perp * radius * HeadHalfWidth;
+        var shaft = perp * radius * ShaftHalfWidth;
 
-        _points[0] = apex;
-        _points[1] = back + wing;
-        _points[2] = notch;
-        _points[3] = apex;
-        _points[4] = notch;
-        _points[5] = back - wing;
+        Points[0] = tip;
+        Points[1] = headBase + head;
+        Points[2] = headBase - head;
+        Points[3] = tail + shaft;
+        Points[4] = headBase + shaft;
+        Points[5] = headBase - shaft;
+        Points[6] = tail + shaft;
+        Points[7] = headBase - shaft;
+        Points[8] = tail - shaft;
 
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _points, ArrowColor);
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, Points, color);
     }
 }
