@@ -12,6 +12,7 @@ using Robust.Client.Input;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
@@ -781,8 +782,9 @@ public sealed partial class WaveHudOverlay : Overlay
 
         var down = _input.IsKeyDown(Keyboard.Key.MouseLeft);
         var mousePos = _input.MouseScreenPosition.Position;
+        var pressed = down && !_prevClickDown && !PointerOverWindow();
 
-        if (IsReadyUpVisible && down && !_prevClickDown)
+        if (IsReadyUpVisible && pressed)
         {
             if (ReadyUpYesBounds.Contains(mousePos))
                 OnReadyUpClicked?.Invoke(true);
@@ -790,17 +792,30 @@ public sealed partial class WaveHudOverlay : Overlay
                 OnReadyUpClicked?.Invoke(false);
         }
 
-        if (IsRespawnOfferVisible && down && !_prevClickDown && _respawnClickCooldown <= 0f
+        if (IsRespawnOfferVisible && pressed && _respawnClickCooldown <= 0f
             && RespawnButtonBounds.Contains(mousePos))
         {
             _respawnClickCooldown = 0.5f;
             OnRespawnClicked?.Invoke();
         }
 
-        if (down && !_prevClickDown)
+        if (pressed)
             HandleThrowableClick(mousePos);
 
         _prevClickDown = down;
+    }
+
+    // The HUD is drawn under the UI, so a click on a window over it (the escape menu, a console, a shop) is that
+    // window's. Otherwise opening the escape menu over the respawn button and clicking it buys the respawn.
+    private bool PointerOverWindow()
+    {
+        for (var control = _uiManager.CurrentlyHovered; control != null; control = control.Parent)
+        {
+            if (control is BaseWindow or Popup)
+                return true;
+        }
+
+        return false;
     }
 
     private Font? _tinyFont;
