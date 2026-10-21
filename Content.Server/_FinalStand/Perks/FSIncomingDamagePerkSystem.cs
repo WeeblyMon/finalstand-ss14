@@ -18,6 +18,7 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
     [Dependency] private FSWolfPackSystem _wolfPack = default!;
+    [Dependency] private FSDrunkPerkSystem _drunk = default!;
 
     public override void Initialize()
     {
@@ -38,6 +39,9 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
             && HasComp<MeleeWeaponComponent>(activeHeld.Value) && !HasComp<GunComponent>(activeHeld.Value);
 
         args.Damage *= GetIncomingMultiplier(mindId, augs, fromZombie, holdingMelee);
+
+        if (_drunk.LevelIfDrunk(uid, augs, "DrunkenBerserker") > 0)
+            args.Damage *= 1f + FSPerkBonusConstants.DrunkenBerserkerDamageTaken;
     }
 
     public float GetIncomingMultiplier(EntityUid mindId, FSPerkLevelsComponent augs, bool fromZombie,

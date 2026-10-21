@@ -412,9 +412,10 @@ public sealed class FSPerkDef
                 Pct("+{0}% of Income to Fund", FSPerkBonusConstants.SlushFundPerLevel)),
 
             new("DrunkenBerserker", "Drunken Berserker",
-                "Drunk: more melee damage and fire rate, worse aim, stronger drinks. No alcohol poisoning.",
+                "Drunk: more melee damage and fire rate, but worse aim and frailer. No alcohol poisoning.",
                 PerkCategory.Purple,
-                Pct("+{0}% Melee Damage / Fire Rate / Spread", FSPerkBonusConstants.DrunkenBerserkerPerLevel)),
+                Pct("+{0}% Melee Damage and Spread / +{1}% Fire Rate", FSPerkBonusConstants.DrunkenBerserkerPerLevel,
+                    FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel)),
 
             new("ExplosiveEngineering", "Explosive Engineering",
                 "Drunk: bigger blasts from your grenades and rockets, harder-hitting sentries.",

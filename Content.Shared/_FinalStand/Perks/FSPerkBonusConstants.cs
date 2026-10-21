@@ -101,6 +101,8 @@ public static class FSPerkBonusConstants
     public const float SlushFundPerLevel = 0.05f;
     public const float DrunkenBerserkerPerLevel = 0.10f;
     public const float ExplosiveEngineeringRadiusPerLevel = 0.05f;
+    public const float DrunkenBerserkerFireRatePerLevel = 0.05f;
+    public const float DrunkenBerserkerDamageTaken = 0.10f;
     public const float ExplosiveEngineeringSentryPerLevel = 0.10f;
     public const float RagingAlcoholicRegenPerLevel = 0.25f;
     public const float RagingAlcoholicFullSeconds = 60f;

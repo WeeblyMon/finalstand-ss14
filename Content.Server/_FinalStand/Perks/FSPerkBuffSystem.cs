@@ -139,12 +139,13 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
         args.FireRate *= 1f + GunslingerSign(args.Gun, augs) * augs.GetSlottedLevel("Gunslinger")
             * FSPerkBonusConstants.GunslingerFireRatePerLevel;
 
-        var berserk = _drunk.LevelIfDrunk(holder, augs, "DrunkenBerserker") * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
-        if (berserk > 0f)
+        var berserkLevel = _drunk.LevelIfDrunk(holder, augs, "DrunkenBerserker");
+        if (berserkLevel > 0)
         {
-            args.FireRate *= 1f + berserk;
-            args.MinAngle = new Angle(args.MinAngle.Theta * (1f + berserk));
-            args.MaxAngle = new Angle(args.MaxAngle.Theta * (1f + berserk));
+            var spread = 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerPerLevel;
+            args.FireRate *= 1f + berserkLevel * FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel;
+            args.MinAngle = new Angle(args.MinAngle.Theta * spread);
+            args.MaxAngle = new Angle(args.MaxAngle.Theta * spread);
         }
     }
 

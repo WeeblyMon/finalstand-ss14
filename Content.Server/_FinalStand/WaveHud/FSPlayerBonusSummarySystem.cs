@@ -272,7 +272,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         var berserkGun = perks == null ? 0 : _drunk.LevelIfDrunk(mob, perks, "DrunkenBerserker");
         if (berserkGun > 0)
         {
-            var pct = berserkGun * FSPerkBonusConstants.DrunkenBerserkerPerLevel * 100f;
+            var pct = berserkGun * FSPerkBonusConstants.DrunkenBerserkerFireRatePerLevel * 100f;
             frPct += pct;
             frSources.Add(FormatPct("Drunken Berserker", pct));
         }
