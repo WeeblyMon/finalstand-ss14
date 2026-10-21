@@ -296,7 +296,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         comp.AliveEnemies.Clear();
 
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         if (IsBossWave(comp.WaveNumber) && comp.SpawnerEntities.Count > 0 && comp.BossPool.Count > 0)
         {
             var spawnerUid = comp.SpawnerEntities[0];
@@ -341,13 +340,12 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             var ended = new WaveEndedEvent(comp.WaveNumber);
             RaiseLocalEvent(ref ended);
         }
-        if (IsBossWave(comp.WaveNumber) && !comp.GiantApAwarded)
+        if (IsBossWave(comp.WaveNumber) && comp.BossRewardPaidWave != comp.WaveNumber)
         {
             Log.Warning($"Wave {comp.WaveNumber} boss never died — paying the reward on wave end.");
             AwardBossReward(comp);
         }
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         comp.WavesCompleted++;
         comp.WaveNumber++;
         StartPrepPhase(uid, comp);
@@ -361,7 +359,6 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         Log.Info($"Wave {comp.WaveNumber} lost with the CCC. Back to prep for the same wave.");
         ClearCombat(uid, comp);
         comp.GiantEntity = EntityUid.Invalid;
-        comp.GiantApAwarded = false;
         StartPrepPhase(uid, comp);
         return comp.WaveNumber;
     }
@@ -377,7 +374,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
     private void AwardBossReward(WaveGameRuleComponent comp)
     {
-        comp.GiantApAwarded = true;
+        if (comp.BossRewardPaidWave == comp.WaveNumber)
+            return;
+
+        comp.BossRewardPaidWave = comp.WaveNumber;
         if (comp.BossWavePerkReward <= 0)
             return;
 
@@ -461,7 +461,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
 
         comp.TotalEnemiesKilled++;
 
-        if (ent.Owner == comp.GiantEntity && !comp.GiantApAwarded)
+        if (ent.Owner == comp.GiantEntity)
             AwardBossReward(comp);
 
         CheckWaveComplete(uid, comp);
@@ -549,7 +549,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
             foreach (var enemy in comp.AliveEnemies)
                 QueueDel(enemy);
             comp.AliveEnemies.Clear();
-            comp.GiantApAwarded = true;
+            comp.BossRewardPaidWave = comp.WaveNumber;
             EndCombatPhase(uid, comp, isForced: true);
         }
         else

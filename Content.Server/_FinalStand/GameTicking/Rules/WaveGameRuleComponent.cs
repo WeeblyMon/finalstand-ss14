@@ -130,7 +130,10 @@ public sealed partial class WaveGameRuleComponent : Component
     public bool SpawnPaused = false;
 
     public EntityUid GiantEntity = EntityUid.Invalid;
-    public bool GiantApAwarded = false;
+
+    // The wave whose boss perk point has been paid. A wave replayed after a lost CCC life spawns its boss again but
+    // doesn't pay the point again.
+    public int BossRewardPaidWave;
 
     public bool RoundLost;
 }
