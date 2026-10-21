@@ -2,6 +2,8 @@ using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Armor.Shop;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
 using Content.Shared.Mind;
@@ -22,6 +24,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private readonly Dictionary<EntityUid, ProtoId<FSArmorTierPrototype>> _purchasedTier = new();
 
@@ -88,6 +91,10 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         // A step down refunds the difference.
         if (netCost < 0)
             _wallet.GiveCredits(mindId, -netCost);
+
+        var from = old?.ID ?? "none";
+        _adminLogger.Add(netCost >= 0 ? LogType.StorePurchase : LogType.StoreRefund, LogImpact.Low,
+            $"{ToPrettyString(player):player} switched armor from {from} to {tier.ID} for {netCost} credits at {ToPrettyString(uid):store}");
 
         _purchasedTier[mindId] = tier.ID;
         _ui.ServerSendUiMessage(uid, FSArmorShopUiKey.Key, new FSArmorShopState(tier.ID, _wallet.GetCredits(mindId)), player);

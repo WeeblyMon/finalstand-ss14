@@ -2,8 +2,10 @@ using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server._FinalStand.MedicalOps;
 using Content.Shared._FinalStand.Respawn;
+using Content.Shared.Administration.Logs;
 using Content.Shared.Administration.Systems;
 using Content.Shared.Buckle;
+using Content.Shared.Database;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
@@ -39,6 +41,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const float CostFraction = 0.20f;
     private const double RequestCooldownSeconds = 2.0;
@@ -175,6 +178,7 @@ public sealed partial class FSWaveRespawnSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("fs-respawn-charged", ("cost", charged)), body, session);
         PushOffer(session);
 
-        Log.Info($"{session.Name} respawned for {charged} credits (quoted {cost}).");
+        _adminLogger.Add(LogType.Respawn, LogImpact.Medium,
+            $"{ToPrettyString(body):player} bought a respawn for {charged} credits (quoted {cost})");
     }
 }

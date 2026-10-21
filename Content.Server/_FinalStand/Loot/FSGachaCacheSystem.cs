@@ -1,5 +1,7 @@
 ﻿using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Loot;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.Interaction;
 using Content.Shared.Mind;
 using Content.Shared.Popups;
@@ -22,6 +24,7 @@ public sealed partial class FSGachaCacheSystem : EntitySystem
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private static readonly SoundPathSpecifier OpenSound = new("/Audio/Machines/machine_vend.ogg");
 
@@ -59,6 +62,10 @@ public sealed partial class FSGachaCacheSystem : EntitySystem
             _popup.PopupEntity(Loc.GetString("fs-gacha-no-funds"), ent, user);
             return false;
         }
+
+        var won = bonus != null ? $"{prize} and {bonus}" : prize;
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(user):player} paid {ent.Comp.Price} credits at {ToPrettyString(ent):store} and won {won}");
 
         Loot(ent, user, prize, bonus);
         return true;

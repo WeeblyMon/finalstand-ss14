@@ -1,6 +1,8 @@
 using System.Linq;
 using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Bags;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.Mind;
 using Content.Shared.Popups;
 using Robust.Server.GameObjects;
@@ -13,6 +15,7 @@ public sealed partial class FSBagShopSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     public override void Initialize()
     {
@@ -45,7 +48,9 @@ public sealed partial class FSBagShopSystem : EntitySystem
             return;
         }
 
-        Spawn(entry.Proto, Transform(uid).Coordinates);
+        var bag = Spawn(entry.Proto, Transform(uid).Coordinates);
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(player):player} bought {ToPrettyString(bag):item} for {entry.Price} credits at {ToPrettyString(uid):store}");
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         SendState(uid, comp, player);
     }

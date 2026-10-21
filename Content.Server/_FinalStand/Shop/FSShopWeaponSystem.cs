@@ -8,6 +8,8 @@ using Content.Server._FinalStand.Science;
 using Content.Server.Popups;
 using Content.Shared._FinalStand.Grenades;
 using Content.Shared._FinalStand.Shop;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Database;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
 using Content.Shared.Hands.Components;
@@ -43,6 +45,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _protoManager = default!;
     [Dependency] private FSShopBindingSystem _binding = default!;
+    [Dependency] private ISharedAdminLogManager _adminLogger = default!;
 
     private const double SellCooldownSeconds = 2.0;
     private const double SellDedupWindowSeconds = 5.0;
@@ -213,6 +216,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
             }
         }
 
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(player):player} bought {ToPrettyString(weapon):item} for {comp.Price} credits at {ToPrettyString(uid):store}");
+
         _popup.PopupEntity(Loc.GetString("shop-weapon-purchased"), uid, player);
         var (buyAcc, buyNextAcc) = ComputeAccuracy(player, comp);
         SendWeaponLevels(mindId, new Dictionary<string, int>(), ComputeWeaponTitle(player, comp), buyAcc, buyNextAcc);
@@ -301,6 +307,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         if (def.Type == WeaponUpgradeType.ConvertWeapon && def.SpawnProtoId is { } result)
         {
+            _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+                $"{ToPrettyString(player):player} bought upgrade {def.Id} for {cost} credits, converting {ToPrettyString(weapon):item} into {result}");
+
             ConvertWeapon(player, weapon, state, result, def.Id, cost);
             _popup.PopupEntity(Loc.GetString("shop-upgrade-purchased", ("name", def.Name)), uid, player);
             var (convAcc, convNextAcc) = ComputeAccuracy(player, comp);
@@ -314,6 +323,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         state.TotalSpent += cost;
         weapon = _upgrades.ApplySingleUpgrade(weapon, player, def, newLevel);
         _researchStaticGrant.Reconcile(weapon);
+
+        _adminLogger.Add(LogType.StorePurchase, LogImpact.Low,
+            $"{ToPrettyString(player):player} bought upgrade {def.Id} level {newLevel} on {ToPrettyString(weapon):item} for {cost} credits");
 
         if (isFirstUpgradeEver)
             MarkAsUpgraded(weapon);
@@ -451,6 +463,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         if (TryComp<FSDeployableItemComponent>(weapon, out var deployable))
             _deployable.ClearDeployed(mindId, deployable.DeployedProtoId);
+
+        _adminLogger.Add(LogType.StoreRefund, LogImpact.Low,
+            $"{ToPrettyString(player):player} sold {ToPrettyString(weapon):item} for {totalRefund} credits at {ToPrettyString(shopUid):store}");
 
         QueueDel(weapon);
         CleanupAmmoForWeapon(player, comp, ws);
