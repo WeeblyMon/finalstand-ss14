@@ -80,6 +80,7 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
         var now = _timing.CurTime;
         var duration = MarkDurationSeconds + coatingLevel;
         var mark = EnsureComp<FSRadiationMarkComponent>(target);
+        var dotRunning = mark.HasDot && mark.DotRemaining > 0f;
         mark.DamageMultiplier = 1.5f;
         mark.ExpiresAt = now + TimeSpan.FromSeconds(duration);
         mark.Origin = args.Data.Shooter;
@@ -90,8 +91,9 @@ public sealed partial class FSRadiationMarkSystem : EntitySystem
             mark.DotPerSecond = 8f * coatingLevel * (1f + coatingResearchBonus);
             mark.DotRemaining = (1.5f + coatingLevel) * mark.DotPerSecond;
 
-            // Keep a step that's already due; resetting it on every hit would hold a fast-firing gun's DoT off forever.
-            if (mark.NextDot <= now)
+            // A running DoT keeps its next step, even one due this tick (hits land before Update). Restarting the
+            // timer on a hit made a gun firing on the step's tick push it back every time.
+            if (!dotRunning)
                 mark.NextDot = now + DotInterval;
         }
 
