@@ -10,6 +10,9 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestOf(typeof(FSResearchSystem))]
 public sealed class ResearchStateServerLossTest : GameTest
 {
+    // Station research is round state; a fast-recycled pair would hand these unlocks to the next test.
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
     private const string RndServer = "ResearchAndDevelopmentServer";
 
     [Test]

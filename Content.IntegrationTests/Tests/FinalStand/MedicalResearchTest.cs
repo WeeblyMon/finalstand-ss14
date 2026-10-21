@@ -14,6 +14,9 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class MedicalResearchTest : GameTest
 {
+    // Station research is round state; a fast-recycled pair would hand these unlocks to the next test.
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
     private const string ScienceConsole = "FSResearchComputer";
     private const string MedicalConsole = "FSMedicalResearchComputer";
     private const string MedicalBranch = "Medical";

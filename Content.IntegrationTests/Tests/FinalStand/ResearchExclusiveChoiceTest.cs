@@ -12,6 +12,9 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 [TestFixture]
 public sealed class ResearchExclusiveChoiceTest : GameTest
 {
+    // Station research is round state; a fast-recycled pair would hand these unlocks to the next test.
+    public override PoolSettings PoolSettings => new() { Connected = true, Dirty = true };
+
     private static readonly ProtoId<FSTechNodePrototype> Tandem = "FSOrdnanceTandemWarheads";
     private static readonly ProtoId<FSTechNodePrototype> Thermobaric = "FSOrdnanceThermobaricPayloads";
 
