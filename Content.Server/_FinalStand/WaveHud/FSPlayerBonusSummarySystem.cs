@@ -406,7 +406,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
         }
 
         var bunker = (_bunkeredDown.GetDamageMultiplier(mindId, perks) - 1f) * 100f;
-        if (bunker > 0f)
+        if (MathF.Abs(bunker) > 0.01f)
         {
             total += bunker;
             sources.Add(FormatPct("Bunkered Down", bunker));

@@ -21,7 +21,12 @@ public sealed partial class FSBunkeredDownSystem : EntitySystem
     public float GetDamageMultiplier(EntityUid mindId, FSPerkLevelsComponent perks)
     {
         var level = perks.GetSlottedLevel("BunkeredDown");
-        return level > 0 && _bunkered.Contains(mindId) ? 1f + level * FSPerkBonusConstants.BunkeredDownDamagePerLevel : 1f;
+        if (level <= 0)
+            return 1f;
+
+        return _bunkered.Contains(mindId)
+            ? 1f + level * FSPerkBonusConstants.BunkeredDownDamagePerLevel
+            : 1f - FSPerkBonusConstants.BunkeredDownAwayPenalty;
     }
 
     public float GetResist(EntityUid mindId, FSPerkLevelsComponent perks)

@@ -337,7 +337,7 @@ public sealed class FSPerkDef
                     FSPerkBonusConstants.LoneWolfRegenPerLevel / 100f)),
 
             new("BunkeredDown", "Bunkered Down",
-                "Deal more damage and take less within 12 tiles of the CCC.",
+                "More damage and toughness within 12 tiles of the CCC, 10% less damage away from it.",
                 PerkCategory.Purple,
                 Pct("+{0}% Damage / +{1} Resistance", FSPerkBonusConstants.BunkeredDownDamagePerLevel,
                     FSPerkBonusConstants.BunkeredDownResistPerLevel)),
