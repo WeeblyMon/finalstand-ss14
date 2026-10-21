@@ -4,7 +4,9 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
 using Content.Shared.CCVar;
+using Content.Shared.Mobs.Components;
 using Content.Shared.NPC;
+using Content.Shared.Weapons.Melee.Events;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Physics.Components;
@@ -24,7 +26,8 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
 
-    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince);
+    private record struct StuckState(Vector2 LastPos, TimeSpan LastMoveTime, TimeSpan LastNudge, int NudgeCount, TimeSpan NoPathSince,
+        TimeSpan LastStructureHit);
     private readonly Dictionary<EntityUid, StuckState> _state = new();
 
     private readonly List<EntityUid> _removeBuffer = new();
@@ -41,6 +44,8 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     private const float NoPathGraceSeconds = 5f;
     private const float QueueRange = 3f;
     private const int CrowdedNeighbours = 4;
+    // Breaking through something (a barricade, a door) keeps a boxed-in zombie from being deleted for this long.
+    private static readonly TimeSpan StructureHitGrace = TimeSpan.FromSeconds(5);
 
     // Stuck detection works on a 20s horizon, so sampling faster than 1 Hz buys nothing.
     private const float TickInterval = 1f;
@@ -52,6 +57,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
     {
         base.Initialize();
         UpdatesAfter.Add(typeof(NPCSteeringSystem));
+        SubscribeLocalEvent<WaveSpawnedTagComponent, MeleeHitEvent>(OnMeleeHit);
         Subs.CVar(_cfg, CCVars.WaveZombiePathingEnabled, v => _enabled = v, true);
         Subs.CVar(_cfg, CCVars.WaveZombieStuckNudgeLimit, v => _nudgeLimit = v, true);
     }
@@ -90,7 +96,7 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
             if (!_state.TryGetValue(uid, out var s))
             {
-                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0, TimeSpan.Zero);
+                _state[uid] = new StuckState(worldPos, curTime, TimeSpan.Zero, 0, TimeSpan.Zero, TimeSpan.Zero);
                 continue;
             }
 
@@ -136,10 +142,30 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
         }
     }
 
+    // A zombie is its own weapon, so its hits are raised on it.
+    private void OnMeleeHit(Entity<WaveSpawnedTagComponent> ent, ref MeleeHitEvent args)
+    {
+        if (!_state.TryGetValue(ent, out var s))
+            return;
+
+        foreach (var hit in args.HitEntities)
+        {
+            if (HasComp<MobStateComponent>(hit))
+                continue;
+
+            _state[ent] = s with { LastStructureHit = _timing.CurTime };
+            return;
+        }
+    }
+
     // Standing at a target swinging, or queued just behind the ones that are, isn't being stuck.
     // Without this, zombies holding the CCC got teleported around and then deleted.
     private bool IsFighting(EntityUid uid, Vector2 worldPos)
     {
+        // Holding behind another wave zombie (steering's queue) is waiting a turn, not being stuck.
+        if (TryComp<NPCSteeringComponent>(uid, out var steering) && steering.QueuedUntil != TimeSpan.Zero)
+            return true;
+
         if (!TryComp<NPCMeleeCombatComponent>(uid, out var melee))
             return false;
 
@@ -221,6 +247,14 @@ public sealed partial class FSStuckRecoverySystem : EntitySystem
 
         if (s.NudgeCount >= _nudgeLimit)
         {
+            // Boxed in while breaking out: steering smashes the barricade or door in its way directly, not through
+            // melee combat, and a lone zombie on a tough barricade outlasts the nudges.
+            if (curTime - s.LastStructureHit < StructureHitGrace)
+            {
+                s = s with { LastPos = _transform.GetWorldPosition(xform), LastMoveTime = curTime, NudgeCount = 0 };
+                return;
+            }
+
             Log.Info($"Deleting wave zombie {ToPrettyString(uid)} after {s.NudgeCount} nudges.");
             QueueDel(uid);
             return;
