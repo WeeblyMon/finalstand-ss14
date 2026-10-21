@@ -348,7 +348,9 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
         if (TryComp<FSShopBoundComponent>(weapon, out var bound))
             _binding.Bind(converted, bound.OwnerMind);
 
-        QueueDel(weapon);
+        // Gone at once: a second convert message this tick would still find the old weapon, at level 0, and get
+        // another fully upgraded copy. It also frees the hand for the new one.
+        Del(weapon);
         TryGiveItemToPlayer(player, converted);
         _researchStaticGrant.Reconcile(converted);
     }
