@@ -29,7 +29,8 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
         SubscribeLocalEvent<WaveAmmoBoxComponent, ActivateInWorldEvent>(OnActivate);
         SubscribeLocalEvent<WaveAmmoBoxComponent, WaveAmmoBoxRefillDoAfterEvent>(OnRefillDoAfter);
         SubscribeLocalEvent<WaveAmmoBoxComponent, PowerChangedEvent>(OnPowerChanged);
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+        // Prep start rather than wave end: a lost CCC life replays the wave without ending it.
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     private void OnPowerChanged(EntityUid uid, WaveAmmoBoxComponent comp, ref PowerChangedEvent args)
@@ -37,7 +38,7 @@ public sealed partial class WaveAmmoBoxSystem : EntitySystem
         comp.Enabled = args.Powered;
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<WaveAmmoBoxComponent>();
         while (query.MoveNext(out _, out var comp))

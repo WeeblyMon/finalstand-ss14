@@ -82,7 +82,8 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         SubscribeLocalEvent<FSEmplacementComponent, EntityTerminatingEvent>(OnCoreTerminating);
         SubscribeLocalEvent<FSEmplacementCoverComponent, DamageModifyEvent>(OnDamageModify);
         SubscribeLocalEvent<FSEmplacementPieceComponent, DamageModifyEvent>(OnPieceDamageModify);
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+        // Prep start, so a wave replayed after a lost CCC life gets the resupply too.
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
     }
 
     private void OnPlace(Entity<FSEmplacementKitComponent> kit, ref FSPlacementConfirmedEvent args)
@@ -270,7 +271,7 @@ public sealed partial class FSEmplacementSystem : EntitySystem
         ReturnToEngineers(kit, ent.Comp.OwnerMind);
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         var query = EntityQueryEnumerator<FSEmplacementComponent>();
         var cores = new List<Entity<FSEmplacementComponent>>();

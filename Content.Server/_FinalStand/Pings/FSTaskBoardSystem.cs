@@ -64,12 +64,12 @@ public sealed partial class FSTaskBoardSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
+        SubscribeLocalEvent<WavePrepStartedEvent>(OnPrepStarted);
         SubscribeLocalEvent<PlayerAttachedEvent>(_ => _dirty = true);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
-    private void OnWaveEnded(ref WaveEndedEvent ev)
+    private void OnPrepStarted(ref WavePrepStartedEvent ev)
     {
         _autoRaised.Clear();
     }
