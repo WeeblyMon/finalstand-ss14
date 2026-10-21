@@ -45,12 +45,6 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnPlayerSpawnComplete);
     }
 
-    public override void Shutdown()
-    {
-        base.Shutdown();
-        SaveAll();
-    }
-
     public override void Update(float frameTime)
     {
         base.Update(frameTime);

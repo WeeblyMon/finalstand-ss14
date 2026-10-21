@@ -68,12 +68,15 @@ public sealed partial class FSLevelingSystem : EntitySystem
         SubscribeLocalEvent<FSPrestigeWipedEvent>(OnPrestigeWiped);
         SubscribeNetworkEvent<FSPrestigeRequestMessage>(OnPrestigeRequest);
         SubscribeNetworkEvent<FSLevelingRequestMessage>(OnLevelingRequest);
+
+        // A server stop flushes entities without shutting systems down, so this is the last point the minds exist.
+        EntityManager.BeforeEntityFlush += SaveDirty;
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
-        SaveDirty();
+        EntityManager.BeforeEntityFlush -= SaveDirty;
     }
 
     public override void Update(float frameTime)
@@ -356,20 +359,25 @@ public sealed partial class FSLevelingSystem : EntitySystem
         }
 
         if (lvl.Level > startLevel)
+        {
             AnnounceLevelUp(mindId, lvl, lvl.Level - startLevel, totalAp);
+
+            // The perk points went to the database already; save the level with them so a crash can't pay them twice.
+            if (lvl.Loaded)
+                SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
+        }
 
         MarkDirty(mindId);
     }
 
     private void AnnounceLevelUp(EntityUid mindId, FSPlayerLevelComponent lvl, int levelsGained, int totalAp)
     {
-        var name = TryComp<MindComponent>(mindId, out var mind)
-            ? mind.CharacterName ?? "Unknown"
-            : "Unknown";
-        var prestigeText = lvl.PrestigeLevel > 0 ? $" (Prestige {lvl.PrestigeLevel})" : "";
-        var suffix = levelsGained > 1 ? $" (+{levelsGained} levels)" : "";
+        var name = TryComp<MindComponent>(mindId, out var mind) && mind.CharacterName is { } characterName
+            ? characterName
+            : Loc.GetString("fs-leveling-unknown-name");
         _chatManager.DispatchServerAnnouncement(
-            $"{name} reached Level {lvl.Level}{prestigeText}!{suffix}",
+            Loc.GetString("fs-leveling-level-up", ("name", name), ("level", lvl.Level),
+                ("prestige", lvl.PrestigeLevel), ("gained", levelsGained)),
             Color.FromHex("#FFD700"));
 
         if (mind?.CurrentEntity == null) return;
@@ -449,7 +457,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
                         + stats.Kills * 100 + stats.Assists * 40 + healing * HealingScoreWeight + fortify * HealingScoreWeight + walletCredits;
 
             entries.Add(new FSLeaderboardEntry(
-                mind.CharacterName ?? "Unknown",
+                mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name"),
                 stats.Kills,
                 stats.Assists,
                 healing,
