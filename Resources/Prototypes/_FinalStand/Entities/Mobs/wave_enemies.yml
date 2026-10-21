@@ -5,6 +5,7 @@
   parent: SimpleSpaceMobBase
   id: FSZombieBase
   suffix: FinalStand
+  description: A dead body that got back up. It wants through you, and through the console behind you.
   components:
   - type: Body
   - type: BodyWoundHealing
@@ -115,6 +116,7 @@
   id: FSZombieNormal
   name: zombie
   suffix: Normal
+  description: A shambling corpse. Slow and easy to put down on its own, but it never comes alone.
   components:
   - type: FSVaporiseWeak
 
@@ -123,6 +125,7 @@
   id: FSZombieRunner
   name: runner zombie
   suffix: Runner
+  description: A lean, twitching corpse that sprints. It drops fast, but it reaches you faster.
   components:
   - type: FSVaporiseWeak
   - type: FSEnemyIcon
@@ -150,6 +153,7 @@
   id: FSZombieArmoured
   name: armoured zombie
   suffix: Armoured
+  description: A corpse crusted in plating that grows back. When it glows white, anything that hits it comes back as shrapnel.
   components:
   - type: FSMaterialDrop
     materials:
@@ -260,6 +264,7 @@
   id: FSZombieGiant
   name: giant zombie
   suffix: Giant
+  description: A towering, heavily armoured brute. Its stomp floors anyone standing too close.
   # HP scaling: ScaleEnemyHp is called explicitly in WaveGameRuleSystem.StartCombatPhase
   # when spawning boss waves, same as normal enemies. MobThresholdsComponent present via
   # inheritance from FSZombieBase → ScaleEnemyHp will apply the correct wave multiplier.
@@ -555,6 +560,7 @@
   parent: MobSyndicateFootsoldier
   id: FSMobSyndicateFootsoldier
   suffix: FinalStand
+  description: A Syndicate soldier fighting alongside the horde. Armed, and it shoots back.
   components:
   - type: HTN
     rootTask:

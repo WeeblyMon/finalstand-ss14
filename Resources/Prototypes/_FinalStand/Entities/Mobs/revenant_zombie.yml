@@ -3,6 +3,7 @@
   id: FSZombieRevenant
   name: revenant zombie
   suffix: Revenant
+  description: A corpse that drifts through walls. It hunts whoever strays from the group, strikes, then slips back out of sight.
   components:
   - type: FSSpecialZombie
   - type: FSRevenant

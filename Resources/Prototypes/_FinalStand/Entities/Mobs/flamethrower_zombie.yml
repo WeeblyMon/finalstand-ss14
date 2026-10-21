@@ -5,6 +5,7 @@
   id: FSZombieFlamethrower
   name: flamethrower zombie
   suffix: Flamethrower
+  description: A corpse rigged with a flamethrower. It plants its feet, then hoses everything in front of it with fire.
   components:
   - type: FSMaterialDrop
     materials:

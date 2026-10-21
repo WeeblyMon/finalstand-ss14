@@ -5,6 +5,7 @@
   id: FSZombieTesla
   name: tesla zombie
   suffix: Tesla
+  description: A corpse crackling with stolen current. Its lightning jumps between people standing close together.
   components:
   - type: FSMaterialDrop
     materials:

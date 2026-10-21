@@ -5,6 +5,7 @@
   id: FSZombieBloater
   name: bloater
   suffix: Bloater
+  description: A swollen corpse full of volatile gas. It bursts when it dies, so kill it well away from anyone you like.
   components:
   - type: FSMaterialDrop
     materials:

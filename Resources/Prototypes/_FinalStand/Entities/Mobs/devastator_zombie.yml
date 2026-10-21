@@ -5,6 +5,7 @@
   id: FSZombieDevastator
   name: devastator zombie
   suffix: Devastator
+  description: A hulking corpse swinging a chainsaw. The more you hurt it, the faster and harder it comes, and it shrugs off knockback and stuns.
   components:
   - type: FSSpecialZombie
   - type: FSEnemyIcon
