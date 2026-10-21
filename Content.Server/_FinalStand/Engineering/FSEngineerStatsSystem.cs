@@ -174,7 +174,7 @@ public sealed partial class FSEngineerStatsSystem : EntitySystem
                 continue;
 
             args.AddLine(Loc.GetString("fs-engineer-roundend-line",
-                ("name", mind.CharacterName ?? "Unknown"),
+                ("name", mind.CharacterName ?? Loc.GetString("fs-leveling-unknown-name")),
                 ("absorbed", (int) stats.Absorbed),
                 ("repaired", (int) stats.Repaired),
                 ("kills", stats.EquipmentKills)));
