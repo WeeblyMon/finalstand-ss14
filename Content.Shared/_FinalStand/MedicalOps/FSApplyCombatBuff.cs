@@ -3,6 +3,7 @@ using Content.Shared.EntityEffects;
 using Content.Shared.Popups;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Network;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
@@ -13,6 +14,7 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private INetManager _net = default!;
 
     private static readonly TimeSpan FlashDuration = TimeSpan.FromSeconds(2);
 
@@ -51,8 +53,12 @@ public sealed partial class FSApplyCombatBuffSystem : EntityEffectSystem<FSFrien
                 entity, entity, PopupType.Medium);
         }
 
-        _audio.PlayPvs(refreshing ? Refreshed : Landed, entity,
-            AudioParams.Default.WithVolume(refreshing ? -8f : -2f));
+        // Metabolism is predicted, so a client would replay this on every re-prediction of the dose.
+        if (_net.IsServer)
+        {
+            _audio.PlayPvs(refreshing ? Refreshed : Landed, entity,
+                AudioParams.Default.WithVolume(refreshing ? -8f : -2f));
+        }
 
         var flash = EnsureComp<FSBuffFlashComponent>(entity);
         flash.Colour = effect.Colour;
