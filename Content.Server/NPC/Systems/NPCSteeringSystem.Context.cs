@@ -415,6 +415,13 @@ public sealed partial class NPCSteeringSystem
             return;
         }
 
+        // FINALSTAND: a requested repath waits for any request already in flight, which was planned before the change.
+        if (steering.RepathRequested && !steering.Pathfind)
+        {
+            steering.RepathRequested = false;
+            needsPath = true;
+        }
+
         if (!needsPath && steering.CurrentPath.Count > 0)
         {
             needsPath = steering.CurrentPath.Count > 0 && (steering.CurrentPath.Peek().Data.Flags & PathfindingBreadcrumbFlag.Invalid) != 0x0;

@@ -58,6 +58,10 @@ public sealed partial class NPCSteeringComponent : Component
     [ViewVariables]
     public MapCoordinates PathPlannedFor = MapCoordinates.Nullspace;
 
+    // FINALSTAND: the grid changed nearby (a door opened), so plan again while still following the current path.
+    [ViewVariables]
+    public bool RepathRequested;
+
     #endregion
 
     /// <summary>

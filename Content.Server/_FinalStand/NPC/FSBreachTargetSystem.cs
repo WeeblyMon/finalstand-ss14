@@ -4,6 +4,7 @@ using Content.Server._FinalStand.Spawners;
 using Content.Server.NPC;
 using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Systems;
 using Content.Shared._FinalStand.Effects;
 using Content.Shared._FinalStand.NPC;
 using Content.Shared.GameTicking.Components;
@@ -33,6 +34,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototype = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSBreachEvaluator _evaluator = default!;
+    [Dependency] private NPCSteeringSystem _steering = default!;
 
     private const int TickBuckets = 3;
     private readonly HashSet<Entity<WaveSpawnedTagComponent>> _waveMobBuffer = new();
@@ -120,7 +122,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
                 _htn.Replan(htn);
             }
             if (TryComp<NPCSteeringComponent>(npcUid, out var steering))
-                steering.CurrentPath.Clear();
+                _steering.RequestRepath((npcUid, steering));
         }
     }
 

@@ -166,6 +166,14 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
         component.PathfindToken = null;
     }
 
+    // FINALSTAND: plans a new path without dropping the current one, so the NPC keeps moving until it arrives.
+    // Clearing the path instead stood every zombie near an opening door still until hundreds of requests drained.
+    public void RequestRepath(Entity<NPCSteeringComponent?> ent)
+    {
+        if (Resolve(ent, ref ent.Comp, false))
+            ent.Comp.RepathRequested = true;
+    }
+
     /// <summary>
     /// Adds the AI to the steering system to move towards a specific target
     /// </summary>
