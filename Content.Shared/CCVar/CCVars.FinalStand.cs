@@ -18,6 +18,10 @@ public sealed partial class CCVars
     public static readonly CVarDef<bool> FSMeleeEffects =
         CVarDef.Create("fs.melee_effects", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 
+    // The D to SSS rank meter for melee play.
+    public static readonly CVarDef<bool> FSStyleMeter =
+        CVarDef.Create("fs.style_meter", true, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     public static readonly CVarDef<bool> FSRcdHintSeen =
         CVarDef.Create("fs.rcd_hint_seen", false, CVar.CLIENTONLY | CVar.ARCHIVE);
 

@@ -27,6 +27,7 @@ public sealed partial class AccessibilityTab : Control
 
         Control.AddOptionPercentSlider(CCVars.ScreenShakeIntensity, ScreenShakeIntensitySlider);
         Control.AddOptionCheckBox(CCVars.FSMeleeEffects, MeleeEffectsCheckBox); // FINALSTAND
+        Control.AddOptionCheckBox(CCVars.FSStyleMeter, StyleMeterCheckBox); // FINALSTAND
         Control.AddOptionPercentSlider(CCVars.ChatWindowOpacity, ChatWindowOpacitySlider);
         Control.AddOptionPercentSlider(CCVars.SpeechBubbleTextOpacity, SpeechBubbleTextOpacitySlider);
         Control.AddOptionPercentSlider(CCVars.SpeechBubbleSpeakerOpacity, SpeechBubbleSpeakerOpacitySlider);

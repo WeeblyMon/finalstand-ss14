@@ -44,6 +44,9 @@
                 <CheckBox Name="MeleeEffectsCheckBox"
                     Text="{Loc 'ui-options-fs-melee-effects'}"
                     ToolTip="{Loc 'ui-options-fs-melee-effects-tooltip'}" />
+                <CheckBox Name="StyleMeterCheckBox"
+                    Text="{Loc 'ui-options-fs-style-meter'}"
+                    ToolTip="{Loc 'ui-options-fs-style-meter-tooltip'}" />
                 <ui:OptionSlider Name="ChatWindowOpacitySlider" Title="{Loc 'ui-options-chat-window-opacity'}" />
                 <ui:OptionSlider Name="SpeechBubbleTextOpacitySlider" Title="{Loc 'ui-options-speech-bubble-text-opacity'}" />
                 <ui:OptionSlider Name="SpeechBubbleSpeakerOpacitySlider" Title="{Loc 'ui-options-speech-bubble-speaker-opacity'}" />
