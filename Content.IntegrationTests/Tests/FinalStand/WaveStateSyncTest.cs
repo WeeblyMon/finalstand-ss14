@@ -2,20 +2,26 @@ using Content.IntegrationTests.Fixtures;
 using Content.Server._FinalStand.GameTicking.Rules;
 using Content.Server.GameTicking;
 using Content.Shared._FinalStand.GameTicking;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
-// The HUD reads wave state from a networked component on the rule entity, so every client has to get it.
+// The HUD reads wave state from a networked component on the rule entity, so every client has to get it. The rule
+// entity is in nullspace and only reaches clients through a global PVS override, so this runs with culling on; test
+// pairs have it off and send everything.
 [TestFixture]
 [TestOf(typeof(FSWaveStateComponent))]
 public sealed class WaveStateSyncTest : GameTest
 {
+    // Destructive: PVS is turned on for this pair, and recycling doesn't turn it back off.
     public override PoolSettings PoolSettings => new()
     {
-        Dirty = true,
+        Destructive = true,
         Connected = true,
         DummyTicker = false,
         Map = PoolManager.TestStation,
@@ -34,6 +40,20 @@ public sealed class WaveStateSyncTest : GameTest
         var ticker = sEntMan.System<GameTicker>();
         var timing = server.ResolveDependency<IGameTiming>();
         var cTiming = client.ResolveDependency<IGameTiming>();
+
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        EntityUid unseen = default;
+        await server.WaitPost(() =>
+        {
+            cfg.SetCVar(CVars.NetPVS, true);
+            unseen = sEntMan.SpawnEntity(null, MapCoordinates.Nullspace);
+        });
+        await Pair.RunTicksSync(10);
+
+        await client.WaitAssertion(() =>
+            Assert.That(cEntMan.TryGetEntity(sEntMan.GetNetEntity(unseen), out _), Is.False,
+                "a nullspace entity reached the client, so PVS isn't culling"));
 
         await server.WaitPost(() => Assert.That(ticker.StartGameRule(WaveRule, out _)));
         await Pair.RunTicksSync(10);
