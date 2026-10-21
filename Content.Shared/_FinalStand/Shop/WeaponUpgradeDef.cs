@@ -114,6 +114,9 @@ public enum WeaponUpgradeType : byte
     Multishot,
 
     ConvertWeapon,
+
+    // Extra kill money as a fraction of the kill's payout.
+    MoneyGainPercent,
 }
 
 [DataDefinition]

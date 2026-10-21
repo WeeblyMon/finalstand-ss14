@@ -11,6 +11,7 @@ using Content.Server.GameTicking;
 using Content.Server.GameTicking.Rules;
 using Content.Server.RoundEnd;
 using Content.Shared._FinalStand.GameTicking;
+using Content.Shared._FinalStand.Upgrades.Effects;
 using Content.Shared._FinalStand.WaveHud;
 using Content.Shared.Light.Components;
 using Content.Shared.GameTicking.Components;
@@ -605,7 +606,8 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
         if (args.Origin != null && _mind.TryGetMind(args.Origin.Value, out var mindId, out _))
         {
             killerMind = mindId;
-            _wallet.GiveCredits(mindId, (int) (killCredits * _archetypes.Bonus(mindId).Credits
+            var weaponBonus = TryComp<FSPendingKillBonusComponent>(ent.Owner, out var pending) ? 1f + pending.MoneyPercent : 1f;
+            _wallet.GiveCredits(mindId, (int) (killCredits * weaponBonus * _archetypes.Bonus(mindId).Credits
                 * _titleBuffs.ForMind(mindId).KillCredits));
 
             if (IsSecurityRole(mindId))

@@ -46,6 +46,11 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.MoneyGainBonus:
                 {
                     state.MoneyGainBonusPerKill += (int)def.ValuePerLevel;
+                    break;
+                }
+            case WeaponUpgradeType.MoneyGainPercent:
+                {
+                    state.MoneyGainPercentPerKill += def.ValuePerLevel;
                     if (def.Id == "knife-golden" && newLevel >= def.MaxLevel)
                     {
                         state.KnifeGolden = true;

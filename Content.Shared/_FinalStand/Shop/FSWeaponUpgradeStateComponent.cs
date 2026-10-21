@@ -14,6 +14,7 @@ public sealed partial class FSWeaponUpgradeStateComponent : Component
 
     [DataField] public int ExplosiveShotLevel = 0;
     [DataField] public int MoneyGainBonusPerKill = 0;
+    [DataField] public float MoneyGainPercentPerKill = 0f;
     [DataField] public int MoneyPerHitBonus = 0;
     [DataField] public bool SlowingEnabled = false;
     [DataField] public int BeamChainTargets = 0;

@@ -35,7 +35,7 @@
       description: "Pirate's tax: +25% money on each kill."
       maxLevel: 1
       baseCost: 5000
-      type: MoneyGainBonus
+      type: MoneyGainPercent
       valuePerLevel: 0.25
     - id: cutlass-hyper-saber
       name: Hyper Saber
