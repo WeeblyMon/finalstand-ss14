@@ -135,6 +135,12 @@ public sealed class FSPerkDef
                 ["+3 Resist/+0.2 Regen/+2% Speed", "+6/+0.4/+4%",
                  "+9/+0.6/+6%", "+12/+0.8/+8%"]),
 
+            new("Showstopper", "Showstopper",
+                "Your style rank boosts melee damage. Melee kills at S rank or higher heal you.",
+                PerkCategory.Purple,
+                Levels("+{0:0.##}% Damage per Rank / +{1:0.##} HP per Kill",
+                    i => [FSPerkBonusConstants.ShowstopperPerRankPerLevel * (i + 1) * 100f, FSPerkBonusConstants.ShowstopperHealPerLevel * (i + 1)])),
+
             new("Investor", "Investor",
                 "At the end of each wave your money gains interest.",
                 PerkCategory.Yellow,

@@ -37,6 +37,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private MovementModStatusSystem _movementStatus = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private IPrototypeManager _proto = default!;
 
     private const float WallSlamKnockback = 4f;
@@ -82,6 +83,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, targets, direction, heavy, finisher, 0, lethal, false);
+        _style.Swing(user, weapon, heavy, finisher, targets.Count);
         ApplyImpact(user, weapon, targets, profile, damage);
 
         if (profile.Pierce > 0)
@@ -208,6 +210,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         _audio.PlayPvs(WallSlamSound, body, AudioParams.Default.WithVariation(0.1f));
+        _style.Bonus(user, FSStyleSystem.CrashPoints * struck.Count, struck.Count);
         SendHit(user, launched.Weapon, struck, launched.Direction, true, false, 0, false, true);
     }
 
@@ -222,6 +225,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         foreach (var _ in _physics.IntersectRay(xform.MapID, ray, length, target, returnOnFirstHit: true))
         {
             Flinch(target, WallSlamFlinch, 0.1f);
+            _style.Bonus(user, FSStyleSystem.WallSlamPoints);
             _damageable.ChangeDamage(target, new DamageSpecifier(_proto.Index(WallSlamType), WallSlamDamage), origin: user);
             _audio.PlayPvs(WallSlamSound, target, AudioParams.Default.WithVariation(0.1f));
             return;
@@ -265,6 +269,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         }
 
         SendHit(user, weapon, pierced, direction, heavy, finisher, 0, false, true);
+        _style.Bonus(user, FSStyleSystem.PiercePoints * pierced.Count, pierced.Count);
         ApplyImpact(user, weapon, pierced, profile, damage);
     }
 
@@ -290,6 +295,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     {
         _nearby.Clear();
         _lookup.GetEntitiesInRange(center, profile.StaggerRadius, _nearby);
+        var staggered = 0;
         foreach (var mob in _nearby)
         {
             if (mob.Owner == user || targets.Contains(mob) || !CanSpill(user, center, mob, profile.StaggerRadius))
@@ -298,7 +304,10 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             var push = Xform.GetWorldPosition(mob) - center.Position;
             _knockback.Push(mob, push, profile.Knockback * 0.6f, TimeSpan.FromSeconds(profile.KnockbackDuration));
             Flinch(mob, profile.FlinchDuration, profile.FlinchSpeed);
+            staggered++;
         }
+
+        _style.Bonus(user, FSStyleSystem.StaggerPoints * Math.Min(staggered, 6));
     }
 
     // Pierces, staggers and launched bodies reach past the struck target, but not into teammates, corpses or behind walls.
@@ -320,6 +329,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
             return;
 
         var profile = Profile((hit.Weapon, juice), hit.Heavy, hit.Finisher);
+        _style.Kill(user, hit.Heavy, hit.Finisher);
         _audio.PlayPvs(profile.KillSound, args.Target, profile.KillSound?.Params.WithVariation(0.08f));
         RaiseNetworkEvent(new FSMeleeKillJuiceEvent(GetNetEntity(user), GetNetEntity(hit.Weapon), GetNetEntity(args.Target), hit.Heavy, hit.Finisher),
             Filter.Pvs(args.Target, entityManager: EntityManager));
@@ -369,6 +379,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         var profile = Profile((strike.Weapon, juice), strike.Heavy, strike.Finisher);
         _audio.PlayPvs(profile.StrikeSound, strike.Targets[0], profile.StrikeSound?.Params.WithPitchScale(1f + profile.StrikePitchStep * strike.Strike));
         SendHit(strike.User, strike.Weapon, strike.Targets, strike.Direction, strike.Heavy, strike.Finisher, strike.Strike, false, false);
+        _style.Bonus(strike.User, FSStyleSystem.StrikePoints * strike.Targets.Count, strike.Targets.Count);
         ApplyImpact(strike.User, strike.Weapon, strike.Targets, profile, strike.Damage);
     }
 }

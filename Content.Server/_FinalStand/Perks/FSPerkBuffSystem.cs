@@ -1,5 +1,6 @@
 using Content.Server._FinalStand.Economy;
 using Content.Server._FinalStand.Leveling;
+using Content.Server._FinalStand.Melee;
 using Content.Server._FinalStand.Spawners;
 using Content.Server._FinalStand.Upgrades;
 using Content.Server._FinalStand.Upgrades.Effects;
@@ -36,6 +37,7 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSCombatMedicSystem _combatMedic = default!;
     [Dependency] private FSBerserkerSystem _berserker = default!;
+    [Dependency] private FSStyleSystem _style = default!;
     [Dependency] private FSUndyingSystem _undying = default!;
     [Dependency] private FSPerkAmmoSystem _perkAmmo = default!;
 
@@ -174,5 +176,6 @@ public sealed partial class FSPerkBuffSystem : EntitySystem
 
         args.Damage *= _combatMedic.GetDamageMultiplier(mindId);
         args.Damage *= _berserker.GetMultiplier(args.User, augs, ranged: false);
+        args.Damage *= _style.ShowstopperMultiplier(args.User, augs);
     }
 }
