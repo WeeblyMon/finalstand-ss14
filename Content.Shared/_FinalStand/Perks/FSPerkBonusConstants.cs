@@ -96,7 +96,7 @@ public static class FSPerkBonusConstants
     public const float BulwarkRepairPerKillPerLevel = 0.005f;
     public const float BulwarkTauntRadius = 4f;
     public const float BeaconOfLightHealPerLevel = 0.25f;
-    public const float MedievalistMeleePerLevel = 0.20f;
+    public const float MedievalistMeleePerLevel = 0.15f;
     public const float MedievalistResistPerLevel = 0.10f;
     public const float SlushFundPerLevel = 0.05f;
     public const float DrunkenBerserkerPerLevel = 0.10f;

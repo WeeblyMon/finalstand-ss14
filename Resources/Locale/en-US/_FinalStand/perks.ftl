@@ -67,3 +67,4 @@ fs-archetype-specialist-keystone = +8% damage and credits, +5% speed, 8% less da
 
 fs-medievalist-no-guns = Your oath forbids firearms.
 fs-perk-locked = That perk is locked in until the round ends.
+fs-medievalist-no-armour = Your oath forbids armour.

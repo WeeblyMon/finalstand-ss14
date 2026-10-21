@@ -401,7 +401,7 @@ public sealed class FSPerkDef
                     i => [FSPerkBonusConstants.BeaconOfLightRadius[i], FSPerkBonusConstants.BeaconOfLightHealPerLevel * (i + 1)])),
 
             new("Medievalist", "Medievalist",
-                "No guns, HMGs or mech weapons. Big melee damage and toughness. Locks in at wave start.",
+                "No guns or armour. Big melee damage and toughness. Locks in at wave start.",
                 PerkCategory.Purple,
                 Pct("+{0}% Melee Damage / +{1} Resistance", FSPerkBonusConstants.MedievalistMeleePerLevel,
                     FSPerkBonusConstants.MedievalistResistPerLevel)),
