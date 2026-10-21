@@ -2,12 +2,12 @@ using Content.Shared._FinalStand.FriendlyFire;
 using Content.Shared._FinalStand.Medical;
 using Content.Shared._Shitmed.Medical.Surgery.Wounds.Systems;
 using Content.Shared.EntityEffects;
-using Robust.Shared.GameStates;
 using Robust.Shared.Timing;
 
 namespace Content.Shared._FinalStand.MedicalOps;
 
-[RegisterComponent, NetworkedComponent]
+// Only the server reads it.
+[RegisterComponent]
 public sealed partial class FSArmorPiercingComponent : Component
 {
     [DataField]
