@@ -247,6 +247,12 @@ public sealed partial class FSMediGunSystem : EntitySystem
         if (_useDelay.IsDelayed(uid) || !_whitelist.IsWhitelistPass(comp.HealAbleWhitelist, target))
             return;
 
+        // The click assist picks anyone near the cursor; a link the beam can't reach would only break next tick.
+        var userPos = _xform.GetMapCoordinates(args.User);
+        var targetPos = _xform.GetMapCoordinates(target);
+        if (userPos.MapId != targetPos.MapId || (userPos.Position - targetPos.Position).Length() > comp.MaxRange)
+            return;
+
         if (comp.HealedEntities.Contains(target))
         {
             DisableConnection(ent, target);
@@ -344,6 +350,9 @@ public sealed partial class FSMediGunSystem : EntitySystem
 
     private void Unlink(EntityUid patient, EntityUid gun)
     {
+        if (TryComp<FSMediGunComponent>(gun, out var gunComp))
+            _uber.Uncover((gun, gunComp), patient);
+
         if (!TryComp<FSMediGunHealedComponent>(patient, out var healed))
             return;
 

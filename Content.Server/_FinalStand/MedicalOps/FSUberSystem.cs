@@ -20,6 +20,9 @@ public sealed partial class FSUberSystem : EntitySystem
 
     public const float FullCharge = 100f;
 
+    // How long a dropped patient stays covered, so a beam that flickers off and back doesn't strip it.
+    private static readonly TimeSpan LinkLossGrace = TimeSpan.FromSeconds(0.5);
+
     private static readonly SoundSpecifier ReadySound = new SoundPathSpecifier("/Audio/Machines/high_tech_confirm.ogg");
     private static readonly SoundSpecifier DeploySound = new SoundPathSpecifier("/Audio/Effects/teleport_departure.ogg");
     private static readonly SoundSpecifier EndSound = new SoundPathSpecifier("/Audio/Machines/button.ogg");
@@ -76,7 +79,16 @@ public sealed partial class FSUberSystem : EntitySystem
         if (gun.Comp.UberEndTime is not { } end)
             return;
 
-        _uberShared.Cover(patient, end, gun.Comp.UberDuration, gun.Comp.BeamColor, gun.Comp.UberInfiniteStamina);
+        _uberShared.Cover(patient, gun, end, gun.Comp.UberDuration, gun.Comp.BeamColor, gun.Comp.UberInfiniteStamina);
+    }
+
+    // A patient keeps the cover only while the beam holds them, so one uber can't be passed round the whole crew.
+    public void Uncover(Entity<FSMediGunComponent> gun, EntityUid patient)
+    {
+        if (patient == gun.Comp.ParentEntity)
+            return;
+
+        _uberShared.EndCover(patient, gun, _timing.CurTime + LinkLossGrace);
     }
 
     private void OnUberAction(Entity<FSMediGunComponent> ent, ref FSMediGunUberActionEvent args)

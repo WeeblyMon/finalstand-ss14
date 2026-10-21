@@ -21,6 +21,10 @@ public sealed partial class FSUberedComponent : Component
 
     [ViewVariables]
     public TimeSpan NextTing;
+
+    // The gun whose beam gave this cover; it ends when that gun lets go of the patient.
+    [ViewVariables]
+    public EntityUid? Source;
 }
 
 [Serializable, NetSerializable]
