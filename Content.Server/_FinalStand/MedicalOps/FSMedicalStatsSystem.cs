@@ -94,7 +94,8 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             OnPatientDamageChanged, after: [typeof(BodyDamageRouterSystem)]);
         SubscribeLocalEvent<FSMedicalPatientComponent, MobStateChangedEvent>(OnPatientMobStateChanged);
 
-        SubscribeLocalEvent<FSSurgeryCompletedEvent>(OnSurgeryCompleted);
+        // Raised on the patient; only players' bodies carry the patient component, so corpses and NPCs don't pay.
+        SubscribeLocalEvent<FSMedicalPatientComponent, FSSurgeryCompletedEvent>(OnSurgeryCompleted);
         SubscribeLocalEvent<FSMedicalPatientComponent, FSTopicalAppliedEvent>(OnTopicalApplied);
 
         SubscribeLocalEvent<WaveEndedEvent>(OnWaveEnded);
@@ -238,7 +239,7 @@ public sealed partial class FSMedicalStatsSystem : EntitySystem
             fund: points * FSMedicalPayoutRates.SupplierFundPerPoint);
     }
 
-    private void OnSurgeryCompleted(ref FSSurgeryCompletedEvent args)
+    private void OnSurgeryCompleted(EntityUid uid, FSMedicalPatientComponent comp, ref FSSurgeryCompletedEvent args)
     {
         if (args.Surgeon == args.Patient || !TryGetPlayerMind(args.Surgeon, out var surgeonMind))
             return;
