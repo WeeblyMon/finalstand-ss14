@@ -114,7 +114,7 @@ public sealed partial class MeleeWeaponSystem
             _fsJuice.TrackTrail(animationUid, user, juice, length + anticipation + hold);
             _fsJuice.PlaySwingEffect(user, juice);
             if (_fsJuice.GetStyle(weapon, juiceHeavy) != FSMeleeHeavyStyle.Spin)
-                _fsJuice.PlaySlash(user, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft, anticipation + _fsJuice.StrikeDelay(weapon, juiceHeavy, length));
+                _fsJuice.PlaySlash(user, weapon, juiceHeavy, juice, localPos.ToWorldAngle(), (TransformSystem.GetWorldRotation(userXform) - userXform.LocalRotation).RotateVec(localPos), TryComp(weapon, out MeleeWeaponComponent? swingMelee) && swingMelee.SwingLeft, anticipation, length);
         }
     }
 

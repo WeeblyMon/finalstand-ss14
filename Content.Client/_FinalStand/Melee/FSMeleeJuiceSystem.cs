@@ -20,6 +20,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Client._FinalStand.Melee;
@@ -70,7 +71,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
 
     private readonly List<PendingImpact> _impacts = new();
 
-    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, Vector2 Direction, bool Mirror);
+    private readonly record struct PendingSlash(float Due, EntityUid User, FSMeleeJuiceProfile Profile, Angle Rotation, Vector2 Direction, bool Mirror, bool Visible, SoundSpecifier? Sound);
 
     private readonly record struct ActiveSlash(EntityUid Effect, EntityUid User, FSMeleeJuiceProfile Profile, Vector2 Direction, bool Mirror, float Start);
 
@@ -274,10 +275,23 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         EnsureComp<TrackUserComponent>(effect).User = user;
     }
 
-    public void PlaySlash(EntityUid user, FSMeleeJuiceProfile profile, Angle rotation, Vector2 direction, bool mirror, float delay)
+    public void PlaySlash(EntityUid user, EntityUid weapon, bool heavy, FSMeleeJuiceProfile profile, Angle rotation, Vector2 direction, bool mirror, float anticipation, float length)
     {
-        if (profile.SlashEffect != null && direction != Vector2.Zero && _cfg.GetCVar(CCVars.FSMeleeEffects))
-            _slashes.Add(new PendingSlash(RealTime + delay, user, profile, rotation, direction.Normalized(), mirror));
+        if (direction == Vector2.Zero)
+            return;
+
+        var visible = profile.SlashEffect != null && _cfg.GetCVar(CCVars.FSMeleeEffects);
+        var sound = LandingSound(weapon, heavy);
+        if (visible || sound != null)
+            _slashes.Add(new PendingSlash(RealTime + anticipation + StrikeDelay(weapon, heavy, length), user, profile, rotation, direction.Normalized(), mirror, visible, sound));
+    }
+
+    // A fully charged slam booms where it lands, hit or miss.
+    private SoundSpecifier? LandingSound(EntityUid weapon, bool heavy)
+    {
+        return GetStyle(weapon, heavy) == FSMeleeHeavyStyle.Slam && TryComp<FSMeleeChargeComponent>(weapon, out var charge) && charge.WasFull
+            ? charge.FullLandSound
+            : null;
     }
 
     private void SpawnSlash(PendingSlash slash)
@@ -285,8 +299,14 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
         if (TerminatingOrDeleted(slash.User))
             return;
 
-        var origin = Xform.GetMapCoordinates(slash.User);
-        var effect = Spawn(slash.Profile.SlashEffect, origin.Offset(slash.Direction * slash.Profile.SlashOffset));
+        var at = Xform.GetMapCoordinates(slash.User).Offset(slash.Direction * slash.Profile.SlashOffset);
+        if (slash.Sound != null)
+            _audio.PlayStatic(slash.Sound, Filter.Local(), Xform.ToCoordinates(at), true, slash.Sound.Params);
+
+        if (!slash.Visible)
+            return;
+
+        var effect = Spawn(slash.Profile.SlashEffect, at);
         if (!TryComp<SpriteComponent>(effect, out var sprite))
             return;
 
@@ -446,7 +466,7 @@ public sealed partial class FSMeleeJuiceSystem : SharedFSMeleeJuiceSystem
     }
 
     // Seconds after the anticipation until the swing reaches its target.
-    public float StrikeDelay(EntityUid weapon, bool heavy, float length)
+    private float StrikeDelay(EntityUid weapon, bool heavy, float length)
     {
         return GetStyle(weapon, heavy) == FSMeleeHeavyStyle.Slam ? length * SlamSmash : 0f;
     }

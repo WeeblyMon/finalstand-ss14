@@ -19,6 +19,10 @@
       params:
         volume: -2
         pitch: 0.85
+    fullLandSound:
+      path: /Audio/_FinalStand/Melee/slam_full.ogg
+      params:
+        volume: 3
   - type: FSMeleeJuice # FINALSTAND
     heavyStyle: Slam
     heavyRecovery: 1.2

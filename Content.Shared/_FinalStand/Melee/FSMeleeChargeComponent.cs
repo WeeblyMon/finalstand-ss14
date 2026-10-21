@@ -35,6 +35,10 @@ public sealed partial class FSMeleeChargeComponent : Component
     [DataField]
     public SoundSpecifier? FullHitSound;
 
+    // Played where a fully charged slam lands, in time with its impact, hit or miss.
+    [DataField]
+    public SoundSpecifier? FullLandSound;
+
     [AutoNetworkedField]
     public TimeSpan? ChargeStart;
 
