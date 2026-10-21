@@ -7,6 +7,8 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Content.Shared.Movement.Systems;
 using Robust.Server.Player;
+using Robust.Shared.Enums;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -22,8 +24,13 @@ public sealed partial class FSPerkSystem : EntitySystem
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private FSPerkShopAccessSystem _shopAccess = default!;
 
-    private readonly Dictionary<ICommonSession, TimeSpan> _stateRequestCooldown = new();
+    private readonly Dictionary<NetUserId, TimeSpan> _stateRequestCooldown = new();
     private static readonly TimeSpan StateRequestInterval = TimeSpan.FromSeconds(1);
+
+    // Every perk change is a database write. A burst covers fast clicking, then one change per interval.
+    private const int MutationBurst = 8;
+    private static readonly TimeSpan MutationInterval = TimeSpan.FromSeconds(0.25);
+    private readonly Dictionary<NetUserId, TimeSpan> _mutationHorizon = new();
 
     public override void Initialize()
     {
@@ -39,6 +46,24 @@ public sealed partial class FSPerkSystem : EntitySystem
         SubscribeNetworkEvent<FSSaveLoadoutMessage>(OnSaveLoadout);
         SubscribeNetworkEvent<FSLoadLoadoutMessage>(OnLoadLoadout);
         SubscribeNetworkEvent<FSRespecPerkMessage>(OnRespec);
+
+        _playerManager.PlayerStatusChanged += OnPlayerStatusChanged;
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _playerManager.PlayerStatusChanged -= OnPlayerStatusChanged;
+    }
+
+    // Lobby sessions never detach, and a new connection is a new session; drop the throttles with the connection.
+    private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
+    {
+        if (args.NewStatus != SessionStatus.Disconnected)
+            return;
+
+        _stateRequestCooldown.Remove(args.Session.UserId);
+        _mutationHorizon.Remove(args.Session.UserId);
     }
 
     private void OnPlayerAttached(PlayerAttachedEvent ev)
@@ -108,12 +133,9 @@ public sealed partial class FSPerkSystem : EntitySystem
 
     private void OnPlayerDetached(PlayerDetachedEvent ev)
     {
-        if (!_mind.TryGetMind(ev.Entity, out var mindId, out var mind)) return;
+        _stateRequestCooldown.Remove(ev.Player.UserId);
 
-        if (mind?.UserId != null &&
-            _playerManager.TryGetSessionById(mind.UserId.Value, out var session))
-            _stateRequestCooldown.Remove(session);
-
+        if (!_mind.TryGetMind(ev.Entity, out var mindId, out _)) return;
         if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks)) return;
         SaveToDb(mindId, perks);
     }
@@ -121,10 +143,10 @@ public sealed partial class FSPerkSystem : EntitySystem
     private void OnStateRequested(FSPerkStateRequestMessage msg, EntitySessionEventArgs args)
     {
         var now = _timing.CurTime;
-        if (_stateRequestCooldown.TryGetValue(args.SenderSession, out var last) &&
+        if (_stateRequestCooldown.TryGetValue(args.SenderSession.UserId, out var last) &&
             now - last < StateRequestInterval)
             return;
-        _stateRequestCooldown[args.SenderSession] = now;
+        _stateRequestCooldown[args.SenderSession.UserId] = now;
 
         if (_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? mind))
         {
@@ -155,7 +177,6 @@ public sealed partial class FSPerkSystem : EntitySystem
         }
 
         var session = args.SenderSession;
-        var available = GetPerkPoints(session);
 
         DispatchPerkMutation(session, perks =>
         {
@@ -164,7 +185,7 @@ public sealed partial class FSPerkSystem : EntitySystem
                 return false;
 
             var cost = FSPerkDef.CostForUpgrade(currentLevel);
-            if (available < cost)
+            if (GetPerkPoints(session) < cost)
                 return false;
 
             // GivePerkPoints bridges lobby/in-round, so this call is correct either way.
@@ -209,8 +230,8 @@ public sealed partial class FSPerkSystem : EntitySystem
 
         DispatchPerkMutation(args.SenderSession, perks =>
         {
-            // An empty build would silently erase the saved loadout.
-            if (perks.Levels.Count == 0)
+            // An empty build would silently erase the saved loadout; an unchanged one is a wasted write.
+            if (perks.Levels.Count == 0 || MatchesBuild(perks, perks.Loadouts[msg.LoadoutIndex]))
                 return false;
 
             var loadout = new FSPerkLoadout { Levels = new Dictionary<string, int>(perks.Levels) };
@@ -227,17 +248,16 @@ public sealed partial class FSPerkSystem : EntitySystem
         if (msg.LoadoutIndex < 0 || msg.LoadoutIndex >= 3) return;
 
         var session = args.SenderSession;
-        var points = GetPerkPoints(session);
 
         DispatchPerkMutation(session, perks =>
         {
             var src = perks.Loadouts[msg.LoadoutIndex];
-            if (src.IsEmpty)
+            if (src.IsEmpty || MatchesBuild(perks, src))
                 return false;
 
             var refund = CalcRefund(perks);
             var cost = CalcCost(src.Levels);
-            if (points + refund < cost)
+            if (GetPerkPoints(session) + refund < cost)
                 return false;
 
             _wallet.GivePerkPoints(session, refund - cost);
@@ -276,6 +296,20 @@ public sealed partial class FSPerkSystem : EntitySystem
 
     private static int CalcRefund(FSPerkLevelsComponent perks) => CalcCost(perks.Levels);
 
+    private static bool MatchesBuild(FSPerkLevelsComponent perks, FSPerkLoadout loadout)
+    {
+        if (perks.Levels.Count != loadout.Levels.Count || !perks.Slots.SequenceEqual(loadout.Slots))
+            return false;
+
+        foreach (var (id, level) in perks.Levels)
+        {
+            if (loadout.Levels.GetValueOrDefault(id) != level)
+                return false;
+        }
+
+        return true;
+    }
+
     private static int CalcCost(Dictionary<string, int> levels)
     {
         var total = 0;
@@ -285,8 +319,23 @@ public sealed partial class FSPerkSystem : EntitySystem
         return total;
     }
 
+    // Each accepted change pushes the user's horizon out one interval; once it's a full burst ahead, changes wait.
+    private bool TryTakeMutation(NetUserId user)
+    {
+        var now = _timing.CurTime;
+        var horizon = _mutationHorizon.TryGetValue(user, out var stored) && stored > now ? stored : now;
+        if (horizon - now >= MutationInterval * MutationBurst)
+            return false;
+
+        _mutationHorizon[user] = horizon + MutationInterval;
+        return true;
+    }
+
     private void DispatchPerkMutation(ICommonSession session, Func<FSPerkLevelsComponent, bool> mutate)
     {
+        if (!TryTakeMutation(session.UserId))
+            return;
+
         if (session.AttachedEntity is { } attached && !_shopAccess.CanUse(attached))
             return;
 
