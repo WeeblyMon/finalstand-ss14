@@ -101,8 +101,8 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         var mag = slot.Item;
         if (mag == null || !TryComp<BallisticAmmoProviderComponent>(mag.Value, out var bal))
             return;
-        ResizeMagazine(bal, bonus);
         var upgraded = EnsureComp<FSMagUpgradedComponent>(mag.Value);
+        ResizeMagazine(bal, upgraded, bonus);
         upgraded.AppliedBonus += bonus;
         Dirty(mag.Value, bal);
     }
@@ -116,7 +116,7 @@ public sealed partial class FSPlayerUpgradesSystem : EntitySystem
         var diff = state.MagazineSizeBonus - upgraded.AppliedBonus;
         if (diff != 0)
         {
-            ResizeMagazine(bal, diff);
+            ResizeMagazine(bal, upgraded, diff);
             upgraded.AppliedBonus = state.MagazineSizeBonus;
             Dirty(args.Entity, bal);
         }
