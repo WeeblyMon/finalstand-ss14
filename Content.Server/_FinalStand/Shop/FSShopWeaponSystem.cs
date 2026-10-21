@@ -471,7 +471,7 @@ public sealed partial class FSShopWeaponSystem : EntitySystem
 
         QueueDel(weapon);
         CleanupAmmoForWeapon(player, comp, ws);
-        _wallet.GiveCredits(mindId, totalRefund);
+        _wallet.AddCredits(mindId, totalRefund);
 
         _popup.PopupEntity(Loc.GetString("fs-weapon-shop-sold-for", ("amount", totalRefund.ToString("N0"))), shopUid, player);
         SendSellResponse(userId, success: true, "");

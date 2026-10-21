@@ -84,13 +84,13 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!ApplyArmorToMob(player, tier))
         {
             if (netCost > 0)
-                _wallet.GiveCredits(mindId, netCost);
+                _wallet.AddCredits(mindId, netCost);
             return;
         }
 
         // A step down refunds the difference.
         if (netCost < 0)
-            _wallet.GiveCredits(mindId, -netCost);
+            _wallet.AddCredits(mindId, -netCost);
 
         var from = old?.ID ?? "none";
         _adminLogger.Add(netCost >= 0 ? LogType.StorePurchase : LogType.StoreRefund, LogImpact.Low,

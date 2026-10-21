@@ -218,7 +218,7 @@ public sealed partial class FSCashTransferSystem : EntitySystem
             return;
         }
 
-        _wallet.GiveCredits(targetMindId, args.Amount);
+        _wallet.AddCredits(targetMindId, args.Amount);
 
         _adminLogger.Add(
             LogType.StorePurchase,

@@ -213,11 +213,10 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         return true;
     }
 
+    // Earnings: kills, payouts, perks. These count towards the wave report's EARNED.
     public void GiveCredits(EntityUid mindId, int amount)
     {
-        var wallet = GetWallet(mindId);
-        wallet.Credits += amount;
-        MarkWalletDirty(mindId);
+        AddCredits(mindId, amount);
         if (amount <= 0)
             return;
 
@@ -225,9 +224,17 @@ public sealed partial class FSPlayerWalletSystem : EntitySystem
         RaiseLocalEvent(mindId, ref ev);
     }
 
+    // Credits that aren't earnings: refunds, sell-backs and transfers between players.
+    public void AddCredits(EntityUid mindId, int amount)
+    {
+        var wallet = GetWallet(mindId);
+        wallet.Credits += amount;
+        MarkWalletDirty(mindId);
+    }
+
     public bool TryDeductCredits(EntityUid mindId, int amount)
     {
-        // A negative charge would quietly pay out; callers refund through GiveCredits.
+        // A negative charge would quietly pay out; callers refund through AddCredits.
         if (amount < 0 || !TryComp<FSPlayerWalletComponent>(mindId, out var wallet) || wallet.Credits < amount)
             return false;
         wallet.Credits -= amount;
