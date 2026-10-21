@@ -98,23 +98,34 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         }
     }
 
-    private T TryRead<T>(string what, Func<T> read, T fallback)
+    // False only when the read itself failed (a locked file, an I/O error), as opposed to there being no row yet.
+    // Whoever loads data to save back later must not save after a failed read: the fallback would replace the row.
+    // With no database at all nothing is ever saved, so the fallback is safe to use as loaded.
+    private bool TryRead<T>(string what, Func<T> read, T fallback, out T value)
     {
+        value = fallback;
         if (_db == null)
         {
             Log.Error($"{what}: database is not open");
-            return fallback;
+            return true;
         }
 
         try
         {
-            return read();
+            value = read();
+            return true;
         }
         catch (Exception e)
         {
             Log.Error($"{what} failed: {e.Message}");
-            return fallback;
+            return false;
         }
+    }
+
+    private T TryRead<T>(string what, Func<T> read, T fallback)
+    {
+        TryRead(what, read, fallback, out var value);
+        return value;
     }
 
     private bool DbReady(string what)
@@ -369,8 +380,14 @@ public sealed partial class FSPlayerDataStore : EntitySystem
         catch { return fallback; }
     }
 
+    private static readonly FullRecord EmptyRecord = new(0, 1, 0, 0, "{}");
+
+    // For display. Anything that saves the record back loads it with TryGetFullRecord.
     public FullRecord GetFullRecord(Guid userId)
-        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), new FullRecord(0, 1, 0, 0, "{}"));
+        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord);
+
+    public bool TryGetFullRecord(Guid userId, out FullRecord record)
+        => TryRead($"record load for {userId}", () => GetFullRecordCore(userId), EmptyRecord, out record);
 
     private FullRecord GetFullRecordCore(Guid userId)
     {
@@ -394,6 +411,9 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
     public int GetPerkPoints(Guid userId)
         => TryRead($"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0);
+
+    public bool TryGetPerkPoints(Guid userId, out int perkPoints)
+        => TryRead($"perk-point load for {userId}", () => GetPerkPointsCore(userId), 0, out perkPoints);
 
     private int GetPerkPointsCore(Guid userId)
     {
@@ -454,6 +474,9 @@ public sealed partial class FSPlayerDataStore : EntitySystem
 
     public (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadout(Guid userId)
         => TryRead($"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""));
+
+    public bool TryLoadPerkLoadout(Guid userId, out (string LevelsJson, string SlotsJson, string LoadoutsJson) loadout)
+        => TryRead($"perk-loadout load for {userId}", () => LoadPerkLoadoutCore(userId), ("", "", ""), out loadout);
 
     private (string LevelsJson, string SlotsJson, string LoadoutsJson) LoadPerkLoadoutCore(Guid userId)
     {

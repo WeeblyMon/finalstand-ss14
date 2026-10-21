@@ -79,9 +79,7 @@ public sealed partial class FSPerkSystem : EntitySystem
             return;
         }
 
-        var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-        var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
-        DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
+        var perks = LoadPerks(mindId, mind.UserId.Value.UserId);
         Log.Debug($"OnPlayerAttached: added FSPerkLevelsComponent to mind={mindId} for entity={ev.Entity}");
 
         SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
@@ -120,11 +118,9 @@ public sealed partial class FSPerkSystem : EntitySystem
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out var mind) || mind.UserId == null)
             return;
 
-        if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks))
+        if (!TryComp<FSPerkLevelsComponent>(mindId, out var perks) || !perks.Loaded)
         {
-            var (levelsJson, slotsJson, loadoutsJson) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-            perks = EnsureComp<FSPerkLevelsComponent>(mindId);
-            DeserializeInto(perks, levelsJson, slotsJson, loadoutsJson);
+            perks = LoadPerks(mindId, mind.UserId.Value.UserId);
             SendStateToClient(mindId, perks, mind.UserId.Value.UserId);
         }
 
@@ -343,7 +339,8 @@ public sealed partial class FSPerkSystem : EntitySystem
         {
             // In-round path: operate on the ECS component, creating it lazily if OnPlayerAttached missed it.
             var perks = EnsurePerkComponent(mindId, mind);
-            if (perks == null) return;
+            // A build that couldn't be read can't be saved, and a purchase would still spend the perk points.
+            if (perks is not { Loaded: true }) return;
             if (!mutate(perks)) return;
             perks.Invalidate();
             SaveToDb(mindId, perks);
@@ -356,9 +353,13 @@ public sealed partial class FSPerkSystem : EntitySystem
             return;
         }
 
-        // Lobby path: no mind yet, so operate on the DB directly.
+        // Lobby path: no mind yet, so operate on the DB directly. A failed read would save the change over an
+        // empty build.
         var userId = session.UserId.UserId;
-        var (lj, sj, oj) = _store.LoadPerkLoadout(userId);
+        if (!_store.TryLoadPerkLoadout(userId, out var lobbyLoadout))
+            return;
+
+        var (lj, sj, oj) = lobbyLoadout;
         var lobbyPerks = new FSPerkLevelsComponent();
         DeserializeInto(lobbyPerks, lj, sj, oj);
 
@@ -377,22 +378,32 @@ public sealed partial class FSPerkSystem : EntitySystem
     // Returns null if the mind has no UserId (can't load data).
     private FSPerkLevelsComponent? EnsurePerkComponent(EntityUid mindId, MindComponent? mind)
     {
-        if (TryComp<FSPerkLevelsComponent>(mindId, out var existing))
+        if (TryComp<FSPerkLevelsComponent>(mindId, out var existing) && existing.Loaded)
             return existing;
 
         if (mind?.UserId == null)
-            return null;
+            return existing;
 
-        var (lj, sj, oj) = _store.LoadPerkLoadout(mind.UserId.Value.UserId);
-        var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
-        DeserializeInto(perks, lj, sj, oj);
+        var perks = LoadPerks(mindId, mind.UserId.Value.UserId);
         Log.Debug($"EnsurePerkComponent: lazily created FSPerkLevelsComponent on mind={mindId}");
+        return perks;
+    }
+
+    // Reads the saved build into the mind's perks. A failed read leaves whatever the component already had.
+    private FSPerkLevelsComponent LoadPerks(EntityUid mindId, Guid userId)
+    {
+        var perks = EnsureComp<FSPerkLevelsComponent>(mindId);
+        if (!_store.TryLoadPerkLoadout(userId, out var loadout))
+            return perks;
+
+        DeserializeInto(perks, loadout.LevelsJson, loadout.SlotsJson, loadout.LoadoutsJson);
+        perks.Loaded = true;
         return perks;
     }
 
     private void SaveToDb(EntityUid mindId, FSPerkLevelsComponent perks)
     {
-        if (!TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
+        if (!perks.Loaded || !TryComp<MindComponent>(mindId, out var mind) || mind.UserId == null)
             return;
 
         _store.SaveLoadoutJson(mind.UserId.Value.UserId,

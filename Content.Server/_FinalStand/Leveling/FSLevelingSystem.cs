@@ -211,7 +211,10 @@ public sealed partial class FSLevelingSystem : EntitySystem
             return;
         }
 
-        var row = _store.GetFullRecord(ev.Player.UserId.UserId);
+        // Left unloaded if the read fails: nothing is earned or saved until a later spawn reads it.
+        if (!_store.TryGetFullRecord(ev.Player.UserId.UserId, out var row))
+            return;
+
         lvl.Level         = row.Level;
         lvl.Experience    = row.Experience;
         lvl.XpToNextLevel = XpToNextLevel(row.Level);
@@ -241,7 +244,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
     {
         if (!_mind.TryGetMind(ev.Entity, out var mindId, out _))
             return;
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl) || !lvl.Loaded)
             return;
 
         SaveLeveling(mindId, lvl.Level, lvl.Experience, lvl.PrestigeLevel);
@@ -331,8 +334,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
             return;
         _lastLobbyPrestige[session.UserId] = now;
 
-        var record = _store.GetFullRecord(session.UserId.UserId);
-        if (record.Level < PrestigeThreshold)
+        if (!_store.TryGetFullRecord(session.UserId.UserId, out var record) || record.Level < PrestigeThreshold)
             return;
 
         var prestige = record.PrestigeLevel + 1;
@@ -370,7 +372,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
             mindId = playerEntity;
         }
 
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+        // An unloaded level is level 1 here, so levelling it would pay out perk points the player already had.
+        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl) || !lvl.Loaded)
             return;
 
         var amount = (int)(rawAmount * lvl.XpMultiplier);

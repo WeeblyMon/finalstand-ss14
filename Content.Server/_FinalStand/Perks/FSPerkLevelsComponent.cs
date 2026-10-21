@@ -9,6 +9,9 @@ public sealed partial class FSPerkLevelsComponent : Component
     public string[] Slots { get; set; } = new string[FSPerkDef.SlotCount];
     public FSPerkLoadout[] Loadouts { get; set; } = new FSPerkLoadout[3];
 
+    // Set once the saved build has been read. Until then nothing is saved, so a failed read can't wipe the row.
+    public bool Loaded;
+
     public FSPerkLevelsComponent()
     {
         for (var i = 0; i < FSPerkDef.SlotCount; i++)
