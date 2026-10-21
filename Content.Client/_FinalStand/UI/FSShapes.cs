@@ -129,20 +129,42 @@ public static class FSShapes
         }
     }
 
-    private static readonly Dictionary<string, (Texture Texture, Vector2 Offset)> Baked = new();
+    private enum ShapeKind : byte
+    {
+        Arc,
+        Slanted,
+        Diamond,
+    }
+
+    // The rounded sizes as ints, so a draw of a shape already baked allocates nothing. Everything needed to bake one
+    // is only built on a miss.
+    private readonly record struct ShapeKey(ShapeKind Kind, int A, int B, int C = 0, int D = 0, int E = 0);
+
+    private static readonly Dictionary<ShapeKey, (Texture Texture, Vector2 Offset)> Baked = new();
 
     public static void Arc(DrawingHandleScreen handle, Vector2 center, float radius, float width, float startDeg, float endDeg, Color color)
     {
+        if (color.A <= 0f)
+            return;
+
         var scale = Snap(ref radius);
-        var r = MathF.Round(radius * 2f) / 2f;
-        var w = MathF.Round(width / scale * 4f) / 4f;
-        var s = MathF.Round(startDeg * 2f) / 2f;
-        var e = MathF.Round(endDeg * 2f) / 2f;
+        var r2 = (int) MathF.Round(radius * 2f);
+        var w4 = (int) MathF.Round(width / scale * 4f);
+        var s2 = (int) MathF.Round(startDeg * 2f);
+        var e2 = (int) MathF.Round(endDeg * 2f);
+        var key = new ShapeKey(ShapeKind.Arc, r2, w4, s2, e2);
+        if (!TryGetBaked(key, out var baked))
+            baked = Store(key, BakeArc(r2 / 2f, w4 / 4f, s2 / 2f, e2 / 2f));
+
+        DrawBaked(handle, center, color, baked, scale);
+    }
+
+    private static (Texture, Vector2) BakeArc(float r, float w, float s, float e)
+    {
         var lo = MathF.Min(s, e) * MathF.PI / 180f;
         var hi = MathF.Max(s, e) * MathF.PI / 180f;
-        var key = $"arc|{r}|{w}|{s}|{e}";
         var side = (int) MathF.Ceiling(r * 2f) + 4;
-        DrawBaked(handle, center, color, key, side, side, (x, y) =>
+        return Bake(side, side, (x, y) =>
         {
             var d = MathF.Sqrt(x * x + y * y);
             if (d > r || d < r - w)
@@ -151,23 +173,21 @@ public static class FSShapes
             while (a < lo) a += MathF.Tau;
             while (a > lo + MathF.Tau) a -= MathF.Tau;
             return a <= hi;
-        }, trim: true, scale: scale, region: ArcRegion(side, r, w, lo, hi));
+        }, trim: true, region: ArcRegion(side, r, w, lo, hi));
     }
 
     // The pixel box an arc can touch, so baking skips the empty rest of its circle.
     private static (int MinX, int MinY, int MaxX, int MaxY) ArcRegion(int side, float r, float w, float lo, float hi)
     {
         float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
+        var inner = r - w;
         var steps = Math.Max(2, (int) MathF.Ceiling((hi - lo) / 0.02f));
         for (var i = 0; i <= steps; i++)
         {
             var a = lo + (hi - lo) * i / steps;
-            var dir = new Vector2(MathF.Cos(a), MathF.Sin(a));
-            foreach (var d in new[] { r, r - w })
-            {
-                minX = MathF.Min(minX, dir.X * d); maxX = MathF.Max(maxX, dir.X * d);
-                minY = MathF.Min(minY, dir.Y * d); maxY = MathF.Max(maxY, dir.Y * d);
-            }
+            var (sin, cos) = MathF.SinCos(a);
+            minX = MathF.Min(minX, MathF.Min(cos * r, cos * inner)); maxX = MathF.Max(maxX, MathF.Max(cos * r, cos * inner));
+            minY = MathF.Min(minY, MathF.Min(sin * r, sin * inner)); maxY = MathF.Max(maxY, MathF.Max(sin * r, sin * inner));
         }
 
         var half = side / 2f;
@@ -178,15 +198,26 @@ public static class FSShapes
     public static void Slanted(DrawingHandleScreen handle, Vector2 topLeft, float width, float height, float slant, Color color,
         float border = 0f, float fill = 1f)
     {
-        var w = MathF.Round(width);
-        var h = MathF.Round(height);
-        var sl = MathF.Round(slant);
-        var b = MathF.Round(border * 2f) / 2f;
-        var cut = MathF.Round(Math.Clamp(fill, 0f, 1f) * w);
-        if (cut <= 0f)
+        if (color.A <= 0f)
             return;
 
-        var key = $"slant|{w}|{h}|{sl}|{b}|{cut}";
+        var w = (int) MathF.Round(width);
+        var h = (int) MathF.Round(height);
+        var sl = (int) MathF.Round(slant);
+        var b2 = (int) MathF.Round(border * 2f);
+        var cut = (int) MathF.Round(Math.Clamp(fill, 0f, 1f) * w);
+        if (cut <= 0)
+            return;
+
+        var key = new ShapeKey(ShapeKind.Slanted, w, h, sl, b2, cut);
+        if (!TryGetBaked(key, out var baked))
+            baked = Store(key, BakeSlanted(w, h, sl, b2 / 2f, cut));
+
+        DrawBaked(handle, topLeft + new Vector2(w / 2f, h / 2f), color, baked);
+    }
+
+    private static (Texture, Vector2) BakeSlanted(float w, float h, float sl, float b, float cut)
+    {
         bool Inside(float x, float y, float inset)
         {
             var t = (y + h / 2f) / h;
@@ -195,41 +226,55 @@ public static class FSShapes
             return y >= -h / 2f + inset && y <= h / 2f - inset && x >= left && x <= right;
         }
 
-        DrawBaked(handle, topLeft + new Vector2(w / 2f, h / 2f), color, key, (int) w + 2, (int) h + 2, (x, y) =>
-            x + w / 2f <= cut && Inside(x, y, 0f) && (b <= 0f || !Inside(x, y, b)));
+        return Bake((int) w + 2, (int) h + 2, (x, y) =>
+            x + w / 2f <= cut && Inside(x, y, 0f) && (b <= 0f || !Inside(x, y, b)), trim: false);
     }
 
     public static void Diamond(DrawingHandleScreen handle, Vector2 center, float size, Color color, float border = 0f)
     {
-        var r = MathF.Round(size) / 2f;
-        var b = MathF.Round(border * 2f) / 2f;
-        DrawBaked(handle, center, color, $"diamond|{r}|{b}", (int) (r * 2f) + 4, (int) (r * 2f) + 4, (x, y) =>
-        {
-            var d = MathF.Abs(x) + MathF.Abs(y);
-            return d <= r && (b <= 0f || d > r - b * 1.41f);
-        });
-    }
-
-    private static void DrawBaked(DrawingHandleScreen handle, Vector2 center, Color color, string key, int width, int height,
-        Func<float, float, bool> inside, bool trim = false, float scale = 1f, (int MinX, int MinY, int MaxX, int MaxY)? region = null)
-    {
         if (color.A <= 0f)
             return;
 
-        DisposeRetired();
-        if (!Baked.TryGetValue(key, out var baked))
-        {
-            if (Baked.Count >= MaxCached)
-            {
-                foreach (var old in Baked.Values)
-                    Retire(old.Texture);
-                Baked.Clear();
-            }
+        var d = (int) MathF.Round(size);
+        var b2 = (int) MathF.Round(border * 2f);
+        var key = new ShapeKey(ShapeKind.Diamond, d, b2);
+        if (!TryGetBaked(key, out var baked))
+            baked = Store(key, BakeDiamond(d / 2f, b2 / 2f));
 
-            baked = Bake(width, height, inside, trim, region);
-            Baked[key] = baked;
+        DrawBaked(handle, center, color, baked);
+    }
+
+    private static (Texture, Vector2) BakeDiamond(float r, float b)
+    {
+        return Bake((int) (r * 2f) + 4, (int) (r * 2f) + 4, (x, y) =>
+        {
+            var d = MathF.Abs(x) + MathF.Abs(y);
+            return d <= r && (b <= 0f || d > r - b * 1.41f);
+        }, trim: false);
+    }
+
+    private static bool TryGetBaked(ShapeKey key, out (Texture Texture, Vector2 Offset) baked)
+    {
+        DisposeRetired();
+        return Baked.TryGetValue(key, out baked);
+    }
+
+    private static (Texture Texture, Vector2 Offset) Store(ShapeKey key, (Texture Texture, Vector2 Offset) baked)
+    {
+        if (Baked.Count >= MaxCached)
+        {
+            foreach (var old in Baked.Values)
+                Retire(old.Texture);
+            Baked.Clear();
         }
 
+        Baked[key] = baked;
+        return baked;
+    }
+
+    private static void DrawBaked(DrawingHandleScreen handle, Vector2 center, Color color,
+        (Texture Texture, Vector2 Offset) baked, float scale = 1f)
+    {
         var size = new Vector2(baked.Texture.Width, baked.Texture.Height) * scale;
         var topLeft = center + baked.Offset * scale;
         if (scale == 1f)
