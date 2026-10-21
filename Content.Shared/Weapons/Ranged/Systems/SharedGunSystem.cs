@@ -88,9 +88,7 @@ public abstract partial class SharedGunSystem : EntitySystem
 
     private static readonly ProtoId<TagPrototype> TrashTag = "Trash";
 
-    private const uint MaxShotTickDrift = 64; // fs
-
-    private GameTick _shotTick;
+    private const uint MaxShotTickDrift = 64; // FINALSTAND
 
     private const float InteractNextFire = 0.3f;
     private const double SafetyNextFire = 0.5;
@@ -166,21 +164,15 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         gun.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
         gun.Comp.Target = GetEntity(msg.Target);
-        _shotTick = ValidShotTick(msg.ShotTick); // fs
-        try
-        {
-            AttemptShoot(user.Value, gun);
-        }
-        finally
-        {
-            _shotTick = GameTick.Zero;
-        }
+        AttemptShoot(user.Value, gun);
 
         if (msg.Continuous)
             gun.Comp.ShotCounter = 0;
     }
 
-    public GameTick ValidShotTick(GameTick tick) // fs
+    // FINALSTAND: the client's shot tick, kept within reach of the server's. Lag compensation rewinds to it; spread
+    // doesn't seed from it, since a client free to pick the tick could pick the seed too.
+    public GameTick ValidShotTick(GameTick tick)
     {
         var now = Timing.CurTick.Value;
         if (tick == GameTick.Zero || tick.Value > now + MaxShotTickDrift || tick.Value + MaxShotTickDrift < now)
@@ -188,8 +180,6 @@ public abstract partial class SharedGunSystem : EntitySystem
 
         return tick;
     }
-
-    public GameTick CurrentShotTick => _shotTick == GameTick.Zero ? Timing.CurTick : _shotTick;
 
     protected Angle GetRecoilAngle(TimeSpan curTime, Entity<GunComponent> gun, Angle direction)
     {
@@ -202,7 +192,7 @@ public abstract partial class SharedGunSystem : EntitySystem
         DirtyField(gun.AsNullable(), nameof(GunComponent.LastFire));
 
         IRobustRandom random = new RobustRandom();
-        random.SetSeed(SharedRandomExtensions.HashCodeCombine((int) CurrentShotTick.Value, GetNetEntity(gun).Id));
+        random.SetSeed(SharedRandomExtensions.HashCodeCombine((int) Timing.CurTick.Value, GetNetEntity(gun).Id));
         var offset = random.NextFloat(-0.5f, 0.5f);
         var spread = component.CurrentAngle.Theta * offset;
         DebugTools.Assert(spread <= component.MaxAngleModified.Theta);

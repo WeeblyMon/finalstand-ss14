@@ -270,7 +270,7 @@ public sealed partial class GunSystem : SharedGunSystem
         var aimAngle = (-direction).ToAngle();
         var shotDirection = GetRecoilAngle(Timing.CurTime, gun, aimAngle).ToVec();
         var predict = !throwItems && _shotPrediction.ShouldPredict(user, gun);
-        var shotTick = CurrentShotTick;
+        var shotTick = Timing.CurTick; // FINALSTAND
 
         foreach (var (ent, shootable) in ammo)
         {
