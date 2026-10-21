@@ -85,7 +85,7 @@ public sealed partial class FSShotPredictionSystem : EntitySystem
         _physicsQuery = GetEntityQuery<PhysicsComponent>();
 
         SubscribeNetworkEvent<FSShotVoidedEvent>(OnShotVoided);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         Subs.CVar(_cfg, CCVars.FSShotPrediction, v => _enabled = v, true);
         Subs.CVar(_cfg, CCVars.FSLagCompensationMargin, v => _margin = v, true);

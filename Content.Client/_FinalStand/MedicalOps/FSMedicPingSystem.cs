@@ -18,7 +18,7 @@ public sealed partial class FSMedicPingSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<FSMedicPingEvent>(OnMedicPing);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
     }
 
     public override void Shutdown()

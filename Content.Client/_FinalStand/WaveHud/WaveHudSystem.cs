@@ -49,7 +49,7 @@ public sealed partial class WaveHudSystem : EntitySystem
         SubscribeNetworkEvent<FSMedicalStatusEvent>(OnMedicalStatus);
         SubscribeNetworkEvent<FSPlayerBonusSummaryEvent>(OnBonusSummary);
         SubscribeNetworkEvent<FSRespawnOfferEvent>(OnRespawnOffer);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
 
@@ -163,7 +163,11 @@ public sealed partial class WaveHudSystem : EntitySystem
     {
         _perkBuffs.Clear();
         if (_overlay != null)
+        {
             _overlay.IsRespawnOfferVisible = false;
+            // Stacks live on the mind, so a new round starts at zero without the server saying so.
+            _overlay.PerkStacks.Clear();
+        }
     }
 
     private Control? _alerts;

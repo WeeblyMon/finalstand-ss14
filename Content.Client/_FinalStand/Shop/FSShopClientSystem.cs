@@ -74,7 +74,7 @@ public sealed partial class FSShopClientSystem : EntitySystem
         SubscribeNetworkEvent<FSShopSellCompletedEvent>(OnSellCompleted);
         SubscribeNetworkEvent<FSShopSellFailedEvent>(OnSellFailed);
         SubscribeNetworkEvent<FSResearchUnlocksChangedEvent>(OnResearchUnlocksChanged);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<HandSelectedEvent>(OnHandSelected);
         SubscribeLocalEvent<HandDeselectedEvent>(OnHandDeselected);
         SubscribeLocalEvent<DidEquipHandEvent>(OnDidEquipHand);

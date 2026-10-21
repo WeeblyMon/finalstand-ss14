@@ -15,7 +15,7 @@ public sealed partial class FSBattleTranceHudSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<FSBattleTranceStateEvent>(OnState);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
+        SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnLocalPlayerAttached);
     }
 
