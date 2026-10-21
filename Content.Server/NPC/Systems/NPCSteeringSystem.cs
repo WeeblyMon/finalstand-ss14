@@ -250,7 +250,8 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             return;
 
         // FINALSTAND: reuse the buffer, and steer wave zombies on alternate ticks with double the frame time.
-        // Their move input persists in between, and a full horde steering every tick blew the tick budget.
+        // Their move input is carried over the tick in between, and a full horde steering every tick blew the
+        // tick budget.
         _steerTick++;
         var npcs = _steerBuffer;
         npcs.Clear();
@@ -263,7 +264,12 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
             if (_waveTagQuery.HasComponent(uid))
             {
                 if ((uid.Id + _steerTick) % WaveZombieSteerEvery != 0)
+                {
+                    // The mover drops input older than the current tick, which made every skipped tick a coast.
+                    mover.LastInputTick = _timing.CurTick;
+                    mover.LastInputSubTick = ushort.MaxValue;
                     continue;
+                }
 
                 npcs.Add((uid, steering, mover, xform, frameTime * WaveZombieSteerEvery));
                 _spacingWanted = true;
