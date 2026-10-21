@@ -72,7 +72,7 @@ public sealed partial class FSLoneWolfSystem : EntitySystem
         {
             if (mind.CurrentEntity is { } body
                 && perks.GetSlottedLevel("LoneWolf") > 0
-                && !HasTeammateNearby(body))
+                && !HasTeammateWithin(body, FSPerkBonusConstants.LoneWolfRadius))
                 _alone.Add(body);
         }
 
@@ -89,10 +89,10 @@ public sealed partial class FSLoneWolfSystem : EntitySystem
         }
     }
 
-    private bool HasTeammateNearby(EntityUid body)
+    public bool HasTeammateWithin(EntityUid body, float radius)
     {
         _nearby.Clear();
-        _lookup.GetEntitiesInRange(Transform(body).Coordinates, FSPerkBonusConstants.LoneWolfRadius, _nearby);
+        _lookup.GetEntitiesInRange(Transform(body).Coordinates, radius, _nearby);
 
         foreach (var other in _nearby)
         {

@@ -17,6 +17,7 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
     [Dependency] private SharedMindSystem _mind = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
+    [Dependency] private FSWolfPackSystem _wolfPack = default!;
 
     public override void Initialize()
     {
@@ -69,6 +70,10 @@ public sealed partial class FSIncomingDamagePerkSystem : EntitySystem
         var medievalLevel = augs.GetSlottedLevel("Medievalist");
         if (medievalLevel > 0)
             Resist("Medievalist", medievalLevel * FSPerkBonusConstants.MedievalistResistPerLevel);
+
+        var pack = _wolfPack.GetResist(mindId, augs);
+        if (pack > 0f)
+            Resist("WolfPack", pack);
 
         var bunker = _bunkeredDown.GetResist(mindId, augs);
         if (bunker > 0f)

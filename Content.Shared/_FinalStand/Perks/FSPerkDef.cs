@@ -426,6 +426,12 @@ public sealed class FSPerkDef
                 "No alcohol poisoning. The drunker you are, the faster you heal.",
                 PerkCategory.Blue,
                 Flat("Up to +{0} HP/s", FSPerkBonusConstants.RagingAlcoholicRegenPerLevel)),
+
+            new("WolfPack", "Wolf Pack",
+                "With a teammate within 6 tiles, reload faster and take less damage.",
+                PerkCategory.Purple,
+                Pct("+{0}% Reload Speed / +{1} Resistance", FSPerkBonusConstants.WolfPackReloadPerLevel,
+                    FSPerkBonusConstants.WolfPackResistPerLevel)),
         ];
 
         All = list.ToDictionary(a => a.Id);

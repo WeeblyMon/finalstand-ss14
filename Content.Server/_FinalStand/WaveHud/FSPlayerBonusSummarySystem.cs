@@ -49,6 +49,7 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
     [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
     [Dependency] private FSAggravatorSystem _aggravator = default!;
     [Dependency] private FSDrunkPerkSystem _drunk = default!;
+    [Dependency] private FSWolfPackSystem _wolfPack = default!;
 
     private static readonly ProtoId<TagPrototype> ShotgunTag = "WeaponGunShotgun";
 
@@ -288,6 +289,14 @@ public sealed partial class FSPlayerBonusSummarySystem : EntitySystem
             var pct = (1f / bloodload - 1f) * 100f;
             reloadTotal += pct;
             reloadSources.Add(FormatPct("Bloodload", pct));
+        }
+
+        var pack = _wolfPack.GetReloadTimeMultiplier(mob);
+        if (pack < 1f)
+        {
+            var pct = (1f / pack - 1f) * 100f;
+            reloadTotal += pct;
+            reloadSources.Add(FormatPct("Wolf Pack", pct));
         }
 
         var speedload = _speedload.GetReloadTimeMultiplier(mob);
