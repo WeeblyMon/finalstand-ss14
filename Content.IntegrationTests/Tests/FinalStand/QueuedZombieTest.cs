@@ -11,12 +11,16 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
+using Robust.UnitTesting;
 
 namespace Content.IntegrationTests.Tests.FinalStand;
 
 // A wave zombie stuck behind another one on the way to the same target is queued, not lost: it holds still
 // instead of giving up on the move, keeps its path, and carries on once the way clears. A corpse ahead
 // doesn't count as a zombie to wait for.
+// Zombies don't block each other physically and one zombie's spacing doesn't stop another, so two of them alone
+// never stall: the one behind walks through. A crowd is what stalls them. The tests put the one behind straight into
+// that state once it has its path: it hasn't got anywhere for a while, with the other right ahead.
 [TestFixture]
 public sealed class QueuedZombieTest : GameTest
 {
@@ -69,12 +73,16 @@ public sealed class QueuedZombieTest : GameTest
             steering.Range = 1f;
         });
 
+        await Stall(server, entMan, timing, back);
+
         // Well past the three stuck periods after which a move used to give up.
         await server.WaitRunTicks(150);
 
+        var heldX = 0f;
         await server.WaitAssertion(() =>
         {
             var steering = entMan.GetComponent<NPCSteeringComponent>(back);
+            heldX = entMan.GetComponent<TransformComponent>(back).LocalPosition.X;
             Assert.Multiple(() =>
             {
                 Assert.That(steering.Status, Is.Not.EqualTo(SteeringStatus.NoPath), "the queued zombie gave up on its move");
@@ -98,7 +106,7 @@ public sealed class QueuedZombieTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(steering.QueuedUntil, Is.EqualTo(TimeSpan.Zero), "still holding with the way clear");
-                Assert.That(x, Is.LessThan(2.5f), "didn't move up once the way cleared");
+                Assert.That(x, Is.LessThan(heldX - 0.2f), "didn't move up once the way cleared");
             });
         });
     }
@@ -110,6 +118,7 @@ public sealed class QueuedZombieTest : GameTest
     {
         var server = Pair.Server;
         var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
         var mapSystem = entMan.System<SharedMapSystem>();
         var htn = entMan.System<HTNSystem>();
         var steeringSystem = entMan.System<NPCSteeringSystem>();
@@ -145,7 +154,7 @@ public sealed class QueuedZombieTest : GameTest
             steering.Range = 1f;
         });
 
-        await server.WaitRunTicks(150);
+        await Stall(server, entMan, timing, back);
 
         EntityUid blocker = default;
         await server.WaitPost(() =>
@@ -153,6 +162,8 @@ public sealed class QueuedZombieTest : GameTest
         await server.WaitRunTicks(60);
         await server.WaitPost(() => entMan.DeleteEntity(blocker));
         await server.WaitRunTicks(60);
+
+        var heldX = 0f;
 
         await server.WaitAssertion(() =>
         {
@@ -163,6 +174,7 @@ public sealed class QueuedZombieTest : GameTest
                 Assert.That(steering.QueuedUntil, Is.Not.EqualTo(TimeSpan.Zero), "the zombie should still be holding");
             });
 
+            heldX = entMan.GetComponent<TransformComponent>(back).LocalPosition.X;
             entMan.DeleteEntity(front);
         });
 
@@ -175,8 +187,27 @@ public sealed class QueuedZombieTest : GameTest
             Assert.Multiple(() =>
             {
                 Assert.That(steering.Status, Is.Not.EqualTo(SteeringStatus.NoPath), "gave up on a stale node instead of repathing");
-                Assert.That(x, Is.LessThan(2.5f), "didn't move on after the stale path");
+                Assert.That(x, Is.LessThan(heldX - 0.2f), "didn't move on after the stale path");
             });
         });
+    }
+
+    // Lets the one behind get its path and start moving, then marks it as not having got anywhere for a while, which
+    // is how a crowd leaves it. The next steer sees it stuck with a zombie ahead and queues it.
+    private static async Task Stall(IIntegrationInstance server, IEntityManager entMan, IGameTiming timing, EntityUid back)
+    {
+        await server.WaitRunTicks(15);
+        await server.WaitPost(() =>
+        {
+            var steering = entMan.GetComponent<NPCSteeringComponent>(back);
+            Assert.That(steering.CurrentPath, Is.Not.Empty, "the zombie behind has no path to keep");
+            steering.LastStuckCoordinates = entMan.GetComponent<TransformComponent>(back).Coordinates;
+            steering.LastStuckTime = timing.CurTime - TimeSpan.FromSeconds(5);
+        });
+
+        await server.WaitRunTicks(4);
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<NPCSteeringComponent>(back).QueuedUntil, Is.Not.EqualTo(TimeSpan.Zero),
+                "a stalled zombie with another right ahead didn't queue"));
     }
 }
