@@ -157,15 +157,15 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
 
     private void OnConsoleServerLinkChanged(EntityUid uid, FSTechDatabaseComponent comp, ref ResearchRegistrationChangedEvent args)
     {
-        _station = null;
         if (TerminatingOrDeleted(uid))
             return;
 
-        if (args.Server is { } server && !TerminatingOrDeleted(server))
-            GetOrCreateStation();
+        GetOrCreateStation();
         SyncConsoles();
     }
 
+    // The state is its own entity for the round, like medical research's. It used to live on the R&D server, so
+    // taking the machine apart wiped every unlock, the banked points and the queues.
     public Entity<FSStationResearchComponent> GetOrCreateStation()
     {
         if (TryGetStation(out var found))
@@ -198,42 +198,6 @@ public sealed partial class FSResearchSystem : SharedFSResearchSystem
             return true;
         }
 
-        if (TryFindLinkedServer(out var linkedServer))
-        {
-            var linkedComp = EnsureComp<FSStationResearchComponent>(linkedServer);
-            _station = linkedServer;
-            station = (linkedServer, linkedComp);
-            return true;
-        }
-
-        var serverQuery = EntityQueryEnumerator<ResearchServerComponent>();
-        while (serverQuery.MoveNext(out var serverUid, out _))
-        {
-            if (TerminatingOrDeleted(serverUid))
-                continue;
-
-            var comp = EnsureComp<FSStationResearchComponent>(serverUid);
-            _station = serverUid;
-            station = (serverUid, comp);
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool TryFindLinkedServer(out EntityUid server)
-    {
-        var query = EntityQueryEnumerator<FSTechDatabaseComponent, ResearchClientComponent>();
-        while (query.MoveNext(out _, out _, out var client))
-        {
-            if (client.Server is { } linked && !TerminatingOrDeleted(linked) && HasComp<ResearchServerComponent>(linked))
-            {
-                server = linked;
-                return true;
-            }
-        }
-
-        server = default;
         return false;
     }
 
