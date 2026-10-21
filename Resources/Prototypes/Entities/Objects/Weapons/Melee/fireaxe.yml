@@ -137,6 +137,7 @@
     sprite: Objects/Weapons/Melee/fireaxe.rsi
     state: icon
   - type: MeleeWeapon
+    range: 2.0 # FINALSTAND: reach zombie claws
     soundSwing: # FINALSTAND
       collection: FSMeleeSwishHeavy
       params:

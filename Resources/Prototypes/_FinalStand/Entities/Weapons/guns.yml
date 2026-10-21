@@ -792,6 +792,7 @@
       fleshSound:
         collection: FSMeleeBladeFlesh
   - type: MeleeWeapon
+    range: 1.8
     angle: 360
     damage:
       types:
@@ -865,6 +866,7 @@
       slashTravel: 0.05
       slashGrow: 1.05
   - type: MeleeWeapon
+    range: 1.8
     autoAttack: true
     angle: 90
     wideAnimationRotation: -135
@@ -900,6 +902,7 @@
             Slash: 24
             Heat: 24
   - type: MeleeWeapon
+    range: 1.8
     wideAnimationRotation: -135
     attackRate: 3
     angle: 100

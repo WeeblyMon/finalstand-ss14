@@ -172,6 +172,8 @@
   id: EnergySword
   description: A very loud & dangerous sword with a beam made of pure, concentrated plasma. Cuts through unarmored targets like butter.
   components:
+  - type: MeleeWeapon # FINALSTAND: reach zombie claws
+    range: 1.8
   - type: Sprite
     sprite: Objects/Weapons/Melee/e_sword.rsi
     layers:
