@@ -159,7 +159,7 @@ fs-upgrade-doublebar-splinter = Splinter Impact
 fs-upgrade-doublebar-splinter-desc = On hit, pellet fragments burst backward in a cone through the target for 40% bonus damage.
 
 fs-upgrade-hushpup-tight-pattern = Tight Pattern
-fs-upgrade-hushpup-tight-pattern-desc = Adjusts the suppressor geometry, tightening spread by 0.5° per level.
+fs-upgrade-hushpup-tight-pattern-desc = Adjusts the suppressor geometry, tightening max spread by 0.1° per level.
 
 fs-upgrade-hushpup-extra-pellets = Frag Load
 fs-upgrade-hushpup-extra-pellets-desc = Adds 1 extra pellet per shot per level. More coverage, more damage.
@@ -210,7 +210,7 @@ fs-upgrade-viper-extended-mag = Extended Mag
 fs-upgrade-viper-extended-mag-desc = Adds 5 rounds to magazine capacity per level.
 
 fs-upgrade-viper-recoil-pad = Recoil Pad
-fs-upgrade-viper-recoil-pad-desc = Reduces max spread by 0.3° per level for tighter bursts.
+fs-upgrade-viper-recoil-pad-desc = Reduces max spread by 0.06° per level for tighter bursts.
 
 fs-upgrade-viper-hollow-point = Hollow Point
 fs-upgrade-viper-hollow-point-desc = Bullets slow hit enemies by 30% for 2 seconds. Hitting again resets the timer.
@@ -222,7 +222,7 @@ fs-upgrade-mateba-damage = Hollow Point
 fs-upgrade-mateba-damage-desc = Enhanced rounds increase damage by 15% per level.
 
 fs-upgrade-mateba-steady-aim = Steady Aim
-fs-upgrade-mateba-steady-aim-desc = Reduces max spread by 0.3° per level for precise follow-up shots.
+fs-upgrade-mateba-steady-aim-desc = Reduces max spread by 0.06° per level for precise follow-up shots.
 
 fs-upgrade-mateba-dead-eye = Dead Eye
 fs-upgrade-mateba-dead-eye-desc = Increases critical hit chance by 5% per level. Crits deal 2× damage.
@@ -240,7 +240,7 @@ fs-upgrade-mk58-extended-mag = Extended Mag
 fs-upgrade-mk58-extended-mag-desc = Adds 1 round to magazine capacity per level.
 
 fs-upgrade-mk58-steady-aim = Steady Aim
-fs-upgrade-mk58-steady-aim-desc = Reduces max spread by 0.3° per level for precise follow-up shots.
+fs-upgrade-mk58-steady-aim-desc = Reduces max spread by 0.06° per level for precise follow-up shots.
 
 fs-upgrade-mk58-cash-flow = Cash Flow
 fs-upgrade-mk58-cash-flow-desc = Boosts your per-hit earnings. All weapons already earn 30 credits per hit — this adds +2 per level. Max 2 levels: 32/34 per hit.
@@ -255,7 +255,7 @@ fs-upgrade-n1984-extended-mag = Extended Mag
 fs-upgrade-n1984-extended-mag-desc = Adds 2 rounds to magazine capacity per level.
 
 fs-upgrade-n1984-recoil-pad = Recoil Pad
-fs-upgrade-n1984-recoil-pad-desc = Heavy barrel weight and grip rework. Cuts spread by 2.8° per level. Fully laser-accurate at max level.
+fs-upgrade-n1984-recoil-pad-desc = Heavy barrel weight and grip rework. Cuts max spread by 2.8° per level. Fully laser-accurate at max level.
 
 fs-upgrade-n1984-ap-rounds = AP Rounds
 fs-upgrade-n1984-ap-rounds-desc = Armor-piercing ammunition. Bullets bypass enemy armor entirely.
@@ -276,7 +276,7 @@ fs-upgrade-advlaser-overcharge-coil = Overcharge Coil
 fs-upgrade-advlaser-overcharge-coil-desc = Boosts cycling speed, increasing fire rate by 0.5/level.
 
 fs-upgrade-advlaser-focusing-lens = Focusing Lens
-fs-upgrade-advlaser-focusing-lens-desc = Narrows beam spread by 0.3° per level for pinpoint accuracy.
+fs-upgrade-advlaser-focusing-lens-desc = Narrows max beam spread by 0.06° per level for pinpoint accuracy.
 
 fs-upgrade-advlaser-rapid-charge = Rapid Charge
 fs-upgrade-advlaser-rapid-charge-desc = Self-recharge rate ×2 per level (×8 at max).
@@ -297,7 +297,7 @@ fs-upgrade-energymagnum-overcharge-coil = Overcharge Coil
 fs-upgrade-energymagnum-overcharge-coil-desc = Boosts cycling speed, increasing fire rate by 0.5/level.
 
 fs-upgrade-energymagnum-focusing-crystal = Focusing Crystal
-fs-upgrade-energymagnum-focusing-crystal-desc = Refines beam geometry, reducing max spread by 0.3° per level.
+fs-upgrade-energymagnum-focusing-crystal-desc = Refines beam geometry, reducing max spread by 0.06° per level.
 
 fs-upgrade-energymagnum-rapid-charge = Rapid Charge
 fs-upgrade-energymagnum-rapid-charge-desc = Self-recharge rate ×1.26 per level. Reaches ×2 base rate at max level.
@@ -318,7 +318,7 @@ fs-upgrade-atreides-hair-trigger = Hair Trigger
 fs-upgrade-atreides-hair-trigger-desc = Lighter pull increases fire rate by 0.5/level.
 
 fs-upgrade-atreides-recoil-pad = Recoil Pad
-fs-upgrade-atreides-recoil-pad-desc = Reduces max spread by 0.3° per level for tighter bursts.
+fs-upgrade-atreides-recoil-pad-desc = Reduces max spread by 0.06° per level for tighter bursts.
 
 fs-upgrade-atreides-extended-mag = Extended Mag
 fs-upgrade-atreides-extended-mag-desc = Adds 5 rounds to magazine capacity per level.
@@ -369,7 +369,7 @@ fs-upgrade-c20r-hair-trigger = Hair Trigger
 fs-upgrade-c20r-hair-trigger-desc = Lighter pull increases fire rate by 0.5/level.
 
 fs-upgrade-c20r-recoil-pad = Recoil Pad
-fs-upgrade-c20r-recoil-pad-desc = Reduces max spread by 0.3° per level for tighter bursts.
+fs-upgrade-c20r-recoil-pad-desc = Reduces max spread by 0.06° per level for tighter bursts.
 
 fs-upgrade-c20r-extended-mag = Extended Mag
 fs-upgrade-c20r-extended-mag-desc = Adds 5 rounds to magazine capacity per level.
@@ -435,7 +435,7 @@ fs-upgrade-flintlock-ball-and-powder = Ball & Powder
 fs-upgrade-flintlock-ball-and-powder-desc = Spawns a .45 ammo box per purchase per level. Each box holds 12 rounds and is refilled by the wave ammo resupply.
 
 fs-upgrade-flintlock-steady-hand = Steady Hand
-fs-upgrade-flintlock-steady-hand-desc = Reduces the Flintlock's max spread by 0.5° per level for that one perfect shot.
+fs-upgrade-flintlock-steady-hand-desc = Reduces the Flintlock's max spread by 0.1° per level for that one perfect shot.
 
 fs-upgrade-flintlock-heavier-load = Heavier Load
 fs-upgrade-flintlock-heavier-load-desc = Higher-grain ball ammunition increases Flintlock damage by 25% per level.
@@ -498,7 +498,7 @@ fs-upgrade-akms-fire-rate = Hair Trigger
 fs-upgrade-akms-fire-rate-desc = Lightened trigger group increases fire rate by 0.5/level.
 
 fs-upgrade-akms-recoil = Reduced Recoil
-fs-upgrade-akms-recoil-desc = Muzzle brake tightens spread by 0.5° per level.
+fs-upgrade-akms-recoil-desc = Muzzle brake tightens max spread by 0.1° per level.
 
 fs-upgrade-akms-incendiary = Incendiary Rounds
 fs-upgrade-akms-incendiary-desc = Bullets ignite targets on hit.
@@ -537,7 +537,7 @@ fs-upgrade-lecter-damage = Heavy Rounds
 fs-upgrade-lecter-damage-desc = Higher-grain ammunition increases damage dealt by 15% per level.
 
 fs-upgrade-lecter-recoil = Reduced Recoil
-fs-upgrade-lecter-recoil-desc = Muzzle compensator tightens spread by 0.5° per level. More rounds on target.
+fs-upgrade-lecter-recoil-desc = Muzzle compensator tightens max spread by 0.1° per level. More rounds on target.
 
 fs-upgrade-lecter-ap = AP Rounds
 fs-upgrade-lecter-ap-desc = Armor-piercing ammunition. Rounds bypass enemy armor entirely.
@@ -668,7 +668,7 @@ fs-upgrade-l6-fire-rate = Shredder
 fs-upgrade-l6-fire-rate-desc = Optimized cycling increases fire rate by 1.5/level.
 
 fs-upgrade-l6-accuracy = Bipod
-fs-upgrade-l6-accuracy-desc = Folding bipod tightens spread by 12° per level.
+fs-upgrade-l6-accuracy-desc = Folding bipod tightens max spread by 2.4° per level.
 
 fs-upgrade-l6-mag-size = Extended Belt
 fs-upgrade-l6-mag-size-desc = Larger ammo drum adds 50 rounds per level.
@@ -740,7 +740,7 @@ fs-upgrade-minigun-damage = Depleted Core
 fs-upgrade-minigun-damage-desc = Heavier core ammunition increases damage by 20% per level.
 
 fs-upgrade-minigun-accuracy = Gyro Stabilizer
-fs-upgrade-minigun-accuracy-desc = Active gyroscopic compensation tightens spread by 7° per level.
+fs-upgrade-minigun-accuracy-desc = Active gyroscopic compensation tightens max spread by 1.4° per level.
 
 fs-upgrade-minigun-ammo-drum = Extended Drum
 fs-upgrade-minigun-ammo-drum-desc = Larger rotating drum adds 250 rounds per level.

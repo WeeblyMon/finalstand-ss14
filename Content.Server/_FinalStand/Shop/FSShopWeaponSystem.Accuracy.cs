@@ -7,14 +7,6 @@ namespace Content.Server._FinalStand.Shop;
 // The shop's accuracy figure is computed server-side since AngleIncrease isn't networked.
 public sealed partial class FSShopWeaponSystem
 {
-    // Mirrors FSPlayerUpgradesSystem.GunStats; keep both in sync.
-    private static (double Min, double Max, double Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
-    {
-        WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5, def.ValuePerLevel * 0.2, def.ValuePerLevel * 0.3),
-        WeaponUpgradeType.AngleMax => (0.0, def.ValuePerLevel, 0.0),
-        _                          => (0.0, 0.0, 0.0),
-    };
-
     // MinAngle = aimed shot, MaxAngle = sustained-fire worst case, AngleIncrease = how fast it gets there.
     private static double Spread(double min, double max, double inc)
         => min * 0.5 + max * 0.3 + inc * 0.2;
@@ -89,7 +81,7 @@ public sealed partial class FSShopWeaponSystem
         // and the value after buying cannot disagree.
         foreach (var def in comp.Upgrades)
         {
-            var (dMin, dMax, dInc) = AngleDeltaPerLevel(def);
+            var (dMin, dMax, dInc) = def.AngleDeltaPerLevel();
             if (dMin == 0.0 && dMax == 0.0 && dInc == 0.0)
                 continue;
 

@@ -230,8 +230,8 @@ public sealed partial class WeaponShopWindow
                 case WeaponUpgradeType.Accuracy:
                 {
                     accParts.Add(Loc.GetString("fs-weapon-shop-tooltip-angle", ("tag", tag),
-                        ("aimed", $"{level * AngleDeltaPerLevel(def).Min:0.##}"),
-                        ("max", $"{level * AngleDeltaPerLevel(def).Max:0.##}")));
+                        ("aimed", $"{level * def.AngleDeltaPerLevel().Min:0.##}"),
+                        ("max", $"{level * def.AngleDeltaPerLevel().Max:0.##}")));
                     break;
                 }
                 case WeaponUpgradeType.MagazineSize:
@@ -325,13 +325,6 @@ public sealed partial class WeaponShopWindow
     private static string PerWave(int amount) => Loc.GetString("fs-weapon-shop-per-wave", ("amount", amount.ToString()));
 
     private static string Seconds(string seconds) => Loc.GetString("fs-weapon-shop-seconds", ("seconds", seconds));
-
-    private static (float Min, float Max, float Inc) AngleDeltaPerLevel(WeaponUpgradeDef def) => def.Type switch
-    {
-        WeaponUpgradeType.Accuracy => (def.ValuePerLevel * 0.5f, def.ValuePerLevel * 0.2f, def.ValuePerLevel * 0.3f),
-        WeaponUpgradeType.AngleMax => (0f, def.ValuePerLevel, 0f),
-        _                          => (0f, 0f, 0f),
-    };
 
     private void BuildMeleeStats(MeleeWeaponComponent? meleeComp, MeleeWeaponComponent? meleeProto,
         float damageMultiplier, float attackSpeedMult)

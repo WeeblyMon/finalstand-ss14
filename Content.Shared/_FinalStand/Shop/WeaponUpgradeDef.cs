@@ -154,6 +154,15 @@ public sealed partial class WeaponUpgradeDef
 
     private static string Text(LocId? key) => key is { } id ? Loc.GetString(id) : string.Empty;
 
+    // Degrees one level takes off the aimed spread (MinAngle), the sustained-fire worst case (MaxAngle) and the
+    // growth per shot (AngleIncrease). The upgrade, the shop's stats and the descriptions all go by this.
+    public (double Min, double Max, double Increase) AngleDeltaPerLevel() => Type switch
+    {
+        WeaponUpgradeType.Accuracy => (ValuePerLevel * 0.5, ValuePerLevel * 0.2, ValuePerLevel * 0.3),
+        WeaponUpgradeType.AngleMax => (0.0, ValuePerLevel, 0.0),
+        _                          => (0.0, 0.0, 0.0),
+    };
+
     private static readonly float[] LevelCostMults = [1.0f, 1.3f, 1.8f, 2.6f, 3.6f];
 
     // Shared so the shop window shows exactly what the server charges.

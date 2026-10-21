@@ -39,11 +39,11 @@ public sealed partial class FSPlayerUpgradesSystem
             case WeaponUpgradeType.Accuracy:
                 if (TryComp<GunComponent>(weapon, out var gunAcc))
                 {
-                    var d = def.ValuePerLevel;
+                    var (dMin, dMax, dInc) = def.AngleDeltaPerLevel();
 #pragma warning disable RA0002
-                    gunAcc.MinAngle = Angle.FromDegrees(Math.Max(0.0, gunAcc.MinAngle.Degrees - d * 0.5));
-                    gunAcc.MaxAngle = Angle.FromDegrees(Math.Max(gunAcc.MinAngle.Degrees, gunAcc.MaxAngle.Degrees - d * 0.2));
-                    gunAcc.AngleIncrease = Angle.FromDegrees(Math.Max(0.0, gunAcc.AngleIncrease.Degrees - d * 0.3));
+                    gunAcc.MinAngle = Angle.FromDegrees(Math.Max(0.0, gunAcc.MinAngle.Degrees - dMin));
+                    gunAcc.MaxAngle = Angle.FromDegrees(Math.Max(gunAcc.MinAngle.Degrees, gunAcc.MaxAngle.Degrees - dMax));
+                    gunAcc.AngleIncrease = Angle.FromDegrees(Math.Max(0.0, gunAcc.AngleIncrease.Degrees - dInc));
                     gunAcc.MinAngleModified = gunAcc.MinAngle;
                     gunAcc.MaxAngleModified = gunAcc.MaxAngle;
                     gunAcc.AngleIncreaseModified = gunAcc.AngleIncrease;
