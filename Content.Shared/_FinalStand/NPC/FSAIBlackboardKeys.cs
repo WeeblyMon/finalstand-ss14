@@ -20,4 +20,8 @@ public static class FSAIBlackboardKeys
     public static readonly string PackAlertCooldown   = "FSPackAlertCooldown";
     public static readonly string AggroOrigin         = "FSAggroOrigin";
     public static readonly string TargetLastSeen      = "FSTargetLastSeen";
+
+    // Written by FSLeashSystem; NearbyHostilesQuery skips the target until the leash clears it again.
+    public static readonly string LeashedTarget       = "FSLeashedTarget";
+    public static readonly string LeashedUntil        = "FSLeashedUntil";
 }

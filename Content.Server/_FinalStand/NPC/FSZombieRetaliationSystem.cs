@@ -61,6 +61,7 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
                 bb.Remove<float>(FSAIBlackboardKeys.RetaliationTimer);
                 if (bb.ContainsKey(FSAIBlackboardKeys.LastAttacker))
                     bb.Remove<EntityUid>(FSAIBlackboardKeys.LastAttacker);
+                StopRetaliating(htn);
                 return;
             }
             bb.SetValue(FSAIBlackboardKeys.RetaliationTimer, retTimer);
@@ -71,7 +72,24 @@ public sealed partial class FSZombieRetaliationSystem : EntitySystem
         {
             bb.Remove<EntityUid>(FSAIBlackboardKeys.LastAttacker);
             bb.Remove<float>(FSAIBlackboardKeys.RetaliationTimer);
-            _htn.Replan(htn);
+            StopRetaliating(htn);
+        }
+    }
+
+    // A retaliation plan outranks everything but a bait, so a replan would never replace it and the zombie kept
+    // chasing the shooter after the timer ran out. Any other plan never read the keys and carries on.
+    private void StopRetaliating(HTNComponent htn)
+    {
+        if (htn.Plan == null)
+            return;
+
+        foreach (var task in htn.Plan.Tasks)
+        {
+            if (task.Operator is not FSSetRetaliationTargetOperator)
+                continue;
+
+            _htn.AbortPlan(htn);
+            return;
         }
     }
 
