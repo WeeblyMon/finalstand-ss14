@@ -4,14 +4,17 @@
   root: true
   order: 40
   children:
-  - FSPaletteStreetLights
-  - FSPaletteStreetSignage
-  - FSPaletteStreetBillboards
-  - FSPaletteStreetVehicles
+  - FSPaletteStreetLights0
+  - FSPaletteStreetRoad1
+  - FSPaletteStreetBillboards2
+  - FSPaletteStreetVehicles3
+  - FSPaletteStreetLanding4
+  - FSPaletteStreetStreet5
+  - FSPaletteStreetTrash6
 
 - type: fsMapPalette
-  id: FSPaletteStreetLights
-  name: fs-palette-street-lights
+  id: FSPaletteStreetLights0
+  name: fspalettestreet-10
   order: 10
   entities:
   - FSEngineerShipLight
@@ -23,8 +26,8 @@
   - FSStreetlightBroken
 
 - type: fsMapPalette
-  id: FSPaletteStreetSignage
-  name: fs-palette-street-signage
+  id: FSPaletteStreetRoad1
+  name: fspalettestreet-20
   order: 20
   entities:
   - FSOverheadRoadsign
@@ -37,17 +40,17 @@
   - FSOverheadRoadsignAlt4
 
 - type: fsMapPalette
-  id: FSPaletteStreetBillboards
-  name: fs-palette-street-billboards
+  id: FSPaletteStreetBillboards2
+  name: fspalettestreet-30
   order: 30
   children:
-  - FSPaletteStreetBillboardsBigger
-  - FSPaletteStreetBillboardsOther
-  - FSPaletteStreetBillboardsWallmount
+  - FSPaletteStreetBillboards2Bigger
+  - FSPaletteStreetBillboards2Other
+  - FSPaletteStreetBillboards2Wallmount
 
 - type: fsMapPalette
-  id: FSPaletteStreetBillboardsBigger
-  name: fs-palette-street-billboards-bigger
+  id: FSPaletteStreetBillboards2Bigger
+  name: fspalettestreet-30-bigger
   order: 10
   entities:
   - FSOverheadBillboardBigger1
@@ -60,8 +63,8 @@
   - FSOverheadBillboardBigger8
 
 - type: fsMapPalette
-  id: FSPaletteStreetBillboardsOther
-  name: fs-palette-street-billboards-other
+  id: FSPaletteStreetBillboards2Other
+  name: fspalettestreet-30-other
   order: 20
   entities:
   - FSOverheadBillboard1A
@@ -106,8 +109,8 @@
   - FSOverheadBillboard5H
 
 - type: fsMapPalette
-  id: FSPaletteStreetBillboardsWallmount
-  name: fs-palette-street-billboards-wallmount
+  id: FSPaletteStreetBillboards2Wallmount
+  name: fspalettestreet-30-wallmount
   order: 30
   entities:
   - FSOverheadBillboardWallmount1
@@ -140,33 +143,33 @@
   - FSOverheadBillboardWallmount9
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehicles
-  name: fs-palette-street-vehicles
+  id: FSPaletteStreetVehicles3
+  name: fspalettestreet-40
   order: 40
   children:
-  - FSPaletteStreetVehiclesBlack
-  - FSPaletteStreetVehiclesBlue
-  - FSPaletteStreetVehiclesBlueOffset
-  - FSPaletteStreetVehiclesBrown
-  - FSPaletteStreetVehiclesCop
-  - FSPaletteStreetVehiclesDesatBlue
-  - FSPaletteStreetVehiclesGreen
-  - FSPaletteStreetVehiclesLightBlue
-  - FSPaletteStreetVehiclesOrange
-  - FSPaletteStreetVehiclesOther
-  - FSPaletteStreetVehiclesPink
-  - FSPaletteStreetVehiclesPurple
-  - FSPaletteStreetVehiclesRed
-  - FSPaletteStreetVehiclesRedOffset
-  - FSPaletteStreetVehiclesShell
-  - FSPaletteStreetVehiclesTaxi
-  - FSPaletteStreetVehiclesTurquoise
-  - FSPaletteStreetVehiclesTurquoiseOffset
-  - FSPaletteStreetVehiclesWY
+  - FSPaletteStreetVehicles3Black
+  - FSPaletteStreetVehicles3Blue
+  - FSPaletteStreetVehicles3BlueOffset
+  - FSPaletteStreetVehicles3Brown
+  - FSPaletteStreetVehicles3CarPileup
+  - FSPaletteStreetVehicles3Cop
+  - FSPaletteStreetVehicles3DesatBlue
+  - FSPaletteStreetVehicles3Green
+  - FSPaletteStreetVehicles3LightBlue
+  - FSPaletteStreetVehicles3Orange
+  - FSPaletteStreetVehicles3Pink
+  - FSPaletteStreetVehicles3Purple
+  - FSPaletteStreetVehicles3Red
+  - FSPaletteStreetVehicles3RedOffset
+  - FSPaletteStreetVehicles3Shell
+  - FSPaletteStreetVehicles3Taxi
+  - FSPaletteStreetVehicles3Turquoise
+  - FSPaletteStreetVehicles3TurquoiseOffset
+  - FSPaletteStreetVehicles3WY
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesBlack
-  name: fs-palette-street-vehicles-black
+  id: FSPaletteStreetVehicles3Black
+  name: fspalettestreet-40-black
   order: 10
   entities:
   - FSPropVehicleMonoSupronBlack
@@ -183,8 +186,8 @@
   - FSPropVehicleMonoSupronBlackFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesBlue
-  name: fs-palette-street-vehicles-blue
+  id: FSPaletteStreetVehicles3Blue
+  name: fspalettestreet-40-blue
   order: 20
   entities:
   - FSPropVehicleMonoSupronBlue
@@ -201,15 +204,15 @@
   - FSPropVehicleMonoSupronBlueFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesBlueOffset
-  name: fs-palette-street-vehicles-blueoffset
+  id: FSPaletteStreetVehicles3BlueOffset
+  name: fspalettestreet-40-blueoffset
   order: 30
   entities:
   - FSPropVehicleMonoSupronBlueOffset
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesBrown
-  name: fs-palette-street-vehicles-brown
+  id: FSPaletteStreetVehicles3Brown
+  name: fspalettestreet-40-brown
   order: 40
   entities:
   - FSPropVehicleMonoSupronBrown
@@ -226,9 +229,16 @@
   - FSPropVehicleMonoSupronBrownFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesCop
-  name: fs-palette-street-vehicles-cop
+  id: FSPaletteStreetVehicles3CarPileup
+  name: fspalettestreet-40-carpileup
   order: 50
+  entities:
+  - FSCarPileup
+
+- type: fsMapPalette
+  id: FSPaletteStreetVehicles3Cop
+  name: fspalettestreet-40-cop
+  order: 60
   entities:
   - FSPropVehicleMonoSupronCop
   - FSPropVehicleMonoSupronCopDamaged1
@@ -244,9 +254,9 @@
   - FSPropVehicleMonoSupronCopFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesDesatBlue
-  name: fs-palette-street-vehicles-desatblue
-  order: 60
+  id: FSPaletteStreetVehicles3DesatBlue
+  name: fspalettestreet-40-desatblue
+  order: 70
   entities:
   - FSPropVehicleMonoSupronDesatBlue
   - FSPropVehicleMonoSupronDesatBlueDamaged1
@@ -262,9 +272,9 @@
   - FSPropVehicleMonoSupronDesatBlueFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesGreen
-  name: fs-palette-street-vehicles-green
-  order: 70
+  id: FSPaletteStreetVehicles3Green
+  name: fspalettestreet-40-green
+  order: 80
   entities:
   - FSPropVehicleMonoSupronGreen
   - FSPropVehicleMonoSupronGreenDamaged1
@@ -280,9 +290,9 @@
   - FSPropVehicleMonoSupronGreenFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesLightBlue
-  name: fs-palette-street-vehicles-lightblue
-  order: 80
+  id: FSPaletteStreetVehicles3LightBlue
+  name: fspalettestreet-40-lightblue
+  order: 90
   entities:
   - FSPropVehicleMonoSupronLightBlue
   - FSPropVehicleMonoSupronLightBlueDamaged1
@@ -298,9 +308,9 @@
   - FSPropVehicleMonoSupronLightBlueFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesOrange
-  name: fs-palette-street-vehicles-orange
-  order: 90
+  id: FSPaletteStreetVehicles3Orange
+  name: fspalettestreet-40-orange
+  order: 100
   entities:
   - FSPropVehicleMonoSupronOrange
   - FSPropVehicleMonoSupronOrangeDamaged1
@@ -316,15 +326,8 @@
   - FSPropVehicleMonoSupronOrangeFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesOther
-  name: fs-palette-street-vehicles-other
-  order: 100
-  entities:
-  - FSCarPileup
-
-- type: fsMapPalette
-  id: FSPaletteStreetVehiclesPink
-  name: fs-palette-street-vehicles-pink
+  id: FSPaletteStreetVehicles3Pink
+  name: fspalettestreet-40-pink
   order: 110
   entities:
   - FSPropVehicleMonoSupronPink
@@ -341,8 +344,8 @@
   - FSPropVehicleMonoSupronPinkFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesPurple
-  name: fs-palette-street-vehicles-purple
+  id: FSPaletteStreetVehicles3Purple
+  name: fspalettestreet-40-purple
   order: 120
   entities:
   - FSPropVehicleMonoSupronPurple
@@ -359,8 +362,8 @@
   - FSPropVehicleMonoSupronPurpleFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesRed
-  name: fs-palette-street-vehicles-red
+  id: FSPaletteStreetVehicles3Red
+  name: fspalettestreet-40-red
   order: 130
   entities:
   - FSPropVehicleMonoSupronRed
@@ -377,23 +380,23 @@
   - FSPropVehicleMonoSupronRedFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesRedOffset
-  name: fs-palette-street-vehicles-redoffset
+  id: FSPaletteStreetVehicles3RedOffset
+  name: fspalettestreet-40-redoffset
   order: 140
   entities:
   - FSPropVehicleMonoSupronRedOffset
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesShell
-  name: fs-palette-street-vehicles-shell
+  id: FSPaletteStreetVehicles3Shell
+  name: fspalettestreet-40-shell
   order: 150
   entities:
   - FSPropVehicleMonoSupronShell
   - FSPropVehicleMonoSupronShellFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesTaxi
-  name: fs-palette-street-vehicles-taxi
+  id: FSPaletteStreetVehicles3Taxi
+  name: fspalettestreet-40-taxi
   order: 160
   entities:
   - FSPropVehicleMonoSupronTaxi
@@ -410,8 +413,8 @@
   - FSPropVehicleMonoSupronTaxiFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesTurquoise
-  name: fs-palette-street-vehicles-turquoise
+  id: FSPaletteStreetVehicles3Turquoise
+  name: fspalettestreet-40-turquoise
   order: 170
   entities:
   - FSPropVehicleMonoSupronTurquoise
@@ -428,15 +431,15 @@
   - FSPropVehicleMonoSupronTurquoiseFlipped
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesTurquoiseOffset
-  name: fs-palette-street-vehicles-turquoiseoffset
+  id: FSPaletteStreetVehicles3TurquoiseOffset
+  name: fspalettestreet-40-turquoiseoffset
   order: 180
   entities:
   - FSPropVehicleMonoSupronTurquoiseOffset
 
 - type: fsMapPalette
-  id: FSPaletteStreetVehiclesWY
-  name: fs-palette-street-vehicles-wy
+  id: FSPaletteStreetVehicles3WY
+  name: fspalettestreet-40-wy
   order: 190
   entities:
   - FSPropVehicleMonoSupronWY
@@ -453,20 +456,78 @@
   - FSPropVehicleMonoSupronWYFlipped
 
 - type: fsMapPalette
+  id: FSPaletteStreetLanding4
+  name: fspalettestreet-50
+  order: 50
+  entities:
+  - FSChancesClaimLandingSign
+  - FSFortBicepSign
+  - FSHybrisaProsperaMedicalSign
+  - FSHybrisaProsperaMiningSign
+  - FSHybrisaProsperaSign
+  - FSLazarusLandingSign
+  - FSLazarusLandingSignFixed
+  - FSNewVaraderoSign
+  - FSPortNereidCargoSign
+  - FSPortNereidSpaceportSign
+  - FSPrisonSign
+  - FSShivaIceSign
+  - FSSolarisRidgeSign
+  - FSSorokyneSign
+  - FSSorokyneSignAlt
+  - FSTrijentSign
+  - FSTrijentSignAlt
+  - FSTyrargoSign1
+  - FSTyrargoSign2
+  - FSTyrargoSign3
+
+- type: fsMapPalette
+  id: FSPaletteStreetStreet5
+  name: fspalettestreet-60
+  order: 60
+  entities:
+  - FSBenchLeft
+  - FSBenchRight
+  - FSPhoneboxBroken
+  - FSPhoneboxBrokenBloody
+  - FSPhoneboxOff
+  - FSPhoneboxOn
+  - FSPlanter
+
+- type: fsMapPalette
+  id: FSPaletteStreetTrash6
+  name: fspalettestreet-70
+  order: 70
+  entities:
+  - FSPropBananaPeel
+  - FSPropCuppaJoeLid
+  - FSPropCuppaJoeLidStack
+  - FSPropCuppaJoeNoLid
+  - FSPropCuppaJoeNoLidStack
+  - FSPropTrashFull
+  - FSTrashBinBlue
+  - FSTrashBinGreen
+
+- type: fsMapPalette
   id: FSPaletteBuilding
   name: fs-palette-building
   root: true
   order: 50
   children:
-  - FSPaletteBuildingWalls
-  - FSPaletteBuildingFrames
-  - FSPaletteBuildingWindows
-  - FSPaletteBuildingDoors
-  - FSPaletteBuildingBoundary
+  - FSPaletteBuildingWalls0
+  - FSPaletteBuildingWindow1
+  - FSPaletteBuildingWindows2
+  - FSPaletteBuildingDoor3
+  - FSPaletteBuildingLockdown4
+  - FSPaletteBuildingShutters5
+  - FSPaletteBuildingElevator6
+  - FSPaletteBuildingFences7
+  - FSPaletteBuildingGrilles8
+  - FSPaletteBuildingMap9
 
 - type: fsMapPalette
-  id: FSPaletteBuildingWalls
-  name: fs-palette-building-walls
+  id: FSPaletteBuildingWalls0
+  name: fspalettebuilding-10
   order: 10
   entities:
   - FSWallEngineer
@@ -491,8 +552,8 @@
   - FSWallHybrisaSpacePortReinforced
 
 - type: fsMapPalette
-  id: FSPaletteBuildingFrames
-  name: fs-palette-building-frames
+  id: FSPaletteBuildingWindow1
+  name: fspalettebuilding-20
   order: 20
   entities:
   - FSWindowFrameHybrisa
@@ -506,8 +567,8 @@
   - FSWindowFrameHybrisaSpacePortReinforced
 
 - type: fsMapPalette
-  id: FSPaletteBuildingWindows
-  name: fs-palette-building-windows
+  id: FSPaletteBuildingWindows2
+  name: fspalettebuilding-30
   order: 30
   entities:
   - FSWindowHybrisa
@@ -522,9 +583,17 @@
   - FSWindowHybrisaSpacePortReinforced
 
 - type: fsMapPalette
-  id: FSPaletteBuildingDoors
-  name: fs-palette-building-doors
+  id: FSPaletteBuildingDoor3
+  name: fspalettebuilding-40
   order: 40
+  entities:
+  - FSPodDoorButton
+  - FSPodDoorButtonBigRed
+
+- type: fsMapPalette
+  id: FSPaletteBuildingLockdown4
+  name: fspalettebuilding-50
+  order: 50
   entities:
   - FSPodDoorHybrisaRed
   - FSPodDoorHybrisaRedOpen
@@ -534,8 +603,714 @@
   - FSPodDoorHybrisaWhiteOpen
 
 - type: fsMapPalette
-  id: FSPaletteBuildingBoundary
-  name: fs-palette-building-boundary
-  order: 50
+  id: FSPaletteBuildingShutters5
+  name: fspalettebuilding-60
+  order: 60
+  entities:
+  - FSShutterHybrisa
+  - FSShutterHybrisaOpen
+  - FSShutterHybrisaWindow
+  - FSShutterHybrisaWindowOpen
+
+- type: fsMapPalette
+  id: FSPaletteBuildingElevator6
+  name: fspalettebuilding-70
+  order: 70
+  entities:
+  - FSElevatorDoorBroken
+  - FSElevatorDoorBrokenRight
+
+- type: fsMapPalette
+  id: FSPaletteBuildingFences7
+  name: fspalettebuilding-80
+  order: 80
+  entities:
+  - FSFenceHybrisa
+  - FSFenceHybrisaBroken
+  - FSFenceHybrisaElectric
+  - FSFenceHybrisaElectricBroken
+
+- type: fsMapPalette
+  id: FSPaletteBuildingGrilles8
+  name: fspalettebuilding-90
+  order: 90
+  entities:
+  - FSGrilleHybrisa
+  - FSGrilleHybrisaBroken
+
+- type: fsMapPalette
+  id: FSPaletteBuildingMap9
+  name: fspalettebuilding-100
+  order: 100
   entities:
   - FSFogWall
+
+- type: fsMapPalette
+  id: FSPaletteIndustrial
+  name: fs-palette-industrial
+  root: true
+  order: 60
+  children:
+  - FSPaletteIndustrialCatwalks0
+  - FSPaletteIndustrialPlatforms1
+  - FSPaletteIndustrialStairs2
+  - FSPaletteIndustrialContainers3
+  - FSPaletteIndustrialLattices4
+  - FSPaletteIndustrialOverhead5
+  - FSPaletteIndustrialDrills6
+  - FSPaletteIndustrialRails7
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialCatwalks0
+  name: fspaletteindustrial-10
+  order: 10
+  entities:
+  - FSCatwalk
+  - FSCatwalkAI
+  - FSCatwalkAIWhite
+  - FSCatwalkHybrisa
+  - FSCatwalkHybrisaElevator
+  - FSCatwalkHybrisaLattice
+  - FSCatwalkHybrisaReinforcedGlass
+  - FSCatwalkKutjevo
+  - FSCatwalkPrison
+  - FSCatwalkShiva
+  - FSCatwalkStrata
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialPlatforms1
+  name: fspaletteindustrial-20
+  order: 20
+  entities:
+  - FSPlatform
+  - FSPlatformCorner
+  - FSPlatformCornerSmall
+  - FSPlatformHybrisa
+  - FSPlatformHybrisaCornerSmall
+  - FSPlatformHybrisaEdge
+  - FSPlatformHybrisaEdgeCornerSmall
+  - FSPlatformHybrisaRock
+  - FSPlatformHybrisaRockCornerSmall
+  - FSPlatformHybrisaStone
+  - FSPlatformHybrisaStoneCornerSmall
+  - FSPlatformHybrisaThree
+  - FSPlatformHybrisaThreeCorner
+  - FSPlatformHybrisaThreeCornerSmall
+  - FSPlatformHybrisaThreeStair
+  - FSPlatformHybrisaThreeStairAlt
+  - FSPlatformHybrisaTwo
+  - FSPlatformHybrisaTwoCornerSmall
+  - FSPlatformKutjevo
+  - FSPlatformKutjevoCornerSmall
+  - FSPlatformKutjevoRock
+  - FSPlatformKutjevoRockCornerSmall
+  - FSPlatformKutjevoSM
+  - FSPlatformKutjevoSMCorner
+  - FSPlatformKutjevoSMRound
+  - FSPlatformKutjevoStairLeft
+  - FSPlatformKutjevoStairRight
+  - FSPlatformRound
+  - FSPlatformShiva
+  - FSPlatformShivaCornerSmall
+  - FSPlatformStairLeft
+  - FSPlatformStairRight
+  - FSPlatformStrata
+  - FSPlatformStrataCornerSmall
+  - FSPlatformStrataRock
+  - FSPlatformStrataRockCornerSmall
+  - FSPlatformStrataStair
+  - FSPlatformStrataStairAlt
+  - FSPlatformStrataThree
+  - FSPlatformStrataThreeCornerSmall
+  - FSPlatformStrataTwo
+  - FSPlatformStrataTwoCornerSmall
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialStairs2
+  name: fspaletteindustrial-30
+  order: 30
+  entities:
+  - FSAlmayerStairs
+  - FSAlmayerStairsTop
+  - FSHunterStairs
+  - FSHunterStairsCorner
+  - FSHunterStairsLeft
+  - FSHunterStairsRight
+  - FSHunterStairsSolo
+  - FSHybrisaStairs
+  - FSHybrisaStairsPerspective
+  - FSSoroStairs
+  - FSSoroStairsCorner
+  - FSSoroStairsLeft
+  - FSSoroStairsRight
+  - FSSoroStairsSolo
+  - FSStairs
+  - FSStairsCorner
+  - FSStairsIce
+  - FSStairsIceCorner
+  - FSStairsIceLeft
+  - FSStairsIceLeftHalf
+  - FSStairsIceRight
+  - FSStairsIceRightHalf
+  - FSStairsIceSolo
+  - FSStairsKutjevo
+  - FSStairsKutjevoCorner
+  - FSStairsKutjevoLeft
+  - FSStairsKutjevoLeftHalf
+  - FSStairsKutjevoRight
+  - FSStairsKutjevoRightHalf
+  - FSStairsKutjevoSolo
+  - FSStairsLeft
+  - FSStairsLeftHalf
+  - FSStairsOffset
+  - FSStairsRight
+  - FSStairsRightHalf
+  - FSStairsSolo
+  - FSTempleStairs
+  - FSTempleStairsCorner
+  - FSTempleStairsLeft
+  - FSTempleStairsRight
+  - FSTempleStairsSolo
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialContainers3
+  name: fspaletteindustrial-40
+  order: 40
+  entities:
+  - FSContainerAICMiddle
+  - FSContainerAMSLeft
+  - FSContainerAMSRight
+  - FSContainerAegisLeft
+  - FSContainerAegisMiddle
+  - FSContainerAegisRight
+  - FSContainerApocraphyLeft
+  - FSContainerApocraphyMiddle
+  - FSContainerAvantLeft
+  - FSContainerAvantMiddle
+  - FSContainerAvantRight
+  - FSContainerBlueLeft
+  - FSContainerBlueMiddle
+  - FSContainerBlueRight
+  - FSContainerFerretLeft
+  - FSContainerFerretMiddle
+  - FSContainerFerretRight
+  - FSContainerFujinLeft
+  - FSContainerFujinMiddle
+  - FSContainerGraf2Left
+  - FSContainerGraf2Middle
+  - FSContainerGraf2Right
+  - FSContainerGraf3Left
+  - FSContainerGraf3Middle
+  - FSContainerGraf3Right
+  - FSContainerGrafLeft
+  - FSContainerGrafMiddle
+  - FSContainerGrafRight
+  - FSContainerGreenLeft
+  - FSContainerGreenMiddle
+  - FSContainerGreenRight
+  - FSContainerMSPLeft
+  - FSContainerMSPMiddle
+  - FSContainerMSPRight
+  - FSContainerMedicalEmptyRight
+  - FSContainerMedicalLeft
+  - FSContainerMedicalRight
+  - FSContainerNovarisLeft
+  - FSContainerNovarisMiddle
+  - FSContainerNovarisRight
+  - FSContainerPathosLeft
+  - FSContainerPathosMiddle
+  - FSContainerRedLeft
+  - FSContainerRedMiddle
+  - FSContainerRedRight
+  - FSContainerSPPAltLeft
+  - FSContainerSPPAltMiddle
+  - FSContainerSPPAltRight
+  - FSContainerSPPLeft
+  - FSContainerSPPMiddle
+  - FSContainerSPPRight
+  - FSContainerShortBlueLeft
+  - FSContainerShortBlueRight
+  - FSContainerShortGreenLeft
+  - FSContainerShortGreenRight
+  - FSContainerShortRedLeft
+  - FSContainerShortRedRight
+  - FSContainerShortSPP10Left
+  - FSContainerShortSPP10Right
+  - FSContainerShortSPP11Left
+  - FSContainerShortSPP11Right
+  - FSContainerShortSPP12Left
+  - FSContainerShortSPP12Right
+  - FSContainerShortSPP13Left
+  - FSContainerShortSPP13Right
+  - FSContainerShortSPP14Left
+  - FSContainerShortSPP14Right
+  - FSContainerShortSPP15Left
+  - FSContainerShortSPP15Right
+  - FSContainerShortSPP16Left
+  - FSContainerShortSPP16Right
+  - FSContainerShortSPP17Left
+  - FSContainerShortSPP17Right
+  - FSContainerShortSPP18Left
+  - FSContainerShortSPP18Right
+  - FSContainerShortSPP19Left
+  - FSContainerShortSPP19Right
+  - FSContainerShortSPP20Left
+  - FSContainerShortSPP20Right
+  - FSContainerShortSPP2Left
+  - FSContainerShortSPP2Right
+  - FSContainerShortSPP3Left
+  - FSContainerShortSPP3Right
+  - FSContainerShortSPP4Left
+  - FSContainerShortSPP4Right
+  - FSContainerShortSPP5Left
+  - FSContainerShortSPP5Right
+  - FSContainerShortSPP6Left
+  - FSContainerShortSPP6Right
+  - FSContainerShortSPP7Left
+  - FSContainerShortSPP7Right
+  - FSContainerShortSPP8Left
+  - FSContainerShortSPP8Right
+  - FSContainerShortSPP9Left
+  - FSContainerShortSPP9Right
+  - FSContainerShortSPPLeft
+  - FSContainerShortSPPRight
+  - FSContainerShortTanLeft
+  - FSContainerShortTanRight
+  - FSContainerTartarusLeft
+  - FSContainerTartarusRight
+  - FSContainerTrijentAltLeft
+  - FSContainerTrijentAltMiddle
+  - FSContainerTrijentAltRight
+  - FSContainerTrijentLeft
+  - FSContainerTrijentMiddle
+  - FSContainerTrijentRight
+  - FSContainerUNMCLeft
+  - FSContainerUNMCMiddle
+  - FSContainerUNMCRight
+  - FSContainerVerticalBottom
+  - FSContainerVerticalMiddle
+  - FSContainerVerticalTop
+  - FSContainerWeYaAltLeft
+  - FSContainerWeYaAltMiddle
+  - FSContainerWeYaAltRight
+  - FSContainerWeYaBlackLeft
+  - FSContainerWeYaBlackRight
+  - FSContainerWeYaGreyLeft
+  - FSContainerWeYaGreyRight
+  - FSContainerWeYaLeft
+  - FSContainerWeYaLightGreyLeft
+  - FSContainerWeYaLightGreyRight
+  - FSContainerWeYaMiddle
+  - FSContainerWeYaRight
+  - FSContainerWeYaWhiteLeft
+  - FSContainerWeYaWhiteRight
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialLattices4
+  name: fspaletteindustrial-50
+  order: 50
+  entities:
+  - FSOverheadLatticeHorizontal12
+  - FSOverheadLatticeHorizontal4
+  - FSOverheadLatticeHorizontal4A
+  - FSOverheadLatticeHorizontal4B
+  - FSOverheadLatticeHorizontal4C
+  - FSOverheadLatticeHorizontal4D
+  - FSOverheadLatticeHorizontal5A
+  - FSOverheadLatticeHorizontal5B
+  - FSOverheadLatticeHorizontal5C
+  - FSOverheadLatticeHorizontal5D
+  - FSOverheadLatticeHorizontal6A
+  - FSOverheadLatticeHorizontal6B
+  - FSOverheadLatticeHorizontal6C
+  - FSOverheadLatticeHorizontal6D
+  - FSOverheadLatticeHorizontal8
+  - FSOverheadLatticeVertical1
+  - FSOverheadLatticeVertical1A
+  - FSOverheadLatticeVertical1B
+  - FSOverheadLatticeVertical1C
+  - FSOverheadLatticeVertical1D
+  - FSOverheadLatticeVertical2
+  - FSOverheadLatticeVertical2A
+  - FSOverheadLatticeVertical2B
+  - FSOverheadLatticeVertical2C
+  - FSOverheadLatticeVertical2D
+  - FSOverheadLatticeVertical3
+  - FSOverheadLatticeVertical3A
+  - FSOverheadLatticeVertical3B
+  - FSOverheadLatticeVertical3C
+  - FSOverheadLatticeVertical3D
+  - FSStructureLattice
+  - FSStructureLatticeB
+  - FSStructureLatticeC
+  - FSStructureLatticeDouble
+  - FSStructureLatticeDoubleB
+  - FSStructureLatticeDoubleC
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialOverhead5
+  name: fspaletteindustrial-60
+  order: 60
+  entities:
+  - FSOverheadFuelLine1
+  - FSOverheadFuelLine10
+  - FSOverheadFuelLine11
+  - FSOverheadFuelLine12
+  - FSOverheadFuelLine13
+  - FSOverheadFuelLine14
+  - FSOverheadFuelLine15
+  - FSOverheadFuelLine16
+  - FSOverheadFuelLine17
+  - FSOverheadFuelLine1Offset
+  - FSOverheadFuelLine2
+  - FSOverheadFuelLine3
+  - FSOverheadFuelLine4
+  - FSOverheadFuelLine5
+  - FSOverheadFuelLine6
+  - FSOverheadFuelLine7
+  - FSOverheadFuelLine8
+  - FSOverheadFuelLine9
+  - FSOverheadPipe
+  - FSOverheadPipeCap
+  - FSOverheadPipeCorner
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialDrills6
+  name: fspaletteindustrial-70
+  order: 70
+  entities:
+  - FSDrill
+
+- type: fsMapPalette
+  id: FSPaletteIndustrialRails7
+  name: fspaletteindustrial-80
+  order: 80
+  entities:
+  - FSMonorailBend
+  - FSMonorailStraight
+  - FSRailroadBend
+  - FSRailroadBumper
+  - FSRailroadStraight
+
+- type: fsMapPalette
+  id: FSPaletteInterior
+  name: fs-palette-interior
+  root: true
+  order: 70
+  children:
+  - FSPaletteInteriorCarpets0
+  - FSPaletteInteriorDividers1
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0
+  name: fspaletteinterior-10
+  order: 10
+  children:
+  - FSPaletteInteriorCarpets0Beige
+  - FSPaletteInteriorCarpets0Black
+  - FSPaletteInteriorCarpets0Blue
+  - FSPaletteInteriorCarpets0ColourableRugBlue
+  - FSPaletteInteriorCarpets0ColourableRugGreen
+  - FSPaletteInteriorCarpets0ColourableRugGrey
+  - FSPaletteInteriorCarpets0ColourableRugRed
+  - FSPaletteInteriorCarpets0GreyBlue
+  - FSPaletteInteriorCarpets0Pink
+  - FSPaletteInteriorCarpets0Prison
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0Beige
+  name: fspaletteinterior-10-beige
+  order: 10
+  entities:
+  - FSCarpetBeige1
+  - FSCarpetBeige2
+  - FSCarpetBeige3
+  - FSCarpetBeige4
+  - FSCarpetBeige5
+  - FSCarpetBeige6
+  - FSCarpetBeige7
+  - FSCarpetBeige8
+  - FSCarpetBeige9
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0Black
+  name: fspaletteinterior-10-black
+  order: 20
+  entities:
+  - FSCarpetBlack1
+  - FSCarpetBlack2
+  - FSCarpetBlack3
+  - FSCarpetBlack4
+  - FSCarpetBlack5
+  - FSCarpetBlack6
+  - FSCarpetBlack7
+  - FSCarpetBlack8
+  - FSCarpetBlack9
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0Blue
+  name: fspaletteinterior-10-blue
+  order: 30
+  entities:
+  - FSCarpetBlue1
+  - FSCarpetBlue2
+  - FSCarpetBlue3
+  - FSCarpetBlue4
+  - FSCarpetBlue5
+  - FSCarpetBlue6
+  - FSCarpetBlue7
+  - FSCarpetBlue8
+  - FSCarpetBlue9
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0ColourableRugBlue
+  name: fspaletteinterior-10-colourablerugblue
+  order: 40
+  entities:
+  - FSColourableRugBlue
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0ColourableRugGreen
+  name: fspaletteinterior-10-colourableruggreen
+  order: 50
+  entities:
+  - FSColourableRugGreen
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0ColourableRugGrey
+  name: fspaletteinterior-10-colourableruggrey
+  order: 60
+  entities:
+  - FSColourableRugGrey
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0ColourableRugRed
+  name: fspaletteinterior-10-colourablerugred
+  order: 70
+  entities:
+  - FSColourableRugRed
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0GreyBlue
+  name: fspaletteinterior-10-greyblue
+  order: 80
+  entities:
+  - FSCarpetGreyBlue1
+  - FSCarpetGreyBlue2
+  - FSCarpetGreyBlue3
+  - FSCarpetGreyBlue4
+  - FSCarpetGreyBlue5
+  - FSCarpetGreyBlue6
+  - FSCarpetGreyBlue7
+  - FSCarpetGreyBlue8
+  - FSCarpetGreyBlue9
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0Pink
+  name: fspaletteinterior-10-pink
+  order: 90
+  entities:
+  - FSCarpetPink1
+  - FSCarpetPink2
+  - FSCarpetPink3
+  - FSCarpetPink4
+  - FSCarpetPink5
+  - FSCarpetPink6
+  - FSCarpetPink7
+  - FSCarpetPink8
+  - FSCarpetPink9
+
+- type: fsMapPalette
+  id: FSPaletteInteriorCarpets0Prison
+  name: fspaletteinterior-10-prison
+  order: 100
+  entities:
+  - FSCarpetPrison
+
+- type: fsMapPalette
+  id: FSPaletteInteriorDividers1
+  name: fspaletteinterior-20
+  order: 20
+  entities:
+  - FSHospitalDivider
+
+- type: fsMapPalette
+  id: FSPaletteDecals
+  name: fs-palette-decals
+  root: true
+  order: 80
+  children:
+  - FSPaletteDecals0
+  - FSPaletteDecals1
+  - FSPaletteDecals2
+  - FSPaletteDecals3
+  - FSPaletteDecals4
+  - FSPaletteDecals5
+  - FSPaletteDecals6
+
+- type: fsMapPalette
+  id: FSPaletteDecals0
+  name: fs-palette-decals-10
+  order: 10
+  decals:
+  - FSDecalHybrisaHalfGrate
+  - FSDecalHybrisaHalfGrate2
+  - FSDecalHybrisaHalfGrate3
+  - FSDecalHybrisaHalfGrate4
+  - FSDecalHybrisaRedWarningEast
+  - FSDecalHybrisaRedWarningNorth
+  - FSDecalHybrisaRedWarningNorthEast
+  - FSDecalHybrisaRedWarningNorthWest
+  - FSDecalHybrisaRedWarningSouth
+  - FSDecalHybrisaRedWarningSouthEast
+  - FSDecalHybrisaRedWarningSouthWest
+  - FSDecalHybrisaRedWarningWest
+  - FSDecalHybrisaRoadEdge1
+  - FSDecalHybrisaRoadEdge10
+  - FSDecalHybrisaRoadEdge11
+  - FSDecalHybrisaRoadEdge12
+  - FSDecalHybrisaRoadEdge2
+  - FSDecalHybrisaRoadEdge3
+  - FSDecalHybrisaRoadEdge4
+  - FSDecalHybrisaRoadEdge5
+  - FSDecalHybrisaRoadEdge6
+  - FSDecalHybrisaRoadEdge7
+  - FSDecalHybrisaRoadEdge8
+  - FSDecalHybrisaRoadEdge9
+  - FSDecalHybrisaRoadLinesMiddle
+
+- type: fsMapPalette
+  id: FSPaletteDecals1
+  name: fs-palette-decals-20
+  order: 20
+  decals:
+  - FSDecalHybrisaCheckpointSign1
+  - FSDecalHybrisaCheckpointSign2
+  - FSDecalHybrisaStopDecal1
+  - FSDecalHybrisaStopDecal2
+  - FSDecalHybrisaStopDecal3
+  - FSDecalHybrisaStopDecal4
+  - FSDecalHybrisaStopDecal5
+  - FSDecalHybrisaZCorner
+  - FSDecalHybrisaZDE4
+  - FSDecalHybrisaZDM1
+  - FSDecalHybrisaZDM2
+  - FSDecalHybrisaZDN2
+  - FSDecalHybrisaZDS3
+  - FSDecalHybrisaZDW1
+  - FSDecalHybrisaZE4
+  - FSDecalHybrisaZM1
+  - FSDecalHybrisaZM2
+  - FSDecalHybrisaZN2
+  - FSDecalHybrisaZS3
+  - FSDecalHybrisaZW1
+
+- type: fsMapPalette
+  id: FSPaletteDecals2
+  name: fs-palette-decals-30
+  order: 30
+  decals:
+  - FSDecalHybrisaWarningEast
+  - FSDecalHybrisaWarningNorth
+  - FSDecalHybrisaWarningNorthEast
+  - FSDecalHybrisaWarningNorthWest
+  - FSDecalHybrisaWarningSouth
+  - FSDecalHybrisaWarningSouthEast
+  - FSDecalHybrisaWarningSouthWest
+  - FSDecalHybrisaWarningStripesAngled
+  - FSDecalHybrisaWarningStripesAngled2
+  - FSDecalHybrisaWarningStripesAngled3
+  - FSDecalHybrisaWarningStripesAngled4
+  - FSDecalHybrisaWarningStripesAngledCorner
+  - FSDecalHybrisaWarningStripesAngledCorner2
+  - FSDecalHybrisaWarningStripesAngledCorner3
+  - FSDecalHybrisaWarningStripesAngledCorner4
+  - FSDecalHybrisaWarningWest
+  - FSDecalHybrisaWorkerSign1
+  - FSDecalHybrisaWorkerSign2
+
+- type: fsMapPalette
+  id: FSPaletteDecals3
+  name: fs-palette-decals-40
+  order: 40
+  decals:
+  - FSDecalHybrisaEngiHullAngled
+  - FSDecalHybrisaEngiHullAngled2
+  - FSDecalHybrisaEngiHullAngled3
+  - FSDecalHybrisaEngiHullAngled4
+  - FSDecalHybrisaEngiHullAngledAlt
+  - FSDecalHybrisaEngiHullAngledAlt2
+  - FSDecalHybrisaEngiHullAngledAlt3
+  - FSDecalHybrisaEngiHullAngledAlt4
+  - FSDecalHybrisaEngiPlatform
+  - FSDecalHybrisaEngiPlatform2
+  - FSDecalHybrisaEngiPlatform3
+  - FSDecalHybrisaEngiPlatform4
+  - FSDecalHybrisaEngiPlatformCorners
+  - FSDecalHybrisaEngiPlatformCorners2
+  - FSDecalHybrisaEngiPlatformCorners3
+  - FSDecalHybrisaEngiPlatformCorners4
+  - FSDecalHybrisaEngiPlatformDeco
+  - FSDecalHybrisaEngiPlatformDeco2
+  - FSDecalHybrisaEngiPlatformDeco3
+  - FSDecalHybrisaEngiPlatformDeco4
+  - FSDecalHybrisaEngiPlatingAngled
+  - FSDecalHybrisaEngiPlatingAngled2
+  - FSDecalHybrisaEngiPlatingAngled3
+  - FSDecalHybrisaEngiPlatingAngled4
+
+- type: fsMapPalette
+  id: FSPaletteDecals4
+  name: fs-palette-decals-50
+  order: 50
+  decals:
+  - FSDecalHybrisaStoneEdge1
+  - FSDecalHybrisaStoneEdge2
+  - FSDecalHybrisaStoneEdge3
+  - FSDecalHybrisaStoneEdge4
+  - FSDecalHybrisaStoneEdgeAlt1
+  - FSDecalHybrisaStoneEdgeAlt2
+  - FSDecalHybrisaStoneEdgeAlt3
+  - FSDecalHybrisaStoneEdgeAlt4
+  - FSDecalHybrisaStoneEdgeDeco1
+  - FSDecalHybrisaStoneEdgeDeco2
+  - FSDecalHybrisaStoneEdgeDeco3
+  - FSDecalHybrisaStoneEdgeDeco4
+  - FSDecalHybrisaStoneEdgeDecoAlt1
+  - FSDecalHybrisaStoneEdgeDecoAlt2
+  - FSDecalHybrisaStoneEdgeDecoAlt3
+  - FSDecalHybrisaStoneEdgeDecoAlt4
+
+- type: fsMapPalette
+  id: FSPaletteDecals5
+  name: fs-palette-decals-60
+  order: 60
+  decals:
+  - FSDecalHybrisaTrash1
+  - FSDecalHybrisaTrash10
+  - FSDecalHybrisaTrash11
+  - FSDecalHybrisaTrash12
+  - FSDecalHybrisaTrash13
+  - FSDecalHybrisaTrash14
+  - FSDecalHybrisaTrash15
+  - FSDecalHybrisaTrash16
+  - FSDecalHybrisaTrash17
+  - FSDecalHybrisaTrash2
+  - FSDecalHybrisaTrash3
+  - FSDecalHybrisaTrash4
+  - FSDecalHybrisaTrash5
+  - FSDecalHybrisaTrash6
+  - FSDecalHybrisaTrash7
+  - FSDecalHybrisaTrash8
+  - FSDecalHybrisaTrash9
+
+- type: fsMapPalette
+  id: FSPaletteDecals6
+  name: fs-palette-decals-70
+  order: 70
+  decals:
+  - FSDecalHybrisaCasinoGoldline
+  - FSDecalHybrisaWEYALogo1
+  - FSDecalHybrisaWEYALogo2
+  - FSDecalHybrisaWEYALogoWorn1
+  - FSDecalHybrisaWEYALogoWorn2
