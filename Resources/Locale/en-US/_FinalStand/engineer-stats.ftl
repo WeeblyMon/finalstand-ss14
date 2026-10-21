@@ -16,3 +16,13 @@ fs-wave-report-kills = KILLS
 fs-wave-report-earned = EARNED
 fs-sentry-alert-lost = {$name} LOST · {$where}
 fs-sentry-alert-spent = {$name} OUT OF AMMO · {$where}
+fs-sentry-alert-where = {$distance} m {$direction}
+
+fs-compass-e = E
+fs-compass-ne = NE
+fs-compass-n = N
+fs-compass-nw = NW
+fs-compass-w = W
+fs-compass-sw = SW
+fs-compass-s = S
+fs-compass-se = SE

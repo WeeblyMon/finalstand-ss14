@@ -28,14 +28,23 @@ public sealed partial class FSDeployableAlertClientSystem : EntitySystem
     private static readonly SoundSpecifier LowSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_low.ogg");
     private static readonly SoundSpecifier LostSound = new SoundPathSpecifier("/Audio/_FinalStand/Engineering/sentry_lost.ogg");
 
-    private static readonly string[] Compass = { "E", "NE", "N", "NW", "W", "SW", "S", "SE" };
+    private static readonly LocId[] Compass =
+    {
+        "fs-compass-e", "fs-compass-ne", "fs-compass-n", "fs-compass-nw",
+        "fs-compass-w", "fs-compass-sw", "fs-compass-s", "fs-compass-se",
+    };
 
     public readonly HashSet<EntityUid> Low = new();
     public readonly List<(string Text, Color Color, TimeSpan At)> Toasts = new();
 
+    private Predicate<EntityUid> _deleted = default!;
+    private Predicate<(string Text, Color Color, TimeSpan At)> _toastExpired = default!;
+
     public override void Initialize()
     {
         base.Initialize();
+        _deleted = uid => !Exists(uid);
+        _toastExpired = t => _timing.RealTime - t.At > TimeSpan.FromSeconds(FSDeployableToastOverlay.Life);
         SubscribeNetworkEvent<FSDeployableAlertEvent>(OnAlert);
         _overlays.AddOverlay(new FSDeployableToastOverlay(this));
     }
@@ -48,7 +57,11 @@ public sealed partial class FSDeployableAlertClientSystem : EntitySystem
 
     public float Pulse(EntityUid uid)
     {
-        if (!Low.Contains(uid))
+        // Refills come from crates, emplacements and upgrades alike, so the alarm goes off by the replicated ammo
+        // count. The entry stays: the sentry may have gone low out of view, where its ammo here is stale.
+        if (!Low.Contains(uid)
+            || !TryComp<FSSentryTurretComponent>(uid, out var turret)
+            || turret.Ammo >= FSSentryAmmo.LowThreshold(turret))
             return 0f;
 
         return 0.5f + 0.5f * MathF.Sin((float) _timing.RealTime.TotalSeconds * 6f);
@@ -56,8 +69,10 @@ public sealed partial class FSDeployableAlertClientSystem : EntitySystem
 
     public override void FrameUpdate(float frameTime)
     {
-        Low.RemoveWhere(uid => !Exists(uid));
-        Toasts.RemoveAll(t => _timing.RealTime - t.At > TimeSpan.FromSeconds(FSDeployableToastOverlay.Life));
+        if (Low.Count > 0)
+            Low.RemoveWhere(_deleted);
+        if (Toasts.Count > 0)
+            Toasts.RemoveAll(_toastExpired);
     }
 
     private void OnAlert(FSDeployableAlertEvent ev)
@@ -93,7 +108,9 @@ public sealed partial class FSDeployableAlertClientSystem : EntitySystem
 
         var offset = at.Position - me.Position;
         var octant = (int) MathF.Round(MathF.Atan2(offset.Y, offset.X) / (MathF.PI / 4f));
-        return $"{offset.Length():0} m {Compass[(octant + 8) % 8]}";
+        return Loc.GetString("fs-sentry-alert-where",
+            ("distance", (int) MathF.Round(offset.Length())),
+            ("direction", Loc.GetString(Compass[(octant + 8) % 8])));
     }
 }
 

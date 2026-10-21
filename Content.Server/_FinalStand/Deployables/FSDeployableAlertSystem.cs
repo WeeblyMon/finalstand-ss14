@@ -9,8 +9,6 @@ public sealed partial class FSDeployableAlertSystem : EntitySystem
 {
     [Dependency] private IPlayerManager _players = default!;
 
-    private const float LowFraction = 0.2f;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -19,7 +17,7 @@ public sealed partial class FSDeployableAlertSystem : EntitySystem
 
     public void AmmoSpent(EntityUid uid, FSSentryTurretComponent turret)
     {
-        var threshold = (int) MathF.Ceiling(turret.MaxAmmo * LowFraction);
+        var threshold = FSSentryAmmo.LowThreshold(turret);
         if (turret.Ammo <= 0)
             Send(uid, FSDeployableAlert.Spent);
         else if (turret.Ammo == threshold - 1)
