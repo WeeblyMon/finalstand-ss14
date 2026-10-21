@@ -227,6 +227,11 @@ public abstract partial class GameTest
     [TearDown]
     public virtual async Task DoTeardown()
     {
+        // FINALSTAND: an assertion that fails on a reused pair's server or client thread is recorded against the test
+        // that made the pair (NUnit's context flows with the thread), so this test only holds the exception. The
+        // pool's dirty-dispose warning would then be its only assertion result and report it as a warning (skipped).
+        string? failure = null;
+
         try
         {
             // In some cool future we might be able to make this only throw out the pair
@@ -235,6 +240,7 @@ public abstract partial class GameTest
             // So not yet.
             if (TestContext.CurrentContext.Result.Outcome.Status == TestStatus.Failed)
             {
+                failure = TestContext.CurrentContext.Result.Message; // FINALSTAND
                 _pairDestroyed = true; // Blow it up, we failed and it might be screwed.
                 return;
             }
@@ -261,6 +267,10 @@ public abstract partial class GameTest
                 await Pair.CleanReturnAsync();
             else
                 await Pair.DisposeAsync();
+
+            // FINALSTAND: record the failure in this test's own result, after the dispose warning.
+            if (failure != null)
+                Assert.Fail(failure);
         }
     }
 }
