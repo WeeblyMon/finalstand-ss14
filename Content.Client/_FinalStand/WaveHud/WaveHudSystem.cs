@@ -172,6 +172,7 @@ public sealed partial class WaveHudSystem : EntitySystem
 
     private Control? _alerts;
     private Control? _alertsScreen;
+    private float? _alertsLift;
 
     private void UpdateAlertsAnchor(WaveHudOverlay overlay)
     {
@@ -182,12 +183,18 @@ public sealed partial class WaveHudSystem : EntitySystem
         {
             _alertsScreen = screen;
             _alerts = FindByName(screen, "Alerts", 0);
+            _alertsLift = null;
         }
 
         if (_alerts is null || FSClassicHud.Enabled)
             return;
 
+        // Every frame; a margin write rearranges the screen even when it's the same value.
         var lift = WaveHudOverlay.BottomBandLift + overlay.VitalsBlockHeight() + 6f;
+        if (_alertsLift == lift)
+            return;
+
+        _alertsLift = lift;
         LayoutContainer.SetMarginTop(_alerts, -lift);
         LayoutContainer.SetMarginBottom(_alerts, -lift);
     }

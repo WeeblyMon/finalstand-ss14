@@ -195,11 +195,18 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         var left = storage.GlobalPosition.X - InventoryBarGap - size.X;
         var bottom = storage.GlobalPosition.Y + storage.Size.Y;
+        var position = new Vector2(left, bottom - size.Y);
 
-        SetPosition(Inventory, new Vector2(left, bottom - size.Y));
+        // Runs every frame, and SetPosition rearranges the whole screen even when nothing moved.
+        if (_inventoryBarPosition == position)
+            return;
+
+        _inventoryBarPosition = position;
+        SetPosition(Inventory, position);
     }
 
     private const float InventoryBarGap = 6f;
+    private Vector2? _inventoryBarPosition;
 
     private void ReflowChatForScreen()
     {

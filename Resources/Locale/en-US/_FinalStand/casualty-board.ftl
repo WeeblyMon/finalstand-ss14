@@ -2,6 +2,7 @@ fs-casualty-board-title = Casualty Board
 fs-casualty-board-empty = No outstanding calls.
 fs-casualty-board-respond = Respond
 fs-casualty-board-en-route = {$medic} en route
+fs-casualty-board-distance = {$metres}m
 
 fs-casualty-state-hurt = HURT
 fs-casualty-state-critical = CRITICAL

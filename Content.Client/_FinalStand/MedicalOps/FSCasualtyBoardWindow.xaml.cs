@@ -68,16 +68,17 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
             };
             line.AddChild(arrow);
 
+            var metres = Metres(row.Distance);
             var distance = new Label
             {
-                Text = DistanceText(row.Distance),
+                Text = DistanceText(metres),
                 Modulate = MutedColor,
                 MinWidth = 46,
                 VerticalAlignment = VAlignment.Center,
             };
             line.AddChild(distance);
 
-            _bearings[entry.Patient] = new Bearing(arrow, distance);
+            _bearings[entry.Patient] = new Bearing(arrow, distance) { Metres = metres };
 
             if (entry.Responder is { } responder)
             {
@@ -110,12 +111,24 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
             return;
 
         bearing.Arrow.Direction = direction;
-        bearing.Distance.Text = DistanceText(distance);
+
+        // This runs every frame the board is open, and setting Text remeasures the label.
+        var metres = Metres(distance);
+        if (metres == bearing.Metres)
+            return;
+
+        bearing.Metres = metres;
+        bearing.Distance.Text = DistanceText(metres);
     }
 
-    private static string DistanceText(float? distance)
+    private static int? Metres(float? distance)
     {
-        return distance is { } value ? $"{value:0}m" : string.Empty;
+        return distance is { } value ? (int) MathF.Round(value) : null;
+    }
+
+    private static string DistanceText(int? metres)
+    {
+        return metres is { } value ? Loc.GetString("fs-casualty-board-distance", ("metres", value)) : string.Empty;
     }
 
     private static string StateText(FSCasualtyState state) => state switch
@@ -132,5 +145,10 @@ public sealed partial class FSCasualtyBoardWindow : DefaultWindow
         _ => HurtColor,
     };
 
-    private readonly record struct Bearing(FSBearingArrow Arrow, Label Distance);
+    private sealed class Bearing(FSBearingArrow arrow, Label distance)
+    {
+        public readonly FSBearingArrow Arrow = arrow;
+        public readonly Label Distance = distance;
+        public int? Metres;
+    }
 }
