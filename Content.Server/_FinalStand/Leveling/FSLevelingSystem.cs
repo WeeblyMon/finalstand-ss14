@@ -35,6 +35,8 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private static readonly TimeSpan LobbyRequestInterval = TimeSpan.FromSeconds(1);
     private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyRequest = new();
+    // Its own limit, so the panel's refresh request just before a click can't swallow the prestige.
+    private readonly Dictionary<NetUserId, TimeSpan> _lastLobbyPrestige = new();
 
     private readonly Dictionary<EntityUid, (int Xp, int Kills, int Assists)> _roundStats = new();
 
@@ -287,6 +289,7 @@ public sealed partial class FSLevelingSystem : EntitySystem
         _unsent.Clear();
         _roundStats.Clear();
         _lastLobbyRequest.Clear();
+        _lastLobbyPrestige.Clear();
 
         var query = EntityQueryEnumerator<FSPlayerLevelComponent>();
         while (query.MoveNext(out _, out var lvl))
@@ -295,8 +298,13 @@ public sealed partial class FSLevelingSystem : EntitySystem
 
     private void OnPrestigeRequest(FSPrestigeRequestMessage _, EntitySessionEventArgs args)
     {
-        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? _)) return;
-        if (!TryComp<FSPlayerLevelComponent>(mindId, out var lvl)) return;
+        if (!_mind.TryGetMind(args.SenderSession, out var mindId, out MindComponent? _)
+            || !TryComp<FSPlayerLevelComponent>(mindId, out var lvl))
+        {
+            PrestigeStored(args.SenderSession);
+            return;
+        }
+
         if (lvl.Level < PrestigeThreshold) return;
 
         lvl.PrestigeLevel++;
@@ -311,9 +319,40 @@ public sealed partial class FSLevelingSystem : EntitySystem
         var charName = TryComp<MindComponent>(mindId, out var mind) && mind.CharacterName is { } characterName
             ? characterName
             : Loc.GetString("fs-leveling-unknown-name");
+        AnnouncePrestige(charName, lvl.PrestigeLevel);
+    }
+
+    // The lobby panel and a perk window opened from the lobby can prestige too. There's no mind there, so the
+    // stored record is reset instead, keeping its prestige buffs.
+    private void PrestigeStored(ICommonSession session)
+    {
+        var now = _timing.CurTime;
+        if (_lastLobbyPrestige.TryGetValue(session.UserId, out var last) && now - last < LobbyRequestInterval)
+            return;
+        _lastLobbyPrestige[session.UserId] = now;
+
+        var record = _store.GetFullRecord(session.UserId.UserId);
+        if (record.Level < PrestigeThreshold)
+            return;
+
+        var prestige = record.PrestigeLevel + 1;
+        _store.UpsertLeveling(session.UserId.UserId, 1, 0, prestige, record.PrestigeBuffsJson);
+
+        RaiseNetworkEvent(new FSLevelingUpdatedEvent
+        {
+            Level = 1,
+            Experience = 0,
+            XpToNextLevel = XpToNextLevel(1),
+            PrestigeLevel = prestige,
+        }, Filter.SinglePlayer(session));
+
+        AnnouncePrestige(session.Name, prestige);
+    }
+
+    private void AnnouncePrestige(string name, int prestige)
+    {
         _chatManager.DispatchServerAnnouncement(
-            Loc.GetString("fs-leveling-prestiged", ("name", charName), ("prestige", lvl.PrestigeLevel),
-                ("bonus", lvl.PrestigeLevel * 20)),
+            Loc.GetString("fs-leveling-prestiged", ("name", name), ("prestige", prestige), ("bonus", prestige * 20)),
             Color.FromHex("#FFD700"));
     }
 
