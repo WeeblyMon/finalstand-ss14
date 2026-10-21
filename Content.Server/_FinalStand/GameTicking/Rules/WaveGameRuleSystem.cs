@@ -103,6 +103,7 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
                     if (!comp.VoteCountdownActive)
                     {
                         Log.Info($"Prep timer at zero for wave {comp.WaveNumber}, starting 10s countdown.");
+                        _darkWave.WarnNow(uid);
                         comp.VoteCountdownActive = true;
                         comp.VoteCountdownSoundPlayed = false;
                         comp.PhaseEndTime = now + TimeSpan.FromSeconds(10);
@@ -478,8 +479,10 @@ public sealed partial class WaveGameRuleSystem : GameRuleSystem<WaveGameRuleComp
     // The Captain hit Start, or most of the crew readied up.
     public void RequestWaveStart()
     {
-        if (!TryGetActiveRule(out _, out var comp) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
+        if (!TryGetActiveRule(out var uid, out var comp) || comp.Phase != WavePhase.Prep || comp.VoteCountdownActive)
             return;
+
+        _darkWave.WarnNow(uid);
 
         // The countdown itself doesn't count as time saved.
         var skipped = comp.PrepEndUnshaved - Timing.CurTime - VoteCountdown;

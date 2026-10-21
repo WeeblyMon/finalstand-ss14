@@ -92,6 +92,19 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         Log.Info($"Dark wave rolled for wave {wave}.");
     }
 
+    // The countdown to combat has started, so a warning still waiting on its delay goes out now. Starting the wave
+    // early used to skip it, and the station went dark unannounced.
+    public void WarnNow(EntityUid rule)
+    {
+        if (TryComp<FSDarkWaveRuleComponent>(rule, out var comp)
+            && comp.Upcoming
+            && comp.WarningAt is { } warningAt
+            && warningAt > Timing.CurTime)
+        {
+            comp.WarningAt = Timing.CurTime;
+        }
+    }
+
     // In prep the dark wave arms straight away; mid-combat it arms for the next prep.
     public bool TryForce(out bool armedNow)
     {
@@ -120,6 +133,10 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         duration = TimeSpan.Zero;
         if (!TryComp<FSDarkWaveRuleComponent>(rule, out var comp) || !comp.Upcoming)
             return false;
+
+        // A wave forced straight into combat skips the countdown; it still never goes dark unannounced.
+        if (comp.WarningAt != null)
+            Warn(comp);
 
         comp.Upcoming = false;
         comp.Forced = false;
@@ -158,9 +175,7 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
         {
             comp.WarningAt = null;
             comp.NextFlicker = now;
-            _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-dark-wave-warning"), WarningColor);
-            if (comp.WarningSound != null)
-                _audio.PlayGlobal(comp.WarningSound, Filter.Broadcast(), true);
+            Warn(comp);
         }
 
         // Once warned, the lights stutter until the wave starts.
@@ -182,6 +197,13 @@ public sealed partial class FSDarkWaveSystem : GameRuleSystem<FSDarkWaveRuleComp
                     _apc.ApcToggleBreaker(apc, apcComp, battery);
             }
         }
+    }
+
+    private void Warn(FSDarkWaveRuleComponent comp)
+    {
+        _chatManager.DispatchServerAnnouncement(Loc.GetString("fs-dark-wave-warning"), WarningColor);
+        if (comp.WarningSound != null)
+            _audio.PlayGlobal(comp.WarningSound, Filter.Broadcast(), true);
     }
 
     public void FlickerAllLightsOnce()
