@@ -71,7 +71,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
 
         if (!ApplyArmorToMob(player, tier))
         {
-            _wallet.GiveCredits(mindId, netCost);
+            _wallet.GiveCredits(mindId, netCost, earned: false);
             return;
         }
 
