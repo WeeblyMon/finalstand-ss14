@@ -42,6 +42,7 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
     private readonly List<ShotWindow> _pendingWindows = new();
     private readonly List<EntityUid> _sweepQueue = new();
     private readonly List<(float Fraction, EntityUid Target)> _hits = new();
+    private readonly HashSet<EntityUid> _touching = new();
     private readonly HashSet<Entity<LagCompensationComponent>> _candidates = new();
 
     private bool _enabled;
@@ -92,7 +93,7 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
             var rewound = EnsureComp<FSRewoundProjectileComponent>(ent);
             rewound.Shooter = shooter;
             rewound.RewindTicks = _lag.GetRewindTicks(actor.PlayerSession);
-            rewound.Hit.Clear();
+            rewound.Touching.Clear();
         }
 
         if (_window is { } window && window.User == shooter)
@@ -260,13 +261,14 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
 
         var nowTick = _timing.CurTick.Value - rewound.RewindTicks;
         _hits.Clear();
+        _touching.Clear();
         _candidates.Clear();
         _lookup.GetEntitiesInRange(origin.MapId, start + direction * (length / 2f), length / 2f + SearchPadding(rewound.RewindTicks + 1), _candidates);
 
         foreach (var candidate in _candidates)
         {
             var target = candidate.Owner;
-            if (target == uid || target == rewound.Shooter || rewound.Hit.Contains(target) || TerminatingOrDeleted(target))
+            if (target == uid || target == rewound.Shooter || TerminatingOrDeleted(target))
                 continue;
 
             var from = _lag.GetPastMapCoordinates(target, nowTick, candidate.Comp);
@@ -285,11 +287,11 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
                 continue;
             }
 
-            _hits.Add((fraction, target));
+            if (rewound.Touching.Contains(target))
+                _touching.Add(target);
+            else
+                _hits.Add((fraction, target));
         }
-
-        if (_hits.Count == 0)
-            return;
 
         _hits.Sort((a, b) => a.Fraction.CompareTo(b.Fraction));
 
@@ -306,7 +308,7 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
                 continue;
             }
 
-            rewound.Hit.Add(target);
+            _touching.Add(target);
 
             var ours = FSStartCollideFactory.Create(uid, target, SharedProjectileSystem.ProjectileFixture, targetFixtureId,
                 projectileFixture, targetFixture, body, targetBody, direction);
@@ -319,6 +321,9 @@ public sealed partial class FSLagCompensationSystem : SharedFSLagCompensationSys
                 targetFixture, projectileFixture, targetBody, body, -direction);
             RaiseLocalEvent(target, ref theirs, true);
         }
+
+        rewound.Touching.Clear();
+        rewound.Touching.UnionWith(_touching);
     }
 
     private float SearchPadding(double rewindTicks)

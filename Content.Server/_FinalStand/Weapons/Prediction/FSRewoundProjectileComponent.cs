@@ -10,6 +10,8 @@ public sealed partial class FSRewoundProjectileComponent : Component
     [ViewVariables]
     public double RewindTicks;
 
+    // What the bolt overlapped on the last sweep. Like a physics contact, a target is hit again only after the
+    // bolt has left it, so a bolt that bounces back through it lands a second hit.
     [ViewVariables]
-    public readonly HashSet<EntityUid> Hit = new();
+    public readonly HashSet<EntityUid> Touching = new();
 }
