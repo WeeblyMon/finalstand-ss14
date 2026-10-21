@@ -217,7 +217,7 @@ fs-tech-medical-high-flow-manifold = High-Flow Manifold
 fs-tech-medical-high-flow-manifold-bonus = The syringe filler decants more than twice as fast - a full magazine in seconds.
 
 fs-tech-medical-department-dividend = Department Dividend
-fs-tech-medical-department-dividend-bonus = The end of the Command line. Lets the CMO convert department funds into credits split across every medic on duty, at a loss.
+fs-tech-medical-department-dividend-bonus = The end of the Command line. Lets the CMO convert department funds into credits split across every medic on duty.
 
 fs-tech-medical-focused-nanites = Focused Nanites
 fs-tech-medical-focused-nanites-bonus = The beam closes wounds to 80% instead of 70%. The last stretch still needs a doctor.
