@@ -33,7 +33,7 @@ public sealed partial class FSPlayerUpgradesSystem
                     Dirty(weapon, gunA);
                 }
                 {
-                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - WeaponUpgradeDef.PelletSpreadCutPerLevel);
                 }
                 break;
             case WeaponUpgradeType.Accuracy:
@@ -53,7 +53,7 @@ public sealed partial class FSPlayerUpgradesSystem
                 // WieldBonus stays unchanged; scaling it too drives MaxAngleModified negative, inverting CurrentAngle clamping when wielded.
                 _gun.RefreshModifiers(weapon);
                 {
-                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - 0.16f);
+                    state.PelletSpreadMultiplier = Math.Max(0.1f, state.PelletSpreadMultiplier - WeaponUpgradeDef.PelletSpreadCutPerLevel);
                 }
                 break;
             case WeaponUpgradeType.MagazineSize:

@@ -154,6 +154,10 @@ public sealed partial class WeaponUpgradeDef
 
     private static string Text(LocId? key) => key is { } id ? Loc.GetString(id) : string.Empty;
 
+    // How much of a shotgun's pellet cone each Accuracy or AngleMax level takes away. On a pellet gun this is most
+    // of what the upgrade does, so its description quotes it too.
+    public const float PelletSpreadCutPerLevel = 0.16f;
+
     // Degrees one level takes off the aimed spread (MinAngle), the sustained-fire worst case (MaxAngle) and the
     // growth per shot (AngleIncrease). The upgrade, the shop's stats and the descriptions all go by this.
     public (double Min, double Max, double Increase) AngleDeltaPerLevel() => Type switch

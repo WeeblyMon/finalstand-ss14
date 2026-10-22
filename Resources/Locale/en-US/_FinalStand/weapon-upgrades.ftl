@@ -114,7 +114,7 @@ fs-upgrade-kammerer-reload-speed = Speed Loader
 fs-upgrade-kammerer-reload-speed-desc = Faster reload per level.
 
 fs-upgrade-kammerer-tight-choke = Tight Choke
-fs-upgrade-kammerer-tight-choke-desc = Narrows the choke by 1° per level. Tighter pattern at range.
+fs-upgrade-kammerer-tight-choke-desc = Narrows the choke: 1° off max spread and 16% off the pellet cone per level. Tighter pattern at range.
 
 fs-upgrade-kammerer-slamfire = Slam Fire
 fs-upgrade-kammerer-slamfire-desc = Rapid-cycling modification. Empties the tube fast, but devastates anything in the way.
@@ -132,7 +132,7 @@ fs-upgrade-bulldog-drum-capacity = High-Cap Drum
 fs-upgrade-bulldog-drum-capacity-desc = Adds 3 shells to drum magazine capacity per level.
 
 fs-upgrade-bulldog-recoil-comp = Recoil Compensator
-fs-upgrade-bulldog-recoil-comp-desc = Reduces max spread by 0.5° per level for tighter full-auto bursts.
+fs-upgrade-bulldog-recoil-comp-desc = Takes 0.5° off max spread and 16% off the pellet cone per level for tighter full-auto bursts.
 
 fs-upgrade-bulldog-flechette = Flechette Rounds
 fs-upgrade-bulldog-flechette-desc = Load flechettes. Each pellet pierces one extra target; pellet count doubles.
@@ -159,7 +159,7 @@ fs-upgrade-doublebar-splinter = Splinter Impact
 fs-upgrade-doublebar-splinter-desc = On hit, pellet fragments burst backward in a cone through the target for 40% bonus damage.
 
 fs-upgrade-hushpup-tight-pattern = Tight Pattern
-fs-upgrade-hushpup-tight-pattern-desc = Adjusts the suppressor geometry, tightening max spread by 0.1° per level.
+fs-upgrade-hushpup-tight-pattern-desc = Adjusts the suppressor geometry: 0.1° off max spread and 16% off the pellet cone per level.
 
 fs-upgrade-hushpup-extra-pellets = Frag Load
 fs-upgrade-hushpup-extra-pellets-desc = Adds 1 extra pellet per shot per level. More coverage, more damage.
