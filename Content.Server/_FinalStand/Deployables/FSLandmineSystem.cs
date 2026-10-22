@@ -15,6 +15,7 @@ public sealed partial class FSLandmineSystem : EntitySystem
     [Dependency] private SharedExplosionSystem _explosion = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private FSImplosionSystem _implosion = default!;
+    [Dependency] private FSPerkBuffSystem _perkBuff = default!;
 
     public override void Initialize()
     {
@@ -62,6 +63,14 @@ public sealed partial class FSLandmineSystem : EntitySystem
         var cause = DeployerOf(ent) ?? args.User;
         total *= comp.IntensityMultiplier;
         var slope = comp.IntensitySlope;
+        if (DeployerOf(ent) is { } deployer)
+        {
+            var gear = _perkBuff.DeadlyGearMultiplier(deployer);
+            total *= gear;
+            slope *= gear;
+            max *= gear;
+        }
+
         if (_implosion.TryGetFactors(cause, out var implosion))
         {
             total *= implosion.Total;

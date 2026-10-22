@@ -2,9 +2,11 @@ using Content.Server._FinalStand.Economy;
 using Content.Shared._FinalStand.Armor;
 using Content.Shared._FinalStand.Armor.Shop;
 using Content.Shared._FinalStand.Economy;
+using Content.Shared._FinalStand.Perks;
 using Content.Shared.GameTicking;
 using Content.Shared.Inventory;
 using Content.Shared.Mind;
+using Content.Shared.Popups;
 using Content.Shared.Tag;
 using Robust.Server.GameObjects;
 using Robust.Shared.Prototypes;
@@ -19,6 +21,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
     [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
 
     private readonly Dictionary<EntityUid, string> _purchasedTier = new();
 
@@ -48,6 +51,12 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         var player = args.Actor;
         if (!player.IsValid()) return;
         if (!_mind.TryGetMind(player, out var mindId, out _)) return;
+
+        if (HasComp<FSMedievalistComponent>(player))
+        {
+            _popup.PopupEntity(Loc.GetString("fs-medievalist-no-armour"), player, player);
+            return;
+        }
 
         var tier = FSArmorShopDefs.GetTier(args.TierId);
         if (tier == null) return;
@@ -80,7 +89,7 @@ public sealed partial class FSArmorShopSystem : EntitySystem
         if (!_mind.TryGetMind(ev.Mob, out var mindId, out _)) return;
         if (!_purchasedTier.TryGetValue(mindId, out var tierId)) return;
         var tier = FSArmorShopDefs.GetTier(tierId);
-        if (tier != null) ApplyArmorToMob(ev.Mob, tier);
+        if (tier != null && !HasComp<FSMedievalistComponent>(ev.Mob)) ApplyArmorToMob(ev.Mob, tier);
     }
 
     private bool ApplyArmorToMob(EntityUid mob, FSArmorTierDef tier)

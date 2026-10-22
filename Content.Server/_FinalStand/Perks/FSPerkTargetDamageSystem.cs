@@ -19,6 +19,10 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
     [Dependency] private MobThresholdSystem _thresholds = default!;
     [Dependency] private FSUnderdogSystem _underdog = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private FSLoneWolfSystem _loneWolf = default!;
+    [Dependency] private FSBunkeredDownSystem _bunkeredDown = default!;
+    [Dependency] private FSSmokingKillsSystem _smokingKills = default!;
+    [Dependency] private FSAggravatorSystem _aggravator = default!;
 
     private readonly List<(EntityUid Target, int Level)> _pendingShred = [];
 
@@ -49,6 +53,10 @@ public sealed partial class FSPerkTargetDamageSystem : EntitySystem
             mult *= 1f + specLevel * FSPerkBonusConstants.SpecialisedKillingPerLevel;
 
         mult *= _underdog.GetMultiplier(attacker, perks);
+        mult *= _loneWolf.GetMultiplier(attacker, perks);
+        mult *= _bunkeredDown.GetDamageMultiplier(mindId, perks);
+        mult *= _smokingKills.GetMultiplier(attacker, perks);
+        mult *= _aggravator.GetMultiplier(mindId, perks);
         mult *= FSArchetypeSystem.Bonus(perks).Damage;
         mult *= _titleBuffs.DamageAgainst(attacker, ent);
 

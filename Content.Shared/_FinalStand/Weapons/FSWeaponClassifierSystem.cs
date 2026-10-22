@@ -1,6 +1,9 @@
 // One place that decides what kind of weapon an entity is, for the systems that apply research.
 
+using Content.Shared.Item;
 using Content.Shared.Tag;
+using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Wieldable.Components;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._FinalStand.Weapons;
@@ -23,6 +26,9 @@ public readonly record struct FSWeaponKind(
 public sealed partial class FSWeaponClassifierSystem : EntitySystem
 {
     [Dependency] private TagSystem _tags = default!;
+    [Dependency] private SharedItemSystem _item = default!;
+
+    private const int LargeWeight = 8;
 
     private static readonly ProtoId<TagPrototype> BallisticTag = "WeaponGunBallistic";
     private static readonly ProtoId<TagPrototype> EnergyTag = "WeaponGunEnergy";
@@ -41,6 +47,19 @@ public sealed partial class FSWeaponClassifierSystem : EntitySystem
         "WeaponRifleEstoc",
         "WeaponSniperHristov",
     ];
+
+    public bool IsPistol(EntityUid uid)
+    {
+        return HasComp<GunComponent>(uid)
+            && !HasComp<WieldableComponent>(uid)
+            && TryComp<ItemComponent>(uid, out var item)
+            && _item.GetSizePrototype(item.Size).Weight < LargeWeight;
+    }
+
+    public bool IsTwoHandedGun(EntityUid uid)
+    {
+        return HasComp<GunComponent>(uid) && HasComp<WieldableComponent>(uid);
+    }
 
     public bool IsSemiAutoRifle(EntityUid uid)
     {
