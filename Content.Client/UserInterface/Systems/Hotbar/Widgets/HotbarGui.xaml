@@ -63,7 +63,7 @@
                      HUD's weapon module rather than beside the hands. -->
                 <PanelContainer Name="StoragePanel" Access="Public" VerticalAlignment="Bottom">
                     <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" SeparationOverride="4">
-                        <!-- The worn-inventory toggle is reparented in here, ahead of the slots. -->
+                        <!-- FINALSTAND: the worn-inventory toggle is reparented in here, ahead of the slots. -->
                         <BoxContainer Name="FSWornSlot" Access="Public"
                                       Orientation="Horizontal"
                                       VerticalAlignment="Center"/>

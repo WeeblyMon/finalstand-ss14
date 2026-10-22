@@ -57,7 +57,7 @@ public sealed partial class MagnetPickupSystem : EntitySystem
         {
             Act = () => ToggleMagnet(uid, component, user),
             Icon = new SpriteSpecifier.Texture(new("/Textures/Interface/VerbIcons/Spare/poweronoff.svg.192dpi.png")),
-            Text = Loc.GetString(component.MagnetEnabled ? "fs-magnet-toggle-off" : "fs-magnet-toggle-on"),
+            Text = Loc.GetString(component.MagnetEnabled ? "fs-magnet-toggle-off" : "fs-magnet-toggle-on"), // FINALSTAND
             Priority = component.MagnetTogglePriority,
         });
     }
@@ -70,7 +70,7 @@ public sealed partial class MagnetPickupSystem : EntitySystem
         comp.MagnetEnabled = !comp.MagnetEnabled;
         Dirty(uid, comp);
 
-        _popup.PopupClient(Loc.GetString(comp.MagnetEnabled ? "fs-magnet-enabled" : "fs-magnet-disabled"), uid, user);
+        _popup.PopupClient(Loc.GetString(comp.MagnetEnabled ? "fs-magnet-enabled" : "fs-magnet-disabled"), uid, user); // FINALSTAND
     }
 
     public override void Update(float frameTime)

@@ -110,7 +110,7 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
         _audio.PlayPredicted(ent.Comp.ChargeSound, ent.Owner, user);
 
         var duration = ent.Comp.DoAfterDuration
-            * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.RevivalSpeed);
+            * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.RevivalSpeed); // FINALSTAND
 
         return _doAfter.TryStartDoAfter(
             new DoAfterArgs(EntityManager, user, duration, new DefibrillatorZapDoAfterEvent(),
@@ -163,7 +163,7 @@ public abstract partial class SharedDefibrillatorSystem : EntitySystem
         if (TryComp<UseDelayComponent>(ent, out var useDelay))
         {
             var zapDelay = ent.Comp.ZapDelay
-                * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.DefibCooldown);
+                * _medicalBonus.GetDelayMultiplier(user, FSMedicalBonusCategory.DefibCooldown); // FINALSTAND
 
             _useDelay.SetLength((ent.Owner, useDelay), zapDelay, id: ent.Comp.DelayId);
             _useDelay.TryResetDelay((ent.Owner, useDelay), id: ent.Comp.DelayId);

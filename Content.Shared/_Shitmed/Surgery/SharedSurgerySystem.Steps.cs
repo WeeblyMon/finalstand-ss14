@@ -199,7 +199,7 @@ public abstract partial class SharedSurgerySystem
         {
             // Blocked by a trauma looks identical to "nothing to heal" without this.
             if (_wounds.GetWoundableSeverityPoint(args.Part, damageGroup: ent.Comp.MainGroup) > 0)
-                _popup.PopupClient(Loc.GetString("fs-surgery-tend-wounds-blocked"), args.User, args.User, PopupType.SmallCaution);
+                _popup.PopupClient(Loc.GetString("fs-surgery-tend-wounds-blocked"), args.User, args.User, PopupType.SmallCaution); // FINALSTAND
 
             return;
         }

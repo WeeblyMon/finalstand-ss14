@@ -181,7 +181,7 @@ namespace Content.IntegrationTests.Tests
                         entitiesWhichSpawnRestocks.Remove(proto.Product.Id);
                     }
                 }
-                // FS: restocks printed at a lathe are obtainable too.
+                // FINALSTAND: restocks printed at a lathe are obtainable too.
                 foreach (var recipe in prototypeManager.EnumeratePrototypes<LatheRecipePrototype>())
                 {
                     if (recipe.Result is { } result)

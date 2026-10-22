@@ -153,7 +153,7 @@ public sealed partial class HealingSystem : EntitySystem
         if (args.User == target.Owner)
             args.Args.Delay = healing.Delay
                 * GetScaledHealingPenalty(target.Owner, healing.SelfHealPenaltyMultiplier)
-                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed);
+                * _medicalBonus.GetDelayMultiplier(args.User, FSMedicalBonusCategory.TreatmentSpeed); // FINALSTAND
     }
 
     private bool HasDamage(Entity<HealingComponent> healing, Entity<DamageableComponent> target)

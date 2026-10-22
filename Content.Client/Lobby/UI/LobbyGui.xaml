@@ -99,7 +99,7 @@
                                      Margin="3 3 3 3" MaxWidth="400" HorizontalAlignment="Left" />
                     <Label Name="StationTime" Access="Public" FontColorOverride="{x:Static maths:Color.LightGray}"
                            Margin="3 3 3 3" HorizontalAlignment="Left" />
-                    <!-- FS: current wave -->
+                    <!-- FINALSTAND: current wave -->
                     <Label Name="WaveStatus" Access="Public" FontColorOverride="{x:Static maths:Color.LightGray}"
                            Margin="3 0 3 3" HorizontalAlignment="Left" Visible="False" />
                     <controls:HSpacer Spacing="5" />

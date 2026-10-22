@@ -32,6 +32,7 @@
             <Button Name="PerkShopButton" Text="{Loc 'fs-lobby-perks-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 4 0 0"/>
+            <!-- FINALSTAND -->
             <Button Name="PrestigeButton" Text="{Loc 'fs-lobby-prestige-button'}"
                     HorizontalAlignment="Center"
                     Margin="0 4 0 0"

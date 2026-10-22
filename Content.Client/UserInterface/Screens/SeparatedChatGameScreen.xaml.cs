@@ -66,7 +66,7 @@ public sealed partial class SeparatedChatGameScreen : InGameScreen
     {
         Inventory.InventoryButton.Orphan();
         Inventory.InventoryButton.SetButtonSize(WaveHudOverlay.HudSlotSize);
-        Inventory.InventoryButton.ToolTip = Loc.GetString("fs-hud-worn-tooltip");
+        Inventory.InventoryButton.ToolTip = Loc.GetString("fs-hud-worn-tooltip"); // FINALSTAND
 
         Hotbar.FSWornSlot.AddChild(Inventory.InventoryButton); // FINALSTAND
     }
