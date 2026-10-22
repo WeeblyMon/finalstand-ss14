@@ -11,7 +11,7 @@ namespace Content.Shared.Teleportation.Components;
 ///     Creates portals. If two are created, both are linked together--otherwise the first teleports randomly.
 ///     Using it with both portals active deactivates both.
 /// </summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause] // FINALSTAND: pause
 public sealed partial class HandTeleporterComponent : Component
 {
     [ViewVariables, DataField, AutoNetworkedField]
@@ -57,7 +57,8 @@ public sealed partial class HandTeleporterComponent : Component
     [DataField]
     public float? PortalLifetime;
 
-    [AutoNetworkedField]
+    // FINALSTAND: moves with a map pause like the portals' own display copy, or they all collapse on unpause.
+    [AutoNetworkedField, AutoPausedField]
     public TimeSpan? PortalsExpireAt;
 
     [AutoNetworkedField]

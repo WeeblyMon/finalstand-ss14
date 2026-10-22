@@ -63,10 +63,24 @@ public sealed partial class FSMedicalBonusSystem : EntitySystem
 
         SubscribeLocalEvent<FSMedicalBonusComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshMovespeed);
         SubscribeLocalEvent<FSMedicalBonusComponent, GetDoAfterDamageThresholdEvent>(OnGetDamageThreshold);
+        SubscribeLocalEvent<FSMedicalBonusComponent, EntityUnpausedEvent>(OnUnpaused);
         SubscribeLocalEvent<MeleeWeaponComponent, GetMeleeAttackRateEvent>(OnGetMeleeAttackRate);
 
         SubscribeLocalEvent<MetaDataComponent, GetMeleeDamageEvent>(OnGetMeleeDamage);
         SubscribeLocalEvent<MetaDataComponent, AmmoShotEvent>(OnAmmoShot);
+    }
+
+    // The deadlines sit inside the buffs, out of reach of the generated pause handling, so they're moved here or a
+    // pause longer than a buff used all of it up.
+    private void OnUnpaused(Entity<FSMedicalBonusComponent> ent, ref EntityUnpausedEvent args)
+    {
+        foreach (var buff in ent.Comp.Active.Values)
+        {
+            if (buff.EndTime is { } end)
+                buff.EndTime = end + args.PausedTime;
+        }
+
+        Dirty(ent);
     }
 
     public void ApplyGunModifiers(EntityUid holder, ref GunRefreshModifiersEvent args)

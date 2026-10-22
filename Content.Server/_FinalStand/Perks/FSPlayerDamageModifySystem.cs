@@ -41,10 +41,10 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
                 continue;
             }
 
-            if (unt.CurrentCharges < maxCharges && now >= unt.NextChargeTime && unt.NextChargeTime != default)
+            if (unt.CurrentCharges < maxCharges && unt.NextChargeTime is { } next && now >= next)
             {
                 unt.CurrentCharges++;
-                unt.NextChargeTime = unt.CurrentCharges < maxCharges ? now + ChargeReloadTime : default;
+                unt.NextChargeTime = unt.CurrentCharges < maxCharges ? now + ChargeReloadTime : null;
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }
@@ -61,7 +61,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
         {
             var unt = EnsureComp<FSUntouchableComponent>(uid);
             // Pre-load charges on first creation (CurrentCharges==0 with no timer means brand-new component).
-            if (unt.CurrentCharges == 0 && unt.NextChargeTime == default)
+            if (unt.CurrentCharges == 0 && unt.NextChargeTime == null)
             {
                 unt.CurrentCharges = untouchableLevel;
                 SendChargesUpdate(uid, unt.CurrentCharges);
@@ -70,8 +70,7 @@ public sealed partial class FSPlayerDamageModifySystem : EntitySystem
             {
                 args.Damage = new DamageSpecifier();
                 unt.CurrentCharges--;
-                if (unt.NextChargeTime == default)
-                    unt.NextChargeTime = _timing.CurTime + ChargeReloadTime;
+                unt.NextChargeTime ??= _timing.CurTime + ChargeReloadTime;
                 SendChargesUpdate(uid, unt.CurrentCharges);
             }
         }

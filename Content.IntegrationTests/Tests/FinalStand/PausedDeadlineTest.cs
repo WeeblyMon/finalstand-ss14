@@ -1,5 +1,8 @@
 using Content.IntegrationTests.Fixtures;
+using System.Collections.Generic;
 using Content.Shared._FinalStand.Deployables;
+using Content.Shared._FinalStand.MedicalOps;
+using Content.Shared._FinalStand.Perks;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Timing;
 
@@ -9,6 +12,8 @@ namespace Content.IntegrationTests.Tests.FinalStand;
 // fixed deadline expired the moment an admin unpaused: every placed null field and damage beacon vanished at once.
 [TestFixture]
 [TestOf(typeof(FSDeployableLifetimeComponent))]
+[TestOf(typeof(FSUntouchableComponent))]
+[TestOf(typeof(FSMedicalBonusSystem))]
 public sealed class PausedDeadlineTest : GameTest
 {
     private const string NullField = "FSNullFieldDeployed";
@@ -45,5 +50,63 @@ public sealed class PausedDeadlineTest : GameTest
             var stillLeft = entMan.GetComponent<FSDeployableLifetimeComponent>(field).ExpiresAt - timing.CurTime;
             Assert.That(stillLeft, Is.GreaterThan(left - TimeSpan.FromSeconds(2)), "the pause used up the field's lifetime");
         });
+    }
+
+    // A deadline that isn't running stays unset through a pause. Shifted like a real one, Untouchable's "no recharge
+    // pending" became a recharge already due, and a full player got a free charge on the next hit.
+    [Test]
+    public async Task UnsetDeadlineStaysUnset()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid player = default;
+        await server.WaitPost(() =>
+        {
+            player = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.EnsureComponent<FSUntouchableComponent>(player).CurrentCharges = 1;
+            mapSystem.SetPaused(map.MapId, true);
+        });
+
+        await server.WaitRunTicks(30);
+        await server.WaitPost(() => mapSystem.SetPaused(map.MapId, false));
+
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<FSUntouchableComponent>(player).NextChargeTime, Is.Null,
+                "the pause turned an unset recharge into one already due"));
+    }
+
+    // A CMO buff's deadline lives inside the buff, where the generated pause handling can't see it.
+    [Test]
+    public async Task PauseDoesNotUseUpAMedicalBuff()
+    {
+        var server = Pair.Server;
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var timing = server.ResolveDependency<IGameTiming>();
+        var mapSystem = entMan.System<SharedMapSystem>();
+        var bonus = entMan.System<FSMedicalBonusSystem>();
+        var map = await Pair.CreateTestMap();
+
+        EntityUid player = default;
+        await server.WaitPost(() =>
+        {
+            player = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            bonus.ApplyBuff(player, "test", new Dictionary<FSMedicalBonusCategory, float>
+            {
+                [FSMedicalBonusCategory.Movement] = 0.1f,
+            }, TimeSpan.FromSeconds(1));
+            mapSystem.SetPaused(map.MapId, true);
+        });
+
+        // Paused for longer than the buff lasts.
+        await server.WaitRunTicks((int) (timing.TickRate * 2));
+        await server.WaitPost(() => mapSystem.SetPaused(map.MapId, false));
+        await server.WaitRunTicks(1);
+
+        await server.WaitAssertion(() =>
+            Assert.That(bonus.GetBonus(player, FSMedicalBonusCategory.Movement), Is.GreaterThan(0f),
+                "the pause used up the medical buff"));
     }
 }
