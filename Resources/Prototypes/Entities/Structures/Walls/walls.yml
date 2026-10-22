@@ -574,7 +574,7 @@
     damageModifierSet: NoResistance
   - type: Injurable
     damageContainer: StructuralInorganic
-  - type: FSPlayerDamageImmune
+  - type: FSPlayerDamageImmune # FINALSTAND
   - type: Destructible
     thresholds:
     - trigger:
