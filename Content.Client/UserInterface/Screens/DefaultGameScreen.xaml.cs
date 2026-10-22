@@ -3,6 +3,7 @@ using Content.Client._FinalStand.Interface;
 using Content.Client._FinalStand.WaveHud;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
+using Content.Client.UserInterface.Systems.Actions.Controls;
 using Content.Client.UserInterface.Systems.Actions.Widgets;
 using Content.Client.UserInterface.Systems.Hotbar.Widgets;
 using Content.Client.UserInterface.Systems.Inventory;
@@ -145,12 +146,17 @@ public sealed partial class DefaultGameScreen : InGameScreen
 
         MainViewport.OnResized += ResizeClassicActions;
         Inventory.OnResized += ResizeClassicActions;
+        TopBar.OnResized += ResizeClassicActions;
+
+        ResizeClassicActions();
     }
 
     private void ResizeClassicActions()
     {
         var indent = Inventory.Size.Y + TopBar.Size.Y + 40;
-        Actions.ActionsContainer.MaxGridHeight = MainViewport.Size.Y - indent;
+        var height = MainViewport.Size.Y - indent;
+
+        Actions.ActionsContainer.MaxGridHeight = MathF.Max(height, ActionButton.ClassicSlotSize);
     }
 
     public void SetRightStackLift(float lift)

@@ -35,6 +35,8 @@ public sealed partial class ActionsBar : UIWidget
             ActionsPanel.PanelOverride = new StyleBoxEmpty();
             PrevPage.Visible = false;
             NextPage.Visible = false;
+            ActionsContainer.MaxSize = new Vector2(9999, 9999);
+            ActionsContainer.ExpandBackwards = false;
             return;
         }
 
