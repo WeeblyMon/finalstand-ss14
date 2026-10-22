@@ -1,3 +1,4 @@
+using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Graphics;
@@ -35,6 +36,12 @@ public static class FSMipmaps
         }
 
         return pick;
+    }
+
+    public static Texture? PickInWorld(string path, IClydeViewport viewport, float worldSize)
+    {
+        var pixels = (viewport.WorldToLocal(new Vector2(worldSize, 0f)) - viewport.WorldToLocal(Vector2.Zero)).Length();
+        return Pick(path, pixels);
     }
 
     private static Texture[]? Chain(string path)
