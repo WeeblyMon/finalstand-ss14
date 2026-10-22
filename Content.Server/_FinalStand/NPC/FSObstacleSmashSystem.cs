@@ -46,7 +46,7 @@ public sealed partial class FSObstacleSmashSystem : EntitySystem
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, NPCSteeringComponent, PhysicsComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var steering, out var body))
         {
-            if (uid.Id % TickBuckets != bucket)
+            if (FSTickBucket.Of(uid, TickBuckets) != bucket)
                 continue;
 
             var wantsToMove = steering.LastSteerDirection.LengthSquared() > 0.01f;

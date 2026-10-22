@@ -175,9 +175,16 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
         {
-            if (uid.Id % TickBuckets == bucket)
+            if (Slot(uid).Bucket == bucket)
                 Tick(uid, htn, dt);
         }
+    }
+
+    // The tick bucket and the rescan turn come from one slot, so every bucket spreads its rescans over all turns.
+    internal static (int Bucket, int RescanTurn) Slot(EntityUid uid)
+    {
+        var slot = FSTickBucket.Of(uid, TickBuckets * RescanEveryTicks);
+        return (slot % TickBuckets, slot / TickBuckets);
     }
 
     private void Tick(EntityUid uid, HTNComponent htn, float dt)
@@ -261,7 +268,7 @@ public sealed partial class FSBreachTargetSystem : EntitySystem
         }
 
         // Looking for a better target means two area lookups, so each zombie only does it every few ticks, staggered.
-        if ((uid.Id / TickBuckets + _tick / TickBuckets) % RescanEveryTicks != 0
+        if ((Slot(uid).RescanTurn + _tick / TickBuckets) % RescanEveryTicks != 0
             || !bb.TryGetValue<float>(FSAIBlackboardKeys.CachedBreachScore, out var cachedScore, EntityManager))
             return;
 

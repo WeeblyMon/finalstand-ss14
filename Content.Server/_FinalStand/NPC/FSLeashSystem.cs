@@ -44,7 +44,7 @@ public sealed partial class FSLeashSystem : EntitySystem
         var query = EntityQueryEnumerator<ActiveNPCComponent, WaveSpawnedTagComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out _, out _, out var htn))
         {
-            if (uid.Id % TickBuckets == bucket)
+            if (FSTickBucket.Of(uid, TickBuckets) == bucket)
                 Tick(uid, htn, curTime);
         }
     }

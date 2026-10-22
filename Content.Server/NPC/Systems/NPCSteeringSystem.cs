@@ -2,6 +2,7 @@ using Content.Shared.Standing;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using Content.Server._FinalStand.NPC;
 using Content.Server._FinalStand.Spawners;
 using Content.Server.Administration.Managers;
 using Content.Server.DoAfter;
@@ -249,14 +250,11 @@ public sealed partial class NPCSteeringSystem : SharedNPCSteeringSystem
     private int _steerTick;
     private readonly List<(EntityUid, NPCSteeringComponent, InputMoverComponent, TransformComponent, float)> _steerBuffer = new();
 
-    // Each zombie's uid is the last one's plus its child entities, a fixed stride, so anything read straight off the
-    // uid's low bits (parity) could land a whole horde on the same tick or the same side. Multiplying by an odd
-    // constant spreads any stride evenly over the high bits.
-    private static uint MixUid(EntityUid uid) => (uint) uid.Id * 2654435761u;
+    // Hashed rather than read off the uid's parity, which a spawn stride could make the same for a whole horde. The
+    // side comes from a bit below the ones that pick the tick, so the two don't line up.
+    internal static int SteerSlot(EntityUid uid) => FSTickBucket.Of(uid, WaveZombieSteerEvery);
 
-    internal static int SteerSlot(EntityUid uid) => (int) ((ulong) MixUid(uid) * WaveZombieSteerEvery >> 32);
-
-    internal static bool PrefersLeft(EntityUid uid) => (MixUid(uid) & (1u << 30)) != 0;
+    internal static bool PrefersLeft(EntityUid uid) => (FSTickBucket.Hash(uid) & (1u << 30)) != 0;
 
     public override void Update(float frameTime)
     {
